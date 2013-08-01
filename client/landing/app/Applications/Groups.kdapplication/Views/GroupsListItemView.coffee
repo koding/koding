@@ -202,21 +202,6 @@ class GroupsListItemView extends KDListItemView
                 style      : "modal-cancel"
                 callback   : (event)-> modal.destroy()
 
-      menu['Remove Group'] =
-        cssClass : 'remove-group'
-        callback : =>
-          modal = new GroupsDangerModalView
-            action     : 'Remove Group'
-            longAction : 'remove this group'
-            callback   : (callback)=>
-              data.remove (err)=>
-                callback()
-                return KD.showError err  if err
-                new KDNotificationView title:'Successfully removed!'
-                modal.destroy()
-                @destroy()
-          , data
-
       menu['Cancel Request'] =
         cssClass : 'cancel-request'
         callback : =>
