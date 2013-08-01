@@ -43,6 +43,43 @@ hashFile = (f)->
   shasum.update(fs.readFileSync f)
   return shasum.digest('hex')
 
+
+codeReload = (f)->
+  # dead simple code reloading function
+  # we load the bongo model in a new context
+  # then get its instance methods, class methods
+  # and redefine it on our model instance
+  # thank god for dynamic languages
+  try
+    code = nesh.compile fs.readFileSync f, 'utf-8'
+  catch E
+    console.log "error while loading code... #{f}"
+    console.error E
+    return 
+
+  code = """
+  mdl = require '#{f}'
+  """
+  code = nesh.compile code
+  sandbox = 
+    require: require
+    console: console
+
+  delete require.cache[f]
+  vm.runInNewContext code, sandbox
+  ourModel = bongo.models[sandbox.mdl.name]
+  if ourModel?
+    # we first update instance methods
+    for own key, value of sandbox.mdl.prototype
+      if typeof(value) is "function"
+        ourModel.prototype[key] = value
+    # then update classmethods
+    for own key, value of sandbox.mdl
+      if typeof(value) is "function"
+        ourModel[key] = value
+
+
+
 Watcher = require 'koding-watcher'
 
 bongoPlugin =
@@ -82,16 +119,7 @@ bongoPlugin =
             folders   : [projectRoot + '/workers/social/lib/social/models']
             onChange  : (path)->
               console.log "#{path} changed"
-              #if require.cache[path]?
-                #delete repl.context.require.cache[path]
-                # delete require.cache[path]
-                # mdl = require path
-                # if mdl.name?
-                #   console.log "mdl doesnt have a name ???"
-                #   if bongo.models[mdl.name]?
-                #     bongo.models[mdl.name] = mdl
-                #   repl.context[mdl.name] = mdl
-                #console.log "#{mdl} reloaded ?"
+              codeReload(path)
       next()
 
 execFile = (f, repl)->
