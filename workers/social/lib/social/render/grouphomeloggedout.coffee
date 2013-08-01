@@ -1,7 +1,5 @@
 module.exports = ({account, slug, title, content, body, avatar, counts, policy, customize})->
 
-  content ?= getDefaultGroupContents(title)
-
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
   getSidebar      = require './sidebar'

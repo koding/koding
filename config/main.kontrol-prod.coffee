@@ -115,7 +115,7 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
-      suppressLogs: no
+      suppressLogs: yes
       version   : version
       mainUri   : "http://koding.com"
       broker    :

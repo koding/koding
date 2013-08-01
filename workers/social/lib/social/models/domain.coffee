@@ -363,7 +363,7 @@ module.exports = class JDomain extends jraphical.Module
           "dnsRecords.value"      : oldData.value
           "dnsRecords.recordType" : oldData.recordType
         , {$set : {
-            "dnsRecords.$.host"      : newData.host
+            "dnsRecords.$.host"       : newData.host
             "dnsRecords.$.value"      : newData.value
             "dnsRecords.$.recordType" : newData.recordType
             "dnsRecords.$.ttl"        : newData.ttl
@@ -375,10 +375,11 @@ module.exports = class JDomain extends jraphical.Module
         callback err, response
 
   remove$: permit
-      advanced: [
-        { permission: 'delete own domains', validateWith: Validators.own }
-      ]
-      success: (client, callback)->
-        {delegate} = client.connection
-        @remove (err)=>
-          callback err
+    advanced: [
+      { permission: 'delete own domains', validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      {delegate} = client.connection
+      if /^([\w\-]+)\.kd\.io$/.test @domain
+        return callback new KodingError "It's not allowed to delete root domains"
+      @remove (err)=> callback err
