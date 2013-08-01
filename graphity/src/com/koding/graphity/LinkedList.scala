@@ -53,13 +53,12 @@ object LinkedList {
   // Searches backwards from tail until filter returns true and returns the selected node.
   // The filter must always return true for head node.
   def find(tail: Node, filter: (Node) => Boolean): Node = {
-    var current = tail
-    while (true) {
-      current = current.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING).getStartNode
-      if (filter(current)) {
-        return current
-      }
+    val previous = getPrevious(tail)
+    if (filter(previous)) {
+      previous
+    } else {
+      find(previous, filter)
     }
-    return null // never reached
   }
+
 }
