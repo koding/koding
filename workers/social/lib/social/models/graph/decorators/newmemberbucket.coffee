@@ -15,10 +15,11 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
     members  = {}
     overview = []
 
-    data = _.sortBy @data, (member)-> member.meta.createdAt
+    data = _.sortBy @data, (member)-> member.data.meta.createdAt
     data = data.reverse()
 
     for member in data
+      member = member.data
       id = member.id
       generatedMember = {}
       generatedMember.modifiedAt = member.meta.createdAt
@@ -38,13 +39,11 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
 
   addToOverview:(member)->
     return  if @overview.count > 3
-
     @overview.count++
-    @overview.createdAt.unshift member.meta.createdAt
+    @overview.createdAt.unshift member.meta.createdAt.toJSON()
     @overview.ids.unshift member.id
 
   generateSnapshot:(member)->
-
     snapshot = {}
     snapshot._id         = member.id
     snapshot.sourceName  = member.name
@@ -60,5 +59,4 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
       id : member.id
 
     snapshot.anchor      = anchor
-
     return snapshot
