@@ -134,7 +134,10 @@ class PersonalFormNameView extends AbstractPersonalFormView
         new KDNotificationView
           title     : "Success!"
           duration  : 500
-        @unsetClass 'active'
+
+        @unsetClass "active"
+        # Set document title too...
+        document.title = "#{firstName} #{lastName}"
 
 class PersonalFormAboutView extends AbstractPersonalFormView
 
