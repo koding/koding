@@ -13,18 +13,17 @@ class ClassroomAppView extends KDScrollView
     @fetchClasses()
 
   fetchClasses: ->
-    predefinedClasses = [ "CoffeeScript", "JavaScript", "PHP" ]
-
     @appStorage.fetchStorage (storage) =>
-      @enrolledClasses = @appStorage.getValue "UserClasses"
-      @relatedClasses  = []
+      @enrolledClasses   = @appStorage.getValue("EnrolledClasses") or []
+      @relatedClasses    = []
+      enrolledClassNames = []
 
-      for className in predefinedClasses
-        if @enrolledClasses
-          if @enrolledClasses.indexOf(className) is -1
-            @relatedClasses.push className
-        else
-          @relatedClasses.push className
+      enrolledClassNames.push enrolled.name for enrolled in @enrolledClasses
+
+      for classDetails in @getPredefinedClasses()
+        className = classDetails.name
+        if @enrolledClasses.length is 0 or enrolledClassNames.indexOf(className) is -1
+          @relatedClasses.push classDetails
 
       @addSubView @classesView = new ClassroomClassesView
         delegate : this
@@ -42,3 +41,45 @@ class ClassroomAppView extends KDScrollView
           <img src="http://hindiurduflagship.org/wp-content/uploads/2010/11/ImportanceVideoThumbnail.jpg" />
         </div>
       """
+
+  enrollToClass: (classData) ->
+    @enrolledClasses.push classData
+    @appStorage.setValue "EnrolledClasses", @enrolledClasses
+
+  cancelEnrollment: (classData) ->
+    pos = i for enrolled, i in @enrolledClasses when enrolled.name is classData.name
+    @enrolledClasses.splice pos, 1
+    @appStorage.setValue "EnrolledClasses", @enrolledClasses
+    if @classesView.enrolledContainer.getSubViews().length is 1
+      @classesView.noEnrolledClass.show()
+
+  getPredefinedClasses: ->
+    [
+      {
+        devMode    : true
+        version    : "0.1"
+        name       : "CoffeeScript"
+        author     : "Fatih Acet"
+        authorNick : "fatihacet"
+        icns       :
+          "128"    : "./resources/icon.128.png"
+      }
+      {
+        devMode    : true
+        version    : "0.1"
+        name       : "JavaScript"
+        author     : "Fatih Acet"
+        authorNick : "fatihacet"
+        icns       :
+          "128"    : "./resources/icon.128.png"
+      }
+      {
+        devMode    : true
+        version    : "0.1"
+        name       : "PHP"
+        author     : "Fatih Acet"
+        authorNick : "fatihacet"
+        icns       :
+          "128"    : "./resources/icon.128.png"
+      }
+    ]
