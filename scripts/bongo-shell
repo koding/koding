@@ -1,22 +1,18 @@
 #!/usr/bin/env coffee
-nesh = require('nesh')
-argv = require('optimist').argv
 # -c config file
 # -f eval coffeescript file
 # -C run -f file when a bongo model is reloaded
-fs = require 'fs'
-
+fs       = require 'fs'
+vm       = require 'vm'
+nesh     = require('nesh')
 Bongo    = require 'bongo'
 Broker   = require 'broker'
 {argv}   = require 'optimist'
 {extend} = require 'underscore'
-vm = require 'vm'
-
 
 process.on 'uncaughtException', (err)->
   console.log "!!!!!!!!!!!!!!!!!!!!!!!! uncaughtException !!!!!!!!!!!!!!!!!!"
   console.error err
-
 
 if argv.c
   KONFIG = require('koding-config-manager').load("main.#{argv.c}")  
@@ -28,7 +24,6 @@ else
 mqOptions = extend {}, mq
 mqOptions.login = webserver.login  if webserver?.login?
 mqOptions.productName = 'koding-webserver'
-
 
 opts =
   welcome: 'Welcome to koding...'
@@ -138,7 +133,6 @@ bongoPlugin =
         repl.context[i] = bongo.models[i]
       console.log "Press enter to start"
 
-      _ = require 'underscore'
       watcher = new Watcher
         groups        :
           bongo      :
