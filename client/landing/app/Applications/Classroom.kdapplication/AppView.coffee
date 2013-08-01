@@ -1,4 +1,4 @@
-class ClassroomAppView extends KDView
+class ClassroomAppView extends KDScrollView
 
   constructor: (options = {}, data) ->
 

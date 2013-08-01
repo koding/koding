@@ -15,3 +15,4 @@ class ClassroomAppController extends AppController
       name          : "Classroom"
 
     super options, data
+    
