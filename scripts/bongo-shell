@@ -9,6 +9,13 @@ Bongo    = require 'bongo'
 Broker   = require 'broker'
 {argv}   = require 'optimist'
 {extend} = require 'underscore'
+vm = require 'vm'
+
+
+process.on 'uncaughtException', (err)->
+  console.log "!!!!!!!!!!!!!!!!!!!!!!!! uncaughtException"
+  console.error err
+
 
 if argv.c
   KONFIG = require('koding-config-manager').load("main.#{argv.c}")  
@@ -29,6 +36,14 @@ opts =
 nesh.config.load()
 nesh.loadLanguage('coffee')
 
+lastHash = ""
+hashFile = (f)->
+  crypto = require('crypto')
+  shasum = crypto.createHash('sha1')
+  shasum.update(fs.readFileSync f)
+  return shasum.digest('hex')
+
+Watcher = require 'koding-watcher'
 
 bongoPlugin =
     name: "bongoplugin"
@@ -43,6 +58,15 @@ bongoPlugin =
 
     postStart: (context, next)->
       {repl} = context
+
+      if argv.f
+        fs.watch argv.f, (event)->
+          hash = hashFile(argv.f)
+          if hash isnt lastHash
+            console.log ">>>> fileChanged executing...", projectRoot + '/workers/social/lib/social/models'
+            execFile(argv.f, repl)
+            lastHash = hash
+
       repl.context.md5 = (value) ->
         crypto.createHash('md5').update(value).digest 'hex'
 
@@ -50,7 +74,32 @@ bongoPlugin =
       for i of bongo.models
         repl.context[i] = bongo.models[i]
       console.log "Press enter to start"
+
+      _ = require 'underscore'
+      watcher = new Watcher
+        groups        :
+          bongo      :
+            folders   : [projectRoot + '/workers/social/lib/social/models']
+            onChange  : (path)->
+              console.log "#{path} changed"
+              #if require.cache[path]?
+                #delete repl.context.require.cache[path]
+                # delete require.cache[path]
+                # mdl = require path
+                # if mdl.name?
+                #   console.log "mdl doesnt have a name ???"
+                #   if bongo.models[mdl.name]?
+                #     bongo.models[mdl.name] = mdl
+                #   repl.context[mdl.name] = mdl
+                #console.log "#{mdl} reloaded ?"
       next()
+
+execFile = (f, repl)->
+  try
+    data = nesh.compile fs.readFileSync f, 'utf-8'
+    vm.runInContext data, repl.context
+  catch E
+    console.error E
 
 startShell = ()->
   nesh.loadPlugin bongoPlugin, (err) ->
