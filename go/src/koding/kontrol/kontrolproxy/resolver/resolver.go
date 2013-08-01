@@ -3,6 +3,7 @@ package resolver
 import (
 	"errors"
 	"fmt"
+	"io"
 	"koding/kontrol/kontrolproxy/models"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/kontrol/kontrolproxy/utils"
@@ -123,7 +124,7 @@ func GetTarget(host string) (*Target, error) {
 	domain, err = proxyDB.GetDomain(host)
 	if err != nil {
 
-		if err.Error() == "EOF" {
+		if err == io.EOF {
 			proxyDB.Refresh()
 		}
 
