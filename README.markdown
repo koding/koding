@@ -29,8 +29,6 @@ information about the folder structure.
                        If you execute "npm install" a symlink for every folders
                        is created to node_modules folder.
 
-* patches: PLEASE FILL HERE
-
 * scripts: contains several handy scripts for certains tasks. please refer to
            scripts/Readme.md for more information
 
@@ -38,7 +36,9 @@ information about the folder structure.
 
 * team:    a folder for our remote working developers. You can find the working
            hours of every remote working developers here.
-* tests: 
+
+* tests:   PLEASE FILL HERE
+
 * vagrant: PLEASE FILL HERE
 
 * website: assets used by the webserver for our koding.com homepage
