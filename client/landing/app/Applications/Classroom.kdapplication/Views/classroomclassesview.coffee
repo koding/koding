@@ -51,6 +51,10 @@ class ClassroomClassesView extends JView
     @noRelatedClass.show()   unless @getData().related
     @noEnrolledClass.show()  unless @getData().enrolled
 
+  viewAppended: ->
+    super
+    thumbView.loader.show() for thumbView in @thumbViews
+
   pistachio: ->
     """
       {{> @enrolledContainer}}
