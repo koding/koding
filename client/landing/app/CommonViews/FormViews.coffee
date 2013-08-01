@@ -126,6 +126,8 @@ class PersonalFormNameView extends AbstractPersonalFormView
     @doModify
       'profile.firstName' : firstName
       'profile.lastName'  : lastName
+    , yes, (err)->
+      document.title = "#{firstName} #{lastName}"  unless err
 
 
 class PersonalFormAboutView extends AbstractPersonalFormView

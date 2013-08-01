@@ -89,18 +89,22 @@ KD.extend
   showError:(err, messages)->
     return  unless err
 
-    messages or=
-      AccessDenied : 'Permission denied'
-      KodingError  : 'Something went wrong'
-
     if 'string' is typeof err
       message = err
       err     = {message}
 
-    err.name or= 'KodingError'
+    defaultMessages =
+      AccessDenied : 'Permission denied'
+      KodingError  : 'Something went wrong'
 
+    err.name or= 'KodingError'
     content    = ''
-    errMessage = err.message or messages[err.name] or messages.KodingError
+
+    if messages
+      errMessage = messages[err.name] or messages.KodingError \
+                                      or defaultMessages.KodingError
+    messages or= defaultMessages
+    errMessage or= err.message or messages[err.name] or messages.KodingError
 
     if errMessage?
       if 'string' is typeof errMessage

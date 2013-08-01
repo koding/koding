@@ -108,7 +108,7 @@ class ActivityBlogPostWidget extends KDFormView
   switchToEditView:(activity,fake=no)->
 
     unless fake
-      @submitBtn.setTitle "Edit Discussion"
+      @submitBtn.setTitle "Edit Blog Post"
       @addCustomData "activity", activity
     else
       @submitBtn.setTitle 'Submit again'
