@@ -470,8 +470,15 @@ class VirtualizationController extends KDController
                  you need to turn on your VM first, you can do that by
                  clicking '<b>Turn ON VM</b>' button below."""
 
+    unless @defaultVmName
+      content = """To #{if appName then 'use' else 'do this'}
+                 <b>#{appName}</b> you need to have at lease one VM created,
+                 you can do that by clicking '<b>Create Default VM</b>' button
+                 below."""
+
     modal = new KDModalView
-      title          : "Your VM is turned off"
+      title          : if @defaultVmName then "Your VM is turned off" \
+                                         else "You don't have any VM"
       content        : "<div class='modalformline'><p>#{content}</p></div>"
       height         : "auto"
       overlay        : yes
@@ -484,11 +491,23 @@ class VirtualizationController extends KDController
               if appName
                 @once 'StateChanged', ->
                   KD.getSingleton("appManager").open appName
+        'Create Default VM' :
+          style      : "modal-clean-green"
+          callback   : =>
+            @createNewVM()
+            if appName
+              @once 'StateChanged', ->
+                KD.utils.wait 2000, =>
+                  KD.getSingleton("appManager").open appName
+            modal.destroy()
         Cancel       :
           style      : "modal-clean-gray"
           callback   : ->
             modal.destroy()
             callback?()
+
+    if @defaultVmName then modal.buttons['Create Default VM'].destroy() \
+                      else modal.buttons['Turn ON VM'].destroy()
 
     modal.once 'KDModalViewDestroyed', -> callback?()
 
