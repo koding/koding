@@ -71,10 +71,12 @@ class ActivityListHeader extends JView
       KD.getSingleton('activityController').flags = showExempt : (@appStorage.getValue('showLowQualityContent') or off)
       @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
-  _checkForUpdates: do (lastTs = null, lastCount = null) ->
+  _checkForUpdates: do (lastTs = null, lastCount = null, alreadyWarned = no) ->
     itFailed = ->
-      console.warn 'seems like live updates stopped coming'
-      KD.logToExternal 'realtime failure detected'
+      unless alreadyWarned
+        console.warn 'seems like live updates stopped coming'
+        KD.logToExternal 'realtime failure detected'
+        alreadyWarned = yes
     ->
       KD.remote.api.CActivity.fetchLastActivityTimestamp (err, ts) =>
         itFailed()  if ts? and lastTs isnt ts and lastCount is __count
