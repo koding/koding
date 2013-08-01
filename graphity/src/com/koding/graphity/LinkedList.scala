@@ -8,10 +8,10 @@ import org.neo4j.graphdb.RelationshipType
 object LinkedList {
 
   // Points from head node and each entry node to tail node.
-  object LINKED_LIST_TAIL extends RelationshipType { def name(): String = "LINKED_LIST_TAIL" }
+  object LINKED_LIST_TAIL extends RelationshipType { def name: String = "LINKED_LIST_TAIL" }
 
   // Points from head or entry node to next entry node or tail node.
-  object LINKED_LIST_NEXT extends RelationshipType { def name(): String = "LINKED_LIST_NEXT" }
+  object LINKED_LIST_NEXT extends RelationshipType { def name: String = "LINKED_LIST_NEXT" }
 
   // Initializes a linked list with given head and tail nodes.
   def init(head: Node, tail: Node) {
@@ -19,25 +19,16 @@ object LinkedList {
     head.createRelationshipTo(tail, LINKED_LIST_NEXT)
   }
 
-  // Searches backwards from tail until positionFilter returns true and inserts entry at that position.
-  // The positionFilter must always return true for head node.
-  def insertFromTail(tail: Node, positionFilter: (Node) => Boolean, entry: Node): Unit = {
+  // Inserts entry between previous and the following node.
+  def insert(previous: Node, entry: Node): Unit = {
+    val tail = previous.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).getEndNode
     entry.createRelationshipTo(tail, LINKED_LIST_TAIL)
 
-    var current = tail
-    while (true) {
-      val incomingNextRel = current.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING)
-      val previous = incomingNextRel.getStartNode()
+    val nextRel = previous.getSingleRelationship(LINKED_LIST_NEXT, Direction.OUTGOING)
+    nextRel.delete
 
-      if (positionFilter(previous)) {
-        incomingNextRel.delete()
-        previous.createRelationshipTo(entry, LINKED_LIST_NEXT)
-        entry.createRelationshipTo(current, LINKED_LIST_NEXT)
-        return
-      }
-
-      current = previous
-    }
+    previous.createRelationshipTo(entry, LINKED_LIST_NEXT)
+    entry.createRelationshipTo(nextRel.getEndNode, LINKED_LIST_NEXT)
   }
 
   // Remove entry and return tail node. Do not execute on head or tail node.
@@ -46,17 +37,28 @@ object LinkedList {
     val outgoingNextRel = entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.OUTGOING)
     val incomingNextRel = entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING)
 
-    tailRel.delete()
-    outgoingNextRel.delete()
-    incomingNextRel.delete()
-    incomingNextRel.getStartNode().createRelationshipTo(outgoingNextRel.getEndNode(), LINKED_LIST_NEXT)
+    tailRel.delete
+    outgoingNextRel.delete
+    incomingNextRel.delete
+    incomingNextRel.getStartNode.createRelationshipTo(outgoingNextRel.getEndNode, LINKED_LIST_NEXT)
 
-    tailRel.getEndNode()
+    tailRel.getEndNode
   }
 
   // Get previous entry. Do not execute on head node.
   def getPrevious(entry: Node) = {
-    entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING).getStartNode()
+    entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING).getStartNode
+  }
+
+  // Searches backwards from tail until filter returns true and returns the selected node.
+  // The filter must always return true for head node.
+  def find(tail: Node, filter: (Node) => Boolean): Node = {
+    val previous = getPrevious(tail)
+    if (filter(previous)) {
+      previous
+    } else {
+      find(previous, filter)
+    }
   }
 
 }
