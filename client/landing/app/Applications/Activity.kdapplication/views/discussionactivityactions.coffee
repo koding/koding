@@ -11,7 +11,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
         event.preventDefault()
         @emit "DiscussionActivityLinkClicked"
 
-    @commentCountLink  = new ActivityActionLink
+    @commentLink  = new ActivityActionLink
       partial     : "Comment"
       click       : (event)=>
         event.preventDefault()
@@ -36,9 +36,10 @@ class DiscussionActivityActionsView extends ActivityActionsView
         @emit "DiscussionActivityCommentLinkClicked"
     , activity
 
-    @opinionCount.on "countChanged", (count) =>
-      if count > 0 then @opinionCountLink.show()
-      else @opinionCountLink.hide()
+    for view in [@opinionCount, @commentCount]
+      view.on "countChanged", (count)->
+        if count > 0 then @show()
+        else @hide()
 
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
@@ -73,7 +74,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
     """
       {{> @loader}}
       {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.opinionCount > 0 then " ·" else "" }
-      {{> @commentCountLink}} {{> @commentCount}} #{if @getData()?.repliesCount > 0 then " ·" else " ·" }
+      {{> @commentLink}} {{> @commentCount}} #{if @getData()?.repliesCount > 0 then " ·" else " ·" }
       <span class='optional'>
       {{> @shareLink}} ·
       </span>
