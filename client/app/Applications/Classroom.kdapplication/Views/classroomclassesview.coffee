@@ -10,8 +10,21 @@ class ClassroomClassesView extends JView
     @createClasses()
 
   createClasses: ->
-    for enrolled in @getData().enrolled
-      @enrolledContainer.addSubView new ClassroomClassThumbView {}, enrolled
+    @thumbViews = []
+
+    if @getData().enrolled
+      for enrolled in @getData().enrolled
+        @createThumbView @enrolledContainer, "enrolled", enrolled
+
+    if @getData().related
+      for related in @getData().related
+        @createThumbView @relatedContainer, "related", related
+
+  createThumbView: (container, type, data) ->
+    {cdnRoot} = @getDelegate()
+    thumbView = new ClassroomClassThumbView { cdnRoot, type }, data
+    container.addSubView thumbView
+    @thumbViews.push thumbView
 
   createElements: ->
     @enrolledContainer = new KDCustomHTMLView
