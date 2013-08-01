@@ -3,13 +3,13 @@ class VmDangerModalView extends KDModalViewWithForms
   constructor:(options = {}, data)->
 
     options.action    or= 'Danger Zone'
-    options.callback  ?= -> log "#{options.action} performed"
     options.title     or= options.action
     options.content   or= "<div class='modalformline'><p><strong>CAUTION! </strong>This will destroy the <strong>#{options.name}</strong> VM including all its data. This action <strong>CANNOT</strong> be undone.</p><br><p>Please enter <strong>#{data}</strong> into the field below to continue: </p></div>"
-    options.overlay   ?= yes
-    options.width     ?= 500
-    options.height    ?= 'auto'
-    options.tabs      ?=
+    options.callback   ?= -> log "#{options.action} performed"
+    options.overlay    ?= yes
+    options.width      ?= 500
+    options.height     ?= 'auto'
+    options.tabs       ?=
       forms                  :
         dangerForm           :
           callback           : =>
