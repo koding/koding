@@ -3,6 +3,7 @@ nesh = require('nesh')
 argv = require('optimist').argv
 # -c config file
 # -f eval coffeescript file
+# -C run -f file when a bongo model is reloaded
 fs = require 'fs'
 
 Bongo    = require 'bongo'
@@ -13,7 +14,7 @@ vm = require 'vm'
 
 
 process.on 'uncaughtException', (err)->
-  console.log "!!!!!!!!!!!!!!!!!!!!!!!! uncaughtException"
+  console.log "!!!!!!!!!!!!!!!!!!!!!!!! uncaughtException !!!!!!!!!!!!!!!!!!"
   console.error err
 
 
@@ -37,6 +38,8 @@ nesh.config.load()
 nesh.loadLanguage('coffee')
 
 lastHash = ""
+repl_ = null
+
 hashFile = (f)->
   crypto = require('crypto')
   shasum = crypto.createHash('sha1')
@@ -77,11 +80,19 @@ codeReload = (f)->
     for own key, value of sandbox.mdl
       if typeof(value) is "function"
         ourModel[key] = value
+  if argv.C
+    loadAndRunFile(argv.f, )
 
+
+loadAndRunFile = (f)->
+  hash = hashFile(argv.f)
+  if hash isnt lastHash
+    console.log ">>>> fileChanged executing..."
+    execFile(argv.f, repl_)
+    lastHash = hash
 
 
 Watcher = require 'koding-watcher'
-
 bongoPlugin =
     name: "bongoplugin"
     description: "Some description here"
@@ -95,14 +106,10 @@ bongoPlugin =
 
     postStart: (context, next)->
       {repl} = context
-
+      repl_ = repl
       if argv.f
         fs.watch argv.f, (event)->
-          hash = hashFile(argv.f)
-          if hash isnt lastHash
-            console.log ">>>> fileChanged executing...", projectRoot + '/workers/social/lib/social/models'
-            execFile(argv.f, repl)
-            lastHash = hash
+          loadAndRunFile argv.f
 
       repl.context.md5 = (value) ->
         crypto.createHash('md5').update(value).digest 'hex'
