@@ -31,7 +31,7 @@ module.exports = class JVM extends Model
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVmInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
-                           'count', #'calculateUsage'
+                           'count', 'fetchDefaultVm' #'calculateUsage'
                           ]
       instance          : []
     schema              :
@@ -280,6 +280,21 @@ module.exports = class JVM extends Model
           planOwner     : vm.planOwner
           hostnameAlias : vm.hostnameAlias
 
+  @fetchDefaultVm = secure (client, callback)->
+    {delegate} = client.connection
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+      JGroup = require './group'
+      JGroup.one slug:'koding', (err, fetchedGroup)=>
+        return callback err  if err
+        JVM.one
+          users    : { $elemMatch: id: user.getId() }
+          groups   : { $elemMatch: id: fetchedGroup.getId() }
+          planCode : 'free'
+        , (err, vm)->
+          return callback err  if err
+          callback err, vm?.hostnameAlias
+
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback
 
@@ -333,18 +348,18 @@ module.exports = class JVM extends Model
   # Public(shared) static method to fetch domains
   # which points to given hostnameAlias
   @fetchDomains$ = secure (client, hostnameAlias, callback)->
-      {delegate} = client.connection
+    {delegate} = client.connection
 
-      delegate.fetchUser (err, user) ->
-        return callback err  if err
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
 
-        selector =
-          hostnameAlias : hostnameAlias
-          users         : { $elemMatch: id: user.getId() }
+      selector =
+        hostnameAlias : hostnameAlias
+        users         : { $elemMatch: id: user.getId() }
 
-        JVM.one selector, {hostnameAlias:1}, (err, vm)->
-          return callback err, []  if err or not vm
-          JVM.fetchDomains {hostnameAlias: vm.hostnameAlias}, callback
+      JVM.one selector, {hostnameAlias:1}, (err, vm)->
+        return callback err, []  if err or not vm
+        JVM.fetchDomains {hostnameAlias: vm.hostnameAlias}, callback
 
   @removeRelatedDomains = (vm, callback=->)->
     vmInfo = @parseAlias vm.hostnameAlias
