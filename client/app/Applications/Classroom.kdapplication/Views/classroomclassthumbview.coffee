@@ -1,4 +1,4 @@
-class ClassroomClassThumbView extends KDView
+class ClassroomClassThumbView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -6,49 +6,58 @@ class ClassroomClassThumbView extends KDView
 
     super options, data
 
-    @addSubView @loader = new KDLoaderView
-      size    :
-        width : 40
+    @createElements()
 
-    @fetchManifest()
+    data    = @getData()
+    appView = @getDelegate()
 
-  fetchManifest: ->
-    manifestURL = "#{@getOptions().cdnRoot}/#{@getData()}.kdclass/manifest.json"
-    KD.getSingleton("kiteController").run "curl -s #{manifestURL}", (err, res) =>
-      log err, res
+    @on "EnrollmentCancelled", => appView.cancelEnrollment data
+    @on "EnrollmentRequested", => appView.enrollToClass data
 
   createElements: ->
-  #   devModeOptions = {}
-  #   if data.devMode
-  #     devModeOptions.cssClass = "top-badge gray"
-  #     devModeOptions.partial  = "Dev Mode"
+    data              = @getData()
+    devModeOptions    = {}
+    cancelIconOptions = {}
 
-  #   @devMode     = new KDCustomHTMLView devModeOptions
-  #   @icon        = new KDCustomHTMLView
-  #     tagName    : "img"
-  #     attributes :
-  #       src      : "#{@cdnRoot}/#{@getData().icns['128']}"
+    if data.devMode
+      devModeOptions.cssClass = "top-badge gray"
+      devModeOptions.partial  = "Dev Mode"
 
-  #   @deleteIcon  = new KDCustomHTMLView
-  #     tagName    : "span"
-  #     cssClass   : "icon delete"
-  #     click      : ->
-  #       log "sadasdas"
+    @devMode = new KDCustomHTMLView devModeOptions
 
-  viewAppended: ->
-    super
-    @loader.show()
+    if @getOptions().type is "enrolled"
+      cancelIconOptions.tagName  = "span"
+      cancelIconOptions.cssClass = "icon delete"
+      cancelIconOptions.click    = (e) =>
+        e.stopPropagation()
+        @destroy()
+        @emit "EnrollmentCancelled"
 
-  # pistachio: ->
-  #   data   = @getData()
-  #   return """
-  #     {{> @devMode}}
-  #     <p>{{> @icon}}</p>
-  #     <div class="icon-container">
-  #       {{> @deleteIcon}}
-  #     </div>
-  #     <cite>
-  #       <span>#{data.name}</span>
-  #       <span>#{data.version}</span>
-  #     </cite>
-  #   """
+    @cancelIcon = new KDCustomHTMLView cancelIconOptions
+    @loader     = new KDLoaderView
+      size      :
+        width   : 40
+
+    @loader.hide()
+
+  click: ->
+    log "should open class"
+    @emit "EnrollmentRequested", @getData()  if @getOptions().type isnt "enrolled"
+
+  pistachio: ->
+    data      = @getData()
+    {cdnRoot} = @getOptions()
+    return """
+      {{> @devMode}}
+      <p>
+        <img src="#{cdnRoot}/#{data.name}.kdclass/#{data.icns['128']}" />
+      </p>
+      <div class="icon-container">
+        {{> @cancelIcon}}
+      </div>
+      <cite>
+        <span>#{data.name}</span>
+        <span>#{data.version}</span>
+      </cite>
+      {{> @loader}}
+    """

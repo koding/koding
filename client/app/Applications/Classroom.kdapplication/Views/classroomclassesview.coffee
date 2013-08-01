@@ -6,25 +6,28 @@ class ClassroomClassesView extends JView
 
     super options, data
 
+    @enrolledClassNames = []
+    @relatedClassNames  = []
+
     @createElements()
     @createClasses()
 
   createClasses: ->
-    @thumbViews = []
-
     if @getData().enrolled
       for enrolled in @getData().enrolled
+        @enrolledClassNames.push enrolled.name
         @createThumbView @enrolledContainer, "enrolled", enrolled
 
     if @getData().related
       for related in @getData().related
+        @relatedClassNames.push related.name
         @createThumbView @relatedContainer, "related", related
 
   createThumbView: (container, type, data) ->
-    {cdnRoot} = @getDelegate()
-    thumbView = new ClassroomClassThumbView { cdnRoot, type }, data
+    appView   = @getDelegate()
+    {cdnRoot} = appView
+    thumbView = new ClassroomClassThumbView { cdnRoot, type, delegate: appView }, data
     container.addSubView thumbView
-    @thumbViews.push thumbView
 
   createElements: ->
     @enrolledContainer = new KDCustomHTMLView
@@ -48,12 +51,8 @@ class ClassroomClassesView extends JView
     @enrolledContainer.addSubView @noEnrolledClass
     @relatedContainer.addSubView  @noRelatedClass
 
-    @noRelatedClass.show()   unless @getData().related
-    @noEnrolledClass.show()  unless @getData().enrolled
-
-  viewAppended: ->
-    super
-    thumbView.loader.show() for thumbView in @thumbViews
+    @noRelatedClass.show()   unless @getData().related.length
+    @noEnrolledClass.show()  unless @getData().enrolled.length
 
   pistachio: ->
     """
