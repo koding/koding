@@ -71,15 +71,34 @@ codeReload = (f)->
   delete require.cache[f]
   vm.runInNewContext code, sandbox
   ourModel = bongo.models[sandbox.mdl.name]
+  newInstanceMethods = {}
+  newClassMethods = {}
   if ourModel?
+    # TODO: shorten me please...
     # we first update instance methods
     for own key, value of sandbox.mdl.prototype
       if typeof(value) is "function"
         ourModel.prototype[key] = value
+        newInstanceMethods[key] = 1
     # then update classmethods
     for own key, value of sandbox.mdl
       if typeof(value) is "function"
         ourModel[key] = value
+        newClassMethods[key] = 1 
+
+    # now we remove the deleted functions
+    for own key, value of ourModel.prototype
+      if typeof(value) is "function"
+        console.log newInstanceMethods[key]?
+        if not newInstanceMethods[key]?
+          delete ourModel.prototype[key]
+
+    # now we remove the deleted functions
+    for own key, value of ourModel
+      if typeof(value) is "function"
+        if not newClassMethods[key]?
+          delete ourModel[key]
+
   if argv.C
     loadAndRunFile(argv.f, )
 
