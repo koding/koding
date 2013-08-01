@@ -1,4 +1,4 @@
-class ClassroomClassThumbView extends JView
+class ClassroomClassThumbView extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -6,35 +6,49 @@ class ClassroomClassThumbView extends JView
 
     super options, data
 
-    @cdnRoot = "http://fatihacet.kd.io/cdn/classes/#{@getData().name}.kdclass/"
+    @addSubView @loader = new KDLoaderView
+      size    :
+        width : 40
 
-    devModeOptions = {}
-    if data.devMode
-      devModeOptions.cssClass = "top-badge gray"
-      devModeOptions.partial  = "Dev Mode"
+    @fetchManifest()
 
-    @devMode     = new KDCustomHTMLView devModeOptions
-    @icon        = new KDCustomHTMLView
-      tagName    : "img"
-      attributes :
-        src      : "#{@cdnRoot}/#{@getData().icns['128']}"
+  fetchManifest: ->
+    manifestURL = "#{@getOptions().cdnRoot}/#{@getData()}.kdclass/manifest.json"
+    KD.getSingleton("kiteController").run "curl -s #{manifestURL}", (err, res) =>
+      log err, res
 
-    @deleteIcon  = new KDCustomHTMLView
-      tagName    : "span"
-      cssClass   : "icon delete"
-      click      : ->
-        log "sadasdas"
+  createElements: ->
+  #   devModeOptions = {}
+  #   if data.devMode
+  #     devModeOptions.cssClass = "top-badge gray"
+  #     devModeOptions.partial  = "Dev Mode"
 
-  pistachio: ->
-    data   = @getData()
-    return """
-      {{> @devMode}}
-      <p>{{> @icon}}</p>
-      <div class="icon-container">
-        {{> @deleteIcon}}
-      </div>
-      <cite>
-        <span>#{data.name}</span>
-        <span>#{data.version}</span>
-      </cite>
-    """
+  #   @devMode     = new KDCustomHTMLView devModeOptions
+  #   @icon        = new KDCustomHTMLView
+  #     tagName    : "img"
+  #     attributes :
+  #       src      : "#{@cdnRoot}/#{@getData().icns['128']}"
+
+  #   @deleteIcon  = new KDCustomHTMLView
+  #     tagName    : "span"
+  #     cssClass   : "icon delete"
+  #     click      : ->
+  #       log "sadasdas"
+
+  viewAppended: ->
+    super
+    @loader.show()
+
+  # pistachio: ->
+  #   data   = @getData()
+  #   return """
+  #     {{> @devMode}}
+  #     <p>{{> @icon}}</p>
+  #     <div class="icon-container">
+  #       {{> @deleteIcon}}
+  #     </div>
+  #     <cite>
+  #       <span>#{data.name}</span>
+  #       <span>#{data.version}</span>
+  #     </cite>
+  #   """
