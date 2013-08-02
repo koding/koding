@@ -5,13 +5,15 @@ module.exports = class FetchAllActivityParallel
   async          = require "async"
   Graph          = require "./graph"
   GraphDecorator = require "./graphdecorator"
-  Bucket       = require "./bucket"
+  Bucket         = require "./bucket"
+  Activity       = require "./activity"
 
   constructor:(@requestOptions)->
     {client, startDate, neo4j, group, facets} = @requestOptions
 
     @client               = client
     @graph                = new Graph {config : neo4j, facets: group.facets}
+    @facets               = group.facets
     @startDate            = startDate
     @group                = group
     @randomIdToOriginal   = {}
@@ -38,7 +40,8 @@ module.exports = class FetchAllActivityParallel
       callback @decorateAll(err, results)
 
   fetchSingles:(callback)->
-    @graph.fetchAll @requestOptions, (err, rawResponse=[])->
+    @requestOptions.facet = @facets
+    Activity.fetchAll @requestOptions, (err, rawResponse=[])->
       GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
