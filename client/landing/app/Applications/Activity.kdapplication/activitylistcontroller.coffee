@@ -29,7 +29,7 @@ class ActivityListController extends KDListViewController
 
     KD.getSingleton("groupsController").on "FollowHappened", (info) =>
       {follower, origin} = info
-      @updateBuckets follower, origin
+      @updateFollowerBucket follower, origin
 
   resetList:->
     @newActivityArrivedList = {}
@@ -158,20 +158,10 @@ class ActivityListController extends KDListViewController
   updateNewMemberBucket:(memberAccount)->
     for item in @itemsOrdered
       if item.getData() instanceof NewMemberBucketData
-        data = item.getData()
-        if data.count > 3
-          data.anchors.pop()
-        id = memberAccount.id
-        data.anchors.unshift {bongo_: {constructorName:"ObjectRef"}, constructorName:"JAccount", id:id}
-        data.createdAtTimestamps.push (new Date).toJSON()
-        data.count++
-        item.slideOut =>
-          @removeItem item, data
-          newItem = @addHiddenItem data, 0
-          @utils.wait 500, -> newItem.slideIn()
+        @updateBucket item, "JAccount", memberAccount.id
         break
 
-  updateBuckets:(follower, followee)->
+  updateFollowerBucket:(follower, followee)->
     for item in @itemsOrdered
       data = item.getData()
 
@@ -180,19 +170,25 @@ class ActivityListController extends KDListViewController
 
       if data.group[0].constructorName is followee.bongo_.constructorName
         if data.anchor.id is follower.id
-          data.group.unshift {
-            bongo_:
-              constructorName:"ObjectRef"
-            constructorName:followee.bongo_.constructorName, id:followee._id
-          }
-          data.createdAtTimestamps.push (new Date).toJSON()
-          data.count ||= 0
-          data.count++
-          item.slideOut =>
-            @removeItem item, data
-            newItem = @addHiddenItem data, 0
-            @utils.wait 500, -> newItem.slideIn()
+          @updateBucket item, followee.bongo_.constructorName, followee._id
           break
+
+  updateBucket:(item, constructorName, id)->
+    data = item.getData()
+    group = data.group or data.anchors
+    group.unshift {
+      bongo_:
+        constructorName:"ObjectRef"
+      constructorName
+      id
+    }
+    data.createdAtTimestamps.push (new Date).toJSON()
+    data.count ||= 0
+    data.count++
+    item.slideOut =>
+      @removeItem item, data
+      newItem = @addHiddenItem data, 0
+      @utils.wait 500, -> newItem.slideIn()
 
   fakeItems = []
 
