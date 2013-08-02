@@ -14,8 +14,18 @@ app.home.styl
 #kdmaincontainer > header
   .custom-link-view
     hidden()
+
 #kdmaincontainer.home
   overflow          auto
+
+  #main-panel-wrapper
+    min-height      100%
+    height          auto!important
+  #sidebar-panel
+    hidden()
+  #content-panel
+    min-height      100%
+    height          auto!important
 
   > header
     bg              color, #000
