@@ -5,38 +5,13 @@ error_messages =
   500: "Something wrong."
 
 error_ = (code, message)->
+  # Refactor this to use pistachio instead of underscore template engine - FKA
+  {errorTemplate} = require './staticpages'
+  {template}      = require 'underscore'
   messageHTML = message.split('\n')
     .map((line)-> "<p>#{line}</p>")
     .join '\n'
-  """
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-  <meta charset="utf-8">
-  <title>#{code} - #{error_messages[code]}</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="//koding.com/hello/css/style.css">
-
-  <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
-  </head>
-  <body>
-    <div id="container">
-      <header>
-        <a href="http://koding.com">Koding.com</a>
-      </header>
-      <h2>
-        #{code} - #{error_messages[code]}
-      </h2>
-      <div class="wrap" style="text-align: center;">
-      #{messageHTML}
-      </div>
-    </div>
-    <footer>
-      fayamf
-    </footer>
-  </body>
-  </html>
-  """
+  template errorTemplate, {code, error_messages, messageHTML}
 
 error_404 = ->
   error_ 404, "This webpage is not available."
