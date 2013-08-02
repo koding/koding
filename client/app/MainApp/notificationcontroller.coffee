@@ -37,6 +37,8 @@ class NotificationController extends KDObject
 
     @on 'UsernameChanged', ({username, oldUsername}) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
+    @on 'GuestTimePeriodHasEnded', ()->
+      #todo add a notification to user
       $.cookie 'clientId', erase: yes
 
       new KDModalView

@@ -66,10 +66,13 @@ module.exports = class JUser extends jraphical.Module
       username      : 'unique'
       email         : 'unique'
 
-    sharedEvents    : {}
-      # static        : [
-      #   { name: 'UserCreated' }
-      # ]
+    sharedEvents    :
+      static        : [
+        { name : "RemovedFromCollection" }
+      ]
+      instance      : [
+        { name : "RemovedFromCollection" }
+      ]
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [

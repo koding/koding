@@ -214,6 +214,27 @@ task 'guestCleanup',({configFile})->
       startMode    : "one"
     verbose        : yes
 
+
+task 'guestCleanerWorker',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.fork
+    name           : 'guestCleanerWorker'
+    cmd            : "./workers/guestcleaner/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 1
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
+  watcher = new Watcher
+    groups        :
+      guestcleaner:
+        folders   : ['./workers/guestcleaner']
+        onChange  : (path) ->
+          processes.kill "guestCleanerWorker"
+
 task 'emailWorker',({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 

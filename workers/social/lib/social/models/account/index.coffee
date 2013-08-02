@@ -54,10 +54,12 @@ module.exports = class JAccount extends jraphical.Module
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
+        { name : "RemovedFromCollection" }
       ]
       instance      : [
         { name: 'updateInstance' }
         { name: 'notification' }
+        { name : "RemovedFromCollection" }
       ]
     sharedMethods :
       static      : sharedStaticMethods()

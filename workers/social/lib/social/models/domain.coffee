@@ -39,6 +39,13 @@ module.exports = class JDomain extends jraphical.Module
                       ]
       static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
+    sharedEvents    :
+      static        : [
+        { name : "RemovedFromCollection" }
+      ]
+      instance      : [
+        { name : "RemovedFromCollection" }
+      ]
     indexes         :
       domain        : 'unique'
       hostnameAlias : 'sparse'
