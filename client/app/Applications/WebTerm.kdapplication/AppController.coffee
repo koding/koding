@@ -24,11 +24,12 @@ class WebTermController extends AppController
     preCondition :
       condition  : (options, cb)->
         {params} = options
-        (KD.getSingleton 'vmController').fetchDefaultVmName (defaultVmName)=>
+        vmController = KD.getSingleton 'vmController'
+        vmController.fetchDefaultVmName (defaultVmName)->
           vmName = params?.vmName or defaultVmName
           return cb no  unless vmName
-          KD.getSingleton("vmController").info vmName, (err, vm, info)=>
-            cb  if info?.state is 'RUNNING' then yes else no
+          vmController.info vmName, (err, vm, info)->
+            cb  info?.state is 'RUNNING'
       failure    : (options, cb)->
         KD.getSingleton("vmController").askToTurnOn 'WebTerm', cb
 
