@@ -41,8 +41,14 @@ class ClassroomClassThumbView extends JView
     @loader.hide()
 
   click: ->
-    log "should open class"
-    @emit "EnrollmentRequested", @getData()  if @getOptions().type isnt "enrolled"
+    data    = @getData()
+    appView = @getDelegate()
+    chapter = data.chapter
+
+    @loader.show()
+    appView.goToClass data.name, chapter, =>
+      @loader.hide()
+    @emit "EnrollmentRequested", data  if @getOptions().type isnt "enrolled"
 
   pistachio: ->
     data      = @getData()
