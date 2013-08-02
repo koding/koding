@@ -6,8 +6,9 @@ class WebTermController extends AppController
       title      : "Develop"
     route        :
       slug       : "/:name?/Develop/Terminal"
-      handler     : ({params:{name}, query})->
+      handler    : ({params:{name}, query})->
         vmName   = KD.getSingleton('vmController').defaultVmName
+
         KD.utils.wait 3000, ->
           router = KD.getSingleton 'router'
           warn "webterm handling itself", name, query, arguments
@@ -23,9 +24,12 @@ class WebTermController extends AppController
     preCondition :
       condition  : (options, cb)->
         {params} = options
-        vmName   = params?.vmName or (KD.getSingleton 'vmController').defaultVmName
-        KD.getSingleton("vmController").info vmName, (err, vm, info)=>
-          cb  if info?.state is 'RUNNING' then yes else no
+        vmController = KD.getSingleton 'vmController'
+        vmController.fetchDefaultVmName (defaultVmName)->
+          vmName = params?.vmName or defaultVmName
+          return cb no  unless vmName
+          vmController.info vmName, (err, vm, info)->
+            cb  info?.state is 'RUNNING'
       failure    : (options, cb)->
         KD.getSingleton("vmController").askToTurnOn 'WebTerm', cb
 
