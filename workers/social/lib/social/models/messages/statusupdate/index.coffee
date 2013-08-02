@@ -25,6 +25,7 @@ module.exports = class JStatusUpdate extends JPost
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
+        { name: 'PostIsDeleted' }
       ]
       static          : [
         { name: 'updateInstance' }
