@@ -15,4 +15,6 @@ class ClassroomAppController extends AppController
       name          : "Classroom"
 
     super options, data
-    
+
+  handleQuery: (query) ->
+    @getView().ready => @getView().handleQuery query
