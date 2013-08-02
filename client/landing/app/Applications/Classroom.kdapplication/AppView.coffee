@@ -2,7 +2,7 @@ class ClassroomAppView extends KDScrollView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "classroom"
+    options.cssClass = "classroom-app-view"
 
     super options, data
 
@@ -11,6 +11,8 @@ class ClassroomAppView extends KDScrollView
 
     @createHeader()
     @fetchClasses()
+
+    @emit "ready"
 
   fetchClasses: ->
     @appStorage.fetchStorage (storage) =>
@@ -53,6 +55,19 @@ class ClassroomAppView extends KDScrollView
     if @classesView.enrolledContainer.getSubViews().length is 1
       @classesView.noEnrolledClass.show()
 
+  goToClass: (className, chapter, callback = noop) ->
+    @readFileContent "/#{className}.kdclass/manifest.json", (manifest) =>
+      manifest.startWithSplashView = yes  unless chapter
+      @createClassView manifest
+      callback()
+
+  createClassView: (manifest) ->
+    @getDomElement().css { left: -@getWidth(), height: 0 }
+    @parent.addSubView new ClassroomClassView { delegate: @ }, manifest
+
+  handleQuery: (query) ->
+    @goToClass query.class, query.chapter
+
   getPredefinedClasses: ->
     [
       {
@@ -83,3 +98,22 @@ class ClassroomAppView extends KDScrollView
           "128"    : "./resources/icon.128.png"
       }
     ]
+
+  readFileContent: (relativePath, callback = noop) ->
+    url = "#{@cdnRoot}#{relativePath}"
+
+    if location.hostname is "localhost"
+      KD.getSingleton("kiteController").run "curl -s #{url}", (err, content) =>
+        callback @parseContent url, content
+    else
+      $.ajax
+        url      : url
+        success  : (content) ->
+          callback @parseContent url, content
+
+  parseContent: (url, content) ->
+    extension = FSItem.getFileExtension url
+    switch extension
+      when "json"      then JSON.parse content
+      when "coffee"    then log "parse to coffee"
+      when "md"        then KD.utils.applyMarkdown content
