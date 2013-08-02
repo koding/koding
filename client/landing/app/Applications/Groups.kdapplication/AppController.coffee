@@ -64,6 +64,10 @@ class GroupsAppController extends AppController
       isExclusive : yes
     @groupChannel.on "MemberJoinedGroup", (member)=>
       @emit "MemberJoinedGroup", member
+
+    @groupChannel.on "FollowHappened", (params)=>
+      @emit "FollowHappened", params
+
     @groupChannel.once 'setSecretNames', callback
 
   changeGroup:(groupName='', callback=->)->

@@ -27,6 +27,10 @@ class ActivityListController extends KDListViewController
     KD.getSingleton("groupsController").on "MemberJoinedGroup", (member) =>
       @updateNewMemberBucket member.member
 
+    KD.getSingleton("groupsController").on "FollowHappened", (info) =>
+      {follower, origin} = info
+      @updateBuckets follower, origin
+
   resetList:->
     @newActivityArrivedList = {}
     @lastItemTimeStamp = null
@@ -151,7 +155,7 @@ class ActivityListController extends KDListViewController
         view = @addHiddenItem activity, 0
         @activityHeader?.newActivityArrived()
 
-  updateNewMemberBucket:(memberAccount)=>
+  updateNewMemberBucket:(memberAccount)->
     for item in @itemsOrdered
       if item.getData() instanceof NewMemberBucketData
         data = item.getData()
@@ -166,6 +170,25 @@ class ActivityListController extends KDListViewController
           newItem = @addHiddenItem data, 0
           @utils.wait 500, -> newItem.slideIn()
         break
+
+  updateBuckets:(follower, followee)->
+    for item in @itemsOrdered
+      data = item.getData()
+      if data.group[0].constructorName is followee.bongo_.constructorName
+        if data.anchor.id is follower.id
+          data.group.unshift {
+            bongo_:
+              constructorName:"ObjectRef"
+            constructorName:followee.bongo_.constructorName, id:followee._id
+          }
+          data.createdAtTimestamps.push (new Date).toJSON()
+          data.count ||= 0
+          data.count++
+          item.slideOut =>
+            @removeItem item, data
+            newItem = @addHiddenItem data, 0
+            @utils.wait 500, -> newItem.slideIn()
+          break
 
   fakeItems = []
 
