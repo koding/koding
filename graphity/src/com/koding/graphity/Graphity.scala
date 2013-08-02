@@ -13,6 +13,7 @@ import javax.ws.rs.QueryParam
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.Response
 import scala.collection.mutable.ListBuffer
+import javax.ws.rs.DELETE
 
 // Graphity algorithm implementation.
 // 
@@ -28,33 +29,53 @@ import scala.collection.mutable.ListBuffer
 class Graphity(@Context db: GraphDatabaseService) {
 
   // Points from one external stream node to one internal stream node.
-  object GRAPHITY_STREAM extends RelationshipType { def name(): String = "GRAPHITY_STREAM" }
-  
+  object GRAPHITY_STREAM extends RelationshipType { def name: String = "GRAPHITY_STREAM" }
+
   // Points from one external source node to one internal source node.
-  object GRAPHITY_SOURCE extends RelationshipType { def name(): String = "GRAPHITY_SOURCE" }
+  object GRAPHITY_SOURCE extends RelationshipType { def name: String = "GRAPHITY_SOURCE" }
 
   // Points from one external event node to MULTIPLE internal event nodes.
-  object GRAPHITY_EVENT extends RelationshipType { def name(): String = "GRAPHITY_EVENT" }
+  object GRAPHITY_EVENT extends RelationshipType { def name: String = "GRAPHITY_EVENT" }
 
   // Points from MULTIPLE internal subscription nodes to one internal source node.
-  object GRAPHITY_SUBSCRIBED_TO extends RelationshipType { def name(): String = "GRAPHITY_SUBSCRIBED_TO" }
+  object GRAPHITY_SUBSCRIBED_TO extends RelationshipType { def name: String = "GRAPHITY_SUBSCRIBED_TO" }
 
   // Subscribes stream to source so it will return events added to source.
   @POST
   @Path("/subscriptions")
   def addSubscription(@QueryParam("stream") streamUrl: String, @QueryParam("source") sourceUrl: String) {
-    val tx = db.beginTx()
+    val tx = db.beginTx
     try {
       val stream = getInternalNode(streamUrl, GRAPHITY_STREAM)
       val source = getInternalNode(sourceUrl, GRAPHITY_SOURCE)
 
-      val subscription = db.createNode()
+      val subscription = db.createNode
       subscription.createRelationshipTo(source, GRAPHITY_SUBSCRIBED_TO)
       insertSubscription(stream, subscription)
 
-      tx.success()
+      tx.success
     } finally {
-      tx.finish()
+      tx.finish
+    }
+  }
+
+  // Deletes the subscription of stream to source.
+  @DELETE
+  @Path("/subscriptions")
+  def deleteSubscription(@QueryParam("stream") streamUrl: String, @QueryParam("source") sourceUrl: String) {
+    val tx = db.beginTx
+    try {
+      val stream = getInternalNode(streamUrl, GRAPHITY_STREAM)
+      val source = getInternalNode(sourceUrl, GRAPHITY_SOURCE)
+
+      val subscription = LinkedList.find(stream, { sub => sub.getSingleRelationship(GRAPHITY_SUBSCRIBED_TO, Direction.OUTGOING).getEndNode == source })
+      LinkedList.remove(subscription)
+      subscription.getSingleRelationship(GRAPHITY_SUBSCRIBED_TO, Direction.OUTGOING).delete
+      subscription.delete
+
+      tx.success
+    } finally {
+      tx.finish
     }
   }
 
@@ -62,21 +83,41 @@ class Graphity(@Context db: GraphDatabaseService) {
   @POST
   @Path("/events")
   def addEvent(@QueryParam("source") sourceUrl: String, @QueryParam("event") eventUrl: String, @QueryParam("timestamp") timestamp: Long) {
-    val tx = db.beginTx()
+    val tx = db.beginTx
     try {
       val source = getInternalNode(sourceUrl, GRAPHITY_SOURCE)
-      val eventExternalNode = getNodeFromUrl(eventUrl)
+      val externalEventNode = getNodeFromUrl(eventUrl)
 
-      val eventNode = db.createNode()
-      eventNode.setProperty("timestamp", timestamp)
-      eventExternalNode.createRelationshipTo(eventNode, GRAPHITY_EVENT)
-      LinkedList.insertFromTail(source, { previous => getEventTimestamp(previous) <= timestamp }, eventNode)
+      val event = db.createNode
+      event.setProperty("timestamp", timestamp)
+      externalEventNode.createRelationshipTo(event, GRAPHITY_EVENT)
+      LinkedList.insert(LinkedList.find(source, { previous => getEventTimestamp(previous) <= timestamp }), event)
 
       updateSource(source)
 
-      tx.success()
+      tx.success
     } finally {
-      tx.finish()
+      tx.finish
+    }
+  }
+
+  // Deletes event from all sources.
+  @DELETE
+  @Path("/events")
+  def deleteEvent(@QueryParam("event") eventUrl: String) {
+    val tx = db.beginTx
+    try {
+      val externalEventNode = getNodeFromUrl(eventUrl)
+
+      externalEventNode.getRelationships(GRAPHITY_EVENT, Direction.OUTGOING).foreach({ rel =>
+        val event = rel.getEndNode
+        val source = LinkedList.remove(event)
+        updateSource(source)
+      })
+
+      tx.success
+    } finally {
+      tx.finish
     }
   }
 
@@ -84,28 +125,28 @@ class Graphity(@Context db: GraphDatabaseService) {
   @GET
   @Path("/events")
   def getEvents(@QueryParam("stream") streamUrl: String, @QueryParam("count") count: Int) = {
-    val tx = db.beginTx()
+    val tx = db.beginTx
     try {
       val stream = getInternalNode(streamUrl, GRAPHITY_STREAM)
       val events = getEventNodes(stream, count)
-      tx.success()
+      tx.success
 
       Response.ok(events.reverseMap(e => {
-        val externalNode = e.getSingleRelationship(GRAPHITY_EVENT, Direction.INCOMING).getStartNode()
+        val externalNode = e.getSingleRelationship(GRAPHITY_EVENT, Direction.INCOMING).getStartNode
         "\"" + getUrlFromNode(externalNode) + "\""
-      }).mkString("[", ", ", "]")).build()
+      }).mkString("[", ", ", "]")).build
     } finally {
-      tx.finish()
+      tx.finish
     }
   }
-  
+
   // Helper for getEvents.
   def getEventNodes(stream: Node, count: Int): List[Node] = {
     var results: List[Node] = Nil
     var previousSubscription = LinkedList.getPrevious(stream)
     var previousSubscriptionTimestamp = getSubscriptionTimestamp(previousSubscription)
 
-    val candidates = new ListBuffer[Node]()
+    val candidates = new ListBuffer[Node]
     val insertCandidate: (Node) => Unit = event => {
       val timestamp = getEventTimestamp(event)
       if (timestamp != 0) {
@@ -123,7 +164,7 @@ class Graphity(@Context db: GraphDatabaseService) {
         if (previousSubscriptionTimestamp == 0) {
           return results
         }
-        val source = previousSubscription.getSingleRelationship(GRAPHITY_SUBSCRIBED_TO, Direction.OUTGOING).getEndNode()
+        val source = previousSubscription.getSingleRelationship(GRAPHITY_SUBSCRIBED_TO, Direction.OUTGOING).getEndNode
         previousSubscription = LinkedList.getPrevious(previousSubscription)
         previousSubscriptionTimestamp = getSubscriptionTimestamp(previousSubscription)
         LinkedList.getPrevious(source)
@@ -142,13 +183,13 @@ class Graphity(@Context db: GraphDatabaseService) {
   // Inserts the subscription at the correct position of the stream's subscription list.
   def insertSubscription(stream: Node, subscription: Node) {
     val timestamp = getSubscriptionTimestamp(subscription)
-    LinkedList.insertFromTail(stream, { previous => getSubscriptionTimestamp(previous) <= timestamp }, subscription)
+    LinkedList.insert(LinkedList.find(stream, { previous => getSubscriptionTimestamp(previous) <= timestamp }), subscription)
   }
 
   // Updates all subscription lists which have a subscription to source.
   def updateSource(source: Node) {
     source.getRelationships(GRAPHITY_SUBSCRIBED_TO, Direction.INCOMING).foreach({ rel =>
-      val subscription = rel.getStartNode()
+      val subscription = rel.getStartNode
       val stream = LinkedList.remove(subscription)
       insertSubscription(stream, subscription)
     })
@@ -157,8 +198,8 @@ class Graphity(@Context db: GraphDatabaseService) {
   // Gets timestamp from event node.
   def getEventTimestamp(event: Node) = {
     event.getProperty("timestamp") match {
-      case v: java.lang.Integer => v.longValue()
-      case v: java.lang.Long => v.longValue()
+      case v: java.lang.Integer => v.longValue
+      case v: java.lang.Long => v.longValue
     }
   }
 
@@ -168,7 +209,7 @@ class Graphity(@Context db: GraphDatabaseService) {
     if (subRel == null) {
       return 0
     }
-    getEventTimestamp(LinkedList.getPrevious(subRel.getEndNode()))
+    getEventTimestamp(LinkedList.getPrevious(subRel.getEndNode))
   }
 
   def getNodeFromUrl(url: String) = {
@@ -177,7 +218,7 @@ class Graphity(@Context db: GraphDatabaseService) {
   }
 
   def getUrlFromNode(node: Node) = {
-    "http://localhost:7474/db/data/node/" + node.getId()
+    "http://localhost:7474/db/data/node/" + node.getId
   }
 
   def getInternalNode(externalNodeUrl: String, relType: RelationshipType): Node = {
@@ -185,19 +226,19 @@ class Graphity(@Context db: GraphDatabaseService) {
 
     val rel = externalNode.getSingleRelationship(relType, Direction.OUTGOING)
     if (rel != null) {
-      return rel.getEndNode()
+      return rel.getEndNode
     }
 
-    val internalNode = db.createNode()
+    val internalNode = db.createNode
     externalNode.createRelationshipTo(internalNode, relType)
 
     relType match {
       case GRAPHITY_SOURCE =>
-        val headEvent = db.createNode()
+        val headEvent = db.createNode
         headEvent.setProperty("timestamp", 0)
         LinkedList.init(headEvent, internalNode)
       case GRAPHITY_STREAM =>
-        LinkedList.init(db.createNode(), internalNode)
+        LinkedList.init(db.createNode, internalNode)
     }
 
     internalNode

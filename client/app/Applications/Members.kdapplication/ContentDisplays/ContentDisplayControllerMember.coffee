@@ -68,9 +68,11 @@ class ContentDisplayControllerMember extends KDViewController
 
     @addProfileView member
 
-    if lazy and not KD.isLoggedIn()
-      mainView.addSubView @homeLoginBar = new HomeLoginBar
-        domId    : "home-login-bar"
+    if lazy
+      viewClass = if KD.isLoggedIn() then KDCustomHTMLView else HomeLoginBar
+      mainView.addSubView @homeLoginBar = new viewClass
+        domId : "home-login-bar"
+      @homeLoginBar.hide()  if KD.isLoggedIn()
 
     @addActivityView member
 

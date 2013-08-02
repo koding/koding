@@ -30,7 +30,7 @@ class KDAutoCompleteController extends KDViewController
     @readyToShowDropDown = yes
 
   reset:->
-    subViews    = @itemWrapper.getSubViews().slice()
+    subViews = @itemWrapper.getSubViews().slice()
     for item in subViews
       @removeFromSubmitQueue item
 
@@ -183,7 +183,6 @@ class KDAutoCompleteController extends KDViewController
       if activeItem.item
         @appendAutoCompletedItem()
       @addItemToSubmitQueue activeItem.item
-      @rearrangeInputWidth()
       @emit 'ItemListChanged', @selectedItemCounter
     else
       inputView.setValue ''
@@ -231,7 +230,7 @@ class KDAutoCompleteController extends KDViewController
     {selectedItemClass} = @getOptions()
     @itemWrapper.addSubView itemView = new selectedItemClass
       cssClass : "kdautocompletedlistitem"
-      delegate : @
+      delegate : this
       name     : name
     ,data
     itemView.setPartial "<span class='close-icon'></span>"
@@ -261,11 +260,10 @@ class KDAutoCompleteController extends KDViewController
     @emit 'AutocompleteSuggestionWasAdded', title
 
   addItemToSubmitQueue:(item,data)->
-
     data or= item?.getData()
-    return unless data or item?.getOptions().userInput
+    return  unless data or item?.getOptions().userInput
 
-    {itemDataPath,form,submitValuesAsText} = @getOptions()
+    {name, itemDataPath, form, submitValuesAsText} = @getOptions()
 
     if data
       itemValue = if submitValuesAsText then JsPath.getAt data, itemDataPath else data
@@ -275,24 +273,21 @@ class KDAutoCompleteController extends KDViewController
 
     return no  if @isItemAlreadySelected data
 
-    path = @getCollectionPath()
-
-    itemName  = "#{name}-#{@selectedItemCounter++}"
+    path     = @getCollectionPath()
+    itemName = "#{name}-#{@selectedItemCounter++}"
     if form
-      collection   = form.getCustomData path
-      collection or= []
-      form.addCustomData path, collection
-      id = itemValue.getId?()
+      collection = form.getCustomData(path) or []
       collection.push(
         if submitValuesAsText
           itemValue
-        else if id?
+        else if itemValue.getId?()
           constructorName   : itemValue.constructor.name
-          id                : id
+          id                : itemValue.getId()
           title             : itemValue.title
         else
           $suggest          : itemValue
       )
+      form.addCustomData path, collection
       if item.getOptions().userInput is not ""
         @selectedItemCounter++
     else
@@ -304,8 +299,8 @@ class KDAutoCompleteController extends KDViewController
 
   removeFromSubmitQueue:(item, data)->
     {itemDataPath,form} = @getOptions()
-    data      or= item.getData()
-    path = @getCollectionPath()
+    data or= item.getData()
+    path   = @getCollectionPath()
     if form
       collection = JsPath.getAt form.getCustomData(), path
       collection = collection.filter (sibling)->
@@ -321,10 +316,6 @@ class KDAutoCompleteController extends KDViewController
     @selectedItemCounter--
     item.destroy()
     @emit 'ItemListChanged', @selectedItemCounter
-
-  rearrangeInputWidth:->
-    # mainView = @getView()
-    # mainView.$input().width mainView.$input().parent().width() - mainView.$input().prev().width()
 
   appendAutoCompletedItem:->
     @getView().setValue ""

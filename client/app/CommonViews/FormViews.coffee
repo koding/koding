@@ -1,15 +1,14 @@
 # FIXME (gokmen) Needs to be rw
 
 class AbstractPersonalFormView extends KDFormView
-  constructor:(options, data)->
-    memberData = data
+  constructor:(options = {}, data)->
     super options, null
+    @memberData = data
 
     @windowController = KD.getSingleton 'windowController'
     @setListeners()
 
-    $(window).on "keydown.input",(e)=>
-      @checkInput e
+    $(window).on "keydown.input", @checkInput.bind this
 
   checkInput:(e, classToCheck = 'active')->
     if @$().hasClass(classToCheck) and e.which is 27
@@ -28,31 +27,35 @@ class AbstractPersonalFormView extends KDFormView
       @setClass 'active'
       @focusFirstElement()
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:-> ''
+  viewAppended:    JView::viewAppended
+  pistachio:       -> ''
+  resetInputValue: -> no
 
   setListeners:->
     @on 'ReceivedClickElsewhere', =>
       @unsetClass 'active'
       @resetInputValue()
 
-  resetInputValue:-> no
+  doModify:(modifier, unsetClass=yes, callback=noop)->
+    @memberData.modify modifier, (err)=>
+      if err
+        KD.notify_ 'There was an error updating your profile.'
+        return callback err
+      @memberData.emit 'update'
+      @unsetClass 'active'  if unsetClass
+      callback null
+
 
 class PersonalFormNameView extends AbstractPersonalFormView
 
-  constructor:(options, data)->
-
+  constructor:(options = {}, data)->
     options = $.extend
       cssClass    : 'profilename-form'
       callback    : @formCallback
     , options
-    super options, null
 
-    {@memberData} = options
+    super options, data
+
     {profile} = @memberData
     @firstName = new KDInputView
       cssClass      : 'firstname editable'
@@ -89,20 +92,19 @@ class PersonalFormNameView extends AbstractPersonalFormView
         offset      :
           top       : 0
           left      : -5
-    ,@memberData
+    , @memberData
 
     @attachListeners()
 
   pistachio:->
     """
-      {{> @nameView}}
-      {{> @firstName}}{{> @lastName}}
+    {{> @nameView}}
+    {{> @firstName}}{{> @lastName}}
     """
 
   resetInputValue:->
-    {profile} = @memberData
-    @firstName.setValue Encoder.htmlDecode profile.firstName
-    @lastName.setValue Encoder.htmlDecode profile.lastName
+    @firstName.setValue Encoder.htmlDecode @memberData.profile.firstName
+    @lastName.setValue  Encoder.htmlDecode @memberData.profile.lastName
 
   attachListeners:->
     @firstName.on 'keyup', (event)=>
@@ -115,40 +117,30 @@ class PersonalFormNameView extends AbstractPersonalFormView
       newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
       pubInst.setDomAttributes {size: newWidth}
 
-  formCallback:(formData)->
+  formCallback:({firstName, lastName})->
     {profile} = @memberData
-    {firstName, lastName} = formData
     if profile.firstName is firstName and profile.lastName is lastName
       @unsetClass 'active'
       return no
 
-    query =
+    @doModify
       'profile.firstName' : firstName
       'profile.lastName'  : lastName
+    , yes, (err)->
+      document.title = "#{firstName} #{lastName}"  unless err
 
-    @memberData.modify query, (err)=>
-      if err
-        new KDNotificationView
-          title : "There was an error updating your profile."
-      else
-        new KDNotificationView
-          title     : "Success!"
-          duration  : 500
-        @unsetClass 'active'
 
 class PersonalFormAboutView extends AbstractPersonalFormView
 
-  constructor:(options, data)->
-
+  constructor:(options = {}, data)->
     options = $.extend
       cssClass  : 'personal-profile-about'
       callback  : @formCallback
     , options
 
-    super options, null
+    super options, data
 
-    {@memberData} = options
-    {profile} = @memberData
+    {profile}  = @memberData
 
     @defaultPlaceHolder = "You haven't entered anything in your bio yet. Why not add something now?"
 
@@ -174,75 +166,64 @@ class PersonalFormAboutView extends AbstractPersonalFormView
 
   pistachio:->
     """
-      {{> @aboutInfo}}
-      {{> @aboutInput}}
+    {{> @aboutInfo}}
+    {{> @aboutInput}}
     """
 
   resetInputValue:->
     {profile} = @memberData
-    @aboutInput.setValue if profile.about is @defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
+    if profile.about is @defaultPlaceHolder
+      @aboutInput.setValue ''
+    else
+      @aboutInput.setValue Encoder.htmlDecode profile.about
 
-  formCallback:(formData)->
-    {profile} = @memberData
-    {about}   = formData
-    
-    if profile.about is about
-      @unsetClass "active"
+  formCallback:({about})->
+    if @memberData.profile.about is about
+      @unsetClass 'active'
       return no
 
-    if about is ""
-      @unsetClass "active"
-      profile.about = @defaultPlaceHolder
+    if about is ''
+      @unsetClass 'active'
+      @memberData.profile.about = @defaultPlaceHolder
       @aboutInfo.setData @memberData
       @resetInputValue()
 
-    changes = 'profile.about' : about
-    @memberData.modify changes, (err)=>
-      if err
-        new KDNotificationView
-          title : "There was an error updating your profile."
-      else
-        @memberData.emit "update"
-        new KDNotificationView
-          title     : "Success!"
-          duration  : 500
-        @unsetClass 'active'
+    @doModify 'profile.about' : about
+
 
 class PersonalAboutView extends JView
   constructor:(options, data)->
-    super
-    {profile} = @getData()
-    profile.about or= options.defaultPlaceHolder
+    super options, data
+    @getData().profile.about or= options.defaultPlaceHolder
 
   click: KD.utils.showMoreClickHandler
 
   pistachio:->
     """
-      <p>{{ @utils.applyTextExpansions #(profile.about), yes }}</p>
+    <p>{{ @utils.applyTextExpansions #(profile.about), yes }}</p>
     """
 
+
 class PersonalFormLocationView extends AbstractPersonalFormView
-  constructor:(options, data)->
+
+  constructor:(options = {}, data)->
     options = $.extend
       cssClass      : 'profilelocation-form'
       callback      : @formCallback
     , options
+
     super options, data
 
-    {@memberData} = options
-    @memberData.locationTags or= []
+    @memberData.locationTags or= ['Earth']
 
-    @location = new KDInputView
+    @location     = new KDInputView
       cssClass      : 'locationtags editable'
       type          : 'text'
-      defaultValue  : @memberData.locationTags[0] or 'Earth'
+      defaultValue  : @memberData.locationTags[0]
       name          : 'locationTags'
       validate      :
         rules       :
           maxLength : 30
-
-    if @memberData.locationTags.length < 1
-      @memberData.locationTags[0] = "Earth"
 
     @locationTags = new LocationView
       tooltip       :
@@ -252,65 +233,44 @@ class PersonalFormLocationView extends AbstractPersonalFormView
         offset      :
           top       : 0
           left      : -5
-    ,@memberData
+    , @memberData
 
   pistachio:->
     """
-      <p>{{> @locationTags}}</p>
-      {{> @location}}
+    <p>{{> @locationTags}}</p>
+    {{> @location}}
     """
 
   resetInputValue:->
-    {profile} = @memberData
     @location.setValue @memberData.locationTags[0] or 'Earth'
 
-  formCallback:(formData)->
-    {locationTags} = formData
+  formCallback:({locationTags})->
     if locationTags is @memberData.locationTags[0]
       @unsetClass 'active'
       return no
 
-    if locationTags[0]?
-      locationArray = [locationTags]
-    else
-      locationArray = []
+    @doModify {locationTags: [locationTags]}
 
-    changes = locationTags : locationArray
-    @memberData.modify changes, (err)=>
-      if err
-        new KDNotificationView
-          title : "There was an error updating your profile."
-      else
-        @memberData.emit "update"
-        new KDNotificationView
-          title     : "Success!"
-          duration  : 500
-        @unsetClass 'active'
 
 class LocationView extends JView
-  pistachio:->
-    """
-      {{ @getFirstLocation #(locationTags)}}
-    """
 
-  getFirstLocation:(locationTags)->
-    locationTags[0]
+  pistachio:-> "{{ @getFirstLocation #(locationTags)}}"
+  getFirstLocation:(locationTags)-> locationTags[0]
+
 
 class PersonalFormSkillTagView extends AbstractPersonalFormView
 
-  constructor:(options, data)->
-
+  constructor:(options = {}, data)->
     options = $.extend
-      cssClass  : "kdautocomplete-form"
+      cssClass : "kdautocomplete-form"
     , options
 
-    super options, null
-    {@memberData} = options
+    super options, data
+
     @memberData.skillTags or= []
 
   viewAppended:->
     super
-
     @addSubView tagWrapper = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "form-actions-holder clearfix"
@@ -324,66 +284,44 @@ class PersonalFormSkillTagView extends AbstractPersonalFormView
     tagWrapper.addSubView @label = new KDLabelView
       cssClass    : "skilltagslabel"
       title       : "SKILLS"
-      click       : (pubInst, event)=> @showForm()
+      click       : @bound 'showForm'
 
-    tagWrapper.addSubView @loader = new KDLoaderView
-      size        :
-        width     : 14
+    tagWrapper.addSubView @loader = new KDLoaderView size : width : 14
 
     @tagController = new SkillTagAutoCompleteController
-      name                : "skillTags"
+      name                : 'skillTagsInput'
       cssClass            : 'skilltag-form'
-      type                : "tags"
+      type                : 'tags'
       itemDataPath        : 'title'
       itemClass           : TagAutoCompleteItemView
       selectedItemClass   : SkillTagAutoCompletedItem
       outputWrapper       : tagWrapper
       selectedItemsLimit  : 10
-      form                : @
-      dataSource          : (args, callback)=>
-        {inputValue} = args
+      form                : this
+      dataSource          : ({inputValue}, callback)=>
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         @emit "AutoCompleteNeedsTagData", {inputValue,blacklist,callback}
 
     @tagController.on 'ItemListChanged', =>
-      {skillTags}  = @getData()
       @loader.show()
-      newTags      = skillTags?.filter((tag)-> tag.$suggest?)
-      oldTags      = skillTags?.filter((tag)-> tag.id?)
-      plainNewTags = newTags.map((tag)-> tag.$suggest)
-      plainOldTags = oldTags.map((tag)-> tag.title)
-
-      joinedTags   = plainNewTags.concat plainOldTags
-
+      {skillTags} = @getData()
       @memberData.addTags skillTags, (err)=>
-        if err
-          log "An error occured:", err
-          new KDNotificationView
-            title : "There was an error while adding new skills."
-        else
-          changes = 'skillTags' : joinedTags
-          @memberData.modify changes, (err)=>
-            if err
-              log "An error occured:", err
-              new KDNotificationView
-                title : "There was an error while updating your profile."
-            # else
-            #   new KDNotificationView
-            #     title     : "Success!"
-            #     duration  : 500
-            @loader.hide()
+        return KD.notify_ "There was an error while adding new skills."  if err
+        skillTagsFlat = skillTags.map (tag)-> tag.$suggest ? tag.title
+        @doModify {skillTags: skillTagsFlat}, no, @loader.hide.bind @loader
 
     @addSubView @tagController.getView()
     @tagController.putDefaultValues @memberData.skillTags
 
-  mouseDown:(event)->
-    no
+  mouseDown:(event)-> no
+
 
 class SkillTagAutoCompleteController extends KDAutoCompleteController
-  constructor:(options, data)->
+
+  constructor:(options = {}, data)->
     options.nothingFoundItemClass or= SuggestNewTagItem
     options.allowNewSuggestions    ?= yes
-    super
+    super options, data
 
   putDefaultValues:(stringTags)->
     KD.remote.api.JTag.fetchSkillTags
@@ -391,25 +329,26 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
         $in     : stringTags
     ,
       sort      :
-        'title' : 1
+        title   : 1
     , (err,tags)=>
         unless err and not tags
           @setDefaultValue tags
         else
           warn "There was a problem fetching default tags!", err, tags
 
+  getCollectionPath:-> 'skillTags'
+
+
 class SkillTagAutoCompletedItem extends KDAutoCompletedItem
-  constructor:(options, data)->
+
+  constructor:(options = {}, data)->
     options.cssClass = "clearfix"
-    super
-    @tag = new TagLinkView {},data
+    super options, data
 
-  pistachio:->"{{> @tag}}"
+    @tag = new TagLinkView {}, @getData()
 
-  viewAppended:->
-    super()
-    @setTemplate @pistachio()
-    @template.update()
+  viewAppended: JView::viewAppended
+  pistachio:-> "{{> @tag}}"
 
   click:(event)->
     @getDelegate().removeFromSubmitQueue @ if $(event.target).is('span.close-icon')
