@@ -46,7 +46,7 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
   generateSnapshot:(member)->
     snapshot = {}
     snapshot._id         = member.id
-    snapshot.sourceName  = member.name
+    snapshot.sourceName  = "JAccount"
 
     bongo = {constructorName : @bucketName}
     snapshot.bongo_      = bongo
@@ -55,7 +55,7 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
 
     anchor =
       bongo_ : { constructorName : "ObjectRef" }
-      constructorName : member.name
+      constructorName : "JAccount"
       id : member.id
 
     snapshot.anchor      = anchor
