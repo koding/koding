@@ -1,7 +1,4 @@
 jraphical      = require 'jraphical'
-
-Graph          = require "../graph/graph"
-
 KodingError = require '../../error'
 
 module.exports = class CActivity extends jraphical.Capsule

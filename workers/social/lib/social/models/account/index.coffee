@@ -20,7 +20,6 @@ module.exports = class JAccount extends jraphical.Module
   JAppStorage = require '../appstorage'
   JTag = require '../tag'
   CActivity = require '../activity'
-  Graph     = require "../graph/graph"
   @getFlagRole = 'content'
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
