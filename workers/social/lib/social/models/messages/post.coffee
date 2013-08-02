@@ -160,6 +160,8 @@ module.exports = class JPost extends jraphical.Message
                 callback createKodingError err
               else queue.next()
           ->
+            delegate.update $set: 'meta.modifiedAt': new Date, -> queue.next()
+          ->
             delegate.addContent activity, (err)-> queue.next(err)
           ->
             tags or= []
