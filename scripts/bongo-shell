@@ -84,7 +84,6 @@ codeReload = (f)->
     # now we remove the deleted functions
     for own key, value of ourModel.prototype
       if typeof(value) is "function"
-        console.log newInstanceMethods[key]?
         if not newInstanceMethods[key]?
           delete ourModel.prototype[key]
 
@@ -95,12 +94,13 @@ codeReload = (f)->
           delete ourModel[key]
 
   if argv.C
-    loadAndRunFile(argv.f, )
+    console.log "running file..."
+    loadAndRunFile(argv.f, true)
 
 
-loadAndRunFile = (f)->
+loadAndRunFile = (f, force=false)->
   hash = hashFile(argv.f)
-  if hash isnt lastHash
+  if hash isnt lastHash or force
     console.log ">>>> fileChanged executing..."
     execFile(argv.f, repl_)
     lastHash = hash
@@ -131,6 +131,9 @@ bongoPlugin =
       repl.context.bongo = bongo
       for i of bongo.models
         repl.context[i] = bongo.models[i]
+      repl.context.authenticator = authenticator
+      repl.context.Bongo = Bongo
+
       console.log "Press enter to start"
 
       watcher = new Watcher
@@ -158,6 +161,9 @@ startShell = ()->
       if (err)
         nesh.log.error(err)
 
+Bongo.throwIt = (it)->
+  console.error it
+
 class BongoWithOnReady extends Bongo
 
   constructor: (options)->
@@ -176,12 +182,30 @@ class BongoWithOnReady extends Bongo
       , 1000
     super(options)
 
+class Authenticator
+
+  constructor: (@account)->
+
+  setAccount: (who, callback)->
+    bongo.models.JAccount.one {'profile.nickname': who}, (err, account)=>
+      @account = account
+      console.log "account ::: ", account._id
+      callback err, account
+
+  fetchClient: (sessionToken, context, callback)->
+    console.log arguments
+    callback {sessionToken, context, connection:delegate:@account}
+
+authenticator = new Authenticator
+
 bongo = new BongoWithOnReady {
   mongo
   root: projectRoot
   models: 'workers/social/lib/social/models'
   mq: new Broker mqOptions
-  resourceName: webserver.queueName
+  resourceName: webserver.queueName,
+  fetchClient: (sessionToken, context, callback)->
+    return authenticator.fetchClient sessionToken, context, callback
 }
 
 
