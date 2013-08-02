@@ -41,6 +41,38 @@ hashFile = (f)->
   shasum.update(fs.readFileSync f)
   return shasum.digest('hex')
 
+# these are for fake remote method calls...
+class RemoteProxy
+  constructor: (@objectName, @type)->
+
+  callmethod: (methodName, args...)->
+    if @type is "instance"
+      method = 
+        type: 'instance', 
+        method: methodName, 
+        constructorName: @objectName, 
+        id: @object.id
+    else if @type is "static"
+      method = type: 'static', method: methodName, constructorName: @objectName
+    bongo.invokeMethod method, args, "secretname", "sessiontoken"
+
+remoteRegistry = {}
+remoteRegistryForInstances = {}
+
+remoteMethodGenerator = (methodName)->
+  (args...)-> 
+    @callmethod methodName, args...
+
+createRemoteRegistry = ()->
+  for m, klass of bongo.models    
+    if klass.sharedMethods?.static?
+      remoteRegistry[m] = new RemoteProxy m, "static"
+      for method in klass.sharedMethods.static
+        remoteRegistry[m][method] = remoteMethodGenerator(method)
+    if klass.sharedMethods?.instance?
+      remoteRegistryForInstances[m] = new RemoteProxy m, "instance"
+      for method in klass.sharedMethods.instance
+        remoteRegistryForInstances[m][method] = remoteMethodGenerator(method)
 
 codeReload = (f)->
   # dead simple code reloading function
@@ -93,6 +125,9 @@ codeReload = (f)->
         if not newClassMethods[key]?
           delete ourModel[key]
 
+    # we update shared instance methods, and shared class methods too
+    ourModel.sharedMethods = sandbox.mdl.sharedMethods
+
   if argv.C
     console.log "running file..."
     loadAndRunFile(argv.f, true)
@@ -105,6 +140,16 @@ loadAndRunFile = (f, force=false)->
     execFile(argv.f, repl_)
     lastHash = hash
 
+
+remote = (object)->
+  if typeof object is "function" and object.name?
+    return remoteRegistry[object.name]
+  else if typeof object is "object" and object.bongo_?.constructorName?
+    proxyObject = remoteRegistryForInstances[object.bongo_.constructorName]
+    proxyObject.object = object
+    return proxyObject
+  else 
+    throw "Wrong type"
 
 Watcher = require 'koding-watcher'
 bongoPlugin =
@@ -133,6 +178,11 @@ bongoPlugin =
         repl.context[i] = bongo.models[i]
       repl.context.authenticator = authenticator
       repl.context.Bongo = Bongo
+      repl.context.remote = remote
+      repl.context.remoteRegistry = remoteRegistry
+      repl.context.remoteRegistryForInstances = remoteRegistryForInstances
+
+      createRemoteRegistry()
 
       console.log "Press enter to start"
 
