@@ -3,7 +3,6 @@ package resolver
 import (
 	"errors"
 	"fmt"
-	"io"
 	"koding/kontrol/kontrolproxy/models"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/kontrol/kontrolproxy/utils"
@@ -123,10 +122,6 @@ func GetTarget(host string) (*Target, error) {
 
 	domain, err = proxyDB.GetDomain(host)
 	if err != nil {
-
-		if err == io.EOF {
-			proxyDB.Refresh()
-		}
 
 		if err != mgo.ErrNotFound {
 			return nil, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
