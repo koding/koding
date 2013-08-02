@@ -1,6 +1,6 @@
 module.exports = (account)->
 
-  {firstName} = account
+  {firstName} = account.profile
 
   """
   <div id="activity-update-widget" class="kdview activity-update-widget-wrapper">
