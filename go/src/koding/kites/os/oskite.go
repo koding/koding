@@ -386,6 +386,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			vmWebVos = userVos
 		}
 
+		rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+		rootVos.Chmod("/home", 0755) // make sure that executable flag is set
 		createUserHome(&user, rootVos, userVos)
 		createVmWebDir(vm, vmWebDir, rootVos, vmWebVos)
 		if vmWebDir != userWebDir {
@@ -403,7 +405,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 }
 
 func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
-	if _, err := rootVos.Stat("/home/" + user.Name); err == nil {
+	if info, err := rootVos.Stat("/home/" + user.Name); err == nil {
+		rootVos.Chmod("/home/"+user.Name, info.Mode().Perm()|0511) // make sure that user read and executable flag is set
 		return
 	}
 	// home directory does not yes exist
