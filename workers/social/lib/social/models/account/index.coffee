@@ -1221,3 +1221,8 @@ module.exports = class JAccount extends jraphical.Module
     @fetchUser (err, user)->
       return callback err  if err
       user.update $unset: foreignAuth: "", callback
+
+  # we are using this in sorting members list..
+  updateMetaModifiedAt: (callback)->
+    @update $set: 'meta.modifiedAt': new Date, callback
+

@@ -344,35 +344,29 @@ module.exports = class JPost extends jraphical.Message
       comment.sign(delegate).save (err)=>
         return callback err if err
         daisy queue = [
-          ()->
+          ->
             delegate.addContent comment, (err)-> 
               return callback err if err
               queue.next()
-          ()->
+          ->
             delegate.updateMetaModifiedAt (err)-> 
               return callback err if err
               queue.next()
-          ()=>
+          =>
             @addComment comment, flags: {isLowQuality: exempt}, (err, docs)=>
               return callback err if err
               queue.docs = docs
               queue.next() 
-          ()=>
-            Relationship.count {sourceId: @getId(),as:'reply'}, (err, count_)=>
-              queue.relationshipCount = count_
+          =>
+            Relationship.count {sourceId: @getId(),as:'reply'}, (err, count)=>
+              queue.relationshipCount = count
               return callback err if err
               queue.next()
-          ()=>
-            @update $set: repliesCount: relationshipCount, (err)=>
+          =>
+            @update $set: repliesCount: queue.relationshipCount, (err)=>
               return callback err if err
               queue.next()
-          ()=>
-            @fetchActivityId (err, id)->
-              return callback err if err
-              CActivity.update {_id: id}, $set: 'sorts.repliesCount': relationshipCount, (err)-> 
-                return callback err if err
-                queue.next()
-          ()=>
+          =>
             @fetchOrigin (err, origin)=>
               return callback err if err
               unless exempt
@@ -383,19 +377,19 @@ module.exports = class JPost extends jraphical.Message
                   actionType    : 'reply'
                   replier       : ObjectRef(delegate).data
                   reply         : ObjectRef(comment).data
-                  repliesCount  : relationshipCount
+                  repliesCount  : queue.relationshipCount
                   relationship  : queue.docs[0]
                 }
               queue.next()
-          ()=>
+          =>
             @follow client, emitActivity: no, (err)->
               return callback err if err
               queue.next()
-          ()=>
+          =>
             @addParticipant delegate, 'commenter', (err)->
               return callback err if err
               queue.next()
-          ()->
+          ->
             callback null, comment
         ]
         
