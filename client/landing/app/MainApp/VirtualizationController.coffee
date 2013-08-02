@@ -69,18 +69,18 @@ class VirtualizationController extends KDController
         if vmInfo
           if vmInfo.planCode is 'free'
 
-            # returns "vm-2" from "vm-2.arslan.koding.kd.io"
-            vmNumber = vmInfo.hostnameAlias.split(".", 1)[0]
+            {hostnameAlias} = vmInfo
+            vmPrefix = (@parseAlias hostnameAlias)?.prefix or hostnameAlias
 
             modal = new VmDangerModalView
               name     : vmInfo.hostnameAlias
-              title    : "Destroy '#{vmInfo.hostnameAlias}'"
+              title    : "Destroy '#{hostnameAlias}'"
               action   : 'Destroy my VM'
               callback : (callback) =>
                 deleteVM vm, callback
                 new KDNotificationView title:'Successfully destroyed!'
                 modal.destroy()
-            , vmNumber
+            , vmPrefix
           else
             paymentController = KD.getSingleton('paymentController')
             paymentController.deleteVM vmInfo, (state)->
