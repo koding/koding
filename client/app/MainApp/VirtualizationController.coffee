@@ -101,16 +101,9 @@ class VirtualizationController extends KDController
         callback? err, vm, info
       , no
 
-  hasThisVM:(vmTemplate, vms)->
-    for i in [0..vms.length]  when ("#{vmTemplate}".replace '%d', i) in vms
-      return ("#{vmTemplate}".replace '%d', i)
-    return no
-
   fetchVmName: (options, callback) ->
     if options.vmName?
-    then @utils.defer -> callback null, options.vmName
-    # else if KD.whoami().type is 'unregistered'
-    # then @utils.defer -> callback null, 'guest'
+      @utils.defer -> callback null, options.vmName
     else
       @fetchDefaultVmName (defaultVmName) ->
         if defaultVmName?
@@ -125,27 +118,38 @@ class VirtualizationController extends KDController
     currentGroup   = if entryPoint?.type is 'group' then entryPoint.slug
     currentGroup or= KD.defaultSlug
 
-    @fetchVMs (err, vms)=>
-      if err or not vms
+    @fetchVMs (err, vmNames)=>
+      if err or not vmNames
         return callback null
 
       # If there is just one return it
-      if vms.length is 1
-        return callback @defaultVmName = vms.first
+      if vmNames.length is 1
+        return callback @defaultVmName = vmNames.first
 
-      # Check for personal VMs in current group
-      vmName = @hasThisVM("vm-%d.#{KD.nick()}.#{currentGroup}.kd.io", vms)
-      return callback @defaultVmName = vmName  if vmName
+      # If current group is 'koding' ask to backend for the default one
+      KD.remote.api.JVM.fetchDefaultVm (err, defaultVmName)=>
+        if currentGroup is 'koding' and defaultVmName
+          return callback @defaultVmName = defaultVmName
 
-      # Check for shared VMs in current group
-      vmName = @hasThisVM("shared-%d.#{currentGroup}.kd.io", vms)
-      return callback @defaultVmName = vmName  if vmName
+        vmSort   = (x,y)-> x.uid - y.uid
+        vms      = (@parseAlias vm for vm in vmNames)
+        userVMs  = (vm for vm in vms when vm?.type is 'user').sort vmSort
+        groupVMs = (vm for vm in vms when vm?.type is 'group').sort vmSort
 
-      # Check for personal VMs in Koding or Guests group
-      vmName = @hasThisVM("vm-%d.#{KD.nick()}.#{KD.defaultSlug}.kd.io", vms)
-      return callback @defaultVmName = vmName  if vmName
+        # Check for personal VMs in current group
+        for vm in userVMs when vm.groupSlug is currentGroup
+          return callback @defaultVmName = vm.alias
 
-      callback @defaultVmName = vms.first
+        # Check for shared VMs in current group
+        for vm in groupVMs when vm.groupSlug is currentGroup
+          return callback @defaultVmName = vm.alias
+
+        # Check for personal VMs in Koding or Guests group
+        for vm in userVMs when vm.groupSlug in ['koding', 'guests']
+          return callback @defaultVmName = vm.alias
+
+        # Fallback to Koding VM if exists
+        return callback @defaultVmName = defaultVmName
 
   createGroupVM:(type='user', planCode, callback=->)->
     vmCreateCallback = (err, vm)->
@@ -224,22 +228,12 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   hasDefaultVM:(callback)->
-    # Default VM should be the personal vm in Koding group
-    @fetchVMs (err, vms)->
-      if err
-        warn "An error occured while fetching VMs:", err
-        return callback yes
-
-      # Check if there is at least one personal vm from koding group
-      for vm in vms
-        if (vm.indexOf 'vm-') is 0 and (vm.indexOf "#{KD.defaultSlug}.kd.io") > -1
-          return callback yes
-
-      callback no
+    KD.remote.api.JVM.fetchDefaultVm callback
 
   createDefaultVM:->
-    @hasDefaultVM (state)->
+    @hasDefaultVM (err, state)->
       return warn 'Default VM already exists.'  if state
+      new KDNotificationView title: "Creating your VM..."
       KD.remote.cacheable KD.defaultSlug, (err, group)->
         if err or not group?.length
           return warn err
@@ -256,7 +250,7 @@ class VirtualizationController extends KDController
           else warn err
 
   createNewVM:->
-    @hasDefaultVM (state)=>
+    @hasDefaultVM (err, state)=>
       if state then @createPaidVM() else @createDefaultVM()
 
   showVMDetails: (vm)->
@@ -480,8 +474,21 @@ class VirtualizationController extends KDController
                  you need to turn on your VM first, you can do that by
                  clicking '<b>Turn ON VM</b>' button below."""
 
+    unless @defaultVmName
+      content = """To #{if appName then 'use' else 'do this'}
+                 <b>#{appName}</b> you need to have at lease one VM created,
+                 you can do that by clicking '<b>Create Default VM</b>' button
+                 below."""
+
+    _runAppAfterStateChanged = (appName)=>
+      return  unless appName
+      @once 'StateChanged', ->
+        KD.utils.wait 2000, ->
+          KD.getSingleton("appManager").open appName
+
     modal = new KDModalView
-      title          : "Your VM is turned off"
+      title          : if @defaultVmName then "Your VM is turned off" \
+                                         else "You don't have any VM"
       content        : "<div class='modalformline'><p>#{content}</p></div>"
       height         : "auto"
       overlay        : yes
@@ -489,16 +496,22 @@ class VirtualizationController extends KDController
         'Turn ON VM' :
           style      : "modal-clean-green"
           callback   : =>
-            @start =>
-              modal.destroy()
-              if appName
-                @once 'StateChanged', ->
-                  KD.getSingleton("appManager").open appName
+            _runAppAfterStateChanged appName
+            @start -> modal.destroy()
+        'Create Default VM' :
+          style      : "modal-clean-green"
+          callback   : =>
+            _runAppAfterStateChanged appName
+            @createNewVM()
+            modal.destroy()
         Cancel       :
-          style      : "modal-clean-gray"
+          style      : "modal-cancel"
           callback   : ->
             modal.destroy()
             callback?()
+
+    if @defaultVmName then modal.buttons['Create Default VM'].destroy() \
+                      else modal.buttons['Turn ON VM'].destroy()
 
     modal.once 'KDModalViewDestroyed', -> callback?()
 
@@ -530,3 +543,22 @@ class VirtualizationController extends KDController
       { title : item.title, value : i, feeMonthly }
 
     return {descriptions, hostTypes}
+
+  # This is a copy of JVM.parseAlias
+  # make sure to update this if change other one ~ GG
+  parseAlias:(alias)->
+    # group-vm alias
+    if /^shared\-[0-9]+/.test alias
+      result = alias.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
+      if result
+        [rest..., prefix, groupSlug] = result
+        uid = parseInt(prefix.split(/-/)[1], 10)
+        return {groupSlug, prefix, uid, type:'group', alias}
+    # personal-vm alias
+    else if /^vm\-[0-9]+/.test alias
+      result = alias.match /(.*)\.([a-z0-9\-]+)\.([a-z0-9\-]+)\.kd\.io$/
+      if result
+        [rest..., prefix, nickname, groupSlug] = result
+        uid = parseInt(prefix.split(/-/)[1], 10)
+        return {groupSlug, prefix, nickname, uid, type:'user', alias}
+    return null
