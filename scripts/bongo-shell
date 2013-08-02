@@ -239,11 +239,9 @@ class Authenticator
   setAccount: (who, callback)->
     bongo.models.JAccount.one {'profile.nickname': who}, (err, account)=>
       @account = account
-      console.log "account ::: ", account._id
       callback err, account
 
   fetchClient: (sessionToken, context, callback)->
-    console.log arguments
     callback {sessionToken, context, connection:delegate:@account}
 
 authenticator = new Authenticator
