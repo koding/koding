@@ -174,6 +174,10 @@ class ActivityListController extends KDListViewController
   updateBuckets:(follower, followee)->
     for item in @itemsOrdered
       data = item.getData()
+
+      continue  unless data.group
+      continue  if typeof data.group is "string"
+
       if data.group[0].constructorName is followee.bongo_.constructorName
         if data.anchor.id is follower.id
           data.group.unshift {
