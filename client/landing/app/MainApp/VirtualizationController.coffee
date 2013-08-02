@@ -68,9 +68,19 @@ class VirtualizationController extends KDController
       KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
         if vmInfo
           if vmInfo.planCode is 'free'
-            @askForApprove 'vm.remove', (state)->
-              return callback null  unless state
-              deleteVM vm, callback
+
+            # returns "vm-2" from "vm-2.arslan.koding.kd.io"
+            vmNumber = vmInfo.hostnameAlias.split(".", 1)[0]
+
+            modal = new VmDangerModalView
+              name     : vmInfo.hostnameAlias
+              title    : "Destroy '#{vmInfo.hostnameAlias}'"
+              action   : 'Destroy my VM'
+              callback : (callback) =>
+                deleteVM vm, callback
+                new KDNotificationView title:'Successfully destroyed!'
+                modal.destroy()
+            , vmNumber
           else
             paymentController = KD.getSingleton('paymentController')
             paymentController.deleteVM vmInfo, (state)->

@@ -6,7 +6,7 @@ KD.extend
       if err then new KDNotificationView title: err.message
       else location.reload()
 
-  notify_:(message, type)->
+  notify_:(message, type='')->
     console.log message
     new KDNotificationView
       cssClass : "#{type}"
