@@ -84,16 +84,16 @@ class ActivityListController extends KDListViewController
     activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
-        anchors = []
+        group = []
         for id in overviewItem.ids
           if cache.activities[id].teaser?
-            anchors.push cache.activities[id].teaser.anchor
+            group.push cache.activities[id].teaser.anchor
           else
             KD.logToExternal msg:'no teaser for activity', activityId:id
 
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
-          anchors             : anchors
+          group               : group
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
@@ -169,7 +169,7 @@ class ActivityListController extends KDListViewController
       continue  if typeof data.group is "string"
 
       if data.group[0].constructorName is followee.bongo_.constructorName
-        if data.anchor.id is follower.id
+        if data.anchor && data.anchor.id is follower.id
           @updateBucket item, followee.bongo_.constructorName, followee._id
           break
 
