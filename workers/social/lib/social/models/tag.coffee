@@ -48,7 +48,10 @@ module.exports = class JTag extends jraphical.Module
       # group         : 'sparse'
     sharedEvents    :
       instance      : [
-        { name: 'updateInstance' }
+        { name: 'updateInstance', 'FollowHappened' }
+      ]
+      static        : [
+        { name: 'FollowHappened' }
       ]
     sharedMethods   :
       instance      : [
