@@ -56,10 +56,6 @@ module.exports = class Notifying
           @notifyAll receivers, event, contents
 
   notifyGroupWhen:(events...)->
-    console.log "notifyGroupWhen", events
-
     JGroup = require '../models/group'
     @setNotifiers events, (event, contents)->
-      console.log "inside setNotifiers", event, contents
-
       JGroup.broadcast "koding", event, contents
