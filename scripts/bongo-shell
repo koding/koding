@@ -51,7 +51,7 @@ class RemoteProxy
         type: 'instance', 
         method: methodName, 
         constructorName: @objectName, 
-        id: @object.id
+        id: @object._id
     else if @type is "static"
       method = type: 'static', method: methodName, constructorName: @objectName
     bongo.invokeMethod method, args, "secretname", "sessiontoken"
@@ -126,7 +126,14 @@ codeReload = (f)->
           delete ourModel[key]
 
     # we update shared instance methods, and shared class methods too
-    ourModel.sharedMethods = sandbox.mdl.sharedMethods
+    ourModel.sharedMethods.instance = sandbox.mdl.sharedMethods.instance
+    ourModel.sharedMethods.static = sandbox.mdl.sharedMethods.static
+
+    # console.log "instance methods-----"
+    # console.log sandbox.mdl.sharedMethods.instance
+    # console.log ourModel.sharedMethods.instance
+    # console.log "---- instance methods ---"
+    createRemoteRegistry()
 
   if argv.C
     console.log "running file..."
