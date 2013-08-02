@@ -480,6 +480,12 @@ class VirtualizationController extends KDController
                  you can do that by clicking '<b>Create Default VM</b>' button
                  below."""
 
+    _runAppAfterStateChanged = (appName)=>
+      return  unless appName
+      @once 'StateChanged', ->
+        KD.utils.wait 2000, ->
+          KD.getSingleton("appManager").open appName
+
     modal = new KDModalView
       title          : if @defaultVmName then "Your VM is turned off" \
                                          else "You don't have any VM"
@@ -490,22 +496,16 @@ class VirtualizationController extends KDController
         'Turn ON VM' :
           style      : "modal-clean-green"
           callback   : =>
-            @start =>
-              modal.destroy()
-              if appName
-                @once 'StateChanged', ->
-                  KD.getSingleton("appManager").open appName
+            _runAppAfterStateChanged appName
+            @start -> modal.destroy()
         'Create Default VM' :
           style      : "modal-clean-green"
           callback   : =>
+            _runAppAfterStateChanged appName
             @createNewVM()
-            if appName
-              @once 'StateChanged', ->
-                KD.utils.wait 2000, =>
-                  KD.getSingleton("appManager").open appName
             modal.destroy()
         Cancel       :
-          style      : "modal-clean-gray"
+          style      : "modal-cancel"
           callback   : ->
             modal.destroy()
             callback?()
