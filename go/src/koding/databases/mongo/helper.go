@@ -54,7 +54,6 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 	result["meta"] = meta
 
 	jsonResult = generateJSON(result)
-	fmt.Println(jsonResult)
 	return jsonResult, nil
 }
 
