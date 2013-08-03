@@ -57,12 +57,13 @@ class WebTermAppView extends JView
           callback: ->
             modal.destroy()
 
-  getAdvancedSettingsMenuView: ->
+  getAdvancedSettingsMenuView: (item, menu)->
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()
     settingsView = new KDView
       cssClass: "editor-advanced-settings-menu"
     settingsView.addSubView new WebtermSettingsView
+      menu    : menu
       delegate: webTermView
 
     return settingsView
@@ -77,10 +78,19 @@ class WebTermAppView extends JView
         @showApprovalModal remote, command
 
       if query.fullscreen
+        windowController = KD.getSingleton("windowController")
+        windowController.clearUnloadListeners "window"
+
+        windowController.on "clientIdChanged", =>
+          window.parent.postMessage "clientIdChanged", "*"
+
         KD.getSingleton("mainView").enableFullscreen()
+
         if window.parent?.postMessage
+
           window.parent.postMessage "fullScreenTerminalReady", "*"
           window.parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
+
           @on "KDObjectWillBeDestroyed", ->
             window.parent.postMessage "fullScreenWillBeDestroyed", "*"
 

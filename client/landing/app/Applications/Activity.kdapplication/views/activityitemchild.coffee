@@ -106,17 +106,16 @@ class ActivityItemChild extends KDView
       return menu
 
     if KD.checkFlag 'super-admin'
-      KD.remote.cacheable data.originType, data.originId, (err, account)=>
-        if data.isLowQuality or (KD.checkFlag 'exempt', account)
-          menu =
-            'Unmark User as Troll' :
-              callback             : ->
-                mainController.unmarkUserAsTroll data
-        else
-          menu =
-            'Mark User as Troll' :
-              callback           : ->
-                mainController.markUserAsTroll data
+      if KD.checkFlag 'exempt', account
+        menu =
+          'Unmark User as Troll' :
+            callback             : ->
+              mainController.unmarkUserAsTroll data
+      else
+        menu =
+          'Mark User as Troll' :
+            callback           : ->
+              mainController.markUserAsTroll data
 
       menu['Delete Post'] =
         callback : =>
@@ -143,6 +142,13 @@ class ActivityItemChild extends KDView
             color    : "#ffffff"
             diameter : 16
           callback   : =>
+
+            if data.fake
+              @emit 'ActivityIsDeleted'
+              modal.buttons.Delete.hideLoader()
+              modal.destroy()
+              return
+
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
@@ -151,6 +157,13 @@ class ActivityItemChild extends KDView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
+        Cancel       :
+          style      : "modal-cancel"
+          title      : "cancel"
+          callback   : ->
+            modal.destroy()
+
+    modal.buttons.Delete.blur()
 
   click: KD.utils.showMoreClickHandler
 

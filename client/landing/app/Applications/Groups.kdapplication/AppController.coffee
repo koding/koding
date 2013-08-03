@@ -66,10 +66,18 @@ class GroupsAppController extends AppController
       @emit "MemberJoinedGroup", member
     @groupChannel.once 'setSecretNames', callback
 
-  changeGroup:(groupName='koding', callback=->)->
+  changeGroup:(groupName='', callback=->)->
+
+    groupName or= 'koding' # KD.defaultSlug
     return callback()  if @currentGroupName is groupName
-    throw new Error 'Cannot change the group!'  if @currentGroupName?
-    unless @currentGroupName is groupName
+
+    oldGroupName        = @currentGroupName
+    @currentGroupName   = groupName
+
+    if oldGroupName?
+      location.reload()
+
+    else unless groupName is oldGroupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?
@@ -86,9 +94,10 @@ class GroupsAppController extends AppController
             KD.track "Groups", "ChangeGroup", groupName
 
   getUserArea:->
-    @userArea ?
+    @userArea ? group:
       if KD.config.entryPoint?.type is 'group'
-      then {group: KD.config.entryPoint.slug}
+      then KD.config.entryPoint.slug
+      else (KD.getSingleton 'groupsController').currentGroupName
 
   setUserArea:(userArea)->
     @userArea = userArea
@@ -153,7 +162,7 @@ class GroupsAppController extends AppController
                 callback err, items, rest...
                 # to trigger dataEnd
                 unless err
-                  ids = item.getId?() for item in items
+                  ids = (item.getId?() for item in items)
                   callback null, null, ids
             else
               JGroup.streamModels selector, options, callback
@@ -222,8 +231,6 @@ class GroupsAppController extends AppController
       @emit 'ready'
 
   markGroupRelationship:(controller, ids)->
-    return unless KD.isLoggedIn()
-
     fetchRoles =
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
@@ -339,9 +346,7 @@ class GroupsAppController extends AppController
             group.requestAccess (err)->
               modal.buttons.request.hideLoader()
               if err
-                warn err
-                new KDNotificationView title:
-                  if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                KD.showError err
                 return callback err
 
               new KDNotificationView title: success
@@ -350,15 +355,11 @@ class GroupsAppController extends AppController
 
   joinGroup:(group)->
     group.join (err, response)=>
-      if err
-        error err
-        new KDNotificationView
-          title : "An error occured, please try again"
-      else
-        KD.track "Groups", "JoinedGroup", group.slug
-        new KDNotificationView
-          title : "You've successfully joined the group!"
-        KD.getSingleton('mainController').emit 'JoinedGroup'
+      return KD.showError err  if err
+      KD.track "Groups", "JoinedGroup", group.slug
+      new KDNotificationView
+        title : "You've successfully joined the group!"
+      KD.getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>
@@ -695,8 +696,11 @@ class GroupsAppController extends AppController
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
 
   updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
-    group.modifyMembershipPolicy formData, ->
-      policy.emit 'MembershipPolicyChangeSaved'
+    group.modifyMembershipPolicy formData, (err)->
+      unless err
+        policy.emit 'MembershipPolicyChangeSaved'
+        new KDNotificationView {title:"Membership policy has been updated."}
+      KD.showError err
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -754,7 +758,7 @@ class GroupsAppController extends AppController
   createContentDisplay:(group, callback)->
 
     unless KD.config.roles? and 'admin' in KD.config.roles
-      routeSlug = if group.slug is 'koding' then '/' else "/#{group.slug}/"
+      routeSlug = if group.slug is KD.defaultSlug then '/' else "/#{group.slug}/"
       return KD.getSingleton('router').handleRoute "#{routeSlug}Activity"
 
     @groupView = groupView = new GroupView

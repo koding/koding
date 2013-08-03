@@ -30,7 +30,8 @@ class MembersListItemView extends KDListItemView
         height: options.avatarSizes[1]
     , memberData
 
-    if memberData.profile.nickname is KD.whoami().profile.nickname
+    if (memberData.profile.nickname is KD.whoami().profile.nickname) or \
+        memberData.type is 'unregistered'
     then @followButton = new KDView
     else @followButton = new MemberFollowToggleButton
       style       : "follow-btn"
@@ -47,13 +48,14 @@ class MembersListItemView extends KDListItemView
     @location = new LocationView {},memberData
 
     @profileLink = new ProfileLinkView {}, memberData
+    @profileLink.render()
 
   click:(event)->
     KD.utils.showMoreClickHandler.call this, event
     targetATag = $(event.target).closest('a')
-    if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
+    if targetATag.is(".followers") and parseInt(targetATag.text()) isnt 0
       KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}/Followers"
-    else if targetATag.is(".following") and targetATag.find('.data').text() isnt '0'
+    else if targetATag.is(".following") and parseInt(targetATag.text()) isnt 0
       KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}/Following"
 
   clickOnMyItem:(event)->
@@ -113,8 +115,11 @@ class MembersLikedContentDisplayView extends KDView
     super options, data
 
   createCommons:(account)->
+
+    name = KD.utils.getFullnameFromAccount account
+
     contentDisplayController = KD.getSingleton "contentDisplayController"
-    headerTitle              = "Activities which #{account.profile.firstName} #{account.profile.lastName} liked"
+    headerTitle              = "Activities which #{name} liked"
 
     @addSubView header = new HeaderViewSection
       type  : "big"
@@ -143,10 +148,14 @@ class MembersContentDisplayView extends KDView
     super options, data
 
   createCommons:(account, filter)->
-    headerTitle = if filter is "following" then "Members who #{account.profile.firstName} #{account.profile.lastName} follows" else "Members who follow #{account.profile.firstName} #{account.profile.lastName}"
-    @addSubView header = new HeaderViewSection
-      type  : "big"
-      title : headerTitle
+
+    name = KD.utils.getFullnameFromAccount account
+
+    if filter is "following"
+    then title = "Members who #{name} follows"
+    else title = "Members who follow #{name}"
+
+    @addSubView header = new HeaderViewSection {type : "big", title}
 
     @addSubView subHeader = new KDCustomHTMLView
       tagName  : "h2"
@@ -161,66 +170,3 @@ class MembersContentDisplayView extends KDView
         KD.getSingleton('contentDisplayController').emit "ContentDisplayWantsToBeHidden", @
 
     @listenWindowResize()
-
-
-class MemberFollowToggleButton extends KDToggleButton
-
-  constructor:(options = {}, data)->
-    options = $.extend
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : "Follow"
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-      states          : [
-        title         : "Follow"
-        callback      : (callback)->
-          KD.requireMembership
-            callback  : =>
-              @getData().follow (err, response)=>
-                @hideLoader()
-                unless err
-                  @getData().followee = yes
-                  @setClass 'following-btn'
-                  KD.track "Members", "Follow", @getData().profile.nickname
-                  callback? null
-            tryAgain  : yes
-            onFailMsg : 'Login required to follow members'
-            onFail    : => @hideLoader()
-      ,
-        title         : "Unfollow"
-        callback      : (callback)->
-          @getData().unfollow (err, response)=>
-            @hideLoader()
-            unless err
-              @getData().followee = no
-              @unsetClass 'following-btn'
-              KD.track "Members", "Unfollow", @getData().profile.nickname
-              callback? null
-      ]
-    , options
-
-    super options, data
-
-    decorator = (following)=>
-      if @getData().followee
-        @setClass 'following-btn'
-        @setState "Unfollow"
-      else
-        @setState "Follow"
-        @unsetClass 'following-btn'
-
-    if @getData().followee?
-      decorator @getData().followee
-    else
-      KD.whoami().isFollowing? @getData().getId(), "JAccount", \
-        (err, following) =>
-          @getData().followee = following
-          warn err  if err and KD.isLoggedIn()
-          decorator following
-
-  decorateState:(name)->
-
-    @setClass 'following-btn' if name is 'Unfollow'
-    super

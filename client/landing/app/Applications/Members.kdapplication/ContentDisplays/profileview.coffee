@@ -4,6 +4,9 @@ class ProfileView extends JView
     super
 
     memberData = @getData()
+    if KD.checkFlag('exempt', memberData)
+      if not KD.checkFlag 'super-admin'
+        return KD.getSingleton('router').handleRoute "/Activity"
 
     if memberData.isExempt
       if not KD.checkFlag 'super-admin'
@@ -30,10 +33,10 @@ class ProfileView extends JView
         , memberData
     , memberData
 
-    defaultState = if memberData.followee is yes then "Unfollow" else "Follow"
+    defaultState = if memberData.followee is yes then "Following" else "Follow"
 
     @followButton = new MemberFollowToggleButton
-      style           : "kdwhitebtn profilefollowbtn"
+      style : "kdwhitebtn profilefollowbtn"
     , memberData
 
     @skillTags = @putSkillTags()
@@ -42,7 +45,7 @@ class ProfileView extends JView
     @followers = new KDView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{nickname}/Followers"
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         event.preventDefault()
@@ -53,7 +56,7 @@ class ProfileView extends JView
     @following = new KDView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{nickname}/Following"
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         event.preventDefault()
@@ -64,7 +67,7 @@ class ProfileView extends JView
     @likes = new KDView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{nickname}/Likes"
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
         event.preventDefault()
@@ -83,7 +86,6 @@ class ProfileView extends JView
     @skillTags = new SkillTagGroup {}, memberData
 
     if KD.checkFlag 'super-admin'
-
       @trollSwitch = new KDCustomHTMLView
         tagName      : "a"
         partial      : if KD.checkFlag('exempt', memberData) then 'Unmark Troll' else 'Mark as Troll'
@@ -112,6 +114,8 @@ class ProfileView extends JView
     userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     {nickname}   = account.profile
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
+    name         = KD.utils.getFullnameFromAccount account
+    onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
     <div class="profileleft">
       <span>
@@ -126,7 +130,7 @@ class ProfileView extends JView
 
     <section>
       <div class="profileinfo">
-        <h3 class="profilename">{{#(profile.firstName)}} {{#(profile.lastName)}}</h3>
+        <h3 class="profilename">#{name}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
           <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
@@ -196,4 +200,8 @@ class ProfileView extends JView
       callback? err, message
 
   sendMessage:(messageDetails, callback)->
+    if KD.isGuest()
+      return new KDNotificationView
+        title : "Sending private message for guests not allowed"
+
     KD.remote.api.JPrivateMessage.create messageDetails, callback

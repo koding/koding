@@ -1,35 +1,19 @@
-# This file is divided to many files, the classes left below should probably replaced too.
-
-#FIXME: check if we ever used this, and if we still use this - Sinan 08/2012
-class KDAccount extends Bongo.EventEmitter
-  @fromId = (_id)->
-    account = new KDAccount
-    KD.remote.cacheable 'JAccount', _id, (err, accountData)->
-      for own prop, val of accountData
-        account[prop] = val
-      setTimeout ->
-        account.emit 'update', account
-      , 1
-    return account
-
-  constructor:(data)->
-    $.extend @, data if data
-
-
-#FIXME: find a better place for this class - Sinan 08/2012
-class FollowedModalView extends KDModalView
+class ShowMoreDataModalView extends KDModalView
 
   titleMap = ->
     account : "Members"
     tag     : "Topics"
+    app     : "Applications"
 
   listControllerMap = ->
     account : MembersListViewController
     tag     : KDListViewController
+    app     : KDListViewController
 
   listItemMap = ->
     account : MembersListItemView
     tag     : ModalTopicsListItem
+    app     : ModalAppsListItemView
 
   constructor:(options = {}, data)->
 
@@ -39,11 +23,13 @@ class FollowedModalView extends KDModalView
       @type = "account"
     else if participants[0] instanceof KD.remote.api.JTag
       @type = "tag"
+    else
+      @type = "app"
 
     options.title    or= titleMap()[@type]
     options.height   = "auto"
     options.overlay  = yes
-    options.cssClass = "modal-topic-wrapper"
+    options.cssClass = "modal-applications-wrapper"
     options.buttons  =
       Close :
         style : "modal-clean-gray"
@@ -73,7 +59,7 @@ class FollowedModalView extends KDModalView
   putList: (participants) ->
     controller = new KDListViewController
       view              : new KDListView
-        itemClass    : listItemMap()[@type]
+        itemClass       : listItemMap()[@type]
         cssClass        : "modal-topic-list"
     , items             : participants
 
