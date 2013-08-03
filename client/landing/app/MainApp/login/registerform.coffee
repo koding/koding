@@ -156,6 +156,12 @@ class RegisterInlineForm extends LoginViewInlineForm
                       </p>
                       """
 
+    @invitationCode = new LoginInputView
+      cssClass      : "hidden"
+      inputOptions  :
+        name        : "inviteCode"
+        type        : 'hidden'
+
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
         @passwordConfirm.input.setValue ''
@@ -211,6 +217,22 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   hideUserAvatar:-> @avatar.hide()
 
+  viewAppended:->
+    super
+
+    KD.getSingleton('mainController').on 'InvitationReceived', (invite)=>
+      @$('.invitation-field').addClass('hidden')
+      @$('.invited-by').removeClass('hidden')
+      {origin} = invite
+      @invitationCode.input.setValue invite.code
+      @email.input.setValue invite.email
+      if origin.constructorName is 'JAccount'# instanceof KD.remote.api.JAccount
+        KD.remote.cacheable [origin], (err, [account])=>
+          @addSubView new AvatarStaticView({size: width : 30, height : 30}, account), '.invited-by .wrapper'
+          @addSubView new ProfileTextView({}, account), '.invited-by .wrapper'
+      else
+        @$('.invited-by').addClass('hidden')
+
   pistachio:->
     """
     <section class='main-part'>
@@ -219,7 +241,13 @@ class RegisterInlineForm extends LoginViewInlineForm
       <div>{{> @username}}</div>
       <div>{{> @password}}</div>
       <div>{{> @passwordConfirm}}</div>
+      <div class='invitation-field invited-by hidden'>
+        <span class='icon'></span>
+        Invited by:
+        <span class='wrapper'></span>
+      </div>
     </section>
     <div>{{> @button}}</div>
+    {{> @invitationCode}}
     {{> @disabledNotice}}
     """

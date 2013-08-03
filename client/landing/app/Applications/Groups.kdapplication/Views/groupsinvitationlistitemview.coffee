@@ -30,7 +30,7 @@ class GroupsInvitationListItemView extends KDListItemView
       callback    : =>
         @getData().approve (err)=>
           @updateButtons err, 'approved'
-          @getDelegate().emit 'invitationStatusChanged'  unless err
+          @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @declineButton = new KDButtonView
       style       : 'clean-gray'
@@ -40,7 +40,7 @@ class GroupsInvitationListItemView extends KDListItemView
       callback    : =>
         @getData().decline (err)=>
           @updateButtons err, 'declined'
-          @getDelegate().emit 'invitationStatusChanged'  unless err
+          @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @deleteButton = new KDButtonView
       style       : 'clean-gray'
@@ -50,7 +50,7 @@ class GroupsInvitationListItemView extends KDListItemView
       callback    : =>
         @getData().remove (err)=>
           @updateButtons err, 'deleted'
-          @getDelegate().emit 'invitationStatusChanged'  unless err
+          @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @statusText    = new KDCustomHTMLView
       partial     : '<span class="icon"></span><span class="title"></span>'
