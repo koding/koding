@@ -45,6 +45,7 @@ module.exports = class JDiscussion extends JPost
         { name: 'CommentIsRemoved' }
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
+        { name: 'PostIsDeleted' }
       ]
       static          : [
         { name: 'updateInstance' }

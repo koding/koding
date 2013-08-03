@@ -162,6 +162,8 @@ module.exports = class Followable
 
             follower.updateFollowingCount @, action
 
+            follower.updateMetaModifiedAt ()->
+
             callback err, count
 
             Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
