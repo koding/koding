@@ -32,9 +32,9 @@ __utils =
 
   getUniqueId: do -> i = 0; -> "kd-#{i++}"
 
-  getRandomNumber :(range)->
-    range = range or 1000000
-    Math.floor Math.random()*range+1
+  getRandomNumber :(range=1e6, min=0)->
+    res = Math.floor Math.random()*range+1
+    return if res > min then res else res + min
 
   uniqueId : (prefix)->
     id = __utils.idCounter++
@@ -328,9 +328,15 @@ __utils =
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
     ({ title : "#{i}", value : i} for i in [min..max])
 
-  getFullnameFromAccount:(account)->
-    {firstName, lastName} = account.profile
-    return "#{firstName} #{lastName}"
+  getFullnameFromAccount:(account, justName=no)->
+    account or= KD.whoami()
+    if account.type is 'unregistered'
+      name = account.profile.nickname.capitalize()
+    else if justName
+      name = account.profile.firstName
+    else
+      name = "#{account.profile.firstName} #{account.profile.lastName}"
+    return Encoder.htmlDecode name
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
@@ -609,7 +615,7 @@ __utils =
     if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
       group = KD.config.entryPoint.slug
     else
-      group = 'koding'
+      group = 'koding' # KD.defaultSlug
 
     KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
       unless err
@@ -722,6 +728,31 @@ __utils =
    uniqid = context.data 'data-id'
    zIndexContexts[uniqid] if isNaN zIndexContexts[uniqid] then 0 else zIndexContexts[uniqid]++
 
+  getAppIcon:(appManifest)->
+    {authorNick, name, version, icns} = appManifest
+
+    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
+
+    if appManifest.devMode # TODO: change url to https when vm urls are ready for it
+      resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{__utils.slugify name}/"
+
+    image  = if name is "Ace" then "icn-ace" else "default.app.thumb"
+    thumb  = "#{KD.apiUri}/images/#{image}.png"
+
+    for size in [64, 128, 160, 256, 512]
+      if icns and icns[String size]
+        thumb = "#{resourceRoot}/#{icns[String size]}"
+        break
+
+    img = new KDCustomHTMLView
+      tagName     : "img"
+      bind        : "error"
+      error       : ->
+        @getElement().setAttribute "src", "/images/default.app.thumb.png"
+      attributes  :
+        src       : thumb
+
+    return img
   shortenUrl: (url, callback)->
     request = $.ajax "https://www.googleapis.com/urlshortener/v1/url",
       type        : "POST"
@@ -734,7 +765,7 @@ __utils =
       callback data?.id or url, data
 
     request.error ({status, statusText, responseText})->
-      error "url shorten error, returing self as fallback.", status, statusText, responseText
+      error "URL shorten error, returning self as fallback.", status, statusText, responseText
       callback url
 
   formatBytesToHumanReadable: (bytes) ->
@@ -748,6 +779,20 @@ __utils =
       break unless bytes >= thresh
 
     return "#{bytes.toFixed 2} #{units[unitIndex]}"
+
+  openGithubPopUp:->
+    {clientId} = KD.config.github
+    url        = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
+    name       = "Login"
+    size       = "height=643,width=1143"
+    newWindow  = window.open url, name, size
+    newWindow.focus()
+
+  useForeignAuth: (provider)->
+    mainController = KD.getSingleton "mainController"
+
+    if provider then mainController.emit "ForeignAuthCompleted", provider
+    else mainController.emit "ForeignAuthFailed"
 
   # deprecated ends
 

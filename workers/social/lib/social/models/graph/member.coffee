@@ -29,12 +29,13 @@ module.exports = class Member extends Graph
       orderByQuery: @getOrderByQuery orderBy
       to : startDate
 
+  # fetch members that are in given group who follows current user
   @fetchFollowingMembers:(options, callback)=>
     options = @generateOptions options
     query = QueryRegistry.member.following
     @queryMembers query, options, callback
 
-
+  # fetch members that are in given group who are followed by current user
   @fetchFollowerMembers:(options, callback)=>
     options = @generateOptions options
     query = QueryRegistry.member.follower
@@ -45,18 +46,18 @@ module.exports = class Member extends Graph
     {groupId, seed, firstNameRegExp, lastNameRegexp, skip, limit, blacklist} = options
     activity = require './activity'
     activity.getCurrentGroup options.client, (err, group)=>
-      if err
-        return callback err
+      if err then return callback err
 
-      queryOptions = 
+      queryOptions =
         blacklistQuery: ""
-        skip: skip or 0
-        limitCount: limit or 10
+
         seed: seed
         firstNameRegExp: firstNameRegExp
         lastNameRegexp: lastNameRegexp
 
-      options.groupId = group.getId()
+      options.groupId    = group.getId()
+      options.skipCount  = skip or 0
+      options.limitCount = limit or 10
 
       if blacklist? and blacklist.length
         blacklistIds = ("'#{id}'" for id in blacklist).join(',')
@@ -73,13 +74,14 @@ module.exports = class Member extends Graph
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       options = @generateOptions options
       query = QueryRegistry.member.list exemptClause
+      console.log query
+      console.log options
       @queryMembers query, options, callback
 
   @queryMembers:(query, options={}, callback)=>
     @fetch query, options, (err, results) =>
       if err then return callback err
       if results? and results.length < 1 then return callback null, []
-      resultData = []
       @generateMembers [], results, (err, data)=>
         if err then callback err
         @revive data, (revived)->
@@ -88,7 +90,6 @@ module.exports = class Member extends Graph
   @generateMembers:(resultData, results, callback)=>
     if results? and results.length < 1 then return callback null, resultData
     result = results.shift()
-
     results.map (result)->
       result["members"]
     @objectify result.members.data, (objected)=>

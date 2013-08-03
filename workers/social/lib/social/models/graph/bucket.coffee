@@ -5,6 +5,9 @@ QueryRegistry = require './queryregistry'
 
 module.exports = class Bucket extends Graph
 
+  ###############################################
+  ##############  new members  ##################
+  ###############################################
   @fetchNewMembers:(group, to, callback)->
     {groupName, groupId} = group
     options =
@@ -13,7 +16,6 @@ module.exports = class Bucket extends Graph
 
     query = QueryRegistry.bucket.newMembers
     @queryMembers query, options, callback
-
 
   @queryMembers:(query, options={}, callback)->
     @fetch query, options, (err, results) =>
@@ -41,7 +43,6 @@ module.exports = class Bucket extends Graph
       to      : to
 
     query = QueryRegistry.bucket.newInstallations
-
     @fetch query, options, (err, results) =>
       if err then throw err
       @generateInstalledApps [], results, callback
@@ -60,7 +61,6 @@ module.exports = class Bucket extends Graph
           @generateInstalledApps resultData, results, callback
 
 
-
   ###############################################
   ########## new member follows  ################
   ###############################################
@@ -71,7 +71,6 @@ module.exports = class Bucket extends Graph
       to      : to
     query = QueryRegistry.bucket.newUserFollows
     @fetchFollows query, options, callback
-
 
   ###############################################
   ############# new tag follows  ################

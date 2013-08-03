@@ -36,7 +36,10 @@ class ActivityListHeader extends JView
         KD.getSingleton('activityController').flags = liveUpdates : state
         KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
-    KD.getSingleton('mainController').on 'AccountChanged', @bound 'decorateLiveUpdateButton'
+
+    KD.getSingleton('mainController').on 'AccountChanged', ()=>
+      @decorateLiveUpdateButton()
+
     @decorateLiveUpdateButton()
 
     if KD.checkFlag "super-admin"
@@ -46,6 +49,8 @@ class ActivityListHeader extends JView
         size         : "tiny"
         callback     : (state) =>
           @appStorage.setValue 'showLowQualityContent', state, =>
+          KD.getSingleton('activityController').flags = showExempt: state
+          KD.getSingleton('activityController').emit 'Refresh'
 
       @refreshLink = new KDCustomHTMLView
         tagName  : 'a'
@@ -66,10 +71,12 @@ class ActivityListHeader extends JView
       KD.getSingleton('activityController').flags = showExempt : (@appStorage.getValue('showLowQualityContent') or off)
       @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
-  _checkForUpdates: do (lastTs = null, lastCount = null) ->
+  _checkForUpdates: do (lastTs = null, lastCount = null, alreadyWarned = no) ->
     itFailed = ->
-      console.warn 'seems like live updates stopped coming'
-      KD.logToExternal 'realtime failure detected'
+      unless alreadyWarned
+        console.warn 'seems like live updates stopped coming'
+        KD.logToExternal 'realtime failure detected'
+        alreadyWarned = yes
     ->
       KD.remote.api.CActivity.fetchLastActivityTimestamp (err, ts) =>
         itFailed()  if ts? and lastTs isnt ts and lastCount is __count
@@ -80,7 +87,7 @@ class ActivityListHeader extends JView
     else clearInterval i
 
   pistachio:(newCount)->
-    "<div class='header-wrapper'>{{> @headerTitle}} {{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
+    "<div class='header-wrapper'>{{> @headerTitle}} {{> @lowQualitySwitch}} {{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
 
   newActivityArrived:->
     __count++
@@ -89,8 +96,9 @@ class ActivityListHeader extends JView
     @updateShowNewItemsTitle()  if @showNewItemsInTitle
 
   decorateLiveUpdateButton:->
-    if KD.isLoggedIn() then @liveUpdateButton.show()
-    else @liveUpdateButton.hide()
+    @liveUpdateButton.show()
+    # if KD.isLoggedIn() then @liveUpdateButton.show()
+    # else @liveUpdateButton.hide()
 
   updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0

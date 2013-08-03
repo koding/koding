@@ -1,6 +1,6 @@
 module.exports =
 
-    member :
+    member      :
       following :
         """
           START group=node:koding(id={groupId})
@@ -35,10 +35,10 @@ module.exports =
       count: (exemptClause)->
         """
         START group=node:koding(id={groupId})
-        match group-[:member]->members
+        MATCH group-[:member]->members
         WHERE members.name="JAccount"
         #{exemptClause}
-        return count(members) as count
+        RETURN count(members) as count
         """
 
       search: (options)->
@@ -52,15 +52,16 @@ module.exports =
             or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
             or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
           )
-           
+
           #{blacklistQuery}
           #{exemptClause}
 
           RETURN members
-          ORDER BY members.`profile.firstName`  
+          ORDER BY members.`profile.firstName`
+          SKIP {skipCount}
           LIMIT {limitCount}
-        """ 
-    bucket :
+        """
+    bucket      :
       newMembers :
         """
           START group=node:koding(id={groupId})
@@ -101,7 +102,7 @@ module.exports =
           ORDER BY r.createdAtEpoch DESC
           LIMIT 20
         """
-    activity :
+    activity    :
       public :(facetQuery="",groupFilter="", exemptClause="")->
         """
           START group=node:koding(id={groupId})
@@ -140,7 +141,7 @@ module.exports =
           LIMIT {limitCount}
         """
 
-    invitation :
+    invitation  :
       list     :(status, timestampQuery="", searchQuery="")->
         """
           START group=node:koding(id={groupId})
@@ -152,5 +153,12 @@ module.exports =
           RETURN groupOwnedNodes
           ORDER BY groupOwnedNodes.`meta.createdAtEpoch`
           LIMIT {limitCount}
+        """
+    aggregation :
+      relationshipCount:(relationshipName)->
+        """
+          START group=node:koding(id={groupId})
+          MATCH group-[:#{relationshipName}]->items
+          RETURN count(items) as count
         """
 

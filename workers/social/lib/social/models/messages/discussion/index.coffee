@@ -13,7 +13,7 @@ module.exports = class JDiscussion extends JPost
   {Base,ObjectId,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = require 'jraphical'
   {permit} = require '../../group/permissionset'
-  
+
   {log} = console
 
   {once, extend} = require 'underscore'
@@ -43,17 +43,20 @@ module.exports = class JDiscussion extends JPost
         { name: 'ReplyIsRemoved' }
         { name: 'CommentIsAdded' }
         { name: 'CommentIsRemoved' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods     :
       static          : ['create','one']
       instance        : [
-        'on','replyOpinion', 'reply',
-        'restComments', 'commentsByRange',
-        'restOpinions', 'opinionsByRange',
-        'removeOpinion'
-        'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments','fetchRelativeOpinions'
-        'updateTeaser'
+        'on','replyOpinion','reply','restComments','commentsByRange','like',
+        'restOpinions','opinionsByRange','checkIfLikedBefore','fetchLikedByes',
+        'mark','unmark','fetchTags','delete','updateTeaser','modify',
+        'fetchRelativeComments','fetchRelativeOpinions' #,'removeOpinion'
       ]
     schema            : schema
     relationships     :
@@ -132,81 +135,82 @@ module.exports = class JDiscussion extends JPost
     ]
     daisy queue
 
-  replyOpinion: secure (client, comment, callback)->
-    {delegate} = client.connection
+  replyOpinion: permit 'reply to posts',
+    success: (client, comment, callback)->
+      {delegate} = client.connection
 
-    JAccount = require '../../account'
+      JAccount = require '../../account'
 
-    unless delegate instanceof JAccount
-      callback new Error 'Log in required!'
-    else
-      JOpinion = require '../opinion'
+      unless delegate instanceof JAccount
+        callback new Error 'Log in required!'
+      else
+        JOpinion = require '../opinion'
 
-      comment = new JOpinion
-        body: comment.body
-        title: comment.body
-        meta: comment.meta
-      exempt = delegate.checkFlag('exempt')
-      if exempt
-        comment.isLowQuality = yes
-      comment
-        .sign(delegate)
-        .save (err)=>
-          if err
-            callback err
-          else
-            delegate.addContent comment, (err)->
-              if err
-                log 'JDiscussion error adding content to delegate', err
-            @addOpinion comment,
-              flags:
-                isLowQuality    : exempt
-            , (err, docs)=>
-              if err
-                callback err
-              else
-                if exempt
-                  callback null, comment
+        comment = new JOpinion
+          body: comment.body
+          title: comment.body
+          meta: comment.meta
+        exempt = delegate.checkFlag('exempt')
+        if exempt
+          comment.isLowQuality = yes
+        comment
+          .sign(delegate)
+          .save (err)=>
+            if err
+              callback err
+            else
+              delegate.addContent comment, (err)->
+                if err
+                  log 'JDiscussion error adding content to delegate', err
+              @addOpinion comment,
+                flags:
+                  isLowQuality    : exempt
+              , (err, docs)=>
+                if err
+                  callback err
                 else
-                  Relationship.count {
-                    sourceId                    : @getId()
-                    as                          : 'opinion'
-                    'data.flags.isLowQuality'   : $ne: yes
-                  }, (err, count)=>
-                    if err
-                      callback err
-                    else
-                      @update $set: opinionCount: count, (err)=>
-                        if err
-                          callback err
-                        else
-                          callback null, comment
-                          @fetchActivityId (err, id)->
+                  if exempt
+                    callback null, comment
+                  else
+                    Relationship.count {
+                      sourceId                    : @getId()
+                      as                          : 'opinion'
+                      'data.flags.isLowQuality'   : $ne: yes
+                    }, (err, count)=>
+                      if err
+                        callback err
+                      else
+                        @update $set: opinionCount: count, (err)=>
+                          if err
+                            callback err
+                          else
+                            callback null, comment
+                            @fetchActivityId (err, id)->
 
-                            CActivity = require '../../activity'
+                              CActivity = require '../../activity'
 
-                            CActivity.update {_id: id}, {
-                              $set:
-                                'sorts.opinionCount'  : count
-                            }, log
-                          @fetchOrigin (err, origin)=>
-                            if err
-                              log "Couldn't fetch the origin"
-                            else
-                              unless exempt
-                                @emit 'ReplyIsAdded', {
-                                  origin
-                                  subject       : ObjectRef(@).data
-                                  actorType     : 'replier'
-                                  actionType    : 'opinion'
-                                  replier       : ObjectRef(delegate).data
-                                  opinion       : ObjectRef(comment).data
-                                  opinionCount  : count
-                                  relationship  : docs[0]
-                                  # opinionData   : JSON.stringify comment
-                                }
-                              @follow client, emitActivity: no, (err)->
-                              @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                              CActivity.update {_id: id}, {
+                                $set:
+                                  'sorts.opinionCount'  : count
+                              }, log
+                            @fetchOrigin (err, origin)=>
+                              if err
+                                log "Couldn't fetch the origin"
+                              else
+                                unless exempt
+                                  @emit 'ReplyIsAdded', {
+                                    origin
+                                    subject       : ObjectRef(@).data
+                                    actorType     : 'replier'
+                                    actionType    : 'opinion'
+                                    replier       : ObjectRef(delegate).data
+                                    opinion       : ObjectRef(comment).data
+                                    opinionCount  : count
+                                    relationship  : docs[0]
+                                    # opinionData   : JSON.stringify comment
+                                  }
+                                @follow client, emitActivity: no, (err)->
+                                @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   reply: permit 'reply to posts',
     success:(client, comment, callback)->
@@ -429,6 +433,7 @@ module.exports = class JDiscussion extends JPost
         # log "restcomment comments are",comments
         # comments.reverse()
         callback null, comments
+
   restComments:(skipCount, callback)->
     [callback, skipCount] = [skipCount, callback] unless callback
     skipCount ?= 3

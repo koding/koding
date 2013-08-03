@@ -56,6 +56,12 @@ class InboxNewMessageBar extends KDView
           style      : "modal-clean-red"
           callback   : =>
             @emit 'MessageShouldBeDisowned', modal
+        Cancel       :
+          style      : "modal-cancel"
+          title      : "cancel"
+          callback   : -> modal.destroy()
+
+    modal.buttons.Delete.blur()
 
   createNewMessageModal:->
     KD.getSingleton("appManager").tell "Inbox", "createNewMessageModal"

@@ -119,38 +119,38 @@ module.exports = class JDomain extends jraphical.Module
           callback null, !/shared[\-]?([0-9]+)?$/.test prefix
 
   @createDomain: secure (client, options={}, callback)->
-      {delegate} = client.connection
+    {delegate} = client.connection
 
-      JGroup.one {slug:'koding'}, (err, group)->
+    JGroup.one {slug:'koding'}, (err, group)->
+      return callback err  if err
+
+      delegate.checkPermission group, 'create domains', (err, hasPermission)->
         return callback err  if err
+        return callback new KodingError "Access denied"  unless hasPermission
 
-        delegate.checkPermission group, 'create domains', (err, hasPermission)->
+        JDomain.isDomainEligible
+          delegate : delegate
+          domain   : options.domain
+        , (err, isEligible)->
           return callback err  if err
-          return callback new KodingError "Access denied"  unless hasPermission
+          return callback new KodingError "You can't create this domain."  unless isEligible
 
-          JDomain.isDomainEligible
-            delegate : delegate
-            domain   : options.domain
-          , (err, isEligible)->
-            return callback err  if err
-            return callback new KodingError "You can't create this domain."  unless isEligible
+          model = new JDomain options
+          model.save (err) ->
+            return callback err if err
 
-            model = new JDomain options
-            model.save (err) ->
+            account = client.connection.delegate
+            rel = new Relationship
+              targetId: model.getId()
+              targetName: 'JDomain'
+              sourceId: account.getId()
+              sourceName: 'JAccount'
+              as: 'owner'
+
+            rel.save (err)->
               return callback err if err
 
-              account = client.connection.delegate
-              rel = new Relationship
-                targetId: model.getId()
-                targetName: 'JDomain'
-                sourceId: account.getId()
-                sourceName: 'JAccount'
-                as: 'owner'
-
-              rel.save (err)->
-                return callback err if err
-
-              callback err, model
+            callback err, model
 
 
   @isDomainAvailable = (domainName, tld, callback)->
@@ -363,7 +363,7 @@ module.exports = class JDomain extends jraphical.Module
           "dnsRecords.value"      : oldData.value
           "dnsRecords.recordType" : oldData.recordType
         , {$set : {
-            "dnsRecords.$.host"      : newData.host
+            "dnsRecords.$.host"       : newData.host
             "dnsRecords.$.value"      : newData.value
             "dnsRecords.$.recordType" : newData.recordType
             "dnsRecords.$.ttl"        : newData.ttl
@@ -375,10 +375,11 @@ module.exports = class JDomain extends jraphical.Module
         callback err, response
 
   remove$: permit
-      advanced: [
-        { permission: 'delete own domains', validateWith: Validators.own }
-      ]
-      success: (client, callback)->
-        {delegate} = client.connection
-        @remove (err)=>
-          callback err
+    advanced: [
+      { permission: 'delete own domains', validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      {delegate} = client.connection
+      if /^([\w\-]+)\.kd\.io$/.test @domain
+        return callback new KodingError "It's not allowed to delete root domains"
+      @remove (err)=> callback err

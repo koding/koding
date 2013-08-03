@@ -19,7 +19,7 @@ class KDWindowController extends KDController
     prefixes = ["webkit", "moz", "o"]
     return "hidden" if `"hidden" in document`
     return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
-    return null
+    return ""
 
   isFocused = -> Boolean document[getVisibilityProperty()]
 
@@ -35,7 +35,7 @@ class KDWindowController extends KDController
     @dragView              = null
     @scrollingEnabled      = yes
     @layers                = []
-    @unloadListeners       = []
+    @unloadListeners       = {}
     @focusListeners        = []
 
     @bindEvents()
@@ -115,19 +115,25 @@ class KDWindowController extends KDController
 
     window.addEventListener 'beforeunload', @bound "beforeUnload"
 
-    @utils.repeat 1000, do =>
+    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
+      if cookie? and cookie isnt $.cookie 'clientId'
+        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
+        @emit "clientIdChanged"
+        @utils.defer -> window.location.replace '/'
       cookie = $.cookie 'clientId'
-      =>
-        if KD.isLoggingIn then KD.isLoggingIn = no
-        else if cookie? and cookie isnt $.cookie 'clientId'
-          window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-          window.location.replace '/'
-        cookie = $.cookie 'clientId'
 
     document.addEventListener getVisibilityEventName(), (event)=>
       @focusChange event, isFocused()
 
-  addUnloadListener:(listener)-> @unloadListeners.push listener
+  addUnloadListener:(key, listener)->
+    listeners = @unloadListeners[key] or= []
+    listeners.push listener
+
+  clearUnloadListeners: (key)->
+    if key
+      @unloadListeners[key] = []
+    else
+      @unloadListeners = {}
 
   addFocusListener: (listener)-> @focusListeners.push listener
 
@@ -143,9 +149,11 @@ class KDWindowController extends KDController
     # all the listeners make their checks if it is safe or not to reload the page
     # they either return true or false if any of them returns false we intercept reload
 
-    for listener in @unloadListeners
-      if listener() is off
-        return "Please make sure that you saved all your work."
+    for key, listeners of @unloadListeners
+      for listener in listeners
+        if listener() is off
+          message = unless key is "window" then " on #{key}" else ""
+          return "Please make sure that you saved all your work#{message}."
 
   setDragInAction:(@dragInAction = no)->
     $('body')[if @dragInAction then "addClass" else "removeClass"] "dragInAction"

@@ -49,7 +49,7 @@ module.exports = class Activity extends Graph
     if not delegate
       callback callback {error: "Request not valid"}
     else
-      groupName = client.context.group
+      groupName = client.context.group or "koding"
       JGroup = require '../group'
       JGroup.one slug : groupName, (err, group)=>
         if err then return callback err
@@ -89,26 +89,27 @@ module.exports = class Activity extends Graph
 
   # this is used for activities on profile page
   @fetchUsersActivityFeed: (requestOptions, callback)->
-    requestOptions.group =
-      grouId : requestOptions.group.id
-      groupName : requestOptions.group.slug
+    @getCurrentGroup requestOptions.client, (err, currentGroup)=>
+      if err then return callback errw
+      requestOptions.group = {groupName: currentGroup.slug, groupId: currentGroup._id}
 
-    {facets, to, limit, client} = requestOptions
-    facetQuery = @generateFacets facets
+      {facets} = requestOptions
+      facetQuery = @generateFacets facets
 
-    if requestOptions.sort.likesCount?
-      orderBy = "coalesce(content.`meta.likes`?, 0)"
-    else if requestOptions.sort.repliesCount?
-      orderBy = "coalesce(content.repliesCount?, 0)"
-    else
-      orderBy = "content.`meta.createdAtEpoch`"
+      if requestOptions.sort.likesCount?
+        orderBy = "coalesce(content.`meta.likes`?, 0)"
+      else if requestOptions.sort.repliesCount?
+        orderBy = "coalesce(content.repliesCount?, 0)"
+      else
+        orderBy = "content.`meta.createdAtEpoch`"
 
-    # todo check for options that are required for this query
-    queryOptions = requestOptions
-    queryOptions.userId = requestOptions.originId
-    queryOptions.limitCount = 3 #requestOptions.limit
-    query = QueryRegistry.activity.profilePage {facetQuery, orderBy}
-    @fetchWithRelatedContent query, queryOptions, requestOptions, callback
+      queryOptions =
+        userId     : requestOptions.originId
+        to         : requestOptions.to
+        limitCount : 10 #requestOptions.limit
+
+      query = QueryRegistry.activity.profilePage {facetQuery, orderBy}
+      @fetchWithRelatedContent query, queryOptions, requestOptions, callback
 
   # this is following feed
   @fetchFolloweeContents:(options, callback)->

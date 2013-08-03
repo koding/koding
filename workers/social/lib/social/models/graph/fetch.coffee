@@ -3,16 +3,14 @@
 module.exports = class FetchAllActivityParallel
   _              = require "underscore"
   async          = require "async"
-  Graph          = require "./graph"
   GraphDecorator = require "./graphdecorator"
   Bucket         = require "./bucket"
   Activity       = require "./activity"
 
   constructor:(@requestOptions)->
-    {client, startDate, neo4j, group, facets} = @requestOptions
+    {client, startDate, group} = @requestOptions
 
     @client               = client
-    @graph                = new Graph {config : neo4j, facets: group.facets}
     @facets               = group.facets
     @startDate            = startDate
     @group                = group

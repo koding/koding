@@ -169,9 +169,9 @@ module.exports = [
 
   "app/MainApp/navigation/navigationcontroller.coffee",
 
-  "app/CommonViews/LinkViews.coffee",
   "app/CommonViews/VideoPopup.coffee",
   "app/CommonViews/LikeView.coffee",
+  "app/CommonViews/ShowMoreDataModalView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
   "app/CommonViews/Tags/TagAutoCompleteController.coffee",
   "app/CommonViews/FormViews.coffee",
@@ -392,15 +392,13 @@ module.exports = [
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
 
-  "app/MainApp/monitor.coffee",
-  "app/MainApp/monitorview.coffee",
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
-  "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Activity.kdapplication/AppController.coffee",
+  "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
-  # "app/Applications/Environment.kdapplication/AppController.coffee",
+  "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Apps.kdapplication/AppController.coffee",
   "app/Applications/Inbox.kdapplication/AppController.coffee",
   "app/Applications/Demos.kdapplication/AppController.coffee",
@@ -556,7 +554,6 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
   "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
   "app/Applications/Environments.kdapplication/AppView.coffee",
-  "app/Applications/Environments.kdapplication/AppController.coffee",
   # "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
@@ -670,6 +667,8 @@ module.exports = [
   "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
   "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
   "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
+  "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
+  "app/Applications/Home.kdapplication/Views/featuredactivitiescontainer.coffee",
   "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
@@ -683,7 +682,7 @@ module.exports = [
   # "app/Applications/GroupsFake.kdapplication/AppController.coffee",
 
   # ACCOUNT SETTINGS
-
+  "app/Applications/Account.kdapplication/account/accountListViewController.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee",
@@ -751,6 +750,8 @@ module.exports = [
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
+
+  "app/CommonViews/modalappslistitemview.coffee",
 
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",

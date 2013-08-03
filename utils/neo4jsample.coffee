@@ -119,25 +119,40 @@ objectify =
 
 
 options =
-  limitCount: 10
-  skipCount: 0
-  groupId: '5196fcb2bc9bdb0000000027'
-  currentUserId: '51a3e4b1db49f04a74000003'
-  orderByQuery: 'members.`meta.modifiedAt`'
-  # orderByQuery2: 'members.`meta.modifiedAt`'
-  # orderByQuery3: 'members.`meta.modifiedAt`'
-  # orderByQuery4: 'members.`meta.modifiedAt`'
-  # orderByQuery5: 'members.`meta.modifiedAt`'
-  # orderByQuery6: 'members.`meta.modifiedAt`'
-  # orderByQuery7: 'members.`meta.modifiedAt`'
-  # orderByQuery8: 'members.`meta.modifiedAt`'
-  # orderByQuery9: 'members.`meta.modifiedAt`'
+  limitCount: 10,
+  skipCount: 0,
+  groupId: "5196fcb2bc9bdb0000000027",
+  currentUserId: 'undefined',
+  orderByQuery: 'members.`meta.modifiedAt`',
+  to: undefined
+
+options =
+
+{ sort: { likesCount: -1 },
+  limit: 8,
+  skip: 0,
+  originId: '5196fcb0bc9bdb0000000012',
+  facets: [ 'Everything' ],
+  to: 1375472260788,
+  withExempt: false,
+  client:
+  { sessionToken: '9d0de90b6a354cfda582bc340cf4c4c6',
+    context: {},
+    connection: { delegate: [Object] },
+    groupName: 'koding' },
+  group: { groupName: 'koding', groupId: 5196fcb2bc9bdb0000000027 },
+userId: '5196fcb0bc9bdb0000000012',
+limitCount: 3 }
+
 
 query = """
-      start  group=node:koding(id={groupId})
-      MATCH  group-[r:member]->members-[:follower]->currentUser
-      return members, currentUser, r
-      order by {orderByQuery} DESC
+        START member=node:koding(id={userId})
+        MATCH member<-[:author]-content
+        WHERE content.`meta.createdAtEpoch` < {to}
+
+        RETURN DISTINCT content
+        ORDER BY coalesce(content.`meta.likes`?, 0) DESC
+        LIMIT {limitCount}
     """
     # return members, count(members) as count, r
 console.log query
@@ -145,30 +160,8 @@ console.log query
 
 db.query query, options, (err, results)->
   console.log err, results
-  incomingObjects = []
   for result in results
-    a = []
-    a.push result.members.data
-    a.push result.currentUser.data
-    a.push result.r.data
-    incomingObjects.push a
-
-  incomingObjects = [].concat(incomingObjects)
-  generatedObjects = []
-  for incomingObject in incomingObjects
-    generatedObject = {}
-    for k of incomingObject
-      temp = generatedObject
-      parts = k.split "."
-      key = parts.pop()
-      while parts.length
-        part = parts.shift()
-        temp = temp[part] = temp[part] or {}
-      temp[key] = incomingObject[k]
-    generatedObjects.push generatedObject
-  console.log generatedObjects
-
-
+    console.log result.members.data
 
 # START group=node:koding("id:5196fcb2bc9bdb0000000027"), user=node:koding("id:51a3e4b1db49f04a74000003")
 # MATCH group-[r:member]->members

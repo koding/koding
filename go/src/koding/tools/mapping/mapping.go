@@ -44,7 +44,8 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 
 				result[tempKey] = mapValue
 			}
-
+		case "int", "int64", "unit64", "float64", "bool", "string":
+			result[k] = v
 		// if value is an array
 		case "[]interface {}":
 			// casting here
@@ -68,33 +69,13 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 			}
 		case "bson.ObjectId":
 			result[k] = v.(bson.ObjectId).Hex()
-		case "int":
-			//integer to ascii
-			result[k] = v.(int)
-		case "int64":
-			//10-based conversion
-			result[k] = v.(int64)
-		case "uint64":
-			result[k] = v.(uint64)
-		//convert floats to 64bit-sized version as a string
-		case "float64":
-			// f => (-ddd.dddd, no exponent) most human readable version
-			// -1 => smallest number required precision
-			// 64 => 64bit based
-			result[k] = v.(float64)
-		case "bool":
-			result[k] = v.(bool)
 		case "time.Time":
 			result[k] = v.(time.Time).UTC().Format("2006-01-02T15:04:05.000Z")
-		case "string":
-			result[k] = v.(string)
 		default:
 			//there might be some others but, for now they are OK
 			fmt.Println(typeOfKey)
 			fmt.Println("...")
 		}
-
 	}
-
 	return result
 }

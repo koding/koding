@@ -31,7 +31,7 @@ class InboxAppController extends AppController
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
-  createNewMessageModal:(to)->
+  createNewMessageModal:(users)->
     modal = new KDModalViewWithForms
       title                   : "Compose a message"
       content                 : ""
@@ -55,11 +55,21 @@ class InboxAppController extends AppController
                 label         : "Subject:"
                 placeholder   : 'Enter a subject'
                 name          : "subject"
-              Message         :
+                validate      :
+                  rules       :
+                    required  : yes
+                  messages    :
+                    required  : "Subject field is required!"
+              message         :
                 label         : "Message:"
                 type          : "textarea"
                 name          : "body"
                 placeholder   : 'Enter your message'
+                validate      :
+                  rules       :
+                    required  : yes
+                  messages    :
+                    required  : "Message field is required!"
             buttons           :
               Send            :
                 title         : "Send"
@@ -70,7 +80,9 @@ class InboxAppController extends AppController
                 style         : "modal-cancel"
                 callback      : -> modal.destroy()
 
-    toField = modal.modalTabs.forms.sendForm.fields.to
+    {subject, message} = modal.modalTabs.forms.sendForm.inputs
+    toField            = modal.modalTabs.forms.sendForm.fields.to
+    subjectField       = modal.modalTabs.forms.sendForm.fields.subject
 
     recipientsWrapper = new KDView
       cssClass      : "completed-items"
@@ -91,8 +103,23 @@ class InboxAppController extends AppController
 
     toField.addSubView recipient.getView()
     toField.addSubView recipientsWrapper
-    recipient.setDefaultValue to  if to
+    if users
+      recipient.setDefaultValue users
+      
+      if users.length is 1
+        toField.hide()
 
+        toName = KD.utils.getFullnameFromAccount users.first
+        myName = KD.utils.getFullnameFromAccount()
+
+        subject.setValue "Private message from #{myName}"
+        subjectField.hide()
+
+        modal.setTitle "#{modal.getOption('title')} to <b>#{toName}</b>"
+
+      message.$().focus()
+    else
+      recipient.getView().$input().focus()
 
   loadView:(mainView)->
     mainView.createCommons()
@@ -193,7 +220,10 @@ class InboxAppController extends AppController
     @selection = {}
 
   sendMessage:(messageDetails, callback)->
-    # log "I just send a new message: ", messageDetails
+    if KD.isGuest()
+      return new KDNotificationView
+        title : "Sending private message for guests not allowed."
+
     KD.remote.api.JPrivateMessage.create messageDetails, callback
 
   prepareMessage:(formOutput, callback, newMessageBar)->

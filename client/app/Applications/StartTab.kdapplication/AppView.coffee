@@ -53,6 +53,47 @@ class StartTabMainView extends JView
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
 
+    @downloadFilesLink = new KDCustomHTMLView
+    userJoinDate       = new Date(KD.whoami().meta.createdAt).getTime()
+    oldKodingDownDate  = 1374267600000
+
+    if userJoinDate < oldKodingDownDate
+      @appStorage = KD.getSingleton("appStorageController").storage "Finder", "1.0"
+
+      @appStorage.fetchStorage (err, storage) =>
+        return if @appStorage.getValue "HideOldKodingDownloadLink"
+
+        @downloadFilesLink.addSubView text = new KDCustomHTMLView
+          cssClass     : "download-files-link"
+          partial      : "Click here to get download link for your old Koding files"
+          click        : ->
+            KD.whoami().fetchOldKodingDownloadLink (err, url) ->
+              modal          = new KDModalView
+                cssClass     : "modal-with-text old-file-download-modal"
+                overlay      : yes
+                title        : "Your old Koding files"
+                content      : """
+                  <p>
+                    You can use the following link to download your files. Note that these files won't be available after Sep 1, 2013. You have to download before then.
+                    <a href="#{url}" class="download-link" target="_blank">#{url}</a>
+                  </p>
+                """
+                buttons      :
+                  Close      :
+                    title    : "Close"
+                    cssClass : "modal-cancel"
+                    callback : -> modal.destroy()
+
+        text.addSubView new KDCustomHTMLView
+          cssClass : "close-download-notification"
+          tagName  : "span"
+          tooltip  :
+            title  : "Don't show this again."
+          click    : (e) =>
+            e.stopPropagation()
+            @downloadFilesLink.destroy()
+            @appStorage.setValue "HideOldKodingDownloadLink", yes
+
   showLoader:->
 
     @loader.show()
@@ -71,6 +112,13 @@ class StartTabMainView extends JView
     @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
+    if KD.isGuest()
+      unless $.cookie "guestForFirstTime"
+        @utils.wait 5*60*1000, =>
+          @showGuestNotification()
+          $.cookie "guestForFirstTime", yes
+      else
+        @showGuestNotification()
 
   _windowDidResize:->
 
@@ -101,12 +149,13 @@ class StartTabMainView extends JView
     """
     <div class='app-list-wrapper'>
       <div class='app-button-holder'>
+        {{> @downloadFilesLink}}
         {{> @addAnAppButton}}
         {{> @refreshButton}}
       </div>
       <header>
-        <h1 class="start-tab-header loaded hidden">To start from a new file, select an editor</h1>
-        <h2 class="loaded hidden">or open an existing file from your file tree</h2>
+        <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
+        <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
         <h2 class="loader">{{> @loader}} Loading applications...</h1>
       </header>
       {{> @appItemContainer}}
@@ -241,3 +290,24 @@ class StartTabMainView extends JView
         splits                : [2,2]
       },
     ]
+
+  showGuestNotification: (guestTimeout = 20)->
+    return  unless KD.isGuest()
+    guestCreate      = new Date KD.whoami().meta.createdAt
+    guestCreateTime  = guestCreate.getTime()
+
+    endTime       = new Date(guestCreateTime + guestTimeout*60*1000)
+    log endTime
+    notification  = new GlobalNotification
+      title       : "Your session will end in"
+      targetDate  : endTime
+      endTitle    : "Your session end, logging out."
+      content     : "You can use Koding for 20 minutes without registering. <a href='/Register'>Register now</a>."
+      callback    : =>
+        return  unless KD.isGuest()
+        {defaultVmName} = KD.getSingleton "vmController"
+        KD.remote.api.JVM.removeByHostname defaultVmName, (err)->
+          KD.getSingleton("finderController").unmountVm defaultVmName
+          KD.getSingleton("vmController").emit 'VMListChanged'
+          $.cookie "clientId", erase: yes
+          $.cookie "guestForFirstTime", erase: yes

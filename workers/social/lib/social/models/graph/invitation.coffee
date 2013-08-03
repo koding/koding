@@ -28,29 +28,17 @@ module.exports = class Invitation extends Graph
     query = QueryRegistry.invitation.list status, timeStampQuery, regexSearch
 
     @fetch query, queryOptions, (err, results)=>
-      console.log "arguments"
-      console.log arguments
       if err then return callback err
       if results.length < 1 then return callback null, []
       @generateInvitations [], results, (err, data)=>
-        console.log "err.data"
-        console.log err, data
         if err then callback err
         @revive data, (revived)->
-          console.log "revived"
-          console.log revived
           callback null, revived
 
   @generateInvitations:(resultData, results, callback)=>
-    console.log "generate inviations arguments"
-    console.log arguments
     if results? and results.length < 1 then return callback null, resultData
     result = results.shift()
-    console.log "result"
-    console.log result
     @objectify result.groupOwnedNodes.data, (objected)=>
-      console.log "objected"
-      console.log objected
       resultData.push objected
       @generateInvitations resultData, results, callback
 

@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/chuckpreslar/inflect"
 	"koding/tools/mapping"
@@ -15,6 +16,78 @@ var (
 	ERR_DATA    = make(map[string]interface{})
 	COLLECTIONS = make(map[string]*mgo.Collection)
 )
+
+func FetchOneContentBy(queryFunc func() map[string]interface{}) (map[string]interface{}, error) {
+	result := queryFunc()
+	if result == nil {
+		return result, errors.New("no result")
+	}
+
+	result["id"] = result["_id"].(bson.ObjectId).Hex()
+	result = decorateResult(result)
+
+	return result, nil
+}
+
+func decorateResult(result map[string]interface{}) map[string]interface{} {
+	id := result["_id"].(bson.ObjectId)
+	result["id"] = id.Hex()
+
+	meta := make(map[string]interface{})
+
+	if _, ok := result["meta"]; ok {
+		meta = result["meta"].(map[string]interface{})
+	}
+
+	createdAt := id.Time().UTC()
+	meta["createdAt"] = createdAt.Format("2006-01-02T15:04:05.000Z")
+	meta["createdAtEpoch"] = createdAt.Unix()
+
+	result["meta"] = meta
+
+	start := ""
+	decoratedArray := mapping.ConvertTo2DMap(start, result)
+
+	return decoratedArray
+}
+
+// TODO: DRY this with FetchContent()
+func Fetch(idHex, name string) (map[string]interface{}, error) {
+	id := bson.ObjectIdHex(idHex)
+
+	if _, ok := COLLECTIONS[name]; !ok {
+		collectionName := getCollectionName(name)
+
+		collection := GetCollection(collectionName)
+		COLLECTIONS[name] = collection
+	}
+
+	result := make(map[string]interface{})
+	err := COLLECTIONS[name].FindId(id).One(result)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("positive")
+	result["id"] = idHex
+	result["name"] = name
+
+	meta := make(map[string]interface{})
+
+	if _, ok := result["meta"]; ok {
+		meta = result["meta"].(map[string]interface{})
+	}
+
+	createdAt := id.Time().UTC()
+	meta["createdAt"] = createdAt.Format("2006-01-02T15:04:05.000Z")
+	meta["createdAtEpoch"] = createdAt.Unix()
+
+	result["meta"] = meta
+
+	result = decorateResult(result)
+
+	return result, nil
+}
 
 func FetchContent(id bson.ObjectId, name string) (string, error) {
 

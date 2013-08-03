@@ -100,6 +100,8 @@ module.exports = class JMailNotification extends Model
 
     {actor, receiver, event, contents, bcc} = data
 
+    return callback null  if receiver.type is 'unregistered'
+
     username = receiver.getAt 'profile.nickname'
     sender   = actor._id ? actor.id ? actor
     receiver = receiver._id

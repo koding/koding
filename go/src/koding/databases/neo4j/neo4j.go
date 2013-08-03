@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/tools/config"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,6 +19,16 @@ var (
 	INDEX_PATH       = "/db/data/index/node"
 	NODE_URL         = "/db/data/node"
 )
+
+type Relationship struct {
+	Id         bson.ObjectId `bson:"_id,omitempty"`
+	TargetId   bson.ObjectId `bson:"targetId,omitempty"`
+	TargetName string        `bson:"targetName"`
+	SourceId   bson.ObjectId `bson:"sourceId,omitempty"`
+	SourceName string        `bson:"sourceName"`
+	As         string
+	Data       bson.Binary
+}
 
 // Gets URL and string data to be sent and makes POST request
 // reads response body and returns as string
@@ -277,4 +288,25 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 	}
 
 	return source, nil
+}
+
+var NotAllowedNames = []string{
+	"CStatusActivity",
+	"CFolloweeBucketActivity",
+	"CFollowerBucketActivity",
+	"CCodeSnipActivity",
+	"CDiscussionActivity",
+	"CReplieeBucketActivity",
+	"CReplierBucketActivity",
+	"CBlogPostActivity",
+	"CNewMemberBucketActivity",
+	"CTutorialActivity",
+	"CLikeeBucketActivity",
+	"CLikerBucketActivity",
+	"CInstalleeBucketActivity",
+	"CInstallerBucketActivity",
+	"CActivity",
+	"CRunnableActivity",
+	"JAppStorage",
+	"JFeed",
 }

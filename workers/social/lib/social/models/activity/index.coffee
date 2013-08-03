@@ -275,7 +275,7 @@ module.exports = class CActivity extends jraphical.Capsule
     if not delegate
       callback callback {error: "Request not valid"}
     else
-      groupName = client.context.group
+      groupName = client.context.group or "koding"
       JGroup = require '../group'
       JGroup.one slug : groupName, (err, group)=>
         if err then return callback err
@@ -286,31 +286,23 @@ module.exports = class CActivity extends jraphical.Capsule
 
   # this is used for activities on profile page
   @fetchUsersActivityFeed: secure (client, options, callback)->
-    @getCurrentGroup client, (err, group)=>
-      if err then return callback err
-      {Activity} = require "../graph"
-      options.client = client
-      options.group = group
+    {Activity} = require "../graph"
+    options.client = client
 
-      Activity.fetchUsersActivityFeed options, callback
+    Activity.fetchUsersActivityFeed options, callback
 
   @fetchFolloweeContents: secure (client, options, callback)->
-    @getCurrentGroup client, (err, group)=>
-      if err then return callback err
-      {Activity} = require "../graph"
-      {facets, to, limit} = options
-      requestOptions =
-        userId : client.connection.delegate.getId()
-        group :
-          groupName : group.slug
-          groupId : group._id
-        limit : 5 #limit #bandage for now
-        withExempt: options.withExempt
-        facet : [facets]
-        to : to
-        client : client
+    {Activity} = require "../graph"
+    {facets, to, limit} = options
+    requestOptions =
+      userId : client.connection.delegate.getId()
+      limit : 5 #limit #bandage for now
+      withExempt: options.withExempt
+      facet : facets
+      to : to
+      client : client
 
-      Activity.fetchFolloweeContents requestOptions, callback
+    Activity.fetchFolloweeContents requestOptions, callback
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update

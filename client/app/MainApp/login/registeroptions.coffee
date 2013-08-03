@@ -1,10 +1,7 @@
 class RegisterOptions extends KDView
   viewAppended:->
-    @addSubView new KDHeaderView
-      type     : "small"
-      title    : "YOU NEED AN INVITATION CODE TO REGISTER."
-    
-    @addSubView optionsHolder = new KDCustomHTMLView 
+
+    @addSubView optionsHolder = new KDCustomHTMLView
       tagName  : "ul"
       cssClass : "login-options"
 
@@ -17,21 +14,8 @@ class RegisterOptions extends KDView
 
     optionsHolder.addSubView new KDCustomHTMLView
       tagName  : "li"
-      cssClass : "github"
+      cssClass : "github active"
       partial  : "github"
+      click    : -> KD.utils.openGithubPopUp()
       tooltip  :
-        title  : "<p class='login-tip'>Register with GitHub <cite>coming soon...</cite></p>"
-
-    optionsHolder.addSubView new KDCustomHTMLView
-      tagName  : "li"
-      cssClass : "facebook"
-      partial  : "facebook"
-      tooltip  :
-        title  : "<p class='login-tip'>Register with Facebook <cite>coming soon...</cite></p>"
-
-    optionsHolder.addSubView new KDCustomHTMLView
-      tagName  : "li"
-      cssClass : "google"
-      partial  : "google"
-      tooltip  :
-        title  : "<p class='login-tip'>Register with Google <cite>coming soon...</cite></p>"
+        title  : "<p class='login-tip'>Register with GitHub</p>"

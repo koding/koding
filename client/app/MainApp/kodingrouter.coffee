@@ -28,8 +28,6 @@ class KodingRouter extends KDRouter
     @addRoutes getRoutes.call this
 
     @on 'AlreadyHere', -> log "You're already here!"
-    @on 'Params', ({params, query})=>
-      #@utils.defer => KD.getSingleton('groupsController').changeGroup params.name
 
   listen:->
     super
@@ -66,10 +64,10 @@ class KodingRouter extends KDRouter
     unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
       {entryPoint} = KD.config
-      if KD.isLoggedIn()
-        @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
-      else
-        @handleRoute @getDefaultRoute(), {entryPoint}
+      # if KD.isLoggedIn()
+      @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
+      # else
+      #   @handleRoute @getDefaultRoute(), {entryPoint}
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -80,6 +78,9 @@ class KodingRouter extends KDRouter
     KD.getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
+        # temp fix for not showing homepage to loggedin users
+        app = 'Activity' if app is 'Home' and KD.isLoggedIn()
+
         @setPageTitle nicenames[app] ? app
         appManager = KD.getSingleton "appManager"
         appManager.open app, (appInstance)=>
@@ -98,7 +99,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> '/Activity'
+  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -106,7 +107,7 @@ class KodingRouter extends KDRouter
     {JAccount, JStatusUpdate, JGroup} = KD.remote.api
     @utils.shortenText(
       switch model.constructor
-        when JAccount       then "#{model.profile.firstName} #{model.profile.lastName}"
+        when JAccount       then  KD.utils.getFullnameFromAccount model
         when JStatusUpdate  then  model.body
         when JGroup         then  model.title
         else                      "#{model.title}#{getSectionName model}"
@@ -125,7 +126,6 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-
     KD.getSingleton("appManager").tell section, method, options ? models,
       (contentDisplay)=>
         routeWithoutParams = route.split('?')[0]
@@ -135,37 +135,41 @@ class KodingRouter extends KDRouter
 
   loadContent:(name, section, slug, route, query, passOptions)->
     routeWithoutParams = route.split('?')[0]
-    # return log name, ">>>>>"
 
-    onSuccess = (models)=> @openContent name, section, models, route, query, passOptions
-    onError   = (err)=>
-      new KDNotificationView title: err?.message or 'An unknown error has occured.'
-      @handleNotFound route
+    groupName = if section is "Groups" then name else "koding"
+    KD.getSingleton('groupsController').changeGroup groupName, (err) =>
+      KD.showError err if err
+      onSuccess = (models)=>
+        @openContent name, section, models, route, query, passOptions
+      onError   = (err)=>
+        KD.showError err
+        @handleNotFound route
 
-    if name and not slug
-      KD.remote.cacheable name, (err, models)=>
-        if models?
-        then onSuccess models
-        else onError err
-    else
-      # TEMP FIX: getting rid of the leading slash for the post slugs
-      slashlessSlug = routeWithoutParams.slice(1)
-      KD.remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
-        if err then onError err
-        else if jName?
-          models = []
-          jName.slugs.forEach (aSlug, i)=>
-            {constructorName, usedAsPath} = aSlug
-            selector = {}
-            konstructor = KD.remote.api[constructorName]
-            selector[usedAsPath] = aSlug.slug
-            konstructor?.one selector, (err, model)=>
-              return onError err if err?
-              if model
-                models[i] = model
-                if models.length is jName.slugs.length
-                  onSuccess models
-        else onError()
+      if name and not slug
+        KD.remote.cacheable name, (err, models)=>
+          if models?
+          then onSuccess models
+          else onError err
+      else
+        # TEMP FIX: getting rid of the leading slash for the post slugs
+        slashlessSlug = routeWithoutParams.slice(1)
+        KD.remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
+          if err then onError err
+          else if jName?
+            models = []
+            jName.slugs.forEach (aSlug, i)=>
+              {constructorName, usedAsPath} = aSlug
+              selector = {}
+              konstructor = KD.remote.api[constructorName]
+              selector[usedAsPath] = aSlug.slug
+              selector.group = aSlug.group if aSlug.group
+              konstructor?.one selector, (err, model)=>
+                return onError err if err?
+                if model
+                  models[i] = model
+                  if models.length is jName.slugs.length
+                    onSuccess models
+          else onError()
 
   createContentDisplayHandler:(section, passOptions=no)->
     ({params:{name, slug}, query}, models, route)=>
@@ -197,7 +201,7 @@ class KodingRouter extends KDRouter
       if entryPoint?.type is 'group' and entryPoint?.slug?
         route = "/#{KD.config.entryPoint?.slug}"
       else
-        route = '?'
+        route = '/'
     super route, replaceState
 
   getRoutes =->
@@ -235,24 +239,23 @@ class KodingRouter extends KDRouter
         requireLogin  -> mainController.doLogout()
       '/:name?/Register'  : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'register'
-      '/:name?/Join'      : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'join'
       '/:name?/Recover'   : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
 
       # apps
-      '/:name?/Develop/:slug'           : createSectionHandler 'Develop'
+      '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
 
       # content
-      '/:name?/Topics/:slug'            : createContentHandler 'Topics'
-      '/:name?/Activity/:slug'          : createContentHandler 'Activity'
-      '/:name?/Apps/:slug'              : createContentHandler 'Apps'
+      '/:name?/Topics/:slug'   : createContentHandler 'Topics'
+      '/:name?/Activity/:slug' : createContentHandler 'Activity'
+      '/:name?/Apps/:slug'     : createContentHandler 'Apps'
 
-      '/:name/Groups'                   : createSectionHandler 'Groups'
+      '/:name/Groups'          : createSectionHandler 'Groups'
 
-      '/:name/Followers'                : createContentHandler 'Members', yes
-      '/:name/Following'                : createContentHandler 'Members', yes
-      '/:name/Likes'                    : createContentHandler 'Members', yes
+      '/:name/Followers'       : createContentHandler 'Members', yes
+      '/:name/Following'       : createContentHandler 'Members', yes
+      '/:name/Likes'           : createContentHandler 'Members', yes
+
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'

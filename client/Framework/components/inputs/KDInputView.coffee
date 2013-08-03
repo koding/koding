@@ -311,6 +311,8 @@ class KDInputView extends KDView
 
   setAutoGrow:->
 
+    $input = @$()
+
     @setClass "autogrow"
     $growCalculator = $ "<div/>", class : "invisible"
 
@@ -320,23 +322,23 @@ class KDInputView extends KDView
         $growCalculator.css
           height        : "auto"
           "z-index"     : 100000
-          width         : @$().width()
-          padding       : @$().css('padding')
-          "word-break"  : @$().css('word-break')
-          "font-size"   : @$().css('font-size')
-          "line-height" : @$().css('line-height')
+          width         : $input.width()
+          padding       : $input.css('padding')
+          "word-break"  : $input.css('word-break')
+          "font-size"   : $input.css('font-size')
+          "line-height" : $input.css('line-height')
 
     @on "blur", =>
       $growCalculator.detach()
       @$()[0].style.height = "none" # hack to set to initial
 
-    @on "keyup", =>
+    @on "keydown", =>
       $growCalculator.text @getValue()
-      height    = $growCalculator.height()
+      height = $growCalculator.height()
       if @$().css('box-sizing') is "border-box"
-        padding = parseInt(@$().css('padding-top'),10) + parseInt(@$().css('padding-bottom'),10)
-        border  = parseInt(@$().css('border-top-width'),10) + parseInt(@$().css('border-bottom-width'),10)
-        height  = height + border + padding
+        padding    = parseInt($growCalculator.css("padding-top"), 10) + parseInt($growCalculator.css("padding-bottom"), 10)
+        border     = parseInt($growCalculator.css("border-top-width"), 10) + parseInt($growCalculator.css("border-bottom-width"), 10)
+        height     = height + border + padding
 
       @setHeight height
 
