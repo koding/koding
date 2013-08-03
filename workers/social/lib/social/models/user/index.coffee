@@ -327,7 +327,7 @@ module.exports = class JUser extends jraphical.Module
       else
         group.approveMember account, (err)->
           return callback err  if err
-          return invite.markAccepted connection:delegate:account, callback  if invite
+          return invite.redeem connection:delegate:account, callback  if invite
           callback null
 
   @addToGroups = (account, invite, email, callback)->
@@ -545,17 +545,19 @@ module.exports = class JUser extends jraphical.Module
             options = { account, username, clientId, isRegistration: yes }
             @changeUsernameByAccount options, (err, newToken) =>
               return callback err  if err?
-              @addToGroups account, null, email, (err) =>
-                return callback err  if err?
-                @removeFromGuestsGroup account, (err) ->
+              @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
+                return callback err  if err
+                @addToGroups account, invite, email, (err) =>
                   return callback err  if err?
-                  account.update $set: {
-                    'profile.firstName' : firstName
-                    'profile.lastName'  : lastName
-                    type                : 'registered'
-                  }, (err) =>
+                  @removeFromGuestsGroup account, (err) ->
                     return callback err  if err?
-                    callback null, newToken
+                    account.update $set: {
+                      'profile.firstName' : firstName
+                      'profile.lastName'  : lastName
+                      type                : 'registered'
+                    }, (err) =>
+                      return callback err  if err?
+                      callback null, newToken
 
   @register = secure (client, userFormData, callback) ->
     { connection } = client

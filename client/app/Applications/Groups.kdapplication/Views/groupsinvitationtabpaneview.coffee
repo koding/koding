@@ -14,11 +14,11 @@ class GroupsInvitationTabPaneView extends KDView
       lazyLoadThreshold   : 0.90
       startWithLazyLoader : yes
 
-    @listView   = @controller.getView()
-    @addSubView @listView
+    @addSubView @listView = @controller.getView()
 
-    @controller.on 'UpdatePendingCount', @updatePendingCount.bind this
-    @listView.on 'invitationStatusChanged', @parent.tabHandle.bound 'markDirty'
+    @controller.on 'UpdatePendingCount',      @updatePendingCount.bind this
+    @listView.on   'InvitationStatusChanged', =>
+      @getDelegate().tabHandle?.markDirty()
 
   addListeners:->
     @on 'teasersLoaded', =>
