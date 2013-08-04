@@ -263,7 +263,8 @@ class KDTabView extends KDScrollView
   #MODIFY PANES/HANDLES
   setPaneTitle:(pane,title)->
     handle = @getHandleByPane pane
-    handle.getDomElement().find("b").html title
+    handle.getDomElement().find("b").text title
+    handle.setDomAttributes title: title
 
   getHandleByPane: (pane) ->
     index  = @getPaneIndex pane

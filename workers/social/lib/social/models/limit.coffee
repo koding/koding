@@ -5,6 +5,13 @@ module.exports = class JLimit extends jraphical.Module
   @share()
 
   @set
+    sharedEvents    :
+      static        : [
+        { name : "RemovedFromCollection" }
+      ]
+      instance      : [
+        { name : "RemovedFromCollection" }
+      ]
     schema      :
       quota     :
         type    : Number

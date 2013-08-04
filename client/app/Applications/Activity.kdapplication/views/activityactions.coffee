@@ -132,11 +132,17 @@ class ActivityActionsView extends KDView
 
     """
     {{> @loader}}
-    {{> @commentLink}}{{> @commentCount}} ·
-    <span class='optional'>
-    {{> @shareLink}} ·
+    <span class='logged-in'>
+    {{> @commentLink}}{{> @commentCount}}
     </span>
+    <i> · </i>
+    <span class='optional'>
+    {{> @shareLink}}
+    </span>
+    <i> · </i>
+    <span class='logged-in'>
     {{> @likeView}}
+    </span>
     """
 
   attachListeners:->

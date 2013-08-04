@@ -45,25 +45,31 @@
 
 		<div class="row-fluid">
 			<div class="span6">
-                <div class="span2">
-                  <h2>Status</h2>
-                </div>
+            <div class="hero-unit">
+                <h2>Koding.com switcher</h2>
+                    <p>
+                      Change the production build of Koding.com to a different version.<br>
+                      <span class="label label-important">This is a dangerous action</span>, be sure you know what you are doing!
+                    </p>
 
-                <div class="span4">
-                  <!-- switch versions input -->
                   <form method="POST">
 
                     <div class="input-append">
                       <input name="switchVersion" class="span4" id="appendedInputButton" type="text">
-                      <button class="btn btn-success">Switch Version <i class="icon-random icon-white"></i></button>
+                      <button class="btn btn-danger">Switch now <i class="icon-random icon-white"></i></button>
                     </div>
+
+                    <small><em>(current production build <span class="badge">{{.Status.CurrentVersion}}</span>)</em></small>
                   </form>
-                </div>
+
+            </div>
 
 
 				<table class="table table-bordered">
 					<tr>
 						<td>Current Version <span class="badge badge-success">{{.Status.CurrentVersion}}</span></td>
+					</tr>
+					<tr>
 						<td>Latest Stable Build <span class="badge">{{.Jenkins.LastStableBuild.Number}}</span></td>
 					</tr>
 				</table>
@@ -132,19 +138,30 @@
 				Kontrold is cleaning up death workers in one hour intervals.
 			</div>
 			<div class="span5">
-				<h2>Deployment
-				<div class="btn-group">
-					<a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
-					<ul class="dropdown-menu">
-						<li><a href="?build=current#">current version</a></li>
-    					<li class="divider"></li>
-						{{range .Builds}} 
-						<li><a href="?build={{.}}">{{.}}</a></li>
-						{{end}}
-					</ul>
-                </div><!-- /btn-group -->
 
-				</h2>
+
+                <div class="span4">
+				  <h2>Deployment </h2>
+                </div>
+                <p>
+                <div class="span8">
+                  information from version
+                  <div class="btn-group">
+                      <a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
+                      <ul class="dropdown-menu">
+                          <li><a href="?build=current#">current version</a></li>
+                          <li class="divider"></li>
+                          {{range .Builds}} 
+                          <li><a href="?build={{.}}">{{.}}</a></li>
+                          {{end}}
+                      </ul>
+                  </div><!-- /btn-group -->
+                  <em>is displayed</em>
+                </div>
+                </p>
+
+
+
 				<table class="table table-hover table-bordered table-condensed">
 					<tr>
 						<td>Build Number</td>
