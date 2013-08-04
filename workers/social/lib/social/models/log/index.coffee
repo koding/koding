@@ -50,32 +50,43 @@ module.exports = class JLog extends Module
     # if err dont let to login
     if err then return callback false
 
+    # we get last 5 lines from log like this
+    # - 1, false
+    # - 2, false
+    # - 3, true
+    # - 4, false
+    # - 5, false
+    # if whe have a successful login attempt in them,
+    # we count from there, trimming list to
+    # - 1 - false
+    # - 2 - false
+    headUntil = (list, condition)->
+      head = []
+      for i in list 
+        return head if condition(i) 
+        head.push i
+      return head
+
+    results = headUntil results, (el)-> el.success is true
+    # we dont need anything older than 5 minutes
+    results = headUntil results, (el)-> (Date.now() - el.createdAt) / 1000 / 60 > 5
     # if items length is lt CHECK_LIMIT return true
-    if results.length < TRY_LIMIT_FOR_BLOCKING
-      return callback true
-
-    # if first results' createdAt lt 5 min return false
-    resultTimestamp = results[TRY_LIMIT_FOR_BLOCKING - 1].createdAt.getTime() + TIME_LIMIT_IN_MS
-    currentTimestamp = Date.now()
-
-    if resultTimestamp > currentTimestamp
-      return callback false
-
-    return callback true
+    callback results.length < TRY_LIMIT_FOR_BLOCKING
 
   @checkLoginBruteForce = (data, callback)->
     {ip, username} = data
 
     daisy queue = [
       ->
-        queue.next() unless ip
-        JLog.some {ip : ip, success: false}, {limit : TRY_LIMIT_FOR_BLOCKING}, (err, results)->
+        return queue.next() unless ip
+        # do we have 5 failed login attempts from this ip...
+        JLog.some {ip : ip}, {limit : TRY_LIMIT_FOR_BLOCKING, sort: createdAt: -1}, (err, results)->
           checkRestrictions err, results, (res)->
             unless res then return callback res
             queue.next()
       ->
-        queue.next() unless username
-        JLog.some {username : username, success: false}, {limit : TRY_LIMIT_FOR_BLOCKING}, (err, results)->
+        return queue.next() unless username
+        JLog.some {username : username}, {limit : TRY_LIMIT_FOR_BLOCKING, sort: createdAt: -1}, (err, results)->
           checkRestrictions err, results, (res)->
             unless res then return callback res
             queue.next()
