@@ -40,7 +40,7 @@ class ClassroomClassThumbView extends JView
     appView = @getDelegate()
     chapter = data.chapter
 
-    appView.goToClass data.name, =>
+    KD.getSingleton("router").handleQuery "?class=#{data.name}"
     @emit "EnrollmentRequested", data  if @getOptions().type isnt "enrolled"
 
   pistachio: ->
