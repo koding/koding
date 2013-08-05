@@ -68,7 +68,7 @@ module.exports = class JLog extends Module
 
     results = headUntil results, (el)-> el.success is true
     # we dont need anything older than 5 minutes
-    results = headUntil results, (el)-> (Date.now() - el.createdAt) / 1000 / 60 > TIME_LIMIT_IN_MIN
+    results = headUntil results, (el)-> ((Date.now() - el.createdAt) / 1000 / 60) > TIME_LIMIT_IN_MIN
     # if items length is lt CHECK_LIMIT return true
     callback results.length < TRY_LIMIT_FOR_BLOCKING
 
