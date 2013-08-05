@@ -14,29 +14,46 @@ app.home.styl
 #kdmaincontainer > header
   .custom-link-view
     hidden()
-#kdmaincontainer.home > header
-  .custom-link-view
-    right             70px
-    top               5px
-    text-align        right
-    opacity           .8
-    visible()
-    abs()
-    &:hover
-      opacity         1
-    &:first-child
-      padding-top     4px
-    span.title
-      font-size       12px
-      text-shadow     0 1px 0 rgba(0,0,0,.9)
 
-    &.login
-      .icon
-        margin-top    1px
-        bg            position, -220px -320px
+#kdmaincontainer.home
+  overflow          auto
+
+  #main-panel-wrapper
+    min-height      100%
+    height          auto!important
+  #sidebar-panel
+    hidden()
+  #content-panel
+    min-height      100%
+    height          auto!important
+
+  > header
+    bg              color, #000
+    bg              image, url('../images/gunduz-varligi.jpg')
+    bg              position, -600px -211px
+
+    .custom-link-view
+      right             70px
+      top               5px
+      text-align        right
+      opacity           .8
+      visible()
+      abs()
+      &:hover
+        opacity         1
+      &:first-child
+        padding-top     4px
+      span.title
+        font-size       12px
+        text-shadow     0 1px 0 rgba(0,0,0,.9)
+
+      &.login
+        .icon
+          margin-top    1px
+          bg            position, -220px -320px
 
 div#home-intro
-  min-width               1200px
+  min-width               1024px
   size                    100%, 526px
   color                   white
   vendor                  transition, height .3s linear
@@ -53,6 +70,11 @@ div#home-intro
     rel()
     borderBox()
     > div
+    > aside
+      vendor              transition, width .3s ease\,\
+                                      padding .3s ease
+
+    > div
       width               calc(100%\-360px)
       padding             0 60px
       fl()
@@ -68,6 +90,8 @@ div#home-intro
   h3.slogan-continues
     font-weight           300
     text-shadow           0 1px 0 rgba(0, 0, 0, .5)
+    vendor                transition, font-size .3s ease\,\
+                                      padding .3s ease
 
   h2.slogan
     font-size             60px
@@ -283,6 +307,18 @@ div#home-intro
     bg                  position, 0 -900px
     shadow              inset 0 5px 15px rgba(0, 0, 0, .75)
 
+  // hiding action links from homepage
+  .kdlistitemview-activity
+    .action-link.reply-link
+    .comment-actions
+    .activity-actions .logged-in
+    .activity-actions i
+    .comment-container .item-add-comment-box
+    time
+      hidden()
+    .comment-container.commented .kdlistitemview-comment:last-child
+      border-bottom     none!important
+
 #home-counter-bar
   padding               30px 0
   text-align            center
@@ -348,127 +384,127 @@ figure.counter
       shadow            0 1px 0 rgba(255,255,255,.1)
       abs()
 
-#content-page-home.extra-narrow
-#content-page-home.narrow
-  figure.counter
-    h6.title
-      font-size     10px
-    i
-      font-size     1.3em
-  .home-links
-    height          50px
-    margin-top      -50px
-    text-align      center
-    > ul
-      > li
-        padding     5px 0 0 5px
-        &:last-child
-          padding   5px 5px 0 5px
+// #content-page-home.extra-narrow
+// #content-page-home.narrow
+//   figure.counter
+//     h6.title
+//       font-size     10px
+//     i
+//       font-size     1.3em
+//   .home-links
+//     height          50px
+//     margin-top      -50px
+//     text-align      center
+//     > ul
+//       > li
+//         padding     5px 0 0 5px
+//         &:last-child
+//           padding   5px 5px 0 5px
 
-    .custom-link-view.button
-      padding         0 7px 0 5px
-      height          30px
-      line-height     29px
-      font-size       11px
-      .icon
-        margin-top    5px
-      .title
-        font-size     12px
-    .custom-link-view
-      line-height     15px
-      &:first-child
-        padding-top   0
-      span.title
-        font-size     10px
-      span.icon
-        margin-top    -3px
+//     .custom-link-view.button
+//       padding         0 7px 0 5px
+//       height          30px
+//       line-height     29px
+//       font-size       11px
+//       .icon
+//         margin-top    5px
+//       .title
+//         font-size     12px
+//     .custom-link-view
+//       line-height     15px
+//       &:first-child
+//         padding-top   0
+//       span.title
+//         font-size     10px
+//       span.icon
+//         margin-top    -3px
 
-#content-page-home.medium
-  figure.counter
-    h6.title
-      font-size     12px
-    i
-      font-size     1.5em
-  .home-links
-    height          60px
-    margin-top      -60px
-    text-align      center
-    > ul
-      > li
-        padding     10px 0 0 10px
-        &:last-child
-          padding   10px 10px 0 10px
-    .custom-link-view.button
-      padding         0 13px 0 10px
-      height          40px
-      line-height     39px
-      font-size       12px
-      .icon
-        margin-top    10px
-      .title
-        font-size     14px
-    .custom-link-view
-      line-height     18px
-      &:first-child
-        padding-top   0
-      span.title
-        font-size     12px
+// #content-page-home.medium
+//   figure.counter
+//     h6.title
+//       font-size     12px
+//     i
+//       font-size     1.5em
+//   .home-links
+//     height          60px
+//     margin-top      -60px
+//     text-align      center
+//     > ul
+//       > li
+//         padding     10px 0 0 10px
+//         &:last-child
+//           padding   10px 10px 0 10px
+//     .custom-link-view.button
+//       padding         0 13px 0 10px
+//       height          40px
+//       line-height     39px
+//       font-size       12px
+//       .icon
+//         margin-top    10px
+//       .title
+//         font-size     14px
+//     .custom-link-view
+//       line-height     18px
+//       &:first-child
+//         padding-top   0
+//       span.title
+//         font-size     12px
 
-#content-page-home.extra-wide
-  #home-counter-bar
-    text-align      left
-    padding         30px 5%
-  figure.counter
-    width           30%
-    margin-right    4.5%
-    &:nth-child(3n)
-      margin-right  0
-    > div
-      clear         right
-      fr()
+// #content-page-home.extra-wide
+//   #home-counter-bar
+//     text-align      left
+//     padding         30px 5%
+//   figure.counter
+//     width           30%
+//     margin-right    4.5%
+//     &:nth-child(3n)
+//       margin-right  0
+//     > div
+//       clear         right
+//       fr()
 
-#content-page-home.wide
-#content-page-home.medium
-#content-page-home.narrow
-  #home-counter-bar
-    text-align      left
-    padding         20px 8%
-  figure.counter
-    width           45%
-    margin-right    10%
-    &:nth-child(2n)
-      margin-right  0
-    > div
-      clear         right
-      fr()
+// #content-page-home.wide
+// #content-page-home.medium
+// #content-page-home.narrow
+//   #home-counter-bar
+//     text-align      left
+//     padding         20px 8%
+//   figure.counter
+//     width           45%
+//     margin-right    10%
+//     &:nth-child(2n)
+//       margin-right  0
+//     > div
+//       clear         right
+//       fr()
 
-#content-page-home.narrow
-  #home-counter-bar
-    text-align      left
-    padding         10px 5%
-  figure.counter
-    width           47.5%
-    margin-right    5%
-    h6.title
-      height        22px
-      line-height   22px
-      margin        0
+// #content-page-home.narrow
+//   #home-counter-bar
+//     text-align      left
+//     padding         10px 5%
+//   figure.counter
+//     width           47.5%
+//     margin-right    5%
+//     h6.title
+//       height        22px
+//       line-height   22px
+//       margin        0
 
 
-#content-page-home.extra-narrow
-  #home-counter-bar
-    text-align      left
-    padding         10px 15%
-  figure.counter
-    width           100%
-    margin-right    0
-    h6.title
-      height        20px
-      line-height   20px
-      margin        0
-    > div
-      clear         right
-      fr()
+// #content-page-home.extra-narrow
+//   #home-counter-bar
+//     text-align      left
+//     padding         10px 15%
+//   figure.counter
+//     width           100%
+//     margin-right    0
+//     h6.title
+//       height        20px
+//       line-height   20px
+//       margin        0
+//     > div
+//       clear         right
+//       fr()
 
 // NEW TRY END
 

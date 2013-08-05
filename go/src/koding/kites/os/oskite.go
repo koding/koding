@@ -386,6 +386,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			vmWebVos = userVos
 		}
 
+		rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+		rootVos.Chmod("/home", 0755) // make sure that executable flag is set
 		createUserHome(&user, rootVos, userVos)
 		createVmWebDir(vm, vmWebDir, rootVos, vmWebVos)
 		if vmWebDir != userWebDir {
@@ -403,10 +405,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 }
 
 func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
-	if _, err := rootVos.Stat("/home/" + user.Name); err == nil {
+	if info, err := rootVos.Stat("/home/" + user.Name); err == nil {
+		rootVos.Chmod("/home/"+user.Name, info.Mode().Perm()|0511) // make sure that user read and executable flag is set
 		return
 	}
-	// home directory does not yes exist
+	// home directory does not yet exist
 
 	if _, err := rootVos.Stat("/home/" + user.OldName); user.OldName != "" && err == nil {
 		if err := rootVos.Rename("/home/"+user.OldName, "/home/"+user.Name); err != nil {
@@ -455,7 +458,7 @@ func createVmWebDir(vm *virt.VM, vmWebDir string, rootVos, vmWebVos *virt.VOS) {
 	if _, err := rootVos.Stat(vmWebDir); err == nil {
 		return
 	}
-	// vmWebDir directory does not yes exist
+	// vmWebDir directory does not yet exist
 
 	// migration of old Sites directory
 	migrationErr := vmWebVos.Rename("/home/"+vm.WebHome+"/Sites/"+vm.HostnameAlias, vmWebDir)
@@ -477,7 +480,7 @@ func createUserWebDir(user *virt.User, vmWebDir, userWebDir string, rootVos, use
 	if _, err := rootVos.Stat(userWebDir); err == nil {
 		return
 	}
-	// userWebDir directory does not yes exist
+	// userWebDir directory does not yet exist
 
 	if err := userVos.MkdirAll(userWebDir, 0755); err != nil {
 		panic(err)

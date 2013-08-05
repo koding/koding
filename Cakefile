@@ -1,15 +1,7 @@
-option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
 option '-D', '--debug', 'runs with node, go --debug'
 option '-V', '--verbose', 'runs with go --verbose'
-option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
-option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
-option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
-option '-u', '--username [USER]', 'User for with execution rights (probably your local username)'
-option '-n', '--name [NAME]', 'The name of the new VPN user'
-option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
-option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only broker supports it)'
 
@@ -69,13 +61,13 @@ compileGoBinaries = (configFile,callback)->
   else
     callback null
 
-task 'populateNeo4j', ({configFile})->
+task 'populateNeo4j', "Populate the local Neo4j Database from the config's mongo server", ({configFile})->
   invoke 'deleteNeo4j'
 
   migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
   processes.exec migrator
 
-task 'deleteNeo4j', ({configFile})->
+task 'deleteNeo4j', "Drop all entries in the local Neo4j database", ({configFile})->
   console.log "This task is hardcoded to delete only Neo running in localhost:7474\n"
 
   query = """
@@ -83,22 +75,10 @@ task 'deleteNeo4j', ({configFile})->
   """
   processes.exec query
 
-task 'compileGo',({configFile})->
+task 'compileGo', "Compile the local go binaries", ({configFile})->
   compileGoBinaries configFile,->
 
-task 'databasesKite',({configFile})->
-  processes.fork
-    name    : "databases"
-    cmd     : __dirname+"/kites/databases/index -c #{configFile} --databases"
-    restart : yes
-
-task 'applicationsKite',({configFile})->
-  processes.fork
-    name    : "applications"
-    cmd     : __dirname+"/kites/applications/index -c #{configFile} --applications"
-    restart : yes
-
-task 'webserver', ({configFile}) ->
+task 'webserver', "Run the webserver", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver,sourceServer} = KONFIG
 
@@ -139,7 +119,7 @@ task 'webserver', ({configFile}) ->
           onChange  : ->
             processes.kill "server"
 
-task 'socialWorker', ({configFile}) ->
+task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
@@ -174,7 +154,7 @@ task 'socialWorker', ({configFile}) ->
               processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
 
 
-task 'authWorker',({configFile}) ->
+task 'authWorker', "Run the authWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   config = require('koding-config-manager').load("main.#{configFile}").authWorker
   numberOfWorkers = if config.numberOfWorkers then config.numberOfWorkers else 1
@@ -201,7 +181,7 @@ task 'authWorker',({configFile}) ->
             else
               processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
-task 'guestCleanup',({configFile})->
+task 'guestCleanup', "Runs guestCleanup which removes old guests from mongo", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
@@ -214,7 +194,28 @@ task 'guestCleanup',({configFile})->
       startMode    : "one"
     verbose        : yes
 
-task 'emailWorker',({configFile})->
+
+task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.fork
+    name           : 'guestCleanerWorker'
+    cmd            : "./workers/guestcleaner/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 1
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
+  watcher = new Watcher
+    groups        :
+      guestcleaner:
+        folders   : ['./workers/guestcleaner']
+        onChange  : (path) ->
+          processes.kill "guestCleanerWorker"
+
+task 'emailWorker', "Run the email worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
@@ -234,7 +235,7 @@ task 'emailWorker',({configFile})->
         onChange  : (path) ->
           processes.kill "emailWorker"
 
-task 'emailSender',({configFile})->
+task 'emailSender', "Run the emailSender", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
@@ -254,7 +255,7 @@ task 'emailSender',({configFile})->
         onChange  : (path) ->
           processes.kill "emailSender"
 
-task 'goBroker',(options)->
+task 'goBroker', "Run the goBroker", (options)->
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
   {broker} = config
@@ -272,7 +273,7 @@ task 'goBroker',(options)->
       binary          : uuid
     verbose           : yes
 
-task 'rerouting',(options)->
+task 'rerouting', "Run rerouting", (options)->
 
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -289,7 +290,7 @@ task 'rerouting',(options)->
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
 
-task 'userpresence',(options)->
+task 'userpresence', "Run userpresence", (options)->
 
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -306,7 +307,7 @@ task 'userpresence',(options)->
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
 
-task 'persistence',(options)->
+task 'persistence', "Run persistence", (options)->
 
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -324,7 +325,7 @@ task 'persistence',(options)->
       startMode    : "one"
 
 
-task 'osKite',({configFile})->
+task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
     cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile}'" else "./go/bin/os -c #{configFile}"
@@ -333,7 +334,7 @@ task 'osKite',({configFile})->
     stderr  : process.stderr
     verbose : yes
 
-task 'proxy',({configFile})->
+task 'proxy', "Run the go-Proxy", ({configFile})->
 
   processes.spawn
     name  : 'proxy'
@@ -343,7 +344,7 @@ task 'proxy',({configFile})->
     stderr  : process.stderr
     verbose : yes
 
-task 'neo4jfeeder',({configFile})->
+task 'neo4jfeeder', "Run the neo4jFeeder", ({configFile})->
 
   config = require('koding-config-manager').load("main.#{configFile}")
   feederConfig = config.graphFeederWorker
@@ -361,19 +362,7 @@ task 'neo4jfeeder',({configFile})->
         enabled      : if config.runKontrol is yes then yes else no
         startMode    : "version"
 
-task 'libratoWorker',({configFile})->
-
-  processes.fork
-    name           : 'librato'
-    cmd            : "./node_modules/koding-cake/bin/cake ./workers/librato -c #{configFile} run"
-    restart        : yes
-    restartTimeout : 100
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-    verbose        : yes
-
-task 'cacheWorker',({configFile})->
+task 'cacheWorker', "Run the cacheWorker", ({configFile})->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {cacheWorker} = KONFIG
 
@@ -395,7 +384,7 @@ task 'cacheWorker',({configFile})->
             processes.kill "cacheWorker"
 
 
-task 'kontrolClient',(options) ->
+task 'kontrolClient', "Run the kontrolClient", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'kontrolClient'
@@ -404,7 +393,7 @@ task 'kontrolClient',(options) ->
     stderr  : process.stderr
     verbose : yes
 
-task 'kontrolProxy',(options) ->
+task 'kontrolProxy', "Run the kontrolProxy", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'kontrolProxy'
@@ -413,7 +402,7 @@ task 'kontrolProxy',(options) ->
     stderr  : process.stderr
     verbose : yes
 
-task 'kontrolDaemon',(options) ->
+task 'kontrolDaemon', "Run the kontrolDaemon", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'kontrolDaemon'
@@ -422,7 +411,7 @@ task 'kontrolDaemon',(options) ->
     stderr  : process.stderr
     verbose : yes
 
-task 'kontrolApi',(options) ->
+task 'kontrolApi', "Run the kontrolApi", (options) ->
   {configFile} = options
   processes.spawn
     name    : 'kontrolApi'
@@ -431,7 +420,7 @@ task 'kontrolApi',(options) ->
     stderr  : process.stderr
     verbose : yes
 
-task 'checkConfig',({configFile})->
+task 'checkConfig', "Check the local config files for errors", ({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
   require('koding-config-manager').load("main.#{configFile}")
   require('koding-config-manager').load("kite.applications.#{configFile}")
@@ -481,232 +470,12 @@ task 'run', (options)->
   queue.push -> run options
   daisy queue
 
-task 'accounting', (options)->
-
-  {configFile} = options
-  options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
-  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.fork
-    name    : "accounting"
-    cmd     : __dirname + "/workers/accounting/index -c #{configFile}"
-    verbose: yes
-
-
-task 'buildClient', (options)->
+task 'buildClient', "Build the static web pages for webserver", (options)->
   (new (require('./Builder'))).buildClient options
 
-task 'release',(options)->
-  # Release and shared data directories
-  dataDir         = nodePath.join __dirname, "../koding-data"
-  releaseDir      = nodePath.join __dirname, "../koding-release"
-
-  unless fs.existsSync dataDir
-    fs.mkdirSync dataDir
-  unless fs.existsSync releaseDir
-    fs.mkdirSync releaseDir
-
-  # Temporary file for runnings bash scripts
-  tmpFile         = "/tmp/#{Date.now()}"
-
-  # Get ready for new release
-  config          = require('koding-config-manager').load("main.#{options.configFile}")
-  version         = parseInt config.version
-
-  buildDir        = "#{releaseDir}/#{version}"
-  dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
-
-  # Starting ports
-  webPort = config.haproxy.webPort + (version % 10) * 100 + 1
-
-  newRelease = ->
-    # Get previous dynamic config
-    if fs.existsSync dataDir+"/dynamic-config.json"
-      conf = JSON.parse fs.readFileSync dataDir+"/dynamic-config.json"
-    else
-      conf = JSON.parse fs.readFileSync __dirname+"/config/.dynamic-config.json"
-
-    # Build dynamic config
-    conf.webInternalPort   = webPort
-    conf.webClusterSize    = config.webserver.clusterSize
-    conf.webPort           = config.haproxy.webPort
-    unless conf.releaseDir == buildDir
-      conf.oldReleaseDir   = conf.releaseDir
-    conf.releaseDir        = buildDir
-
-    # Install new release
-    bash = """
-      echo Preparing new release...
-      rm -rf #{buildDir}
-      mkdir -p #{buildDir}
-      cp -R . #{buildDir}
-      cd #{buildDir}
-      npm install --unsafe-perm
-      echo
-    """
-
-    fs.writeFileSync tmpFile,bash
-
-    processes.exec "bash #{tmpFile}",()->
-      # Save config to release directory
-      fs.writeFileSync dynCfgPath,JSON.stringify conf
-
-      # Show release information
-      console.log "Version        : " + version
-      console.log "Release Folder : " + buildDir
-      console.log "Web Port       : " + webPort
-
-  # Deploy new release if necessary
-  if fs.existsSync dynCfgPath
-    console.log "Version #{version} is already deployed. Increasing release number."
-    oldConf = JSON.parse fs.readFileSync dynCfgPath
-    version++
-    fs.writeFileSync 'VERSION', version
-    buildDir        = "#{releaseDir}/#{version}"
-    # proxyCfgPath    = "#{buildDir}/config/.haproxy.cfg"
-    dynCfgPath      = "#{buildDir}/config/.dynamic-config.json"
-    webPort = config.haproxy.webPort + (version % 10) * 100 + 1
-
-  console.log "Deploying version #{version} to #{buildDir}"
-  newRelease()
-
-task 'switchProxy', (options) ->
-  releaseDir      = nodePath.join __dirname, "../koding-release"
-  dataDir         = nodePath.join __dirname, "../koding-data"
-
-  dynCfgPath      = "#{dataDir}/dynamic-config.json"
-  proxyCfgPath    = "#{dataDir}/haproxy.cfg"
-  haPidFile       = "#{dataDir}/haproxy.pid"
-
-  unless options.version
-    console.log "Available versions:"
-    for version in fs.readdirSync releaseDir
-      vConf = JSON.parse fs.readFileSync "#{releaseDir}/#{version}/config/.dynamic-config.json"
-      console.log "  #{version} : port #{vConf.webInternalPort}"
-    console.log ""
-    console.log "Use cake -v [VERSION] switchProxy"
-    process.exit()
-
-  newDynCfg   = "#{releaseDir}/#{options.version}/config/.dynamic-config.json"
-
-  unless fs.existsSync newDynCfg
-    console.log "No such version."
-    console.log "Drop -v argument to see deployed versions."
-    process.exit()
-
-  conf        = JSON.parse fs.readFileSync newDynCfg
-
-  updateProxy = ->
-    haproxyCfg = """
-      global
-          daemon
-          maxconn 512
-
-      defaults
-          mode http
-          timeout connect 5000ms
-          timeout client 50000ms
-          timeout server 50000ms
-
-      listen stats :1235
-          mode http
-          stats enable
-          stats hide-version
-          stats realm 'Koding'
-          stats uri /
-          stats auth koding:vv8ogdHLaFA2MQA
-
-      listen http-in
-          bind *:#{conf.webPort}
-          option httpchk GET / HTTP/1.0
-
-    """
-
-    ports = [conf.webInternalPort..conf.webInternalPort+conf.webClusterSize-1]
-    for port, i in ports
-      haproxyCfg += "    server server#{i} 127.0.0.1:#{port} maxconn 128 check port #{port}\n"
-
-    # Save proxy configuration to release directory
-    fs.writeFileSync proxyCfgPath, haproxyCfg
-
-    if fs.existsSync dynCfgPath
-      fs.unlinkSync dynCfgPath
-    fs.symlinkSync newDynCfg, dynCfgPath
-    fs.readFile haPidFile, (err, data) ->
-      unless err
-        haProxyBash = "haproxy -f #{proxyCfgPath} -p #{haPidFile} -st #{data.toString().trim()}"
-      else
-        haProxyBash = "haproxy -f #{proxyCfgPath} -p #{haPidFile}"
-
-      processes.exec haProxyBash, ()->
-        console.log ""
-        console.log "Done."
-
-  # Update proxy configuration
-  tries = 10
-  tryProxy = ->
-    portchecker.isOpen conf.webInternalPort, '0.0.0.0', (webOpen, port, host) ->
-      console.log "Checking if new release is up and running..."
-      if webOpen
-        updateProxy()
-      else
-        tries--
-        if tries > 0
-          setTimeout tryProxy, 5000
-        else
-          console.log ""
-          console.log "This release is not running: #{conf.releaseDir}"
-          console.log "CD into #{conf.releaseDir}/ and execute cake run"
-          console.log ""
-          console.log ""
-
-  tryProxy()
-
-task 'deleteCache',(options)->
+task 'deleteCache', "Delete the local webserver cache", (options)->
   exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
-
-task 'resetEverything',(options)->
-  invoke 'deleteCache'
-  exec "vagrant halt -f", ->
-    exec "rm -rf #{__dirname}/go/{bin,pkg,bin-vagrant}", ->
-      exec "vagrant up", ->
-        console.log "Vagrant restarted, go binaries removed."
-
-task 'aws', (options) ->
-  {configFile,type} = options
-  {aws} = config = require('koding-config-manager').load("main.#{configFile}")
-
-  # List available machines
-  unless type
-    console.log "Machine types:"
-    for filename in fs.readdirSync './aws'
-      if filename.match /\.coffee$/
-        console.log "  #{filename.slice(0, -7)}"
-    console.log ""
-    console.log "Run: cake -c #{configFile} -t <type> aws"
-    process.exit()
-
-  console.log "Using ./aws/#{type}.coffee file as template"
-  console.log ""
-
-  # AWS Utils
-  awsUtil = require 'koding-aws'
-  awsUtil.init aws
-
-  # Machine template
-  awsTemplate = require "./aws/#{type}"
-
-  # Build template
-  awsUtil.buildTemplate awsTemplate, (err, templateData) ->
-    unless err
-      console.log "Template is ready. Running instance..."
-
-      awsUtil.startEC2 templateData, (err, ecData) ->
-        unless err
-          console.log "EC2 instance is ready:"
-          console.log ecData
-          console.log ""
 
 task 'buildAll',"build chris's modules", ->
 
@@ -730,34 +499,12 @@ task 'buildAll',"build chris's modules", ->
   b 0
 
 
-task 'resetGuests', (options)->
+task 'resetGuests', "Run ./workers/guestcleanup/guestinit", (options)->
   configFile = normalizeConfigPath options.configFile
   {resetGuests} = require './workers/guestcleanup/guestinit'
   resetGuests configFile
 
-task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
-  {name, username, email} = options
-  if name in ["",undefined,"undefined"]
-    log.warn "name not set! Use -n flag"
-    return false
-  if username in ["",undefined,"undefined"]
-    log.warn "username not set! Use -u flag"
-    return false
-  if email in ["",undefined,"undefined"]
-    log.warn "email not set! Use -e flag"
-    return false
-
-  cmd = "ssh #{username}@vpn.in.koding.com -- sudo /root/addVPNuser.sh #{name} #{email}"
-  log.info "executing... cmd: #{cmd}"
-  processes.spawn
-    name: 'addUser'
-    cmd : cmd
-    stdout : process.stdout
-    stderr : process.stderr
-    verbose : yes
-    onExit : null
-
-task 'runExternals',(options)->
+task 'runExternals', "runs externals kite which imports info about github, will be used to show suggested tags, users to follow etc.", (options)->
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
 
@@ -808,14 +555,14 @@ task 'runExternals',(options)->
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 
 
-task 'parseAnalyzedCss','',(options)->
+task 'parseAnalyzedCss','Shows the output of analyzeCss in a nice format',(options)->
 
   fs.readFile "/tmp/identicals.css",'utf8',(err,data)->
     stuff = JSON.parse data
 
     log.info stuff
 
-task 'analyzeCss','',(options)->
+task 'analyzeCss','Checks lengthy css and suggests improvements',(options)->
 
   config = require('koding-config-manager').load("main.#{options.configFile}")
   compareArrays = (arrA, arrB) ->

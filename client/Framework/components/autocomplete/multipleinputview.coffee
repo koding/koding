@@ -34,9 +34,6 @@ class KDMultipleInputView extends KDSimpleAutocomplete
   getValues: ->
     @_values
 
-  rearrangeInputWidth: ->
-    no
-
   addItemToSubmitQueue: ->
     super
     @inputAddCurrentValue()

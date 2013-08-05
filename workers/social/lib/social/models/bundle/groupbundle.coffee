@@ -76,9 +76,7 @@ module.exports = class JGroupBundle extends JBundle
       , {}, (err, cursor)=>
         cursor.toArray (err, arr)=>
           return callback err  if err
-          arr.forEach (vm)->
-            createdVMs += 1
-
+          createdVMs = arr.length or 0
           firstVM = group.slug in ['koding','guests'] and \
                     createdVMs == 0 and planCode is 'free'
 

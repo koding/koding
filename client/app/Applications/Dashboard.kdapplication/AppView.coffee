@@ -66,6 +66,10 @@ class DashboardAppView extends JView
     @searchWrapper.addSubView @searchIcon
     @header.addSubView @searchWrapper
 
+    @on "groupSettingsUpdated", (group)->
+      @setData group
+      @createTabs()
+
   setListeners:->
 
     @listenWindowResize()
@@ -88,6 +92,8 @@ class DashboardAppView extends JView
       navItems = []
       for {name, hiddenHandle, viewOptions, kodingOnly}, i in tabData
         viewOptions.data = data
+        viewOptions.options = delegate : this  if name is 'Settings'
+        hiddenHandle = hiddenHandle? and data.privacy is 'public'
         @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
 
         # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
@@ -95,7 +101,7 @@ class DashboardAppView extends JView
           navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
 
 
-      @navController.instantiateListItems navItems
+      @navController.replaceAllItems navItems
       @navController.selectItem @navController.itemsOrdered.first
 
   _windowDidResize:->

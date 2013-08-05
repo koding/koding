@@ -1670,6 +1670,7 @@ select:focus:invalid:focus {
 .input-prepend {
   display: inline-block;
   margin-bottom: 10px;
+  margin-right: -70px;
   padding-top: 15px;
   font-size: 0;
   white-space: nowrap;

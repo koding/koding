@@ -166,13 +166,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "inviteCode"
         forceCase     : "lowercase"
         placeholder   : "your code..."
-        validate      :
-          container   : this
-          event       : "blur"
-          rules       :
-            required  : yes
-          messages    :
-            required  : "Please enter your invitation code."
 
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
@@ -181,8 +174,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         @password.input.validate()
 
       @button.hideLoader()
-      @invitationCode.notify msg
-
 
   usernameCheckTimer = null
 
@@ -254,11 +245,6 @@ class RegisterInlineForm extends LoginViewInlineForm
   pistachio:->
 
     """
-    <div class='invitation-field main-part clearfix'>
-      <span class='icon'></span>
-      Invitation code:
-      {{> @invitationCode}}
-    </div>
     <section class='main-part'>
       <div>{{> @firstName}}{{> @lastName}}</div>
       <div>{{> @email}}{{> @avatar}}</div>
