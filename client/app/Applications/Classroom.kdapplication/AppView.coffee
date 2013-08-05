@@ -63,7 +63,7 @@ class ClassroomAppView extends KDScrollView
 
   createClassView: (manifest) ->
     @getDomElement().css { left: -@getWidth(), height: 0 }
-    @parent.addSubView new ClassroomClassView { delegate: @ }, manifest
+    @parent.addSubView new ClassroomClassView { delegate: this }, manifest
 
   handleQuery: (query) ->
     @goToClass query.class, query.chapter
