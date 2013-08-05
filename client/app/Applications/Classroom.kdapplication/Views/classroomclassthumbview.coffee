@@ -34,20 +34,13 @@ class ClassroomClassThumbView extends JView
         @emit "EnrollmentCancelled"
 
     @cancelIcon = new KDCustomHTMLView cancelIconOptions
-    @loader     = new KDLoaderView
-      size      :
-        width   : 40
-
-    @loader.hide()
 
   click: ->
     data    = @getData()
     appView = @getDelegate()
     chapter = data.chapter
 
-    @loader.show()
     appView.goToClass data.name, =>
-      @loader.hide()
     @emit "EnrollmentRequested", data  if @getOptions().type isnt "enrolled"
 
   pistachio: ->
@@ -65,5 +58,4 @@ class ClassroomClassThumbView extends JView
         <span>#{data.name}</span>
         <span>#{data.version}</span>
       </cite>
-      {{> @loader}}
     """
