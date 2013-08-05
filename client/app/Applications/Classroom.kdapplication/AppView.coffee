@@ -9,9 +9,6 @@ class ClassroomAppView extends KDScrollView
     @cdnRoot     = "http://fatihacet.kd.io/cdn/classes"
     @appStorage  = new AppStorage "Classroom", "1.0"
 
-    @createHeader()
-    @fetchClasses()
-
     @emit "ready"
 
   fetchClasses: ->
@@ -65,16 +62,18 @@ class ClassroomAppView extends KDScrollView
     log "handle go to chapter"
 
   createClassView: (manifest) ->
-    @getDomElement().css { left: -@getWidth(), height: 0 }
-    @parent.addSubView new ClassroomClassView { delegate: this }, manifest
+    @addSubView new ClassroomClassView { delegate: this }, manifest
 
   handleQuery: (query) ->
-    return  unless query.class
-
-    if query.chapter
-      @goToChapter query.class, query.chapter
+    @destroySubViews()
+    unless query.class
+      @createHeader()
+      @fetchClasses()
     else
-      @goToClass query.class
+      if query.chapter
+        @goToChapter query.class, query.chapter
+      else
+        @goToClass query.class
 
   getPredefinedClasses: ->
     [
