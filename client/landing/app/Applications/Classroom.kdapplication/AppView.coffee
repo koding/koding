@@ -55,18 +55,26 @@ class ClassroomAppView extends KDScrollView
     if @classesView.enrolledContainer.getSubViews().length is 1
       @classesView.noEnrolledClass.show()
 
-  goToClass: (className, chapter, callback = noop) ->
+  goToClass: (className, callback = noop) ->
     @readFileContent "/#{className}.kdclass/manifest.json", (manifest) =>
-      manifest.startWithSplashView = yes  unless chapter
+      manifest.startWithSplashView = yes
       @createClassView manifest
       callback()
+
+  goToChapter: ->
+    log "handle go to chapter"
 
   createClassView: (manifest) ->
     @getDomElement().css { left: -@getWidth(), height: 0 }
     @parent.addSubView new ClassroomClassView { delegate: this }, manifest
 
   handleQuery: (query) ->
-    @goToClass query.class, query.chapter
+    return  unless query.class
+
+    if query.chapter
+      @goToChapter query.class, query.chapter
+    else
+      @goToClass query.class
 
   getPredefinedClasses: ->
     [

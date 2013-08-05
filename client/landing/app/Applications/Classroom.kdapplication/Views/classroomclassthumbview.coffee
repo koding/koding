@@ -46,7 +46,7 @@ class ClassroomClassThumbView extends JView
     chapter = data.chapter
 
     @loader.show()
-    appView.goToClass data.name, chapter, =>
+    appView.goToClass data.name, =>
       @loader.hide()
     @emit "EnrollmentRequested", data  if @getOptions().type isnt "enrolled"
 
