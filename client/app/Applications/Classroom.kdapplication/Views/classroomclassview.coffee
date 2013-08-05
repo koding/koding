@@ -6,7 +6,6 @@ class ClassroomClassView extends JView
 
     super options, data
 
-    if @getData().startWithSplashView then @buildSplashView() else @goToChapter()
 
   buildSplashView: ->
     appView      = @getDelegate()
@@ -34,8 +33,6 @@ class ClassroomClassView extends JView
     @chaptersContainer = new KDView
       class      : "chapters-container"
 
-  goToChapter: ->
-    # TODO: this feature will be implemented soon.
 
   pistachio: ->
     appView = @getDelegate()
