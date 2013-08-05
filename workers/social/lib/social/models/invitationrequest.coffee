@@ -55,7 +55,9 @@ module.exports = class JInvitationRequest extends Model
       Relationship.one targetId: @getId(), as: 'owner', (err, rel)=>
         return callback err  if err
         JGroup.one _id:rel.sourceId, (err, group)=>
-          return callback err  if err
+          return callback err                           if err
+          return callback 'Invalid invitation request'  unless @username or group.slug is client.context.group
+
           JUser.one {@username}, (err, user)=>
             return callback err  if err
             user.fetchOwnAccount (err, requester)=>

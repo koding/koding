@@ -157,7 +157,7 @@ module.exports = class Graph
         filteredContent.push content if content.group not in secretGroups
       return callback null, filteredContent
 
-  getExemptUsersClauseIfNeeded: (requestOptions, callback)->  
+  getExemptUsersClauseIfNeeded: (requestOptions, callback)->
     if not requestOptions.withExempt
       {delegate} = requestOptions.client.connection
       JAccount = require '../account/index'
@@ -308,7 +308,7 @@ module.exports = class Graph
       query = """
         START  koding=node:koding("id:#{group.getId()}")
         MATCH  koding-[r:member]->members
-        
+
         WHERE  (
           members.`profile.nickname` =~ '(?i)#{seed}'
           or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
@@ -326,7 +326,7 @@ module.exports = class Graph
 
       query += " SKIP #{skip} \n" if skip
       query += " LIMIT #{limit} \n" if limit
-      
+
       @db.query query, {}, (err, results) =>
         if err
           return callback err
@@ -451,14 +451,14 @@ module.exports = class Graph
       MATCH  group-[r:member]->members
       WHERE members.name = 'JAccount'
     """
-    
+
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       if err
         return callback err, null
 
       query += """
         #{exemptClause}
-        return members  
+        return members
         #{@generateOrderByQuery sort}
         skip #{skip}
         limit #{limit}
@@ -542,6 +542,7 @@ module.exports = class Graph
     options.model          = 'JInvitationRequest'
     options.timestampField = 'requestedAt'
     options.searchField    = 'email'
+    options.query          = 'AND has(groupOwnedNodes.username)'
 
     query = getFetchOrCountInvitationsQuery method, options
     @db.query query, {}, callback

@@ -46,14 +46,14 @@ class DashboardAppController extends AppController
           lazy       : yes
       ,
         name         : 'Membership policy'
-        hiddenHandle : data.privacy is 'public'
+        hiddenHandle : @getData().privacy is 'public'
         viewOptions  :
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
           callback   : @policyViewAdded
       ,
         name         : 'Blocked Users'
-        hiddenHandle : data.privacy is 'public'
+        hiddenHandle : @getData().privacy is 'public'
         kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
         viewOptions  :
           viewClass  : GroupsBlockedUserView
