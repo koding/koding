@@ -69,18 +69,6 @@ class AccountPaymentMethodsList extends KDListView
             controller.emit 'reload'
             onSuccess result
 
-      form = modal.modalTabs.forms["Billing Info"]
-
-      # Credit card icon
-      form.fields['cardNumber'].addSubView icon = new KDCustomHTMLView tagName : "span", cssClass : "icon"
-
-      form.inputs['cardNumber'].on "CreditCardTypeIdentified", (type)=>
-        cardType = type.toLowerCase()
-        $icon = icon.$()
-        unless $icon.hasClass cardType
-          $icon.removeClass "visa mastercard discover amex"
-          $icon.addClass cardType
-
 class AccountPaymentMethodsListItem extends KDListItemView
   constructor:(options,data)->
     options.tagName = "li"
