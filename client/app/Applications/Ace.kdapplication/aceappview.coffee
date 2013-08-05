@@ -33,6 +33,12 @@ class AceAppView extends JView
       ace.on "ace.ready", -> ace.focus()
       ace.focus()
 
+      title = ace.data.path.replace ///(\[.*\])(\/home\/#{KD.nick()})///, '$1~'
+      title = title.replace /^localfile:\//, ''
+      pane.tabHandle.setTitle title
+      ace.on "AceDidSaveAs", (name, parentPath) =>
+        pane.tabHandle.setTitle title
+
       # TODO: fatihacet - should add tab handle tooltips here
 
       # unless pane.tabHandle.tooltipCreated
