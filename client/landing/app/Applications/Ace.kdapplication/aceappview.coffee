@@ -33,8 +33,7 @@ class AceAppView extends JView
       ace.on "ace.ready", -> ace.focus()
       ace.focus()
 
-      title = ace.data.path.replace ///(\[.*\])(\/home\/#{KD.nick()})///, '$1~'
-      title = title.replace /^localfile:\//, ''
+      title = FSHelper.minimizePath(ace.data.path).replace /^localfile:\//, ''
       pane.tabHandle.setTitle title
       ace.on "AceDidSaveAs", (name, parentPath) =>
         pane.tabHandle.setTitle title

@@ -45,6 +45,8 @@ class FSHelper
   @plainPath:(path)-> path.replace /\[.*\]/, ''
   @getVMNameFromPath:(path)-> (/\[([^\]]+)\]/g.exec path)?[1]
 
+  @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{KD.nick()}///, '~'
+
   @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
     command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"
     KD.getSingleton('vmController').run command, (err, res) =>
