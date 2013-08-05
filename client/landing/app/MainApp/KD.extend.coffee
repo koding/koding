@@ -35,33 +35,35 @@ KD.extend
           mainController = KD.getSingleton("mainController")
           mainController.once "accountChanged.to.loggedIn", =>
             if groupName and KD.isLoggedIn()
-              @joinGroup_ groupName, (res)=>
-                unless res then return @notify_ "Joining to #{groupName} group failed", "error"
+              @joinGroup_ groupName, (err)=>
+                return @notify_ "Joining #{groupName} group failed", "error"  if err
                 KD.lastFuncCall?()
                 KD.lastFuncCall = null
         KD.lastFuncCall = callback
     else if groupName
-      @joinGroup_ groupName, (res)=>
-        if res then callback?()
-        else @notify_ "Joining to #{groupName} group failed", "error"
-    else callback?()
+      @joinGroup_ groupName, (err)=>
+        return @notify_ "Joining #{groupName} group failed", "error"  if err
+        callback?()
+    else
+      callback?()
 
   joinGroup_:(groupName, callback)->
     return callback yes  unless groupName
 
     @whoami().fetchGroups (err, groups)=>
-      return callback no  if err or not groups
+      return callback err  if err
+
       for group in groups
         if groupName is group.group.slug
-          return callback yes
+          return callback null
 
       @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
         return @notify_ err.message, "error"  if err
-        return callback yes                   unless currentGroup.privacy is 'public'
+        return callback null                  unless currentGroup.privacy is 'public'
         currentGroup.join (err)=>
-          return callback no  if err
-          @notify_ "You have joined to #{groupName} group!", "success"
-          return callback yes
+          return callback err  if err
+          @notify_ "You have joined #{groupName} group!", "success"
+          return callback null
 
   nick:-> KD.whoami().profile.nickname
 
