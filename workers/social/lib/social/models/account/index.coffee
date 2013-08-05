@@ -53,10 +53,12 @@ module.exports = class JAccount extends jraphical.Module
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
+        { name : "RemovedFromCollection" }
       ]
       instance      : [
         { name: 'updateInstance' }
         { name: 'notification' }
+        { name : "RemovedFromCollection" }
       ]
     sharedMethods :
       static      : sharedStaticMethods()
@@ -1192,3 +1194,8 @@ module.exports = class JAccount extends jraphical.Module
     @fetchUser (err, user)->
       return callback err  if err
       user.update $unset: foreignAuth: "", callback
+
+  # we are using this in sorting members list..
+  updateMetaModifiedAt: (callback)->
+    @update $set: 'meta.modifiedAt': new Date, callback
+
