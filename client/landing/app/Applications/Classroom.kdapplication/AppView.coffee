@@ -53,13 +53,26 @@ class ClassroomAppView extends KDScrollView
       @coursesView.noEnrolledCourse.show()
 
   goToCourse: (courseName, callback = noop) ->
-    @readFileContent "/#{courseName}.kdcourse/manifest.json", (manifest) =>
+    @readFileContent "/#{courseName}.kdcourse/manifest.json", (@manifest) =>
       manifest.startWithSplashView = yes
       @createCoursesView manifest
       callback()
 
-  goToChapter: ->
-    log "handle go to chapter"
+  goToChapter: (courseName, chapter) ->
+    if @manifest
+      @handleGoToChapter chapter
+    else
+      @readFileContent "/#{courseName}.kdcourse/manifest.json", (@manifest) =>
+        @handleGoToChapter chapter
+
+  handleGoToChapter: (chapterIndex) ->
+    courseManifest   = @manifest
+    {chapters}       = courseManifest
+    return unless chapters
+
+    configFilePath = chapters[chapterIndex].resourcesPath
+    @readFileContent "/#{courseManifest.name}.kdcourse/#{configFilePath}", (config) =>
+      new ClassroomChapterView { container: @ }, { config, courseManifest }
 
   createCoursesView: (manifest) ->
     @addSubView new ClassroomCourseView { delegate: this }, manifest
