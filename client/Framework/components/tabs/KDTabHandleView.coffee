@@ -48,6 +48,7 @@ class KDTabHandleView extends KDView
     @getDomElement().removeClass "active"
 
   setTitle:(title)->
+    @setDomAttributes {title}
     # @getDomElement().find("span.close-tab").css "color", @getDelegate().getDomElement().css "background-color"
 
   isHidden: ->
