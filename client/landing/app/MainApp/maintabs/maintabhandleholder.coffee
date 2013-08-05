@@ -73,7 +73,9 @@ class MainTabHandleHolder extends KDView
             contextMenu.destroy()
           separator            : yes
         'Search the App Store' :
-          callback             : (source, event)=> appManager.open "Apps"
+          callback             : (source, event)=>
+            appManager.open "Apps"
+            contextMenu.destroy()
         'Make your own app...' :
           callback             : (source, event)=> appsController.makeNewApp()
 
