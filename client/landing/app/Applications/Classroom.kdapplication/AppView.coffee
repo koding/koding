@@ -111,7 +111,7 @@ class ClassroomAppView extends KDScrollView
     url = "#{@cdnRoot}#{relativePath}"
 
     if location.hostname is "localhost"
-      KD.getSingleton("kiteController").run "curl -s #{url}", (err, content) =>
+      KD.getSingleton("vmController").run "curl -s #{url}", (err, content) =>
         callback @parseContent url, content
     else
       $.ajax
