@@ -6,6 +6,10 @@ class ClassroomClassView extends JView
 
     super options, data
 
+    @classRoot = "#{@getDelegate().cdnRoot}/#{@getData().name}.kdclass"
+
+    @buildSplashView()
+    @createChapters()
 
   buildSplashView: ->
     appView      = @getDelegate()
@@ -31,8 +35,19 @@ class ClassroomClassView extends JView
     @headerText.addSubView loader
 
     @chaptersContainer = new KDView
-      class      : "chapters-container"
+      cssClass         : "chapters-container classes"
 
+  createChapters: ->
+    container = @chaptersContainer
+
+    for chapterData, index in @getData().chapters
+      chapterData.index      = index
+      chapterData.className  = @getData().name
+      chapterThumbView       = new ClassroomChapterThumbView
+        delegate             : this
+        classRoot            : @classRoot
+      , chapterData
+      container.addSubView chapterThumbView
 
   pistachio: ->
     appView = @getDelegate()
@@ -41,7 +56,7 @@ class ClassroomClassView extends JView
     """
       <div class="header-container">
         <div class="header">
-          <img src="#{appView.cdnRoot}/#{data.name}.kdclass/#{data.icns["128"]}" />
+          <img src="#{@classRoot}/#{data.icns["128"]}" />
           {{> @headerText}}
           {{> @startNow}}
         </div>
