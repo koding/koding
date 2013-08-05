@@ -8,15 +8,13 @@ class DomainDeletionModal extends KDModalView
     options.buttons      or=
       "Remove"   :
         cssClass : "modal-clean-red"
-        callback : => 
+        callback : =>
           domain = @getData()
           domain.remove (err)=>
-            if err
-              new KDNotificationView {title:"Error occured while removing #{data.domain}."}
-            else
-              new KDNotificationView {title:"<b>#{data.domain}</b> has been removed."}
-              @emit "domainRemoved"
-              @destroy()
+            return KD.showError err  if err
+            new KDNotificationView {title:"<b>#{data.domain}</b> has been removed."}
+            @emit "domainRemoved"
+            @destroy()
 
       "Keep it"  :
         cssClass : "modal-clean-green"

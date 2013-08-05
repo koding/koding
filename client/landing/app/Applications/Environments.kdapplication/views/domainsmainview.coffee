@@ -1,7 +1,7 @@
 class DomainsMainView extends JView
 
   paneData = [
-      { name : "Routing" }
+      { name : "Routing",     partial  : "<p class='soon'>Select a domain from left to see its settings.</p>"}
       { name : "Analytics",   partial  : "<p class='soon'>Domain analytics will be here soon.</p>" }
       { name : "Firewall",    partial  : "<p class='soon'>Firewall settings will be here soon.</p>" }
       { name : "DNS Manager", partial  : "<p class='soon'>DNS settings will be here soon.</p>" }
@@ -29,22 +29,16 @@ class DomainsMainView extends JView
       hideHandleCloseIcons : yes
       paneData             : paneData
 
-
     @splitView = new SplitViewWithOlderSiblings
       type      : "vertical"
       resizable : no
-      sizes     : [ "100%", null ]
+      sizes     : [ "300px", null ]
       views     : [ @domainsListView, @tabView ]
 
     super
 
     @tabView.showPaneByIndex 0
-
-    @getSingleton("mainView").once "transitionend", =>
-      @splitView._windowDidResize()
-
     @domainsListViewController.on "domainItemClicked", @bound "decorateMapperView"
-
 
   buildButtonsBar: ->
     @buttonsBar = new KDView cssClass : "header"
@@ -111,19 +105,18 @@ class DomainsMainView extends JView
     """
 
   decorateMapperView:(item)->
-    # mapperViews = [@firewallMapperView, @domainMapperView, @dnsManagerView]
-    # mapperViews = [@firewallMapperView, @dnsManagerView]
 
-    # for view in mapperViews
-    #   view.emit "DomainChanged", item
+    for p in @tabView.panes when p.mainView
+      p.destroyMainView()
+
+    routingPane = @tabView.getPaneByName('Routing')
+    unless item
+      routingPane.updatePartial "<p class='soon'>Select a domain from left to see its settings.</p>"
+      return
+
     domain = item.getData()
 
-    p.destroyMainView() for p in @tabView.panes when p.mainView
-
+    routingPane.updatePartial ""
     @tabView.getPaneByName('Routing').setMainView     new DomainsRoutingView {}, domain
     @tabView.getPaneByName('Firewall').setMainView    new FirewallMapperView {}, domain
     @tabView.getPaneByName('DNS Manager').setMainView new DNSManagerView     {}, domain
-
-    @splitView.resizePanel "300px", 0, =>
-      @tabView.getPaneByName('Routing').getMainView().resize()
-

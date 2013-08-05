@@ -58,6 +58,7 @@ class ActivityAppController extends AppController
     @docTitle = document.title
     windowController = KD.getSingleton "windowController"
     windowController.addFocusListener (blurred)=>
+      return  unless @listController
       if blurred
         @listController.activityHeader.showNewItemsInTitle = yes
         @listController.activityHeader.updateShowNewItemsTitle()

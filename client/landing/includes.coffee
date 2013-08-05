@@ -281,6 +281,7 @@ module.exports = [
   #Finder Modals
   "app/MainApp/filetree/modals/openwith/openwithmodalitem.coffee",
   "app/MainApp/filetree/modals/openwith/openwithmodal.coffee",
+  "app/MainApp/filetree/modals/vmdangermodalview.coffee",
 
   # SINANS FINDER
   "app/MainApp/filetree/controllers/findercontroller.coffee",
@@ -756,6 +757,8 @@ module.exports = [
   "app/Applications/Classroom.kdapplication/Views/classroomclassview.coffee",
   "app/Applications/Classroom.kdapplication/AppView.coffee",
   "app/Applications/Classroom.kdapplication/AppController.coffee",
+
+  "app/CommonViews/modalappslistitemview.coffee",
 
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
