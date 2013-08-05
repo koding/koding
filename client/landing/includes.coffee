@@ -270,6 +270,7 @@ module.exports = [
 
   # PAYMENT
   "app/MainApp/payment/paymentcontroller.coffee",
+  "app/MainApp/payment/paymentform.coffee",
 
   #maintabs
 
