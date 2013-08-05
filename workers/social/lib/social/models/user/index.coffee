@@ -244,9 +244,8 @@ module.exports = class JUser extends jraphical.Module
     {username, password, clientId} = credentials
     constructor = @
     JSession.one {clientId}, (err, session)->
-      if err then callback err
+      if err then return callback err
       unless session then return callback createKodingError 'Could not restore your session!'
-
       bruteForceControlData =
         ip : session.clientIP
         username : username
@@ -267,7 +266,8 @@ module.exports = class JUser extends jraphical.Module
             , () ->
               callback createKodingError 'Access denied!'
           else
-            afterLogin connection, user, clientId, session, callback
+            JLog.log { type: "login", username: username, success: yes }, ()->
+              afterLogin connection, user, clientId, session, callback
 
   afterLogin = (connection, user, clientId, session, callback)->
     checkBlockedStatus user, (err)->
@@ -282,17 +282,15 @@ module.exports = class JUser extends jraphical.Module
         $unset:
           guestId       : 1
       }, (err)->
-          if err then callback err
+          if err then return callback err
           user.fetchOwnAccount (err, account)->
             if err then return callback err
             connection.delegate = account
             JAccount.emit "AccountAuthenticated", account
-
             # This should be called after login and this
             # is not correct place to do it, FIXME GG
             # p.s. we could do that in workers
             account.updateCounts()
-
             callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
