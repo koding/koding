@@ -753,9 +753,9 @@ module.exports = [
 
   # CLASSROOM
   "app/Applications/Classroom.kdapplication/Views/classroomchapterthumbview.coffee",
-  "app/Applications/Classroom.kdapplication/Views/classroomclassthumbview.coffee",
-  "app/Applications/Classroom.kdapplication/Views/classroomclassesview.coffee",
-  "app/Applications/Classroom.kdapplication/Views/classroomclassview.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomcoursethumbview.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomcoursesview.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomcourseview.coffee",
   "app/Applications/Classroom.kdapplication/AppView.coffee",
   "app/Applications/Classroom.kdapplication/AppController.coffee",
 

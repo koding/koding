@@ -1,12 +1,12 @@
-class ClassroomClassView extends JView
+class ClassroomCourseView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curryCssClass "classroom-class", options.name
+    options.cssClass = KD.utils.curryCssClass "classroom-course", options.name
 
     super options, data
 
-    @classRoot = "#{@getDelegate().cdnRoot}/#{@getData().name}.kdclass"
+    @courseRoot = "#{@getDelegate().cdnRoot}/#{@getData().name}.kdcourse"
 
     @buildSplashView()
     @createChapters()
@@ -25,9 +25,9 @@ class ClassroomClassView extends JView
 
     @startNow    = new KDButtonView
       cssClass   : "cupid-green start-now-button hidden"
-      title      : "Start Class Now >>"
+      title      : "Start Course Now >>"
 
-    appView.readFileContent "/#{data.name}.kdclass/#{data.splashViewText}", (markdown) =>
+    appView.readFileContent "/#{data.name}.kdcourse/#{data.splashViewText}", (markdown) =>
       @headerText.updatePartial markdown
       loader.destroy()
       @startNow.show()
@@ -35,17 +35,17 @@ class ClassroomClassView extends JView
     @headerText.addSubView loader
 
     @chaptersContainer = new KDView
-      cssClass         : "chapters-container classes"
+      cssClass         : "chapters-container courses"
 
   createChapters: ->
     container = @chaptersContainer
 
     for chapterData, index in @getData().chapters
-      chapterData.index      = index
-      chapterData.className  = @getData().name
-      chapterThumbView       = new ClassroomChapterThumbView
-        delegate             : this
-        classRoot            : @classRoot
+      chapterData.index       = index
+      chapterData.courseName  = @getData().name
+      chapterThumbView        = new ClassroomChapterThumbView
+        delegate              : this
+        courseRoot            : @courseRoot
       , chapterData
       container.addSubView chapterThumbView
 
@@ -56,7 +56,7 @@ class ClassroomClassView extends JView
     """
       <div class="header-container">
         <div class="header">
-          <img src="#{@classRoot}/#{data.icns["128"]}" />
+          <img src="#{@courseRoot}/#{data.icns["128"]}" />
           {{> @headerText}}
           {{> @startNow}}
         </div>

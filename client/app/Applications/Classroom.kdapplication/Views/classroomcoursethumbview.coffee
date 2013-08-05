@@ -1,4 +1,4 @@
-class ClassroomClassThumbView extends JView
+class ClassroomCourseThumbView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -12,7 +12,7 @@ class ClassroomClassThumbView extends JView
     appView = @getDelegate()
 
     @on "EnrollmentCancelled", => appView.cancelEnrollment data
-    @on "EnrollmentRequested", => appView.enrollToClass data
+    @on "EnrollmentRequested", => appView.enrollToCourse data
 
   createElements: ->
     data              = @getData()
@@ -40,7 +40,7 @@ class ClassroomClassThumbView extends JView
     appView = @getDelegate()
     chapter = data.chapter
 
-    KD.getSingleton("router").handleQuery "?class=#{data.name}"
+    KD.getSingleton("router").handleQuery "?course=#{data.name}"
     @emit "EnrollmentRequested", data  if @getOptions().type isnt "enrolled"
 
   pistachio: ->
@@ -49,7 +49,7 @@ class ClassroomClassThumbView extends JView
     return """
       {{> @devMode}}
       <p>
-        <img src="#{cdnRoot}/#{data.name}.kdclass/#{data.icns['128']}" />
+        <img src="#{cdnRoot}/#{data.name}.kdcourse/#{data.icns['128']}" />
       </p>
       <div class="icon-container">
         {{> @cancelIcon}}

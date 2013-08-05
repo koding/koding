@@ -15,7 +15,7 @@ class ClassroomChapterThumbView extends JView
         subscriptionOptions.cssClass = "top-badge orange"
         subscriptionOptions.partial  = "Paid"
         subscriptionOptions.tooltip  =
-          title                      : "This chapter requires subscription to this class."
+          title                      : "This chapter requires subscription to this course."
       else
         subscriptionOptions.cssClass = "top-badge green"
         subscriptionOptions.partial  = "Free"
@@ -45,7 +45,7 @@ class ClassroomChapterThumbView extends JView
 
   click: ->
     data = @getData()
-    KD.getSingleton("router").handleQuery "?class=#{data.className}&chapter=#{data.index}"
+    KD.getSingleton("router").handleQuery "?course=#{data.courseName}&chapter=#{data.index}"
 
   pistachio: ->
     options = @getOptions()
@@ -54,7 +54,7 @@ class ClassroomChapterThumbView extends JView
     return """
       {{> @subscriptionView}}
       <p>
-        <img src="#{options.classRoot}/#{data.icon}" />
+        <img src="#{options.courseRoot}/#{data.icon}" />
       </p>
       <div class="icon-container">
         {{> @info}}

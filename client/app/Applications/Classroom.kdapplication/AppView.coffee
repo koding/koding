@@ -6,29 +6,29 @@ class ClassroomAppView extends KDScrollView
 
     super options, data
 
-    @cdnRoot     = "http://fatihacet.kd.io/cdn/classes"
+    @cdnRoot     = "http://fatihacet.kd.io/cdn/courses"
     @appStorage  = new AppStorage "Classroom", "1.0"
 
     @emit "ready"
 
-  fetchClasses: ->
+  fetchCourses: ->
     @appStorage.fetchStorage (storage) =>
-      @enrolledClasses   = @appStorage.getValue("EnrolledClasses") or []
-      @relatedClasses    = []
-      enrolledClassNames = []
+      @enrolledCourses    = @appStorage.getValue("EnrolledCourses") or []
+      @relatedCourses     = []
+      enrolledCourseNames = []
 
-      enrolledClassNames.push enrolled.name for enrolled in @enrolledClasses
+      enrolledCourseNames.push enrolled.name for enrolled in @enrolledCourses
 
-      for classDetails in @getPredefinedClasses()
-        className = classDetails.name
-        if @enrolledClasses.length is 0 or enrolledClassNames.indexOf(className) is -1
-          @relatedClasses.push classDetails
+      for courseDetails in @getPredefinedCourses()
+        courseName = courseDetails.name
+        if @enrolledCourses.length is 0 or enrolledCourseNames.indexOf(courseName) is -1
+          @relatedCourses.push courseDetails
 
-      @addSubView @classesView = new ClassroomClassesView
+      @addSubView @coursesView = new ClassroomCoursesView
         delegate : this
       ,
-        enrolled : @enrolledClasses
-        related  : @relatedClasses
+        enrolled : @enrolledCourses
+        related  : @relatedCourses
 
   createHeader: ->
     @addSubView @header = new KDView
@@ -41,41 +41,41 @@ class ClassroomAppView extends KDScrollView
         </div>
       """
 
-  enrollToClass: (classData) ->
-    @enrolledClasses.push classData
-    @appStorage.setValue "EnrolledClasses", @enrolledClasses
+  enrollToCourse: (courseData) ->
+    @enrolledCourses.push courseData
+    @appStorage.setValue "EnrolledCourses", @enrolledCourses
 
-  cancelEnrollment: (classData) ->
-    pos = i for enrolled, i in @enrolledClasses when enrolled.name is classData.name
-    @enrolledClasses.splice pos, 1
-    @appStorage.setValue "EnrolledClasses", @enrolledClasses
-    if @classesView.enrolledContainer.getSubViews().length is 1
-      @classesView.noEnrolledClass.show()
+  cancelEnrollment: (courseData) ->
+    pos = i for enrolled, i in @enrolledCourses when enrolled.name is courseData.name
+    @enrolledCourses.splice pos, 1
+    @appStorage.setValue "EnrolledCourses", @enrolledCourses
+    if @coursesView.enrolledContainer.getSubViews().length is 1
+      @coursesView.noEnrolledCourse.show()
 
-  goToClass: (className, callback = noop) ->
-    @readFileContent "/#{className}.kdclass/manifest.json", (manifest) =>
+  goToCourse: (courseName, callback = noop) ->
+    @readFileContent "/#{courseName}.kdcourse/manifest.json", (manifest) =>
       manifest.startWithSplashView = yes
-      @createClassView manifest
+      @createCoursesView manifest
       callback()
 
   goToChapter: ->
     log "handle go to chapter"
 
-  createClassView: (manifest) ->
-    @addSubView new ClassroomClassView { delegate: this }, manifest
+  createCoursesView: (manifest) ->
+    @addSubView new ClassroomCourseView { delegate: this }, manifest
 
   handleQuery: (query) ->
     @destroySubViews()
-    unless query.class
+    unless query.course
       @createHeader()
-      @fetchClasses()
+      @fetchCourses()
     else
       if query.chapter
-        @goToChapter query.class, query.chapter
+        @goToChapter query.course, query.chapter
       else
-        @goToClass query.class
+        @goToCourse query.course
 
-  getPredefinedClasses: ->
+  getPredefinedCourses: ->
     [
       {
         devMode    : true
