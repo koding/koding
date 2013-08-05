@@ -111,16 +111,8 @@ class ClassroomAppView extends KDScrollView
 
     if location.hostname is "localhost"
       KD.getSingleton("vmController").run "curl -s #{url}", (err, content) =>
-        callback @parseContent url, content
-    else
-      $.ajax
-        url      : url
-        success  : (content) ->
-          callback @parseContent url, content
-
-  parseContent: (url, content) ->
-    extension = FSItem.getFileExtension url
-    switch extension
-      when "json"      then JSON.parse content
-      when "coffee"    then log "parse to coffee"
-      when "md"        then KD.utils.applyMarkdown content
+        extension = FSItem.getFileExtension url
+        switch extension
+          when "json"    then callback JSON.parse content
+          when "md"      then callback KD.utils.applyMarkdown content
+          when "coffee"  then KD.utils.compileCoffeeOnClient content, callback
