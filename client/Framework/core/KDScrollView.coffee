@@ -12,8 +12,6 @@ class KDScrollView extends KDView
     #   @_createScrollBars()
     @on 'click', -> KD.getSingleton('windowController').enableScroll()
 
-    @on 'viewAppended', -> $(window).resize()
-
   bindEvents:->
 
     #FIXME: mousewheel works in FF, IE??
