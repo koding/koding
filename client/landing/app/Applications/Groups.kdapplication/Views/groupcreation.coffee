@@ -35,6 +35,7 @@ class GroupCreationModal extends KDModalView
     super options, data
 
     @plans = []
+    @buttons.next.hide()
 
     @on 'ready', @buttons.next.enable.bind @buttons.next
 
@@ -47,88 +48,95 @@ class GroupCreationModal extends KDModalView
 
   viewAppended:->
 
-    @addSubView @typeSelector = new KDFormViewWithFields
-      cssClass         : "type-selector"
-      fields           :
-        label          :
-          itemClass    : KDCustomHTMLView
-          tagName      : 'h2'
-          cssClass     : 'heading'
-          partial      : "<span>1</span> What will be this group for?"
-        selector       :
-          name         : "type"
-          itemClass    : GroupCreationSelector
-          cssClass     : "group-type"
-          defaultValue : "project"
-          radios       : GROUP_TYPES
-          change       : =>
-            @ready =>
-              typeSelector = @typeSelector.inputs.selector
-              # hostSelector = @hostSelector.inputs.selector
-              sharedHost   = @hostSelector.inputs.sharedHost
-
-              # @hostSelector?.show()
-
-              # hostSelector.setValue switch typeSelector.getValue()
-              #   when "educational" then "4"
-              #   when "company"     then "2"
-              #   when "project"     then "1"
-              #   when "custom"      then "0"
-
-              @setPositions()
-
-    @addSubView @mainSettings = new KDFormViewWithFields
-      cssClass                 : "general-settings hidden"
-      fields                   :
-        "Title"                :
-          label                : "Title"
-          name                 : "title"
-          validate             :
-            event              : "blur"
-            rules              :
-              required         : yes
-              minLength        : 4
-          keyup                : KD.utils.defer.bind this, @bound "makeSlug"
-          placeholder          : 'Please enter your group title...'
-        "HiddenSlug"           : { name : "slug", type : "hidden", cssClass : "hidden" }
-        "Slug"                 :
-          label                : "Address"
-          partial              : "#{location.protocol}//#{location.host}/"
-          itemClass            : KDCustomHTMLView
-        "Description"          :
-          label                : "Description"
-          type                 : "textarea"
-          name                 : "body"
-          placeholder          : "Please enter a description for your group here..."
-        "Privacy"              :
-          label                : "Privacy/Visibility"
-          itemClass            : KDSelectBox
-          type                 : "select"
-          name                 : "privacy"
-          defaultValue         : "public"
-          selectOptions        :
-            Public             : [ { title : "Anyone can join",    value : "public" } ]
-            Private            : [
-              { title : "By invitation",       value : "by-invite" }
-              { title : "By access request",   value : "by-request" }
-              { title : "In same domain",      value : "same-domain" }
-            ]
-          nextElement          :
-            "Visibility"       :
-              itemClass        : KDSelectBox
-              type             : "select"
-              name             : "visibility"
-              defaultValue     : "visible"
-              cssClass         : "visibility"
-              selectOptions    : [
-                { title : "Visible in group listings", value : "visible" }
-                { title : "Hidden in group listings",  value : "hidden" }
-              ]
+    @addSubView loader = new KDLoaderView size : width : 62
+    loader.show()
 
     vmController = KD.getSingleton('vmController')
     vmController.fetchVMPlans (err, plans)=>
+      loader.destroy()
+      @buttons.next.show()
+
       @plans = plans
       {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
+
+      @addSubView @typeSelector = new KDFormViewWithFields
+        cssClass         : "type-selector"
+        fields           :
+          label          :
+            itemClass    : KDCustomHTMLView
+            tagName      : 'h2'
+            cssClass     : 'heading'
+            partial      : "<span>1</span> What will be this group for?"
+          selector       :
+            name         : "type"
+            itemClass    : GroupCreationSelector
+            cssClass     : "group-type"
+            defaultValue : "project"
+            radios       : GROUP_TYPES
+            change       : =>
+              @ready =>
+                typeSelector = @typeSelector.inputs.selector
+                # hostSelector = @hostSelector.inputs.selector
+                sharedHost   = @hostSelector.inputs.sharedHost
+
+                # @hostSelector?.show()
+
+                # hostSelector.setValue switch typeSelector.getValue()
+                #   when "educational" then "4"
+                #   when "company"     then "2"
+                #   when "project"     then "1"
+                #   when "custom"      then "0"
+
+                @setPositions()
+
+      @addSubView @mainSettings = new KDFormViewWithFields
+        cssClass                 : "general-settings hidden"
+        fields                   :
+          "Title"                :
+            label                : "Title"
+            name                 : "title"
+            validate             :
+              event              : "blur"
+              rules              :
+                required         : yes
+                minLength        : 4
+            keyup                : KD.utils.defer.bind this, @bound "makeSlug"
+            placeholder          : 'Please enter your group title...'
+          "HiddenSlug"           : { name : "slug", type : "hidden", cssClass : "hidden" }
+          "Slug"                 :
+            label                : "Address"
+            partial              : "#{location.protocol}//#{location.host}/"
+            itemClass            : KDCustomHTMLView
+          "Description"          :
+            label                : "Description"
+            type                 : "textarea"
+            name                 : "body"
+            placeholder          : "Please enter a description for your group here..."
+          "Privacy"              :
+            label                : "Privacy/Visibility"
+            itemClass            : KDSelectBox
+            type                 : "select"
+            name                 : "privacy"
+            defaultValue         : "public"
+            selectOptions        :
+              Public             : [ { title : "Anyone can join",    value : "public" } ]
+              Private            : [
+                { title : "By invitation",       value : "by-invite" }
+                { title : "By access request",   value : "by-request" }
+                { title : "In same domain",      value : "same-domain" }
+              ]
+            nextElement          :
+              "Visibility"       :
+                itemClass        : KDSelectBox
+                type             : "select"
+                name             : "visibility"
+                defaultValue     : "visible"
+                cssClass         : "visibility"
+                selectOptions    : [
+                  { title : "Visible in group listings", value : "visible" }
+                  { title : "Hidden in group listings",  value : "hidden" }
+                ]
+
 
       descPartial = ""
       for d in descriptions
