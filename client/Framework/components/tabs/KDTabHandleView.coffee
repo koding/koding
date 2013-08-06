@@ -25,6 +25,7 @@ class KDTabHandleView extends KDView
 
     @on "DragFinished", (event) =>
       @handleDragFinished event
+      @getDelegate().showPaneByIndex @index
 
   setDomElement:(cssClass="")->
     {hidden, closable, tagName, title} = @getOptions()

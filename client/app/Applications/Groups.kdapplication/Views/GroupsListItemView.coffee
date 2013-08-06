@@ -6,7 +6,10 @@ class GroupsListItemView extends KDListItemView
     super options,data
 
     group = @getData()
-    {title, slug, body} = group
+    {title, slug, body, visibility} = group
+
+    # temp fix
+    @hide()  if visibility is 'hidden'
 
     slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}"
 
