@@ -133,18 +133,7 @@ module.exports = class Graph
       ]
       slug:
         $nin: ["koding"] # we need koding even if its private
-    , {}, (err, groups)=>
-      if err then return callback err
-      else
-        if groups.length < 1 then callback null, []
-        secretGroups = []
-        checkUserCanReadActivity = race (i, {client, group}, fin)=>
-          group.canReadActivity client, (err, res)=>
-            secretGroups.push group.slug if err
-            fin()
-        , -> callback null, secretGroups
-        for group in groups
-          checkUserCanReadActivity {client: client, group: group}
+    , {}, callback
 
   # we may need to add public group's read permission checking
   removePrivateContent:(client, groupId, contents, callback)->
