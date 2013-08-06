@@ -10,6 +10,7 @@ class FeedController extends KDViewController
     options.dataType      or= null
     options.onboarding    or= null
     options.domId         or= ''
+    options.hasViewAbove  or= no
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
@@ -60,6 +61,9 @@ class FeedController extends KDViewController
     @defineFilter name, filter for own name, filter of options.filter
     @defineSort name, sort for own name, sort of options.sort
     @getNewFeedItems() if options.dynamicDataType?
+
+    @on "FilterLoaded", ->
+      KD.getSingleton("windowController").notifyWindowResizeListeners()
 
 # TODO: commented out by C.T.  Is this used anywhere?  I think not, looks botched: resultsCOntroller
 #  getNewFeedItems:->
@@ -166,9 +170,11 @@ class FeedController extends KDViewController
     @emitLoadStarted filter
     if options.skip isnt 0 and options.skip < options.limit # Dont load forever
       @emitLoadCompleted filter
+      @emit "FilterLoaded"
     else
       filter.dataSource selector, options, (err, items, rest...)=>
         listController = @emitLoadCompleted filter
+        @emit "FilterLoaded"
         if items?
           unless err
             items = @sortByKey(items, filter.activeSort) if filter.activeSort

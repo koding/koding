@@ -23,11 +23,6 @@ class ContentDisplayControllerMember extends KDViewController
     ,options
     super options, data
 
-    @ready =>
-      KD.utils.wait 1000, ->
-        # fka -- find a really true way to do it.
-        KD.getSingleton("windowController").notifyWindowResizeListeners()
-
   loadView:(mainView)->
     member = @getData()
     {lazy} = mainView
