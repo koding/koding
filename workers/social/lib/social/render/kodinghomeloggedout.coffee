@@ -36,7 +36,7 @@ module.exports = ->
               <div id="content-page-home" class="kdview content-page home kdscrollview extra-wide">
                 <div id='featured-activities-container' class="kdview activity-content feeder-tabs">
                   <div class="kdview listview-wrapper">
-                    <div class="kdview feeder-header clearfix"><span>Featured Activity</span></div>
+                    <div class="kdview feeder-header clearfix"><span>What's going on in the Koding Community</span></div>
                     <div class="kdview kdscrollview">
                       <div class="kdview kdlistview kdlistview-default activity-related"></div>
                       <div class="lazy-loader">Loading...</div>
