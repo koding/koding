@@ -10,7 +10,6 @@ class FeedController extends KDViewController
     options.dataType      or= null
     options.onboarding    or= null
     options.domId         or= ''
-    options.hasViewAbove  or= no
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
