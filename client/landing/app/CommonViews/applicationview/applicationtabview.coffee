@@ -27,6 +27,13 @@ class ApplicationTabView extends KDTabView
           appManager.quit appManager.getFrontApp()
         tabView.tabHandleContainer.repositionPlusHandle tabView.handles
 
+      {tabHandle}  = pane
+      {plusHandle} = @getOptions().tabHandleContainer
+      tabHandle.on "DragInAction", =>
+        plusHandle.hide() if tabHandle.dragIsAllowed
+      tabHandle.on "DragFinished", =>
+        plusHandle.show()
+
     @on "SaveSessionData", (data) =>
       @appStorage.setValue "sessions", data if @isSessionEnabled
 

@@ -33,6 +33,15 @@ class AceAppView extends JView
       ace.on "ace.ready", -> ace.focus()
       ace.focus()
 
+      title = FSHelper.minimizePath(ace.data.path).replace /^localfile:\//, ''
+      if KD.getSingleton("finderController").vms.length > 1
+        vm    = FSHelper.getVMNameFromPath ace.data.path
+        title = "#{title} on #{vm}"  if vm
+
+      pane.tabHandle.setTitle title
+      ace.on "AceDidSaveAs", (name, parentPath) =>
+        pane.tabHandle.setTitle title
+
       # TODO: fatihacet - should add tab handle tooltips here
 
       # unless pane.tabHandle.tooltipCreated
