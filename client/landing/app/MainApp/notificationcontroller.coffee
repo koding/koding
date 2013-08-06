@@ -177,7 +177,6 @@ class NotificationController extends KDObject
               view.destroy()
 
         options.type  = actionType or actorType or ''
-
         @notify options
 
   notify:(options  = {})->
