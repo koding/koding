@@ -682,7 +682,7 @@ class KDView extends KDObject
     @setEmptyDragState()
     handle = if options.handle instanceof KDView then options.handle else @
 
-    @on "DragFinished", (e) => @isDragging = no
+    @on "DragFinished", (e) => @beingDragged = no
 
     handle.on "mousedown", (event)=>
       if "string" is typeof options.handle
@@ -728,13 +728,21 @@ class KDView extends KDObject
     dragGlobDir  = dragDir.global
     dragCurDir   = dragDir.current
 
-    draggedDistance  = Math.max Math.abs(x), Math.abs(y)
-    if draggedDistance < 30 and not @isDragging
+    {axis}       = @getOptions().draggable
+    if axis
+      if axis is "x"
+        draggedDistance = Math.abs x
+      else
+        draggedDistance = Math.abs y
+    else
+      draggedDistance   = Math.max Math.abs(x), Math.abs(y)
+
+    if draggedDistance < 20 and not @beingDragged
       @dragIsAllowed = no
-      @isDragging    = no
+      @beingDragged  = no
     else
       @dragIsAllowed = yes
-      @isDragging    = yes
+      @beingDragged  = yes
 
     if x > dragRelPos.x
       dragCurDir.x  = 'right'
