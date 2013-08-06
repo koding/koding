@@ -4,7 +4,7 @@ class FirewallFilterListController extends KDListViewController
     options.itemClass       or= FirewallFilterListItemView
     options.noItemView      or= new EmptyFirewallFilterListItemView
     options.viewOptions     or=
-      type      : 'customitem'
+      type      : 'env-list'
       tagName   : 'table'
       partial   :
         """

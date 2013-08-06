@@ -5,7 +5,7 @@ class DNSRecordListController extends KDListViewController
     options.itemClass   or= DNSRecordListItemView
     options.noItemView  or= new EmptyDNSRecordListItemView
     options.viewOptions or=
-      type      : 'customitem'
+      type      : 'env-list'
       tagName   : 'table'
       partial   :
         """
