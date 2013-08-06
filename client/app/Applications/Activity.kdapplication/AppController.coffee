@@ -166,7 +166,7 @@ class ActivityAppController extends AppController
         limit  : 20
         facets : @getActivityFilter()
 
-      if KD.getSingleton('activityController').flags?.showExempt?  
+      if KD.getSingleton('activityController').flags?.showExempt?
         options.withExempt = KD.getSingleton('activityController').flags.showExempt
       else
         options.withExempt = false
@@ -285,7 +285,7 @@ class ActivityAppController extends AppController
   showContentDisplay:(contentDisplay)->
     contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    return contentDisplayController
+    return contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayStatusUpdate

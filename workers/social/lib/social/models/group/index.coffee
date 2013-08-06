@@ -82,17 +82,15 @@ module.exports = class JGroup extends Module
         'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
-        'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
-        'countPendingInvitationRequests', 'countPendingSentInvitations',
-        'countInvitationRequests', 'fetchInvitationRequestCounts',
-        'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
-        'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
-        'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
-        'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
-        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
+        'fetchReadme', 'setReadme', 'addCustomRole', 'resolvePendingRequests',
+        'fetchVocabulary', 'fetchMembershipStatuses', 'setBackgroundImage',
+        'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail', 'inviteByEmails',
+        'kickMember', 'transferOwnership', 'fetchRolesByClientId',
+        'fetchInvitationsFromGraph', 'countInvitationsFromGraph', 'fetchMembersFromGraph'
+        'remove', 'bulkApprove', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
-        'createVM', 'canCreateVM', 'vmUsage',
-        'fetchBundle', 'updateBundle', 'saveInviteMessage'
+        'createVM', 'canCreateVM', 'vmUsage', 'fetchBundle', 'updateBundle',
+        'saveInviteMessage', 'redeemInvitation'
       ]
     schema          :
       title         :
@@ -170,6 +168,9 @@ module.exports = class JGroup extends Module
         as          : 'owner'
       invitationRequest:
         targetType  : 'JInvitationRequest'
+        as          : 'owner'
+      invitation:
+        targetType  : 'JInvitation'
         as          : 'owner'
       readme        :
         targetType  : 'JMarkdownDoc'
@@ -394,14 +395,14 @@ module.exports = class JGroup extends Module
     {limit, blacklist, skip}  = options
 
     @some {
-      title   : seed
-      _id     :
-        $nin  : blacklist
-      visibility: 'visible'
+      title      : seed
+      _id        :
+        $nin     : blacklist
+      visibility : 'visible'
     },{
       skip
       limit
-      sort    : 'title' : 1
+      sort       : 'title' : 1
     }, callback
 
   # currently groups in a group show global groups, so it does not
@@ -757,7 +758,7 @@ module.exports = class JGroup extends Module
       queue.next()
 
     daisy queue = [
-      -> group.resolvePendingRequests client, yes, kallback
+      -> group.resolvePendingRequests client, kallback
       -> group.destroyMemebershipPolicy kallback
       -> callback null
     ]
@@ -807,81 +808,46 @@ module.exports = class JGroup extends Module
           else ERROR_NO_POLICY
         callback clientError, no
 
-  countPendingInvitationRequests: permit 'send invitations',
-    success: (client, callback)->
-      @countInvitationRequests {}, {status: 'pending'}, callback
-
-  countPendingSentInvitations: permit 'send invitations',
-    success: (client, callback)->
-      @countInvitationRequests {}, {status: 'sent'}, callback
-
-  countInvitationRequests$: permit 'send invitations',
-    success: (client, rest...)-> @countInvitationRequests rest...
-
-  fetchInvitationRequestCounts: permit 'send invitations',
-    success: ->
-      switch arguments.length
-        when 2
-          [client, callback] = arguments
-          types = ['invitation', 'basic approval']
-        when 3
-          [client, types, callback] = arguments
-      counts = {}
-      queue = types.map (invitationType)=>=>
-        @countInvitationRequests {}, {invitationType}, (err, count)->
-          if err then queue.fin err
-          else
-            counts[invitationType] = count
-            queue.fin()
-      dash queue, callback.bind null, null, counts
-
   resolvePendingRequests: permit 'send invitations',
-    success: (client, isApproved, callback)->
+    success: (client, callback)->
       @fetchMembershipPolicy (err, policy)=>
         if err then callback err
         else unless policy then callback new KodingError 'No membership policy!'
         else
-          invitationType =
-            if policy.invitationsEnabled then 'invitation' else 'basic approval'
-
-          method =
-            if 'invitation' is invitationType
-              if isApproved then 'send' else 'delete'
-            else
-              if isApproved then 'approve' else 'decline'
-
-          invitationRequestSelector =
-            group             : @slug
-            status            : 'pending'
-            invitationType    : invitationType
+          selector =
+            group          : @slug
+            status         : 'pending'
           JInvitationRequest = require '../invitationrequest'
-          JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
+          JInvitationRequest.each selector, {}, (err, request)->
             if err then callback err
-            else if request? then request[method+'Invitation'] client, callback
+            else if request? then request.approve client
             else callback null
 
-  inviteByEmail: permit 'send invitations',
-    success: (client, email, message, options, callback)->
+  inviteByEmail: do->
+    fetchAccountByEmail = (email, callback)->
       JUser    = require '../user'
       JUser.one {email}, (err, user)=>
-        cb = (user, account)=>
-          @inviteMember client, email, user, account, message, options, callback
+        return callback null, null  if err or not user
+        user.fetchOwnAccount (err, account)=>
+          return callback null, null  if err or not account
+          @isMember account, (err, isMember)->
+            if isMember
+              callback new KodingError "#{email} is already member of this group!"
+            else
+              callback null, account
 
-        if err or not user
-          cb null, null
-        else
-          user.fetchOwnAccount (err, account)=>
-            return cb user, null  if err or not account
-            @isMember account, (err, isMember)->
-              return callback new KodingError "#{email} is already member of this group!"  if isMember
-              cb user, account
+    permit 'send invitations',
+      success: (client, email, options, callback)->
+        fetchAccountByEmail email, (err, account)=>
+          return callback err  if err
+          @inviteMember client, email, account, options, callback
 
   inviteByEmails: permit 'send invitations',
-    success: (client, emails, message, options, callback)->
+    success: (client, emails, options, callback)->
       {uniq} = require 'underscore'
       errors = []
       queue = uniq(emails.split(/\n/)).map (email)=>=>
-        @inviteByEmail client, email.trim(), message, options, (err)->
+        @inviteByEmail client, email.trim(), options, (err)->
           errors.push err  if err
           queue.next()
       queue.push -> callback if errors.length > 0 then errors else null
@@ -895,63 +861,22 @@ module.exports = class JGroup extends Module
         set["communications.#{messageType}"] = message
         policy.update $set: set, callback
 
-  inviteByUsername: permit 'send invitations',
-    success: (client, usernames, callback)->
-      JUser    = require '../user'
-      usernames = [usernames] unless Array.isArray usernames
-      queue = usernames.map (username)=>=>
-        JUser.one {username}, (err, user)=>
-          return callback err if err
-          return callback new KodingError 'User does not exist!' unless user
-          user.fetchOwnAccount (err, account)=>
-            return callback err if err
-            @isMember account, (err, isMember)=>
-              return callback err if err
-              return callback new KodingError "#{username} is already member of this group!" if isMember
-              @inviteMember client, user.email, user, account, (err)->
-                return queue.next() unless err
-                replaceEmail = (errMsg)-> errMsg.replace user.email, username
-                if err.name is 'KodingError' then err.message = replaceEmail err.message
-                else err = replaceEmail err
-                callback err
-      queue.push -> callback null
-      daisy queue
+  inviteMember: (client, email, account, options, callback)->
+    JInvitation = require '../invitation'
+    JInvitation.create client, @slug, email, options, (err, invite)=>
+      return callback err  if err
+      @addInvitation invite, (err)=>
+        return callback err  if err
+        invite.sendMail client, this, options, (err)->
+          return callback err  if err
+          kallback = (err)-> callback err, invite
 
-  inviteMember: (client, email, user, account, message, options, callback)->
-    JInvitationRequest = require '../invitationrequest'
-
-    [callback, options] = [options, callback]  unless callback
-    [callback, message] = [message, callback]  unless callback
-    [callback, account] = [account, callback]  unless callback
-    [callback, user]    = [user,    callback]  unless callback
-
-    params =
-      email  : email
-      group  : @slug
-      status : $not: $in: JInvitationRequest.resolvedStatuses
-
-    JInvitationRequest.one params, (err, invitationRequest)=>
-      if invitationRequest
-        callback new KodingError """
-          You've already invited #{email}.
-          """
-      else
-        params.invitationType  = 'invitation'
-        params.status          = 'sent'
-        params.koding          = username : user.username  if user
-        params.koding.fullName = "#{account.profile.firstName} #{account.profile.lastName}"  if account
-
-        invitationRequest = new JInvitationRequest params
-        invitationRequest.save (err)=>
-          if err then callback err
-          else @addInvitationRequest invitationRequest, (err)->
-            if err then callback err
-            else
-              if user
-                user.fetchOwnAccount (err, account)->
-                  return console.warn err  if err # this is minor work, workflow should not stop cause of this
-                  account.emit 'NewPendingInvitation'
-              invitationRequest.sendInvitation client, message, options, callback
+          JAccount = require '../account'
+          if account instanceof JAccount
+            account.emit 'NewPendingInvitation'
+            account.addInvitation invite, kallback
+          else
+            kallback null
 
   isMember: (account, callback)->
     selector =
@@ -962,102 +887,83 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, (if count is 0 then no else yes)
 
-  fetchInvitationRequests$: permit 'send invitations',
-    success: (client, rest...)-> @fetchInvitationRequests rest...
+  redeemInvitation: secure (client, code, callback)->
+    {delegate} = client.connection
+    @isMember delegate, (err, isMember)=>
+      return callback err  if err or isMember
+      selector = targetOptions: selector: {code, status:$in:['active', 'sent']}
+      @fetchInvitations {}, selector, (err, [invite])=>
+        return callback err  if err
+        return callback new KodingError 'Invitation code is invalid!'  unless invite
+        @approveMember delegate, (err)->
+          return callback err  if err
+          invite.redeem client, callback
 
-  sendSomeInvitations: permit 'send invitations',
+  bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
-      selector   = group: @slug, status: 'pending'
-      selOptions = limit: count, sort: requestedAt: 1
+      selOptions =
+        targetOptions: {selector: status: 'pending'},
+        limit: count,
+        sort: requestedAt: 1
+      @fetchInvitationRequests {}, selOptions, (err, requests)->
+        return callback err  if err
+        errors = []
+        emails = []
+        queue = requests.map (request)-> ->
+          request.approve client, options, (err)->
+            if err
+              errors.push "#{request.email} failed!"
+            else
+              emails.push request.email
+            setTimeout queue.next.bind(queue), 50
+        queue.push -> callback (if errors.length > 0 then errors else null), emails
+        daisy queue
 
-      JInvitationRequest = require '../invitationrequest'
-      JInvitationRequest.some selector, selOptions, (err, requests)->
-        if err then callback err
-        else
-          errors = []
-          emails = []
-          queue = requests.map (request)-> ->
-            request.approveInvitation client, options, (err)->
-              if err
-                errors.push "#{request.email} failed!"
-              else
-                emails.push request.email
-              setTimeout queue.next.bind(queue), 50
-          queue.push -> callback (if errors.length > 0 then errors else null), emails
-          daisy queue
+  requestAccess: secure (client, callback)->
+    @requestAccessFor client, callback
 
-  requestAccess: secure (client, formData, callback)->
-    @requestAccessFor client, formData, callback
-
-  requestAccessFor: (account, formData, callback)->
+  requestAccessFor: (account, callback)->
     JInvitationRequest = require '../invitationrequest'
     JUser              = require '../user'
     JAccount           = require '../account'
 
-    [callback, formData] = [formData, callback]  unless callback
-    formData ?= {}
-
-    account = connection:delegate:account unless account.connection?
-    {delegate} = account.connection
+    account = account.connection.delegate  if account.connection?
 
     @fetchMembershipPolicy (err, policy)=>
-      if err then callback err
-      else
+      return callback err  if err
+      account.fetchUser (err, user)=>
+        return callback err  if err
+
         if policy?.approvalEnabled
           invitationType = 'basic approval'
         else
           invitationType = 'invitation'
 
-        cb = (email, kallback)=>
-          selector =
-            group: @slug
-            status: $not: $in: JInvitationRequest.resolvedStatuses
+        selector = {
+          invitationType
+          group  : @slug
+          email  : user.email
+          status : $not: $in: JInvitationRequest.resolvedStatuses
+        }
 
-          if delegate instanceof JAccount
-            selector['$or'] = [
-              'koding.username' : delegate.profile.nickname
-              {email}
-            ]
-          else
-            selector.email = email
+        JInvitationRequest.one selector, (err, invitationRequest)=>
+          return callback err, invitationRequest  if err or invitationRequest
+          selector.status   = 'pending'
+          selector.username = user.username
 
-          JInvitationRequest.one selector, (err, invitationRequest)=>
-            return kallback err if err
-            # here we use callback instead of kallback as we simulate success here
-            # but don't do any further actions
-            if invitationRequest then callback null
-            else
-              invitationRequest = new JInvitationRequest {
-                invitationType
-                email   : email
-                group   : @slug,
-                status  : 'pending'
-              }
+          invitationRequest = new JInvitationRequest selector
+          invitationRequest.save (err)=>
+            return callback err  if err
+            @addInvitationRequest invitationRequest, (err)=>
+              return callback err if err
+              @emit 'NewInvitationRequest'
 
-              if delegate instanceof JAccount
-                invitationRequest.koding = {
-                  username : delegate.profile.nickname
-                  fullName : "#{delegate.profile.firstName} #{delegate.profile.lastName}"
-                }
+              unless @slug is 'koding' # comment out to test with koding group
+                invitationRequest.sendRequestNotification(
+                  this, account, user.email, invitationType
+                )
 
-              invitationRequest.save (err)=>
-                return kallback err if err
-                @addInvitationRequest invitationRequest, (err)=>
-                  return kallback err if err
-                  @emit 'NewInvitationRequest'
-                  unless @slug is 'koding' # comment out to test with koding group
-                    invitationRequest.sendRequestNotification(
-                      account, email, invitationType
-                    )
-                  kallback null
-
-        unless delegate instanceof JAccount
-          return callback new KodingError 'Email address is missing'  unless formData?.email
-          cb formData.email, callback
-        else
-          JUser.one username:delegate.profile.nickname, (err, user)=>
-            return callback err if err
-            cb user.email, callback
+              account.addInvitationRequest invitationRequest, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
@@ -1301,6 +1207,10 @@ module.exports = class JGroup extends Module
           JInvitationRequest = require '../invitationrequest'
           removeHelperMany JInvitationRequest, requests, err, callback, queue
 
+        => @fetchInvitations (err, requests)->
+          JInvitation = require '../invitation'
+          removeHelperMany JInvitation, requests, err, callback, queue
+
         => @fetchVocabularies (err, vocabularies)->
           JVocabulary = require '../vocabulary'
           removeHelperMany JVocabulary, vocabularies, err, callback, queue
@@ -1449,36 +1359,31 @@ module.exports = class JGroup extends Module
     graph = new Graph({config:KONFIG['neo4j']})
     graph.fetchRelationshipCount {groupId:@_id, relName:"member"}, callback
 
-  fetchOrSearchInvitationRequests: permit 'send invitations',
-    success: (client, status, timestamp, requestLimit, search, callback)->
+  fetchOrCountInvitations: permit 'send invitations',
+    success: (client, type, method, options, callback)->
+      supportedTypes = ['Invitation', 'InvitationRequest', 'InvitationCode']
+      return callback 'unsupported type'  unless type in supportedTypes
+
+      options.groupId = @getId()
       graph = new Graph({config:KONFIG['neo4j']})
-      options = {}
-      options.groupId      = @getId()
-      options.status       = status
-      options.search       = search
-      options.timestamp    = timestamp
-      options.requestLimit = requestLimit
+      graph["fetchOrCount#{type}s"] method, options, callback
 
-      graph.fetchInvitations options, (err, results)=>
-        if err then return callback err
-        if results.length < 1 then return callback null, []
+  fetchInvitationsFromGraph: permit 'send invitations',
+    success: (client, type, options, callback)->
+      @fetchOrCountInvitations client, type, 'fetch', options, (err, results)=>
+        return callback err  if err
+        ids = (res.groupOwnedNodes.data.id  for res in results)
 
-        JInvitationRequest = require '../invitationrequest'
-        tempRes = []
-        collectContents = race (i, res, fin)=>
-          objId = res.groupOwnedNodes.data.id
-          JInvitationRequest.one  { _id : objId }, (err, invitationRequest)=>
-            if err
-              callback err
-              fin()
-            else
-              tempRes[i] = invitationRequest
-              fin()
-        , ->
-          callback null, tempRes
+        require(
+          if type is 'InvitationRequest'
+          then model = '../invitationrequest'
+          else model = '../invitation'
+        ).some _id: $in: ids, {}, callback
 
-        for res in results
-          collectContents res
+  countInvitationsFromGraph: permit 'send invitations',
+    success: (client, type, options, callback)->
+      @fetchOrCountInvitations client, type, 'count', options, (err, result)=>
+        return callback err, result?[0]?.count
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
@@ -1505,3 +1410,7 @@ module.exports = class JGroup extends Module
             callback null, tempRes
           for res in results
             collectContents res
+
+  @each$ = (selector, options, callback)->
+    selector.visibility = 'visible'
+    @each selector, options, callback
