@@ -26,15 +26,19 @@ class NavigationActivityLink extends KDCustomHTMLView
 
     @utils.wait 1000, =>
       KD.getSingleton('activityController').on "ActivitiesArrived", (activities) =>
-        return if KD.getSingleton('router').currentPath is "Activity"
+        return if KD.getSingleton('router').currentPath is "/Activity"
         myId = KD.whoami().getId()
         @newActivityCount++ for activity in activities when activity.originId and activity.originId isnt myId
 
         appManager.tell "Activity", "getNewItemsCount", (itemCount) =>
           @updateNewItemsCount itemCount
 
-    KD.getSingleton("mainController").on "NavigationLinkTitleClick", (options) =>
+    mainController = KD.getSingleton "mainController"
+    mainController.on "NavigationLinkTitleClick", (options) =>
       @setActivityLinkToDefaultState() if options.appPath is "Activity" and @newActivityCount > 0
+
+    mainController.on "ShouldResetNavigationTitleLink", =>
+      @setActivityLinkToDefaultState()
 
   updateNewItemsCount: (itemCount) ->
     newItemsCount = itemCount or= @newActivityCount
