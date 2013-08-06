@@ -2,7 +2,7 @@ class FirewallFilterListItemView extends KDListItemView
 
   constructor:(options={}, data)->
     options.cssClass = 'filter-item'
-    options.type     = 'customitem'
+    options.type     = 'env-list'
     options.tagName  = 'tr'
     super options, data
 

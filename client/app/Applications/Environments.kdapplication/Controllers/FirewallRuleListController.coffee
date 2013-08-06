@@ -5,7 +5,7 @@ class FirewallRuleListController extends KDListViewController
     options.noItemView  or= new EmptyFirewallRuleListItemView
     options.viewOptions or=
       tagName   : "table"
-      type      : "customitem"
+      type      : "env-list"
       partial   :
         """
         <thead>
