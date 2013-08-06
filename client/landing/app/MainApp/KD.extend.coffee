@@ -26,7 +26,8 @@ KD.extend
 
       # if it's not a silent operation redirect
       unless silence
-        KD.getSingleton('router').handleRoute "/Login", KD.config.entryPoint
+        KD.getSingleton('router').handleRoute "/Login",
+          entryPoint : KD.config.entryPoint
 
       # if there is callback and we want to try again
       if callback? and tryAgain
@@ -34,33 +35,33 @@ KD.extend
           mainController = KD.getSingleton("mainController")
           mainController.once "accountChanged.to.loggedIn", =>
             if groupName and KD.isLoggedIn()
-              @joinGroup_ groupName, (res)=>
-                unless res then return @notify_ "Joining to #{groupName} group failed", "error"
+              @joinGroup_ groupName, (err)=>
+                return @notify_ "Joining #{groupName} group failed", "error"  if err
                 KD.lastFuncCall?()
                 KD.lastFuncCall = null
         KD.lastFuncCall = callback
+    else if groupName
+      @joinGroup_ groupName, (err)=>
+        return @notify_ "Joining #{groupName} group failed", "error"  if err
+        callback?()
     else
-      if groupName
-        @joinGroup_ groupName, (res)=>
-          if res
-
-            callback?()
-          else @notify_ "Joining to #{groupName} group failed", "error"
-      else callback?()
+      callback?()
 
   joinGroup_:(groupName, callback)->
-    unless groupName then return callback true
+    return callback null unless groupName
     user = @whoami()
-    user.checkGroupMembership (err, isMember)=>
-      return callback false if err
-      return callback true  if isMember
+    user.checkGroupMembership groupName, (err, isMember)=>
+      return callback err  if err
+      return callback null if isMember
 
+      #join to group
       @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
-        return callback false if err
+        return callback err if err
+        return callback null unless currentGroup
         currentGroup.join (err)=>
-          return callback false if err
+          return callback err if err
           @notify_ "You have joined to #{groupName} group!", "success"
-          return callback true
+          return callback null
 
   nick:-> KD.whoami().profile.nickname
 

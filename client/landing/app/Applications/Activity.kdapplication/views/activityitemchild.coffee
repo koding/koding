@@ -93,6 +93,7 @@ class ActivityItemChild extends KDView
 
     account        = KD.whoami()
     mainController = KD.getSingleton('mainController')
+    activityController = KD.getSingleton('activityController')
 
     if data.originId is KD.whoami().getId()
       menu =
@@ -110,12 +111,12 @@ class ActivityItemChild extends KDView
         menu =
           'Unmark User as Troll' :
             callback             : ->
-              mainController.unmarkUserAsTroll data
+              activityController.emit "ActivityItemUnMarkUserAsTrollClicked", data
       else
         menu =
           'Mark User as Troll' :
             callback           : ->
-              mainController.markUserAsTroll data
+              activityController.emit "ActivityItemMarkUserAsTrollClicked", data
 
       menu['Delete Post'] =
         callback : =>
@@ -123,7 +124,7 @@ class ActivityItemChild extends KDView
 
       menu['Block User'] =
         callback : ->
-          mainController.openBlockUserModal data
+          activityController.emit "ActivityItemBlockUserClicked", data
 
       return menu
 
@@ -162,7 +163,7 @@ class ActivityItemChild extends KDView
           title      : "cancel"
           callback   : ->
             modal.destroy()
-    
+
     modal.buttons.Delete.blur()
 
   click: KD.utils.showMoreClickHandler

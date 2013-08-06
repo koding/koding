@@ -29,7 +29,7 @@ app.home.styl
 
   > header
     bg              color, #000
-    bg              image, url('../images/gunduz-varligi.jpg')
+    bg              image, url('../images/gunduz-varligi-yildizli.jpg')
     bg              position, -600px -211px
 
     .custom-link-view
@@ -57,7 +57,7 @@ div#home-intro
   size                    100%, 526px
   color                   white
   vendor                  transition, height .3s linear
-  bg                      image, url('../images/gunduz-varligi.jpg')
+  bg                      image, url('../images/gunduz-varligi-yildizli.jpg')
   bg                      position, -600px -261px
   bg                      color, black
   shadow                  inset 0 -5px 10px rgba(0,0,0,.1)
@@ -76,13 +76,13 @@ div#home-intro
 
     > div
       width               calc(100%\-360px)
-      padding             0 60px
+      padding             0 0 0 60px
       fl()
       borderBox()
 
     > aside
       width               360px
-      padding             52px 60px 0 0
+      padding             12px 60px 0 0
       fl()
       borderBox()
 
@@ -122,13 +122,14 @@ div#home-intro
 
   .toc
     width                 300px
-    margin-top            14px
-    font-weight           300
-    font-size             12px
+    margin-top            21px
+    font-weight           400
+    font-size             10px
     line-height           18px
-    opacity               .5
+    color                 rgba(255, 255, 255, .3)
+    text-align            center
     a
-      color               linkColor1
+      color               rgba(255, 146, 0, .5)
       noTextDeco()
 
   form
@@ -262,10 +263,27 @@ div#home-intro
           bg                position, -580px 0px
           abs()
         a
+        img
           display           block
           size              300px, 200px
-        img
-          size              300px, 200px
+      &.large
+        height              60px
+        margin-top          0
+        li
+          size              calc(50%\-10px), 100%
+          fl()
+          &:first-child
+            margin-right    10px
+          &:active
+            i
+              top             10px
+          i
+            top               10px
+            sprite()
+          img
+          a
+            size            100%, 100%
+
 
   ul
     size                  100%, 60px
@@ -318,6 +336,16 @@ div#home-intro
       hidden()
     .comment-container.commented .kdlistitemview-comment:last-child
       border-bottom     none!important
+  .feeder-tabs
+    .feeder-header
+      line-height       60px
+      font-size         20px
+      font-weight       300
+      border-bottom     none
+      gradient          #f8f8f8, #f2f2f2
+      text-shadow       0 1px 0 #fff
+      // shadow            0 2px 8px rgba(0, 0, 0, .15)
+      shadow            inset 0 5px 10px rgba(0, 0, 0, .2)
 
 #home-counter-bar
   padding               30px 0

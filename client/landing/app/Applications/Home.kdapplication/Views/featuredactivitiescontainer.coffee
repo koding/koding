@@ -14,7 +14,7 @@ class FeaturedActivitiesContainer extends JView
       showHeader        : yes
 
     @listWrapper = @controller.getView()
-    @listWrapper.setPartial '<div class="kdview feeder-header clearfix"><span>Featured Activity</span></div>'
+    @listWrapper.setPartial '<div class="kdview feeder-header clearfix"><span>What\'s going on in the Koding Community</span></div>'
 
   viewAppended:->
     super
