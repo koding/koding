@@ -51,15 +51,14 @@ KD.extend
   joinGroup_:(groupName, callback)->
     unless groupName then return callback true
     user = @whoami()
-    user.fetchGroups (err, groups)=>
-      if err or !groups then return callback false
+    user.checkGroupMembership (err, isMember)=>
+      return callback false if err
+      return callback true  if isMember
+
       @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
-        if err then return @notify_ err.message, "error"
-        for group in groups
-          if groupName is group.group.slug
-            return callback true
+        return callback false if err
         currentGroup.join (err)=>
-          if err then return callback false
+          return callback false if err
           @notify_ "You have joined to #{groupName} group!", "success"
           return callback true
 
