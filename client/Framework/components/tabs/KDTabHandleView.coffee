@@ -25,6 +25,7 @@ class KDTabHandleView extends KDView
 
     @on "DragFinished", (event) =>
       @handleDragFinished event
+      @getDelegate().showPaneByIndex @index
 
   setDomElement:(cssClass="")->
     {hidden, closable, tagName, title} = @getOptions()
@@ -48,6 +49,7 @@ class KDTabHandleView extends KDView
     @getDomElement().removeClass "active"
 
   setTitle:(title)->
+    @setDomAttributes {title}
     # @getDomElement().find("span.close-tab").css "color", @getDelegate().getDomElement().css "background-color"
 
   isHidden: ->

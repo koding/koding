@@ -1,24 +1,23 @@
 koding     = require './bongo'
 
+error_messages =
+  404: "Page not found."
+  500: "Something wrong."
+
 error_ = (code, message)->
+  # Refactor this to use pistachio instead of underscore template engine - FKA
+  {errorTemplate} = require './staticpages'
+  {template}      = require 'underscore'
   messageHTML = message.split('\n')
     .map((line)-> "<p>#{line}</p>")
     .join '\n'
-  """
-  <title>#{code}</title>
-  <h1>#{code}</h1>
-  #{messageHTML}
-  """
+  template errorTemplate, {code, error_messages, messageHTML}
 
 error_404 = ->
-  error_ 404,
-    """
-    not found
-    fayamf
-    """
+  error_ 404, "This webpage is not available."
 
 error_500 = ->
-  error_ 500, 'internal server error'
+  error_ 500, "Something wrong with the Koding servers."
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
