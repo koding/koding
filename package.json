@@ -37,7 +37,6 @@
     "mime"            : "1.2.9",
     "mkdirp"          : "0.3.2",
     "mongodb"         : "1.3.15",
-    "mongoskin"       : "0.3.7",
     "nib"             : "0.5.0",
     "nodemailer"      : "0.3.21",
     "noxmox"          : "0.1.8",
