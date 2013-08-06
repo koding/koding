@@ -847,6 +847,7 @@ module.exports = [
   "stylus/app.1024.styl",
   "stylus/app.768.styl",
   "stylus/app.480.styl",
+  "stylus/app.400.styl",
 
   "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
