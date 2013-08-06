@@ -25,17 +25,15 @@ class NavigationActivityLink extends KDCustomHTMLView
       cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
 
     @utils.wait 1000, =>
-      KD.getSingleton('activityController').on "ActivitiesArrived", (activities) =>
-        return if KD.getSingleton('router').currentPath is "/Activity"
-        myId = KD.whoami().getId()
-        @newActivityCount++ for activity in activities when activity.originId and activity.originId isnt myId
+      KD.getSingleton("activityController").on "ActivitiesArrived", (activities) =>
+        return if KD.getSingleton("router").currentPath is "/Activity"
 
         appManager.tell "Activity", "getNewItemsCount", (itemCount) =>
           @updateNewItemsCount itemCount
 
     mainController = KD.getSingleton "mainController"
     mainController.on "NavigationLinkTitleClick", (options) =>
-      @setActivityLinkToDefaultState() if options.appPath is "Activity" and @newActivityCount > 0
+      @setActivityLinkToDefaultState() if options.appPath is "Activity"
 
     mainController.on "ShouldResetNavigationTitleLink", =>
       @setActivityLinkToDefaultState()
