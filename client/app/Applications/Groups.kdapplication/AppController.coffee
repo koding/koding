@@ -409,31 +409,7 @@ class GroupsAppController extends AppController
           title: 'Group was updated!'
           duration: 1000
 
-  showGroupSubmissionView:->
-
-    getGroupType = ->
-      modal.modalTabs.forms["Select group type"].inputs.type.getValue()
-
-    getPrivacyDefault = ->
-      switch getGroupType()
-        when 'educational'  then 'by-request'
-        when 'company'      then 'by-invite'
-        when 'project'      then 'public'
-        when 'custom'       then 'public'
-
-    getVisibilityDefault = ->
-      switch getGroupType()
-        when 'educational'  then 'visible'
-        when 'company'      then 'hidden'
-        when 'project'      then 'visible'
-        when 'custom'       then 'visible'
-
-    applyDefaults =->
-      {Privacy,Visibility} = modal.modalTabs.forms["General Settings"].inputs
-      Privacy.setValue getPrivacyDefault()
-      Visibility.setValue getVisibilityDefault()
-
-    modal = new GroupCreationModal
+  showGroupSubmissionView:-> new GroupCreationModal
 
   handleError =(err, buttons)->
     unless buttons

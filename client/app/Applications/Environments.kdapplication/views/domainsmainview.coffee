@@ -40,6 +40,8 @@ class DomainsMainView extends JView
     @tabView.showPaneByIndex 0
     @domainsListViewController.on "domainItemClicked", @bound "decorateMapperView"
 
+    @utils.defer => @splitView._windowDidResize()
+
   buildButtonsBar: ->
     @buttonsBar = new KDView cssClass : "header"
     @actionArea = new KDView cssClass : 'action-area'
@@ -91,11 +93,9 @@ class DomainsMainView extends JView
       {domainName} = form.inputs
       domainName.setFocus()
 
-
     creationForm.on 'CloseClicked', =>
       @actionArea.unsetClass 'in'
       @buttonsBar.unsetClass 'out'
-
 
   pistachio:->
     """

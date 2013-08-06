@@ -88,6 +88,15 @@ class TagCloudListItemView extends KDListItemView
   pistachio:->
     super "{{#(title)}}"
 
+  click:(e)->
+    e?.preventDefault()
+    e?.stopPropagation()
+    @openTag @getData()
+
+  openTag:(tag)->
+    {entryPoint} = KD.config
+    KD.getSingleton('router').handleRoute "/Topics/#{tag.slug}", {state:tag, entryPoint}
+
 #  click:(event)->
 #    event?.stopPropagation()
 #    event?.preventDefault()
