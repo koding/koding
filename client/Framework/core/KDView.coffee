@@ -727,22 +727,16 @@ class KDView extends KDObject
     dragDir      = @dragState.direction
     dragGlobDir  = dragDir.global
     dragCurDir   = dragDir.current
-
     {axis}       = @getOptions().draggable
-    if axis
-      if axis is "x"
-        draggedDistance = Math.abs x
-      else
-        draggedDistance = Math.abs y
-    else
-      draggedDistance   = Math.max Math.abs(x), Math.abs(y)
+
+    draggedDistance = if axis
+      if axis is "x" then Math.abs x else Math.abs y
+    else Math.max Math.abs(x), Math.abs(y)
 
     if draggedDistance < 20 and not @beingDragged
-      @dragIsAllowed = no
-      @beingDragged  = no
+      @dragIsAllowed = @beingDragged = no
     else
-      @dragIsAllowed = yes
-      @beingDragged  = yes
+      @dragIsAllowed = @beingDragged = yes
 
     if x > dragRelPos.x
       dragCurDir.x  = 'right'
