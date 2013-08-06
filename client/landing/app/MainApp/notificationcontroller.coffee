@@ -165,7 +165,7 @@ class NotificationController extends KDObject
               KD.getSingleton('router').handleRoute "/Inbox"
             else if subjectObj.constructor.name is "JOpinion"
               KD.remote.api.JOpinion.fetchRelated subjectObj._id, (err, post) ->
-                KD.getSingleton('router').handleRoute "/Activity/#{post.slug}"
+                KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
                 view.destroy()
             else if subject.constructorName is 'JGroup'
               suffix = ''
@@ -173,7 +173,7 @@ class NotificationController extends KDObject
               KD.getSingleton('router').handleRoute "/#{subjectObj.slug}#{suffix}"
               view.destroy()
             else
-              KD.getSingleton('router').handleRoute "/Activity/#{subjectObj.slug}"
+              KD.getSingleton('router').handleRoute "/Activity/#{subjectObj.slug}", state:subjectObj
               view.destroy()
 
         options.type  = actionType or actorType or ''
