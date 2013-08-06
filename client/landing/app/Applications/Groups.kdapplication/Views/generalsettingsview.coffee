@@ -41,7 +41,8 @@ class GroupGeneralSettingsView extends JView
           callback   : =>
             modal = new GroupsDangerModalView
               action     : 'Remove Group'
-              longAction : 'remove this group'
+              title      : "Remove '#{data.slug}'"
+              longAction : "remove the '#{data.slug}' group"
               callback   : (callback)=>
                 data.remove (err)=>
                   callback()
@@ -92,7 +93,11 @@ class GroupGeneralSettingsView extends JView
 
     @settingsForm = new KDFormViewWithFields formOptions, group
 
-    if data.slug is 'koding' # KD.defaultSlug
+    
+    unless KD.config.roles? and 'owner' in KD.config.roles
+      @settingsForm.buttons.Remove.hide()
+
+    if data.slug is 'koding'
       @settingsForm.buttons.Remove.hide()
 
   pistachio:-> "{{> @settingsForm}}"
