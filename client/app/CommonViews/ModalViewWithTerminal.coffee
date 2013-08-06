@@ -27,6 +27,7 @@ class ModalViewWithTerminal extends KDModalView
 
     @terminal        or= {}
     @terminal.height or= 150
+    @terminal.screen or= no
 
     @on "terminal.connected", (remote)=>
       @on "terminal.input", (command)=>
@@ -36,6 +37,7 @@ class ModalViewWithTerminal extends KDModalView
       @run @terminal.command  if @terminal.command and not @hidden
 
     terminalWrapper = new KDView
+      noScreen: !@terminal.screen
 
     @webterm = new WebTermView
       delegate          : terminalWrapper

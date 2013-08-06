@@ -1,16 +1,16 @@
 class KDLabelView extends KDView
-	constructor:(options)->
-		@setTitle(options.title)				if options?.title?
-		super options
+  constructor:(options)->
+    @setTitle(options.title)        if options?.title?
+    super options
 
-	setDomElement:(cssClass)->
-		@domElement = $ "<label for='' class='kdlabel #{cssClass}'>#{@getTitle()}</label>"
+  setDomElement:(cssClass)->
+    @domElement = $ "<label for='' class='kdlabel #{cssClass}'>#{@getTitle()}</label>"
 
-	setTitle:(title)->
-		@labelTitle = title
+  setTitle:(title)->
+    @labelTitle = title or ''
 
-	updateTitle: (title) ->
-	  @setTitle title
-	  @$().html title
+  updateTitle: (title) ->
+    @setTitle title
+    @$().html title
 
-	getTitle:-> @labelTitle
+  getTitle:-> @labelTitle

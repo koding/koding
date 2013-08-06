@@ -44,7 +44,7 @@ class WebTerm.InputHandler
     @terminal.cursor.resetBlink()
     
     if event.ctrlKey
-      unless event.shiftKey or event.keyCode < 64
+      unless event.shiftKey or event.altKey or event.keyCode < 64
         @terminal.server.controlSequence String.fromCharCode(event.keyCode - 64)
         event.preventDefault()
       return
@@ -58,7 +58,7 @@ class WebTerm.InputHandler
       event.preventDefault()
   
   keyPress: (event) ->
-    unless event.ctrlKey or event.charCode is 0
+    unless (event.ctrlKey and not event.altKey) or event.charCode is 0
       @terminal.server.input String.fromCharCode(event.charCode)
     event.preventDefault()
   
