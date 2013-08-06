@@ -106,11 +106,20 @@ class NotificationController extends KDObject
 
     return  unless actor
 
+    fetchSubjectObj = (callback)=>
+      if not subject or subject.constructorName is "JPrivateMessage"
+        return callback null
+      if subject.constructorName in ["JComment", "JOpinion"]
+        method = 'fetchRelated'
+        args   = subject.id
+      else
+        method = 'one'
+        args   = _id: subject.id
+      KD.remote.api[subject.constructorName][method] args, callback
+
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
-      KD.remote.api[subject.constructorName].one _id: subject.id, (err, subjectObj)=>
-
+      fetchSubjectObj (err, subjectObj)=>
         actorName = KD.utils.getFullnameFromAccount actorAccount
-
         options.title = switch actionType
           when "reply", "opinion"
             if isMine
@@ -151,13 +160,12 @@ class NotificationController extends KDObject
 
         if subject
           options.click = ->
-            view = @
+            view = this
             if subject.constructorName is "JPrivateMessage"
-              KD.getSingleton("appManager").openApplication "Inbox"
-            else if subject.constructorName in ["JComment", "JOpinion"]
-              KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
-                KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
-                # appManager.tell "Activity", "createContentDisplay", post
+              KD.getSingleton('router').handleRoute "/Inbox"
+            else if subjectObj.constructor.name is "JOpinion"
+              KD.remote.api.JOpinion.fetchRelated subjectObj._id, (err, post) ->
+                KD.getSingleton('router').handleRoute "/Activity/#{post.slug}"
                 view.destroy()
             else if subject.constructorName is 'JGroup'
               suffix = ''
@@ -165,8 +173,7 @@ class NotificationController extends KDObject
               KD.getSingleton('router').handleRoute "/#{subjectObj.slug}#{suffix}"
               view.destroy()
             else
-              # appManager.tell "Activity", "createContentDisplay", post
-              KD.getSingleton('router').handleRoute "/Activity/#{subjectObj.slug}", state:post
+              KD.getSingleton('router').handleRoute "/Activity/#{subjectObj.slug}"
               view.destroy()
 
         options.type  = actionType or actorType or ''
@@ -186,5 +193,3 @@ class NotificationController extends KDObject
       content  : options.content  or null
 
     notification.once 'click', options.click
-
-
