@@ -73,7 +73,7 @@ Vagrant.configure("2") do |config|
       default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
       default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
     else
-      default.vm.box = "koding-14"
+      default.vm.box = "koding-15"
       default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-14.box"
     end
 
