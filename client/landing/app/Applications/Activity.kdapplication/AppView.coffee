@@ -4,7 +4,7 @@ class ActivityAppView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    options.cssClass   = "content-page activity"
+    options.cssClass   = "content-page activity fixed"
     options.domId      = "content-page-activity"
 
     super options, data
