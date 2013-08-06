@@ -86,7 +86,7 @@ class Sidebar extends JView
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
-      defaultState : "show"
+      defaultState : "hide"
       states       : [
         title      : "show"
         iconClass  : "up"
