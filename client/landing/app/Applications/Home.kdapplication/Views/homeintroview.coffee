@@ -39,12 +39,23 @@ class HomeIntroView extends JView
 
     @toc = new KDCustomHTMLView
       cssClass : 'toc'
+      # partial  : 'By signing up, you agree to our <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
       partial  : 'By signing up, you agree to our <a href="/toc.html" target="_blank">terms of service</a> and <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
 
 
-    @videoThumb = new KDCustomHTMLView
+    @twoMinsThumb = new KDCustomHTMLView
       tagName  : 'a'
-      partial  : "<i></i><img src='/images/timedude.jpg'/>"
+      partial  : "<i></i><img src='/images/video/twomins.jpg'/>"
+      click    : ->
+        w = 800
+        h = 450
+        window.open "/twomins.html",
+          "Koding and the Timedude!",
+          "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
+
+    @timedudeThumb = new KDCustomHTMLView
+      tagName  : 'a'
+      partial  : "<i></i><img src='/images/video/timedude.jpg'/>"
       click    : ->
         w = 800
         h = 450
@@ -113,7 +124,7 @@ class HomeIntroView extends JView
         </div>
         <aside>
           <ul>
-            <li>{{> @videoThumb}}</li>
+            <li>{{> @timedudeThumb}}</li>
           </ul>
         </aside>
       </section>
@@ -128,12 +139,17 @@ class HomeIntroView extends JView
           {{> @subSlogan}}
         </div>
         <aside>
-         <form>
-           <div class='formline gh'>{{> @github}}</div>
-           <div class='formline or'>or</div>
-           <div class='formline signup'>{{> @signup}}</div>
-           <div class='formline'>{{> @toc}}</div>
-         <form>
+          <form>
+            <div class='formline gh'>{{> @github}}</div>
+            <div class='formline or'>or</div>
+            <div class='formline signup'>{{> @signup}}</div>
+            <div class='formline or'>or check what Koding is:</div>
+            <ul class='large'>
+              <li>{{> @twoMinsThumb}}</li>
+              <li>{{> @timedudeThumb}}</li>
+            </ul>
+            <div class='formline'>{{> @toc}}</div>
+          </form>
         </aside>
       </section>
       {{> @try}}

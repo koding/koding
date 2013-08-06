@@ -343,7 +343,7 @@ module.exports = [
   "app/MainApp/login/registerform.coffee",
   "app/MainApp/login/recoverform.coffee",
   "app/MainApp/login/resetform.coffee",
-  "app/MainApp/login/requestform.coffee",
+  "app/MainApp/login/redeemform.coffee",
 
   # BOTTOM PANEL
   # "app/MainApp/bottompanels/bottompanelcontroller.coffee",
@@ -850,6 +850,7 @@ module.exports = [
   "stylus/app.1024.styl",
   "stylus/app.768.styl",
   "stylus/app.480.styl",
+  "stylus/app.400.styl",
 
   "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",

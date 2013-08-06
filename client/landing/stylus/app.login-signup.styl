@@ -27,7 +27,7 @@ app.login-signup.styl
 
   .flex-wrapper
     background       transparent url("../images/koding-new-bg.png") repeat-x 0 -13px
-    size             220px, 342px
+    size             220px, 320px
     border           1px solid rgba(255,255,255,0.1)
     margin           30px auto 30px auto
     rounded          8px
@@ -41,7 +41,6 @@ app.login-signup.styl
   .back-to-login
   .regLink
   .recLink
-  .reqLink
   .logLink
   >section
     hidden()
@@ -81,7 +80,6 @@ app.login-signup.styl
     .lf
     .regLink
     .recLink
-    .reqLink
     .login-options-holder.log
       visible()
 
@@ -90,20 +88,27 @@ app.login-signup.styl
 
     .rf
     .logLink
-    .reqLink
     .login-options-holder.reg
       visible()
     .flex-wrapper
       size                400px, 421px
       &.taller
-        height              452px
+        height              470px
+
+  &.redeem
+    .rdf
+      visible()
+    .flex-wrapper
+      height              193px
+    .login-footer
+      hidden()
 
   &.recover
     .rcf
     .logLink
       visible()
     .flex-wrapper
-      height              193px
+      height              183px
     .rcf .kdnotification.mini.register
       top                 174px!important
 
@@ -216,7 +221,7 @@ app.login-signup.styl
     z-index               20002
   .logo
     text-indent           -9999px
-    size                  140px,40px
+    size                  140px,39px
     margin-left           1px
     cursor                pointer
     blockMid()
@@ -395,7 +400,6 @@ app.login-signup.styl
     padding             1px
     fl()
 
-
   .invitation-field
     rel()
     text-align          left
@@ -406,7 +410,7 @@ app.login-signup.styl
     font-size           12px
     overflow            hidden
     border-bottom       1px solid rgba(255,255,255,.15)
-    padding-bottom      1px
+    padding-bottom      4px
     margin-bottom       10px
     borderBox()
 
@@ -442,7 +446,6 @@ app.login-signup.styl
       text-overflow     ellipsis
       white-space       nowrap
       padding-right     5px
-
 
   button
     width               78%
