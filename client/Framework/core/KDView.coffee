@@ -733,10 +733,7 @@ class KDView extends KDObject
       if axis is "x" then Math.abs x else Math.abs y
     else Math.max Math.abs(x), Math.abs(y)
 
-    if draggedDistance < 20 and not @beingDragged
-      @dragIsAllowed = @beingDragged = no
-    else
-      @dragIsAllowed = @beingDragged = yes
+    @dragIsAllowed = @beingDragged = !(draggedDistance < 20 and not @beingDragged)
 
     if x > dragRelPos.x
       dragCurDir.x  = 'right'
