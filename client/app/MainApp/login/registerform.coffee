@@ -1,12 +1,8 @@
-###
-  todo:
-###
-
 class RegisterInlineForm extends LoginViewInlineForm
 
-  constructor:->
+  constructor:(options={},data)->
+    super options, data
 
-    super
     @firstName = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
@@ -161,11 +157,10 @@ class RegisterInlineForm extends LoginViewInlineForm
                       """
 
     @invitationCode = new LoginInputView
-      cssClass        : "half-size"
-      inputOptions    :
-        name          : "inviteCode"
-        forceCase     : "lowercase"
-        placeholder   : "your code..."
+      cssClass      : "hidden"
+      inputOptions  :
+        name        : "inviteCode"
+        type        : 'hidden'
 
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
@@ -178,13 +173,11 @@ class RegisterInlineForm extends LoginViewInlineForm
   usernameCheckTimer = null
 
   reset:->
-
     inputs = KDFormView.findChildInputs @
     input.clearValidationFeedback() for input in inputs
     super
 
   usernameCheck:(input, event)->
-
     return if event?.which is 9
 
     clearTimeout usernameCheckTimer
@@ -210,7 +203,6 @@ class RegisterInlineForm extends LoginViewInlineForm
       ,800
 
   userAvatarFeedback:(input)->
-
     if input.valid
       @avatar.setData
         profile     :
@@ -226,7 +218,6 @@ class RegisterInlineForm extends LoginViewInlineForm
   hideUserAvatar:-> @avatar.hide()
 
   viewAppended:->
-
     super
 
     KD.getSingleton('mainController').on 'InvitationReceived', (invite)=>
@@ -234,7 +225,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       @$('.invited-by').removeClass('hidden')
       {origin} = invite
       @invitationCode.input.setValue invite.code
-      @email.input.setValue invite.inviteeEmail
+      @email.input.setValue invite.email
       if origin.constructorName is 'JAccount'# instanceof KD.remote.api.JAccount
         KD.remote.cacheable [origin], (err, [account])=>
           @addSubView new AvatarStaticView({size: width : 30, height : 30}, account), '.invited-by .wrapper'
@@ -243,7 +234,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         @$('.invited-by').addClass('hidden')
 
   pistachio:->
-
     """
     <section class='main-part'>
       <div>{{> @firstName}}{{> @lastName}}</div>
@@ -258,5 +248,6 @@ class RegisterInlineForm extends LoginViewInlineForm
       </div>
     </section>
     <div>{{> @button}}</div>
+    {{> @invitationCode}}
     {{> @disabledNotice}}
     """
