@@ -5,7 +5,9 @@ Broker   = require 'broker'
 {extend} = require 'underscore'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-{mongo, mq, projectRoot, webserver} = KONFIG
+{mq, projectRoot, webserver} = KONFIG
+
+mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"
 
 mqOptions = extend {}, mq
 mqOptions.login = webserver.login  if webserver?.login?
