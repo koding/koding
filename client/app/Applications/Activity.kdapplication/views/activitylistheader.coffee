@@ -7,6 +7,8 @@ class ActivityListHeader extends JView
 
     super
 
+    mainController = KD.getSingleton "mainController"
+
     @appStorage = new AppStorage 'Activity', '1.0'
     @_newItemsCount = 0
 
@@ -17,7 +19,7 @@ class ActivityListHeader extends JView
       partial     : "<span>0</span> new items. <a href='#' title='Show new activities'>Update</a>"
       click       : =>
         @updateShowNewItemsLink yes
-
+        mainController.emit "ShouldResetNavigationTitleLink"
 
     @headerTitle = new KDCustomHTMLView
       partial     : "Latest Activity"
@@ -37,7 +39,7 @@ class ActivityListHeader extends JView
         KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
 
-    KD.getSingleton('mainController').on 'AccountChanged', ()=>
+    mainController.on 'AccountChanged', ()=>
       @decorateLiveUpdateButton()
 
     @decorateLiveUpdateButton()
