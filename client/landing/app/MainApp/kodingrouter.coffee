@@ -45,7 +45,6 @@ class KodingRouter extends KDRouter
       console.warn "Contract warning: shared route #{route} is not implemented."
 
   handleRoute:(route, options={})->
-
     {entryPoint} = options
     if entryPoint?.slug? and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
@@ -54,10 +53,7 @@ class KodingRouter extends KDRouter
       if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
-
-
     super route, options
-
 
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment
@@ -237,6 +233,8 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.loginScreen.animateToForm 'login'
       '/:name?/Logout'    : ({params:{name}})->
         requireLogin  -> mainController.doLogout()
+      '/:name?/Redeem'    : ({params:{name}})->
+        requireLogin  -> mainController.loginScreen.animateToForm 'redeem'
       '/:name?/Register'  : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'register'
       '/:name?/Recover'   : ({params:{name}})->
@@ -273,11 +271,11 @@ class KodingRouter extends KDRouter
             mainController.loginScreen.headBannerShowRecovery recoveryToken
           @clear()
 
-      '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})->
+      '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})=>
         inviteToken = decodeURIComponent inviteToken
         if KD.isLoggedIn()
-          new KDNotificationView
-            title: 'Could not redeem invitation because you are already logged in.'
+          @handleRoute '/Redeem', entryPoint: KD.config.entryPoint
+          mainController.loginScreen.redeemForm.inviteCode.input.setValue inviteToken
         else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
             if err then error err
