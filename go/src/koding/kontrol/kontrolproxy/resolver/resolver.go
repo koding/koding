@@ -122,6 +122,7 @@ func GetTarget(host string) (*Target, error) {
 
 	domain, err = proxyDB.GetDomain(host)
 	if err != nil {
+
 		if err != mgo.ErrNotFound {
 			return nil, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
 		}
