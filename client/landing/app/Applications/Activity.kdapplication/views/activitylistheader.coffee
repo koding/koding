@@ -39,8 +39,7 @@ class ActivityListHeader extends JView
         KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
 
-    mainController.on 'AccountChanged', ()=>
-      @decorateLiveUpdateButton()
+    mainController.on 'AccountChanged', => @decorateLiveUpdateButton()
 
     @decorateLiveUpdateButton()
 
@@ -95,12 +94,9 @@ class ActivityListHeader extends JView
     __count++
     @_newItemsCount++
     @updateShowNewItemsLink()
-    @updateShowNewItemsTitle()  if @showNewItemsInTitle
 
   decorateLiveUpdateButton:->
     @liveUpdateButton.show()
-    # if KD.isLoggedIn() then @liveUpdateButton.show()
-    # else @liveUpdateButton.hide()
 
   updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0
@@ -113,15 +109,6 @@ class ActivityListHeader extends JView
         @showNewItemsLink.show()
     else
       @showNewItemsLink.hide()
-
-  updateShowNewItemsTitle: ->
-    if @_newItemsCount > 0
-      document.title = "(#{@_newItemsCount}) Activity"
-    else
-      @hideDocumentTitleCount()
-
-  hideDocumentTitleCount: ->
-    document.title = "Activity"
 
   getNewItemsCount: ->
     return @_newItemsCount

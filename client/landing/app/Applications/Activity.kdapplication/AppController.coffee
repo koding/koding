@@ -55,16 +55,19 @@ class ActivityAppController extends AppController
 
     @on "activitiesCouldntBeFetched", => @listController?.hideLazyLoader()
 
-    @docTitle = document.title
-    windowController = KD.getSingleton "windowController"
-    windowController.addFocusListener (blurred)=>
-      return  unless @listController
+    docTitle = document.title
+    KD.getSingleton("windowController").addFocusListener (blurred) =>
       if blurred
-        @listController.activityHeader.showNewItemsInTitle = yes
-        @listController.activityHeader.updateShowNewItemsTitle()
+        @updateDocTitle()
       else
-        @listController.activityHeader.showNewItemsInTitle = no
-        @listController.activityHeader.hideDocumentTitleCount()
+        document.title = docTitle
+
+      KD.getSingleton("activityController").on "ActivitiesArrived", => @updateDocTitle()
+
+  updateDocTitle: ->
+    KD.getSingleton("appManager").tell "Activity", "getNewItemsCount", (itemCount) =>
+      if itemCount > 0
+        document.title = "(#{itemCount}) Activity"
 
   loadView:->
     @getView().feedWrapper.ready (controller)=>
@@ -166,7 +169,7 @@ class ActivityAppController extends AppController
         limit  : 20
         facets : @getActivityFilter()
 
-      if KD.getSingleton('activityController').flags?.showExempt?  
+      if KD.getSingleton('activityController').flags?.showExempt?
         options.withExempt = KD.getSingleton('activityController').flags.showExempt
       else
         options.withExempt = false
