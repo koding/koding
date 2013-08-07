@@ -417,7 +417,6 @@ module.exports = class JUser extends jraphical.Module
                 callback null, user, account
 
   @configureNewAcccount = (account, user, replacementToken, callback) ->
-    user.sendEmailConfirmation (err) -> console.error err  if err
     JUser.emit 'UserCreated', user
     createNewMemberActivity account
     JAccount.emit "AccountAuthenticated", account
@@ -550,7 +549,7 @@ module.exports = class JUser extends jraphical.Module
                 return callback err  if err
                 @addToGroups account, invite, email, (err) =>
                   return callback err  if err?
-                  @removeFromGuestsGroup account, (err) ->
+                  @removeFromGuestsGroup account, (err) =>
                     return callback err  if err?
                     account.update $set: {
                       'profile.firstName' : firstName
@@ -558,6 +557,7 @@ module.exports = class JUser extends jraphical.Module
                       type                : 'registered'
                     }, (err) =>
                       return callback err  if err?
+                      @sendEmailConfirmationByUsername username, (err) -> console.error err  if err
                       callback null, newToken
 
   @register = secure (client, userFormData, callback) ->
@@ -776,3 +776,8 @@ module.exports = class JUser extends jraphical.Module
   @getSSHKeys: secure (client, callback)->
     @fetchUser client, (err,user)->
       callback user.sshKeys or []
+
+  @sendEmailConfirmationByUsername:(username, callback)->
+    @one {username}, (err, user)->
+      return callback err  if err
+      user.sendEmailConfirmation callback
