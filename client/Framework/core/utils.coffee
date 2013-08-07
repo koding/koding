@@ -336,7 +336,7 @@ __utils =
       name = account.profile.firstName
     else
       name = "#{account.profile.firstName} #{account.profile.lastName}"
-    return Encoder.htmlDecode name
+    return Encoder.htmlEncode name
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
