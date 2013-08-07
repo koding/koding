@@ -49,7 +49,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
 
   pistachio:->
     {html, body} = @getData()
-    @getData().html = html or KD.utils.applyMarkdown body 
+    @getData().html = html or KD.utils.applyMarkdown body
 
     """
     {{> @header}}

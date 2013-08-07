@@ -21,15 +21,18 @@ class ShowMoreDataModalView extends KDModalView
 
     if participants[0] instanceof KD.remote.api.JAccount
       @type = "account"
+      css   = "modal-topic-wrapper"
     else if participants[0] instanceof KD.remote.api.JTag
       @type = "tag"
+      css   = "modal-topic-wrapper"
     else
       @type = "app"
+      css   = "modal-applications-wrapper"
 
     options.title    or= titleMap()[@type]
     options.height   = "auto"
     options.overlay  = yes
-    options.cssClass = "modal-applications-wrapper"
+    options.cssClass = css
     options.buttons  =
       Close :
         style : "modal-clean-gray"
