@@ -126,23 +126,23 @@ __utils =
         then hljs.highlight(lang,text).value
         else text
 
-    text = marked Encoder.htmlDecode text
+    text = Encoder.htmlDecode marked text
 
     sanitizeText = $(text)
 
     # Proxify images
-
     sanitizeText.find("img").each (i,element) =>
       src = element.getAttribute 'src'
       element.setAttribute "src", src?.replace /.*/, @proxifyUrl
 
     # Give all outbound links a target blank
-    sanitizeText.find("a").each (i,element) =>
+    sanitizeText.find("a").each (i, element) =>
+      href = element.getAttribute "href"
+      element.setAttribute "href", href.replace /^\s*javascript/i, 'JS_REMOVED'
       unless /^(#!)/.test $(element).attr("href")
         $(element).attr("target", "_blank")
 
     text = $("<div />").append(sanitizeText.clone()).remove().html() # workaround for .html()
-
 
   applyLineBreaks: (text)->
     return null unless text
