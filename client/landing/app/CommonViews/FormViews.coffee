@@ -255,7 +255,7 @@ class PersonalFormLocationView extends AbstractPersonalFormView
 class LocationView extends JView
 
   pistachio:-> "{{ @getFirstLocation #(locationTags)}}"
-  getFirstLocation:(locationTags)-> locationTags[0]
+  getFirstLocation:(locationTags)-> Encoder.XSSEncode locationTags[0]
 
 
 class PersonalFormSkillTagView extends AbstractPersonalFormView
