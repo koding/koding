@@ -9,6 +9,8 @@ class GroupsListItemView extends KDListItemView
     {title, slug, body, visibility} = group
 
     # temp fix
+    # to hide hidden groups from groups page
+    # ths should be taken to backend ASAP
     @hide()  if visibility is 'hidden'
 
     slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}"

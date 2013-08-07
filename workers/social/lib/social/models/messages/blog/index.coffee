@@ -6,6 +6,7 @@ module.exports = class JBlogPost extends JPost
   {Relationship} = require 'jraphical'
   {permit} = require '../../group/permissionset'
   {once, extend} = require 'underscore'
+  {sanitize} = require 'validator'
 
   @trait __dirname, '../../../traits/grouprelated'
 
@@ -16,10 +17,11 @@ module.exports = class JBlogPost extends JPost
     checksum: String
   }
 
-  @generateHTML=(content)->
+  @generateHTML = (content)->
+
     options =
-      gfm : yes
-      sanitize : yes
+      gfm       : yes
+      sanitize  : yes
       highlight : (code, lang)->
         hljs = require('highlight.js')
         try
@@ -29,11 +31,14 @@ module.exports = class JBlogPost extends JPost
             hljs.highlightAuto(code).value
           catch _e
             code
-      breaks : yes
+      breaks     : yes
       langPrefix : 'lang-'
+
     marked = require('marked')
     marked.setOptions options
-    marked content
+
+    markdown = sanitize(marked content).xss()
+    return markdown
 
   @generateChecksum=(content)->
     require('crypto')
