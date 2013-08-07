@@ -2,6 +2,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
 
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
+  validator       = require 'Validator'
 
   {profile, counts, skilltags} = renderedAccount
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
@@ -21,7 +22,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
   <!DOCTYPE html>
   <html>
   <head>
-    <title>#{title}</title>
+    <title>#{validator.sanitize(title).xss()}</title>
     #{getStyles()}
   </head>
   <body>
@@ -101,17 +102,17 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                       <span class="icon hidden"></span>
                       <span class="button-title">Follow</span>
                     </button>
-                    <cite class="data" data-paths="profile.nickname" id="el-98">@#{nickname}</cite>
+                    <cite class="data" data-paths="profile.nickname" id="el-98">@#{validator.sanitize(nickname).xss()}</cite>
                   </div>
 
                   <div class=""></div>
 
                   <section>
                     <div class="profileinfo">
-                      <h3 class="profilename"><span class="data" data-paths="profile.firstName" id="el-100">#{firstName}</span> <span class="data" data-paths="profile.lastName" id="el-101">#{lastName}</span></h3>
-                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{if locationTags then locationTags[0] else 'Earth'}</span></div></h4>
+                      <h3 class="profilename"><span class="data" data-paths="profile.firstName" id="el-100">#{validator.sanitize(firstName).xss()}</span> <span class="data" data-paths="profile.lastName" id="el-101">#{validator.sanitize(lastName).xss()}</span></h3>
+                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{if locationTags then validator.sanitize(locationTags[0]).xss() else 'Earth'}</span></div></h4>
                       <h5>
-                        <a class="user-home-link" href="http://#{nickname}.koding.com" target="_blank">#{nickname}.koding.com</a>
+                        <a class="user-home-link" href="http://#{validator.sanitize(nickname).xss()}.koding.com" target="_blank">#{validator.sanitize(nickname).xss()}.koding.com</a>
                         <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
                       </h5>
                       <div class="profilestats">
@@ -125,12 +126,12 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                           <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.likes" id="el-95">#{counts.likes}</span> <span>Likes</span></a>
                         </div>
                         <div class="contact">
-                          <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName" id="el-110">#{firstName}</span></a>
+                          <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName" id="el-110">#{validator.sanitize(firstName).xss()}</span></a>
                         </div>
                       </div>
 
                       <div class="profilebio">
-                        <p><span class="data" data-paths="profile.about" id="el-107">#{about}</span></p>
+                        <p><span class="data" data-paths="profile.about" id="el-107">#{validator.sanitize(about).xss()}</span></p>
                       </div>
                       <div class="skilltags"><label>SKILLS</label><div class="tag-group"><div class="kdview listview-wrapper">...<div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-default skilltag-cloud"></div></div></div></div></div>
                     </div>
