@@ -68,7 +68,7 @@ func main() {
 	go LimiterLoop()
 	kiteName := "os"
 	if config.Region != "" {
-		kiteName = config.Region + "-" + kiteName
+		kiteName += "-" + config.Region
 	}
 	k := kite.New(kiteName, true)
 
