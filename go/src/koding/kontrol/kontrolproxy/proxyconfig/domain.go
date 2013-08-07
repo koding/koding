@@ -41,12 +41,16 @@ func NewDomain(domainname, mode, username, servicename, key, fullurl string, hos
 // domainname). If not available it adds a new document with the given
 // arguments.
 func (p *ProxyConfiguration) AddDomain(d *models.Domain) error {
-	_, err := p.Collection["domains"].Upsert(bson.M{"domain": d.Domain}, d)
-	if err != nil {
-		fmt.Println("AddDomain error", err)
-		return fmt.Errorf("domain %s exists already", d.Domain)
+	query := func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"domain": d.Domain}, d)
+		if err != nil {
+			fmt.Println("AddDomain error", err)
+			return fmt.Errorf("domain %s exists already", d.Domain)
+		}
+		return nil
 	}
-	return nil
+
+	return p.RunCollection("jDomains", query)
 }
 
 // UpdateDomain updates an already avalaible domain document. If not available
@@ -77,33 +81,43 @@ func (p *ProxyConfiguration) UpdateDomain(d *models.Domain) error {
 	domain.Proxy = d.Proxy
 	domain.LoadBalancer.Mode = d.LoadBalancer.Mode
 
-	err = p.Collection["domains"].Update(bson.M{"domain": d.Domain}, domain)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return fmt.Errorf("domain %s does not exist.", d.Domain)
+	query := func(c *mgo.Collection) error {
+		err = c.Update(bson.M{"domain": d.Domain}, domain)
+		if err != nil {
+			if err == mgo.ErrNotFound {
+				return fmt.Errorf("domain %s does not exist.", d.Domain)
+			}
+			return err
 		}
-		return err
+		return nil
 	}
-	return nil
+
+	return p.RunCollection("jDomains", query)
 }
 
 // DeleteDomain deletes the document with the given "domainname" argument.
 func (p *ProxyConfiguration) DeleteDomain(domainname string) error {
-	err := p.Collection["domains"].Remove(bson.M{"domain": domainname})
-	if err != nil {
-		return err
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"domain": domainname})
 	}
-	return nil
+
+	return p.RunCollection("jDomains", query)
 }
 
 // GetDomain return a single document that match the given "domainname"
 // argument.
 func (p *ProxyConfiguration) GetDomain(domainname string) (models.Domain, error) {
 	domain := models.Domain{}
-	err := p.Collection["domains"].Find(bson.M{"domain": domainname}).One(&domain)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"domain": domainname}).One(&domain)
+	}
+
+	err := p.RunCollection("jDomains", query)
 	if err != nil {
 		return domain, err
 	}
+
 	return domain, nil
 }
 
@@ -111,19 +125,29 @@ func (p *ProxyConfiguration) GetDomain(domainname string) (models.Domain, error)
 func (p *ProxyConfiguration) GetDomains() []models.Domain {
 	domain := models.Domain{}
 	domains := make([]models.Domain, 0)
-	iter := p.Collection["domains"].Find(nil).Iter()
-	for iter.Next(&domain) {
-		domains = append(domains, domain)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(nil).Iter()
+		for iter.Next(&domain) {
+			domains = append(domains, domain)
+		}
+
+		return nil
 	}
+
+	p.RunCollection("jDomains", query)
 
 	return domains
 }
 
 func (p *ProxyConfiguration) GetDomainRestrictionId(sourceId bson.ObjectId) (bson.ObjectId, error) {
 	relationship := models.Relationship{}
-	err := p.Collection["relationships"].Find(
-		bson.M{"sourceID": sourceId, "targetName": "JProxyRestrictions"},
-	).One(&relationship)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"sourceID": sourceId, "targetName": "JProxyRestrictions"}).One(&relationship)
+	}
+
+	err := p.RunCollection("relationships", query)
 	if err != nil {
 		return "", err
 	}

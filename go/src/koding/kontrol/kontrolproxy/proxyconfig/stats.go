@@ -3,6 +3,7 @@ package proxyconfig
 import (
 	"fmt"
 	"koding/kontrol/kontrolproxy/models"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strconv"
 	"time"
@@ -47,12 +48,12 @@ func (p *ProxyConfiguration) AddDomainDenied(domainname, ip, country, reason str
 
 	domainStat.Denied = append(domainStat.Denied, *NewDomainDenied(ip, country, reason))
 
-	_, err = p.Collection["domainstats"].Upsert(bson.M{"domainname": domainname}, domainStat)
-	if err != nil {
+	query := func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"domainname": domainname}, domainStat)
 		return err
 	}
 
-	return nil
+	return p.RunCollection("jDomainStats", query)
 }
 
 func (p *ProxyConfiguration) AddDomainRequests(domainname string) error {
@@ -73,24 +74,29 @@ func (p *ProxyConfiguration) AddDomainRequests(domainname string) error {
 		domainStat.RequestsHour[nowHour]++
 	}
 
-	_, err = p.Collection["domainstats"].Upsert(bson.M{"domainname": domainname}, domainStat)
-	if err != nil {
+	query := func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"domainname": domainname}, domainStat)
 		return err
 	}
-	return nil
+
+	return p.RunCollection("jDomainStats", query)
 }
 
 func (p *ProxyConfiguration) DeleteDomainStat(domainname string) error {
-	err := p.Collection["domainstats"].Remove(bson.M{"domainname": domainname})
-	if err != nil {
-		return err
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"domainname": domainname})
 	}
-	return nil
+
+	return p.RunCollection("jDomainStats", query)
 }
 
 func (p *ProxyConfiguration) GetDomainStat(domainname string) (models.DomainStat, error) {
 	domainstat := models.DomainStat{}
-	err := p.Collection["domainstats"].Find(bson.M{"domainname": domainname}).One(&domainstat)
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"domainname": domainname}).One(&domainstat)
+	}
+
+	err := p.RunCollection("jDomainStats", query)
 	if err != nil {
 		if err.Error() == "not found" {
 			return domainstat, nil //return empty struct
@@ -104,11 +110,17 @@ func (p *ProxyConfiguration) GetDomainStat(domainname string) (models.DomainStat
 func (p *ProxyConfiguration) GetDomainStats() []models.DomainStat {
 	domainstat := models.DomainStat{}
 	domainstats := make([]models.DomainStat, 0)
-	iter := p.Collection["domainstats"].Find(nil).Iter()
-	for iter.Next(&domainstat) {
-		domainstats = append(domainstats, domainstat)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(nil).Iter()
+		for iter.Next(&domainstat) {
+			domainstats = append(domainstats, domainstat)
+		}
+
+		return nil
 	}
 
+	p.RunCollection("jDomainStats", query)
 	return domainstats
 }
 
@@ -139,24 +151,30 @@ func (p *ProxyConfiguration) AddProxyStat(proxyname, country string) error {
 		}
 	}
 
-	_, err = p.Collection["proxystats"].Upsert(bson.M{"proxyname": proxyname}, proxyStat)
-	if err != nil {
+	query := func(c *mgo.Collection) error {
+		_, err = c.Upsert(bson.M{"proxyname": proxyname}, proxyStat)
 		return err
 	}
-	return nil
+
+	return p.RunCollection("jProxyStats", query)
 }
 
 func (p *ProxyConfiguration) DeleteProxyStat(proxyname string) error {
-	err := p.Collection["proxystats"].Remove(bson.M{"proxyname": proxyname})
-	if err != nil {
-		return err
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"proxyname": proxyname})
 	}
-	return nil
+
+	return p.RunCollection("jProxyStats", query)
 }
 
 func (p *ProxyConfiguration) GetProxyStat(proxyname string) (models.ProxyStat, error) {
 	proxystat := models.ProxyStat{}
-	err := p.Collection["proxystats"].Find(bson.M{"proxyname": proxyname}).One(&proxystat)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"proxyname": proxyname}).One(&proxystat)
+	}
+
+	err := p.RunCollection("jProxyStats", query)
 	if err != nil {
 		if err.Error() == "not found" {
 			return proxystat, nil //return empty struct
@@ -170,10 +188,15 @@ func (p *ProxyConfiguration) GetProxyStat(proxyname string) (models.ProxyStat, e
 func (p *ProxyConfiguration) GetProxyStats() []models.ProxyStat {
 	proxystat := models.ProxyStat{}
 	proxystats := make([]models.ProxyStat, 0)
-	iter := p.Collection["proxystats"].Find(nil).Iter()
-	for iter.Next(&proxystat) {
-		proxystats = append(proxystats, proxystat)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(nil).Iter()
+		for iter.Next(&proxystat) {
+			proxystats = append(proxystats, proxystat)
+		}
+		return nil
 	}
 
+	p.RunCollection("jProxyStats", query)
 	return proxystats
 }
