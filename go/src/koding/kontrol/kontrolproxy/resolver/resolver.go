@@ -198,6 +198,12 @@ func GetTarget(host string) (*Target, error) {
 			return nil, err
 		}
 	case "internal":
+		// we only opened ports between those, therefore other ports are not used
+		portInt, _ := strconv.Atoi(port)
+		if portInt >= 1024 && portInt <= 10000 {
+			return nil, fmt.Errorf("port range is not allowed for internal usages")
+		}
+
 		username := domain.Proxy.Username
 		servicename := domain.Proxy.Servicename
 		key := domain.Proxy.Key
