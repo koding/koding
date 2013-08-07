@@ -2,7 +2,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
 
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
-  validator       = require 'Validator'
+  validator       = require 'validator'
 
   {profile, counts, skilltags} = renderedAccount
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile

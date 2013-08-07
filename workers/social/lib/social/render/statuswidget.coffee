@@ -1,7 +1,7 @@
 module.exports = (account)->
 
   {firstName} = account.profile
-  validator   = require 'Validator'
+  validator   = require 'validator'
 
   """
   <div id="activity-update-widget" class="kdview activity-update-widget-wrapper">
