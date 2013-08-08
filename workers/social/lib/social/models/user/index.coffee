@@ -493,8 +493,13 @@ module.exports = class JUser extends jraphical.Module
       $set: { salt, password: hashedPassword }
     }, callback
 
-  @changeEmailByUsername = (username, email, callback) ->
-    @update { username }, { $set: { email }}, callback
+  @changeEmailByUsername = (options, callback) ->
+    { account, oldUsername, email } = options
+    @update { username: oldUsername }, { $set: { email }}, (err, res)=>
+      return callback err  if err
+      account.profile.hash = getHash email
+      account.save (err)-> console.error if err
+      callback null
 
   @changeUsernameByAccount = (options, callback)->
     { account, username, clientId, isRegistration } = options
@@ -538,7 +543,8 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err?
       @changePasswordByUsername oldUsername, password, (err) =>
         return callback err  if err?
-        @changeEmailByUsername oldUsername, email, (err) =>
+        options = { account, oldUsername, email }
+        @changeEmailByUsername options, (err) =>
           return callback err  if err?
           @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
             return callback err  if err
