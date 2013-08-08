@@ -7,21 +7,33 @@ import (
 	"labix.org/v2/mgo/bson"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 func main() {
-	list, err := exec.Command("/usr/bin/rbd", "ls", "--pool", "vms").Output()
-	if err != nil {
+	if _, err := db.VMs.UpdateAll(bson.M{"hostKite": "migration"}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
+		panic(err)
+	}
+
+	var vm struct {
+		Id bson.ObjectId `bson:"_id"`
+	}
+	iter := db.VMs.Find(bson.M{"webHome": bson.M{"$not": bson.RegEx{Pattern: "^guest-"}}}).Select(bson.M{"_id": 1}).Iter()
+	queue := make([]string, 0)
+	for iter.Next(&vm) {
+		info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
+		if bytes.Contains(info, []byte("format: 2")) {
+			queue = append(queue, "vm-"+vm.Id.Hex())
+		}
+	}
+	if err := iter.Close(); err != nil {
 		panic(err)
 	}
 
 	skipped := 0
-	for _, name := range strings.Split(string(list[:len(list)-1]), "\n") {
-		if bson.IsObjectIdHex(name[3:]) {
-			if !migrate(name) {
-				skipped += 1
-			}
+	for i, name := range queue {
+		fmt.Printf("Migrating %s (%d/%d)...\n", i+1, len(queue), name)
+		if !migrate(name) {
+			skipped += 1
 		}
 	}
 
@@ -32,23 +44,11 @@ func main() {
 }
 
 func migrate(name string) bool {
-	info, err := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", name).Output()
-	if err != nil {
-		fmt.Println(err)
-		return false
-	}
-
-	if !bytes.Contains(info, []byte("format: 2")) {
-		return true
-	}
-
 	if err := db.VMs.Update(bson.M{"_id": bson.ObjectIdHex(name[3:]), "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": "migration"}}); err != nil {
-		fmt.Println("Could not lock " + name + " in DB. Skipping.")
+		fmt.Println("Could not lock in DB. Skipping.")
 		return false
 	}
 	defer db.VMs.Update(bson.M{"_id": bson.ObjectIdHex(name[3:])}, bson.M{"$set": bson.M{"hostKite": nil}})
-
-	fmt.Println("Migrating " + name + "...")
 
 	cmd := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", name)
 	cmd.Stderr = os.Stderr
@@ -85,6 +85,6 @@ func migrate(name string) bool {
 		return false
 	}
 
-	fmt.Println("Done.")
+	fmt.Println("Migration complete.")
 	return true
 }
