@@ -8,7 +8,7 @@ module.exports = class JSystemStatus extends Model
   @set
     sharedMethods    :
       static         : ['getCurrentSystemStatus','create'
-                        , 'stopCurrentSystemStatus']
+                        , 'stopCurrentSystemStatus','forceReload']
     schema           :
       title : String
       content : String
@@ -38,12 +38,19 @@ module.exports = class JSystemStatus extends Model
 
   {log} = console
 
+  @forceReload = secure (client)->
+    {connection:{delegate}} = client
+    unless delegate.checkFlag('super-admin')
+      log 'status: not authorized to stop a system status'
+      return
+    @emit 'forceReload'
+
   @stopCurrentSystemStatus = secure (client, callback=->)->
     {connection:{delegate}} = client
     unless delegate.checkFlag('super-admin')
       log 'status: not authorized to stop a system status'
-      callback no
-    else
+      return callback no
+
     JSystemStatus.getCurrentSystemStatus (err,status)=>
       # log err,status
       if err
