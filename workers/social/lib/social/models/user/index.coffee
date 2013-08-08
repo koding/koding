@@ -495,7 +495,7 @@ module.exports = class JUser extends jraphical.Module
 
   @changeEmailByUsername = (options, callback) ->
     { account, oldUsername, email } = options
-    @update { username }, { $set: { email }}, (err, res)=>
+    @update { username: oldUsername }, { $set: { email }}, (err, res)=>
       return callback err  if err
       account.profile.hash = getHash email
       account.save (err)-> console.error if err
