@@ -20,9 +20,11 @@ func main() {
 	iter := db.VMs.Find(bson.M{"webHome": bson.M{"$not": bson.RegEx{Pattern: "^guest-"}}}).Select(bson.M{"_id": 1}).Iter()
 	queue := make([]string, 0)
 	for iter.Next(&vm) {
-		info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
+		name := "vm-" + vm.Id.Hex()
+		fmt.Println("Checking " + name + "...")
+		info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", name).Output()
 		if bytes.Contains(info, []byte("format: 2")) {
-			queue = append(queue, "vm-"+vm.Id.Hex())
+			queue = append(queue, name)
 		}
 	}
 	if err := iter.Close(); err != nil {
