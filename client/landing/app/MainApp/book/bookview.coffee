@@ -258,11 +258,29 @@ class BookView extends JView
     # focus to dummy input to open large textarea for status update
     smallInput.setFocus()
     # start typing
-    textToWrite = 'Hello World!!'
+    helloWorldMessages = [
+      "I'm really digging this!"
+      "This is cool"
+      "Yay! I made my first post"
+      "Hello, I've just arrived!"
+      "Hi all - this looks interesting..."
+      "Just got started Koding, I'm excited!"
+      "This is pretty nifty."
+      "I liked it here :)"
+      "Looking forward to try Koding"
+      "Just joined the Koding community"
+      "Checking out Koding."
+      "Koding non-stop :)"
+      "So, whats up?"
+      "Alright. Let's try this"
+      "I'm here! What's next? ;)"
+      "Really digging Koding :)"
+    ]
+    textToWrite = helloWorldMessages[(KD.utils.getRandomNumber 15, 0)]
     counter = 0
     repeater = @utils.repeat 121, =>
       largeInput.setValue textToWrite.slice 0, counter++
-      if counter is textToWrite.length
+      if counter is textToWrite.length+1
         KD.utils.killRepeat repeater
         @pushSubmitButton()
 
