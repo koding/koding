@@ -112,19 +112,20 @@ __utils =
     then "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     else "#{location.protocol}//#{location.host}/-/imageProxy?url=#{encodeURIComponent(url)}"
 
-  applyMarkdown: (text)->
-    # problems with markdown so far:
-    # - links are broken due to textexpansions (images too i guess)
-    return null unless text
 
-    marked text,
-      gfm       : true
-      pedantic  : false
-      sanitize  : true
-      highlight :(text, lang)->
-        if hljs.LANGUAGES[lang]?
-        then hljs.highlight(lang,text).value
-        else text
+  applyMarkdown: (text)->
+      # problems with markdown so far:
+      # - links are broken due to textexpansions (images too i guess)
+      return null unless text
+
+      marked text,
+        gfm       : true
+        pedantic  : false
+        sanitize  : true
+        highlight :(text, lang)->
+          if hljs.LANGUAGES[lang]?
+          then hljs.highlight(lang,text).value
+          else text
 
   applyLineBreaks: (text)->
     return null unless text
@@ -265,19 +266,19 @@ __utils =
     else
       Encoder.htmlEncode shortenedText
 
-  shortenText:do ->
+  shortenText: do ->
     tryToShorten = (longText, optimalBreak = ' ', suffix)->
       unless ~ longText.indexOf optimalBreak then no
       else
         "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
+
     (longText, options={})->
       return unless longText
       minLength = options.minLength or 450
       maxLength = options.maxLength or 600
       suffix    = options.suffix     ? '...'
 
-      longTextLength  = Encoder.htmlDecode(longText).length
-      longText = Encoder.htmlDecode longText
+      longTextLength  = longText.length
 
       tempText = longText.slice 0, maxLength
       lastClosingTag = tempText.lastIndexOf "]"
@@ -295,10 +296,6 @@ __utils =
       # prefer to end the teaser at the end of a sentence (a period).
       # failing that prefer to end the teaser at the end of a word (a space).
       candidate = tryToShorten(longText, '. ', suffix) or tryToShorten longText, ' ', suffix
-
-      # Encoder.htmlDecode Encoder.htmlEncode \
-      #   if candidate?.length > minLength then candidate
-      #   else longText
 
       return \
         if candidate?.length > minLength then candidate
