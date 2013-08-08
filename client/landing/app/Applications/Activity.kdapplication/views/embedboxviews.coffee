@@ -359,7 +359,7 @@ class EmbedBoxLinkViewTitle extends KDView
     oembed         = data.link_embed
     @originalTitle = oembed?.title
 
-    @hide()  if not oembed?.title? or oembed?.title.trim() is ''
+    @hide()  unless oembed?.title?.trim()
 
     if options.hasConfig is yes
       @setClass 'has-config'
@@ -420,7 +420,7 @@ class EmbedBoxLinkViewDescription extends KDView
 
     oembed = data.link_embed
 
-    @hide()  unless oembed?.description? or oembed?.description.trim() isnt ''
+    @hide()  unless oembed?.description?.trim()
 
     @originalDescription = oembed?.description
 
