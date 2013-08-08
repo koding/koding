@@ -49,7 +49,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
 
   pistachio:->
     {html, body} = @getData()
-    @getData().html = html or KD.utils.applyMarkdown body
+    html = html ? KD.utils.applyMarkdown body
 
     """
     {{> @header}}
@@ -61,7 +61,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
       </span>
       <div class='activity-item-right-col'>
         <h3 class='blog-post-title'>{{ @applyTextExpansions #(title)}}</h3>
-        <p class="blog-post-body has-markdown">{{Encoder.htmlDecode #(html)}}</p>
+        <p class="blog-post-body has-markdown">{{#(html)}}</p>
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}
