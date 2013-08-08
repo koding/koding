@@ -17,28 +17,25 @@ module.exports = class JMarkdownDoc extends Module
     sharedMethods :
       static      : ['generateHTML']
 
-  @generateHTML = (content,options={},callback=->)->
+  @generateHTML = (content,options={})->
 
     options.gfm         ?= yes
     options.sanitize     = yes
     options.highlight   ?= (code, lang)->
       hljs = require('highlight.js')
       try
-        hljs.highlight(lang, code).value
+        (hljs.highlight lang, code).value
       catch e
         try
-          hljs.highlightAuto(code).value
+          (hljs.highlightAuto code).value
         catch _e
           code
 
     options.breaks      ?= yes
     options.langPrefix  ?= 'lang-'
 
-    marked = require('marked')
-    marked.setOptions options
+    markdown = (require 'marked') content, options
 
-    markdown = sanitize(marked content).xss()
-    callback markdown
     return markdown
 
   @generateChecksum=(content)->
