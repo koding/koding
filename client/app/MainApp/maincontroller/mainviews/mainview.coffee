@@ -170,8 +170,10 @@ class MainView extends KDView
   setStickyNotification:->
     # sticky = KD.getSingleton('windowController')?.stickyNotification
     @utils.defer => getStatus()
+    
+    {JSystemStatus} = KD.remote.api
 
-    KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
+    JSystemStatus.on 'restartScheduled', (systemStatus)=>
       sticky = KD.getSingleton('windowController')?.stickyNotification
 
       if systemStatus.status isnt 'active'
