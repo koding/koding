@@ -226,6 +226,16 @@ class ApplicationManager extends KDObject
     for own name, apps of @appControllers
       @quit app  for app in apps.instances
 
+  quitByName: (name, closeAllInstances = yes) ->
+    appController = @appControllers[name]
+    return  unless appController
+
+    if closeAllInstances
+      instances = appController.instances
+      @quit instances[0] while instances.length > 0
+    else
+      @quit appController.instances[appController.lastActiveIndex]
+
   get:(name)->
 
     if apps = @appControllers[name]

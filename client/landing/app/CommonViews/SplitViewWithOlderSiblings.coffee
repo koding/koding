@@ -9,6 +9,9 @@ class SplitViewWithOlderSiblings extends SplitView
     super
     offset        = 0
     for olderSibling in @_olderSiblings
-      offset += olderSibling.getHeight()
+      # absolute positioned elements doesn't provide offset for relative elements
+      siblingStyle = window.getComputedStyle olderSibling.getElement()
+      unless siblingStyle.position is "absolute"
+        offset += olderSibling.getHeight()
     newH = @parent.getHeight() - offset
     @setHeight newH

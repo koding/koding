@@ -402,11 +402,16 @@ class KodingAppsController extends KDController
                 "Install Compiler":
                   cssClass: "modal-clean-green"
                   callback: =>
-                    modal.run "sudo npm install -g kdc"
+                    modal.run "sudo npm install -g kdc; echo $?|kdevent;" # find a clean/better way to do it.
 
             modal.on "terminal.event", (data)->
-              new KDNotificationView
-                title: "Installed successfully!"
+              if data is "0"
+                new KDNotificationView title: "Installed successfully!"
+                modal.destroy()
+              else
+                new KDNotificationView
+                  title   : "An error occured."
+                  content : "Something went wrong while installing Koding App Compiler. Please try again."
 
             callback? err
             return
