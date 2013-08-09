@@ -33,7 +33,7 @@ func main() {
 
 	skipped := 0
 	for i, name := range queue {
-		fmt.Printf("Migrating %s (%d/%d)...\n", i+1, len(queue), name)
+		fmt.Printf("Migrating %s (%d/%d)...\n", name, i+1, len(queue))
 		if !migrate(name) {
 			skipped += 1
 		}
