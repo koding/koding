@@ -26,16 +26,11 @@ class AdminModal extends KDModalViewWithForms
                   accounts = @userController.getSelectedItemData()
                   if accounts.length > 0
                     account  = accounts[0]
-                    flags    = [flag.trim() for flag in inputs.Flags.getValue().split(",")][0]
+                    flags    = (flag.trim() for flag in inputs.Flags.getValue().split ",")
                     account.updateFlags flags, (err)->
                       error err if err
-                      KD.remote.api.JInvitation.grantInvitesFromClient
-                        username : account.profile.nickname
-                        quota    : +inputs.Invites.getValue()
-                      , (err)=>
-                        console.error err if err
-                        new KDNotificationView {title: "Done!"}
-                        buttons.Update.hideLoader()
+                      new KDNotificationView {title: "Done!"}
+                      buttons.Update.hideLoader()
                   else
                     new KDNotificationView {title : "Select a user first"}
             fields            :
@@ -49,15 +44,6 @@ class AdminModal extends KDModalViewWithForms
               Flags           :
                 label         : "Flags"
                 placeholder   : "no flags assigned"
-              Invites         :
-                label         : "Grant Invites"
-                type          : "text"
-                placeholder   : "number of invites to add"
-                validate      :
-                  rules       :
-                    regExp    : /\d+/i
-                  messages    :
-                    regExp    : "numbers only please"
               Impersonate     :
                 label         : "Switch to User"
                 itemClass     : KDButtonView
@@ -241,11 +227,6 @@ class AdminModal extends KDModalViewWithForms
         inputs.Flags.setValue account.globalFlags?.join(',')
         userRequestLineEdit.hide()
         @showConnectedFields()
-        account.fetchLimit? 'invite', (err, limit)=>
-          current = 0
-          if not err and limit
-            current = limit.quota - limit.usage
-          inputs.Invites.setPlaceHolder "Currently has #{current} invites."
       else
         userRequestLineEdit.show()
         @hideConnectedFields()
@@ -256,8 +237,6 @@ class AdminModal extends KDModalViewWithForms
     {fields, inputs, buttons} = @modalTabs.forms["User Details"]
     fields.Impersonate.hide()
     buttons.Update.hide()
-    fields.Invites.hide()
-    inputs.Invites.setValue ''
     fields.Flags.hide()
     inputs.Flags.setValue ''
 
@@ -265,8 +244,6 @@ class AdminModal extends KDModalViewWithForms
     {fields, inputs, buttons} = @modalTabs.forms["User Details"]
     fields.Impersonate.show()
     fields.Flags.show()
-    fields.Invites.show()
-    inputs.Invites.setPlaceHolder 'Loading...'
     buttons.Update.show()
 
   initIntroductionTab: ->

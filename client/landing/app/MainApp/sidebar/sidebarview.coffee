@@ -14,6 +14,8 @@ class Sidebar extends JView
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
+      attributes :
+        title    : "View your public profile"
       size       :
         width    : 160
         height   : 76
@@ -21,9 +23,6 @@ class Sidebar extends JView
 
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
-
-    # @statusLEDs = new KDView
-    #   cssClass : 'status-leds'
 
     # Main Navigations
     @navController = new MainNavController
@@ -38,11 +37,11 @@ class Sidebar extends JView
       items     : []
 
     navAdditions = [
-      { type  : 'separator',      order : 65}
-      { title : 'Invite Friends', order : 66,  type : 'account',    role : 'member' }
-      { title : 'Logout',         order : 100, path : '/Logout',    type : 'account', role : 'member' }
-      { title : 'Login',          order : 101, path : '/Login',     type : 'account', role : 'guest' }
-      { title : 'Register',       order : 102, path : '/Register',  type : 'account', role : 'guest' }
+      { type  : 'separator',      order : 65 }
+      { title : 'Invite Friends', order : 66,  type : 'account',   role : 'member' }
+      { title : 'Logout',         order : 100, path : '/Logout',   type : 'account', loggedIn : yes }
+      { title : 'Login',          order : 101, path : '/Login',    type : 'account', loggedIn : no  }
+      { title : 'Register',       order : 102, path : '/Register', type : 'account', loggedIn : no  }
     ]
 
     KD.registerNavItem navItem for navItem in navAdditions
@@ -87,7 +86,7 @@ class Sidebar extends JView
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
-      defaultState : "show"
+      defaultState : "hide"
       states       : [
         title      : "show"
         iconClass  : "up"
@@ -295,7 +294,7 @@ class Sidebar extends JView
     id : "finder-bottom-controls"
     items : [
       {
-        title   : "your environments",   icon : "resources",
+        title   : "your servers",   icon : "resources",
         action  : "showEnvironments"
       }
     ]

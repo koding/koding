@@ -1,19 +1,5 @@
 class ActivityListController extends KDListViewController
 
-  hiddenItems               = []
-  hiddenNewMemberItemGroups = [[]]
-  hiddenItemCount           = 0
-
-  prepareNewMemberGroup = ->
-
-    # this is a bit tricky here
-    # if the previous member group isn't empty
-    # create a new group for later new member items
-    if hiddenNewMemberItemGroups.last.length isnt 0
-      hiddenNewMemberItemGroups.push []
-
-  resetNewMemberGroups = -> hiddenNewMemberItemGroups = [[]]
-
   constructor:(options={}, data)->
 
     viewOptions = options.viewOptions or {}
@@ -35,10 +21,15 @@ class ActivityListController extends KDListViewController
     super options, data
 
     @resetList()
-    @_state = 'public'
+    @hiddenItems = []
+    @_state      = 'public'
 
     KD.getSingleton("groupsController").on "MemberJoinedGroup", (member) =>
       @updateNewMemberBucket member.member
+
+    KD.getSingleton("groupsController").on "FollowHappened", (info) =>
+      {follower, origin} = info
+      @updateFollowerBucket follower, origin
 
   resetList:->
     @newActivityArrivedList = {}
@@ -58,7 +49,7 @@ class ActivityListController extends KDListViewController
         top   = firstHiddenItem.position().top
         top or= 0
         @scrollView.scrollTo {top, duration : 200}, =>
-          unhideNewHiddenItems hiddenItems
+          @unhideNewHiddenItems @hiddenItems
 
     @emit "ready"
 
@@ -93,16 +84,16 @@ class ActivityListController extends KDListViewController
     activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
-        anchors = []
+        group = []
         for id in overviewItem.ids
           if cache.activities[id].teaser?
-            anchors.push cache.activities[id].teaser.anchor
+            group.push cache.activities[id].teaser.anchor
           else
             KD.logToExternal msg:'no teaser for activity', activityId:id
 
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
-          anchors             : anchors
+          group               : group
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
@@ -110,7 +101,7 @@ class ActivityListController extends KDListViewController
         if activity?.teaser
           activity.teaser.createdAtTimestamps = overviewItem.createdAt
           view = @addHiddenItem activity.teaser, index, animation
-          view.slideIn -> removeFromHiddenItems view
+          view.slideIn => @removeFromHiddenItems view
           activityIds.push activity.teaser._id
 
     @checkIfLikedBefore activityIds  unless isFeaturedContent
@@ -129,7 +120,7 @@ class ActivityListController extends KDListViewController
 
   getLastItemTimeStamp: ->
 
-    if item = hiddenItems.first
+    if item = @hiddenItems.first
       item.getData().createdAt or item.getData().createdAtTimestamps.last
     else
       @lastItemTimeStamp
@@ -164,21 +155,40 @@ class ActivityListController extends KDListViewController
         view = @addHiddenItem activity, 0
         @activityHeader?.newActivityArrived()
 
-  updateNewMemberBucket:(memberAccount)=>
+  updateNewMemberBucket:(memberAccount)->
     for item in @itemsOrdered
       if item.getData() instanceof NewMemberBucketData
-        data = item.getData()
-        if data.count > 3
-          data.anchors.pop()
-        id = memberAccount.id
-        data.anchors.unshift {bongo_: {constructorName:"ObjectRef"}, constructorName:"JAccount", id:id}
-        data.createdAtTimestamps.push (new Date).toJSON()
-        data.count++
-        item.slideOut =>
-          @removeItem item, data
-          newItem = @addHiddenItem data, 0
-          @utils.wait 500, -> newItem.slideIn()
+        @updateBucket item, "JAccount", memberAccount.id
         break
+
+  updateFollowerBucket:(follower, followee)->
+    for item in @itemsOrdered
+      data = item.getData()
+
+      continue  unless data.group
+      continue  if typeof data.group is "string"
+
+      if data.group[0].constructorName is followee.bongo_.constructorName
+        if data.anchor && data.anchor.id is follower.id
+          @updateBucket item, followee.bongo_.constructorName, followee._id
+          break
+
+  updateBucket:(item, constructorName, id)->
+    data = item.getData()
+    group = data.group or data.anchors
+    group.unshift {
+      bongo_:
+        constructorName:"ObjectRef"
+      constructorName
+      id
+    }
+    data.createdAtTimestamps.push (new Date).toJSON()
+    data.count ||= 0
+    data.count++
+    item.slideOut =>
+      @removeItem item, data
+      newItem = @addHiddenItem data, 0
+      @utils.wait 500, -> newItem.slideIn()
 
   fakeItems = []
 
@@ -200,11 +210,11 @@ class ActivityListController extends KDListViewController
       @getListView().addItem activity, 0
     else
       view = @addHiddenItem activity, 0
-      @utils.defer ->
-        view.slideIn -> removeFromHiddenItems view
+      @utils.defer =>
+        view.slideIn => @removeFromHiddenItems view
 
-  removeFromHiddenItems = (view)->
-    hiddenItems.splice hiddenItems.indexOf(view), 1
+  removeFromHiddenItems: (view)->
+    @hiddenItems.splice @hiddenItems.indexOf(view), 1
 
 
   fakeActivityArrived:(activity)->
@@ -215,15 +225,15 @@ class ActivityListController extends KDListViewController
   addHiddenItem:(activity, index, animation = null)->
 
     instance = @getListView().addHiddenItem activity, index, animation
-    hiddenItems.push instance
+    @hiddenItems.push instance
     @lastItemTimeStamp = activity.createdAt
 
     return instance
 
-  unhideNewHiddenItems = (hiddenItems)->
+  unhideNewHiddenItems: ->
 
-    repeater = KD.utils.repeat 177, ->
-      item = hiddenItems.shift()
+    repeater = KD.utils.repeat 177, =>
+      item = @hiddenItems.shift()
       if item then item.show() else KD.utils.killRepeat repeater
 
   instantiateListItems:(items)->

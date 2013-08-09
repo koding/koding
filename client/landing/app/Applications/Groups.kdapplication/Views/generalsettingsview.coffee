@@ -1,9 +1,10 @@
 class GroupGeneralSettingsView extends JView
 
-  constructor:->
-    super
+  constructor:(options = {}, data)->
+    super options,data
     @setClass "general-settings-view group-admin-modal"
     group = @getData()
+    delegate = @getDelegate()
 
     formOptions =
       callback:(formData)=>
@@ -16,22 +17,16 @@ class GroupGeneralSettingsView extends JView
           if err
             saveButton.hideLoader()
             return new KDNotificationView { title: err.message, duration: 1000 }
+
           group.setReadme readme, (err)=>
             saveButton.hideLoader()
             return new KDNotificationView { title: err.message, duration: 1000 }  if err
-            if formData.privacy isnt group.privacy
-              group.privacy = formData.privacy
-              for navTitle in ['Membership policy', 'Invitations']
-                # fix this
-                navController = @parent.parent.parent.navController
-                if formData.privacy is 'private'
-                  navController.getItemByName(navTitle).unsetClass 'hidden'
-                else
-                  navController.getItemByName(navTitle).setClass 'hidden'
 
             new KDNotificationView
               title: 'Group was updated!'
               duration: 1000
+
+            delegate.emit "groupSettingsUpdated", group
 
       buttons:
         Save                :
@@ -40,6 +35,22 @@ class GroupGeneralSettingsView extends JView
           loader            :
             color           : "#444444"
             diameter        : 12
+        Remove              :
+          cssClass   : "modal-clean-red fr"
+          title      : "Remove this Group"
+          callback   : =>
+            modal = new GroupsDangerModalView
+              action     : 'Remove Group'
+              title      : "Remove '#{data.slug}'"
+              longAction : "remove the '#{data.slug}' group"
+              callback   : (callback)=>
+                data.remove (err)=>
+                  callback()
+                  return KD.showError err  if err
+                  new KDNotificationView title:'Successfully removed!'
+                  modal.destroy()
+                  location.replace('/')
+            , data
       fields:
         Title               :
           label             : "Group Name"
@@ -81,5 +92,12 @@ class GroupGeneralSettingsView extends JView
           ]
 
     @settingsForm = new KDFormViewWithFields formOptions, group
+
+    
+    unless KD.config.roles? and 'owner' in KD.config.roles
+      @settingsForm.buttons.Remove.hide()
+
+    if data.slug is 'koding'
+      @settingsForm.buttons.Remove.hide()
 
   pistachio:-> "{{> @settingsForm}}"

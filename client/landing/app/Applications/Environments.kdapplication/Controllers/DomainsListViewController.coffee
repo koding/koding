@@ -15,6 +15,7 @@ class DomainsListViewController extends KDListViewController
 
     @getListView().on "domainRemoved", (item)=>
       @removeItem item
+      @emit "domainItemClicked"
 
   loadItems:(callback)->
     @showLazyLoader()

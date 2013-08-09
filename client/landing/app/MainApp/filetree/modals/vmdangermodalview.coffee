@@ -1,19 +1,15 @@
-
-class GroupsDangerModalView extends KDModalViewWithForms
+class VmDangerModalView extends KDModalViewWithForms
 
   constructor:(options = {}, data)->
 
-    options.action or= 'Danger Zone'
-    options.longAction or= 'do some danger action'
-    options.callback ?= -> log "#{options.action} performed"
-
-    options.title or= options.action
-    options.content or= "<div class='modalformline'><p><strong>Caution:</strong> Are you sure that you want to #{options.longAction}? This cannot be revoked! </p><br><p>Please enter <strong>#{data.slug}</strong> into the field below to continue: </p></div>"
-    options.overlay ?= yes
-    options.width ?= 500
-    options.height ?= 'auto'
-
-    options.tabs ?=
+    options.action    or= 'Danger Zone'
+    options.title     or= options.action
+    options.content   or= "<div class='modalformline'><p><strong>CAUTION! </strong>This will destroy the <strong>#{options.name}</strong> VM including all its data. This action <strong>CANNOT</strong> be undone.</p><br><p>Please enter <strong>#{data}</strong> into the field below to continue: </p></div>"
+    options.callback   ?= -> log "#{options.action} performed"
+    options.overlay    ?= yes
+    options.width      ?= 500
+    options.height     ?= 'auto'
+    options.tabs       ?=
       forms                  :
         dangerForm           :
           callback           : =>
@@ -31,18 +27,18 @@ class GroupsDangerModalView extends KDModalViewWithForms
               callback       : -> @showLoader()
             Cancel           :
               style          : 'modal-cancel'
-              callback       : (event)=> @destroy()
+              callback       : @bound 'destroy'
           fields             :
-            groupSlug        :
+            vmSlug           :
               itemClass      : KDInputView
-              placeholder    : "Enter '#{data.slug}' to confirm..."
+              placeholder    : "Enter '#{data}' to confirm..."
               validate       :
                 rules        :
                   required   : yes
-                  slugCheck  : (input, event) => @checkGroupSlug input, no
-                  finalCheck : (input, event) => @checkGroupSlug input
+                  slugCheck  : (input, event) => @checkVmName input, no
+                  finalCheck : (input, event) => @checkVmName input
                 messages     :
-                  required   : 'Please enter group slug'
+                  required   : 'Please enter vm name'
                 events       :
                   required   : 'blur'
                   slugCheck  : 'keyup'
@@ -50,10 +46,10 @@ class GroupsDangerModalView extends KDModalViewWithForms
 
     super
 
-  checkGroupSlug:(input, showError=yes)=>
+  checkVmName:(input, showError=yes)=>
 
-    if input.getValue() is @getData().slug
+    if input.getValue() is @getData()
       input.setValidationResult 'slugCheck', null
       @modalTabs.forms.dangerForm.buttons.confirmButton.enable()
     else
-      input.setValidationResult 'slugCheck', 'Sorry, entered value does not match group slug!', showError
+      input.setValidationResult 'slugCheck', 'Sorry, entered value does not match vm name!', showError

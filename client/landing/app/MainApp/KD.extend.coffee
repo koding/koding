@@ -6,7 +6,7 @@ KD.extend
       if err then new KDNotificationView title: err.message
       else location.reload()
 
-  notify_:(message, type)->
+  notify_:(message, type='')->
     console.log message
     new KDNotificationView
       cssClass : "#{type}"
@@ -26,7 +26,8 @@ KD.extend
 
       # if it's not a silent operation redirect
       unless silence
-        KD.getSingleton('router').handleRoute "/Login", KD.config.entryPoint
+        KD.getSingleton('router').handleRoute "/Login",
+          entryPoint : KD.config.entryPoint
 
       # if there is callback and we want to try again
       if callback? and tryAgain
@@ -34,34 +35,35 @@ KD.extend
           mainController = KD.getSingleton("mainController")
           mainController.once "accountChanged.to.loggedIn", =>
             if groupName and KD.isLoggedIn()
-              @joinGroup_ groupName, (res)=>
-                unless res then return @notify_ "Joining to #{groupName} group failed", "error"
+              @joinGroup_ groupName, (err)=>
+                return @notify_ "Joining #{groupName} group failed", "error"  if err
                 KD.lastFuncCall?()
                 KD.lastFuncCall = null
         KD.lastFuncCall = callback
+    else if groupName
+      @joinGroup_ groupName, (err)=>
+        return @notify_ "Joining #{groupName} group failed", "error"  if err
+        callback?()
     else
-      if groupName
-        @joinGroup_ groupName, (res)=>
-          if res
-
-            callback?()
-          else @notify_ "Joining to #{groupName} group failed", "error"
-      else callback?()
+      callback?()
 
   joinGroup_:(groupName, callback)->
-    unless groupName then return callback true
-    user = @whoami()
-    user.fetchGroups (err, groups)=>
-      if err or !groups then return callback false
+    return callback yes  unless groupName
+
+    @whoami().fetchGroups (err, groups)=>
+      return callback err  if err
+
+      for group in groups
+        if groupName is group.group.slug
+          return callback null
+
       @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
-        if err then return @notify_ err.message, "error"
-        for group in groups
-          if groupName is group.group.slug
-            return callback true
+        return @notify_ err.message, "error"  if err
+        return callback null                  unless currentGroup.privacy is 'public'
         currentGroup.join (err)=>
-          if err then return callback false
-          @notify_ "You have joined to #{groupName} group!", "success"
-          return callback true
+          return callback err  if err
+          @notify_ "You have joined #{groupName} group!", "success"
+          return callback null
 
   nick:-> KD.whoami().profile.nickname
 
@@ -89,18 +91,23 @@ KD.extend
   showError:(err, messages)->
     return  unless err
 
-    messages or=
-      AccessDenied : 'Permission denied'
-      KodingError  : 'Something went wrong'
-
     if 'string' is typeof err
       message = err
       err     = {message}
 
-    err.name or= 'KodingError'
+    defaultMessages =
+      AccessDenied : 'Permission denied'
+      KodingError  : 'Something went wrong'
 
+    err.name or= 'KodingError'
     content    = ''
-    errMessage = message or messages[err.name]
+
+    if messages
+      errMessage = messages[err.name] or messages.KodingError \
+                                      or defaultMessages.KodingError
+    messages or= defaultMessages
+    errMessage or= err.message or messages[err.name] or messages.KodingError
+
     if errMessage?
       if 'string' is typeof errMessage
         title = errMessage
@@ -108,7 +115,7 @@ KD.extend
         {title, content} = errMessage
 
     duration = errMessage.duration or 2500
-    title  or= err.message or 'Something went wrong'
+    title  or= err.message
 
     new KDNotificationView {title, content, duration}
 

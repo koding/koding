@@ -27,7 +27,7 @@ app.login-signup.styl
 
   .flex-wrapper
     background       transparent url("../images/koding-new-bg.png") repeat-x 0 -13px
-    size             220px, 342px
+    size             220px, 320px
     border           1px solid rgba(255,255,255,0.1)
     margin           30px auto 30px auto
     rounded          8px
@@ -41,7 +41,6 @@ app.login-signup.styl
   .back-to-login
   .regLink
   .recLink
-  .reqLink
   .logLink
   >section
     hidden()
@@ -81,7 +80,6 @@ app.login-signup.styl
     .lf
     .regLink
     .recLink
-    .reqLink
     .login-options-holder.log
       visible()
 
@@ -90,20 +88,27 @@ app.login-signup.styl
 
     .rf
     .logLink
-    .reqLink
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      size                400px, 481px
-    &.taller .flex-wrapper
-      height              503px
+      size                400px, 421px
+      &.taller
+        height              470px
+
+  &.redeem
+    .rdf
+      visible()
+    .flex-wrapper
+      height              193px
+    .login-footer
+      hidden()
 
   &.recover
     .rcf
     .logLink
       visible()
     .flex-wrapper
-      height              193px
+      height              183px
     .rcf .kdnotification.mini.register
       top                 174px!important
 
@@ -188,7 +193,7 @@ app.login-signup.styl
     margin                40px auto
     padding               10px
     border                1px solid rgba(255,255,255,0.15)
-    rounded               0 0 5px 5px
+    rounded               5px
     bg                    color, rgba(0, 0, 0, .75)
     shadow                0 5px 15px rgba(0,0,0,0.8)
     borderBox()
@@ -203,7 +208,7 @@ app.login-signup.styl
   padding                 30px 0 0 0
   text-align              center
   overflow                visible
-  height                  98px
+  height                  78px
   borderBox()
   .betatag
     text-indent           -9999px
@@ -216,7 +221,7 @@ app.login-signup.styl
     z-index               20002
   .logo
     text-indent           -9999px
-    size                  140px,40px
+    size                  140px,39px
     margin-left           1px
     cursor                pointer
     blockMid()
@@ -231,17 +236,22 @@ app.login-signup.styl
     noTextDeco()
 
 .login-options-holder
-  border-top              1px solid rgba(0, 0, 0, 0.1)
-  height                  76px
+  height                  72px
   overflow                visible
   margin-bottom           24px
+
+  &.reg
+    height                52px
+    margin-top            22px
+
+  &.log
+    margin-bottom         34px
 
 .kdview.login-screen
   h3
     color                 #b4b3b3
     text-shadow           0 -1px 0 rgba(0, 0, 0, 0.64)
     border                none
-    border-top            1px solid rgba(255, 255, 255, 0.1)
     padding               12px 10px 0 10px
     text-align            center !important
     font-size             11px
@@ -256,7 +266,6 @@ app.login-signup.styl
   li.koding
     bg(position,-440px -80px)
   li.github
-    opacity       .35
     bg(position,-400px -40px)
   li
     sprite()
@@ -391,7 +400,6 @@ app.login-signup.styl
     padding             1px
     fl()
 
-
   .invitation-field
     rel()
     text-align          left
@@ -438,7 +446,6 @@ app.login-signup.styl
       text-overflow     ellipsis
       white-space       nowrap
       padding-right     5px
-
 
   button
     width               78%

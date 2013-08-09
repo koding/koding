@@ -30,7 +30,7 @@ class ApplicationManager extends KDObject
 
     # set unload listener
     windowController = @getSingleton 'windowController'
-    windowController.addUnloadListener =>
+    windowController.addUnloadListener 'window', =>
       safeToUnload = no for app of @appControllers when app in ['Ace', 'WebTerm']
       return safeToUnload ? yes
 
@@ -225,6 +225,16 @@ class ApplicationManager extends KDObject
 
     for own name, apps of @appControllers
       @quit app  for app in apps.instances
+
+  quitByName: (name, closeAllInstances = yes) ->
+    appController = @appControllers[name]
+    return  unless appController
+
+    if closeAllInstances
+      instances = appController.instances
+      @quit instances[0] while instances.length > 0
+    else
+      @quit appController.instances[appController.lastActiveIndex]
 
   get:(name)->
 

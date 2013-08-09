@@ -48,13 +48,14 @@ class MembersListItemView extends KDListItemView
     @location = new LocationView {},memberData
 
     @profileLink = new ProfileLinkView {}, memberData
+    @profileLink.render()
 
   click:(event)->
     KD.utils.showMoreClickHandler.call this, event
     targetATag = $(event.target).closest('a')
-    if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
+    if targetATag.is(".followers") and parseInt(targetATag.text()) isnt 0
       KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}/Followers"
-    else if targetATag.is(".following") and targetATag.find('.data').text() isnt '0'
+    else if targetATag.is(".following") and parseInt(targetATag.text()) isnt 0
       KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}/Following"
 
   clickOnMyItem:(event)->
