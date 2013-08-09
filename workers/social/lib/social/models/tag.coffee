@@ -19,6 +19,7 @@ module.exports = class JTag extends jraphical.Module
   @trait __dirname, '../traits/slugifiable'
   @trait __dirname, '../traits/grouprelated'
   @trait __dirname, '../traits/restrictedquery'
+  @trait __dirname, '../traits/notifying'
 
   @share()
 
@@ -106,6 +107,10 @@ module.exports = class JTag extends jraphical.Module
 
         ]
         as          : 'post'
+
+  constructor:->
+    super
+    @notifyGroupWhen 'FollowHappened'
 
   modify: permit
     advanced: [

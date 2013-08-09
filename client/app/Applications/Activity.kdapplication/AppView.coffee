@@ -4,7 +4,7 @@ class ActivityAppView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    options.cssClass   = "content-page activity fixed"
+    options.cssClass   = "content-page activity"
     options.domId      = "content-page-activity"
 
     super options, data
@@ -14,6 +14,10 @@ class ActivityAppView extends KDScrollView
   viewAppended:->
 
     {entryPoint}      = KD.config
+
+    if entryPoint in ['koding', 'guest']
+      @setClass 'fixed'
+
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'

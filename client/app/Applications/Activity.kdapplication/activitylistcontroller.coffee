@@ -27,6 +27,10 @@ class ActivityListController extends KDListViewController
     KD.getSingleton("groupsController").on "MemberJoinedGroup", (member) =>
       @updateNewMemberBucket member.member
 
+    KD.getSingleton("groupsController").on "FollowHappened", (info) =>
+      {follower, origin} = info
+      @updateFollowerBucket follower, origin
+
   resetList:->
     @newActivityArrivedList = {}
     @lastItemTimeStamp = null
@@ -80,16 +84,16 @@ class ActivityListController extends KDListViewController
     activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
-        anchors = []
+        group = []
         for id in overviewItem.ids
           if cache.activities[id].teaser?
-            anchors.push cache.activities[id].teaser.anchor
+            group.push cache.activities[id].teaser.anchor
           else
             KD.logToExternal msg:'no teaser for activity', activityId:id
 
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
-          anchors             : anchors
+          group               : group
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
@@ -151,21 +155,40 @@ class ActivityListController extends KDListViewController
         view = @addHiddenItem activity, 0
         @activityHeader?.newActivityArrived()
 
-  updateNewMemberBucket:(memberAccount)=>
+  updateNewMemberBucket:(memberAccount)->
     for item in @itemsOrdered
       if item.getData() instanceof NewMemberBucketData
-        data = item.getData()
-        if data.count > 3
-          data.anchors.pop()
-        id = memberAccount.id
-        data.anchors.unshift {bongo_: {constructorName:"ObjectRef"}, constructorName:"JAccount", id:id}
-        data.createdAtTimestamps.push (new Date).toJSON()
-        data.count++
-        item.slideOut =>
-          @removeItem item, data
-          newItem = @addHiddenItem data, 0
-          @utils.wait 500, -> newItem.slideIn()
+        @updateBucket item, "JAccount", memberAccount.id
         break
+
+  updateFollowerBucket:(follower, followee)->
+    for item in @itemsOrdered
+      data = item.getData()
+
+      continue  unless data.group
+      continue  if typeof data.group is "string"
+
+      if data.group[0].constructorName is followee.bongo_.constructorName
+        if data.anchor && data.anchor.id is follower.id
+          @updateBucket item, followee.bongo_.constructorName, followee._id
+          break
+
+  updateBucket:(item, constructorName, id)->
+    data = item.getData()
+    group = data.group or data.anchors
+    group.unshift {
+      bongo_:
+        constructorName:"ObjectRef"
+      constructorName
+      id
+    }
+    data.createdAtTimestamps.push (new Date).toJSON()
+    data.count ||= 0
+    data.count++
+    item.slideOut =>
+      @removeItem item, data
+      newItem = @addHiddenItem data, 0
+      @utils.wait 500, -> newItem.slideIn()
 
   fakeItems = []
 

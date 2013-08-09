@@ -66,7 +66,11 @@ func main() {
 
 	go ldapserver.Listen()
 	go LimiterLoop()
-	k := kite.New("os", true)
+	kiteName := "os"
+	if config.Region != "" {
+		kiteName += "-" + config.Region
+	}
+	k := kite.New(kiteName, true)
 
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
@@ -86,10 +90,12 @@ func main() {
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
 		sig := <-sigtermChannel
+		log.Info("Shutdown initiated.")
 		shuttingDown = true
 		requestWaitGroup.Wait()
 		if sig == syscall.SIGUSR1 {
 			for _, info := range infos {
+				log.Info("Unpreparing " + info.vmName + "...")
 				info.unprepareVM()
 			}
 			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": k.ServiceUniqueName}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
@@ -285,6 +291,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		permissions := vm.GetPermissions(&user)
 		if permissions == nil {
 			return nil, &kite.PermissionError{}
+		}
+
+		if vm.Region != config.Region {
+			time.Sleep(time.Second) // to avoid rapid cycle channel loop
+			return nil, &kite.WrongChannelError{}
 		}
 
 		if vm.HostKite != k.ServiceUniqueName {

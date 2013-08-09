@@ -3,38 +3,39 @@
 module.exports = class JMarkdownDoc extends Module
 
   {daisy, secure, ObjectId} = require 'bongo'
+  {sanitize} = require 'validator'
 
   @share()
 
   @set
-    softDelete  : yes
-    schema      :
-      content   : String
-      html      : String
-      checksum  : String
-      origin    : ObjectId
-    sharedMethods   :
-      static        : ['generateHTML']
+    softDelete    : yes
+    schema        :
+      html        : String
+      origin      : ObjectId
+      content     : String
+      checksum    : String
+    sharedMethods :
+      static      : ['generateHTML']
 
-  @generateHTML=(content,options={},callback=->)->
+  @generateHTML = (content,options={})->
+
     options.gfm         ?= yes
-    options.sanitize    ?= yes
+    options.sanitize     = yes
     options.highlight   ?= (code, lang)->
-        hljs = require('highlight.js')
+      hljs = require('highlight.js')
+      try
+        (hljs.highlight lang, code).value
+      catch e
         try
-          hljs.highlight(lang, code).value
-        catch e
-          try
-            hljs.highlightAuto(code).value
-          catch _e
-            code
+          (hljs.highlightAuto code).value
+        catch _e
+          code
+
     options.breaks      ?= yes
     options.langPrefix  ?= 'lang-'
 
-    marked = require('marked')
-    marked.setOptions options
-    markdown = marked content
-    callback markdown
+    markdown = (require 'marked') content, options
+
     return markdown
 
   @generateChecksum=(content)->

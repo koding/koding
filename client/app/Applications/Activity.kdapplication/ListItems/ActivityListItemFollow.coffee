@@ -62,3 +62,16 @@ class AppFollowBucketItemView extends FollowBucketItemView
     options.subItemLinkClass or= AppLinkView
     options.subItemCssClass or= 'profile'
     super
+
+class NewMemberBucketView extends FollowBucketItemView
+
+  constructor:(options, data)->
+    super
+    @action = "became a member"
+
+  pistachio:->
+    """
+    <span class='icon'></span>
+    {{> @group}}
+    <span class='action'>#{@action}</span>
+    """

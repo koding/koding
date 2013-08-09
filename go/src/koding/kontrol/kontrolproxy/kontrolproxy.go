@@ -91,7 +91,7 @@ var (
 		"go/templates/proxy/notfound.html",
 		"go/templates/proxy/notactiveVM.html",
 		"go/templates/proxy/quotaExceeded.html",
-		"client/maintenance.html",
+		"website/maintenance.html",
 	))
 )
 
