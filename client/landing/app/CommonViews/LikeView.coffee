@@ -77,12 +77,18 @@ class LikeView extends KDView
             when 3 then "<strong>3 guests</strong>"
 
         tooltip =
-          switch peopleWhoLiked.length
+          switch data.meta.likes
             when 0 then "#{guestLikes}"
             when 1 then "#{peopleWhoLiked[0]} #{guestLikes}"
             when 2 then "#{peopleWhoLiked[0]} and #{peopleWhoLiked[1]} #{guestLikes}"
-            else "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]}#{sep}#{peopleWhoLiked[2]} and <strong>#{data.meta.likes - 3} more.</strong>"
-
+            when 3 then "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]} and #{peopleWhoLiked[2]} #{guestLikes}"
+            else
+              # there is no guarantee that likes will not satisfy upper cases
+              # and it will be an integer which is more than 3
+              if data.meta.likes > 3
+                "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]}#{sep}#{peopleWhoLiked[2]} and <strong>#{data.meta.likes - 3} more.</strong>"
+              else
+                ""
         @likeCount.getTooltip().update { title: tooltip }
         @_lastUpdatedCount = likes.length
 
