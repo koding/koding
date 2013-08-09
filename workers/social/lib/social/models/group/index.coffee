@@ -974,7 +974,6 @@ module.exports = class JGroup extends Module
     dash queue, =>
       callback()
       @updateCounts()
-      @cycleChannel()
       @emit 'MemberAdded', member  if 'member' in roles
 
   each:(selector, rest...)->
