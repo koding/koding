@@ -69,8 +69,6 @@ class AccountPaymentMethodsList extends KDListView
             controller.emit 'reload'
             onSuccess result
 
-      form = modal.modalTabs.forms["Billing Info"]
-
 class AccountPaymentMethodsListItem extends KDListItemView
   constructor:(options,data)->
     options.tagName = "li"

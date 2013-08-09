@@ -84,34 +84,12 @@ class KDInputValidator
       return ruleSet.messages?.match or "Values do not match"
 
   @ruleCreditCard = (input, event)->
-
-    ###
-    Visa:             start with a 4. New cards have 16 digits. Old cards have 13.
-    MasterCard:       start with the numbers 51 through 55. All have 16 digits.
-    American Express: start with 34 or 37 and have 15 digits.
-    Diners Club:      start with 300 through 305, 36 or 38. All have 14 digits. There are Diners Club cards that begin with 5 and have 16 digits. These are a joint venture between Diners Club and MasterCard, and should be processed like a MasterCard.
-    Discover:         start with 6011 or 65. All have 16 digits.
-    JCB:              start with 2131 or 1800 have 15 digits. JCB cards beginning with 35 have 16 digits.
-    ###
-
     return if event?.which is 9
 
-    value         = $.trim input.getValue().replace(/-|\s/g,"")
-    ruleSet       = input.getOptions().validate
-    doesValidate  = /(^4[0-9]{12}(?:[0-9]{3})?$)|(^5[1-5][0-9]{14}$)|(^3[47][0-9]{13}$)|(^3(?:0[0-5]|[68][0-9])[0-9]{11}$)|(^6(?:011|5[0-9]{2})[0-9]{12}$)|(^(?:2131|1800|35\d{3})\d{11}$)/.test(value)
-
-    if doesValidate
-      type = if /^4[0-9]{12}(?:[0-9]{3})?$/.test(value)         then "Visa"
-      else if   /^5[1-5][0-9]{14}$/.test(value)                 then "MasterCard"
-      else if   /^3[47][0-9]{13}$/.test(value)                  then "Amex"
-      else if   /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/.test(value)  then "Diners"
-      else if   /^6(?:011|5[0-9]{2})[0-9]{12}$/.test(value)     then "Discover"
-      else if   /^(?:2131|1800|35\d{3})\d{11}$/.test(value)     then "JCB"
-      else no
-      input.emit "CreditCardTypeIdentified", type
-      return null
-    else
-      return ruleSet.messages?.creditCard or "Please enter a valid credit card number"
+    value = $.trim input.getValue().replace(/-|\s/g,"")
+    regex = /(^4[0-9]{12}(?:[0-9]{3})?$)|(^5[1-5][0-9]{14}$)|(^3[47][0-9]{13}$)|(^3(?:0[0-5]|[68][0-9])[0-9]{11}$)|(^6(?:011|5[0-9]{2})[0-9]{12}$)|(^(?:2131|1800|35\d{3})\d{11}$)/
+    return null  if regex.test(value)
+    return input.getOptions().validate.messages?.creditCard or "Please enter a valid credit card number"
 
   @ruleJSON = (input, event)->
 
