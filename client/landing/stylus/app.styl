@@ -91,7 +91,7 @@ body
     opacity      0
 
 .pulsing
-  vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
+  vendor            transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
   vendor            animation, pulse 1.5s ease-in-out 100
 
 .main-loading
@@ -137,7 +137,7 @@ body
 }
 
 #kdmaincontainer
-  vendor              transition, opacity .6s ease-in-out
+  // vendor              transition, opacity .6s ease-in-out
   overflow            visible
   &.scale
     vendor            animation, shrink 1s ease-out
@@ -254,13 +254,13 @@ body
     shadow            none
   &.with-finder
     left              260px
-    width             calc(100%\-260px)
+    kalc              width, 100%\-260px, 100%
   &.mouse-on-nav
     left              173px!important
-    width             calc(100%\-173px)
+    kalc              width, 100%\-173px, 100%
   &.social
     left              160px!important
-    width             calc(100%\-160px)
+    kalc              width, 100%\-160px, 100%
   &.develop
     min-width         250px
   &.no-anim
@@ -272,10 +272,10 @@ body
     bottom            0!important
     right             0!important
     z-index           10
-    height            calc(100% \+ 51px)
+    kalc              height, 100% \+ 51px, 100%
     .application-page
       padding         0!important
-      height          calc(100% \+ 10px)
+      kalc            height, 100% \+ 10px, 100%
     .app-settings-menu
       top             0
       right           0
@@ -355,7 +355,7 @@ body
       size              20px, 20px
       margin            5px auto
       opacity           .2
-      vendor            transition, opacity .15s linear
+      // vendor            transition, opacity .15s linear
       sprite()
       &:hover
         opacity         1
@@ -991,7 +991,7 @@ span.main-nav-icon
 
     .kdlistview-navigation
       opacity         1
-      vendor          transition, opacity .3s linear
+      // vendor          transition, opacity .3s linear
       margin-top      10px
       &.out
         opacity       0

@@ -69,6 +69,8 @@ class ActivityItemChild extends KDView
 
     data.on 'PostIsDeleted', =>
       activityItem = @getDelegate()
+      return unless activityItem.isInDom()
+
       if KD.whoami().getId() is data.getAt('originId')
         deleteActivity activityItem
       else

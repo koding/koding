@@ -77,7 +77,7 @@ class ProfileView extends JView
     if memberData.locationTags.length < 1
       memberData.locationTags[0] = "Earth"
 
-    @location = new LocationView {},memberData
+    @location = new LocationView {}, memberData
     @setListeners()
     @skillTags = new SkillTagGroup {}, memberData
 
