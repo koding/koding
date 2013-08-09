@@ -43,6 +43,10 @@ module.exports = class JSession extends Model
     sharedEvents    :
       instance      : [
         { name: 'updateInstance' }
+        { name : "RemovedFromCollection" }
+      ]
+      static        : [
+        { name : "RemovedFromCollection" }
       ]
 
   do ->

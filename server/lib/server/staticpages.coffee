@@ -9,4 +9,7 @@ loginTemplate        = fs.readFileSync loginPath, 'utf-8'
 loginFailurePath     = "#{projectRoot}/website/login_failure.html"
 loginFailureTemplate = fs.readFileSync loginFailurePath, 'utf-8'
 
-module.exports = {defaultTemplate, loginTemplate, loginFailureTemplate}
+errorPath            = "#{projectRoot}/website/error.html"
+errorTemplate        = fs.readFileSync errorPath, 'utf-8'
+
+module.exports = {defaultTemplate, loginTemplate, loginFailureTemplate, errorTemplate}

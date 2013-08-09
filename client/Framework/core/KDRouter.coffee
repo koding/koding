@@ -38,7 +38,6 @@ class KDRouter extends KDObject
         state             : state
 
   clear:(route = '/', replaceState = yes)->
-    console.log {arguments}
     delete @userRoute # TODO: i hope deleting the userRoute here doesn't break anything... C.T.
     @handleRoute route, {replaceState}
 

@@ -79,7 +79,15 @@ module.exports =
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
-    watch       : no
+    watch       : yes
+  guestCleanerWorker     :
+    login                : 'prod-guestcleanerworker'
+    queueName            : socialQueueName+'guestcleaner'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '* * * * * *'
+    usageLimitInMinutes  : 60
+    watch                : no
   graphFeederWorker:
     numberOfWorkers: 2
   social        :

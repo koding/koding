@@ -6,7 +6,12 @@ class GroupsListItemView extends KDListItemView
     super options,data
 
     group = @getData()
-    {title, slug, body} = group
+    {title, slug, body, visibility} = group
+
+    # temp fix
+    # to hide hidden groups from groups page
+    # ths should be taken to backend ASAP
+    @hide()  if visibility is 'hidden'
 
     slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}"
 
@@ -201,21 +206,6 @@ class GroupsListItemView extends KDListItemView
               Cancel       :
                 style      : "modal-cancel"
                 callback   : (event)-> modal.destroy()
-
-      menu['Remove Group'] =
-        cssClass : 'remove-group'
-        callback : =>
-          modal = new GroupsDangerModalView
-            action     : 'Remove Group'
-            longAction : 'remove this group'
-            callback   : (callback)=>
-              data.remove (err)=>
-                callback()
-                return KD.showError err  if err
-                new KDNotificationView title:'Successfully removed!'
-                modal.destroy()
-                @destroy()
-          , data
 
       menu['Cancel Request'] =
         cssClass : 'cancel-request'

@@ -15,10 +15,10 @@ class GroupsInvitationTabView extends KDTabView
       title    : 'Show Resolved: '
     @showResolvedView.addSubView new KDOnOffSwitch
       label    : showResolvedLabelView
-      callback : (@resolvedState)=> @setResolvedStateInView()
+      callback : (@showResolved)=> @setResolvedStateInView()
 
-    @approvalEnabled = @getDelegate().policy.approvalEnabled
-    @resolvedState = no
+    @approvalEnabled = @getDelegate().policy?.approvalEnabled
+    @showResolved    = no
 
     @on 'PaneAdded', (pane)=> pane.options.view.updatePendingCount pane
 
@@ -32,19 +32,20 @@ class GroupsInvitationTabView extends KDTabView
   paneDidShow:->
     @decorateHeaderButtons()
     {tabHandle, mainView} = @getActivePane()
-    @setResolvedStateInView()  if mainView.resolvedState isnt @resolvedState
+    @setResolvedStateInView()  if mainView.options.showResolved isnt @showResolved
     mainView.refresh()  if tabHandle.isDirty
     tabHandle.markDirty no
 
   setResolvedStateInView:->
     view = @getActivePane().subViews.first
-    view.setStatusesByResolvedSwitch @resolvedState
+    view.setShowResolved @showResolved
     view.refresh()
 
   createTabs:->
+    defaultTab = if @getData().privacy is 'public' then 1 else 0
     for tab, i in @getTabs()
       tab.view = new tab.viewOptions.viewClass {delegate: this}, @getData()
-      @addPane new KDTabPaneView(tab), i is 0
+      @addPane new KDTabPaneView(tab), i is defaultTab
 
   addHeaderButtons:->
     bulkSubject = if @approvalEnabled then 'Approve' else 'Invite'
@@ -84,17 +85,19 @@ class GroupsInvitationTabView extends KDTabView
         @createInvitationCodeButton.show()
 
   getTabs:-> [
-    name        : "#{if @approvalEnabled then 'Membership' else 'Invitation'} Requests"
-    viewOptions :
-      viewClass : GroupsMembershipRequestsTabPaneView
+    name         : "#{if @approvalEnabled then 'Membership' else 'Invitation'} Requests"
+    hiddenHandle : @getData().privacy is 'public'
+    viewOptions  :
+      viewClass  : GroupsMembershipRequestsTabPaneView
   ,
-    name        : 'Invitations'
-    viewOptions :
-      viewClass : GroupsSentInvitationsTabPaneView
+    name         : 'Invitations'
+    viewOptions  :
+      viewClass  : GroupsSentInvitationsTabPaneView
   ,
-    name        : 'Invitation Codes'
-    viewOptions :
-      viewClass : GroupsInvitationCodesTabPaneView
+    name         : 'Invitation Codes'
+    hiddenHandle : @getData().privacy is 'public'
+    viewOptions  :
+      viewClass  : GroupsInvitationCodesTabPaneView
   ]
 
   _windowDidResize:->

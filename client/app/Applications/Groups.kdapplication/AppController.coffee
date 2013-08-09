@@ -195,7 +195,7 @@ class GroupsAppController extends AppController
           title             : "Invitation pending"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchPendingGroupInvitations options, (err, groups)->
+            KD.whoami().fetchGroupsWithPendingInvitations options, (err, groups)->
               callback err, groups
               callback err, null, (group.getId() for group in groups)
           dataEnd           :({resultsController}, ids)=>
@@ -206,7 +206,7 @@ class GroupsAppController extends AppController
           title             : "Request pending"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchPendingGroupRequests options, (err, groups)->
+            KD.whoami().fetchGroupsWithPendingRequests options, (err, groups)->
               callback err, groups
               callback err, null, (group.getId() for group in groups)
           dataEnd           :({resultsController}, ids)=>
@@ -245,10 +245,10 @@ class GroupsAppController extends AppController
           return error err if err
           controller.forEachItemByIndex groups, callback
 
-    KD.whoami().fetchPendingGroupRequests groupIds:ids, (err, groups)=>
+    KD.whoami().fetchGroupsWithPendingRequests groupIds:ids, (err, groups)=>
       @markPendingRequestGroups controller, (group.getId() for group in groups)
 
-    KD.whoami().fetchPendingGroupInvitations groupIds:ids, (err, groups)=>
+    KD.whoami().fetchGroupsWithPendingInvitations groupIds:ids, (err, groups)=>
       @markPendingGroupInvitations controller, (group.getId() for group in groups)
 
   markPendingRequestGroups:(controller, ids)->
@@ -316,7 +316,6 @@ class GroupsAppController extends AppController
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
       KD.getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
-      @requestAccess group, (err)-> modal.destroy()
 
   showRequestAccessModal:(group, policy, callback=->)->
 
@@ -414,261 +413,7 @@ class GroupsAppController extends AppController
           title: 'Group was updated!'
           duration: 1000
 
-  showGroupSubmissionView:->
-
-    getGroupType = ->
-      modal.modalTabs.forms["Select group type"].inputs.type.getValue()
-
-    getPrivacyDefault = ->
-      switch getGroupType()
-        when 'educational'  then 'by-request'
-        when 'company'      then 'by-invite'
-        when 'project'      then 'public'
-        when 'custom'       then 'public'
-
-    getVisibilityDefault = ->
-      switch getGroupType()
-        when 'educational'  then 'visible'
-        when 'company'      then 'hidden'
-        when 'project'      then 'visible'
-        when 'custom'       then 'visible'
-
-    applyDefaults =->
-      {Privacy,Visibility} = modal.modalTabs.forms["General Settings"].inputs
-      Privacy.setValue getPrivacyDefault()
-      Visibility.setValue getVisibilityDefault()
-
-    modalOptions =
-      title                          : 'Create a new group'
-      height                         : 'auto'
-      cssClass                       : "group-admin-modal compose-message-modal admin-kdmodal"
-      width                          : 684
-      overlay                        : yes
-      tabs                           :
-        navigable                    : no
-        goToNextFormOnSubmit         : yes
-        hideHandleContainer          : yes
-        callback                     : (formData)=>
-          KD.track "Groups", "CreateNewGroup"
-          _createGroupHandler.call @, formData, (err) =>
-            modal.modalTabs.forms["VM Settings"].buttons["Create Group"].hideLoader()
-            unless err
-              modal.destroy()
-        forms                        :
-          # "Select group type"        :
-          #   title                    : 'Group type'
-          #   buttons                  :
-          #     "Next"                 :
-          #       style                : "modal-clean-gray"
-          #       type                 : "submit"
-          #       callback             : -> applyDefaults()
-          #   fields                   :
-          #     "type"                 :
-          #       name                 : "type"
-          #       itemClass            : GroupCreationSelector
-          #       defaultValue         : "project"
-          #       cssClass             : "group-type"
-          #       radios               : [
-          #         { title : "University/School", value : "educational", callback: -> log "1"}
-          #         { title : "Company",           value : "company", callback: -> log "2"}
-          #         { title : "Project",           value : "project", callback: -> log "3"}
-          #         { title : "Other",             value : "custom", callback: -> log "4"}
-          #       ]
-          #       change               : -> log @getValue()
-
-          "General Settings"         :
-            title                    : 'Create a group'
-            callback                 : ->
-              form = modal.modalTabs.forms["General Settings"]
-              unless form.inputs["Group VM"].getValue()
-                modal.modalTabs.removePaneByName "VM Settings"
-                modal.modalTabs.fireFinalCallback()
-            buttons                  :
-              "Next"                 :
-                style                : "modal-clean-gray"
-                type                 : "submit"
-                loader               :
-                  color              : "#444444"
-                  diameter           : 12
-              "Back"                 :
-                style                : "modal-cancel"
-                callback             : ->
-                  form = modal.modalTabs.forms["Select group type"]
-                  form.buttons.Next.hideLoader()
-                  modal.modalTabs.showPreviousPane()
-            fields                   :
-              "Title"                :
-                label                : "Title"
-                name                 : "title"
-                validate             :
-                  event              : "blur"
-                  rules              :
-                    required         : yes
-                    minLength        : 4
-                keydown              : (pubInst, event)->
-                  @utils.defer =>
-                    makeSlug()
-                placeholder          : 'Please enter your group title...'
-              "HiddenSlug"           :
-                name                 : "slug"
-                type                 : "hidden"
-                cssClass             : "hidden"
-              "Slug"                 :
-                label                : "Address"
-                partial              : "#{location.protocol}//#{location.host}/"
-                itemClass            : KDCustomHTMLView
-              "Description"          :
-                label                : "Description"
-                type                 : "textarea"
-                name                 : "body"
-                defaultValue         : ""
-                placeholder          : "Please enter a description for your group here..."
-              "Privacy"              :
-                label                : "Privacy/Visibility"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "privacy"
-                defaultValue         : "public"
-                selectOptions        :
-                  Public             : [
-                    { title : "Anyone can join",    value : "public" }
-                  ]
-                  Private            : [
-                    { title : "By invitation",       value : "by-invite" }
-                    { title : "By access request",   value : "by-request" }
-                    { title : "In same domain",      value : "same-domain" }
-                  ]
-                nextElement          :
-                  "Visibility"       :
-                    itemClass        : KDSelectBox
-                    type             : "select"
-                    name             : "visibility"
-                    defaultValue     : "visible"
-                    cssClass         : "visibility"
-                    selectOptions    : [
-                      { title : "Visible in group listings",    value : "visible" }
-                      { title : "Hidden in group listings",     value : "hidden" }
-                    ]
-              "Group VM"             :
-                label                : "Create virtual machines for the group"
-                itemClass            : KDOnOffSwitch
-                name                 : "group-vm"
-                defaultValue         : yes
-                callback             : (state)->
-                  form = modal.modalTabs.forms["General Settings"]
-                  form.buttons.Next.setTitle unless state then "Create Group" \
-                                                          else "Next"
-          "VM Settings"              :
-            title                    : 'VM Settings'
-            buttons                  :
-              "Create Group"         :
-                style                : "modal-clean-gray"
-                type                 : "submit"
-                loader               :
-                  color              : "#444444"
-                  diameter           : 12
-              "Back"                 :
-                style                : "modal-cancel"
-                callback             : ->
-                  modal.modalTabs.showPreviousPane()
-                  form = modal.modalTabs.forms["General Settings"]
-                  form.buttons.Next.hideLoader()
-            fields                   :
-              "VM Host"               :
-                label                : "Host Machine"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-host"
-                defaultValue         : "1"
-                selectOptions        : [
-                  { title : "2GHz, 4GB RAM, 20GB Disk",      value : "1" }
-                  { title : "4GHz, 4GB RAM, 40GB Disk",      value : "2" }
-                  { title : "8GHz, 8GB RAM, 60GB Disk",      value : "3" }
-                  { title : "8GHz, 16GB RAM, 60GB Disk",     value : "4" }
-                  { title : "16GHz, 32GB RAM, 100GB Disk",   value : "5" }
-                ]
-              "Users per VM"         :
-                label                : "VM's per host"
-                itemClass            : KDSelectBox
-                name                 : "vm-users"
-                defaultValue         : "25"
-                selectOptions        : [
-                  { title : "5",     value : "5" }
-                  { title : "10",     value : "10" }
-                  { title : "25",     value : "25" }
-                  { title : "50",     value : "50" }
-                  { title : "100",     value : "100" }
-                ]
-              "userQuota"            :
-                label                : "Users can create FREE additional VM's up to"
-                itemClass            : KDSelectBox
-                name                 : "vm-additional-free-amount"
-                defaultValue         : "1"
-                selectOptions        : [
-                  { title : "0",            value : "0" }
-                  { title : "1",            value : "1" }
-                  { title : "2",            value : "2" }
-                  { title : "3",            value : "3" }
-                  { title : "5",            value : "5" }
-                  { title : "10",           value : "10" }
-                  { title : "25",           value : "25" }
-                  { title : "Unlimited",    value : "unlimited" }
-                ]
-              "additionalVMs"        :
-                label                : "Users can buy additional VM's for"
-                itemClass            : KDSelectBox
-                name                 : "vm-additional-price"
-                defaultValue         : "5"
-                selectOptions        : [
-                  { title : "Free",     value : "0" }
-                  { title : "$ 1",      value : "1" }
-                  { title : "$ 5",      value : "5" }
-                  { title : "$ 10",     value : "10" }
-                  { title : "$ 25",     value : "25" }
-                  { title : "$ 50",     value : "50" }
-                  { title : "$ 100",    value : "100" }
-                  { title : "Custom...",value : "custom" }
-                ]
-                change                : =>
-                  {additionalVMs, additionalVmCustom} = modal.modalTabs.forms["VM Settings"].inputs
-                  if additionalVMs.getValue() is 'custom'
-                  then additionalVmCustom.show()
-                  else additionalVmCustom.hide()
-                nextElement           :
-                  "additionalVmCustom":
-                    name              : "vm-additional-price-custom"
-                    cssClass          : 'hidden'
-                    placeholder       : '42'
-              "membershipFee"        :
-                label                : "Users should pay a monthly fee of"
-                itemClass            : KDSelectBox
-                name                 : "vm-membership-fee"
-                defaultValue         : "5"
-                selectOptions        : [
-                  { title : "Free",     value : "0" }
-                  { title : "$ 1",      value : "1" }
-                  { title : "$ 5",      value : "5" }
-                  { title : "$ 10",     value : "10" }
-                  { title : "$ 25",     value : "25" }
-                  { title : "$ 50",     value : "50" }
-                  { title : "$ 100",    value : "100" }
-                  { title : "Custom...",value : "custom" }
-                ]
-                change                : =>
-                  {membershipFee, membershipFeeCustom} = modal.modalTabs.forms["VM Settings"].inputs
-                  if membershipFee.getValue() is 'custom'
-                  then membershipFeeCustom.show()
-                  else membershipFeeCustom.hide()
-                nextElement             :
-                  "membershipFeeCustom" :
-                    name                : "vm-membership-fee-custom"
-                    cssClass            : 'hidden'
-                    placeholder         : '42'
-
-    modal = new GroupCreationModal #modalOptions
-    # form = modal.modalTabs.forms["General Settings"]
-    # form.on "FormValidationFailed", ->
-    #   form.buttons.Next.hideLoader()
+  showGroupSubmissionView:-> new GroupCreationModal
 
   handleError =(err, buttons)->
     unless buttons
@@ -689,12 +434,6 @@ class GroupsAppController extends AppController
         modalOptions.buttons[buttonTitle] = buttonOptions
 
       modal = new KDModalView modalOptions
-
-  resolvePendingRequests:(group, takeDestructiveAction, callback, modal)->
-    group.resolvePendingRequests takeDestructiveAction, (err)->
-      modal.destroy()
-      handleError err  if err?
-      callback err
 
   cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled

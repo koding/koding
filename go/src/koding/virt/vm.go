@@ -235,7 +235,7 @@ func (vm *VM) MountRBD(mountDir string) error {
 			vm.DiskSizeInMB = 1200
 		}
 		if vm.SnapshotName == "" {
-			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
+			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "1").CombinedOutput(); err != nil {
 				return commandError("rbd create failed.", err, out)
 			}
 		}

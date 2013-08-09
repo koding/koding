@@ -41,6 +41,7 @@ module.exports = class JTutorial extends JPost
       instance        : [
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
+        { name: 'PostIsDeleted' }
       ]
       static          : [
         { name: 'updateInstance' }

@@ -66,7 +66,11 @@ func main() {
 
 	go ldapserver.Listen()
 	go LimiterLoop()
-	k := kite.New("os", true)
+	kiteName := "os"
+	if config.Region != "" {
+		kiteName += "-" + config.Region
+	}
+	k := kite.New(kiteName, true)
 
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
@@ -285,6 +289,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		permissions := vm.GetPermissions(&user)
 		if permissions == nil {
 			return nil, &kite.PermissionError{}
+		}
+
+		if vm.Region != config.Region {
+			time.Sleep(time.Second) // to avoid rapid cycle channel loop
+			return nil, &kite.WrongChannelError{}
 		}
 
 		if vm.HostKite != k.ServiceUniqueName {
