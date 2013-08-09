@@ -1,6 +1,7 @@
 class GlobalNotification extends KDView
   constructor:(options={},data)->
     options.title       =   'Shutdown in' if options.title is ''
+    options.endTitle    ?=  'Shutting down anytime now.'
     options.messageType ?=  options.type
     options.targetDate  ?=  new Date(Date.now()+5*60*1000)
     options.duration    =   new Date(options.targetDate) - new Date Date.now()
@@ -134,7 +135,6 @@ class GlobalNotification extends KDView
   pistachio:->
      """
      <div class='header'>
-     <span class='icon'></span>
      {{> @timer}}
      </div>
      {{> @content}}
@@ -178,6 +178,8 @@ class GlobalNotification extends KDView
   notificationStartTimer:(duration)->
     return if duration is 0
 
+    options = @getOptions()
+
     timeText = (remaining=300000,titleText)->
       seconds = Math.floor remaining/1000
       minutes = Math.floor seconds/60
@@ -191,11 +193,11 @@ class GlobalNotification extends KDView
         else
           text += "#{seconds} second#{if seconds isnt 1 then 's' else ''}"
       else
-        "Shutting down anytime now."
+        options.endTitle
 
     @timer.updatePartial timeText duration, @titleText
 
-    @notificationInterval = setInterval ()=>
+    @notificationInterval = setInterval =>
       currentTimePercentage = @getCurrentTimePercentage()
       options = @getOptions()
       @current.getDomElement()[0].style.width = currentTimePercentage+'%'
@@ -207,8 +209,9 @@ class GlobalNotification extends KDView
       @timer.updatePartial timeText currentTime, @titleText
 
       @recalculatePosition()
-      if currentTime < 0
+      if currentTime <= 0
         @done = yes
+        @getOptions().callback?()
         clearInterval @notificationInterval
         @$('.slider-wrapper').addClass 'done'
     ,1000

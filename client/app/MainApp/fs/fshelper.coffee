@@ -20,7 +20,7 @@ class FSHelper
 
     sortedFiles = []
     for p in [yes, no]
-      z = [x for x in files when x.isDir is p][0].sort (x,y)-> x.name > y.name
+      z = (x for x in files when x.isDir is p).sort (x,y)-> x.name > y.name
       sortedFiles.push x for x in z
 
     nickname = KD.nick()
@@ -44,6 +44,8 @@ class FSHelper
 
   @plainPath:(path)-> path.replace /\[.*\]/, ''
   @getVMNameFromPath:(path)-> (/\[([^\]]+)\]/g.exec path)?[1]
+
+  @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{KD.nick()}///, '~'
 
   @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
     command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"

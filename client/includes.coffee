@@ -282,6 +282,7 @@ module.exports = [
   #Finder Modals
   "app/MainApp/filetree/modals/openwith/openwithmodalitem.coffee",
   "app/MainApp/filetree/modals/openwith/openwithmodal.coffee",
+  "app/MainApp/filetree/modals/vmdangermodalview.coffee",
 
   # SINANS FINDER
   "app/MainApp/filetree/controllers/findercontroller.coffee",
@@ -340,7 +341,7 @@ module.exports = [
   "app/MainApp/login/registerform.coffee",
   "app/MainApp/login/recoverform.coffee",
   "app/MainApp/login/resetform.coffee",
-  "app/MainApp/login/requestform.coffee",
+  "app/MainApp/login/redeemform.coffee",
 
   # BOTTOM PANEL
   # "app/MainApp/bottompanels/bottompanelcontroller.coffee",
@@ -393,15 +394,13 @@ module.exports = [
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
 
-  "app/MainApp/monitor.coffee",
-  "app/MainApp/monitorview.coffee",
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
-  "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Activity.kdapplication/AppController.coffee",
+  "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
-  # "app/Applications/Environment.kdapplication/AppController.coffee",
+  "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Apps.kdapplication/AppController.coffee",
   "app/Applications/Inbox.kdapplication/AppController.coffee",
   "app/Applications/Demos.kdapplication/AppController.coffee",
@@ -557,7 +556,6 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
   "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
   "app/Applications/Environments.kdapplication/AppView.coffee",
-  "app/Applications/Environments.kdapplication/AppController.coffee",
   # "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
@@ -675,6 +673,8 @@ module.exports = [
   "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
   "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
   "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
+  "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
+  "app/Applications/Home.kdapplication/Views/featuredactivitiescontainer.coffee",
   "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
@@ -688,7 +688,7 @@ module.exports = [
   # "app/Applications/GroupsFake.kdapplication/AppController.coffee",
 
   # ACCOUNT SETTINGS
-
+  "app/Applications/Account.kdapplication/account/accountListViewController.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee",
@@ -756,6 +756,8 @@ module.exports = [
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
+
+  "app/CommonViews/modalappslistitemview.coffee",
 
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
@@ -850,6 +852,7 @@ module.exports = [
   "stylus/app.1024.styl",
   "stylus/app.768.styl",
   "stylus/app.480.styl",
+  "stylus/app.400.styl",
 
   "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",

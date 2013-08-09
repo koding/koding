@@ -20,10 +20,8 @@ class LoginView extends KDScrollView
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
-    learnMoreHandler  = handler.bind null, '/Join'
     loginHandler      = handler.bind null, '/Login'
     registerHandler   = handler.bind null, '/Register'
-    joinHandler       = handler.bind null, '/Join'
     recoverHandler    = handler.bind null, '/Recover'
 
     @logo = new KDCustomHTMLView
@@ -41,11 +39,6 @@ class LoginView extends KDScrollView
       tagName     : "a"
       partial     : "Recover password"
       click       : recoverHandler
-
-    @goToRequestLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Request an invite"
-      click       : joinHandler
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
@@ -71,12 +64,17 @@ class LoginView extends KDScrollView
         @doRegister formData
         KD.track "Login", "RegisterButtonClicked"
 
+    @redeemForm = new RedeemInlineForm
+      cssClass : "login-form"
+      callback : (formData)=>
+        @doRedeem formData
+        KD.track "Login", "RedeemButtonClicked"
+
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRecover formData
         KD.track "Login", "RecoverButtonClicked"
-
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
@@ -84,12 +82,6 @@ class LoginView extends KDScrollView
         formData.clientId = $.cookie('clientId')
         @doReset formData
         KD.track "Login", "ResetButtonClicked"
-
-    @requestForm = new RequestInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
-        @doRequest formData
-        KD.track "Login", "RequestButtonClicked"
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -155,22 +147,20 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rf">
         {{> @registerForm}}
       </div>
+      <div class="login-form-holder rdf">
+        {{> @redeemForm}}
+      </div>
       <div class="login-form-holder rcf">
         {{> @recoverForm}}
       </div>
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
-      <div class="login-form-holder rqf">
-        <h3 class="kdview kdheaderview "><span>REQUEST AN INVITE:</span></h3>
-        {{> @requestForm}}
-      </div>
     </div>
     <div class="login-footer">
-      <p class='reqLink'>Want to get in? {{> @goToRequestLink}}</p>
-      <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
+      <p class='regLink'>Not a member? {{> @goToRegisterLink}}</p>
+      <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
-      <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
     </div>
     """
 
@@ -196,15 +186,6 @@ class LoginView extends KDScrollView
           content   : "We've sent you a password recovery token."
           duration  : 4500
 
-  showInstructionsBookIfFirstLogin:->
-    appStorage = new AppStorage "instruction-book", "1.0"
-    appStorage.fetchValue "readPages", (pages) ->
-      pages or= []
-      if pages.length is 0
-        pages.push "table-of-contents"
-        appStorage.setValue "readPages", pages
-        KD.getSingleton('mainController').emit "FirstTimeLoginHappened", 1
-
   doRegister:(formData)->
     formData.agree = 'on'
     @registerForm.notificationsDisabled = yes
@@ -213,7 +194,7 @@ class LoginView extends KDScrollView
     # we need to close the group channel so we don't receive the cycleChannel event.
     # getting the cycleChannel even for our own MemberAdded can cause a race condition
     # that'll leak a guest account.
-    KD.getSingleton('groupsController').groupChannel.close()
+    KD.getSingleton('groupsController').groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
       account = KD.whoami()
@@ -228,6 +209,7 @@ class LoginView extends KDScrollView
 
       else
 
+        $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
 
@@ -236,7 +218,6 @@ class LoginView extends KDScrollView
           title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
-        @showInstructionsBookIfFirstLogin()
 
         # send information to mixpanel
         KD.track 'UserLogin', 'UserRegistered',
@@ -309,7 +290,6 @@ class LoginView extends KDScrollView
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
-          # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
 
@@ -322,23 +302,15 @@ class LoginView extends KDScrollView
 
       @hide()
 
-  doRequest:(formData)->
-    {entryPoint} = KD.config
-    slug = if entryPoint?.type is 'group' and entryPoint.slug\
-           then entryPoint.slug else KD.defaultSlug
-    KD.remote.cacheable slug, (err, [group])=>
-      group.requestAccess formData, (err)=>
-        if err
-          warn err
-          new KDNotificationView
-            title     : 'Something went wrong, please try again!'
-            duration  : 2000
-        else
-          @requestForm.reset()
-          @requestForm.email.hide()
-          @requestForm.button.hide()
-          @$('.flex-wrapper').addClass 'expanded'
-        @requestForm.button.hideLoader()
+  doRedeem:({inviteCode})->
+    return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
+
+    KD.remote.cacheable KD.config.entryPoint.slug, (err, [group])=>
+      group.redeemInvitation inviteCode, (err)=>
+        @redeemForm.button.hideLoader()
+        return KD.notify_ err.message or err  if err
+        KD.notify_ 'Success!'
+        KD.getSingleton('mainController').accountChanged KD.whoami()
 
   showHeadBanner:(message, callback)->
     @headBannerMsg = message
@@ -371,6 +343,7 @@ class LoginView extends KDScrollView
       $('body').removeClass 'recovery'
       @show =>
         @animateToForm "register"
+        @$('.flex-wrapper').addClass 'taller'
         KD.getSingleton('mainController').emit 'InvitationReceived', invite
 
   hide:(callback)->
@@ -378,8 +351,6 @@ class LoginView extends KDScrollView
     @setY -KD.getSingleton('windowController').winHeight
 
     cb = =>
-      @requestForm.email.show()
-      @requestForm.button.show()
       @$('.flex-wrapper').removeClass 'expanded'
 
       @emit "LoginViewHidden"
@@ -415,7 +386,7 @@ class LoginView extends KDScrollView
             if entryPoint?.type is 'group' and entryPoint.slug
             then route.replace "/#{entryPoint.slug}", ''
             else route
-          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Join', '/Recover']
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover']
             router.handleRoute route
             routed = yes
             break
@@ -443,15 +414,15 @@ class LoginView extends KDScrollView
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "join register recover login reset home"
+      @unsetClass "register recover login reset home"
       @emit "LoginViewAnimated", name
       @setClass name
 
       switch name
-        when "join"
-          @requestForm.email.input.setFocus()
         when "register"
-          @registerForm.invitationCode.input.setFocus()
+          @registerForm.firstName.input.setFocus()
+        when "redeem"
+          @redeemForm.inviteCode.input.setFocus()
         when "login"
           @loginForm.username.input.setFocus()
         when "recover"

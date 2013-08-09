@@ -7,16 +7,16 @@ class GroupsInvitationListItemView extends KDListItemView
     super options, data
 
     @avatar      = new AvatarStaticView
-      size :
+      size     :
         width  : 40
         height : 40
     @profileLink = new KDCustomHTMLView
       tagName : 'span'
       partial : @getData().email
 
-    if @getData().koding?.username
+    if @getData().username
       @profileLink = new ProfileLinkView {}
-      KD.remote.cacheable @getData().koding.username, (err, [account])=>
+      KD.remote.cacheable @getData().username, (err, [account])=>
         @avatar.setData account
         @avatar.render()
         @profileLink.setData account
@@ -30,6 +30,7 @@ class GroupsInvitationListItemView extends KDListItemView
       callback    : =>
         @getData().approve (err)=>
           @updateButtons err, 'approved'
+          @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @declineButton = new KDButtonView
       style       : 'clean-gray'
@@ -37,8 +38,9 @@ class GroupsInvitationListItemView extends KDListItemView
       icon        : yes
       iconClass   : 'decline'
       callback    : =>
-        @getData().declineInvitation (err)=>
+        @getData().decline (err)=>
           @updateButtons err, 'declined'
+          @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @deleteButton = new KDButtonView
       style       : 'clean-gray'
@@ -46,8 +48,9 @@ class GroupsInvitationListItemView extends KDListItemView
       icon        : yes
       iconClass   : 'decline'
       callback    : =>
-        @getData().deleteInvitation (err)=>
+        @getData().remove (err)=>
           @updateButtons err, 'deleted'
+          @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @statusText    = new KDCustomHTMLView
       partial     : '<span class="icon"></span><span class="title"></span>'
@@ -70,8 +73,7 @@ class GroupsInvitationListItemView extends KDListItemView
     @statusText.unsetClass 'hidden'
 
   updateButtons:(err, expectedStatus)->
-    if err
-      return new KDNotificationView title:'An error occurred. Please try again later'
+    return KD.showError err  if err
 
     @getData().status = expectedStatus
 
@@ -85,7 +87,7 @@ class GroupsInvitationListItemView extends KDListItemView
     @decorateButtons()
 
   pistachio:->
-    {status} = @getData()
+    {status, requestedAt, createdAt} = @getData()
     """
     <section>
       <div class="buttons">
@@ -95,7 +97,7 @@ class GroupsInvitationListItemView extends KDListItemView
       <span class="avatar">{{> @avatar}}</span>
       <div class="details">
         {{> @profileLink}}
-        <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
+        <div class="requested-at">{{(new Date #(requestedAt) ? #(createdAt)).format('mm/dd/yy')}}</div>
       </div>
     </section>
     """

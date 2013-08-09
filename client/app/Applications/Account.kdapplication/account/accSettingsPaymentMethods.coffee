@@ -1,5 +1,7 @@
-class AccountPaymentMethodsListController extends KDListViewController
+class AccountPaymentMethodsListController extends AccountListViewController
   constructor:(options,data)->
+
+    options.noItemFoundText = "You have no payment method."
     super options,data
 
     @loadItems()

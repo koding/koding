@@ -198,7 +198,7 @@ app.starttab.styl
       right               5px
       margin-top          -30px
       opacity             0
-      vendor              transition, opacity .15s linear
+      // vendor              transition, opacity .15s linear
 
     span.icon
       size                20px, 20px
@@ -395,4 +395,45 @@ app.starttab.styl
         .full-hor-b
           margin-top      9px
 
+.download-files-link
+  position               absolute
+  font-size              12px
+  font-weight            600
+  padding                2px 7px
+  top                    6px
+  background             rgba(255, 248, 196, 0.7)
+  border                 1px solid #F7DEAE
+  height                 15px
+  line-height            15px
+  border-radius          4px
+  padding-right          22px
+  cursor                 pointer
+  color                  #555
+  left                   50%
+  width                  318px
+  margin-left            -176px
+  .close-download-notification
+    margin-left          5px
+    size                 14px, 14px
+    bg                   position, -83px -243px
+    abs()
+    sprite()
 
+.old-file-download-modal
+  .modal-cancel:focus
+    border              none
+    box-shadow          none
+  .download-link
+    border              none
+    font-size           14px
+    font-weight         600
+    margin-top          5px
+    line-height         24px
+    text-overflow       ellipsis
+    overflow            hidden
+    width               350px
+    display             inline-block
+    white-space         nowrap
+    color               #ff9200
+    text-decoration     none
+    border              none

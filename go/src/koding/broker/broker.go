@@ -77,7 +77,9 @@ func main() {
 				defer log.RecoverAndLog()
 
 				for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
-					log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
+					if !(strings.Contains(amqpErr.Error(), "NOT_FOUND") && (strings.Contains(amqpErr.Error(), "koding-social-") || strings.Contains(amqpErr.Error(), "auth-"))) {
+						log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
+					}
 
 					sendToClient(session, "broker.error", map[string]interface{}{"code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 				}

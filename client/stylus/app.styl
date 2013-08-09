@@ -9,9 +9,9 @@ active-color = rgb(246,162,32)
 body
 
   font-family         "Open Sans", Helvetica, sans-serif
-  background-color    #393630
-  background-image    url(../images/koding-new-bg.png)
-  background-repeat   repeat-x
+  bg                  color, #393630
+  bg                  image, url('../images/koding-new-bg.png')
+  bg                  repeat, repeat-x
   font-weight         400
   overflow            hidden
   // &.login,
@@ -91,7 +91,7 @@ body
     opacity      0
 
 .pulsing
-  vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
+  vendor            transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
   vendor            animation, pulse 1.5s ease-in-out 100
 
 .main-loading
@@ -137,18 +137,20 @@ body
 }
 
 #kdmaincontainer
-  vendor            transition, opacity .6s ease-in-out
-  overflow          visible
+  // vendor              transition, opacity .6s ease-in-out
+  overflow            visible
   &.scale
-    vendor         animation, shrink 1s ease-out
-    vendor         animation-iteration-count, 1
-    vendor         transform-style, preserve-3d
-    vendor         transform, scale(0)
+    vendor            animation, shrink 1s ease-out
+    vendor            animation-iteration-count, 1
+    vendor            transform-style, preserve-3d
+    vendor            transform, scale(0)
 
   > header
     margin            0
     bg                color,transparent
     size              100%,51px
+    > div.kdview
+      max-width       1280px
     .button-holder
       width           auto
       padding         10px
@@ -210,6 +212,7 @@ body
   font-weight         600
   -moz-opacity        0.99 //hack for FF bold rendering issue
   color               #f2f2f2
+  vendor              transition, left .15s linear
   vendor              font-smoothing, antialiased
   vendor              text-rendering, geometricPrecision
   text-shadow         0 1px 0 rgba(0, 0, 0, .75)
@@ -225,7 +228,8 @@ body
   &.group
     span
       size            30px, 30px
-
+  &.large
+    left              70px
 
 #sidebar-panel
   abs()
@@ -250,10 +254,13 @@ body
     shadow            none
   &.with-finder
     left              260px
+    kalc              width, 100%\-260px, 100%
   &.mouse-on-nav
     left              173px!important
+    kalc              width, 100%\-173px, 100%
   &.social
     left              160px!important
+    kalc              width, 100%\-160px, 100%
   &.develop
     min-width         250px
   &.no-anim
@@ -265,10 +272,10 @@ body
     bottom            0!important
     right             0!important
     z-index           10
-    height            calc(100% \+ 51px)
+    kalc              height, 100% \+ 51px, 100%
     .application-page
       padding         0!important
-      height          calc(100% \+ 10px)
+      kalc            height, 100% \+ 10px, 100%
     .app-settings-menu
       top             0
       right           0
@@ -348,7 +355,7 @@ body
       size              20px, 20px
       margin            5px auto
       opacity           .2
-      vendor            transition, opacity .15s linear
+      // vendor            transition, opacity .15s linear
       sprite()
       &:hover
         opacity         1
@@ -378,6 +385,7 @@ body
     bg                  repeat,no-repeat
     shadow              inset 0 0 13px 0 rgba(0,0,0,0.6)
     size                100%,76px
+    cursor              pointer
     // vendor transition,  background-size 0.15s ease-in-out
     h3
       abs()
@@ -535,6 +543,7 @@ span.main-nav-icon
   &.group
     bg                    position, 0 -560px
   &.invite-friends
+    bg                    position, -220px -360px
   &.transparent
     text-shadow     0 -1px 0 #26231F
     padding         3px 3px 1px 3px
@@ -965,10 +974,11 @@ span.main-nav-icon
 /*
 **  LEFT SIDEBAR STYLES
 */
-.profile-personal-wrapper
-#sidebar #main-nav
+
+#sidebar
+  #main-nav
     rel()
-    size              160px,auto
+    size              160px, auto
     min-height        100%
     overflow          hidden
     .avatar-placeholder
@@ -981,7 +991,7 @@ span.main-nav-icon
 
     .kdlistview-navigation
       opacity         1
-      vendor          transition, opacity .3s linear
+      // vendor          transition, opacity .3s linear
       margin-top      10px
       &.out
         opacity       0
@@ -990,8 +1000,7 @@ span.main-nav-icon
       height          27px
       border-top      1px solid #403d37
       overflow        visible
-      // margin          0 0 23px 0
-      margin          0 0 0px 0
+      margin          0 0 23px 0
       >a
         border-right      1px solid #403d37
         text-align        center
@@ -1324,7 +1333,7 @@ span.main-nav-icon
       margin      15px 20px 0
       line-height 19px
       &:last-child
-        margin    15px 20px
+        margin    0 20px 15px
     cite
       font-size   11px
       color       linkColor1

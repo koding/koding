@@ -25,7 +25,7 @@ module.exports =
     port        : 3000
     clusterSize : 1
     queueName   : socialQueueName+'web'
-    watch       : yes
+    watch       : no
   sourceServer  :
     enabled     : yes
     port        : 1337
@@ -80,17 +80,25 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  guestCleanerWorker     :
+    login                : 'prod-guestcleanerworker'
+    queueName            : socialQueueName+'guestcleaner'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '* * * * * *'
+    usageLimitInMinutes  : 60
+    watch                : no
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 4
-    watch       : yes
+    numberOfWorkers: 7
+    watch       : no
     queueName   : socialQueueName
     verbose     : no
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
     run         : no
   presence        :
@@ -115,7 +123,7 @@ module.exports =
       useNeo4j: yes
       logToExternal : yes
       resourceName: socialQueueName
-      suppressLogs: no
+      suppressLogs: yes
       version   : version
       mainUri   : "http://koding.com"
       broker    :
@@ -126,9 +134,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
-    host        : 'rabbitmq1.in.koding.com'
+    host        : 'rabbitmq.in.koding.com'
     port        : 5672
-    apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
+    apiAddress  : "rabbitmq.in.koding.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"

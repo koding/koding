@@ -22,10 +22,6 @@ body.group
   overflow                     hidden
   #content-page-activity
     height                     100%
-    .kdview.screenshots
-      height                   auto
-      margin-top               0
-      transition               margin-top .3s ease
     &.fixed
       .common-inner-nav
         top                    51px
@@ -38,7 +34,7 @@ body.group
         margin                 0 0 0 138px
       .update-widget-tabs
         .kdtabpaneview
-          width                calc(100% \- 160px)
+          kalc                width, 100% \- 160px, 100%
       &.loggedin
         .common-inner-nav
           top                  128px
@@ -223,7 +219,7 @@ h1.kdheaderview.notification-header
     borderBox()
     &.hidden-item
       border-width        0
-      background-color    #FDF5D9
+      // background-color    #FDF5D9
       left                -100%
     .kdloader
       vertical-align      bottom
@@ -252,7 +248,7 @@ h1.kdheaderview.notification-header
       size(20px,20px)
       blockMid()
       &.fx
-        vendor            transition, opacity .3s ease-in\, left .3s ease-in
+        vendor            transition, left .3s ease-in //\, opacity .3s ease-in
         top               2px
         opacity           1
         left              0
@@ -365,9 +361,9 @@ h1.kdheaderview.notification-header
         opacity         1
 
     div.activity-settings-menu
-      vendor            transition, opacity .1s ease-out
+      // vendor            transition, opacity .1s ease-out
       size              21px, 18px
-      opacity           .2
+      opacity           0
       abs()
       top               0
       right             20px
@@ -465,9 +461,10 @@ h1.kdheaderview.notification-header
 
     .activity-actions
       color               #ccc
-      size                auto,auto
+      size                auto, auto
       fr()
-
+      i
+        font-style        normal
       span.like-view
       a.action-link
         margin            0 2px
@@ -530,7 +527,7 @@ h1.kdheaderview.notification-header
         width           19px
         height          19px
         opacity         .7
-        vendor          transition, opacity .2s ease
+        // vendor          transition, opacity .2s ease
         sprite()
         bg              position, -71px -343px
       &:hover
@@ -651,6 +648,7 @@ button.kdbutton.dark
 
   .kdinput.text
     size                  100%,33px
+    max-width             100%
     font-size             13px
     border-color          rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
     padding               8px 10px 6px 10px
@@ -1195,7 +1193,7 @@ div.show-more-opinions
     bg                    color, #FF9200
     border                1px solid #FF9200
     rounded(3px 3px 3px 3px)
-    vendor                transition, left .3s ease-in-out \, opacity .3s ease-in-out
+    vendor                transition, left .3s ease-in-out // \, opacity .3s ease-in-out
 
     &.in
       opacity             1
@@ -1279,7 +1277,7 @@ div.kdview.link-embed-box.condensed
   borderBox()
   rel()
 
-  vendor transition, opacity .1s linear
+  // vendor transition, opacity .1s linear
 
   width auto
   height auto
@@ -1320,7 +1318,7 @@ div.kdview.link-embed-box.condensed
     border none
     opacity 0.5
     background transparent
-    vendor transition, opacity 0.3s ease-in-out
+    // vendor transition, opacity 0.3s ease-in-out
     z-index 3
 
     > span.icon
@@ -1335,7 +1333,7 @@ div.kdview.link-embed-box.condensed
       opacity 1
 
   > div.embed-box-settings
-    vendor            transition, opacity .1s ease-out
+    // vendor            transition, opacity .1s ease-out
     size              21px, 18px
     opacity           .2
     abs()
@@ -1522,7 +1520,7 @@ div.kdview.link-embed-box.condensed
     borderBox()
     height inherit
     opacity 1
-    vendor transition, opacity 0.15s ease-in-out
+    // vendor transition, opacity 0.15s ease-in-out
 
     &.loading
       opacity 0.5
@@ -1709,7 +1707,7 @@ div.kdview.link-embed-box.condensed
             color white
             background-color #ccc
             padding 0px 3px
-            vendor transition, opacity 0.3s ease-in-out
+            // vendor transition, opacity 0.3s ease-in-out
             display inline-block
             rounded 3px
 
@@ -2129,7 +2127,7 @@ div.protocol-info-box
     border none
     opacity 0.5
     background transparent
-    vendor transition, opacity 0.3s ease-in-out
+    // vendor transition, opacity 0.3s ease-in-out
     z-index 3
 
     > span.icon
@@ -2496,123 +2494,13 @@ div.activity-content-container
 
 @keyframes pulseOnce
   50%
-    bg color,                           #0f0
+    bg                color, #0f0
 
 @keyframes pulseAlert
   50%
-      background-color                  #ff0
-      box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
-      opacity                           1
-
-// div.virt-controls
-//   padding-left                          10px
-//   text-align                            left
-
-//   div.led-label
-//     display                             inline-block
-//     padding-left                        10px
-//     font-size                           11px
-
-//   div.led-wrapper
-//     padding-left                        5px
-//     &.red
-//       .led
-//         box-shadow                        none !important //#000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
-//     &.green
-//       .led
-//         box-shadow                        none !important // rgba(0, 0, 0, 0.3) 0 -1px 5px 1px,inset #333 0 -1px 2px,#555 0 2px 6px
-//     &.yellow
-//       box-shadow                        none !important //#000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
-//     &.blue
-//       box-shadow                        none !important //#000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
-//     &.off
-//       box-shadow                        none !important
-
-//   div.led
-//     box-shadow                          none !important
-//     bg color,                           none !important
-
-// ---
-div.status-leds
-  margin                                0px auto 0px auto
-  text-align                            center
-  size                                  auto, 22px
-  opacity                               1
-  vendor transition,                    opacity 0.25s ease-in-out
-
-  &.fadeout
-    opacity 1
-
-  &.pulse
-    div.led-wrapper > .led
-      animation-name                    pulseOnce
-      animation-duration                1s
-      animation-iteration-count         1
-
-  &:hover
-    div.led-wrapper.green > .led
-      background-color                  darken(#0f0, 50%)
-    opacity                             1
-
-    div.led-wrapper:hover
-      &.green
-        .led
-          bg color,                       #0f0
-          box-shadow                      #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px
-      &.red
-        .led
-          bg color,                       #f60
-          box-shadow                      #000 0 -1px 7px 1px, inset #600 0 -1px 9px, #F00 0 2px 12px
-
-  div.led-wrapper
-    borderBox()
-    size 22px, 22px
-    padding 2px 0px
-    display                             inline-block
-    opacity 1
-    vendor transition, opacity .1s ease-in-out
-    &.fadeout
-      opacity 1
-    div.led
-      borderBox()
-      display inline-block
-      width                               6px
-      height                              6px
-      border-radius                       50%
-      vendor transition,                  background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out \, opacity 0.25s ease-in-out
-    &.red
-      .led
-        background-color                  #ff9200
-        box-shadow                        #000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
-        animation-name                    pulseAlert
-        animation-duration                1s
-        animation-iteration-count         infinite
-    &.green
-      .led
-        animation-name                    pulseOnce
-        animation-duration                1s
-        animation-iteration-count         1
-        background-color                  #5f5f5f
-        box-shadow                        rgba(0, 0, 0, 0.3) 0 -1px 5px 1px,inset #333 0 -1px 2px,#555 0 2px 6px
-        // box-shadow                        #181818 0 -1px 7px 1px, inset #333 0 -1px 5px, #555 0 2px 14px
-    &.yellow
-      background-color                  #ff0
-      box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
-    &.blue
-      background-color                  #00f
-      box-shadow                        #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
-    &.off
-      background-color                  #444
-      box-shadow                        #111 0 -1px 7px 1px, inset #333 0 -1px 9px, #888 0 2px 14px
-
-  div.status-label
-    color                               #ADADAD !important
-    font-size                           11px
-    cursor                              pointer
-    font-weight 300 !important
-    text-shadow none !important
-
-// ---
+    background-color  #ff0
+    box-shadow        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
+    opacity           1
 
 span.instance-count
   white-space                           pre
@@ -2731,28 +2619,26 @@ div.kdtooltip
 .notification.sticky
   abs()
   borderBox()
-  rounded 0 0 4px 4px
+  rounded                         0 0 4px 4px
   vendor transition, top 1.5s ease-in-out \, margin-left 0.5s ease-in-out
   // \, -webkit-transform 0.5s ease-in-out
-  top 0px
-  left 50%
-  margin-left -150px
-  min-width 300px
-  max-width 90%
-  width auto
-  height auto
-  background-color rgba(48,48,48,0.5)
-  z-index 20001
-  border 1px solid black
-  border-top none
-  border-bottom-color #5f5f5f
-  border-left-color #5F5F5F
-  border-right-color #5F5F5F
+  top                             0
+  left                            50%
+  margin-left                     -150px
+  min-width                       300px
+  max-width                       90%
+  width                           auto
+  height                          auto
+  background-color                rgba(48,48,48,0.5)
+  z-index                         20001
+  border                          1px solid black
+  border-top                      none
+  border-bottom-color             #5f5f5f
+  border-left-color               #5F5F5F
+  border-right-color              #5F5F5F
 
-  // gradient          rgba(0,0,0,.11),rgba(255,255,255,.04)
-
-  shadow 0px 0px 30px 5px rgba(0, 0, 0, 0.5)
-  cursor default
+  shadow                          0px 0px 30px 5px rgba(0, 0, 0, 0.5)
+  cursor                          default
   // vendor transform-origin, top center
   // vendor transform-style, flat
   // vendor transform , rotateX(0deg)
@@ -2763,57 +2649,50 @@ div.kdtooltip
   //   animation-iteration-count 1
 
   &.hidden
-    top -54px
+    top                           -54px
     // vendor transform , rotateX(-90deg)
-    display block!important
-    visibility visible!important
+    display                       block!important
+    visibility                    visible!important
 
   .header
     borderBox()
-    padding 2px 10px 3px 10px
-    width 100%
-    height auto
-    background-color rgba(0,0,0,0.333)
-    span.icon
-      display inline-block
-      fl()
-      margin-top -1px
-      margin-left -9px
-      size 18px 18px
-      sprite()
-      bg position, -20px -320px
+    padding                       2px 10px 3px 10px
+    width                         100%
+    height                        auto
+    background-color              rgba(0,0,0,0.333)
+
   .slider-wrapper
     borderBox()
-    border-top 1px solid darken(#5F5F5F,25%)
-    padding 5px
-    height 14px
-    vendor transition, height 0.5s ease-in-out \, padding 0.5s ease-in-out
+    border-top                    1px solid darken(#5F5F5F,25%)
+    padding                       5px
+    height                        14px
+    vendor                        transition, height 0.5s ease-in-out \, padding 0.5s ease-in-out
     &.done
-      border none
-      height 0px
-      padding 0px 5px
+      border                      none
+      height                      0px
+      padding                     0px 5px
       .slider
-        opacity 0
+        opacity                   0
     .slider
       borderBox()
-      width 100%
-      height 4px
-      bg color, #5f5f5f//#adadad
-      vendor transition, opacity 0.4s ease-in-out
-      opacity 1
-      rounded 2px
-      shadow inset 0px 0px 2px 0px rgba(255, 255, 255, 0.25) //\, 0px 0px 5px rgba(0,0,0,0.25)
+      width                       100%
+      height                      4px
+      bg color,                   #5f5f5f//#adadad
+      // vendor                      transition, opacity 0.4s ease-in-out
+      opacity                     1
+      rounded                     2px
+      shadow                      inset 0px 0px 2px 0px rgba(255, 255, 255, 0.25) //\, 0px 0px 5px rgba(0,0,0,0.25)
 
       .current
-        vendor transition, width 0.1s linear
+        vendor                    transition, width 0.1s linear
         borderBox()
-        width 100%
-        height 4px
-        background-color #ff9200
-        border-top 1px solid darken(#ff9200,15%)
-        border-right 1px solid lighten(#ff9200,50%)
-        border-bottom 1px solid lighten(#ff9200,33%)
-        border-left 1px solid darken(#ff9200,30%)
+        width                     100%
+        height                    4px
+        background-color          #ff9200
+        border-top                1px solid darken(#ff9200,15%)
+        border-right              1px solid lighten(#ff9200,50%)
+        border-bottom             1px solid lighten(#ff9200,33%)
+        border-left               1px solid darken(#ff9200,30%)
         rounded 2px
         // &.flash
         //   animation-name flashSlider
@@ -2821,35 +2700,40 @@ div.kdtooltip
         //   animation-iteration-count infinite
 
   .notification-timer
-    vertical-align top
-    text-align center
-    width auto
-    font-size 13px
-    font-weight 300
-    color lighten(#adadad,95%)
+    vertical-align                top
+    text-align                    center
+    width                         auto
+    font-size                     13px
+    font-weight                   300
+    color                         lighten(#adadad,95%)
     // white-space pre
-    overflow hidden
+    overflow                      hidden
     &:hover
-      cursor pointer
+      cursor                      pointer
 
   .notification-content
     borderBox()
-    width auto
-    vendor transition, height 0.25s linear
-    height 32px
+    width                         auto
+    vendor                        transition, height 0.25s linear
+    height                        32px
     &.hidden
-      height 0px!important
-      display block!important
-      visibility visible!important
+      height                      0px!important
+      display                     block!important
+      visibility                  visible!important
     .content
       borderBox()
-      height auto
-      color white!important
-      rounded 3px
-      text-shadow 0px 0px 1px black
-      font-weight 300
-      font-size 11px
-      padding 10px
+      height                      auto
+      color                       white!important
+      rounded                     3px
+      text-shadow                 0 0 1px black
+      font-weight                 300
+      font-size                   11px
+      padding                     10px
+      max-width                   298px
+      line-height                 1.5em
+      a
+        color                     #ff9200
+        text-decoration           none
 
 
 

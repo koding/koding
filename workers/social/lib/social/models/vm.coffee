@@ -31,7 +31,7 @@ module.exports = class JVM extends Model
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVmInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
-                           'count', #'calculateUsage'
+                           'count', 'fetchDefaultVm' #'calculateUsage'
                           ]
       instance          : []
     schema              :
@@ -152,15 +152,15 @@ module.exports = class JVM extends Model
 
   @parseAlias = (alias)->
     # group-vm alias
-    if /^shared-[0-9]/.test alias
-      result = alias.match /(.*)\.([a-z0-9-]+)\.kd\.io$/
+    if /^shared\-[0-9]+/.test alias
+      result = alias.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
       if result
         [rest..., prefix, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
         return {groupSlug, prefix, uid, type:'group', alias}
     # personal-vm alias
-    else if /^vm-[0-9]/.test alias
-      result = alias.match /(.*)\.([a-z0-9-]+)\.([a-z0-9-]+)\.kd\.io$/
+    else if /^vm\-[0-9]+/.test alias
+      result = alias.match /(.*)\.([a-z0-9\-]+)\.([a-z0-9\-]+)\.kd\.io$/
       if result
         [rest..., prefix, nickname, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
@@ -289,6 +289,21 @@ module.exports = class JVM extends Model
           hostnameAlias : vm.hostnameAlias
           type          : vm.vmType
 
+  @fetchDefaultVm = secure (client, callback)->
+    {delegate} = client.connection
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+      JGroup = require './group'
+      JGroup.one slug:'koding', (err, fetchedGroup)=>
+        return callback err  if err
+        JVM.one
+          users    : { $elemMatch: id: user.getId() }
+          groups   : { $elemMatch: id: fetchedGroup.getId() }
+          planCode : 'free'
+        , (err, vm)->
+          return callback err  if err
+          callback err, vm?.hostnameAlias
+
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback
 
@@ -313,10 +328,10 @@ module.exports = class JVM extends Model
 
     slug = group ? if delegate.type is 'unregistered' then 'guests' else 'koding'
 
-    JGroup.one {slug}, (err, group) =>
+    JGroup.one {slug}, (err, fetchedGroup) =>
       return callback err  if err
 
-      selector = groups: { $elemMatch: id: group.getId() }
+      selector = groups: { $elemMatch: id: fetchedGroup.getId() }
       @fetchAccountVmsBySelector delegate, selector, options, callback
 
   @fetchVms = secure (client, options, callback) ->
@@ -342,18 +357,18 @@ module.exports = class JVM extends Model
   # Public(shared) static method to fetch domains
   # which points to given hostnameAlias
   @fetchDomains$ = secure (client, hostnameAlias, callback)->
-      {delegate} = client.connection
+    {delegate} = client.connection
 
-      delegate.fetchUser (err, user) ->
-        return callback err  if err
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
 
-        selector =
-          hostnameAlias : hostnameAlias
-          users         : { $elemMatch: id: user.getId() }
+      selector =
+        hostnameAlias : hostnameAlias
+        users         : { $elemMatch: id: user.getId() }
 
-        JVM.one selector, {hostnameAlias:1}, (err, vm)->
-          return callback err, []  if err or not vm
-          JVM.fetchDomains {hostnameAlias: vm.hostnameAlias}, callback
+      JVM.one selector, {hostnameAlias:1}, (err, vm)->
+        return callback err, []  if err or not vm
+        JVM.fetchDomains {hostnameAlias: vm.hostnameAlias}, callback
 
   @removeRelatedDomains = (vm, callback=->)->
     vmInfo = @parseAlias vm.hostnameAlias
@@ -522,8 +537,9 @@ module.exports = class JVM extends Model
           JAccount.one {'profile.nickname':username}, (err, account)=>
             return console.error err  if err or not account
             # New account found
-
-            vm.update {$set: {hostnameAlias: newHostNameAlias}}, (err)=>
+            webHome       = username
+            hostnameAlias = newHostNameAlias
+            vm.update {$set: {hostnameAlias, webHome}}, (err)=>
               return console.error err  if err
               # VM hostnameAlias updated
 

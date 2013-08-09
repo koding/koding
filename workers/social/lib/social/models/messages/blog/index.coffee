@@ -6,6 +6,7 @@ module.exports = class JBlogPost extends JPost
   {Relationship} = require 'jraphical'
   {permit} = require '../../group/permissionset'
   {once, extend} = require 'underscore'
+  {sanitize} = require 'validator'
 
   @trait __dirname, '../../../traits/grouprelated'
 
@@ -15,31 +16,6 @@ module.exports = class JBlogPost extends JPost
     html    : String
     checksum: String
   }
-
-  @generateHTML=(content)->
-    options =
-      gfm : yes
-      sanitize : yes
-      highlight : (code, lang)->
-        hljs = require('highlight.js')
-        try
-          hljs.highlight(lang, code).value
-        catch e
-          try
-            hljs.highlightAuto(code).value
-          catch _e
-            code
-      breaks : yes
-      langPrefix : 'lang-'
-    marked = require('marked')
-    marked.setOptions options
-    marked content
-
-  @generateChecksum=(content)->
-    require('crypto')
-      .createHash('sha1')
-      .update(content)
-      .digest 'hex'
 
   @set
     slugifyFrom       : 'title'
@@ -57,6 +33,7 @@ module.exports = class JBlogPost extends JPost
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
+        { name: 'PostIsDeleted' }
       ]
       static          : [
         { name: 'updateInstance' }
@@ -68,22 +45,24 @@ module.exports = class JBlogPost extends JPost
   @getActivityType =-> require './blogpostactivity'
 
   @create = secure (client, data, callback)->
+    JMarkdownDoc = require '../../markdowndoc'
     blogPost  =
       meta        : data.meta
       title       : data.title
       body        : data.body
       group       : data.group
-      html        : @generateHTML data.body
-      checksum    : @generateChecksum data.body
+      html        : JMarkdownDoc.generateHTML data.body
+      checksum    : JMarkdownDoc.generateChecksum data.body
     JPost.create.call @, client, blogPost, callback
 
   modify: secure (client, data, callback)->
+    JMarkdownDoc = require '../../markdowndoc'
     blogPost =
       meta        : data.meta
       title       : data.title
       body        : data.body
-      html        : JBlogPost.generateHTML data.body
-      checksum    : JBlogPost.generateChecksum data.body
+      html        : JMarkdownDoc.generateHTML data.body
+      checksum    : JMarkdownDoc.generateChecksum data.body
     JPost::modify.call @, client, blogPost, callback
 
   reply: permit 'reply to posts',

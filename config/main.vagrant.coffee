@@ -71,6 +71,13 @@ module.exports =
     authAllExchange: authAllExchange
     numberOfWorkers: 1
     watch       : yes
+  guestCleanerWorker     :
+    login                : 'prod-social'
+    queueName            : socialQueueName+'guestcleaner'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '* * * * * *'
+    usageLimitInMinutes  : 60
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1

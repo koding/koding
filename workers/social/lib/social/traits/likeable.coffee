@@ -88,6 +88,7 @@ module.exports = class Likeable
           rel.fetchSource (err, source)->
             if not err and source
               source.flushSnapshot?()
+
     if constructor.name is 'JOpinion'
       Relationship.one
         targetId: @getId()

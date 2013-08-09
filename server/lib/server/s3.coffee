@@ -53,8 +53,8 @@ module.exports = (config, usernameFinder)->
         next()
 
     (req, res, next) ->
-      usernameFinder req, res, (err, username) ->
-        if err 
+      usernameFinder req, res, (err, isLoggedIn, username) ->
+        if err
           next(err)
         else if not username
           req.files.forEach (file)-> file.destroy

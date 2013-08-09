@@ -48,6 +48,12 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   exit! 0
 end
 
+goVersion = `go version | cut -d " " -f 3` rescue "0"
+if goVersion < "go1.1"
+  puts "", "Your go version is outdated! Please install at least version 1.1", ""
+  exit! 1
+end
+
 provision = ENV.has_key? "PROVISION"
 if provision
   if ARGV[0] != "plugin" and not `vagrant plugin list`.split("\n").include? "vagrant-salt (0.4.0)"
@@ -67,8 +73,8 @@ Vagrant.configure("2") do |config|
       default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
       default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
     else
-      default.vm.box = "koding-14"
-      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-14.box"
+      default.vm.box = "koding-15"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-15.box"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
@@ -77,6 +83,7 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
     default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # rockmongo
     default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
+    default.vm.network :forwarded_port, :guest => 6379, :host => 6379 # redis
     default.vm.hostname = "vagrant"
 
     default.vm.synced_folder ".", "/opt/koding"
