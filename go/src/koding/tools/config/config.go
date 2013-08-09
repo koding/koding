@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 )
 
 type Config struct {
@@ -142,4 +144,14 @@ func init() {
 		fmt.Printf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n", err.Error(), configJSON)
 		os.Exit(1)
 	}
+
+	sigChannel := make(chan os.Signal)
+	signal.Notify(sigChannel, syscall.SIGUSR2)
+	go func() {
+		for _ = range sigChannel {
+			LogDebug = !LogDebug
+			fmt.Printf("config.LogDebug: %v\n", LogDebug)
+		}
+	}()
+
 }

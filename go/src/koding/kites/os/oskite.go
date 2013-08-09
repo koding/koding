@@ -90,10 +90,12 @@ func main() {
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	go func() {
 		sig := <-sigtermChannel
+		log.Info("Shutdown initiated.")
 		shuttingDown = true
 		requestWaitGroup.Wait()
 		if sig == syscall.SIGUSR1 {
 			for _, info := range infos {
+				log.Info("Unpreparing " + info.vmName + "...")
 				info.unprepareVM()
 			}
 			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": k.ServiceUniqueName}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
