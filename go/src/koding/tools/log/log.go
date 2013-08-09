@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -33,6 +32,14 @@ const (
 	Bytes      = Unit("B")
 )
 
+type Event struct {
+	Level    int
+	Text     string
+	Data     []interface{}
+	Exit     bool
+	ExitCode int
+}
+
 var shortHostname string
 var loggrSource string
 var libratoSource string
@@ -40,7 +47,7 @@ var tags string
 var currentSecond int64
 var logCounter int
 var MaxPerSecond int = 10
-var sendChannel = make(chan url.Values, 1000)
+var sendChannel = make(chan *Event, 1000)
 
 var gauges = make([]*Gauge, 0)
 var GaugeChanges = make(chan func())
@@ -62,30 +69,44 @@ func Init(service string) {
 	})
 
 	if config.Current.Loggr.Push {
-		fmt.Printf("%s [%s]\n", time.Now().Format(time.StampMilli), tags)
-		fmt.Printf("%s %s\n", strings.Repeat(" ", len(time.StampMilli)), "Logging to Loggr instead of console.")
+		e := Event{Level: INFO, Text: "Logging to Loggr instead of console."}
+		fmt.Print(e.String())
 	}
 
 	go func() {
+		client := &http.Client{}
 		for event := range sendChannel {
-			if event.Get("exit") != "" {
-				code, _ := strconv.Atoi(event.Get("exit"))
-				os.Exit(code)
+			if event.Exit {
+				os.Exit(event.ExitCode)
 			}
 
-			if !config.Current.Loggr.Push {
-				fmt.Printf("%s [%s]\n", time.Now().Format(time.StampMilli), event.Get("tags"))
-				fmt.Printf("%s %s\n", strings.Repeat(" ", len(time.StampMilli)), event.Get("text"))
-				if event.Get("data") != "" {
-					for _, line := range strings.Split(event.Get("data"), "\n") {
-						fmt.Printf("%s %s\n", strings.Repeat(" ", len(time.StampMilli)), line)
-					}
-				}
+			if !config.Current.Loggr.Push || config.LogDebug {
+				fmt.Print(event.String())
+			}
+
+			if !config.Current.Loggr.Push || event.Level == DEBUG {
 				continue
 			}
 
-			event.Add("apikey", config.Current.Loggr.ApiKey)
-			resp, err := http.PostForm(config.Current.Loggr.Url, event)
+			values := url.Values{
+				"source": {loggrSource},
+				"tags":   {LEVEL_TAGS[event.Level] + " " + tags},
+				"text":   {event.Text},
+				"apikey": {config.Current.Loggr.ApiKey},
+			}
+			if len(event.Data) != 0 {
+				dataStrings := make([]string, len(event.Data))
+				for i, part := range event.Data {
+					if bytes, ok := part.([]byte); ok {
+						dataStrings[i] = string(bytes)
+						continue
+					}
+					dataStrings[i] = fmt.Sprint(part)
+				}
+				values.Add("data", strings.Join(dataStrings, "\n"))
+			}
+
+			resp, err := client.PostForm(config.Current.Loggr.Url, values)
 			if err != nil || resp.StatusCode != http.StatusCreated {
 				fmt.Printf("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
 			}
@@ -96,33 +117,13 @@ func Init(service string) {
 	}()
 }
 
-func Send(event url.Values) {
+func Send(event *Event) {
 	select {
 	case sendChannel <- event:
 		// successful
 	default:
 		fmt.Println("logger error: sendChannel is full.")
 	}
-}
-
-func NewEvent(level int, text string, data ...interface{}) url.Values {
-	event := url.Values{
-		"source": {loggrSource},
-		"tags":   {LEVEL_TAGS[level] + " " + tags},
-		"text":   {text},
-	}
-	if len(data) != 0 {
-		dataStrings := make([]string, len(data))
-		for i, part := range data {
-			if bytes, ok := part.([]byte); ok {
-				dataStrings[i] = string(bytes)
-				continue
-			}
-			dataStrings[i] = fmt.Sprint(part)
-		}
-		event.Add("data", strings.Join(dataStrings, "\n"))
-	}
-	return event
 }
 
 func Log(level int, text string, data ...interface{}) {
@@ -138,17 +139,36 @@ func Log(level int, text string, data ...interface{}) {
 	logCounter += 1
 	if !config.LogDebug && MaxPerSecond > 0 && logCounter > MaxPerSecond {
 		if logCounter == MaxPerSecond+1 {
-			Send(NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond)))
+			Send(&Event{Level: ERR, Text: fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond)})
 		}
 		return
 	}
 
-	Send(NewEvent(level, text, data...))
+	Send(&Event{Level: level, Text: text, Data: data})
 }
 
 func SendLogsAndExit(code int) {
-	Send(url.Values{"exit": {strconv.Itoa(code)}})
+	Send(&Event{Exit: true, ExitCode: code})
 	time.Sleep(time.Hour) // wait for exit
+}
+
+const ISO8601 = "2006-01-02T15:04:05.000"
+
+func (e Event) String() string {
+	indent := strings.Repeat(" ", len(ISO8601)+1)
+
+	s := time.Now().Format(ISO8601) + " [" + LEVEL_TAGS[e.Level] + " " + tags + "]\n"
+	s += indent + e.Text + "\n"
+
+	for _, part := range e.Data {
+		if bytes, ok := part.([]byte); ok {
+			s += indent + string(bytes) + "\n"
+			continue
+		}
+		s += indent + fmt.Sprint(part) + "\n"
+	}
+
+	return s
 }
 
 const (
@@ -261,9 +281,10 @@ func RunGaugesLoop() {
 
 func LogGauges(reportTime int64) {
 	if !config.Current.Librato.Push && !config.Current.Opsview.Push {
-		fmt.Printf("%s [gauges %s]\n", time.Now().Format(time.StampMilli), tags)
+		indent := strings.Repeat(" ", len(ISO8601)+1)
+		fmt.Printf("%s [gauges %s]\n", time.Now().Format(ISO8601), tags)
 		for _, gauge := range gauges {
-			fmt.Printf("%s %s: %v\n", strings.Repeat(" ", len(time.StampMilli)), gauge.Name, gauge.input())
+			fmt.Printf("%s%s: %v\n", indent, gauge.Name, gauge.input())
 		}
 		return
 	}

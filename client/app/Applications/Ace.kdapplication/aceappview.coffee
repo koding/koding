@@ -87,7 +87,7 @@ class AceAppView extends JView
     sessionData = @sessionData
     {nickname}  = KD.whoami().profile
     itemCount   = 0
-    for sessionId in sessionData.latestSessions
+    for sessionId in sessionData.latestSessions?
       return items if itemCount > 14
       sessionItems = sessionData[sessionId]
       sessionItems.forEach (path, i) =>

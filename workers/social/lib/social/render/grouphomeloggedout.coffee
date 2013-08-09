@@ -3,13 +3,14 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
   getSidebar      = require './sidebar'
+  validator       = require 'validator'
 
   """
 
   <!DOCTYPE html>
   <html>
   <head>
-    <title>#{title}</title>
+    <title>#{validator.sanitize(title).xss()}</title>
     #{getStyles()}
   </head>
   <body class="group">
@@ -18,7 +19,7 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
     <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
     <header class="kdview" id='main-header'>
       <div class="kdview">
-        <a class="group" id="koding-logo" href="#"><span></span>#{title}</a>
+        <a class="group" id="koding-logo" href="#"><span></span>#{validator.sanitize(title).xss()}</a>
       </div>
     </header>
     <section class="kdview" id="main-panel-wrapper">
@@ -29,7 +30,7 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
             <div id="content-page-activity" class="kdview content-page activity kdscrollview">
               <div class="kdview screenshots" id="home-group-header" >
                 <section id="home-group-body" class="kdview kdscrollview">
-                  <div class="group-desc">#{body}</div>
+                  <div class="group-desc">#{validator.sanitize(body).xss()}</div>
                 </section>
                 <div class="home-links" id="group-home-links">
                   <div class='overlay'></div>

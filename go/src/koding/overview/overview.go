@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/streadway/amqp"
 	"html/template"
 	"io/ioutil"
 	"koding/kontrol/kontrolproxy/proxyconfig"
-	"koding/tools/amqputil"
+	"koding/tools/config"
 	"log"
 	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -462,10 +464,10 @@ func switchVersion(newVersion string) error {
 		return errors.New("key does not exist for koding.com")
 	}
 
-	conn := amqputil.CreateConnection("overview")
+	conn := CreateAmqpConnection("overview")
 	defer conn.Close()
 
-	channel := amqputil.CreateChannel(conn)
+	channel := CreateChannel(conn)
 	defer channel.Close()
 
 	destination := "auth-" + newVersion
@@ -493,4 +495,28 @@ func switchVersion(newVersion string) error {
 	}
 
 	return nil
+}
+
+func CreateAmqpConnection(component string) *amqp.Connection {
+	conn, err := amqp.Dial(amqp.URI{
+		Scheme:   "amqp",
+		Host:     config.Current.Mq.Host,
+		Port:     config.Current.Mq.Port,
+		Username: strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1),
+		Password: config.Current.Mq.Password,
+		Vhost:    config.Current.Mq.Vhost,
+	}.String())
+	if err != nil {
+		log.Fatalln("AMQP dial: ", err)
+	}
+
+	return conn
+}
+
+func CreateChannel(conn *amqp.Connection) *amqp.Channel {
+	channel, err := conn.Channel()
+	if err != nil {
+		log.Fatalln("AMQP create channel: ", err)
+	}
+	return channel
 }

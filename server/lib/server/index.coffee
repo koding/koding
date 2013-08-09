@@ -38,7 +38,6 @@ async      = require 'async'
 {extend}   = require 'underscore'
 express    = require 'express'
 Broker     = require 'broker'
-request    = require 'request'
 fs         = require 'fs'
 hat        = require 'hat'
 nodePath   = require 'path'
@@ -96,7 +95,7 @@ app.use (req, res, next) ->
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
-    request(req.query.url).pipe(res)
+    require('request')(req.query.url).pipe(res)
   else
     res.send 404
 
@@ -147,7 +146,7 @@ app.get "/-/kite/login", (req, res) ->
                   body    : JSON.stringify postData
                   headers : {'content-type': 'application/json'}
 
-                request.post options, (error, response, body) =>
+                require('request').post options, (error, response, body) =>
                   if error
                     console.log "ERROR", error
                     res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
@@ -321,8 +320,8 @@ app.get "/-/oauth/:provider/callback", (req,res)->
           path    : "/user?access_token=#{access_token}"
           method  : "GET"
           headers : headers
-        request = http.request options, fetchUserInfo
-        request.end()
+        r = http.request options, fetchUserInfo
+        r.end()
 
   fetchUserInfo = (userInfoResp) ->
     rawResp = ""
@@ -343,8 +342,8 @@ app.get "/-/oauth/:provider/callback", (req,res)->
           path    : "/user/emails?access_token=#{access_token}"
           method  : "GET"
           headers : headers
-        request = http.request options, (newResp)-> fetchUserEmail newResp, resp
-        request.end()
+        r = http.request options, (newResp)-> fetchUserEmail newResp, resp
+        r.end()
       else
         renderLoginTemplate resp, res
 
@@ -361,8 +360,8 @@ app.get "/-/oauth/:provider/callback", (req,res)->
     path   : "/login/oauth/access_token?client_id=#{github.clientId}&client_secret=#{github.clientSecret}&code=#{code}"
     method : "POST"
     headers : headers
-  request = http.request options, authorizeUser
-  request.end()
+  r = http.request options, authorizeUser
+  r.end()
 
 app.get '/:name/:section?*', (req, res, next)->
   {JName} = koding.models

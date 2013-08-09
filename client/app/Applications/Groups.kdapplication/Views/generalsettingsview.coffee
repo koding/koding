@@ -1,7 +1,7 @@
 class GroupGeneralSettingsView extends JView
 
-  constructor:->
-    super
+  constructor:(options = {}, data)->
+    super options,data
     @setClass "general-settings-view group-admin-modal"
     group = @getData()
     delegate = @getDelegate()
@@ -35,6 +35,22 @@ class GroupGeneralSettingsView extends JView
           loader            :
             color           : "#444444"
             diameter        : 12
+        Remove              :
+          cssClass   : "modal-clean-red fr"
+          title      : "Remove this Group"
+          callback   : =>
+            modal = new GroupsDangerModalView
+              action     : 'Remove Group'
+              title      : "Remove '#{data.slug}'"
+              longAction : "remove the '#{data.slug}' group"
+              callback   : (callback)=>
+                data.remove (err)=>
+                  callback()
+                  return KD.showError err  if err
+                  new KDNotificationView title:'Successfully removed!'
+                  modal.destroy()
+                  location.replace('/')
+            , data
       fields:
         Title               :
           label             : "Group Name"
@@ -76,5 +92,12 @@ class GroupGeneralSettingsView extends JView
           ]
 
     @settingsForm = new KDFormViewWithFields formOptions, group
+
+    
+    unless KD.config.roles? and 'owner' in KD.config.roles
+      @settingsForm.buttons.Remove.hide()
+
+    if data.slug is 'koding'
+      @settingsForm.buttons.Remove.hide()
 
   pistachio:-> "{{> @settingsForm}}"

@@ -288,7 +288,7 @@ class ActivityAppController extends AppController
   showContentDisplay:(contentDisplay)->
     contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    return contentDisplayController
+    return contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayStatusUpdate
