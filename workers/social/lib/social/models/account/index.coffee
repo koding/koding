@@ -188,6 +188,7 @@ module.exports = class JAccount extends jraphical.Module
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+    @notifyGroupWhen 'FollowHappened'
 
   fetchOldKodingDownloadLink : secure (client,callback)->
     crypto = require 'crypto'

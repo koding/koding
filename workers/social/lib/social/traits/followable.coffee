@@ -129,6 +129,7 @@ module.exports = class Followable
 
     sourceId = @getId()
     targetId = follower.getId()
+    {group}  = client.context
 
     Relationship.count {
       sourceId, targetId, as:'follower'
@@ -159,6 +160,7 @@ module.exports = class Followable
               origin    : this
               actorType : 'follower'
               follower  : ObjectRef(follower).data
+              group     : group
 
             follower.updateFollowingCount @, action
 
