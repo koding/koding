@@ -95,12 +95,13 @@ type StatusInfo struct {
 	BuildNumber    string
 	CurrentVersion string
 	Koding         struct {
-		ServerHosts []string
-		BrokerHosts []string
+		ServerLen   int
+		ServerHosts map[string]bool
+		BrokerLen   int
+		BrokerHosts map[string]bool
 	}
 	Workers struct {
 		Started int
-		Dead    int
 	}
 }
 
@@ -209,7 +210,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	s, b := keyLookup(domain.Proxy.Key)
 	status.Koding.ServerHosts = s
+	status.Koding.ServerLen = len(s) + 1
 	status.Koding.BrokerHosts = b
+	status.Koding.BrokerLen = len(b) + 1
 
 	home := HomePage{
 		Status:  status,
@@ -223,7 +226,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func keyLookup(key string) ([]string, []string) {
+func keyLookup(key string) (map[string]bool, map[string]bool) {
 	workersApi := "http://kontrol.in.koding.com/workers?version=" + key
 	resp, err := http.Get(workersApi)
 	if err != nil {
@@ -241,15 +244,15 @@ func keyLookup(key string) ([]string, []string) {
 		fmt.Println(err)
 	}
 
-	servers := make([]string, 0)
-	brokers := make([]string, 0)
+	servers := make(map[string]bool, 0)
+	brokers := make(map[string]bool, 0)
 	for _, w := range workers {
 		if w.Name == "server" {
-			servers = append(servers, w.Hostname+":"+strconv.Itoa(w.Port))
+			servers[w.Hostname+":"+strconv.Itoa(w.Port)] = true
 		}
 
 		if w.Name == "broker" {
-			brokers = append(brokers, w.Hostname+":"+strconv.Itoa(w.Port))
+			brokers[w.Hostname+":"+strconv.Itoa(w.Port)] = true
 		}
 
 	}
@@ -312,9 +315,7 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 		case "started":
 			s.Workers.Started++
 			workers[i].Info = "success"
-		case "dead":
-			s.Workers.Dead++
-			workers[i].Info = "error"
+			workers[i].State = "running"
 		case "stopped":
 			workers[i].Info = "warning"
 		case "waiting":

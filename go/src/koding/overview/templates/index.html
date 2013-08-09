@@ -75,29 +75,31 @@
 				</table>
 
 				<table class="table table-hover table-bordered">
+					<thead>
+						<tr>
+				            <td><a target="_blank" href="http://koding.com/">koding.com</a> is using</td> 
+						</tr>
+					</thead>
 					<tbody>
 						<tr>
-				            <td rowspan="2"><a target="_blank" href="http://koding.com/">koding.com</a> is using</td> 
-
-						  <td>servers</td>
-						{{range .Status.Koding.ServerHosts}} 
-                          <td>
-						    <a target="_blank" href="http://{{.}}">{{.}}</a></td>
-                          </td>
-						{{end}}
-
-
-						</tr>
-						<tr>
-						  <td>brokers</td>
-						{{range .Status.Koding.BrokerHosts}} 
-                          <td>
-						    <a target="_blank" href="http://{{.}}">{{.}}</a></td>
-                          </td>
-						{{end}}
-						</tr>
-						<tr>
-						</tr>
+                          <td rowspan="{{.Status.Koding.ServerLen}}">Servers</td> 
+                          {{range $key, $val := .Status.Koding.ServerHosts}} 
+                          <tr>
+                            <td>
+                              <a target="_blank" href="http://{{$key}}">{{$key}}</a></td>
+                            </td>
+                          </tr>
+                          {{end}}
+                         </tr>
+                          <td rowspan="{{.Status.Koding.BrokerLen}}">Brokers</td> 
+                          {{range $key, $val := .Status.Koding.BrokerHosts}} 
+                          <tr>
+                            <td>
+                              <a target="_blank" href="http://{{$key}}">{{$key}}</a></td>
+                            </td>
+                          </tr>
+                          {{end}}
+                         </tr>
 					</tbody>
 				</table>
 
@@ -107,7 +109,6 @@
 				<table class="table table-bordered">
 					<tr>
 						<td><span class="badge badge-success">{{.Status.Workers.Started}}</span> workers are started</td>
-						<td><span class="badge badge-important">{{.Status.Workers.Dead}}</span> workers are dead</td>
 					</tr>
 				</table>
 				<table class="table table-hover table-bordered">
@@ -134,8 +135,6 @@
 						{{end}}
 					</tbody>
 				</table>
-				<span class="label label-info">Info</span>
-				Kontrold is cleaning up death workers in one hour intervals.
 			</div>
 			<div class="span5">
 
