@@ -85,6 +85,7 @@ class LikeView extends KDView
             else
               # there is no guarantee that likes will not satisfy upper cases
               # and it will be an integer which is more than 3
+              # this is also hadling the undefined case
               if data.meta.likes > 3
                 "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]}#{sep}#{peopleWhoLiked[2]} and <strong>#{data.meta.likes - 3} more.</strong>"
               else
