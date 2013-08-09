@@ -440,7 +440,6 @@ run =({configFile})->
     invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
-    invoke 'libratoWorker'  if config.librato?.push
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
