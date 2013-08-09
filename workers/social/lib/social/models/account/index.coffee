@@ -188,6 +188,7 @@ module.exports = class JAccount extends jraphical.Module
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+    @notifyGroupWhen 'FollowHappened'
 
   fetchOldKodingDownloadLink : secure (client,callback)->
     crypto = require 'crypto'
@@ -1145,22 +1146,23 @@ module.exports = class JAccount extends jraphical.Module
     userId = client.connection.delegate._id
     options.currentUserId = userId
     graph[followType] options, (err, results)=>
-      if err then return callback err
-      else
-        tempRes = []
-        collectContents = race (i, res, fin)=>
-          objId = res.id
-          JAccount.one  { _id : objId }, (err, account)=>
-            if err
-              callback err
-              fin()
-            else
-              tempRes[i] =  account
-              fin()
-        , ->
-          callback null, tempRes
-        for res in results
-          collectContents res
+      return callback err if err
+      return callback null, [] if results.length < 1
+
+      tempRes = []
+      collectContents = race (i, res, fin)=>
+        objId = res.id
+        JAccount.one  { _id : objId }, (err, account)=>
+          if err
+            callback err
+            fin()
+          else
+            tempRes[i] =  account
+            fin()
+      , ->
+        callback null, tempRes
+      for res in results
+        collectContents res
 
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
 

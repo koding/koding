@@ -74,7 +74,7 @@ Vagrant.configure("2") do |config|
       default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
     else
       default.vm.box = "koding-15"
-      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-14.box"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-15.box"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy

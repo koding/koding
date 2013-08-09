@@ -115,6 +115,12 @@ class KDWindowController extends KDController
 
     window.addEventListener 'beforeunload', @bound "beforeUnload"
 
+    # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
+    @utils.wait 15000, =>
+      KD.remote.api.JSystemStatus.on 'forceReload', =>
+        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
+        location.reload()
+
     @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
       if cookie? and cookie isnt $.cookie 'clientId'
         window.removeEventListener 'beforeunload', @bound 'beforeUnload'

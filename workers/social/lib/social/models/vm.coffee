@@ -530,8 +530,9 @@ module.exports = class JVM extends Model
           JAccount.one {'profile.nickname':username}, (err, account)=>
             return console.error err  if err or not account
             # New account found
-
-            vm.update {$set: {hostnameAlias: newHostNameAlias}}, (err)=>
+            webHome       = username
+            hostnameAlias = newHostNameAlias
+            vm.update {$set: {hostnameAlias, webHome}}, (err)=>
               return console.error err  if err
               # VM hostnameAlias updated
 

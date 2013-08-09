@@ -464,7 +464,7 @@ module.exports = class JGroup extends Module
           # Tried to trace but failed, maybe its important ~ GG
           console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
-          unless event is "MemberJoinedGroup"
+          unless event is "MemberJoinedGroup" or event is "FollowHappened"
             @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message
 
@@ -974,7 +974,6 @@ module.exports = class JGroup extends Module
     dash queue, =>
       callback()
       @updateCounts()
-      @cycleChannel()
       @emit 'MemberAdded', member  if 'member' in roles
 
   each:(selector, rest...)->

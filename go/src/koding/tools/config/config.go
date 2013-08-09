@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 )
 
 type Config struct {
@@ -89,6 +91,7 @@ var LogDebug bool
 var Uuid string
 var Host string
 var BrokerDomain string
+var Region string
 
 func init() {
 	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
@@ -96,9 +99,10 @@ func init() {
 	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
 	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
-	flag.StringVar(&Host, "h", "", "hostname to be resolved")
-	flag.StringVar(&BrokerDomain, "a", "", "send kontrol a custom domain istead of os.Hostname")
+	flag.StringVar(&Host, "h", "", "Hostname to be resolved")
+	flag.StringVar(&BrokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flag.StringVar(&BrokerDomain, "domain", "", "Alias for -a")
+	flag.StringVar(&Region, "r", "", "Region")
 
 	flag.Parse()
 	if flag.NArg() != 0 {
@@ -140,4 +144,14 @@ func init() {
 		fmt.Printf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n", err.Error(), configJSON)
 		os.Exit(1)
 	}
+
+	sigChannel := make(chan os.Signal)
+	signal.Notify(sigChannel, syscall.SIGUSR2)
+	go func() {
+		for _ = range sigChannel {
+			LogDebug = !LogDebug
+			fmt.Printf("config.LogDebug: %v\n", LogDebug)
+		}
+	}()
+
 }
