@@ -17,9 +17,7 @@ class ActivityListHeader extends JView
     @showNewItemsLink = new KDCustomHTMLView
       cssClass    : "new-updates"
       partial     : "<span>0</span> new items. <a href='#' title='Show new activities'>Update</a>"
-      click       : =>
-        @updateShowNewItemsLink yes
-        mainController.emit "ShouldResetNavigationTitleLink"
+      click       : => @updateShowNewItemsLink yes
 
     @headerTitle = new KDCustomHTMLView
       partial     : "Latest Activity"
