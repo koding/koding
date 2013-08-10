@@ -54,37 +54,60 @@ class LikeView extends KDView
       sort  : timestamp : -1
     , (err, likes) =>
 
-      peopleWhoLiked = []
-      guestsWhoLiked = 0
+      users  = []
+      likers = []
+      guests = 0
 
       if likes
 
+        strong  = (x)-> "<strong>#{x}</strong>"
+
         for item in likes
-          if item.type is 'unregistered'
-            guestsWhoLiked++
-          else
-            name = KD.utils.getFullnameFromAccount item
-            peopleWhoLiked.push "<strong>#{name}</strong>"
+          name = KD.utils.getFullnameFromAccount item
+          likers.push "#{strong name}"
 
-        sep  = ', '
-        and_ = if peopleWhoLiked.length>0 then 'and ' else ''
+          if item.type is 'unregistered' then guests++
+          else users.push "#{strong name}"
 
-        guestLikes =
-          switch guestsWhoLiked
-            when 0 then ""
-            when 1 then "#{and_}<strong>a guest</strong>"
-            when 2 then "#{and_}<strong>2 guests</strong>"
-            when 3 then "<strong>3 guests</strong>"
+        if data.meta.likes > 3
+          sep = ', '
+          andMore = "and <strong>#{data.meta.likes - 3} more.</strong>"
+        else
+          sep = ' and '
+          andMore = ""
+
+        # For following cases tooltip will be:
+        #
+        # 1 guest  : a guest
+        # 2 guests : 2 guests
+        # 3 guests : 3 guests
+        #
+        # 1 user   : user[0]
+        # 2 users  : user[0] and username[1]
+        # 3 users  : user[0], user[1] and user[2]
+        #
+        # 1 guest 1 users : a guest and user[0]
+        # 1 guest 2 users : a guest, user[0], and user[1] {and N-3 more}
+        # 2 guests 1 user : user[0] and 2 guests {and N-3 more}
+        #
+        # N users/guest   : user[0], user[1], user[2] and N-3 more
+        # N guests        : 3 guests and N-3 more
 
         tooltip =
-          switch peopleWhoLiked.length
-            when 0 then "#{guestLikes}"
-            when 1 then "#{peopleWhoLiked[0]} #{guestLikes}"
-            when 2 then "#{peopleWhoLiked[0]} and #{peopleWhoLiked[1]} #{guestLikes}"
-            else "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]}#{sep}#{peopleWhoLiked[2]} and <strong>#{data.meta.likes - 3} more.</strong>"
+          switch data.meta.likes
+            when 0 then ""
+            when 1 then "#{likers[0]}"
+            when 2
+              if guests is 2 then "#{strong '2 guests'}"
+              else "#{likers[0]} and #{likers[1]}"
+            else
+              switch guests
+                when 3 then "#{strong '3 guests'} #{andMore}"
+                when 2 then "#{users[0]}#{sep}#{strong '2 guests'} #{andMore}"
+                else "#{likers[0]}, #{likers[1]}#{sep}#{likers[2]} #{andMore}"
 
         @likeCount.getTooltip().update { title: tooltip }
-        @_lastUpdatedCount = likes.length
+        @_lastUpdatedCount = data.meta.likes
 
   click:(event)->
     event.preventDefault()
@@ -99,6 +122,7 @@ class LikeView extends KDView
         unless err
           @_currentState = not @_currentState
           @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
+          @_lastUpdatedCount = -1
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
