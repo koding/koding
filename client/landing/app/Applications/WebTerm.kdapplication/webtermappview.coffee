@@ -26,6 +26,9 @@ class WebTermAppView extends JView
         if not pane.isDestroyed and @tabView.getActivePane() is pane
           @tabView.removePane pane
 
+    @on "KDObjectWillBeDestroyed", ->
+      KD.getSingleton("mainView").disableFullscreen()
+
   showApprovalModal: (remote, command)->
     modal = new KDModalView
       title   : "Warning!"

@@ -56,6 +56,9 @@ class AceAppView extends JView
       # ace.on "AceDidSaveAs", (name, parentPath) =>
       #   update tooltip title here
 
+    @on "KDObjectWillBeDestroyed", ->
+      KD.getSingleton("mainView").disableFullscreen()
+
     @bindAppMenuEvents()
 
     @listenWindowResize()
