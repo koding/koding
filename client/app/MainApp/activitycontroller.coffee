@@ -21,6 +21,8 @@ class ActivityController extends KDObject
     @on "ActivityItemMarkUserAsTrollClicked",   @bound "markUserAsTroll"
     @on "ActivityItemUnMarkUserAsTrollClicked", @bound "unmarkUserAsTroll"
 
+    @setPageTitleForActivities()
+
 
   blockUser:(accountId, duration, callback)->
     KD.whoami().blockUser accountId, duration, callback
@@ -182,4 +184,19 @@ class ActivityController extends KDObject
                 kallback account if account
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
+
+  setPageTitleForActivities: ->
+    @oldTitle = document.title
+    KD.getSingleton("windowController").addFocusListener (focused) =>
+      if focused then  document.title = @oldTitle
+      else @updateDocTitle()
+
+    KD.getSingleton("mainController").ready =>
+      KD.getSingleton("activityController").on "ActivitiesArrived", =>
+        @updateDocTitle()  unless KD.getSingleton("windowController").isFocused()
+
+  updateDocTitle: ->
+    itemCount      = KD.getSingleton("activityController").getNewItemsCount()
+    @oldTitle      = document.title if document.title.indexOf("Activity") is -1
+    document.title = "(#{itemCount}) Activity" if itemCount > 0
 
