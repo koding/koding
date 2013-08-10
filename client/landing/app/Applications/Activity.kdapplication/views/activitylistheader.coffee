@@ -48,7 +48,7 @@ class ActivityListHeader extends JView
         size         : "tiny"
         callback     : (state) =>
           @appStorage.setValue 'showLowQualityContent', state, =>
-          KD.getSingleton('activityController').flags = showExempt: state
+          KD.getSingleton('activityController').flags.showExempt = state
           KD.getSingleton('activityController').emit 'Refresh'
 
       @refreshLink = new KDCustomHTMLView
@@ -64,11 +64,13 @@ class ActivityListHeader extends JView
         tagName: "span"
 
     @appStorage.fetchStorage (storage)=>
-      state = @appStorage.getValue('liveUpdates') or off
+      state             = @appStorage.getValue("liveUpdates") or off
+      lowQualityContent = @appStorage.getValue "showLowQualityContent"
+      {flags}           = KD.getSingleton "activityController"
+      flags.liveUpdates = state
+      flags.showExempt  = lowQualityContent or off
       @liveUpdateButton.setValue state
-      KD.getSingleton('activityController').flags = liveUpdates : state
-      KD.getSingleton('activityController').flags = showExempt : (@appStorage.getValue('showLowQualityContent') or off)
-      @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
+      @lowQualitySwitch.setValue? lowQualityContent or off
 
   _checkForUpdates: do (lastTs = null, lastCount = null, alreadyWarned = no) ->
     itFailed = ->
