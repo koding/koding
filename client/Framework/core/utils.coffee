@@ -310,12 +310,12 @@ __utils =
   getFullnameFromAccount:(account, justName=no)->
     account or= KD.whoami()
     if account.type is 'unregistered'
-      name = account.profile.nickname.capitalize()
+      name = "a guest"
     else if justName
       name = account.profile.firstName
     else
       name = "#{account.profile.firstName} #{account.profile.lastName}"
-    return Encoder.htmlEncode name
+    return Encoder.htmlEncode name or 'a Koding user'
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
