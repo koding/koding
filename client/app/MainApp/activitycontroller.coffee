@@ -1,12 +1,13 @@
 class ActivityController extends KDObject
 
-  constructor: ->
+  constructor: (options = {}, data) ->
 
-    super
+    super options, data
 
-    groupsController = KD.getSingleton 'groupsController'
-
-    groupChannel = null
+    @newItemsCount   = 0
+    @flags           = {}
+    groupsController = KD.getSingleton "groupsController"
+    groupChannel     = null
 
     groupsController.on 'GroupChannelReady', =>
       groupChannel.close().off()  if groupChannel?
