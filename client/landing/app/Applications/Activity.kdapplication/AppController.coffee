@@ -143,20 +143,18 @@ class ActivityAppController extends AppController
       #to-do add isExempt control.
       #@isExempt (exempt)=>
       #if exempt or @getFilter() isnt activityTypes
-      groupObj = KD.getSingleton('groupsController').getCurrentGroup()
+      groupObj     = KD.getSingleton("groupsController").getCurrentGroup()
+      options      =
+        to         : options.to or Date.now()
+        group      :
+          slug     : groupObj?.slug or "koding"
+          id       : groupObj.getId()
+        limit      : 20
+        facets     : @getActivityFilter()
+        withExempt : no
 
-      options =
-        to     : options.to or Date.now()
-        group  :
-          slug : groupObj?.slug or "koding"
-          id   : groupObj.getId()
-        limit  : 20
-        facets : @getActivityFilter()
-
-      if KD.getSingleton('activityController').flags?.showExempt?
-        options.withExempt = KD.getSingleton('activityController').flags.showExempt
-      else
-        options.withExempt = false
+      if KD.getSingleton("activityController").flags.showExempt
+        options.withExempt = yes
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
