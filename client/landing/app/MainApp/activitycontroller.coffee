@@ -15,7 +15,8 @@ class ActivityController extends KDObject
       groupChannel.on 'feed-new', (activities) =>
         @emit 'ActivitiesArrived',
           (KD.remote.revive activity for activity in activities)
-
+          isOnActivityPage = KD.getSingleton("router").getCurrentPath() is "/Activity"
+          ++@newItemsCount  unless isOnActivityPage
 
     @on "ActivityItemBlockUserClicked",         @bound "openBlockUserModal"
     @on "ActivityItemMarkUserAsTrollClicked",   @bound "markUserAsTroll"
@@ -23,6 +24,8 @@ class ActivityController extends KDObject
 
     @setPageTitleForActivities()
 
+    KD.getSingleton("appManager").on "AppManagerWantsToShowAnApp", (appController, appView, appOptions) =>
+      @clearNewItemsCount()  if appOptions.name is "Activity"
 
   blockUser:(accountId, duration, callback)->
     KD.whoami().blockUser accountId, duration, callback
@@ -200,3 +203,12 @@ class ActivityController extends KDObject
     @oldTitle      = document.title if document.title.indexOf("Activity") is -1
     document.title = "(#{itemCount}) Activity" if itemCount > 0
 
+  getNewItemsCount: ->
+    return @newItemsCount
+
+  clearNewItemsCount: ->
+    isOnActivityPage = KD.getSingleton("router").getCurrentPath() is "/Activity"
+    return no if @flags.liveUpdates and not isOnActivityPage
+
+    @newItemsCount = 0
+    @emit "NewItemsCounterCleared"
