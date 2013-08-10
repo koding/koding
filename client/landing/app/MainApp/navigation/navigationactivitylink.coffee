@@ -14,7 +14,6 @@ class NavigationActivityLink extends KDCustomHTMLView
       partial   : ""
       click     : =>
         @setActivityLinkToDefaultState()
-        appManager.tell "Activity", "unhideNewItems"
 
     @count.hide()
 
@@ -22,19 +21,21 @@ class NavigationActivityLink extends KDCustomHTMLView
       tagName   : "span"
       cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
 
-    @utils.wait 1000, =>
-      KD.getSingleton("activityController").on "ActivitiesArrived", (activities) =>
+    mainController = KD.getSingleton "mainController"
+
+    mainController.ready =>
+      activityController = KD.getSingleton "activityController"
+      activityController.on "ActivitiesArrived", =>
         return if KD.getSingleton("router").currentPath is "/Activity"
 
-        appManager.tell "Activity", "getNewItemsCount", (itemCount) =>
-          @updateNewItemsCount itemCount
+        newItemsCount = activityController.getNewItemsCount()
+        @updateNewItemsCount newItemsCount  if newItemsCount > 0
 
-    mainController = KD.getSingleton "mainController"
+        activityController.on "NewItemsCounterCleared", @bound "setActivityLinkToDefaultState"
+
     mainController.on "NavigationLinkTitleClick", (options) =>
-      @setActivityLinkToDefaultState() if options.appPath is "Activity"
-
-    mainController.on "ShouldResetNavigationTitleLink", =>
-      @setActivityLinkToDefaultState()
+      if options.appPath is "Activity"
+        KD.getSingleton("activityController").clearNewItemsCount()
 
   updateNewItemsCount: (itemCount) ->
     return if itemCount is 0
