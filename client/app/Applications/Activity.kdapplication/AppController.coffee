@@ -53,22 +53,6 @@ class ActivityAppController extends AppController
     @status.on "reconnected", (conn)=>
       if conn?.reason is "internetDownForLongTime" then @refresh()
 
-    @on "activitiesCouldntBeFetched", => @listController?.hideLazyLoader()
-
-    docTitle = document.title
-    KD.getSingleton("windowController").addFocusListener (blurred) =>
-      if blurred
-        @updateDocTitle()
-      else
-        document.title = docTitle
-
-      KD.getSingleton("activityController").on "ActivitiesArrived", => @updateDocTitle()
-
-  updateDocTitle: ->
-    KD.getSingleton("appManager").tell "Activity", "getNewItemsCount", (itemCount) =>
-      if itemCount > 0
-        document.title = "(#{itemCount}) Activity"
-
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
