@@ -8,12 +8,10 @@ class NavigationActivityLink extends KDCustomHTMLView
 
     appManager = KD.getSingleton "appManager"
 
-    @newActivityCount = 0
-
     @count = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "main-nav-icon transparent"
-      partial   : "#{@newActivityCount}"
+      partial   : ""
       click     : =>
         @setActivityLinkToDefaultState()
         appManager.tell "Activity", "unhideNewItems"
@@ -39,16 +37,14 @@ class NavigationActivityLink extends KDCustomHTMLView
       @setActivityLinkToDefaultState()
 
   updateNewItemsCount: (itemCount) ->
-    newItemsCount = itemCount or= @newActivityCount
-    return if newItemsCount is 0
+    return if itemCount is 0
+    @count.updatePartial itemCount
     @count.show()
     @icon.hide()
-    @count.updatePartial newItemsCount
 
   setActivityLinkToDefaultState: ->
     @icon.show()
     @count.hide()
-    @newActivityCount = 0
 
   viewAppended:->
     @setTemplate @pistachio()
