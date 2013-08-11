@@ -66,20 +66,6 @@ func Startup() {
 // runHelperFunctions contains several indepenendent helper functions that do
 // certain tasks.
 func runHelperFunctions() {
-	// cleanup death workers from the the DB at certain intervals
-	ticker := time.NewTicker(time.Minute * 20)
-	go func() {
-		for _ = range ticker.C {
-			log.Println("cleanup death workers")
-			iter := kontrolDB.Collection.Find(bson.M{"status": int(workerconfig.Dead)}).Iter()
-			result := workerconfig.Worker{}
-			for iter.Next(&result) {
-				log.Printf("removing death worker '%s - %s - %d'", result.Name, result.Hostname, result.Version)
-				kontrolDB.DeleteWorker(result.Uuid)
-			}
-		}
-	}()
-
 	// update workers status
 	tickerWorker := time.NewTicker(time.Second * 1)
 	go func() {
@@ -92,7 +78,7 @@ func runHelperFunctions() {
 	}()
 
 	// cleanup death deployments at intervals
-	tickerDeployment := time.NewTicker(time.Hour * 12)
+	tickerDeployment := time.NewTicker(time.Hour * 1)
 	go func() {
 		for _ = range tickerDeployment.C {
 			log.Println("starting to remove unused deployments")

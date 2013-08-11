@@ -80,8 +80,11 @@ func Init(service string) {
 				os.Exit(event.ExitCode)
 			}
 
-			if !config.Current.Loggr.Push {
+			if !config.Current.Loggr.Push || config.LogDebug {
 				fmt.Print(event.String())
+			}
+
+			if !config.Current.Loggr.Push || event.Level == DEBUG {
 				continue
 			}
 
