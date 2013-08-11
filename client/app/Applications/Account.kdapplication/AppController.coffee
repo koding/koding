@@ -123,23 +123,23 @@ class AccountAppController extends AppController
     personal :
       title : "Personal"
       items : [
-        { title : "Login & Email",        listHeader: "Email & username",           listType: "username",       id : 10,      parentId : null }
-        { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
-        { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
-        { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
+        { title : "Login & Email",        listHeader: "Email & username",      listType: "username",       id : 10,      parentId : null }
+        { title : "Password & Security",  listHeader: "Password & Security",   listType: "security",       id : 20,      parentId : null }
+        { title : "E-mail Notifications", listHeader: "E-mail Notifications",  listType: "emailNotifications", id : 22,  parentId : null }
+        { title : "Linked accounts",      listHeader: "Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
       ]
     billing :
       title : "Billing"
       items : [
-        { title : "Payment methods",      listHeader: "Your Payment Methods",       listType: "methods",        id : 10,      parentId : null }
-        { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
-        { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
+        { title : "Payment method",       listHeader: "Payment Method",        listType: "method",        id : 10,      parentId : null }
+        { title : "Subscriptions",        listHeader: "Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
+        { title : "Billing history",      listHeader: "Billing History",       listType: "history",        id : 30,      parentId : null }
       ]
     develop :
       title : "Develop"
       items : [
-        { title : "SSH keys",             listHeader: "Your SSH Keys",              listType: "keys",           id : 5,       parentId : null }
-        { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
+        { title : "SSH keys",             listHeader: "SSH Keys",              listType: "keys",           id : 5,       parentId : null }
+        { title : "Koding Keys",          listHeader: "Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
       ]
       # kites :
       #   title : "Kites"

@@ -272,6 +272,8 @@ module.exports = [
   # PAYMENT
   "app/MainApp/payment/paymentcontroller.coffee",
   "app/MainApp/payment/paymentform.coffee",
+  "app/MainApp/payment/paymentconfirmationmodal.coffee",
+  "app/MainApp/payment/paymentdeleteconfirmationmodal.coffee",
 
   #maintabs
 
@@ -703,9 +705,8 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsDevSshKeys.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsDevKodingKeys.coffee",
 
-  "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
+  "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD

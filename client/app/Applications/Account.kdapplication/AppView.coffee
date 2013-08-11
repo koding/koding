@@ -22,8 +22,6 @@ class AccountListWrapper extends KDView
     billing                          :
       historyController              : AccountPaymentHistoryListController
       history                        : AccountPaymentHistoryList
-      methodsController              : AccountPaymentMethodsListController
-      methods                        : AccountPaymentMethodsList
       subscriptionsController        : AccountSubscriptionsListController
       subscriptions                  : AccountSubscriptionsList
     develop                          :
