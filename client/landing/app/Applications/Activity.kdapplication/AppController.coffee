@@ -53,6 +53,8 @@ class ActivityAppController extends AppController
     @status.on "reconnected", (conn)=>
       if conn?.reason is "internetDownForLongTime" then @refresh()
 
+    @on "activitiesCouldntBeFetched", => @listController?.hideLazyLoader()
+
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
