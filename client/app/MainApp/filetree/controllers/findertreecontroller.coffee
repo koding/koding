@@ -821,9 +821,14 @@ class NFinderTreeController extends JTreeViewController
         duration   : 120000
 
       kiteController.run "mkdir -p Web ; zip -r #{relativePath} #{plainPath}", (err, res) =>
-        return  warn err if err
-        notification.notificationSetTitle "Uploading zipped file..."
-        kallback()
+        if err
+          message = if err.name is "ExitError" then "An error occured. It seems zip is not installed on your VM."
+          else "An error occured, please try again."
+          notification.notificationSetTitle message
+          notification.notificationSetTimer 4000
+          notification.setClass "error"
+        else
+          kallback()
     else
       notification = new KDNotificationView
         title      : "Uploading your file..."
