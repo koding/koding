@@ -787,32 +787,56 @@ class NFinderTreeController extends JTreeViewController
           fileItemViews.push fileItemView
 
   saveToDropbox: (nodeView) ->
-    notification   = null
-    kiteController = KD.getSingleton "kiteController"
-    plainPath      = FSHelper.plainPath nodeView.getData().path
-    isFolder       = nodeView.getData().type is "folder"
-    timestamp      = Date.now()
-    tmpFileName    = if isFolder then "tmp#{timestamp}.zip" else "tmp#{timestamp}"
-    relativePath   = "/home/#{KD.nick()}/Web/#{tmpFileName}"
-    kallback       = ->
-      fileName     = FSHelper.getFileNameFromPath plainPath
-      fileName     = "#{fileName}.zip"  if isFolder
-      options      =
-        files      : [
-          filename : fileName
-          url      : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
-        ]
-        success: ->
-          notification.notificationSetTitle "Your file has been uploaded."
-          notification.notificationSetTimer 4000
-          notification.setClass "success"
-          kiteController.run "rm #{relativePath}"
-        error: ->
-          notification.notificationSetTitle "An error occured while uploading your file."
-          notification.notificationSetTimer 4000
-          notification.setClass "error"
+    notification     = null
+    kiteController   = KD.getSingleton "kiteController"
+    plainPath        = FSHelper.plainPath nodeView.getData().path
+    isFolder         = nodeView.getData().type is "folder"
+    timestamp        = Date.now()
+    tmpFileName      = if isFolder then "tmp#{timestamp}.zip" else "tmp#{timestamp}"
+    relativePath     = "/home/#{KD.nick()}/Web/#{tmpFileName}"
+    kallback         = ->
+      modal          = new KDBlockingModalView
+        title        : "Upload to Dropbox"
+        cssClass     : "modal-with-text"
+        content      : "<p>Zipping your content is done. Click \"Choose Folder\" button to choose a folder on your Dropbox to start upload.</p>"
+        overlay      : yes
+        buttons      :
+          "Choose"   :
+            title    : "Choose Folder"
+            style    : "modal-clean-green"
+            callback : =>
+              modal.destroy()
+              fileName     = FSHelper.getFileNameFromPath plainPath
+              fileName     = "#{fileName}.zip"  if isFolder
+              options      =
+                files      : [
+                  filename : fileName
+                  url      : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
+                ]
+                success: ->
+                  notification.notificationSetTitle "Your file has been uploaded."
+                  notification.notificationSetTimer 4000
+                  notification.setClass "success"
+                  kiteController.run "rm #{relativePath}"
+                error: ->
+                  notification.notificationSetTitle "An error occured while uploading your file."
+                  notification.notificationSetTimer 4000
+                  notification.setClass "error"
+                  kiteController.run "rm #{relativePath}"
+                cancel: ->
+                  kiteController.run "rm #{relativePath}"
+                  notification.destroy()
+                progress: (progress) ->
+                  notification.notificationSetTitle "Uploading to Dropbox - #{progress * 100}% done..."
+                  notification.show()
 
-      Dropbox.save options
+              Dropbox.save options
+
+          Cancel     :
+            style    : "modal-cancel"
+            callback : ->
+              modal.destroy()
+              kiteController.run "rm #{relativePath}"
 
     if isFolder
       notification = new KDNotificationView
@@ -828,6 +852,7 @@ class NFinderTreeController extends JTreeViewController
           notification.notificationSetTimer 4000
           notification.setClass "error"
         else
+          notification.hide()
           kallback()
     else
       notification = new KDNotificationView
@@ -836,4 +861,5 @@ class NFinderTreeController extends JTreeViewController
         duration   : 120000
       kiteController.run "mkdir -p Web ; cp #{plainPath} #{relativePath}", (err, res) =>
         return  warn err if err
+        notification.hide()
         kallback()
