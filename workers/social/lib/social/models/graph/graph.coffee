@@ -223,6 +223,7 @@ module.exports = class Graph
     @db.query query, {}, (err, results) ->
       if err then callback err
       resultData = []
+      results.reverse()
       for result in results
         type = result.r.type
         data = result.all.data
