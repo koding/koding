@@ -42,6 +42,16 @@ module.exports = class JVM extends Model
         type            : String
         default         : -> null
       hostnameAlias     : String
+      hostKite          :
+        type            : String
+        default         : -> null
+      region            :
+        type            : String
+        enum            : ['unknown region'
+                          [
+                            'aws' # Amazon Web Services
+                            'sj'  # San Jose
+                          ]]
       webHome           : String
       planOwner         : String
       planCode          : String
