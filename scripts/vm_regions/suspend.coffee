@@ -1,3 +1,4 @@
+#!/usr/bin/env coffee
 
 { argv }  = require 'optimist'
 
@@ -42,7 +43,7 @@ run (db) ->
     { upsert: no }
 
     # callback:
-    (err, doc)->
+    (err, doc) ->
       throw err  if err?
 
       if argv.d
