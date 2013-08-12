@@ -19,10 +19,15 @@ error_404 = ->
 error_500 = ->
   error_ 500, "Something wrong with the Koding servers."
 
-authRegister = ()->
-  # {authRegisterTemplate} = require './staticpages'
-  # template authRegisterTemplate
-  res.send "OK YAYYY", 200
+authTemplate = (msg)->
+  {authRegisterTemplate} = require './staticpages'
+  {template}             = require 'underscore'
+  template authRegisterTemplate, {msg}
+
+renderLoginTemplate = (resp, res)->
+  saveOauthToSession resp, ->
+    {loginTemplate} = require './staticpages'
+    serve loginTemplate, res
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -131,7 +136,7 @@ module.exports = {
   error_
   error_404
   error_500
-  authRegister
+  authTemplate
   authenticationFailed
   findUsernameFromKey
   findUsernameFromSession

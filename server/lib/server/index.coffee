@@ -49,7 +49,7 @@ app        = express()
   error_
   error_404
   error_500
-  authRegister
+  authTemplate
   authenticationFailed
   findUsernameFromKey
   findUsernameFromSession
@@ -94,46 +94,64 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-app.get "/-/authRegister", (req, res)->
+app.get "/-/auth/register/:hostname/:key", (req, res)->
+  {key, hostname} = req.params
+
+  if typeof key isnt "string"
+    res.send 200, authTemplate "Key is not of type string: '#{key}'"
+    return
+
+  if not key
+    res.send 200, authTemplate "Key is empty: '#{key}'"
+    return
+
+  key = decodeURIComponent key
+
+  if key.length isnt 64
+    res.send 200, authTemplate "Key is not valid: '#{key}'"
+    return
+
   isLoggedIn req, res, (err, loggedIn, account)->
     if err
-      res.send 500, error_500()
-      console.error err
+      # console.log "isLoggedIn error", err
+      res.send 200, authTemplate "Koding Auth Error - 1"
       return
 
     if not loggedIn
-      res.send 500, error_500()
-      console.log "You are not logged in!"
+      res.send 200, authTemplate "You are not logged in! Please log in with your Koding username and password"
       return
 
-    findUsernameFromSession req, res, (err, notUsed, username ) ->
+    findUsernameFromSession req, res, (err, notUsed, username) ->
       if err
-        res.send 500, error_500()
-        console.error err
+        # console.log "findUsernameFromSession error", err
+        res.send 200, authTemplate "Koding Auth Error - 2"
         return
 
       if not username
-        res.send 500, error_500()
-        console.log "Username is not defined", username
+        res.send 200, authTemplate "Username is not defined: '#{username}'"
         return
 
-      # now execute here our authRegisterTemplate
-      console.log "AUTH REGISTER USERNAME", username
-      body = req.body
-
+      console.log "CREATING KEY WITH HOSTNAME: #{hostname} and KEY: #{key}"
       {JKodingKey} = koding.models
       JKodingKey.fetchByUserKey
         username: username
         key     : key
       , (err, kodingKey)=>
         if err or not kodingKey
-          res.send 401
+          JKodingKey.createKeyByUser
+            username : username
+            hostname : hostname
+            key      : key
+          , (err, data) =>
+            if err or not data
+              # console.log "createKeyByUser error", key, err
+              res.send 200, authTemplate "Koding Auth Error - 3"
+            else
+              res.send 200, authTemplate "Authentication is successfull! Using id: #{hostname}", key, hostname
+
         else
+          res.send 200, authTemplate "Authentication already established!"
 
-          res.status 200
-          res.send "OK"
-
-      res.send 200, "YAYYYY"
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
