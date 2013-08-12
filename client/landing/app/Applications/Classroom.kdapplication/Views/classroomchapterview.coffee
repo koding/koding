@@ -1,4 +1,4 @@
-class ClassroomChapterView extends JView
+class ClassroomChapterView extends KDView
 
   constructor: (options = {}, data) ->
 
