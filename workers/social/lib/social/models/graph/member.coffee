@@ -17,10 +17,10 @@ module.exports = class Member extends Graph
     return orderByQuery
 
   @generateOptions:(options)->
-    {skip, limit, sort, groupId, currentUserId, startDate} = options
+    {client, skip, limit, sort, groupId, startDate} = options
 
     orderBy = if sort? then Object.keys(sort)[0] else ""
-
+    currentUserId = client.connection.delegate.getId()
     options =
       limitCount: limit or 10
       skipCount: skip or 0
@@ -31,6 +31,12 @@ module.exports = class Member extends Graph
 
   # fetch members that are in given group who follows current user
   @fetchFollowingMembers:(options, callback)=>
+    options = @generateOptions options
+    query = QueryRegistry.member.following
+    @queryMembers query, options, callback
+
+  # fetch member's following count
+  @fetchFollowingMemberCount:(options, callback)=>
     options = @generateOptions options
     query = QueryRegistry.member.following
     @queryMembers query, options, callback
@@ -74,8 +80,6 @@ module.exports = class Member extends Graph
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       options = @generateOptions options
       query = QueryRegistry.member.list exemptClause
-      console.log query
-      console.log options
       @queryMembers query, options, callback
 
   @queryMembers:(query, options={}, callback)=>
@@ -96,9 +100,11 @@ module.exports = class Member extends Graph
       resultData.push objected
       @generateMembers resultData, results, callback
 
+  # fetchs member count in a group
   @fetchMemberCount:(options, callback)=>
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       query = QueryRegistry.member.count exemptClause
-      @fetch query, options, (err, results) =>
+      queryOptions = {groupId : options.groupId}
+      @fetch query, queryOptions, (err, results) =>
         if err then return callback err
         callback null, results[0].count

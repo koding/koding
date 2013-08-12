@@ -134,10 +134,11 @@ module.exports =
         """
           START member=node:koding(id={userId})
           MATCH member<-[:author]-content
-          WHERE content.`meta.createdAtEpoch` < {to}
+          WHERE content.originId = {userId}
           #{options.facetQuery}
-          RETURN DISTINCT content
+          RETURN content
           ORDER BY #{options.orderBy} DESC
+          SKIP {skipCount}
           LIMIT {limitCount}
         """
 

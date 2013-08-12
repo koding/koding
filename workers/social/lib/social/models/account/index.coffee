@@ -1148,15 +1148,13 @@ module.exports = class JAccount extends jraphical.Module
   {Member, OAuth} = require "../graph"
 
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
-    userId = client.connection.delegate.getId()
-    options.currentUserId = userId
+    options.client = client
     Member.fetchFollowingMembers options, (err, results)=>
       if err then return callback err
       else return callback null, results
 
   fetchMyFollowersFromGraph: secure (client, options, callback)->
-    userId = client.connection.delegate.getId()
-    options.currentUserId = userId
+    options.client = client
     Member.fetchFollowerMembers options, (err, results)=>
       if err then return callback err
       else return callback null, results

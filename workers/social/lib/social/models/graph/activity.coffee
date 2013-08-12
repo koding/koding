@@ -2,6 +2,7 @@ neo4j = require "neo4j"
 {Graph} = require './index'
 QueryRegistry = require './queryregistry'
 {race} = require "bongo"
+KodingError = require "./../../error"
 
 module.exports = class Activity extends Graph
 
@@ -18,31 +19,41 @@ module.exports = class Activity extends Graph
   ]
 
   # build facet queries
-  @generateFacets:(facets)->
-    facetQuery = ""
-    if facets and 'Everything' not in facets
-      facetQueryList = []
-      for facet in facets
-        return callback new KodingError "Unknown facet: #{facets.join()}" if facet not in neo4jFacets
-        facetQueryList.push "content.name='#{facet}'"
-      facetQuery = "AND (" + facetQueryList.join(' OR ') + ")"
+  @generateFacets:(options)->
+    return throw new KodingError "Facet is not defined in query options" unless options.facet
 
-    return facetQuery
+    {facet} = options
+    return "" if facet is 'Everything'
+    return throw new KodingError "Unknown facet: #{facet}" if facet not in neo4jFacets
+    return "AND content.name='#{facet}' "
 
-  @generateTimeQuery:(to)->
-    timeQuery = ""
-    if to
-      timestamp = Math.floor(to / 1000)
-      timeQuery = "AND content.`meta.createdAtEpoch` < #{timestamp}"
+  @generateTimeQuery:(options)->
+    return throw new KodingError "-to- is not defined in query options" unless options.to
+
+    timestamp = Math.floor(options.to / 1000)
+    timeQuery = "AND content.`meta.createdAtEpoch` < #{timestamp}"
     return timeQuery
 
   # generate options
-  @generateOptions:(options)->
-    {limit, userId, group:{groupName}} = options
+  @generateOptions:(options, group)->
+    {limit, userId} = options
     options =
       limitCount: limit or 10
-      groupName : groupName
+      groupName : group.slug
       userId    : "#{userId}"
+    return options
+  # generate request options
+  # this will return current group and
+  # client object
+  @generateRequestOptions:(client, group)->
+
+    requestOptions =
+      group     :
+        groupName : group.slug
+        groupId   : group._id
+      client    : client
+
+    return requestOptions
 
   @getCurrentGroup: (client, callback)->
     {delegate} = client.connection
@@ -80,12 +91,13 @@ module.exports = class Activity extends Graph
       queryOptions.groupName = groupName
       groupFilter = "AND content.group! = {groupName}"
 
-    @getExemptUsersClauseIfNeeded requestOptions, (err, exemptClause)=>
+    @getExemptUsersClauseIfNeeded (@createExemptOptions requestOptions), (err, exemptClause)=>
       query = QueryRegistry.activity.public facetQuery, groupFilter, exemptClause
       queryOptions.client = client # we need this to remove private content
       @fetchWithRelatedContent query, queryOptions, requestOptions, callback
 
-
+  @createExemptOptions:(options)->
+    return {client : options.client, withExempt : options.withExempt}
 
   # this is used for activities on profile page
   @fetchUsersActivityFeed: (requestOptions, callback)->
@@ -93,8 +105,7 @@ module.exports = class Activity extends Graph
       if err then return callback errw
       requestOptions.group = {groupName: currentGroup.slug, groupId: currentGroup._id}
 
-      {facets} = requestOptions
-      facetQuery = @generateFacets facets
+      facetQuery = @generateFacets requestOptions
 
       if requestOptions.sort.likesCount?
         orderBy = "coalesce(content.`meta.likes`?, 0)"
@@ -106,22 +117,38 @@ module.exports = class Activity extends Graph
       queryOptions =
         userId     : requestOptions.originId
         to         : requestOptions.to
-        limitCount : 10 #requestOptions.limit
+        limitCount : requestOptions.limit
+        skipCount  : requestOptions.skip
 
       query = QueryRegistry.activity.profilePage {facetQuery, orderBy}
       @fetchWithRelatedContent query, queryOptions, requestOptions, callback
 
   # this is following feed
   @fetchFolloweeContents:(options, callback)->
+    # options should be as following format
+    #{ userId: 52058e8ec9b66e3247000003,
+    #  limit: 5,
+    #  withExempt: false,
+    #  facet: 'Everything',
+    #  to: 1376274834525,
+    #  client:
+    #  { sessionToken: '811613c1d637f033babe288e4efa4fc6',
+    #    context: { group: 'koding', user: 'siesta' },
+    #    connection: { delegate: [Object] }
+    #  }
+    #}
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       @getCurrentGroup options.client, (err, currentGroup)=>
-        requestOptions = @generateOptions options
-        requestOptions.group = {groupName: currentGroup.slug, groupId: currentGroup._id}
-        requestOptions.client = options.client
-        facet = @generateFacets options.facet
-        timeQuery = @generateTimeQuery options.to
+        #generate options for queries
+        queryOptions   = @generateOptions options, currentGroup
+        requestOptions = @generateRequestOptions options.client, currentGroup
+
+        #generate facet and time query if needed
+        facet = @generateFacets options
+        timeQuery = @generateTimeQuery options
+
         query = QueryRegistry.activity.following facet, timeQuery, exemptClause
-        @fetchWithRelatedContent query, requestOptions, requestOptions, callback
+        @fetchWithRelatedContent query, queryOptions, requestOptions, callback
 
   @fetchWithRelatedContent: (query, queryOptions, requestOptions, callback)->
     @fetch query, queryOptions, (err, results) =>
@@ -133,6 +160,8 @@ module.exports = class Activity extends Graph
       @objectify resultData, (objecteds)=>
         @getRelatedContent objecteds, requestOptions, callback
 
+  # this function requires current group object and
+  # user client object as option
   @getRelatedContent:(results, options, callback)->
     tempRes = []
     {group:{groupName, groupId}, client} = options
