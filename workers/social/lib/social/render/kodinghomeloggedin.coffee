@@ -33,7 +33,7 @@ module.exports = ({account})->
         <div class="kdview transition social" id="content-panel">
           <div class="kdview kdscrollview kdtabview" id="main-tab-view">
             <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
-              <div id="content-page-activity" class="kdview content-page activity kdscrollview fixed">
+              <div id="content-page-activity" class="kdview content-page activity kdscrollview fixed loggedin">
                 #{getStatusWidget account}
                 #{getInnerNav()}
                 <div class="kdview activity-content feeder-tabs">
