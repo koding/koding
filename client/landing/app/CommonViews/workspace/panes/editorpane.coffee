@@ -6,7 +6,7 @@ class EditorPane extends Pane
 
     super options, data
 
-    @files = @getOptions "files"
+    {@files} = @getOptions()
 
     if Array.isArray @files then @createEditorTabs() else @createSingleEditor()
 
