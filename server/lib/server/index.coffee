@@ -49,6 +49,7 @@ app        = express()
   error_
   error_404
   error_500
+  authRegister
   authenticationFailed
   findUsernameFromKey
   findUsernameFromSession
@@ -68,7 +69,7 @@ app.configure ->
   app.set 'case sensitive routing', on
   app.use express.cookieParser()
   app.use express.session {"secret":"foo"}
-  # app.use express.bodyParser()
+  app.use express.bodyParser()
   app.use express.compress()
   app.use express.static "#{projectRoot}/website/"
 
@@ -92,6 +93,47 @@ app.use (req, res, next) ->
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
+
+app.get "/-/authRegister", (req, res)->
+  isLoggedIn req, res, (err, loggedIn, account)->
+    if err
+      res.send 500, error_500()
+      console.error err
+      return
+
+    if not loggedIn
+      res.send 500, error_500()
+      console.log "You are not logged in!"
+      return
+
+    findUsernameFromSession req, res, (err, notUsed, username ) ->
+      if err
+        res.send 500, error_500()
+        console.error err
+        return
+
+      if not username
+        res.send 500, error_500()
+        console.log "Username is not defined", username
+        return
+
+      # now execute here our authRegisterTemplate
+      console.log "AUTH REGISTER USERNAME", username
+      body = req.body
+
+      {JKodingKey} = koding.models
+      JKodingKey.fetchByUserKey
+        username: username
+        key     : key
+      , (err, kodingKey)=>
+        if err or not kodingKey
+          res.send 401
+        else
+
+          res.status 200
+          res.send "OK"
+
+      res.send 200, "YAYYYY"
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
@@ -213,22 +255,6 @@ app.post "/-/kd/upload", s3..., (req, res)->
           res.send {url:zipurl, version: userkite.latest_version, hash:req.fields.hash}
         else
           res.send err
-
-app.post "/-/kd/:command", express.bodyParser(), (req, res)->
-  switch req.params.command
-    when "register-check"
-      {username, key} = req.body
-      {JKodingKey} = koding.models
-
-      JKodingKey.fetchByUserKey
-        username: username
-        key     : key
-      , (err, kodingKey)=>
-        if err or not kodingKey
-          res.send 401
-        else
-          res.status 200
-          res.send "OK"
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
