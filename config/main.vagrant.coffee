@@ -78,7 +78,7 @@ module.exports =
     numberOfWorkers      : 2
     watch                : yes
     cronSchedule         : '* * * * * *'
-    usageLimitInMinutes  : 1
+    usageLimitInMinutes  : 60
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
