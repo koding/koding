@@ -105,8 +105,6 @@ class CollaborativeWorkspace extends Workspace
     u    = KD.utils
     return  "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
 
-  ready: -> # have to override for collaborative workspace
-
   amIHost: ->
     [sessionOwner] = @sessionKey.split ":"
     return sessionOwner is KD.nick()

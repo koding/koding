@@ -12,6 +12,11 @@ class Workspace extends JView
     @panels                = []
     @lastCreatedPanelIndex = 0
 
+    @init()
+
+  init: ->
+    @createPanel()
+
   createPanel: (callback = noop) ->
     panelOptions          = @getOptions().panels[@lastCreatedPanelIndex]
     panelOptions.delegate = @
@@ -34,8 +39,6 @@ class Workspace extends JView
   _windowDidResize: ->
     return unless @activePanel
     pane.emit "PaneResized" for pane in @activePanel.panes
-
-  ready: -> @createPanel()
 
   viewAppended: ->
     super
