@@ -214,11 +214,16 @@ class HomeLoginBar extends JView
 
     if entryPoint?.type is 'profile'
       if KD.isLoggedIn() then @hide()
-      else @request.hide()
+      else
+        @request.hide()
+        @redeem.hide()
 
     if 'member' not in KD.config.roles
       if KD.isLoggedIn()
         @login.hide()
+        @register.hide()
+      else
+        @redeem.hide()
 
       KD.remote.cacheable entryPoint.slug, (err, models)=>
         if err then callback err
@@ -274,6 +279,7 @@ class HomeLoginBar extends JView
     <ul>
       <li>{{> @request}}{{> @access}}{{> @join}}{{> @invited}}{{> @requested}}</li>
       <li>
+        {{> @register}}
         {{> @redeem}}
         {{> @login}}
       </li>
