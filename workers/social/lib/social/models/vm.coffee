@@ -1,7 +1,7 @@
 {Model} = require 'bongo'
-{Relationship} = require 'jraphical'
+{Relationship, Module} = require 'jraphical'
 
-module.exports = class JVM extends Model
+module.exports = class JVM extends Module
 
   {permit} = require './group/permissionset'
   {secure} = require 'bongo'
@@ -27,6 +27,13 @@ module.exports = class JVM extends Model
       'sudoer'          : []
       'create vms'      : ['member','moderator']
       'delete vms'      : ['member','moderator']
+    sharedEvents        :
+      static            : [
+        { name : "RemovedFromCollection" }
+      ]
+      instance          : [
+        { name : "RemovedFromCollection" }
+      ]
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVmInfo'
