@@ -57,7 +57,7 @@ class AvatarView extends LinkView
       if Array.isArray account.globalFlags
         flags = account.globalFlags.join(" ")
       else
-        flags = account.globalFlags.join(" ")
+        flags = (value for own key, value of account.globalFlags).join(" ")
 
     @$('cite').addClass flags
 
