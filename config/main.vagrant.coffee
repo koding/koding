@@ -72,12 +72,13 @@ module.exports =
     numberOfWorkers: 1
     watch       : yes
   guestCleanerWorker     :
+    enabled              : yes
     login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
     cronSchedule         : '* * * * * *'
-    usageLimitInMinutes  : 60
+    usageLimitInMinutes  : 1
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
