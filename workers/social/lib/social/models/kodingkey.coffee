@@ -63,6 +63,20 @@ module.exports = class JKodingKey extends jraphical.Module
         , (err, key)->
           callback err, key
 
+  @fetchKey = (options, callback)->
+    JKodingKey.one
+      key   : options.key
+    , (err, key)->
+      callback err, key
+
+  @fetchByKeyAndHostname = (options, callback)->
+    JKodingKey.one
+      owner : delegate.getId()
+      key   : options.key
+      hostname: options.hostname
+    , (err, keys)->
+      callback err, keys
+
   @createKeyByUser = (options, callback)->
     JAccount.one
       'profile.nickname': options.username
