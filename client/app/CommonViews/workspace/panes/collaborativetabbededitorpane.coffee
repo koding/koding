@@ -101,11 +101,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
   openFile: CollaborativeTabbedEditorPane::createEditorInstance
 
   handlePaneResized: ->
-    @setHeight @parent.getHeight()
+    @tabView.setHeight @parent.getHeight() - 22
     for pane in @tabView.panes
-      {codeMirrorEditor} = pane.subViews[0]
-      codeMirrorEditor.display.wrapper.style.height = "#{@parent.getHeight() - 22}px"
-      codeMirrorEditor.refresh()
+      pane.subViews[0].codeMirrorEditor.refresh()
 
   viewAppended: ->
     super

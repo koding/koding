@@ -18,4 +18,9 @@ class WorkspaceLayout extends KDSplitComboView
 
         views.push wrapper
 
-    return new SplitViewWithOlderSiblings { type, sizes, views }
+    splitView = new SplitViewWithOlderSiblings { type, sizes, views }
+    splitView.on "ResizeDidStop", =>
+      for pane in @getDelegate().panes
+        pane.emit "PaneResized"
+
+    return splitView
