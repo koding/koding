@@ -60,7 +60,7 @@ func main() {
 	skipped := 0
 	for iter.Next(&vm) && !abort {
 		i += 1
-		fmt.Printf("Migrating %d/%d: vm-%s\n", vm.Id.Hex(), i+1, count)
+		fmt.Printf("Migrating %d/%d: vm-%s\n", i+1, count, vm.Id.Hex())
 		if !migrate(vm.Id) {
 			skipped += 1
 		}
