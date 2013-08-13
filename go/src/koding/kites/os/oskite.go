@@ -349,6 +349,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		defer func() {
 			if err := recover(); err != nil {
 				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
+				time.Sleep(time.Second) // penalty for avoiding that the client rapidly sends the request again on error
 				methodError = &kite.InternalKiteError{}
 			}
 		}()
