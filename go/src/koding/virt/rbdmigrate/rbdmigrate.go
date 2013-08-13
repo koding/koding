@@ -28,42 +28,45 @@ func main() {
 		Id        bson.ObjectId `bson:"_id"`
 		RbdFormat int           `bson:"rbdFormat"`
 	}
-	iter := db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": bson.M{"$ne": 1}}).Select(bson.M{"_id": 1, "rbdFormat": 1}).Iter()
-	queue := make([]bson.ObjectId, 0)
+
+	query := db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": nil}).Select(bson.M{"_id": 1, "rbdFormat": 1})
+	count, _ := query.Count()
+	iter := query.Iter()
+	i := 0
 	for iter.Next(&vm) && !abort {
-		if vm.RbdFormat == 0 {
-			fmt.Printf("Checking vm-%s...\n", vm.Id.Hex())
-			info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
+		i += 1
+		fmt.Printf("Checking %d/%d: vm-%s\n", i, count, vm.Id.Hex())
+		info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
 
-			if bytes.Contains(info, []byte("format: 1")) {
-				vm.RbdFormat = 1
-			}
-			if bytes.Contains(info, []byte("format: 2")) {
-				vm.RbdFormat = 2
-			}
-
-			if err := db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"rbdFormat": vm.RbdFormat}}); err != nil {
+		if bytes.Contains(info, []byte("format: 1")) {
+			if err := db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"rbdFormat": 1}}); err != nil {
 				fmt.Println(err)
 			}
 		}
-
-		if vm.RbdFormat == 2 {
-			queue = append(queue, vm.Id)
+		if bytes.Contains(info, []byte("format: 2")) {
+			if err := db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"rbdFormat": 2}}); err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 	if err := iter.Close(); err != nil {
 		panic(err)
 	}
 
+	query = db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": 2}).Select(bson.M{"_id": 1, "rbdFormat": 1})
+	count, _ = query.Count()
+	iter = query.Iter()
+	i = 0
 	skipped := 0
-	for i, id := range queue {
-		if abort {
-			break
-		}
-		fmt.Printf("Migrating vm-%s (%d/%d)...\n", id.Hex(), i+1, len(queue))
-		if !migrate(id) {
+	for iter.Next(&vm) && !abort {
+		i += 1
+		fmt.Printf("Migrating %d/%d: vm-%s\n", vm.Id.Hex(), i+1, count)
+		if !migrate(vm.Id) {
 			skipped += 1
 		}
+	}
+	if err := iter.Close(); err != nil {
+		panic(err)
 	}
 
 	fmt.Printf("%d skipped.\n", skipped)
