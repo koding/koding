@@ -752,6 +752,7 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # CLASSROOM
+  "app/Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
   "app/Applications/Classroom.kdapplication/Views/classroomchapterview.coffee",
   "app/Applications/Classroom.kdapplication/Views/classroomchapterthumbview.coffee",
   "app/Applications/Classroom.kdapplication/Views/classroomcoursethumbview.coffee",
