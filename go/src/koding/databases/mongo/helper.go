@@ -108,7 +108,6 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println("positive")
 	// add object id and object class name
 	result["id"] = idHex
 	result["name"] = name

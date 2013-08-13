@@ -76,36 +76,39 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, n
 		return rule, fmt.Errorf("mode is not valid: '%s'.", mode)
 	}
 
-	_, err = p.Collection["restrictions"].Upsert(bson.M{"domainname": domainname}, restriction)
-	if err != nil {
-		return rule, err
+	query := func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"domainname": domainname}, restriction)
+		return err
 	}
 
-	return rule, nil
+	err = p.RunCollection("jProxyRestrictions", query)
+	return rule, err
 }
 
 func (p *ProxyConfiguration) DeleteRuleByName(domainname, name string) error {
-	err := p.Collection["restrictions"].Update(
-		bson.M{"domainname": domainname},
-		bson.M{"$pull": bson.M{"ruleList": bson.M{"name": name}}},
-	)
-	if err != nil {
-		return err
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"domainname": domainname},
+			bson.M{"$pull": bson.M{"ruleList": bson.M{"name": name}}})
 	}
-	return nil
+
+	return p.RunCollection("jProxyRestrictions", query)
 }
 
 func (p *ProxyConfiguration) DeleteRestriction(domainname string) error {
-	err := p.Collection["restrictions"].Remove(bson.M{"domainName": domainname})
-	if err != nil {
-		return err
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"domainName": domainname})
 	}
-	return nil
+
+	return p.RunCollection("jProxyRestrictions", query)
 }
 
 func (p *ProxyConfiguration) GetRestrictionByDomain(domainname string) (models.Restriction, error) {
 	restriction := models.Restriction{}
-	err := p.Collection["restrictions"].Find(bson.M{"domainName": domainname}).One(&restriction)
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"domainName": domainname}).One(&restriction)
+	}
+
+	err := p.RunCollection("jProxyRestrictions", query)
 	if err != nil {
 		return restriction, err
 	}
@@ -114,7 +117,11 @@ func (p *ProxyConfiguration) GetRestrictionByDomain(domainname string) (models.R
 
 func (p *ProxyConfiguration) GetRestrictionByID(id bson.ObjectId) (models.Restriction, error) {
 	restriction := models.Restriction{}
-	err := p.Collection["restrictions"].FindId(id).One(&restriction)
+	query := func(c *mgo.Collection) error {
+		return c.FindId(id).One(&restriction)
+	}
+
+	err := p.RunCollection("jProxyRestrictions", query)
 	if err != nil {
 		return models.Restriction{}, err
 	}
@@ -124,10 +131,16 @@ func (p *ProxyConfiguration) GetRestrictionByID(id bson.ObjectId) (models.Restri
 func (p *ProxyConfiguration) GetRestrictions() []models.Restriction {
 	restriction := models.Restriction{}
 	restrictions := make([]models.Restriction, 0)
-	iter := p.Collection["restrictions"].Find(nil).Iter()
-	for iter.Next(&restriction) {
-		restrictions = append(restrictions, restriction)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(nil).Iter()
+		for iter.Next(&restriction) {
+			restrictions = append(restrictions, restriction)
+		}
+		return nil
 	}
+
+	p.RunCollection("jProxyRestrictions", query)
 	return restrictions
 }
 

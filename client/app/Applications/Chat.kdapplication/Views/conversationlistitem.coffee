@@ -4,6 +4,7 @@ class ChatConversationListItem extends KDListItemView
 
     options.tagName   = "li"
     options.cssClass  = "person"
+    options.draggable = axis: "y"
     data.invitees    ?= data.conversation.invitees
 
     super options, data
@@ -24,7 +25,7 @@ class ChatConversationListItem extends KDListItemView
 
     @conversation = new ChatConversationWidget @
     @conversation.on 'click', @conversation.bound 'takeFocus'
-    @conversation.on 'NewMessageReceived', @bound 'expandConversation'
+    # @conversation.on 'NewMessageReceived', @bound 'expandConversation'
 
     @conversation.messageInput.on 'moveUpRequested', =>
       itemIndex = @getDelegate().getItemIndex @
@@ -74,7 +75,7 @@ class ChatConversationListItem extends KDListItemView
   toggleConversation:->
     @toggleClass 'ready'
     @conversation.toggle()
-    @conversation.takeFocus()  if @conversation.isVisible()
+    @conversation.takeFocus()
 
   expandConversation:->
     @setClass 'ready'

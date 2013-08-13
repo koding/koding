@@ -8,7 +8,7 @@ class GroupsDangerModalView extends KDModalViewWithForms
     options.callback ?= -> log "#{options.action} performed"
 
     options.title or= options.action
-    options.content or= "<div class='modalformline'><strong>Caution:</strong> Are you sure that you want to #{options.longAction}? This cannot be revoked! Please enter group slug into the field below to continue:</div>"
+    options.content or= "<div class='modalformline'><p><strong>Caution:</strong> Are you sure that you want to #{options.longAction}? This cannot be revoked! </p><br><p>Please enter <strong>#{data.slug}</strong> into the field below to continue: </p></div>"
     options.overlay ?= yes
     options.width ?= 500
     options.height ?= 'auto'
@@ -34,7 +34,6 @@ class GroupsDangerModalView extends KDModalViewWithForms
               callback       : (event)=> @destroy()
           fields             :
             groupSlug        :
-              label          : 'Confirm'
               itemClass      : KDInputView
               placeholder    : "Enter '#{data.slug}' to confirm..."
               validate       :

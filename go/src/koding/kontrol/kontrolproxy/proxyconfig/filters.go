@@ -3,6 +3,7 @@ package proxyconfig
 import (
 	"fmt"
 	"koding/kontrol/kontrolproxy/models"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
 )
@@ -29,7 +30,13 @@ func (p *ProxyConfiguration) AddFilter(r *models.Filter) (models.Filter, error) 
 	}
 
 	filter := *NewFilter(r.Type, r.Name, r.Match)
-	_, err := p.Collection["filters"].Upsert(bson.M{"match": r.Match}, filter)
+
+	query := func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"match": r.Match}, filter)
+		return err
+	}
+
+	err := p.RunCollection("jProxyFilters", query)
 	if err != nil {
 		fmt.Println("AddFilter error", err)
 		return models.Filter{}, fmt.Errorf("filter %s exists already", r.Match)
@@ -39,16 +46,20 @@ func (p *ProxyConfiguration) AddFilter(r *models.Filter) (models.Filter, error) 
 }
 
 func (p *ProxyConfiguration) DeleteFilterByField(key, value string) error {
-	err := p.Collection["filters"].Remove(bson.M{key: value})
-	if err != nil {
-		return err
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{key: value})
 	}
-	return nil
+
+	return p.RunCollection("jProxyFilters", query)
 }
 
 func (p *ProxyConfiguration) GetFilterByField(key, value string) (models.Filter, error) {
 	filter := models.Filter{}
-	err := p.Collection["filters"].Find(bson.M{key: value}).One(&filter)
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{key: value}).One(&filter)
+	}
+
+	err := p.RunCollection("jProxyFilters", query)
 	if err != nil {
 		return models.Filter{}, err
 	}
@@ -59,16 +70,26 @@ func (p *ProxyConfiguration) GetFilterByField(key, value string) (models.Filter,
 func (p *ProxyConfiguration) GetFilters() []models.Filter {
 	filter := models.Filter{}
 	filters := make([]models.Filter, 0)
-	iter := p.Collection["filters"].Find(nil).Iter()
-	for iter.Next(&filter) {
-		filters = append(filters, filter)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(nil).Iter()
+		for iter.Next(&filter) {
+			filters = append(filters, filter)
+		}
+		return nil
 	}
+
+	p.RunCollection("jProxyFilters", query)
 	return filters
 }
 
 func (p *ProxyConfiguration) GetFilterByID(id bson.ObjectId) (models.Filter, error) {
 	filter := models.Filter{}
-	err := p.Collection["filters"].FindId(id).One(&filter)
+	query := func(c *mgo.Collection) error {
+		return c.FindId(id).One(&filter)
+	}
+
+	err := p.RunCollection("jProxyFilters", query)
 	if err != nil {
 		return models.Filter{}, err
 	}

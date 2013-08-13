@@ -67,7 +67,7 @@ class ChatAppController extends AppController
       height         : "auto"
       overlay        : yes
       buttons        :
-        Leave       :
+        Leave        :
           style      : "modal-clean-red"
           callback   : ->
             chatChannel?.close()?.off()

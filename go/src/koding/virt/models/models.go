@@ -29,6 +29,7 @@ type VM struct {
 	SnapshotVM    bson.ObjectId `bson:"diskSnapshot"`
 	SnapshotName  string        `bson:"snapshotName"`
 	IP            net.IP        `bson:"ip"`
+	Region        string        `bson:"region"`
 	HostKite      string        `bson:"hostKite"`
 	VMRoot        string        `bson:"-"`
 }

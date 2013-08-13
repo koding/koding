@@ -112,37 +112,20 @@ __utils =
     then "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     else "#{location.protocol}//#{location.host}/-/imageProxy?url=#{encodeURIComponent(url)}"
 
+
   applyMarkdown: (text)->
-    # problems with markdown so far:
-    # - links are broken due to textexpansions (images too i guess)
-    return null unless text
+      # problems with markdown so far:
+      # - links are broken due to textexpansions (images too i guess)
+      return null unless text
 
-    marked.setOptions
-      gfm       : true
-      pedantic  : false
-      sanitize  : true
-      highlight :(text, lang)->
-        if hljs.LANGUAGES[lang]?
-        then hljs.highlight(lang,text).value
-        else text
-
-    text = marked Encoder.htmlDecode text
-
-    sanitizeText = $(text)
-
-    # Proxify images
-
-    sanitizeText.find("img").each (i,element) =>
-      src = element.getAttribute 'src'
-      element.setAttribute "src", src?.replace /.*/, @proxifyUrl
-
-    # Give all outbound links a target blank
-    sanitizeText.find("a").each (i,element) =>
-      unless /^(#!)/.test $(element).attr("href")
-        $(element).attr("target", "_blank")
-
-    text = $("<div />").append(sanitizeText.clone()).remove().html() # workaround for .html()
-
+      marked text,
+        gfm       : true
+        pedantic  : false
+        sanitize  : true
+        highlight :(text, lang)->
+          if hljs.LANGUAGES[lang]?
+          then hljs.highlight(lang,text).value
+          else text
 
   applyLineBreaks: (text)->
     return null unless text
@@ -283,19 +266,19 @@ __utils =
     else
       Encoder.htmlEncode shortenedText
 
-  shortenText:do ->
+  shortenText: do ->
     tryToShorten = (longText, optimalBreak = ' ', suffix)->
       unless ~ longText.indexOf optimalBreak then no
       else
         "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
+
     (longText, options={})->
       return unless longText
       minLength = options.minLength or 450
       maxLength = options.maxLength or 600
       suffix    = options.suffix     ? '...'
 
-      longTextLength  = Encoder.htmlDecode(longText).length
-      longText = Encoder.htmlDecode longText
+      longTextLength  = longText.length
 
       tempText = longText.slice 0, maxLength
       lastClosingTag = tempText.lastIndexOf "]"
@@ -314,10 +297,6 @@ __utils =
       # failing that prefer to end the teaser at the end of a word (a space).
       candidate = tryToShorten(longText, '. ', suffix) or tryToShorten longText, ' ', suffix
 
-      # Encoder.htmlDecode Encoder.htmlEncode \
-      #   if candidate?.length > minLength then candidate
-      #   else longText
-
       return \
         if candidate?.length > minLength then candidate
         else longText
@@ -331,12 +310,12 @@ __utils =
   getFullnameFromAccount:(account, justName=no)->
     account or= KD.whoami()
     if account.type is 'unregistered'
-      name = account.profile.nickname.capitalize()
+      name = "a guest"
     else if justName
       name = account.profile.firstName
     else
       name = "#{account.profile.firstName} #{account.profile.lastName}"
-    return Encoder.htmlDecode name
+    return Encoder.htmlEncode name or 'a Koding user'
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]

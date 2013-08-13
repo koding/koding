@@ -122,6 +122,7 @@ func GetTarget(host string) (*Target, error) {
 
 	domain, err = proxyDB.GetDomain(host)
 	if err != nil {
+
 		if err != mgo.ErrNotFound {
 			return nil, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
 		}
@@ -197,6 +198,12 @@ func GetTarget(host string) (*Target, error) {
 			return nil, err
 		}
 	case "internal":
+		// we only opened ports between those, therefore other ports are not used
+		portInt, _ := strconv.Atoi(port)
+		if portInt >= 1024 && portInt <= 10000 {
+			return nil, fmt.Errorf("port range is not allowed for internal usages")
+		}
+
 		username := domain.Proxy.Username
 		servicename := domain.Proxy.Servicename
 		key := domain.Proxy.Key

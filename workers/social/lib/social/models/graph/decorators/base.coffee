@@ -77,7 +77,6 @@ module.exports = class BaseDecorator
     return results
 
   sliceAdditions:(additions)->
-    additions = additions.reverse()
     return additions.slice(-3)
 
 

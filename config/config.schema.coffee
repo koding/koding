@@ -104,6 +104,7 @@ config =
       numberOfWorkers : 1
       watch           : 1
     guestCleanerWorker    :
+      enabled             : 1
       login               : 1
       queueName           : 1
       numberOfWorkers     : 1

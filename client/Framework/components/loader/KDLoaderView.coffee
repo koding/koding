@@ -23,7 +23,7 @@ class KDLoaderView extends KDView
 
     options.loaderOptions.diameter = options.size.height = options.size.width
     options.cssClass = if o.cssClass then "#{o.cssClass} kdloader" else "kdloader"
-    super options,data
+    super options, data
 
   viewAppended:->
 

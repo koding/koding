@@ -152,8 +152,11 @@ module.exports = class AuthWorker extends EventEmitter
     { serviceUniqueName, serviceGenericName, routingKey, method, callback
     username, correlationName, socketId, deadService } = options
 
-    params = { routingKey, username, correlationName
-               serviceGenericName, deadService }
+    params = {
+      routingKey, username, correlationName
+      serviceGenericName, deadService
+      replyExchange: @authExchange
+    }
 
     @publishToService serviceUniqueName, method, params, callback
 

@@ -22,13 +22,13 @@ module.exports =
       'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
       'setHandle','setAbout','fetchAbout','setStaticPageTitle',
       'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-      'fetchPendingGroupInvitations', 'fetchPendingGroupRequests',
+      'fetchGroupsWithPendingInvitations', 'fetchGroupsWithPendingRequests',
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
-      'getInvitationRequestByGroup', 'fetchMyPermissions',
+      'fetchMyGroupInvitationStatus', 'fetchMyPermissions',
       'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
       'fetchMyFollowersFromGraph', 'blockUser',
       'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
       'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
       'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
-      'markUserAsExempt', 'checkFlag', 'userIsExempt'
+      'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership'
     ]
