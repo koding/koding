@@ -52,6 +52,7 @@ class ActivityListController extends KDListViewController
           @unhideNewHiddenItems @hiddenItems
 
     @emit "ready"
+    KD.getSingleton("activityController").clearNewItemsCount()
 
     super
 
@@ -234,7 +235,10 @@ class ActivityListController extends KDListViewController
 
     repeater = KD.utils.repeat 177, =>
       item = @hiddenItems.shift()
-      if item then item.show() else KD.utils.killRepeat repeater
+      if item then item.show() else
+        KD.utils.killRepeat repeater
+        unless KD.getSingleton("router").getCurrentPath() is "/Activity"
+          KD.getSingleton("activityController").clearNewItemsCount()
 
   instantiateListItems:(items)->
     newItems = super
