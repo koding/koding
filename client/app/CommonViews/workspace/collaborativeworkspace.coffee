@@ -1,30 +1,33 @@
 class CollaborativeWorkspace extends Workspace
 
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-    @sessionData    = []
-    instances       = @getOptions().firebaseInstances
-
-    return warn "CollaborativeWorkspace requires at least one Firebase instance." unless instances
-
-    currentInstance = instances
-    currentInstance = instances[KD.utils.getRandomNumber(instances.length) - 1] if Array.isArray instances
-    @firepadRef     = new Firebase "https://#{currentInstance}.firebaseIO.com/"
-    @sessionKey     = options.sessionKey or @createSessionKey()
-    @workspaceRef   = @firepadRef.child @sessionKey
-    @historyRef     = @workspaceRef.child "history"
-    @users          = {}
-
-    @createUserListContainer()
+  init: ->
+    @sessionData = []
+    @users       = {}
+    @createRemoteInstance()
     @createLoader()
+    @fetchUsers()
+    @createUserListContainer()
+    @createChat()
+    @bindRemoteEvents()
 
-    if @getOptions().enableChat
-      @container.addSubView @chatView = new ChatPane
-        delegate: this
-      @chatView.hide()
+  createChat: ->
+    return unless @getOptions().enableChat
+    @container.addSubView @chatView = new ChatPane
+      delegate: this
+    @chatView.hide()
 
+  createRemoteInstance: ->
+    instanceName  = @getOptions().firebaseInstance
+
+    unless instanceName
+      return warn "CollaborativeWorkspace requires a Firebase instance."
+
+    @firepadRef   = new Firebase "https://#{instanceName}.firebaseIO.com/"
+    @sessionKey   = @getOptions().sessionKey or @createSessionKey()
+    @workspaceRef = @firepadRef.child @sessionKey
+    @historyRef   = @workspaceRef.child "history"
+
+  bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
         unless snapshot.val()
@@ -72,8 +75,6 @@ class CollaborativeWorkspace extends Workspace
       paneSessionKeys = []
       paneSessionKeys.push pane.sessionKey for pane in panes
       @sessionData.push paneSessionKeys
-
-    @fetchUsers()
 
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
