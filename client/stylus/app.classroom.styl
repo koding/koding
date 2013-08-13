@@ -49,6 +49,48 @@
       font-size             14px
       font-weight           600
 
+.chapter-list-item
+  size                      auto, 60px
+  padding                   6px
+  border-bottom             1px solid #CCC
+  text-align                left !important
+  .chapter-number
+    size                    30px, 30px
+    vendor                  border-radius, 80px
+    background              #CCC
+    font-size               22px
+    font-weight             600
+    text-align              center
+    margin-right            6px
+    position                relative
+    top                     9px
+    fl()
+  .chapter-title
+    size                    198px, 20px
+    overflow                hidden
+    text-overflow           ellipsis
+    white-space             nowrap
+    font-size               13px
+    font-weight             600
+    cursor                  default
+  .chapter-description
+    font-size               11px
+    margin-left             38px
+    size                    auto, 28px
+    overflow                hidden
+    cursor                  default
+  .top-badge
+    size                    22px, 12px
+    top                     7px
+    left                    260px
+    abs()
+
+.classroom-chapters.details-hidden .courses
+  div
+    display                 none
+  div:first-child
+    display                 block
+
 .chapters-container
   text-align                center
   figure
