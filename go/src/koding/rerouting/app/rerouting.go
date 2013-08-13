@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"koding/rerouting/lib"
@@ -10,19 +8,9 @@ import (
 	"log"
 )
 
-type Consumer struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	tag     string
-}
-
-type Producer struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-}
-
-var producer *Producer
+var producer *rerouting.Producer
 var defaultPublishingExchange string
+var router *rerouting.Router
 
 func main() {
 	log.Println("routing worker started")
@@ -38,47 +26,48 @@ func main() {
 	startRouting()
 }
 
-func createProducer() (*Producer, error) {
-	p := &Producer{
-		conn:    nil,
-		channel: nil,
+func createProducer() (*rerouting.Producer, error) {
+	p := &rerouting.Producer{
+		Conn:    nil,
+		Channel: nil,
 	}
 
 	log.Printf("creating publisher connections")
 
-	p.conn = amqputil.CreateConnection("routing")
-	p.channel = amqputil.CreateChannel(p.conn)
+	p.Conn = amqputil.CreateConnection("routing")
+	p.Channel = amqputil.CreateChannel(p.Conn)
 
 	return p, nil
 }
 
 func startRouting() {
-	c := &Consumer{
-		conn:    nil,
-		channel: nil,
-		tag:     "",
+	c := &rerouting.Consumer{
+		Conn:    nil,
+		Channel: nil,
 	}
+
+	router = rerouting.NewRouter(c)
 
 	var err error
 
 	log.Printf("creating consumer connections")
-	c.conn = amqputil.CreateConnection("routing")
-	c.channel = amqputil.CreateChannel(c.conn)
+	c.Conn = amqputil.CreateConnection("routing")
+	c.Channel = amqputil.CreateChannel(c.Conn)
 
-	err = c.channel.ExchangeDeclare("routing-control", "fanout", false, true, false, false, nil)
+	err = c.Channel.ExchangeDeclare("routing-control", "fanout", false, true, false, false, nil)
 	if err != nil {
 		log.Fatalf("exchange.declare: %s", err)
 	}
 
-	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
+	if _, err := c.Channel.QueueDeclare("", false, true, false, false, nil); err != nil {
 		log.Fatalf("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind("", "", "routing-control", false, nil); err != nil {
+	if err := c.Channel.QueueBind("", "", "routing-control", false, nil); err != nil {
 		log.Fatalf("queue.bind: %s", err)
 	}
 
-	authStream, err := c.channel.Consume("", "", true, false, false, false, nil)
+	authStream, err := c.Channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
 		log.Fatalf("basic.consume: %s", err)
 	}
@@ -97,7 +86,7 @@ func startRouting() {
 	}
 }
 
-func handleAuthJoin(c *Consumer, msg amqp.Delivery) {
+func handleAuthJoin(c *rerouting.Consumer, msg amqp.Delivery) {
 	var join rerouting.JoinMsg
 
 	err := json.Unmarshal(msg.Body, &join)
@@ -109,39 +98,12 @@ func handleAuthJoin(c *Consumer, msg amqp.Delivery) {
 		join.PublishingExchange = &defaultPublishingExchange
 	}
 
-	join.ConsumerTag = generateUniqueConsumerTag(join.BindingKey)
-
-	errors := make(chan error)
-
-	go consumeAndRepublish(c, join, errors)
-
-}
-
-func handleAuthLeave(c *Consumer, msg amqp.Delivery) {
-
-}
-
-func generateUniqueConsumerTag(bindingKey string) string {
-	r := make([]byte, 32/8)
-	rand.Read(r)
-	return bindingKey + "." + base64.StdEncoding.EncodeToString(r)
-}
-
-func consumeAndRepublish(
-	c *Consumer,
-	join rerouting.JoinMsg,
-	done chan error,
-) {
-	// used fo debug
-	// log.Printf("Consume from:\n bindingExchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
-	//  bindingExchange, bindingKey, routingKey, consumerTag)
-
-	routingKey := join.RoutingKey
-
-	if len(join.Suffix) > 0 {
-		routingKey += join.Suffix
+	if err := router.AddRoute(join); err != nil {
+		log.Printf("Error adding route: %v", err)
 	}
 
-	join.Channel = c.channel
+}
+
+func handleAuthLeave(c *rerouting.Consumer, msg amqp.Delivery) {
 
 }
