@@ -74,14 +74,14 @@ func (r *Router) AddRoute(join JoinMsg) error {
 
 	route, ok := publishingExchange[join.RoutingKey]
 	if !ok {
-		route = Route{1, map[int]*JoinMsg{}}
-		route.joins[0] = &join
-		publishingExchange[join.RoutingKey] = route
+		publishingExchange[join.RoutingKey] = Route{1, map[int]*JoinMsg{0: &join}}
 	} else {
 		route.joins[route.length] = &join
 		route.length++
 		publishingExchange[join.RoutingKey] = route
 	}
+
+	log.Println(r.routes)
 
 	if isNewBindingExchange {
 		if err := r.addBinding(join.BindingExchange); err != nil {
