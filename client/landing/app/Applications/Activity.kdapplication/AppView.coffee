@@ -14,6 +14,10 @@ class ActivityAppView extends KDScrollView
   viewAppended:->
 
     {entryPoint}      = KD.config
+
+    if entryPoint in ['koding', 'guest']
+      @setClass 'fixed'
+
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
@@ -36,6 +40,7 @@ class ActivityAppView extends KDScrollView
         else
           @activityHeader.unsetClass "scrolling-up-outset"
           @activityHeader.liveUpdateButton.setValue on
+          KD.getSingleton("activityController").clearNewItemsCount()
 
     @decorate()
 
