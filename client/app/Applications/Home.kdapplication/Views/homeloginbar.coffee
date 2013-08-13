@@ -239,6 +239,7 @@ class HomeLoginBar extends JView
               @policy = policy
               if err then console.warn err
               else if policy.approvalEnabled
+                @redeem.hide()
                 @request.hide()
                 @join.hide()
                 @access.show()
