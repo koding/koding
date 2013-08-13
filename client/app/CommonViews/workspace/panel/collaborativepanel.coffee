@@ -28,8 +28,7 @@ class CollaborativePanel extends Panel
         title  : "This is your session key, you can share this key with your friends to work together."
 
   createPane: (paneOptions, targetContainer) ->
-    PaneClass              = @getPaneClass paneOptions.type
-    paneOptions.delegate   = @
+    PaneClass = @getPaneClass paneOptions
     paneOptions.sessionKey = @getOptions().sessionKeys[@panes.length]  if @getOptions().sessionKeys
     isJoinedASession       = !!paneOptions.sessionKey and not @getDelegate().amIHost()
 

@@ -60,19 +60,28 @@ class Panel extends JView
       warn "no layout config or pane passed to create a panel"
 
   createPane: (paneOptions) ->
-    paneOptions.delegate = @
-    PaneClass            = @getPaneClass paneOptions.type
-
-    return unless PaneClass
-      new Error "PaneClass is not defined for \"#{paneOptions.type}\" pane type"
-
-    pane = new PaneClass paneOptions
+    PaneClass = @getPaneClass paneOptions
+    pane      = new PaneClass paneOptions
 
     @panes.push pane
     @emit "NewPaneCreated", pane
     return  pane
 
-  getPaneClass: (paneType) ->
+  getPaneClass: (paneOptions) ->
+    paneType             = paneOptions.type
+    paneOptions.delegate = @
+
+    if paneType is "custom"
+      PaneClass = paneOptions.paneClass
+    else
+      PaneClass = @findPaneClass paneType
+
+    return unless PaneClass
+      new Error "PaneClass is not defined for \"#{paneOptions.type}\" pane type"
+
+    return PaneClass
+
+  findPaneClass: (paneType) ->
     paneTypesToPaneClass =
       "terminal"         : @TerminalPaneClass
       "editor"           : @EditorPaneClass
