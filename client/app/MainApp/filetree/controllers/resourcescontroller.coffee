@@ -74,6 +74,7 @@ class ResourcesListItem extends KDListItemView
     super options, data
 
     @vm = KD.getSingleton 'vmController'
+    @vm.on 'StateChanged', @bound 'checkVMState'
 
   viewAppended:->
 
@@ -119,8 +120,34 @@ class ResourcesListItem extends KDListItemView
     @delegate.once 'ReceivedClickElsewhere', =>
       @delegate.emit "DeselectAllItems"
 
-    offset = @chevron.$().offset()
     {vmName} = @getData()
+
+    if @state is "MAINTENANCE"
+      items =
+        customView1 : new KDView partial : "This VM is under maintenance, try again later."
+    else
+      items =
+        customView1        : new NVMToggleButtonView {}, {vmName}
+        customView2        : new NMountToggleButtonView {}, {vmName}
+        'Re-initialize VM' :
+          disabled         : KD.isGuest()
+          callback         : ->
+            KD.getSingleton("vmController").reinitialize vmName
+            @destroy()
+        'Delete VM'        :
+          disabled         : KD.isGuest()
+          callback         : ->
+            KD.getSingleton("vmController").remove vmName
+            @destroy()
+          separator        : yes
+        'Open VM Terminal' :
+          callback         : ->
+            KD.getSingleton("appManager").open "WebTerm", params: {vmName}, forceNew: yes
+            @destroy()
+          separator        : yes
+        customView3        : new NVMDetailsView {}, {vmName}
+
+    offset = @chevron.$().offset()
     contextMenu = new JContextMenu
       menuWidth   : 200
       delegate    : @chevron
@@ -130,39 +157,22 @@ class ResourcesListItem extends KDListItemView
         placement : "left"
         margin    : 19
       lazyLoad    : yes
-    ,
-      customView1        : new NVMToggleButtonView {}, {vmName}
-      customView2        : new NMountToggleButtonView {}, {vmName}
-      'Re-initialize VM' :
-        disabled         : KD.isGuest()
-        callback         : ->
-          KD.getSingleton("vmController").reinitialize vmName
-          @destroy()
-      'Delete VM'        :
-        disabled         : KD.isGuest()
-        callback         : ->
-          KD.getSingleton("vmController").remove vmName
-          @destroy()
-        separator        : yes
-      'Open VM Terminal' :
-        callback         : ->
-          KD.getSingleton("appManager").open "WebTerm", params: {vmName}, forceNew: yes
-          @destroy()
-        separator        : yes
-      customView3        : new NVMDetailsView {}, {vmName}
+    , items
 
   checkVMState:(err, vm, info)->
-    return unless vm is @getData()
+    return unless vm is @getData().vmName
 
     if err or not info
       @unsetClass 'online'
       return warn err
 
-    switch info.state
-      when "RUNNING"
-        @setClass 'online'
+    if info.state is "RUNNING"
+    then @setClass 'online'
+    else @unsetClass 'online'
 
-      when "STOPPED"
-        @unsetClass 'online'
+    @state = info.state
+
+    if info.state is "MAINTENANCE"
+      @vmDesc.updatePartial "UNDER MAINTENANCE"
 
   partial:-> ''

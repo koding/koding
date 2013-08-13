@@ -67,8 +67,13 @@ class VirtualizationController extends KDController
     (vm, callback=noop)->
       KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
         if vmInfo
-          if vmInfo.planCode is 'free'
 
+          if vmInfo.underMaintenance is yes
+            message = "Your VM is under maintenance, not allowed to delete."
+            new KDNotificationView title : message
+            callback {message}
+
+          else if vmInfo.planCode is 'free'
             {hostnameAlias} = vmInfo
             vmPrefix = (@parseAlias hostnameAlias)?.prefix or hostnameAlias
 
@@ -95,11 +100,16 @@ class VirtualizationController extends KDController
     [callback, vm] = [vm, callback]  unless callback
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
-      @_runWrapper 'vm.info', vm, (err, info)=>
-        warn "[VM-#{vm}]", err  if err
-        @emit 'StateChanged', err, vm, info
-        callback? err, vm, info
-      , no
+      KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
+        if vmInfo?.underMaintenance is yes
+          @emit 'StateChanged', err, vm, "MAINTENANCE"
+          callback? err, vm, "MAINTENANCE"
+        else
+          @_runWrapper 'vm.info', vm, (err, info)=>
+            warn "[VM-#{vm}]", err  if err
+            @emit 'StateChanged', err, vm, info
+            callback? err, vm, info
+          , no
 
   fetchVmName: (options, callback) ->
     if options.vmName?
