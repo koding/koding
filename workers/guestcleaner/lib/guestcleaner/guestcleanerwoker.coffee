@@ -46,61 +46,73 @@ module.exports = class GuestCleanerWorker
     usageLimitInMinutes = @options.usageLimitInMinutes or 60
     filterDate = new Date(Date.now()-(1000*60*usageLimitInMinutes))
 
-    selector =
-      "meta.createdAt" : $lte : filterDate
-      type : "unregistered"
+    selector = {
+      "meta.createdAt" : {$lte : filterDate},
+      type : "unregistered",
+      status : {$ne : 'tobedeleted'}
+    }
 
-    JAccount.each selector, {}, (err, account)=>
+    options = {limit:2}
+
+    JAccount.some selector, options, (err, accounts)=>
       if err then return console.error err
-      unless account then return
+      if accounts.length < 1  then return
 
-      # delete user cookie
-      account.sendNotification "GuestTimePeriodHasEnded", account
+      accountIds = _.map accounts, (account)-> return account._id
 
-      daisy queue = [
-        =>
-           # collect relationships and to be deletedData
-          relationshipSelector = $or: [
-            {targetId: account.getId()}
-            {sourceId: account.getId()}
-          ]
-          Relationship.some relationshipSelector, {}, (err, relationships)=>
-            if err then return console.error err
-            @collectDataAndRelationships relationships, (toBeDeletedData, toBeDeletedRelationshipIds)=>
-              @toBeDeletedData = toBeDeletedData
-              @toBeDeletedRelationshipIds = toBeDeletedRelationshipIds
+      JAccount.update {_id: $in: accountIds}, {$set: status: 'tobedeleted'}, {multi: yes}, (err)=>
+        if err then console.err err
+
+        accounts.forEach (account) =>
+          queue = [
+            ->
+              console.log "Removing " + account.profile.nickname
               queue.next()
-        =>
-          #if we dont have toBeDeletedRelationship do not continue
-          unless @toBeDeletedRelationshipIds.length > 0
-            queue.next()
-          @deleteData @toBeDeletedData, (err)->
-            if err then return console.error err
-            queue.next()
-        =>
-          unless @toBeDeletedRelationshipIds.length > 0 then queue.next()
-          Relationship.remove {_id : $in : @toBeDeletedRelationshipIds}, (err)->
-            if err then return console.error err
-            queue.next()
-        ->
-          #JSession doesnt have any relationship to JAccount
-          guestId = account.profile.nickname.split("-")[1]
-          # one user can have multiple sessions but, guest account can only has one session!
-          JSession.remove {guestId:guestId},(err)->
-            if err then return console.error err
-            queue.next()
-        ->
-          #Delete JAccount itself
-          account.remove (err)->
-            if err then return console.error err
-            queue.next()
-        ->
-          console.log "Removed " + account.profile.nickname
-
-      ]
-      console.log "Removing " + account.profile.nickname
-
-
+            ->
+              # delete user cookie
+              account.sendNotification "GuestTimePeriodHasEnded", account
+              queue.next()
+            =>
+               # collect relationships and to be deletedData
+              relationshipSelector = $or: [
+                {targetId: account.getId()}
+                {sourceId: account.getId()}
+              ]
+              Relationship.some relationshipSelector, {}, (err, relationships)=>
+                if err then console.error err
+                @collectDataAndRelationships relationships, (toBeDeletedData, toBeDeletedRelationshipIds)=>
+                  @toBeDeletedData = toBeDeletedData
+                  @toBeDeletedRelationshipIds = toBeDeletedRelationshipIds
+                  queue.next()
+            =>
+              #if we dont have toBeDeletedRelationship do not continue
+              unless @toBeDeletedRelationshipIds.length > 0
+                queue.next()
+              @deleteData @toBeDeletedData, (err)->
+                if err then console.error err
+                queue.next()
+            =>
+              unless @toBeDeletedRelationshipIds.length > 0 then queue.next()
+              Relationship.remove {_id : $in : @toBeDeletedRelationshipIds}, (err)->
+                if err then console.error err
+                queue.next()
+            ->
+              #JSession doesnt have any relationship to JAccount
+              guestId = account.profile.nickname.split("-")[1]
+              # one user can have multiple sessions but, guest account can only has one session!
+              JSession.remove {guestId:guestId},(err)->
+                if err then console.error err
+                queue.next()
+            ->
+              #Delete JAccount itself
+              account.remove (err)->
+                if err then console.error err
+                queue.next()
+            ->
+              console.log "Removed " + account.profile.nickname
+              queue.next()
+          ]
+          daisy queue
 
   init:->
     guestCleanerCron = new CronJob @options.cronSchedule, @clean
