@@ -134,8 +134,23 @@ class AppView extends KDView
         diameter: 30
         color   : "#ffffff"
       callback  : ->
-        appsController.installApp app, app.manifest.version, (err)=>
+
+        _installApp = =>
+          @showLoader()
+          appsController.installApp app, app.manifest.version, (err)=>
+            @hideLoader()
+
+        vmController = KD.getSingleton("vmController")
+        unless vmController.vms.length
           @hideLoader()
+          vmController.askToTurnOn app.title, -> _installApp()
+        else
+          vmController.info (err, vm, info)=>
+            if info?.state is "RUNNING"
+              _installApp()
+            else
+              @hideLoader()
+              vmController.askToTurnOn app.title, -> _installApp()
 
     @runButton = new KDButtonView
       title     : "Run"
