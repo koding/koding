@@ -245,7 +245,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		var user virt.User
 		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
-			panic(err)
+			if err != mgo.ErrNotFound {
+				panic(err)
+			}
+			if !strings.HasPrefix(channel.Username, "guest-") {
+				log.Warn("User not found.", channel.Username)
+			}
+			time.Sleep(time.Second) // to avoid rapid cycle channel loop
+			return nil, &kite.WrongChannelError{}
 		}
 		if user.Uid < virt.UserIdOffset {
 			panic("User with too low uid.")
