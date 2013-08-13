@@ -21,7 +21,6 @@ func main() {
 	iter := db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": bson.M{"$ne": 1}}).Select(bson.M{"_id": 1, "rbdFormat": 1}).Iter()
 	queue := make([]bson.ObjectId, 0)
 	for iter.Next(&vm) {
-		fmt.Println(vm.RbdFormat)
 		if vm.RbdFormat == 0 {
 			fmt.Printf("Checking vm-%s...\n", vm.Id.Hex())
 			info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
