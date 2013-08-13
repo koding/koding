@@ -60,7 +60,6 @@ module.exports = class GuestCleanerWorker
       daisy queue = [
         =>
            # collect relationships and to be deletedData
-          console.log "Collect related data"
           relationshipSelector = $or: [
             {targetId: account.getId()}
             {sourceId: account.getId()}
@@ -72,39 +71,32 @@ module.exports = class GuestCleanerWorker
               @toBeDeletedRelationshipIds = toBeDeletedRelationshipIds
               queue.next()
         =>
-          console.log "Deleting relationships started"
           #if we dont have toBeDeletedRelationship do not continue
           unless @toBeDeletedRelationshipIds.length > 0
-            console.log "No relationship found to be deleted!"
             queue.next()
-          console.log "Deleting Data"
           @deleteData @toBeDeletedData, (err)->
             if err then return console.error err
-            console.log "Deleting Data Completed"
             queue.next()
         =>
-          console.log "Deleting Relationships"
           unless @toBeDeletedRelationshipIds.length > 0 then queue.next()
           Relationship.remove {_id : $in : @toBeDeletedRelationshipIds}, (err)->
             if err then return console.error err
-            console.log "Deleting Relationships Completed"
             queue.next()
         ->
           #JSession doesnt have any relationship to JAccount
-          console.log "Removing JSession"
           guestId = account.profile.nickname.split("-")[1]
           # one user can have multiple sessions but, guest account can only has one session!
           JSession.remove {guestId:guestId},(err)->
             if err then return console.error err
-            console.log "JSession is deleted"
             queue.next()
         ->
           #Delete JAccount itself
-          console.log "Deleting JAccount itself"
           account.remove (err)->
             if err then return console.error err
-            console.log "JAccount is removed"
             queue.next()
+        ->
+          console.log "Removed " + account.profile.nickname
+
       ]
       console.log "Removing " + account.profile.nickname
 

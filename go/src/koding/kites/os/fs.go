@@ -20,23 +20,6 @@ var watcher *inotify.Watcher
 var watchMap = make(map[string][]*Watch)
 var watchMutex sync.Mutex
 
-type Watch struct {
-	VOS      *virt.VOS
-	Path     string
-	Callback dnode.Callback
-}
-
-type FileEntry struct {
-	Name     string      `json:"name"`
-	IsDir    bool        `json:"isDir"`
-	Size     int64       `json:"size"`
-	Mode     os.FileMode `json:"mode"`
-	Time     time.Time   `json:"time"`
-	IsBroken bool        `json:"isBroken"`
-	Readable bool        `json:"readable"`
-	Writable bool        `json:"writable"`
-}
-
 func init() {
 	var err error
 	watcher, err = inotify.NewWatcher()
@@ -59,7 +42,7 @@ func init() {
 				for _, watch := range watchMap[path.Dir(ev.Name)] {
 					watch.Callback(map[string]interface{}{
 						"event": "added",
-						"file":  makeFileEntry(watch.VOS, watch.Path, info),
+						"file":  makeFileEntry(watch.VOS, path.Dir(ev.Name), info),
 					})
 				}
 				watchMutex.Unlock()
@@ -88,26 +71,22 @@ func init() {
 func registerFileSystemMethods(k *kite.Kite) {
 	registerVmMethod(k, "fs.readDirectory", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
-			Path     string
-			OnChange dnode.Callback
+			Path                string
+			OnChange            dnode.Callback
+			WatchSubdirectories bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], onChange: [function], watchSubdirectories: [bool] }"}
 		}
 
 		response := make(map[string]interface{})
 
 		if params.OnChange != nil {
-			watchedPath, err := vos.AddWatch(watcher, params.Path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_ATTRIB)
-			if err != nil {
+			watch := &Watch{VOS: vos, Callback: params.OnChange}
+			if err := addWatch(watch, params.Path, params.WatchSubdirectories); err != nil {
+				watch.Close()
 				return nil, err
 			}
-
-			watchMutex.Lock()
-			defer watchMutex.Unlock()
-
-			watch := &Watch{vos, watchedPath, params.OnChange}
-			watchMap[watchedPath] = append(watchMap[watchedPath], watch)
 			channel.OnDisconnect(func() { watch.Close() })
 			response["stopWatching"] = func() { watch.Close() }
 		}
@@ -348,26 +327,82 @@ func registerFileSystemMethods(k *kite.Kite) {
 	})
 }
 
+type Watch struct {
+	VOS      *virt.VOS
+	Paths    []string
+	Callback dnode.Callback
+}
+
+func addWatch(watch *Watch, path string, watchSubdirectories bool) error {
+	if len(watch.Paths) >= 100 {
+		return fmt.Errorf("Too many subdirectories to watch.")
+	}
+
+	watchMutex.Lock()
+	watchedPath, err := watch.VOS.AddWatch(watcher, path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_ATTRIB)
+	if err != nil {
+		watchMutex.Unlock()
+		return err
+	}
+	watch.Paths = append(watch.Paths, watchedPath)
+	watchMap[watchedPath] = append(watchMap[watchedPath], watch)
+	watchMutex.Unlock()
+
+	if watchSubdirectories {
+		dir, err := watch.VOS.Open(path)
+		if err != nil {
+			return err
+		}
+		defer dir.Close()
+
+		infos, err := dir.Readdir(0)
+		if err != nil {
+			return err
+		}
+
+		for _, info := range infos {
+			if info.Mode().IsDir() {
+				if err := addWatch(watch, path+"/"+info.Name(), true); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func (watch *Watch) Close() error {
 	watchMutex.Lock()
 	defer watchMutex.Unlock()
 
-	watches := watchMap[watch.Path]
-	for i, w := range watches {
-		if w == watch {
-			watches[i] = watches[len(watches)-1]
-			watches = watches[:len(watches)-1]
-			break
+	for _, path := range watch.Paths {
+		watches := watchMap[path]
+		for i, w := range watches {
+			if w == watch {
+				watches[i] = watches[len(watches)-1]
+				watches = watches[:len(watches)-1]
+				break
+			}
+		}
+		watchMap[path] = watches
+		if len(watches) == 0 {
+			return watcher.RemoveWatch(path)
 		}
 	}
 
-	watchMap[watch.Path] = watches
-
-	if len(watches) == 0 {
-		return watcher.RemoveWatch(watch.Path)
-	}
-
 	return nil
+}
+
+type FileEntry struct {
+	Name     string      `json:"name"`
+	IsDir    bool        `json:"isDir"`
+	Size     int64       `json:"size"`
+	Mode     os.FileMode `json:"mode"`
+	Time     time.Time   `json:"time"`
+	IsBroken bool        `json:"isBroken"`
+	Readable bool        `json:"readable"`
+	Writable bool        `json:"writable"`
 }
 
 func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {

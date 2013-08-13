@@ -16,7 +16,7 @@ func main() {
 		panic(err)
 	}
 
-	start := time.Date(2012, 4, 1, 0, 0, 0, 0, time.UTC)
+	start := time.Date(2012, 4, 2, 0, 0, 0, 0, time.UTC)
 	end := time.Now()
 	values := make([]int, end.Sub(start)/week+1)
 

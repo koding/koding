@@ -198,6 +198,23 @@ module.exports = class JAccount extends jraphical.Module
     link      = "http://old.koding.s3.amazonaws.com/koding.old/#{user}-#{userhash}.tgz"
     callback null,link
 
+  checkGroupMembership: secure (client, groupName, callback)->
+    {delegate} = client.connection
+    JGroup = require "../group"
+    JGroup.one {slug : groupName}, (err, group)->
+      return callback new KodingError "An error occured!" if err
+      return callback null, no unless group
+
+      Relationship.one {
+        as          : 'member'
+        targetId    : delegate.getId()
+        sourceId    : group.getId()
+      }, (err, relation)=>
+        return callback new KodingError "An error occured!" if err
+        return callback null, no unless relation
+        return callback null, yes
+
+
   changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options
       username = options

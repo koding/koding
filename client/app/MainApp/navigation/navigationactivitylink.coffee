@@ -8,15 +8,12 @@ class NavigationActivityLink extends KDCustomHTMLView
 
     appManager = KD.getSingleton "appManager"
 
-    @newActivityCount = 0
-
     @count = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "main-nav-icon transparent"
-      partial   : "#{@newActivityCount}"
+      partial   : ""
       click     : =>
         @setActivityLinkToDefaultState()
-        appManager.tell "Activity", "unhideNewItems"
 
     @count.hide()
 
@@ -24,29 +21,31 @@ class NavigationActivityLink extends KDCustomHTMLView
       tagName   : "span"
       cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
 
-    @utils.wait 1000, =>
-      KD.getSingleton('activityController').on "ActivitiesArrived", (activities) =>
-        return if KD.getSingleton('router').currentPath is "Activity"
-        myId = KD.whoami().getId()
-        @newActivityCount++ for activity in activities when activity.originId and activity.originId isnt myId
+    mainController = KD.getSingleton "mainController"
 
-        appManager.tell "Activity", "getNewItemsCount", (itemCount) =>
-          @updateNewItemsCount itemCount
+    mainController.ready =>
+      activityController = KD.getSingleton "activityController"
+      activityController.on "ActivitiesArrived", =>
+        return if KD.getSingleton("router").currentPath is "/Activity"
 
-    KD.getSingleton("mainController").on "NavigationLinkTitleClick", (options) =>
-      @setActivityLinkToDefaultState() if options.appPath is "Activity" and @newActivityCount > 0
+        newItemsCount = activityController.getNewItemsCount()
+        @updateNewItemsCount newItemsCount  if newItemsCount > 0
+
+        activityController.on "NewItemsCounterCleared", @bound "setActivityLinkToDefaultState"
+
+    mainController.on "NavigationLinkTitleClick", (options) =>
+      if options.appPath is "Activity"
+        KD.getSingleton("activityController").clearNewItemsCount()
 
   updateNewItemsCount: (itemCount) ->
-    newItemsCount = itemCount or= @newActivityCount
-    return if newItemsCount is 0
+    return if itemCount is 0
+    @count.updatePartial itemCount
     @count.show()
     @icon.hide()
-    @count.updatePartial newItemsCount
 
   setActivityLinkToDefaultState: ->
     @icon.show()
     @count.hide()
-    @newActivityCount = 0
 
   viewAppended:->
     @setTemplate @pistachio()
