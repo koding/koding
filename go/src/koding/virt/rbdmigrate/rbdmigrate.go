@@ -7,9 +7,19 @@ import (
 	"labix.org/v2/mgo/bson"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
+	abort := false
+	sigtermChannel := make(chan os.Signal)
+	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigtermChannel
+		abort = true
+	}()
+
 	if _, err := db.VMs.UpdateAll(bson.M{"hostKite": "migration"}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
 		panic(err)
 	}
@@ -20,7 +30,7 @@ func main() {
 	}
 	iter := db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": bson.M{"$ne": 1}}).Select(bson.M{"_id": 1, "rbdFormat": 1}).Iter()
 	queue := make([]bson.ObjectId, 0)
-	for iter.Next(&vm) {
+	for iter.Next(&vm) && !abort {
 		if vm.RbdFormat == 0 {
 			fmt.Printf("Checking vm-%s...\n", vm.Id.Hex())
 			info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
@@ -47,6 +57,9 @@ func main() {
 
 	skipped := 0
 	for i, id := range queue {
+		if abort {
+			break
+		}
 		fmt.Printf("Migrating vm-%s (%d/%d)...\n", id.Hex(), i+1, len(queue))
 		if !migrate(id) {
 			skipped += 1
@@ -54,7 +67,7 @@ func main() {
 	}
 
 	fmt.Printf("%d skipped.\n", skipped)
-	if skipped != 0 {
+	if skipped != 0 || abort {
 		os.Exit(1)
 	}
 }
