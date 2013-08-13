@@ -21,8 +21,6 @@ class KDWindowController extends KDController
     return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
     return ""
 
-  isFocused = -> Boolean document[getVisibilityProperty()]
-
   getVisibilityEventName = ->
     return "#{getVisibilityProperty().replace(/[Hh]idden/, '')}visibilitychange"
 
@@ -129,7 +127,7 @@ class KDWindowController extends KDController
       cookie = $.cookie 'clientId'
 
     document.addEventListener getVisibilityEventName(), (event)=>
-      @focusChange event, isFocused()
+      @focusChange event, @isFocused()
 
   addUnloadListener:(key, listener)->
     listeners = @unloadListeners[key] or= []
@@ -140,6 +138,8 @@ class KDWindowController extends KDController
       @unloadListeners[key] = []
     else
       @unloadListeners = {}
+
+  isFocused: -> !Boolean document[getVisibilityProperty()]
 
   addFocusListener: (listener)-> @focusListeners.push listener
 
