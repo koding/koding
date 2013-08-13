@@ -53,6 +53,9 @@ class CollaborativeEditorPane extends CollaborativePane
     else
       @ref.child("WaitingSaveRequest").set yes
 
+  getValue: ->
+    return @codeMirrorEditor.getValue()
+
   createEditor: ->
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
