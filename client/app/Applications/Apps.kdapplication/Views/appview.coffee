@@ -135,7 +135,8 @@ class AppView extends KDView
         color   : "#ffffff"
       callback  : ->
 
-        _installApp = =>
+        kallback = (state = {})=>
+          return  if state.destroy or state.cancel
           @showLoader()
           appsController.installApp app, app.manifest.version, (err)=>
             @hideLoader()
@@ -143,14 +144,14 @@ class AppView extends KDView
         vmController = KD.getSingleton("vmController")
         unless vmController.vms.length
           @hideLoader()
-          vmController.askToTurnOn app.title, -> _installApp()
+          vmController.askToTurnOn kallback
         else
           vmController.info (err, vm, info)=>
             if info?.state is "RUNNING"
-              _installApp()
+              kallback()
             else
               @hideLoader()
-              vmController.askToTurnOn app.title, -> _installApp()
+              vmController.askToTurnOn kallback
 
     @runButton = new KDButtonView
       title     : "Run"
