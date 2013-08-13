@@ -15,16 +15,31 @@ func main() {
 	}
 
 	var vm struct {
-		Id bson.ObjectId `bson:"_id"`
+		Id        bson.ObjectId `bson:"_id"`
+		RbdFormat int           `bson:"rbdFormat"`
 	}
-	iter := db.VMs.Find(bson.M{"webHome": bson.M{"$not": bson.RegEx{Pattern: "^guest-"}}}).Select(bson.M{"_id": 1}).Iter()
-	queue := make([]string, 0)
+	iter := db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": bson.M{"$ne": 1}}).Select(bson.M{"_id": 1, "rbdFormat": 1}).Iter()
+	queue := make([]bson.ObjectId, 0)
 	for iter.Next(&vm) {
-		name := "vm-" + vm.Id.Hex()
-		fmt.Println("Checking " + name + "...")
-		info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", name).Output()
-		if bytes.Contains(info, []byte("format: 2")) {
-			queue = append(queue, name)
+		fmt.Println(vm.RbdFormat)
+		if vm.RbdFormat == 0 {
+			fmt.Printf("Checking vm-%s...\n", vm.Id.Hex())
+			info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
+
+			if bytes.Contains(info, []byte("format: 1")) {
+				vm.RbdFormat = 1
+			}
+			if bytes.Contains(info, []byte("format: 2")) {
+				vm.RbdFormat = 2
+			}
+
+			if err := db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"rbdFormat": vm.RbdFormat}}); err != nil {
+				fmt.Println(err)
+			}
+		}
+
+		if vm.RbdFormat == 2 {
+			queue = append(queue, vm.Id)
 		}
 	}
 	if err := iter.Close(); err != nil {
@@ -32,9 +47,9 @@ func main() {
 	}
 
 	skipped := 0
-	for i, name := range queue {
-		fmt.Printf("Migrating %s (%d/%d)...\n", name, i+1, len(queue))
-		if !migrate(name) {
+	for i, id := range queue {
+		fmt.Printf("Migrating vm-%s (%d/%d)...\n", id.Hex(), i+1, len(queue))
+		if !migrate(id) {
 			skipped += 1
 		}
 	}
@@ -45,12 +60,14 @@ func main() {
 	}
 }
 
-func migrate(name string) bool {
-	if err := db.VMs.Update(bson.M{"_id": bson.ObjectIdHex(name[3:]), "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": "migration"}}); err != nil {
+func migrate(id bson.ObjectId) bool {
+	if err := db.VMs.Update(bson.M{"_id": id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": "migration"}}); err != nil {
 		fmt.Println("Could not lock in DB. Skipping.")
 		return false
 	}
-	defer db.VMs.Update(bson.M{"_id": bson.ObjectIdHex(name[3:])}, bson.M{"$set": bson.M{"hostKite": nil}})
+	defer db.VMs.UpdateId(id, bson.M{"$set": bson.M{"hostKite": nil}})
+
+	name := "vm-" + id.Hex()
 
 	cmd := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", name)
 	cmd.Stderr = os.Stderr
@@ -87,6 +104,9 @@ func migrate(name string) bool {
 		return false
 	}
 
+	if err := db.VMs.UpdateId(id, bson.M{"$set": bson.M{"rbdFormat": 1}}); err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println("Migration complete.")
 	return true
 }
