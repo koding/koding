@@ -17,7 +17,7 @@ class CollaborativeFinderPane extends CollaborativePane
     @finderController = new NFinderController
       nodeIdPath          : "path"
       nodeParentIdPath    : "parentPath"
-      contextMenu         : no
+      contextMenu         : yes
       loadFilesOnInit     : yes
       useStorage          : yes
       treeControllerClass : CollaborativeFinderTreeController
