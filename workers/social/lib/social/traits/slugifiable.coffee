@@ -57,11 +57,10 @@ module.exports = class Slugifiable
       index = if slugPart < 0 then maxLen else maxLen-8+slugPart
       # finalize the length operations
       slug = slug.substr(0, index)
-      # replace multiple instances of the hyphen with a single instance
-      slug.replace(/[-]+/g, "-")
+      # trim leading and trailing hyphens
+      slug.replace(/^-+|-+$/g, "")
 
-    # prevent from "-123" slugs
-    return if slug is "" then "slug" else slug
+    return slug
 
   getNextCount =(name)->            # the name is something like `name: "foo-bar-42"`
     count = name
