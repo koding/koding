@@ -1,7 +1,7 @@
 {Model} = require 'bongo'
-{Relationship} = require 'jraphical'
+{Relationship, Module} = require 'jraphical'
 
-module.exports = class JVM extends Model
+module.exports = class JVM extends Module
 
   {permit} = require './group/permissionset'
   {secure} = require 'bongo'
@@ -27,6 +27,13 @@ module.exports = class JVM extends Model
       'sudoer'          : []
       'create vms'      : ['member','moderator']
       'delete vms'      : ['member','moderator']
+    sharedEvents        :
+      static            : [
+        { name : "RemovedFromCollection" }
+      ]
+      instance          : [
+        { name : "RemovedFromCollection" }
+      ]
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVmInfo'
@@ -42,6 +49,17 @@ module.exports = class JVM extends Model
         type            : String
         default         : -> null
       hostnameAlias     : String
+      hostKite          :
+        type            : String
+        default         : -> null
+      # region            :
+      #   type            : String
+      #   enum            : ['unknown region'
+      #                     [
+      #                       'aws' # Amazon Web Services
+      #                       'sj'  # San Jose
+      #                     ]]
+      #   default         : 'aws'
       webHome           : String
       planOwner         : String
       planCode          : String

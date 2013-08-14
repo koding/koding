@@ -546,8 +546,10 @@ func (t *Terminal) readLine() (line string, err error) {
 		t.c.Write(t.outBuf)
 		t.outBuf = t.outBuf[:0]
 		if lineOk {
-			t.historyIndex = -1
-			t.history.Add(line)
+			if t.echo {
+				t.historyIndex = -1
+				t.history.Add(line)
+			}
 			return
 		}
 
@@ -566,6 +568,8 @@ func (t *Terminal) readLine() (line string, err error) {
 
 		t.remainder = t.inBuf[:n+len(t.remainder)]
 	}
+
+	panic("unreachable") // for Go 1.0.
 }
 
 // SetPrompt sets the prompt to be used when reading subsequent lines.

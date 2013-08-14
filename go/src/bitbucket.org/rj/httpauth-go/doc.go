@@ -9,9 +9,9 @@
 // are supported by the package, and the supporting types implement a common policy
 // interface so that HTTP servers can easily change their authentication policy.
 //
-// To support the basic authentication scheme, callers will need to provide a 
-// function or closure that can validate a user's credentials (i.e. a username 
-// and password pair).  Alternatively, callers can provide a function that will 
+// To support the basic authentication scheme, callers will need to provide a
+// function or closure that can validate a user's credentials (i.e. a username
+// and password pair).  Alternatively, callers can provide a function that will
 // retrieve the password for a given username.
 //
 // To support the diget authentication scheme, callers will need to provide a

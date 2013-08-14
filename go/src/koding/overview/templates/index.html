@@ -29,7 +29,7 @@
 
 	<body>
 
-		<div class="navbar navbar-fixed-top navbar-inverse">
+		<div class="navbar navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="container">
 					<a class="brand" href="#">Koding Overview</a>
@@ -39,6 +39,23 @@
 					<form class="navbar-search pull-left">
 						<input name="build" type="text" class="search-query">
 					</form>
+					<ul class="nav pull-right">
+                      <li class="divider-vertical"></li>
+                      <li>
+                        information from version
+                        <div class="btn-group">
+                            <a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="?build=current#">current version</a></li>
+                                <li class="divider"></li>
+                                {{range .Builds}} 
+                                <li><a href="?build={{.}}">{{.}}</a></li>
+                                {{end}}
+                            </ul>
+                        </div><!-- /btn-group -->
+                        <em>is displayed</em>
+                      </li>
+					</ul>
 				</div>
 			</div>
 		</div><!-- navbar -->
@@ -142,24 +159,6 @@
                 <div class="span4">
 				  <h2>Deployment </h2>
                 </div>
-                <p>
-                <div class="span8">
-                  information from version
-                  <div class="btn-group">
-                      <a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
-                      <ul class="dropdown-menu">
-                          <li><a href="?build=current#">current version</a></li>
-                          <li class="divider"></li>
-                          {{range .Builds}} 
-                          <li><a href="?build={{.}}">{{.}}</a></li>
-                          {{end}}
-                      </ul>
-                  </div><!-- /btn-group -->
-                  <em>is displayed</em>
-                </div>
-                </p>
-
-
 
 				<table class="table table-hover table-bordered table-condensed">
 					<tr>

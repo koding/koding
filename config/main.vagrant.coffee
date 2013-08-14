@@ -72,6 +72,7 @@ module.exports =
     numberOfWorkers: 1
     watch       : yes
   guestCleanerWorker     :
+    enabled              : yes
     login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2

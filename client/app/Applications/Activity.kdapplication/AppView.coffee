@@ -40,6 +40,7 @@ class ActivityAppView extends KDScrollView
         else
           @activityHeader.unsetClass "scrolling-up-outset"
           @activityHeader.liveUpdateButton.setValue on
+          KD.getSingleton("activityController").clearNewItemsCount()
 
     @decorate()
 

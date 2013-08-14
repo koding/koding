@@ -1,4 +1,5 @@
 package neo4j
+// this file works a helper class for other files
 
 import (
 	"encoding/json"
@@ -9,6 +10,8 @@ import (
 	"strings"
 )
 
+// do a simple json.Marshall
+// returns string
 func jsonEncode(value interface{}) (string, error) {
 	jsonValue, err := json.Marshal(value)
 	if err != nil {
@@ -17,9 +20,8 @@ func jsonEncode(value interface{}) (string, error) {
 	return string(jsonValue), nil
 }
 
-//here, mapping of decoded json
+// decoding json here
 func jsonDecode(data string, result *interface{}) error {
-
 	err := json.Unmarshal([]byte(data), &result)
 	if err != nil {
 		return err
@@ -28,8 +30,10 @@ func jsonDecode(data string, result *interface{}) error {
 	return nil
 }
 
+// Obtain id from incoming URL
 func getIdFromUrl(base, url string) (string, error) {
-
+	//add slash to end of base url,
+	//because before id there is a slash
 	target := base + "/"
 
 	result := strings.SplitAfter(url, target)
@@ -44,7 +48,6 @@ func getIdFromUrl(base, url string) (string, error) {
 // Gets URL and string data to be sent and makes request
 // reads response body and returns as string
 func (neo4j *Neo4j) doRequest(requestType, url, data string) (string, error) {
-
 	//convert string into bytestream
 	dataByte := strings.NewReader(data)
 	req, err := http.NewRequest(requestType, url, dataByte)
@@ -52,26 +55,31 @@ func (neo4j *Neo4j) doRequest(requestType, url, data string) (string, error) {
 		return "", err
 	}
 
+	// Neo4j uses json while communicating
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
+	// send request
 	res, err := neo4j.Client.Do(req)
 	if err != nil {
 		return "", err
 	}
 	defer res.Body.Close()
 
-	//todo return proper error messages with message, excaption and stacktrace
+	//todo return proper error messages with message, exception and stacktrace
 	switch requestType {
 	case "GET":
+		// OK
 		if res.StatusCode != 200 {
 			return "", fmt.Errorf(res.Status)
 		}
 	case "POST":
+		// Created
 		if res.StatusCode != 201 {
 			return "", fmt.Errorf(res.Status)
 		}
 	case "PUT", "DELETE":
+		// No Content
 		if res.StatusCode != 204 {
 			return "", fmt.Errorf(res.Status)
 		}
