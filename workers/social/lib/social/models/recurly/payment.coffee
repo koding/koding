@@ -1,5 +1,5 @@
 jraphical = require 'jraphical'
-payment   = require 'koding-payment'
+recurly   = require 'koding-payment'
 
 module.exports = class JRecurlyPayment extends jraphical.Module
 
@@ -25,7 +25,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       ]
     schema           :
       planCode       : String
-      planQuantity   : Number  
+      planQuantity   : Number
       buyer          : String # Recurly account name
       user           : String # Recurly account name
       amount         : Number
@@ -123,12 +123,12 @@ module.exports = class JRecurlyPayment extends jraphical.Module
   @createAccount = (account, callback)->
     account.fetchUser (err, user) ->
       return callback err  if err
-      data = 
-        username  : account.profile.nickname 
+      data =
+        username  : account.profile.nickname
         firstName : account.profile.firstName
         lastName  : account.profile.lastName
         email     : user.email
-      payment.setAccount "user_#{account._id}", data, (err, res)->
+      recurly.setAccount "user_#{account._id}", data, (err, res)->
         return callback err  if err
         callback()
 
@@ -143,7 +143,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
           firstName : "Group"
           lastName  : group.title
           email     : user.email
-        payment.setAccount "group_#{group._id}", data, (err, res)->
+        recurly.setAccount "group_#{group._id}", data, (err, res)->
           return callback err  if err
           callback()
 
@@ -213,7 +213,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
         return callback new KodingError "Unable to query user balance: #{err}"
       items.forEach (item)->
         stack.push (cb)->
-          payment.getSubscriptionInfo "group_#{group._id}",
+          recurly.getSubscription "group_#{group._id}",
             uuid: item.subscription
           , (err, subscription)->
             return cb err  if err

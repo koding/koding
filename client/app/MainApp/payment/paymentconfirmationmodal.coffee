@@ -41,7 +41,7 @@ class PaymentConfirmationModal extends KDModalView
           content += "<p>Your group won't be charged for this VM.</p>"
 
   constructor:(options={}, data)->
-    {type, group, plan, needBilling, balance, amount, subscription} = options
+    {type, plan, needBilling, balance, amount, subscription} = options
 
     content = @paymentWarning balance, amount, subscription
 
@@ -68,7 +68,7 @@ class PaymentConfirmationModal extends KDModalView
         title     : 'Enter Billing Info'
         cssClass  : 'modal-clean-green hidden'
         callback  : =>
-          @setBillingInfo type, group, (success)->
+          @setBillingInfo type, (success)->
             if success
               if subscription.status is 'canceled'
                 @buttons.ReActivate.show()

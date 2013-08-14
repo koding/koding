@@ -1,105 +1,90 @@
 class AccountPaymentHistoryListController extends AccountListViewController
 
-  constructor:(options,data)->
+  constructor:(options={},data)->
+    options.noItemFoundText or= 'You have no payment history.'
 
-    options.noItemFoundText = "You have no payment history."
-    super options,data
+    super options, data
 
-    @list = @getListView()
-    @list.on "Reload", (uuid)=>
-      @loadItems()
-
+    @getListView().on 'Reload', @bound 'loadItems'
     @loadItems()
 
   loadItems:->
     @removeAllItems()
-    @customItem?.destroy()
     @showLazyLoader no
 
     transactions = []
-    KD.remote.api.JRecurlyPlan.getUserTransactions (err, trans) =>
-      if err
-        @addCustomItem "There are no transactions."
-        @hideLazyLoader()
-      unless err
-        for t in trans
-          if t.amount + t.tax is 0
-            continue
-          transactions.push
-            status     : t.status
-            amount     : ((t.amount + t.tax) / 100).toFixed(2)
-            currency   : 'USD'
-            createdAt  : t.datetime
-            paidVia    : t.card or ""
-            cardType   : t.cardType
-            cardNumber : t.cardNumber
-            owner      : t.owner
-            refundable : t.refundable
-        if transactions.length is 0
-          @addCustomItem "There are no transactions."
-        else
-          @instantiateListItems transactions
-        @hideLazyLoader()
+    KD.remote.api.JRecurlyPlan.getTransactions (err, trans)=>
+      warn err  if err
 
-  addCustomItem:(message)->
-    @removeAllItems()
-    @customItem?.destroy()
-    @scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass : "no-item-found"
-      partial  : message
+      for t in trans when t.amount + t.tax > 0
+        transactions.push
+          status     : t.status
+          amount     : ((t.amount + t.tax) / 100).toFixed(2)
+          currency   : 'USD'
+          createdAt  : t.datetime
+          paidVia    : t.card or ''
+          cardType   : t.cardType
+          cardNumber : t.cardNumber
+          owner      : t.owner
+          refundable : t.refundable
+
+      @instantiateListItems transactions
+      @hideLazyLoader()
 
   loadView:->
     super
+
     @getView().parent.addSubView reloadButton = new KDButtonView
-      style     : "clean-gray account-header-button"
-      title     : ""
+      style     : 'clean-gray account-header-button'
+      title     : ''
       icon      : yes
       iconOnly  : yes
-      iconClass : "refresh"
-      callback  : =>
-        @getListView().emit "Reload"
+      iconClass : 'refresh'
+      callback  : @getListView().emit.bind @getListView(), 'Reload'
+
 
 class AccountPaymentHistoryList extends KDListView
 
-  constructor:(options,data)->
-    options = $.extend
-      tagName      : "table"
-      itemClass : AccountPaymentHistoryListItem
-    ,options
-    super options,data
+  constructor:(options={},data)->
+    options.tagName   or= 'table'
+    options.itemClass or= AccountPaymentHistoryListItem
+
+    super options, data
+
 
 class AccountPaymentHistoryListItem extends KDListItemView
-  constructor:(options,data)->
-    options = tagName : "tr"
-    super options,data
+
+  constructor:(options={},data)->
+    options.tagName or= 'tr'
+
+    super options, data
 
   viewAppended:->
     super
     @addSubView editLink = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "View invoice"
-      cssClass     : "action-link"
+      tagName      : 'a'
+      partial      : 'View invoice'
+      cssClass     : 'action-link'
 
   click:(event)->
-    if $(event.target).is "a.delete-icon"
-      @getDelegate().emit "UnlinkAccount", accountType : @getData().type
+    event.stopPropagation()
+    event.preventDefault()
+    if $(event.target).is 'a.delete-icon'
+      @getDelegate().emit 'UnlinkAccount', accountType : @getData().type
 
   partial:(data)->
+    cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ''
     """
-      <span class='darkText'>#{data.title}</span>
-    """
-    cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ""
-    """
-      <td>
-        <span class='invoice-date'>#{dateFormat(data.createdAt, 'mmm dd, yyyy')}</span>
-      </td>
-      <td>
-        <strong>$#{data.amount}</strong>
-      </td>
-      <td>
-        <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>
-      </td>
-      <td class='ccard'>
-        <span class='icon #{data.cardType.toLowerCase().replace(' ', '-')}'></span>...#{data.cardNumber.split("...")[1]}
-      </td>
+    <td>
+      <span class='invoice-date'>#{dateFormat(data.createdAt, 'mmm dd, yyyy')}</span>
+    </td>
+    <td>
+      <strong>$#{data.amount}</strong>
+    </td>
+    <td>
+      <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>
+    </td>
+    <td class='ccard'>
+      <span class='icon #{data.cardType.toLowerCase().replace(' ', '-')}'></span>...#{data.cardNumber.split("...")[1]}
+    </td>
     """

@@ -1,142 +1,121 @@
 class AccountSubscriptionsListController extends AccountListViewController
-  constructor:(options,data)->
 
-    options.noItemFoundText = "You have no subscription."
-    super options,data
+  constructor:(options={}, data)->
+    options.noItemFoundText or= 'You have no subscriptions.'
 
+    super options, data
+
+    @getListView().on 'Reload', @bound 'loadItems'
     @loadItems()
-
-    @on "reload", (data)=>
-      @loadItems()
-
-    @list = @getListView()
-    @list.on 'reload', (data)=>
-      @loadItems()
 
   loadItems: ()->
     @removeAllItems()
-    @customItem?.destroy()
     @showLazyLoader no
 
-    KD.remote.api.JRecurlySubscription.getUserSubscriptions (err, subs) =>
-      if err or subs.length is 0
-        @addCustomItem "There are no subscriptions."
-        @hideLazyLoader()
-      else
-        stack = []
-
-        subs.forEach (sub)=>
-          if sub.status isnt 'expired'
-            stack.push (cb)->
-              KD.remote.api.JRecurlyPlan.getPlanWithCode sub.planCode, (err, plan)->
-                return cb err  if err
-                sub.plan = plan
-                cb null, sub
-
-        async.parallel stack, (err, result)=>
-          result = [] if err
-          if result.length is 0
-             @addCustomItem "There are no subscriptions."
-          else
-            @instantiateListItems result
-          @hideLazyLoader()
-
-  addCustomItem:(message)->
-    @removeAllItems()
-    @customItem?.destroy()
-    @scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass : "no-item-found"
-      partial  : message
+    KD.remote.api.JRecurlySubscription.getSubscriptionsWithPlan (err, subs)=>
+      warn err  if err
+      subscriptions = (sub  for sub in subs when sub.expired isnt 'expired')
+      @instantiateListItems subscriptions
+      @hideLazyLoader()
 
   loadView:->
     super
+
+    @getView().parent.addSubView updateButton = new KDButtonView
+      style     : 'clean-gray account-header-cc'
+      title     : 'Update Credit Card'
+      callback  : ->
+        paymentController = KD.getSingleton 'paymentController'
+        paymentController.setBillingInfo 'user'
+
     @getView().parent.addSubView reloadButton = new KDButtonView
-      style     : "clean-gray account-header-button"
-      title     : ""
+      style     : 'clean-gray account-header-button'
+      title     : ''
       icon      : yes
       iconOnly  : yes
-      iconClass : "refresh"
-      callback  : =>
-        @getListView().emit "reload"
+      iconClass : 'refresh'
+      callback  : @getListView().emit.bind @getListView(), 'Reload'
+
 
 class AccountSubscriptionsList extends KDListView
-  constructor:(options,data)->
-    options = $.extend
-      tagName      : "ul"
-      itemClass : AccountSubscriptionsListItem
-    ,options
-    super options,data
 
-class AccountSubscriptionsListItem extends KDListItemView
-  constructor:(options,data)->
-    options.tagName = "li"
+  constructor:(options={}, data)->
+    options.tagName   or= 'ul'
+    options.itemClass or= AccountSubscriptionsListItem
+
     super options, data
 
-    listView = @getDelegate()
-    if data.status is 'canceled'
-      title     = "Renew Next Month"
-      iconClass = "canceled"
-    else if data.status in ['active', 'modified']
-      title     = "Don't Renew Next Month"
-      iconClass = "active" 
- 
+
+class AccountSubscriptionsListItem extends KDListItemView
+
+  constructor:(options={}, data)->
+    options.tagName or= 'li'
+
+    super options, data
+
+    # listView = @getDelegate()
+    # if data.status is 'canceled'
+    #   title     = 'Renew Next Month'
+    #   iconClass = 'canceled'
+    # else if data.status in ['active', 'modified']
+    #   title     = "Don't Renew Next Month"
+    #   iconClass = 'active'
+
     @changePlan = new KDButtonView
-      style       : "clean-gray"
-      cssClass    : "edit-plan"
-      icon        : yes
-      iconOnly    : yes
-      iconClass   : iconClass
-      tooltip     :
-        title     : title
-        placement : "left"
-      loader      :
-        color     : "#666"
-        diameter  : 16
-      callback    : =>
-        if data.status in ['active', 'modified', 'canceled']
-          @editPlan listView, data
-          @changePlan.hideLoader()
- 
+    #   style       : 'clean-gray'
+    #   cssClass    : 'edit-plan'
+    #   icon        : yes
+    #   iconOnly    : yes
+    #   iconClass   : iconClass
+    #   tooltip     :
+    #     title     : title
+    #     placement : 'left'
+    #   loader      :
+    #     color     : '#666'
+    #     diameter  : 16
+    #   callback    : =>
+    #     if data.status in ['active', 'modified', 'canceled']
+    #       @editPlan listView, data
+    #       @changePlan.hideLoader()
+
   confirmOperation: (message, cb)->
     modal = new KDModalView
-      title        : "Warning"
+      title        : 'Warning'
       content      : "<div class='modalformline'>#{message}</div>"
-      height       : "auto"
+      height       : 'auto'
       overlay      : yes
       buttons      :
         Continue   :
           loader   :
-            color  : "#ffffff"
+            color  : '#ffffff'
             diameter : 16
-          style    : "modal-clean-gray"
+          style    : 'modal-clean-gray'
           callback : ->
             modal.destroy()
             cb?()
- 
+
   editPlan: (listView, data)->
+    cb = (err)-> listView.emit 'Reload'  unless err
+
     if data.status is 'canceled'
       @confirmOperation 'Are you sure you want to resume your subscription?', ->
-        data.resume (err, res)->
-          unless err
-            listView.emit "reload"
+        data.resume cb
     else
       @confirmOperation 'Are you sure you want to cancel your subscription?', ->
-        data.cancel (err, res)->
-          unless err
-            listView.emit "reload"
- 
+        data.cancel cb
+
   viewAppended: JView::viewAppended
 
   pistachio:->
     {quantity,plan,status,renew,expires,amount} = @getData()
 
-    statusNotice = ""
+    statusNotice = ''
     if status in ['active', 'modified']
       statusNotice = "Subscription for #{quantity} product(s) is active"
     else if status is 'canceled'
       statusNotice = "Subscription for #{quantity} product(s) will end soon"
 
-    dateNotice = ""
+    dateNotice = ''
     if plan.type isnt 'single'
       if status is 'active'
         dateNotice = "Plan will renew on #{dateFormat renew}"

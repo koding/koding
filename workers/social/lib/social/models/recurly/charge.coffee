@@ -1,6 +1,6 @@
 jraphical = require 'jraphical'
-JUser = require '../user'
-payment = require 'koding-payment'
+JUser     = require '../user'
+recurly   = require 'koding-payment'
 
 forceRefresh  = yes
 forceInterval = 60 * 3
@@ -8,7 +8,7 @@ forceInterval = 60 * 3
 module.exports = class JRecurlyCharge extends jraphical.Module
 
   {secure} = require 'bongo'
-  
+
   JRecurlyToken = require './token'
 
   @share()
@@ -57,7 +57,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
     {delegate} = client.connection
     userCode = "user_#{delegate._id}"
 
-    payment.getUserTransactions userCode, (err, allCharges)->
+    recurly.getTransactions userCode, (err, allCharges)->
       mapAll = {}
       allCharges.forEach (rCharge)->
         if rCharge.source is 'transaction'
@@ -112,7 +112,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
       unless status
         callback yes, {}
       else
-        payment.addUserTransaction userCode,
+        recurly.createTransaction userCode,
           amount         : data.amount
           desc           : data.desc
         , (err, charge)=>
@@ -129,7 +129,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
   cancel: secure (client, callback)->
     {delegate} = client.connection
     userCode = "user_#{delegate._id}"
-    payment.deleteUserTransaction userCode,
+    recurly.deleteTransaction userCode,
       uuid   : @uuid
       amount : @amount
     , (err, charge)=>

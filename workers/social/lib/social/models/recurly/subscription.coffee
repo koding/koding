@@ -1,6 +1,5 @@
 jraphical = require 'jraphical'
-JUser = require '../user'
-payment = require 'koding-payment'
+payment   = require 'koding-payment'
 
 forceRefresh  = yes
 forceInterval = 60 * 3
@@ -8,6 +7,7 @@ forceInterval = 60 * 3
 module.exports = class JRecurlySubscription extends jraphical.Module
 
   {secure} = require 'bongo'
+  JUser    = require '../user'
 
   @share()
 
@@ -16,11 +16,9 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       uuid         : 'unique'
     sharedMethods  :
       static       : [
-        'getUserSubscriptions', 'checkUserSubscription'
+        'getSubscriptions', 'getSubscriptionsWithPlan', 'checkUserSubscription'
       ]
-      instance     : [
-        'cancel', 'resume', 'calculateRefund'
-      ]
+      instance     : ['cancel', 'resume', 'calculateRefund']
     schema         :
       uuid         : String
       planCode     : String
@@ -33,9 +31,25 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       amount       : Number
       lastUpdate   : Number
 
-  @getUserSubscriptions = secure (client, callback)->
+  @getSubscriptions = secure (client, callback)->
     {delegate} = client.connection
     JRecurlySubscription.getSubscriptions "user_#{delegate._id}", callback
+
+  @getSubscriptionsWithPlan = secure (client, callback)->
+    JRecurlyPlan = require './index'
+    {delegate} = client.connection
+
+    JRecurlySubscription.getSubscriptions "user_#{delegate._id}", (err, subs)->
+      return callback err  if err
+      code = $in: (sub.planCode  for sub in subs)
+      JRecurlyPlan.some {code}, {}, (err, plans)->
+        return callback err  if err
+
+        plans = {}
+        plans[plan.code] = plan         for plan in plans
+        sub.plan = plans[sub.planCode]  for sub in subs
+
+        callback null, subs
 
   @checkUserSubscription = secure (client, planCode, callback)->
     {delegate} = client.connection
@@ -49,7 +63,6 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         {status: 'canceled'}
       ]
     , callback
-
 
   @getGroupSubscriptions = (group, callback)->
     JRecurlySubscription.getSubscriptions "group_#{group._id}", callback
@@ -79,7 +92,8 @@ module.exports = class JRecurlySubscription extends jraphical.Module
   @updateCache = (userCode, selector, callback)->
     console.log "Updating Recurly user subscription..."
 
-    payment.getUserSubscriptions userCode, (err, allSubs)->
+    payment.getSubscriptions userCode, (err, allSubs)->
+      return callback err  if err
       mapAll = {}
       allSubs.forEach (rSub)->
         mapAll[rSub.uuid] = rSub
@@ -124,7 +138,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
           callback()
 
   update: (quantity, callback)->
-    payment.updateUserSubscription @userCode,
+    payment.updateSubscription @userCode,
       uuid     : @uuid
       plan     : @planCode
       quantity : quantity
@@ -168,7 +182,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       return yes
 
   terminate: (callback)->
-    payment.terminateUserSubscription @userCode,
+    payment.terminateSubscription @userCode,
       uuid   : @uuid
       refund : "none"
     , (err, sub)=>
@@ -189,7 +203,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         callback no, @
 
   cancel: (callback)->
-    payment.cancelUserSubscription @userCode,
+    payment.cancelSubscription @userCode,
       uuid: @uuid
     , (err, sub)=>
       return callback err  if err

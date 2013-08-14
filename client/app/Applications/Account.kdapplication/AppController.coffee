@@ -131,7 +131,6 @@ class AccountAppController extends AppController
     billing :
       title : "Billing"
       items : [
-        { title : "Payment method",       listHeader: "Payment Method",        listType: "method",        id : 10,      parentId : null }
         { title : "Subscriptions",        listHeader: "Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
         { title : "Billing history",      listHeader: "Billing History",       listType: "history",        id : 30,      parentId : null }
       ]

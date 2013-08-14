@@ -1,6 +1,6 @@
 jraphical = require 'jraphical'
 JUser     = require '../user'
-payment   = require 'koding-payment'
+recurly   = require 'koding-payment'
 createId  = require 'hat'
 async     = require 'async'
 
@@ -22,7 +22,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     sharedMethods  :
       static       : [
         'getPlans', 'getPlanWithCode',
-        'setUserAccount', 'getUserAccount', 'getUserTransactions',
+        'setUserAccount', 'getUserAccount', 'getTransactions',
         'getUserBalance', 'getGroupBalance'
       ]
       instance     : [
@@ -53,9 +53,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
     JUser.fetchUser client, (e, r) ->
       data.email = r.email
-      payment.setAccount "user_#{delegate._id}", data, (err, res)->
+      recurly.setAccount "user_#{delegate._id}", data, (err, res)->
         return callback err  if err
-        payment.setBilling "user_#{delegate._id}", data, callback
+        recurly.setBilling "user_#{delegate._id}", data, callback
 
   @setGroupAccount = (group, data, callback)->
     JRecurlyPlan.fetchGroupAccount group, (err, groupAccount)=>
@@ -68,21 +68,21 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       data.firstName   = groupAccount.firstName
       data.lastName    = groupAccount.lastName
 
-      payment.setAccountWithBilling userCode, data, callback
+      recurly.setAccountWithBilling userCode, data, callback
 
   @getUserAccount = secure (client, callback)->
     {delegate}    = client.connection
-    payment.getAccount "user_#{delegate._id}", callback
+    recurly.getAccount "user_#{delegate._id}", callback
 
   @getGroupAccount = (group, callback)->
-    payment.getAccount "group_#{group._id}", callback
+    recurly.getAccount "group_#{group._id}", callback
 
-  @getUserTransactions = secure (client, callback)->
+  @getTransactions = secure (client, callback)->
     {delegate}    = client.connection
-    payment.getUserTransactions "user_#{delegate._id}", callback
+    recurly.getTransactions "user_#{delegate._id}", callback
 
   @getGroupTransactions = (group, callback)->
-    payment.getUserTransactions "group_#{group._id}", callback
+    recurly.getTransactions "group_#{group._id}", callback
 
   @addGroupPlan = (group, data, callback)->
     data.feeMonthly = data.price
@@ -97,12 +97,12 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       # This is a hack, since Recurly sucks and non recurring payments.
       data.feeInterval = 9999
 
-    payment.addPlan data, callback
+    recurly.createPlan data, callback
 
   @deleteGroupPlan = (group, data, callback)->
     prefix = "groupplan_#{group._id}_"
     if data.code.indexOf(prefix) > -1
-      payment.deletePlan data, callback
+      recurly.deletePlan data, callback
 
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
@@ -135,7 +135,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   @updateCache = (callback)->
     console.log "Updating Recurly plans..."
 
-    payment.getPlans (err, allPlans)->
+    recurly.getPlans (err, allPlans)->
       mapAll = {}
       allPlans.forEach (rPlan)->
         mapAll[rPlan.code] = rPlan
@@ -234,7 +234,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         subs.quantity ?= 1
         subs.quantity += 1
 
-        payment.updateUserSubscription userCode,
+        recurly.updateSubscription userCode,
           quantity: subs.quantity
           plan    : @code
           uuid    : subs.uuid
@@ -242,7 +242,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           subs.save ->
             callback no, subs
       else
-        payment.addUserSubscription userCode, {plan: @code}, (err, result)->
+        recurly.createSubscription userCode, {plan: @code}, (err, result)->
           return callback err  if err
           sub = new JRecurlySubscription
             planCode : result.plan
@@ -280,7 +280,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       ]
     , (err, subs)=>
       return callback err  if err
-      if subs.length > 0        
+      if subs.length > 0
 
         unless data.multiple
           return callback "Already subscribed."
@@ -289,7 +289,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         subs.quantity ?= 1
         subs.quantity += 1
 
-        payment.updateUserSubscription userCode,
+        recurly.updateSubscription userCode,
           quantity: subs.quantity
           plan    : @code
           uuid    : subs.uuid
@@ -297,7 +297,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           subs.save ->
             callback no, subs
       else
-        payment.addUserSubscription userCode, data, (err, result)->
+        recurly.createSubscription userCode, data, (err, result)->
           return callback err  if err
           sub = new JRecurlySubscription
             planCode : result.plan
@@ -313,13 +313,13 @@ module.exports = class JRecurlyPlan extends jraphical.Module
             callback no, sub
 
   @getAccountBalance = (account, callback)->
-    payment.getUserTransactions account, (err, adjs)->
+    recurly.getTransactions account, (err, adjs)->
       spent = 0
       adjs.forEach (adj)->
         if adj.status is 'success'
           spent += parseInt adj.amount, 10
 
-      payment.getUserAdjustments account, (err, adjs)->
+      recurly.getAdjustments account, (err, adjs)->
         charged = 0
         adjs.forEach (adj)->
           charged += parseInt adj.amount, 10
@@ -384,9 +384,9 @@ do ->
               interval = 9999
             else
               interval = 1
-            payment.getPlanInfo {code: code}, (err, plan)->
+            recurly.getPlan {code}, (err, plan)->
               if not err and plan
-                payment.updatePlan 
+                recurly.updatePlan
                   code       : code
                   title      : prod.title
                   feeMonthly : prod.price
@@ -396,7 +396,7 @@ do ->
                     console.log "Updated product: #{prod.title}"
                   cb()
               else
-                payment.addPlan
+                recurly.createPlan
                   code       : code
                   title      : prod.title
                   feeMonthly : prod.price
