@@ -5,7 +5,7 @@ module.exports = class Slugifiable
 
   KodingError = require '../error'
 
-  getStopWordRegex=->
+  stopWordRegExp = do ->
     stopWords = [
         "a", "has", "such", "accordance", "have", "suitable", "according", "having", "than",
         "all", "herein", "that", "also", "however", "the", "an", "if", "their",
@@ -37,7 +37,7 @@ module.exports = class Slugifiable
     # if slug length is bigger than maxLen remove stopwords from it
     if slug.length > maxLen
       slug = slug
-      .replace(getStopWordRegex(), '')
+      .replace(stopWordRegExp, '')
       .replace(/[-]+/g, "-")             # replace multiple instances of the hyphen with a single instance
       .replace(/^-+|-+$/g, "")           # trim leading and trailing hyphens
 
