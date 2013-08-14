@@ -13,7 +13,6 @@ class KDObject extends KDEventEmitter
     @registerKDObjectInstance()
 
     if options.testPath
-      @testPath = options.testPath
       KD.registerInstanceForTesting this
 
     super

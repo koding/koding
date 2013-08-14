@@ -216,9 +216,10 @@ catch e
     KD.exportKDFramework = -> "Already exported."
     "KDFramework loaded successfully."
 
-  registerInstanceForTesting:(kdobject)->
-    key = kdobject.getOption 'testPath'
-    @instancesToBeTested[key] = kdobject
+  registerInstanceForTesting:(instance)->
+    key = instance.getOption 'testPath'
+    @instancesToBeTested[key] = instance
+    instance.on 'KDObjectWillBeDestroyed', => delete @instancesToBeTested[key]
 
   getInstanceForTesting:(key)-> @instancesToBeTested[key]
 
