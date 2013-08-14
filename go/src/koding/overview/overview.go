@@ -126,6 +126,7 @@ func NewServerInfo() *ServerInfo {
 }
 
 var (
+	apiPath   = "http://kontrol.in.koding.com"
 	checkAuth *auth.Basic
 	proxyDB   *proxyconfig.ProxyConfiguration
 	templates = template.Must(template.ParseFiles(
@@ -143,7 +144,7 @@ func main() {
 		log.Println(res)
 	}
 
-	checkAuth = auth.NewBasic("Kontrol.in.koding.com", func(username, password string) bool {
+	checkAuth = auth.NewBasic(apiPath, func(username, password string) bool {
 		if username != "koding" {
 			return false
 		}
@@ -227,7 +228,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func keyLookup(key string) (map[string]bool, map[string]bool) {
-	workersApi := "http://kontrol.in.koding.com/workers?version=" + key
+	workersApi := apiPath + "/workers?version=" + key
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		fmt.Println(err)
@@ -290,8 +291,7 @@ func jenkinsInfo() *JenkinsInfo {
 
 func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 	s := StatusInfo{}
-
-	workersApi := "http://kontrol.in.koding.com/workers?version=" + build
+	workersApi := apiPath + "/workers?version=" + build
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		return nil, s, err
@@ -336,7 +336,7 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 }
 
 func buildsInfo() []int {
-	serverApi := "http://kontrol.in.koding.com/deployments"
+	serverApi := apiPath + "/deployments"
 	fmt.Println(serverApi)
 	resp, err := http.Get(serverApi)
 	if err != nil {
@@ -365,7 +365,7 @@ func buildsInfo() []int {
 }
 
 func serverInfo(build string) (*ServerInfo, error) {
-	serverApi := "http://kontrol.in.koding.com/deployments/" + build
+	serverApi := apiPath + "/deployments/" + build
 
 	resp, err := http.Get(serverApi)
 	if err != nil {
@@ -406,7 +406,8 @@ func parseMongoLogin(login string) string {
 
 func domainInfo() (Domain, error) {
 	d := Domain{}
-	domainApi := "http://kontrol.in.koding.com/domains/koding.com"
+	domainApi := apiPath + "/domains/koding.com"
+
 	resp, err := http.Get(domainApi)
 	if err != nil {
 		return d, err
