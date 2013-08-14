@@ -63,9 +63,9 @@
 		<div class="row-fluid">
 			<div class="span6">
             <div class="hero-unit">
-                <h2>Koding.com switcher</h2>
+                <h2>{{ .Status.SwitchHost }} switcher</h2>
                     <p>
-                      Change the production build of Koding.com to a different version.<br>
+                      Change the build version of {{ .Status.SwitchHost }} to a different version.<br>
                       <span class="label label-important">This is a dangerous action</span>, be sure you know what you are doing!
                     </p>
 
@@ -94,7 +94,7 @@
 				<table class="table table-hover table-bordered">
 					<thead>
 						<tr>
-				            <td><a target="_blank" href="http://koding.com/">koding.com</a> is using</td> 
+                          <td><a target="_blank" href="https://{{ .Status.SwitchHost }}/">{{ .Status.SwitchHost }}</a> is using</td> 
 						</tr>
 					</thead>
 					<tbody>
