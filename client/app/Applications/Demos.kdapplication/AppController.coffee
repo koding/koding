@@ -21,7 +21,6 @@ class DemosAppController extends AppController
       joinModalContent   : "<p>Paste the session key that you received and start coding together.</p>"
       shareSessionKeyInfo: "<p>This is your session key, you can share this key with your friends to work together.</p>"
       firebaseInstance   : "teamwork-local"
-      # firebaseInstances  : ["kd-prod-1", "kd-prod-2", "kd-prod-3", "kd-prod-4", "kd-prod-5"]
       enableChat         : yes
       panels             : [
         {
@@ -31,7 +30,9 @@ class DemosAppController extends AppController
             {
               title      : "Join"
               cssClass   : "cupid-green join-button"
-              callback   : (panel, workspace) => workspace.showJoinModal()
+              callback   : (panel, workspace) =>
+                debugger
+                workspace.showJoinModal()
             }
 
           ]
@@ -39,15 +40,24 @@ class DemosAppController extends AppController
             direction       : "vertical"
             sizes           : [ "20%", null ]
             views           : [
-              { type        : "finder" }
+              {
+                type        : "finder"
+                name        : "finder"
+              }
               {
                 type        : "split"
                 options     :
                   direction : "horizontal"
                   sizes     : ["50%", null]
                 views       : [
-                  { type    : "tabbedEditor" }
-                  { type    : "terminal" }
+                  {
+                    type    : "tabbedEditor"
+                    name    : "editor"
+                  }
+                  {
+                    type    : "terminal"
+                    name    : "terminal"
+                  }
                 ]
               }
             ]
