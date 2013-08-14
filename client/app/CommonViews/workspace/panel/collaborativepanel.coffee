@@ -41,9 +41,11 @@ class CollaborativePanel extends Panel
     return warn "Unknown pane class: #{paneOptions.type}"  unless PaneClass
     pane = new PaneClass paneOptions
 
+    @panesByName[paneOptions.name] = pane  if paneOptions.name
+
     @panes.push pane
     @emit "NewPaneCreated", pane
-    return  pane
+    return pane
 
   getPaneLengthFromLayoutConfig: ->
     options = @getOptions()

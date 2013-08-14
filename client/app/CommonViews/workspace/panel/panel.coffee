@@ -9,6 +9,7 @@ class Panel extends JView
     @headerButtons  = {}
     @panesContainer = []
     @panes          = []
+    @panesByName    = {}
     @header         = new KDCustomHTMLView
 
     {title}         = options
@@ -63,9 +64,11 @@ class Panel extends JView
     PaneClass = @getPaneClass paneOptions
     pane      = new PaneClass paneOptions
 
+    @panesByName[paneOptions.name] = pane  if paneOptions.name
+
     @panes.push pane
     @emit "NewPaneCreated", pane
-    return  pane
+    return pane
 
   getPaneClass: (paneOptions) ->
     paneType             = paneOptions.type
@@ -90,7 +93,10 @@ class Panel extends JView
       "finder"           : @FinderPaneClass
       "tabbedEditor"     : @TabbedEditorPaneClass
 
-    return  paneTypesToPaneClass[paneType]
+    return paneTypesToPaneClass[paneType]
+
+  getPaneByName: (name) ->
+    return @panesByName[name] or null
 
   showHintModal: ->
     options        = @getOptions()
