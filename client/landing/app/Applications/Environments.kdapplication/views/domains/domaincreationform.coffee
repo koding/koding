@@ -13,7 +13,6 @@ class DomainCreationForm extends KDTabViewWithForms
     {nickname, firstName, lastName} = KD.whoami().profile
 
     paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
     domainOptions     = [
       { title : "Create a subdomain",                                      value : "subdomain" }
       { title : "I want to register a domain <cite>coming soon...</cite>", value : "new",      disabled : "disabled" }
@@ -41,7 +40,7 @@ class DomainCreationForm extends KDTabViewWithForms
 
                 billingButton.hideLoader()
 
-                paymentController.setBillingInfo 'user', group, (success)->
+                paymentController.setBillingInfo 'user', (success)->
                   if success
                     billingButton.hide()
                     createButton.show()
@@ -146,9 +145,7 @@ class DomainCreationForm extends KDTabViewWithForms
       return
 
     paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
-
-    paymentController.getBillingInfo 'user', group, (err, account)->
+    paymentController.getBillingInfo 'user', (err, account)->
       need = err or not account or not account.cardNumber
       if need
         billingButton.show()

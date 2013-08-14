@@ -1,7 +1,7 @@
 class PaymentWidget extends KDView
   constructor:(options, data)->
     super options, data
-    
+
     @planCode = options.planCode
 
     @loader = new KDLoaderView
@@ -23,7 +23,7 @@ class PaymentWidget extends KDView
 
     @widgetContent = options.content
     @widgetContent.setClass "hidden"
-    
+
     @buttonSubscribe.setClass options.contentCssClass
     @buttonBilling.setClass options.contentCssClass
 
@@ -82,9 +82,7 @@ class PaymentWidget extends KDView
 
   askBillingInfo:(callback)->
     paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
-
-    paymentController.setBillingInfo 'user', group, callback
+    paymentController.setBillingInfo 'user', callback
 
   confirmSubscription:(callback)->
     KD.remote.api.JRecurlyPlan.getPlanWithCode @planCode, (err,plan)=>
@@ -103,7 +101,7 @@ class PaymentWidget extends KDView
                   <div>#{title} - $#{price.toFixed(2)} #{description}</div>
                   <br/>
                 """
-    
+
       modal           = new KDModalView
         title         : "Confirm Subcription"
         content       : "<div class='modalformline'>#{content}</div>"

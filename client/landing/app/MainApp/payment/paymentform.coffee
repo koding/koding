@@ -10,19 +10,18 @@ class PaymentForm extends KDModalViewWithForms
     options.height   or= 'auto'
     options.cssClass or= 'payments-modal'
     options.overlay   ?= yes
-    options.buttons  or=
-      Save                      :
-        title                   : 'Save'
-        style                   : 'modal-clean-green'
-        type                    : 'submit'
-        loader                  : { color : '#fff', diameter : 12 }
-
     options.tabs     or=
       navigable                 : yes
       goToNextFormOnSubmit      : no
       forms                     :
         'Billing Info'          :
-          callback              : @handleRecurlyResponse.bind this, callback
+          callback              : @handleRecurlyResponse.bind this, options.callback
+          buttons               :
+            Save                :
+              title             : 'Save'
+              style             : 'modal-clean-green'
+              type              : 'submit'
+              loader            : { color : '#fff', diameter : 12 }
           fields                :
 
             cardFirstName       :
@@ -72,8 +71,9 @@ class PaymentForm extends KDModalViewWithForms
 
     @billingForm = @modalTabs.forms['Billing Info']
     @billingForm.inputs.cardNumber.on 'keyup', @bound 'checkCardType'
+    @billingForm.on 'FormValidationFailed', => @billingForm.buttons.Save.hideLoader()
 
-    @billingForm.fields.cardNumber.addSubView icon = new KDCustomHTMLView
+    @billingForm.fields.cardNumber.addSubView @icon = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'icon'
 
@@ -83,6 +83,8 @@ class PaymentForm extends KDModalViewWithForms
 
   handleRecurlyResponse:(callback, err) ->
     return callback yes  unless err
+
+    @billingForm.buttons.Save.hideLoader()
 
     recurlyFieldMap =
       first_name         : 'cardFirstName'
@@ -117,7 +119,7 @@ class PaymentForm extends KDModalViewWithForms
     else no
 
     cardType = type.toLowerCase?()
-    $icon    = icon.$()
+    $icon    = @icon.$()
     unless $icon.hasClass cardType
       $icon.removeClass 'visa mastercard discover amex'
       $icon.addClass cardType  if type
