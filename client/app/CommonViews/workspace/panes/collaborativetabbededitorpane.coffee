@@ -31,6 +31,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
+  getActivePaneContent: ->
+    return @tabView.getActivePane().getSubviews()[0].getValue()
+
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : @
