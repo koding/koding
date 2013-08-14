@@ -33,7 +33,6 @@ class ActivityStatusUpdateWidget extends KDFormView
       placeholder   : "What's new #{name}?"
       name          : 'body'
       style         : 'input-with-extras'
-      testPath      : 'status-update-input'
       autogrow      : yes
       validate      :
         rules       :

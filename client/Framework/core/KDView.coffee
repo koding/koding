@@ -81,7 +81,6 @@ class KDView extends KDObject
     o.suffix      or= ""        # a String
     o.tooltip     or= null      # an Object of kdtooltip options
     o.preserveValue or= null
-    o.testPath    or= null
 
     # TO BE IMPLEMENTED
     o.resizable   or= null      # TBDL
@@ -119,9 +118,6 @@ class KDView extends KDObject
       if @getOptions().introId
         mainController = KD.getSingleton "mainController"
         mainController.introductionTooltipController.emit "ShowIntroductionTooltip", @
-
-    if o.testPath
-      KD.registerViewForTesting this
 
     # development only
     if location.hostname is "localhost"

@@ -79,6 +79,7 @@ catch e
   appScripts      : {}
   lastFuncCall    : null
   navItems        : []
+  instancesToBeTested: {}
 
   socketConnected:->
     @backendIsConnected = yes
@@ -215,15 +216,11 @@ catch e
     KD.exportKDFramework = -> "Already exported."
     "KDFramework loaded successfully."
 
-  registerViewForTesting:(view)->
+  registerInstanceForTesting:(kdobject)->
+    key = kdobject.getOption 'testPath'
+    @instancesToBeTested[key] = kdobject
 
-    @instancesToBeTested or= {}
-    
-    key = view.getOption 'testPath'
-
-    @instancesToBeTested[key] = view
-
-  getViewForTesting:(key)-> @instancesToBeTested[key]
+  getInstanceForTesting:(key)-> @instancesToBeTested[key]
 
 
 

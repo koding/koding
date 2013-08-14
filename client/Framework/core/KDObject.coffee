@@ -12,6 +12,10 @@ class KDObject extends KDEventEmitter
     @setDelegate options.delegate if options.delegate
     @registerKDObjectInstance()
 
+    if options.testPath
+      @testPath = options.testPath
+      KD.registerInstanceForTesting this
+
     super
 
     @on 'error', error
