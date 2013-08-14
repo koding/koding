@@ -126,7 +126,7 @@ func NewServerInfo() *ServerInfo {
 }
 
 var (
-	apiPath   = "http://kontrol.in.koding.com"
+	apiUrl    = "http://kontrol.in.koding.com:80" // default
 	checkAuth *auth.Basic
 	proxyDB   *proxyconfig.ProxyConfiguration
 	templates = template.Must(template.ParseFiles(
@@ -144,7 +144,15 @@ func main() {
 		log.Println(res)
 	}
 
-	checkAuth = auth.NewBasic(apiPath, func(username, password string) bool {
+	// used for kontrolapi
+	apiHost := config.Current.Kontrold.Overview.ApiHost
+	apiPort := config.Current.Kontrold.Overview.ApiPort
+	apiUrl = "http://" + apiHost + ":" + strconv.Itoa(apiPort)
+
+	// used to create the listener
+	port := config.Current.Kontrold.Overview.Port
+
+	checkAuth = auth.NewBasic("kontrol.in.koding.com", func(username, password string) bool {
 		if username != "koding" {
 			return false
 		}
@@ -160,7 +168,7 @@ func main() {
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir("bootstrap/"))))
 
 	fmt.Println("koding overview started")
-	err = http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -228,7 +236,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func keyLookup(key string) (map[string]bool, map[string]bool) {
-	workersApi := apiPath + "/workers?version=" + key
+	workersApi := apiUrl + "/workers?version=" + key
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		fmt.Println(err)
@@ -291,7 +299,7 @@ func jenkinsInfo() *JenkinsInfo {
 
 func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 	s := StatusInfo{}
-	workersApi := apiPath + "/workers?version=" + build
+	workersApi := apiUrl + "/workers?version=" + build
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		return nil, s, err
@@ -336,7 +344,7 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 }
 
 func buildsInfo() []int {
-	serverApi := apiPath + "/deployments"
+	serverApi := apiUrl + "/deployments"
 	fmt.Println(serverApi)
 	resp, err := http.Get(serverApi)
 	if err != nil {
@@ -365,7 +373,7 @@ func buildsInfo() []int {
 }
 
 func serverInfo(build string) (*ServerInfo, error) {
-	serverApi := apiPath + "/deployments/" + build
+	serverApi := apiUrl + "/deployments/" + build
 
 	resp, err := http.Get(serverApi)
 	if err != nil {
@@ -406,7 +414,7 @@ func parseMongoLogin(login string) string {
 
 func domainInfo() (Domain, error) {
 	d := Domain{}
-	domainApi := apiPath + "/domains/koding.com"
+	domainApi := apiUrl + "/domains/koding.com"
 
 	resp, err := http.Get(domainApi)
 	if err != nil {
