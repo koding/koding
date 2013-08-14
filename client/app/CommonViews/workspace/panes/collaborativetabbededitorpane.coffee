@@ -37,6 +37,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
   getActivePaneFileData: ->
     return @tabView.getActivePane().subViews[0].getData()
 
+  getActivePane: ->
+    return @tabView.getActivePane()
+
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : @
@@ -51,7 +54,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @tabView.on "PaneAdded", (pane) =>
       {tabHandle} = pane
       tabHandle.on "click", =>
-        activeTab = @tabView.getActivePane()
+        activeTab = @getActivePane()
         newIndex  = @tabView.getPaneIndex activeTab
         return  if newIndex is @activeTabIndex
 
