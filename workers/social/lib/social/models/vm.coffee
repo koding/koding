@@ -52,13 +52,14 @@ module.exports = class JVM extends Module
       hostKite          :
         type            : String
         default         : -> null
-      region            :
-        type            : String
-        enum            : ['unknown region'
-                          [
-                            'aws' # Amazon Web Services
-                            'sj'  # San Jose
-                          ]]
+      # region            :
+      #   type            : String
+      #   enum            : ['unknown region'
+      #                     [
+      #                       'aws' # Amazon Web Services
+      #                       'sj'  # San Jose
+      #                     ]]
+      #   default         : 'aws'
       webHome           : String
       planOwner         : String
       planCode          : String
