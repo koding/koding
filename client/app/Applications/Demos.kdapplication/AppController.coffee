@@ -30,9 +30,7 @@ class DemosAppController extends AppController
             {
               title      : "Join"
               cssClass   : "cupid-green join-button"
-              callback   : (panel, workspace) =>
-                debugger
-                workspace.showJoinModal()
+              callback   : (panel, workspace) => workspace.showJoinModal()
             }
 
           ]
@@ -53,6 +51,7 @@ class DemosAppController extends AppController
                   {
                     type    : "tabbedEditor"
                     name    : "editor"
+                    saveCallback: (savedContent) ->
                   }
                   {
                     type    : "terminal"
