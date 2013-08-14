@@ -53,6 +53,8 @@ class CollaborativeEditorPane extends CollaborativePane
     else
       @ref.child("WaitingSaveRequest").set yes
 
+    @getOptions().saveCallback? @firepad.getText()
+
   getValue: ->
     return @codeMirrorEditor.getValue()
 
