@@ -759,9 +759,9 @@ __utils =
 
     return "#{bytes.toFixed 2} #{units[unitIndex]}"
 
-  compileCoffeeOnClient: (coffeeCode, callback) ->
-    require ["https://raw.github.com/jashkenas/coffee-script/master/extras/coffee-script.js"], (CoffeeCompiler) ->
-      callback CoffeeCompiler.eval coffeeCode
+  compileCoffeeOnClient: (coffeeCode, callback = noop) ->
+    require ["https://raw.github.com/jashkenas/coffee-script/master/extras/coffee-script.js"], (coffeeCompiler) ->
+      callback coffeeCompiler.eval coffeeCode
 
   openGithubPopUp:->
     {clientId} = KD.config.github
