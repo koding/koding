@@ -215,6 +215,18 @@ catch e
     KD.exportKDFramework = -> "Already exported."
     "KDFramework loaded successfully."
 
+  registerViewForTesting:(view)->
+
+    @instancesToBeTested or= {}
+    
+    key = view.getOption 'testPath'
+
+    @instancesToBeTested[key] = view
+
+  getViewForTesting:(key)-> @instancesToBeTested[key]
+
+
+
 KD.enableLogs() if not KD.config?.suppressLogs
 
 prettyPrint = noop
