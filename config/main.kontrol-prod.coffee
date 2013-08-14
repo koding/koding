@@ -183,6 +183,7 @@ module.exports =
       apiHost     : "kontrol.in.koding.com"
       apiPort     : 80
       port        : 8080
+      switchHost  : "koding.com"
     api           :
       port        : 80
     proxy         :

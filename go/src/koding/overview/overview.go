@@ -94,6 +94,7 @@ type WorkerInfo struct {
 type StatusInfo struct {
 	BuildNumber    string
 	CurrentVersion string
+	SwitchHost     string
 	Koding         struct {
 		ServerLen   int
 		ServerHosts map[string]bool
@@ -126,10 +127,11 @@ func NewServerInfo() *ServerInfo {
 }
 
 var (
-	apiUrl    = "http://kontrol.in.koding.com:80" // default
-	checkAuth *auth.Basic
-	proxyDB   *proxyconfig.ProxyConfiguration
-	templates = template.Must(template.ParseFiles(
+	switchHost string
+	apiUrl     = "http://kontrol.in.koding.com:80" // default
+	checkAuth  *auth.Basic
+	proxyDB    *proxyconfig.ProxyConfiguration
+	templates  = template.Must(template.ParseFiles(
 		"templates/index.html",
 	))
 )
@@ -151,6 +153,9 @@ func main() {
 
 	// used to create the listener
 	port := config.Current.Kontrold.Overview.Port
+
+	// domain to be switched, like 'koding.com'
+	switchHost = config.Current.Kontrold.Overview.SwitchHost
 
 	checkAuth = auth.NewBasic("kontrol.in.koding.com", func(username, password string) bool {
 		if username != "koding" {
@@ -339,6 +344,7 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 
 	version, _ := currentVersion()
 	s.CurrentVersion = version
+	s.SwitchHost = switchHost
 
 	return workers, s, nil
 }
@@ -414,7 +420,7 @@ func parseMongoLogin(login string) string {
 
 func domainInfo() (Domain, error) {
 	d := Domain{}
-	domainApi := apiUrl + "/domains/koding.com"
+	domainApi := apiUrl + "/domains/" + switchHost
 
 	resp, err := http.Get(domainApi)
 	if err != nil {
@@ -428,7 +434,7 @@ func domainInfo() (Domain, error) {
 
 	err = json.Unmarshal(body, &d)
 	if err != nil {
-		fmt.Println("Couldn't unmarshall koding.com into a domain object.")
+		fmt.Printf("Couldn't unmarshall '%s' into a domain object.\n", switchHost)
 		return d, err
 	}
 
@@ -436,42 +442,50 @@ func domainInfo() (Domain, error) {
 }
 
 func currentVersion() (string, error) {
-	domain, err := proxyDB.GetDomain("koding.com") // will be changed to koding.com
+	if switchHost == "" {
+		errors.New("switchHost is not defined")
+	}
+
+	domain, err := proxyDB.GetDomain(switchHost)
 	if err != nil {
 		return "", err
 	}
 
 	if domain.Proxy == nil {
-		return "", errors.New("proxy field is empty for koding.com")
+		return "", fmt.Errorf("proxy field is empty for '%s'", switchHost)
 	}
 
 	currentVersion := domain.Proxy.Key
 	if currentVersion == "" {
-		return "", errors.New("key does not exist for koding.com")
+		return "", fmt.Errorf("key does not exist for '%s'", switchHost)
 	}
 
 	return currentVersion, nil
 }
 
 func switchVersion(newVersion string) error {
+	if switchHost == "" {
+		errors.New("switchHost is not defined")
+	}
+
 	// Test if the string is an integer, if not abort
 	_, err := strconv.Atoi(newVersion)
 	if err != nil {
 		return err
 	}
 
-	domain, err := proxyDB.GetDomain("koding.com")
+	domain, err := proxyDB.GetDomain(switchHost)
 	if err != nil {
 		return err
 	}
 
 	if domain.Proxy == nil {
-		return errors.New("proxy field is empty for koding.com")
+		return fmt.Errorf("proxy field is empty for '%s'", switchHost)
 	}
 
 	oldVersion := domain.Proxy.Key
 	if oldVersion == "" {
-		return errors.New("key does not exist for koding.com")
+		return fmt.Errorf("key does not exist for '%s'", switchHost)
 	}
 
 	conn := CreateAmqpConnection("overview")

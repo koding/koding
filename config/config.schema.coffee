@@ -201,6 +201,7 @@ config =
         apiHost     : 1
         apiPort     : 1
         port        : 1
+        switchHost  : 1
       api           :
         port        : 1
       proxy         :

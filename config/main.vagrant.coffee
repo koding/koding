@@ -188,6 +188,7 @@ module.exports =
       apiHost     : "127.0.0.1"
       apiPort     : 8888
       port        : 8080
+      switchHost  : "example.com"
     api           :
       port        : 8888
     proxy         :
