@@ -21,7 +21,7 @@ module.exports = class Slugifiable
         "generally", "since", "with", "had","some", "would",
     ]
 
-    return new RegExp('\\b(' + stopWords.join('|') + ')\\b', 'gi');
+    return /// \b(#{stopWords.join('|')})\b ///gi
 
   slugify =(str='')->
     maxLen = 80
@@ -31,15 +31,37 @@ module.exports = class Slugifiable
       .replace(/^\s+|\s+$/g, "")         # trim leading and trailing spaces
       .replace(/[_|\s]+/g, "-")          # change all spaces and underscores to a hyphen
       .replace(/[^a-z0-9-]+/g, "")       # remove all non-alphanumeric characters except the hyphen
+      .replace(/[-]+/g, "-")             # replace multiple instances of the hyphen with a single instance
+      .replace(/^-+|-+$/g, "")           # trim leading and trailing hyphens
 
     # if slug length is bigger than maxLen remove stopwords from it
     if slug.length > maxLen
-      slug = slug.replace(getStopWordRegex(), '')
-
-    slug
+      slug = slug
+      .replace(getStopWordRegex(), '')
       .replace(/[-]+/g, "-")             # replace multiple instances of the hyphen with a single instance
-      .substr(0, maxLen)                 # limit these to 80-chars (pre-suffix), for sanity
       .replace(/^-+|-+$/g, "")           # trim leading and trailing hyphens
+
+      #return slug if it gets shorter than the maxLen
+      return slug if slug.length <= maxLen
+
+      characterAtMaxLen = slug.charAt(maxLen)
+      hyphen = "-"
+
+      # if the last character is hyphen then delete it and return
+      return slug.substr(0, maxLen) if characterAtMaxLen is hyphen
+
+      # go back 8 character and go forward 6 character from maxLen limit
+      # if we have any hyphen there(if there is more than 1 get the last one), truncate to that length
+      slugPart = slug.slice(maxLen-8,maxLen+6).lastIndexOf(hyphen)
+      # if no hyphen found within that range then truncate to maxLen
+      index = if slugPart < 0 then maxLen else maxLen-8+slugPart
+      # finalize the length operations
+      slug = slug.substr(0, index)
+      # replace multiple instances of the hyphen with a single instance
+      slug.replace(/[-]+/g, "-")
+
+    # prevent from "-123" slugs
+    return if slug is "" then "slug" else slug
 
   getNextCount =(name)->            # the name is something like `name: "foo-bar-42"`
     count = name
