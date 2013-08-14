@@ -20,7 +20,7 @@ class DemosAppController extends AppController
       joinModalTitle     : "Join a coding session"
       joinModalContent   : "<p>Paste the session key that you received and start coding together.</p>"
       shareSessionKeyInfo: "<p>This is your session key, you can share this key with your friends to work together.</p>"
-      firebaseInstances  : "teamwork-local"
+      firebaseInstance   : "teamwork-local"
       # firebaseInstances  : ["kd-prod-1", "kd-prod-2", "kd-prod-3", "kd-prod-4", "kd-prod-5"]
       enableChat         : yes
       panels             : [
