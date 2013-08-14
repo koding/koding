@@ -34,6 +34,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
   getActivePaneContent: ->
     return @tabView.getActivePane().subViews[0].getValue()
 
+  getActivePaneFileData: ->
+    return @tabView.getActivePane().subViews[0].getData()
+
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : @
