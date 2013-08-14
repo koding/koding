@@ -74,7 +74,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       name : file.name
 
     editor = new CollaborativeEditorPane {
-      delegate : @getDelegate()
+      delegate     : @getDelegate()
+      saveCallback : @getOptions().saveCallback
       sessionKey
       file
       content
