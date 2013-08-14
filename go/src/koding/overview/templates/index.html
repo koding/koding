@@ -40,31 +40,23 @@
 						<input name="build" type="text" class="search-query">
 					</form>
 					<ul class="nav pull-right">
-						<li class="divider-vertical"></li>
-						<li>
-                          information from version
-                          <div class="btn-group">
-                              <a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
-                              <ul class="dropdown-menu">
-                                  <li><a href="?build=current#">current version</a></li>
-                                  <li class="divider"></li>
-                                  {{range .Builds}} 
-                                  <li><a href="?build={{.}}">{{.}}</a></li>
-                                  {{end}}
-                              </ul>
-                          </div><!-- /btn-group -->
-                          <em>is displayed</em>
-                        </li>
+                      <li class="divider-vertical"></li>
+                      <li>
+                        information from version
+                        <div class="btn-group">
+                            <a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="?build=current#">current version</a></li>
+                                <li class="divider"></li>
+                                {{range .Builds}} 
+                                <li><a href="?build={{.}}">{{.}}</a></li>
+                                {{end}}
+                            </ul>
+                        </div><!-- /btn-group -->
+                        <em>is displayed</em>
+                      </li>
 					</ul>
-
-
-
-
-
-
 				</div>
-
-                    
 			</div>
 		</div><!-- navbar -->
 
