@@ -111,6 +111,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
   pistachio: ->
     """
+      {{> @header}}
       {{> @tabHandleContainer}}
       {{> @tabView}}
     """
