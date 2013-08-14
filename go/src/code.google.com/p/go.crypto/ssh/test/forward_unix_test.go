@@ -1,3 +1,9 @@
+// Copyright 2012 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// +build darwin freebsd linux netbsd openbsd
+
 package test
 
 import (
@@ -7,6 +13,7 @@ import (
 	"math/rand"
 	"net"
 	"testing"
+	"time"
 )
 
 func TestPortForward(t *testing.T) {
@@ -15,9 +22,9 @@ func TestPortForward(t *testing.T) {
 	conn := server.Dial(clientConfig())
 	defer conn.Close()
 
-	sshListener, err := conn.Listen("tcp", "127.0.0.1:0")
+	sshListener, err := conn.Listen("tcp", "localhost:0")
 	if err != nil {
-		t.Fatalf("conn.Listen failed: %v", err)
+		t.Fatal(err)
 	}
 
 	go func() {
@@ -85,3 +92,37 @@ func TestPortForward(t *testing.T) {
 		t.Errorf("still listening to %s after closing", forwardedAddr)
 	}
 }
+
+func TestAcceptClose(t *testing.T) {
+	server := newServer(t)
+	defer server.Shutdown()
+	conn := server.Dial(clientConfig())
+
+	sshListener, err := conn.Listen("tcp", "localhost:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	quit := make(chan error, 1)
+	go func() {
+		for {
+			c, err := sshListener.Accept()
+			if err != nil {
+				quit <- err
+				break
+			}
+			c.Close()
+		}
+	}()
+	sshListener.Close()
+
+	select {
+	case <-time.After(1 * time.Second):
+		t.Errorf("timeout: listener did not close.")
+	case err := <-quit:
+		t.Logf("quit as expected (error %v)", err)
+	}
+}
+
+// TODO(hanwen): test that closing the connection also
+// exits the listeners.

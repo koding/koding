@@ -549,6 +549,7 @@ func (inst *Instance) ec2instance() ec2.Instance {
 		InstanceType: inst.instType,
 		ImageId:      inst.imageId,
 		DNSName:      fmt.Sprintf("%s.example.com", inst.id),
+		State:        inst.state,
 		// TODO the rest
 	}
 }

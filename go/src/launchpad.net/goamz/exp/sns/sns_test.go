@@ -26,6 +26,10 @@ func (s *S) SetUpSuite(c *C) {
 	s.sns = sns.New(auth, aws.Region{SNSEndpoint: testServer.URL})
 }
 
+func (s *S) TearDownSuite(c *C) {
+	testServer.Stop()
+}
+
 func (s *S) TearDownTest(c *C) {
 	testServer.Flush()
 }

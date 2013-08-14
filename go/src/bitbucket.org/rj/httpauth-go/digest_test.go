@@ -112,17 +112,17 @@ func TestDigestBadAuth(t *testing.T) {
 
 func TestDigestBrowser(t *testing.T) {
 	url := "http://user:user@localhost" + port + "/digest/"
-	fmt.Println( "Use a webbrowser, and navigate to", url, "to check digest authentication." )
-	fmt.Println( "For authentication to succeed, the username and password must match." )
+	fmt.Println("Use a webbrowser, and navigate to", url, "to check digest authentication.")
+	fmt.Println("For authentication to succeed, the username and password must match.")
 	<-success
 }
 
 func TestDigestBrowser2(t *testing.T) {
 	url := "http://user:user@localhost" + port + "/digest/"
-	fmt.Println( "Use a webbrowser, and navigate to", url, "to check digest authentication." )
-	fmt.Println( "For authentication to succeed, the username and password must match." )
+	fmt.Println("Use a webbrowser, and navigate to", url, "to check digest authentication.")
+	fmt.Println("For authentication to succeed, the username and password must match.")
 	<-success
 	url = url + "sub/"
-	fmt.Println( "Now try", url, "to check digest authentication." )
+	fmt.Println("Now try", url, "to check digest authentication.")
 	<-success
 }

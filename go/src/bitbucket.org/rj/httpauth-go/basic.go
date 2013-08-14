@@ -32,7 +32,7 @@ func defaultHtmlWriter(w io.Writer, _ *http.Request) {
 
 // NewBasic creates a new authentication policy that uses the basic authentication scheme.
 //
-// The value of writer can be nil.  In this case, the policy will use 
+// The value of writer can be nil.  In this case, the policy will use
 // a default behaviour that writes a simple error message for the
 // response body.
 func NewBasic(realm string, auth Authenticator, writer HtmlWriter) *Basic {
@@ -42,7 +42,7 @@ func NewBasic(realm string, auth Authenticator, writer HtmlWriter) *Basic {
 	return &Basic{realm, auth, writer}
 }
 
-// Authorize retrieves the credientials from the HTTP request, and 
+// Authorize retrieves the credientials from the HTTP request, and
 // returns the username only if the credientials could be validated.
 // If the return value is blank, then the credentials are missing,
 // invalid, or a system error prevented verification.
@@ -78,7 +78,7 @@ func (a *Basic) Authorize(r *http.Request) (username string) {
 	return token[0:ndx]
 }
 
-// NotifyAuthRequired adds the headers to the HTTP response to 
+// NotifyAuthRequired adds the headers to the HTTP response to
 // inform the client of the failed authorization, and which scheme
 // must be used to gain authentication.
 func (a *Basic) NotifyAuthRequired(w http.ResponseWriter, r *http.Request) {
