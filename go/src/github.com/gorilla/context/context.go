@@ -37,6 +37,17 @@ func Get(r *http.Request, key interface{}) interface{} {
 	return nil
 }
 
+// GetOk returns stored value and presence state like multi-value return of map access.
+func GetOk(r *http.Request, key interface{}) (interface{}, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	if _, ok := data[r]; ok {
+		value, ok := data[r][key]
+		return value, ok
+	}
+	return nil, false
+}
+
 // Delete removes a value stored for a given key in a given request.
 func Delete(r *http.Request, key interface{}) {
 	mutex.Lock()

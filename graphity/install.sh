@@ -1,7 +1,7 @@
 #! /bin/bash
 set -o errexit
 
-DEST=/usr/local/Cellar/neo4j/community-1.9.1-unix/libexec/plugins/graphity
+DEST=/usr/local/Cellar/neo4j/community-1.9.2-unix/libexec/plugins/graphity
 mkdir -p $DEST
 
 cp lib/gson-2.2.4.jar $DEST

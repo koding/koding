@@ -175,14 +175,15 @@ func (m *Multi) putPart(n int, r io.ReadSeeker, partSize int64, md5b64 string) (
 		if err != nil {
 			return Part{}, err
 		}
-		resp, err := m.Bucket.S3.run(req, nil)
+		hresp, err := m.Bucket.S3.run(req)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
 		if err != nil {
 			return Part{}, err
 		}
-		etag := resp.Header.Get("ETag")
+		hresp.Body.Close()
+		etag := hresp.Header.Get("ETag")
 		if etag == "" {
 			return Part{}, errors.New("part upload succeeded with no ETag")
 		}

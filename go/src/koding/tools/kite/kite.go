@@ -157,6 +157,7 @@ func (k *Kite) Run() {
 							defer func() {
 								if err := recover(); err != nil {
 									log.LogError(err, 1, channel.Username, channel.CorrelationName)
+									time.Sleep(time.Second) // penalty for avoiding that the client rapidly sends the request again on error
 									resultCallback(CreateErrorObject(&InternalKiteError{}), nil)
 								}
 							}()

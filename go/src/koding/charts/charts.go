@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const week = time.Duration(int64(time.Hour) * 24 * 7)
+const interval = time.Duration(int64(time.Hour) * 24 * 7)
 
 func main() {
 	session, err := mgo.Dial("dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017")
@@ -16,18 +16,21 @@ func main() {
 		panic(err)
 	}
 
-	start := time.Date(2012, 4, 1, 0, 0, 0, 0, time.UTC)
+	start := time.Date(2012, 4, 2, 0, 0, 0, 0, time.UTC)
 	end := time.Now()
-	values := make([]int, end.Sub(start)/week+1)
+	values := make([]int, end.Sub(start)/interval)
 
 	var user struct {
 		RegisteredAt time.Time `bson:"registeredAt"`
 	}
 	iter := session.DB("koding").C("jUsers").Find(bson.M{"username": bson.M{"$not": bson.RegEx{Pattern: "^guest-"}}}).Select(bson.M{"registeredAt": 1}).Iter()
 	for iter.Next(&user) {
-		index := user.RegisteredAt.Sub(start) / week
+		index := int(user.RegisteredAt.Sub(start) / interval)
 		if index < 0 {
 			index = 0
+		}
+		if index >= len(values) {
+			continue
 		}
 		values[index] += 1
 	}
@@ -42,7 +45,7 @@ func main() {
 		values[i] = total
 
 		if i%5 == 0 {
-			labels[i] = start.Add(time.Duration(i) * week).Format("2006-01-02")
+			labels[i] = start.Add(time.Duration(i) * interval).Format("2006-01-02")
 		}
 	}
 

@@ -8,7 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -32,10 +35,62 @@ type channelForwardMsg struct {
 	rport     uint32
 }
 
+// Automatic port allocation is broken with OpenSSH before 6.0. See
+// also https://bugzilla.mindrot.org/show_bug.cgi?id=2017.  In
+// particular, OpenSSH 5.9 sends a channelOpenMsg with port number 0,
+// rather than the actual port number. This means you can never open
+// two different listeners with auto allocated ports. We work around
+// this by trying explicit ports until we succeed.
+
+const openSSHPrefix = "OpenSSH_"
+
+var portRandomizer = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+// isBrokenOpenSSHVersion returns true if the given version string
+// specifies a version of OpenSSH that is known to have a bug in port
+// forwarding.
+func isBrokenOpenSSHVersion(versionStr string) bool {
+	i := strings.Index(versionStr, openSSHPrefix)
+	if i < 0 {
+		return false
+	}
+	i += len(openSSHPrefix)
+	j := i
+	for ; j < len(versionStr); j++ {
+		if versionStr[j] < '0' || versionStr[j] > '9' {
+			break
+		}
+	}
+	version, _ := strconv.Atoi(versionStr[i:j])
+	return version < 6
+}
+
+// autoPortListenWorkaround simulates automatic port allocation by
+// trying random ports repeatedly.
+func (c *ClientConn) autoPortListenWorkaround(laddr *net.TCPAddr) (net.Listener, error) {
+	var sshListener net.Listener
+	var err error
+	const tries = 10
+	for i := 0; i < tries; i++ {
+		addr := *laddr
+		addr.Port = 1024 + portRandomizer.Intn(60000)
+		sshListener, err = c.ListenTCP(&addr)
+		if err == nil {
+			laddr.Port = addr.Port
+			return sshListener, err
+		}
+	}
+	return nil, fmt.Errorf("ssh: listen on random port failed after %d tries: %v", tries, err)
+}
+
 // ListenTCP requests the remote peer open a listening socket
 // on laddr. Incoming connections will be available by calling
 // Accept on the returned net.Listener.
 func (c *ClientConn) ListenTCP(laddr *net.TCPAddr) (net.Listener, error) {
+	if laddr.Port == 0 && isBrokenOpenSSHVersion(c.serverVersion) {
+		return c.autoPortListenWorkaround(laddr)
+	}
+
 	m := channelForwardMsg{
 		"tcpip-forward",
 		true, // sendGlobalRequest waits for a reply
@@ -48,15 +103,8 @@ func (c *ClientConn) ListenTCP(laddr *net.TCPAddr) (net.Listener, error) {
 		return nil, err
 	}
 
-	// Register this forward, using the port number we requested.
-	// If we requested port 0 (auto allocated port), we have to
-	// register under 0, since the channelOpenMsg will list 0
-	// rather than the allocated port number.
-	ch := c.forwardList.add(*laddr)
-
 	// If the original port was 0, then the remote side will
 	// supply a real port number in the response.
-	origPort := uint32(laddr.Port)
 	if laddr.Port == 0 {
 		port, _, ok := parseUint32(resp.Data)
 		if !ok {
@@ -65,7 +113,10 @@ func (c *ClientConn) ListenTCP(laddr *net.TCPAddr) (net.Listener, error) {
 		laddr.Port = int(port)
 	}
 
-	return &tcpListener{laddr, origPort, c, ch}, nil
+	// Register this forward, using the port number we obtained.
+	ch := c.forwardList.add(*laddr)
+
+	return &tcpListener{laddr, c, ch}, nil
 }
 
 // forwardList stores a mapping between remote
@@ -101,15 +152,28 @@ func (l *forwardList) add(addr net.TCPAddr) chan forward {
 	return f.c
 }
 
+// remove removes the forward entry, and the channel feeding its
+// listener.
 func (l *forwardList) remove(addr net.TCPAddr) {
 	l.Lock()
 	defer l.Unlock()
 	for i, f := range l.entries {
 		if addr.IP.Equal(f.laddr.IP) && addr.Port == f.laddr.Port {
 			l.entries = append(l.entries[:i], l.entries[i+1:]...)
+			close(f.c)
 			return
 		}
 	}
+}
+
+// closeAll closes and clears all forwards.
+func (l *forwardList) closeAll() {
+	l.Lock()
+	defer l.Unlock()
+	for _, f := range l.entries {
+		close(f.c)
+	}
+	l.entries = nil
 }
 
 func (l *forwardList) lookup(addr net.TCPAddr) (chan forward, bool) {
@@ -126,10 +190,8 @@ func (l *forwardList) lookup(addr net.TCPAddr) (chan forward, bool) {
 type tcpListener struct {
 	laddr *net.TCPAddr
 
-	// The port with which we made the request, which can be 0.
-	origPort uint32
-	conn     *ClientConn
-	in       <-chan forward
+	conn *ClientConn
+	in   <-chan forward
 }
 
 // Accept waits for and returns the next connection to the listener.
@@ -155,13 +217,9 @@ func (l *tcpListener) Close() error {
 		"cancel-tcpip-forward",
 		true,
 		l.laddr.IP.String(),
-		l.origPort,
+		uint32(l.laddr.Port),
 	}
-	origAddr := net.TCPAddr{
-		IP:   l.laddr.IP,
-		Port: int(l.origPort),
-	}
-	l.conn.forwardList.remove(origAddr)
+	l.conn.forwardList.remove(*l.laddr)
 	if _, err := l.conn.sendGlobalRequest(m); err != nil {
 		return err
 	}

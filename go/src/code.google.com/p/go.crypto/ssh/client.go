@@ -26,6 +26,11 @@ type ClientConn struct {
 	chanList    // channels associated with this connection
 	forwardList // forwarded tcpip connections from the remote side
 	globalRequest
+
+	// Address as passed to the Dial function.
+	dialAddress string
+
+	serverVersion string
 }
 
 type globalRequest struct {
@@ -35,11 +40,17 @@ type globalRequest struct {
 
 // Client returns a new SSH client connection using c as the underlying transport.
 func Client(c net.Conn, config *ClientConfig) (*ClientConn, error) {
+	return clientWithAddress(c, "", config)
+}
+
+func clientWithAddress(c net.Conn, addr string, config *ClientConfig) (*ClientConn, error) {
 	conn := &ClientConn{
 		transport:     newTransport(c, config.rand()),
 		config:        config,
 		globalRequest: globalRequest{response: make(chan interface{}, 1)},
+		dialAddress:   addr,
 	}
+
 	if err := conn.handshake(); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("handshake failed: %v", err)
@@ -66,6 +77,7 @@ func (c *ClientConn) handshake() error {
 		return err
 	}
 	magics.serverVersion = version
+	c.serverVersion = string(version)
 	clientKexInit := kexInitMsg{
 		KexAlgos:                supportedKexAlgos,
 		ServerHostKeyAlgos:      supportedHostKeyAlgos,
@@ -168,6 +180,12 @@ func (c *ClientConn) kexDH(group *dhGroup, hashFunc crypto.Hash, magics *handsha
 		return nil, nil, err
 	}
 
+	if checker := c.config.HostKeyChecker; checker != nil {
+		if err = checker.Check(c.dialAddress, c.RemoteAddr(), hostKeyAlgo, kexDHReply.HostKey); err != nil {
+			return nil, nil, err
+		}
+	}
+
 	kInt, err := group.diffieHellman(kexDHReply.Y, x)
 	if err != nil {
 		return nil, nil, err
@@ -195,7 +213,8 @@ func (c *ClientConn) kexDH(group *dhGroup, hashFunc crypto.Hash, magics *handsha
 func (c *ClientConn) mainLoop() {
 	defer func() {
 		c.Close()
-		c.closeAll()
+		c.chanList.closeAll()
+		c.forwardList.closeAll()
 	}()
 
 	for {
@@ -445,7 +464,7 @@ func Dial(network, addr string, config *ClientConfig) (*ClientConn, error) {
 	if err != nil {
 		return nil, err
 	}
-	return Client(conn, config)
+	return clientWithAddress(conn, addr, config)
 }
 
 // A ClientConfig structure is used to configure a ClientConn. After one has
@@ -462,6 +481,11 @@ type ClientConfig struct {
 	// A slice of ClientAuth methods. Only the first instance
 	// of a particular RFC 4252 method will be used during authentication.
 	Auth []ClientAuth
+
+	// HostKeyChecker, if not nil, is called during the cryptographic
+	// handshake to validate the server's host key. A nil HostKeyChecker
+	// implies that all host keys are accepted.
+	HostKeyChecker HostKeyChecker
 
 	// Cryptographic-related configuration.
 	Crypto CryptoConfig
