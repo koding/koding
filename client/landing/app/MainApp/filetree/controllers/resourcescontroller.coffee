@@ -42,10 +42,12 @@ class ResourcesController extends KDListViewController
               cb null
             else
               group = res?.first or 'koding' # KD.defaultSlug
-              cb null,
-                vmName     : hostname
-                groupSlug  : group?.slug  or 'koding' # KD.defaultSlug
-                groupTitle : group?.title or 'Koding'
+              vmController.info hostname, (err, vm, info)->
+                cb null,
+                  vmName     : hostname
+                  groupSlug  : group?.slug  or 'koding' # KD.defaultSlug
+                  groupTitle : group?.title or 'Koding'
+                  info       : info
 
       async.parallel stack, (err, result)=>
         warn err  if err
@@ -98,11 +100,13 @@ class ResourcesListItem extends KDListItemView
         # @setTooltip
         #   title : "Also reachable from: <br/><li>" + domains.join '<li>'
 
+    @vmTypeText = if (vmName.indexOf KD.nick()) < 0 then 'Shared VM' \
+                                                    else 'Personal VM'
+
     @addSubView @vmDesc = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'vm-desc'
-      partial  : if (vmName.indexOf KD.nick()) < 0 then 'Shared VM' \
-                                                   else 'Personal VM'
+      partial  : @vmTypeText
 
     @addSubView @buttonTerm = new KDButtonView
       icon     : yes
@@ -115,6 +119,10 @@ class ResourcesListItem extends KDListItemView
       tagName   : "span"
       cssClass  : "chevron"
 
+    {vmName, info} = @getData()
+    log vmName, info
+    @checkVMState null, vmName, info
+
   click:->
     KD.getSingleton("windowController").addLayer @delegate
     @delegate.once 'ReceivedClickElsewhere', =>
@@ -124,7 +132,9 @@ class ResourcesListItem extends KDListItemView
 
     if @state is "MAINTENANCE"
       items =
-        customView1 : new KDView partial : "This VM is under maintenance, try again later."
+        customView1 : new KDView
+          cssClass  : "vm-maintenance"
+          partial   : "This VM is under maintenance, try again later."
     else
       items =
         customView1        : new NVMToggleButtonView {}, {vmName}
@@ -161,18 +171,24 @@ class ResourcesListItem extends KDListItemView
 
   checkVMState:(err, vm, info)->
     return unless vm is @getData().vmName
+    return warn err if err or not info
 
-    if err or not info
-      @unsetClass 'online'
-      return warn err
-
-    if info.state is "RUNNING"
-    then @setClass 'online'
-    else @unsetClass 'online'
+    # Reset the state
+    @unsetClass 'online maintenance'
+    @buttonTerm.hide()
+    @vmDesc.updatePartial @vmTypeText
 
     @state = info.state
 
-    if info.state is "MAINTENANCE"
-      @vmDesc.updatePartial "UNDER MAINTENANCE"
+    # Rebuild the state
+    switch info.state
+      when "RUNNING"
+        @setClass   'online'
+        @buttonTerm.show()
+      when "MAINTENANCE"
+        @setClass   'maintenance'
+        @vmDesc.updatePartial "UNDER MAINTENANCE"
+      else
+        @buttonTerm.hide()
 
   partial:-> ''
