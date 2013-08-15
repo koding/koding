@@ -487,7 +487,7 @@ class VirtualizationController extends KDController
 
     unless @defaultVmName
       content = """To #{if appName then 'use' else 'do this'}
-                 <b>#{appName}</b> you need to have at lease one VM created,
+                 <b>#{appName or ''}</b> you need to have at lease one VM created,
                  you can do that by clicking '<b>Create Default VM</b>' button
                  below."""
 
