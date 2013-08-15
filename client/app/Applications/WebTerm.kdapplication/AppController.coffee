@@ -27,11 +27,12 @@ class WebTermController extends AppController
           vmName or= defaultVmName
           return cb no  unless vmName
           vmController.info vmName, (err, vm, info)->
-            cb  info?.state is 'RUNNING'
+            cb  info?.state is 'RUNNING', {vmName, info}
       failure     : (options, cb)->
         KD.getSingleton("vmController").askToTurnOn
           appName : 'WebTerm'
           vmName  : options.vmName
+          state   : options.info.state
         , cb
 
   constructor:(options = {}, data)->
