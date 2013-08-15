@@ -134,7 +134,7 @@ class ResourcesListItem extends KDListItemView
       items =
         customView1 : new KDView
           cssClass  : "vm-maintenance"
-          partial   : "This VM is under maintenance, try again later."
+          partial   : "This VM is under maintenance, please try again later."
     else
       items =
         customView1        : new NVMToggleButtonView {}, {vmName}

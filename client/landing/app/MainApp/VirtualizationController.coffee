@@ -487,20 +487,28 @@ class VirtualizationController extends KDController
 
   askToTurnOn:(options, callback)->
 
-    [options, callback] = [callback, options] if typeof options is "function"
-    {appName, vmName} = options
+    [options, callback] = [callback, options]  if typeof options is "function"
+    {appName, vmName, state} = options
 
     return  if @dialogIsOpen
 
+    title   = "Your VM is turned off"
     content = """To #{if appName then 'run' else 'do this'} <b>#{appName}</b>
                  you need to turn on your VM first, you can do that by
                  clicking '<b>Turn ON VM</b>' button below."""
 
     unless @defaultVmName
+      title   = "You don't have any VM"
       content = """To #{if appName then 'use' else 'do this'}
-                 <b>#{appName or ''}</b> you need to have at lease one VM created,
-                 you can do that by clicking '<b>Create Default VM</b>' button
-                 below."""
+                 <b>#{appName or ''}</b> you need to have at lease one VM
+                 created, you can do that by clicking '<b>Create Default
+                 VM</b>' button below."""
+
+    if state is "MAINTENANCE"
+      title   = "Your VM is under maintenance"
+      content = """Your VM <b>#{vmName}</b> is <b>UNDER MAINTENANCE</b> now,
+                   #{if appName then "to run <b>#{appName}</b> app"} please try
+                   again later."""
 
     _runAppAfterStateChanged = (appName, vmName)=>
       return  unless appName
@@ -512,8 +520,7 @@ class VirtualizationController extends KDController
           KD.getSingleton("appManager").open appName, params
 
     modal = new KDModalView
-      title          : if @defaultVmName then "Your VM is turned off" \
-                                         else "You don't have any VM"
+      title          : title
       content        : "<div class='modalformline'><p>#{content}</p></div>"
       height         : "auto"
       overlay        : yes
@@ -539,6 +546,15 @@ class VirtualizationController extends KDController
 
     if @defaultVmName then modal.buttons['Create Default VM'].destroy() \
                       else modal.buttons['Turn ON VM'].destroy()
+
+    if state is "MAINTENANCE"
+      modal.setButtons
+        Ok           :
+          style      : "modal-clean-gray"
+          callback   : ->
+            modal.destroy()
+            callback? cancel: yes
+      , yes
 
     modal.once 'KDModalViewDestroyed', -> callback? destroy: yes
 
