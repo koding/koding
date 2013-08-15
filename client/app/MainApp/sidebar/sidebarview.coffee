@@ -27,6 +27,7 @@ class Sidebar extends JView
     # Main Navigations
     @navController = new MainNavController
       view           : new NavigationList
+        testPath     : 'navigation-list'
         type         : "navigation"
         itemClass    : NavigationLink
       wrapper        : no
