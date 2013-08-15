@@ -42,7 +42,6 @@ class HomeAppController extends ActivityAppController
       callback sanitizedCache
 
   listFeaturedActivities:(callback)->
-    @on "FeaturedActivityCommentRequested", @bound "featuredActivityCommentRequested"
     @on "FeaturedActivityRequested", @bound "featuredActivityRequested"
 
     eventName = "activity_fetch"
@@ -55,33 +54,14 @@ class HomeAppController extends ActivityAppController
       @emit "FeaturedActivityRequested", {activityId:1}, callback
     @fetchFeaturedActivities()
 
-  fetchFeaturedActivities:(activityId=0, commentId=0, likeId=0)->
+  fetchFeaturedActivities:(activityId=0)->
     activityName = "activity"
     activityName += "_#{activityId}" unless activityId is 0
-    activityName += "_C#{commentId}" unless commentId is 0
-    activityName += "_L#{commentId}" unless likeId is 0
 
     $.ajax
       url     : "js/activity/#{activityName}.json"
       success : (json) => @emit "#{activityName}_fetch_succeeded", json
       failure : =>  @emit "#{activityName}_fetch_failed"
-
-  featuredActivityCommentRequested:({activityId, commentId}, callback)=>
-    return if commentId > 2
-    timeoutValue = KD.utils.getRandomNumber 100000, 70000
-    KD.utils.wait timeoutValue, =>
-      eventName = "activity_#{activityId}_C#{commentId}_fetch"
-      @off "#{eventName}_succeeded"
-
-      # if fetching comments fails, then shut down the event
-      @once "#{eventName}_failed", ()=>
-        @off "activity_#{activityId}_fetch_succeeded"
-
-      # if fetching success, add them to activity feed
-      @once eventName, (activities)=>
-        @listActivities activities, callback, true
-        @emit "FeaturedActivityCommentRequested", {activityId:activityId, commentId:commentId+1}, callback
-      @fetchFeaturedActivities(activityId, commentId)
 
   featuredActivityRequested:({activityId}, callback)=>
     unless activityId? then activityId = 0
@@ -101,7 +81,6 @@ class HomeAppController extends ActivityAppController
       @once "#{eventName}_succeeded", (activities)=>
         @listActivities activities, (sanitizedCache)=>
           callback sanitizedCache
-          @emit "FeaturedActivityCommentRequested", {activityId:activityId, commentId:1}, callback
 
         @emit "FeaturedActivityRequested", {activityId:activityId+1}, callback
       #fetch featured activity
