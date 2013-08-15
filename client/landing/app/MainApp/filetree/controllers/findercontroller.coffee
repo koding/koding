@@ -71,7 +71,7 @@ class NFinderController extends KDViewController
     if @getOptions().useStorage
       @appStorage.once "storageFetched", @bound 'loadVms'
     else
-      @loadVms()
+      @utils.defer => @loadVms()
 
   mountVms: (vms) ->
     unless Array.isArray vms
