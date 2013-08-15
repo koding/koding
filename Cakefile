@@ -519,38 +519,33 @@ task 'runExternals', "runs externals kite which imports info about github, will 
       enabled         : if config.runKontrol is yes then yes else no
     verbose           : yes
 
+# ------------------- TEST STUFF --------------------------
+task 'test-all', 'Runs functional test suite', (options)->
+  which = (paths)->
+    for path in paths
+      return path if fs.existsSync(path)
 
+  # do we have the virtualenv ???
+  pip = which ['./env/bin/pip', '/usr/local/bin/pip']
+  unless pip
+    console.error "please install pip with \n brew install python --framework"
+    return
 
+  cmd = "#{pip} install -e 'git+ssh://git@git.in.koding.com/qa.git@repackage#egg=testengine'"
+  exec cmd, (err, stdout, stderr)->
+    log.info err
+    log.info stdout
+    log.info stderr
+    log.info "done installation"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    testengine_run = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run']
+    testProcess = spawn testengine_run 
+    testProcess.stderr.on 'data', (data)->
+      log.info data.toString()
+    testProcess.stdout.on 'data', (data)->
+      log.info data.toString()
+    testProcess.on 'close', (code)->
+      process.exit code      
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 
