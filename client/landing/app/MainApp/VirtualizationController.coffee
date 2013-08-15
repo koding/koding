@@ -97,7 +97,7 @@ class VirtualizationController extends KDController
           callback message: "No such VM!"
 
   info:(vm, callback)->
-    [callback, vm] = [vm, callback]  unless callback
+    [callback, vm] = [vm, callback]  if typeof vm is 'function'
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
       KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
@@ -485,9 +485,10 @@ class VirtualizationController extends KDController
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
-  askToTurnOn:(appName='', callback)->
+  askToTurnOn:(options, callback)->
 
-    [appName, callback] = [callback, appName] if typeof appName is "function"
+    [options, callback] = [callback, options] if typeof options is "function"
+    {appName, vmName} = options
 
     return  if @dialogIsOpen
 
@@ -501,11 +502,14 @@ class VirtualizationController extends KDController
                  you can do that by clicking '<b>Create Default VM</b>' button
                  below."""
 
-    _runAppAfterStateChanged = (appName)=>
+    _runAppAfterStateChanged = (appName, vmName)=>
       return  unless appName
-      @once 'StateChanged', ->
-        KD.utils.wait 2000, ->
-          KD.getSingleton("appManager").open appName
+      params = params: {vmName}  if vmName
+      @once 'StateChanged', (err, vm, info)->
+        return  if err or not info or info.state isnt "RUNNING"
+        return  unless vm is vmName
+        KD.utils.wait 1200, ->
+          KD.getSingleton("appManager").open appName, params
 
     modal = new KDModalView
       title          : if @defaultVmName then "Your VM is turned off" \
@@ -517,8 +521,8 @@ class VirtualizationController extends KDController
         'Turn ON VM' :
           style      : "modal-clean-green"
           callback   : =>
-            _runAppAfterStateChanged appName
-            @start ->
+            _runAppAfterStateChanged appName, vmName
+            @start vmName, ->
               modal.destroy()
               callback?()
         'Create Default VM' :
