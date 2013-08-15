@@ -86,6 +86,7 @@ module.exports = [
   "Framework/components/inputs/KDWmdInput.coffee",
   "Framework/components/inputs/tokenizedmenu.coffee",
   "Framework/components/inputs/tokenizedinput.coffee",
+  "Framework/components/inputs/KDContentEditableView.coffee",
 
   # upload
   "Framework/components/upload/KDFileUploadView.coffee",
