@@ -30,6 +30,7 @@ class Sidebar extends JView
         testPath     : 'navigation-list'
         type         : "navigation"
         itemClass    : NavigationLink
+        testPath     : "navigation-list"
       wrapper        : no
       scrollView     : no
     ,
