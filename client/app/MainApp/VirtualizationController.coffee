@@ -102,8 +102,8 @@ class VirtualizationController extends KDController
       vm or= defaultVm
       KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
         if vmInfo?.underMaintenance is yes
-          @emit 'StateChanged', err, vm, "MAINTENANCE"
-          callback? err, vm, "MAINTENANCE"
+          @emit 'StateChanged', err, vm, state: "MAINTENANCE"
+          callback? err, vm, state: "MAINTENANCE"
         else
           @_runWrapper 'vm.info', vm, (err, info)=>
             warn "[VM-#{vm}]", err  if err

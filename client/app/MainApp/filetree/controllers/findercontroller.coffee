@@ -41,6 +41,9 @@ class NFinderController extends KDViewController
 
     @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
 
+    KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
+
+
   watchers: {}
 
   registerWatcher:(path, stopWatching)->
@@ -122,6 +125,11 @@ class NFinderController extends KDViewController
       else if not state and vmName in items
         items.splice items.indexOf(vmName), 1
       @appStorage.setValue "mountedVM", vms
+
+  checkVMState: (err, vm, info)->
+    return warn err if err or not info
+    switch info.state
+      when "MAINTENANCE" then @unmountVm vm
 
   mountVm:(vm, fetchContent = yes)->
     # return unless KD.isLoggedIn()
