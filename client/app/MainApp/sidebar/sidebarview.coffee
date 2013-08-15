@@ -29,6 +29,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         itemClass    : NavigationLink
+        testPath     : "navigation-list"
       wrapper        : no
       scrollView     : no
     ,
