@@ -162,7 +162,7 @@ class NFinderController extends KDViewController
 
   unmountVm:(vmName)->
     # return unless KD.isLoggedIn()
-    return warn 'No such VM!'  unless vmItem = @getVmNode vmName
+    return  unless vmItem = @getVmNode vmName
 
     @updateMountState vmName, no
 
