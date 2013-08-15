@@ -107,6 +107,7 @@ class WebTermAppView extends JView
 
   addNewTab: ->
     webTermView = new WebTermView
+      testPath: "webterm-tab"
       delegate: this
 
     pane = new KDTabPaneView
