@@ -294,23 +294,40 @@ func init() {
 
 	go func() {
 		for ev := range watcher.Event {
-			info, err := os.Lstat(ev.Name)
-			if err != nil {
-				if os.IsNotExist(err) {
-					continue // skip this event, file is deleted and deletion event will follow
-				}
-				watcher.Error <- err
-				continue
-			}
+			func() {
+				watchMutex.Lock()
+				defer watchMutex.Unlock()
 
-			watchMutex.Lock()
-			for _, w := range watchMap[path.Dir(ev.Name)] {
-				w.callback(&inotify.Event{Name: strings.Replace(ev.Name, w.root, "", 1), Mask: ev.Mask, Cookie: ev.Cookie}, info)
-				if (ev.Mask&(inotify.IN_CREATE|inotify.IN_MOVED_TO)) != 0 && info.Mode().IsDir() && w.watchSubdirectories {
-					addPathToWatch(w, ev.Name)
+				if ev.Mask&inotify.IN_DELETE_SELF != 0 {
+					for _, w := range watchMap[ev.Name] {
+						for i, p := range w.paths {
+							if p == ev.Name {
+								w.paths[i] = w.paths[len(w.paths)-1]
+								w.paths = w.paths[:len(w.paths)-1]
+								break
+							}
+						}
+					}
+					delete(watchMap, ev.Name)
+					return
 				}
-			}
-			watchMutex.Unlock()
+
+				info, err := os.Lstat(ev.Name)
+				if err != nil {
+					if os.IsNotExist(err) {
+						return // skip this event, file is deleted and deletion event will follow
+					}
+					watcher.Error <- err
+					return
+				}
+
+				for _, w := range watchMap[path.Dir(ev.Name)] {
+					w.callback(&inotify.Event{Name: strings.Replace(ev.Name, w.root, "", 1), Mask: ev.Mask, Cookie: ev.Cookie}, info)
+					if (ev.Mask&(inotify.IN_CREATE|inotify.IN_MOVED_TO)) != 0 && info.Mode().IsDir() && w.watchSubdirectories {
+						addPathToWatch(w, ev.Name)
+					}
+				}
+			}()
 		}
 	}()
 }
@@ -340,7 +357,7 @@ func addPathToWatch(w *Watch, resolved string) error {
 		return errors.New("Too many subdirectories to watch.")
 	}
 
-	err := watcher.AddWatch(resolved, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_ATTRIB)
+	err := watcher.AddWatch(resolved, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_ATTRIB|inotify.IN_DELETE_SELF)
 	if err != nil {
 		return err
 	}
@@ -384,10 +401,11 @@ func (w *Watch) Close() error {
 				break
 			}
 		}
-		watchMap[path] = watches
 		if len(watches) == 0 {
+			delete(watchMap, path)
 			return watcher.RemoveWatch(path)
 		}
+		watchMap[path] = watches
 	}
 
 	return nil
