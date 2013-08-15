@@ -313,17 +313,14 @@ func init() {
 				}
 
 				info, err := os.Lstat(ev.Name)
-				if err != nil {
-					if os.IsNotExist(err) {
-						return // skip this event, file is deleted and deletion event will follow
-					}
+				if err != nil && !os.IsNotExist(err) {
 					watcher.Error <- err
 					return
 				}
 
 				for _, w := range watchMap[path.Dir(ev.Name)] {
 					w.callback(&inotify.Event{Name: strings.Replace(ev.Name, w.root, "", 1), Mask: ev.Mask, Cookie: ev.Cookie}, info)
-					if (ev.Mask&(inotify.IN_CREATE|inotify.IN_MOVED_TO)) != 0 && info.Mode().IsDir() && w.watchSubdirectories {
+					if (ev.Mask&(inotify.IN_CREATE|inotify.IN_MOVED_TO)) != 0 && info != nil && info.Mode().IsDir() && w.watchSubdirectories {
 						addPathToWatch(w, ev.Name)
 					}
 				}
