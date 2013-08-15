@@ -124,11 +124,11 @@ class Graphity(@Context db: GraphDatabaseService) {
   // Gets most recent events from stream. Those are the most recent events of all sources that this stream is subscribed to.
   @GET
   @Path("/events")
-  def getEvents(@QueryParam("stream") streamUrl: String, @QueryParam("count") count: Int) = {
+  def getEvents(@QueryParam("stream") streamUrl: String, @QueryParam("count") count: Int, @QueryParam("before") before: Long, @QueryParam("after") after: Long) = {
     val tx = db.beginTx
     try {
       val stream = getInternalNode(streamUrl, GRAPHITY_STREAM)
-      val events = getEventNodes(stream, count)
+      val events = getEventNodes(stream, count, before, after)
       tx.success
 
       Response.ok(events.reverseMap(e => {
@@ -141,7 +141,7 @@ class Graphity(@Context db: GraphDatabaseService) {
   }
 
   // Helper for getEvents.
-  def getEventNodes(stream: Node, count: Int): List[Node] = {
+  def getEventNodes(stream: Node, count: Int, before: Long, after: Long): List[Node] = {
     var results: List[Node] = Nil
     var previousSubscription = LinkedList.getPrevious(stream)
     var previousSubscriptionTimestamp = getSubscriptionTimestamp(previousSubscription)
@@ -159,7 +159,7 @@ class Graphity(@Context db: GraphDatabaseService) {
       }
     }
 
-    for (_ <- 1 to count) {
+    while(results.length < count) {
       val event = if (candidates.length == 0 || getEventTimestamp(candidates.head) < previousSubscriptionTimestamp) {
         if (previousSubscriptionTimestamp == 0) {
           return results
@@ -173,7 +173,12 @@ class Graphity(@Context db: GraphDatabaseService) {
         candidates.trimStart(1)
         first
       }
-      results ::= event
+      if (after != 0 && getEventTimestamp(event) <= after) {
+        return results
+      }
+      if (before == 0 || getEventTimestamp(event) < before) {
+        results ::= event
+      }
       insertCandidate(LinkedList.getPrevious(event))
     }
 

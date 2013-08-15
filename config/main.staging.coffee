@@ -180,6 +180,11 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    overview      :
+      apiHost     : "kontrol-staging.in.koding.com"
+      apiPort     : 80
+      port        : 8080
+      switchHost  : "y.koding.com"
     api           :
       port        : 80
     proxy         :

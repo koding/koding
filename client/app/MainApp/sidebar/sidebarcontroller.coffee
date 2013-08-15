@@ -34,10 +34,11 @@ class SidebarController extends KDViewController
 
     avatarAreaIconMenu.accountChanged account
 
-    # get registered users vms all ready to go (don't for guests right now):
-    finderController.reset()      if "registered" is account.type
-
-    resourcesController.reset()
+    if KD.isLoggedIn()
+      # get registered users vms
+      # allready to go (don't for guests right now):
+      finderController.reset()
+      resourcesController.reset()
 
   resetAdminNavItems:->
     # return unless KD.isLoggedIn()

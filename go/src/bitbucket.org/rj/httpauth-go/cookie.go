@@ -53,7 +53,7 @@ func (pq cookiePriorityQueue) MinValue() int64 {
 	return pq[n-1].lastContact
 }
 
-// A Cookie is a policy for authenticating users that uses a cookie stored 
+// A Cookie is a policy for authenticating users that uses a cookie stored
 // on the client to verify authorized clients.  This authentication scheme
 // is more involved than the others, as callers will need to implement URLs
 // for login and logout pages.
@@ -97,12 +97,12 @@ func (a *Cookie) evictLeastRecentlySeen() {
 	}
 }
 
-// Authorize retrieves the credientials from the HTTP request, and 
+// Authorize retrieves the credientials from the HTTP request, and
 // returns the username only if the credientials could be validated.
 // If the return value is blank, then the credentials are missing,
 // invalid, or a system error prevented verification.
 func (a *Cookie) Authorize(r *http.Request) (username string) {
-	// Find the nonce used to identify a client	
+	// Find the nonce used to identify a client
 	token, err := r.Cookie("Authorization")
 	if err != nil || token.Value == "" {
 		return ""
@@ -116,7 +116,7 @@ func (a *Cookie) Authorize(r *http.Request) (username string) {
 	return ""
 }
 
-// NotifyAuthRequired adds the headers to the HTTP response to 
+// NotifyAuthRequired adds the headers to the HTTP response to
 // inform the client of the failed authorization, and which scheme
 // must be used to gain authentication.
 //
@@ -127,7 +127,7 @@ func (a *Cookie) NotifyAuthRequired(w http.ResponseWriter, r *http.Request) {
 	// residence time.
 	a.evictLeastRecentlySeen()
 
-	// This code is derived from http.Redirect	
+	// This code is derived from http.Redirect
 	w.Header().Set("Location", a.LoginPage)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 
@@ -140,7 +140,7 @@ func (a *Cookie) NotifyAuthRequired(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Login checks the credentials of a client, and, if valid, creates a client 
+// Login checks the credentials of a client, and, if valid, creates a client
 // entry.  The nonce can be used by the client to identify the session.
 // Most callers will most likely be interested in LoginWithResponse.
 //
@@ -169,14 +169,14 @@ func (a *Cookie) Login(username, password string) (nonce string, err error) {
 	return nonce, nil
 }
 
-// LoginWithResponse checks the credentials of the client.  If successful, a 
+// LoginWithResponse checks the credentials of the client.  If successful, a
 // cookie is on the response so that the client can access the session again.
 //
 // The caller is responsable for create an appropriate response to the HTTP request.
 // For successful validation, redirection (http.StatusTemporaryRedirect) to the
 // protected content is most likely the correct response.
 //
-// If the credentials cannot be verified, an error (ErrBadUsernameOrPassword) is 
+// If the credentials cannot be verified, an error (ErrBadUsernameOrPassword) is
 // returned.  The caller is then responsable for creating an appropriate reponse to
 // the HTTP request.
 func (a *Cookie) LoginWithResponse(w http.ResponseWriter, username, password string) error {
@@ -205,7 +205,7 @@ func (a *Cookie) Logout(nonce string) {
 // is no longer valid.  It sets a header on the response to erase any cookies
 // used by the client to identify the session.
 func (a *Cookie) LogoutWithReponse(w http.ResponseWriter, r *http.Request) error {
-	// Find the nonce used to identify a client	
+	// Find the nonce used to identify a client
 	token, err := r.Cookie("Authorization")
 	if err == nil || token.Value != "" {
 		// Invalidate the nonce

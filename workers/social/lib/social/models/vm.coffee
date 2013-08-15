@@ -596,7 +596,13 @@ module.exports = class JVM extends Module
             webHome   : user.username
             groups    : wrapGroup group
           }
-        else unless group.slug is 'koding'
+        else if group.slug is 'koding'
+          member.fetchVms (err, vms)->
+            if err then handleError err
+            else
+              vms.forEach (vm) ->
+                vm.update $set: groups: [id: group.getId()], handleError
+        else
           member.checkPermission group, 'sudoer', (err, hasPermission)->
             if err then handleError err
             else

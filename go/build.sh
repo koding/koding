@@ -18,6 +18,7 @@ services=(
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/alice
+  koding/overview
   koding/kontrol/kontrolproxy
   koding/kontrol/kontrolftp
   koding/kontrol/kontroldaemon

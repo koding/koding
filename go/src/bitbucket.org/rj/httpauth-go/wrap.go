@@ -9,7 +9,7 @@ import (
 )
 
 type authHandler struct {
-	auth Policy
+	auth    Policy
 	handler http.Handler
 }
 
@@ -20,17 +20,16 @@ func (a *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.handler.ServeHTTP(w,r)
+	a.handler.ServeHTTP(w, r)
 }
 
 // NewHandler returns a http.Handler that checks the HTTP request's
-// credentials for authentication.  If successful, control will then 
+// credentials for authentication.  If successful, control will then
 // pass to handler.
 //
 // Note, if the handler requires access to the username from the credentials,
 // then this function is not useable.  Instead, you will need to work with
 // the authorization policy directly.  See examples.
 func NewHandlerWithAuth(auth Policy, handler http.Handler) http.Handler {
-	return &authHandler{ auth, handler }
+	return &authHandler{auth, handler}
 }
-
