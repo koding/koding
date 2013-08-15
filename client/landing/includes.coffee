@@ -175,7 +175,9 @@ module.exports = [
   "app/CommonViews/ShowMoreDataModalView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
   "app/CommonViews/Tags/TagAutoCompleteController.coffee",
-  "app/CommonViews/FormViews.coffee",
+  "app/CommonViews/SkillTagFormView.coffee",
+  "app/CommonViews/SkillTagAutoCompleteController.coffee",
+  "app/CommonViews/SkillTagAutoCompletedItem.coffee",
   "app/CommonViews/messagesList.coffee",
   "app/CommonViews/CommonInputWithButton.coffee",
   "app/CommonViews/SplitViewWithOlderSiblings.coffee",
@@ -623,7 +625,6 @@ module.exports = [
   # MEMBERS VIEWS
   "app/Applications/Members.kdapplication/AppView.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee",
-  "app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",
   "app/Applications/Members.kdapplication/newmemberactivitylistitem.coffee",
