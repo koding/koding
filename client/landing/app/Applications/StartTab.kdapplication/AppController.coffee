@@ -18,6 +18,8 @@ class StartTabAppController extends AppController
   constructor:(options = {}, data)->
 
     options.view    = new StartTabMainView
+      testPath: "apps-installed"
+
     options.appInfo =
       type          : 'application'
       title         : 'Your Apps'
