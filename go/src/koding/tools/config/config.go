@@ -57,6 +57,12 @@ type Config struct {
 		Host string
 	}
 	Kontrold struct {
+		Overview struct {
+			ApiPort    int
+			ApiHost    string
+			Port       int
+			SwitchHost string
+		}
 		Api struct {
 			Port int
 		}

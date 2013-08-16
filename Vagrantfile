@@ -23,7 +23,7 @@ if version < "4.2.16r86992" and ARGV[0] != "halt"
   puts "", "VirtualBox successfully installed.", ""
 end
 
-if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
+if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.7"
   print "Vagrant not installed or outdated. " unless $0 == "Vagrantfile"
 
   install = false
@@ -34,11 +34,11 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
 
   if not install
     puts "No automatic installation. Please download and install Vagrant manually from:"
-    puts "http://downloads.vagrantup.com/tags/v1.2.2"
+    puts "http://downloads.vagrantup.com/tags/v1.2.7"
     exit! 1
   end
 
-  system "wget -O /tmp/Vagrant.dmg http://files.vagrantup.com/packages/7e400d00a3c5a0fdf2809c8b5001a035415a607b/Vagrant-1.2.2.dmg" or exit! 1
+  system "wget -O /tmp/Vagrant.dmg http://files.vagrantup.com/packages/7ec0ee1d00a916f80b109a298bab08e391945243/Vagrant-1.2.7.dmg" or exit! 1
   system "hdiutil attach /tmp/Vagrant.dmg" or exit! 1
   system "sudo installer -pkg /Volumes/Vagrant/Vagrant.pkg  -target /" or exit! 1
   sleep 1 # somehow the installer stays active for some time

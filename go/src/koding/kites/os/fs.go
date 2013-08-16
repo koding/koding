@@ -12,57 +12,12 @@ import (
 	"path"
 	"regexp"
 	"strconv"
-	"sync"
 	"time"
 )
 
-var watcher *inotify.Watcher
-var watchMap = make(map[string][]*Watch)
-var watchMutex sync.Mutex
-
 func init() {
-	var err error
-	watcher, err = inotify.NewWatcher()
-	if err != nil {
-		panic(err)
-	}
-
 	go func() {
-		for ev := range watcher.Event {
-			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MOVED_TO | inotify.IN_ATTRIB)) != 0 {
-				info, err := os.Lstat(ev.Name)
-				if err != nil {
-					if os.IsNotExist(err) {
-						continue // skip this event, file is deleted and deletion event will follow
-					}
-					log.Warn("Watcher error", err)
-					continue
-				}
-				watchMutex.Lock()
-				for _, watch := range watchMap[path.Dir(ev.Name)] {
-					watch.Callback(map[string]interface{}{
-						"event": "added",
-						"file":  makeFileEntry(watch.VOS, path.Dir(ev.Name), info),
-					})
-				}
-				watchMutex.Unlock()
-				continue
-			}
-			if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
-				watchMutex.Lock()
-				for _, watch := range watchMap[path.Dir(ev.Name)] {
-					watch.Callback(map[string]interface{}{
-						"event": "removed",
-						"file":  FileEntry{Name: path.Base(ev.Name)},
-					})
-				}
-				watchMutex.Unlock()
-				continue
-			}
-		}
-	}()
-	go func() {
-		for err := range watcher.Error {
+		for err := range virt.WatchErrors {
 			log.Warn("Watcher error", err)
 		}
 	}()
@@ -82,9 +37,28 @@ func registerFileSystemMethods(k *kite.Kite) {
 		response := make(map[string]interface{})
 
 		if params.OnChange != nil {
-			watch := &Watch{VOS: vos, Callback: params.OnChange}
-			if err := addWatch(watch, params.Path, params.WatchSubdirectories); err != nil {
-				watch.Close()
+			watch, err := vos.WatchDirectory(params.Path, params.WatchSubdirectories, func(ev *inotify.Event, info os.FileInfo) {
+				defer log.RecoverAndLog()
+
+				if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MOVED_TO | inotify.IN_ATTRIB)) != 0 {
+					if info == nil {
+						return // skip this event, file was deleted and deletion event will follow
+					}
+					params.OnChange(map[string]interface{}{
+						"event": "added",
+						"file":  makeFileEntry(vos, path.Dir(ev.Name), info),
+					})
+					return
+				}
+				if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
+					params.OnChange(map[string]interface{}{
+						"event": "removed",
+						"file":  FileEntry{Name: path.Base(ev.Name)},
+					})
+					return
+				}
+			})
+			if err != nil {
 				return nil, err
 			}
 			channel.OnDisconnect(func() { watch.Close() })
@@ -325,73 +299,6 @@ func registerFileSystemMethods(k *kite.Kite) {
 		}
 		return true, nil
 	})
-}
-
-type Watch struct {
-	VOS      *virt.VOS
-	Paths    []string
-	Callback dnode.Callback
-}
-
-func addWatch(watch *Watch, path string, watchSubdirectories bool) error {
-	if len(watch.Paths) >= 100 {
-		return fmt.Errorf("Too many subdirectories to watch.")
-	}
-
-	watchMutex.Lock()
-	watchedPath, err := watch.VOS.AddWatch(watcher, path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_ATTRIB)
-	if err != nil {
-		watchMutex.Unlock()
-		return err
-	}
-	watch.Paths = append(watch.Paths, watchedPath)
-	watchMap[watchedPath] = append(watchMap[watchedPath], watch)
-	watchMutex.Unlock()
-
-	if watchSubdirectories {
-		dir, err := watch.VOS.Open(path)
-		if err != nil {
-			return err
-		}
-		defer dir.Close()
-
-		infos, err := dir.Readdir(0)
-		if err != nil {
-			return err
-		}
-
-		for _, info := range infos {
-			if info.Mode().IsDir() {
-				if err := addWatch(watch, path+"/"+info.Name(), true); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-func (watch *Watch) Close() error {
-	watchMutex.Lock()
-	defer watchMutex.Unlock()
-
-	for _, path := range watch.Paths {
-		watches := watchMap[path]
-		for i, w := range watches {
-			if w == watch {
-				watches[i] = watches[len(watches)-1]
-				watches = watches[:len(watches)-1]
-				break
-			}
-		}
-		watchMap[path] = watches
-		if len(watches) == 0 {
-			return watcher.RemoveWatch(path)
-		}
-	}
-
-	return nil
 }
 
 type FileEntry struct {

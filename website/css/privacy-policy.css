@@ -1,0 +1,86 @@
+@font-face{font-family:"Open Sans";font-weight:300;font-style:normal;src:url("fonts/OpenSans-Light.ttf")}
+@font-face{font-family:"Open Sans";font-weight:300;font-style:italic;src:url("fonts/OpenSans-LightItalic-small.ttf")}
+@font-face{font-family:"Open Sans";font-weight:400;font-style:normal;src:url("fonts/OpenSans-Regular.ttf")}
+@font-face{font-family:"Open Sans";font-weight:400;font-style:italic;src:url("fonts/OpenSans-Italic-small.ttf")}
+@font-face{font-family:"Open Sans";font-weight:600;font-style:normal;src:url("fonts/OpenSans-Semibold-small.ttf")}
+@font-face{font-family:"Open Sans";font-weight:600;font-style:italic;src:url("fonts/OpenSans-SemiboldItalic-small.ttf")}
+@font-face{font-family:"Open Sans";font-weight:700;font-style:normal;src:url("fonts/OpenSans-Bold-small.ttf")}
+@font-face{font-family:"Open Sans";font-weight:700;font-style:italic;src:url("fonts/OpenSans-BoldItalic-small.ttf")}
+@font-face{font-family:"Ubuntu";font-style:normal;font-weight:400;src:url("fonts/Ubuntu-Regular.ttf")}
+@font-face{font-family:"SourceCodePro";src:url("fonts/SourceCodePro-Regular-webfont.eot");src:url("fonts/SourceCodePro-Regular-webfont.eot?#iefix") format('embedded-opentype') , url("fonts/SourceCodePro-Regular-webfont.woff") format('woff') , url("fonts/SourceCodePro-Regular-webfont.ttf") format('truetype') , url("fonts/SourceCodePro-Regular-webfont.svg#SourceCodeProRegular") format('svg');font-weight:normal;font-style:normal}
+@font-face{font-family:"SourceCodePro";src:url("fonts/SourceCodePro-Bold-webfont.eot");src:url("fonts/SourceCodePro-Bold-webfont.eot?#iefix") format('embedded-opentype') , url("fonts/SourceCodePro-Bold-webfont.woff") format('woff') , url("fonts/SourceCodePro-Bold-webfont.ttf") format('truetype') , url("fonts/SourceCodePro-Bold-webfont.svg#SourceCodeProBold") format('svg');font-weight:bold;font-style:normal}
+@font-face{font-family:"UbuntuMono";src:url("fonts/UbuntuMono-R-webfont.eot");src:url("fonts/UbuntuMono-R-webfont.eot?#iefix") format('embedded-opentype') , url("fonts/UbuntuMono-R-webfont.woff") format('woff') , url("fonts/UbuntuMono-R-webfont.ttf") format('truetype') , url("fonts/UbuntuMono-R-webfont.svg#UbuntuMonoRegular") format('svg');font-weight:normal;font-style:normal}
+@font-face{font-family:"UbuntuMono";src:url("fonts/UbuntuMono-B-webfont.eot");src:url("fonts/UbuntuMono-B-webfont.eot?#iefix") format('embedded-opentype') , url("fonts/UbuntuMono-B-webfont.woff") format('woff') , url("fonts/UbuntuMono-B-webfont.ttf") format('truetype') , url("fonts/UbuntuMono-B-webfont.svg#UbuntuMonoBold") format('svg');font-weight:bold;font-style:normal}
+@font-face{font-family:"Bree Serif";font-style:normal;font-weight:400;src:local('Bree Serif') , local('BreeSerif-Regular') , url("fonts/BreeSerif-Regular.ttf")}
+@font-face{font-family:"PT Sans";font-style:normal;font-weight:400;src:url("https://fonts.googleapis.com/css?family=PT+Sans")}
+@font-face{font-family:"Droid Sans";font-style:normal;font-weight:400;src:url("https://fonts.googleapis.com/css?family=Droid+Sans:400")}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family:"Open Sans",Helvetica,sans-serif;
+}
+
+body > header{margin:0;
+  background:#332f2a url("../images/koding-new-bg.png") repeat-x scroll 0 0;
+  width:100%;
+  height:51px;
+  -moz-box-shadow:inset 0 -7px 15px rgba(0,0,0,0.3);
+  -webkit-box-shadow:inset 0 -7px 15px rgba(0,0,0,0.3);
+  box-shadow:inset 0 -7px 15px rgba(0,0,0,0.3);
+}
+body > .tos {
+  padding: 0 30px;
+  font-size: 13px;
+  max-width: 800px;
+}
+
+body > .tos p{
+  border-bottom: 1px dotted #dfdfdf;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+}
+body > .tos p strong{
+  display: block;
+  font-size: 16px;
+  padding-bottom: 10px;
+  font-weight: 600;
+  color: #000;
+}
+
+#koding-logo{position:absolute;
+  display:block;
+  top:10px;
+  left:31px;
+  width:auto;
+  height:30px;
+  font-family:Ubuntu;
+  font-size:24px;
+  vertical-align:top;
+  padding:0 0 0 35px;
+  line-height:30px;
+  font-weight:600;
+  -moz-opacity:.99;
+  color:#f2f2f2;
+  -webkit-transition:left .15s linear;
+  -moz-transition:left .15s linear;
+  -o-transition:left .15s linear;
+  -ms-transition:left .15s linear;
+  transition:left .15s linear;
+}
+
+#koding-logo span{position:absolute;
+  top:2px;
+  left:0;
+  width:120px;
+  height:30px;
+  display:inline-block;
+  background-position:-240px -40px;
+  background-image:url("../images/_kd.sprites.png");
+  background-color:transparent;
+  background-repeat:no-repeat
+}
+
+#iubenda_policy.iubenda_fluid_policy .iub_container {
+  margin-top: 0!important;
+}

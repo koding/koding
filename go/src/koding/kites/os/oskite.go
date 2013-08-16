@@ -42,6 +42,12 @@ type VMInfo struct {
 	TotalMemoryLimit    int    `json:"totalMemoryLimit"`
 }
 
+type UnderMaintenanceError struct{}
+
+func (err *UnderMaintenanceError) Error() string {
+	return "VM is under maintenance."
+}
+
 var infos = make(map[bson.ObjectId]*VMInfo)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
@@ -305,6 +311,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, &kite.WrongChannelError{}
 		}
 
+		if vm.HostKite == "(maintenance)" {
+			return nil, &UnderMaintenanceError{}
+		}
 		if vm.HostKite != k.ServiceUniqueName {
 			if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
 				time.Sleep(time.Second) // to avoid rapid cycle channel loop
