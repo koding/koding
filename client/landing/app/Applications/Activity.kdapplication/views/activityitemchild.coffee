@@ -7,22 +7,21 @@ class ActivityItemChild extends KDView
 
     currentGroup = KD.getSingleton("groupsController").getCurrentGroup()
 
-    @getContentGroupLinkPartial = (groupSlug, groupName)->
-      return "" if currentGroup?.slug is groupSlug
-      """
-      In <a href="#{groupSlug}" target="#{groupSlug}">#{groupName}</a>
-      """
+    getContentGroupLinkPartial = (groupSlug, groupName)->
+      if currentGroup?.slug is groupSlug
+      then ""
+      else "In <a href=\"#{groupSlug}\" target=\"#{groupSlug}\">#{groupName}</a>"
 
     @contentGroupLink = new KDCustomHTMLView
       tagName     : "span"
-      partial     : @getContentGroupLinkPartial(data.group, data.group)
+      partial     : getContentGroupLinkPartial(data.group, data.group)
 
     if currentGroup?.slug is data.group
-      @contentGroupLink.updatePartial @getContentGroupLinkPartial(currentGroup.slug, currentGroup.title)
+      @contentGroupLink.updatePartial getContentGroupLinkPartial(currentGroup.slug, currentGroup.title)
     else
       KD.remote.api.JGroup.one {slug:data.group}, (err, group)=>
         if not err and group
-          @contentGroupLink.updatePartial @getContentGroupLinkPartial(group.slug, group.title)
+          @contentGroupLink.updatePartial getContentGroupLinkPartial(group.slug, group.title)
 
     origin =
       constructorName  : data.originType
