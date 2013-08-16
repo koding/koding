@@ -96,6 +96,8 @@ class Ace extends KDView
 
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
 
+      @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
+
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()
     selectedText         = @editor.session.getTextRange @editor.getSelectionRange()
@@ -289,6 +291,9 @@ class Ace extends KDView
     return  unless save
     @appStorage.setValue 'softWrap', value
 
+  gotoLine: (lineNumber) ->
+    @editor.gotoLine lineNumber
+
   focus: -> @editor?.focus()
 
   ###
@@ -321,3 +326,35 @@ class Ace extends KDView
 
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
+
+  showGotoLine: ->
+    unless @gotoLineModal
+      @gotoLineModal = new KDModalViewWithForms
+        cssClass                : "goto"
+        width                   : 180
+        height                  : "auto"
+        overlay                 : yes
+        tabs                    :
+          forms                 :
+            Go                  :
+              callback          : (form) =>
+                lineNumber = parseInt form.line, 10
+                @gotoLine lineNumber if lineNumber > 0
+                @gotoLineModal.destroy()
+              fields            :
+                Line            :
+                  type          : "text"
+                  name          : "line"
+                  placeholder   : "Goto line"
+                  nextElement   :
+                    Go              :
+                      itemClass     : KDButtonView
+                      title         : "Go"
+                      style         : "modal-clean-gray fl"
+                      type          : "submit"
+
+      @gotoLineModal.on "KDModalViewDestroyed", =>
+        @gotoLineModal = null
+        @focus()
+
+      @gotoLineModal.modalTabs.forms.Go.focusFirstElement()

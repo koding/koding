@@ -288,7 +288,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
             <footer class='discussion-footer clearfix'>
               <div class='type-and-time'>
-                <span class='type-icon'></span> by {{> @author}} •
+                <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}} •
                 {{> @timeAgoView}}
                 {{> @tags}}
                 {{> @actionLinks}}
