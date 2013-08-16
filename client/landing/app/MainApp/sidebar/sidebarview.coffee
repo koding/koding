@@ -128,6 +128,7 @@ class Sidebar extends JView
       iconOnly  : yes
       iconClass : "cog"
       cssClass  : "clean-gray open-environment"
+      testPath  : "environments-open"
       callback  :->
         if KD.whoami().type is 'unregistered'
           new KDNotificationView title: "This feature requires registration"
