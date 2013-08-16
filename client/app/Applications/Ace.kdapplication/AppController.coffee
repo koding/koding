@@ -20,6 +20,7 @@ class AceAppController extends AppController
       { type      : "separator" }
       { title     : "Find",                eventName : "find" }
       { title     : "Find and Replace",    eventName : "findAndReplace" }
+      { title     : "Goto line",           eventName : "gotoLine" }
       { type      : "separator" }
       { title     : "Compile and Run",     eventName : "compileAndRun" }
       { type      : "separator" }
