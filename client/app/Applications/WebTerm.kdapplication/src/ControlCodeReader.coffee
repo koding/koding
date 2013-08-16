@@ -238,7 +238,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             20:   ignored "automatic newline"
           "?h": eachParameter
             1:    -> terminal.inputHandler.useApplicationKeypad true
-            3:    -> terminal.screenBuffer.clear(); terminal.setSize 132, terminal.sizeY; terminal.cursor.moveTo 0, 0
+            3:    ignored "132 column mode"
             4:    ignored "smooth scroll"
             5:    ignored "reverse video"
             6:    -> originMode = true
@@ -265,7 +265,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             20:   ignored "normal linefeed"
           "?l": eachParameter
             1:    -> terminal.inputHandler.useApplicationKeypad false
-            3:    -> terminal.screenBuffer.clear(); terminal.setSize 80, terminal.sizeY; terminal.cursor.moveTo 0, 0
+            3:    ignored "80 column mode"
             4:    ignored "jump scroll"
             5:    ignored "normal video"
             6:    -> originMode = false
