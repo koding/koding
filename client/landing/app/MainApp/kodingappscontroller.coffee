@@ -103,7 +103,9 @@ class KodingAppsController extends KDController
           @putAppsToAppStorage manifests
           callback? null, manifests
     , ->
-      log "Timeout reached for kite request"
+      msg = "Timeout reached for kite request"
+      KD.logToExternal msg
+      log msg
       callback()
 
   fetchAppsFromDb:(callback)->
