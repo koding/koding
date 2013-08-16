@@ -318,9 +318,6 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           0: (params) -> terminal.setTitleCallback? params.raw[1]
           1: ignored "icon name"
           2: (params) -> terminal.setTitleCallback? params.raw[1]
-          4: (params) ->
-            parts = params.raw[2].match(/^rgb:(..)\/(..)\/(..)$/)
-            terminal.defineColor params[1], "##{parts[1]}#{parts[2]}#{parts[3]}"
           100: (params) -> terminal.eventHandler? params.raw[1]
 
   return new WebTerm.ControlCodeReader(terminal, initCursorControlHandler(),
