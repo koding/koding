@@ -230,10 +230,17 @@ class VirtualizationController extends KDController
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
-  createDefaultVM:->
+  createDefaultVM: (callback)->
     @hasDefaultVM (err, state)->
       return warn 'Default VM already exists.'  if state
-      new KDNotificationView title: "Creating your VM..."
+      notify = new KDNotificationView
+        title         : "Creating your VM..."
+        overlay       :
+          transparent : no
+          destroyOnClick: no
+        loader        :
+          color       : "#ffffff"
+        duration      : 120000
       KD.remote.cacheable KD.defaultSlug, (err, group)->
         if err or not group?.length
           return warn err
@@ -247,11 +254,13 @@ class VirtualizationController extends KDController
             vmController.fetchDefaultVmName (defaultVmName)->
               vmController.emit 'VMListChanged'
               KD.getSingleton('finderController').mountVm defaultVmName
+              notify.destroy()
+              callback?()
           else warn err
 
-  createNewVM:->
+  createNewVM: (callback)->
     @hasDefaultVM (err, state)=>
-      if state then @createPaidVM() else @createDefaultVM()
+      if state then @createPaidVM() else @createDefaultVM callback
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
@@ -468,6 +477,8 @@ class VirtualizationController extends KDController
 
   askToTurnOn:(appName='', callback)->
 
+    [appName, callback] = [callback, appName] if typeof appName is "function"
+
     return  if @dialogIsOpen
 
     content = """To #{if appName then 'run' else 'do this'} <b>#{appName}</b>
@@ -476,7 +487,7 @@ class VirtualizationController extends KDController
 
     unless @defaultVmName
       content = """To #{if appName then 'use' else 'do this'}
-                 <b>#{appName}</b> you need to have at lease one VM created,
+                 <b>#{appName or ''}</b> you need to have at lease one VM created,
                  you can do that by clicking '<b>Create Default VM</b>' button
                  below."""
 
@@ -497,23 +508,25 @@ class VirtualizationController extends KDController
           style      : "modal-clean-green"
           callback   : =>
             _runAppAfterStateChanged appName
-            @start -> modal.destroy()
+            @start ->
+              modal.destroy()
+              callback?()
         'Create Default VM' :
           style      : "modal-clean-green"
           callback   : =>
             _runAppAfterStateChanged appName
-            @createNewVM()
+            @createNewVM callback
             modal.destroy()
         Cancel       :
           style      : "modal-cancel"
           callback   : ->
             modal.destroy()
-            callback?()
+            callback? cancel: yes
 
     if @defaultVmName then modal.buttons['Create Default VM'].destroy() \
                       else modal.buttons['Turn ON VM'].destroy()
 
-    modal.once 'KDModalViewDestroyed', -> callback?()
+    modal.once 'KDModalViewDestroyed', -> callback? destroy: yes
 
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
