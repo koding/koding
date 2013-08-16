@@ -121,9 +121,8 @@ class EmbedBox extends KDView
       value = data[key]
       wantedData[key] = value
 
-    for key, value of wantedData
-      if typeof value is "string"
-        wantedData[key] = Encoder.htmlDecode value
+    for key, value of wantedData when "string" is typeof value
+      wantedData[key] = Encoder.htmlDecode value
 
     return wantedData
 
