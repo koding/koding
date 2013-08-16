@@ -1,12 +1,13 @@
 class ActivityController extends KDObject
 
-  constructor: ->
+  constructor: (options = {}, data) ->
 
-    super
+    super options, data
 
-    groupsController = KD.getSingleton 'groupsController'
-
-    groupChannel = null
+    @newItemsCount   = 0
+    @flags           = {}
+    groupsController = KD.getSingleton "groupsController"
+    groupChannel     = null
 
     groupsController.on 'GroupChannelReady', =>
       groupChannel.close().off()  if groupChannel?
@@ -14,12 +15,17 @@ class ActivityController extends KDObject
       groupChannel.on 'feed-new', (activities) =>
         @emit 'ActivitiesArrived',
           (KD.remote.revive activity for activity in activities)
-
+          isOnActivityPage = KD.getSingleton("router").getCurrentPath() is "/Activity"
+          ++@newItemsCount  unless isOnActivityPage
 
     @on "ActivityItemBlockUserClicked",         @bound "openBlockUserModal"
     @on "ActivityItemMarkUserAsTrollClicked",   @bound "markUserAsTroll"
     @on "ActivityItemUnMarkUserAsTrollClicked", @bound "unmarkUserAsTroll"
 
+    @setPageTitleForActivities()
+
+    KD.getSingleton("appManager").on "AppManagerWantsToShowAnApp", (appController, appView, appOptions) =>
+      @clearNewItemsCount()  if appOptions.name is "Activity"
 
   blockUser:(accountId, duration, callback)->
     KD.whoami().blockUser accountId, duration, callback
@@ -182,3 +188,27 @@ class ActivityController extends KDObject
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
 
+  setPageTitleForActivities: ->
+    @oldTitle = document.title
+    KD.getSingleton("windowController").addFocusListener (focused) =>
+      if focused then  document.title = @oldTitle
+      else @updateDocTitle()
+
+    KD.getSingleton("mainController").ready =>
+      KD.getSingleton("activityController").on "ActivitiesArrived", =>
+        @updateDocTitle()  unless KD.getSingleton("windowController").isFocused()
+
+  updateDocTitle: ->
+    itemCount      = KD.getSingleton("activityController").getNewItemsCount()
+    @oldTitle      = document.title if document.title.indexOf("Activity") is -1
+    document.title = "(#{itemCount}) Activity" if itemCount > 0
+
+  getNewItemsCount: ->
+    return @newItemsCount
+
+  clearNewItemsCount: ->
+    isOnActivityPage = KD.getSingleton("router").getCurrentPath() is "/Activity"
+    return no if @flags.liveUpdates and not isOnActivityPage
+
+    @newItemsCount = 0
+    @emit "NewItemsCounterCleared"

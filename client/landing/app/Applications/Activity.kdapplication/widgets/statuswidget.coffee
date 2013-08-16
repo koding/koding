@@ -4,11 +4,14 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     super
 
-    name = KD.utils.getFullnameFromAccount KD.whoami(), yes
+    name        = KD.utils.getFullnameFromAccount KD.whoami(), yes
+
+    # seyPlaceholer already has encoder. No need to decode again.
+    decodedName = Encoder.htmlDecode name
 
     @smallInput = new KDInputView
       cssClass      : "status-update-input warn-on-unsaved-data"
-      placeholder   : "What's new #{name}?"
+      placeholder   : "What's new #{decodedName}?"
       name          : 'dummy'
       style         : 'input-with-extras'
       focus         : @bound 'switchToLargeView'
@@ -30,7 +33,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput = new KDInputView
       cssClass      : "status-update-input warn-on-unsaved-data"
       type          : "textarea"
-      placeholder   : "What's new #{name}?"
+      placeholder   : "What's new #{decodedName}?"
       name          : 'body'
       style         : 'input-with-extras'
       autogrow      : yes
