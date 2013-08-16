@@ -100,8 +100,7 @@ class LoginView extends KDScrollView
 
       KD.remote.api.JUser.authenticateWithOauth params, (err, resp)=>
         if err
-          new KDNotificationView
-            title : "An error occurred: #{err.message}"
+          showError err
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
@@ -239,7 +238,7 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, @bound "afterLoginCallback"
+    KD.remote.api.JUser.login credentials, @afterLoginCallback.bind this
 
   runExternal = (token)->
     KD.getSingleton("kiteController").run
@@ -256,25 +255,8 @@ class LoginView extends KDScrollView
   afterLoginCallback: (err, params={})->
     @loginForm.button.hideLoader()
     {entryPoint} = KD.config
-
     if err
-      if err.message.length > 50
-        new KDModalView
-          title        : "Something is wrong!"
-          width        : 500
-          overlay      : yes
-          cssClass     : "new-kdmodal"
-          content      :
-            """
-              <div class='modalformline'>
-                #{err.message}
-              </div>
-            """
-      else
-        new KDNotificationView
-          title   : err.message
-          duration: 1000
-
+      showError err
       @loginForm.resetDecoration()
     else
       {account, replacementToken} = params
@@ -434,3 +416,21 @@ class LoginView extends KDScrollView
       return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"
+
+  showError = (err)->
+    if err.message.length > 50
+      new KDModalView
+        title        : "Something is wrong!"
+        width        : 500
+        overlay      : yes
+        cssClass     : "new-kdmodal"
+        content      :
+          """
+            <div class='modalformline'>
+              #{err.message}
+            </div>
+          """
+    else
+      new KDNotificationView
+        title   : err.message
+        duration: 1000

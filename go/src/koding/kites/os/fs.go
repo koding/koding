@@ -41,6 +41,9 @@ func registerFileSystemMethods(k *kite.Kite) {
 				defer log.RecoverAndLog()
 
 				if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MOVED_TO | inotify.IN_ATTRIB)) != 0 {
+					if info == nil {
+						return // skip this event, file was deleted and deletion event will follow
+					}
 					params.OnChange(map[string]interface{}{
 						"event": "added",
 						"file":  makeFileEntry(vos, path.Dir(ev.Name), info),
