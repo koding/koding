@@ -156,14 +156,14 @@ func (b *Bucket) GetReader(path string) (rc io.ReadCloser, err error) {
 		return nil, err
 	}
 	for attempt := attempts.Start(); attempt.Next(); {
-		resp, err := b.S3.run(req, nil)
+		hresp, err := b.S3.run(req)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
 		if err != nil {
 			return nil, err
 		}
-		return resp.Body, nil
+		return hresp.Body, nil
 	}
 	panic("unreachable")
 }
@@ -382,10 +382,18 @@ func (req *request) url() (*url.URL, error) {
 // body will be unmarshalled on it.
 func (s3 *S3) query(req *request, resp interface{}) error {
 	err := s3.prepare(req)
-	if err == nil {
-		_, err = s3.run(req, resp)
+	if err != nil {
+		return err
 	}
-	return err
+	hresp, err := s3.run(req)
+	if err != nil {
+		return err
+	}
+	if resp != nil {
+		err = xml.NewDecoder(hresp.Body).Decode(resp)
+	}
+	hresp.Body.Close()
+	return nil
 }
 
 // prepare sets up req to be delivered to S3.
@@ -440,9 +448,7 @@ func (s3 *S3) prepare(req *request) error {
 }
 
 // run sends req and returns the http response from the server.
-// If resp is not nil, the XML data contained in the response
-// body will be unmarshalled on it.
-func (s3 *S3) run(req *request, resp interface{}) (*http.Response, error) {
+func (s3 *S3) run(req *request) (*http.Response, error) {
 	if debug {
 		log.Printf("Running S3 request: %#v", req)
 	}
@@ -479,10 +485,6 @@ func (s3 *S3) run(req *request, resp interface{}) (*http.Response, error) {
 	}
 	if hresp.StatusCode != 200 && hresp.StatusCode != 204 {
 		return nil, buildError(hresp)
-	}
-	if resp != nil {
-		err = xml.NewDecoder(hresp.Body).Decode(resp)
-		hresp.Body.Close()
 	}
 	return hresp, err
 }

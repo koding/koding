@@ -42,6 +42,12 @@ type VMInfo struct {
 	TotalMemoryLimit    int    `json:"totalMemoryLimit"`
 }
 
+type UnderMaintenanceError struct{}
+
+func (err *UnderMaintenanceError) Error() string {
+	return "VM is under maintenance."
+}
+
 var infos = make(map[bson.ObjectId]*VMInfo)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
@@ -245,7 +251,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		var user virt.User
 		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
-			panic(err)
+			if err != mgo.ErrNotFound {
+				panic(err)
+			}
+			if !strings.HasPrefix(channel.Username, "guest-") {
+				log.Warn("User not found.", channel.Username)
+			}
+			time.Sleep(time.Second) // to avoid rapid cycle channel loop
+			return nil, &kite.WrongChannelError{}
 		}
 		if user.Uid < virt.UserIdOffset {
 			panic("User with too low uid.")
@@ -298,6 +311,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, &kite.WrongChannelError{}
 		}
 
+		if vm.HostKite == "(maintenance)" {
+			return nil, &UnderMaintenanceError{}
+		}
 		if vm.HostKite != k.ServiceUniqueName {
 			if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
 				time.Sleep(time.Second) // to avoid rapid cycle channel loop
@@ -342,6 +358,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		defer func() {
 			if err := recover(); err != nil {
 				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
+				time.Sleep(time.Second) // penalty for avoiding that the client rapidly sends the request again on error
 				methodError = &kite.InternalKiteError{}
 			}
 		}()

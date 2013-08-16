@@ -35,6 +35,10 @@ func (s *S) SetUpSuite(c *C) {
 	}
 }
 
+func (s *S) TearDownSuite(c *C) {
+	testServer.Stop()
+}
+
 func (s *S) TearDownTest(c *C) {
 	testServer.Flush()
 }

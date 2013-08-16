@@ -72,6 +72,7 @@ module.exports =
     numberOfWorkers: 1
     watch       : yes
   guestCleanerWorker     :
+    enabled              : yes
     login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
@@ -183,6 +184,11 @@ module.exports =
   haproxy         :
     webPort       : 3020
   kontrold        :
+    overview      :
+      apiHost     : "127.0.0.1"
+      apiPort     : 8888
+      port        : 8080
+      switchHost  : "example.com"
     api           :
       port        : 8888
     proxy         :

@@ -30,5 +30,5 @@ module.exports =
       'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
       'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
       'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
-      'markUserAsExempt', 'checkFlag', 'userIsExempt'
+      'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership'
     ]

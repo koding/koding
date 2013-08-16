@@ -226,12 +226,15 @@ func deleteRelationship(data map[string]interface{}) {
 	targetId := fmt.Sprintf("%s", data["targetId"])
 	as := fmt.Sprintf("%s", data["as"])
 
-	result := neo4j.DeleteRelationship(sourceId, targetId, as)
-	if result {
-		fmt.Println("Relationship deleted")
-	} else {
-		fmt.Println("Relationship couldnt be deleted")
-	}
+	// we are not doing anything with result for now
+	// do not pollute console
+	neo4j.DeleteRelationship(sourceId, targetId, as)
+	//result := neo4j.DeleteRelationship(sourceId, targetId, as)
+	//if result {
+	//	fmt.Println("Relationship deleted")
+	//} else {
+	//	fmt.Println("Relationship couldnt be deleted")
+	//}
 }
 
 func updateNode(data map[string]interface{}) {

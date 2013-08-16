@@ -440,6 +440,7 @@ run =({configFile})->
     invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
+    invoke 'guestCleanerWorker'   if config.guestCleanerWorker.enabled
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
@@ -542,14 +543,33 @@ task 'runExternals', "runs externals kite which imports info about github, will 
 
 
 
+# ------------------- TEST STUFF --------------------------
+task 'test-all', 'Runs functional test suite', (options)->
+  which = (paths)->
+    for path in paths
+      return path if fs.existsSync(path)
 
+  # do we have the virtualenv ???
+  pip = which ['./env/bin/pip', '/usr/local/bin/pip']
+  unless pip
+    console.error "please install pip with \n brew install python --framework"
+    return
 
+  cmd = "#{pip} install -e 'git+ssh://git@git.in.koding.com/qa.git@stable#egg=testengine'"
+  exec cmd, (err, stdout, stderr)->
+    log.info err
+    log.info stdout
+    log.info stderr
+    log.info "done installation"
 
-
-
-
-
-
+    testengine_run = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run']
+    testProcess = spawn testengine_run 
+    testProcess.stderr.on 'data', (data)->
+      log.info data.toString()
+    testProcess.stdout.on 'data', (data)->
+      log.info data.toString()
+    testProcess.on 'close', (code)->
+      process.exit code      
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 

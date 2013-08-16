@@ -3,6 +3,7 @@ package neo4j
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type Node struct {
@@ -29,7 +30,6 @@ type NodeResponse struct {
 
 func (node *Node) mapBatchResponse(neo4j *Neo4j, data interface{}) (bool, error) {
 	encodedData, err := jsonEncode(data)
-
 	payload, err := node.decodeResponse(encodedData)
 	if err != nil {
 		return false, err
@@ -43,13 +43,9 @@ func (node *Node) mapBatchResponse(neo4j *Neo4j, data interface{}) (bool, error)
 	node.Payload = payload
 
 	return true, nil
-
 }
 
 func (node *Node) getBatchQuery(operation string) (map[string]interface{}, error) {
-
-	query := make(map[string]interface{})
-
 	switch operation {
 	case BATCH_GET:
 		query, err := prepareNodeGetBatchMap(node)
@@ -67,77 +63,70 @@ func (node *Node) getBatchQuery(operation string) (map[string]interface{}, error
 		query, err := prepareNodeCreateUniqueBatchMap(node)
 		return query, err
 	}
-	return query, nil
+	return map[string]interface{}{}, nil
+
 }
 
-func prepareNodeGetBatchMap(node *Node) (map[string]interface{}, error) {
-
+func prepareNodeGetBatchMap(n *Node) (map[string]interface{}, error) {
 	query := make(map[string]interface{})
 
-	if node.Id == "" {
-		return query, errors.New("Id not valid")
+	if n.Id == "" {
+		return query, errors.New("Id field is empty")
 	}
 
 	query["method"] = "GET"
-	query["to"] = "/node/" + node.Id
+	query["to"] = fmt.Sprintf("/node/%s", n.Id)
 
 	return query, nil
 }
 
-func prepareNodeDeleteBatchMap(node *Node) (map[string]interface{}, error) {
-
+func prepareNodeDeleteBatchMap(n *Node) (map[string]interface{}, error) {
 	query := make(map[string]interface{})
 
-	if node.Id == "" {
+	if n.Id == "" {
 		return query, errors.New("Id not valid")
 	}
 
 	query["method"] = "DELETE"
-	query["to"] = "/node/" + node.Id
+	query["to"] = fmt.Sprintf("/node/%s", n.Id)
 
 	return query, nil
 }
 
-func prepareNodeCreateBatchMap(node *Node) (map[string]interface{}, error) {
-
-	query := make(map[string]interface{})
-
-	query["method"] = "POST"
-	query["to"] = "/node"
-	query["body"] = node.Data
-
-	return query, nil
+func prepareNodeCreateBatchMap(n *Node) (map[string]interface{}, error) {
+	return map[string]interface{}{
+		"method": "POST",
+		"to":     "/node",
+		"body":   n.Data,
+	}, nil
 }
 
-func prepareNodeUpdateBatchMap(node *Node) (map[string]interface{}, error) {
-
+func prepareNodeUpdateBatchMap(n *Node) (map[string]interface{}, error) {
 	query := make(map[string]interface{})
 
-	if node.Id == "" {
+	if n.Id == "" {
 		return query, errors.New("Id not valid")
 	}
 
 	query["method"] = "PUT"
-	query["to"] = "/node/" + node.Id + "/properties"
-	query["body"] = node.Data
+	query["to"] = fmt.Sprintf("/node/%s/properties", n.Id)
+	query["body"] = n.Data
 
 	return query, nil
 }
 
-func prepareNodeCreateUniqueBatchMap(node *Node) (map[string]interface{}, error) {
-
-	query := make(map[string]interface{})
-	query["method"] = "POST"
-	query["to"] = "/index/node"
-	query["body"] = map[string]interface{}{
-		"properties": node.Data,
-	}
-
-	return query, nil
+func prepareNodeCreateUniqueBatchMap(n *Node) (map[string]interface{}, error) {
+	return map[string]interface{}{
+		"method": "POST",
+		"to":     "/index/node",
+		"body": map[string]interface{}{
+			"properties": n.Data,
+		},
+	}, nil
 }
 
-func (node *Node) encodeData() (string, error) {
-	result, err := jsonEncode(node.Data)
+func (n *Node) encodeData() (string, error) {
+	result, err := jsonEncode(n.Data)
 	return result, err
 }
 

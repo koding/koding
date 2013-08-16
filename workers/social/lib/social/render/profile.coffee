@@ -2,7 +2,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
 
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
-  validator       = require 'validator'
+  encoder         = require 'htmlencode'
 
   {profile, counts, skilltags} = renderedAccount
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
@@ -22,7 +22,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
   <!DOCTYPE html>
   <html>
   <head>
-    <title>#{validator.sanitize(title).xss()}</title>
+    <title>#{encoder.XSSEncode title}</title>
     #{getStyles()}
   </head>
   <body>
@@ -102,17 +102,17 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                       <span class="icon hidden"></span>
                       <span class="button-title">Follow</span>
                     </button>
-                    <cite class="data" data-paths="profile.nickname">@#{validator.sanitize(nickname).xss()}</cite>
+                    <cite class="data" data-paths="profile.nickname">@#{encoder.XSSEncode nickname}</cite>
                   </div>
 
                   <div class=""></div>
 
                   <section>
                     <div class="profileinfo">
-                      <h3 class="profilename"><span class="data" data-paths="profile.firstName">#{validator.sanitize(firstName).xss()}</span> <span class="data" data-paths="profile.lastName">#{validator.sanitize(lastName).xss()}</span></h3>
-                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags">#{if locationTags then validator.sanitize(locationTags[0]).xss() else 'Earth'}</span></div></h4>
+                      <h3 class="profilename"><span class="data" data-paths="profile.firstName">#{encoder.XSSEncode firstName}</span> <span class="data" data-paths="profile.lastName">#{encoder.XSSEncode lastName}</span></h3>
+                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags">#{if locationTags then encoder.XSSEncode locationTags[0] else 'Earth'}</span></div></h4>
                       <h5>
-                        <a class="user-home-link" href="http://#{validator.sanitize(nickname).xss()}.koding.com" target="_blank">#{validator.sanitize(nickname).xss()}.koding.com</a>
+                        <a class="user-home-link" href="http://#{encoder.XSSEncode nickname}.koding.com" target="_blank">#{encoder.XSSEncode nickname}.koding.com</a>
                         <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
                       </h5>
                       <div class="profilestats">
@@ -126,12 +126,12 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                           <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.likes">#{counts.likes}</span> <span>Likes</span></a>
                         </div>
                         <div class="contact">
-                          <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName">#{validator.sanitize(firstName).xss()}</span></a>
+                          <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName">#{encoder.XSSEncode firstName}</span></a>
                         </div>
                       </div>
 
                       <div class="profilebio">
-                        <p><span class="data" data-paths="profile.about">#{validator.sanitize(about).xss()}</span></p>
+                        <p><span class="data" data-paths="profile.about">#{encoder.XSSEncode about}</span></p>
                       </div>
                       <div class="skilltags"><label>SKILLS</label><div class="tag-group"><div class="kdview listview-wrapper">...<div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-default skilltag-cloud"></div></div></div></div></div>
                     </div>

@@ -4,7 +4,7 @@ module.exports = (account)->
   bgImg    = encodeURIComponent "//images/defaultavatar/default.avatar.160.png"
 
   if loggedIn
-    {firstName, hash} = account.profile
+    hash  = account.profile?.hash or ''
     bgImg = "//gravatar.com/avatar/#{hash}?size=160&d=#{bgImg}"
 
   markup =
