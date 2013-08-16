@@ -29,7 +29,6 @@ class NVMItemView extends NFileItemView
 
   createRootContextMenu:->
     offset = @changePathButton.$().offset()
-    finder = KD.getSingleton('finderController')
     currentPath = @getData().path
     width = 30 + currentPath.length * 3
 
@@ -57,7 +56,8 @@ class NVMItemView extends NFileItemView
       contextMenu.treeController.addNode
         title    : path
         callback : ->
-          finder.updateVMRoot vm, path, contextMenu.bound("destroy")
+          KD.getSingleton('finderController').updateVMRoot \
+            vm, path, contextMenu.bound("destroy")
 
     contextMenu.positionContextMenu()
     contextMenu.treeController.selectFirstNode()
