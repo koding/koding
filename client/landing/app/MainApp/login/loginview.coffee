@@ -238,7 +238,7 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, @bound "afterLoginCallback"
+    KD.remote.api.JUser.login credentials, @afterLoginCallback.bind this
 
   runExternal = (token)->
     KD.getSingleton("kiteController").run
