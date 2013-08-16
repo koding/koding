@@ -5,7 +5,10 @@ class ActivityItemChild extends KDView
 
   constructor:(options, data)->
 
+    currentGroup = KD.getSingleton("groupsController").getCurrentGroup()
+
     @getContentGroupLinkPartial = (groupSlug, groupName)->
+      return "" if currentGroup?.slug is groupSlug
       """
       In <a href="#{groupSlug}" target="#{groupSlug}">#{groupName}</a>
       """
@@ -14,7 +17,6 @@ class ActivityItemChild extends KDView
       tagName     : "span"
       partial     : @getContentGroupLinkPartial(data.group, data.group)
 
-    currentGroup = KD.getSingleton("groupsController").getCurrentGroup()
     if currentGroup?.slug is data.group
       @contentGroupLink.updatePartial @getContentGroupLinkPartial(currentGroup.slug, currentGroup.title)
     else
