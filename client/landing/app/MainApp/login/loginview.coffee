@@ -60,6 +60,7 @@ class LoginView extends KDScrollView
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
+      testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
         KD.track "Login", "RegisterButtonClicked"
