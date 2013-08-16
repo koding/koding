@@ -7,6 +7,10 @@ class AppStorage extends KDEventEmitter
     @reset()
     super
 
+  storageFetched: (callback)->
+    if @_storage then callback()
+    else @once "storageFetched", -> callback()
+
   fetchStorage: (callback = noop)->
 
     [appId, version] = [@_applicationID, @_applicationVersion]
@@ -39,7 +43,7 @@ class AppStorage extends KDEventEmitter
 
     pack = @zip key, group, value
 
-    @_storageData[group] = {} unless @_storageData[group]?
+    @_storageData[group] = {}  unless @_storageData[group]?
     @_storageData[group][key] = value
 
     @fetchStorage (storage)=>

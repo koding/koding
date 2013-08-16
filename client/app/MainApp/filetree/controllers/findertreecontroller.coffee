@@ -21,7 +21,9 @@ class NFinderTreeController extends JTreeViewController
   addNode:(nodeData, index)->
 
     o = @getOptions()
+    log "FILE :", nodeData
     return if o.foldersOnly and nodeData.type is "file"
+    # return if nodeData.isHidden()
     item = super nodeData, index
 
   highlightFile:(view)->
@@ -136,7 +138,7 @@ class NFinderTreeController extends JTreeViewController
         if files
           @addNodes files
         callback? null, nodeView
-        @emit "folder.expanded", nodeView.getData()
+        @emit "folder.expanded", nodeView.getData()  unless silence
         @emit 'fs.retry.success'
         @hideNotification()
       else
