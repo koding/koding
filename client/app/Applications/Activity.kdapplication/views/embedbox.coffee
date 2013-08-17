@@ -92,33 +92,38 @@ class EmbedBox extends KDView
   getDataForSubmit:->
     return {}  if _.isEmpty @oembed
 
-    data             = @oembed
-    embedText        = @embedContainer.embedText
-    data.title       = embedText?.embedTitle?.titleInput?.getValue() or ''
-    data.description = embedText?.embedDescription?.descriptionInput?.getValue() or ''
+    data                = @oembed
+    embedText           = @embedContainer.embedText
+
+    wantedData             = {}
+    wantedData.title       = embedText?.embedTitle?.titleInput?.getValue() or ''
+    wantedData.description = embedText?.embedDescription?.descriptionInput?.getValue() or ''
 
     unless data.original_title?
-      data.original_title = embedText?.embedTitle?.getOriginalValue() or ''
+      wantedData.original_title = embedText?.embedTitle?.getOriginalValue() or ''
 
     unless data.original_description?
-      data.original_description = embedText?.embedDescription?.getOriginalValue() or ''
-
-    # remove unneded data
-    delete data.original_url
-    delete data.favicon_url
-    delete data.place
-    delete data.embeds
-    delete data.cache_age
-    delete data.event
+      wantedData.original_description = embedText?.embedDescription?.getOriginalValue() or ''
 
     for image, i in data.images
-      delete data.images[i]  if i isnt @imageIndex
+      if i isnt @imageIndex
+        delete data.images[i]
+      else
+        delete data.images[@imageIndex].colors
     @imageIndex = 0
 
-    for own key, field of data when _.isString(field)
-      data[key] = field.replace(/&quot;/g, '"')
+    desiredFields = [
+      'url', 'safe', 'type', 'provider_name', 'error_type', 'content',
+      'error_message', 'safe_type', 'safe_message', 'images'
+    ]
 
-    return data
+    for key in desiredFields
+      wantedData[key] = data[key]
+
+    for key, value of wantedData when "string" is typeof value
+      wantedData[key] = Encoder.htmlDecode value
+
+    return wantedData
 
   getRichEmbedWhitelist:-> [] # add provider name here if we dont want to embed
 
