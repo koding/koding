@@ -45,6 +45,9 @@ module.exports = class JLog extends Module
     log = new JLog data
     log.save (err) -> callback err
 
+  @timeLimit = ()->
+    TIME_LIMIT_IN_MIN
+
   checkRestrictions = (err, results, callback)->
     # if err dont let to login
     if err then return callback false
