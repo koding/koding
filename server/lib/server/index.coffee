@@ -382,7 +382,23 @@ app.get '/:name/:section?*', (req, res, next)->
             else if view? then res.send view
             else res.send 500, error_500()
 
+
+# adds referral code into session if exists
+addReferralCode = (req)->
+  if refCode = req.query.r
+    {clientId} = req.cookies
+    return unless clientId?
+
+    koding.models.JSession.fetchSession clientId, (err, session) ->
+      return console.err err if err
+      return unless session
+      session.update {$set : 'refererCode' : refCode}, (err) ->
+        console.err err if err
+
 app.get "/", (req, res)->
+
+  addReferralCode req
+
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
