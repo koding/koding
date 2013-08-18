@@ -88,6 +88,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
       environmentIsCreated  : Boolean
+      refererCode           : String
       type                  :
         type                : String
         enum                : ['invalid account type',[
@@ -176,6 +177,10 @@ module.exports = class JAccount extends jraphical.Module
       proxyFilter   :
         as          : 'owner'
         targetType  : 'JProxyFilter'
+
+      referer      :
+        as          : 'referer'
+        targetType  : 'JAccount'
 
       invitation    :
         as          : 'owner'
@@ -313,6 +318,33 @@ module.exports = class JAccount extends jraphical.Module
 
 
       @update operation, callback
+
+
+  createReferrerCode = require 'hat'
+
+  createUniqueuReferrerCode:(trialCount, callback)->
+    return callback new KodingError "Couldn't create your referrer code, please  try again!" if trialCount > 10
+    # this will end at 16M user
+    refererCode = createReferrerCode 24, 32
+    JAccount.one {refererCode : refererCode }, (err, account)=>
+      # if err is null and account is undefined, return
+      return callback null, refererCode if err is null and not account
+      # try to create a new unique code
+      @createUniqueuReferrerCode trialCount+1, callback
+
+  # creates a referrer code for the current user, if allready exists, returns it
+  createReferrerCode : secure (client, callback)->
+    {delegate}    = client.connection
+    refererCode = delegate.refererCode
+
+    return callback null, refererCode if refererCode
+
+    trialCount = 1
+    @createUniqueuReferrerCode trialCount, (err, refererCode)->
+      return callback err if err
+      delegate.update { $set : "refererCode" : refererCode }, (err)->
+        return callback err if err
+        callback null, refererCode
 
   setAbout: secure (client, text, callback)->
     {delegate}    = client.connection
@@ -702,8 +734,8 @@ module.exports = class JAccount extends jraphical.Module
 
   # returns troll users ids
   @getExemptUserIds: (callback)->
-    JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)-> 
-      cursor.toArray (err, data)-> 
+    JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)->
+      cursor.toArray (err, data)->
         if err
           return callback err, null
         callback null, (i._id for i in data)
