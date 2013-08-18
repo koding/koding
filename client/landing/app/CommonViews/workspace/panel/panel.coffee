@@ -28,11 +28,18 @@ class Panel extends JView
 
   createHeaderButtons: ->
     @getOptions().buttons.forEach (buttonOptions) =>
-      buttonView = new KDButtonView
-        title    : buttonOptions.title
-        cssClass : buttonOptions.cssClass
-        callback : =>
-          buttonOptions.callback @, @getDelegate()
+      if buttonOptions.itemClass
+        Klass = buttonOptions.itemClass
+        delete buttonOptions.itemClass
+        buttonOptions.callback = buttonOptions.callback?.bind this, this, @getDelegate()
+
+        buttonView = new Klass buttonOptions
+      else
+        buttonView = new KDButtonView
+          title    : buttonOptions.title
+          cssClass : buttonOptions.cssClass
+          callback : =>
+            buttonOptions.callback @, @getDelegate()
 
       @headerButtons[buttonOptions.title] = buttonView
       @header.addSubView buttonView
