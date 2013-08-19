@@ -101,6 +101,10 @@ class VirtualizationController extends KDController
     [callback, vm] = [vm, callback]  unless callback
     @_runWrapper 'vm.info', vm, (err, info)=>
       warn "[VM-#{vm}]", err  if err
+      if err?.name is "UnderMaintenanceError"
+        info = state: "MAINTENANCE"
+        err  = null
+        delete @vmRegions[vm]
       @emit 'StateChanged', err, vm, info
       callback? err, vm, info
 
@@ -111,7 +115,7 @@ class VirtualizationController extends KDController
     KD.remote.api.JVM.fetchVmInfo vmName, (err, info)=>
       if err
         warn err
-        callback 'aws'
+        callback 'aws' # This by default 'aws' please change it if needed! ~ GG
       else
         @vmRegions[vmName] = info.region
         callback @vmRegions[vmName]
