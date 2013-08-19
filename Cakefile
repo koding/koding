@@ -6,6 +6,7 @@ option '-v', '--version [VERSION]', 'Switch to a specific version'
 option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only broker supports it)'
 
 option '-f', '--file [file]', 'run tests with just one file'
+option '-l', '--location [location]', 'run tests with this base url'
 
 {spawn, exec} = require 'child_process'
 
@@ -542,9 +543,11 @@ task 'test-all', 'Runs functional test suite', (options)->
     # log.info stderr
     # log.info "done installation"
     testEngine = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run']
-    args = ['-p', './tests']
+    args = ['-p', './tests', '-c', options.configFile]
     if options.file
       args.push '-f', options.file
+    if options.location
+      args.push '-l', options.location
     testProcess = spawn testEngine, args  
     testProcess.stderr.on 'data', (data)->
       process.stdout.write data.toString()
