@@ -31,7 +31,7 @@ class FSHelper
     return data
 
   @folderOnChange = (vm, path, change, treeController)->
-    console.log "THEY CHANGED:", vm, path, change, treeController
+    # log "THEY CHANGED:", vm, path, change, treeController
     file = @parseWatcher(vm, path, change.file).first
     switch change.event
       when "added"
