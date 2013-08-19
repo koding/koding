@@ -546,9 +546,9 @@ task 'test-all', 'Runs functional test suite', (options)->
     testengine_run = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run', '-p ./tests']
     testProcess = spawn testengine_run 
     testProcess.stderr.on 'data', (data)->
-      log.info data.toString()
+      process.stdout.write data.toString()
     testProcess.stdout.on 'data', (data)->
-      log.info data.toString()
+      process.stdout.write data.toString()
     testProcess.on 'close', (code)->
       process.exit code      
 
