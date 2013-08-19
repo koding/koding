@@ -46,17 +46,34 @@ class WebTerm.StyledText
       if @textColor?
         if @textColor < 16
           classes.push "text#{COLOR_NAMES[@textColor]}"
-        else
-          styles.push "color: #{terminal.definedColors[@textColor]}"
+        else if @textColor < 232
+          styles.push "color: #{@getColor(@textColor - 16)}"
+        else if @textColor < 256
+          styles.push "color: #{@getGrey(@textColor - 232)}"
       if @backgroundColor?
         if @backgroundColor < 16
           classes.push "background#{COLOR_NAMES[@backgroundColor]}"
-        else
-          styles.push "background-color: #{terminal.definedColors[@backgroundColor]}"
+        else if @backgroundColor < 232
+          styles.push "background-color: #{@getColor(@backgroundColor - 16)}"
+        else if @backgroundColor < 256
+          styles.push "background-color: #{@getGrey(@backgroundColor - 232)}"
       
       {
         class: classes.join(" ")
         style: styles.join("; ")
       }
+
+    getColor: (index) ->
+      rIndex = Math.floor(index / 6 / 6) % 6
+      gIndex = Math.floor(index / 6) % 6
+      bIndex = index % 6
+      r = if rIndex is 0 then 0 else rIndex * 40 + 55
+      g = if gIndex is 0 then 0 else gIndex * 40 + 55
+      b = if bIndex is 0 then 0 else bIndex * 40 + 55
+      return "rgb(#{r}, #{g}, #{b})"
+
+    getGrey: (index) ->
+      l = index * 10 + 8
+      return "rgb(#{l}, #{l}, #{l})"
   
   @DEFAULT_STYLE = new Style
