@@ -2,6 +2,7 @@ package virt
 
 import (
 	"errors"
+	"labix.org/v2/mgo/bson"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -60,6 +61,15 @@ func (vm *VM) WaitForState(state string, timeout time.Duration) error {
 			return errors.New("Timeout while waiting for VM state.")
 		}
 		time.Sleep(time.Second / 10)
+	}
+	return nil
+}
+
+func SendMessageToVMUsers(vmId bson.ObjectId, message string) error {
+	cmd := exec.Command("/usr/bin/lxc-attach", "--name", VMName(vmId), "--", "/usr/bin/wall", "--nobanner")
+	cmd.Stdin = strings.NewReader(message)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return commandError("wall failed.", err, out)
 	}
 	return nil
 }
