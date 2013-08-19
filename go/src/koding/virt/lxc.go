@@ -13,7 +13,6 @@ func (vm *VM) Start() error {
 	if out, err := exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon").CombinedOutput(); err != nil {
 		return commandError("lxc-start failed.", err, out)
 	}
-	exec.Command("/sbin/ifconfig", vm.VEth(), "mtu", "1476").Run() // error ignored
 	return vm.WaitForState("RUNNING", time.Second)
 }
 
