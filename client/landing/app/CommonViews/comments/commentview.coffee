@@ -11,6 +11,8 @@ class CommentView extends KDView
 
     {fixedHeight} = @getOptions()
 
+    fixedHeight or= no
+
     @setFixedHeight fixedHeight  if fixedHeight
 
   render:->

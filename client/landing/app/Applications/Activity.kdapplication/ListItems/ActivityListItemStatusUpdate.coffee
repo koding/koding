@@ -10,16 +10,10 @@ class StatusActivityItemView extends ActivityItemChild
         top            : 3
         left           : -5
 
-    options.commentSettings or=
-      fixedHeight      : no
-      twoColumns       : no
-
     if data.link?.link_embed?.type is "image"
       @twoColumns      = yes
 
-      options.commentSettings =
-        fixedHeight    : 300
-        twoColumns     : yes
+      options.commentSettings = fixedHeight: 300
 
     super options,data
 
@@ -127,8 +121,7 @@ class StatusActivityItemView extends ActivityItemChild
     str = @utils.applyTextExpansions str, yes
 
   pistachio:->
-    {commentSettings} = @getOptions()
-    if commentSettings.twoColumns
+    if @twoColumns
       """
       {{> @settingsButton}}
       <span class="avatar">{{> @avatar}}</span>
