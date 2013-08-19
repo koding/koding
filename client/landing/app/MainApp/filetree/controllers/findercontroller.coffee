@@ -196,12 +196,33 @@ class NFinderController extends KDViewController
     @appStorage.setValue 'recentFiles', recentFiles.slice(0,10), =>
       @emit 'recentfiles.updated', recentFiles
 
-  hideDotFiles:->
+  hideDotFiles:(vmName)->
+    return  unless vmName
+    @setNodesHidden vmName, yes
     for path, node of @treeController.nodes
-      if node.getData().isHidden()
+      file = node.getData()
+      if (file.vmName is vmName) and file.isHidden()
+        @stopWatching file.path
         @treeController.removeNodeView node
 
-  showDotFiles:->
+  showDotFiles:(vmName)->
+    return  unless vmName
+    @setNodesHidden vmName, no
+    for path, node of @treeController.nodes when node.getData().type is 'vm'
+      return if node.getData().vmName is vmName
+        @treeController.collapseFolder node, =>
+          @reloadOldStructure()
+        , yes
+
+  isNodesHiddenFor:(vmName)->
+    pipedVm = @_pipedVm vmName
+    return (@appStorage.getValue('vmsDotFileChoices') or {})[pipedVm]
+
+  setNodesHidden:(vmName, state)->
+    pipedVm = @_pipedVm vmName
+    prefs   = @appStorage.getValue('vmsDotFileChoices') or {}
+    prefs[pipedVm] = state
+    @appStorage.setValue 'vmsDotFileChoices', prefs
 
   setRecentFolder:(folderPath, callback)->
     recentFolders = @appStorage.getValue('recentFolders')
