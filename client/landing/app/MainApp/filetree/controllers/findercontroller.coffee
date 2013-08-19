@@ -148,19 +148,18 @@ class NFinderController extends KDViewController
       , yes
 
   unmountVm:(vmName)->
-    return warn 'No such VM!'  unless vmItem = @getVmNode vmName
+    vmItem = @getVmNode vmName
+    return warn 'No such VM!'  unless vmItem
 
     @updateMountState vmName, no
+    @stopWatching vmItem.data.path
+    FSHelper.deregisterVmFiles vmName
+    @treeController.removeNodeView vmItem
+    @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
 
-    if vmItem
-      @stopWatching vmItem.data.path
-      FSHelper.deregisterVmFiles vmName
-      @treeController.removeNodeView vmItem
-      @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
-
-      if @vms.length is 0
-        @noVMFoundWidget.show()
-        @emit 'EnvironmentsTabRequested'
+    if @vms.length is 0
+      @noVMFoundWidget.show()
+      @emit 'EnvironmentsTabRequested'
 
   updateVMRoot:(vmName, path, callback)->
     return warn 'VM name and new path required!'  unless vmName or path
