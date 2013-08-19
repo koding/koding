@@ -520,6 +520,11 @@ task 'runExternals', "runs externals kite which imports info about github, will 
     verbose           : yes
 
 # ------------------- TEST STUFF --------------------------
+
+# task 'test-one-file', 'Runs just one test file', (options)->
+#   console.log options
+
+# ----- run all tests ----
 task 'test-all', 'Runs functional test suite', (options)->
   which = (paths)->
     for path in paths
@@ -538,7 +543,7 @@ task 'test-all', 'Runs functional test suite', (options)->
     log.info stderr
     log.info "done installation"
 
-    testengine_run = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run']
+    testengine_run = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run', '-p ./tests']
     testProcess = spawn testengine_run 
     testProcess.stderr.on 'data', (data)->
       log.info data.toString()
