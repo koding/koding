@@ -220,16 +220,16 @@ class NFinderController extends KDViewController
       if path is folderPath then -1 else 0
     @appStorage.setValue 'recentFolders', recentFolders, callback
 
-  expandFolder:(folderPath, callback)->
+  expandFolder:(folderPath, callback=noop)->
+    return  unless folderPath
     for path, node of @treeController.nodes
-      if path is folderPath
-        return @treeController.expandFolder node, callback
+      return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
   reloadOldStructure:(vmName)->
     iterate = (folders, index)=>
       @expandFolder folders[index], (err)=>
-        # if err then @unsetRecentFolder folders[index]
+        if err then @unsetRecentFolder folders[index]
         index += 1
         iterate folders, index  if index <= folders.length
     folders = @appStorage.getValue('recentFolders') or []
