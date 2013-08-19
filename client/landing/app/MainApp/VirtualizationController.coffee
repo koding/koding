@@ -37,7 +37,6 @@ class VirtualizationController extends KDController
             then @_cbWrapper vm, callback
             else callback
           @run
-            kiteName : 'os'
             method   : command
             vmName   : vm
           , cb

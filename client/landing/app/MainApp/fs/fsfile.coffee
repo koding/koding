@@ -13,7 +13,6 @@ class FSFile extends FSItem
 
     @emit "fs.job.started"
     @vmController.run
-      kiteName  : 'os'
       method    : 'fs.readFile'
       vmName    : @vmName
       withArgs  :
@@ -58,7 +57,6 @@ class FSFile extends FSItem
     content = btoa KD.utils.utf8Encode contents
 
     @vmController.run
-      kiteName  : 'os'
       method    : 'fs.writeFile'
       vmName    : @vmName
       withArgs  :
