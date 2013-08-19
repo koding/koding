@@ -21,9 +21,11 @@ class VirtualizationController extends KDController
     @fetchVmName options, (err, vmName) =>
       return callback err  if err?
       options.correlationName = vmName
-      @kc.run options, (rest...) ->
-        # log rest...
-        callback rest...
+      @fetchRegion vmName, (region)=>
+        options.kiteName = "os-#{region}"
+        @kc.run options, (rest...) ->
+          # log rest...
+          callback rest...
 
   _runWrapper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
@@ -107,6 +109,18 @@ class VirtualizationController extends KDController
         @emit 'StateChanged', err, vm, info
         callback? err, vm, info
       , no
+
+  fetchRegion: (vmName, callback)->
+    if region = @vmRegions[vmName]
+      return @utils.defer -> callback region
+
+    KD.remote.api.JVM.fetchVmInfo vmName, (err, info)=>
+      if err
+        warn err
+        callback 'aws'
+      else
+        @vmRegions[vmName] = info.region
+        callback @vmRegions[vmName]
 
   fetchVmName: (options, callback) ->
     if options.vmName?
@@ -220,6 +234,7 @@ class VirtualizationController extends KDController
     @groupVms = []
     @defaultVmName = null
     @vmDomains = {}
+    @vmRegions = {}
 
   fetchTotalVMCount:(callback)->
     KD.remote.api.JVM.count (err, count)->
