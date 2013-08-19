@@ -85,7 +85,14 @@ func main() {
 	}
 	for _, dir := range dirs {
 		if strings.HasPrefix(dir.Name(), "vm-") {
-			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			vmId := bson.ObjectIdHex(dir.Name()[3:])
+			var vm virt.VM
+			if err := db.VMs.FindId(vmId).One(&vm); err != nil {
+				if err := virt.UnprepareVM(vmId); err != nil {
+					log.Warn(err.Error())
+				}
+				continue
+			}
 			info := newInfo(&vm)
 			infos[vm.Id] = info
 			info.startTimeout()
@@ -583,6 +590,7 @@ func newInfo(vm *virt.VM) *VMInfo {
 		vmName:           vm.String(),
 		useCounter:       0,
 		totalCpuUsage:    utils.MaxInt,
+		hostname:         vm.HostnameAlias,
 		CpuShares:        1000,
 		TotalMemoryLimit: MaxMemoryLimit,
 	}
