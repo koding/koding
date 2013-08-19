@@ -120,6 +120,8 @@ module.exports =
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
+      embedly        :
+        apiKey       : 'd03fb0338f2849479002fe747bda2fc7'
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes

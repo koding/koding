@@ -142,6 +142,8 @@ config =
         authExchange  : 1
         github        :
           clientId    : 1
+        embedly       :
+          apiKey      : 1
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1

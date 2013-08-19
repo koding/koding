@@ -116,6 +116,8 @@ module.exports =
       authExchange: authExchange
       github         :
         clientId     : "f8e440b796d953ea01e5"
+      embedly        :
+        apiKey       : 'd03fb0338f2849479002fe747bda2fc7'
       userSitesDomain: 'localhost'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
