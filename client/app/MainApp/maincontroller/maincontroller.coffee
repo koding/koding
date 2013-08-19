@@ -85,6 +85,7 @@ class MainController extends KDController
 
   createMainViewController:->
     @loginScreen = new LoginView
+      testPath   : "landing-login"
     KDView.appendToDOMBody @loginScreen
     @mainViewController  = new MainViewController
       view    : mainView = new MainView
