@@ -22,7 +22,6 @@ class NVMDetailsView extends JView
   kcRun:(command, callback)->
     kc = KD.getSingleton("vmController")
     kc.run
-      kiteName : "os"
       method   : "exec"
       vmName   : @getData().vmName
       withArgs : command
