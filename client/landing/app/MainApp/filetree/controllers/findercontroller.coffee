@@ -116,13 +116,12 @@ class NFinderController extends KDViewController
       @appStorage.setValue "mountedVM", vms
 
   mountVm:(vm, fetchContent = yes)->
-    # return unless KD.isLoggedIn()
     return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
 
     [vmName, path] = vm.split ":"
 
     vmRoots = (@appStorage.getValue 'vmRoots') or {}
-    pipedVm = vmName.replace /\./g, '|'
+    pipedVm = @_pipedVm vmName
     path or= vmRoots[pipedVm] or "/home/#{KD.nick()}"
 
     if vmItem = @getVmNode vmName
@@ -170,7 +169,7 @@ class NFinderController extends KDViewController
     callback?()
 
     vmRoots = (@appStorage.getValue 'vmRoots') or {}
-    pipedVm = vmName.replace /\./g, '|'
+    pipedVm = @_pipedVm vmName
     vmRoots[pipedVm] = path
     @appStorage.setValue 'vmRoots', vmRoots
 
@@ -235,6 +234,8 @@ class NFinderController extends KDViewController
       folders = folders.filter (folder)->
         folder.indexOf "[#{vmName}]" is 0
     iterate folders, 0
+
+  _pipedVm:(vmName)-> vmName.replace /\./g, '|'
 
 class VMMountStateWidget extends JView
 
