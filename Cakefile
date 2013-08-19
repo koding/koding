@@ -538,10 +538,10 @@ task 'test-all', 'Runs functional test suite', (options)->
 
   cmd = "sudo #{pip} install -e 'git+ssh://git@git.in.koding.com/qa.git@master#egg=testengine'"
   exec cmd, (err, stdout, stderr)->
-    log.info err
-    log.info stdout
-    log.info stderr
-    log.info "done installation"
+    # log.info err
+    # log.info stdout
+    # log.info stderr
+    # log.info "done installation"
 
     testengine_run = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run', '-p ./tests']
     testProcess = spawn testengine_run 
