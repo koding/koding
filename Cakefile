@@ -5,6 +5,8 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only broker supports it)'
 
+option '-f', '--file [file]', 'run tests with just one file'
+
 {spawn, exec} = require 'child_process'
 
 log =
@@ -521,9 +523,6 @@ task 'runExternals', "runs externals kite which imports info about github, will 
 
 # ------------------- TEST STUFF --------------------------
 
-# task 'test-one-file', 'Runs just one test file', (options)->
-#   console.log options
-
 # ----- run all tests ----
 task 'test-all', 'Runs functional test suite', (options)->
   which = (paths)->
@@ -542,9 +541,11 @@ task 'test-all', 'Runs functional test suite', (options)->
     # log.info stdout
     # log.info stderr
     # log.info "done installation"
-
-    testengine_run = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run', '-p ./tests']
-    testProcess = spawn testengine_run 
+    testEngine = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run']
+    args = ['-p', './tests']
+    if options.file
+      args.push '-f', options.file
+    testProcess = spawn testEngine, args  
     testProcess.stderr.on 'data', (data)->
       process.stdout.write data.toString()
     testProcess.stdout.on 'data', (data)->
