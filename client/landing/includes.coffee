@@ -710,6 +710,8 @@ module.exports = [
   "app/MainApp/ContentDisplay/ContentDisplay.coffee",
   "app/MainApp/ContentDisplay/ContentDisplayController.coffee",
 
+  "app/MainApp/pinger.coffee",
+
   # KITE CONTROLLER
   "app/MainApp/kite/kite.coffee",
   "app/MainApp/kite/kitecontroller.coffee",

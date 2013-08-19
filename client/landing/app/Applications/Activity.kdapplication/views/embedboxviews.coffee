@@ -422,7 +422,7 @@ class EmbedBoxLinkViewDescription extends KDView
 
     @hide()  unless oembed?.description?.trim()
 
-    @originalDescription = oembed?.description
+    @originalDescription = Encoder.XSSEncode oembed?.description or ""
 
     if options.hasConfig is yes
       @setClass 'has-config'
@@ -430,7 +430,7 @@ class EmbedBoxLinkViewDescription extends KDView
         type         : 'textarea'
         cssClass     : 'description_input hidden'
         name         : 'description_input'
-        defaultValue : oembed?.description or ''
+        defaultValue : @originalDescription
         autogrow     : yes
         blur         : =>
           @descriptionInput.hide()
@@ -438,21 +438,21 @@ class EmbedBoxLinkViewDescription extends KDView
     else
       @descriptionInput = new KDCustomHTMLView
         cssClass : 'hidden'
-        partial : oembed?.description or ''
+        partial : @originalDescription
 
     @editIndicator = new KDCustomHTMLView
       tagName : 'div'
       cssClass : 'edit-indicator discussion-edit-indicator'
       pistachio : 'edited'
       tooltip :
-        title: "Original Content was: <p>#{oembed?.original_description or oembed?.description or ''}</p>"
+        title: "Original Content was: <p>#{oembed?.original_description or @original_description}</p>"
     @editIndicator.hide()
 
   getValue:->
     if @options.hasConfig
-      @descriptionInput.getValue()
+      Encoder.XSSEncode @descriptionInput.getValue()
     else
-      @descriptionInput.getPartial()
+      Encoder.XSSEncode @descriptionInput.getPartial()
 
   getOriginalValue:-> @originalDescription
 
@@ -471,10 +471,17 @@ class EmbedBoxLinkViewDescription extends KDView
     @$('div.description').hide()
     no
 
+  getDescription:->
+    value = @getData().link_embed?.description or @getData().description
+    if value?
+      value = Encoder.XSSEncode value
+
+    return value
+
   pistachio:->
     """
     {{> @descriptionInput}}
-    <div class="description #{if @getData().link_embed?.description or @getData().description then '' else 'hidden'}">#{@getData().link_embed?.description or @getData().description or ''}
+    <div class="description #{if @getDescription() then '' else 'hidden'}">#{@getDescription() or ""}
     {{> @editIndicator}}</div>
     """
 

@@ -5,6 +5,24 @@ class ActivityItemChild extends KDView
 
   constructor:(options, data)->
 
+    currentGroup = KD.getSingleton("groupsController").getCurrentGroup()
+
+    getContentGroupLinkPartial = (groupSlug, groupName)->
+      if currentGroup?.slug is groupSlug
+      then ""
+      else "In <a href=\"#{groupSlug}\" target=\"#{groupSlug}\">#{groupName}</a>"
+
+    @contentGroupLink = new KDCustomHTMLView
+      tagName     : "span"
+      partial     : getContentGroupLinkPartial(data.group, data.group)
+
+    if currentGroup?.slug is data.group
+      @contentGroupLink.updatePartial getContentGroupLinkPartial(currentGroup.slug, currentGroup.title)
+    else
+      KD.remote.api.JGroup.one {slug:data.group}, (err, group)=>
+        if not err and group
+          @contentGroupLink.updatePartial getContentGroupLinkPartial(group.slug, group.title)
+
     origin =
       constructorName  : data.originType
       id               : data.originId
@@ -51,7 +69,7 @@ class ActivityItemChild extends KDView
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
-    super
+    super options, data
 
     data = @getData()
     data.on 'TagsChanged', (tagRefs)=>
