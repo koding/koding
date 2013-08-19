@@ -35,6 +35,7 @@ class CollaborativeEditorPane extends CollaborativePane
     content     = "" if @amIHost and isLocalFile
     @firepad.setText content  if @amIHost
     @codeMirrorEditor.scrollTo 0, 0
+    @emit "OpenedAFile", file, content
 
   save: ->
     file        = @getData()
