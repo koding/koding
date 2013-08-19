@@ -2,6 +2,7 @@ package virt
 
 import (
 	"errors"
+	"labix.org/v2/mgo/bson"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -12,6 +13,7 @@ func (vm *VM) Start() error {
 	if out, err := exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon").CombinedOutput(); err != nil {
 		return commandError("lxc-start failed.", err, out)
 	}
+	exec.Command("/sbin/ifconfig", vm.VEth(), "mtu", "1476").Run() // error ignored
 	return vm.WaitForState("RUNNING", time.Second)
 }
 
@@ -40,7 +42,7 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 	args = append(args, "--", "/usr/bin/sudo", "-i", "-u", "#"+strconv.Itoa(uid), "--")
 	args = append(args, command...)
 	cmd := exec.Command("/usr/bin/lxc-attach", args...)
-	cmd.Env = []string{"TERM=xterm"}
+	cmd.Env = []string{"TERM=xterm-256color"}
 	return cmd
 }
 
@@ -59,6 +61,15 @@ func (vm *VM) WaitForState(state string, timeout time.Duration) error {
 			return errors.New("Timeout while waiting for VM state.")
 		}
 		time.Sleep(time.Second / 10)
+	}
+	return nil
+}
+
+func SendMessageToVMUsers(vmId bson.ObjectId, message string) error {
+	cmd := exec.Command("/usr/bin/lxc-attach", "--name", VMName(vmId), "--", "/usr/bin/wall", "--nobanner")
+	cmd.Stdin = strings.NewReader(message)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return commandError("wall failed.", err, out)
 	}
 	return nil
 }

@@ -546,8 +546,8 @@ module.exports = class JVM extends Module
             return console.error err  if err or not account
             # New account found
             webHome       = username
-            hostnameAlias = newHostNameAlias
-            vm.update {$set: {hostnameAlias, webHome}}, (err)=>
+            vm.update {$set: {hostnameAlias:newHostNameAlias, webHome}},(err)=>
+
               return console.error err  if err
               # VM hostnameAlias updated
 
@@ -559,10 +559,11 @@ module.exports = class JVM extends Module
                 return console.error err  if err
                 # Counter created
 
-                JVM.ensureDomainSettings {
-                  type:'user', nickname:username, groupSlug:'koding'
-                  account, vm
+                hostnameAliases = JVM.createAliases {
+                  nickname:username
+                  type:'user', uid, groupSlug:'koding'
                 }
+                JVM.createDomains account, hostnameAliases, hostnameAliases[0]
 
                 console.log """Migration completed for
                                #{hostnameAlias} to #{newHostNameAlias}"""

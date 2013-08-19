@@ -181,6 +181,8 @@ class AceAppView extends JView
 
     @on "findAndReplaceMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView yes
 
+    @on "gotoLineMenuItemClicked", => @getActiveAceView().ace.showGotoLine()
+
     @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
 
   getAdvancedSettingsMenuView: ->

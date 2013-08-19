@@ -488,27 +488,28 @@ func switchVersion(newVersion string) error {
 		return fmt.Errorf("key does not exist for '%s'", switchHost)
 	}
 
-	conn := CreateAmqpConnection("overview")
-	defer conn.Close()
+	// Disable for now, seems we don't use it anymore
+	// conn := CreateAmqpConnection("overview")
+	// defer conn.Close()
 
-	channel := CreateChannel(conn)
-	defer channel.Close()
+	// channel := CreateChannel(conn)
+	// defer channel.Close()
 
-	destination := "auth-" + newVersion
-	routingKey := ""
-	source := "auth"
+	// destination := "auth-" + newVersion
+	// routingKey := ""
+	// source := "auth"
 
-	err = channel.ExchangeBind(destination, routingKey, source, true, nil)
-	if err != nil {
-		return err
-	}
+	// err = channel.ExchangeBind(destination, routingKey, source, true, nil)
+	// if err != nil {
+	// 	return err
+	// }
 
-	oldDestination := "auth-" + oldVersion
+	// oldDestination := "auth-" + oldVersion
 
-	err = channel.ExchangeUnbind(oldDestination, routingKey, source, true, nil)
-	if err != nil {
-		return err
-	}
+	// err = channel.ExchangeUnbind(oldDestination, routingKey, source, true, nil)
+	// if err != nil {
+	// 	return err
+	// }
 
 	domain.Proxy.Key = newVersion
 
