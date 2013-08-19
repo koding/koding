@@ -29,7 +29,7 @@ class NFinderController extends KDViewController
     @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0a'
 
     if options.useStorage
-      @appStorage.storageFetched =>
+      @appStorage.ready =>
         @treeController.on "file.opened", @bound 'setRecentFile'
         @treeController.on "folder.expanded", (folder)=>
           @setRecentFolder folder.path
@@ -67,7 +67,7 @@ class NFinderController extends KDViewController
 
   reset:->
     if @getOptions().useStorage
-      @appStorage.storageFetched => @loadVms()
+      @appStorage.ready => @loadVms()
     else
       @utils.defer => @loadVms()
 
