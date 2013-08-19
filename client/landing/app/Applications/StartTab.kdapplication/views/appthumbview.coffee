@@ -1,8 +1,5 @@
 class StartTabAppThumbView extends KDCustomHTMLView
 
-  proxifyUrl = (url) ->
-    return "#{KD.config.mainUri}/-/imageProxy?url=#{encodeURIComponent url}"
-
   constructor:(options, data)->
 
     options.tagName    = 'figure'

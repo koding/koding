@@ -642,8 +642,6 @@ class KodingAppsController extends KDController
   # HELPERS
   # #
 
-  proxifyUrl = (url)-> KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
-
   escapeFilePath = FSHelper.escapeFilePath
 
   putStyleSheets = (manifest)->
