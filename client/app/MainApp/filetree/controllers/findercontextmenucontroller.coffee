@@ -231,6 +231,12 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : 'collapse'
         separator                 : yes
+      'Hide dot Files'            :
+        action                    : 'hideDotFiles'
+        separator                 : yes
+      'Show dot Files'            :
+        action                    : 'showDotFiles'
+        separator                 : yes
       'New File'                  :
         action                    : 'createFile'
       'New Folder'                :
@@ -243,6 +249,12 @@ class NFinderContextMenuController extends KDController
       delete items.Expand
     else
       delete items.Collapse
+
+    fc = KD.getSingleton 'finderController'
+    if fc.isNodesHiddenFor fileData.vmName
+      delete items['Hide dot Files']
+    else
+      delete items['Show dot Files']
 
     return items
 
