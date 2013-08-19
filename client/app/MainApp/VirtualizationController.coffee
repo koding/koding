@@ -98,17 +98,11 @@ class VirtualizationController extends KDController
           callback message: "No such VM!"
 
   info:(vm, callback)->
-    [callback, vm] = [vm, callback]  if typeof vm is 'function'
-    @fetchDefaultVmName (defaultVm)=>
-      vm or= defaultVm
-      @_runWrapper 'vm.info', vm, (err, info)=>
-        warn "[VM-#{vm}]", err  if err
-        if err?.name is "UnderMaintenanceError"
-          info = state: "MAINTENANCE"
-          err  = null
-        @emit 'StateChanged', err, vm, info
-        callback? err, vm, info
-      , no
+    [callback, vm] = [vm, callback]  unless callback
+    @_runWrapper 'vm.info', vm, (err, info)=>
+      warn "[VM-#{vm}]", err  if err
+      @emit 'StateChanged', err, vm, info
+      callback? err, vm, info
 
   fetchRegion: (vmName, callback)->
     if region = @vmRegions[vmName]
