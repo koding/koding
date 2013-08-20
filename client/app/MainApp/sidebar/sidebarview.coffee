@@ -144,6 +144,8 @@ class Sidebar extends JView
       callback  : =>
         @resourcesController.reset()
 
+    @environmentsRefreshButton.hide()  unless KD.checkFlag "super-admin"
+
     @listenWindowResize()
 
   resetAdminNavController:->

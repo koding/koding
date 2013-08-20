@@ -52,14 +52,15 @@ module.exports = class JVM extends Module
       hostKite          :
         type            : String
         default         : -> null
-      # region            :
-      #   type            : String
-      #   enum            : ['unknown region'
-      #                     [
-      #                       'aws' # Amazon Web Services
-      #                       'sj'  # San Jose
-      #                     ]]
-      #   default         : 'aws'
+      region            :
+        type            : String
+        enum            : ['unknown region'
+                          [
+                            'aws' # Amazon Web Services
+                            'sj'  # San Jose
+                            'vagrant'
+                          ]]
+        default         : 'aws'
       webHome           : String
       planOwner         : String
       planCode          : String
@@ -294,9 +295,11 @@ module.exports = class JVM extends Module
         return callback err  if err
         return callback null, null  unless vm
         callback null,
-          planCode      : vm.planCode
-          planOwner     : vm.planOwner
-          hostnameAlias : vm.hostnameAlias
+          planCode         : vm.planCode
+          planOwner        : vm.planOwner
+          hostnameAlias    : vm.hostnameAlias
+          underMaintenance : vm.hostKite is "(maintenance)"
+          region           : vm.region or 'aws'
 
   @fetchDefaultVm = secure (client, callback)->
     {delegate} = client.connection
@@ -461,6 +464,7 @@ module.exports = class JVM extends Module
               return callback err  if err
               if hasPermission
                 @deleteVM vm, callback
+
 
   do ->
 

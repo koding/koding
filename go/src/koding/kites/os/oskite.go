@@ -128,7 +128,7 @@ func main() {
 			}
 		}
 
-		if vm.HostKite == "" {
+		if vm.HostKite == "" || vm.HostKite == "(maintenance)" {
 			return k.ServiceUniqueName
 		}
 		if vm.HostKite == deadService {
