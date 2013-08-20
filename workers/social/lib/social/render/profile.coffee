@@ -133,7 +133,6 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                       <div class="profilebio">
                         <p><span class="data" data-paths="profile.about">#{encoder.XSSEncode about}</span></p>
                       </div>
-                      <div class="skilltags"><label>SKILLS</label><div class="tag-group"><div class="kdview listview-wrapper">...<div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-default skilltag-cloud"></div></div></div></div></div>
                     </div>
                   </section>
                 </div>
