@@ -26,7 +26,7 @@ class NFinderController extends KDViewController
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0a'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
 
     if options.useStorage
       @appStorage.ready =>
