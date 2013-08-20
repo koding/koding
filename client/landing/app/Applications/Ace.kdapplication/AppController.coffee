@@ -1,5 +1,8 @@
 class AceAppController extends AppController
 
+  compileCondition = (ace)->
+    KodingAppsController.getManifestFromPath ace.getData().path
+
   KD.registerAppClass this,
     name          : "Ace"
     multiple      : yes
@@ -22,12 +25,8 @@ class AceAppController extends AppController
       { title     : "Find and Replace",    eventName : "findAndReplace" }
       { title     : "Goto line",           eventName : "gotoLine" }
       { type      : "separator" }
-      { title     : "Compile and Run",     eventName : "compileAndRun", condition: (ace)->
-          KodingAppsController.getManifestFromPath ace.getData().path
-      }
-      { type      : "separator", condition: (ace)->
-          KodingAppsController.getManifestFromPath ace.getData().path
-      }
+      { title     : "Compile and Run",     eventName : "compileAndRun", condition: compileCondition}
+      { type      : "separator",                                        condition: compileCondition}
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
       { title     : "Advanced Settings",   id        : "advancedSettings" }
