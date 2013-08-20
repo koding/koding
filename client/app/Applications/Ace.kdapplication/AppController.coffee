@@ -27,8 +27,8 @@ class AceAppController extends AppController
       { title     : "Find and Replace",    eventName : "findAndReplace" }
       { title     : "Goto line",           eventName : "gotoLine" }
       { type      : "separator" }
-      { title     : "Compile and Run",     eventName : "compileAndRun", condition: compileCondition}
-      { type      : "separator",                                        condition: compileCondition}
+      { title     : "Compile and Run",     eventName : "compileAndRun", condition: canCompile}
+      { type      : "separator",                                        condition: canCompile}
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
       { title     : "Advanced Settings",   id        : "advancedSettings" }
