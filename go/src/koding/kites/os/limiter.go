@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"koding/virt"
 	"sort"
 	"strconv"
 	"time"
@@ -19,7 +20,7 @@ func LimiterLoop() {
 		vmCount := len(infos)
 		memoryUsages := make([]int, 0, vmCount)
 		for _, info := range infos {
-			usage := ReadIntFile("/sys/fs/cgroup/memory/lxc/" + info.vmName + "/memory.usage_in_bytes")
+			usage := ReadIntFile("/sys/fs/cgroup/memory/lxc/" + virt.VMName(info.vmId) + "/memory.usage_in_bytes")
 			info.MemoryUsage = usage
 			memoryUsages = append(memoryUsages, usage)
 		}
@@ -46,7 +47,7 @@ func LimiterLoop() {
 
 		// apply limits
 		for _, info := range infos {
-			newTotalCpuUsage := ReadIntFile("/sys/fs/cgroup/cpuacct/lxc/" + info.vmName + "/cpuacct.usage")
+			newTotalCpuUsage := ReadIntFile("/sys/fs/cgroup/cpuacct/lxc/" + virt.VMName(info.vmId) + "/cpuacct.usage")
 
 			info.CpuUsage = 0
 			if newTotalCpuUsage > info.totalCpuUsage {
@@ -65,8 +66,8 @@ func LimiterLoop() {
 
 			info.PhysicalMemoryLimit = memoryLimit
 
-			ioutil.WriteFile("/sys/fs/cgroup/cpu/lxc/"+info.vmName+"/cpu.shares", []byte(strconv.Itoa(info.CpuShares)), 0644)
-			ioutil.WriteFile("/sys/fs/cgroup/memory/lxc/"+info.vmName+"/memory.limit_in_bytes", []byte(strconv.Itoa(info.PhysicalMemoryLimit)), 0644)
+			ioutil.WriteFile("/sys/fs/cgroup/cpu/lxc/"+virt.VMName(info.vmId)+"/cpu.shares", []byte(strconv.Itoa(info.CpuShares)), 0644)
+			ioutil.WriteFile("/sys/fs/cgroup/memory/lxc/"+virt.VMName(info.vmId)+"/memory.limit_in_bytes", []byte(strconv.Itoa(info.PhysicalMemoryLimit)), 0644)
 		}
 
 		infosMutex.Unlock()

@@ -93,12 +93,6 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-app.get "/-/imageProxy", (req, res)->
-  if req.query.url
-    require('request')(req.query.url).pipe(res)
-  else
-    res.send 404
-
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
   rabbitAPI.setMQ mq
