@@ -1,8 +1,9 @@
 class AceAppController extends AppController
 
-  compileCondition = (view)->
-    ace = view.getActiveAceView()
-    KodingAppsController.getManifestFromPath ace.getData().path
+  canCompile = (view)->
+    ace      = view.getActiveAceView()
+    manifest = KodingAppsController.getManifestFromPath ace.getData().path
+    return if manifest then yes else no
 
   KD.registerAppClass this,
     name          : "Ace"
