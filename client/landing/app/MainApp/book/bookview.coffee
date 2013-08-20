@@ -36,6 +36,7 @@ class BookView extends JView
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName : "a"
       partial : "Close Tutorial"
+      testPath: "book-close"
       cssClass: "dismiss-button"
       click   : => @emit "OverlayWillBeRemoved"
       tooltip :
