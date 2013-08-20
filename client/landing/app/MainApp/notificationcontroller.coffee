@@ -118,6 +118,10 @@ class NotificationController extends KDObject
       KD.remote.api[subject.constructorName][method] args, callback
 
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
+      # Ignore all guest notifications
+      # https://app.asana.com/0/1177356931469/7014047104322
+      return  if actorAccount.type is 'unregistered'
+
       fetchSubjectObj (err, subjectObj)=>
         actorName = KD.utils.getFullnameFromAccount actorAccount
         options.title = switch actionType
