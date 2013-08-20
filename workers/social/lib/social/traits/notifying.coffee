@@ -28,7 +28,7 @@ module.exports = class Notifying
           console.err err if err
 
     sendNotification = =>
-      if receiver instanceof JAccount
+      if receiver instanceof JAccount and receiver.type isnt 'unregistered'
         JMailNotification.create {actor, receiver, event, contents}, \
         (err)->
           console.error err if err
