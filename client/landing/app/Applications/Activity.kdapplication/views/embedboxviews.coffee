@@ -253,7 +253,7 @@ class EmbedBoxImageView extends KDView
         {{> @image}}
       </a>
       <div class="details">
-        <strong>#{@getData().link_embed.provider_name}</strong>
+        {strong{ #(link_embed.provider_name)}}
         <a href="#{@getData().link_url}" target="_blank" class="url">#{@getData().link_url}</span>
       </div>
     </div>

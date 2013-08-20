@@ -18,9 +18,9 @@ class CommentView extends KDView
   render:->
     @resetDecoration()
 
-  setFixedHeight: (height)->
+  setFixedHeight: (maxHeight)->
     @setClass "fixed-height"
-    @commentList.$().css {maxHeight: height}
+    @commentList.$().css {maxHeight}
 
   createSubViews:(data)->
 
