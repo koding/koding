@@ -119,11 +119,16 @@ class KDWindowController extends KDController
         window.removeEventListener 'beforeunload', @bound 'beforeUnload'
         location.reload()
 
+    # async clientId change checking procedures causes
+    # race conditions between window reloading and post-login callbacks
     @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
       if cookie? and cookie isnt $.cookie 'clientId'
         window.removeEventListener 'beforeunload', @bound 'beforeUnload'
         @emit "clientIdChanged"
-        @utils.defer -> window.location.replace '/'
+
+        # window location path is set to last route to ensure visitor is not
+        # redirected to another page
+        @utils.defer -> window.location.pathname = KD.singletons.router.visitedRoutes.first or "/"
       cookie = $.cookie 'clientId'
 
     document.addEventListener getVisibilityEventName(), (event)=>
