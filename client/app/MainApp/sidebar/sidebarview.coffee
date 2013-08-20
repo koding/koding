@@ -27,8 +27,10 @@ class Sidebar extends JView
     # Main Navigations
     @navController = new MainNavController
       view           : new NavigationList
+        testPath     : 'navigation-list'
         type         : "navigation"
         itemClass    : NavigationLink
+        testPath     : "navigation-list"
       wrapper        : no
       scrollView     : no
     ,
@@ -126,6 +128,7 @@ class Sidebar extends JView
       iconOnly  : yes
       iconClass : "cog"
       cssClass  : "clean-gray open-environment"
+      testPath  : "environments-open"
       callback  :->
         if KD.whoami().type is 'unregistered'
           new KDNotificationView title: "This feature requires registration"

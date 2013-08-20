@@ -53,6 +53,7 @@ class LoginView extends KDScrollView
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
+      testPath : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
@@ -60,6 +61,7 @@ class LoginView extends KDScrollView
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
+      testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
         KD.track "Login", "RegisterButtonClicked"
