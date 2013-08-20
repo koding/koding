@@ -28,7 +28,7 @@ class AppSettingsMenuButton extends KDButtonView
           parents.forEach (parentItem) -> parentItem.children or= []
 
         if item.condition
-          response = item.condition getVisibleView().getActiveAceView()
+          response = item.condition getVisibleView()
           return unless response
 
         item.callback = (contextmenu) =>
