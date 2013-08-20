@@ -18,6 +18,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -143,26 +144,37 @@ func startProxy() {
 		EnableFirewall: true,
 	}
 
-	startHTTPS(reverseProxy)
-	startHTTP(reverseProxy)
+	startHTTPS(reverseProxy) // non-blocking
+	startHTTP(reverseProxy)  // blocking
 }
 
-// startHTTPS is used to reverse proxy incoming request to the port 443 but for
-// the IP's defined in the Kontrold.Proxy.SSLIPS string. Each  IP is created in
+// startHTTPS is used to reverse proxy incoming request to the port 443. It is
+// creating a new listener for each file that ends with ".pem" and has the IP
+// in his base filename, like 10.0.5.102_cert.pem.  Each listener is created in
 // a seperate goroutine, thus the functions is nonblocking.
 func startHTTPS(reverseProxy *Proxy) {
 	// HTTPS handling
-	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL) // it is always 443, standart port for HTTPS protocol
 	logs.Info(fmt.Sprintf("https mode is enabled. serving at :%s ...", portssl))
-	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
-	for _, sslip := range sslips {
-		go func(sslip string) {
-			err := http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", reverseProxy)
+
+	// don't change it to "*.pem", otherwise you'll get duplicate IP's
+	pemFiles, _ := filepath.Glob("*_cert.pem")
+
+	for _, file := range pemFiles {
+		s := strings.Split(file, "_")
+		if len(s) != 2 {
+			fmt.Println("file is malformed", file)
+			continue
+		}
+
+		ip := s[0] // contains the IP of the interface
+		go func(ip string) {
+			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", reverseProxy)
 			if err != nil {
 				logs.Alert(err.Error())
 				log.Println(err)
 			}
-		}(sslip)
+		}(ip)
 	}
 }
 
@@ -189,7 +201,8 @@ func startHTTP(reverseProxy *Proxy) {
 	err := http.ListenAndServe(":"+port, reverseProxy)
 	if err != nil {
 		logs.Alert(err.Error())
-		log.Panic(err)
+		log.Println(err) // don't use panic. It output full stack which we don't care.
+		os.Exit(1)
 	}
 }
 

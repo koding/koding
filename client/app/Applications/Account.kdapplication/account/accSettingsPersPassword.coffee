@@ -18,6 +18,7 @@ class AccountEditSecurity extends KDView
       type          : "password"
       placeholder   : "type new password"
       name          : "password"
+      testPath      : "account-password-pass1"
       validate      :
         rules       :
           required  : yes
@@ -29,6 +30,7 @@ class AccountEditSecurity extends KDView
       type          : "password"
       placeholder   : "re-type new password"
       name          : "passwordConfirm"
+      testPath      : "account-password-pass2"
       validate      :
         rules       :
           match     : passwordInput
@@ -57,6 +59,7 @@ class AccountEditSecurity extends KDView
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
+      testPath     : "account-password-edit"
       click        : => @passwordSwappable.swapViews()
 
     passwordForm.addSubView @passwordSwappable = new AccountsSwappable
