@@ -1,6 +1,7 @@
 class AceAppController extends AppController
 
-  compileCondition = (ace)->
+  compileCondition = (view)->
+    ace = view.getActiveAceView()
     KodingAppsController.getManifestFromPath ace.getData().path
 
   KD.registerAppClass this,
