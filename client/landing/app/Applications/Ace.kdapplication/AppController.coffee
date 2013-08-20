@@ -22,8 +22,12 @@ class AceAppController extends AppController
       { title     : "Find and Replace",    eventName : "findAndReplace" }
       { title     : "Goto line",           eventName : "gotoLine" }
       { type      : "separator" }
-      { title     : "Compile and Run",     eventName : "compileAndRun" }
-      { type      : "separator" }
+      { title     : "Compile and Run",     eventName : "compileAndRun", condition: (ace)->
+          KodingAppsController.getManifestFromPath ace.getData().path
+      }
+      { type      : "separator", condition: (ace)->
+          KodingAppsController.getManifestFromPath ace.getData().path
+      }
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
       { title     : "Advanced Settings",   id        : "advancedSettings" }
