@@ -55,7 +55,7 @@ module.exports = class JGroupBundle extends JBundle
     else if type in ['group', 'expensed']
       planOwner = "group_#{group._id}"
 
-    JRecurlySubscription.getSubscriptionsAll planOwner,
+    JRecurlySubscription.getAllSubscriptions planOwner,
       userCode: planOwner
       planCode: planCode
       $or: [

@@ -3,7 +3,7 @@ recurly   = require 'koding-payment'
 
 module.exports = class JRecurlyPayment extends jraphical.Module
 
-  {secure,daisy} = require 'bongo'
+  {secure, daisy}      = require 'bongo'
 
   KodingError          = require '../../error'
   JUser                = require '../user'
@@ -16,13 +16,8 @@ module.exports = class JRecurlyPayment extends jraphical.Module
 
   @set
     sharedMethods  :
-      static       : [
-        'all', 'some', 'one', 'each',  # For development purposes only.
-        'makePayment'
-      ]
-      instance     : [
-        'info'
-      ]
+      static       : ['makePayment']
+      instance     : ['info']
     schema           :
       planCode       : String
       planQuantity   : Number
@@ -34,61 +29,39 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       active         : Boolean
 
   @makePayment = secure (client, data, callback)->
-
     @initialize client, data, (err, group, account, plan)=>
-      if err
-        return callback new KodingError "Unable to access payment backend, please try again later."
+      if err then return callback new KodingError 'Unable to access payment backend, please try again later.'
 
-      # Default quantity is 1
-      data.quantity ?= 1
+      data.quantity ?= 1  # Default quantity is 1
+      data.multiple ?= no # Don't allow multiple subscriptions by default
 
-      # Don't allow multiple subscriptions by default
-      data.multiple ?= no
+      user  = buyer = "user_#{account._id}"
+      buyer = "group_#{group._id}"  if data.chargeTo is 'group'
 
-      # Users can use group account to purchase items.
-      if data.chargeTo is 'group'
-        buyer = "group_#{group._id}"
-      else
-        buyer = "user_#{account._id}"
-
-      user = "user_#{account._id}"
+      charge = (subscription)->
+        pay = new JRecurlyPayment {
+          buyer
+          user
+          subscription
+          planCode     : data.plan
+          planQuantity : data.quantity
+          amount       : 0
+          active       : yes
+        }
+        pay.save (err)->
+          if err then return callback new KodingError 'Unable to save transaction to database.'
+          callback null, pay
 
       if data.chargeTo is 'group'
         @canChargeGroup group, account, data, (err)=>
           return callback err  if err
           @chargeGroup group, plan, data, (err, subscription)=>
             return callback err  if err
-
-            pay = new JRecurlyPayment
-              planCode     : data.plan
-              planQuantity : data.quantity
-              buyer        : buyer
-              user         : user
-              # timestamp    : (new Date()).getTime()
-              amount       : 0
-              subscription : subscription.uuid
-              active       : yes
-            pay.save (err)->
-              if err
-                return callback new KodingError "Unable to save transaction to database."
-              callback null, pay
+            charge subscription.uuid
       else
         @chargeUser account, plan, data, (err, subscription)=>
           return callback err  if err
-
-          pay = new JRecurlyPayment
-            planCode     : data.plan
-            planQuantity : data.quantity
-            buyer        : buyer
-            user         : user
-            # timestamp    : (new Date()).getTime()
-            amount       : 0
-            subscription : subscription.uuid
-            active       : yes
-          pay.save (err)->
-            if err
-              return callback new KodingError "Unable to save transaction to database."
-            callback null, pay
+          charge subscription.uuid
 
   # Get ready for a transaction (find group, create accounts)
   @initialize = (client, data, callback)->
@@ -97,7 +70,6 @@ module.exports = class JRecurlyPayment extends jraphical.Module
 
     JGroup.one {slug}, (err, group)=>
       return callback err  if err
-
       @createAccount account, (err)=>
         return callback err  if err
         @createGroupAccount group, (err)=>
@@ -109,8 +81,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
   # Get plan
   @getPlan = (code, callback)->
     JRecurlyPlan.getPlanWithCode code, (err, plan)->
-      if err
-        return callback new KodingError "Unable to access product information. Please try again later."
+      if err then return callback new KodingError 'Unable to access product information. Please try again later.'
       callback null, plan
 
   # Get price for a product
@@ -123,14 +94,9 @@ module.exports = class JRecurlyPayment extends jraphical.Module
   @createAccount = (account, callback)->
     account.fetchUser (err, user) ->
       return callback err  if err
-      data =
-        username  : account.profile.nickname
-        firstName : account.profile.firstName
-        lastName  : account.profile.lastName
-        email     : user.email
-      recurly.setAccount "user_#{account._id}", data, (err, res)->
-        return callback err  if err
-        callback()
+      {nickname, firstName, lastName} = account.profile
+      data = {email: user.email, nickname, firstName, lastName}
+      recurly.setAccount "user_#{account._id}", data, callback
 
   # Create group account on Recurly
   @createGroupAccount = (group, callback)->
@@ -140,12 +106,10 @@ module.exports = class JRecurlyPayment extends jraphical.Module
         return callback err  if err
         data =
           username  : group.slug
-          firstName : "Group"
+          firstName : 'Group'
           lastName  : group.title
           email     : user.email
-        recurly.setAccount "group_#{group._id}", data, (err, res)->
-          return callback err  if err
-          callback()
+        recurly.setAccount "group_#{group._id}", data, callback
 
   # Tell if user can buy an item and expense it to group.
   @canChargeGroup = (group, account, data, callback)->
@@ -169,19 +133,15 @@ module.exports = class JRecurlyPayment extends jraphical.Module
         callback null, bundle.allocation
 
   # Charge group account
-  @chargeGroup = (group, plan, data, callback)->
-    plan.subscribeGroup group,
-      multiple: data.multiple
-      plan    : data.plan
-      quantity: data.quantity
-    , (err, subscription)->
-      if err
-        return callback new KodingError "Unable to buy item: #{err}"
+  @chargeGroup = (group, p, data, callback)->
+    {multiple, plan, quantity} = data
+    p.subscribeGroup group, {multiple, plan, quantity}, (err, subscription)->
+      if err then return callback new KodingError "Unable to buy item: #{err}"
       callback null, subscription
 
   # Charge user account
   @chargeUser = (account, plan, data, callback)->
-    return callback new KodingError "Unable charge, insufficient funds."
+    return callback new KodingError 'Unable charge, insufficient funds.'
     # TBI
 
   # List group's payments
@@ -206,29 +166,18 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       active    : yes
     , callback
 
+  # TODO: Make sure this calculation is enough.
+  #       Not tested for expired/canceled subscriptions.
   @getExpenses = (pattern, callback)->
-    stack = []
+    error = (err)-> new KodingError "Unable to query user balance: #{err}"
+
     JRecurlyPayment.some pattern, {subscription: 1}, (err, items)->
-      if err
-        return callback new KodingError "Unable to query user balance: #{err}"
-      items.forEach (item)->
-        stack.push (cb)->
-          recurly.getSubscription "group_#{group._id}",
-            uuid: item.subscription
-          , (err, subscription)->
-            return cb err  if err
-            cb null, subscription
+      return callback error err  if err
+      recurly.getSubscriptions "group_#{group._id}", (err, subs)->
+        return callback error err  if err
+        uuids = (item.subscription for item in items)
+        expenses = 0
+        for sub in subs when sub.uuid in uuids
+          expenses += parseInt sub.amount, 10
 
-      expenses = 0
-
-      # TODO: Make sure this calculation is enough.
-      # Not tested for expired/canceled subscriptions.
-
-      async = require 'async'
-      async.parallel stack, (err, results)->
-        if err
-          return callback new KodingError "Unable to query user balance: #{err}"
-        results.forEach (sub)->
-          if sub.status is 'active'
-            expenses += parseInt sub.amount, 10
         callback null, expenses

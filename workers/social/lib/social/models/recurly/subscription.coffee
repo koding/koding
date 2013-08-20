@@ -8,6 +8,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
 
   {secure} = require 'bongo'
   JUser    = require '../user'
+  JRecurly = require './index'
 
   @share()
 
@@ -16,7 +17,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       uuid         : 'unique'
     sharedMethods  :
       static       : [
-        'getSubscriptions', 'getSubscriptionsWithPlan', 'checkUserSubscription'
+        'getUserSubscriptions', 'getUserSubscriptionsWithPlan', 'checkUserSubscription'
       ]
       instance     : ['cancel', 'resume', 'calculateRefund']
     schema         :
@@ -31,131 +32,61 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       amount       : Number
       lastUpdate   : Number
 
-  @getSubscriptions = secure (client, callback)->
-    {delegate} = client.connection
-    JRecurlySubscription.getSubscriptions "user_#{delegate._id}", callback
+  @getUserSubscriptions = secure ({connection:{delegate}}, callback)->
+    @getSubscriptions "user_#{delegate._id}", callback
 
-  @getSubscriptionsWithPlan = secure (client, callback)->
-    JRecurlyPlan = require './index'
-    {delegate} = client.connection
+  @getUserSubscriptionsWithPlan = secure (client, callback)->
+    @getUserSubscriptions client, (err, subs)->
+      return callback err      if err
+      return callback null, [] unless subs
 
-    JRecurlySubscription.getSubscriptions "user_#{delegate._id}", (err, subs)->
-      return callback err  if err
       code = $in: (sub.planCode  for sub in subs)
+      JRecurlyPlan = require './plan'
       JRecurlyPlan.some {code}, {}, (err, plans)->
         return callback err  if err
-
-        plans = {}
-        plans[plan.code] = plan         for plan in plans
-        sub.plan = plans[sub.planCode]  for sub in subs
+        planMap = {}
+        planMap[plan.code] = plan         for plan in plans
+        sub.plan = planMap[sub.planCode]  for sub in subs
 
         callback null, subs
 
-  @checkUserSubscription = secure (client, planCode, callback)->
-    {delegate} = client.connection
-    userCode  = "user_#{delegate._id}"
-
-    JRecurlySubscription.getSubscriptionsAll userCode,
-      userCode : userCode
-      planCode : planCode
+  @checkUserSubscription = secure ({connection:{delegate}}, planCode, callback)->
+    @getAllSubscriptions {
+      planCode
+      userCode : "user_#{delegate._id}"
       $or      : [
         {status: 'active'}
         {status: 'canceled'}
       ]
-    , callback
+    }, callback
 
   @getGroupSubscriptions = (group, callback)->
-    JRecurlySubscription.getSubscriptions "group_#{group._id}", callback
+    @getSubscriptions "group_#{group._id}", callback
 
   @getSubscriptions = (userCode, callback)->
-    JRecurlySubscription.getSubscriptionsAll userCode,
-      userCode : userCode
-    , callback
+    @getAllSubscriptions {userCode}, callback
 
-  @getSubscriptionsAll = (userCode, selector, callback)->
-    unless forceRefresh
-      JRecurlySubscription.all selector, callback
-    else
-      JRecurlySubscription.one selector, (err, sub)=>
-        callback err  if err
-        unless sub
-          @updateCache userCode, selector, -> JRecurlySubscription.all selector, callback
-        else
-          sub.lastUpdate ?= 0
-          now = (new Date()).getTime()
-          if now - sub.lastUpdate > 1000 * forceInterval
-            @updateCache userCode, selector, -> JRecurlySubscription.all selector, callback
-          else
-            JRecurlySubscription.all selector, callback
+  @getAllSubscriptions = (selector, callback)->
+    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}
 
-  # Recurly web hook will use this method to invalidate the cache.
   @updateCache = (userCode, selector, callback)->
-    console.log "Updating Recurly user subscription..."
-
-    payment.getSubscriptions userCode, (err, allSubs)->
-      return callback err  if err
-      mapAll = {}
-      allSubs.forEach (rSub)->
-        mapAll[rSub.uuid] = rSub
-      JRecurlySubscription.all {selector}, (err, cachedPlans)->
-        mapCached = {}
-        cachedPlans.forEach (cSub)->
-          mapCached[cSub.uuid] = cSub
-        stack = []
-        Object.keys(mapCached).forEach (k)->
-          if k not in Object.keys(mapAll)
-            # delete
-            stack.push (cb)->
-              mapCached[k].remove ->
-                cb()
-        Object.keys(mapAll).forEach (k)->
-          # create or update
-          stack.push (cb)->
-            {uuid, plan, quantity, status, datetime, expires, renew, amount} = mapAll[k]
-            JRecurlySubscription.one
-              uuid: k
-            , (err, sub)->
-              if err or not sub
-                sub = new JRecurlySubscription
-                sub.uuid = uuid
-
-              sub.userCode = userCode
-              sub.planCode = plan
-              sub.quantity = quantity
-              sub.status   = status
-              sub.datetime = datetime
-              sub.expires  = expires
-              sub.renew    = renew
-              sub.amount   = amount
-
-              sub.lastUpdate = (new Date()).getTime()
-
-              sub.save ->
-                cb null, sub
-
-        async = require 'async'
-        async.parallel stack, (err, results)->
-          callback()
-
-  update: (quantity, callback)->
-    payment.updateSubscription @userCode,
-      uuid     : @uuid
-      plan     : @planCode
-      quantity : quantity
-    , (err, sub)=>
-      return callback yes  if err
-      @status   = sub.status
-      @datetime = sub.datetime
-      @expires  = sub.expires
-      @planCode = sub.plan
-      @quantity = sub.quantity
-      @renew    = sub.renew
-      @amount   = sub.amount
-      @save =>
-        callback no, @
+    JRecurly.updateCache
+      constructor   : this
+      selector      : {userCode}
+      method        : 'getSubscriptions'
+      methodOptions : userCode
+      keyField      : 'uuid'
+      message       : 'user subscriptions'
+      forEach       : (uuid, cached, sub, stackCb)=>
+        {plan, quantity, status, datetime, expires, renew, amount} = sub
+        cached.setData extend cached.getData(), {
+          userCode, plan, quantity, status, datetime, expires, renew, amount
+        }
+        cached.lastUpdate = (new Date()).getTime()
+        cached.save stackCb
 
   refund: (percent, callback)->
-    JRecurlyPlan = require './index'
+    JRecurlyPlan = require './plan'
     JRecurlyPlan.getPlanWithCode @planCode, (err, plan)=>
       return callback err  if err
       payment.addUserCharge @userCode,
@@ -175,57 +106,36 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     usage   = (dateEnd.getTime() - dateNow.getTime()) / aDay
 
     refundMap.every (ref)=>
-      if usage < ref.uplimit
-        callback yes, ref.percent
-        return no
-      callback no, 0
-      return yes
+      return callback null, ref.percent  if usage < ref.uplimit
+      callback yes, 0
+
+  update_ = (subscription, callback)->
+    {status, datetime, expires, plan, quantity, renew, amount} = subscription
+    @setData extend @getData(), {status, datetime, expires, plan, quantity, renew, amount}
+    @save (err)-> callback err, this
+
+  update: (quantity, callback)->
+    payment.updateSubscription @userCode, {@uuid, plan: @planCode, quantity}, (err, sub)=>
+      return callback err  if err
+      update_ sub, callback
 
   terminate: (callback)->
-    payment.terminateSubscription @userCode,
-      uuid   : @uuid
-      refund : "none"
-    , (err, sub)=>
+    payment.terminateSubscription @userCode, {@uuid, refund : 'none'}, (err, sub)=>
       return callback err  if err
 
-      @calculateRefund (status, percent)=>
-        if status
+      @calculateRefund (err, percent)=>
+        unless err
           @refund percent, ->
-            console.log "Refunding #{percent}% of the payment."
+            console.log "Refunding #{percent}% of subscription #{@uuid}."
 
-      @status   = sub.status
-      @datetime = sub.datetime
-      @expires  = sub.expires
-      @planCode = sub.plan
-      @quantity = sub.quantity
-      @renew    = sub.renew
-      @save =>
-        callback no, @
+      update_ sub, callback
 
   cancel: (callback)->
-    payment.cancelSubscription @userCode,
-      uuid: @uuid
-    , (err, sub)=>
+    payment.cancelSubscription @userCode, {@uuid}, (err, sub)=>
       return callback err  if err
-      @status   = sub.status
-      @datetime = sub.datetime
-      @expires  = sub.expires
-      @planCode = sub.plan
-      @quantity = sub.quantity
-      @renew    = sub.renew
-      @save =>
-        callback no, @
+      update_ sub, callback
 
   resume: (callback)->
-    payment.reactivateUserSubscription @userCode,
-      uuid: @uuid
-    , (err, sub)=>
+    payment.reactivateUserSubscription @userCode, {@uuid}, (err, sub)=>
       return callback err  if err
-      @status   = sub.status
-      @datetime = sub.datetime
-      @expires  = sub.expires
-      @planCode = sub.plan
-      @quantity = sub.quantity
-      @renew    = sub.renew
-      @save =>
-        callback no, @
+      update_ sub, callback

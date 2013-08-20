@@ -1,425 +1,117 @@
-jraphical = require 'jraphical'
-JUser     = require '../user'
-recurly   = require 'koding-payment'
-createId  = require 'hat'
-async     = require 'async'
+{Base}  = require 'bongo'
+recurly = require 'koding-payment'
 
-forceRefresh  = yes
-forceInterval = 60 * 0
+module.exports = class JRecurly extends Base
 
-module.exports = class JRecurlyPlan extends jraphical.Module
+  {secure, dash} = require 'bongo'
+  {difference, extend} = require 'underscore'
 
-  {secure} = require 'bongo'
-
-  JRecurlyToken        = require './token'
-  JRecurlySubscription = require './subscription'
+  JUser = require '../user'
 
   @share()
 
   @set
-    indexes:
-      code         : 'unique'
     sharedMethods  :
       static       : [
-        'getPlans', 'getPlanWithCode',
-        'setUserAccount', 'getUserAccount', 'getTransactions',
-        'getUserBalance', 'getGroupBalance'
+        'getBalance', 'setAccount', 'getAccount', 'getTransactions'
       ]
-      instance     : [
-        'getToken', 'subscribe',
-        'getType', 'getSubscriptions', 'getOwnerGroup'
-      ]
-    schema         :
-      code         : String
-      title        : String
-      desc         : String
-      feeMonthly   : Number
-      feeInitial   : Number
-      feeInterval  : Number
-      product      :
-        prefix     : String
-        category   : String
-        item       : String
-        version    : Number
-      lastUpdate   : Number
 
-  @setUserAccount = secure (client, data, callback)->
-    {delegate}    = client.connection
+  @setAccount = secure (client, data, callback)->
+    {delegate}     = client.connection
+    JSession       = require '../session'
+    JSession.one {clientId: client.sessionToken}, (err, session) =>
+      {username, firstName, lastName} = delegate.profile
+      extend data, {username, firstName, lastName}
+      data.ipAddress = session?.clientIPAddress or '0.0.0.0'
 
-    data.username  = delegate.profile.nickname
-    data.ipAddress = '0.0.0.0'
-    data.firstName = delegate.profile.firstName
-    data.lastName  = delegate.profile.lastName
+      JUser.fetchUser client, (err, user)->
+        data.email = user.email
+        recurly.setAccount "user_#{delegate._id}", data, (err, res)->
+          return callback err  if err
+          recurly.setBilling "user_#{delegate._id}", data, callback
 
-    JUser.fetchUser client, (e, r) ->
-      data.email = r.email
-      recurly.setAccount "user_#{delegate._id}", data, (err, res)->
-        return callback err  if err
-        recurly.setBilling "user_#{delegate._id}", data, callback
-
-  @setGroupAccount = (group, data, callback)->
-    JRecurlyPlan.fetchGroupAccount group, (err, groupAccount)=>
-      return callback err  if err
-
-      userCode         = "group_#{group._id}"
-      data.accountCode = userCode
-      data.email       = groupAccount.email
-      data.username    = groupAccount.username
-      data.firstName   = groupAccount.firstName
-      data.lastName    = groupAccount.lastName
-
-      recurly.setAccountWithBilling userCode, data, callback
-
-  @getUserAccount = secure (client, callback)->
-    {delegate}    = client.connection
+  @getAccount = secure ({connection:{delegate}}, callback)->
     recurly.getAccount "user_#{delegate._id}", callback
 
-  @getGroupAccount = (group, callback)->
-    recurly.getAccount "group_#{group._id}", callback
-
-  @getTransactions = secure (client, callback)->
-    {delegate}    = client.connection
+  @getTransactions = secure ({connection:{delegate}}, callback)->
     recurly.getTransactions "user_#{delegate._id}", callback
-
-  @getGroupTransactions = (group, callback)->
-    recurly.getTransactions "group_#{group._id}", callback
-
-  @addGroupPlan = (group, data, callback)->
-    data.feeMonthly = data.price
-    data.feeInitial = 0
-    data.code       = "groupplan_#{group._id}_#{data.name}_0"
-
-    if data.type is 'recurring'
-      # Charge money every month
-      data.feeInterval = 1
-    else
-      # Charge money every 9999 months
-      # This is a hack, since Recurly sucks and non recurring payments.
-      data.feeInterval = 9999
-
-    recurly.createPlan data, callback
-
-  @deleteGroupPlan = (group, data, callback)->
-    prefix = "groupplan_#{group._id}_"
-    if data.code.indexOf(prefix) > -1
-      recurly.deletePlan data, callback
-
-  @getPlans = secure (client, filter..., callback)->
-    [prefix, category, item] = filter
-    selector = {}
-    selector["product.prefix"] = prefix  if prefix
-    selector["product.category"] = category  if category
-    selector["product.item"] = item  if item
-
-    unless forceRefresh
-      JRecurlyPlan.all selector, callback
-    else
-      JRecurlyPlan.one {}, (err, plan)=>
-        callback err  if err
-        unless plan
-          @updateCache -> JRecurlyPlan.all selector, callback
-        else
-          plan.lastUpdate ?= 0
-          now = (new Date()).getTime()
-          if now - plan.lastUpdate > 1000 * forceInterval
-            @updateCache -> JRecurlyPlan.all selector, callback
-          else
-            JRecurlyPlan.all selector, callback
-
-  @getPlanWithCode = (code, callback)->
-    JRecurlyPlan.one
-      code: code
-    , callback
-
-  # Recurly web hook will use this method to invalidate the cache.
-  @updateCache = (callback)->
-    console.log "Updating Recurly plans..."
-
-    recurly.getPlans (err, allPlans)->
-      mapAll = {}
-      allPlans.forEach (rPlan)->
-        mapAll[rPlan.code] = rPlan
-      JRecurlyPlan.all {}, (err, cachedPlans)->
-        mapCached = {}
-        cachedPlans.forEach (cPlan)->
-          mapCached[cPlan.code] = cPlan
-        stack = []
-        Object.keys(mapCached).forEach (k)->
-          if k not in Object.keys(mapAll)
-            # delete
-            stack.push (cb)->
-              mapCached[k].remove ->
-                cb()
-        Object.keys(mapAll).forEach (k)->
-          # create or update
-          stack.push (cb)->
-            {code, title, desc, feeMonthly, feeInitial, feeInterval} = mapAll[k]
-            unless code.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/
-              cb()
-            else
-              if k not in Object.keys(mapCached)
-                plan = new JRecurlyPlan
-                plan.code = code
-              else
-                plan = mapCached[k]
-
-              plan.title = title
-              plan.desc = desc
-              plan.feeMonthly = feeMonthly
-              plan.feeInitial = feeInitial
-              plan.feeInterval = feeInterval
-
-              [prefix, category, item, version] = code.split '_'
-              version = +version
-              plan.product = {prefix, category, item, version}
-
-              plan.lastUpdate = (new Date()).getTime()
-
-              plan.save ->
-                cb null, plan
-
-        async.parallel stack, (err, results)->
-          callback()
-
-  getToken: secure (client, data, callback)->
-    {delegate} = client.connection
-    JRecurlyToken.createToken client,
-      planCode: @code
-    , callback
 
   @fetchAccount = secure (client, callback)->
     {delegate} = client.connection
     delegate.fetchUser (err, user)->
       return callback err  if err
-      account =
-        email     : user.email
-        username  : delegate.profile.nickname
-        firstName : delegate.profile.firstName
-        lastName  : delegate.profile.lastName
-      callback no, account
+      {username, firstName, lastName} = delegate.profile
+      callback null, {email: user.email, username, firstName, lastName}
 
-  @fetchGroupAccount = (group, callback)->
-    group.fetchOwner (err, owner)->
-      return callback err  if err
-      owner.fetchUser (err, user)->
-        return callback err  if err
-        account =
-          email     : user.email
-          username  : group.slug
-          firstName : "Group"
-          lastName  : group.title
-        callback no, account
-
-  subscribe: secure (client, data, callback)->
-    {delegate} = client.connection
-    userCode   = "user_#{delegate._id}"
-
-    data.multiple ?= no
-
-    JRecurlySubscription.getSubscriptionsAll userCode,
-      userCode: userCode
-      planCode: @code
-      $or      : [
-        {status: 'active'}
-        {status: 'canceled'}
-      ]
-    , (err, subs)=>
-      return callback err  if err
-      if subs.length > 0
-
-        unless data.multiple
-          return callback "Already subscribed."
-
-        subs = subs[0]
-        subs.quantity ?= 1
-        subs.quantity += 1
-
-        recurly.updateSubscription userCode,
-          quantity: subs.quantity
-          plan    : @code
-          uuid    : subs.uuid
-        , (err, result)=>
-          subs.save ->
-            callback no, subs
-      else
-        recurly.createSubscription userCode, {plan: @code}, (err, result)->
-          return callback err  if err
-          sub = new JRecurlySubscription
-            planCode : result.plan
-            userCode : userCode
-            uuid     : result.uuid
-            quantity : result.quantity
-            status   : result.status
-            datetime : result.datetime
-            expires  : result.expires
-            renew    : result.renew
-            amount   : result.amount
-          sub.save ->
-            callback no, sub
-
-  getSubscription: secure (client, callback)->
-    {delegate} = client.connection
-    userCode = "user_#{delegate._id}"
-
-    JRecurlySubscription.one
-      userCode : userCode
-      planCode : @code
-    , callback
-
-  subscribeGroup: (group, data, callback)->
-    userCode = "group_#{group._id}"
-
-    data.multiple ?= no
-
-    JRecurlySubscription.getSubscriptionsAll userCode,
-      userCode: userCode
-      planCode: @code
-      $or      : [
-        {status: 'active'}
-        {status: 'canceled'}
-      ]
-    , (err, subs)=>
-      return callback err  if err
-      if subs.length > 0
-
-        unless data.multiple
-          return callback "Already subscribed."
-
-        subs = subs[0]
-        subs.quantity ?= 1
-        subs.quantity += 1
-
-        recurly.updateSubscription userCode,
-          quantity: subs.quantity
-          plan    : @code
-          uuid    : subs.uuid
-        , (err, result)=>
-          subs.save ->
-            callback no, subs
-      else
-        recurly.createSubscription userCode, data, (err, result)->
-          return callback err  if err
-          sub = new JRecurlySubscription
-            planCode : result.plan
-            userCode : userCode
-            uuid     : result.uuid
-            quantity : result.quantity
-            status   : result.status
-            datetime : result.datetime
-            expires  : result.expires
-            renew    : result.renew
-            amount   : result.amount
-          sub.save ->
-            callback no, sub
-
-  @getAccountBalance = (account, callback)->
+  @getBalance_ = (account, callback)->
     recurly.getTransactions account, (err, adjs)->
       spent = 0
       adjs.forEach (adj)->
-        if adj.status is 'success'
-          spent += parseInt adj.amount, 10
+        spent += parseInt adj.amount, 10  if adj.status is 'success'
 
       recurly.getAdjustments account, (err, adjs)->
         charged = 0
         adjs.forEach (adj)->
           charged += parseInt adj.amount, 10
 
-        callback null, spent-charged
+        callback null, spent - charged
 
-  @getUserBalance = secure (client, callback)->
+  @getBalance = secure (client, callback)->
     {delegate} = client.connection
-    userCode      = "user_#{delegate._id}"
+    @getBalance_ "user_#{delegate._id}", callback
 
-    @getAccountBalance userCode, callback
+  @invalidateCacheAndLoad: (constructor, selector, options, callback)->
+    cb = -> constructor.all selector, callback
+    return cb()  unless options.forceRefresh
 
-  @getGroupBalance = secure (client, group, callback)->
-    {delegate} = client.connection
-    userCode      = "group_#{group._id}"
+    constructor.one selector, sort:lastUpdate:1, (err, obj)=>
+      return constructor.updateCache cb  if err or not obj
+      obj.lastUpdate ?= 0
+      now = (new Date()).getTime()
+      if now - obj.lastUpdate > 1000 * options.forceInterval
+        constructor.updateCache cb
+      else
+        cb()
 
-    @getAccountBalance userCode, callback
+  @updateCache = (options, callback=->)->
+    {constructor, selector, method, methodOptions, keyField, message, forEach} = options
+    selector ?= {}
 
-  getType: (callback)->
-    if @feeInterval is 1
-      callback 'recurring'
-    else
-      callback 'single'
+    console.log "Updating #{message}..."
 
-  getSubscriptions: (callback)->
-    JRecurlySubscription.all
-      planCode: @code
-      $or      : [
-        {status: 'active'}
-        {status: 'canceled'}
-      ]
-    , callback
+    cb = (err, objs)->
+      return callback err  if err
 
-  getOwnerGroup: (callback)->
-    if @product.prefix isnt 'groupplan'
-      callback null, 'koding'
-    else
-      JGroup = require '../group'
-      JGroup.one { _id: @product.category }, (err, group)->
+      all = {}
+      all[obj[keyField]] = obj  for obj in objs
+
+      constructor.all selector, (err, cachedObjs)->
         return callback err  if err
-        callback null, group.slug
 
-do ->
-  # Koding Recurly Products
+        cached = {}
+        cached[cObj[keyField]] = cObj  for cObj in cachedObjs
 
-  fs      = require 'fs'
-  path    = require 'path'
-  Watcher = require "koding-watcher"
+        keys    = all: Object.keys(all), cached: Object.keys(cached)
+        stack   = []
+        stackCb = (err)-> if err then callback err else stack.fin()
 
-  getProducts = (callback)->
-    productsFile = path.join __dirname, "../../../../../../products/products.coffee"
-    productsList = require productsFile
-    callback productsList
+        # remove obsolete plans in mongo
+        difference(keys.cached, keys.all).forEach (k)->
+          stack.push -> cached[k].remove stackCb
 
-  loadProducts = ->
-    getProducts (products)->
-      stack = []
-      for own code, prod of products
-        do (code, prod)->
-          stack.push (cb)->
-            if prod.recurring
-              interval = 9999
-            else
-              interval = 1
-            recurly.getPlan {code}, (err, plan)->
-              if not err and plan
-                recurly.updatePlan
-                  code       : code
-                  title      : prod.title
-                  feeMonthly : prod.price
-                  feeInterval: interval
-                , (err, plan)->
-                  unless err
-                    console.log "Updated product: #{prod.title}"
-                  cb()
-              else
-                recurly.createPlan
-                  code       : code
-                  title      : prod.title
-                  feeMonthly : prod.price
-                  feeInterval: interval
-                , (err, plan)->
-                  unless err
-                    console.log "Created product: #{prod.title}"
-                  cb()
+        # create new JRecurlyPlan models for new plans from Recurly
+        difference(keys.all, keys.cached).forEach (k)->
+          cached[k] = new constructor
+          cached[k][keyField] = all[k][keyField]
 
-      async.parallel stack, (err, result)->
-        JRecurlyPlan.updateCache ->
-          JRecurlyPlan.all {}, ->
-            console.log "Updated product cache."
+        keys.all.forEach (k)->
+          forEach k, cached[k], all[k], stackCb
 
+        dash stack, ->
+          console.log "Updated #{message}!"
+          callback()
 
-  # Load products
-  loadProducts()
-
-  # Update products if necessary
-  watchRoot = path.join __dirname, "../../../../../../products/"
-  watcher   = new Watcher
-    groups        :
-      recurly     :
-        folders   : [watchRoot]
-        onChange  : (change)->
-          loadProducts()
+    if methodOptions
+      recurly[method] methodOptions, cb
+    else
+      recurly[method] cb

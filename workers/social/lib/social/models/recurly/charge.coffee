@@ -1,5 +1,4 @@
 jraphical = require 'jraphical'
-JUser     = require '../user'
 recurly   = require 'koding-payment'
 
 forceRefresh  = yes
@@ -7,9 +6,10 @@ forceInterval = 60 * 3
 
 module.exports = class JRecurlyCharge extends jraphical.Module
 
-  {secure} = require 'bongo'
-
+  {secure}      = require 'bongo'
+  JRecurly      = require './token'
   JRecurlyToken = require './token'
+  JUser         = require '../user'
 
   @share()
 
@@ -21,9 +21,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
         'all', 'one', 'some',
         'getToken', 'charge', 'getCharges'
       ]
-      instance     : [
-        'cancel'
-      ]
+      instance     : ['cancel']
     schema         :
       uuid         : String
       userCode     : String
@@ -33,68 +31,27 @@ module.exports = class JRecurlyCharge extends jraphical.Module
 
   @getCharges = secure (client, callback)->
     {delegate} = client.connection
-    selector =
-      userCode : "user_#{delegate._id}"
+    selector = userCode : "user_#{delegate._id}"
 
-    unless forceRefresh
-      JRecurlyCharge.all selector, callback
-    else
-      JRecurlyCharge.one {}, (err, charge)=>
-        callback err  if err
-        unless charge
-          @updateCache client, -> JRecurlyCharge.all selector, callback
-        else
-          charge.lastUpdate ?= 0
-          now = (new Date()).getTime()
-          if now - charge.lastUpdate > 1000 * forceInterval
-            @updateCache client, -> JRecurlyCharge.all selector, callback
-          else
-            JRecurlyCharge.all selector, callback
+    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}
 
-  # Recurly web hook will use this method to invalidate the cache.
   @updateCache = secure (client, callback)->
-    console.log "Updating Recurly user transactions..."
     {delegate} = client.connection
     userCode = "user_#{delegate._id}"
 
-    recurly.getTransactions userCode, (err, allCharges)->
-      mapAll = {}
-      allCharges.forEach (rCharge)->
-        if rCharge.source is 'transaction'
-          mapAll[rCharge.uuid] = rCharge
-      JRecurlyCharge.all {userCode}, (err, cachedPlans)->
-        mapCached = {}
-        cachedPlans.forEach (cCharge)->
-          mapCached[cCharge.uuid] = cCharge
-        stack = []
-        Object.keys(mapCached).forEach (k)->
-          if k not in Object.keys(mapAll)
-            # delete
-            stack.push (cb)->
-              mapCached[k].remove ->
-                cb()
-        Object.keys(mapAll).forEach (k)->
-          # create or update
-          stack.push (cb)->
-            {uuid, amount, status} = mapAll[k]
-            if k not in Object.keys(mapCached)
-              charge = new JRecurlyCharge
-              charge.uuid = uuid
-            else
-              charge = mapCached[k]
+    JRecurly.updateCache
+      constructor   : this
+      selector      : {userCode}
+      method        : 'getTransactions'
+      methodOptions : userCode
+      keyField      : 'uuid'
+      message       : 'user transactions'
+      forEach       : (k, cached, transaction, stackCb)->
+        {uuid, amount, status} = transaction
 
-            charge.userCode = userCode
-            charge.amount   = amount
-            charge.status   = status
-
-            charge.lastUpdate = (new Date()).getTime()
-
-            charge.save ->
-              cb null, charge
-
-        async = require 'async'
-        async.parallel stack, (err, results)->
-          callback()
+        charge.setData extend charge.getData(), {userCode, amount, status}
+        charge.lastUpdate = (new Date()).getTime()
+        charge.save stackCb
 
   @getToken = secure (client, data, callback)->
     {delegate} = client.connection
@@ -105,35 +62,27 @@ module.exports = class JRecurlyCharge extends jraphical.Module
   @charge = secure (client, data, callback)->
     {delegate} = client.connection
     userCode = "user_#{delegate._id}"
+
     JRecurlyToken.checkToken client,
       planCode: "charge_#{data.code}_#{data.amount}"
       pin: data.pin
-    , (status)=>
-      unless status
-        callback yes, {}
-      else
-        recurly.createTransaction userCode,
-          amount         : data.amount
-          desc           : data.desc
-        , (err, charge)=>
-          return callback err  if err
-          pay = new JRecurlyCharge
-            uuid       : charge.uuid
-            amount     : charge.amount
-            userCode   : userCode
-            status     : charge.status
-          pay.save ->
-            console.log arguments
-            callback no, pay
+    , (err)=>
+      return callback err  if err
+      {amount, desc} = data
 
-  cancel: secure (client, callback)->
-    {delegate} = client.connection
+      recurly.createTransaction userCode, {amount, desc}, (err, charge)=>
+        return callback err  if err
+        {uuid, amount, status} = charge
+
+        pay = new JRecurlyCharge {uuid, userCode, amount, status}
+        pay.save (err)->
+          console.log 'transaction created', arguments
+          callback err, unless err then pay
+
+  cancel: secure ({connection:{client}}, callback)->
     userCode = "user_#{delegate._id}"
-    recurly.deleteTransaction userCode,
-      uuid   : @uuid
-      amount : @amount
-    , (err, charge)=>
-      return callback yes  if err
-      @status   = charge.status
-      @save =>
-        callback no, @
+    recurly.deleteTransaction userCode, {@uuid, @amount}, (err, charge)=>
+      return callback err  if err
+
+      @status = charge.status
+      @save (err)-> callback err, this

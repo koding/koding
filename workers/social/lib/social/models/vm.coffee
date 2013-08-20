@@ -63,7 +63,7 @@ module.exports = class JVM extends Module
       webHome           : String
       planOwner         : String
       planCode          : String
-      vmType            : 
+      vmType            :
         type            : String
         default         : 'user'
       users             : Array
@@ -418,7 +418,7 @@ module.exports = class JVM extends Module
     if vm.planCode is 'free'
       vm.remove callback
     else
-      JRecurlySubscription.getSubscriptionsAll vm.planOwner,
+      JRecurlySubscription.getAllSubscriptions vm.planOwner,
         userCode : vm.planOwner
         planCode : vm.planCode
         $or      : [

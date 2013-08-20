@@ -1,12 +1,5 @@
 {Module} = require 'jraphical'
 
-class PINExistsError extends Error
-  constructor:(message)->
-    return new PINExistsError(message) unless @ instanceof PINExistsError
-    Error.call @
-    @message = message
-    @name = 'PINExistsError'
-
 module.exports = class JRecurlyToken extends Module
 
   {secure}    = require 'bongo'
@@ -18,6 +11,8 @@ module.exports = class JRecurlyToken extends Module
   @share()
 
   @set
+    sharedMethods :
+      static      : ['checkToken', 'createToken']
     schema        :
       userCode    : String
       planCode    : String
@@ -26,31 +21,27 @@ module.exports = class JRecurlyToken extends Module
       createdAt   :
         type      : Date
         default   : -> new Date
-    sharedMethods     :
-      static          : [
-        'checkToken', 'createToken'
-      ]
 
-  @checkToken = secure (client, data, callback)->
-    {delegate} = client.connection
-
-    # Don't check token while testing.
+  @checkToken = secure ({connection:{delegate}}, data, callback)->
+    # CAUTION: we do not ask for nor validate token for now
     return callback yes
 
     JRecurlyToken.one
       userCode: delegate.profile.nickname
       planCode: data.planCode
     , (err, token)->
-      if err or not token
-        callback no, 0
+      return callback err  if err
+      return callback new KodingError 'Token not found!'  unless token
+      token.tries ?= 0
+      return callback new KodingError 'Too many tries'    if token.tries > 2
+
+      if token.pin is data.pin
+        callback null
       else
-        token.tries ?= 0
-        if token.pin == data.pin and token.tries < 3
-          callback yes
-        else
-          token.tries++
-          token.save ->
-            callback no
+        token.tries++
+        token.save (err)->
+          return callback err  if err
+          return callback new KodingError 'Incorrect PIN'
 
   @createToken = secure (client, data, callback)->
     {delegate} = client.connection
@@ -72,26 +63,38 @@ module.exports = class JRecurlyToken extends Module
       token.tries = 0
 
       # Send email
-      token.save =>
+      # TODO: use emailSender (with Koding template)
+      token.save (err)->
+        return callback err  if err
         JUser.fetchUser client, (e, r)->
           email     = r.email
           firstName = delegate.profile.firstName
 
-          body = """
-          Hi #{firstName},
+          body =
+            """
+            Hi #{firstName},
 
-          You can use following pin to complete your request:
+            You can use following pin to complete your request:
 
-            #{pin}
+              #{pin}
 
-          --
-          Koding Team
+            --
+            Koding Team
 
-          """
+            """
+
           Emailer.send
             From      : 'hello@koding.com'
             To        : email
             Subject   : 'PIN for Subscription'
             TextBody  : body
-          , ->
-            callback()
+          , callback
+
+
+class PINExistsError extends Error
+
+  constructor:(message)->
+    return new PINExistsError(message)  unless this instanceof PINExistsError
+    Error.call this
+    @message = message
+    @name    = 'PINExistsError'

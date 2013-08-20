@@ -410,7 +410,8 @@ class VirtualizationController extends KDController
 
       # Check user quota and show this button only when necessary
       groupObj = KD.getSingleton("groupsController").getCurrentGroup()
-      groupObj.checkUserBalance {}, (limit, balance)=>
+      groupObj.checkUserBalance {}, (err, limit=0, balance=0)=>
+        warn err  if err
 
         index      = (parseInt form.inputs.selector.getValue(), 10) or 0
         monthlyFee = @paymentPlans[index].feeMonthly

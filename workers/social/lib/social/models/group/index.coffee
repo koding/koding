@@ -1046,7 +1046,7 @@ module.exports = class JGroup extends Module
         callback err
 
       queue = roles.map (role)=>=>
-        Joinable::leave.call @, client, {as:role}, (err)->
+        Joinable::leave.call this, client, {as:role}, (err)->
           return kallback err if err
           queue.fin()
 
@@ -1250,31 +1250,23 @@ module.exports = class JGroup extends Module
         for admin in admins
           admin.sendNotification event, contents
 
-  updateBundle: (formData, callback = (->)) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
-      bundle.update $set: {
-        overagePolicy: formData.overagePolicy
-        sharedVM     : formData.sharedVM
-        allocation   : formData.allocation
-      }, callback
+  updateBundle: permit 'change bundle',
+    success: (client, formData, callback=->)->
+      @fetchBundle (err, bundle)=>
+        return callback err  if err
+        {overagePolicy, sharedVM, allocation} = formData
+        bundle.update $set: {overagePolicy, sharedVM, allocation}, callback
 
-  updateBundle$: permit 'change bundle',
-    success: (client, formData, callback)->
-      @updateBundle formData, callback
-
-  createBundle: (data, callback) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
+  createBundle: (data, callback)->
+    @fetchBundle (err, bundle)=>
+      return callback err                               if err
       return callback new KodingError 'Bundle exists!'  if bundle?
 
       JGroupBundle = require '../bundle/groupbundle'
-
       bundle = new JGroupBundle data
-      bundle.save (err) =>
-        return callback err  if err?
-        @addBundle bundle, ->
-          callback null, bundle
+      bundle.save (err)=>
+        return callback err  if err
+        @addBundle bundle, (err)-> callback err, unless err then bundle
 
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
@@ -1282,160 +1274,130 @@ module.exports = class JGroup extends Module
   setBillingInfo: permit 'manage payment methods',
     success: (client, data, callback)->
       # TODO: Give credits to existing users
-      JRecurlyPlan = require '../recurly'
-      JRecurlyPlan.setGroupAccount @, data, callback
+      JRecurlyGroup = require '../recurly/group'
+      JRecurlyGroup.setAccount this, data, callback
 
   getBillingInfo: permit 'manage payment methods',
     success: (client, callback)->
-      JRecurlyPlan = require '../recurly'
-      JRecurlyPlan.getGroupAccount @, callback
-    failure: (client, callback)->
-      JRecurlyPlan = require '../recurly'
-      JRecurlyPlan.getGroupAccount @, (err, account)->
-        if err or not account
-          callback null, {}
-        else
-          callback null, {cardNumber: 'defined-but-hidden'}
+      JRecurlyGroup = require '../recurly/group'
+      JRecurlyGroup.setAccount this, data, callback
 
   checkUserBalance: secure (client, data, callback)->
     @fetchBundle (err, bundle)=>
-      if err or not bundle
-        callback 0, 0
-      else
-        if bundle.allocation is 0
-          callback 0, 0
-        else
-          @getUserExpenses client, data, (err, expenses)->
-            return callback(0, 0)  if err
+      return callback err        if err
+      return callback new KodingError 'unable to fetch group bundle'  unless bundle
+      return callback null, 0,0  if bundle.allocation is 0
 
-            callback bundle.allocation, expenses
+      @getUserExpenses client, data, (err, expenses)->
+        return callback null  if err
+        callback bundle.allocation, expenses
 
   getAllExpenses: secure (client, data, callback)->
     JVM   = require '../vm'
     JUser = require '../user'
     JUser.fetchUser client, (err, user)=>
       return callback err  if err
+      # TODO: Get VM price from JRecurlyPlan
       JVM.some
-        planOwner: "group_#{@_id}"
-        vmType   : 'expensed'
-      , {planCode: 1, users: 1}, (err, vms)->
-        return callback err  if err
-
-        # TODO: Get VM price from JRecurlyPlan
-        callback null, vms
+        planOwner : "group_#{@_id}"
+        vmType    : 'expensed'
+      , {planCode: 1, users: 1}, callback
 
   getUserExpenses: secure (client, data, callback)->
     JVM   = require '../vm'
     JUser = require '../user'
     JUser.fetchUser client, (err, user)=>
       return callback err  if err
+      # TODO: Get VM price from JRecurlyPlan
       JVM.some
         planOwner: "group_#{@_id}"
         vmType   : 'expensed'
         users    : { $elemMatch: id: user.getId(), owner: yes }
-      , {planCode: 1}, (err, vms)->
-        return callback err  if err
-
-        # TODO: Get VM price from JRecurlyPlan
-        callback null, (vms.length * 500)
+      , {planCode: 1}, callback
 
   makeExpense: secure (client, data, callback)->
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.one
-      code: data.plan
-    , (err, plan)=>
+    JRecurlyPlan = require '../recurly/plan'
+    JRecurlyPlan.one code: data.plan, (err, plan)=>
       return callback err  if err
-      @checkUserBalance client, data, (limit, balance)=>
+      @checkUserBalance client, data, (err, limit, balance)=>
+        return callback err  if err
         console.log limit, balance, plan.feeMonthly
         if limit >= balance + plan.feeMonthly
           @chargeGroup client, data, callback
         else
           callback new KodingError "You don't have enough balance"
 
-  makePayment: permit "make payments",
-   (client, data, callback)->
+  makePayment: permit 'make payments',
+   success: (client, data, callback)->
       @chargeGroup client, data, callback
 
   chargeGroup: secure (client, data, callback)->
-    data.plan ?= @payment.plan
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.one
-      code: data.plan
-    , (err, plan)=>
+    data.plan   ?= @payment.plan
+    JRecurlyPlan = require '../recurly/plan'
+    JRecurlyPlan.one code: data.plan, (err, plan)=>
       return callback err  if err
-      plan.subscribeGroup @, data, callback
+      plan.subscribeGroup this, data, callback
 
   addProduct: permit 'manage products',
     success: (client, data, callback)->
-      JRecurlyPlan = require '../recurly'
-      JRecurlyPlan.addGroupPlan @, data, callback
+      JRecurlyGroup = require '../recurly/group'
+      JRecurlyGroup.addPlan this, data, callback
 
   deleteProduct: permit 'manage products',
     success: (client, data, callback)->
-      JRecurlyPlan = require '../recurly'
-      JRecurlyPlan.deleteGroupPlan @, data, callback
+      JRecurlyGroup = require '../recurly/group'
+      JRecurlyGroup.deletePlan this, data, callback
 
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
-    JRecurlySubscription.getGroupSubscriptions @, callback
+    JRecurlySubscription.getGroupSubscriptions this, callback
 
   getTransactions: (callback)->
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.getGroupTransactions @, callback
+    JRecurlyGroup = require '../recurly/group'
+    JRecurlyGroup.getTransactions this, callback
 
-  vmUsage: secure (client, callback)->
-    {delegate} = client.connection
-
+  vmUsage: secure ({connection:{delegate}}, callback)->
     @fetchBundle (err, bundle)=>
-      if err or not bundle
-        # TODO: Better error message required
-        callback new KodingError "Unable to fetch group bundle"
+      return callback err        if err
+      return callback new KodingError 'unable to fetch group bundle'  unless bundle
+
+      bundle.checkUsage delegate, this, callback
+
+  checkVmType = (data, callback)->
+    unless data.type in ['user', 'group', 'expensed']
+      callback new KodingError "No such VM type: #{data.type}"
+    else
+      callback null
+
+  fetchOrCreateBundle = (callback)->
+    @fetchBundle (err, bundle)=>
+      return callback err, bundle  if err or bundle
+
+      if @slug == 'koding'
+        @createBundle
+          overagePolicy: 'not allowed'
+          paymentPlan  : ''
+          allocation   : 0
+          sharedVM     : yes
+        , (err, bundle)=>
+          if err then return callback new KodingError 'Unable to create default group bundle'
+          callback null, bundle
       else
-        bundle.checkUsage delegate, @, callback
+        callback new KodingError 'Unable to fetch group bundle'
 
-  canCreateVM: secure (client, data, callback)->
-    {delegate} = client.connection
+  canCreateVM: secure ({connection:{delegate}}, data, callback)->
+    checkVmType data, (err)->
+      return callback err  if err
+      fetchOrCreateBundle (err, bundle)->
+        return callback err  if err
+        bundle.canCreateVM delegate, this, data, callback
 
-    if data.type in ['user', 'group', 'expensed']
-      @fetchBundle (err, bundle)=>
-        if err or not bundle
-          if @slug == 'koding'
-            @createBundle
-              overagePolicy: "not allowed"
-              paymentPlan  : ""
-              allocation   : 0
-              sharedVM     : yes
-            , (err, bundle)=>
-              return callback new KodingError "Unable to create default group bundle"  if err
-              bundle.canCreateVM delegate, @, data, callback
-          else
-            callback new KodingError "Unable to fetch group bundle"
-        else
-          bundle.canCreateVM delegate, @, data, callback
-    else
-      callback new KodingError "No such VM type: #{data.type}"
-
-  createVM: secure (client, data, callback)->
-    {delegate} = client.connection
-
-    if data.type in ['user', 'group', 'expensed']
-      @fetchBundle (err, bundle)=>
-        if err or not bundle
-          if @slug == 'koding'
-            @createBundle
-              overagePolicy: "not allowed"
-              paymentPlan  : ""
-              allocation   : 0
-              sharedVM     : yes
-            , (err, bundle)=>
-              return callback new KodingError "Unable to create default group bundle"  if err
-              bundle.createVM delegate, @, data, callback
-          else
-            callback new KodingError "Unable to fetch group bundle"
-        else
-          bundle.createVM delegate, @, data, callback
-    else
-      callback new KodingError "No such VM type: #{data.type}"
+  createVM: secure ({connection:{delegate}}, data, callback)->
+    checkVmType data, (err)->
+      return callback err  if err
+      fetchOrCreateBundle (err, bundle)->
+        return callback err  if err
+        bundle.createVM delegate, this, data, callback
 
   countMembers: (callback)->
     graph = new Graph({config:KONFIG['neo4j']})
