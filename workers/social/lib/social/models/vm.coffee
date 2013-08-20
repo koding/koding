@@ -60,7 +60,7 @@ module.exports = class JVM extends Module
                             'sj'  # San Jose
                             'vagrant'
                           ]]
-        default         : 'aws'
+        default         : 'sj'
       webHome           : String
       planOwner         : String
       planCode          : String
