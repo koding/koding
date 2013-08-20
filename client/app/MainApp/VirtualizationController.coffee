@@ -98,7 +98,7 @@ class VirtualizationController extends KDController
           callback message: "No such VM!"
 
   info:(vm, callback)->
-    [callback, vm] = [vm, callback]  if 'function' is typeof callback
+    [callback, vm] = [vm, callback]  if 'function' is typeof vm
     @_runWrapper 'vm.info', vm, (err, info)=>
       warn "[VM-#{vm}]", err  if err
       if err?.name is "UnderMaintenanceError"
