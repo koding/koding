@@ -65,7 +65,6 @@ class WebTermView extends KDView
       @updateSettings()
 
       KD.getSingleton("vmController").run
-        kiteName : 'os',
         method   : 'webterm.connect',
         vmName   : @getOption('delegate').getOption('vmName')
         withArgs :

@@ -64,7 +64,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
         <p class="blog-post-body has-markdown">{{#(html)}}</p>
         <footer class='clearfix'>
           <div class='type-and-time'>
-            <span class='type-icon'></span> by {{> @author}}
+            <span class='type-icon'></span> {{> @contentGroupLink }} by {{> @author}}
             <time>{{$.timeago #(meta.createdAt)}}</time>
             {{> @tags}}
           </div>

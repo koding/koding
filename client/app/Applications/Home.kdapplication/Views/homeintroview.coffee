@@ -35,12 +35,13 @@ class HomeIntroView extends JView
       title       : 'Sign up with email'
       cssClass    : 'register orange'
       type        : 'button'
+      testPath    : "landing-register-email"
       callback    : -> router.handleRoute '/Register'
 
     @toc = new KDCustomHTMLView
       cssClass : 'toc'
       # partial  : 'By signing up, you agree to our <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
-      partial  : 'By signing up, you agree to our <a href="/toc.html" target="_blank">terms of service</a> and <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
+      partial  : 'By signing up, you agree to our <a href="/tos.html" target="_blank">terms of service</a> and <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
 
 
     @twoMinsThumb = new KDCustomHTMLView

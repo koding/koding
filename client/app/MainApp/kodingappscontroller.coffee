@@ -103,7 +103,9 @@ class KodingAppsController extends KDController
           @putAppsToAppStorage manifests
           callback? null, manifests
     , ->
-      log "Timeout reached for kite request"
+      msg = "Timeout reached for kite request"
+      KD.logToExternal msg
+      log msg
       callback()
 
   fetchAppsFromDb:(callback)->
@@ -362,7 +364,6 @@ class KodingAppsController extends KDController
           nickname    = KD.nick()
           publishPath = "/home/#{nickname}/Web/.applications"
           @vmController.run
-            kiteName    : "os"
             method      : "fs.createDirectory"
             withArgs    :
               path      : publishPath
@@ -622,7 +623,6 @@ class KodingAppsController extends KDController
         return
 
       @vmController.run
-        kiteName     : "os"
         method       : "app.download"
         withArgs     :
           owner      : manifest.authorNick
@@ -639,8 +639,6 @@ class KodingAppsController extends KDController
   # #
   # HELPERS
   # #
-
-  proxifyUrl = (url)-> KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
   escapeFilePath = FSHelper.escapeFilePath
 
