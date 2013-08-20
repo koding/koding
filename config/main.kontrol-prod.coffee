@@ -10,7 +10,7 @@ socialQueueName = "koding-social-#{version}"
 authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
 
-embedlyApiKey   = 'd03fb0338f2849479002fe747bda2fc7'
+embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
 
 module.exports =
   aws           :
