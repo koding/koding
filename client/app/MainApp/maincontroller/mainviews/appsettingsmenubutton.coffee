@@ -20,12 +20,16 @@ class AppSettingsMenuButton extends KDButtonView
 
       @menuWidth = menu.width or 172
 
-      menu.items.forEach (item, index) =>
+      menuItems = menu.items.filter (item, index) =>
 
         # if item has parent then add "children" to the parents.
         if item.parentId
           parents = _.filter menu.items, (menuItem)-> menuItem.id is item.parentId
           parents.forEach (parentItem) -> parentItem.children or= []
+
+        if item.condition
+          response = item.condition getVisibleView().getActiveAceView()
+          return unless response
 
         item.callback = (contextmenu) =>
           view = getVisibleView()
@@ -43,7 +47,9 @@ class AppSettingsMenuButton extends KDButtonView
             menuWithoutChilds = _.filter menu.items, (menuItem) -> menuItem.parentId isnt item.parentId
             menu.items = menuWithoutChilds.concat childItems
 
-      @createMenu event, menu.items
+        return item
+
+      @createMenu event, menuItems
 
     super options, data
 
