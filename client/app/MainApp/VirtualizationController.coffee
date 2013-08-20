@@ -28,7 +28,7 @@ class VirtualizationController extends KDController
           callback rest...
 
   _runWrapper:(command, vm, callback)->
-    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+    [callback, vm] = [vm, callback]  if vm and 'string' isnt typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
       return  unless vm
