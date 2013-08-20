@@ -50,7 +50,7 @@ class LinkActivityItemView extends ActivityItemChild
       {{> @embedBox}}
       <footer class='clearfix'>
         <div class='type-and-time'>
-          <span class='type-icon'></span> by {{> @author}}
+          <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
           {{> @timeAgoView}}
           {{> @tags}}
         </div>

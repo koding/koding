@@ -1,7 +1,8 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
-@import "nib/vendor"
+// @import "nib/vendor"
+
 
 @css {
 /*
@@ -14,16 +15,7 @@ app.profile.styl
 .content-display-wrapper
   .content-display
     .profileinfo
-      input.kdinput.text
-      textarea.kdinput.text
-      button.clean-red
-      button.cupid-green
-        display         none
-
       .active
-        input.kdinput.text
-        textarea.kdinput.text
-          display         inline-block
 
         button.clean-red
         button.cupid-green
@@ -40,39 +32,45 @@ app.profile.styl
 .content-display-wrapper
   .content-display
     .profileinfo
-      .profilename-form
-        display     inline-block
+      button
+        width       auto
+        position    absolute
+        top         10px
+        padding     5px 10px
+
+      button.edit
+        right       10px
+
+      button.save
+        right       80px
+
+      button.cancel
+        right       15px
+
+      .kdcontenteditableview
+        overflow    visible
         width       auto
 
-        p
-          color         #222
-          font-size     30px
-          font-weight   bold
-          padding       4px 3px 4px 4px
+        > [contenteditable="false"]:hover
+          background-color  #FFFBD3
 
-          &:hover
-            background-color  #FFFBD3
+        > *
+          display         inline-block
+          min-width       5px
+          padding         5px
 
-      form.profilename-form.active
-        margin       -1px 20px -2px 0
+        > [contenteditable="true"]
+          background      white
+          padding         4px
+          border          1px solid #C7C7C7
+          border-radius   5px
 
-        p
-          display     none
+        &.bio > *[contenteditable="true"]
+          min-height      80px
+          width           600px
 
-        input.kdinput.text
-          background-color  white
-          border            1px solid #AAA
-          color             #222
-          display           inline-block
-          font-size         30px
-          font-weight       bold
-          height            auto
-          margin-right      8px
-          width             auto
-
-        input.kdinput.text.validation-error
-          border-color        red
-
+      .kdcontenteditableview.placeholder
+        color       #B1B1B1
 
       .profilelocation-form
         display             inline-block
@@ -87,29 +85,6 @@ app.profile.styl
 
           &:hover
             background-color  #FFFBD3
-
-      .profilelocation-form.active
-        margin            0 0 4px 0
-        vertical-align    bottom
-
-        p
-          display: none
-
-        input.kdinput.text
-          background-color    white
-          border              1px solid #AAA
-          display             inline-block
-          font-weight         300
-          font-size           16px
-          margin              0 8px 0 4px
-          width               120px
-
-        button.clean-red
-        button.cupid-green
-          padding         5px 12px
-
-      .profilename-form.active + .profilelocation-form
-        vertical-align      bottom
 
       .personal-profile-about
         p
@@ -126,24 +101,12 @@ app.profile.styl
         p
           display     none
 
-        textarea.kdinput.text
-          display         inline-block
-          height          100px
-          width           500px
-
-        // button.clean-red
-        // button.cupid-green
-        //   margin          0 0 6px 8px
-        //   vertical-align  bottom
-
-
 .content-display-wrapper
   .content-display
     .profileleft
       .profileavatar-form
         button.clean-red
         button.cupid-green
-          display         none
           margin          8px 0 0 0
 
 .content-display-wrapper
@@ -186,10 +149,16 @@ app.profile.styl
           size            82px,82px
 
     .skilltagslabel
-      font-size           10px
+      font-size           12px
       color               #a5a5a5
       margin              0 0 0 4px
       width               74px
+      fl()
+
+    .tip
+      line-height         1.8em
+      font-size           12px
+      color               #a5a5a5
       fl()
 
     .skilltagadd
@@ -200,8 +169,6 @@ app.profile.styl
       fl()
 
     .personal-skilltags
-      margin              10px 0 16px 0
-
       span.noskilltags
         display           none
 
@@ -257,10 +224,10 @@ app.profile.styl
             top           -1px
 
         .kdautocompletewrapper
+          display         none
           width           70%
           background      none
           border          none
-          display         block
           margin          8px 0
           outline         none
 
@@ -280,6 +247,9 @@ app.profile.styl
 
       form.kdformview.active
         // background-color  #FFFBD3
+        .kdautocompletewrapper
+          display         block
+
         .skilltagadd
           display         none
 

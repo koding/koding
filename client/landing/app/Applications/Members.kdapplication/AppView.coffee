@@ -45,7 +45,9 @@ class MembersListItemView extends KDListItemView
     if memberData.locationTags.length < 1
       memberData.locationTags[0] = "Earth"
 
-    @location = new LocationView {},memberData
+    @location     = new KDCustomHTMLView
+      partial     : memberData.locationTags[0]
+      cssClass    : "location"
 
     @profileLink = new ProfileLinkView {}, memberData
     @profileLink.render()
