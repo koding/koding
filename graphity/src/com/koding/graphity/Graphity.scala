@@ -114,6 +114,8 @@ class Graphity(@Context db: GraphDatabaseService) {
         val event = rel.getEndNode
         val source = LinkedList.remove(event)
         updateSource(source)
+        rel.delete
+        event.delete
       })
 
       tx.success
