@@ -224,17 +224,20 @@ class NFinderController extends KDViewController
     prefs[pipedVm] = state
     @appStorage.setValue 'vmsDotFileChoices', prefs
 
-  setRecentFolder:(folderPath, callback)->
+  getRecentFolders:->
     recentFolders = @appStorage.getValue('recentFolders')
     recentFolders = []  unless Array.isArray recentFolders
+    return recentFolders
+
+  setRecentFolder:(folderPath, callback)->
+    recentFolders = @getRecentFolders()
     unless folderPath in recentFolders
       recentFolders.push folderPath
     recentFolders.sort (path)-> if path is folderPath then -1 else 0
     @appStorage.setValue 'recentFolders', recentFolders, callback
 
   unsetRecentFolder:(folderPath, callback)->
-    recentFolders = @appStorage.getValue('recentFolders')
-    recentFolders = []  unless Array.isArray recentFolders
+    recentFolders = @getRecentFolders()
     recentFolders = recentFolders.filter (path)->
       path.indexOf(folderPath) isnt 0
     recentFolders.sort (path)->
@@ -253,11 +256,11 @@ class NFinderController extends KDViewController
         if err then @unsetRecentFolder folders[index]
         index += 1
         iterate folders, index  if index <= folders.length
-    folders = @appStorage.getValue('recentFolders') or []
+    recentFolders = @getRecentFolders()
     if vmName
-      folders = folders.filter (folder)->
+      recentFolders = recentFolders.filter (folder)->
         folder.indexOf "[#{vmName}]" is 0
-    iterate folders, 0
+    iterate recentFolders, 0
 
   _pipedVm:(vmName)-> vmName.replace /\./g, '|'
 
