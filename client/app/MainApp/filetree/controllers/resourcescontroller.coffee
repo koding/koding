@@ -11,6 +11,7 @@ class ResourcesController extends KDListViewController
 
     @getView().on 'DeselectAllItems', @bound 'deselectAllItems'
     KD.getSingleton("vmController").on 'VMListChanged', @bound 'reset'
+    KD.getSingleton('notificationController').on 'VMMaintenance', @bound 'reset'
 
   reset:->
     # FIXME ~ BK
