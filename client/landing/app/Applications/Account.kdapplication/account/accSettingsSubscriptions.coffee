@@ -8,11 +8,11 @@ class AccountSubscriptionsListController extends AccountListViewController
     @getListView().on 'Reload', @bound 'loadItems'
     @loadItems()
 
-  loadItems: ()->
+  loadItems:->
     @removeAllItems()
     @showLazyLoader no
 
-    KD.remote.api.JRecurlySubscription.getSubscriptionsWithPlan (err, subs)=>
+    KD.remote.api.JRecurlySubscription.getUserSubscriptionsWithPlan (err, subs=[])=>
       warn err  if err
       subscriptions = (sub  for sub in subs when sub.expired isnt 'expired')
       @instantiateListItems subscriptions
@@ -25,8 +25,7 @@ class AccountSubscriptionsListController extends AccountListViewController
       style     : 'clean-gray account-header-cc'
       title     : 'Update Credit Card'
       callback  : ->
-        paymentController = KD.getSingleton 'paymentController'
-        paymentController.setBillingInfo 'user'
+        KD.getSingleton('paymentController').setBillingInfo 'user'
 
     @getView().parent.addSubView reloadButton = new KDButtonView
       style     : 'clean-gray account-header-button'

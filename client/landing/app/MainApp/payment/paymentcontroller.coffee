@@ -36,7 +36,7 @@ class PaymentController extends KDController
         getGroup().checkPayment (err, subs)=>
           findActiveSubscription subs, planCode, callback
       else
-        KD.remote.api.JRecurlySubscription.getSubscriptions (err, subs)->
+        KD.remote.api.JRecurlySubscription.getUserSubscriptions (err, subs)->
           findActiveSubscription subs, planCode, callback
 
   confirmPayment:(type, plan, callback=->)->

@@ -13,26 +13,29 @@ class AccountPaymentHistoryListController extends AccountListViewController
     @showLazyLoader no
 
     transactions = []
-    KD.remote.api.JRecurlyPlan.getTransactions (err, trans)=>
+    KD.remote.api.JRecurly.getTransactions (err, trans=[])=>
       warn err  if err
 
       for t in trans when t.amount + t.tax > 0
-        transactions.push
-          status     : t.status
-          amount     : ((t.amount + t.tax) / 100).toFixed(2)
-          currency   : 'USD'
-          createdAt  : t.datetime
-          paidVia    : t.card or ''
-          cardType   : t.cardType
-          cardNumber : t.cardNumber
-          owner      : t.owner
-          refundable : t.refundable
+        {status, datetime, card, cardType, cardNumber, owner, refundable} = t
+        amount = ((t.amount + t.tax) / 100).toFixed(2)
+        transactions.push {
+          status, cardType, cardNumber, owner, refundable, amount
+          currency : 'USD'
+          paidVia  : card or ''
+        }
 
       @instantiateListItems transactions
       @hideLazyLoader()
 
   loadView:->
     super
+
+    @getView().parent.addSubView updateButton = new KDButtonView
+      style     : 'clean-gray account-header-cc'
+      title     : 'Update Billing Address'
+      callback  : ->
+        KD.getSingleton('paymentController').setBillingInfo 'user'
 
     @getView().parent.addSubView reloadButton = new KDButtonView
       style     : 'clean-gray account-header-button'
