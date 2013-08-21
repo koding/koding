@@ -105,8 +105,7 @@ class KiteController extends KDController
               Calling <b>#{options.method}</b> method,
               from <b>#{options.kiteName}</b> kite
              """
-
-    log "Kite Request:", options
+      log "Kite Request:", options
 
     kite.tell options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
