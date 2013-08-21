@@ -89,9 +89,13 @@ class KiteController extends KDController
     correlationName = options.correlationName or ""
 
     if options.kiteName is "os" and not correlationName
+      warn "THIS METHOD DEPRECATED, PLEASE USE vmController.run with vmName !"
       warn """OS kite call requested without providing
               correlationName, using default if exists."""
-      correlationName = KD.getSingleton('vmController').defaultVmName
+
+      vmc = KD.getSingleton('vmController')
+      correlationName  = vmc.defaultVmName
+      options.kiteName = "os-#{vmc.vmRegions[vmc.defaultVmName]}"
 
     kite = @getKite options.kiteName, correlationName
 
@@ -105,8 +109,7 @@ class KiteController extends KDController
               Calling <b>#{options.method}</b> method,
               from <b>#{options.kiteName}</b> kite
              """
-
-    log "Kite Request:", options
+      log "Kite Request:", options
 
     kite.tell options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
