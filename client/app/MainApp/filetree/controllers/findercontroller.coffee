@@ -121,7 +121,7 @@ class NFinderController extends KDViewController
     [vmName, path] = vm.split ":"
 
     vmRoots = (@appStorage.getValue 'vmRoots') or {}
-    pipedVm = @_pipedVm vmName
+    pipedVm = @_pipedVmName vmName
     path or= vmRoots[pipedVm] or "/home/#{KD.nick()}"
 
     if vmItem = @getVmNode vmName
@@ -172,7 +172,7 @@ class NFinderController extends KDViewController
     callback?()
 
     vmRoots = (@appStorage.getValue 'vmRoots') or {}
-    pipedVm = @_pipedVm vmName
+    pipedVm = @_pipedVmName vmName
     vmRoots[pipedVm] = path
     @appStorage.setValue 'vmRoots', vmRoots
 
@@ -215,11 +215,11 @@ class NFinderController extends KDViewController
         , yes
 
   isNodesHiddenFor:(vmName)->
-    pipedVm = @_pipedVm vmName
+    pipedVm = @_pipedVmName vmName
     return (@appStorage.getValue('vmsDotFileChoices') or {})[pipedVm]
 
   setNodesHidden:(vmName, state)->
-    pipedVm = @_pipedVm vmName
+    pipedVm = @_pipedVmName vmName
     prefs   = @appStorage.getValue('vmsDotFileChoices') or {}
     prefs[pipedVm] = state
     @appStorage.setValue 'vmsDotFileChoices', prefs
@@ -262,7 +262,7 @@ class NFinderController extends KDViewController
         folder.indexOf "[#{vmName}]" is 0
     iterate recentFolders, 0
 
-  _pipedVm:(vmName)-> vmName.replace /\./g, '|'
+  _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
 
 class VMMountStateWidget extends JView
 
