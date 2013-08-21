@@ -157,7 +157,7 @@ class NFinderController extends KDViewController
 
     @updateMountState vmName, no
     @stopWatching vmItem.data.path
-    FSHelper.deregisterVmFiles vmName
+    FSHelper.unregisterVmFiles vmName
     @treeController.removeNodeView vmItem
     @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
 

@@ -102,12 +102,12 @@ class FSHelper
     @setFileListeners file
     @registry[file.path] = file
 
-  @deregister = (path)->
+  @unregister = (path)->
     delete @registry[path]
 
-  @deregisterVmFiles = (vmName)->
+  @unregisterVmFiles = (vmName)->
     for path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
-      @deregister path
+      @unregister path
 
   @updateInstance = (fileData)->
     for prop, value of fileData
