@@ -80,7 +80,7 @@ class ProfileView extends JView
     @bio.on "PreviousTabStop", => @lastName.focus()
 
     for input in [@firstName, @lastName, @location, @bio]
-      input.on "click", => unless @editingMode then @setEditingMode on
+      input.on "click", => if not @editingMode and KD.isMine @memberData then @setEditingMode on
 
     if KD.isMine @memberData or @memberData.skillTags.length > 0
       @skillTagView = new SkillTagFormView {}, @memberData

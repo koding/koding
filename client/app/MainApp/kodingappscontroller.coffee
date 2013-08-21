@@ -28,8 +28,8 @@ class KodingAppsController extends KDController
     mainController  = KD.getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
     @publishedApps  = {}
-    @getPublishedApps()
 
+    @getPublishedApps()
     @createExtensionToAppMap()
     @fetchUserDefaultAppConfig()
 
@@ -493,11 +493,11 @@ class KodingAppsController extends KDController
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
-      content                     : 
+      content                     :
         """ <div class='modalformline'><p>
             Please select the application type you want to start with.
-            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder, 
-            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start 
+            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder,
+            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start
             reading <code>manifest.json</code>
             </p></div>
         """

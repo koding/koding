@@ -80,6 +80,27 @@ class Graphity(@Context db: GraphDatabaseService) {
     }
   }
 
+  // Gets all subscriptions for a source.
+  @GET
+  @Path("/subscriptions")
+  def getSubscriptions(@QueryParam("stream") streamUrl: String) = {
+    val tx = db.beginTx
+    try {
+      val stream = getInternalNode(streamUrl, GRAPHITY_STREAM)
+
+      val response = Response.ok(LinkedList.getAll(stream).tail.reverseMap(e => {
+        val source = e.getSingleRelationship(GRAPHITY_SUBSCRIBED_TO, Direction.OUTGOING).getEndNode
+        val externalNode = source.getSingleRelationship(GRAPHITY_SOURCE, Direction.INCOMING).getStartNode
+        "\"" + getUrlFromNode(externalNode) + "\""
+      }).mkString("[", ", ", "]")).build
+
+      tx.success
+      response
+    } finally {
+      tx.finish
+    }
+  }
+
   // Adds event to source at the given timestamp. An event is more recent if it has a higher timestamp value.
   @POST
   @Path("/events")
@@ -131,13 +152,14 @@ class Graphity(@Context db: GraphDatabaseService) {
     val tx = db.beginTx
     try {
       val stream = getInternalNode(streamUrl, GRAPHITY_STREAM)
-      val events = getEventNodes(stream, count, before, after)
-      tx.success
 
-      Response.ok(events.reverseMap(e => {
+      val response = Response.ok(getEventNodes(stream, count, before, after).reverseMap(e => {
         val externalNode = e.getSingleRelationship(GRAPHITY_EVENT, Direction.INCOMING).getStartNode
         "\"" + getUrlFromNode(externalNode) + "\""
       }).mkString("[", ", ", "]")).build
+
+      tx.success
+      response
     } finally {
       tx.finish
     }
@@ -162,7 +184,7 @@ class Graphity(@Context db: GraphDatabaseService) {
       }
     }
 
-    while(results.length < count) {
+    while (results.length < count) {
       val event = if (candidates.length == 0 || getEventTimestamp(candidates.head) < previousSubscriptionTimestamp) {
         if (previousSubscriptionTimestamp == 0) {
           return results
@@ -226,7 +248,7 @@ class Graphity(@Context db: GraphDatabaseService) {
   }
 
   def getUrlFromNode(node: Node) = {
-    "http://localhost:7474/db/data/node/" + node.getId
+    "/node/" + node.getId
   }
 
   def getInternalNode(externalNodeUrl: String, relType: RelationshipType): Node = {
