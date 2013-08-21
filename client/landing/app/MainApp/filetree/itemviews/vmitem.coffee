@@ -69,12 +69,9 @@ class NVMItemView extends NFileItemView
       @unsetClass 'online'
       return warn err
 
-    switch info.state
-      when "RUNNING"
-        @setClass 'online'
-
-      when "STOPPED"
-        @unsetClass 'online'
+    if info.state is "RUNNING"
+    then @setClass 'online'
+    else @unsetClass 'online'
 
   viewAppended:->
     super
