@@ -260,6 +260,8 @@ class NFinderController extends KDViewController
     if vmName
       recentFolders = recentFolders.filter (folder)->
         folder.indexOf "[#{vmName}]" is 0
+      if recentFolders.length is 0
+        recentFolders = ["[#{vmName}]/home/#{KD.nick()}"]
     iterate recentFolders
 
   _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
