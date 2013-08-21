@@ -83,10 +83,11 @@ class KDModalView extends KDView
     selector = null if @$(selector).length is 0
     super view, selector
 
-  setButtons:(buttonDataSet)->
+  setButtons:(buttonDataSet, destroyExists = no)->
     @buttons or= {}
     @setClass "with-buttons"
     defaultFocusTitle = null
+    @destroyButtons()  if destroyExists
     for own buttonTitle, buttonOptions of buttonDataSet
       defaultFocusTitle ?= buttonTitle
       button = @createButton buttonOptions.title or buttonTitle, buttonOptions
@@ -94,6 +95,9 @@ class KDModalView extends KDView
       focused = yes  if buttonOptions.focus
 
     @buttons[defaultFocusTitle].setFocus()  unless focused
+
+  destroyButtons:->
+    button.destroy()  for own _, button of @buttons
 
   click:(e)->
     @destroy() if $(e.target).is(".closeModal")

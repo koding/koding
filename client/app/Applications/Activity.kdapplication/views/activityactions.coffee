@@ -91,7 +91,7 @@ class ActivityActionsView extends KDView
     @shareLink    = new ActivityActionLink
       partial         : "Share"
       click           :(event)=>
-        shareUrl      = "https://koding.com/Activity/#{@getData().slug}"
+        shareUrl      = "#{KD.config.mainUri}/Activity/#{@getData().slug}"
         contextMenu   = new JContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"

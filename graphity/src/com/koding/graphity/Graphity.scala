@@ -226,7 +226,7 @@ class Graphity(@Context db: GraphDatabaseService) {
   }
 
   def getUrlFromNode(node: Node) = {
-    "http://localhost:7474/db/data/node/" + node.getId
+    "/node/" + node.getId
   }
 
   def getInternalNode(externalNodeUrl: String, relType: RelationshipType): Node = {

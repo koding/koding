@@ -163,7 +163,6 @@ class FSHelper
     return warn "Pass a path to create folders recursively"  unless path
 
     KD.getSingleton("vmController").run {
-      kiteName    : "os"
       method      : "fs.createDirectory"
       withArgs    : {
         recursive : yes

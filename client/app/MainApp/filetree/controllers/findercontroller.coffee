@@ -40,6 +40,8 @@ class NFinderController extends KDViewController
     @noVMFoundWidget = new VMMountStateWidget
     @cleanup()
 
+    KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
+
   watchers: {}
 
   registerWatcher:(path, stopWatching)->
@@ -114,6 +116,11 @@ class NFinderController extends KDViewController
       else if not state and vmName in items
         items.splice items.indexOf(vmName), 1
       @appStorage.setValue "mountedVM", vms
+
+  checkVMState: (err, vm, info)->
+    return warn err if err or not info
+    switch info.state
+      when "MAINTENANCE" then @unmountVm vm
 
   mountVm:(vm, fetchContent = yes)->
     return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
