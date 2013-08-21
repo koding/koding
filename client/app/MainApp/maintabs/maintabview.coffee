@@ -26,6 +26,12 @@ class MainTabView extends KDTabView
     mainViewController = KD.getSingleton "mainViewController"
     mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
 
+    @on "PaneDidShow", @bound "focusActiveSubPane"
+
+  focusActiveSubPane: (pane)->
+    {tabView} = pane.getMainView()
+    tabView.getActivePane().getHandle().$().click()  if tabView
+
   changeLayout:(options)->
 
     {hideTabs} = options
