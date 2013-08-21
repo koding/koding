@@ -4,7 +4,7 @@
 
 { run }   = require './run'
 
-{ ObjectId } = require 'mongodb'
+{ ObjectID: ObjectId } = (require 'mongodb').BSONPure
 
 run (db) ->
 

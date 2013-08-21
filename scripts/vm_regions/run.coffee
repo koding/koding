@@ -3,7 +3,7 @@ mongo   = require 'mongodb'
 {argv}  = require 'optimist'
 
 assert argv.c?
-assert argv.h?
+assert argv.i?
 assert argv.r?
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
