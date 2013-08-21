@@ -148,7 +148,7 @@ class NFinderController extends KDViewController
             return @unmountVm vmName
           @treeController.selectNode vmItem
           @utils.defer =>
-            if @getOptions().useStorage then @reloadOldStructure vmName
+            if @getOptions().useStorage then @reloadPreviousState vmName
         , yes
 
   unmountVm:(vmName)->
@@ -211,7 +211,7 @@ class NFinderController extends KDViewController
     for path, node of @treeController.nodes when node.getData().type is 'vm'
       return if node.getData().vmName is vmName
         @treeController.collapseFolder node, =>
-          @reloadOldStructure()
+          @reloadPreviousState vmName
         , yes
 
   isNodesHiddenFor:(vmName)->
@@ -250,7 +250,7 @@ class NFinderController extends KDViewController
       return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
-  reloadOldStructure:(vmName)->
+  reloadPreviousState:(vmName)->
     iterate = (folders, index)=>
       @expandFolder folders[index], (err)=>
         if err then @unsetRecentFolder folders[index]
