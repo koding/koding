@@ -103,6 +103,13 @@ class GraphityTestSuite extends FunSuite with BeforeAndAfter {
     assert(list.get(0) === event2)
   }
   
+  test("getting subscriptions") {
+    val list = getSubscriptions(stream)
+    assert(list.size === 2)
+    assert(list.get(0) === source1)
+    assert(list.get(1) === source2)
+  }
+
   def createNode(name: String) = {
     val json = db.path("node").accept("application/json").post(classOf[String])
     val node = gson.fromJson(json, classOf[Node])
