@@ -12,10 +12,10 @@ class KDObject extends KDEventEmitter
     @setDelegate options.delegate if options.delegate
     @registerKDObjectInstance()
 
+    super
+
     if options.testPath
       KD.registerInstanceForTesting this
-
-    super
 
     @on 'error', error
     @once 'ready', => @readyState = READY

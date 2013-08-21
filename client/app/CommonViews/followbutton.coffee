@@ -15,10 +15,14 @@ class FollowButton extends KDToggleButton
         title      : "Follow"
         cssClass   : options.stateOptions?.follow?.cssClass
         callback   : (cb)=>
-          @getData().follow (err, response)=>
-            KD.showError err, options.errorMessages
-            @getData().followee = response
-            cb? err
+          KD.requireMembership
+            onFailMsg : options.errorMessages
+            tryAgain  : yes
+            callback : =>
+              account = @getData()
+              account.follow (err, response) ->
+                account.followee = response
+                cb? err
       ,
         title      : "Following"
         cssClass   : options.stateOptions?.unfollow?.cssClass

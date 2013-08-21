@@ -35,6 +35,7 @@ class HomeIntroView extends JView
       title       : 'Sign up with email'
       cssClass    : 'register orange'
       type        : 'button'
+      testPath    : "landing-register-email"
       callback    : -> router.handleRoute '/Register'
 
     @toc = new KDCustomHTMLView

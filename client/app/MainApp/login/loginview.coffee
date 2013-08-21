@@ -53,6 +53,7 @@ class LoginView extends KDScrollView
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
+      testPath : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
@@ -60,6 +61,7 @@ class LoginView extends KDScrollView
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
+      testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
         KD.track "Login", "RegisterButtonClicked"
@@ -267,7 +269,7 @@ class LoginView extends KDScrollView
       mainView.show()
       mainView.$().css "opacity", 1
 
-      KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
+      KD.getSingleton('router').handleRoute KD.singletons.router.visitedRoutes.first or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView
           cssClass  : "login"

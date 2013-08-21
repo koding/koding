@@ -242,6 +242,19 @@ app.comments.styl
       top                   50%
       margin-top            -5px
 
+  &.fixed-height
+    .kdlistview-comments
+      box-shadow            inset 0 15px 8px -15px #ccc\,
+                            inset 0 -15px 8px -15px #ccc
+      overflow              auto
+      max-height            300px
+      .kdlistitemview-comment
+        height              auto
+        &:last-child
+          border-bottom     none
+    .item-add-comment-box
+      border-top            1px solid #e0e0df
+
 
 .review-container
   font-size           12px

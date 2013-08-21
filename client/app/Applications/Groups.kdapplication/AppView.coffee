@@ -13,6 +13,7 @@ class GroupsMainView extends KDView
     header.addSubView createGroupButton = new KDButtonView
       title     : "Create a Group"
       style     : "cupid-green create-group-button"
+      testPath  : "groups-create"
       callback  : ->
         KD.track "Groups", "CreateNewGroupButtonClicked"
         KD.getSingleton('groupsController').showGroupSubmissionView()

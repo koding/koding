@@ -22,7 +22,6 @@ class NVMDetailsView extends JView
   kcRun:(command, callback)->
     kc = KD.getSingleton("vmController")
     kc.run
-      kiteName : "os"
       method   : "exec"
       vmName   : @getData().vmName
       withArgs : command
@@ -31,16 +30,11 @@ class NVMDetailsView extends JView
   checkVMState:(err, vm, info)->
     return unless vm is @getData().vmName
 
-    console.log vm
-    console.log info
-
     if err or not info
       @labelRAM.updateTitle "0%"
       @labelRX.updateTitle "0 bytes"
       @labelTX.updateTitle "0 bytes"
       return warn err
-
-    console.log vm
 
     if info.state is "RUNNING"
       # Memory
