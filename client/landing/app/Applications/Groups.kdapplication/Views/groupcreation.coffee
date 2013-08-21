@@ -115,10 +115,12 @@ class GroupCreationModal extends KDModalView
             label                : "Description"
             type                 : "textarea"
             name                 : "body"
+            testPath             : "groups-create-desc"
             placeholder          : "Please enter a description for your group here..."
           "Privacy"              :
             label                : "Privacy/Visibility"
             itemClass            : KDSelectBox
+            testPath             : "group-create-privacy"
             type                 : "select"
             name                 : "privacy"
             defaultValue         : "public"
