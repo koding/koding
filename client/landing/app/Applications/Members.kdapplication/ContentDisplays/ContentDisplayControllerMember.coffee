@@ -77,23 +77,19 @@ class ContentDisplayControllerMember extends KDViewController
     @addActivityView member
 
   addProfileView:(member)->
-    if KD.isMine member
-      KD.track "Members", "OwnProfileView", member.profile.nickname
-      @getView().addSubView memberProfile = new OwnProfileView
-        cssClass : "profilearea clearfix"
-        delegate : @getView()
-        domId    : 'profilearea' unless @revivedContentDisplay
-      , member
-      return memberProfile
+    KD.track "Members", "OwnProfileView", member.profile.nickname
 
+    options      =
+      cssClass   : "profilearea clearfix"
+      domId      : 'profilearea' unless @revivedContentDisplay
+      delegate   : @getView()
+
+    if KD.isMine member
+      options.cssClass = KD.utils.curryCssClass "own-profile", options.cssClass
     else
-      KD.track "Members", "ProfileView", member.profile.nickname
-      return @getView().addSubView memberProfile = new ProfileView
-        cssClass : "profilearea clearfix"
-        bind     : "mouseenter"
-        domId    : 'profilearea' unless @revivedContentDisplay
-        delegate : @getView()
-      , member
+      options.bind = "mouseenter" unless KD.isMine member
+
+    return @getView().addSubView memberProfile = new ProfileView options, member
 
   # mouseEnterOnFeed:->
   #

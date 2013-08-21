@@ -50,7 +50,11 @@ class GroupCreationModal extends KDModalView
 
   viewAppended:->
 
-    @addSubView loader = new KDLoaderView size : width : 62
+    @addSubView loader = new KDLoaderView
+      size          :
+        width       : 32
+      loaderOptions :
+        color       : "#ff9200"
     loader.show()
 
     vmController = KD.getSingleton('vmController')
@@ -272,6 +276,8 @@ class GroupCreationModal extends KDModalView
       @allocation.fields["Admin approval is required on member purchases"].hide()
       @allocation.fields["Allow over-usage"].hide()
       desc.hide()
+
+    @setPositions()
 
   back:->
 
