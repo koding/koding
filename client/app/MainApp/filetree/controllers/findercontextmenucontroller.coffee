@@ -322,34 +322,36 @@ class NFinderContextMenuController extends KDController
 
     return items
 
-
-
   getMultipleFolderMenu:(folderViews)->
 
     items =
-      Expand                      :
-        action                    : "expand"
-        separator                 : yes
-      Collapse                    :
-        action                    : "collapse"
-        separator                 : yes
-      Delete                      :
-        action                    : 'delete'
-        separator                 : yes
-      Duplicate                   :
-        action                    : 'duplicate'
-      'Set permissions'           :
-        children                  :
-          customView              : (new NSetPermissionsView {}, {mode : "000", type : "multiple"})
-      Compress                    :
-        children                  :
-          'as .zip'               :
-            action                : 'zip'
-          'as .tar.gz'            :
-            action                : 'tarball'
-      Download                    :
-        disabled                  : yes
-        action                    : 'download'
+      Expand            :
+        action          : "expand"
+        separator       : yes
+      Collapse          :
+        action          : "collapse"
+        separator       : yes
+      Delete            :
+        action          : 'delete'
+        separator       : yes
+      Duplicate         :
+        action          : 'duplicate'
+      'Set permissions' :
+        children        :
+          customView    : (new NSetPermissionsView {},{mode : "000", type : "multiple"})
+      Compress          :
+        children        :
+          'as .zip'     :
+            action      : 'zip'
+          'as .tar.gz'  :
+            action      : 'tarball'
+      Download          :
+        disabled        : yes
+        action          : 'download'
+
+    multipleText = "Delete #{folderViews.length} folders"
+    items.Delete = items[multipleText] =
+      action    : 'delete'
 
     allCollapsed = allExpanded = yes
     for folderView in folderViews
@@ -364,26 +366,30 @@ class NFinderContextMenuController extends KDController
   getMultipleFileMenu:(fileViews)->
 
     items =
-      'Open Files'                :
-        action                    : 'openFile'
-      'Delete all'                :
-        action                    : 'delete'
-        separator                 : yes
-      Duplicate                   :
-        action                    : 'duplicate'
-      'Set permissions'           :
-        children                  :
-          customView              : (new NSetPermissionsView {}, {mode : "000"})
-      Compress                    :
-        separator                 : yes
-        children                  :
-          'as .zip'               :
-            action                : 'zip'
-          'as .tar.gz'            :
-            action                : 'tarball'
-      Download                    :
-        disabled                  : yes
-        action                    : 'download'
+      'Open Files'      :
+        action          : 'openFile'
+      Delete            :
+        action          : 'delete'
+        separator       : yes
+      Duplicate         :
+        action          : 'duplicate'
+      'Set permissions' :
+        children        :
+          customView    : (new NSetPermissionsView {}, {mode : "000"})
+      Compress          :
+        separator       : yes
+        children        :
+          'as .zip'     :
+            action      : 'zip'
+          'as .tar.gz'  :
+            action      : 'tarball'
+      Download          :
+        disabled        : yes
+        action          : 'download'
+
+    multipleText = "Delete #{fileViews.length} files"
+    items.Delete = items[multipleText] =
+      action    : 'delete'
 
     return items
 
