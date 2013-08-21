@@ -789,6 +789,18 @@ form.status-widget
   .tags-selected-item-wrapper
     margin                0
 
+  .embed
+    &.embed-image-view
+      .details
+        strong
+        a
+          display         block
+          width           340px
+          white-space     nowrap
+          overflow        hidden
+          text-overflow   ellipsis
+
+
 .code-snip-holder
   rel()
   padding                   10px
@@ -1307,6 +1319,23 @@ div.kdview.link-embed-box.condensed
 
   &.link-wigdet
     margin-top 0px
+
+  .embed
+    &.embed-image-view
+      > a
+        display           block
+      padding             10px
+      .details
+        borderBox()
+        height            45px
+        padding           10px 0
+        strong
+        a
+          display         block
+          width           340px
+          white-space     nowrap
+          overflow        hidden
+          text-overflow   ellipsis
 
   // report button for embeds
   > button.kdbutton.report-embed, button.kdbutton.hide-embed
@@ -2737,5 +2766,18 @@ div.kdtooltip
         text-decoration           none
 
 
-
+.activity-item
+  &.status
+    &.two-columns
+      .link-embed-box
+        float                     left
+        width                     363px
+        margin-right              10px
+        border                    none
+        .activity-item
+          padding                 0
+      .comment-container.fixed-height
+        float                     left
+        width                     363px
+        margin-top                15px
 

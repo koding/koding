@@ -20,8 +20,9 @@ class NFinderTreeController extends JTreeViewController
 
   addNode:(nodeData, index)->
 
-    o = @getOptions()
-    return if o.foldersOnly and nodeData.type is "file"
+    fc = KD.getSingleton 'finderController'
+    return if @getOption('foldersOnly') and nodeData.type is "file"
+    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
     item = super nodeData, index
 
   highlightFile:(view)->
@@ -88,6 +89,12 @@ class NFinderTreeController extends JTreeViewController
     {vmName} = nodeView.data
     @appManager.open "WebTerm", params: {vmName}, forceNew: yes
 
+  setDotFiles:(nodeView, show=yes)->
+    {vmName, path} = nodeView.getData()
+    finder = KD.getSingleton 'finderController'
+    unless show then finder.hideDotFiles vmName
+    else finder.showDotFiles vmName
+
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
     finder = KD.getSingleton 'finderController'
@@ -136,20 +143,20 @@ class NFinderTreeController extends JTreeViewController
         if files
           @addNodes files
         callback? null, nodeView
-        @emit "folder.expanded", nodeView.getData()
+        @emit "folder.expanded", nodeView.getData()  unless silence
         @emit 'fs.retry.success'
         @hideNotification()
       else
         failCallback err
     , failCallback), no
 
-  collapseFolder:(nodeView, callback)->
+  collapseFolder:(nodeView, callback, silence=no)->
 
     return unless nodeView
     folder = nodeView.getData()
     {path} = folder
 
-    @emit "folder.collapsed", folder
+    @emit "folder.collapsed", folder  unless silence
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
@@ -480,6 +487,8 @@ class NFinderTreeController extends JTreeViewController
   cmCollapse:      (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
   cmMakeTopFolder: (nodeView, contextMenuItem)-> @makeTopFolder nodeView
   cmRefresh:       (nodeView, contextMenuItem)-> @refreshFolder nodeView
+  cmShowDotFiles:  (nodeView, contextMenuItem)-> @setDotFiles nodeView, yes
+  cmHideDotFiles:  (nodeView, contextMenuItem)-> @setDotFiles nodeView, no
   cmResetVm:       (nodeView, contextMenuItem)-> @resetVm nodeView
   cmUnmountVm:     (nodeView, contextMenuItem)-> @unmountVm nodeView
   cmOpenVmTerminal:(nodeView, contextMenuItem)-> @openVmTerminal nodeView

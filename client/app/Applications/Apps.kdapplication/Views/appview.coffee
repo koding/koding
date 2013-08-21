@@ -151,7 +151,8 @@ class AppView extends KDView
               kallback()
             else
               @hideLoader()
-              vmController.askToTurnOn kallback
+              state = info.state
+              vmController.askToTurnOn state, kallback
 
     @runButton = new KDButtonView
       title     : "Run"
