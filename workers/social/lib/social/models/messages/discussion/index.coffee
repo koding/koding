@@ -102,12 +102,12 @@ module.exports = class JDiscussion extends JPost
     id = @getId()
     teaser = null
     activityId = null
-    repliesCount = @getAt 'opinionCount'
+    opinionCount = @getAt 'opinionCount'
     queue = [
       ->
         rel.update $set: 'data.deletedAt': new Date, -> queue.next()
       =>
-        @update $inc: opinionCount: -1, -> queue.next()
+        @update $set: {opinionCount: opinionCount - 1}, -> queue.next()
       =>
         @flushSnapshot rel.getAt('targetId'), -> queue.next()
       =>
