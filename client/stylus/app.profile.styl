@@ -51,9 +51,6 @@ app.profile.styl
         overflow    visible
         width       auto
 
-        > [contenteditable="false"]:hover
-          background-color  #FFFBD3
-
         > *
           display         inline-block
           min-width       5px
@@ -100,6 +97,11 @@ app.profile.styl
       .personal-profile-about.active
         p
           display     none
+
+  .profilearea.own-profile
+    .kdcontenteditableview
+      > [contenteditable="false"]:hover
+        background-color  #FFFBD3
 
 .content-display-wrapper
   .content-display
