@@ -251,16 +251,16 @@ class NFinderController extends KDViewController
     callback {message:"Folder not exists: #{folderPath}"}
 
   reloadPreviousState:(vmName)->
-    iterate = (folders, index)=>
+    iterate = (folders, index=0)=>
       @expandFolder folders[index], (err)=>
         if err then @unsetRecentFolder folders[index]
-        index += 1
+        index++
         iterate folders, index  if index <= folders.length
     recentFolders = @getRecentFolders()
     if vmName
       recentFolders = recentFolders.filter (folder)->
         folder.indexOf "[#{vmName}]" is 0
-    iterate recentFolders, 0
+    iterate recentFolders
 
   _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
 
