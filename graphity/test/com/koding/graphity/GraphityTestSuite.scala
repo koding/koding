@@ -56,7 +56,7 @@ class GraphityTestSuite extends FunSuite with BeforeAndAfter {
     assert(list.get(2) === event1)
   }
 
-  test("retrieving only a subset") {
+  test("getting only a subset of events") {
     addEvent(source1, event1, 1)
     addEvent(source2, event2, 2)
     addEvent(source1, event3, 3)
@@ -65,6 +65,17 @@ class GraphityTestSuite extends FunSuite with BeforeAndAfter {
     assert(list.size === 2)
     assert(list.get(0) === event3)
     assert(list.get(1) === event2)
+  }
+
+  test("getting only a timespan of events") {
+    addEvent(source1, event1, 1)
+    addEvent(source2, event2, 2)
+    addEvent(source1, event3, 3)
+
+    val json = graphity.path("events").queryParam("stream", stream).queryParam("count", "10").queryParam("before", "3").queryParam("after", "1").get(classOf[String])
+    val list = gson.fromJson(json, classOf[java.util.List[String]])
+    assert(list.size === 1)
+    assert(list.get(0) === event2)
   }
 
   test("deleting events") {
@@ -91,23 +102,14 @@ class GraphityTestSuite extends FunSuite with BeforeAndAfter {
     assert(list.size === 1)
     assert(list.get(0) === event2)
   }
-
-  test("fetching timespan") {
-    addEvent(source1, event1, 1)
-    addEvent(source2, event2, 2)
-    addEvent(source1, event3, 3)
-
-    val json = graphity.path("events").queryParam("stream", stream).queryParam("count", "10").queryParam("before", "3").queryParam("after", "1").get(classOf[String])
-    val list = gson.fromJson(json, classOf[java.util.List[String]])
-    assert(list.size === 1)
-    assert(list.get(0) === event2)
-  }
-
+  
   def createNode(name: String) = {
     val json = db.path("node").accept("application/json").post(classOf[String])
     val node = gson.fromJson(json, classOf[Node])
-    println(name + ": " + node.self)
-    node.self
+    val parts = node.self.split("/")
+    val shortUrl = "/" + parts(parts.size - 2) + "/" + parts(parts.size - 1)
+    println(name + ": " + shortUrl)
+    shortUrl
   }
 
   def addSubscription(stream: String, source: String) {
@@ -119,6 +121,11 @@ class GraphityTestSuite extends FunSuite with BeforeAndAfter {
 
   def deleteSubscription(stream: String, source: String) {
     graphity.path("subscriptions").queryParam("stream", stream).queryParam("source", source).delete
+  }
+  
+  def getSubscriptions(stream: String) = {
+    val json = graphity.path("subscriptions").queryParam("stream", stream).get(classOf[String])
+    gson.fromJson(json, classOf[java.util.List[String]])
   }
 
   def addEvent(source: String, event: String, timestamp: Long) {
