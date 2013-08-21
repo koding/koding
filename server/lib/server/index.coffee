@@ -93,6 +93,8 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
+app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
+
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
   rabbitAPI.setMQ mq

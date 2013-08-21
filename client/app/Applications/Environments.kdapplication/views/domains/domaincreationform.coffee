@@ -100,6 +100,7 @@ class DomainCreationForm extends KDTabViewWithForms
                     @needBilling no
                     "#{KD.utils.slugify firstName}s-subdomain"
             domainName                :
+              cssClass                : "domain"
               placeholder             : "#{KD.utils.slugify firstName}s-subdomain"
               validate                :
                 rules                 :
@@ -112,6 +113,7 @@ class DomainCreationForm extends KDTabViewWithForms
                   itemClass           : KDSelectBox
                   selectOptions       : ({title: "#{i} Year#{if i > 1 then 's' else ''}", value:i} for i in [1..10])
                 domains               :
+                  cssClass            : "domains"
                   itemClass           : KDSelectBox
                   validate            :
                     rules             :

@@ -364,7 +364,6 @@ class KodingAppsController extends KDController
           nickname    = KD.nick()
           publishPath = "/home/#{nickname}/Web/.applications"
           @vmController.run
-            kiteName    : "os"
             method      : "fs.createDirectory"
             withArgs    :
               path      : publishPath
@@ -624,7 +623,6 @@ class KodingAppsController extends KDController
         return
 
       @vmController.run
-        kiteName     : "os"
         method       : "app.download"
         withArgs     :
           owner      : manifest.authorNick
