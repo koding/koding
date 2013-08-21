@@ -776,6 +776,16 @@ __utils =
     newWindow  = window.open url, name, size
     newWindow.focus()
 
+  openOdeskPopUp:->
+    KD.whoami().getOdeskAuthorizeUrl (err, url)->
+      if err
+        console.log err
+      else
+        name       = "Odesk Login"
+        size       = "height=643,width=1143"
+        newWindow  = window.open url, name, size
+        newWindow.focus()
+
   useForeignAuth: (provider)->
     mainController = KD.getSingleton "mainController"
 
