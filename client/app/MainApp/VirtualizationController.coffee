@@ -44,6 +44,9 @@ class VirtualizationController extends KDController
           , cb
         else unless command is 'vm.info' then @info vm
 
+  resizeDisk:(vm, callback)->
+    @_runWrapper 'vm.resizeDisk', vm, callback
+
   start:(vm, callback)->
     @_runWrapper 'vm.start', vm, callback
 
