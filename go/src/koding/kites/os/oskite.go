@@ -172,7 +172,7 @@ func main() {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		vos.VM.Prepare(true)
+		vos.VM.Prepare(true, log.Warn)
 		if err := vos.VM.Start(); err != nil {
 			panic(err)
 		}
@@ -397,7 +397,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			isPrepared = false
 		}
 		if !isPrepared || info.hostname != vm.HostnameAlias {
-			vm.Prepare(false)
+			vm.Prepare(false, log.Warn)
 			if err := vm.Start(); err != nil {
 				log.LogError(err, 0)
 			}

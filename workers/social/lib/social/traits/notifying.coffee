@@ -21,8 +21,6 @@ module.exports = class Notifying
     actor = contents[contents.actorType]
     {origin} = contents
 
-    # console.log "HERE I AM", arguments
-
     createActivity = =>
       if contents.relationship?
         relationship = new Relationship contents.relationship
@@ -30,8 +28,7 @@ module.exports = class Notifying
           console.err err if err
 
     sendNotification = =>
-      # console.log 'sendNotification'
-      if receiver instanceof JAccount
+      if receiver instanceof JAccount and receiver.type isnt 'unregistered'
         JMailNotification.create {actor, receiver, event, contents}, \
         (err)->
           console.error err if err

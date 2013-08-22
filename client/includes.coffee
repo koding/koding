@@ -520,18 +520,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemQuestion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
-
- # Static Profile List Items
-  # "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",

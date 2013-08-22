@@ -612,6 +612,8 @@ module.exports = class JAccount extends jraphical.Module
         ],
       _id     :
         $nin  : blacklist
+      type    :
+        $in   : ['registered', null]
     },{
       skip
       limit
