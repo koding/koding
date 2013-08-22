@@ -21,12 +21,14 @@ class VirtualizationController extends KDController
     @fetchVmName options, (err, vmName) =>
       return callback err  if err?
       options.correlationName = vmName
-      @kc.run options, (rest...) ->
-        # log rest...
-        callback rest...
+      @fetchRegion vmName, (region)=>
+        options.kiteName = "os-#{region}"
+        @kc.run options, (rest...) ->
+          # log rest...
+          callback rest...
 
   _runWrapper:(command, vm, callback)->
-    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+    [callback, vm] = [vm, callback]  if vm and 'string' isnt typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
       return  unless vm
@@ -37,7 +39,6 @@ class VirtualizationController extends KDController
             then @_cbWrapper vm, callback
             else callback
           @run
-            kiteName : 'os'
             method   : command
             vmName   : vm
           , cb
@@ -67,8 +68,13 @@ class VirtualizationController extends KDController
     (vm, callback=noop)->
       KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
         if vmInfo
-          if vmInfo.planCode is 'free'
 
+          if vmInfo.underMaintenance is yes
+            message = "Your VM is under maintenance, not allowed to delete."
+            new KDNotificationView title : message
+            callback {message}
+
+          else if vmInfo.planCode is 'free'
             {hostnameAlias} = vmInfo
             vmPrefix = (@parseAlias hostnameAlias)?.prefix or hostnameAlias
 
@@ -92,14 +98,27 @@ class VirtualizationController extends KDController
           callback message: "No such VM!"
 
   info:(vm, callback)->
-    [callback, vm] = [vm, callback]  unless callback
-    @fetchDefaultVmName (defaultVm)=>
-      vm or= defaultVm
-      @_runWrapper 'vm.info', vm, (err, info)=>
-        warn "[VM-#{vm}]", err  if err
-        @emit 'StateChanged', err, vm, info
-        callback? err, vm, info
-      , no
+    [callback, vm] = [vm, callback]  if 'function' is typeof vm
+    @_runWrapper 'vm.info', vm, (err, info)=>
+      warn "[VM-#{vm}]", err  if err
+      if err?.name is "UnderMaintenanceError"
+        info = state: "MAINTENANCE"
+        err  = null
+        delete @vmRegions[vm]
+      @emit 'StateChanged', err, vm, info
+      callback? err, vm, info
+
+  fetchRegion: (vmName, callback)->
+    if region = @vmRegions[vmName]
+      return @utils.defer -> callback region
+
+    KD.remote.api.JVM.fetchVmInfo vmName, (err, info)=>
+      if err
+        warn err
+        callback 'aws' # This by default 'aws' please change it if needed! ~ GG
+      else
+        @vmRegions[vmName] = info.region
+        callback @vmRegions[vmName]
 
   fetchVmName: (options, callback) ->
     if options.vmName?
@@ -213,6 +232,7 @@ class VirtualizationController extends KDController
     @groupVms = []
     @defaultVmName = null
     @vmDomains = {}
+    @vmRegions = {}
 
   fetchTotalVMCount:(callback)->
     KD.remote.api.JVM.count (err, count)->
@@ -475,31 +495,42 @@ class VirtualizationController extends KDController
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
-  askToTurnOn:(appName='', callback)->
+  askToTurnOn:(options, callback)->
 
-    [appName, callback] = [callback, appName] if typeof appName is "function"
+    [options, callback] = [callback, options]  if typeof options is "function"
+    {appName, vmName, state} = options
 
     return  if @dialogIsOpen
 
+    title   = "Your VM is turned off"
     content = """To #{if appName then 'run' else 'do this'} <b>#{appName}</b>
                  you need to turn on your VM first, you can do that by
                  clicking '<b>Turn ON VM</b>' button below."""
 
     unless @defaultVmName
+      title   = "You don't have any VM"
       content = """To #{if appName then 'use' else 'do this'}
-                 <b>#{appName or ''}</b> you need to have at lease one VM created,
-                 you can do that by clicking '<b>Create Default VM</b>' button
-                 below."""
+                 <b>#{appName or ''}</b> you need to have at lease one VM
+                 created, you can do that by clicking '<b>Create Default
+                 VM</b>' button below."""
 
-    _runAppAfterStateChanged = (appName)=>
+    if state is "MAINTENANCE"
+      title   = "Your VM is under maintenance"
+      content = """Your VM <b>#{vmName}</b> is <b>UNDER MAINTENANCE</b> now,
+                   #{if appName then "to run <b>#{appName}</b> app"} please try
+                   again later."""
+
+    _runAppAfterStateChanged = (appName, vmName)=>
       return  unless appName
-      @once 'StateChanged', ->
-        KD.utils.wait 2000, ->
-          KD.getSingleton("appManager").open appName
+      params = params: {vmName}  if vmName
+      @once 'StateChanged', (err, vm, info)->
+        return  if err or not info or info.state isnt "RUNNING"
+        return  unless vm is vmName
+        KD.utils.wait 1200, ->
+          KD.getSingleton("appManager").open appName, params
 
     modal = new KDModalView
-      title          : if @defaultVmName then "Your VM is turned off" \
-                                         else "You don't have any VM"
+      title          : title
       content        : "<div class='modalformline'><p>#{content}</p></div>"
       height         : "auto"
       overlay        : yes
@@ -507,8 +538,8 @@ class VirtualizationController extends KDController
         'Turn ON VM' :
           style      : "modal-clean-green"
           callback   : =>
-            _runAppAfterStateChanged appName
-            @start ->
+            _runAppAfterStateChanged appName, vmName
+            @start vmName, ->
               modal.destroy()
               callback?()
         'Create Default VM' :
@@ -525,6 +556,15 @@ class VirtualizationController extends KDController
 
     if @defaultVmName then modal.buttons['Create Default VM'].destroy() \
                       else modal.buttons['Turn ON VM'].destroy()
+
+    if state is "MAINTENANCE"
+      modal.setButtons
+        Ok           :
+          style      : "modal-clean-gray"
+          callback   : ->
+            modal.destroy()
+            callback? cancel: yes
+      , yes
 
     modal.once 'KDModalViewDestroyed', -> callback? destroy: yes
 
