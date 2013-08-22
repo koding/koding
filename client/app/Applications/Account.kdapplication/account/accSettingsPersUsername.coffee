@@ -46,6 +46,7 @@ class AccountEditUsername extends KDView
       defaultValue : user.email
       placeholder  : "you@yourdomain.com..."
       name         : "email"
+      testPath     : "account-email-input"
 
     emailInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
     inputActions.addSubView emailSave = new KDButtonView
@@ -72,6 +73,7 @@ class AccountEditUsername extends KDView
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
+      testPath     : "account-email-edit"
       click        : => emailSwappable.swapViews()
 
     # SET EMAIL SWAPPABLE
@@ -99,6 +101,7 @@ class AccountEditUsername extends KDView
       defaultValue : account.profile.nickname
       placeholder  : "username..."
       name         : "username"
+      testPath     : "account-username-input"
     usernameInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
     inputActions.addSubView usernameSave = new KDButtonView
       title        : "Save"
@@ -119,6 +122,7 @@ class AccountEditUsername extends KDView
       tagName      : "a"
       partial      : "Edit"
       cssClass     : "action-link"
+      testPath     : "account-username-edit"
       click        : => usernameSwappable.swapViews()
 
     # SET USERNAME SWAPPABLE
