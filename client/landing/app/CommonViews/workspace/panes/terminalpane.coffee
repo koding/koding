@@ -19,9 +19,13 @@ class TerminalPane extends Pane
     {command} = @getOptions()
     @runCommand command if command
 
-  runCommand: (command) ->
+  runCommand: (command, callback) ->
     return unless command
-    return @remote.input "#{command}\n"  if @remote
+    if @remote
+      if callback
+        @webterm.once "WebTermEvent", callback
+        command += ";echo $?|kdevent"
+      return @remote.input "#{command}\n"
 
     if not @remote and not @triedAgain
       @utils.wait 2000, =>

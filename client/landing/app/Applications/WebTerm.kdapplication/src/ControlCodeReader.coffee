@@ -315,13 +315,16 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
               terminal.inputHandler.useApplicationKeypad false
           "?s": ignored "save mode values"
         "]": catchParameters /()(.*?)(\x07|\x1B\\)/, switchParameter 0, # OSC
-          0: (params) -> terminal.setTitleCallback? params.raw[1]
-          1: ignored "icon name"
-          2: (params) -> terminal.setTitleCallback? params.raw[1]
-          4: (params) ->
+          0:   (params) -> terminal.setTitleCallback? params.raw[1]
+          # it handles the code:
+          # echo -e "\e]1;$DATA;$(date +%s%N)\e\\"
+          # if the data has semicolon in it, it splits the data, we should join them again.
+          1:   (params) -> terminal.eventHandler?     params.raw[1..-2].join ';' # trimming random timestamp
+          2:   (params) -> terminal.setTitleCallback? params.raw[1]
+          4:   (params) ->
             parts = params.raw[2].match(/^rgb:(..)\/(..)\/(..)$/)
             terminal.defineColor params[1], "##{parts[1]}#{parts[2]}#{parts[3]}"
-          100: (params) -> terminal.eventHandler? params.raw[1]
+          100: (params) -> terminal.eventHandler?     params.raw[1..].join ';' # deprecated
 
   return new WebTerm.ControlCodeReader(terminal, initCursorControlHandler(),
     new WebTerm.ControlCodeReader(terminal, initEscapeSequenceHandler(),
