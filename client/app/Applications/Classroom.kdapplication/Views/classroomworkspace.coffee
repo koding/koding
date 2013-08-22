@@ -10,6 +10,8 @@ class ClassroomWorkspace extends CollaborativeWorkspace
 
     super config, data
 
+    @createChapterList()
+
   extendOptions: (options) ->
     config = {}
     config.joinModalTitle      = "Join a coding session"
@@ -35,7 +37,8 @@ class ClassroomWorkspace extends CollaborativeWorkspace
     ,
       itemClass  : KDView
       cssClass   : "chapters"
-      callback   : => @bound "showChapterList"
+      callback   : =>
+        @chapterList.toggleClass "on-screen"
 
   validateChapter: (panel, workspace) ->
     {config}   = @getData()
@@ -71,5 +74,5 @@ class ClassroomWorkspace extends CollaborativeWorkspace
     if chapters.length > chapter
       router.handleQuery "?course=#{course}&chapter=#{++chapter}"
 
-  showChapterList: ->
-
+  createChapterList: ->
+    @addSubView new ClassroomChapterList {}, @getData().courseManifest
