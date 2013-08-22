@@ -2,11 +2,12 @@ class ClassroomWorkspace extends CollaborativeWorkspace
 
   constructor: (options = {}, data) ->
 
-    panelOptions = data.config.panel
+    panelOptions    = data.config.panel
+    config          = @extendOptions panelOptions
+    config.delegate = options.delegate # TODO: fatihacet - it's a quick hack, we neeed to merge all other options.
 
     @addDefaultButtons panelOptions
 
-    config = @extendOptions panelOptions
     super config, data
 
   extendOptions: (options) ->
@@ -31,6 +32,10 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       cssClass   : "cupid-green join-button"
       callback   : (panel, workspace) =>
         workspace.showJoinModal()
+    ,
+      itemClass  : KDView
+      cssClass   : "chapters"
+      callback   : => @bound "showChapterList"
 
   validateChapter: (panel, workspace) ->
     {config}   = @getData()
@@ -43,18 +48,28 @@ class ClassroomWorkspace extends CollaborativeWorkspace
         config.onFailed?  panel, workspace
 
   handleChapterSuccess: ->
-    new KDModalView
+    modal = new KDModalView
       overlay      : yes
-      title        : "Yay! Passed this chapter"
+      title        : "Yay! Passed this chapter."
       cssClass     : "modal-with-text"
       content      : "<p>You have been passed this chapter. You have 3 more to go! Keep up the good work.</p>"
       buttons      :
         Next       :
           title    : "Next Chapter"
           cssClass : "modal-clean-green"
-          callback : @bound "goToNextChapter"
+          callback : => @goToNextChapter modal
 
-  goToNextChapter: ->
-    @destroy()
-    @parent.addSubView new KDView
-      partial : "dhehah"
+  goToNextChapter: (modal) ->
+    parent = @parent
+    modal.destroy()
+    parent.destroySubViews()
+
+    router = KD.getSingleton "router"
+    {course, chapter} = KD.utils.parseQuery router.getCurrentPath().split('?')[1]
+    {chapters}        = @getData().courseManifest
+
+    if chapters.length > chapter
+      router.handleQuery "?course=#{course}&chapter=#{++chapter}"
+
+  showChapterList: ->
+
