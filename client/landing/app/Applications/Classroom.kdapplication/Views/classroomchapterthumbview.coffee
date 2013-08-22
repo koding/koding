@@ -45,7 +45,7 @@ class ClassroomChapterThumbView extends JView
 
   click: ->
     data = @getData()
-    KD.getSingleton("router").handleQuery "?course=#{data.courseName}&chapter=#{data.index}"
+    KD.getSingleton("router").handleQuery "?course=#{data.courseName}&chapter=#{data.index + 1}"
 
   pistachio: ->
     options = @getOptions()
