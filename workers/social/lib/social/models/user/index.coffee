@@ -181,35 +181,6 @@ module.exports = class JUser extends jraphical.Module
         else @logout clientId, callback
 
 
-  createNewMemberActivity =(account, callback=->)->
-    CNewMemberBucket = require '../bucket/newmemberbucket'
-    CBucketActivity = require '../activity/bucketactivity'
-    bucket = new CNewMemberBucket
-      anchor      : account
-      sourceName  : 'JAccount'
-    bucket.save (err)->
-      if err
-        callback err
-      else
-        activity = CBucketActivity.create bucket
-        activity.save (err)->
-          if err
-            callback err
-          else
-            activity.addSubject bucket, (err)->
-              if err
-                callback err
-              else
-                activity.update
-                  $set          :
-                    snapshot    : JSON.stringify(bucket)
-                  $addToSet     :
-                    snapshotIds : bucket.getId()
-                , ->
-                  CActivity = require "../activity"
-                  CActivity.emit "ActivityIsCreated", activity
-                  callback()
-
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
 
@@ -418,7 +389,6 @@ module.exports = class JUser extends jraphical.Module
 
   @configureNewAcccount = (account, user, replacementToken, callback) ->
     JUser.emit 'UserCreated', user
-    createNewMemberActivity account
     JAccount.emit "AccountAuthenticated", account
     callback null, {account, replacementToken}
 
@@ -539,32 +509,64 @@ module.exports = class JUser extends jraphical.Module
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
-    @validateAll userFormData, (err) =>
-      return callback err  if err?
-      @changePasswordByUsername oldUsername, password, (err) =>
-        return callback err  if err?
+    queue = [
+      =>
+        @validateAll userFormData, (err) =>
+          return callback err  if err?
+          queue.next()
+      =>
+        @changePasswordByUsername oldUsername, password, (err) =>
+          return callback err  if err?
+          queue.next()
+      =>
         options = { account, oldUsername, email }
         @changeEmailByUsername options, (err) =>
           return callback err  if err?
-          @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
-            return callback err  if err
-            options = { account, username, clientId, isRegistration: yes }
-            @changeUsernameByAccount options, (err, newToken) =>
-              return callback err  if err?
-              @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
-                return callback err  if err
-                @addToGroups account, invite, email, (err) =>
-                  return callback err  if err?
-                  @removeFromGuestsGroup account, (err) =>
-                    return callback err  if err?
-                    account.update $set: {
-                      'profile.firstName' : firstName
-                      'profile.lastName'  : lastName
-                      type                : 'registered'
-                    }, (err) =>
-                      return callback err  if err?
-                      @sendEmailConfirmationByUsername username, (err) -> console.error err  if err
-                      callback null, newToken
+          queue.next()
+      =>
+        @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
+          return callback err  if err
+          queue.next()
+      =>
+        options = { account, username, clientId, isRegistration: yes }
+        @changeUsernameByAccount options, (err, newToken) =>
+          return callback err  if err?
+          @newToken = newToken
+          queue.next()
+      =>
+        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
+          return callback err  if err
+          @isEligible = isEligible
+          @invite = invite
+          queue.next()
+      =>
+        @addToGroups account, @invite, email, (err) =>
+          return callback err  if err?
+          queue.next()
+      =>
+        @removeFromGuestsGroup account, (err) =>
+          return callback err  if err?
+          queue.next()
+      ->
+        account.update $set: {
+          'profile.firstName' : firstName
+          'profile.lastName'  : lastName
+          type                : 'registered'
+        }, (err) ->
+          return callback err  if err?
+          queue.next()
+      =>
+        @sendEmailConfirmationByUsername username, (err) =>
+          return console.error err if err
+          queue.next()
+      ->
+        JAccount.emit "AccountRegistered", account
+        queue.next()
+      =>
+        callback null, @newToken
+        queue.next()
+    ]
+    daisy queue
 
   @register = secure (client, userFormData, callback) ->
     { connection } = client

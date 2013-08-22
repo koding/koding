@@ -178,9 +178,13 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JProxyFilter'
 
-      referer      :
-        as          : 'referer'
-        targetType  : 'JAccount'
+      referer        :
+        targetType    : 'JReferral'
+        as            : 'referer'
+
+      referred        :
+        targetType    : 'JReferral'
+        as            : 'referred'
 
       invitation    :
         as          : 'owner'
@@ -320,12 +324,12 @@ module.exports = class JAccount extends jraphical.Module
       @update operation, callback
 
 
-  createReferrerCode = require 'hat'
+  generateReferrerCode = require 'hat'
 
   createUniqueuReferrerCode:(trialCount, callback)->
     return callback new KodingError "Couldn't create your referrer code, please  try again!" if trialCount > 10
     # this will end at 16M user
-    refererCode = createReferrerCode 24, 32
+    refererCode = generateReferrerCode 24, 32
     JAccount.one {refererCode : refererCode }, (err, account)=>
       # if err is null and account is undefined, return
       return callback null, refererCode if err is null and not account
@@ -345,6 +349,24 @@ module.exports = class JAccount extends jraphical.Module
       delegate.update { $set : "refererCode" : refererCode }, (err)->
         return callback err if err
         callback null, refererCode
+
+  getReferredUsers : secure (client, callback)->
+
+    selector = {
+      targetId   : client.connection.delegate._id
+      targetName : 'JAccount'
+      sourceName : 'JAccount'
+      as         : 'referer'
+    }
+
+    options = {}
+
+    Relationship.some selector, options, (err, relationships)=>
+      return callback err if err
+      return callback null, [] if relationships.length is 0
+
+      acctSelector = '_id': $in: relationships.map (rel) -> rel.sourceId
+      JAccount.some acctSelector, {}, callback
 
   setAbout: secure (client, text, callback)->
     {delegate}    = client.connection

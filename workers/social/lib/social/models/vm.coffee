@@ -84,6 +84,10 @@ module.exports = class JVM extends Module
       shouldDelete      :
         type            : Boolean
         default         : no
+      diskSizeInMB      :
+        type            : Number
+        default         : 1200
+
 
   @createDomains = (account, domains, hostnameAlias)->
 
