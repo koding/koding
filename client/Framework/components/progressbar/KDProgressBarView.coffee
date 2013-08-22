@@ -2,7 +2,7 @@ class KDProgressBarView extends KDCustomHTMLView
 	constructor:(options = {})->
 		options.tagName	  = "div"
 		options.cssClass += " progressBarContainer"
-
+		
 		super options
 
 	viewAppended:->

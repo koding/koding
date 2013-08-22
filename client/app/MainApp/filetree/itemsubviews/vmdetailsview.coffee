@@ -9,7 +9,16 @@ class NVMDetailsView extends JView
 
     # @labelRAM = new KDLabelView
     #   title : '0 MB / 0 MB'
-    @RAMBar   = new KDProgressBarView
+    @RAMLine  = new KDCustomHTMLView
+      tagname   : "div"
+      cssClass  : "vm-details-menu"
+      partial   : "RAM Usage"
+
+    @RAMLine.addSubView @RAMBarWrapper = new KDCustomHTMLView
+      tagname   : "span"
+      cssClass  : "vm-details-item fr"
+
+    @RAMBarWrapper.addSubView @RAMBar = new KDProgressBarView
       cssClass  : "ramBar"
 
     # @labelRX = new KDLabelView
@@ -48,7 +57,15 @@ class NVMDetailsView extends JView
 
       # @labelRAM.updateTitle "#{memUsageInMB} MB (#{memUsageInPercentage}%) of #{totalMemoryLimitInMB} MB"
       # RX
-      @RAMBar.updateBar "#{memUsageInPercentage}%","#{memUsageInPercentage}% of #{totalMemoryLimitInMB} MB"
+      @RAMBar.updateBar "#{memUsageInPercentage}%","#{memUsageInPercentage}%"
+
+      @RAMLine.setTooltip 
+        title     : "#{memUsageInMB} MB of #{totalMemoryLimitInMB} MB"
+        placement : "right"
+        delayIn   : 300
+        offset    :
+          top     : 8
+          left    : 2
 
       # @kcRun cmdRX, (err, out)=>
       #   bytes = (parseInt(out) / 1024).toFixed(2)
@@ -61,9 +78,7 @@ class NVMDetailsView extends JView
 
   pistachio:->
     """
-    <div class="vm-details-menu">RAM Usage:
-      <span class="vm-details-item fr">{{> @RAMBar }}</span>
-    </div>
+    {{> @RAMLine}}
     <!-- <div class="vm-details-menu">Received Bytes:
       <span class="vm-details-item fr">{{> @labelRX }}</span>
     </div>
