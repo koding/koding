@@ -84,7 +84,7 @@ class ClassroomAppView extends KDScrollView
       @fetchCourses()
     else
       if query.chapter
-        @goToChapter query.course, query.chapter
+        @goToChapter query.course, query.chapter - 1
       else
         @goToCourse query.course
 
