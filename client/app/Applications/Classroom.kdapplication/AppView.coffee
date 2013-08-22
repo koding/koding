@@ -72,7 +72,7 @@ class ClassroomAppView extends KDScrollView
 
     configFilePath = chapters[chapterIndex].resourcesPath
     @readFileContent "/#{courseManifest.name}.kdcourse/#{configFilePath}", (config) =>
-      new ClassroomChapterView { container: @ }, { config, courseManifest }
+      @addSubView new ClassroomWorkspace { delegate: this }, { config, courseManifest }
 
   createCoursesView: (manifest) ->
     @addSubView new ClassroomCourseView { delegate: this }, manifest
