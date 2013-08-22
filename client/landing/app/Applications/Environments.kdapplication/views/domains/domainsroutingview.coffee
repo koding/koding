@@ -78,6 +78,8 @@ class DomainsRoutingView extends JView
     @resize()
 
   bindVM:(listItem)->
+    return  if @_inProgress
+
     domain          = @getData()
     vm              = listItem.getData()
     {hostnameAlias} = vm
@@ -88,7 +90,9 @@ class DomainsRoutingView extends JView
       return new KDNotificationView
         title : "A domain name can only be bound to one VM."
 
+    @_inProgress = yes
     domain.bindVM options, (err)=>
+      delete @_inProgress
       listItem.hideLoader()
       unless err
         @disconnectedVMController.removeItem listItem
@@ -98,6 +102,8 @@ class DomainsRoutingView extends JView
         notifyError err.message or err
 
   unbindVM:(listItem)->
+    return  if @_inProgress
+
     domain          = @getData()
     vm              = listItem.getData()
     {hostnameAlias} = vm
@@ -105,7 +111,9 @@ class DomainsRoutingView extends JView
 
     listItem.showLoader()
 
+    @_inProgress = yes
     domain.unbindVM options, (err)=>
+      delete @_inProgress
       listItem.hideLoader()
       unless err
         @connectedVMController.removeItem listItem
