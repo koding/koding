@@ -189,11 +189,12 @@ class ApplicationManager extends KDObject
 
   show:(appOptions, callback)->
 
-    return if appOptions.background
-
     appInstance = @get appOptions.name
-    appView     = appInstance.getView?()
 
+    if appOptions.background
+      return @utils.defer -> callback? appInstance
+
+    appView     = appInstance.getView?()
     return unless appView
 
     @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
