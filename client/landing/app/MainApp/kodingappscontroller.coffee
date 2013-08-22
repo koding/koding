@@ -28,6 +28,7 @@ class KodingAppsController extends KDController
     mainController  = KD.getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
     @publishedApps  = {}
+    @_fetchQueue    = []
 
     @getPublishedApps()
     @createExtensionToAppMap()
@@ -67,14 +68,18 @@ class KodingAppsController extends KDController
         else
           callback? err, apps
 
-  fetchAppsFromFs:(callback)->
+  fetchAppsFromFs:(cb)->
+
+    @_fetchQueue.push cb  if cb
+    return if @_fetchQueue.length > 1
 
     path   = "/home/#{KD.whoami().profile.nickname}/Applications"
     appDir = FSHelper.createFileFromPath path, 'folder'
     appDir.fetchContents KD.utils.getTimedOutCallback (err, files)=>
       if err or not Array.isArray files or files.length is 0
         @putAppsToAppStorage {}
-        callback()
+        callback() for callback in @_fetchQueue
+        @_fetchQueue = []
       else
         apps  = []
         stack = []
@@ -101,12 +106,13 @@ class KodingAppsController extends KDController
               catch e
                 console.warn "Manifest file is broken", e
           @putAppsToAppStorage manifests
-          callback? null, manifests
+          callback null, manifests  for callback in @_fetchQueue
+          @_fetchQueue = []
     , ->
-      msg = "Timeout reached for kite request"
+      warn msg = "Timeout reached for kite request"
       KD.logToExternal msg
-      log msg
-      callback()
+      callback() for callback in @_fetchQueue
+      @_fetchQueue = []
 
   fetchAppsFromDb:(callback)->
     return unless @appStorage
