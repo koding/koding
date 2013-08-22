@@ -92,7 +92,7 @@ func (vm *VM) GetPermissions(user *User) *Permissions {
 	return nil
 }
 
-func (vm *VM) Prepare(reinitialize bool) {
+func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
 	vm.Unprepare()
 
 	var err error
@@ -135,8 +135,8 @@ func (vm *VM) Prepare(reinitialize bool) {
 	vm.generateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
 	vm.generateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
 	vm.generateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
-	vm.MergePasswdFile()
-	vm.MergeGroupFile()
+	vm.MergePasswdFile(logWarning)
+	vm.MergeGroupFile(logWarning)
 	vm.MergeDpkgDatabase()
 
 	// mount overlay

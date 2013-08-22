@@ -179,4 +179,6 @@ class JContextMenuTreeViewController extends JTreeViewController
     contextMenu = @getDelegate()
     contextMenu.emit "ContextMenuItemReceivedClick", nodeView
     contextMenu.destroy()
+    event.stopPropagation()
+    event.preventDefault()
     return no
