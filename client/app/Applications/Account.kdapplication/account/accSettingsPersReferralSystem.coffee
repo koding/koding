@@ -8,7 +8,7 @@ class AccountReferralSystemListController extends AccountListViewController
     @removeAllItems()
     @showLazyLoader yes
     KD.remote.api.JReferral.fetchReferredAccounts (err, referals)=>
-      KD.showError err if err
+      return KD.showError err if err
       @instantiateListItems referals or []
     @hideLazyLoader()
 
@@ -24,10 +24,10 @@ class AccountReferralSystemListController extends AccountListViewController
     {vmToResize, sizes} = modal.modal.modalTabs.forms.Redeem.inputs
     data = { vm : vmToResize.getValue(), size : sizes.getValue() }
     KD.remote.api.JReferral.redeem data, (err, refRes)=>
-      KD.showError err if err
+      return KD.showError err if err
       modal.modal.destroy()
       KD.getSingleton("vmController").resizeDisk data.vm, (err, res)=>
-        KD.showError err if err
+        return KD.showError err if err
         @notify_ """
           #{refRes.addedSize} MB extra disk space is successfully added to your #{refRes.vm} VM. Your new disk space is #{refRes.newDiskSpace}
         """
@@ -35,7 +35,7 @@ class AccountReferralSystemListController extends AccountListViewController
 
   showRedeemReferralPointModal:()->
     KD.remote.api.JReferral.fetchRedeemableReferrals (err, referals)=>
-      KD.showError err if err
+      return KD.showError err if err
       return @notify_ "You dont have any referrals" if not referals or referals.length < 1
 
       @modal = modal = new KDModalViewWithForms
@@ -72,7 +72,7 @@ class AccountReferralSystemListController extends AccountListViewController
                   selectOptions : (cb)->
                     vmController = KD.getSingleton("vmController")
                     vmController.fetchVMs yes, (err, vms)=>
-                      KD.showError err if err
+                      return KD.showError err if err
                       options = for vm in vms
                         ( title : vm, value : vm)
                       cb options
