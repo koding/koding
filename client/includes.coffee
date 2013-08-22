@@ -86,6 +86,7 @@ module.exports = [
   "Framework/components/inputs/KDWmdInput.coffee",
   "Framework/components/inputs/tokenizedmenu.coffee",
   "Framework/components/inputs/tokenizedinput.coffee",
+  "Framework/components/inputs/KDContentEditableView.coffee",
 
   # upload
   "Framework/components/upload/KDFileUploadView.coffee",
@@ -174,7 +175,9 @@ module.exports = [
   "app/CommonViews/ShowMoreDataModalView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
   "app/CommonViews/Tags/TagAutoCompleteController.coffee",
-  "app/CommonViews/FormViews.coffee",
+  "app/CommonViews/SkillTagFormView.coffee",
+  "app/CommonViews/SkillTagAutoCompleteController.coffee",
+  "app/CommonViews/SkillTagAutoCompletedItem.coffee",
   "app/CommonViews/messagesList.coffee",
   "app/CommonViews/CommonInputWithButton.coffee",
   "app/CommonViews/SplitViewWithOlderSiblings.coffee",
@@ -517,18 +520,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemQuestion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
-
- # Static Profile List Items
-  # "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -622,7 +614,6 @@ module.exports = [
   # MEMBERS VIEWS
   "app/Applications/Members.kdapplication/AppView.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee",
-  "app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",
   "app/Applications/Members.kdapplication/newmemberactivitylistitem.coffee",
@@ -709,6 +700,8 @@ module.exports = [
   # CONTENT DISPLAY VIEWS
   "app/MainApp/ContentDisplay/ContentDisplay.coffee",
   "app/MainApp/ContentDisplay/ContentDisplayController.coffee",
+
+  "app/MainApp/pinger.coffee",
 
   # KITE CONTROLLER
   "app/MainApp/kite/kite.coffee",

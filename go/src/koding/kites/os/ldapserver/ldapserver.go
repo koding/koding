@@ -186,7 +186,6 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			"objectClass":   "posixAccount",
 			"cn":            user.Name,
 			"uid":           user.Name,
-			"userPassword":  "{SSHA}MmhmXrqch9NbAcRA6Z79OTSj6MqNXQxF",
 			"uidNumber":     strconv.Itoa(user.Uid),
 			"gidNumber":     strconv.Itoa(user.Uid),
 			"homeDirectory": "/home/" + user.Name,

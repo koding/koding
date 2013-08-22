@@ -82,11 +82,11 @@ class KDRouter extends KDObject
     route = route.split '/'
     route.shift() # first edge is garbage like '' or '#!'
     for edge, i in route
-      len = edge.length - 1
-      if '?' is edge.charAt len # then this is an "optional edge".
+      last = edge.length - 1
+      if '?' is edge.charAt last # then this is an "optional edge".
         # recursively alias this route without this optional edge:
         @addRoute routeWithoutEdgeAtIndex(route, i), listener
-        edge = edge.substr 0, len # get rid of the "?" from the route
+        edge = edge.substr 0, last # get rid of the "?" from the route
       if /^:/.test edge
         node[':'] or= name: edge.substr 1
         node = node[':']

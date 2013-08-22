@@ -251,7 +251,7 @@ module.exports = class JUser extends jraphical.Module
         username : username
       # todo add alert support(mail, log etc)
       JLog.checkLoginBruteForce bruteForceControlData, (res)->
-        unless res then return callback createKodingError "Your login access is blocked for #{JLog.TIME_LIMIT_IN_MIN} minutes."
+        unless res then return callback createKodingError "Your login access is blocked for #{JLog.timeLimit()} minutes."
         JUser.one {username}, (err, user)->
           if err
             JLog.log { type: "login", username: username, success: no }

@@ -27,7 +27,6 @@ import (
 
 type VMInfo struct {
 	vmId          bson.ObjectId
-	vmName        string
 	useCounter    int
 	timeout       *time.Timer
 	mutex         sync.Mutex
@@ -85,7 +84,14 @@ func main() {
 	}
 	for _, dir := range dirs {
 		if strings.HasPrefix(dir.Name(), "vm-") {
-			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			vmId := bson.ObjectIdHex(dir.Name()[3:])
+			var vm virt.VM
+			if err := db.VMs.FindId(vmId).One(&vm); err != nil {
+				if err := virt.UnprepareVM(vmId); err != nil {
+					log.Warn(err.Error())
+				}
+				continue
+			}
 			info := newInfo(&vm)
 			infos[vm.Id] = info
 			info.startTimeout()
@@ -101,7 +107,7 @@ func main() {
 		requestWaitGroup.Wait()
 		if sig == syscall.SIGUSR1 {
 			for _, info := range infos {
-				log.Info("Unpreparing " + info.vmName + "...")
+				log.Info("Unpreparing " + virt.VMName(info.vmId) + "...")
 				info.unprepareVM()
 			}
 			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": k.ServiceUniqueName}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
@@ -122,7 +128,7 @@ func main() {
 			}
 		}
 
-		if vm.HostKite == "" {
+		if vm.HostKite == "" || vm.HostKite == "(maintenance)" {
 			return k.ServiceUniqueName
 		}
 		if vm.HostKite == deadService {
@@ -166,7 +172,7 @@ func main() {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		vos.VM.Prepare(true)
+		vos.VM.Prepare(true, log.Warn)
 		if err := vos.VM.Start(); err != nil {
 			panic(err)
 		}
@@ -391,7 +397,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			isPrepared = false
 		}
 		if !isPrepared || info.hostname != vm.HostnameAlias {
-			vm.Prepare(false)
+			vm.Prepare(false, log.Warn)
 			if err := vm.Start(); err != nil {
 				log.LogError(err, 0)
 			}
@@ -580,20 +586,28 @@ func getUsers(vm *virt.VM) []virt.User {
 func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
 		vmId:             vm.Id,
-		vmName:           vm.String(),
 		useCounter:       0,
 		totalCpuUsage:    utils.MaxInt,
+		hostname:         vm.HostnameAlias,
 		CpuShares:        1000,
 		TotalMemoryLimit: MaxMemoryLimit,
 	}
 }
 
 func (info *VMInfo) startTimeout() {
-	info.timeout = time.AfterFunc(10*time.Minute, func() {
+	info.timeout = time.AfterFunc(5*time.Minute, func() {
 		if info.useCounter != 0 {
 			return
 		}
-		info.unprepareVM()
+		if err := virt.SendMessageToVMUsers(info.vmId, "========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
+			log.Warn(err.Error())
+		}
+		info.timeout = time.AfterFunc(5*time.Minute, func() {
+			if info.useCounter != 0 {
+				return
+			}
+			info.unprepareVM()
+		})
 	})
 }
 

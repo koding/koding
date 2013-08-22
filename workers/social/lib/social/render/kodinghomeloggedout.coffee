@@ -24,7 +24,7 @@ module.exports = ->
       <header class="kdview" id='main-header'>
         <div class="kdview">
           <a id="koding-logo" href="#" class='large'><span></span></a>
-          <a id="header-sign-in" class="custom-link-view login" href="/Login"><span class="title" data-paths="title">Already a user? Sign In.</span><span class="icon"></span></a>
+          <a id="header-sign-in" class="custom-link-view login" href="#!/Login"><span class="title" data-paths="title">Already a user? Sign In.</span><span class="icon"></span></a>
         </div>
       </header>
       #{getHomeIntro()}

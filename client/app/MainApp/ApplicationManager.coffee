@@ -81,7 +81,8 @@ class ApplicationManager extends KDObject
             options.params = newParams  if newParams
             @open name, options, callback
           else
-            appOptions.preCondition.failure? appParams, callback
+            params = newParams or appParams
+            appOptions.preCondition.failure? params, callback
         return
 
       # if there is no registered appController
