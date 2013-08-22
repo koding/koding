@@ -6,16 +6,10 @@ class ClassroomChapterView extends KDView
 
     @showChaptersList = @getOptions().showChaptersList or yes
 
-    {layout} = @getData().config
-    if @showChaptersList
-      @injectChapterListToLayoutConfig layout
+    @getOptions().container.addSubView new ClassroomWorkspace {}, @getData()
 
-    workspace = new CollaborativeWorkspace layout, @getData().courseManifest
-    @getOptions().container.addSubView workspace
-
-  injectChapterListToLayoutConfig: (layoutConfig) ->
-    [panel] = layoutConfig.panels
-    if panel.pane
+  injectChapterListToPanel: (panelConfig) ->
+    if panelConfig.pane
       panel.layout =
         direction      : "vertical"
         sizes          : [ 50, null ]
