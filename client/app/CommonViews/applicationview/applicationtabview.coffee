@@ -40,7 +40,7 @@ class ApplicationTabView extends KDTabView
     focusActivePane = (pane)=>
       {tabView} = pane.getMainView()
       if this is tabView
-        @getActivePane().getHandle().$().click()
+        @getActivePane()?.getHandle?().$().click()
 
     mainView = KD.getSingleton("mainViewController").getView()
     mainView.mainTabView.on "PaneDidShow", focusActivePane
