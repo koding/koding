@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -271,10 +272,138 @@ func (vos *VOS) Rename(oldname, newname string) error {
 	})
 }
 
-func (vos *VOS) AddWatch(w *inotify.Watcher, name string, flags uint32) (watchedPath string, err error) {
-	err = vos.inVosContext(name, false, true, func(resolved string) error {
-		watchedPath = resolved
-		return w.AddWatch(resolved, flags)
+type Watch struct {
+	watchSubdirectories bool
+	callback            func(*inotify.Event, os.FileInfo)
+	root                string
+	paths               []string
+}
+
+var watcher *inotify.Watcher
+var watchMap = make(map[string][]*Watch)
+var watchMutex sync.Mutex
+var WatchErrors <-chan error
+
+func init() {
+	var err error
+	watcher, err = inotify.NewWatcher()
+	if err != nil {
+		panic(err)
+	}
+	WatchErrors = watcher.Error
+
+	go func() {
+		for ev := range watcher.Event {
+			func() {
+				watchMutex.Lock()
+				defer watchMutex.Unlock()
+
+				if ev.Mask&inotify.IN_DELETE_SELF != 0 {
+					for _, w := range watchMap[ev.Name] {
+						for i, p := range w.paths {
+							if p == ev.Name {
+								w.paths[i] = w.paths[len(w.paths)-1]
+								w.paths = w.paths[:len(w.paths)-1]
+								break
+							}
+						}
+					}
+					delete(watchMap, ev.Name)
+					return
+				}
+
+				info, err := os.Lstat(ev.Name)
+				if err != nil && !os.IsNotExist(err) {
+					watcher.Error <- err
+					return
+				}
+
+				for _, w := range watchMap[path.Dir(ev.Name)] {
+					w.callback(&inotify.Event{Name: strings.Replace(ev.Name, w.root, "", 1), Mask: ev.Mask, Cookie: ev.Cookie}, info)
+					if (ev.Mask&(inotify.IN_CREATE|inotify.IN_MOVED_TO)) != 0 && info != nil && info.Mode().IsDir() && w.watchSubdirectories {
+						addPathToWatch(w, ev.Name)
+					}
+				}
+			}()
+		}
+	}()
+}
+
+func (vos *VOS) WatchDirectory(name string, watchSubdirectories bool, callback func(*inotify.Event, os.FileInfo)) (*Watch, error) {
+	w := &Watch{
+		watchSubdirectories: watchSubdirectories,
+		callback:            callback,
+		root:                vos.VM.File("rootfs"),
+		paths:               nil,
+	}
+	err := vos.inVosContext(name, false, true, func(resolved string) error {
+		watchMutex.Lock()
+		defer watchMutex.Unlock()
+		return addPathToWatch(w, resolved)
 	})
-	return
+	if err != nil {
+		w.Close()
+		return nil, err
+	}
+	return w, nil
+}
+
+// must be called with locked watchMutex
+func addPathToWatch(w *Watch, resolved string) error {
+	if len(w.paths) >= 100 {
+		return errors.New("Too many subdirectories to watch.")
+	}
+
+	err := watcher.AddWatch(resolved, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_ATTRIB|inotify.IN_DELETE_SELF)
+	if err != nil {
+		return err
+	}
+	w.paths = append(w.paths, resolved)
+	watchMap[resolved] = append(watchMap[resolved], w)
+
+	if w.watchSubdirectories {
+		dir, err := os.Open(resolved)
+		if err != nil {
+			return err
+		}
+		defer dir.Close()
+
+		infos, err := dir.Readdir(0)
+		if err != nil {
+			return err
+		}
+
+		for _, info := range infos {
+			if info.Mode().IsDir() {
+				if err := addPathToWatch(w, resolved+"/"+info.Name()); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (w *Watch) Close() error {
+	watchMutex.Lock()
+	defer watchMutex.Unlock()
+
+	for _, path := range w.paths {
+		watches := watchMap[path]
+		for i, entry := range watches {
+			if entry == w {
+				watches[i] = watches[len(watches)-1]
+				watches = watches[:len(watches)-1]
+				break
+			}
+		}
+		if len(watches) == 0 {
+			delete(watchMap, path)
+			return watcher.RemoveWatch(path)
+		}
+		watchMap[path] = watches
+	}
+
+	return nil
 }

@@ -10,6 +10,11 @@ class StatusActivityItemView extends ActivityItemChild
         top            : 3
         left           : -5
 
+    if data.link?.link_embed?.type is "image"
+      @twoColumns      = yes
+
+      options.commentSettings = fixedHeight: 300
+
     super options,data
 
     @embedOptions = $.extend {}, options,
@@ -18,6 +23,7 @@ class StatusActivityItemView extends ActivityItemChild
 
     if data.link?
       @embedBox = new EmbedBox @embedOptions, data.link
+      @setClass "two-columns"  if @twoColumns
     else
       @embedBox = new KDView
 
@@ -115,21 +121,41 @@ class StatusActivityItemView extends ActivityItemChild
     str = @utils.applyTextExpansions str, yes
 
   pistachio:->
-    """
-    {{> @settingsButton}}
-    <span class="avatar">{{> @avatar}}</span>
-    <div class='activity-item-right-col'>
-      <h3 class='hidden'></h3>
-      <p class="status-body">{{@applyTextExpansions #(body)}}</p>
-      {{> @embedBox}}
-      <footer class='clearfix'>
-        <div class='type-and-time'>
-          <span class='type-icon'></span> by {{> @author}}
-          {{> @timeAgoView}}
-          {{> @tags}}
-        </div>
-        {{> @actionLinks}}
-      </footer>
-      {{> @commentBox}}
-    </div>
-    """
+    if @twoColumns
+      """
+      {{> @settingsButton}}
+      <span class="avatar">{{> @avatar}}</span>
+      <div class='activity-item-right-col'>
+        <h3 class='hidden'></h3>
+        <p class="status-body">{{@applyTextExpansions #(body)}}</p>
+        <footer class='clearfix'>
+          <div class='type-and-time'>
+            <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
+            {{> @timeAgoView}}
+            {{> @tags}}
+          </div>
+          {{> @actionLinks}}
+        </footer>
+        {{> @embedBox}}
+        {{> @commentBox}}
+      </div>
+      """
+    else
+      """
+      {{> @settingsButton}}
+      <span class="avatar">{{> @avatar}}</span>
+      <div class='activity-item-right-col'>
+        <h3 class='hidden'></h3>
+        <p class="status-body">{{@applyTextExpansions #(body)}}</p>
+        {{> @embedBox}}
+        <footer class='clearfix'>
+          <div class='type-and-time'>
+            <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
+            {{> @timeAgoView}}
+            {{> @tags}}
+          </div>
+          {{> @actionLinks}}
+        </footer>
+        {{> @commentBox}}
+      </div>
+      """

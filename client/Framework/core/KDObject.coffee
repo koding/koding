@@ -14,6 +14,9 @@ class KDObject extends KDEventEmitter
 
     super
 
+    if options.testPath
+      KD.registerInstanceForTesting this
+
     @on 'error', error
     @once 'ready', => @readyState = READY
 

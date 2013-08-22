@@ -17,7 +17,7 @@ func init() {
 		return username == password
 	}, nil)
 
-	http.Handle("/wrapbasic/", NewHandlerWithAuth(basicAuth,http.HandlerFunc(myHandler)) )
+	http.Handle("/wrapbasic/", NewHandlerWithAuth(basicAuth, http.HandlerFunc(myHandler)))
 	go http.ListenAndServe(port, nil)
 	time.Sleep(1 * time.Second)
 }

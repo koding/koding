@@ -65,9 +65,9 @@ func (t *server) send(channel int, m message) {
 	}
 }
 
-// Currently drops all but method frames expected on the given channel
+// drops all but method frames expected on the given channel
 func (t *server) recv(channel int, m message) message {
-	defer time.AfterFunc(10*time.Millisecond, func() { panic("recv deadlock") }).Stop()
+	defer time.AfterFunc(time.Second, func() { panic("recv deadlock") }).Stop()
 
 	var remaining int
 	var header *headerFrame
@@ -91,6 +91,10 @@ func (t *server) recv(channel int, m message) message {
 			// start content state
 			header = f
 			remaining = int(header.Size)
+			if remaining == 0 {
+				m.(messageWithContent).setContent(header.Properties, nil)
+				return m
+			}
 
 		case *bodyFrame:
 			// continue until terminated
@@ -112,6 +116,9 @@ func (t *server) recv(channel int, m message) message {
 			} else {
 				t.Fatalf("expected method type: %T, got: %T", m, f.Method)
 			}
+
+		default:
+			t.Fatalf("unexpected frame: %+v", f)
 		}
 	}
 
@@ -418,4 +425,46 @@ func TestNotifyClosesAllChansAfterConnectionClose(t *testing.T) {
 	case <-time.After(time.Millisecond):
 		t.Errorf("expected to close nacks Channel.NotifyConfirm chan after Connection.Close")
 	}
+}
+
+// Should not panic when sending bodies split at differnet boundaries
+func TestPublishBodySliceIssue74(t *testing.T) {
+	rwc, srv := newSession(t)
+	defer rwc.Close()
+
+	const frameSize = 100
+	const publishings = frameSize * 3
+
+	done := make(chan bool)
+	base := make([]byte, publishings)
+
+	go func() {
+		srv.connectionOpen()
+		srv.channelOpen(1)
+
+		for i := 0; i < publishings; i++ {
+			srv.recv(1, &basicPublish{})
+		}
+
+		done <- true
+	}()
+
+	cfg := defaultConfig()
+	cfg.FrameSize = frameSize
+
+	c, err := Open(rwc, cfg)
+	if err != nil {
+		t.Fatalf("could not create connection: %s (%s)", c, err)
+	}
+
+	ch, err := c.Channel()
+	if err != nil {
+		t.Fatalf("could not open channel: %s (%s)", ch, err)
+	}
+
+	for i := 0; i < publishings; i++ {
+		go ch.Publish("", "q", false, false, Publishing{Body: base[0:i]})
+	}
+
+	<-done
 }

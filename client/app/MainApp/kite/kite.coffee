@@ -1,4 +1,4 @@
-class Kite extends KDObject
+class Kite extends Pinger
 
   [ NOTREADY, READY ] = [ 0, 1 ]
 
@@ -45,6 +45,8 @@ class Kite extends KDObject
   handleBrokerSubscribed:->
 
   cycleChannel: ->
+    log "cycleChannel", @channel.name
+
     @setStopPinging()
     @channel.off()
 
@@ -59,19 +61,6 @@ class Kite extends KDObject
       callbacks   : {}
     @channel.once 'pong', callback  if callback
 
-  setStartPinging: -> @stopPinging = yes
-
-  setStopPinging: -> @stopPinging = no
-
-  handleMessageArrived: ->
-    clearTimeout @unresponsiveTimeoutId
-
-    @unresponded = 0
-
-    @pingTimeoutId = setTimeout =>
-      @pingChannel()
-    , 10000
-
   handleChannelMessage: (args) ->
 
     {method} = args
@@ -85,23 +74,6 @@ class Kite extends KDObject
       else (@localStore.get method) ? ->
 
     callback.apply this, @unscrub args
-
-  handleChannelPublish: ->
-    clearTimeout @pingTimeoutId           if @pingTimeoutId?
-    clearTimeout @unresponsiveTimeoutId   if @unresponsiveTimeoutId?
-
-    delete @pingTimeoutId
-    delete @unresponsiveTimeoutId
-
-    @unresponsiveTimeoutId = setTimeout =>
-      @emit "possibleUnresponsive"
-    , 5000
-
-  handleSuspectChannel: ->
-    @unresponded ||= 0
-    log 'possibleUnresponsive', @channel.name, @unresponded
-    @unresponded++
-    if @unresponded > 1 then @emit 'unresponsive' else @ping()
 
   handleUnresponsiveChannel: ->
     log 'unresponsive', @channel.name

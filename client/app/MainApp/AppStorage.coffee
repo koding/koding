@@ -1,5 +1,5 @@
 
-class AppStorage extends KDEventEmitter
+class AppStorage extends KDObject
 
   constructor: (appId, version)->
     @_applicationID = appId
@@ -16,12 +16,15 @@ class AppStorage extends KDEventEmitter
         unless error
           callback @_storage = storage or {appId, version, bucket:{}}
           @emit "storageFetched"
+          @emit "ready"
         else
           callback null
 
     else
       callback @_storage
-      KD.utils.defer => @emit "storageFetched"
+      KD.utils.defer =>
+        @emit "storageFetched"
+        @emit "ready"
 
   fetchValue: (key, callback, group = 'bucket')->
 
@@ -39,7 +42,7 @@ class AppStorage extends KDEventEmitter
 
     pack = @zip key, group, value
 
-    @_storageData[group] = {} unless @_storageData[group]?
+    @_storageData[group] = {}  unless @_storageData[group]?
     @_storageData[group][key] = value
 
     @fetchStorage (storage)=>

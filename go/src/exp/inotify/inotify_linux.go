@@ -120,10 +120,8 @@ func (w *Watcher) AddWatch(path string, flags uint32) error {
 		}
 	}
 
-	if !found {
-		w.watches[path] = &watch{wd: uint32(wd), flags: flags}
-		w.paths[wd] = path
-	}
+	w.watches[path] = &watch{wd: uint32(wd), flags: flags}
+	w.paths[wd] = path
 	w.mu.Unlock()
 	return nil
 }

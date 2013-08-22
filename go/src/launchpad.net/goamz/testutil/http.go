@@ -15,6 +15,7 @@ type HTTPServer struct {
 	URL      string
 	Timeout  time.Duration
 	started  bool
+	listener net.Listener
 	request  chan *http.Request
 	response chan ResponseFunc
 }
@@ -42,11 +43,11 @@ func (s *HTTPServer) Start() {
 	if err != nil {
 		panic(err)
 	}
-	l, err := net.Listen("tcp", u.Host)
+	s.listener, err = net.Listen("tcp", u.Host)
 	if err != nil {
 		panic(err)
 	}
-	go http.Serve(l, s)
+	go http.Serve(s.listener, s)
 
 	s.Response(203, nil, "")
 	for {
@@ -58,6 +59,17 @@ func (s *HTTPServer) Start() {
 		time.Sleep(1e8)
 	}
 	s.WaitRequest() // Consume dummy request.
+}
+
+func (s *HTTPServer) Stop() {
+	if s.listener == nil {
+		return
+	}
+	err := s.listener.Close()
+	if err != nil {
+		panic(err)
+	}
+	s.listener = nil
 }
 
 // Flush discards all pending requests and responses.

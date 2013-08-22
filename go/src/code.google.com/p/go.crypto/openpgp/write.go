@@ -158,8 +158,12 @@ func hashToHashId(h crypto.Hash) uint8 {
 func Encrypt(ciphertext io.Writer, to []*Entity, signed *Entity, hints *FileHints, config *packet.Config) (plaintext io.WriteCloser, err error) {
 	var signer *packet.PrivateKey
 	if signed != nil {
-		signer = signed.signingKey().PrivateKey
-		if signer == nil || signer.Encrypted {
+		signKey, ok := signed.signingKey(config.Now())
+		if !ok {
+			return nil, errors.InvalidArgumentError("no valid signing keys")
+		}
+		signer = signKey.PrivateKey
+		if signer.Encrypted {
 			return nil, errors.InvalidArgumentError("signing key must be decrypted")
 		}
 	}
@@ -185,8 +189,9 @@ func Encrypt(ciphertext io.Writer, to []*Entity, signed *Entity, hints *FileHint
 
 	encryptKeys := make([]Key, len(to))
 	for i := range to {
-		encryptKeys[i] = to[i].encryptionKey()
-		if encryptKeys[i].PublicKey == nil {
+		var ok bool
+		encryptKeys[i], ok = to[i].encryptionKey(config.Now())
+		if !ok {
 			return nil, errors.InvalidArgumentError("cannot encrypt a message to key id " + strconv.FormatUint(to[i].PrimaryKey.KeyId, 16) + " because it has no encryption keys")
 		}
 
@@ -219,16 +224,32 @@ func Encrypt(ciphertext io.Writer, to []*Entity, signed *Entity, hints *FileHint
 		}
 	}
 
-	hashFunc := candidateHashes[0]
-	// If the hash specified by config is a candidate, we'll use that.
-	configuredHash := config.Hash()
-	for _, h := range candidateHashes {
-		if h == uint8(configuredHash) {
-			hashFunc = h
+	var hash crypto.Hash
+	for _, hashId := range candidateHashes {
+		if h, ok := s2k.HashIdToHash(hashId); ok && h.Available() {
+			hash = h
 			break
 		}
 	}
-	hash, _ := s2k.HashIdToHash(hashFunc)
+
+	// If the hash specified by config is a candidate, we'll use that.
+	if configuredHash := config.Hash(); configuredHash.Available() {
+		for _, hashId := range candidateHashes {
+			if h, ok := s2k.HashIdToHash(hashId); ok && h == configuredHash {
+				hash = h
+				break
+			}
+		}
+	}
+
+	if hash == 0 {
+		hashId := candidateHashes[0]
+		name, ok := s2k.HashIdToString(hashId)
+		if !ok {
+			name = "#" + strconv.Itoa(int(hashId))
+		}
+		return nil, errors.InvalidArgumentError("cannot encrypt because no candidate hash functions are compiled in. (Wanted " + name + " in this case.)")
+	}
 
 	symKey := make([]byte, cipher.KeySize())
 	if _, err := io.ReadFull(config.Random(), symKey); err != nil {

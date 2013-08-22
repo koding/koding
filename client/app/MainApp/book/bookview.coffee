@@ -36,6 +36,7 @@ class BookView extends JView
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName : "a"
       partial : "Close Tutorial"
+      testPath: "book-close"
       cssClass: "dismiss-button"
       click   : => @emit "OverlayWillBeRemoved"
       tooltip :
@@ -163,8 +164,8 @@ class BookView extends JView
     # check if page has tutorial
     if @page.getData().howToSteps.length < 1
       @showMeButton.hide()
-    else 
-      if @page.getData().menuItem is "Develop" and 
+    else
+      if @page.getData().menuItem is "Develop" and
         KD.getSingleton("vmController").defaultVmName is null
           @showMeButton.hide()
       else
@@ -291,7 +292,11 @@ class BookView extends JView
       # wait a little again
       @utils.wait 500, =>
         # trigger push
-        @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().submit()
+        # @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().submit()
+        new KDNotificationView
+          title     : "Cool, it's ready! You can click submit or cancel."
+          duration  : 3000
+
         @utils.wait 1000, =>
           @destroyPointer()
 
@@ -437,7 +442,7 @@ class BookView extends JView
 
       nodes = KD.singletons.finderController.treeController.data
       fsFile = nodes.filter (x) -> x.name is "Web"
-      if not fsFile then return 
+      if not fsFile then return
 
       @navigateToFolder()
 
@@ -466,7 +471,7 @@ class BookView extends JView
     # find user Web folder location
     user = KD.nick()
     defaultVMName = KD.singletons.vmController.defaultVmName
-    webFolder = "[#{defaultVMName}]/home/#{user}/Web"    
+    webFolder = "[#{defaultVMName}]/home/#{user}/Web"
     @webFolderItem = KD.getSingleton("finderController").treeController.nodes[webFolder]
     offsetTo = @webFolderItem.$().offset()
     # navigate to folder

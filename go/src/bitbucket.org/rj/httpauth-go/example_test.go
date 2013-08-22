@@ -23,7 +23,7 @@ func ExampleNewBasic() {
 		username := auth.Authorize(r)
 		if username == "" {
 			// Oops!  Access denied.
-			auth.NotifyAuthRequired(w,r)
+			auth.NotifyAuthRequired(w, r)
 			return
 		}
 		fmt.Fprintf(w, "<html><body><h1>Hello</h1><p>Welcome, %s</p></body></html>", username)

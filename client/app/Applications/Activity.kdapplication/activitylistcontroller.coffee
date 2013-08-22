@@ -166,8 +166,9 @@ class ActivityListController extends KDListViewController
     for item in @itemsOrdered
       data = item.getData()
 
-      continue  unless data.group
       continue  if typeof data.group is "string"
+      continue  unless data.group
+      continue  unless data.group[0]
 
       if data.group[0].constructorName is followee.bongo_.constructorName
         if data.anchor && data.anchor.id is follower.id

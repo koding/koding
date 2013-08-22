@@ -33,6 +33,7 @@ class ActivityAppController extends AppController
 
   constructor:(options={})->
     options.view    = new ActivityAppView
+      testPath      : "activity-feed"
     options.appInfo =
       name          : 'Activity'
 

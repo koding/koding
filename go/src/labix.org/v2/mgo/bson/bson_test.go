@@ -353,6 +353,20 @@ func (s *S) TestUnmarshalStructSampleItems(c *C) {
 	}
 }
 
+func (s *S) Test64bitInt(c *C) {
+	var i int64 = (1 << 31)
+	if int(i) > 0 {
+		data, err := bson.Marshal(bson.M{"i": int(i)})
+		c.Assert(err, IsNil)
+		c.Assert(string(data), Equals, wrapInDoc("\x12i\x00\x00\x00\x00\x80\x00\x00\x00\x00"))
+
+		var result struct { I int }
+		err = bson.Unmarshal(data, &result)
+		c.Assert(err, IsNil)
+		c.Assert(int64(result.I), Equals, i)
+	}
+}
+
 // --------------------------------------------------------------------------
 // Generic two-way struct marshaling tests.
 
@@ -513,6 +527,10 @@ var unmarshalItems = []testItemType{
 	// Decode old binary.
 	{bson.M{"_": []byte("old")},
 		"\x05_\x00\x07\x00\x00\x00\x02\x03\x00\x00\x00old"},
+
+	// Decode old binary without length. According to the spec, this shouldn't happen.
+	{bson.M{"_": []byte("old")},
+		"\x05_\x00\x03\x00\x00\x00\x02old"},
 }
 
 func (s *S) TestUnmarshalOneWayItems(c *C) {

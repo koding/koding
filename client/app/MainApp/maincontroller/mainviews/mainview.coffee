@@ -169,6 +169,8 @@ class MainView extends KDView
 
   setStickyNotification:->
     # sticky = KD.getSingleton('windowController')?.stickyNotification
+    return if not KD.isLoggedIn() # don't show it to guests
+
     @utils.defer => getStatus()
     
     {JSystemStatus} = KD.remote.api
