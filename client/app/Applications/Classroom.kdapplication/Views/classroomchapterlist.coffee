@@ -7,8 +7,10 @@ class ClassroomChapterList extends KDScrollView
     super options, data
 
     for chapter, index in @getData().chapters
-      chapter.index = ++index
+      chapter.index      = index
+      chapter.courseName = @getData().name
+
       @addSubView new ClassroomChapterThumbView
         delegate   : this
-        courseRoot : ""
+        courseRoot : "#{ClassroomAppView::cdnRoot}/#{@getData().name}.kdcourse"
       , chapter

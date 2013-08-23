@@ -6,8 +6,7 @@ class ClassroomAppView extends KDScrollView
 
     super options, data
 
-    @cdnRoot     = "http://fatihacet.kd.io/cdn/courses"
-    @appStorage  = new AppStorage "Classroom", "1.0"
+    @appStorage  = KD.getSingleton("appStorageController").storage "Classroom", "1.0"
 
     @emit "ready"
 
@@ -129,3 +128,5 @@ class ClassroomAppView extends KDScrollView
           when "json"    then callback JSON.parse content
           when "md"      then callback KD.utils.applyMarkdown content
           when "coffee"  then KD.utils.compileCoffeeOnClient content, callback
+
+  cdnRoot: "http://fatihacet.kd.io/cdn/courses"
