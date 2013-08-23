@@ -47,6 +47,8 @@ class Panel extends JView
   createHeaderHint: ->
     @header.addSubView new KDCustomHTMLView
       cssClass  : "help"
+      tooltip   :
+        title   : "Need help?"
       click     : => @showHintModal()
 
   createLayout: ->
