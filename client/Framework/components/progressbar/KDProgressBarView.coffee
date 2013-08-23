@@ -1,6 +1,6 @@
 class KDProgressBarView extends KDCustomHTMLView
   constructor:(options = {})->
-    options.cssClass += " progressbar-container"
+    options.cssClass = KD.utils.curryCssClass "progressbar-container"
         
     super options
 
@@ -17,6 +17,5 @@ class KDProgressBarView extends KDCustomHTMLView
 
   updateBar:(value, unit, label)->
     @bar.setWidth value, unit
-    window.bar = @bar
     @darkLabel.updatePartial "#{label}&nbsp;"
     @lightLabel.updatePartial "#{label}&nbsp;"
