@@ -359,6 +359,7 @@ module.exports = class JAccount extends jraphical.Module
       as         : 'referer'
     }
 
+    # todo add pagination here
     options = {}
 
     Relationship.some selector, options, (err, relationships)=>
