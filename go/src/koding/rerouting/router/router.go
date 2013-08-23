@@ -21,7 +21,7 @@ type Producer struct {
 	Channel *amqp.Channel
 }
 
-type AuthMsgJson struct {
+type authMsgJson struct {
 	BindingExchange    string  `json:"bindingExchange"`
 	BindingKey         string  `json:"bindingKey"`
 	PublishingExchange *string `json:"publishingExchange"`
@@ -223,7 +223,7 @@ func (r *Router) addBinding(exchangeName string) error {
 }
 
 func createAuthMsg(msg *amqp.Delivery) (*AuthMsg, error) {
-	var msgJson AuthMsgJson
+	var msgJson authMsgJson
 
 	if err := json.Unmarshal(msg.Body, &msgJson); err != nil {
 		return nil, err
