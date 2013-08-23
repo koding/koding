@@ -2,15 +2,21 @@ class ClassroomWorkspace extends CollaborativeWorkspace
 
   constructor: (options = {}, data) ->
 
-    panelOptions    = data.config.panel
-    config          = @extendOptions panelOptions
-    config.delegate = options.delegate # TODO: fatihacet - it's a quick hack, we neeed to merge all other options.
+    panelOptions      = data.config.panel
+    config            = @extendOptions panelOptions
+    config.delegate   = options.delegate # TODO: fatihacet - it's a quick hack, we neeed to merge all other options.
 
     @addDefaultButtons panelOptions
 
     super config, data
 
-    @createChapterList()
+    @on "AllPanesAddedToPanel", =>
+      @createChapterList()
+      @createChapterDescription()
+
+    @on "WorkspaceSyncedWithRemote", =>
+      KD.utils.wait 500, => # intentional to show slide in
+        @animateContent @chapterDescription
 
   extendOptions: (options) ->
     config = {}
@@ -37,11 +43,15 @@ class ClassroomWorkspace extends CollaborativeWorkspace
     ,
       itemClass  : KDView
       cssClass   : "chapters"
-      callback   : =>
-        @chapterList.toggleClass "on-screen"
       tooltip    :
         title    : "Show Chapters"
       click      : => @animateContent @chapterList
+    ,
+      itemClass  : KDView
+      cssClass   : "information"
+      tooltip    :
+        title    : "Show Chapter information"
+      click      : => @animateContent @chapterDescription
 
   validateChapter: (panel, workspace) ->
     {config}   = @getData()
@@ -49,6 +59,7 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       result = config.validation? panel, workspace
       if result
         @handleChapterSuccess()
+        @getDelegate().emit "ChapterSucceed", @getData().courseMeta
         config.onSuccess? panel, workspace
       else
         config.onFailed?  panel, workspace
@@ -70,12 +81,25 @@ class ClassroomWorkspace extends CollaborativeWorkspace
     modal.destroy()
     parent.destroySubViews()
 
-    router = KD.getSingleton "router"
-    {course, chapter} = KD.utils.parseQuery router.getCurrentPath().split('?')[1]
-    {chapters}        = @getData().courseManifest
-
-    if chapters.length > chapter
-      router.handleQuery "?course=#{course}&chapter=#{++chapter}"
+    {index, name} = @getData().courseMeta
+    {chapters}    = @getData().courseManifest
+    if chapters.length > index
+      KD.getSingleton("router").handleQuery "?course=#{name}&chapter=#{++index}"
 
   createChapterList: ->
-    @addSubView new ClassroomChapterList {}, @getData().courseManifest
+    @addSubView @chapterList = new ClassroomChapterList {}, @getData().courseManifest
+
+  createChapterDescription: ->
+    @addSubView @chapterDescription = new KDView
+      cssClass : "chapter-description"
+      partial  : """
+        <h2 class="chapter-index">Chapter #{@getData().courseMeta.index}</h2>
+        #{@getData().config.panel.hint}
+      """
+
+  animateContent: (container) ->
+    container.toggleClass "active"
+    if container.hasClass "active"
+      KD.getSingleton("windowController").addLayer container
+      container.once "ReceivedClickElsewhere", ->
+        container.toggleClass "active"
