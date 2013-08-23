@@ -67,6 +67,35 @@ class KodingAppsController extends KDController
         else
           callback? err, apps
 
+  fetchAppFromFs:(appName, cb)->
+
+    manifests = @constructor.manifests
+    appsPath = "/home/#{KD.nick()}/Applications/"
+    suffix   = ".kdapp/manifest.json"
+
+    manifest = FSHelper.createFileFromPath "#{appsPath}#{appName}#{suffix}"
+    manifest.fetchContents (err, response)=>
+      warn err  if err
+      return cb null  if err
+      return cb null  unless response
+
+      try
+        manifest = JSON.parse response
+        manifests["#{manifest.name}"] = manifest
+      catch e
+        warn "Manifest file is broken:", e
+        return cb null
+
+      @putAppsToAppStorage manifests
+      cb null
+
+  fetchIndividualAppsFromFS:(apps, callback)->
+
+    stack = []
+    apps.forEach (app)=>
+      stack.push (cb)=> @fetchAppFromFs app, cb
+    async.parallel stack, callback
+
   fetchAppsFromFs:(cb)->
 
     @_fetchQueue.push cb  if cb
@@ -81,32 +110,10 @@ class KodingAppsController extends KDController
         callback()  for callback in @_fetchQueue
         @_fetchQueue = []
       else
-        apps  = []
-        stack = []
-
-        files.forEach (file)->
-          if /\.kdapp$/.test(file.name) and file.type is 'folder'
-            apps.push file
-
-        apps.forEach (app)=>
-          stack.push (cb)=>
-            manifest = FSHelper.createFileFromPath "#{app.path}/manifest.json"
-            manifest.fetchContents (err, response)->
-              # shadowing the error is intentional here
-              # to not to break the result of the stack
-              cb null, response
-
-        manifests = @constructor.manifests
-        async.parallel stack, (err, result)=>
-          result.forEach (rawManifest)->
-            if rawManifest
-              try
-                manifest = JSON.parse rawManifest
-                manifests["#{manifest.name}"] = manifest
-              catch e
-                console.warn "Manifest file is broken", e
-          @putAppsToAppStorage manifests
-          callback null, manifests  for callback in @_fetchQueue
+        apps = @filterAppsFromFileList files
+        @fetchIndividualAppsFromFS apps, (result)=>
+          for callback in @_fetchQueue
+            callback null, @constructor.manifests
           @_fetchQueue = []
     , ->
       warn msg = "Timeout reached for kite request"
@@ -175,7 +182,9 @@ class KodingAppsController extends KDController
     @appStorage.reset()
     @appStorage.setValue 'shortcuts', defaultShortcuts, callback
 
-  putAppsToAppStorage:(apps)->
+  putAppsToAppStorage:(apps, callback = noop)->
+    apps or= @constructor.manifests
+    @appStorage.setValue 'apps', apps, callback
 
     @appStorage.setValue 'apps', apps
 
