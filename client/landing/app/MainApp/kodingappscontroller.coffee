@@ -623,7 +623,6 @@ class KodingAppsController extends KDController
 
     async.series stack, (err, result) =>
       warn err  if err
-      @emit "aNewAppCreated"  unless err
       callback? err, result
 
   # #

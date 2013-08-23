@@ -16,8 +16,6 @@ class StartTabMainView extends JView
 
     @appsController.on "AppsRefreshed", (apps)=>
       @decorateApps apps
-    @appsController.on "aNewAppCreated", =>
-      @aNewAppCreated()
 
     @finderController = KD.getSingleton "finderController"
     @finderController.on 'recentfiles.updated', =>
@@ -122,23 +120,6 @@ class StartTabMainView extends JView
         @showGuestNotification()
 
   _windowDidResize:->
-
-
-  aNewAppCreated:->
-    new KDNotificationView
-      type     : "mini"
-      cssClass : "success"
-      title    : "App is created! Check your Applications folder!"
-
-    @removeAppIcons()
-    @showLoader()
-    @appsController.refreshApps =>
-      @hideLoader()
-
-    # FIXME Use Default VM ~ GG
-    # # Refresh Applications Folder
-    # finder = KD.getSingleton("finderController").treeController
-    # finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
 
   pistachio:->
     """
