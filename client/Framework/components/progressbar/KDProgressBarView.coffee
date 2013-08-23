@@ -1,6 +1,6 @@
 class KDProgressBarView extends KDCustomHTMLView
   constructor:(options = {})->
-    options.cssClass = KD.utils.curryCssClass "progressbar-container"
+    options.cssClass = KD.utils.curryCssClass "progressbar-container", options.cssClass
         
     super options
 
