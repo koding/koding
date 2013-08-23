@@ -12,14 +12,17 @@
   background                #EFEFEF
   vendor                    transition, left 0.4s ease-in-out
   .inner-header
-    .chapters
+    z-index                 10001
+    .chapters, .information
       size                  21px, 22px
       margin-right          5px
       top                   9px
       fr()
       pointer()
       sprite()
-      bg                   position, 0px -477px
+      bg                    position, 0px -477px
+    .information
+      bg                    position, -260px -437px
   .panel-container
     kalc                    height, 100% \- 38px, 100%
   .container
@@ -57,6 +60,34 @@
     .no-related-course, .no-enrolled-course
       font-size             14px
       font-weight           600
+
+.courses
+  appThumbStyl()
+
+.classroom-chapters, .chapter-description
+  abs()
+  vendor                    border-radius, 0 0 6px 6px
+  vendor                    box-shadow, 0 0 12px rgba(0, 0, 0, .6)
+  vendor                    transition, top .4s ease
+  background                #eee
+  z-index                   10000
+  height                    auto
+  top                       -200px
+  max-height                200px
+  &.active
+    top                     38px
+
+.chapter-description
+  padding                   15px
+
+.classroom-chapters
+  appThumbStyl()
+  text-align                center
+  figure
+    size                    130px, 165px
+
+.chapter-index
+  margin-bottom             10px
 
 .chapter-list-item
   size                      auto, 60px
