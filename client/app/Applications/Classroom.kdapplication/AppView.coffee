@@ -10,8 +10,11 @@ class ClassroomAppView extends KDScrollView
 
     @emit "ready"
 
+    @on "ChapterSucceed", (chapterMeta) =>
+      # @appStorage
+
   fetchCourses: ->
-    @appStorage.fetchStorage (storage) =>
+    @appStorage.ready =>
       @enrolledCourses    = @appStorage.getValue("EnrolledCourses") or []
       @relatedCourses     = []
       enrolledCourseNames = []
@@ -65,13 +68,16 @@ class ClassroomAppView extends KDScrollView
         @handleGoToChapter chapter
 
   handleGoToChapter: (chapterIndex) ->
-    courseManifest   = @manifest
-    {chapters}       = courseManifest
+    courseManifest = @manifest
+    {chapters}     = courseManifest
     return unless chapters
 
-    configFilePath = chapters[chapterIndex].resourcesPath
-    @readFileContent "/#{courseManifest.name}.kdcourse/#{configFilePath}", (config) =>
-      @addSubView new ClassroomWorkspace { delegate: this }, { config, courseManifest }
+    @readFileContent "/#{courseManifest.name}.kdcourse/#{chapters[chapterIndex].resourcesPath}", (config) =>
+      courseMeta   =
+        name       : courseManifest.name
+        index      : ++chapterIndex
+
+      @addSubView new ClassroomWorkspace { delegate: this }, { config, courseManifest, courseMeta }
 
   createCoursesView: (manifest) ->
     @addSubView new ClassroomCourseView { delegate: this }, manifest
