@@ -122,8 +122,11 @@ class AccountReferralSystemListController extends AccountListViewController
               placement : "bottom"
               margin    : 110
             lazyLoad    : yes
-          , customView  : new ActivitySharePopup delegate: this, url: shareUrl
-
+          , customView  : new SharePopup {
+              url     : shareUrl
+              twitter :
+                text    : "Join to Koding! The next generation develepment environment koding.com"
+            }
           new KDOverlayView
             parent      : KD.singletons.mainView.mainTabView.activePane
             transparent : yes
