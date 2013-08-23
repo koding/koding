@@ -26,6 +26,10 @@ func (s *S) SetUpSuite(c *C) {
 	s.ec2 = ec2.New(auth, aws.Region{EC2Endpoint: testServer.URL})
 }
 
+func (s *S) TearDownSuite(c *C) {
+	testServer.Stop()
+}
+
 func (s *S) TearDownTest(c *C) {
 	testServer.Flush()
 }

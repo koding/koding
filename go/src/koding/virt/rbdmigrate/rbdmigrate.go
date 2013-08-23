@@ -24,18 +24,19 @@ func main() {
 		panic(err)
 	}
 
-	var vm struct {
+	var vms []struct {
 		Id        bson.ObjectId `bson:"_id"`
 		RbdFormat int           `bson:"rbdFormat"`
 	}
 
-	query := db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": nil}).Select(bson.M{"_id": 1, "rbdFormat": 1})
-	count, _ := query.Count()
-	iter := query.Iter()
-	i := 0
-	for iter.Next(&vm) && !abort {
-		i += 1
-		fmt.Printf("Checking %d/%d: vm-%s\n", i, count, vm.Id.Hex())
+	if err := db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": nil}).Select(bson.M{"_id": 1, "rbdFormat": 1}).All(&vms); err != nil {
+		panic(err)
+	}
+	for i, vm := range vms {
+		if abort {
+			break
+		}
+		fmt.Printf("Checking %d/%d: vm-%s\n", i+1, len(vms), vm.Id.Hex())
 		info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
 
 		if bytes.Contains(info, []byte("format: 1")) {
@@ -49,24 +50,19 @@ func main() {
 			}
 		}
 	}
-	if err := iter.Close(); err != nil {
+
+	if err := db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": 2}).Select(bson.M{"_id": 1, "rbdFormat": 1}).All(&vms); err != nil {
 		panic(err)
 	}
-
-	query = db.VMs.Find(bson.M{"hostnameAlias": bson.M{"$not": bson.RegEx{Pattern: "guest-"}}, "rbdFormat": 2}).Select(bson.M{"_id": 1, "rbdFormat": 1})
-	count, _ = query.Count()
-	iter = query.Iter()
-	i = 0
 	skipped := 0
-	for iter.Next(&vm) && !abort {
-		i += 1
-		fmt.Printf("Migrating %d/%d: vm-%s\n", i+1, count, vm.Id.Hex())
+	for i, vm := range vms {
+		if abort {
+			break
+		}
+		fmt.Printf("Migrating %d/%d: vm-%s\n", i+1, len(vms), vm.Id.Hex())
 		if !migrate(vm.Id) {
 			skipped += 1
 		}
-	}
-	if err := iter.Close(); err != nil {
-		panic(err)
 	}
 
 	fmt.Printf("%d skipped.\n", skipped)

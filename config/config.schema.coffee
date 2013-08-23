@@ -142,6 +142,8 @@ config =
         authExchange  : 1
         github        :
           clientId    : 1
+        embedly       :
+          apiKey      : 1
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
@@ -197,6 +199,11 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     kontrold        :
+      overview      :
+        apiHost     : 1
+        apiPort     : 1
+        port        : 1
+        switchHost  : 1
       api           :
         port        : 1
       proxy         :

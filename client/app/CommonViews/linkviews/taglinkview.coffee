@@ -8,13 +8,14 @@ class TagLinkView extends LinkView
         title     : data.title
         placement : "above"
         delayIn   : 120
-        offset    : 1
     super options, data
 
     data.on? "TagIsDeleted", => @destroy()
 
     @setClass "ttag expandable"
     @unsetClass "expandable" unless options.expandable
+
+    @on "viewAppended", => @tooltip?.setPosition()
 
   pistachio:->
     super "{{#(title)}}"

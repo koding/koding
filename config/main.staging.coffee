@@ -10,6 +10,8 @@ socialQueueName = "koding-social-#{version}"
 authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
 
+embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
+
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -119,6 +121,8 @@ module.exports =
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
+      embedly        :
+        apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
@@ -180,6 +184,11 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    overview      :
+      apiHost     : "kontrol-staging.in.koding.com"
+      apiPort     : 80
+      port        : 8080
+      switchHost  : "y.koding.com"
     api           :
       port        : 80
     proxy         :
@@ -196,7 +205,7 @@ module.exports =
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :
-    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
+    apiKey      : embedlyApiKey
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'

@@ -7,7 +7,7 @@ KD.extend
       else location.reload()
 
   notify_:(message, type='')->
-    console.log message
+    log message
     new KDNotificationView
       cssClass : "#{type}"
       title    : message
@@ -32,14 +32,16 @@ KD.extend
       # if there is callback and we want to try again
       if callback? and tryAgain
         unless KD.lastFuncCall
+          KD.lastFuncCall = callback
+
           mainController = KD.getSingleton("mainController")
           mainController.once "accountChanged.to.loggedIn", =>
-            if groupName and KD.isLoggedIn()
-              @joinGroup_ groupName, (err)=>
-                return @notify_ "Joining #{groupName} group failed", "error"  if err
-                KD.lastFuncCall?()
-                KD.lastFuncCall = null
-        KD.lastFuncCall = callback
+            if KD.isLoggedIn()
+              KD.lastFuncCall?()
+              KD.lastFuncCall = null
+              if groupName
+                @joinGroup_ groupName, (err) =>
+                  return @notify_ "Joining #{groupName} group failed", "error"  if err
     else if groupName
       @joinGroup_ groupName, (err)=>
         return @notify_ "Joining #{groupName} group failed", "error"  if err

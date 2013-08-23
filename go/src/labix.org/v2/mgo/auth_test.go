@@ -1,18 +1,18 @@
 // mgo - MongoDB driver for Go
-// 
+//
 // Copyright (c) 2010-2012 - Gustavo Niemeyer <gustavo@niemeyer.net>
-// 
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met: 
-// 
+// modification, are permitted provided that the following conditions are met:
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer. 
+//    list of conditions and the following disclaimer.
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution. 
-// 
+//    and/or other materials provided with the distribution.
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27,9 +27,11 @@
 package mgo_test
 
 import (
-	. "launchpad.net/gocheck"
+	"fmt"
 	"labix.org/v2/mgo"
+	. "launchpad.net/gocheck"
 	"sync"
+	"time"
 )
 
 func (s *S) TestAuthLogin(c *C) {
@@ -146,17 +148,17 @@ func (s *S) TestAuthUpsertUser(c *C) {
 	ruser := &mgo.User{
 		Username: "myruser",
 		Password: "mypass",
-		Roles: []mgo.Role{mgo.RoleRead},
+		Roles:    []mgo.Role{mgo.RoleRead},
 	}
 	rwuser := &mgo.User{
 		Username: "myrwuser",
 		Password: "mypass",
-		Roles: []mgo.Role{mgo.RoleReadWrite},
+		Roles:    []mgo.Role{mgo.RoleReadWrite},
 	}
 	rwuserother := &mgo.User{
-		Username: "myrwuser",
+		Username:   "myrwuser",
 		UserSource: "mydb",
-		Roles: []mgo.Role{mgo.RoleRead},
+		Roles:      []mgo.Role{mgo.RoleRead},
 	}
 
 	err = mydb.UpsertUser(ruser)
@@ -209,8 +211,8 @@ func (s *S) TestAuthUpserUserOtherDBRoles(c *C) {
 	c.Assert(err, IsNil)
 
 	ruser := &mgo.User{
-		Username: "myruser",
-		Password: "mypass",
+		Username:     "myruser",
+		Password:     "mypass",
 		OtherDBRoles: map[string][]mgo.Role{"mydb": []mgo.Role{mgo.RoleRead}},
 	}
 
@@ -243,9 +245,9 @@ func (s *S) TestAuthUpserUserUnsetFields(c *C) {
 
 	// Insert a user with most fields set.
 	user := &mgo.User{
-		Username: "myruser",
-		Password: "mypass",
-		Roles: []mgo.Role{mgo.RoleRead},
+		Username:     "myruser",
+		Password:     "mypass",
+		Roles:        []mgo.Role{mgo.RoleRead},
 		OtherDBRoles: map[string][]mgo.Role{"mydb": []mgo.Role{mgo.RoleRead}},
 	}
 	err = admindb.UpsertUser(user)
@@ -254,7 +256,7 @@ func (s *S) TestAuthUpserUserUnsetFields(c *C) {
 
 	// Now update the user with few things set.
 	user = &mgo.User{
-		Username: "myruser",
+		Username:   "myruser",
 		UserSource: "mydb",
 	}
 	err = admindb.UpsertUser(user)
@@ -736,5 +738,41 @@ func (s *S) TestDefaultDatabase(c *C) {
 		scopy := session.Copy()
 		c.Check(scopy.DB("").Name, Equals, test.db)
 		scopy.Close()
+	}
+}
+
+func (s *S) TestAuthDirect(c *C) {
+	// Direct connections must work to the master and slaves.
+	for _, port := range []string{"40031", "40032", "40033"} {
+		url := fmt.Sprintf("mongodb://root:rapadura@localhost:%s/?connect=direct", port)
+		session, err := mgo.Dial(url)
+		c.Assert(err, IsNil)
+		defer session.Close()
+
+		session.SetMode(mgo.Monotonic, true)
+
+		var result struct{}
+		err = session.DB("mydb").C("mycoll").Find(nil).One(&result)
+		c.Assert(err, Equals, mgo.ErrNotFound)
+	}
+}
+
+func (s *S) TestAuthDirectWithLogin(c *C) {
+	// Direct connections must work to the master and slaves.
+	for _, port := range []string{"40031", "40032", "40033"} {
+		url := fmt.Sprintf("mongodb://localhost:%s/?connect=direct", port)
+		session, err := mgo.Dial(url)
+		c.Assert(err, IsNil)
+		defer session.Close()
+
+		session.SetMode(mgo.Monotonic, true)
+		session.SetSyncTimeout(3 * time.Second)
+
+		err = session.DB("admin").Login("root", "rapadura")
+		c.Assert(err, IsNil)
+
+		var result struct{}
+		err = session.DB("mydb").C("mycoll").Find(nil).One(&result)
+		c.Assert(err, Equals, mgo.ErrNotFound)
 	}
 }

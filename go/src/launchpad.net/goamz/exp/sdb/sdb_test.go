@@ -26,6 +26,10 @@ func (s *S) SetUpSuite(c *C) {
 	s.sdb = sdb.New(auth, aws.Region{SDBEndpoint: testServer.URL})
 }
 
+func (s *S) TearDownSuite(c *C) {
+	testServer.Stop()
+}
+
 func (s *S) TearDownTest(c *C) {
 	testServer.Flush()
 }

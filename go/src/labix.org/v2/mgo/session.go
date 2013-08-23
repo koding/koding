@@ -470,7 +470,7 @@ func (db *Database) Login(user, pass string) (err error) {
 	session := db.Session
 	dbname := db.Name
 
-	socket, err := session.acquireSocket(false)
+	socket, err := session.acquireSocket(true)
 	if err != nil {
 		return err
 	}
@@ -700,6 +700,7 @@ func parseIndexKey(key []string) (name string, realKey bson.D, err error) {
 				if c := strings.Index(field, ":"); c > 1 && c < len(field)-1 {
 					kind = field[1:c]
 					field = field[c+1:]
+					name += field + "_" + kind
 				}
 			}
 			switch field[0] {
@@ -709,7 +710,10 @@ func parseIndexKey(key []string) (name string, realKey bson.D, err error) {
 			case '@':
 				order = "2d"
 				field = field[1:]
-				name += field + "_" // Why don't they put 2d here?
+				// The shell used to render this field as key_ instead of key_2d,
+				// and mgo followed suit. This has been fixed in recent server
+				// releases, and mgo followed as well.
+				name += field + "_2d"
 			case '-':
 				order = -1
 				field = field[1:]
@@ -723,7 +727,6 @@ func parseIndexKey(key []string) (name string, realKey bson.D, err error) {
 					name += field + "_1"
 				} else {
 					order = kind
-					name += field + "_" // Seems wrong. What about the kind?
 				}
 			}
 		}
@@ -943,17 +946,21 @@ func (c *Collection) Indexes() (indexes []Index, err error) {
 func simpleIndexKey(realKey bson.D) (key []string) {
 	for i := range realKey {
 		field := realKey[i].Name
-		i, _ := realKey[i].Value.(int)
-		if i == 1 {
+		vi, ok := realKey[i].Value.(int)
+		if !ok {
+			vf, _ := realKey[i].Value.(float64)
+			vi = int(vf)
+		}
+		if vi == 1 {
 			key = append(key, field)
 			continue
 		}
-		if i == -1 {
+		if vi == -1 {
 			key = append(key, "-"+field)
 			continue
 		}
-		if s, ok := realKey[i].Value.(string); ok {
-			key = append(key, "$"+s+":"+field)
+		if vs, ok := realKey[i].Value.(string); ok {
+			key = append(key, "$"+vs+":"+field)
 			continue
 		}
 		panic("Got unknown index key type for field " + field)
@@ -1341,6 +1348,30 @@ func (s *Session) ensureSafe(safe *Safe) {
 //
 func (s *Session) Run(cmd interface{}, result interface{}) error {
 	return s.DB("admin").Run(cmd, result)
+}
+
+// SelectServers restricts communication to servers configured with the
+// given tags. For example, the following statement restricts servers
+// used for reading operations to those with both tag "disk" set to
+// "ssd" and tag "rack" set to 1:
+//
+//     session.SelectSlaves(bson.D{{"disk", "ssd"}, {"rack", 1}})
+//
+// Multiple sets of tags may be provided, in which case the used server
+// must match all tags within any one set.
+//
+// If a connection was previously assigned to the session due to the
+// current session mode (see Session.SetMode), the tag selection will
+// only be enforced after the session is refreshed.
+//
+// Relevant documentation:
+//
+//     http://docs.mongodb.org/manual/tutorial/configure-replica-set-tag-sets
+//
+func (s *Session) SelectServers(tags ...bson.D) {
+	s.m.Lock()
+	s.queryConfig.op.serverTags = tags
+	s.m.Unlock()
 }
 
 // Ping runs a trivial ping command just to get in touch with the server.
@@ -1847,28 +1878,6 @@ func (q *Query) Select(selector interface{}) *Query {
 	return q
 }
 
-type queryWrapper struct {
-	Query    interface{} "$query"
-	OrderBy  interface{} "$orderby,omitempty"
-	Hint     interface{} "$hint,omitempty"
-	Explain  bool        "$explain,omitempty"
-	Snapshot bool        "$snapshot,omitempty"
-}
-
-func (q *Query) wrap() *queryWrapper {
-	w, ok := q.op.query.(*queryWrapper)
-	if !ok {
-		if q.op.query == nil {
-			var empty bson.D
-			w = &queryWrapper{Query: empty}
-		} else {
-			w = &queryWrapper{Query: q.op.query}
-		}
-		q.op.query = w
-	}
-	return w
-}
-
 // Sort asks the database to order returned documents according to the
 // provided field names. A field name may be prefixed by - (minus) for
 // it to be sorted in reverse order.
@@ -1885,7 +1894,6 @@ func (q *Query) wrap() *queryWrapper {
 //
 func (q *Query) Sort(fields ...string) *Query {
 	q.m.Lock()
-	w := q.wrap()
 	var order bson.D
 	for _, field := range fields {
 		n := 1
@@ -1903,7 +1911,8 @@ func (q *Query) Sort(fields ...string) *Query {
 		}
 		order = append(order, bson.DocElem{field, n})
 	}
-	w.OrderBy = order
+	q.op.options.OrderBy = order
+	q.op.hasOptions = true
 	q.m.Unlock()
 	return q
 }
@@ -1930,8 +1939,8 @@ func (q *Query) Explain(result interface{}) error {
 	q.m.Lock()
 	clone := &Query{session: q.session, query: q.query}
 	q.m.Unlock()
-	w := clone.wrap()
-	w.Explain = true
+	clone.op.options.Explain = true
+	clone.op.hasOptions = true
 	if clone.op.limit > 0 {
 		clone.op.limit = -q.op.limit
 	}
@@ -1961,8 +1970,8 @@ func (q *Query) Explain(result interface{}) error {
 func (q *Query) Hint(indexKey ...string) *Query {
 	q.m.Lock()
 	_, realKey, err := parseIndexKey(indexKey)
-	w := q.wrap()
-	w.Hint = realKey
+	q.op.options.Hint = realKey
+	q.op.hasOptions = true
 	q.m.Unlock()
 	if err != nil {
 		panic(err)
@@ -1995,8 +2004,8 @@ func (q *Query) Hint(indexKey ...string) *Query {
 //
 func (q *Query) Snapshot() *Query {
 	q.m.Lock()
-	w := q.wrap()
-	w.Snapshot = true
+	q.op.options.Snapshot = true
+	q.op.hasOptions = true
 	q.m.Unlock()
 	return q
 }
@@ -2306,14 +2315,7 @@ func (q *Query) Tail(timeout time.Duration) *Iter {
 	return iter
 }
 
-const (
-	flagTailable  = 1 << 1
-	flagSlaveOk   = 1 << 2
-	flagLogReplay = 1 << 3
-	flagAwaitData = 1 << 5
-)
-
-func (s *Session) slaveOkFlag() (flag uint32) {
+func (s *Session) slaveOkFlag() (flag queryOpFlags) {
 	s.m.RLock()
 	if s.slaveOk {
 		flag = flagSlaveOk
@@ -2642,13 +2644,8 @@ func (q *Query) Count() (n int, err error) {
 	dbname := op.collection[:c]
 	cname := op.collection[c+1:]
 
-	qdoc := op.query
-	if wrapper, ok := qdoc.(*queryWrapper); ok {
-		qdoc = wrapper.Query
-	}
-
 	result := struct{ N int }{}
-	err = session.DB(dbname).Run(countCmd{cname, qdoc, limit, op.skip}, &result)
+	err = session.DB(dbname).Run(countCmd{cname, op.query, limit, op.skip}, &result)
 	return result.N, err
 }
 
@@ -2690,13 +2687,8 @@ func (q *Query) Distinct(key string, result interface{}) error {
 	dbname := op.collection[:c]
 	cname := op.collection[c+1:]
 
-	qdoc := op.query
-	if wrapper, ok := qdoc.(*queryWrapper); ok {
-		qdoc = wrapper.Query
-	}
-
 	var doc struct{ Values bson.Raw }
-	err := session.DB(dbname).Run(distinctCmd{cname, key, qdoc}, &doc)
+	err := session.DB(dbname).Run(distinctCmd{cname, key, op.query}, &doc)
 	if err != nil {
 		return err
 	}
@@ -2825,13 +2817,6 @@ func (q *Query) MapReduce(job *MapReduce, result interface{}) (info *MapReduceIn
 	dbname := op.collection[:c]
 	cname := op.collection[c+1:]
 
-	qdoc := op.query
-	var sort interface{}
-	if wrapper, ok := qdoc.(*queryWrapper); ok {
-		qdoc = wrapper.Query
-		sort = wrapper.OrderBy
-	}
-
 	cmd := mapReduceCmd{
 		Collection: cname,
 		Map:        job.Map,
@@ -2840,8 +2825,8 @@ func (q *Query) MapReduce(job *MapReduce, result interface{}) (info *MapReduceIn
 		Out:        job.Out,
 		Scope:      job.Scope,
 		Verbose:    job.Verbose,
-		Query:      qdoc,
-		Sort:       sort,
+		Query:      op.query,
+		Sort:       op.options.OrderBy,
 		Limit:      limit,
 	}
 
@@ -2948,21 +2933,14 @@ func (q *Query) Apply(change Change, result interface{}) (info *ChangeInfo, err 
 	dbname := op.collection[:c]
 	cname := op.collection[c+1:]
 
-	qdoc := op.query
-	var sort interface{}
-	if wrapper, ok := qdoc.(*queryWrapper); ok {
-		qdoc = wrapper.Query
-		sort = wrapper.OrderBy
-	}
-
 	cmd := findModifyCmd{
 		Collection: cname,
 		Update:     change.Update,
 		Upsert:     change.Upsert,
 		Remove:     change.Remove,
 		New:        change.ReturnNew,
-		Query:      qdoc,
-		Sort:       sort,
+		Query:      op.query,
+		Sort:       op.options.OrderBy,
 		Fields:     op.selector,
 	}
 
@@ -3069,7 +3047,7 @@ func (s *Session) acquireSocket(slaveOk bool) (*mongoSocket, error) {
 	}
 
 	// Still not good.  We need a new socket.
-	sock, err := s.cluster().AcquireSocket(slaveOk && s.slaveOk, s.syncTimeout)
+	sock, err := s.cluster().AcquireSocket(slaveOk && s.slaveOk, s.syncTimeout, s.queryConfig.op.serverTags)
 	if err != nil {
 		return nil, err
 	}
@@ -3099,7 +3077,8 @@ func (s *Session) acquireSocket(slaveOk bool) (*mongoSocket, error) {
 
 // setSocket binds socket to this section.
 func (s *Session) setSocket(socket *mongoSocket) {
-	if socket.Acquire() {
+	info := socket.Acquire()
+	if info.Master {
 		if s.masterSocket != nil {
 			panic("setSocket(master) with existing master socket reserved")
 		}
@@ -3166,7 +3145,8 @@ func (iter *Iter) replyFunc() replyFunc {
 // will also be returned as err.
 func (c *Collection) writeQuery(op interface{}) (lerr *LastError, err error) {
 	s := c.Database.Session
-	socket, err := s.acquireSocket(false)
+	dbname := c.Database.Name
+	socket, err := s.acquireSocket(dbname == "local")
 	if err != nil {
 		return nil, err
 	}
@@ -3184,7 +3164,7 @@ func (c *Collection) writeQuery(op interface{}) (lerr *LastError, err error) {
 		var replyErr error
 		mutex.Lock()
 		query := *safeOp // Copy the data.
-		query.collection = c.Database.Name + ".$cmd"
+		query.collection = dbname + ".$cmd"
 		query.replyFunc = func(err error, reply *replyOp, docNum int, docData []byte) {
 			replyData = docData
 			replyErr = err

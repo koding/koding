@@ -46,7 +46,6 @@ type mongoServer struct {
 	unusedSockets []*mongoSocket
 	liveSockets   []*mongoSocket
 	closed        bool
-	master        bool
 	abended       bool
 	sync          chan bool
 	dial          dialer
@@ -54,9 +53,18 @@ type mongoServer struct {
 	pingIndex     int
 	pingCount     uint32
 	pingWindow    [6]time.Duration
+	info          *mongoServerInfo
 }
 
 type dialer func(addr net.Addr) (net.Conn, error)
+
+type mongoServerInfo struct {
+	Master bool
+	Mongos bool
+	Tags   bson.D
+}
+
+var defaultServerInfo mongoServerInfo
 
 func newServer(addr string, tcpaddr *net.TCPAddr, sync chan bool, dial dialer) *mongoServer {
 	server := &mongoServer{
@@ -65,6 +73,7 @@ func newServer(addr string, tcpaddr *net.TCPAddr, sync chan bool, dial dialer) *
 		tcpaddr:      tcpaddr,
 		sync:         sync,
 		dial:         dial,
+		info:         &defaultServerInfo,
 	}
 	// Once so the server gets a ping value, then loop in background.
 	server.pinger(false)
@@ -73,6 +82,7 @@ func newServer(addr string, tcpaddr *net.TCPAddr, sync chan bool, dial dialer) *
 }
 
 var errSocketLimit = errors.New("per-server connection limit reached")
+var errServerClosed = errors.New("server was closed")
 
 // AcquireSocket returns a socket for communicating with the server.
 // This will attempt to reuse an old connection, if one is available. Otherwise,
@@ -85,6 +95,10 @@ func (server *mongoServer) AcquireSocket(limit int) (socket *mongoSocket, abende
 	for {
 		server.Lock()
 		abended = server.abended
+		if server.closed {
+			server.Unlock()
+			return nil, abended, errServerClosed
+		}
 		n := len(server.unusedSockets)
 		if limit > 0 && len(server.liveSockets)-n >= limit {
 			server.Unlock()
@@ -94,8 +108,9 @@ func (server *mongoServer) AcquireSocket(limit int) (socket *mongoSocket, abende
 			socket = server.unusedSockets[n-1]
 			server.unusedSockets[n-1] = nil // Help GC.
 			server.unusedSockets = server.unusedSockets[:n-1]
+			info := server.info
 			server.Unlock()
-			err = socket.InitialAcquire()
+			err = socket.InitialAcquire(info)
 			if err != nil {
 				continue
 			}
@@ -104,6 +119,14 @@ func (server *mongoServer) AcquireSocket(limit int) (socket *mongoSocket, abende
 			socket, err = server.Connect()
 			if err == nil {
 				server.Lock()
+				// We've waited for the Connect, see if we got
+				// closed in the meantime
+				if server.closed {
+					server.Unlock()
+					socket.Release()
+					socket.Close()
+					return nil, abended, errServerClosed
+				}
 				server.liveSockets = append(server.liveSockets, socket)
 				server.Unlock()
 			}
@@ -117,7 +140,7 @@ func (server *mongoServer) AcquireSocket(limit int) (socket *mongoSocket, abende
 // generally be done through server.AcquireSocket().
 func (server *mongoServer) Connect() (*mongoSocket, error) {
 	server.RLock()
-	master := server.master
+	master := server.info.Master
 	dial := server.dial
 	server.RUnlock()
 
@@ -200,17 +223,37 @@ func (server *mongoServer) AbendSocket(socket *mongoSocket) {
 	}
 }
 
-func (server *mongoServer) SetMaster(isMaster bool) {
+func (server *mongoServer) SetInfo(info *mongoServerInfo) {
 	server.Lock()
-	server.master = isMaster
+	server.info = info
 	server.Unlock()
 }
 
-func (server *mongoServer) IsMaster() bool {
-	server.RLock()
-	result := server.master
-	server.RUnlock()
-	return result
+func (server *mongoServer) Info() *mongoServerInfo {
+	server.Lock()
+	info := server.info
+	server.Unlock()
+	return info
+}
+
+func (server *mongoServer) hasTags(serverTags []bson.D) bool {
+NextTagSet:
+	for _, tags := range serverTags {
+	NextReqTag:
+		for _, req := range tags {
+			for _, has := range server.info.Tags {
+				if req.Name == has.Name {
+					if req.Value == has.Value {
+						continue NextReqTag
+					}
+					continue NextTagSet
+				}
+			}
+			continue NextTagSet
+		}
+		return true
+	}
+	return false
 }
 
 var pingDelay = 10 * time.Second
@@ -225,12 +268,6 @@ func (server *mongoServer) pinger(loop bool) {
 	for {
 		if loop {
 			time.Sleep(pingDelay)
-			server.RLock()
-			closed := server.closed
-			server.RUnlock()
-			if closed {
-				return
-			}
 		}
 		op := op
 		socket, _, err := server.AcquireSocket(0)
@@ -240,7 +277,7 @@ func (server *mongoServer) pinger(loop bool) {
 			delay := time.Now().Sub(start)
 
 			server.pingWindow[server.pingIndex] = delay
-			server.pingIndex = (server.pingIndex+1)%len(server.pingWindow)
+			server.pingIndex = (server.pingIndex + 1) % len(server.pingWindow)
 			server.pingCount++
 			var max time.Duration
 			for i := 0; i < len(server.pingWindow) && uint32(i) < server.pingCount; i++ {
@@ -255,7 +292,9 @@ func (server *mongoServer) pinger(loop bool) {
 			}
 			server.pingValue = max
 			server.Unlock()
-			logf("Ping for %s is %d ms", server.Addr, max / time.Millisecond)
+			logf("Ping for %s is %d ms", server.Addr, max/time.Millisecond)
+		} else if err == errServerClosed {
+			return
 		}
 		if !loop {
 			return
@@ -332,29 +371,31 @@ func (servers *mongoServers) Empty() bool {
 	return len(servers.slice) == 0
 }
 
-// MostAvailable returns the best guess of what would be the
-// most interesting server to perform operations on at this
-// point in time.
-func (servers *mongoServers) MostAvailable() *mongoServer {
-	if len(servers.slice) == 0 {
-		panic("MostAvailable: can't be used on empty server list")
-	}
+// BestFit returns the best guess of what would be the most interesting
+// server to perform operations on at this point in time.
+func (servers *mongoServers) BestFit(serverTags []bson.D) *mongoServer {
 	var best *mongoServer
-	for i, next := range servers.slice {
-		if i == 0 {
+	for _, next := range servers.slice {
+		if best == nil {
 			best = next
 			best.RLock()
+			if serverTags != nil && !next.info.Mongos && !best.hasTags(serverTags) {
+				best.RUnlock()
+				best = nil
+			}
 			continue
 		}
 		next.RLock()
 		swap := false
 		switch {
-		case next.master != best.master:
+		case serverTags != nil && !next.info.Mongos && !next.hasTags(serverTags):
+			// Must have requested tags.
+		case next.info.Master != best.info.Master:
 			// Prefer slaves.
-			swap = best.master
-		case next.pingValue < best.pingValue - 15 * time.Millisecond:
+			swap = best.info.Master
+		case absDuration(next.pingValue-best.pingValue) > 15*time.Millisecond:
 			// Prefer nearest server.
-			swap = true
+			swap = next.pingValue < best.pingValue
 		case len(next.liveSockets)-len(next.unusedSockets) < len(best.liveSockets)-len(best.unusedSockets):
 			// Prefer servers with less connections.
 			swap = true
@@ -366,6 +407,15 @@ func (servers *mongoServers) MostAvailable() *mongoServer {
 			next.RUnlock()
 		}
 	}
-	best.RUnlock()
+	if best != nil {
+		best.RUnlock()
+	}
 	return best
+}
+
+func absDuration(d time.Duration) time.Duration {
+	if d < 0 {
+		return -d
+	}
+	return d
 }

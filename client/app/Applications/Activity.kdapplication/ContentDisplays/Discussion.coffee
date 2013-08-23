@@ -137,40 +137,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
     activity.on 'ReplyIsAdded',(reply)=>
       if data.bongo_.constructorName is "JDiscussion"
-
-        # Why this workaround, you ask?
-        #
-        #  Getting the data from the JDiscussion.reply event "ReplyIsAdded"
-        #  without JSONifying it locks up the UI for up to 10 seconds.
-
-        # Create new JOpinion and convert JSON into Object
-
-        # newOpinion = new bongo.api.JOpinion
-        # opinionData = JSON.parse(reply.opinionData)
-
-        # Copy JSON data to the newly created JOpinion
-
-        # for variable of opinionData
-        #   newOpinion[variable] = opinionData[variable]
-
-        # Updating the local data object, then adding the item to the box
-        # and increasing the count box
-
-
-        # unless newOpinion.originId is KD.whoami().getId()
         unless reply.replier.id is KD.whoami().getId()
-
-          # Manually add the opinion to the data...
-
-          # if data.opinions?
-          #   unless data.opinions.indexOf newOpinion is -1
-          #     data.opinions.push newOpinion
-          # else
-          #   data.opinions = [newOpinion]
-
-          # The following line would add the new Opinion to the View
-          # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
-
           # newAnswers populated the headerCountString if it is not OwnOpinion
           @newAnswers++
 
@@ -288,7 +255,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
             <footer class='discussion-footer clearfix'>
               <div class='type-and-time'>
-                <span class='type-icon'></span> by {{> @author}} •
+                <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}} •
                 {{> @timeAgoView}}
                 {{> @tags}}
                 {{> @actionLinks}}

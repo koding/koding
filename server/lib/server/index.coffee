@@ -93,11 +93,7 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-app.get "/-/imageProxy", (req, res)->
-  if req.query.url
-    require('request')(req.query.url).pipe(res)
-  else
-    res.send 404
+app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'

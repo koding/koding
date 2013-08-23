@@ -37,8 +37,10 @@ The application can later access the variable using the same key you provided:
 
 	func MyHandler(w http.ResponseWriter, r *http.Request) {
 		// val is "bar".
-		val = context.Get(r, foo.MyKey)
+		val := context.Get(r, foo.MyKey)
 
+		// returns ("bar", true)
+		val, ok := context.GetOk(r, foo.MyKey)
 		// ...
 	}
 

@@ -7,6 +7,8 @@ module.exports = class JVM extends Module
   {secure} = require 'bongo'
   {uniq}   = require 'underscore'
 
+  {argv} = require 'optimist'
+
   KodingError = require '../error'
 
   JRecurlySubscription = require './recurly/subscription'
@@ -58,7 +60,9 @@ module.exports = class JVM extends Module
                           [
                             'aws' # Amazon Web Services
                             'sj'  # San Jose
+                            'vagrant'
                           ]]
+        default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
       planOwner         : String
       planCode          : String
@@ -293,9 +297,11 @@ module.exports = class JVM extends Module
         return callback err  if err
         return callback null, null  unless vm
         callback null,
-          planCode      : vm.planCode
-          planOwner     : vm.planOwner
-          hostnameAlias : vm.hostnameAlias
+          planCode         : vm.planCode
+          planOwner        : vm.planOwner
+          hostnameAlias    : vm.hostnameAlias
+          underMaintenance : vm.hostKite is "(maintenance)"
+          region           : vm.region or 'aws'
 
   @fetchDefaultVm = secure (client, callback)->
     {delegate} = client.connection
@@ -461,6 +467,7 @@ module.exports = class JVM extends Module
               if hasPermission
                 @deleteVM vm, callback
 
+
   do ->
 
     JAccount  = require './account'
@@ -545,8 +552,8 @@ module.exports = class JVM extends Module
             return console.error err  if err or not account
             # New account found
             webHome       = username
-            hostnameAlias = newHostNameAlias
-            vm.update {$set: {hostnameAlias, webHome}}, (err)=>
+            vm.update {$set: {hostnameAlias:newHostNameAlias, webHome}},(err)=>
+
               return console.error err  if err
               # VM hostnameAlias updated
 
@@ -558,10 +565,11 @@ module.exports = class JVM extends Module
                 return console.error err  if err
                 # Counter created
 
-                JVM.ensureDomainSettings {
-                  type:'user', nickname:username, groupSlug:'koding'
-                  account, vm
+                hostnameAliases = JVM.createAliases {
+                  nickname:username
+                  type:'user', uid, groupSlug:'koding'
                 }
+                JVM.createDomains account, hostnameAliases, hostnameAliases[0]
 
                 console.log """Migration completed for
                                #{hostnameAlias} to #{newHostNameAlias}"""
@@ -595,7 +603,13 @@ module.exports = class JVM extends Module
             webHome   : user.username
             groups    : wrapGroup group
           }
-        else unless group.slug is 'koding'
+        else if group.slug is 'koding'
+          member.fetchVms (err, vms)->
+            if err then handleError err
+            else
+              vms.forEach (vm) ->
+                vm.update $set: groups: [id: group.getId()], handleError
+        else
           member.checkPermission group, 'sudoer', (err, hasPermission)->
             if err then handleError err
             else

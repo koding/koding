@@ -37,7 +37,17 @@ func LoadTemplates(dir string) error {
 
 	templateDir = dir
 	Templates.Funcs(template.FuncMap{
-		"hostIP": func() string { return hostIP.String() },
+		"hostIP": func() string {
+			return hostIP.String()
+		},
+		"swapAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes")
+			return err == nil
+		},
+		"kernelMemoryAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes")
+			return err == nil
+		},
 	})
 	if _, err := Templates.ParseGlob(templateDir + "/vm/*"); err != nil {
 		return err
@@ -46,8 +56,12 @@ func LoadTemplates(dir string) error {
 	return nil
 }
 
+func VMName(vmId bson.ObjectId) string {
+	return "vm-" + vmId.Hex()
+}
+
 func (vm *VM) String() string {
-	return "vm-" + vm.Id.Hex()
+	return VMName(vm.Id)
 }
 
 func (vm *VM) VEth() string {
@@ -87,7 +101,8 @@ func (vm *VM) GetPermissions(user *User) *Permissions {
 	}
 	return nil
 }
-func (vm *VM) Prepare(reinitialize bool) {
+
+func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
 	vm.Unprepare()
 
 	var err error
@@ -130,8 +145,8 @@ func (vm *VM) Prepare(reinitialize bool) {
 	vm.generateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
 	vm.generateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
 	vm.generateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
-	vm.MergePasswdFile()
-	vm.MergeGroupFile()
+	vm.MergePasswdFile(logWarning)
+	vm.MergeGroupFile(logWarning)
 	vm.MergeDpkgDatabase()
 
 	// mount overlay
@@ -240,7 +255,7 @@ func (vm *VM) MountRBD(mountDir string) error {
 			}
 		}
 		if vm.SnapshotName != "" {
-			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotVM.Hex(), "--snap", vm.SnapshotName, "--dest-pool", "vms", "--dest", vm.String()).CombinedOutput(); err != nil {
+			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", "vms", "--dest", vm.String()).CombinedOutput(); err != nil {
 				return commandError("rbd clone failed.", err, out)
 			}
 		}
@@ -373,7 +388,7 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 }
 
 func DestroyVM(id bson.ObjectId) error {
-	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", "vms", "--image", "vm-"+id.Hex()).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", "vms", "--image", VMName(id)).CombinedOutput(); err != nil {
 		return commandError("Removing image failed.", err, out)
 	}
 	return nil

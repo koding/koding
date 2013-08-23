@@ -24,9 +24,9 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
-    data.on 'ReplyIsAdded', (reply)=>
+    data.on 'ReplyIsAdded', (reply) =>
       if data.bongo_.constructorName is "JDiscussion"
-        @opinionBox.opinionList.emit "NewOpinionHasArrived"
+        @opinionBox.opinionList.emit "NewOpinionHasArrived", reply
 
     @opinionBox = new DiscussionActivityOpinionView
       cssClass    : "activity-opinion-list comment-container"
@@ -49,6 +49,8 @@ class DiscussionActivityItemView extends ActivityItemChild
         if item?.getData()._id is replyId
           item.hide()
           item.destroy()
+
+      @opinionBox.opinionList.emit "OpinionIsDeleted"
 
     @scrollAreaOverlay = new KDView
       cssClass : "enable-scroll-overlay"
@@ -201,7 +203,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         </div>
         <footer class='clearfix'>
           <div class='type-and-time'>
-            <span class='type-icon'></span> by {{> @author}}
+            <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
             {{> @timeAgoView}}
             {{> @tags}}
           </div>

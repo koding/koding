@@ -107,10 +107,19 @@ __utils =
     s = t
     s
 
-  proxifyUrl:(url="")->
+  proxifyUrl:(url="", options={})->
+
+    options.width   or= -1
+    options.height  or= -1
+
     if url is ""
-    then "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
-    else "#{location.protocol}//#{location.host}/-/imageProxy?url=#{encodeURIComponent(url)}"
+      return "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+
+    if options.width or options.height
+      endpoint = "/resize"
+    if options.crop
+      endpoint = "/crop"
+    return "https://i.embed.ly/1/display#{endpoint or ''}?grow=false&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
 
 
   applyMarkdown: (text)->
