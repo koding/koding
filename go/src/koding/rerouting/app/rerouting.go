@@ -77,16 +77,23 @@ func startRouting() {
 
 		switch msg.RoutingKey {
 		case "auth.join":
-			handleAuthJoin(c, msg)
+			join := createAuthMsg(msg)
+			if err := router.AddRoute(join); err != nil {
+				log.Printf("Error adding route: %v", err)
+			}
 		case "auth.leave":
-			handleAuthLeave(c, msg)
+			leave := createAuthMsg(msg)
+			log.Println(leave)
+			if err := router.RemoveRoute(leave); err != nil {
+				log.Printf("Error adding route: %v", err)
+			}
 		default:
 			log.Println("unknown routing key: ", msg.RoutingKey)
 		}
 	}
 }
 
-func handleAuthJoin(c *rerouting.Consumer, msg amqp.Delivery) {
+func createAuthMsg(msg amqp.Delivery) *rerouting.AuthMsg {
 	var join rerouting.AuthMsg
 
 	if err := json.Unmarshal(msg.Body, &join); err != nil {
@@ -97,27 +104,5 @@ func handleAuthJoin(c *rerouting.Consumer, msg amqp.Delivery) {
 		join.PublishingExchange = &defaultPublishingExchange
 	}
 
-	if err := router.AddRoute(join); err != nil {
-		log.Printf("Error adding route: %v", err)
-	}
-
-}
-
-func handleAuthLeave(c *rerouting.Consumer, msg amqp.Delivery) {
-	var leave rerouting.AuthMsg
-
-	log.Println(leave)
-
-	if err := json.Unmarshal(msg.Body, &leave); err != nil {
-		log.Print("bad json incoming msg: ", err)
-	}
-
-	if leave.PublishingExchange == nil {
-		leave.PublishingExchange = &defaultPublishingExchange
-	}
-
-	if err := router.RemoveRoute(leave); err != nil {
-		log.Printf("Error adding route: %v", err)
-	}
-
+	return &join
 }

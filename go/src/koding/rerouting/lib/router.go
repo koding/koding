@@ -7,6 +7,7 @@ import (
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
 	"log"
+	"sync"
 )
 
 type Consumer struct {
@@ -28,6 +29,13 @@ type AuthMsg struct {
 	Suffix             string  `json:"suffix"`
 }
 
+func (a *AuthMsg) Equals(b *AuthMsg) bool {
+	return (a.BindingExchange == b.BindingExchange) &&
+		(a.BindingKey == b.BindingKey) &&
+		(*a.PublishingExchange == *b.PublishingExchange) &&
+		(a.RoutingKey == b.RoutingKey)
+}
+
 type Route struct {
 	length int
 	joins  *goset.Set
@@ -39,6 +47,7 @@ type Router struct {
 	routes   M
 	consumer *Consumer
 	producer *Producer
+	mutex    *sync.RWMutex
 }
 
 func NewRouter(c *Consumer, p *Producer) *Router {
@@ -46,10 +55,13 @@ func NewRouter(c *Consumer, p *Producer) *Router {
 	router.routes = M{}
 	router.consumer = c
 	router.producer = p
+	router.mutex = &sync.RWMutex{}
 	return router
 }
 
-func (r *Router) AddRoute(join AuthMsg) error {
+func (r *Router) AddRoute(join *AuthMsg) error {
+
+	r.mutex.Lock()
 
 	if (join.BindingExchange == "") || (join.BindingKey == "") || (join.RoutingKey == "") {
 		return errors.New("Bad join message: Ignoring")
@@ -82,15 +94,62 @@ func (r *Router) AddRoute(join AuthMsg) error {
 	}
 
 	if isNewBindingExchange {
-		if err := r.addBinding(join.BindingExchange); err != nil {
-			log.Println(err)
-			return err
+		go func() {
+			if err := r.addBinding(join.BindingExchange); err != nil {
+				log.Println(err)
+			}
+		}()
+	}
+
+	r.mutex.Unlock()
+
+	return nil
+}
+
+func (r *Router) RemoveRoute(leave *AuthMsg) error {
+
+	r.mutex.Lock()
+
+	if r.routes[leave.BindingExchange] == nil {
+		return fmt.Errorf("Unknown binding exchange: %s", leave.BindingExchange)
+	}
+	bindingExchange := r.routes[leave.BindingExchange].(M)
+
+	if bindingExchange[leave.BindingKey] == nil {
+		return fmt.Errorf("Unknown binding key: %s", leave.BindingKey)
+	}
+	bindingKey := bindingExchange[leave.BindingKey].(M)
+
+	var publishingExchange M
+
+	if bindingKey[*leave.PublishingExchange] == nil {
+		publishingExchange = bindingKey["broker"].(M)
+	} else {
+		publishingExchange = bindingKey[*leave.PublishingExchange].(M)
+	}
+
+	if publishingExchange == nil {
+		return fmt.Errorf("Unknown publishing exchange: %s", publishingExchange)
+	}
+
+	if publishingExchange[leave.RoutingKey] == nil {
+		return fmt.Errorf("Unknown routing key: %s", leave.RoutingKey)
+	}
+	route := publishingExchange[leave.RoutingKey].(*Route)
+
+	for _, authMsg := range route.joins.List() {
+		join := authMsg.(*AuthMsg)
+
+		if join.Equals(leave) {
+			log.Println("found a match")
+			route.joins.Remove(authMsg)
 		}
 	}
 
-	log.Println(r.routes)
+	r.mutex.Unlock()
 
 	return nil
+
 }
 
 func (r *Router) publishTo(join *AuthMsg, msg *amqp.Delivery) error {
@@ -134,67 +193,41 @@ func (r *Router) addBinding(exchangeName string) error {
 	}
 
 	for msg := range deliveries {
+
+		r.mutex.RLock()
+
 		if r.routes[msg.Exchange] == nil {
 			continue // drop it on the floor
+			r.mutex.RUnlock()
 		}
 		bindingExchange := r.routes[msg.Exchange].(M)
 
 		if bindingExchange[msg.RoutingKey] == nil {
 			continue // drop it on the floor
+			r.mutex.RUnlock()
 		}
 		bindingKey := bindingExchange[msg.RoutingKey].(M)
 
 		for name := range bindingKey {
 			publishingExchange := bindingKey[name].(M)
 
+			log.Println(name, publishingExchange)
+
 			for routingKey := range publishingExchange {
 				route := publishingExchange[routingKey].(*Route)
 				list := route.joins.List()
 
 				for i := range list {
-					joinMsg := list[i].(AuthMsg)
-					if err := r.publishTo(&joinMsg, &msg); err != nil {
-						log.Println(err)
+					joinMsg := list[i].(*AuthMsg)
+					if err := r.publishTo(joinMsg, &msg); err != nil {
+						panic(err) // i don't want to panic here
 					}
 				}
 			}
 		}
+
+		r.mutex.RUnlock()
 	}
 
 	return nil
-}
-
-func (r *Router) RemoveRoute(leave AuthMsg) error {
-
-	if r.routes[leave.BindingExchange] == nil {
-		return fmt.Errorf("Unknown binding exchange: %s", leave.BindingExchange)
-	}
-	bindingExchange := r.routes[leave.BindingExchange].(M)
-
-	if bindingExchange[leave.BindingKey] == nil {
-		return fmt.Errorf("Unknown binding key: %s", leave.BindingKey)
-	}
-	bindingKey := bindingExchange[leave.RoutingKey].(M)
-
-	var publishingExchange M
-
-	if bindingKey[*leave.PublishingExchange] == nil {
-		publishingExchange = bindingKey["broker"].(M)
-	} else {
-		publishingExchange = bindingKey[*leave.PublishingExchange].(M)
-	}
-
-	if publishingExchange == nil {
-		return fmt.Errorf("Unknown publishing exchange: %s", publishingExchange)
-	}
-
-	if publishingExchange[leave.RoutingKey] == nil {
-		return fmt.Errorf("Unknown routing key: %s", leave.RoutingKey)
-	}
-	routingKey := publishingExchange[leave.RoutingKey].(M)
-
-	log.Printf("%v", routingKey)
-
-	return nil
-
 }
