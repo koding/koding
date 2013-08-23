@@ -17,6 +17,8 @@ class CollaborativePanel extends Panel
     super
     @header.addSubView new KDCustomHTMLView
       cssClass : "users"
+      tooltip  :
+        title  : "Show Users"
       click    : => @getDelegate().showUsers()
 
   createHeaderHint: ->

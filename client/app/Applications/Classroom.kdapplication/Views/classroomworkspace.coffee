@@ -39,6 +39,9 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       cssClass   : "chapters"
       callback   : =>
         @chapterList.toggleClass "on-screen"
+      tooltip    :
+        title    : "Show Chapters"
+      click      : => @animateContent @chapterList
 
   validateChapter: (panel, workspace) ->
     {config}   = @getData()
