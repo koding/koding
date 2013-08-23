@@ -114,6 +114,9 @@ module.exports = [
   # notification
   "Framework/components/notifications/KDNotificationView.coffee",
 
+  # progressbar
+  "Framework/components/progressbar/KDProgressBarView.coffee",
+
   # dialog
   "Framework/components/dialog/KDDialogView.coffee",
 
@@ -792,6 +795,7 @@ module.exports = [
   "Framework/themes/default/kd.buttons.styl",
   "Framework/themes/default/kd.scrollview.styl",
   "Framework/themes/default/kd.modal.styl",
+  "Framework/themes/default/kd.progressbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
 
