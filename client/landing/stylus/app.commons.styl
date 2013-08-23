@@ -830,9 +830,6 @@ button.cancel-edit-button
   &:hover
     color           #787878
 
-
-
-
 .right-overflow
   width           auto
   display         block
@@ -858,53 +855,50 @@ button.cancel-edit-button
   &[data-onlineStatus = online]:after
     content       ""
     display       block
-    size          3px, 100%
-    background    #05e926
-    border-top    2px solid #05e926
-    border-bottom 2px solid #05e926
-    abs(-2px, , ,-7px)
-    shadow        0 0 2px rgba(255, 255, 255, .5)
+    size          6px, 6px
+    bottom        -4px
+    right         -4px
+    rounded       100%
+    background    #0cc52e
+    border        1px solid #075514
+    shadow        0 0 0 2px #fff
+    abs()
 
   &[data-onlineStatus = online].animate:after
+    vendor        animation, showOnline 400ms 1 forwards ease-out
+
+  &[data-onlineStatus = offline].animate:after
     content       ""
     display       block
-    size          3px, 100%
-    background    #05e926
-    border-top    2px solid #05e926
-    border-bottom 2px solid #05e926
-    abs(-2px, , ,-7px)
-    shadow        0 0 2px rgba(255, 255, 255, .5)
-    vendor        animation, pulse 1500ms 1 forwards ease-out
+    size          6px, 6px
+    bottom        -4px
+    right         -4px
+    rounded       100%
+    background    #0cc52e
+    border        1px solid #075514
+    shadow        0 0 0 2px #fff
+    abs()
+    vendor        animation, hideOnline 400ms 1 forwards ease-out
 
-  &[data-onlineStatus = offline]:after
-    content       ""
-    display       block
-    size          3px, 100%
-    background    #c1c1c1
-    border-top    2px solid #c1c1c1
-    border-bottom 2px solid #c1c1c1
-    abs(-2px, , ,-7px)
-    vendor        transition, all 500ms ease;
-
-@keyframes pulse
+@keyframes showOnline
   0%
-    shadow        0 0 0px #05e926
-    background    #c1c1c1
-    border-top    2px solid #c1c1c1
-    border-bottom 2px solid #c1c1c1
-    border-radius 0
-  30%
-    shadow        0 0 5px #05e926
-    border-top    2px solid #05e926
-    border-bottom 2px solid #05e926
-    border-radius 100%
+    vendor        transform, scale(0)
   60%
-    shadow        0 0 0px #05e926
+    vendor        transform, scale(1.2)
   80%
-    shadow        0 0 5px #05e926
-    border-radius 100%
+    vendor        transform, scale(0.8)
   100%
-    shadow        0 0 0px #05e926
+    vendor        transform, scale(1)
+@keyframes hideOnline
+  0%
+    vendor        transform, scale(1)
+  40%
+    vendor        transform, scale(0.8)
+  80%
+    vendor        transform, scale(1.2)
+  100%
+    vendor        transform, scale(0)
+
 
 .super .avatarview cite.exempt
   size          40px, 40px
