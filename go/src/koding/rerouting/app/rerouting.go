@@ -46,7 +46,7 @@ func startRouting() {
 		Channel: nil,
 	}
 
-	router = rerouting.NewRouter(c)
+	router = rerouting.NewRouter(c, producer)
 
 	var err error
 
@@ -87,10 +87,9 @@ func startRouting() {
 }
 
 func handleAuthJoin(c *rerouting.Consumer, msg amqp.Delivery) {
-	var join rerouting.JoinMsg
+	var join rerouting.AuthMsg
 
-	err := json.Unmarshal(msg.Body, &join)
-	if err != nil {
+	if err := json.Unmarshal(msg.Body, &join); err != nil {
 		log.Print("bad json incoming msg: ", err)
 	}
 
@@ -105,5 +104,20 @@ func handleAuthJoin(c *rerouting.Consumer, msg amqp.Delivery) {
 }
 
 func handleAuthLeave(c *rerouting.Consumer, msg amqp.Delivery) {
+	var leave rerouting.AuthMsg
+
+	log.Println(leave)
+
+	if err := json.Unmarshal(msg.Body, &leave); err != nil {
+		log.Print("bad json incoming msg: ", err)
+	}
+
+	if leave.PublishingExchange == nil {
+		leave.PublishingExchange = &defaultPublishingExchange
+	}
+
+	if err := router.RemoveRoute(leave); err != nil {
+		log.Printf("Error adding route: %v", err)
+	}
 
 }
