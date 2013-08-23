@@ -46,6 +46,8 @@ class AvatarView extends LinkView
     account = @getData()
     return unless account
 
+    onlineStatus = account.onlineStatus or 'offline'
+
     {profile, type} = account
     return @setAvatar "url(#{@fallbackUri})"  if type is 'unregistered'
 
@@ -56,6 +58,11 @@ class AvatarView extends LinkView
     @$('cite').addClass flags
 
     @setDomAttributes href: "/#{profile.nickname}"
+
+    if onlineStatus is "online" and @.$().attr("data-onlineStatus") is "offline"
+      @setClass "animate"
+      
+    @setDomAttributes "data-onlineStatus": onlineStatus
 
   viewAppended:->
     super
