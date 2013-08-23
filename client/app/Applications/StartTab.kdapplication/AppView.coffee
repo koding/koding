@@ -197,6 +197,8 @@ class StartTabMainView extends JView
 
     appData = @appsController.getManifest appName
     return warn "App data not found for #{appName}"  unless appData
+    # There should be one icon per app
+    @appIcons[appData.name]?.destroy()
     @appItemContainer.addSubView @appIcons[appData.name] = new StartTabAppThumbView
       delegate : @
     , appData
@@ -205,7 +207,6 @@ class StartTabMainView extends JView
     @createGetMoreAppsButton()
 
   putAppIcons:(apps)->
-
     for app, manifest of apps
       do (app, manifest)=>
         @appItemContainer.addSubView @appIcons[manifest.name] = new StartTabAppThumbView
