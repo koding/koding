@@ -483,33 +483,9 @@ func switchVersion(newVersion string) error {
 		return fmt.Errorf("proxy field is empty for '%s'", switchHost)
 	}
 
-	oldVersion := domain.Proxy.Key
-	if oldVersion == "" {
+	if domain.Proxy.Key == "" {
 		return fmt.Errorf("key does not exist for '%s'", switchHost)
 	}
-
-	// Disable for now, seems we don't use it anymore
-	// conn := CreateAmqpConnection("overview")
-	// defer conn.Close()
-
-	// channel := CreateChannel(conn)
-	// defer channel.Close()
-
-	// destination := "auth-" + newVersion
-	// routingKey := ""
-	// source := "auth"
-
-	// err = channel.ExchangeBind(destination, routingKey, source, true, nil)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// oldDestination := "auth-" + oldVersion
-
-	// err = channel.ExchangeUnbind(oldDestination, routingKey, source, true, nil)
-	// if err != nil {
-	// 	return err
-	// }
 
 	domain.Proxy.Key = newVersion
 
