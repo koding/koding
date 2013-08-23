@@ -189,17 +189,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
     appPath   = @appsController.getAppPath manifest.path, yes
     appFolder = FSHelper.createFileFromPath appPath, 'folder'
     appFolder.remove (err, res) =>
-      unless err
-        @appsController.refreshApps =>
-          @deleteModal.destroy()
-          @destroy()
-        , no
-      else
-        new KDNotificationView
-          title    : "An error occured while deleting the App!"
-          type     : 'mini'
-          cssClass : 'error'
-        @deleteModal.destroy()
+
+      KD.showError err,
+        KodingError : "An error occured while deleting the App!"
+
+      @deleteModal.destroy()
+      @destroy()  unless err
 
   viewAppended:->
 

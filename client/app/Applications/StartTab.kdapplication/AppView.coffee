@@ -8,11 +8,12 @@ class StartTabMainView extends JView
 
     @listenWindowResize()
 
-    @appIcons       = {}
-    mainView        = KD.getSingleton('mainView')
+    @appIcons = {}
+    mainView  = KD.getSingleton('mainView')
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
+    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
     @appsController = KD.getSingleton("kodingAppsController")
+
     @appsController.on "AppsRefreshed", (apps)=>
       @decorateApps apps
     @appsController.on "aNewAppCreated", =>
@@ -122,12 +123,6 @@ class StartTabMainView extends JView
 
   _windowDidResize:->
 
-  addApps:->
-
-    for app in apps
-      @appItemContainer.addSubView new StartTabOldAppThumbView
-        tab : @
-      , app
 
   aNewAppCreated:->
     new KDNotificationView

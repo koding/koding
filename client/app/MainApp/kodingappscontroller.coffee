@@ -5,7 +5,6 @@ class KodingAppsController extends KDController
     background : yes
 
   @manifests = {}
-
   @getManifestFromPath = getManifestFromPath = (path)->
 
     folderName = (p for p in path.split("/") when /\.kdapp/.test p)[0]
@@ -73,12 +72,13 @@ class KodingAppsController extends KDController
     @_fetchQueue.push cb  if cb
     return if @_fetchQueue.length > 1
 
-    path   = "/home/#{KD.whoami().profile.nickname}/Applications"
+    path   = "/home/#{KD.nick()}/Applications"
     appDir = FSHelper.createFileFromPath path, 'folder'
     appDir.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+
       if err or not Array.isArray files or files.length is 0
         @putAppsToAppStorage {}
-        callback() for callback in @_fetchQueue
+        callback()  for callback in @_fetchQueue
         @_fetchQueue = []
       else
         apps  = []
@@ -453,39 +453,41 @@ class KodingAppsController extends KDController
       onFailMsg : "Login required to install Apps"
       onFail    : => callback yes
       callback  : => @fetchApps (err, manifests = {})=>
-        if err
-          warn err
-          new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-          callback? err
-        else
-          if app.title in Object.keys(manifests)
-            new KDNotificationView type : "mini", title : "App is already installed!"
-            callback? msg : "App is already installed!"
-          else
-            if not app.approved and not KD.checkFlag 'super-admin'
-              warn err = "This app is not approved, installation cancelled."
-              callback? err
-            else
-              app.fetchCreator (err, acc)=>
-                if err
-                  callback? err
-                else
-                  options =
-                    method        : "app.install"
-                    withArgs      :
-                      owner       : acc.profile.nickname
-                      identifier  : app.manifest.identifier
-                      appPath     : @getAppPath app.manifest
-                      version     : version
 
-                  @vmController.run options, (err, res)=>
-                    if err then warn err
-                    else
-                      app.install (err)=>
-                        warn err  if err
-                        @appManager.open "StartTab"
-                        @refreshApps()
-                        callback?()
+        KD.showError err,
+          KodingError : 'Something went wrong while fetching apps'
+        return callback? err  if err
+
+        if app.title in Object.keys(manifests)
+          new KDNotificationView
+            type : "mini", title : "App is already installed!"
+          callback? yes
+        else
+          if not app.approved and not KD.checkFlag 'super-admin'
+            KD.showError "This app is not approved, installation cancelled."
+            callback? err
+          else
+            app.fetchCreator (err, acc)=>
+              KD.showError err,
+                KodingError : 'Failed to fetch app creator info'
+              return callback? err  if err
+
+              @vmController.run
+                method       : "app.install"
+                withArgs     :
+                  owner      : acc.profile.nickname
+                  identifier : app.manifest.identifier
+                  appPath    : @getAppPath app.manifest
+                  version    : version
+              , (err, res)=>
+                return KD.showError err  if err
+
+                app.install (err)=>
+                  KD.showError err
+                  @appManager.open "StartTab"
+                  warn "APPS NEEDS TO BE REFRESHED!!"
+                  # @refreshApps()
+                  callback?()
 
   # #
   # MAKE NEW APP
