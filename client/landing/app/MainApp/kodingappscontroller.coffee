@@ -5,17 +5,13 @@ class KodingAppsController extends KDController
     background : yes
 
   @manifests = {}
-  @getManifestFromPath = getManifestFromPath = (path)->
 
+  @getManifestFromPath = getManifestFromPath = (path)->
     folderName = (p for p in path.split("/") when /\.kdapp/.test p)[0]
     app        = null
-
     return app unless folderName
-
     for own name, manifest of KodingAppsController.manifests
-      do ->
-        app = manifest if manifest.path.search(folderName) > -1
-
+      do -> app = manifest  if manifest.path.search(folderName) > -1
     return app
 
   constructor:->
@@ -579,7 +575,7 @@ class KodingAppsController extends KDController
                     return
                   name        = newAppModal.modalTabs.forms.form.inputs.name.getValue()
                   type        = newAppModal.modalTabs.forms.form.inputs.type.getValue()
-                  name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '') if name
+                  name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '')  if name
                   manifestStr = defaultManifest type, name
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
