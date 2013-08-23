@@ -1,21 +1,104 @@
 class ProfileView extends JView
-  constructor:->
+  constructor: (options = {}, data) ->
+    super options, data
 
-    super
+    @memberData = @getData()
 
-    memberData = @getData()
-    if KD.checkFlag('exempt', memberData)
+    if KD.checkFlag 'exempt', @memberData
       if not KD.checkFlag 'super-admin'
         return KD.getSingleton('router').handleRoute "/Activity"
 
-    @avatar = new AvatarStaticView
-      size     :
-        width  : 90
-        height : 90
-      click    : =>
+    @editButton = new KDCustomHTMLView
+    if KD.isMine @memberData
+      @editButton   = new KDButtonView
+        cssClass    : "edit"
+        style       : "clean-gray"
+        title       : "Edit your profile"
+        callback    : @bound 'onEdit'
+
+    @saveButton     = new KDButtonView
+      cssClass      : "save hidden"
+      style         : "cupid-green"
+      title         : "Save"
+      callback      : @bound 'onSave'
+
+    @cancelButton   = new KDButtonView
+      cssClass      : "cancel hidden"
+      style         : "clean-red"
+      title         : "Cancel"
+      callback      : @bound 'onCancel'
+
+    @firstName      = new KDContentEditableView
+      pistachio     : "{{#(profile.firstName) or ''}}"
+      cssClass      : "firstName"
+      placeholder   : "First name"
+      delegate      : this
+      validate      :
+        rules       :
+          required  : yes
+          maxLength : 25
+        messages    :
+          required  : "First name is required"
+      , @memberData
+
+    @lastName       = new KDContentEditableView
+      pistachio     : "{{#(profile.lastName) or ''}}"
+      cssClass      : "lastName"
+      placeholder   : "Last name"
+      delegate      : this
+      validate      :
+        rules       :
+          maxLength : 25
+      , @memberData
+
+    @memberData.locationTags or= []
+
+    @location     = new KDContentEditableView
+      pistachio   : "{{#(locationTags)}}"
+      cssClass    : "location"
+      placeholder : "Earth"
+      default     : "Earth"
+      delegate    : this
+      , @memberData
+
+    @bio            = new KDContentEditableView
+      pistachio     : "{{ @utils.applyTextExpansions #(profile.about), yes}}"
+      cssClass      : "bio"
+      placeholder   : if KD.isMine @memberData then @bioPlaceholder else ""
+      textExpansion : yes
+      delegate      : this
+      click         : (event) => KD.utils.showMoreClickHandler event
+    , @memberData
+
+    @firstName.on "NextTabStop", => @lastName.focus()
+    @firstName.on "PreviousTabStop", => @bio.focus()
+    @lastName.on "NextTabStop", => @location.focus()
+    @lastName.on "PreviousTabStop", => @firstName.focus()
+    @location.on "NextTabStop", => @bio.focus()
+    @location.on "PreviousTabStop", => @lastName.focus()
+    @bio.on "NextTabStop", => @firstName.focus()
+    @bio.on "PreviousTabStop", => @lastName.focus()
+
+    for input in [@firstName, @lastName, @location, @bio]
+      input.on "click", => if not @editingMode and KD.isMine @memberData then @setEditingMode on
+
+    if KD.isMine @memberData or @memberData.skillTags.length > 0
+      @skillTagView = new SkillTagFormView {}, @memberData
+    else
+      @skillTagView = new KDCustomHTMLView
+
+    @skillTagView.on "AutoCompleteNeedsTagData", (event) =>
+      {callback, inputValue, blacklist} = event
+      @fetchAutoCompleteDataForTags inputValue, blacklist, callback
+
+    @avatar        = new AvatarStaticView
+      size         :
+        width      : 90
+        height     : 90
+      click        : =>
         pos =
-          top  : @avatar.getBounds().y - 8
-          left : @avatar.getBounds().x - 8
+          top      : @avatar.getBounds().y - 8
+          left     : @avatar.getBounds().x - 8
         modal = new KDModalView
           width    : 400
           fx       : yes
@@ -26,178 +109,179 @@ class ProfileView extends JView
           size     :
             width  : 400
             height : 400
-        , memberData
-    , memberData
-
-    defaultState = if memberData.followee is yes then "Following" else "Follow"
+        , @memberData
+    , @memberData
 
     @followButton = new MemberFollowToggleButton
       style : "kdwhitebtn profilefollowbtn"
-    , memberData
+    , @memberData
 
-    @skillTags = @putSkillTags()
+    for route in ['followers', 'following', 'likes']
+      @[route] = @getActionLink route, @memberData
 
-    {nickname} = memberData.profile
-    @followers = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : "/#{nickname}/Followers"
-      pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
-      click       : (event)->
-        event.preventDefault()
-        return if memberData.counts.followers is 0
-        KD.getSingleton('router').handleRoute "/#{nickname}/Followers", {state:memberData}
-    , memberData
+    @sendMessageLink = new KDCustomHTMLView
+    unless KD.isMine @memberData
+      @sendMessageLink = new MemberMailLink {}, @memberData
 
-    @following = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : "/#{nickname}/Following"
-      pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
-      click       : (event)->
-        event.preventDefault()
-        return if memberData.counts.following is 0
-        KD.getSingleton('router').handleRoute "/#{nickname}/Following", {state:memberData}
-    , memberData
+    if @sendMessageLink instanceof MemberMailLink
+      @sendMessageLink.on "AutoCompleteNeedsMemberData", (pubInst,event) =>
+        {callback, inputValue, blacklist} = event
+        @fetchAutoCompleteForToField inputValue, blacklist, callback
 
-    @likes = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : "/#{nickname}/Likes"
-      pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
-      click       : (event)->
-        event.preventDefault()
-        return if memberData.counts.following is 0
-        KD.getSingleton('router').handleRoute "/#{nickname}/Likes", {state:memberData}
-    , memberData
+      @sendMessageLink?.on 'MessageShouldBeSent', ({formOutput, callback}) =>
+        @prepareMessage formOutput, callback
 
-    @sendMessageLink = new MemberMailLink {}, memberData
-
-    memberData.locationTags or= []
-    if memberData.locationTags.length < 1
-      memberData.locationTags[0] = "Earth"
-
-    @location = new LocationView {}, memberData
-    @setListeners()
-    @skillTags = new SkillTagGroup {}, memberData
-
-    if KD.checkFlag 'super-admin'
-      @trollSwitch = new KDCustomHTMLView
+    if KD.checkFlag 'super-admin' and not KD.isMine @memberData
+      @trollSwitch   = new KDCustomHTMLView
         tagName      : "a"
-        partial      : if KD.checkFlag('exempt', memberData) then 'Unmark Troll' else 'Mark as Troll'
+        partial      : if KD.checkFlag 'exempt', @memberData then 'Unmark Troll' else 'Mark as Troll'
         cssClass     : "troll-switch"
         click        : =>
-          if KD.checkFlag('exempt', memberData)
-            KD.getSingleton('mainController').unmarkUserAsTroll memberData
+          if KD.checkFlag 'exempt', @memberData
+            KD.getSingleton('mainController').unmarkUserAsTroll @memberData
           else
-            KD.getSingleton('mainController').markUserAsTroll memberData
-
+            KD.getSingleton('mainController').markUserAsTroll @memberData
     else
       @trollSwitch = new KDCustomHTMLView
 
-  click: KD.utils.showMoreClickHandler
+  setEditingMode: (state) ->
+    @editingMode = state
+    @emit "EditingModeToggled", state
 
-  putNick:(nick)-> "@#{nick}"
-  putPresence:(state)->
-    """
-      <div class="presence #{state or 'offline'}">
-        #{state or 'offline'}
-      </div>
-    """
+    if state
+      @editButton.hide()
+      @saveButton.show()
+      @cancelButton.show()    
+    else
+      @editButton.show()
+      @saveButton.hide()
+      @cancelButton.hide()
 
-  pistachio:->
-    account      = @getData()
-    userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
-    {nickname}   = account.profile
-    amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
-    name         = KD.utils.getFullnameFromAccount account
-    onlineStatus = if account.onlineStatus then 'online' else 'offline'
-    """
-    <div class="profileleft">
-      <span>
-        {{> @avatar}}
-      </span>
-      {{> @followButton}}
-      {cite{ @putNick #(profile.nickname)}}
-      {div{ @putPresence #(onlineStatus)}}
-    </div>
+  onEdit: ->
+    @setEditingMode on
+    @firstName.focus()
 
-      {{> @trollSwitch}}
+  onSave: ->
+    for input in [@firstName, @lastName]
+      unless input.validate() then return
 
-    <section>
-      <div class="profileinfo">
-        <h3 class="profilename">#{name}</h3>
-        <h4 class="profilelocation">{{> @location}}</h4>
-        <h5>
-          <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
+    @setEditingMode off
 
-          <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
-        </h5>
-        <div class="profilestats">
-          <div class="fers">
-            {{> @followers}}
-          </div>
-          <div class="fing">
-            {{> @following}}
-          </div>
-           <div class="liks">
-            {{> @likes}}
-          </div>
-          <div class='contact'>
-            {{> @sendMessageLink}}
-          </div>
-        </div>
-
-        <div class="profilebio">
-          <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>
-        </div>
-        <div class="skilltags"><label>SKILLS</label>{{> @skillTags}}</div>
-      </div>
-    </section>
-
-    """
-
-  putSkillTags:->
-    memberData = @getData()
-
-    memberData.skillTags or= ['No Tags']
-    skillTagHTML = "<label>Skills</label>"
-    for skillTag in memberData.skillTags
-      if skillTag = 'No Tags'
-        skillTagHTML += '<p>No Tags Yet. Add One.</p>'
+    @memberData.modify
+      "profile.firstName" : @firstName.getValue()
+      "profile.lastName"  : @lastName.getValue()
+      "profile.about"     : @bio.getValue()
+      "locationTags"      : [@location.getValue() || "Earth"]
+    , (err) =>
+      if err
+        state = "error"
+        message = "There was an error updating your profile"
       else
-        skillTagHTML += "<span>#{skillTag}</span>"
+        state = "success"
+        message = "Your profile is updated"
 
-    skillTagHTML
+      new KDNotificationView
+        title    : message
+        type     : "mini"
+        cssClass : state
+        duration : 2500
 
-  setListeners:->
+      @utils.defer =>
+        @memberData.emit "update"
 
-    @sendMessageLink.on "AutoCompleteNeedsMemberData", (pubInst,event)=>
-      {callback,inputValue,blacklist} = event
-      @fetchAutoCompleteForToField inputValue,blacklist,callback
+  onCancel: =>
+    @setEditingMode off
+    @memberData.emit "update"
 
-    @sendMessageLink.on 'MessageShouldBeSent', ({formOutput,callback})=>
-      @prepareMessage formOutput, callback
+  getActionLink: (route) ->
+    count    = @memberData.counts[route] or 0
+    nickname = @memberData.profile.nickname
+    path     = route[0].toUpperCase() + route[1..-1]
 
-  fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : "/#"
+      pistachio   : "<cite/><span class=\"data\">#{count}</span> <span>#{path}</span>"
+      click       : (event) =>
+        event.preventDefault()
+        unless @memberData.counts[route] is 0
+          KD.getSingleton('router').handleRoute "/#{nickname}/#{path}", {state: @memberData}
+    , @memberData
+
+  fetchAutoCompleteForToField: (inputValue, blacklist, callback) ->
+    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts) ->
       callback accounts
 
+  fetchAutoCompleteDataForTags:(inputValue, blacklist, callback) ->
+    KD.remote.api.JTag.byRelevanceForSkills inputValue, {blacklist}, (err, tags) ->
+      unless err
+        callback? tags
+      else
+        log "there was an error fetching topics #{err.message}"
+
   # FIXME: this should be taken to inbox app controller using KD.getSingleton("appManager").tell
-  prepareMessage:(formOutput, callback)->
+  prepareMessage: (formOutput, callback) ->
     {body, subject, recipients} = formOutput
     to = recipients.join ' '
 
-    @sendMessage {to, body, subject}, (err, message)->
+    @sendMessage {to, body, subject}, (err, message) ->
       new KDNotificationView
         title     : if err then "Failure!" else "Success!"
         duration  : 1000
       message.mark 'read'
       callback? err, message
 
-  sendMessage:(messageDetails, callback)->
+  sendMessage: (messageDetails, callback) ->
     if KD.isGuest()
       return new KDNotificationView
-        title : "Sending private message for guests not allowed"
+        title: "Sending private message for guests not allowed"
 
     KD.remote.api.JPrivateMessage.create messageDetails, callback
+
+  putNick: (nick) -> "@#{nick}"
+
+  putPresence: (state) ->
+    """
+      <div class="presence #{state or 'offline'}">
+        #{state or 'offline'}
+      </div>
+    """
+
+  pistachio: ->
+    account      = @getData()
+    userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
+    amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
+    onlineStatus = if account.onlineStatus then 'online' else 'offline'
+    """
+    <div class="profileleft">
+      <span>{{> @avatar}}</span>
+      {{> @followButton}}
+      {cite{ @putNick #(profile.nickname)}}
+      {div{ @putPresence #(onlineStatus)}}
+    </div>
+
+    {{> @trollSwitch}}
+
+    <section>
+      <div class="profileinfo">
+        {{> @editButton}} {{> @saveButton}} {{> @cancelButton}}
+        <h3 class="profilename">{{> @firstName}}&nbsp;{{> @lastName}}</h3>
+        <h4 class="profilelocation">{{> @location}}</h4>
+        <h5>
+          <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
+          <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
+        </h5>
+        <div class="profilestats">
+          <div class="fers">{{> @followers}}</div>
+          <div class="fing">{{> @following}}</div>
+          <div class="liks">{{> @likes}}</div>
+          <div class='contact'>{{> @sendMessageLink}}</div>
+        </div>
+        <div class="profilebio">{{> @bio }}</div>
+        <div class="personal-skilltags">{{> @skillTagView}}</div>
+      </div>
+    </section>
+    """
+
+  bioPlaceholder: "You haven't entered anything in your bio yet. Why not add something now?"

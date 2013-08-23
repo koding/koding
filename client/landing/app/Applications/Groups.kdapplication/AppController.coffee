@@ -551,6 +551,7 @@ class GroupsAppController extends AppController
       modal = new KDModalView
         title        : "#{group.title} has been created!"
         content      : body
+        testPath     : "groups-create-confirm"
         buttons      :
           dashboard  :
             title    : 'Go to Dashboard'

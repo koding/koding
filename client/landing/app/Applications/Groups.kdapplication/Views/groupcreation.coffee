@@ -19,11 +19,13 @@ class GroupCreationModal extends KDModalView
         title          : "Create"
         style          : "modal-clean-gray hidden"
         type           : "button"
+        testPath       : "groups-create-submit"
         callback       : @bound "createGroup"
       next             :
         title          : "Next"
         style          : "modal-clean-gray"
         type           : "button"
+        testPath       : "groups-create-next"
         disabled       : yes
         callback       : @bound "next"
       back             :
@@ -48,7 +50,11 @@ class GroupCreationModal extends KDModalView
 
   viewAppended:->
 
-    @addSubView loader = new KDLoaderView size : width : 62
+    @addSubView loader = new KDLoaderView
+      size          :
+        width       : 32
+      loaderOptions :
+        color       : "#ff9200"
     loader.show()
 
     vmController = KD.getSingleton('vmController')
@@ -91,10 +97,12 @@ class GroupCreationModal extends KDModalView
 
       @addSubView @mainSettings = new KDFormViewWithFields
         cssClass                 : "general-settings hidden"
+        testPath                 : "groups-create-form"
         fields                   :
           "Title"                :
             label                : "Title"
             name                 : "title"
+            testPath             : "groups-create-title"
             validate             :
               event              : "blur"
               rules              :
@@ -266,6 +274,8 @@ class GroupCreationModal extends KDModalView
       @allocation.fields["Admin approval is required on member purchases"].hide()
       @allocation.fields["Allow over-usage"].hide()
       desc.hide()
+
+    @setPositions()
 
   back:->
 

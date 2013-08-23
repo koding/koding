@@ -238,7 +238,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             20:   ignored "automatic newline"
           "?h": eachParameter
             1:    -> terminal.inputHandler.useApplicationKeypad true
-            3:    -> terminal.screenBuffer.clear(); terminal.setSize 132, terminal.sizeY; terminal.cursor.moveTo 0, 0
+            3:    ignored "132 column mode"
             4:    ignored "smooth scroll"
             5:    ignored "reverse video"
             6:    -> originMode = true
@@ -265,7 +265,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             20:   ignored "normal linefeed"
           "?l": eachParameter
             1:    -> terminal.inputHandler.useApplicationKeypad false
-            3:    -> terminal.screenBuffer.clear(); terminal.setSize 80, terminal.sizeY; terminal.cursor.moveTo 0, 0
+            3:    ignored "80 column mode"
             4:    ignored "jump scroll"
             5:    ignored "normal video"
             6:    -> originMode = false
@@ -321,9 +321,6 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           # if the data has semicolon in it, it splits the data, we should join them again.
           1:   (params) -> terminal.eventHandler?     params.raw[1..-2].join ';' # trimming random timestamp
           2:   (params) -> terminal.setTitleCallback? params.raw[1]
-          4:   (params) ->
-            parts = params.raw[2].match(/^rgb:(..)\/(..)\/(..)$/)
-            terminal.defineColor params[1], "##{parts[1]}#{parts[2]}#{parts[3]}"
           100: (params) -> terminal.eventHandler?     params.raw[1..].join ';' # deprecated
 
   return new WebTerm.ControlCodeReader(terminal, initCursorControlHandler(),

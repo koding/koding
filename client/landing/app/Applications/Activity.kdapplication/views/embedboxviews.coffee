@@ -171,7 +171,7 @@ class EmbedBoxLinkViewImageSwitch extends KDView
     if @getImageIndex() < oembed.images.length-1
       imgSrc = oembed.images?[@getImageIndex()]?.url
       if imgSrc
-        @getDelegate().embedImage.setSrc @utils.proxifyUrl imgSrc
+        @getDelegate().embedImage.setSrc @utils.proxifyUrl imgSrc , width: 100, height: 100, crop: yes
       else
         # imgSrc is undefined - this would be the place for a default
         fallBackImgSrc = 'https://koding.com/images/service_icons/Koding.png'
@@ -218,7 +218,7 @@ class EmbedBoxImageView extends KDView
       bind        : 'error load'
       attributes  :
         src       : 'https://koding.com/images/small-loader.gif'
-        'data-src': (@utils.proxifyUrl oembed.images?[0]?.url) or 'https://koding.com/images/small-loader.gif'
+        'data-src': (@utils.proxifyUrl oembed.images?[0]?.url, width: 341, height: 291) or 'https://koding.com/images/small-loader.gif'
         title     : oembed.title or ''
       load        : =>
         @image.setDomAttributes src: @image.$().data "src"
@@ -248,10 +248,14 @@ class EmbedBoxImageView extends KDView
 
   pistachio:->
     """
-    <div class="embed embed-image-view custom-image">
+    <div class="embed embed-image-view custom-image clearfix">
       <a href="#{@getData().link_url or '#'}" target="_blank">
         {{> @image}}
       </a>
+      <div class="details">
+        {strong{ #(link_embed.provider_name)}}
+        <a href="#{@getData().link_url}" target="_blank" class="url">#{@getData().link_url}</span>
+      </div>
     </div>
     """
 
@@ -273,7 +277,7 @@ class EmbedBoxLinkViewImage extends KDView
     super options, data
 
     oembed = @getData().link_embed
-    @imageLink    = @utils.proxifyUrl(oembed.images?[0]?.url) or\
+    @imageLink    = @utils.proxifyUrl(oembed.images?[0]?.url, width: 100, height: 100, crop: yes) or\
                     'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==' # hardcode a default
     altSuffix     = if oembed.author_name then " by #{oembed.author_name}" else ''
     @imageAltText = oembed.title + altSuffix
@@ -422,7 +426,7 @@ class EmbedBoxLinkViewDescription extends KDView
 
     @hide()  unless oembed?.description?.trim()
 
-    @originalDescription = oembed?.description
+    @originalDescription = Encoder.XSSEncode oembed?.description or ""
 
     if options.hasConfig is yes
       @setClass 'has-config'
@@ -430,7 +434,7 @@ class EmbedBoxLinkViewDescription extends KDView
         type         : 'textarea'
         cssClass     : 'description_input hidden'
         name         : 'description_input'
-        defaultValue : oembed?.description or ''
+        defaultValue : @originalDescription
         autogrow     : yes
         blur         : =>
           @descriptionInput.hide()
@@ -438,21 +442,21 @@ class EmbedBoxLinkViewDescription extends KDView
     else
       @descriptionInput = new KDCustomHTMLView
         cssClass : 'hidden'
-        partial : oembed?.description or ''
+        partial : @originalDescription
 
     @editIndicator = new KDCustomHTMLView
       tagName : 'div'
       cssClass : 'edit-indicator discussion-edit-indicator'
       pistachio : 'edited'
       tooltip :
-        title: "Original Content was: <p>#{oembed?.original_description or oembed?.description or ''}</p>"
+        title: "Original Content was: <p>#{oembed?.original_description or @original_description}</p>"
     @editIndicator.hide()
 
   getValue:->
     if @options.hasConfig
-      @descriptionInput.getValue()
+      Encoder.XSSEncode @descriptionInput.getValue()
     else
-      @descriptionInput.getPartial()
+      Encoder.XSSEncode @descriptionInput.getPartial()
 
   getOriginalValue:-> @originalDescription
 
@@ -471,10 +475,17 @@ class EmbedBoxLinkViewDescription extends KDView
     @$('div.description').hide()
     no
 
+  getDescription:->
+    value = @getData().link_embed?.description or @getData().description
+    if value?
+      value = Encoder.XSSEncode value
+
+    return value
+
   pistachio:->
     """
     {{> @descriptionInput}}
-    <div class="description #{if @getData().link_embed?.description or @getData().description then '' else 'hidden'}">#{@getData().link_embed?.description or @getData().description or ''}
+    <div class="description #{if @getDescription() then '' else 'hidden'}">#{@getDescription() or ""}
     {{> @editIndicator}}</div>
     """
 

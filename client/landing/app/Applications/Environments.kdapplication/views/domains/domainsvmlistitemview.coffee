@@ -20,10 +20,7 @@ class DomainVMListItemView extends KDListItemView
     @$('section').addClass 'hidden'
 
   click:->
-    list   = @getDelegate()
-    domain = list.getData()
-    list.emit "VMItemClicked", this
-
+    @getDelegate().emit "VMItemClicked", this
 
   pistachio:->
     """

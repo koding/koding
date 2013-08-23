@@ -1,8 +1,5 @@
 class StartTabAppThumbView extends KDCustomHTMLView
 
-  proxifyUrl = (url) ->
-    return "#{KD.config.mainUri}/-/imageProxy?url=#{encodeURIComponent url}"
-
   constructor:(options, data)->
 
     options.tagName    = 'figure'
@@ -263,8 +260,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
   click : (event)->
 
     return if $(event.target).closest('.icon-container').length > 0
-    @showLoader()
-    KD.getSingleton("appManager").open 'Apps', => @hideLoader()
+    KD.getSingleton('router').handleRoute "/Apps"
     KD.track "Apps", "GetMoreAppsClicked"
 
 
