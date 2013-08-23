@@ -59,9 +59,9 @@ class AvatarView extends LinkView
 
     @setDomAttributes href: "/#{profile.nickname}"
 
-    if onlineStatus is "online" and @.$().attr("data-onlineStatus") is "offline"
+    if @.$().attr("data-onlineStatus") and onlineStatus isnt @.$().attr("data-onlineStatus")
       @setClass "animate"
-      
+
     @setDomAttributes "data-onlineStatus": onlineStatus
 
   viewAppended:->
