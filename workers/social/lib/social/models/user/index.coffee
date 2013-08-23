@@ -509,6 +509,9 @@ module.exports = class JUser extends jraphical.Module
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
+    newToken  = null
+    invite    = null
+
     queue = [
       =>
         @validateAll userFormData, (err) =>
@@ -529,18 +532,17 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
       =>
         options = { account, username, clientId, isRegistration: yes }
-        @changeUsernameByAccount options, (err, newToken) =>
+        @changeUsernameByAccount options, (err, newToken_) =>
           return callback err  if err?
-          @newToken = newToken
+          newToken = newToken_
           queue.next()
       =>
-        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
+        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite_) =>
           return callback err  if err
-          @isEligible = isEligible
-          @invite = invite
+          invite = invite_
           queue.next()
       =>
-        @addToGroups account, @invite, email, (err) =>
+        @addToGroups account, invite, email, (err) =>
           return callback err  if err?
           queue.next()
       =>
@@ -563,58 +565,11 @@ module.exports = class JUser extends jraphical.Module
         JAccount.emit "AccountRegistered", account
         queue.next()
       =>
-        callback null, @newToken
+        callback null, newToken
         queue.next()
     ]
+
     daisy queue
-
-  @register = secure (client, userFormData, callback) ->
-    { connection } = client
-    { username, email, password, passwordConfirm, firstName, lastName,
-      agree, inviteCode } = userFormData
-
-    @validateUsername username, (err) ->
-      return callback err  if err?
-
-      @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
-        return callback createKodingError err.message  if err
-
-        if passwordConfirm isnt password
-          return callback createKodingError 'Passwords must be the same'
-        else if agree isnt 'on'
-          return callback createKodingError 'You have to agree to the TOS'
-        else if not username? or not email?
-          return callback createKodingError 'Username and email are required fields'
-
-        JSession.one {clientId: client.sessionToken}, (err, session) =>
-          if err
-            callback err
-          else unless session
-            callback createKodingError 'Could not restore your session!'
-          else
-            userData = {
-              username, password, email, firstName, lastName
-            }
-            userData.foreignAuth = session.foreignAuth  if session.foreignAuth
-
-            @createUser userData, (err, user, account) =>
-              return callback err  if err
-              @removeUnsubscription userData, (err)=>
-                return callback err  if err
-                @addToGroups account, invite, email, (err) ->
-                  return callback err  if err
-
-                  replacementToken = createId()
-                  session.update {
-                    $set:
-                      username      : user.username
-                      lastLoginDate : new Date
-                      clientId      : replacementToken
-                    $unset          :
-                      guestId       : 1
-                  }, (err, docs) ->
-                    return callback err  if err
-                    @configureNewAcccount account, user, replacementToken, callback
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'
