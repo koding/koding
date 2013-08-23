@@ -142,6 +142,42 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
+  syncAppStorageWithFS:->
+
+    currentApps = Object.keys(@constructor.manifests)
+    removedApps = []
+    newApps     = []
+
+    log "Synchronizing AppStorage with FileSystem..."
+
+    path   = "/home/#{KD.nick()}/Applications"
+    appDir = FSHelper.createFileFromPath path, 'folder'
+    appDir.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+      return warn err  if err
+
+      existingApps = @filterAppsFromFileList files
+
+      for app in existingApps
+        newApps.push app  if app not in currentApps
+
+      for app in currentApps
+        removedApps.push app  if app not in existingApps
+
+      log "APPS FOUND IN AppStorage:", currentApps
+      log "APPS FOUND IN FS:", existingApps
+      log "REMOVED APPS:", removedApps
+      log "NEW APPS:", newApps
+
+      @removeInvalidatedAppsFromAppstorage removedApps, =>
+        @emit "InvalidateAppIcons", removedApps
+      @fetchIndividualAppsFromFS newApps, =>
+        @emit "CreateAppIcons", newApps
+
+  filterAppsFromFileList:(files)->
+    return (file.name.replace /\.kdapp$/, '' \
+            for file in files when (/\.kdapp$/.test file.name) \
+            and file.type is 'folder')
+
   fetchUpdateAvailableApps: (callback, force) ->
     return callback? null, @updateAvailableApps  if @updateAvailableApps and not force
     {publishedApps}      = @
@@ -186,7 +222,10 @@ class KodingAppsController extends KDController
     apps or= @constructor.manifests
     @appStorage.setValue 'apps', apps, callback
 
-    @appStorage.setValue 'apps', apps
+  removeInvalidatedAppsFromAppstorage:(removedApps, callback)->
+    manifests = @constructor.manifests
+    delete manifests[app]  for app in removedApps
+    @putAppsToAppStorage manifests, callback  if removedApps.length > 0
 
   defineApp:(name, script)->
 
@@ -454,6 +493,9 @@ class KodingAppsController extends KDController
         compileOnServer apps[name]
     else
       compileOnServer @constructor.manifests[name]
+
+  getManifest:(appName)->
+    @constructor.manifests[appName]
 
   installApp:(app, version, callback)->
 
