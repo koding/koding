@@ -36,6 +36,9 @@ class Workspace extends JView
 
   prev: ->
 
+  getActivePanel: ->
+    return @panels[@lastCreatedPanelIndex]
+
   _windowDidResize: ->
     return unless @activePanel
     pane.emit "PaneResized" for pane in @activePanel.panes
