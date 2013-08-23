@@ -558,6 +558,8 @@ module.exports = class JAccount extends jraphical.Module
         ],
       _id     :
         $nin  : blacklist
+      type    :
+        $in   : ['registered', null]
     },{
       skip
       limit
@@ -702,8 +704,8 @@ module.exports = class JAccount extends jraphical.Module
 
   # returns troll users ids
   @getExemptUserIds: (callback)->
-    JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)-> 
-      cursor.toArray (err, data)-> 
+    JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)->
+      cursor.toArray (err, data)->
         if err
           return callback err, null
         callback null, (i._id for i in data)
