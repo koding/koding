@@ -153,10 +153,10 @@ class StartTabMainView extends JView
       @decorateApps apps
 
   decorateApps:(apps)->
+
     @removeAppIcons()
     @showLoader()
     @refreshButton.hide()
-    @putAppIcons apps
 
     shortcuts = @appsController.appStorage.getValue 'shortcuts'
 
@@ -166,10 +166,16 @@ class StartTabMainView extends JView
           delegate : @
         , manifest
 
-    @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
-      delegate : @
+    @putAppIcons apps
+    @createGetMoreAppsButton()
+
     @hideLoader()
     @refreshButton.show()
+
+  createGetMoreAppsButton:->
+    @appIcons['GET_MORE_APPS']?.destroy()
+    @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
+      delegate : @
 
   removeAppIcons:->
 
