@@ -17,6 +17,12 @@ class StartTabMainView extends JView
     @appsController.on "AppsRefreshed", (apps)=>
       @decorateApps apps
 
+    @appsController.on "InvalidateAppIcons", (apps)=>
+      @removeAppIcon app for app in apps  if apps
+
+    @appsController.on "CreateAppIcons", (apps)=>
+      @createAppIcon app for app in apps  if apps
+
     @finderController = KD.getSingleton "finderController"
     @finderController.on 'recentfiles.updated', =>
       @updateRecentFileViews()
@@ -177,10 +183,26 @@ class StartTabMainView extends JView
     @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
       delegate : @
 
+  removeAppIcon:(appName)->
+    appIcon = @appIcons[appName]
+    return warn "App icon not found for #{appName}"  unless appIcon
+    appIcon.destroy()
+
   removeAppIcons:->
 
     @appItemContainer.destroySubViews()
     @appIcons = {}
+
+  createAppIcon:(appName)->
+
+    appData = @appsController.getManifest appName
+    return warn "App data not found for #{appName}"  unless appData
+    @appItemContainer.addSubView @appIcons[appData.name] = new StartTabAppThumbView
+      delegate : @
+    , appData
+
+    # To make sure its always the last icon
+    @createGetMoreAppsButton()
 
   putAppIcons:(apps)->
 
