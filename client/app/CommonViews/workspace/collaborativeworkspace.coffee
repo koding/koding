@@ -62,6 +62,8 @@ class CollaborativeWorkspace extends Workspace
 
       @setHistory initialMessage
 
+      @emit "WorkspaceSyncedWithRemote"
+
     @workspaceRef.child("users").on "child_added", (snapshot) =>
       @fetchUsers()
 
