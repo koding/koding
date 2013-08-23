@@ -86,7 +86,7 @@ func main() {
 		if strings.HasPrefix(dir.Name(), "vm-") {
 			vmId := bson.ObjectIdHex(dir.Name()[3:])
 			var vm virt.VM
-			if err := db.VMs.FindId(vmId).One(&vm); err != nil {
+			if err := db.VMs.FindId(vmId).One(&vm); err != nil || vm.HostKite != k.ServiceUniqueName {
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Warn(err.Error())
 				}
