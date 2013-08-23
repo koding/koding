@@ -78,6 +78,7 @@ class HomeLoginBar extends JView
       title       : "Request access"
       icon        : {}
       cssClass    : "request green hidden button"
+      testPath    : "groups-request-access"
       attributes  :
         href      : "#"
       click       : (event)=>
