@@ -124,7 +124,7 @@ class GroupCreationModal extends KDModalView
           "Privacy"              :
             label                : "Privacy/Visibility"
             itemClass            : KDSelectBox
-            testPath             : "group-create-privacy"
+            testPath             : "groups-create-privacy"
             type                 : "select"
             name                 : "privacy"
             defaultValue         : "public"
