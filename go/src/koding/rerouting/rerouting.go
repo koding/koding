@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"github.com/streadway/amqp"
-	"koding/rerouting/lib"
+	"koding/rerouting/router"
 	"koding/tools/amqputil"
 	"log"
 )
@@ -77,32 +75,15 @@ func startRouting() {
 
 		switch msg.RoutingKey {
 		case "auth.join":
-			join := createAuthMsg(msg)
-			if err := router.AddRoute(join); err != nil {
+			if err := router.AddRoute(&msg); err != nil {
 				log.Printf("Error adding route: %v", err)
 			}
 		case "auth.leave":
-			leave := createAuthMsg(msg)
-			log.Println(leave)
-			if err := router.RemoveRoute(leave); err != nil {
+			if err := router.RemoveRoute(&msg); err != nil {
 				log.Printf("Error adding route: %v", err)
 			}
 		default:
 			log.Println("unknown routing key: ", msg.RoutingKey)
 		}
 	}
-}
-
-func createAuthMsg(msg amqp.Delivery) *rerouting.AuthMsg {
-	var join rerouting.AuthMsg
-
-	if err := json.Unmarshal(msg.Body, &join); err != nil {
-		log.Print("bad json incoming msg: ", err)
-	}
-
-	if join.PublishingExchange == nil {
-		join.PublishingExchange = &defaultPublishingExchange
-	}
-
-	return &join
 }

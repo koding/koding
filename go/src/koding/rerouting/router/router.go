@@ -1,6 +1,7 @@
 package rerouting
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/fatih/goset"
@@ -20,20 +21,18 @@ type Producer struct {
 	Channel *amqp.Channel
 }
 
-type AuthMsg struct {
-	Name               string  `json:"name"`
+type AuthMsgJson struct {
 	BindingExchange    string  `json:"bindingExchange"`
 	BindingKey         string  `json:"bindingKey"`
 	PublishingExchange *string `json:"publishingExchange"`
 	RoutingKey         string  `json:"routingKey"`
-	Suffix             string  `json:"suffix"`
 }
 
-func (a *AuthMsg) Equals(b *AuthMsg) bool {
-	return (a.BindingExchange == b.BindingExchange) &&
-		(a.BindingKey == b.BindingKey) &&
-		(*a.PublishingExchange == *b.PublishingExchange) &&
-		(a.RoutingKey == b.RoutingKey)
+type AuthMsg struct {
+	BindingExchange    string
+	BindingKey         string
+	PublishingExchange string
+	RoutingKey         string
 }
 
 type Route struct {
@@ -44,24 +43,26 @@ type Route struct {
 type M map[string]interface{}
 
 type Router struct {
-	routes   M
-	consumer *Consumer
-	producer *Producer
-	mutex    *sync.RWMutex
+	routes       M
+	consumer     *Consumer
+	producer     *Producer
+	sync.RWMutex // protects routes
 }
 
 func NewRouter(c *Consumer, p *Producer) *Router {
-	router := new(Router)
-	router.routes = M{}
-	router.consumer = c
-	router.producer = p
-	router.mutex = &sync.RWMutex{}
-	return router
+	return &Router{
+		routes:   M{},
+		consumer: c,
+		producer: p,
+	}
 }
 
-func (r *Router) AddRoute(join *AuthMsg) error {
+func (r *Router) AddRoute(msg *amqp.Delivery) error {
 
-	r.mutex.Lock()
+	join, err := createAuthMsg(msg)
+	if err != nil {
+		return err
+	}
 
 	if (join.BindingExchange == "") || (join.BindingKey == "") || (join.RoutingKey == "") {
 		return errors.New("Bad join message: Ignoring")
@@ -80,17 +81,17 @@ func (r *Router) AddRoute(join *AuthMsg) error {
 	}
 	bindingKey := bindingExchange[join.BindingKey].(M)
 
-	if bindingKey[*join.PublishingExchange] == nil {
-		bindingKey[*join.PublishingExchange] = M{}
+	if bindingKey[join.PublishingExchange] == nil {
+		bindingKey[join.PublishingExchange] = M{}
 	}
-	publishingExchange := bindingKey[*join.PublishingExchange].(M)
+	publishingExchange := bindingKey[join.PublishingExchange].(M)
 
 	route, ok := publishingExchange[join.RoutingKey].(*Route)
 	if !ok {
-		publishingExchange[join.RoutingKey] = &Route{1, goset.New(join)}
+		publishingExchange[join.RoutingKey] = &Route{1, goset.New(*join)}
 		route = publishingExchange[join.RoutingKey].(*Route)
 	} else {
-		route.joins.Add(join)
+		route.joins.Add(*join)
 	}
 
 	if isNewBindingExchange {
@@ -101,14 +102,15 @@ func (r *Router) AddRoute(join *AuthMsg) error {
 		}()
 	}
 
-	r.mutex.Unlock()
-
 	return nil
 }
 
-func (r *Router) RemoveRoute(leave *AuthMsg) error {
+func (r *Router) RemoveRoute(msg *amqp.Delivery) error {
 
-	r.mutex.Lock()
+	leave, err := createAuthMsg(msg)
+	if err != nil {
+		return err
+	}
 
 	if r.routes[leave.BindingExchange] == nil {
 		return fmt.Errorf("Unknown binding exchange: %s", leave.BindingExchange)
@@ -120,17 +122,10 @@ func (r *Router) RemoveRoute(leave *AuthMsg) error {
 	}
 	bindingKey := bindingExchange[leave.BindingKey].(M)
 
-	var publishingExchange M
-
-	if bindingKey[*leave.PublishingExchange] == nil {
-		publishingExchange = bindingKey["broker"].(M)
-	} else {
-		publishingExchange = bindingKey[*leave.PublishingExchange].(M)
+	if bindingKey[leave.PublishingExchange] == nil {
+		return fmt.Errorf("Unknown publishing exchange: %s", leave.BindingKey)
 	}
-
-	if publishingExchange == nil {
-		return fmt.Errorf("Unknown publishing exchange: %s", publishingExchange)
-	}
+	publishingExchange := bindingKey[leave.PublishingExchange].(M)
 
 	if publishingExchange[leave.RoutingKey] == nil {
 		return fmt.Errorf("Unknown routing key: %s", leave.RoutingKey)
@@ -138,15 +133,12 @@ func (r *Router) RemoveRoute(leave *AuthMsg) error {
 	route := publishingExchange[leave.RoutingKey].(*Route)
 
 	for _, authMsg := range route.joins.List() {
-		join := authMsg.(*AuthMsg)
+		join := authMsg.(AuthMsg)
 
-		if join.Equals(leave) {
-			log.Println("found a match")
+		if join == *leave {
 			route.joins.Remove(authMsg)
 		}
 	}
-
-	r.mutex.Unlock()
 
 	return nil
 
@@ -154,7 +146,7 @@ func (r *Router) RemoveRoute(leave *AuthMsg) error {
 
 func (r *Router) publishTo(join *AuthMsg, msg *amqp.Delivery) error {
 	err := r.producer.Channel.Publish(
-		*join.PublishingExchange,
+		join.PublishingExchange,
 		join.RoutingKey,
 		false,
 		false,
@@ -194,40 +186,59 @@ func (r *Router) addBinding(exchangeName string) error {
 
 	for msg := range deliveries {
 
-		r.mutex.RLock()
+		r.RLock()
 
 		if r.routes[msg.Exchange] == nil {
+			r.RUnlock()
 			continue // drop it on the floor
-			r.mutex.RUnlock()
 		}
 		bindingExchange := r.routes[msg.Exchange].(M)
 
 		if bindingExchange[msg.RoutingKey] == nil {
+			r.RUnlock()
 			continue // drop it on the floor
-			r.mutex.RUnlock()
 		}
 		bindingKey := bindingExchange[msg.RoutingKey].(M)
 
 		for name := range bindingKey {
 			publishingExchange := bindingKey[name].(M)
 
-			log.Println(name, publishingExchange)
-
 			for routingKey := range publishingExchange {
 				route := publishingExchange[routingKey].(*Route)
 				list := route.joins.List()
 
 				for i := range list {
-					joinMsg := list[i].(*AuthMsg)
-					if err := r.publishTo(joinMsg, &msg); err != nil {
-						panic(err) // i don't want to panic here
+					joinMsg := list[i].(AuthMsg)
+					if err := r.publishTo(&joinMsg, &msg); err != nil {
+						log.Printf("WARNING: %v", err)
 					}
 				}
 			}
 		}
 
-		r.mutex.RUnlock()
+		r.RUnlock()
 	}
 
 	return nil
+}
+
+func createAuthMsg(msg *amqp.Delivery) (*AuthMsg, error) {
+	var msgJson AuthMsgJson
+
+	if err := json.Unmarshal(msg.Body, &msgJson); err != nil {
+		return nil, err
+	}
+
+	authMsg := AuthMsg{
+		BindingExchange:    msgJson.BindingExchange,
+		BindingKey:         msgJson.BindingKey,
+		PublishingExchange: *msgJson.PublishingExchange,
+		RoutingKey:         msgJson.RoutingKey,
+	}
+
+	if msgJson.PublishingExchange == nil {
+		authMsg.PublishingExchange = "broker"
+	}
+
+	return &authMsg, nil
 }
