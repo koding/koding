@@ -52,6 +52,7 @@ KD.classes.KDModalView=KDModalView
 KD.classes.KDModalViewLoad=KDModalViewLoad
 KD.classes.KDModalViewWithForms=KDModalViewWithForms
 KD.classes.KDNotificationView=KDNotificationView
+KD.classes.KDProgressBarView=KDProgressBarView
 KD.classes.KDSplitViewPanel=KDSplitViewPanel
 KD.classes.KDSplitResizer=KDSplitResizer
 KD.classes.KDSplitView=KDSplitView
