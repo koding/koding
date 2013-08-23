@@ -255,8 +255,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
   click : (event)->
 
     return if $(event.target).closest('.icon-container').length > 0
-    @showLoader()
-    KD.getSingleton("appManager").open 'Apps', => @hideLoader()
+    KD.getSingleton('router').handleRoute "/Apps"
     KD.track "Apps", "GetMoreAppsClicked"
 
 
