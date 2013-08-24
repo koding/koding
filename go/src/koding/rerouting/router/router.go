@@ -148,8 +148,10 @@ func (r *Router) publishTo(join *AuthMsg, msg *amqp.Delivery) error {
 }
 
 func (r *Router) addBinding(exchange string) error {
-
+	
+	r.RLock()
 	c := amqputil.CreateChannel(r.consumer.Conn)
+	r.Unlock()
 
 	var err error
 
