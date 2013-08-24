@@ -35,11 +35,6 @@ type AuthMsg struct {
 	RoutingKey         string
 }
 
-type Route struct {
-	length int
-	joins  *goset.Set
-}
-
 type M map[string]interface{}
 
 type Router struct {
@@ -85,13 +80,11 @@ func (r *Router) AddRoute(msg *amqp.Delivery) error {
 		bindingKey[join.PublishingExchange] = M{}
 	}
 	publishingExchange := bindingKey[join.PublishingExchange].(M)
-
-	route, ok := publishingExchange[join.RoutingKey].(*Route)
-	if !ok {
-		publishingExchange[join.RoutingKey] = &Route{1, goset.New(*join)}
-		route = publishingExchange[join.RoutingKey].(*Route)
+	
+	if routes, ok := publishingExchange[join.RoutingKey].(*goset.Set); ok {
+		routes.Add(*join)
 	} else {
-		route.joins.Add(*join)
+		publishingExchange[join.RoutingKey] = goset.New(*join)
 	}
 
 	if isNewBindingExchange {
@@ -130,13 +123,11 @@ func (r *Router) RemoveRoute(msg *amqp.Delivery) error {
 	if publishingExchange[leave.RoutingKey] == nil {
 		return fmt.Errorf("Unknown routing key: %s", leave.RoutingKey)
 	}
-	route := publishingExchange[leave.RoutingKey].(*Route)
+	routes := publishingExchange[leave.RoutingKey].(*goset.Set)
 
-	for _, authMsg := range route.joins.List() {
-		join := authMsg.(AuthMsg)
-
-		if join == *leave {
-			route.joins.Remove(authMsg)
+	for _, join := range routes.List() {
+		if *leave == join.(AuthMsg) {
+			routes.Remove(join)
 		}
 	}
 
@@ -156,13 +147,13 @@ func (r *Router) publishTo(join *AuthMsg, msg *amqp.Delivery) error {
 	return err
 }
 
-func (r *Router) addBinding(exchangeName string) error {
+func (r *Router) addBinding(exchange string) error {
 
 	c := amqputil.CreateChannel(r.consumer.Conn)
 
 	var err error
 
-	err = c.ExchangeDeclare(exchangeName, "topic", false, true, false, false, nil)
+	err = c.ExchangeDeclare(exchange, "topic", false, true, false, false, nil)
 	if err != nil {
 		log.Fatalf("exchange.declare: %s", err)
 		return err
@@ -173,7 +164,7 @@ func (r *Router) addBinding(exchangeName string) error {
 		return err
 	}
 
-	if err := c.QueueBind("", "#", exchangeName, false, nil); err != nil {
+	if err := c.QueueBind("", "#", exchange, false, nil); err != nil {
 		log.Fatalf("queue.bind: %s", err)
 		return err
 	}
@@ -204,8 +195,8 @@ func (r *Router) addBinding(exchangeName string) error {
 			publishingExchange := bindingKey[name].(M)
 
 			for routingKey := range publishingExchange {
-				route := publishingExchange[routingKey].(*Route)
-				list := route.joins.List()
+				routes := publishingExchange[routingKey].(*goset.Set)
+				list := routes.List()
 
 				for i := range list {
 					joinMsg := list[i].(AuthMsg)
@@ -232,12 +223,13 @@ func createAuthMsg(msg *amqp.Delivery) (*AuthMsg, error) {
 	authMsg := AuthMsg{
 		BindingExchange:    msgJson.BindingExchange,
 		BindingKey:         msgJson.BindingKey,
-		PublishingExchange: *msgJson.PublishingExchange,
 		RoutingKey:         msgJson.RoutingKey,
 	}
 
 	if msgJson.PublishingExchange == nil {
 		authMsg.PublishingExchange = "broker"
+	} else {
+		authMsg.PublishingExchange = *msgJson.PublishingExchange
 	}
 
 	return &authMsg, nil
