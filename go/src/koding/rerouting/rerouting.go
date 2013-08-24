@@ -80,7 +80,7 @@ func startRouting() {
 			}
 		case "auth.leave":
 			if err := router.RemoveRoute(&msg); err != nil {
-				log.Printf("Error adding route: %v", err)
+				log.Printf("Error removing route: %v", err)
 			}
 		default:
 			log.Println("unknown routing key: ", msg.RoutingKey)
