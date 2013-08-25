@@ -114,6 +114,9 @@ module.exports = [
   # notification
   "Framework/components/notifications/KDNotificationView.coffee",
 
+  # progressbar
+  "Framework/components/progressbar/KDProgressBarView.coffee",
+
   # dialog
   "Framework/components/dialog/KDDialogView.coffee",
 
@@ -520,18 +523,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemQuestion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
-
- # Static Profile List Items
-  # "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -803,6 +795,7 @@ module.exports = [
   "Framework/themes/default/kd.buttons.styl",
   "Framework/themes/default/kd.scrollview.styl",
   "Framework/themes/default/kd.modal.styl",
+  "Framework/themes/default/kd.progressbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
 

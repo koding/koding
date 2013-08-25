@@ -7,7 +7,7 @@ KD.extend
       else location.reload()
 
   notify_:(message, type='')->
-    console.log message
+    log message
     new KDNotificationView
       cssClass : "#{type}"
       title    : message

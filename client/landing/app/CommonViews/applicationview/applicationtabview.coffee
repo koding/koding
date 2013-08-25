@@ -37,6 +37,18 @@ class ApplicationTabView extends KDTabView
     @on "SaveSessionData", (data) =>
       @appStorage.setValue "sessions", data if @isSessionEnabled
 
+    focusActivePane = (pane)=>
+      {tabView} = pane.getMainView()
+      if this is tabView
+        @getActivePane()?.getHandle?().$().click()
+
+    mainView = KD.getSingleton("mainViewController").getView()
+    mainView.mainTabView.on "PaneDidShow", focusActivePane
+
+    @on "KDObjectWillBeDestroyed", ->
+      mainView.mainTabView.off "PaneDidShow", focusActivePane
+
+
   initSession: ->
     @appStorage = new AppStorage @getOptions().sessionName, "1.0"
 
