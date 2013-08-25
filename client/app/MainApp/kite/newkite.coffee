@@ -29,7 +29,7 @@ class NewKite extends KDEventEmitter
 
       delete @localStore[id]
     catch e
-      console.log "json parse error: ", evt.Data
+      console.log "json parse error: ", evt.data
 
     # @websocket.close()
 
