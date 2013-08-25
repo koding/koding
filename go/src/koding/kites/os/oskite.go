@@ -86,7 +86,7 @@ func main() {
 		if strings.HasPrefix(dir.Name(), "vm-") {
 			vmId := bson.ObjectIdHex(dir.Name()[3:])
 			var vm virt.VM
-			if err := db.VMs.FindId(vmId).One(&vm); err != nil {
+			if err := db.VMs.FindId(vmId).One(&vm); err != nil || vm.HostKite != k.ServiceUniqueName {
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Warn(err.Error())
 				}
@@ -172,7 +172,7 @@ func main() {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		vos.VM.Prepare(true)
+		vos.VM.Prepare(true, log.Warn)
 		if err := vos.VM.Start(); err != nil {
 			panic(err)
 		}
@@ -397,7 +397,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			isPrepared = false
 		}
 		if !isPrepared || info.hostname != vm.HostnameAlias {
-			vm.Prepare(false)
+			vm.Prepare(false, log.Warn)
 			if err := vm.Start(); err != nil {
 				log.LogError(err, 0)
 			}
@@ -599,8 +599,10 @@ func (info *VMInfo) startTimeout() {
 		if info.useCounter != 0 {
 			return
 		}
-		if err := virt.SendMessageToVMUsers(info.vmId, "========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
-			log.Warn(err.Error())
+		if virt.GetVMState(info.vmId) == "RUNNING" {
+			if err := virt.SendMessageToVMUsers(info.vmId, "========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
+				log.Warn(err.Error())
+			}
 		}
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
 			if info.useCounter != 0 {

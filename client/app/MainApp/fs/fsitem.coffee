@@ -152,6 +152,7 @@ class FSItem extends KDObject
 
     return fileType or 'unknown'
 
+  @isHidden: (name)-> return /^\./.test name
 
   ###
   INSTANCE METHODS
@@ -167,6 +168,8 @@ class FSItem extends KDObject
     @vmController   = KD.getSingleton('vmController')
 
   getExtension:-> FSItem.getFileExtension @name
+
+  isHidden:-> FSItem.isHidden @name
 
   exists:(callback=noop)->
     FSHelper.exists @path, @vmName, callback

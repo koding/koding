@@ -45,12 +45,16 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 	return cmd
 }
 
-func (vm *VM) GetState() string {
-	out, err := exec.Command("/usr/bin/lxc-info", "--name", vm.String(), "--state").CombinedOutput()
+func GetVMState(vmId bson.ObjectId) string {
+	out, err := exec.Command("/usr/bin/lxc-info", "--name", VMName(vmId), "--state").CombinedOutput()
 	if err != nil {
 		return ""
 	}
 	return strings.TrimSpace(string(out)[6:])
+}
+
+func (vm *VM) GetState() string {
+	return GetVMState(vm.Id)
 }
 
 func (vm *VM) WaitForState(state string, timeout time.Duration) error {

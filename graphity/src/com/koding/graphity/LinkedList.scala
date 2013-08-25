@@ -50,6 +50,16 @@ object LinkedList {
     entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING).getStartNode
   }
 
+  // Get all previous entries (including current, excluding head).
+  def getAll(current: Node): List[Node] = {
+    val nextRel = current.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING)
+    if (nextRel == null) {
+      Nil
+    } else {
+      current :: getAll(nextRel.getStartNode)
+    }
+  }
+
   // Searches backwards from tail until filter returns true and returns the selected node.
   // The filter must always return true for head node.
   def find(tail: Node, filter: (Node) => Boolean): Node = {

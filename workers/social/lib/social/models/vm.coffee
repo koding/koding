@@ -7,6 +7,8 @@ module.exports = class JVM extends Module
   {secure} = require 'bongo'
   {uniq}   = require 'underscore'
 
+  {argv} = require 'optimist'
+
   KodingError = require '../error'
 
   JRecurlySubscription = require './recurly/subscription'
@@ -60,7 +62,7 @@ module.exports = class JVM extends Module
                             'sj'  # San Jose
                             'vagrant'
                           ]]
-        default         : 'sj'
+        default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
       planOwner         : String
       planCode          : String

@@ -114,7 +114,7 @@ func main() {
 				// log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
 				return
 			}
-			if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
+			if len(subscriptions) > 0 && len(subscriptions)%2000 == 0 {
 				log.Warn("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
 			}
 			routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
