@@ -22,11 +22,14 @@ class NewKite extends KDEventEmitter
   onClose : (evt) -> console.log "#{@kiteName}: Disconnected"
 
   onMessage : (evt) ->
-    {id, result, error} = JSON.parse evt.data
-    id = "#{id}"
-    @localStore[id].call null, error, result
+    try
+      {id, result, error} = JSON.parse evt.data
+      id = "#{id}"
+      @localStore[id].call null, error, result
 
-    delete @localStore[id]
+      delete @localStore[id]
+    catch e
+      console.log "json parse error: ", evt.Data
 
     # @websocket.close()
 
@@ -50,7 +53,7 @@ class NewKite extends KDEventEmitter
     # store callback at localstore
     @localStore[id] = callback
     # send query over websocket
-    @websocket.send(JSON.stringify(request));
+    @websocket.send JSON.stringify(request)
 
   # wrapper function for call method
   tell:(rest...)-> @ready => @call rest...
