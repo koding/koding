@@ -293,7 +293,7 @@ class ProfileView extends JView
     <section>
       <div class="profileinfo">
         {{> @editButton}} {{> @saveButton}} {{> @cancelButton}}
-        <h3 class="profilename">{{> @firstName}}&nbsp;{{> @lastName}}</h3>
+        <h3 class="profilename">{{> @firstName}}{{> @lastName}}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
           {{> @userHomeLink}}
