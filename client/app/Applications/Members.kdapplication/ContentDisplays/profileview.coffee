@@ -112,6 +112,17 @@ class ProfileView extends JView
         , @memberData
     , @memberData
 
+    userDomain = @memberData.profile.nickname + "." + KD.config.userSitesDomain
+    @userHomeLink = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "user-home-link"
+      attributes  :
+        href      : "http://#{userDomain}"
+        target    : "_blank"
+      pistachio   : userDomain
+      click       : (event) =>
+        KD.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
+
     @followButton = new MemberFollowToggleButton
       style : "kdwhitebtn profilefollowbtn"
     , @memberData
@@ -248,9 +259,25 @@ class ProfileView extends JView
       </div>
     """
 
+  updateUserHomeLink: ->
+    return  unless @userHomeLink
+
+    if @memberData.onlineStatus is "online"
+      @userHomeLink.unsetClass "offline"
+      @userHomeLink.tooltip?.destroy()
+    else
+      @userHomeLink.setClass "offline"
+
+      @userHomeLink.setTooltip
+        title     : "#{@memberData.profile.nickname}'s VM is offline"
+        placement : "right"
+
+  render: ->
+    @updateUserHomeLink()
+    super
+
   pistachio: ->
     account      = @getData()
-    userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
@@ -269,7 +296,7 @@ class ProfileView extends JView
         <h3 class="profilename">{{> @firstName}}&nbsp;{{> @lastName}}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
-          <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
+          {{> @userHomeLink}}
           <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
         </h5>
         <div class="profilestats">
