@@ -24,7 +24,7 @@ class NewKite extends KDEventEmitter
   onMessage : (evt) ->
     {id, result, error} = JSON.parse evt.data
     id = "#{id}"
-    @localStore[id].call null, result, error
+    @localStore[id].call null, error, result
 
     delete @localStore[id]
 
@@ -36,14 +36,15 @@ class NewKite extends KDEventEmitter
     return KD.utils.defer callback  if @readyState
     @once 'ready', callback
 
-  call : (methodName, params, callback)->
+  call : (methodName, rest..., callback)->
+
     # create a unique id
     id = Bongo.createId 12
 
     request =
       name      : "#{KD.whoami().profile.nickname}"
       method    : "#{@kiteName}.#{methodName}"
-      params    : params
+      params    : rest
       token     : "124"
       id        : id
     # store callback at localstore
