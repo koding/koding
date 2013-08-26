@@ -33,6 +33,7 @@ class GroupsInvitationView extends KDView
             buttons          :
               Send           :
                 itemClass    : KDButtonView
+                testPath     : "groups-dashboard-invite-button"
                 title        : options.submitButtonLabel or 'Send'
                 type         : 'submit'
                 loader       :
@@ -141,6 +142,7 @@ class GroupsInvitationView extends KDView
           label          : 'Emails'
           type           : 'textarea'
           cssClass       : 'emails-input'
+          testPath       : "groups-dashboard-invite-list"
           placeholder    : 'Enter each email address on a new line...'
           validate       :
             rules        :
