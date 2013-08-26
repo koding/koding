@@ -114,7 +114,7 @@ class GraphityExtension(@Context db: GraphDatabaseService) {
       val event = db.createNode
       event.setProperty("timestamp", timestamp)
       externalEventNode.createRelationshipTo(event, GRAPHITY_EVENT)
-      LinkedList.insert(LinkedList.find(source, { previous => getEventTimestamp(previous) <= timestamp }), event)
+      LinkedList.insertAfter(LinkedList.find(source, { previous => getEventTimestamp(previous) <= timestamp }), event)
 
       updateSource(source)
 
@@ -214,7 +214,7 @@ class GraphityExtension(@Context db: GraphDatabaseService) {
   // Inserts the subscription at the correct position of the stream's subscription list.
   def insertSubscription(stream: Node, subscription: Node) {
     val timestamp = getSubscriptionTimestamp(subscription)
-    LinkedList.insert(LinkedList.find(stream, { previous => getSubscriptionTimestamp(previous) <= timestamp }), subscription)
+    LinkedList.insertAfter(LinkedList.find(stream, { previous => getSubscriptionTimestamp(previous) <= timestamp }), subscription)
   }
 
   // Updates all subscription lists which have a subscription to source.
