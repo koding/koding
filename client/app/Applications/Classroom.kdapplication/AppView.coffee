@@ -107,31 +107,32 @@ class ClassroomAppView extends KDScrollView
   getPredefinedCourses: ->
     [
       {
-        devMode    : true
-        version    : "0.1"
-        name       : "CoffeeScript"
-        author     : "Fatih Acet"
-        authorNick : "fatihacet"
-        icns       :
-          "128"    : "./resources/icon.128.png"
+        devMode       : true
+        version       : "0.1"
+        name          : "CoffeeScript"
+        author        : "Fatih Acet"
+        authorNick    : "fatihacet"
+        totalChapters : 7
+        icns          :
+          "128"       : "./resources/icon.128.png"
       }
       {
-        devMode    : true
-        version    : "0.1"
-        name       : "JavaScript"
-        author     : "Fatih Acet"
-        authorNick : "fatihacet"
-        icns       :
-          "128"    : "./resources/icon.128.png"
+        devMode       : true
+        version       : "0.1"
+        name          : "JavaScript"
+        author        : "Fatih Acet"
+        authorNick    : "fatihacet"
+        icns          :
+          "128"       : "./resources/icon.128.png"
       }
       {
-        devMode    : true
-        version    : "0.1"
-        name       : "PHP"
-        author     : "Fatih Acet"
-        authorNick : "fatihacet"
-        icns       :
-          "128"    : "./resources/icon.128.png"
+        devMode       : true
+        version       : "0.1"
+        name          : "PHP"
+        author        : "Fatih Acet"
+        authorNick    : "fatihacet"
+        icns          :
+          "128"       : "./resources/icon.128.png"
       }
     ]
 
