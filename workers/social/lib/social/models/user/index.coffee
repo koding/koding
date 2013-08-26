@@ -639,12 +639,14 @@ module.exports = class JUser extends jraphical.Module
           callback null
 
   @changePassword = secure (client,password,callback)->
-    @fetchUser client, (err,user)-> 
+    @fetchUser client, (err,user)->
       user.changePassword password, callback
       email = new JMail {
         email: user.email
         subject : "Your password has changed"
-        content : "Your password has changed, please contact support@koding.com if you didn't change your password"
+        content : """
+Your password has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+"""
       }
       email.save (err)=>
         if err then 'couldnt send email' else 'sent notification for password change'
