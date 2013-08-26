@@ -28,8 +28,9 @@ class ClassroomAppView extends KDScrollView
       @addSubView @coursesView = new ClassroomCoursesView
         delegate : this
       ,
-        enrolled : @enrolledCourses
-        related  : @relatedCourses
+        enrolled          : @enrolledCourses
+        related           : @relatedCourses
+        completedChapters : @appStorage.getValue "CompletedChapters"
 
   createHeader: ->
     @addSubView @header = new KDView
