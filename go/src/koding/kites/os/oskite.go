@@ -599,8 +599,10 @@ func (info *VMInfo) startTimeout() {
 		if info.useCounter != 0 {
 			return
 		}
-		if err := virt.SendMessageToVMUsers(info.vmId, "========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
-			log.Warn(err.Error())
+		if virt.GetVMState(info.vmId) == "RUNNING" {
+			if err := virt.SendMessageToVMUsers(info.vmId, "========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
+				log.Warn(err.Error())
+			}
 		}
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
 			if info.useCounter != 0 {
