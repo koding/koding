@@ -33,10 +33,7 @@ class StartTabMainView extends JView
       loader      :
         diameter  : 16
       callback    : =>
-        @removeAppIcons()
-        @showLoader()
-        @appsController.refreshApps (err, apps)=>
-          @hideLoader()
+        @appsController.syncAppStorageWithFS yes, =>
           @refreshButton.hideLoader()
 
     @addAnAppButton = new KDButtonView
@@ -156,23 +153,25 @@ class StartTabMainView extends JView
 
   decorateApps:(apps)->
 
+    apps or= @appsController.getManifests()
+
     @removeAppIcons()
     @showLoader()
     @refreshButton.hide()
 
-    shortcuts = @appsController.appStorage.getValue 'shortcuts'
+    @appsController.appStorage.fetchValue 'shortcuts', (shortcuts)=>
 
-    for shortcut, manifest of shortcuts
-      do (shortcut, manifest)=>
-        @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
-          delegate : @
-        , manifest
+      for shortcut, manifest of shortcuts
+        do (shortcut, manifest)=>
+          @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
+            delegate : @
+          , manifest
 
-    @putAppIcons apps
-    @createGetMoreAppsButton()
+      @createAppsIcons apps
+      @createGetMoreAppsButton()
 
-    @hideLoader()
-    @refreshButton.show()
+      @hideLoader()
+      @refreshButton.show()
 
   createGetMoreAppsButton:->
     @appIcons['GET_MORE_APPS']?.destroy()
