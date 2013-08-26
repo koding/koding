@@ -15,9 +15,11 @@ class ClassroomCourseThumbView extends JView
     @on "EnrollmentRequested", => appView.enrollToCourse data
 
   createElements: ->
-    data              = @getData()
-    devModeOptions    = {}
-    cancelIconOptions = {}
+    data               = @getData()
+    devModeOptions     = {}
+    cancelIconOptions  = {}
+    @progressContainer = new KDView
+      cssClass         : "progress-container"
 
     if data.devMode
       devModeOptions.cssClass = "top-badge gray"
@@ -32,6 +34,17 @@ class ClassroomCourseThumbView extends JView
         e.stopPropagation()
         @destroy()
         @emit "EnrollmentCancelled"
+
+      percent = if data.completed then Math.round (100 * data.completed.length) / data.totalChapters else 0
+
+      @progressContainer.addSubView new KDView
+        cssClass   : "progress-bar"
+        attributes :
+          style    : "width:#{percent}%"
+        tooltip    :
+          title    : "You completed #{percent}% of this course."
+    else
+      @progressContainer.setClass "hidden"
 
     @cancelIcon = new KDCustomHTMLView cancelIconOptions
 
@@ -58,4 +71,5 @@ class ClassroomCourseThumbView extends JView
         <span>#{data.name}</span>
         <span>#{data.version}</span>
       </cite>
+      {{> @progressContainer}}
     """
