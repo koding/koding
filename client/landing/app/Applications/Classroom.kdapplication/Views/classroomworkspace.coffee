@@ -25,6 +25,7 @@ class ClassroomWorkspace extends CollaborativeWorkspace
     config.shareSessionKeyInfo = "<p>This is your session key, you can share this key with your friends to work together.</p>"
     config.firebaseInstance    = "teamwork-local"
     config.panels              = [options]
+    config.enableChat          = yes
 
     return config
 
