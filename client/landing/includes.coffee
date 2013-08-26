@@ -317,6 +317,7 @@ module.exports = [
 
   # fs representation
   "app/MainApp/fs/fshelper.coffee",
+  "app/MainApp/fs/fswatcher.coffee",
   "app/MainApp/fs/fsitem.coffee",
   "app/MainApp/fs/fsfile.coffee",
   "app/MainApp/fs/fsfolder.coffee",
