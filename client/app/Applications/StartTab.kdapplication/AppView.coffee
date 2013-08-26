@@ -17,11 +17,7 @@ class StartTabMainView extends JView
     @appsController.on "AppsRefreshed", (apps)=>
       @decorateApps apps
 
-    @appsController.on "InvalidateAppIcons", (apps)=>
-      @removeAppIcon app for app in apps  if apps
-
-    @appsController.on "CreateAppIcons", (apps)=>
-      @createAppIcon app for app in apps  if apps
+    @appsController.on "AppsDataChanged", @bound "updateAppIcons"
 
     @finderController = KD.getSingleton "finderController"
     @finderController.on 'recentfiles.updated', =>
@@ -193,25 +189,28 @@ class StartTabMainView extends JView
     @appItemContainer.destroySubViews()
     @appIcons = {}
 
-  createAppIcon:(appName)->
+  updateAppIcons:(changes)->
 
-    appData = @appsController.getManifest appName
-    return warn "App data not found for #{appName}"  unless appData
-    # There should be one icon per app
+    {removedApps, newApps, force} = changes
+    return @decorateApps()  if force
+    @removeAppIcon app  for app in removedApps
+    @createAppsIcons @appsController.getManifests()  if newApps.length > 0
+
+  createAppIcon:(app, appData)->
+
+    log "ADDING:", appData
     @appIcons[appData.name]?.destroy()
     @appItemContainer.addSubView @appIcons[appData.name] = new StartTabAppThumbView
       delegate : @
     , appData
 
+  createAppsIcons:(apps)->
+    for app, appData of apps
+      do (app, appData)=>
+        @createAppIcon app, appData
+
     # To make sure its always the last icon
     @createGetMoreAppsButton()
-
-  putAppIcons:(apps)->
-    for app, manifest of apps
-      do (app, manifest)=>
-        @appItemContainer.addSubView @appIcons[manifest.name] = new StartTabAppThumbView
-          delegate : @
-        , manifest
 
   addSplitOptions:->
     for splitOption in getSplitOptions()
