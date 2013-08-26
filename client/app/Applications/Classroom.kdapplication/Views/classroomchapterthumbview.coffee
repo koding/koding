@@ -43,6 +43,14 @@ class ClassroomChapterThumbView extends JView
           <div>
           """
 
+    progressOptions = {}
+    if @getData().completed
+      progressOptions.cssClass = "completed-chapter"
+      progressOptions.tooltip  =
+        title                  : "You have already completed this chapter."
+
+    @progressBar = new KDCustomHTMLView progressOptions
+
   click: ->
     data = @getData()
     KD.getSingleton("router").handleQuery "?course=#{data.courseName}&chapter=#{data.index + 1}"
@@ -62,4 +70,5 @@ class ClassroomChapterThumbView extends JView
       <cite>
         <span>#{data.title}</span>
       </cite>
+      {{> @progressBar}}
     """
