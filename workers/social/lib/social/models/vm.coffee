@@ -40,7 +40,7 @@ module.exports = class JVM extends Module
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVmInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
-                           'count', 'fetchDefaultVm' #'calculateUsage'
+                           'count', 'fetchDefaultVm', 'fetchVmRegion' #'calculateUsage'
                           ]
       instance          : []
     schema              :
@@ -302,6 +302,16 @@ module.exports = class JVM extends Module
           hostnameAlias    : vm.hostnameAlias
           underMaintenance : vm.hostKite is "(maintenance)"
           region           : vm.region or 'aws'
+
+  @fetchVmRegion = secure (client, hostnameAlias, callback)->
+    {delegate} = client.connection
+    if delegate.type is 'unregistered'
+      return callback null
+    JVM.one
+      hostnameAlias : hostnameAlias
+    , (err, vm)->
+      return callback err  if err or not vm
+      callback null, vm.region
 
   @fetchDefaultVm = secure (client, callback)->
     {delegate} = client.connection
