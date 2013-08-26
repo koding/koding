@@ -1,4 +1,4 @@
-package com.koding.graphity
+package com.koding.linkedlist
 
 import org.neo4j.graphdb.Direction
 import org.neo4j.graphdb.Node
@@ -16,11 +16,12 @@ object LinkedList {
   // Initializes a linked list with given head and tail nodes.
   def init(head: Node, tail: Node) {
     head.createRelationshipTo(tail, LINKED_LIST_TAIL)
+    tail.createRelationshipTo(tail, LINKED_LIST_TAIL)
     head.createRelationshipTo(tail, LINKED_LIST_NEXT)
   }
 
   // Inserts entry between previous and the following node.
-  def insert(previous: Node, entry: Node): Unit = {
+  def insertAfter(previous: Node, entry: Node): Unit = {
     val tail = previous.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).getEndNode
     entry.createRelationshipTo(tail, LINKED_LIST_TAIL)
 
@@ -29,6 +30,18 @@ object LinkedList {
 
     previous.createRelationshipTo(entry, LINKED_LIST_NEXT)
     entry.createRelationshipTo(nextRel.getEndNode, LINKED_LIST_NEXT)
+  }
+
+  // Inserts entry between next and the node before.
+  def insertBefore(next: Node, entry: Node): Unit = {
+    val tail = next.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).getEndNode
+    entry.createRelationshipTo(tail, LINKED_LIST_TAIL)
+
+    val nextRel = next.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING)
+    nextRel.delete
+
+    nextRel.getStartNode.createRelationshipTo(entry, LINKED_LIST_NEXT)
+    entry.createRelationshipTo(next, LINKED_LIST_NEXT)
   }
 
   // Remove entry and return tail node. Do not execute on head or tail node.
