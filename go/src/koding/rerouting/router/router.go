@@ -80,7 +80,7 @@ func (r *Router) AddRoute(msg *amqp.Delivery) error {
 		bindingKey[join.PublishingExchange] = M{}
 	}
 	publishingExchange := bindingKey[join.PublishingExchange].(M)
-	
+
 	if routes, ok := publishingExchange[join.RoutingKey].(*goset.Set); ok {
 		routes.Add(*join)
 	} else {
@@ -148,10 +148,10 @@ func (r *Router) publishTo(join *AuthMsg, msg *amqp.Delivery) error {
 }
 
 func (r *Router) addBinding(exchange string) error {
-	
+
 	r.RLock()
 	c := amqputil.CreateChannel(r.consumer.Conn)
-	r.Unlock()
+	r.RUnlock()
 
 	var err error
 
@@ -223,9 +223,9 @@ func createAuthMsg(msg *amqp.Delivery) (*AuthMsg, error) {
 	}
 
 	authMsg := AuthMsg{
-		BindingExchange:    msgJson.BindingExchange,
-		BindingKey:         msgJson.BindingKey,
-		RoutingKey:         msgJson.RoutingKey,
+		BindingExchange: msgJson.BindingExchange,
+		BindingKey:      msgJson.BindingKey,
+		RoutingKey:      msgJson.RoutingKey,
 	}
 
 	if msgJson.PublishingExchange == nil {
