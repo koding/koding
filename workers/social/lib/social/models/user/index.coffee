@@ -648,9 +648,7 @@ module.exports = class JUser extends jraphical.Module
 Your password has been changed!  If you didn't request this change, please contact support@koding.com immediately!
 """
       }
-      email.save (err)=>
-        if err then 'couldnt send email' else 'sent notification for password change'
-
+      email.save ()->
 
   @changeEmail = secure (client,options,callback)->
 
