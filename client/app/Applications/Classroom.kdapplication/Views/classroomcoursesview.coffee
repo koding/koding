@@ -24,9 +24,10 @@ class ClassroomCoursesView extends JView
         @createThumbView @relatedContainer, "related", related
 
   createThumbView: (container, type, data) ->
-    appView   = @getDelegate()
-    {cdnRoot} = appView
-    thumbView = new ClassroomCourseThumbView { cdnRoot, type, delegate: appView }, data
+    appView        = @getDelegate()
+    {cdnRoot}      = appView
+    data.completed = @getData().completedChapters?[data.name]
+    thumbView      = new ClassroomCourseThumbView { cdnRoot, type, delegate: appView }, data
     container.addSubView thumbView
 
   createElements: ->
