@@ -107,9 +107,15 @@ class StartTabMainView extends JView
   viewAppended:->
 
     super
+
+    unless @appsController._loadedOnce
+      @appsController.syncAppStorageWithFS()
+      @appsController._loadedOnce = yes
+
     @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
+
     if KD.isGuest()
       unless $.cookie "guestForFirstTime"
         @utils.wait 5*60*1000, =>

@@ -18,6 +18,7 @@ class KodingAppsController extends KDController
 
     super
 
+    @_loadedOnce    = no
     @appManager     = KD.getSingleton "appManager"
     @vmController   = KD.getSingleton "vmController"
     mainController  = KD.getSingleton "mainController"
