@@ -4,10 +4,34 @@ class NewKite extends KDEventEmitter
     super
     @readyState = false
     @localStore = {}
-    @websocket = @createWebSocket()
-    @registerEvents()
+    @getKiteAddr()
 
-  createWebSocket:-> new WebSocket "ws://127.0.0.1:4000/sock"
+  createWebSocket: (url) ->
+    new WebSocket "ws://#{url}/sock"
+
+  getKiteAddr:()->
+    requestData =
+      name       : "#{KD.nick()}"
+      remoteKite : @kiteName
+      token      : KD.remote.getSessionToken()
+
+    $.ajax
+     type    : "POST"
+     url     : "http://127.0.0.1:4000/request" #kontrol addr
+     data    : JSON.stringify requestData
+     success: (data, status, response) =>
+       if response.status is 200
+         data = JSON.parse data
+
+         console.log "Remote Kite is #{data[0].name}"
+         console.log "Addr to be connected is #{data[0].addr}"
+         console.log "Token to use is #{data[0].token}"
+
+         @websocket = @createWebSocket(data[0].addr)
+         @registerEvents()
+
+     error: (data, status, response) ->
+       console.log "error kontrol kite request", data, status, response
 
   registerEvents:()->
     @websocket.onopen = (evt) => @onOpen evt
@@ -40,8 +64,9 @@ class NewKite extends KDEventEmitter
     @once 'ready', callback
 
   call : (methodName, rest..., callback)->
+    if not KD.isLoggedIn()
+      return
 
-    # create a unique id
     id = Bongo.createId 12
 
     request =
