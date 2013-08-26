@@ -13,6 +13,7 @@ module.exports = class JUser extends jraphical.Module
   JName          = require '../name'
   JGroup         = require '../group'
   JLog           = require '../log'
+  JMail          = require '../email'
 
   createId       = require 'hat'
 
@@ -638,7 +639,16 @@ module.exports = class JUser extends jraphical.Module
           callback null
 
   @changePassword = secure (client,password,callback)->
-    @fetchUser client, (err,user)-> user.changePassword password, callback
+    @fetchUser client, (err,user)-> 
+      user.changePassword password, callback
+      email = new JMail {
+        email: user.email
+        subject : "Your password has changed"
+        content : "Your password has changed, please contact support@koding.com if you didn't change your password"
+      }
+      email.save (err)=>
+        if err then 'couldnt send email' else 'sent notification for password change'
+
 
   @changeEmail = secure (client,options,callback)->
 
