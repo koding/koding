@@ -56,10 +56,11 @@ class KodingAppsController extends KDController
         callback null, @constructor.manifests
       else
         @fetchAppsFromDb (err, apps)=>
-          if err
+          if err and not @_loadedOnce
             @fetchAppsFromFs (err, apps)=>
+              @_loadedOnce = yes
               if err then callback? err
-              else callback null, apps
+              else callback? null, apps
           else
             callback? err, apps
 

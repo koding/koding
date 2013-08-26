@@ -152,7 +152,7 @@ class StartTabMainView extends JView
     @showLoader()
     @appsController.fetchApps (err, apps)=>
 
-      unless @appsController._loadedOnce and Object.keys(apps).length > 0
+      if not @appsController._loadedOnce and apps and Object.keys(apps).length > 0
         @appsController.syncAppStorageWithFS()
         @appsController._loadedOnce = yes
 
