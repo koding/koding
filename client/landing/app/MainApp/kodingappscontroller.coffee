@@ -52,8 +52,9 @@ class KodingAppsController extends KDController
   fetchApps:(callback)->
 
     @appStorage.ready =>
-      if Object.keys(@constructor.manifests).length isnt 0
-        callback null, @constructor.manifests
+      manifests = @getManifests()
+      if Object.keys(manifests).length > 0
+        callback null, manifests
       else
         @fetchAppsFromDb (err, apps)=>
           if err and not @_loadedOnce
@@ -66,7 +67,7 @@ class KodingAppsController extends KDController
 
   fetchAppFromFs:(appName, cb)->
 
-    manifests = @constructor.manifests
+    manifests = @getManifests()
     appsPath = "/home/#{KD.nick()}/Applications/"
     suffix   = ".kdapp/manifest.json"
 
@@ -109,7 +110,7 @@ class KodingAppsController extends KDController
         apps = @filterAppsFromFileList files
         @fetchAppsFromFsHelper apps, (result)=>
           for callback in @_fetchQueue
-            callback null, @constructor.manifests
+            callback null, @getManifests()
           @_fetchQueue = []
     , ->
       warn msg = "Timeout reached for kite request"
@@ -129,7 +130,7 @@ class KodingAppsController extends KDController
 
   syncAppStorageWithFS:(force=no, callback=noop)->
 
-    currentApps = Object.keys(@constructor.manifests)
+    currentApps = Object.keys(@getManifests())
     removedApps = []
     newApps     = []
 
@@ -206,7 +207,7 @@ class KodingAppsController extends KDController
 
   putAppsToAppStorage:(apps, callback = noop)->
     warn "calling putAppsToAppStorage:", apps
-    apps or= @constructor.manifests
+    apps or= @getManifests()
     @appStorage.setValue 'apps', apps, -> callback()
 
   invalidateDeletedApps:(deletedApps, force=no, callback)->
@@ -215,7 +216,7 @@ class KodingAppsController extends KDController
       @constructor.manifests = {}
       @putAppsToAppStorage manifests, callback
 
-    manifests = @constructor.manifests
+    manifests = @getManifests()
     delete manifests[app]  for app in deletedApps
     if deletedApps.length > 0
       @putAppsToAppStorage manifests, callback
@@ -362,7 +363,7 @@ class KodingAppsController extends KDController
 
     @getAppScript manifest, (appScript)=>
 
-      manifest   = @constructor.manifests[appName]
+      manifest   = @getManifest appName
       appPath    = @getAppPath manifest
       options    =
         method   : "app.publish"
@@ -481,11 +482,11 @@ class KodingAppsController extends KDController
                       """
           callback? err
 
-    unless @constructor.manifests[name]
+    unless @getManifest name
       @fetchApps (err, apps)->
         compileOnServer apps[name]
     else
-      compileOnServer @constructor.manifests[name]
+      compileOnServer @getManifest name
 
   getManifests:->
     @constructor.manifests
