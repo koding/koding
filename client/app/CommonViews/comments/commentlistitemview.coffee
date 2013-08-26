@@ -17,10 +17,11 @@ class CommentListItemView extends KDListItemView
       id               : originId
 
     @avatar = new AvatarView {
-      size     :
-        width  : options.avatarWidth or 30
-        height : options.avatarHeight or 30
+      size        :
+        width       : options.avatarWidth or 30
+        height      : options.avatarHeight or 30
       origin
+      showStatus  : yes
     }
 
     @author = new ProfileLinkView { origin }

@@ -2,11 +2,13 @@ class AvatarView extends LinkView
 
   constructor:(options = {},data)->
 
-    options.cssClass or= ""
-    options.size     or=
-      width            : 50
-      height           : 50
-    options.detailed  ?= no
+    options.cssClass       or= ""
+    options.size           or=
+      width                   : 50
+      height                  : 50
+    options.detailed        ?= no
+    options.showStatus     or= no
+    options.statusDiameter or= '10%'
 
     # this needs to be pre-super
     if options.detailed
@@ -46,8 +48,6 @@ class AvatarView extends LinkView
     account = @getData()
     return unless account
 
-    onlineStatus = account.onlineStatus or 'offline'
-
     {profile, type} = account
     return @setAvatar "url(#{@fallbackUri})"  if type is 'unregistered'
 
@@ -58,15 +58,25 @@ class AvatarView extends LinkView
     @$('cite').addClass flags
 
     @setDomAttributes href: "/#{profile.nickname}"
+    
+    if @getOptions().showStatus
+      onlineStatus = account.onlineStatus or 'offline'
+      statusAttr   = @.$().attr("data-onlineStatus")
 
-    if @.$().attr("data-onlineStatus") and onlineStatus isnt @.$().attr("data-onlineStatus")
-      @setClass "animate"
+      if statusAttr? and onlineStatus isnt statusAttr
+        @setClass "animate"
 
-    @setDomAttributes "data-onlineStatus": onlineStatus
+      @setDomAttributes "data-onlineStatus": onlineStatus
 
   viewAppended:->
     super
     @render() if @getData()
+
+    if @getOptions().showStatus
+      @addSubView @statusDot = new KDCustomHTMLView
+        cssClass : 'statusDot'
+      @statusDot.setWidth @getOptions().statusDiameter
+      @statusDot.setHeight @getOptions().statusDiameter
 
   pistachio:-> '<cite></cite>'
 
