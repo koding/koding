@@ -85,7 +85,7 @@ class KodingAppsController extends KDController
       @putAppsToAppStorage manifests
       cb null
 
-  fetchIndividualAppsFromFS:(apps, callback)->
+  fetchAppsFromFsHelper:(apps, callback)->
 
     stack = []
     apps.forEach (app)=>
@@ -100,14 +100,13 @@ class KodingAppsController extends KDController
     path   = "/home/#{KD.nick()}/Applications"
     appDir = FSHelper.createFileFromPath path, 'folder'
     appDir.fetchContents KD.utils.getTimedOutCallback (err, files)=>
-
       if err or not Array.isArray files or files.length is 0
         @putAppsToAppStorage {}
         callback()  for callback in @_fetchQueue
         @_fetchQueue = []
       else
         apps = @filterAppsFromFileList files
-        @fetchIndividualAppsFromFS apps, (result)=>
+        @fetchAppsFromFsHelper apps, (result)=>
           for callback in @_fetchQueue
             callback null, @constructor.manifests
           @_fetchQueue = []
@@ -118,12 +117,12 @@ class KodingAppsController extends KDController
       @_fetchQueue = []
 
   fetchAppsFromDb:(callback)->
-    return unless @appStorage
 
     @appStorage.fetchStorage (storage)=>
 
       apps = @appStorage.getValue 'apps'
       shortcuts = @appStorage.getValue 'shortcuts'
+      log "APPS",apps,"shortcuts",shortcuts
 
       justFetchApps = =>
         if apps and Object.keys(apps).length > 0
@@ -138,7 +137,7 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
-  syncAppStorageWithFS:->
+  syncAppStorageWithFS:(force=no, callback=noop)->
 
     currentApps = Object.keys(@constructor.manifests)
     removedApps = []
@@ -164,10 +163,18 @@ class KodingAppsController extends KDController
       log "REMOVED APPS:", removedApps
       log "NEW APPS:", newApps
 
-      @removeInvalidatedAppsFromAppstorage removedApps, =>
-        @emit "InvalidateAppIcons", removedApps
-      @fetchIndividualAppsFromFS newApps, =>
-        @emit "CreateAppIcons", newApps
+      log "Nothing changed"  if removedApps.length is 0 and \
+                                newApps.length is 0
+
+      @invalidateDeletedApps removedApps, force, =>
+        log "DELETED APPS REMOVED FROM APPSTORAGE"
+        appsToFetch = if force then existingApps else newApps
+        log "FOLLOWING APPS WILL BE FETCHED", appsToFetch
+        @fetchAppsFromFsHelper appsToFetch, =>
+          log "APPS FETCHED"
+          @emit "AppsDataChanged", {removedApps, newApps, existingApps, force}
+
+      callback?()
 
   filterAppsFromFileList:(files)->
     return (file.name.replace /\.kdapp$/, '' \
@@ -194,15 +201,6 @@ class KodingAppsController extends KDController
   # MISC
   # #
 
-  refreshApps:(callback, redecorate=yes)->
-
-    @constructor.manifests = {}
-    KD.resetAppScripts()
-    @fetchAppsFromFs (err, apps)=>
-      @appStorage.fetchStorage =>
-        @emit "AppsRefreshed", apps  if redecorate
-      callback? err, apps
-
   removeShortcut:(shortcut, callback)->
     @appStorage.fetchValue 'shortcuts', (shortcuts)=>
       delete shortcuts[shortcut]
@@ -210,21 +208,28 @@ class KodingAppsController extends KDController
         callback err
 
   putDefaultShortcutsBack:(callback)->
-
     @appStorage.reset()
     @appStorage.setValue 'shortcuts', defaultShortcuts, callback
 
   putAppsToAppStorage:(apps, callback = noop)->
+    warn "calling putAppsToAppStorage:", apps
     apps or= @constructor.manifests
-    @appStorage.setValue 'apps', apps, callback
+    @appStorage.setValue 'apps', apps, -> callback()
 
-  removeInvalidatedAppsFromAppstorage:(removedApps, callback)->
+  invalidateDeletedApps:(deletedApps, force=no, callback)->
+    log "REQUESTED TO INVALIDATE:", deletedApps
+    return if force
+      @constructor.manifests = {}
+      @putAppsToAppStorage manifests, callback
+
     manifests = @constructor.manifests
-    delete manifests[app]  for app in removedApps
-    @putAppsToAppStorage manifests, callback  if removedApps.length > 0
+    delete manifests[app]  for app in deletedApps
+    if deletedApps.length > 0
+      @putAppsToAppStorage manifests, callback
+    else
+      callback null
 
   defineApp:(name, script)->
-
     KD.registerAppScript name, script if script
 
   getAppScript:(manifest, callback = noop)->
@@ -489,6 +494,9 @@ class KodingAppsController extends KDController
         compileOnServer apps[name]
     else
       compileOnServer @constructor.manifests[name]
+
+  getManifests:->
+    @constructor.manifests
 
   getManifest:(appName)->
     @constructor.manifests[appName]
