@@ -307,9 +307,7 @@ module.exports = class JVM extends Module
     {delegate} = client.connection
     if delegate.type is 'unregistered'
       return callback null
-    JVM.one
-      hostnameAlias : hostnameAlias
-    , (err, vm)->
+    JVM.one {hostnameAlias}, (err, vm)->
       return callback err  if err or not vm
       callback null, vm.region
 
