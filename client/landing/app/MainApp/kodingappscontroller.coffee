@@ -27,9 +27,10 @@ class KodingAppsController extends KDController
     @_fetchQueue    = []
     @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
 
-    @getPublishedApps()
-    @createExtensionToAppMap()
-    @fetchUserDefaultAppConfig()
+    @fetchApps =>
+      @getPublishedApps()
+      @createExtensionToAppMap()
+      @fetchUserDefaultAppConfig()
 
     @on "UpdateDefaultAppConfig", (extension, appName) =>
       @updateDefaultAppConfig extension, appName
@@ -248,17 +249,16 @@ class KodingAppsController extends KDController
 
   getPublishedApps: (callback) ->
     # return unless KD.isLoggedIn()
-    @fetchApps (err, apps) =>
-      appNames = []
-      appNames.push appName for appName, manifest of apps
+    appNames = []
+    appNames.push appName for appName, manifest of @getManifests()
 
-      query = "manifest.name": "$in": appNames
-      KD.remote.api.JApp.someWithRelationship query, {}, (err, apps) =>
-        @publishedApps = map = {}
-        apps.forEach (app) =>
-          map[app.manifest.name] = app
-        @emit "UserAppModelsFetched", map
-        callback? map
+    query = "manifest.name": "$in": appNames
+    KD.remote.api.JApp.someWithRelationship query, {}, (err, apps) =>
+      @publishedApps = map = {}
+      apps.forEach (app) =>
+        map[app.manifest.name] = app
+      @emit "UserAppModelsFetched", map
+      callback? map
 
   isAppUpdateAvailable: (appName, appVersion) ->
     if @publishedApps[appName]
@@ -769,18 +769,18 @@ class KodingAppsController extends KDController
 
   createExtensionToAppMap: ->
     @extensionToApp = map = {}
-    @fetchApps (err, res) =>
-      for key, app of res
-        fileTypes = app.fileTypes
-        if fileTypes
-          for type in fileTypes
-            map[type] = [] unless map[type]
-            map[type].push app.name
 
-      # Still there should be a more elagant way to add ace file types into map.
-      for type in KD.getAppOptions("Ace").fileTypes
-        map[type] = [] unless map[type]
-        map[type].push "Ace"
+    for key, app of @getManifests()
+      fileTypes = app.fileTypes
+      if fileTypes
+        for type in fileTypes
+          map[type] = [] unless map[type]
+          map[type].push app.name
+
+    # Still there should be a more elagant way to add ace file types into map.
+    for type in KD.getAppOptions("Ace").fileTypes
+      map[type] = [] unless map[type]
+      map[type].push "Ace"
 
   fetchUserDefaultAppConfig: ->
     @appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
