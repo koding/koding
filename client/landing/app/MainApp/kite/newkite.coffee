@@ -4,6 +4,7 @@ class NewKite extends KDEventEmitter
     super
     @readyState = false
     @localStore = {}
+    @token = ""
     @getKiteAddr()
 
   createWebSocket: (url) ->
@@ -27,6 +28,7 @@ class NewKite extends KDEventEmitter
          console.log "Addr to be connected is #{data[0].addr}"
          console.log "Token to use is #{data[0].token}"
 
+         @token = data[0].token
          @websocket = @createWebSocket(data[0].addr)
          @registerEvents()
 
@@ -73,8 +75,9 @@ class NewKite extends KDEventEmitter
       name      : "#{KD.whoami().profile.nickname}"
       method    : "#{@kiteName}.#{methodName}"
       params    : rest
-      token     : "124"
+      token     : @token #get via kontrol, needed for authentication
       id        : id
+
     # store callback at localstore
     @localStore[id] = callback
     # send query over websocket
