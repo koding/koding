@@ -24,6 +24,7 @@ class KodingAppsController extends KDController
     @manifests      = KodingAppsController.manifests
     @publishedApps  = {}
     @_fetchQueue    = []
+    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
 
     @getPublishedApps()
     @createExtensionToAppMap()
@@ -49,19 +50,17 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
 
-    if not @appStorage? # KD.isLoggedIn() and
-      @appStorage = new AppStorage 'KodingApps', '1.0.1'
-
-    if Object.keys(@constructor.manifests).length isnt 0
-      callback null, @constructor.manifests
-    else
-      @fetchAppsFromDb (err, apps)=>
-        if err
-          @fetchAppsFromFs (err, apps)=>
-            if err then callback? err
-            else callback null, apps
-        else
-          callback? err, apps
+    @appStorage.ready =>
+      if Object.keys(@constructor.manifests).length isnt 0
+        callback null, @constructor.manifests
+      else
+        @fetchAppsFromDb (err, apps)=>
+          if err
+            @fetchAppsFromFs (err, apps)=>
+              if err then callback? err
+              else callback null, apps
+          else
+            callback? err, apps
 
   fetchAppFromFs:(appName, cb)->
 
