@@ -56,6 +56,7 @@ class ClassroomAppView extends KDScrollView
 
   goToCourse: (courseName, callback = noop) ->
     @readFileContent "/#{courseName}.kdcourse/manifest.json", (@manifest) =>
+      return unless @isCourseStarted()
       manifest.startWithSplashView = yes
       @createCoursesView manifest
       callback()
@@ -70,7 +71,7 @@ class ClassroomAppView extends KDScrollView
   handleGoToChapter: (chapterIndex) ->
     courseManifest = @manifest
     {chapters}     = courseManifest
-    return unless chapters
+    return if not chapters or not @isCourseStarted()
 
     @readFileContent "/#{courseManifest.name}.kdcourse/#{chapters[chapterIndex].resourcesPath}", (config) =>
       courseMeta   =
@@ -103,6 +104,25 @@ class ClassroomAppView extends KDScrollView
         @goToChapter query.course, query.chapter - 1
       else
         @goToCourse query.course
+
+  isCourseStarted: ->
+    {startDate} = @manifest
+
+    return yes if not startDate or Date.now() > new Date startDate
+
+    @addSubView notStarted = new KDView
+      cssClass : "not-started-yet"
+      partial  : "<p>This course is not started yet, come back soon!</p>"
+
+    notStarted.addSubView new KDButtonView
+      cssClass : "clean-gray"
+      title    : "EMAIL ME BEFORE START"
+
+    notStarted.addSubView new KDButtonView
+      cssClass : "cupid-green"
+      title    : "TEACH YOUR COURSE"
+
+    return no
 
   getPredefinedCourses: ->
     [
