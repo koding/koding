@@ -59,12 +59,18 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       result = config.validation? panel, workspace
       if result
         @handleChapterSuccess()
-        @getDelegate().emit "ChapterSucceed", @getData().courseMeta
         config.onSuccess? panel, workspace
       else
         config.onFailed?  panel, workspace
 
   handleChapterSuccess: ->
+    data           = @getData()
+    courseManifest = data.courseManifest
+    courseName     = courseManifest.name
+    chapterTitle   = courseManifest.chapters[data.courseMeta.index - 1].title
+
+    @getDelegate().emit "ChapterSucceed", { courseName, chapterTitle }
+
     modal = new KDModalView
       overlay      : yes
       title        : "Yay! Passed this chapter."
