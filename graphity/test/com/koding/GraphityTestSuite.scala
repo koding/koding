@@ -1,11 +1,12 @@
-package com.koding.graphity
+package com.koding
 
-import org.scalatest.FunSuite
-import com.sun.jersey.api.client.Client
-import com.sun.jersey.core.util.MultivaluedMapImpl
-import com.google.gson.Gson
 import org.scalatest.BeforeAndAfter
+import org.scalatest.FunSuite
+
+import com.google.gson.Gson
+import com.sun.jersey.api.client.Client
 import com.sun.jersey.api.client.ClientResponse
+import com.sun.jersey.core.util.MultivaluedMapImpl
 
 class GraphityTestSuite extends FunSuite with BeforeAndAfter {
 
@@ -102,7 +103,7 @@ class GraphityTestSuite extends FunSuite with BeforeAndAfter {
     assert(list.size === 1)
     assert(list.get(0) === event2)
   }
-  
+
   test("getting subscriptions") {
     val list = getSubscriptions(stream)
     assert(list.size === 2)
@@ -129,7 +130,7 @@ class GraphityTestSuite extends FunSuite with BeforeAndAfter {
   def deleteSubscription(stream: String, source: String) {
     graphity.path("subscriptions").queryParam("stream", stream).queryParam("source", source).delete
   }
-  
+
   def getSubscriptions(stream: String) = {
     val json = graphity.path("subscriptions").queryParam("stream", stream).get(classOf[String])
     gson.fromJson(json, classOf[java.util.List[String]])

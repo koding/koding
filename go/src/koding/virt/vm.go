@@ -37,7 +37,17 @@ func LoadTemplates(dir string) error {
 
 	templateDir = dir
 	Templates.Funcs(template.FuncMap{
-		"hostIP": func() string { return hostIP.String() },
+		"hostIP": func() string {
+			return hostIP.String()
+		},
+		"swapAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes")
+			return err == nil
+		},
+		"kernelMemoryAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes")
+			return err == nil
+		},
 	})
 	if _, err := Templates.ParseGlob(templateDir + "/vm/*"); err != nil {
 		return err

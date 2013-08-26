@@ -25,8 +25,19 @@ lxc.id_map = g 0 500000 500000
 lxc.id_map = g 1000000 1000000 49000000
 
 lxc.cgroup.cpu.shares = 1000
-#lxc.cgroup.memory.limit_in_bytes = 60M
-#lxc.cgroup.memory.memsw.limit_in_bytes = 1G
+
+# initial limit, will be changed by limiter
+lxc.cgroup.memory.limit_in_bytes = 100M
+
+{{if swapAccountingEnabled}}
+# fixed limit
+lxc.cgroup.memory.memsw.limit_in_bytes = 1G
+{{end}}
+
+{{if kernelMemoryAccountingEnabled}}
+# fixed limit
+lxc.cgroup.memory.kmem.limit_in_bytes = 100M
+{{end}}
 
 # Deny all access to devices
 lxc.cgroup.devices.deny = a

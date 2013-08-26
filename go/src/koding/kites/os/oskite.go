@@ -86,7 +86,7 @@ func main() {
 		if strings.HasPrefix(dir.Name(), "vm-") {
 			vmId := bson.ObjectIdHex(dir.Name()[3:])
 			var vm virt.VM
-			if err := db.VMs.FindId(vmId).One(&vm); err != nil {
+			if err := db.VMs.FindId(vmId).One(&vm); err != nil || vm.HostKite != k.ServiceUniqueName {
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Warn(err.Error())
 				}
@@ -599,8 +599,10 @@ func (info *VMInfo) startTimeout() {
 		if info.useCounter != 0 {
 			return
 		}
-		if err := virt.SendMessageToVMUsers(info.vmId, "========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
-			log.Warn(err.Error())
+		if virt.GetVMState(info.vmId) == "RUNNING" {
+			if err := virt.SendMessageToVMUsers(info.vmId, "========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
+				log.Warn(err.Error())
+			}
 		}
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
 			if info.useCounter != 0 {
