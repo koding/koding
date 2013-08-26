@@ -112,12 +112,12 @@ class VirtualizationController extends KDController
     if region = @vmRegions[vmName]
       return @utils.defer -> callback region
 
-    KD.remote.api.JVM.fetchVmInfo vmName, (err, info)=>
-      if err
-        warn err
-        callback 'aws' # This by default 'aws' please change it if needed! ~ GG
+    KD.remote.api.JVM.fetchVmRegion vmName, (err, region)=>
+      if err or not region
+        warn err  if err
+        callback 'sj' # This by default 'aws' please change it if needed! ~ GG
       else
-        @vmRegions[vmName] = info.region
+        @vmRegions[vmName] = region
         callback @vmRegions[vmName]
 
   fetchVmName: (options, callback) ->
