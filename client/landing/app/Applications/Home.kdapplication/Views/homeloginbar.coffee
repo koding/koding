@@ -96,6 +96,7 @@ class HomeLoginBar extends JView
       title       : "Join Group"
       icon        : {}
       cssClass    : "join green hidden button"
+      testPath    : "groups-join-button"
       attributes  :
         href      : "#"
       click       : (event)=>
