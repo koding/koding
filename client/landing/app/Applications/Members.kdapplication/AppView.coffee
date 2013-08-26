@@ -25,9 +25,11 @@ class MembersListItemView extends KDListItemView
     options    = @getOptions()
 
     @avatar = new AvatarView
-      size:
+      size          :
         width: options.avatarSizes[0]
         height: options.avatarSizes[1]
+      showStatus    : yes
+      statusDiameter: 5
     , memberData
 
     if (memberData.profile.nickname is KD.whoami().profile.nickname) or \

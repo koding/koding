@@ -852,32 +852,26 @@ button.cancel-edit-button
     &.staff
       bg          position, -480px -60px
 
-  &[data-onlineStatus = online]:after
+  statusDot(dia, bottom, right)
     content       ""
     display       block
-    size          6px, 6px
-    bottom        -4px
-    right         -4px
+    size          dia, dia
+    bottom        bottom
+    right         right
     rounded       100%
     background    #0cc52e
     border        1px solid #075514
     shadow        0 0 0 2px #fff
     abs()
 
-  &[data-onlineStatus = online].animate:after
+  &[data-onlineStatus = online] .statusDot
+    statusDot     10%, -4px, -4px
+
+  &[data-onlineStatus = online].animate .statusDot
     vendor        animation, showOnline 400ms 1 forwards ease-out
 
-  &[data-onlineStatus = offline].animate:after
-    content       ""
-    display       block
-    size          6px, 6px
-    bottom        -4px
-    right         -4px
-    rounded       100%
-    background    #0cc52e
-    border        1px solid #075514
-    shadow        0 0 0 2px #fff
-    abs()
+  &[data-onlineStatus = offline].animate .statusDot
+    statusDot     10%, -4px, -4px
     vendor        animation, hideOnline 400ms 1 forwards ease-out
 
 @keyframes showOnline
