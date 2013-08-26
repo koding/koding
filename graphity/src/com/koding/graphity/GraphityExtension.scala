@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response
 import scala.collection.mutable.ListBuffer
 import javax.ws.rs.DELETE
 import javax.ws.rs.FormParam
+import com.koding.linkedlist.LinkedList
 
 // Graphity algorithm implementation.
 // 
@@ -27,7 +28,7 @@ import javax.ws.rs.FormParam
 // - Subscription node points to source node.
 // - Source node is tail of a linked list of event nodes.
 @Path("/")
-class Graphity(@Context db: GraphDatabaseService) {
+class GraphityExtension(@Context db: GraphDatabaseService) {
 
   // Points from one external stream node to one internal stream node.
   object GRAPHITY_STREAM extends RelationshipType { def name: String = "GRAPHITY_STREAM" }

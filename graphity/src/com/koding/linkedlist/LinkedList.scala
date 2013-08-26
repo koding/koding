@@ -1,4 +1,4 @@
-package com.koding.graphity
+package com.koding.linkedlist
 
 import org.neo4j.graphdb.Direction
 import org.neo4j.graphdb.Node
