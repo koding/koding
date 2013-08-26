@@ -94,9 +94,9 @@ class SharePopup extends JView
     return new KDCustomHTMLView
       tagName   : 'a'
       # todo when adding new icons, replace those two lines
-      # cssClass  : "share-#{provider} icon-link"
-      cssClass  : "share-twitter icon-link"
-      partial   : "<span class='icon tw'></span>"
+      cssClass  : "share-#{provider} icon-link"
+      # cssClass  : "share-twitter icon-link"
+      partial   : "<span class='icon'></span>"
       click     : (event)=>
         KD.utils.stopDOMEvent event
         window.open(

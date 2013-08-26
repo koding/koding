@@ -525,21 +525,29 @@ h1.kdheaderview.notification-header
       vertical-align    top
       margin-top        6px
 
-    .share-twitter
-      .icon.tw
+    .icon-link
+      .icon
         display         block
         width           19px
         height          19px
         opacity         .7
-        // vendor          transition, opacity .2s ease
         sprite()
-        bg              position, -71px -343px
       &:hover
-        .icon.tw
+        .icon
           opacity       1
 
+    .share-twitter
+      .icon
+        bg              position, -300px -360px
+    .share-linkedin
+      .icon
+        bg              position, -300px -340px
+    .share-facebook
+      .icon
+        bg              position, -320px -360px
+
     .custom-link-view
-      margin-right      4px
+      // margin-right      4px
       .icon.new-page
         opacity         .4
         bg              position, -180px -280px
