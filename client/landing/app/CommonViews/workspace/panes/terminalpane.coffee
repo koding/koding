@@ -11,7 +11,7 @@ class TerminalPane extends Pane
 
   createWebTermView: ->
     @webterm           = new WebTermView
-      delegate         : @
+      delegate         : this
       cssClass         : "webterm"
       advancedSettings : no
 
