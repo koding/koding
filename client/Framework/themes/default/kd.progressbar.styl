@@ -1,0 +1,36 @@
+@import "./client/Framework/themes/default/kdfn"
+
+.progressbar-container
+  size                100%, 13px
+  border              1px solid #cfcfcf
+  border-bottom-color #dbdbdb
+  rounded             3px
+  gradient            #e7e6e6, #fff
+  rel()
+  span
+    display           block
+    size              100%,100%
+    line-height       100%
+    font-size         11px
+    text-align        right
+    color             #aaa
+    left              0
+    top               0
+    z-index           2
+    text-shadow       0 1px 0 #fff
+    abs()
+  .bar
+    size              0, 100%
+    rounded           3px
+    gradient          #f39e3e, #d77d13
+    shadow            0 -1px 0 rgba(255,255,255,.4), 
+                      0 1px 0 rgba(0,0,0,0.2), 
+                      0 0 0 1px #cb7b2c, 
+                      inset 0 1px 2px rgba(255,255,255,.5)
+    vendor            transition, width 400ms ease
+    overflow          hidden
+    z-index           3
+    abs()
+    span 
+      color           #fff
+      text-shadow     0 1px 0 rgba(0,0,0,0.4)
