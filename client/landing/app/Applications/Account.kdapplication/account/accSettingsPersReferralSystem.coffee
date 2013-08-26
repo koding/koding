@@ -98,15 +98,17 @@ class AccountReferralSystemListController extends AccountListViewController
 
   loadView: ->
     super
+    @addHeader()
     @loadItems()
 
-    @getView().parent.addSubView getYourRefererCode = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "Get Your Referer Code"
-      cssClass     : "action-link"
-      attributes   :
-        href       : "#"
-      click     : =>
+  addHeader:->
+
+    wrapper = new KDCustomHTMLView tagName : 'header', cssClass : 'clearfix'
+    @scrollView.addSubView wrapper, '', yes
+
+    wrapper.addSubView getYourRefererCode = new CustomLinkView
+      title : "Get Your Referer Code"
+      click : ->
         KD.whoami().createReferrerCode (err, refererCode)=>
           return notify_ err.message if err
           shareUrl      = "#{location.origin}/?r=#{refererCode}"
@@ -131,15 +133,11 @@ class AccountReferralSystemListController extends AccountListViewController
             parent      : KD.singletons.mainView.mainTabView.activePane
             transparent : yes
 
+    wrapper.addSubView redeem = new CustomLinkView
+      title : "Redeem Your Referer Points"
+      click : => @emit "ShowRedeemReferralPointModal", this
 
-    @getView().parent.addSubView redeem = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "Redeem Your Referer Points"
-      cssClass     : "action-link"
-      attributes   :
-        href       : "#"
-      click     : =>
-        @emit "ShowRedeemReferralPointModal", @
+
 
 
 class AccountReferralSystemList extends KDListView
