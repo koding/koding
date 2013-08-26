@@ -10,8 +10,7 @@ class ClassroomAppView extends KDScrollView
 
     @emit "ready"
 
-    @on "ChapterSucceed", (chapterMeta) =>
-      # @appStorage
+    @on "ChapterSucceed", (chapterData) => @markChapterAsCompleted chapterData
 
   fetchCourses: ->
     @appStorage.ready =>
@@ -81,6 +80,17 @@ class ClassroomAppView extends KDScrollView
 
   createCoursesView: (manifest) ->
     @addSubView new ClassroomCourseView { delegate: this }, manifest
+
+  markChapterAsCompleted: (data) ->
+    completedCourses           = @appStorage.getValue("CompletedChapters") or {}
+    {courseName, chapterTitle} = data
+    completedOnCourse          = completedCourses[courseName] or []
+
+    if completedOnCourse.indexOf(chapterTitle) is -1
+      completedOnCourse.push chapterTitle
+      completedCourses[courseName] = completedOnCourse
+
+    @appStorage.setValue "CompletedChapters", completedCourses
 
   handleQuery: (query) ->
     @destroySubViews()
