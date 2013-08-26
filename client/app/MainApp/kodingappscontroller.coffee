@@ -39,9 +39,8 @@ class KodingAppsController extends KDController
 
   getAppPath:(manifest, escaped=no)->
 
-    {profile} = KD.whoami()
     path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/home/#{profile.nickname}#{path.substr(1)}"\
+    path = if /^~/.test path then "/home/#{KD.nick()}#{path.substr(1)}"\
            else path
     return FSHelper.escapeFilePath path  if escaped
     return path.replace /(\/+)$/, ""
@@ -119,24 +118,13 @@ class KodingAppsController extends KDController
 
   fetchAppsFromDb:(callback)->
 
-    @appStorage.fetchStorage (storage)=>
-
-      apps = @appStorage.getValue 'apps'
-      shortcuts = @appStorage.getValue 'shortcuts'
-      log "APPS",apps,"shortcuts",shortcuts
-
-      justFetchApps = =>
+    @appStorage.fetchValue 'apps', (apps)=>
+      @putDefaultShortcutsBack =>
         if apps and Object.keys(apps).length > 0
           @constructor.manifests = apps
           callback null, apps
         else
           callback new Error "There are no apps in the app storage."
-
-      if not shortcuts
-        @putDefaultShortcutsBack =>
-          justFetchApps()
-      else
-        justFetchApps()
 
   syncAppStorageWithFS:(force=no, callback=noop)->
 
@@ -209,6 +197,9 @@ class KodingAppsController extends KDController
         callback err
 
   putDefaultShortcutsBack:(callback)->
+    if @appStorage.getValue 'shortcuts'
+      return  @utils.defer -> callback? null
+
     @appStorage.reset()
     @appStorage.setValue 'shortcuts', defaultShortcuts, callback
 
