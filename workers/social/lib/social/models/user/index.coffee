@@ -648,7 +648,7 @@ module.exports = class JUser extends jraphical.Module
 Your password has been changed!  If you didn't request this change, please contact support@koding.com immediately!
 """
       }
-      email.save ()->
+      email.save()
 
   @changeEmail = secure (client,options,callback)->
 
@@ -664,6 +664,14 @@ Your password has been changed!  If you didn't request this change, please conta
         @fetchUser client, (err,user)->
           account = client.connection.delegate
           user.changeEmail account, options, callback
+          email = new JMail {
+            email: user.email
+            subject : "Your email has changed"
+            content : """
+    Your email has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+    """
+          }
+          email.save()
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
