@@ -88,7 +88,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
       environmentIsCreated  : Boolean
-      referrerCode           : String
+      referrerCode          : String
       type                  :
         type                : String
         enum                : ['invalid account type',[

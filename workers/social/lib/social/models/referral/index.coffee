@@ -10,7 +10,7 @@ module.exports = class JReferral extends jraphical.Message
 
   {Relationship} = jraphical
 
-  {secure, dash} = require 'bongo'
+  {race, secure, dash} = require 'bongo'
 
   @share()
 
@@ -48,9 +48,7 @@ module.exports = class JReferral extends jraphical.Message
     allowedTypes = ["disk"]
     return callback new KodingError "Request is not valid" unless query.type in allowedTypes
 
-    # add better limit option here
-    options = { limit : 100 }
-    @fetchOwnReferralsIds client, { type: query.type }, options, (err, allReferalIds) =>
+    @fetchOwnReferralsIds client, { type: query.type }, {}, (err, allReferalIds) =>
       return callback err if err
 
       @fetchUsedReferrals allReferalIds, (err, usedReferrals) =>
@@ -119,25 +117,45 @@ module.exports = class JReferral extends jraphical.Message
       as          : 'referrer'
     }
 
-    options.limit ?= 10
-    options.targetOptions = { selector: query }
-
-    Relationship.some selector, options, (err, relationships)=>
+    Relationship.count selector, (err, count) =>
       return callback err if err
-      return callback null, [] if relationships.length is 0
+      options.targetOptions = { selector: query }
+      @fetchOwnReferralsIdsInBatch count, 100, selector, options, (err, relationships)->
+        allReferalIds = relationships.map (rel) -> "#{rel.targetId}"
+        callback null, allReferalIds
 
-      allReferalIds = relationships.map (rel) -> "#{rel.targetId}"
-      callback null, allReferalIds
+
+  @fetchOwnReferralsIdsInBatch = (totalCount, batchCount, selector, options, callback)->
+    teasers = []
+    collectRels = race (i, step, fin)->
+      options.skip  = batchCount * (step - 1)
+      options.limit = batchCount
+      Relationship.some selector, options, (err, relationships)=>
+        if err
+          callback err
+          fin()
+        else if not relationships
+          fin()
+        else
+          teasers.push rel for rel in relationships
+          fin()
+    , ->
+      callback null, teasers
+    totalStep = Math.floor(totalCount/batchCount)
+    totalStep = if totalStep <= 0 then 1 else totalStep
+    while totalStep
+      collectRels totalStep
+      totalStep--
 
   @fetchReferredAccounts = secure (client, query, options, callback)->
     @fetchOwnReferralsIds client, query, options, (err, allReferalIds) ->
       return callback err if err
 
       referredSelector = {
-        sourceName: 'JAccount',
-        targetId: { $in: allReferalIds },
-        targetName: 'JReferral',
-        as: 'referred'
+        sourceName  : 'JAccount',
+        targetId    : { $in: allReferalIds },
+        targetName  : 'JReferral',
+        as          : 'referred'
       }
 
       # no need to add limit here, because in fetchOwnReferralsIds method there is limit,
@@ -202,7 +220,7 @@ module.exports = class JReferral extends jraphical.Message
         type         : type
         unit         : referrals.first.unit
 
-      updateQuery = @createUpdateQueryForRedeem type
+      updateQuery = @createUpdateQueryForRedeem type, addedSize
 
       jvm.update { $inc: updateQuery }, (err) ->
         return callback err if err
