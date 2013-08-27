@@ -179,9 +179,10 @@ class ChromeTerminalBanner extends JView
     @description.hide()
 
     @revealer = new KDCustomHTMLView
-      tagName: "a"
-      partial: "Reveal Koding"
-      click  : => @revealKoding()
+      tagName  : "a"
+      cssClass : "action"
+      partial  : "Reveal Koding"
+      click    : => @revealKoding()
 
   revealKoding: (route)->
     @finder.mountVm "vm-0.#{KD.nick()}.guests.kd.io" unless KD.isLoggedIn()
@@ -191,7 +192,10 @@ class ChromeTerminalBanner extends JView
   pistachio: ->
     if KD.isLoggedIn()
       """
-      {{> @revealer}}
+      <span class="koding-icon"></span>
+      <div class="actions">
+        {{> @revealer}}
+      </div>
       """
     else
       """
