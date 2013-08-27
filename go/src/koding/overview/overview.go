@@ -13,11 +13,11 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"os"
 )
 
 type ConfigFile struct {
@@ -180,20 +180,23 @@ func main() {
 	}
 }
 
-func logSwitchAction (version string, name string) {
-	logfilename := "versionswitchers.log"
-	logflag := os.O_WRONLY|os.O_CREATE|os.O_APPEND
-	logmode := os.FileMode(0644)
+func logAction(msg string) {
+	fileName := "versionswitchers.log"
+	flag := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	mode := os.FileMode(0644)
 
-	f, err := os.OpenFile(logfilename, logflag, logmode)
+	f, err := os.OpenFile(fileName, flag, mode)
 	if err != nil {
 		log.Println("error opening version switch log file")
 		return
 	}
-
 	defer f.Close()
-	switcherLog := log.New(f, "", log.Ldate|log.Ltime)
-	switcherLog.Println(fmt.Sprintf("switched to version %s  switcher name: %s", version, name))
+
+	t := time.Now()
+	year, month, day := t.Date()
+	hour, min, sec := t.Clock()
+	dateString := fmt.Sprintf("%d/%d/%d %d:%d:%d", year, month, day, hour, min, sec)
+	f.WriteString(fmt.Sprintf("%s %s\n", dateString, msg))
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -217,7 +220,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("error switching", err, version)
 		} else {
-			logSwitchAction(version, name)
+			logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, name))
 		}
 
 		http.Redirect(w, r, "/", http.StatusFound)

@@ -16,47 +16,8 @@
 		<link href="./bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 		<script src="http://code.jquery.com/jquery.js"></script>
 		<script src="./bootstrap/js/bootstrap.js"></script>
+		<script src="./bootstrap/js/namemodal.js"></script>
 
-		<script type="text/javascript" language="javascript" >
-            $('.dropdown-toggle').dropdown();
-            $(
-            	function(){
-            		var form = $('#switchVersionForm')
-            		var switchButton = $('#switchButton')
-            		$(switchButton).click(
-            			function(){ //listen for click event
-            			showNameModal(function(){$(form).submit();});
-						})
-				}
-        	)
-			// modal for user s name
-			var showNameModal = function(callback) {
-				callback: callback;
-			    $("#myModal").bind("show", function() {
-			        $("#myModal a.btn").click(function(e) {
-			            var modalSwitcherName = $("#modalSwitcherName")[0]
-			            if (modalSwitcherName.value !== "") {
-				            var switcherName = $("#switcherName")[0]
-				            switcherName.value = modalSwitcherName.value
-				            $("#myModal").modal('hide');
-				            callback();
-			        	}
-			        });
-			    });
-			 
-			    // remove the event listeners when the dialog is hidden
-			    $("#myModal").bind("hide", function() {
-			        // remove event listeners on the buttons
-			        $("#myModal a.btn").unbind();
-			    });
-			 
-			    $("#myModal").modal({
-			      "backdrop"  : "static",
-			      "keyboard"  : true,
-			      "show"      : true    // this parameter ensures the modal is shown immediately
-			    });
-			};
- 		</script>
  		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
                <!--[if lt IE 9]>
                <script src="../assets/js/html5shiv.js"></script>
@@ -66,7 +27,7 @@
 	<body>
 		<!-- modal that asks for user s name to switch the current version -->
 		<div id="myModal" class="modal hide fade">
-			<div class = "modal-header"><h3>please enter your name to proceed: </h1></div>
+			<div class = "modal-header"><h3 class="text-center">Please enter your name to proceed</h3></div>
 		    <!-- dialog contents -->
 		    <div class="modal-body">
 		      <form class="form-horizontal">
@@ -79,7 +40,7 @@
 		      </form>
 		    </div>
 		    <!-- dialog buttons -->
-		    <div class="modal-footer"><a href="#" class="btn primary">OK</a></div>
+		    <div class="modal-footer"><a href="#" class="btn inverse">Cancel</a><a href="#" class="btn primary">OK</a></div>
 		</div>
 
 		<div class="navbar navbar-fixed-top">
