@@ -43,11 +43,11 @@ class DNDUploader extends KDView
       event.stopPropagation()
 
   reset: ->
-    {uploadToVM, defaultPath} = @getOptions()
+    {uploadToVM, defaultPath, title} = @getOptions()
     @setPath()
     @updatePartial """
       <div class="file-drop">
-        Drop files here!
+        #{title or "Drop files here!"}
         <small>#{if uploadToVM then defaultPath else ''}</small>
       </div>
     """
@@ -84,11 +84,12 @@ class DNDUploader extends KDView
       reader.readAsBinaryString file
 
   setPath: (@path=@options.defaultPath)->
+    {uploadToVM, title} = @getOptions()
     @updatePartial """
       <div class="file-drop">
-        Drop files here!
-        <small>#{if @getOptions().uploadToVM then (FSHelper.getVMNameFromPath(@path) or '') else ''}</small>
-        <small>#{if @getOptions().uploadToVM then FSHelper.plainPath @path else ''}</small>
+        #{title or "Drop files here!"}
+        <small>#{if uploadToVM then (FSHelper.getVMNameFromPath(@path) or '') else ''}</small>
+        <small>#{if uploadToVM then FSHelper.plainPath @path else ''}</small>
       </div>
     """
     @addSubView new KDCustomHTMLView
