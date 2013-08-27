@@ -81,12 +81,6 @@ class NFinderContextMenuController extends KDController
         action                    : 'createFolder'
       'Upload to Dropbox'         :
         action                    : 'dropboxSaver'
-      'Upload file...'            :
-        disabled                  : yes
-        action                    : 'upload'
-      'Clone from Github...'      :
-        disabled                  : yes
-        action                    : 'gitHubClone'
 
     if 'archive' isnt FSItem.getFileType FSItem.getFileExtension fileData.name
       delete items.Extract
@@ -138,7 +132,6 @@ class NFinderContextMenuController extends KDController
       'New Folder'                :
         action                    : 'createFolder'
       'Upload file...'            :
-        disabled                  : yes
         action                    : 'upload'
       'Clone a repo here'         :
         disabled                  : yes
@@ -242,7 +235,6 @@ class NFinderContextMenuController extends KDController
       'New Folder'                :
         action                    : 'createFolder'
       'Upload file...'            :
-        disabled                  : yes
         action                    : 'upload'
 
     if fileView.expanded
@@ -277,7 +269,6 @@ class NFinderContextMenuController extends KDController
       'New Folder'                :
         action                    : 'createFolder'
       'Upload file...'            :
-        disabled                  : yes
         action                    : 'upload'
 
     if fileView.expanded
