@@ -15,6 +15,8 @@ class SharePopup extends JView
 
     options.linkedin         ?= {}
     options.linkedin.enabled ?= true
+    options.linkedin.title   ?= "Koding.com"
+    options.linkedin.text    ?= "The next generation development environment"
 
     options.newTab          ?= {}
     options.newTab.enabled  ?= true
@@ -86,7 +88,7 @@ class SharePopup extends JView
 
   buildLinkedInShareLink:()->
     if @getOptions().linkedin.enabled
-      link = "http://www.linkedin.com/shareArticle?mini=true&url=#{encodeURIComponent(@getOptions().url)}&title=#{encodeURIComponent("Join Koding.com")}&summary=#{encodeURIComponent("The next generation development environment")}&source=koding.com"
+      link = "http://www.linkedin.com/shareArticle?mini=true&url=#{encodeURIComponent(@getOptions().url)}&title=#{encodeURIComponent(@getOptions().linkedin.title)}&summary=#{encodeURIComponent(@getOptions().linkedin.text)}&source=#{location.origin}"
       return @generateView(link, "linkedin")
     return new KDView
 
