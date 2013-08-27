@@ -500,7 +500,7 @@ class NFinderTreeController extends JTreeViewController
   cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
   cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
   cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> @appManager.notify()
+  cmUpload:        (nodeView, contextMenuItem)-> @uploadFile nodeView
   cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
@@ -872,3 +872,8 @@ class NFinderTreeController extends JTreeViewController
         return  warn err if err
         notification.hide()
         kallback()
+
+  uploadFile: (nodeView)->
+    finderController = KD.getSingleton "finderController"
+    {path} = nodeView.data
+    finderController.uploadTo path  if path
