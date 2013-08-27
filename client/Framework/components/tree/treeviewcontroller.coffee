@@ -606,6 +606,8 @@ class JTreeViewController extends KDViewController
 
   dragStart: (nodeView, event)->
 
+    @internalDragging = yes
+
     if @cancelDrag
       event.preventDefault()
       event.stopPropagation()
@@ -621,31 +623,49 @@ class JTreeViewController extends KDViewController
 
     e.dataTransfer.setData('Text', transferredData.join()) # required otherwise doesn't work
 
+    {name, vmName, path} = nodeView.data
+    type  = "application/octet-stream"
+    match = path.match ///home/(\w+)/Web/(.*)///
+    [rest..., user, pathrest] = match  if match
+    if pathrest
+      if /^shared-/.test vmName
+        subdomain = unless user is KD.nick() then "" else "#{user}."
+      else
+        subdomain = ''
+
+      url = "http://#{subdomain}#{vmName}/#{pathrest}"
+      e.dataTransfer.setData 'DownloadURL', "#{type}:#{name}:#{url}"
+    else
+      e.dataTransfer.setData 'DownloadURL', "#{type}:#{name}.txt:data:#{type};base64,#{btoa 'You should move ' + name + ' file to Web folder to download using drag and drop. -- Koding'}"
+
     if @selectedNodes.length > 1
       e.dataTransfer.setDragImage dragHelper, -10, 0
 
     nodeView.setClass "drag-started"
 
   dragEnter: (nodeView, event)->
-
-    # log event.type
+    @emit "dragEnter", event
 
   dragLeave: (nodeView, event)->
-
-    # log event.type
+    @clearAllDragFeedback()
+    @emit "dragLeave", event
 
   dragOver: (nodeView, event)->
-
-    no
+    @emit "dragOver", event
 
   dragEnd: (nodeView, event)->
 
     @dragIsActive = no
-    nodeView.unsetClass "drag-started"
+    @internalDragging = no
+    nodeView.unsetClass "drag-started downloadable"
+    @clearAllDragFeedback()
+    @emit "dragEnd", event
+    delete @_dragData
 
   drop: (nodeView, event)->
 
     @dragIsActive = no
+    @internalDragging = no
     event.preventDefault()
     event.stopPropagation()
     no
