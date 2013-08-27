@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -179,6 +180,21 @@ func main() {
 	}
 }
 
+func logAction(msg string) {
+	fileName := "versionswitchers.log"
+	flag := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	mode := os.FileMode(0644)
+
+	f, err := os.OpenFile(fileName, flag, mode)
+	if err != nil {
+		log.Println("error opening version switch log file")
+		return
+	}
+	defer f.Close()
+
+	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	username := checkAuth.Authorize(r)
 	if username == "" {
@@ -193,12 +209,16 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	version := r.PostFormValue("switchVersion")
-	if version != "" {
-		log.Println("switching to version", version)
-		err := switchVersion(version)
+	name := r.PostFormValue("name")
+
+	if version != "" && name != "" {
+		err := switchVersion(version, name)
 		if err != nil {
 			log.Println("error switching", err, version)
+		} else {
+			logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, name))
 		}
+
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
@@ -463,7 +483,7 @@ func currentVersion() (string, error) {
 	return currentVersion, nil
 }
 
-func switchVersion(newVersion string) error {
+func switchVersion(newVersion string, name string) error {
 	if switchHost == "" {
 		errors.New("switchHost is not defined")
 	}
