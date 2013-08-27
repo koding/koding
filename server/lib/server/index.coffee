@@ -73,9 +73,8 @@ app.configure ->
   app.use express.compress()
   app.use express.static "#{projectRoot}/website/"
 
-app.use (req, res, next)->
-  res.removeHeader "X-Powered-By"
-  next()
+# disable express default header
+app.disable 'x-powered-by'
 
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
