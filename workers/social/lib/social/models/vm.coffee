@@ -301,7 +301,7 @@ module.exports = class JVM extends Module
           planOwner        : vm.planOwner
           hostnameAlias    : vm.hostnameAlias
           underMaintenance : vm.hostKite is "(maintenance)"
-          region           : vm.region or 'aws'
+          region           : vm.region or 'sj'
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
