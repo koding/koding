@@ -4,6 +4,7 @@ class DNDUploader extends KDView
 
     options.cssClass      = "file-droparea"
     options.hoverDetect  ?= yes
+    options.uploadToVM   ?= yes
     options.defaultPath or= "/home/#{KD.nick()}/Uploads"
 
     super options, data
@@ -42,11 +43,12 @@ class DNDUploader extends KDView
       event.stopPropagation()
 
   reset: ->
+    {uploadToVM, defaultPath} = @getOptions()
     @setPath()
     @updatePartial """
       <div class="file-drop">
         Drop files here!
-        <small>#{@getOptions().defaultPath}</small>
+        <small>#{if uploadToVM then defaultPath else ''}</small>
       </div>
     """
 
@@ -63,7 +65,7 @@ class DNDUploader extends KDView
     lastFile = files[files.length-1]
     for file, index in files
       sizeInMb = file.size/1000/1000
-      if sizeInMb > 5
+      if sizeInMb > 5 && @getOptions().uploadToVM
         new KDNotificationView
           type    : "tray"
           title   : "File is too big to upload!"
@@ -72,11 +74,12 @@ class DNDUploader extends KDView
         continue
       reader = new FileReader
       reader.onloadend = do (file=files[index])=> (event)=>
-        @upload file.name, event.target.result
+        if @getOptions().uploadToVM
+          @upload file.name, event.target.result
 
         if file is lastFile
           @reset()
-          @emit "drop"
+          @emit "drop", file.name, event.target.result
 
       reader.readAsBinaryString file
 
@@ -84,12 +87,18 @@ class DNDUploader extends KDView
     @updatePartial """
       <div class="file-drop">
         Drop files here!
-        <small>#{FSHelper.getVMNameFromPath(@path) or ''}</small>
-        <small>#{FSHelper.plainPath @path}</small>
+        <small>#{if @getOptions().uploadToVM then (FSHelper.getVMNameFromPath(@path) or '') else ''}</small>
+        <small>#{if @getOptions().uploadToVM then FSHelper.plainPath @path else ''}</small>
       </div>
     """
+    @addSubView new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "cancel"
+      cssClass  : "cancel"
+      attributes: href: "#"
+      click     : => @emit "cancel"
 
-  upload: (file, data, callback=noop)->
+  upload: (file, data)->
     modalStack  = KDModalView.createStack lastToFirst: yes
     uploadDir   = FSHelper.createFileFromPath @path, 'folder'
     uploadFile  = FSHelper.createFileFromPath "#{@path}/#{file}"
