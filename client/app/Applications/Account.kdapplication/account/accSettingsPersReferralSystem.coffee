@@ -7,7 +7,9 @@ class AccountReferralSystemListController extends AccountListViewController
   loadItems: ->
     @removeAllItems()
     @showLazyLoader yes
-    KD.remote.api.JReferral.fetchReferredAccounts (err, referals)=>
+    query = { type : "disk" }
+    options = {limit : 10}
+    KD.remote.api.JReferral.fetchReferredAccounts query, options, (err, referals)=>
       return KD.showError err if err
       @instantiateListItems referals or []
     @hideLazyLoader()
@@ -22,19 +24,25 @@ class AccountReferralSystemListController extends AccountListViewController
 
   redeemReferralPoint:(modal)->
     {vmToResize, sizes} = modal.modal.modalTabs.forms.Redeem.inputs
-    data = { vm : vmToResize.getValue(), size : sizes.getValue() }
+
+    data = {
+      vm    : vmToResize.getValue(),
+      size  : sizes.getValue(),
+      type  : "disk"
+    }
+
     KD.remote.api.JReferral.redeem data, (err, refRes)=>
       return KD.showError err if err
       modal.modal.destroy()
       KD.getSingleton("vmController").resizeDisk data.vm, (err, res)=>
         return KD.showError err if err
         @notify_ """
-          #{refRes.addedSize} MB extra disk space is successfully added to your #{refRes.vm} VM. Your new disk space is #{refRes.newDiskSpace}
+          #{refRes.addedSize} #{refRes.unit} extra #{refRes.type} is successfully added to your #{refRes.vm} VM.
         """
 
 
-  showRedeemReferralPointModal:()->
-    KD.remote.api.JReferral.fetchRedeemableReferrals (err, referals)=>
+  showRedeemReferralPointModal: ()->
+    KD.remote.api.JReferral.fetchRedeemableReferrals { type: "disk" }, (err, referals)=>
       return KD.showError err if err
       return @notify_ "You dont have any referrals" if not referals or referals.length < 1
 
@@ -69,6 +77,11 @@ class AccountReferralSystemListController extends AccountListViewController
                   itemClass     : KDSelectBox
                   type          : "select"
                   name          : "vmToResize"
+                  validate      :
+                    rules       :
+                      required  : yes
+                    messages    :
+                      required  : "You must select a VM!"
                   selectOptions : (cb)->
                     vmController = KD.getSingleton("vmController")
                     vmController.fetchVMs yes, (err, vms)=>
@@ -91,8 +104,12 @@ class AccountReferralSystemListController extends AccountListViewController
                     options = []
                     previousTotal = 0
                     referals.forEach (referal, i)->
-                      previousTotal += referal.earnedDiskSpaceInMB
-                      options.push ( title : "#{previousTotal} MB" , value : previousTotal)
+
+                      console.log "referal.amount"
+                      console.log referal.amount
+
+                      previousTotal += referal.amount
+                      options.push ( title : "#{previousTotal} #{referal.unit}" , value : previousTotal)
                     cb options
 
 
@@ -109,36 +126,32 @@ class AccountReferralSystemListController extends AccountListViewController
     wrapper.addSubView getYourRefererCode = new CustomLinkView
       title : "Get Your Referer Code"
       click : ->
-        KD.whoami().createReferrerCode (err, refererCode)=>
-          return notify_ err.message if err
-          shareUrl      = "#{location.origin}/?r=#{refererCode}"
-          getYourRefererCode._shorten = shareUrl
+        refererCode = KD.whoami().profile.nickname
+        shareUrl      = "#{location.origin}/?r=#{refererCode}"
+        getYourRefererCode._shorten = shareUrl
 
-          contextMenu   = new JContextMenu
-            cssClass    : "activity-share-popup"
-            type        : "activity-share"
-            delegate    : getYourRefererCode
-            x           : getYourRefererCode.getX() - 35
-            y           : getYourRefererCode.getY() - 50
-            arrow       :
-              placement : "bottom"
-              margin    : 110
-            lazyLoad    : yes
-          , customView  : new SharePopup {
-              url     : shareUrl
-              twitter :
-                text    : "Join to Koding! The next generation develepment environment koding.com"
-            }
-          new KDOverlayView
-            parent      : KD.singletons.mainView.mainTabView.activePane
-            transparent : yes
+        contextMenu   = new JContextMenu
+          cssClass    : "activity-share-popup"
+          type        : "activity-share"
+          delegate    : getYourRefererCode
+          x           : getYourRefererCode.getX() - 35
+          y           : getYourRefererCode.getY() - 50
+          arrow       :
+            placement : "bottom"
+            margin    : 110
+          lazyLoad    : yes
+        , customView  : new SharePopup {
+            url     : shareUrl
+            twitter :
+              text    : "Join to Koding! The next generation develepment environment koding.com"
+          }
+        new KDOverlayView
+          parent      : KD.singletons.mainView.mainTabView.activePane
+          transparent : yes
 
     wrapper.addSubView redeem = new CustomLinkView
       title : "Redeem Your Referer Points"
       click : => @emit "ShowRedeemReferralPointModal", this
-
-
-
 
 class AccountReferralSystemList extends KDListView
 

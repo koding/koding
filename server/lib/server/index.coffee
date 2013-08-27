@@ -58,6 +58,7 @@ app        = express()
   isLoggedIn
   saveOauthToSession
   getAlias
+  addReferralCode
 }          = require './helpers'
 
 
@@ -378,21 +379,9 @@ app.get '/:name/:section?*', (req, res, next)->
             else if view? then res.send view
             else res.send 500, error_500()
 
-
-# adds referral code into session if exists
-addReferralCode = (req)->
-  if refCode = req.query.r
-    {clientId} = req.cookies
-    return unless clientId?
-
-    koding.models.JSession.fetchSession clientId, (err, session) ->
-      return console.err err if err
-      return unless session
-      session.update {$set : 'refererCode' : refCode}, (err) ->
-        console.err err if err
-
 app.get "/", (req, res)->
 
+  # add referral code into session if there is one
   addReferralCode req
 
   if frag = req.query._escaped_fragment_?

@@ -88,7 +88,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
       environmentIsCreated  : Boolean
-      refererCode           : String
+      referrerCode           : String
       type                  :
         type                : String
         enum                : ['invalid account type',[
@@ -178,14 +178,12 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JProxyFilter'
 
-      referer        :
-        targetType    : 'JReferral'
-        as            : 'referer'
-
-      referred        :
-        targetType    : 'JReferral'
-        as            : 'referred'
-
+      referrer      :
+        targetType  : 'JReferral'
+        as          : 'referrer'
+      referred      :
+        targetType  : 'JReferral'
+        as          : 'referred'
       invitation    :
         as          : 'owner'
         targetType  : 'JInvitation'
@@ -322,52 +320,6 @@ module.exports = class JAccount extends jraphical.Module
 
 
       @update operation, callback
-
-
-  generateReferrerCode = require 'hat'
-
-  createUniqueuReferrerCode:(trialCount, callback)->
-    return callback new KodingError "Couldn't create your referrer code, please  try again!" if trialCount > 10
-    # this will end at 16M user
-    refererCode = generateReferrerCode 24, 32
-    JAccount.one {refererCode : refererCode }, (err, account)=>
-      # if err is null and account is undefined, return
-      return callback null, refererCode if err is null and not account
-      # try to create a new unique code
-      @createUniqueuReferrerCode trialCount+1, callback
-
-  # creates a referrer code for the current user, if allready exists, returns it
-  createReferrerCode : secure (client, callback)->
-    {delegate}    = client.connection
-    refererCode = delegate.refererCode
-
-    return callback null, refererCode if refererCode
-
-    trialCount = 1
-    @createUniqueuReferrerCode trialCount, (err, refererCode)->
-      return callback err if err
-      delegate.update { $set : "refererCode" : refererCode }, (err)->
-        return callback err if err
-        callback null, refererCode
-
-  getReferredUsers : secure (client, callback)->
-
-    selector = {
-      targetId   : client.connection.delegate._id
-      targetName : 'JAccount'
-      sourceName : 'JAccount'
-      as         : 'referer'
-    }
-
-    # todo add pagination here
-    options = {}
-
-    Relationship.some selector, options, (err, relationships)=>
-      return callback err if err
-      return callback null, [] if relationships.length is 0
-
-      acctSelector = '_id': $in: relationships.map (rel) -> rel.sourceId
-      JAccount.some acctSelector, {}, callback
 
   setAbout: secure (client, text, callback)->
     {delegate}    = client.connection

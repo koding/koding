@@ -16,11 +16,15 @@ module.exports = class JReferral extends jraphical.Message
 
   schema =
     # for now we only have disk space
-    earnedDiskSpaceInMB :
-      type              : Number
-    createdAt           :
-      type              : Date
-      default           : -> new Date
+    type              :
+      type            : String
+    unit              :
+      type            : String
+    amount            :
+      type            : Number
+    createdAt         :
+      type            : Date
+      default         : -> new Date
 
   @set
     sharedMethods     :
@@ -32,10 +36,21 @@ module.exports = class JReferral extends jraphical.Message
         targetType    : 'JVM'
         as            : 'redeemedOn'
 
+  @getReferralEarningLimits = (type) ->
+    switch type
+      when "disk" then return 16000
+      else return console.error "Unknown referral query limit"
+
   # Simply find the unused referrals
-  # me-[:referer]->JReferral<-[:referred]-JAccount
-  @fetchRedeemableReferrals = secure (client, callback)->
-    @fetchOwnReferralsIds client, (err, allReferalIds) =>
+  # me-[:referrer]->JReferral<-[:referred]-JAccount
+  @fetchRedeemableReferrals = secure (client, query, callback)->
+    # check for type of request
+    allowedTypes = ["disk"]
+    return callback new KodingError "Request is not valid" unless query.type in allowedTypes
+
+    # add better limit option here
+    options = { limit : 100 }
+    @fetchOwnReferralsIds client, { type: query.type }, options, (err, allReferalIds) =>
       return callback err if err
 
       @fetchUsedReferrals allReferalIds, (err, usedReferrals) =>
@@ -56,29 +71,35 @@ module.exports = class JReferral extends jraphical.Message
           return callback err if err
 
           # find the total used referred disk spacea
-          totalUsedReferalSize = 0
-          totalUsedReferalSize += ref.earnedDiskSpaceInMB for ref in usedReferrals
+          totalUsedReferalAmount = 0
+          totalUsedReferalAmount += ref.amount for ref in usedReferrals
 
-          # find the usable disk sapce
-          usableReferralDiskSize = 16000 - totalUsedReferalSize
+          limit = @getReferralEarningLimits(query.type)
+          # find the usable amount
+          usableReferralSize = limit - totalUsedReferalAmount
           # if user consumed their quota return an error
           # this is a special case for used up quota
-          return callback new KodingError "You have used your quota for referral system" if usableReferralDiskSize <= 0
+          return callback new KodingError "You have used your quota for referral system" if usableReferralSize <= 0
 
           # gather usable referrals
           usableReferrals = []
           for unusedRef in unusedReferrals
-            usableReferralDiskSize -= unusedRef.earnedDiskSpaceInMB
+            usableReferralSize -= unusedRef.amount
             # when we go under the limit, do not continue
-            break if usableReferralDiskSize < 0
+            break if usableReferralSize < 0
             usableReferrals.push unusedRef
 
           callback null, usableReferrals
 
 
   @fetchUsedReferrals = (allReferalIds, callback)->
-    usedReferralsSelector =
-    { sourceId: { $in: allReferalIds }, sourceName: 'JReferral', targetName: 'JVM', as: 'redeemedOn' }
+
+    usedReferralsSelector = {
+      sourceId    : { $in: allReferalIds },
+      sourceName  : 'JReferral',
+      targetName  : 'JVM',
+      as          : 'redeemedOn'
+    }
 
     Relationship.some usedReferralsSelector, {}, (err, usedReferralsRels)=>
       return callback err if err
@@ -87,26 +108,40 @@ module.exports = class JReferral extends jraphical.Message
 
       JReferral.some { _id: $in: usedRefIds }, {}, callback
 
-  @fetchOwnReferralsIds = (client, callback)->
+  @fetchOwnReferralsIds = (client, query, options, callback)->
     account = client.connection.delegate
 
-    # find user's relationships as referer to the referral system
-    selector = { sourceId: account._id, sourceName: 'JAccount', targetName: 'JReferral', as: 'referer' }
+    # find user's relationships as referrer to the referral system
+    selector = {
+      sourceId    : account.getId(),
+      sourceName  : 'JAccount',
+      targetName  : 'JReferral',
+      as          : 'referrer'
+    }
 
-    Relationship.some selector, {}, (err, relationships)=>
+    options.limit ?= 10
+    options.targetOptions = { selector: query }
+
+    Relationship.some selector, options, (err, relationships)=>
       return callback err if err
       return callback null, [] if relationships.length is 0
 
       allReferalIds = relationships.map (rel) -> "#{rel.targetId}"
       callback null, allReferalIds
 
-  @fetchReferredAccounts = secure (client, callback)->
-    @fetchOwnReferralsIds client, (err, allReferalIds) ->
+  @fetchReferredAccounts = secure (client, query, options, callback)->
+    @fetchOwnReferralsIds client, query, options, (err, allReferalIds) ->
       return callback err if err
 
-      referredSelector =
-      { sourceName: 'JAccount', targetId: { $in: allReferalIds }, targetName: 'JReferral', as: 'referred' }
+      referredSelector = {
+        sourceName: 'JAccount',
+        targetId: { $in: allReferalIds },
+        targetName: 'JReferral',
+        as: 'referred'
+      }
 
+      # no need to add limit here, because in fetchOwnReferralsIds method there is limit,
+      # this is a subset of it, so this will be lte than ownReferralsIds
       Relationship.some referredSelector, {}, (err, relationships)=>
         return callback err if err
 
@@ -115,17 +150,17 @@ module.exports = class JReferral extends jraphical.Message
 
 
   @redeem = secure (client, data, callback)->
-    {vm, size} = data
+    {vm, size, type} = data
     return callback new KodingError "Request is not valid" unless vm and size
 
     # get redeemable referals
-    @fetchRedeemableReferrals client, (err, referrals)=>
+    @fetchRedeemableReferrals client, {type}, (err, referrals)=>
       return callback err if err
 
       # check user has enough credit
       # for loop also checks for 0 length referrals
       totalCredit = 0
-      totalCredit += referral.earnedDiskSpaceInMB for referral in referrals
+      totalCredit += referral.amount for referral in referrals
 
       # if not return an error
       return callback new KodingError "You dont have enough credit to redeem" if size > totalCredit
@@ -137,31 +172,42 @@ module.exports = class JReferral extends jraphical.Message
           referrals :referrals
           jvm       :jvm
           size      :size
+          type      :type
 
         @relateReferalsToJVM options, callback
 
+  @createUpdateQueryForRedeem = (type, amount) ->
+    switch type
+      when "disk" then return 'diskSizeInMB': amount
+      else
+        return console.error "Invalid type provided"
+
   @relateReferalsToJVM = (options, callback) ->
-    {referrals, jvm, size} = options
+    {referrals, jvm, size, type} = options
     # generate the referals to be used for upgrade process
     referalsToBeUsed = []
     addedSize = 0
     for referral in referrals
       break if addedSize >= size
-      addedSize += referral.earnedDiskSpaceInMB
+      addedSize += referral.amount
       referalsToBeUsed.push referral
 
     # wrap the callback
     kallback = (err)=>
       return callback err if err
 
-      jvm.update { $inc : 'diskSizeInMB' : addedSize }, (err) ->
-        return callback err if err
-        res =
-          addedSize    : addedSize
-          vm           : jvm.hostnameAlias
-          newDiskSpace : jvm.diskSizeInMB
+      returnValue =
+        addedSize    : addedSize
+        vm           : jvm.hostnameAlias
+        type         : type
+        unit         : referrals.first.unit
 
-        callback null, res
+      updateQuery = @createUpdateQueryForRedeem type
+
+      jvm.update { $inc: updateQuery }, (err) ->
+        return callback err if err
+
+        callback null, returnValue
 
     queue = referalsToBeUsed.map (ref)=>=>
       ref.addRedeemedOn jvm, (err)->
@@ -194,22 +240,27 @@ module.exports = class JReferral extends jraphical.Message
       JSession.one {username: me.profile.nickname }, (err, session) =>
         # if error occured than do nothing and return
         return console.error "Session fetching caused error", err if err
-        # if referer not fonud then do nothing and return
+        # if referrer not fonud then do nothing and return
         return console.error "Session is not defined" if not session
-        # if user dont have any referer code then do nothing
-        return console.error "no referrer code" unless session.refererCode
-        # get referer
-        JAccount.one {refererCode: session.refererCode}, (err, referer)->
+        # if user dont have any referrer code then do nothing
+        return console.error "no referrer code" unless session.referrerCode
+        # get referrer
+        JAccount.one {'profile.nickname': session.referrerCode}, (err, referrer)->
           # if error occured than do nothing and return
-          return console.error "Error while fetching referer", err if err
-          # if referer not fonud then do nothing and return
-          return console.error "Referer couldnt found" if not referer
+          return console.error "Error while fetching referrer", err if err
+          # if referrer not fonud then do nothing and return
+          return console.error "Referrer couldnt found" if not referrer
 
-          referral = new JReferral { earnedDiskSpaceInMB : 250 }
+          data =
+            type   : "disk"
+            unit   : "MB"
+            amount : 250
+
+          referral = new JReferral data
           referral.save (err) ->
             return console.error err if err
-            #add referer as referer to the referral system
-            referer.addReferer referral, (err)->
+            #add referrer as referrer to the referral system
+            referrer.addReferrer referral, (err)->
               return console.error err if err
               # add me as referred to the referral system
               me.addReferred referral, (err)->
