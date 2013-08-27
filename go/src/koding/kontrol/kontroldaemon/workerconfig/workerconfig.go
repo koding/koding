@@ -226,7 +226,7 @@ func (w *WorkerConfig) RefreshStatusAll() error {
 		// add an additional 5 second because of network timeouts/lagginess
 		// problems.
 		if worker.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
-			log.Printf("[%s (%d)] no activity at '%s' (pid: %d). removing from kontrol\n", worker.Name, worker.Version, worker.Hostname, worker.Pid)
+			log.Printf("[%s (%d)] no activity at '%s' (pid: %d). marking them as dead\n", worker.Name, worker.Version, worker.Hostname, worker.Pid)
 			worker.Status = Dead
 			worker.Monitor.Mem = MemData{}
 			worker.Monitor.Uptime = 0
