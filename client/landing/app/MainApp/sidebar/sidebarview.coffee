@@ -71,8 +71,31 @@ class Sidebar extends JView
     @finderController = new NFinderController
       useStorage        : yes
       addOrphansToRoot  : no
+      delegate          : this
+
+    @dndUploadHolder = new KDView domId: "finder-dnduploader"
+    @dndUploadHolder.addSubView @dnduploader = new DNDUploader hoverDetect: no
+    @dndUploadHolder.hide()
+
+    _onDrag = =>
+      unless @finderController.treeController.internalDragging
+        @dndUploadHolder.show()
+        @dnduploader.unsetClass "hover"
+
+    @dnduploader.on "dragLeave", => @dndUploadHolder.hide()
+    @dnduploader.on "drop",      => @dndUploadHolder.hide()
+    @dnduploader.on "cancel",    =>
+      @dnduploader.setPath()
+      @dndUploadHolder.hide()
+
+    @finderController.treeController.on "dragEnter", _onDrag
+    @finderController.treeController.on "dragOver",  _onDrag
+
+    # FIXME: This is not that good -- fka
+    @$().on "dragleave", => @dndUploadHolder.hide()
 
     @finder = @finderController.getView()
+
     KD.registerSingleton "finderController", @finderController
     @finderController.on 'ShowEnvironments', => @finderBottomControlPin.click()
 
@@ -217,6 +240,9 @@ class Sidebar extends JView
       <div id='finder-header-holder'>
         {{> @finderHeader}}
       </div>
+
+      {{> @dndUploadHolder}}
+
       <div id='finder-holder'>
         {{> @finder}}
       </div>
