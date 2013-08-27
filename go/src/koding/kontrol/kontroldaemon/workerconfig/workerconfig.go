@@ -214,6 +214,9 @@ func (w *WorkerConfig) RefreshStatusAll() error {
 	worker := Worker{}
 	iter := w.Collection.Find(nil).Iter()
 	for iter.Next(&worker) {
+		if worker.Status == Dead {
+			continue
+		}
 		// this will be removed in the future, just added for backwards compability.
 		// if worker.Status == Dead {
 		// 	log.Printf("[%s (%d)] no activity at '%s' (pid: %d). removing from kontrol\n", worker.Name, worker.Version, worker.Hostname, worker.Pid)
