@@ -192,11 +192,7 @@ func logAction(msg string) {
 	}
 	defer f.Close()
 
-	t := time.Now()
-	year, month, day := t.Date()
-	hour, min, sec := t.Clock()
-	dateString := fmt.Sprintf("%d/%d/%d %d:%d:%d", year, month, day, hour, min, sec)
-	f.WriteString(fmt.Sprintf("%s %s\n", dateString, msg))
+	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
