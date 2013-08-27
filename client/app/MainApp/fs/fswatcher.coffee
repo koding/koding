@@ -33,30 +33,26 @@ class FSWatcher extends KDObject
       method     : 'fs.readDirectory'
       vmName     : @vmName
       withArgs   :
-        onChange : (change)=>
-          do _.throttle =>
-            @onChange @path, change
-          , 500
+        onChange : (change)=> @onChange @path, change
         path     : FSHelper.plainPath @path
         watchSubdirectories : @getOption 'recursive'
     , (err, response)=>
 
       if not err and response?.files
-        # files = FSHelper.parseWatcher @vmName, @path, response.files
+        files = FSHelper.parseWatcher @vmName, @path, response.files
         FSWatcher.registerWatcher @getFullPath(), response.stopWatching
         callback? err, files
-
       else
         callback? err, null
 
   onFileAdded:(change)->
-    warn "File added:", change.file.fullPath
+    # warn "File added:", change.file.fullPath
 
   onFolderAdded:(change)->
-    warn "Folder added:", change.file.fullPath
+    # warn "Folder added:", change.file.fullPath
 
   onFileRemoved:(change)->
-    warn "File removed:", change.file.fullPath
+    # warn "File removed:", change.file.fullPath
 
   onChange:(path, change)->
 
