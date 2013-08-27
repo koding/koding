@@ -127,15 +127,28 @@ func GetTarget(host string) (*Target, error) {
 			return nil, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
 		}
 
-		// lookup didn't found anything, move on to .x.koding.com domains
+		// Lookup didn't found anything, move on to .x.koding.com domains. This
+		// is fallback mechanism, you can overide those domains always by adding
+		// a new entry for the domain itself into to jDomains collection.
 		if strings.HasSuffix(host, "x.koding.com") {
-			if c := strings.Count(host, "-"); c != 1 {
+			var servicename, key, username string
+			subdomain := strings.TrimSuffix(host, ".x.koding.com")
+			s := strings.Split(subdomain, "-")
+
+			switch c := strings.Count(host, "-"); {
+			case c == 1:
+				// in form of: server-123.x.koding.com, assuming the user is 'koding'
+				servicename, key, username = s[0], s[1], "koding"
+			case c == 2:
+				// in form of: chatkite-1-arslan.x.koding.com
+				//           : webserver-917-koding.x.koding.com
+				servicename, key, username = s[0], s[1], s[2]
+			default:
+				// any other domains are discarded
 				return nil, fmt.Errorf("not valid req host", host)
 			}
-			subdomain := strings.TrimSuffix(host, ".x.koding.com")
-			servicename := strings.Split(subdomain, "-")[0]
-			key := strings.Split(subdomain, "-")[1]
-			domain = *proxyconfig.NewDomain(host, "internal", "koding", servicename, key, "", []string{})
+
+			domain = *proxyconfig.NewDomain(host, "internal", username, servicename, key, "", []string{})
 		} else {
 			return nil, fmt.Errorf("domain %s is unknown", host)
 		}
