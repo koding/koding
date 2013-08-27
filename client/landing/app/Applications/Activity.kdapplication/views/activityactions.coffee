@@ -28,9 +28,7 @@ class ActivitySharePopup extends SharePopup
       text    : shareText
 
   getNewTabOptions:(options)->
-    return twitter =
-      enabled : true
-      url     : options.url
+    return { enabled : true, url : options.url }
 
 class ActivityActionsView extends KDView
 
