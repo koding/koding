@@ -2,7 +2,7 @@ class ClassroomChapterList extends KDScrollView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "classroom-chapters"
+    options.cssClass or= "classroom-chapters"
 
     super options, data
 
