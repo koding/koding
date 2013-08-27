@@ -18,16 +18,69 @@
 		<script src="./bootstrap/js/bootstrap.js"></script>
 
 		<script type="text/javascript" language="javascript" >
-          $('.dropdown-toggle').dropdown();
+            $('.dropdown-toggle').dropdown();
+            $(
+            	function(){
+            		var form = $('#switchVersionForm')
+            		var switchButton = $('#switchButton')
+            		$(switchButton).click(
+            			function(){ //listen for click event
+            			showNameModal(function(){$(form).submit();});
+						})
+				}
+        	)
+			// modal for user s name
+			var showNameModal = function(callback) {
+				callback: callback;
+			    $("#myModal").bind("show", function() {
+			        $("#myModal a.btn").click(function(e) {
+			            var modalSwitcherName = $("#modalSwitcherName")[0]
+			            if (modalSwitcherName.value !== "") {
+				            var switcherName = $("#switcherName")[0]
+				            switcherName.value = modalSwitcherName.value
+				            $("#myModal").modal('hide');
+				            callback();
+			        	}
+			        });
+			    });
+			 
+			    // remove the event listeners when the dialog is hidden
+			    $("#myModal").bind("hide", function() {
+			        // remove event listeners on the buttons
+			        $("#myModal a.btn").unbind();
+			    });
+			 
+			    $("#myModal").modal({
+			      "backdrop"  : "static",
+			      "keyboard"  : true,
+			      "show"      : true    // this parameter ensures the modal is shown immediately
+			    });
+			};
  		</script>
-
-		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-		<!--[if lt IE 9]>
-		<script src="../assets/js/html5shiv.js"></script>
-		<![endif]-->
+ 		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+               <!--[if lt IE 9]>
+               <script src="../assets/js/html5shiv.js"></script>
+               <![endif]-->
 	</head>
 
 	<body>
+		<!-- modal that asks for user s name to switch the current version -->
+		<div id="myModal" class="modal hide fade">
+			<div class = "modal-header"><h3>please enter your name to proceed: </h1></div>
+		    <!-- dialog contents -->
+		    <div class="modal-body">
+		      <form class="form-horizontal">
+		        <div class="control-group">
+		          <label class="control-label" for="switcherName">Name:</label>
+		          <div class="controls">
+		            <input id="modalSwitcherName" type="text" autocomplete="off">
+		          </div>
+		        </div>
+		      </form>
+		    </div>
+		    <!-- dialog buttons -->
+		    <div class="modal-footer"><a href="#" class="btn primary">OK</a></div>
+		</div>
 
 		<div class="navbar navbar-fixed-top">
 			<div class="navbar-inner">
@@ -69,11 +122,12 @@
                       <span class="label label-important">This is a dangerous action</span>, be sure you know what you are doing!
                     </p>
 
-                  <form method="POST">
+                  <form id="switchVersionForm" method="POST">
 
                     <div class="input-append">
                       <input name="switchVersion" class="span4" id="appendedInputButton" type="text">
-                      <button class="btn btn-danger">Switch now <i class="icon-random icon-white"></i></button>
+                      <input name="name" id="switcherName" class="hidden">
+                      <button type="button" id="switchButton" class="btn btn-danger">Switch now <i class="icon-random icon-white"></i></button>
                     </div>
 
                     <small><em>(current production build <span class="badge">{{.Status.CurrentVersion}}</span>)</em></small>
