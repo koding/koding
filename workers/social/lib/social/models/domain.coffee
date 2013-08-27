@@ -104,17 +104,19 @@ module.exports = class JDomain extends jraphical.Module
 
   @isDomainEligible: (params, callback)->
     {delegate, domain} = params
-    return callback new KodingError("Invalid domain: #{domain}")  unless /\.kd\.io$/.test domain
+
+    return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
 
     match = domain.match /(.*)\.([\w\-]+)\.kd\.io$/
-    return callback new KodingError("Invalid domain: #{domain}.") unless match
+
+    return callback new KodingError("Invalid domain: #{domain}.")  unless match
 
     [rest..., prefix, slug] = match
 
     if slug is delegate.profile.nickname
       callback null, !/^vm[\-]([0-9]+)$/.test prefix
     else
-      JGroup.one {slug}, (err, group)->
+      JGroup.one {slug:'koding'}, (err, group)->
         return callback err  if err
 
         unless group
@@ -241,6 +243,8 @@ module.exports = class JDomain extends jraphical.Module
       delegate.fetchDomains (err, domains)->
         return callback err if err
         for domain in domains
+          console.log "Testing domain:", domain, selector.domainName
+          # console.log "HULOOOOOOOOOOOGG"
           return callback null, domain if domain.domain is selector.domainName
 
   fetchProxyRules: (callback)->

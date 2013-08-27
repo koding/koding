@@ -16,8 +16,8 @@ class DomainCreationForm extends KDTabViewWithForms
     group             = KD.getSingleton("groupsController").getCurrentGroup()
     domainOptions     = [
       { title : "Create a subdomain",                                      value : "subdomain" }
-      { title : "I want to register a domain <cite>coming soon...</cite>", value : "new",      disabled : "disabled" }
-      { title : "I already have a domain <cite>coming soon...</cite>",     value : "existing", disabled : "disabled" }
+      { title : "I want to register a domain <cite>coming soon...</cite>", value : "new" }
+      { title : "I already have a domain <cite>coming soon...</cite>",     value : "existing" }
     ]
 
     super
@@ -168,7 +168,8 @@ class DomainCreationForm extends KDTabViewWithForms
     splittedDomain    = domainName.getValue().split "."
     domain            = splittedDomain.first
     tld               = splittedDomain.slice(1).join('')
-    domainName        = domainName.getValue()
+    domainInput       = domainName
+    domainName        = domainInput.getValue()
 
     domainOptionValue = DomainOption.getValue()
 
@@ -177,6 +178,9 @@ class DomainCreationForm extends KDTabViewWithForms
 
         if avErr
           createButton.hideLoader()
+          log domain
+          log tld
+          log avErr
           return notifyUser "An error occured: #{avErr}"
 
         switch status
@@ -188,7 +192,7 @@ class DomainCreationForm extends KDTabViewWithForms
             return createButton.hideLoader()
 
         KD.remote.api.JDomain.registerDomain
-          domainName : domainName.getValue()
+          domainName : domainInput.getValue()
           years      : regYears.getValue()
         , (err, domain)=>
           createButton.hideLoader()
@@ -206,7 +210,7 @@ class DomainCreationForm extends KDTabViewWithForms
           warn err
           if err.message?.indexOf("duplicate key error") isnt -1
             return notifyUser "The domain #{domainName} already exists."
-          return notifyUser "An error occured. Please try again later."
+          return notifyUser "Invalid domain #{domainName}.  "
         else
           @showSuccess domain
 
