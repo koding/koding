@@ -62,6 +62,7 @@ class ClassroomWorkspace extends CollaborativeWorkspace
         @handleChapterSuccess()
         config.onSuccess? panel, workspace
       else
+        @handleChapterFailed()
         config.onFailed?  panel, workspace
 
   handleChapterSuccess: ->
@@ -82,6 +83,18 @@ class ClassroomWorkspace extends CollaborativeWorkspace
           title    : "Next Chapter"
           cssClass : "modal-clean-green"
           callback : => @goToNextChapter modal
+
+  handleChapterFailed: ->
+    modal = new KDModalView
+      overlay      : yes
+      title        : "Oops! One more time."
+      cssClass     : "modal-with-text"
+      content      : "<p>It seems, it's not working. Never mind, try again.</p>"
+      buttons      :
+        Again      :
+          title    : "Try again"
+          cssClass : "modal-clean-gray"
+          callback : => modal.destroy()
 
   goToNextChapter: (modal) ->
     parent = @parent
