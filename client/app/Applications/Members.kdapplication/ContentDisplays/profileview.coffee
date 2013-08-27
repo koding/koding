@@ -123,9 +123,12 @@ class ProfileView extends JView
       click       : (event) =>
         KD.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
 
-    @followButton = new MemberFollowToggleButton
-      style : "kdwhitebtn profilefollowbtn"
-    , @memberData
+    if KD.whoami().getId() is @memberData.getId()
+      @followButton = new KDCustomHTMLView
+    else
+      @followButton = new MemberFollowToggleButton
+        style : "kdwhitebtn profilefollowbtn"
+      , @memberData
 
     for route in ['followers', 'following', 'likes']
       @[route] = @getActionLink route, @memberData
