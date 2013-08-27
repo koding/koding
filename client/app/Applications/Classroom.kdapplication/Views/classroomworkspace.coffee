@@ -34,8 +34,14 @@ class ClassroomWorkspace extends CollaborativeWorkspace
     options.buttons.unshift
       title      : "Submit Code"
       cssClass   : "cupid-green"
+      loader     :
+        color    : "#FFFFFF"
+        diameter : 13
       callback   : (panel, workspace) =>
-        @validateChapter panel, workspace
+        button   = @getActivePanel().headerButtons['Submit Code']
+        button.showLoader()
+        @validateChapter panel, workspace, =>
+          button.hideLoader()
     ,
       title      : "Join"
       cssClass   : "cupid-green join-button"
@@ -54,16 +60,18 @@ class ClassroomWorkspace extends CollaborativeWorkspace
         title    : "Show Chapter information"
       click      : => @animateContent @chapterDescription
 
-  validateChapter: (panel, workspace) ->
+  validateChapter: (panel, workspace, callback) ->
     {config}   = @getData()
-    try
-      result = config.validation? panel, workspace
-      if result
-        @handleChapterSuccess()
-        config.onSuccess? panel, workspace
-      else
-        @handleChapterFailed()
-        config.onFailed?  panel, workspace
+    if config.validate
+      config.validate panel, workspace, (result) =>
+        if result
+          @handleChapterSuccess()
+          config.onSuccess? panel, workspace
+        else
+          @handleChapterFailed()
+          config.onFailed?  panel, workspace
+    else
+      callback null
 
   handleChapterSuccess: ->
     data           = @getData()
