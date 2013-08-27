@@ -215,11 +215,11 @@ func (w *WorkerConfig) RefreshStatusAll() error {
 	iter := w.Collection.Find(nil).Iter()
 	for iter.Next(&worker) {
 		// this will be removed in the future, just added for backwards compability.
-		if worker.Status == Dead {
-			log.Printf("[%s (%d)] no activity at '%s' (pid: %d). removing from kontrol\n", worker.Name, worker.Version, worker.Hostname, worker.Pid)
-			w.Delete(worker.Uuid)
-			continue
-		}
+		// if worker.Status == Dead {
+		// 	log.Printf("[%s (%d)] no activity at '%s' (pid: %d). removing from kontrol\n", worker.Name, worker.Version, worker.Hostname, worker.Pid)
+		// 	w.Delete(worker.Uuid)
+		// 	continue
+		// }
 
 		// every worker sends us an ack message every 10 seconds. That means if
 		// we don't get a message after 10 seconds it is assumed as death. We
@@ -227,11 +227,10 @@ func (w *WorkerConfig) RefreshStatusAll() error {
 		// problems.
 		if worker.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
 			log.Printf("[%s (%d)] no activity at '%s' (pid: %d). removing from kontrol\n", worker.Name, worker.Version, worker.Hostname, worker.Pid)
-
-			err := w.Delete(worker.Uuid)
-			if err != nil {
-				log.Printf("[%s (%d)] can't remove from kontrol. error: %s\n", worker.Name, worker.Version, err.Error())
-			}
+			worker.Status = Dead
+			worker.Monitor.Mem = MemData{}
+			worker.Monitor.Uptime = 0
+			w.UpdateWorker(worker)
 		}
 	}
 
