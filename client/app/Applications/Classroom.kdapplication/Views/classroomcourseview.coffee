@@ -38,21 +38,9 @@ class ClassroomCourseView extends JView
       cssClass         : "chapters-container courses"
 
   createChapters: ->
-    container  = @chaptersContainer
-    courseName = @getData().name
-    appStorage = KD.getSingleton("appStorageController").storage "Classroom"
-    completed  = appStorage.getValue("CompletedChapters")?[courseName]
-
-    for chapterData, index in @getData().chapters
-      chapterData.index       = index
-      chapterData.courseName  = courseName
-      chapterData.completed   = completed.indexOf(chapterData.title) > -1
-
-      chapterThumbView        = new ClassroomChapterThumbView
-        delegate              : this
-        courseRoot            : @courseRoot
-      , chapterData
-      container.addSubView chapterThumbView
+    @chaptersContainer.addSubView new ClassroomChapterList
+      cssClass : "course-chapters"
+    , @getData()
 
   pistachio: ->
     appView = @getDelegate()
