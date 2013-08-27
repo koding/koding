@@ -12,7 +12,7 @@ class NewKite extends KDEventEmitter
 
   getKiteAddr:()->
     requestData =
-      name       : "#{KD.nick()}"
+      username   : "#{KD.nick()}"
       remoteKite : @kiteName
       token      : KD.remote.getSessionToken()
 
@@ -24,7 +24,9 @@ class NewKite extends KDEventEmitter
        if response.status is 200
          data = JSON.parse data
 
-         console.log "Remote Kite is #{data[0].name}"
+         console.log "DATA", data
+
+         console.log "Remote Kite belongs to: #{data[0].username}, type: #{data[0].kitename}"
          console.log "Addr to be connected is #{data[0].addr}"
          console.log "Token to use is #{data[0].token}"
 
