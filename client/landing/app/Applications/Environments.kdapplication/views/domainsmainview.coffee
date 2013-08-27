@@ -110,6 +110,7 @@ class DomainsMainView extends JView
       p.destroyMainView()
 
     routingPane = @tabView.getPaneByName('Routing')
+    dnsPane = @tabView.getPaneByName('DNS Manager')
     unless item
       routingPane.updatePartial "<p class='soon'>Select a domain from left to see its settings.</p>"
       return
@@ -117,6 +118,8 @@ class DomainsMainView extends JView
     domain = item.getData()
 
     routingPane.updatePartial ""
+    dnsPane.updatePartial ""
     @tabView.getPaneByName('Routing').setMainView     new DomainsRoutingView {}, domain
     @tabView.getPaneByName('Firewall').setMainView    new FirewallMapperView {}, domain
     @tabView.getPaneByName('DNS Manager').setMainView new DNSManagerView     {}, domain
+

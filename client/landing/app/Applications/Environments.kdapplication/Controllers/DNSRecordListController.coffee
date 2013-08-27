@@ -6,19 +6,19 @@ class DNSRecordListController extends KDListViewController
     options.noItemView  or= new EmptyDNSRecordListItemView
     options.viewOptions or=
       type      : 'env-list'
-      tagName   : 'table'
-      partial   :
-        """
-        <thead>
-          <tr>
-            <th>Record Type</th>
-            <th>Host</th>
-            <th>Value</th>
-            <th>TTL</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        """
+      tagName   : 'ul'
+      # partial   :
+      #   """
+      #   <thead>
+      #     <tr>
+      #       <th>Record Type</th>
+      #       <th>Host</th>
+      #       <th>Value</th>
+      #       <th>TTL</th>
+      #       <th>Actions</th>
+      #     </tr>
+      #   </thead>
+      #   """
     super options, data
 
     {domain} = @getData()

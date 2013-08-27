@@ -1,7 +1,8 @@
 class DNSRecordListItemView extends KDListItemView
 
   constructor:(options={}, data)->
-    options.tagName = "tr"
+
+    options.tagName = "li"
     super options, data
 
     @buildSubViews()
@@ -13,17 +14,18 @@ class DNSRecordListItemView extends KDListItemView
 
   pistachio:->
     {recordType, host, value, ttl} = @getData()
+
     """
-    <td>{{> @recordView }}</td>
-    <td>{{> @recordHostView }}</td>
-    <td>{{> @recordValueView }}</td>
-    <td>{{> @recordTtlView }}</td>
-    <td>
+    {{> @recordView }}
+    {{> @recordHostView }}
+    {{> @recordValueView }}
+    {{> @recordTtlView }}
+    <p>
       {{> @editButton }}
       {{> @deleteButton }}
       {{> @updateButton }}
       {{> @cancelButton }}
-    </td>
+    </p>
     """
 
   buildSubViews:->
@@ -196,7 +198,9 @@ class RecordTtlView extends RecordElementView
       defaultValue : ttl
 
 
-class EmptyDNSRecordListItemView extends DNSRecordListItemView
+class EmptyDNSRecordListItemView extends KDListItemView
+
+  viewAppended: JView::viewAppended
 
   pistachio:->
     """

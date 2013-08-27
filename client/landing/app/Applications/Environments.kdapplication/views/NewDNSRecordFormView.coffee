@@ -11,7 +11,7 @@ class NewDNSRecordFormView extends KDCustomHTMLView
       title : "Host"
 
     @destinationLabel = new KDLabelView
-      title : "Points to"
+      title : "Value"
 
     @ttlLabel         = new KDLabelView
       title : "TTL"
@@ -48,7 +48,7 @@ class NewDNSRecordFormView extends KDCustomHTMLView
       title    : "Add Record"
       callback : @bound "createNewRecord"
 
-  createNewRecord:->
+  createNewRecord: ->
     {domain} = @getData()
 
     recordType = @typeSelectBox.getValue()
@@ -59,11 +59,13 @@ class NewDNSRecordFormView extends KDCustomHTMLView
 
     recordObj = {recordType, host, value, ttl, priority}
 
-    domain.createDNSRecord recordObj, (err, record)=>
-      unless err
+    KD.remote.api.JDomain.one {domainName:domain}, (err, domain)=>
+      domain.createDNSRecord recordObj, (err, record)=>
         if record
-          new KDNotificationView {title:"Your record has been saved."}
+          return new KDNotificationView {title: "Your record has been saved."}
           @emit "newRecordCreated", recordObj
+        else
+          return new KDNotificationView {title: "ERRROORRRRRR"}
 
   viewAppended: JView::viewAppended
 
