@@ -80,22 +80,31 @@ class WebTermAppView extends JView
         command = decodeURIComponent query.command
         @showApprovalModal remote, command
 
+      # chrome app specific settings
+      if query.chromeapp
+
+        query.fullscreen = yes # forcing fullscreen
+        @chromeAppMode()
+
       if query.fullscreen
-        windowController = KD.getSingleton("windowController")
-        windowController.clearUnloadListeners "window"
-
-        windowController.on "clientIdChanged", =>
-          window.parent.postMessage "clientIdChanged", "*"
-
         KD.getSingleton("mainView").enableFullscreen()
 
-        if window.parent?.postMessage
+  chromeAppMode: ->
+    windowController = KD.getSingleton("windowController")
+    windowController.clearUnloadListeners "window"
 
-          window.parent.postMessage "fullScreenTerminalReady", "*"
-          window.parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
+    # talking with chrome app
+    if window.parent?.postMessage
+      windowController.on "clientIdChanged", =>
+        window.parent.postMessage "clientIdChanged", "*"
 
-          @on "KDObjectWillBeDestroyed", ->
-            window.parent.postMessage "fullScreenWillBeDestroyed", "*"
+      window.parent.postMessage "fullScreenTerminalReady", "*"
+      window.parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
+
+      @on "KDObjectWillBeDestroyed", ->
+        window.parent.postMessage "fullScreenWillBeDestroyed", "*"
+
+    @addSubView new ChromeTerminalBanner
 
   _windowDidResize:->
     # 10px being the application page's padding
@@ -122,3 +131,75 @@ class WebTermAppView extends JView
       {{> @tabHandleContainer}}
       {{> @tabView}}
     """
+
+class ChromeTerminalBanner extends JView
+  constructor: (options={}, data)->
+
+    options.domId = "chrome-terminal-banner"
+
+    super options, data
+
+    @mainView = KD.getSingleton "mainView"
+    @router   = KD.getSingleton "router"
+    @finder   = KD.getSingleton "finderController"
+
+    @mainView.on "fullscreen", (state)=>
+      unless state then @hide() else @show()
+
+    @register   = new KDCustomHTMLView
+      tagName : "a"
+      cssClass: "action"
+      partial : "Register"
+      click   : => @revealKoding "/Register"
+
+    @login      = new KDCustomHTMLView
+      tagName : "a"
+      cssClass: "action"
+      partial : "Login"
+      click   : => @revealKoding "/Login"
+
+    @whatIsThis = new KDCustomHTMLView
+      tagName  : "a"
+      cssClass : "action"
+      partial  : "What is This?"
+      click    : =>
+        @hidden = not @hidden
+        if @hidden
+          @description.show()
+        else
+          @description.hide()
+
+    @description = new KDCustomHTMLView
+      tagName: "p"
+      partial: """
+      This is a complete virtual environment provided by Koding. <br>
+      Koding is a social development environment. <br>
+      Visit and see it in action at <a href="http://koding.com" target="_blank">http://koding.com</a>
+      """
+    @description.hide()
+
+    @revealer = new KDCustomHTMLView
+      tagName: "a"
+      partial: "Reveal Koding"
+      click  : => @revealKoding()
+
+  revealKoding: (route)->
+    @finder.mountVm "vm-0.#{KD.nick()}.guests.kd.io" unless KD.isLoggedIn()
+    @router.handleRoute route if route
+    @mainView.disableFullscreen()
+
+  pistachio: ->
+    if KD.isLoggedIn()
+      """
+      {{> @revealer}}
+      """
+    else
+      """
+      <span class="koding-icon"></span>
+      <div class="actions">
+        {{> @register}}
+        {{> @login}}
+        {{> @whatIsThis}}
+      </div>
+      {{> @description}}
+      """
