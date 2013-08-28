@@ -43,8 +43,7 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       callback   : (panel, workspace) =>
         button   = @getActivePanel().headerButtons['Submit Code']
         button.showLoader()
-        @validateChapter panel, workspace, =>
-          button.hideLoader()
+        @validateChapter panel, workspace, (result) => button.hideLoader()
     ,
       title      : "Join"
       cssClass   : "cupid-green join-button"
@@ -70,9 +69,11 @@ class ClassroomWorkspace extends CollaborativeWorkspace
         if result
           @handleChapterSuccess()
           config.onSuccess? panel, workspace
+          callback yes
         else
           @handleChapterFailed()
           config.onFailed?  panel, workspace
+          callback no
     else
       callback null
 
