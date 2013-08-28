@@ -11,12 +11,14 @@ class ProfileView extends JView
     @editButton = new KDCustomHTMLView
     if KD.isMine @memberData
       @editButton   = new KDButtonView
+        testPath    : "profile-edit-button"
         cssClass    : "edit"
         style       : "clean-gray"
         title       : "Edit your profile"
         callback    : @bound 'onEdit'
 
     @saveButton     = new KDButtonView
+      testPath      : "profile-save-button"
       cssClass      : "save hidden"
       style         : "cupid-green"
       title         : "Save"
@@ -29,6 +31,7 @@ class ProfileView extends JView
       callback      : @bound 'onCancel'
 
     @firstName      = new KDContentEditableView
+      testPath      : "profile-first-name"
       pistachio     : "{{#(profile.firstName) or ''}}"
       cssClass      : "firstName"
       placeholder   : "First name"
@@ -42,6 +45,7 @@ class ProfileView extends JView
       , @memberData
 
     @lastName       = new KDContentEditableView
+      testPath      : "profile-last-name"
       pistachio     : "{{#(profile.lastName) or ''}}"
       cssClass      : "lastName"
       placeholder   : "Last name"
@@ -54,6 +58,7 @@ class ProfileView extends JView
     @memberData.locationTags or= []
 
     @location     = new KDContentEditableView
+      testPath    : "profile-location"
       pistachio   : "{{#(locationTags)}}"
       cssClass    : "location"
       placeholder : "Earth"
@@ -62,6 +67,7 @@ class ProfileView extends JView
       , @memberData
 
     @bio            = new KDContentEditableView
+      testPath      : "profile-bio"
       pistachio     : "{{ @utils.applyTextExpansions #(profile.about), yes}}"
       cssClass      : "bio"
       placeholder   : if KD.isMine @memberData then @bioPlaceholder else ""
