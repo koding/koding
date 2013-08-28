@@ -151,7 +151,7 @@ module.exports = [
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
   "app/CommonViews/applicationview/applicationtabhandleholder.coffee",
-
+  "app/CommonViews/sharepopup.coffee"
   "app/CommonViews/linkviews/linkview.coffee",
   "app/CommonViews/linkviews/customlinkview.coffee",
   "app/CommonViews/linkviews/linkgroup.coffee",
@@ -692,6 +692,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
+  "app/Applications/Account.kdapplication/account/accSettingsPersReferralSystem.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
