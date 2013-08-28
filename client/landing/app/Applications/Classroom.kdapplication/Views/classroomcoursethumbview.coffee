@@ -36,13 +36,14 @@ class ClassroomCourseThumbView extends JView
         @emit "EnrollmentCancelled"
 
       percent = if data.completed then Math.round (100 * data.completed.length) / data.totalChapters else 0
+      title   = if percent is 100 then "You completed this course" else "You completed #{percent}% of this course."
 
       @progressContainer.addSubView new KDView
         cssClass   : "progress-bar"
         attributes :
           style    : "width:#{percent}%"
         tooltip    :
-          title    : "You completed #{percent}% of this course."
+          title    : title
     else
       @progressContainer.setClass "hidden"
 

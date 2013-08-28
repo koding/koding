@@ -132,7 +132,7 @@ class ClassroomAppView extends KDScrollView
         name          : "CoffeeScript"
         author        : "Fatih Acet"
         authorNick    : "fatihacet"
-        totalChapters : 7
+        totalChapters : 3
         icns          :
           "128"       : "./resources/icon.128.png"
       }
