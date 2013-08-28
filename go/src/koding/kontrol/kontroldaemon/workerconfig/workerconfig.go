@@ -188,35 +188,19 @@ func (w *WorkerConfig) Start(uuid string) (WorkerResponse, error) {
 }
 
 func (w *WorkerConfig) Update(worker Worker) error {
-	// No check for uuid, this is a destructive action. Thus use with caution.
-	// After creating a processes, the process sends a new "update" message with
-	// child pid, a new uuid and his new status.
-	result := Worker{}
-	found := false
-
-	query := func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{"uuid": worker.Uuid}).Iter()
-		for iter.Next(&result) {
-			found = true
-		}
-
-		return nil
-	}
-
-	w.RunCollection("jKontrolWorkers", query)
-
-	if !found {
+	r, err := w.GetWorker(worker.Uuid)
+	if err != nil {
 		return fmt.Errorf("no worker found with name '%s' and hostname '%s'",
 			worker.Name,
 			worker.Hostname,
 		)
 	}
 
-	result.Timestamp = time.Now().Add(HEARTBEAT_INTERVAL)
-	result.Status = worker.Status
-	result.Pid = worker.Pid
-	result.Uuid = worker.Uuid
-	result.Version = worker.Version
+	r.Timestamp = time.Now().Add(HEARTBEAT_INTERVAL)
+	r.Status = worker.Status
+	r.Pid = worker.Pid
+	r.Uuid = worker.Uuid
+	r.Version = worker.Version
 
 	log.Printf("[%s (%d)] update allowed from: '%s' - '%s'",
 		worker.Name,
@@ -225,7 +209,7 @@ func (w *WorkerConfig) Update(worker Worker) error {
 		worker.Uuid,
 	)
 
-	w.UpsertWorker(result)
+	w.UpsertWorker(r)
 	return nil
 }
 
