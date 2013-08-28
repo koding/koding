@@ -10,6 +10,8 @@ class ClassroomWorkspace extends CollaborativeWorkspace
 
     super config, data
 
+    @chapterRef = @workspaceRef.child "chapter"
+
     @on "AllPanesAddedToPanel", =>
       @createChapterList()
       @createChapterDescription()
