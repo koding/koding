@@ -501,7 +501,7 @@ module.exports = class JUser extends jraphical.Module
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
     { username, email, password, passwordConfirm, firstName, lastName,
-      agree, inviteCode } = userFormData
+      agree, inviteCode, referrer } = userFormData
 
     # only unreigstered accounts can be "converted"
     if account.status is "registered"
@@ -563,7 +563,7 @@ module.exports = class JUser extends jraphical.Module
           return console.error err if err
           queue.next()
       ->
-        JAccount.emit "AccountRegistered", account
+        JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       =>
         callback null, newToken

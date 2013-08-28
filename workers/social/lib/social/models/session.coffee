@@ -24,7 +24,6 @@ module.exports = class JSession extends Model
       username      : String
       guestId       : Number
       terminalId    : String
-      referrerCode   : String
       oAuthCodes    :
         github      : String
       sessionBegan  :

@@ -123,19 +123,11 @@ getAlias = do->
     if alias and rooted then "/#{alias}" else alias
 
 
-# adds referral code into session if exists
-addReferralCode = (req)->
+# adds referral code into cookie if exists
+addReferralCode = (req, res)->
   if refCode = req.query.r
     console.log "refCode: #{refCode}"
-    {clientId} = req.cookies
-    return console.error "client id not found in cookies" unless clientId?
-
-    koding.models.JSession.fetchSession clientId, (err, session) ->
-      return console.error err if err
-      return console.err "session not found in referral" unless session
-      session.update {$set : 'referrerCode' : refCode}, (err) ->
-        console.err err if err
-        console.log "session updated with referrer code #{refCode}"
+    res.cookie "referrer", refCode, { maxAge: 900000, httpOnly: false }
 
 module.exports = {
   error_
