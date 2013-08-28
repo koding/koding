@@ -39,6 +39,9 @@ class Ace extends KDView
           # log to external
           KD.track "User Opened Ace", KD.getSingleton("groupsController").getCurrentGroup()
 
+      require ['ace/keyboard/vim'], (vimMode) =>
+        @vimKeyboardHandler = vimMode.handler
+
   prepareEditor:->
 
     @setTheme()
@@ -54,6 +57,7 @@ class Ace extends KDView
       @setSoftWrap            @appStorage.getValue('softWrap')            or 'off' ,no
       @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
       @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
+      @setVimMode             @appStorage.getValue('vimMode')             ? no
 
   setEditorListeners:->
 
@@ -182,6 +186,9 @@ class Ace extends KDView
     else
       if @getUseWordWrap() then "free" else "off"
 
+  getVimMode: ->
+    @appStorage.getValue('vimMode') ? no
+
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -194,6 +201,7 @@ class Ace extends KDView
     fontSize            : @getFontSize()
     tabSize             : @getTabSize()
     softWrap            : @getSoftWrap()
+    vimMode             : @getVimMode()
 
   ###
   SETTERS
@@ -256,6 +264,10 @@ class Ace extends KDView
     @editor.setShowInvisibles value
     return  unless save
     @appStorage.setValue 'showInvisibles', value
+
+  setVimMode: (value = no) ->
+    @editor.setKeyboardHandler if value then @vimKeyboardHandler else null
+    @appStorage.setValue "vimMode", value
 
   setFontSize:(value, save = yes)->
 
