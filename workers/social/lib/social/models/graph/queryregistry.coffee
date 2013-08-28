@@ -1,34 +1,34 @@
 module.exports =
 
     member      :
-      following :
+      following : (orderByQuery)->
         """
           START group=node:koding(id={groupId})
           MATCH group-[r:member]->members-[:follower]->currentUser
           WHERE currentUser.id = {currentUserId}
           RETURN members
-          ORDER BY {orderByQuery} DESC
+          #{orderByQuery}
           SKIP {skipCount}
           LIMIT {limitCount}
         """
-      follower  :
+      follower  : (orderByQuery)->
         """
           START group=node:koding(id={groupId})
           MATCH group-[r:member]->members<-[:follower]-currentUser
           WHERE currentUser.id = {currentUserId}
           RETURN members
-          ORDER BY {orderByQuery} DESC
+          #{orderByQuery}
           SKIP {skipCount}
           LIMIT {limitCount}
         """
-      list: (exemptClause)->
+      list: (exemptClause, orderByQuery)->
         """
           START group=node:koding(id={groupId})
           MATCH group-[r:member]->members
           WHERE members.name="JAccount"
           #{exemptClause}
           RETURN members
-          ORDER BY {orderByQuery} DESC
+          #{orderByQuery}
           SKIP {skipCount}
           LIMIT {limitCount}
         """

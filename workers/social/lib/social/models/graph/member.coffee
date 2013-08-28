@@ -3,52 +3,55 @@ QueryRegistry = require './queryregistry'
 
 module.exports = class Member extends Graph
 
-  @getOrderByQuery:(orderBy)->
+  @getOrderByQuery: (options)->
+    {sort} = options
+    orderBy = if sort? then Object.keys(sort)[0] else ""
+
     switch orderBy
       when "counts.followers"
-        orderByQuery = "members.`counts.followers`"
+        orderByQuery = "ORDER BY members.`counts.followers` DESC"
       when "counts.following"
-        orderByQuery = "members.`counts.following`"
+        orderByQuery = "ORDER BY members.`counts.following` DESC"
       when "meta.modifiedAt"
-        orderByQuery = "members.`meta.modifiedAt`"
+        orderByQuery = "ORDER BY members.`meta.modifiedAt` DESC"
       else
-        orderByQuery = "members.`counts.followers`"
+        orderByQuery = "ORDER BY members.`meta.modifiedAt` DESC"
 
     return orderByQuery
 
-  @generateOptions:(options)->
+  @generateOptions: (options)->
     {client, skip, limit, sort, groupId, startDate} = options
 
-    orderBy = if sort? then Object.keys(sort)[0] else ""
     currentUserId = client.connection.delegate.getId()
     options =
       limitCount: limit or 10
       skipCount: skip or 0
-      groupId: groupId
+      groupId: "#{groupId}"
       currentUserId: "#{currentUserId}"
-      orderByQuery: @getOrderByQuery orderBy
-      to : startDate
+      to: startDate
 
   # fetch members that are in given group who follows current user
-  @fetchFollowingMembers:(options, callback)=>
+  @fetchFollowingMembers: (options, callback)=>
     options = @generateOptions options
-    query = QueryRegistry.member.following
+    orderByQuery = @getOrderByQuery options
+    query = QueryRegistry.member.following orderByQuery
     @queryMembers query, options, callback
 
   # fetch member's following count
-  @fetchFollowingMemberCount:(options, callback)=>
+  @fetchFollowingMemberCount: (options, callback)=>
     options = @generateOptions options
     query = QueryRegistry.member.following
     @queryMembers query, options, callback
 
   # fetch members that are in given group who are followed by current user
-  @fetchFollowerMembers:(options, callback)=>
+  @fetchFollowerMembers: (options, callback)=>
     options = @generateOptions options
-    query = QueryRegistry.member.follower
+    orderByQuery = @getOrderByQuery options
+    query = QueryRegistry.member.follower orderByQuery
     @queryMembers query, options, callback
 
 
-  @searchMembers:(options, callback)->
+  @searchMembers: (options, callback)->
     {groupId, seed, firstNameRegExp, lastNameRegexp, skip, limit, blacklist} = options
     activity = require './activity'
     activity.getCurrentGroup options.client, (err, group)=>
@@ -61,8 +64,8 @@ module.exports = class Member extends Graph
         firstNameRegExp: firstNameRegExp
         lastNameRegexp: lastNameRegexp
 
-      options.groupId    = group.getId()
-      options.skipCount  = skip or 0
+      options.groupId = "#{group.getId()}"
+      options.skipCount = skip or 0
       options.limitCount = limit or 10
 
       if blacklist? and blacklist.length
@@ -74,15 +77,16 @@ module.exports = class Member extends Graph
         query = QueryRegistry.member.search queryOptions
         @queryMembers query, options, callback
 
-  @fetchMemberList:(options, callback)->
+  @fetchMemberList: (options, callback)->
     # {groupId, to} = options
     # console.log "undefined request parameter" unless groupId and to
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
-      options = @generateOptions options
-      query = QueryRegistry.member.list exemptClause
-      @queryMembers query, options, callback
+      queryOptions = @generateOptions options
+      orderByQuery = @getOrderByQuery options
+      query = QueryRegistry.member.list exemptClause, orderByQuery
+      @queryMembers query, queryOptions, callback
 
-  @queryMembers:(query, options={}, callback)=>
+  @queryMembers: (query, options = {}, callback)=>
     @fetch query, options, (err, results) =>
       if err then return callback err
       if results? and results.length < 1 then return callback null, []
@@ -91,7 +95,7 @@ module.exports = class Member extends Graph
         @revive data, (revived)->
           callback null, revived
 
-  @generateMembers:(resultData, results, callback)=>
+  @generateMembers: (resultData, results, callback)=>
     if results? and results.length < 1 then return callback null, resultData
     result = results.shift()
     results.map (result)->
@@ -101,10 +105,10 @@ module.exports = class Member extends Graph
       @generateMembers resultData, results, callback
 
   # fetchs member count in a group
-  @fetchMemberCount:(options, callback)=>
+  @fetchMemberCount: (options, callback)=>
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       query = QueryRegistry.member.count exemptClause
-      queryOptions = {groupId : options.groupId}
+      queryOptions = {groupId: options.groupId}
       @fetch query, queryOptions, (err, results) =>
         if err then return callback err
         callback null, results[0].count
