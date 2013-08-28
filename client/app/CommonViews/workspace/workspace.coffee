@@ -11,11 +11,11 @@ class Workspace extends JView
 
     @panels                = []
     @lastCreatedPanelIndex = 0
+    @currentPanelIndex     = 0
 
     @init()
 
-  init: ->
-    @createPanel()
+  init: -> @createPanel()
 
   createPanel: (callback = noop) ->
     panelOptions          = @getOptions().panels[@lastCreatedPanelIndex]
@@ -30,14 +30,24 @@ class Workspace extends JView
     @emit "PanelCreated"
 
   next: ->
-    @lastCreatedPanelIndex++
-    @createPanel =>
-      @panels[@lastCreatedPanelIndex - 1].setClass "hidden"
+    if @lastCreatedPanelIndex is @currentPanelIndex
+      @lastCreatedPanelIndex++
+      @createPanel =>
+        @getPanelByIndex(@lastCreatedPanelIndex - 1).setClass "hidden"
+        @currentPanelIndex = @lastCreatedPanelIndex
+    else
+      @getPanelByIndex(@currentPanelIndex).setClass "hidden"
+      @getPanelByIndex(++@currentPanelIndex).unsetClass "hidden"
 
   prev: ->
+    @getPanelByIndex(@currentPanelIndex).setClass "hidden"
+    @getPanelByIndex(--@currentPanelIndex).unsetClass "hidden"
 
   getActivePanel: ->
     return @panels[@lastCreatedPanelIndex]
+
+  getPanelByIndex: (index) ->
+    return @panels[index] or null
 
   _windowDidResize: ->
     return unless @activePanel
