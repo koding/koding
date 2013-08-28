@@ -126,8 +126,7 @@ getAlias = do->
 # adds referral code into session if exists
 addReferralCode = (req)->
   if refCode = req.query.r
-    console.log "refCode"
-    console.log refCode
+    console.log "refCode: #{refCode}"
     {clientId} = req.cookies
     return console.error "client id not found in cookies" unless clientId?
 
