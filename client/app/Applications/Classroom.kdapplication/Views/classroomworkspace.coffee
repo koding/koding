@@ -131,7 +131,10 @@ class ClassroomWorkspace extends CollaborativeWorkspace
     {index, name} = @getData().courseMeta
     {chapters}    = @getData().courseManifest
     if chapters.length > index
-      KD.getSingleton("router").handleQuery "?course=#{name}&chapter=#{++index}"
+      newIndex = ++index
+      KD.getSingleton("router").handleQuery "?course=#{name}&chapter=#{newIndex}"
+      @chapterRef.child("index").set newIndex
+
   goToCoursesView: (modal) ->
     modal.destroy()  if modal
     KD.getSingleton("router").handleRoute "/Develop/Classroom"
