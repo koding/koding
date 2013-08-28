@@ -9,7 +9,25 @@
   rel()
 
   margin              50px
-  width               200px
+
+  .sliderbar-label
+    top               20px
+    font-size         11px
+    color             #999
+    width             40px
+    text-align        center
+    margin            0 0 0 -20px
+    z-index           1
+    abs()
+    &.active
+      color           #d77d13
+    &:after
+      content         ""
+      size            1px, 3px
+      background      #aaa
+      left            50%
+      bottom          100%
+      abs()
 
   .handle
     size              14px, 17px
@@ -19,7 +37,7 @@
     top               -2px
     left              0
     z-index           3
-    cursor            pointer
+    cursor            pointer !important
     margin            0 0 0 -7px
     abs()
     &:active
