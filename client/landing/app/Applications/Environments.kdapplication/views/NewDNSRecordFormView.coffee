@@ -71,8 +71,11 @@ class NewDNSRecordFormView extends KDCustomHTMLView
 
   pistachio:->
     """
+      <header>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      </header>
       <section class="clearfix">
-        <div class="input-container">
+        <div class="input-container record-type">
           {{> @typeLabel}}
           <div>{{> @typeSelectBox }}</div>
         </div>
@@ -84,7 +87,7 @@ class NewDNSRecordFormView extends KDCustomHTMLView
           {{> @destinationLabel}}
           {{> @destinationInput }}
         </div>
-        <div class="input-container">
+        <div class="input-container priority">
           {{> @priorityLabel }}
           {{> @priorityInput }}
         </div>
@@ -92,7 +95,7 @@ class NewDNSRecordFormView extends KDCustomHTMLView
           {{> @ttlLabel}}
           {{> @ttlInput }}
         </div>
-        <div class="input-container">
+        <div class="input-container add-record">
           {{> @addButton }}
         </div>
       </section>
