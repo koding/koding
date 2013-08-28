@@ -1,9 +1,8 @@
 class DNSRecordListController extends KDListViewController
 
   constructor:(options={}, data)->
-
     options.itemClass   or= DNSRecordListItemView
-    options.noItemView  or= new EmptyDNSRecordListItemView
+    options.noItemFoundWidget  or= new EmptyDNSRecordListItemView
     options.viewOptions or=
       type      : 'env-list'
       tagName   : 'ul'
@@ -23,8 +22,12 @@ class DNSRecordListController extends KDListViewController
 
     {domain} = @getData()
     @getListView().setData @getData()
-    @instantiateListItems domain.dnsRecords  if domain.dnsRecords?
 
+  loadView:(mainView)->
+    super
+    {domain} = @getData()
+    @instantiateListItems domain.dnsRecords  if domain.dnsRecords?
+    
     @on "newRecordCreated", @bound "addItem"
     @getListView().on "recordDeletionRequested", @bound "deleteRecordItem"
     @getListView().on "recordUpdateRequested", @bound "updateRecordItem"

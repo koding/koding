@@ -1,7 +1,6 @@
 class DNSRecordListItemView extends KDListItemView
 
   constructor:(options={}, data)->
-
     options.tagName = "li"
     super options, data
 
@@ -200,9 +199,4 @@ class RecordTtlView extends RecordElementView
 
 class EmptyDNSRecordListItemView extends KDListItemView
 
-  viewAppended: JView::viewAppended
-
-  pistachio:->
-    """
-    <td colspan="5">There is no DNS record for this domain.</td>
-    """
+  partial:-> "There is no DNS record for this domain."
