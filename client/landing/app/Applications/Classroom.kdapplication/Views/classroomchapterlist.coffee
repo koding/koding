@@ -8,7 +8,7 @@ class ClassroomChapterList extends KDScrollView
 
     courseName = @getData().name
     appStorage = KD.getSingleton("appStorageController").storage "Classroom"
-    completed  = appStorage.getValue("CompletedChapters")?[courseName]
+    completed  = appStorage.getValue("CompletedChapters")?[courseName] or []
 
     for chapter, index in @getData().chapters
       chapter.index      = index
