@@ -20,7 +20,8 @@ class AceSettingsView extends JView
       callback      : (state) => button.emit "ace.changeSetting", "highlightSelectedWord", state
     @showInvisibles = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "showInvisibles", state
-
+    @vimMode        = new KDOnOffSwitch
+      callback      : (state) => button.emit "ace.changeSetting", "vimMode", state
     @softWrap       = new KDSelectBox
       selectOptions : __aceSettings.softWrapOptions
       callback      : (value) => button.emit "ace.changeSetting", "softWrap", value
@@ -76,6 +77,7 @@ class AceSettingsView extends JView
     <p class='hidden'>Highlight selected word  {{> @highlightWord}}</p>
 
     <p>Show invisibles          {{> @showInvisibles}}</p>
+    <p>Use Vim Mode             {{> @vimMode}}</p>
     <hr>
     <p>Soft wrap                {{> @softWrap}}</p>
     <p>Syntax                   {{> @syntax}}</p>
