@@ -231,10 +231,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	loginName, ok := checkSessionOrDoLogin(w, r)
 	if ok != true {
-		err := templates.ExecuteTemplate(w, "login.html", nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		renderTemplate(w, "login", nil)
 		return
 	}
 
@@ -336,7 +333,7 @@ func keyLookup(key string) (map[string]bool, map[string]bool) {
 	return servers, brokers
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
+func renderTemplate(w http.ResponseWriter, tmpl string, home interface{}) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", home)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
