@@ -59,13 +59,22 @@ class NewDNSRecordFormView extends KDCustomHTMLView
 
     recordObj = {recordType, host, value, ttl, priority}
 
-    KD.remote.api.JDomain.one {domainName:domain}, (err, domain)=>
-      domain.createDNSRecord recordObj, (err, record)=>
-        if record
-          return new KDNotificationView {title: "Your record has been saved."}
-          @emit "newRecordCreated", recordObj
-        else
-          return new KDNotificationView {title: "ERRROORRRRRR"}
+    # KD.remote.api.JDomain.one {domainName:domain}, (err, domain)=>
+    #   domain.createDNSRecord recordObj, (err, record)=>
+    #     if record
+    #       return new KDNotificationView {title: "Your record has been saved."}
+    #       @emit "newRecordCreated", recordObj
+    #     else
+    #       return new KDNotificationView {title: "ERRROORRRRRR"}
+
+    domain.createDNSRecord recordObj, (err, record)=>
+      log "=============================================="
+      log record, err
+      if record
+        return new KDNotificationView {title: "Your record has been saved."}
+        @emit "newRecordCreated", recordObj
+      else
+        return new KDNotificationView {title: "ERRROORRRRRR"}
 
   viewAppended: JView::viewAppended
 
