@@ -121,3 +121,7 @@ class KDContentEditableView extends KDView
     notice.on "KDObjectWillBeDestroyed", =>
       message = notice.getOptions().title
       delete @validationNotifications[message]
+
+  render: ->
+    super
+    @unsetPlaceholder() if not @editingMode and @getValue().length is 0
