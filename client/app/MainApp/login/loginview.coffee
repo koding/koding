@@ -189,6 +189,7 @@ class LoginView extends KDScrollView
 
   doRegister:(formData)->
     formData.agree = 'on'
+    formData.referrer = $.cookie 'referrer'
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
