@@ -78,23 +78,38 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       callback null
 
   handleChapterSuccess: ->
-    data           = @getData()
-    courseManifest = data.courseManifest
-    courseName     = courseManifest.name
-    chapterTitle   = courseManifest.chapters[data.courseMeta.index - 1].title
+    data              = @getData()
+    courseManifest    = data.courseManifest
+    courseName        = courseManifest.name
+    chapterTitle      = courseManifest.chapters[data.courseMeta.index - 1].title
+    remainingChapters = courseManifest.chapters.length - data.courseMeta.index
 
     @getDelegate().emit "ChapterSucceed", { courseName, chapterTitle }
 
-    modal = new KDModalView
-      overlay      : yes
-      title        : "Yay! Passed this chapter."
-      cssClass     : "modal-with-text"
-      content      : "<p>You have been passed this chapter. You have 3 more to go! Keep up the good work.</p>"
-      buttons      :
+    if remainingChapters > 0
+      title        = "Yay! You passed this chapter."
+      content      = "You have been passed this chapter. You have #{remainingChapters} more to go! Keep up the good work."
+      buttons      =
         Next       :
           title    : "Next Chapter"
           cssClass : "modal-clean-green"
           callback : => @goToNextChapter modal
+    else
+      title        = "Well done!"
+      content      = "You have completed this course. You can go to courses to start another one."
+      buttons      =
+        Done       :
+          title    : "Go to Courses"
+          cssClass : "modal-clean-green"
+          callback : => @goToCoursesView modal
+
+    modal = new KDBlockingModalView {
+      overlay      : yes
+      cssClass     : "modal-with-text"
+      content      : "<p>#{content}</p>"
+      buttons
+      title
+    }
 
   handleChapterFailed: ->
     modal = new KDModalView
@@ -117,6 +132,9 @@ class ClassroomWorkspace extends CollaborativeWorkspace
     {chapters}    = @getData().courseManifest
     if chapters.length > index
       KD.getSingleton("router").handleQuery "?course=#{name}&chapter=#{++index}"
+  goToCoursesView: (modal) ->
+    modal.destroy()  if modal
+    KD.getSingleton("router").handleRoute "/Develop/Classroom"
 
   createChapterList: ->
     @addSubView @chapterList = new ClassroomChapterList {}, @getData().courseManifest
