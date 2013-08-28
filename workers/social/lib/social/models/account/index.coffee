@@ -177,6 +177,12 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JProxyFilter'
 
+      referrer      :
+        targetType  : 'JReferral'
+        as          : 'referrer'
+      referred      :
+        targetType  : 'JReferral'
+        as          : 'referred'
       invitation    :
         as          : 'owner'
         targetType  : 'JInvitation'
@@ -695,7 +701,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "blum", "neelance", "halk"
                   "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "cihangirsavas"
-                  "fkadev" ]
+                  "fkadev", "leventyalcin" ]
 
 
   userIsExempt: (callback)->

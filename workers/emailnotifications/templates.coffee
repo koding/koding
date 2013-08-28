@@ -204,7 +204,7 @@ Templates =
       return "#{sender} #{sentence} #{contentName}!"
 
     eventName   = eventFlag.definition
-    return """You have a new #{eventName}"""
+    return """You have a new #{if eventName is "follow" then "follower" else eventName}"""
 
   dailyHeader  : (m)->
     currentDate  = dateFormat m.notification.dateIssued, "mmm dd"

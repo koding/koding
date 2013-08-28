@@ -84,6 +84,10 @@ module.exports = class JVM extends Module
       shouldDelete      :
         type            : Boolean
         default         : no
+      diskSizeInMB      :
+        type            : Number
+        default         : 1200
+
 
   @createDomains = (account, domains, hostnameAlias)->
 
@@ -301,12 +305,10 @@ module.exports = class JVM extends Module
           planOwner        : vm.planOwner
           hostnameAlias    : vm.hostnameAlias
           underMaintenance : vm.hostKite is "(maintenance)"
-          region           : vm.region or 'aws'
+          region           : vm.region or 'sj'
 
   @fetchVmRegion = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
-    if delegate.type is 'unregistered'
-      return callback null
     JVM.one {hostnameAlias}, (err, vm)->
       return callback err  if err or not vm
       callback null, vm.region

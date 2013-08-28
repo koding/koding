@@ -154,7 +154,6 @@ module.exports =
     port        : 80
     certFile    : ""
     keyFile     : ""
-    useKontrold : no
     webProtocol : 'http:'
     webHostname : "stage-broker-#{version}.in.koding.com"
     webPort     : null
