@@ -54,21 +54,28 @@
 						<input name="build" type="text" class="search-query">
 					</form>
 					<ul class="nav pull-right">
-                      <li class="divider-vertical"></li>
-                      <li>
-                        information from version
-                        <div class="btn-group">
-                            <a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
-                            <ul class="dropdown-menu">
-                                <li><a href="?build=current#">current version</a></li>
-                                <li class="divider"></li>
-                                {{range .Builds}} 
-                                <li><a href="?build={{.}}">{{.}}</a></li>
-                                {{end}}
-                            </ul>
-                        </div><!-- /btn-group -->
-                        <em>is displayed</em>
-                      </li>
+                        <li class="divider-vertical"></li>
+                        <li>
+                            information from version
+                            <div class="btn-group">
+                                <a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="?build=current#">current version</a></li>
+                                    <li class="divider"></li>
+                                    {{range .Builds}} 
+                                	<li><a href="?build={{.}}">{{.}}</a></li>
+                                	{{end}}
+                            	</ul>
+                        	</div><!-- /btn-group -->
+                            <em>is displayed</em>
+                        </li>
+                        <li>&nbsp;</li>
+                        <li class="middle">
+		      				<form method="POST">
+						        <input name="action" value="logout" class="hidden">
+						        <button type="submit" class="btn btn-danger">Log Out</button>
+						    </form>
+					  	</li>
 					</ul>
 				</div>
 			</div>
@@ -82,10 +89,16 @@
                       Change the build version of {{ .Status.SwitchHost }} to a different version.<br>
                       <span class="label label-important">This is a dangerous action</span>, be sure you know what you are doing!
                     </p>
-
+                    {{if .SwitchMessage}}
+	                    <div class="alert">
+						  <button type="button" class="close" data-dismiss="alert">&times;</button>
+						  {{ .SwitchMessage }}
+						</div>
+					{{end}}
                   <form id="switchVersionForm" method="POST">
 
                     <div class="input-append">
+                      <input name="action" value="switchVersion" class="hidden">
                       <input name="switchVersion" class="span4" id="appendedInputButton" type="text">
                       <input name="loginPass" id="switcherPass" class="hidden">
                       <button type="button" id="switchButton" class="btn btn-danger">Switch now <i class="icon-random icon-white"></i></button>
