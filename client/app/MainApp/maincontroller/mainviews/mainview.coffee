@@ -172,7 +172,7 @@ class MainView extends KDView
     return if not KD.isLoggedIn() # don't show it to guests
 
     @utils.defer => getStatus()
-    
+
     {JSystemStatus} = KD.remote.api
 
     JSystemStatus.on 'restartScheduled', (systemStatus)=>
@@ -191,10 +191,12 @@ class MainView extends KDView
 
   enableFullscreen: ->
     @contentPanel.$().addClass "fullscreen no-anim"
+    @emit "fullscreen", yes
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
   disableFullscreen: ->
     @contentPanel.$().removeClass "fullscreen no-anim"
+    @emit "fullscreen", no
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
   isFullscreen: ->
