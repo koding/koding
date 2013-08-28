@@ -22,6 +22,7 @@ class ClassroomWorkspace extends CollaborativeWorkspace
 
   extendOptions: (options) ->
     config = {}
+    config.name                = "Classroom"
     config.joinModalTitle      = "Join a coding session"
     config.joinModalContent    = "<p>Paste the session key that you received and start coding together.</p>"
     config.shareSessionKeyInfo = "<p>This is your session key, you can share this key with your friends to work together.</p>"
