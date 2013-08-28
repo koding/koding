@@ -177,6 +177,12 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JProxyFilter'
 
+      referrer      :
+        targetType  : 'JReferral'
+        as          : 'referrer'
+      referred      :
+        targetType  : 'JReferral'
+        as          : 'referred'
       invitation    :
         as          : 'owner'
         targetType  : 'JInvitation'
@@ -693,7 +699,7 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "halk", "neelance",
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "neelance", "halk",
                   "fatihacet", "sent-hil", "kiwigeraint", "cihangirsavas",
                   "fkadev", "bahadir", "arslan" ]
 

@@ -1,4 +1,4 @@
-# Koding
+# Koding (the repository)
 
 Welcome! This is the main Koding repository. Below you can find some
 information about the folder structure.
@@ -8,14 +8,14 @@ information about the folder structure.
 
 * config:  contains all our configurations files. All our apps in the codebase
            is reading from this folder to set certain things, like mongdob credentials,
-           ports to be bind, number of instances to be run and so on. 
+           ports to be bind, number of instances to be run and so on.
 
 * docs:    contains docs about some of our core technologies. Once created,
            they never did get an update for a long time. So don't except
            anything new there (it's needs love)
 
 * go:      contains code that was written in Go language. It contains lot's of our
-           core backend technologies. If you write something in Go it goes here. 
+           core backend technologies. If you write something in Go it goes here.
 
 * migrate: contains migration scripts. These scripts are usually used whenever
            we introduce something new and mongdob needs a major update or if change
@@ -25,7 +25,7 @@ information about the folder structure.
                 symlinks from the node_modules_koding folder. This is populated via the
                 package.json file.
 
-* node_modules_koding: contains node modules that were written by Koding developers. 
+* node_modules_koding: contains node modules that were written by Koding developers.
                        If you execute "npm install" a symlink for every folders
                        is created to node_modules folder.
 
