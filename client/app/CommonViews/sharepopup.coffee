@@ -16,7 +16,7 @@ class SharePopup extends JView
     options.linkedin         ?= {}
     options.linkedin.enabled ?= true
     options.linkedin.title   ?= "Koding.com"
-    options.linkedin.text    ?= "The next generation development environment"
+    options.linkedin.text    ?= options.url or "The next generation development environment"
 
     options.newTab          ?= {}
     options.newTab.enabled  ?= true
@@ -24,7 +24,7 @@ class SharePopup extends JView
 
     super options, data
 
-    @urlInput = new KDInputView
+    @urlInput = urlInput = new KDInputView
       cssClass    : "share-input"
       type        : "text"
       placeholder : "building url..."
@@ -32,13 +32,13 @@ class SharePopup extends JView
         readonly  : yes
       width       : 50
 
-      if options.shortenURL
-        KD.utils.shortenUrl options.url, (shorten)=>
-          @urlInput.setValue shorten
-          @urlInput.$().select()
-      else
-        @urlInput.setValue options.url
+    if options.shortenURL
+      KD.utils.shortenUrl options.url, (shorten)=>
+        @urlInput.setValue shorten
         @urlInput.$().select()
+    else
+      urlInput.setValue options.url
+      urlInput.$().select()
 
     @once "viewAppended", =>
       @urlInput.$().select()

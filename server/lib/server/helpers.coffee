@@ -129,13 +129,14 @@ addReferralCode = (req)->
     console.log "refCode"
     console.log refCode
     {clientId} = req.cookies
-    return unless clientId?
+    return console.error "client id not found in cookies" unless clientId?
 
     koding.models.JSession.fetchSession clientId, (err, session) ->
-      return console.err err if err
-      return unless session
+      return console.error err if err
+      return console.err "session not found in referral" unless session
       session.update {$set : 'referrerCode' : refCode}, (err) ->
         console.err err if err
+        console.log "session updated with referrer code #{refCode}"
 
 module.exports = {
   error_

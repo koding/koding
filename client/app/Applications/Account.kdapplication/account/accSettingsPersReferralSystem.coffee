@@ -8,7 +8,7 @@ class AccountReferralSystemListController extends AccountListViewController
     @removeAllItems()
     @showLazyLoader yes
     query = { type : "disk" }
-    options = {limit : 10}
+    options = {limit : 20}
     KD.remote.api.JReferral.fetchReferredAccounts query, options, (err, referals)=>
       return KD.showError err if err
       @instantiateListItems referals or []
@@ -26,9 +26,9 @@ class AccountReferralSystemListController extends AccountListViewController
     {vmToResize, sizes} = modal.modal.modalTabs.forms.Redeem.inputs
 
     data = {
-      vm    : vmToResize.getValue(),
-      size  : sizes.getValue(),
-      type  : "disk"
+      vmName : vmToResize.getValue(),
+      size   : sizes.getValue(),
+      type   : "disk"
     }
 
     KD.remote.api.JReferral.redeem data, (err, refRes)=>
@@ -121,7 +121,14 @@ class AccountReferralSystemListController extends AccountListViewController
     @scrollView.addSubView wrapper, '', yes
 
     wrapper.addSubView getYourRefererCode = new CustomLinkView
-      title : "Get Your Referer Code"
+      title       : "Get Your Referer Code"
+      tooltip     :
+        title     :
+          """
+            If anyone registers with your referrer code,
+            you will get 250MB Free disk space for your VM.
+            Up to 16GB!.
+          """
       click : ->
         refererCode = KD.whoami().profile.nickname
         shareUrl      = "#{location.origin}/?r=#{refererCode}"
@@ -139,11 +146,12 @@ class AccountReferralSystemListController extends AccountListViewController
           lazyLoad    : yes
         , customView  : new SharePopup {
             url       : shareUrl
+            shortenURL: false
             twitter   :
-              text    : "Join to Koding! The next generation develepment environment koding.com"
+              text    : "Join to Koding! The next generation develepment environment #{shareUrl}"
             linkedin  :
               title   : "Join to Koding!"
-              text    : "The next generation development environment koding.com"
+              text    : "The next generation development environment #{shareUrl}"
           }
         new KDOverlayView
           parent      : KD.singletons.mainView.mainTabView.activePane

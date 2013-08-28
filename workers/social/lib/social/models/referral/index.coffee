@@ -168,8 +168,8 @@ module.exports = class JReferral extends jraphical.Message
 
 
   @redeem = secure (client, data, callback)->
-    {vm, size, type} = data
-    return callback new KodingError "Request is not valid" unless vm and size
+    {vmName, size, type} = data
+    return callback new KodingError "Request is not valid" unless vmName and size
 
     # get redeemable referals
     @fetchRedeemableReferrals client, {type}, (err, referrals)=>
@@ -183,12 +183,12 @@ module.exports = class JReferral extends jraphical.Message
       # if not return an error
       return callback new KodingError "You dont have enough credit to redeem" if size > totalCredit
 
-      # fetch user's vm which will be upgraded
-      @fetchUserVM client, vm, (err, jvm)=>
+      # fetch user's vmName which will be upgraded
+      @fetchUserVM client, vmName, (err, vm)=>
         return callback err if err
         options =
           referrals :referrals
-          jvm       :jvm
+          vm        :vm
           size      :size
           type      :type
 
@@ -201,14 +201,14 @@ module.exports = class JReferral extends jraphical.Message
         return console.error "Invalid type provided"
 
   @relateReferalsToJVM = (options, callback) ->
-    {referrals, jvm, size, type} = options
+    {referrals, vm, size, type} = options
     # generate the referals to be used for upgrade process
-    referalsToBeUsed = []
+    referralsToBeUsed = []
     addedSize = 0
     for referral in referrals
       break if addedSize >= size
       addedSize += referral.amount
-      referalsToBeUsed.push referral
+      referralsToBeUsed.push referral
 
     # wrap the callback
     kallback = (err)=>
@@ -216,26 +216,25 @@ module.exports = class JReferral extends jraphical.Message
 
       returnValue =
         addedSize    : addedSize
-        vm           : jvm.hostnameAlias
+        vm           : vm.hostnameAlias
         type         : type
         unit         : referrals.first.unit
 
       updateQuery = @createUpdateQueryForRedeem type, addedSize
 
-      jvm.update { $inc: updateQuery }, (err) ->
+      vm.update { $inc: updateQuery }, (err) ->
         return callback err if err
-
         callback null, returnValue
 
-    queue = referalsToBeUsed.map (ref)=>=>
-      ref.addRedeemedOn jvm, (err)->
+    queue = referralsToBeUsed.map (ref)=>=>
+      ref.addRedeemedOn vm, (err)->
         return kallback err if err
         queue.fin()
 
     dash queue, kallback
 
 
-  @fetchUserVM = (client, vm, callback)->
+  @fetchUserVM = (client, vmName, callback)->
     account = client.connection.delegate
 
     # get the user to fetch his/her VMs
@@ -245,12 +244,12 @@ module.exports = class JReferral extends jraphical.Message
         users:
           $elemMatch:
             id: user.getId()
-        hostnameAlias: vm
+        hostnameAlias: vmName
       # get user's vms
-      JVM.one selector, (err, jvm)->
+      JVM.one selector, (err, vm)->
         return callback err  if err
-        return callback new KodingError "#{vm} is not found" unless jvm
-        callback null, jvm
+        return callback new KodingError "#{vm} is not found" unless vm
+        callback null, vm
 
   do =>
     JAccount.on 'AccountRegistered', (me)->
@@ -261,7 +260,11 @@ module.exports = class JReferral extends jraphical.Message
         # if referrer not fonud then do nothing and return
         return console.error "Session is not defined" if not session
         # if user dont have any referrer code then do nothing
-        return console.error "no referrer code" unless session.referrerCode
+        return  unless session.referrerCode
+        # if user tries to refer themself
+        if me.profile.nickname is session.referrerCode
+          return console.error "#{me.profile.nickname} - User tried to refer themself"
+
         # get referrer
         JAccount.one {'profile.nickname': session.referrerCode}, (err, referrer)->
           # if error occured than do nothing and return
@@ -269,12 +272,7 @@ module.exports = class JReferral extends jraphical.Message
           # if referrer not fonud then do nothing and return
           return console.error "Referrer couldnt found" if not referrer
 
-          data =
-            type   : "disk"
-            unit   : "MB"
-            amount : 250
-
-          referral = new JReferral data
+          referral = new JReferral { type: "disk", unit: "MB", amount: 250 }
           referral.save (err) ->
             return console.error err if err
             #add referrer as referrer to the referral system
@@ -283,4 +281,4 @@ module.exports = class JReferral extends jraphical.Message
               # add me as referred to the referral system
               me.addReferred referral, (err)->
                 return console.error err if err
-                console.log "referal saved successfully"
+                console.log "referal saved successfully for #{me.profile.nickname} from #{session.referrerCode}"
