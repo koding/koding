@@ -108,12 +108,13 @@ type StatusInfo struct {
 }
 
 type HomePage struct {
-	Status    StatusInfo
-	Workers   []WorkerInfo
-	Jenkins   *JenkinsInfo
-	Server    *ServerInfo
-	Builds    []int
-	LoginName string
+	Status        StatusInfo
+	Workers       []WorkerInfo
+	Jenkins       *JenkinsInfo
+	Server        *ServerInfo
+	Builds        []int
+	LoginName     string
+	SwitchMessage string
 }
 
 func NewServerInfo() *ServerInfo {
@@ -186,17 +187,20 @@ func logAction(msg string) {
 	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
 }
 
-func checkLogin(w http.ResponseWriter, r *http.Request) (string, bool) {
-	loginName := r.PostFormValue("loginName")
-	loginPass := r.PostFormValue("loginPass")
-	if loginName != "" && loginPass != "" {
-		if loginName == "hus" && loginPass == "pass" {
-			session, _ := store.Get(r, "userData")
-			session.Values["userName"] = loginName
-			//err :=
-			store.Save(r, w, session)
-			// TODO check
-			return loginName, true
+func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, bool) {
+	action := r.PostFormValue("action")
+	if action == "login" {
+		loginName := r.PostFormValue("loginName")
+		loginPass := r.PostFormValue("loginPass")
+		if loginName != "" && loginPass != "" {
+			if loginName == "hus" && loginPass == "pass" {
+				session, _ := store.Get(r, "userData")
+				session.Values["userName"] = loginName
+				//err :=
+				store.Save(r, w, session)
+				// TODO check
+				return loginName, true
+			}
 		}
 	} else {
 		session, _ := store.Get(r, "userData")
@@ -211,8 +215,21 @@ func checkLogin(w http.ResponseWriter, r *http.Request) (string, bool) {
 	return "", false
 }
 
+func logOut(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "userData")
+	session.Values["userName"] = nil
+	store.Save(r, w, session)
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-	loginName, ok := checkLogin(w, r)
+
+	// Should be done first
+	action := r.FormValue("action")
+	if action == "logout" {
+		logOut(w, r)
+	}
+
+	loginName, ok := checkSessionOrDoLogin(w, r)
 	if ok != true {
 		err := templates.ExecuteTemplate(w, "login.html", nil)
 		if err != nil {
@@ -227,18 +244,23 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		build = version
 	}
 
-	version := r.PostFormValue("switchVersion")
-	if version != "" {
+	switchMessage := ""
+	if action == "switchVersion" {
+		version := r.PostFormValue("switchVersion")
 		loginPass := r.PostFormValue("loginPass")
-		log.Println("switching to version", version, loginPass)
-		err := switchVersion(version)
-		if err != nil {
-			log.Println("error switching", err, version)
+		if loginPass != "pass" {
+			switchMessage = "Password is wrong"
 		} else {
-			logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName))
+			log.Println("switching to version", version)
+			err := switchVersion(version)
+			if err != nil {
+				switchMessage = fmt.Sprintf("Error switching, err: %s version: %s", err, version)
+				log.Println("error switching", err, version)
+			} else {
+				switchMessage = "Switched to version " + loginName
+				logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName))
+			}
 		}
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
 	}
 
 	workers, status, err := workerInfo(build)
@@ -267,12 +289,13 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	status.Koding.BrokerLen = len(b) + 1
 
 	home := HomePage{
-		Status:    status,
-		Workers:   workers,
-		Jenkins:   jenkins,
-		Server:    server,
-		Builds:    builds,
-		LoginName: loginName,
+		Status:        status,
+		Workers:       workers,
+		Jenkins:       jenkins,
+		Server:        server,
+		Builds:        builds,
+		LoginName:     loginName,
+		SwitchMessage: switchMessage,
 	}
 
 	renderTemplate(w, "index", home)

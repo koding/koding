@@ -13,7 +13,6 @@ $(
 var showNameModal = function(callback) {
 	callback: callback;
     $("#myModal").bind("show", function() {
-    	debugger
         $("#myModal a.primary").click(function(e) {
             var modalSwitcherPass = $("#modalSwitcherPass")[0]
             if (modalSwitcherPass.value !== "") {
