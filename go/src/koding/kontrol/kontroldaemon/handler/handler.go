@@ -9,6 +9,7 @@ import (
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
@@ -80,14 +81,40 @@ func runHelperFunctions() {
 	// 	}
 	// }()
 
-	// update workers status
-	tickerWorker := time.NewTicker(time.Second * 1)
+	// HeartBeat checker for workers
+	tickerWorker := time.NewTicker(workerconfig.HEARTBEAT_INTERVAL)
 	go func() {
-		for _ = range tickerWorker.C {
-			err := kontrolDB.RefreshStatusAll()
-			if err != nil {
-				log.Println("couldn't update worker data", err)
+		for now := range tickerWorker.C {
+
+			queryFunc := func(c *mgo.Collection) error {
+				worker := workerconfig.Worker{}
+				iter := c.Find(nil).Iter()
+				for iter.Next(&worker) {
+					if worker.Status == workerconfig.Dead {
+						continue // already dead, nothing to do
+					}
+
+					if now.Before(worker.Timestamp.Add(workerconfig.HEARTBEAT_DELAY)) {
+						continue // still alive, pick up the next one
+					}
+
+					log.Printf("[%s (%d)] no activity at '%s' - '%s' (pid: %d). marking them as dead\n",
+						worker.Name,
+						worker.Version,
+						worker.Hostname,
+						worker.Uuid,
+						worker.Pid,
+					)
+
+					worker.Status = workerconfig.Dead
+					worker.Monitor.Mem = workerconfig.MemData{}
+					worker.Monitor.Uptime = 0
+					kontrolDB.UpdateWorker(worker)
+				}
+				return nil
 			}
+
+			kontrolDB.RunCollection("jKontrolWorkers", queryFunc)
 		}
 	}()
 
@@ -100,13 +127,17 @@ func runHelperFunctions() {
 			for _, info := range infos {
 				version, _ := strconv.Atoi(info.BuildNumber)
 
-				iter := kontrolDB.Collection.Find(bson.M{"version": version}).Iter()
-				worker := workerconfig.Worker{}
 				foundWorker := false
-
-				for iter.Next(&worker) {
-					foundWorker = true
+				query := func(c *mgo.Collection) error {
+					iter := c.Find(bson.M{"version": version}).Iter()
+					worker := workerconfig.Worker{}
+					for iter.Next(&worker) {
+						foundWorker = true
+					}
+					return nil
 				}
+
+				kontrolDB.RunCollection("jKontrolWorkers", query)
 
 				// remove deployment if no workers are available
 				if !foundWorker {
@@ -219,7 +250,12 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 			return err
 		}
 	case "update":
-		log.Printf("[%s (%d)] received: %s", worker.Name, worker.Version, command)
+		log.Printf("[%s (%d)] update request from: '%s' - '%s'",
+			worker.Name,
+			worker.Version,
+			worker.Hostname,
+			worker.Uuid,
+		)
 		err := kontrolDB.Update(worker)
 		if err != nil {
 			return err
@@ -234,6 +270,10 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 // DoApiRequest is used to make actions on workers. You can kill, delete or
 // start any worker with this api.
 func DoApiRequest(command, uuid string) error {
+	if uuid == "" {
+		errors.New("empty uuid is not allowed.")
+	}
+
 	log.Printf("[%s] received: %s", uuid, command)
 	switch command {
 	case "delete":
@@ -276,60 +316,65 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 
 	switch option {
 	case "force":
-		/* force mode immediately run the worker, however before it will run,
-		it tries to find all workers with the same name(foo and foo-1
-		counts as the same) on other host's. Basically 'force' mode makes
-		the worker exclusive on all machines and no other worker with the
-		same name can run anymore.  */
-		log.Printf("[%s (%d)] killing all other workers except hostname '%s'\n", worker.Name, worker.Version, worker.Hostname)
+		// force mode immediately run the worker, however before it will run,
+		// it tries to find all workers with the same name(foo and foo-1 counts
+		// as the same) on other host's. Basically 'force' mode makes the
+		// worker exclusive on all machines and no other worker with the same
+		// name can run anymore.
+		log.Printf("[%s (%d)] killing all other workers except hostname '%s'\n",
+			worker.Name, worker.Version, worker.Hostname)
+
 		result := workerconfig.Worker{}
-		iter := kontrolDB.Collection.Find(bson.M{
-			"name":     bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
-			"hostname": bson.M{"$ne": worker.Hostname},
-		}).Iter()
+		query := func(c *mgo.Collection) error {
+			iter := c.Find(bson.M{
+				"name": bson.RegEx{Pattern: "^" + normalizeName(worker.Name),
+					Options: "i"},
+				"hostname": bson.M{"$ne": worker.Hostname},
+			}).Iter()
+			for iter.Next(&result) {
+				res, err := kontrolDB.Kill(result.Uuid, "force")
+				if err != nil {
+					log.Println(err)
+				}
+				go deliver(res)
 
-		for iter.Next(&result) {
-			res, err := kontrolDB.Kill(result.Uuid, "force")
-			if err != nil {
-				log.Println(err)
+				err = kontrolDB.Delete(result.Uuid)
+				if err != nil {
+					log.Println(err)
+				}
 			}
-			go deliver(res)
 
-			err = kontrolDB.Delete(result.Uuid)
-			if err != nil {
-				log.Println(err)
-			}
+			return nil
+
 		}
 
-		startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
-		log.Println(startLog)
-		worker.Status = workerconfig.Started
-		kontrolDB.AddWorker(worker)
+		kontrolDB.RunCollection("jKontrolWorkers", query)
 
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
+		startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
+			worker.Name,
+			worker.Version,
+			option,
+			worker.Hostname,
+			worker.Uuid,
+		)
+		log.Println(startLog)
+
+		worker.Status = workerconfig.Started
+		kontrolDB.UpsertWorker(worker)
+
+		response := *workerconfig.NewWorkerResponse(
+			worker.Name,
+			worker.Uuid,
+			"start",
+			startLog,
+		)
 		return response, nil
 	case "one", "version":
-		/* one mode will try to start a worker that has a different version
-		than the current available workers. But before it starts it look for
-		other workers. If there is worker available that are already started
-		with a different version then the worker don't get any permission. If
-		not it get's the permission to run.
-		Basically 'one' mode makes the worker 'version' exclusive. That means
-		only workers with that exclusive version has the permission to run.  */
-
 		query := bson.M{}
 		reason := ""
-		if option == "version" {
-			query = bson.M{
-				"name":    bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
-				"version": bson.M{"$ne": worker.Version},
-				"status": bson.M{"$in": []int{
-					int(workerconfig.Started),
-					int(workerconfig.Waiting),
-				}}}
-			reason = "workers with different versions: "
-		}
-
+		// one means that only one single instance of the worker can work. For
+		// example if we start an emailWorker with the mode "one", another
+		// emailWorker don't get the permission to run.
 		if option == "one" {
 			query = bson.M{
 				"name": worker.Name,
@@ -340,35 +385,100 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 			reason = "workers with same names: "
 		}
 
-		result := workerconfig.Worker{}
-		otherWorkers := false
-		iter := kontrolDB.Collection.Find(query).Iter()
-		for iter.Next(&result) {
-			reason = reason + fmt.Sprintf("\n version: %d (pid: %d) at %s", result.Version, result.Pid, result.Hostname)
-			otherWorkers = true
+		// version is like one, but it's allow only workers of the same name
+		// and version. For example if an authWorker of version 13 starts with
+		// the mode "version", than only authWorkers of version 13 can start,
+		// any other authworker different than 13 (say, 10, 14, ...) don't get
+		// the permission to run.
+		if option == "version" {
+			query = bson.M{
+				"name": bson.RegEx{Pattern: "^" + normalizeName(worker.Name),
+					Options: "i"},
+				"version": bson.M{"$ne": worker.Version},
+				"status": bson.M{"$in": []int{
+					int(workerconfig.Started),
+					int(workerconfig.Waiting),
+				}}}
+			reason = "workers with different versions: "
 		}
 
+		result := workerconfig.Worker{}
+		otherWorkers := false
+		queryFunc := func(c *mgo.Collection) error {
+			iter := c.Find(query).Iter()
+			for iter.Next(&result) {
+				reason = reason + fmt.Sprintf("\n version: %d (pid: %d) at %s",
+					result.Version, result.Pid, result.Hostname)
+				otherWorkers = true
+			}
+			return nil
+		}
+
+		kontrolDB.RunCollection("jKontrolWorkers", queryFunc)
+
 		if !otherWorkers {
-			startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
+				worker.Name,
+				worker.Version,
+				option,
+				worker.Hostname,
+				worker.Uuid,
+			)
 			log.Println(startLog)
+
 			worker.Status = workerconfig.Started
-			kontrolDB.AddWorker(worker)
-			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
+			kontrolDB.UpsertWorker(worker)
+
+			response := *workerconfig.NewWorkerResponse(
+				worker.Name,
+				worker.Uuid,
+				"start",
+				startLog,
+			)
 			return response, nil
 		}
 
-		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "noPermission", denyLog)
+		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s",
+			worker.Name,
+			worker.Version,
+			worker.Hostname,
+			reason,
+		)
+
+		response := *workerconfig.NewWorkerResponse(
+			worker.Name,
+			worker.Uuid,
+			"noPermission",
+			denyLog,
+		)
+
 		return response, nil // contains start or noPermission
 	case "many":
-		startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		// many just starts the worker. That means a worker can be started as
+		// many times as we wished with this option.
+		startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
+			worker.Name,
+			worker.Version,
+			option,
+			worker.Hostname,
+			worker.Uuid,
+		)
 		log.Println(startLog)
+
 		worker.Status = workerconfig.Started
-		kontrolDB.AddWorker(worker)
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
+		worker.Timestamp = time.Now().Add(workerconfig.HEARTBEAT_INTERVAL)
+		kontrolDB.UpsertWorker(worker)
+
+		response := *workerconfig.NewWorkerResponse(
+			worker.Name,
+			worker.Uuid,
+			"start",
+			startLog,
+		)
 		return response, nil //
 	default:
-		return workerconfig.WorkerResponse{}, errors.New("no option specified for add action. aborting add handler...")
+		return workerconfig.WorkerResponse{},
+			errors.New("no option specified for add action. aborting add handler...")
 	}
 
 	return workerconfig.WorkerResponse{}, errors.New("couldn't add any worker")
