@@ -85,6 +85,9 @@ process.on 'uncaughtException',(err)->
   console.error err
 
 app.use (req, res, next) ->
+  # add referral code into session if there is one
+  addReferralCode req, res
+
   {JSession} = koding.models
   {clientId} = req.cookies
   clientIPAddress = req.connection.remoteAddress
@@ -379,9 +382,6 @@ app.get '/:name/:section?*', (req, res, next)->
             else res.send 500, error_500()
 
 app.get "/", (req, res)->
-
-  # add referral code into session if there is one
-  addReferralCode req
 
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
