@@ -58,6 +58,7 @@ app        = express()
   isLoggedIn
   saveOauthToSession
   getAlias
+  addReferralCode
 }          = require './helpers'
 
 
@@ -72,9 +73,8 @@ app.configure ->
   app.use express.compress()
   app.use express.static "#{projectRoot}/website/"
 
-app.use (req, res, next)->
-  res.removeHeader "X-Powered-By"
-  next()
+# disable express default header
+app.disable 'x-powered-by'
 
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
@@ -379,6 +379,10 @@ app.get '/:name/:section?*', (req, res, next)->
             else res.send 500, error_500()
 
 app.get "/", (req, res)->
+
+  # add referral code into session if there is one
+  addReferralCode req
+
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
