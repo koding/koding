@@ -20,7 +20,7 @@ module.exports =
     address     : "https://koding.com"
   userSitesDomain: 'staging.kd.io'
   containerSubnet: "10.128.2.0/9"
-  vmPool        : "vms"
+  vmPool        : "vms-staging"
   projectRoot   : projectRoot
   version       : version
   webserver     :
