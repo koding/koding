@@ -120,6 +120,7 @@ type HomePage struct {
 	Builds        []int
 	LoginName     string
 	SwitchMessage string
+	LoginMessage  string
 }
 
 func NewServerInfo() *ServerInfo {
@@ -192,33 +193,49 @@ func logAction(msg string) {
 	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
 }
 
-func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, bool) {
+func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, string) {
 	action := r.PostFormValue("action")
 	if action == "login" {
 		loginName := r.PostFormValue("loginName")
 		loginPass := r.PostFormValue("loginPass")
 		if loginName == "" || loginPass == "" {
-			return "", false
+			return "", "Please enter a username and password"
 		}
 		// abort if password and username is not valid
-		if !checkUserLogin(loginName, loginPass) {
-			return "", false
+		success, err, loginMessage := checkUserLogin(loginName, loginPass)
+		if !success {
+			if err != nil {
+				log.Println(err)
+				return "", loginMessage
+			} else {
+				return "", loginMessage
+			}
 		}
-		session, _ := store.Get(r, "userData")
+		session, err := store.Get(r, "userData")
+		if err != nil {
+			log.Println("Session could not be retrieved")
+			return "", "An internal problem occured"
+		}
 		session.Values["userName"] = loginName
 		store.Save(r, w, session)
-		return loginName, true
+		return loginName, ""
 	}
 
-	session, _ := store.Get(r, "userData")
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		log.Println("Session could not be retrieved")
+		return "", "An internal problem occured"
+	}
 	loginName, ok := session.Values["userName"]
 	if ok == true {
-		strLoginName, ok := loginName.(string)
-		if ok == true {
-			return strLoginName, true
+		if loginName == nil {
+			// no login action or no session initialized
+			return "", ""
 		}
+		s := loginName.(string)
+		return s, ""
 	}
-	return "", false
+	return "", "An internal problem occured"
 }
 
 func logOut(w http.ResponseWriter, r *http.Request) error {
@@ -232,11 +249,14 @@ func logOut(w http.ResponseWriter, r *http.Request) error {
 	}
 }
 
-func checkUserLogin(username string, password string) bool {
+func checkUserLogin(username string, password string) (bool, error, string) {
 	admins := goset.New("devrim", "fatih", "geraint", "huseyinalb")
 	result, mgoerror := mongo.Search("koding", "jUsers", bson.M{"username": username}, 0, 1)
-	if mgoerror != "" || len(result) == 0 {
-		return false
+	if mgoerror != "" {
+		return false, errors.New("Could not retrieve collection"), "An internal problem occured"
+	}
+	if len(result) == 0 {
+		return false, nil, "Username not found"
 	}
 
 	row := result[0].(bson.M)
@@ -247,9 +267,9 @@ func checkUserLogin(username string, password string) bool {
 	io.WriteString(iostring, password)
 	sha1pass := fmt.Sprintf("%x", iostring.Sum(nil))
 	if dbpassword == sha1pass && admins.Has(username) {
-		return true
+		return true, nil, ""
 	} else {
-		return false
+		return false, nil, "Password is incorrect"
 	}
 
 }
@@ -265,9 +285,13 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	loginName, ok := checkSessionOrDoLogin(w, r)
-	if ok != true {
-		renderTemplate(w, "login", nil)
+	loginName, loginMessage := checkSessionOrDoLogin(w, r)
+
+	if loginName == "" {
+		home := HomePage{
+			LoginMessage: loginMessage,
+		}
+		renderTemplate(w, "login", home)
 		return
 	}
 
@@ -281,7 +305,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	if action == "switchVersion" {
 		version := r.PostFormValue("switchVersion")
 		loginPass := r.PostFormValue("loginPass")
-		if checkUserLogin(loginName, loginPass) {
+		success, err, loginMessage := checkUserLogin(loginName, loginPass)
+		if success {
 			log.Println("switching to version", version)
 			err := switchVersion(version)
 			if err != nil {
@@ -292,7 +317,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 				logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName))
 			}
 		} else {
-			switchMessage = "Password is wrong"
+			if err != nil {
+				log.Println(err)
+			}
+			switchMessage = loginMessage
 		}
 	}
 
