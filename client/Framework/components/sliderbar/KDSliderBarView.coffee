@@ -1,5 +1,6 @@
 class KDSliderBarView extends KDCustomHTMLView
   constructor:(options = {}, data = {})->
+
     options.cssClass    = KD.utils.curryCssClass "sliderbar-container", options.cssClass
     options.minValue   ?= 0
     options.maxValue   ?= 100
@@ -15,10 +16,8 @@ class KDSliderBarView extends KDCustomHTMLView
     @labels             = []
 
   createHandles:->
-    for k, v of @getData().handles
-      @handles.push @addSubView handle = new KDSliderBarHandleView
-          name : k
-        , value: v.value
+    for name, {value} of @getData().handles
+      @handles.push @addSubView handle = new KDSliderBarHandleView {name}, {value}
 
     sortRef = (a,b) ->
       return -1 if a.getData().value < b.getData().value
@@ -28,31 +27,29 @@ class KDSliderBarView extends KDCustomHTMLView
 
   drawBar:->
     positions = []
-    for i in @handles
-      positions.push i.getPosition()
+    for handle in @handles
+      positions.push handle.getPosition()
 
     len    = positions.length
-    left   = (positions[0] if len>1) || 0
-    right  = positions[len-1]
+    left   = (positions.first if len>1) or 0
+    right  = positions.last
     diff   = right - left
 
-    if !@bar
+    unless @bar
       @addSubView @bar = new KDCustomHTMLView
         cssClass : "bar"
     @bar.setWidth diff, "%"
     @bar.setX "#{left}%"
 
   addLabels:->
-    maxValue = @getOption('maxValue')
-    minValue = @getOption('minValue')
-    interval = @getOption('interval')
+    {maxValue, minValue, interval} = @getOptions()
 
-    for v in [minValue..maxValue] by interval
-      pos = ((v-minValue)*100)/(maxValue-minValue)
+    for value in [minValue..maxValue] by interval
+      pos = ((value-minValue)*100)/(maxValue-minValue)
 
       @labels.push @addSubView label = new KDCustomHTMLView
         cssClass    : "sliderbar-label"
-        partial     : "#{v}"
+        partial     : "#{value}"
 
       label.setX "#{pos}%"
 
@@ -60,40 +57,41 @@ class KDSliderBarView extends KDCustomHTMLView
     if handleName?
       return @getHandle(handleName)?.getData().value
 
-    else if @handles.length == 1
-      return @handles[0].getData().value
+    else if @handles.length is 1
+      return @handles.first.getData().value
 
     else
       values = []
-      for i in @handles
-        values.push i.getData().value
+      for handle in @handles
+        values.push handle.getData().value
       return values
 
   getHandle:(name)->
     if name?
-      for i in @handles
-        return i if i.getOption('name') == name
+      for handle in @handles
+        return handle if handle.getOption('name') is name
       return console.error "Can't find a handle named #{name}"
 
   setLimits:->
-    maxValue = @getOption('maxValue')
-    minValue = @getOption('minValue')
-    interval = @getOption("interval")
+    {maxValue, minValue, interval} = @getOptions()
 
     if @handles.length is 1
-      @handles[0].leftLimit   = @getOption('minValue')
-      @handles[0].rightLimit  = @getOption('maxValue')
+      @handles.first.leftLimit     = minValue
+      @handles.first.rightLimit    = maxValue
     else
-      for h in @handles
-        i = @handles.indexOf(h) 
-        h.data.leftLimit  = @handles[i-1]?.getData().value + interval || minValue
-        h.data.rightLimit = @handles[i+1]?.getData().value - interval || maxValue 
+      for handle in @handles
+        i    = @handles.indexOf(handle)
+        data = handle.data
+
+        data.leftLimit  = @handles[i-1]?.getData().value + interval or minValue
+        data.rightLimit = @handles[i+1]?.getData().value - interval or maxValue 
 
   viewAppended:->
     @createHandles()
     @setLimits()
     @drawBar()   if @getOption('drawBar')
     @addLabels() if @getOption('showLabels')
+    window.asd = @
 
 class KDSliderBarHandleView extends KDCustomHTMLView
   constructor:(options = {}, data = {})->
@@ -104,9 +102,8 @@ class KDSliderBarHandleView extends KDCustomHTMLView
     super options, data
 
   attachEvents:->
-    maxValue         = @parent.getOption('maxValue')
-    minValue         = @parent.getOption('minValue')
-    windowController = KD.getSingleton "windowController"
+    {maxValue, minValue} = @parent.getOptions()
+    windowController     = KD.getSingleton "windowController"
 
     @on "mousedown", ->
       @parent.bindEvent "mousemove"
@@ -125,15 +122,13 @@ class KDSliderBarHandleView extends KDCustomHTMLView
       @snap() if @parent.getOption "snap"
 
   getPosition:->
-    maxValue = @parent.getOption('maxValue')
-    minValue = @parent.getOption('minValue')
-    value    = @getData().value
+    {maxValue, minValue} = @parent.getOptions()
+    {value}              = @getData()
 
     return ((value-minValue)*100)/(maxValue-minValue)
 
   setValue:(value)->
-    leftLimit     = @getData().leftLimit
-    rightLimit    = @getData().rightLimit
+    {leftLimit, rightLimit} = @getData()
 
     if !(value<leftLimit) and !(value>rightLimit)
       @data.value = value
@@ -149,8 +144,8 @@ class KDSliderBarHandleView extends KDCustomHTMLView
     @setX "#{@getPosition()}%"
       
   getSnappedValue:->
-    interval = @parent.getOption('interval')
-    value    = @getData().value
+    {interval}  = @parent.getOptions()
+    {value}     = @getData()
     
     if interval isnt no
       mod = value%interval
@@ -162,8 +157,8 @@ class KDSliderBarHandleView extends KDCustomHTMLView
         else value
 
   snap:->
-    interval = @parent.getOption "interval"
-    value    = @getSnappedValue()
+    {interval}  = @parent.getOptions()
+    value       = @getSnappedValue()
 
     if interval isnt no and @parent.getOption "snap"
       @setValue value
