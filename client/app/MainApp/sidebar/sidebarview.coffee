@@ -73,9 +73,8 @@ class Sidebar extends JView
       addOrphansToRoot  : no
       delegate          : this
 
-    @dndUploadHolder = new KDView domId: "finder-dnduploader"
+    @dndUploadHolder = new KDView domId: "finder-dnduploader", cssClass: "hidden"
     @dndUploadHolder.addSubView @dnduploader = new DNDUploader hoverDetect: no
-    @dndUploadHolder.hide()
 
     _onDrag = =>
       unless @finderController.treeController.internalDragging
