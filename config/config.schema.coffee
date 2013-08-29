@@ -46,6 +46,7 @@ config =
       address     : 1
     userSitesDomain: 1
     containerSubnet: 1
+    vmPool        : 1
     projectRoot   : 1
     version       : 1
     webserver     :
