@@ -221,16 +221,21 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, bool
 	return "", false
 }
 
-func logOut(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "userData")
-	session.Values["userName"] = nil
-	store.Save(r, w, session)
+func logOut(w http.ResponseWriter, r *http.Request) error {
+	session, err := store.Get(r, "userData")
+	if err == nil {
+		session.Values["userName"] = nil
+		store.Save(r, w, session)
+		return nil
+	} else {
+		return errors.New("Session could not be retrieved")
+	}
 }
 
 func checkUserLogin(username string, password string) bool {
 	admins := goset.New("devrim", "fatih", "geraint", "huseyinalb")
-	result, error := mongo.Search("koding", "jUsers", bson.M{"username": username}, 0, 1)
-	if error != "" || len(result) == 0 {
+	result, mgoerror := mongo.Search("koding", "jUsers", bson.M{"username": username}, 0, 1)
+	if mgoerror != "" || len(result) == 0 {
 		return false
 	}
 
@@ -254,7 +259,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	// Should be done first
 	action := r.FormValue("action")
 	if action == "logout" {
-		logOut(w, r)
+		err := logOut(w, r)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	loginName, ok := checkSessionOrDoLogin(w, r)
