@@ -14,6 +14,7 @@ import (
 	"koding/databases/mongo"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
@@ -121,6 +122,12 @@ type HomePage struct {
 	LoginName     string
 	SwitchMessage string
 	LoginMessage  string
+}
+
+type User struct {
+	Username string
+	Password string
+	Salt     string
 }
 
 func NewServerInfo() *ServerInfo {
@@ -251,22 +258,23 @@ func logOut(w http.ResponseWriter, r *http.Request) error {
 
 func checkUserLogin(username string, password string) (bool, error, string) {
 	admins := goset.New("devrim", "fatih", "geraint", "huseyinalb")
-	result, mgoerror := mongo.Search("koding", "jUsers", bson.M{"username": username}, 0, 1)
-	if mgoerror != "" {
-		return false, errors.New("Could not retrieve collection"), "An internal problem occured"
+	user := User{}
+	query := func(c *mgo.Collection) error {
+		err := c.Find(bson.M{"username": username}).One(&user)
+		return err
 	}
-	if len(result) == 0 {
+	mgoerror := mongo.SearchCollection("koding", "jUsers", query)
+	if mgoerror != nil {
+		log.Println(mgoerror)
 		return false, nil, "Username not found"
 	}
 
-	row := result[0].(bson.M)
-	salt := row["salt"].(string)
-	dbpassword := row["password"].(string)
 	iostring := sha1.New()
-	io.WriteString(iostring, salt)
+	io.WriteString(iostring, user.Salt)
 	io.WriteString(iostring, password)
+
 	sha1pass := fmt.Sprintf("%x", iostring.Sum(nil))
-	if dbpassword == sha1pass && admins.Has(username) {
+	if user.Password == sha1pass && admins.Has(user.Username) {
 		return true, nil, ""
 	} else {
 		return false, nil, "Password is incorrect"

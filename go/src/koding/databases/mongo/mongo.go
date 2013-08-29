@@ -42,7 +42,7 @@ func GetCollection(collectionName string) *mgo.Collection {
 	return c
 }
 
-func searchCollection(databaseName, collectionName string, search func(*mgo.Collection) error) error {
+func SearchCollection(databaseName, collectionName string, search func(*mgo.Collection) error) error {
 	connection := GetConnection()
 	defer connection.Close()
 	c := connection.DB(databaseName).C(collectionName)
@@ -59,7 +59,7 @@ func Search(databaseName, collectionName string, q interface{}, skip int, limit 
 		return fn
 	}
 	search := func() error {
-		return searchCollection(databaseName, collectionName, query)
+		return SearchCollection(databaseName, collectionName, query)
 	}
 	err := search()
 	if err != nil {
