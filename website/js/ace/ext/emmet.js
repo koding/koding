@@ -55,7 +55,7 @@ AceEmmetEditor.prototype = {
         this.indentation = editor.session.getTabString();
         if (!emmet)
             emmet = window.emmet;
-        emmet.require("ace/resources").setVariable("indentation", this.indentation);
+        emmet.require("resources").setVariable("indentation", this.indentation);
         this.$syntax = null;
         this.$syntax = this.getSyntax();
     },
@@ -167,15 +167,15 @@ AceEmmetEditor.prototype = {
         if (end == null)
             end = start == null ? this.getContent().length : start;
         if (start == null)
-            start = 0;
-
+            start = 0;        
+        
         var editor = this.ace;
         var range = Range.fromPoints(editor.indexToPosition(start), editor.indexToPosition(end));
         editor.session.remove(range);
-
+        
         range.end = range.start;
         //editor.selection.setRange(range);
-
+        
         value = this.$updateTabstops(value);
         snippetManager.insertSnippet(editor, value)
     },
@@ -223,7 +223,7 @@ AceEmmetEditor.prototype = {
           case "xsl":
             return "xml";
           case "html":
-            var profile = emmet.require("ace/resources").getVariable("profile");
+            var profile = emmet.require("resources").getVariable("profile");
             // no forced profile, guess from content html or xhtml?
             if (!profile)
                 profile = this.ace.session.getLines(0,2).join("").search(/<!DOCTYPE[^>]+XHTML/i) != -1 ? "xhtml": "html";
@@ -259,7 +259,7 @@ AceEmmetEditor.prototype = {
     getFilePath: function() {
         return "";
     },
-
+    
     // update tabstops: make sure all caret placeholders are unique
     // by default, abbreviation parser generates all unlinked (un-mirrored)
     // tabstops as ${0}, so we have upgrade all caret tabstops with unique
@@ -269,9 +269,9 @@ AceEmmetEditor.prototype = {
         var base = 1000;
         var zeroBase = 0;
         var lastZero = null;
-        var range = emmet.require('ace/range');
-        var ts = emmet.require('ace/tabStops');
-        var settings = emmet.require('ace/resources').getVocabulary("user");
+        var range = emmet.require('range');
+        var ts = emmet.require('tabStops');
+        var settings = emmet.require('resources').getVocabulary("user");
         var tabstopOptions = {
             tabstop: function(data) {
                 var group = parseInt(data.group, 10);
@@ -307,9 +307,9 @@ AceEmmetEditor.prototype = {
         if (settings.variables['insert_final_tabstop'] && !/\$\{0\}$/.test(value)) {
             value += '${0}';
         } else if (lastZero) {
-            value = emmet.require('ace/utils').replaceSubstring(value, '${0}', lastZero);
+            value = emmet.require('utils').replaceSubstring(value, '${0}', lastZero);
         }
-
+        
         return value;
     }
 };
@@ -350,20 +350,20 @@ exports.runEmmetCommand = function(editor) {
     editorProxy.setupContext(editor);
     if (editorProxy.getSyntax() == "php")
         return false;
-    var actions = emmet.require("ace/actions");
+    var actions = emmet.require("actions");
 
     if (this.action == "expand_abbreviation_with_tab") {
         if (!editor.selection.isEmpty())
             return false;
     }
-
+    
     if (this.action == "wrap_with_abbreviation") {
         // without setTimeout prompt doesn't work on firefox
         return setTimeout(function() {
             actions.run("wrap_with_abbreviation", editorProxy);
         }, 0);
     }
-
+    
     try {
         var result = actions.run(this.action, editorProxy);
     } catch(e) {
