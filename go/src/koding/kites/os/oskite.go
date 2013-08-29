@@ -65,6 +65,7 @@ func main() {
 		return
 	}
 
+	virt.VMPool = config.Current.VmPool
 	if err := virt.LoadTemplates(templateDir); err != nil {
 		log.LogError(err, 0)
 		return

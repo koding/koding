@@ -34,7 +34,7 @@ define(function(require, exports, module) {
 var dom = require("../lib/dom");
 var useragent = require("../lib/useragent");
 
-var DRAG_OFFSET = 5; // pixels
+var DRAG_OFFSET = 0; // pixels
 
 function DefaultHandlers(mouseHandler) {
     mouseHandler.$clickSelection = null;
@@ -55,8 +55,6 @@ function DefaultHandlers(mouseHandler) {
 
     mouseHandler.selectByLines = this.extendSelectionBy.bind(mouseHandler, "getLineRange");
     mouseHandler.selectByWords = this.extendSelectionBy.bind(mouseHandler, "getWordRange");
-
-    mouseHandler.$focusWaitTimout = 250;
 }
 
 (function() {
@@ -86,14 +84,14 @@ function DefaultHandlers(mouseHandler) {
         // selection
         if (inSelection && !editor.isFocused()) {
             editor.focus();
-            if (this.$focusWaitTimout && !this.$clickSelection) {
+            if (this.$focusTimout && !this.$clickSelection && !editor.inMultiSelectMode) {
                 this.setState("focusWait");
                 this.captureMouse(ev);
                 return ev.preventDefault();
             }
         }
 
-        if (!inSelection || this.$clickSelection || ev.getShiftKey()) {
+        if (!inSelection || this.$clickSelection || ev.getShiftKey() || editor.inMultiSelectMode) {
             // Directly pick STATE_SELECT, since the user is not clicking inside
             // a selection.
             this.startSelect(pos);
@@ -205,8 +203,8 @@ function DefaultHandlers(mouseHandler) {
         var distance = calcDistance(this.mousedownEvent.x, this.mousedownEvent.y, this.x, this.y);
         var time = (new Date()).getTime();
 
-        if (distance > DRAG_OFFSET ||time - this.mousedownEvent.time > this.$focusWaitTimout)
-            this.startSelect();
+        if (distance > DRAG_OFFSET || time - this.mousedownEvent.time > this.$focusTimout)
+            this.startSelect(this.mousedownEvent.getDocumentPosition());
     };
 
     this.dragWait = function(e) {
@@ -216,7 +214,7 @@ function DefaultHandlers(mouseHandler) {
 
         if (distance > DRAG_OFFSET) {
             this.startSelect(this.mousedownEvent.getDocumentPosition());
-        } else if (time - this.mousedownEvent.time > editor.getDragDelay()) {
+        } else if (time - this.mousedownEvent.time > editor.$mouseHandler.$dragDelay) {
             this.startDrag();
         }
     };
@@ -299,28 +297,18 @@ function DefaultHandlers(mouseHandler) {
     };
 
     this.onMouseWheel = function(ev) {
-        if (ev.getShiftKey() || ev.getAccelKey()){
+        if (ev.getShiftKey() || ev.getAccelKey())
             return;
-        }
+        var t = ev.domEvent.timeStamp;
+        var dt = t - (this.$lastScrollTime||0);
+        
         var editor = this.editor;
         var isScrolable = editor.renderer.isScrollableBy(ev.wheelX * ev.speed, ev.wheelY * ev.speed);
-        if (isScrolable) {
-            this.$passScrollEvent = false;
-        } else {
-            if (this.$passScrollEvent)
-                return;
-
-            if (!this.$scrollStopTimeout) {
-                var self = this;
-                this.$scrollStopTimeout = setTimeout(function() {
-                    self.$passScrollEvent = true;
-                    self.$scrollStopTimeout = null;
-                }, 200);
-            }
+        if (isScrolable || dt < 200) {
+            this.$lastScrollTime = t;
+            editor.renderer.scrollBy(ev.wheelX * ev.speed, ev.wheelY * ev.speed);
+            return ev.stop();
         }
-
-        editor.renderer.scrollBy(ev.wheelX * ev.speed, ev.wheelY * ev.speed);
-        return ev.preventDefault();
     };
 
 }).call(DefaultHandlers.prototype);
@@ -334,6 +322,8 @@ function calcDistance(ax, ay, bx, by) {
 function calcRangeOrientation(range, cursor) {
     if (range.start.row == range.end.row)
         var cmp = 2 * cursor.column - range.start.column - range.end.column;
+    else if (range.start.row == range.end.row - 1 && !range.start.column && !range.end.column)
+        var cmp = cursor.column - 4;
     else
         var cmp = 2 * cursor.row - range.start.row - range.end.row;
 

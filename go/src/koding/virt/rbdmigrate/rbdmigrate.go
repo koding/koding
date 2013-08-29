@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"koding/tools/config"
 	"koding/tools/db"
 	"labix.org/v2/mgo/bson"
 	"os"
@@ -37,7 +38,7 @@ func main() {
 			break
 		}
 		fmt.Printf("Checking %d/%d: vm-%s\n", i+1, len(vms), vm.Id.Hex())
-		info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", "vm-"+vm.Id.Hex()).Output()
+		info, _ := exec.Command("/usr/bin/rbd", "info", "--pool", config.Current.VmPool, "--image", "vm-"+vm.Id.Hex()).Output()
 
 		if bytes.Contains(info, []byte("format: 1")) {
 			if err := db.VMs.UpdateId(vm.Id, bson.M{"$set": bson.M{"rbdFormat": 1}}); err != nil {
@@ -80,35 +81,35 @@ func migrate(id bson.ObjectId) bool {
 
 	name := "vm-" + id.Hex()
 
-	cmd := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", name)
+	cmd := exec.Command("/usr/bin/rbd", "map", "--pool", config.Current.VmPool, "--image", name)
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		fmt.Println(err)
 		return false
 	}
 
-	cmd = exec.Command("/usr/bin/rbd", "import", "--pool", "vms", "--image", name+"-format-1", "--path", "/dev/rbd/vms/"+name, "--image-format", "1")
+	cmd = exec.Command("/usr/bin/rbd", "import", "--pool", config.Current.VmPool, "--image", name+"-format-1", "--path", "/dev/rbd/"+config.Current.VmPool+"/"+name, "--image-format", "1")
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		fmt.Println(err)
 		return false
 	}
 
-	cmd = exec.Command("/usr/bin/rbd", "unmap", "/dev/rbd/vms/"+name)
+	cmd = exec.Command("/usr/bin/rbd", "unmap", "/dev/rbd/"+config.Current.VmPool+"/"+name)
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		fmt.Println(err)
 		return false
 	}
 
-	cmd = exec.Command("/usr/bin/rbd", "mv", "--pool", "vms", "--image", name, "--dest-pool", "vms", "--dest", name+"-format-2")
+	cmd = exec.Command("/usr/bin/rbd", "mv", "--pool", config.Current.VmPool, "--image", name, "--dest-pool", config.Current.VmPool, "--dest", name+"-format-2")
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		fmt.Println(err)
 		return false
 	}
 
-	cmd = exec.Command("/usr/bin/rbd", "mv", "--pool", "vms", "--image", name+"-format-1", "--dest-pool", "vms", "--dest", name)
+	cmd = exec.Command("/usr/bin/rbd", "mv", "--pool", config.Current.VmPool, "--image", name+"-format-1", "--dest-pool", config.Current.VmPool, "--dest", name)
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		fmt.Println(err)
