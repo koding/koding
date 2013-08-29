@@ -197,24 +197,25 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, bool
 	if action == "login" {
 		loginName := r.PostFormValue("loginName")
 		loginPass := r.PostFormValue("loginPass")
-		if loginName != "" && loginPass != "" {
-			if checkUserLogin(loginName, loginPass) {
-				session, _ := store.Get(r, "userData")
-				session.Values["userName"] = loginName
-				//err :=
-				store.Save(r, w, session)
-				// TODO check
-				return loginName, true
-			}
+		if loginName == "" || loginPass == "" {
+			return "", false
 		}
-	} else {
+		// abort if password and username is not valid
+		if !checkUserLogin(loginName, loginPass) {
+			return "", false
+		}
 		session, _ := store.Get(r, "userData")
-		loginName, ok := session.Values["userName"]
+		session.Values["userName"] = loginName
+		store.Save(r, w, session)
+		return loginName, true
+	}
+
+	session, _ := store.Get(r, "userData")
+	loginName, ok := session.Values["userName"]
+	if ok == true {
+		strLoginName, ok := loginName.(string)
 		if ok == true {
-			strLoginName, ok := loginName.(string)
-			if ok == true {
-				return strLoginName, true
-			}
+			return strLoginName, true
 		}
 	}
 	return "", false
@@ -229,19 +230,19 @@ func logOut(w http.ResponseWriter, r *http.Request) {
 func checkUserLogin(username string, password string) bool {
 	admins := goset.New("devrim", "fatih", "geraint", "huseyinalb")
 	result, error := mongo.Search("koding", "jUsers", bson.M{"username": username}, 0, 1)
-	if error == "" && len(result) > 0 {
-		row := result[0].(bson.M)
-		salt := row["salt"].(string)
-		dbpassword := row["password"].(string)
-		iostring := sha1.New()
-		io.WriteString(iostring, salt)
-		io.WriteString(iostring, password)
-		sha1pass := fmt.Sprintf("%x", iostring.Sum(nil))
-		if dbpassword == sha1pass && admins.Has(username) {
-			return true
-		} else {
-			return false
-		}
+	if error != "" || len(result) == 0 {
+		return false
+	}
+
+	row := result[0].(bson.M)
+	salt := row["salt"].(string)
+	dbpassword := row["password"].(string)
+	iostring := sha1.New()
+	io.WriteString(iostring, salt)
+	io.WriteString(iostring, password)
+	sha1pass := fmt.Sprintf("%x", iostring.Sum(nil))
+	if dbpassword == sha1pass && admins.Has(username) {
+		return true
 	} else {
 		return false
 	}
