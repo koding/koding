@@ -189,6 +189,9 @@ class Ace extends KDView
   getVimMode: ->
     @appStorage.getValue('vimMode') ? no
 
+  getScrollPastEnd: ->
+    @appStorage.getValue('scrollPastEnd') ? yes
+
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -202,6 +205,7 @@ class Ace extends KDView
     tabSize             : @getTabSize()
     softWrap            : @getSoftWrap()
     vimMode             : @getVimMode()
+    scrollPastEnd       : @getScrollPastEnd()
 
   ###
   SETTERS
@@ -268,6 +272,9 @@ class Ace extends KDView
   setVimMode: (value = no) ->
     @editor.setKeyboardHandler if value then @vimKeyboardHandler else null
     @appStorage.setValue "vimMode", value
+  setScrollPastEnd: (value = yes) ->
+    @editor.setOption "scrollPastEnd", value
+    @appStorage.setValue "scrollPastEnd", value
 
   setFontSize:(value, save = yes)->
 
