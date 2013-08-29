@@ -194,8 +194,8 @@ func logAction(msg string) {
 }
 
 func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, string) {
-	action := r.PostFormValue("action")
-	if action == "login" {
+	operation := r.PostFormValue("operation")
+	if operation == "login" {
 		loginName := r.PostFormValue("loginName")
 		loginPass := r.PostFormValue("loginPass")
 		if loginName == "" || loginPass == "" {
@@ -229,7 +229,7 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, stri
 	loginName, ok := session.Values["userName"]
 	if ok == true {
 		if loginName == nil {
-			// no login action or no session initialized
+			// no login operation or no session initialized
 			return "", ""
 		}
 		s := loginName.(string)
@@ -277,8 +277,8 @@ func checkUserLogin(username string, password string) (bool, error, string) {
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Should be done first
-	action := r.FormValue("action")
-	if action == "logout" {
+	operation := r.FormValue("operation")
+	if operation == "logout" {
 		err := logOut(w, r)
 		if err != nil {
 			log.Println(err)
@@ -302,7 +302,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switchMessage := ""
-	if action == "switchVersion" {
+	if operation == "switchVersion" {
 		version := r.PostFormValue("switchVersion")
 		loginPass := r.PostFormValue("loginPass")
 		success, err, loginMessage := checkUserLogin(loginName, loginPass)
