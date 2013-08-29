@@ -627,7 +627,7 @@ span.main-nav-icon
   right               5px
   width               20px !important
   height              20px
-  border-radius       0 0 0 3px
+  rounded             0 0 0 3px
   box-shadow          -1px 1px 1px 0px #ccc
   padding             0
   border              none
@@ -1717,30 +1717,22 @@ span.main-nav-icon
   abs()
 
 #chrome-terminal-banner
+  abs                   30px, 30px
+  size                  auto, auto
   z-index               1
   font-size             11px
-  position              absolute
-  right                 10px
-  height                auto
-  width                 auto
   line-height           20px
-  top                   30px
   padding-top           35px
   min-height            30px
   min-width             270px
   overflow              visible
   .koding-icon
-    position            absolute
-    top                 0
-    right               0
-    width               23px
-    height              30px
+    abs                 0px, 0px
+    size                23px, 30px
     sprite()
     bg                  position,-400px 0
   .actions
-    position            absolute
-    top                 2px
-    right               25px
+    abs                 2px, 25px
     a.action
       color             #fff
       text-decoration   none
@@ -1751,6 +1743,11 @@ span.main-nav-icon
         border-right    none
       &:hover
         color           #ff9200
+        .title
+          color         #ff9200
+      .title
+        font-size       inherit !important
+        color           #fff
   p
     color               #fff
     text-align          right
