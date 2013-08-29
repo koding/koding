@@ -157,6 +157,7 @@ func (k *Kite) Run() {
 							defer func() {
 								if err := recover(); err != nil {
 									log.LogError(err, 1, channel.Username, channel.CorrelationName)
+									time.Sleep(time.Second) // penalty for avoiding that the client rapidly sends the request again on error
 									resultCallback(CreateErrorObject(&InternalKiteError{}), nil)
 								}
 							}()
@@ -231,6 +232,7 @@ func (k *Kite) Run() {
 					RoutingKey         string `json:"routingKey"`
 					CorrelationName    string `json:"correlationName"`
 					DeadService        string `json:"deadService"`
+					ReplyExchange      string `json:"replyExchange"`
 					ServiceGenericName string `json:"serviceGenericName"`
 					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
 				}
@@ -250,7 +252,10 @@ func (k *Kite) Run() {
 					log.LogError(err, 0)
 					continue
 				}
-				if err := publishChannel.Publish("auth", "kite.who", false, false, amqp.Publishing{Body: response}); err != nil {
+				if client.ReplyExchange == "" { // backwards-compatibility
+					client.ReplyExchange = "auth"
+				}
+				if err := publishChannel.Publish(client.ReplyExchange, "kite.who", false, false, amqp.Publishing{Body: response}); err != nil {
 					log.LogError(err, 0)
 				}
 

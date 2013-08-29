@@ -10,8 +10,12 @@ type Index struct {
 	Config map[string]interface{}
 }
 
-func (neo4j *Neo4j) CreateIndex(index *Index) error {
+func (neo4j *Neo4j) CreateNodeIndex(index *Index) error {
+	return neo4j.CreateIndex(index)
+}
 
+// here for backward compatibility
+func (neo4j *Neo4j) CreateIndex(index *Index) error {
 	if index.Name == "" {
 		return errors.New("Name must be set!")
 	}
@@ -29,22 +33,13 @@ func (neo4j *Neo4j) CreateIndex(index *Index) error {
 	}
 
 	_, err := neo4j.doRequest("POST", neo4j.IndexNodeUrl, postData)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (neo4j *Neo4j) DeleteIndex(name string) error {
-
 	url := neo4j.IndexNodeUrl + "/" + name
 
 	//if node not found Neo4j returns 404
 	_, err := neo4j.doRequest("DELETE", url, "")
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

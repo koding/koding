@@ -45,7 +45,7 @@ class ChatConversationWidget extends JView
     @hasClass 'ready'
 
   takeFocus:->
-    @messageInput.setFocus()
+    @messageInput.setFocus()  if @isVisible()
 
   pistachio:->
     """

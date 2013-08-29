@@ -82,19 +82,19 @@ func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 func relationshipNeedsToBeSynced(result oldNeo.Relationship) bool {
 	exists, sourceId := checkNodeExists(result.SourceId.Hex())
 	if exists != true {
-		log.Println("err: No SourceNode:", result.SourceName, result.As)
+		log.Printf("relId %v. No SourceNode %v with Id: %v for %v", result.Id.Hex(), result.SourceName, result.SourceId.Hex(), result.As)
 		return true
 	}
 
 	exists, targetId := checkNodeExists(result.TargetId.Hex())
 	if exists != true {
-		log.Println("err: No TargetNode:", result.TargetName, result.Id, result.As)
+		log.Printf("relId %v. No TargetNode %v with Id: %v for %v", result.Id.Hex(), result.TargetName, result.TargetId.Hex(), result.As)
 		return true
 	}
 
 	exists = checkRelationshipExists(sourceId, targetId, result.As)
 	if exists != true {
-		log.Printf("err: No '%v' relationship exists between %v and %v", result.SourceName, result.TargetName, result.As)
+		log.Printf("relId %v. No %v relationship exists between %v and %v", result.Id.Hex(), result.As, result.SourceName, result.TargetName)
 		return true
 	}
 

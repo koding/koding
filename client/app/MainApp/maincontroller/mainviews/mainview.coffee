@@ -169,9 +169,13 @@ class MainView extends KDView
 
   setStickyNotification:->
     # sticky = KD.getSingleton('windowController')?.stickyNotification
+    return if not KD.isLoggedIn() # don't show it to guests
+
     @utils.defer => getStatus()
 
-    KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
+    {JSystemStatus} = KD.remote.api
+
+    JSystemStatus.on 'restartScheduled', (systemStatus)=>
       sticky = KD.getSingleton('windowController')?.stickyNotification
 
       if systemStatus.status isnt 'active'
@@ -187,11 +191,13 @@ class MainView extends KDView
 
   enableFullscreen: ->
     @contentPanel.$().addClass "fullscreen no-anim"
-    $(window).resize()
+    @emit "fullscreen", yes
+    KD.getSingleton("windowController").notifyWindowResizeListeners()
 
   disableFullscreen: ->
     @contentPanel.$().removeClass "fullscreen no-anim"
-    $(window).resize()
+    @emit "fullscreen", no
+    KD.getSingleton("windowController").notifyWindowResizeListeners()
 
   isFullscreen: ->
     @contentPanel.$().is ".fullscreen"

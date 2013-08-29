@@ -52,6 +52,7 @@ module.exports = class AuthWorker extends EventEmitter
   requireSession: (clientId, routingKey, socketId, callback) ->
     {JSession} = @bongo.models
     JSession.fetchSession clientId, (err, session) =>
+      if err? then console.error err
       if err? or not session? then @rejectClient routingKey
       else
         @addUserSocket session.username, socketId  if session.username?
@@ -152,8 +153,11 @@ module.exports = class AuthWorker extends EventEmitter
     { serviceUniqueName, serviceGenericName, routingKey, method, callback
     username, correlationName, socketId, deadService } = options
 
-    params = { routingKey, username, correlationName
-               serviceGenericName, deadService }
+    params = {
+      routingKey, username, correlationName
+      serviceGenericName, deadService
+      replyExchange: @authExchange
+    }
 
     @publishToService serviceUniqueName, method, params, callback
 

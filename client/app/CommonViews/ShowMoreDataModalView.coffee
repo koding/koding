@@ -21,15 +21,18 @@ class ShowMoreDataModalView extends KDModalView
 
     if participants[0] instanceof KD.remote.api.JAccount
       @type = "account"
+      css   = "modal-topic-wrapper"
     else if participants[0] instanceof KD.remote.api.JTag
       @type = "tag"
+      css   = "modal-topic-wrapper"
     else
       @type = "app"
+      css   = "modal-applications-wrapper"
 
     options.title    or= titleMap()[@type]
     options.height   = "auto"
     options.overlay  = yes
-    options.cssClass = "modal-applications-wrapper"
+    options.cssClass = css
     options.buttons  =
       Close :
         style : "modal-clean-gray"
@@ -57,19 +60,29 @@ class ShowMoreDataModalView extends KDModalView
     @setPositions()
 
   putList: (participants) ->
-    controller = new KDListViewController
+    @controller = new KDListViewController
       view              : new KDListView
         itemClass       : listItemMap()[@type]
         cssClass        : "modal-topic-list"
     , items             : participants
 
-    controller.getListView().on "CloseTopicsModal", =>
+    @controller.getListView().on "CloseTopicsModal", =>
       @destroy()
 
-    controller.on "AllItemsAddedToList", =>
+    @controller.on "AllItemsAddedToList", =>
+      if @type is "tag"
+        @reviveFollowButtons (item.getId() for item in participants)
+
       @loader.destroy()
 
-    @addSubView controller.getView()
+    @addSubView @controller.getView()
+
+  reviveFollowButtons: (ids) ->
+    KD.remote.api.JTag.fetchMyFollowees ids, (err, followees) =>
+      for modal in @controller.getItemsOrdered()
+        button = modal.followButton
+        id = button?.getData()?.getId()
+        button.setState 'Following' if id and id in followees
 
   prepareList:->
 
@@ -78,11 +91,7 @@ class ShowMoreDataModalView extends KDModalView
     if group
       KD.remote.cacheable group, (err, participants)=>
         if err then warn err
-        else @putList participants
-        ###
-          KD.remote.api.JTag.markFollowing participants, (err, result)=>
-            if err then warn err
-            else @putList result
-        ###
+        else
+          @putList participants
     else
       @putList @getData()

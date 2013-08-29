@@ -79,6 +79,7 @@ catch e
   appScripts      : {}
   lastFuncCall    : null
   navItems        : []
+  instancesToBeTested: {}
 
   socketConnected:->
     @backendIsConnected = yes
@@ -214,6 +215,15 @@ catch e
     (window[item] = KD.classes[item] for item of KD.classes)
     KD.exportKDFramework = -> "Already exported."
     "KDFramework loaded successfully."
+
+  registerInstanceForTesting:(instance)->
+    key = instance.getOption 'testPath'
+    @instancesToBeTested[key] = instance
+    instance.on 'KDObjectWillBeDestroyed', => delete @instancesToBeTested[key]
+
+  getInstanceForTesting:(key)-> @instancesToBeTested[key]
+
+
 
 KD.enableLogs() if not KD.config?.suppressLogs
 

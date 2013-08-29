@@ -238,7 +238,6 @@ func DeleteNode(id string) bool {
 	for _, relation := range relations {
 		if _, ok := relation["self"]; ok {
 			relationshipURL := fmt.Sprintf("%s", relation["self"])
-			log.Println(relationshipURL)
 			sendRequest("DELETE", relationshipURL, "")
 		}
 	}

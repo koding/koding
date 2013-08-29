@@ -10,6 +10,8 @@ socialQueueName = "koding-social-#{version}"
 authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
 
+embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
+
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -81,6 +83,7 @@ module.exports =
     numberOfWorkers: 2
     watch       : yes
   guestCleanerWorker     :
+    enabled              : no # for production, workers are running as a service
     login                : 'prod-guestcleanerworker'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
@@ -119,6 +122,8 @@ module.exports =
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
+      embedly        :
+        apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
@@ -148,7 +153,6 @@ module.exports =
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    useKontrold : yes
     webProtocol : 'https:'
     webHostname : "broker-#{version}a.koding.com"
     webPort     : null
@@ -178,6 +182,11 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    overview      :
+      apiHost     : "kontrol.in.koding.com"
+      apiPort     : 80
+      port        : 8080
+      switchHost  : "koding.com"
     api           :
       port        : 80
     proxy         :
@@ -194,10 +203,12 @@ module.exports =
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :
-    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
+    apiKey      : embedlyApiKey
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
+    bin   : '/usr/local/nagios/bin/send_nsca'
+    conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
     host        : 'rabbitmq1.in.koding.com'
     port        : 5672

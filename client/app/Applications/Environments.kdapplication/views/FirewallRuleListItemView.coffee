@@ -1,7 +1,7 @@
 class FirewallRuleListItemView extends KDListItemView
 
   constructor:(options={}, data)->
-    options.type    or= 'rules'
+    options.type    or= 'env-list'
     options.tagName or= 'tr'
 
     super options, data

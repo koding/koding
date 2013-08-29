@@ -5,6 +5,9 @@ option '-c', '--configFile [CONFIG]', 'What config file to use.'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
 option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only broker supports it)'
 
+option '-f', '--file [file]', 'run tests with just one file'
+option '-l', '--location [location]', 'run tests with this base url'
+
 {spawn, exec} = require 'child_process'
 
 log =
@@ -328,7 +331,7 @@ task 'persistence', "Run persistence", (options)->
 task 'osKite', "Run the osKite", ({configFile})->
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile}'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile} -r vagrant'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -440,7 +443,7 @@ run =({configFile})->
     invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
-    invoke 'libratoWorker'  if config.librato?.push
+    invoke 'guestCleanerWorker'   if config.guestCleanerWorker.enabled
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
@@ -519,38 +522,39 @@ task 'runExternals', "runs externals kite which imports info about github, will 
       enabled         : if config.runKontrol is yes then yes else no
     verbose           : yes
 
+# ------------------- TEST STUFF --------------------------
 
+# ----- run all tests ----
+task 'test-all', 'Runs functional test suite', (options)->
+  which = (paths)->
+    for path in paths
+      return path if fs.existsSync(path)
 
+  # do we have the virtualenv ???
+  pip = which ['./env/bin/pip', '/usr/local/bin/pip']
+  unless pip
+    console.error "please install pip with \n brew install python --framework"
+    return
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  cmd = "sudo #{pip} install -e 'git+ssh://git@git.in.koding.com/qa.git@master#egg=testengine'"
+  exec cmd, (err, stdout, stderr)->
+    # log.info err
+    # log.info stdout
+    # log.info stderr
+    # log.info "done installation"
+    testEngine = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run']
+    args = ['-p', './tests', '-c', options.configFile]
+    if options.file
+      args.push '-f', options.file
+    if options.location
+      args.push '-l', options.location
+    testProcess = spawn testEngine, args  
+    testProcess.stderr.on 'data', (data)->
+      process.stdout.write data.toString()
+    testProcess.stdout.on 'data', (data)->
+      process.stdout.write data.toString()
+    testProcess.on 'close', (code)->
+      process.exit code      
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 

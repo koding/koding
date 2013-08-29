@@ -36,6 +36,7 @@ class BookView extends JView
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName : "a"
       partial : "Close Tutorial"
+      testPath: "book-close"
       cssClass: "dismiss-button"
       click   : => @emit "OverlayWillBeRemoved"
       tooltip :
@@ -163,8 +164,8 @@ class BookView extends JView
     # check if page has tutorial
     if @page.getData().howToSteps.length < 1
       @showMeButton.hide()
-    else 
-      if @page.getData().menuItem is "Develop" and 
+    else
+      if @page.getData().menuItem is "Develop" and
         KD.getSingleton("vmController").defaultVmName is null
           @showMeButton.hide()
       else
@@ -258,11 +259,29 @@ class BookView extends JView
     # focus to dummy input to open large textarea for status update
     smallInput.setFocus()
     # start typing
-    textToWrite = 'Hello World!!'
+    helloWorldMessages = [
+      "I'm really digging this!"
+      "This is cool"
+      "Yay! I made my first post"
+      "Hello, I've just arrived!"
+      "Hi all - this looks interesting..."
+      "Just got started Koding, I'm excited!"
+      "This is pretty nifty."
+      "I liked it here :)"
+      "Looking forward to try Koding"
+      "Just joined the Koding community"
+      "Checking out Koding."
+      "Koding non-stop :)"
+      "So, whats up?"
+      "Alright. Let's try this"
+      "I'm here! What's next? ;)"
+      "Really digging Koding :)"
+    ]
+    textToWrite = helloWorldMessages[(KD.utils.getRandomNumber 15, 0)]
     counter = 0
     repeater = @utils.repeat 121, =>
       largeInput.setValue textToWrite.slice 0, counter++
-      if counter is textToWrite.length
+      if counter is textToWrite.length+1
         KD.utils.killRepeat repeater
         @pushSubmitButton()
 
@@ -273,7 +292,11 @@ class BookView extends JView
       # wait a little again
       @utils.wait 500, =>
         # trigger push
-        @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().submit()
+        # @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().submit()
+        new KDNotificationView
+          title     : "Cool, it's ready! You can click submit or cancel."
+          duration  : 3000
+
         @utils.wait 1000, =>
           @destroyPointer()
 
@@ -419,7 +442,7 @@ class BookView extends JView
 
       nodes = KD.singletons.finderController.treeController.data
       fsFile = nodes.filter (x) -> x.name is "Web"
-      if not fsFile then return 
+      if not fsFile then return
 
       @navigateToFolder()
 
@@ -448,7 +471,7 @@ class BookView extends JView
     # find user Web folder location
     user = KD.nick()
     defaultVMName = KD.singletons.vmController.defaultVmName
-    webFolder = "[#{defaultVMName}]/home/#{user}/Web"    
+    webFolder = "[#{defaultVMName}]/home/#{user}/Web"
     @webFolderItem = KD.getSingleton("finderController").treeController.nodes[webFolder]
     offsetTo = @webFolderItem.$().offset()
     # navigate to folder

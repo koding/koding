@@ -7,6 +7,8 @@ class ActivityListHeader extends JView
 
     super
 
+    mainController = KD.getSingleton "mainController"
+
     @appStorage = new AppStorage 'Activity', '1.0'
     @_newItemsCount = 0
 
@@ -15,9 +17,7 @@ class ActivityListHeader extends JView
     @showNewItemsLink = new KDCustomHTMLView
       cssClass    : "new-updates"
       partial     : "<span>0</span> new items. <a href='#' title='Show new activities'>Update</a>"
-      click       : =>
-        @updateShowNewItemsLink yes
-
+      click       : => @updateShowNewItemsLink yes
 
     @headerTitle = new KDCustomHTMLView
       partial     : "Latest Activity"
@@ -37,8 +37,7 @@ class ActivityListHeader extends JView
         KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
 
-    KD.getSingleton('mainController').on 'AccountChanged', ()=>
-      @decorateLiveUpdateButton()
+    mainController.on 'AccountChanged', => @decorateLiveUpdateButton()
 
     @decorateLiveUpdateButton()
 
@@ -49,7 +48,7 @@ class ActivityListHeader extends JView
         size         : "tiny"
         callback     : (state) =>
           @appStorage.setValue 'showLowQualityContent', state, =>
-          KD.getSingleton('activityController').flags = showExempt: state
+          KD.getSingleton('activityController').flags.showExempt = state
           KD.getSingleton('activityController').emit 'Refresh'
 
       @refreshLink = new KDCustomHTMLView
@@ -65,11 +64,13 @@ class ActivityListHeader extends JView
         tagName: "span"
 
     @appStorage.fetchStorage (storage)=>
-      state = @appStorage.getValue('liveUpdates') or off
+      state             = @appStorage.getValue("liveUpdates") or off
+      lowQualityContent = @appStorage.getValue "showLowQualityContent"
+      {flags}           = KD.getSingleton "activityController"
+      flags.liveUpdates = state
+      flags.showExempt  = lowQualityContent or off
       @liveUpdateButton.setValue state
-      KD.getSingleton('activityController').flags = liveUpdates : state
-      KD.getSingleton('activityController').flags = showExempt : (@appStorage.getValue('showLowQualityContent') or off)
-      @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
+      @lowQualitySwitch.setValue? lowQualityContent or off
 
   _checkForUpdates: do (lastTs = null, lastCount = null, alreadyWarned = no) ->
     itFailed = ->
@@ -93,12 +94,9 @@ class ActivityListHeader extends JView
     __count++
     @_newItemsCount++
     @updateShowNewItemsLink()
-    @updateShowNewItemsTitle()  if @showNewItemsInTitle
 
   decorateLiveUpdateButton:->
     @liveUpdateButton.show()
-    # if KD.isLoggedIn() then @liveUpdateButton.show()
-    # else @liveUpdateButton.hide()
 
   updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0
@@ -111,15 +109,6 @@ class ActivityListHeader extends JView
         @showNewItemsLink.show()
     else
       @showNewItemsLink.hide()
-
-  updateShowNewItemsTitle: ->
-    if @_newItemsCount > 0
-      document.title = "(#{@_newItemsCount}) Activity"
-    else
-      @hideDocumentTitleCount()
-
-  hideDocumentTitleCount: ->
-    document.title = "Activity"
 
   getNewItemsCount: ->
     return @_newItemsCount

@@ -38,7 +38,6 @@ async      = require 'async'
 {extend}   = require 'underscore'
 express    = require 'express'
 Broker     = require 'broker'
-request    = require 'request'
 fs         = require 'fs'
 hat        = require 'hat'
 nodePath   = require 'path'
@@ -59,6 +58,7 @@ app        = express()
   isLoggedIn
   saveOauthToSession
   getAlias
+  addReferralCode
 }          = require './helpers'
 
 
@@ -73,9 +73,8 @@ app.configure ->
   app.use express.compress()
   app.use express.static "#{projectRoot}/website/"
 
-app.use (req, res, next)->
-  res.removeHeader "X-Powered-By"
-  next()
+# disable express default header
+app.disable 'x-powered-by'
 
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
@@ -86,6 +85,9 @@ process.on 'uncaughtException',(err)->
   console.error err
 
 app.use (req, res, next) ->
+  # add referral code into session if there is one
+  addReferralCode req, res
+
   {JSession} = koding.models
   {clientId} = req.cookies
   clientIPAddress = req.connection.remoteAddress
@@ -94,11 +96,7 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-app.get "/-/imageProxy", (req, res)->
-  if req.query.url
-    request(req.query.url).pipe(res)
-  else
-    res.send 404
+app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
@@ -147,7 +145,7 @@ app.get "/-/kite/login", (req, res) ->
                   body    : JSON.stringify postData
                   headers : {'content-type': 'application/json'}
 
-                request.post options, (error, response, body) =>
+                require('request').post options, (error, response, body) =>
                   if error
                     console.log "ERROR", error
                     res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
@@ -321,8 +319,8 @@ app.get "/-/oauth/:provider/callback", (req,res)->
           path    : "/user?access_token=#{access_token}"
           method  : "GET"
           headers : headers
-        request = http.request options, fetchUserInfo
-        request.end()
+        r = http.request options, fetchUserInfo
+        r.end()
 
   fetchUserInfo = (userInfoResp) ->
     rawResp = ""
@@ -343,8 +341,8 @@ app.get "/-/oauth/:provider/callback", (req,res)->
           path    : "/user/emails?access_token=#{access_token}"
           method  : "GET"
           headers : headers
-        request = http.request options, (newResp)-> fetchUserEmail newResp, resp
-        request.end()
+        r = http.request options, (newResp)-> fetchUserEmail newResp, resp
+        r.end()
       else
         renderLoginTemplate resp, res
 
@@ -361,8 +359,8 @@ app.get "/-/oauth/:provider/callback", (req,res)->
     path   : "/login/oauth/access_token?client_id=#{github.clientId}&client_secret=#{github.clientSecret}&code=#{code}"
     method : "POST"
     headers : headers
-  request = http.request options, authorizeUser
-  request.end()
+  r = http.request options, authorizeUser
+  r.end()
 
 app.get '/:name/:section?*', (req, res, next)->
   {JName} = koding.models
@@ -384,6 +382,7 @@ app.get '/:name/:section?*', (req, res, next)->
             else res.send 500, error_500()
 
 app.get "/", (req, res)->
+
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else

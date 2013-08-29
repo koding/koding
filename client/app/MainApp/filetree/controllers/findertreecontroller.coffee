@@ -20,8 +20,9 @@ class NFinderTreeController extends JTreeViewController
 
   addNode:(nodeData, index)->
 
-    o = @getOptions()
-    return if o.foldersOnly and nodeData.type is "file"
+    fc = KD.getSingleton 'finderController'
+    return if @getOption('foldersOnly') and nodeData.type is "file"
+    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
     item = super nodeData, index
 
   highlightFile:(view)->
@@ -88,6 +89,12 @@ class NFinderTreeController extends JTreeViewController
     {vmName} = nodeView.data
     @appManager.open "WebTerm", params: {vmName}, forceNew: yes
 
+  setDotFiles:(nodeView, show=yes)->
+    {vmName, path} = nodeView.getData()
+    finder = KD.getSingleton 'finderController'
+    unless show then finder.hideDotFiles vmName
+    else finder.showDotFiles vmName
+
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
     finder = KD.getSingleton 'finderController'
@@ -136,20 +143,20 @@ class NFinderTreeController extends JTreeViewController
         if files
           @addNodes files
         callback? null, nodeView
-        @emit "folder.expanded", nodeView.getData()
+        @emit "folder.expanded", nodeView.getData()  unless silence
         @emit 'fs.retry.success'
         @hideNotification()
       else
         failCallback err
     , failCallback), no
 
-  collapseFolder:(nodeView, callback)->
+  collapseFolder:(nodeView, callback, silence=no)->
 
     return unless nodeView
     folder = nodeView.getData()
     {path} = folder
 
-    @emit "folder.collapsed", folder
+    @emit "folder.collapsed", folder  unless silence
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
@@ -480,6 +487,8 @@ class NFinderTreeController extends JTreeViewController
   cmCollapse:      (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
   cmMakeTopFolder: (nodeView, contextMenuItem)-> @makeTopFolder nodeView
   cmRefresh:       (nodeView, contextMenuItem)-> @refreshFolder nodeView
+  cmShowDotFiles:  (nodeView, contextMenuItem)-> @setDotFiles nodeView, yes
+  cmHideDotFiles:  (nodeView, contextMenuItem)-> @setDotFiles nodeView, no
   cmResetVm:       (nodeView, contextMenuItem)-> @resetVm nodeView
   cmUnmountVm:     (nodeView, contextMenuItem)-> @unmountVm nodeView
   cmOpenVmTerminal:(nodeView, contextMenuItem)-> @openVmTerminal nodeView
@@ -787,32 +796,56 @@ class NFinderTreeController extends JTreeViewController
           fileItemViews.push fileItemView
 
   saveToDropbox: (nodeView) ->
-    notification   = null
-    kiteController = KD.getSingleton "kiteController"
-    plainPath      = FSHelper.plainPath nodeView.getData().path
-    isFolder       = nodeView.getData().type is "folder"
-    timestamp      = Date.now()
-    tmpFileName    = if isFolder then "tmp#{timestamp}.zip" else "tmp#{timestamp}"
-    relativePath   = "/home/#{KD.nick()}/Web/#{tmpFileName}"
-    kallback       = ->
-      fileName     = FSHelper.getFileNameFromPath plainPath
-      fileName     = "#{fileName}.zip"  if isFolder
-      options      =
-        files      : [
-          filename : fileName
-          url      : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
-        ]
-        success: ->
-          notification.notificationSetTitle "Your file has been uploaded."
-          notification.notificationSetTimer 4000
-          notification.setClass "success"
-          kiteController.run "rm #{relativePath}"
-        error: ->
-          notification.notificationSetTitle "An error occured while uploading your file."
-          notification.notificationSetTimer 4000
-          notification.setClass "error"
+    notification     = null
+    kiteController   = KD.getSingleton "kiteController"
+    plainPath        = FSHelper.plainPath nodeView.getData().path
+    isFolder         = nodeView.getData().type is "folder"
+    timestamp        = Date.now()
+    tmpFileName      = if isFolder then "tmp#{timestamp}.zip" else "tmp#{timestamp}"
+    relativePath     = "/home/#{KD.nick()}/Web/#{tmpFileName}"
+    kallback         = ->
+      modal          = new KDBlockingModalView
+        title        : "Upload to Dropbox"
+        cssClass     : "modal-with-text"
+        content      : "<p>Zipping your content is done. Click \"Choose Folder\" button to choose a folder on your Dropbox to start upload.</p>"
+        overlay      : yes
+        buttons      :
+          "Choose"   :
+            title    : "Choose Folder"
+            style    : "modal-clean-green"
+            callback : =>
+              modal.destroy()
+              fileName     = FSHelper.getFileNameFromPath plainPath
+              fileName     = "#{fileName}.zip"  if isFolder
+              options      =
+                files      : [
+                  filename : fileName
+                  url      : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
+                ]
+                success: ->
+                  notification.notificationSetTitle "Your file has been uploaded."
+                  notification.notificationSetTimer 4000
+                  notification.setClass "success"
+                  kiteController.run "rm #{relativePath}"
+                error: ->
+                  notification.notificationSetTitle "An error occured while uploading your file."
+                  notification.notificationSetTimer 4000
+                  notification.setClass "error"
+                  kiteController.run "rm #{relativePath}"
+                cancel: ->
+                  kiteController.run "rm #{relativePath}"
+                  notification.destroy()
+                progress: (progress) ->
+                  notification.notificationSetTitle "Uploading to Dropbox - #{progress * 100}% done..."
+                  notification.show()
 
-      Dropbox.save options
+              Dropbox.save options
+
+          Cancel     :
+            style    : "modal-cancel"
+            callback : ->
+              modal.destroy()
+              kiteController.run "rm #{relativePath}"
 
     if isFolder
       notification = new KDNotificationView
@@ -821,9 +854,15 @@ class NFinderTreeController extends JTreeViewController
         duration   : 120000
 
       kiteController.run "mkdir -p Web ; zip -r #{relativePath} #{plainPath}", (err, res) =>
-        return  warn err if err
-        notification.notificationSetTitle "Uploading zipped file..."
-        kallback()
+        if err
+          message = if err.name is "ExitError" then "An error occured. It seems zip is not installed on your VM."
+          else "An error occured, please try again."
+          notification.notificationSetTitle message
+          notification.notificationSetTimer 4000
+          notification.setClass "error"
+        else
+          notification.hide()
+          kallback()
     else
       notification = new KDNotificationView
         title      : "Uploading your file..."
@@ -831,4 +870,5 @@ class NFinderTreeController extends JTreeViewController
         duration   : 120000
       kiteController.run "mkdir -p Web ; cp #{plainPath} #{relativePath}", (err, res) =>
         return  warn err if err
+        notification.hide()
         kallback()

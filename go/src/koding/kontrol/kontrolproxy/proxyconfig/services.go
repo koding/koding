@@ -36,22 +36,27 @@ func NewService(username string) *models.Service {
 func (p *ProxyConfiguration) GetServices() []models.Service {
 	service := models.Service{}
 	services := make([]models.Service, 0)
-	iter := p.Collection["services"].Find(nil).Iter()
-	for iter.Next(&service) {
-		services = append(services, service)
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(nil).Iter()
+		for iter.Next(&service) {
+			services = append(services, service)
+		}
+		return nil
 	}
 
+	p.RunCollection("jProxyServices", query)
 	return services
 }
 
 func (p *ProxyConfiguration) GetService(username string) (models.Service, error) {
 	service := models.Service{}
-	err := p.Collection["services"].Find(bson.M{"username": username}).One(&service)
-	if err != nil {
-		return service, err
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": username}).One(&service)
 	}
 
-	return service, nil
+	err := p.RunCollection("jProxyServices", query)
+	return service, err
 }
 
 func (p *ProxyConfiguration) GetLatestKey(username, servicename string) string {
@@ -230,9 +235,18 @@ func (p *ProxyConfiguration) DeleteService(username, servicename string) error {
 }
 
 func (p *ProxyConfiguration) UpsertService(username string, service models.Service) error {
-	_, err := p.Collection["services"].Upsert(bson.M{"username": username}, service)
-	if err != nil {
+	query := func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"username": username}, service)
 		return err
 	}
-	return nil
+
+	return p.RunCollection("jProxyServices", query)
+}
+
+func (p *ProxyConfiguration) DeleteServices(username string) error {
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"username": username})
+	}
+
+	return p.RunCollection("jProxyServices", query)
 }

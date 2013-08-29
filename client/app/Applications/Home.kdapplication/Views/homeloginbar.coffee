@@ -1,7 +1,8 @@
 class HomeLoginBar extends JView
 
   requiresLogin = (callback)->
-    KD.requireMembership {callback, tryAgain: yes}
+    if KD.isLoggedIn() then callback()
+    else KD.getSingleton('router').handleRoute '/Login', entryPoint: KD.config.entryPoint
 
   constructor:(options = {}, data)->
 
@@ -17,6 +18,8 @@ class HomeLoginBar extends JView
       @utils.stopDOMEvent event
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
+    # links on the right
+
     @register     = new CustomLinkView
       tagName     : "a"
       cssClass    : "register"
@@ -28,25 +31,18 @@ class HomeLoginBar extends JView
         handler.call @register, event
         KD.track "Login", "Register"
 
-    @request      = new CustomLinkView
+    @redeem     = new CustomLinkView
       tagName     : "a"
-      cssClass    : "join green button"
-      title       : "Request an Invite"
+      cssClass    : "redeem"
+      title       : "Have an invite code? Redeem!"
       icon        : {}
       attributes  :
-        href      : "/Login"
+        href      : "/Redeem"
       click       : (event)=>
-        KD.track "Login", "RequestInvite"
         @utils.stopDOMEvent event
-        {entryPoint} = KD.config
-        if entryPoint
-          requiresLogin =>
-            @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
-              unless err
-                @request.hide()
-                @requested.show()
-        else
-          KD.getSingleton('router').handleRoute "/Login", {entryPoint}
+        requiresLogin =>
+          handler.call @redeem, event
+          KD.track "Login", "Redeem", @group.slug
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -56,15 +52,33 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Login"
       click       : (event)=>
+        handler.call @login, event
         KD.track "Login", "AlreadyUser", @group.slug
+
+    # green buttons
+
+    @request      = new CustomLinkView
+      tagName     : "a"
+      title       : "Request an Invite"
+      icon        : {}
+      cssClass    : "join green button"
+      attributes  :
+        href      : "/Join"
+      click       : (event)=>
+        KD.track "Login", "RequestInvite"
         @utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute "/Login"
+        requiresLogin =>
+          @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
+            unless err
+              @request.hide()
+              @requested.show()
 
     @access       = new CustomLinkView
       tagName     : "a"
       title       : "Request access"
       icon        : {}
       cssClass    : "request green hidden button"
+      testPath    : "groups-request-access"
       attributes  :
         href      : "#"
       click       : (event)=>
@@ -82,10 +96,11 @@ class HomeLoginBar extends JView
       title       : "Join Group"
       icon        : {}
       cssClass    : "join green hidden button"
+      testPath    : "groups-join-button"
       attributes  :
         href      : "#"
       click       : (event)=>
-        KD.track "Login", "GroupJoinRequest", @group.slug, @group
+        KD.track "Login", "GroupJoinRequest", @group.slug
         @utils.stopDOMEvent event
         requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
 
@@ -201,18 +216,23 @@ class HomeLoginBar extends JView
 
     if entryPoint?.type is 'profile'
       if KD.isLoggedIn() then @hide()
-      else @request.hide()
+      else
+        @request.hide()
+        @redeem.hide()
 
     if 'member' not in KD.config.roles
       if KD.isLoggedIn()
         @login.hide()
         @register.hide()
+      else
+        @redeem.hide()
 
       KD.remote.cacheable entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?
           [@group] = models
           if @group.privacy is "public"
+            @redeem.hide()
             @request.hide()
             @access.hide()
             @join.show()
@@ -221,6 +241,7 @@ class HomeLoginBar extends JView
               @policy = policy
               if err then console.warn err
               else if policy.approvalEnabled
+                @redeem.hide()
                 @request.hide()
                 @join.hide()
                 @access.show()
@@ -229,16 +250,16 @@ class HomeLoginBar extends JView
 
               @group.on 'MemberAdded', @emit.bind this, 'MemberAdded'
 
-              KD.whoami().getInvitationRequestByGroup @group, $in:['sent', 'pending'], (err, [request])=>
-                return console.warn err if err
-                return unless request
+              KD.whoami().fetchMyGroupInvitationStatus @group.getId(), (err, status)=>
+                return console.warn err  if err
+                return                   unless status
                 @access.hide()
                 @request.hide()
-                if request.status is 'sent'
-                  @invited.show()
-                else
+                if status is 'requested'
                   @listenToApproval()
                   @requested.show()
+                else if status is 'invited'
+                  @invited.show()
     else
       @hide()
 
@@ -262,6 +283,7 @@ class HomeLoginBar extends JView
       <li>{{> @request}}{{> @access}}{{> @join}}{{> @invited}}{{> @requested}}</li>
       <li>
         {{> @register}}
+        {{> @redeem}}
         {{> @login}}
       </li>
     </ul>

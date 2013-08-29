@@ -5,6 +5,24 @@ class ActivityItemChild extends KDView
 
   constructor:(options, data)->
 
+    currentGroup = KD.getSingleton("groupsController").getCurrentGroup()
+
+    getContentGroupLinkPartial = (groupSlug, groupName)->
+      if currentGroup?.slug is groupSlug
+      then ""
+      else "In <a href=\"#{groupSlug}\" target=\"#{groupSlug}\">#{groupName}</a>"
+
+    @contentGroupLink = new KDCustomHTMLView
+      tagName     : "span"
+      partial     : getContentGroupLinkPartial(data.group, data.group)
+
+    if currentGroup?.slug is data.group
+      @contentGroupLink.updatePartial getContentGroupLinkPartial(currentGroup.slug, currentGroup.title)
+    else
+      KD.remote.api.JGroup.one {slug:data.group}, (err, group)=>
+        if not err and group
+          @contentGroupLink.updatePartial getContentGroupLinkPartial(group.slug, group.title)
+
     origin =
       constructorName  : data.originType
       id               : data.originId
@@ -30,7 +48,8 @@ class ActivityItemChild extends KDView
       @commentBox = new OpinionView null, data
       list        = @commentBox.opinionList
     else
-      @commentBox = new CommentView null, data
+      commentSettings = options.commentSettings or null
+      @commentBox = new CommentView commentSettings, data
       list        = @commentBox.commentList
 
     @actionLinks = new ActivityActionsView
@@ -51,7 +70,7 @@ class ActivityItemChild extends KDView
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
-    super
+    super options, data
 
     data = @getData()
     data.on 'TagsChanged', (tagRefs)=>
@@ -69,6 +88,8 @@ class ActivityItemChild extends KDView
 
     data.on 'PostIsDeleted', =>
       activityItem = @getDelegate()
+      return unless activityItem.isInDom()
+
       if KD.whoami().getId() is data.getAt('originId')
         deleteActivity activityItem
       else
@@ -93,6 +114,7 @@ class ActivityItemChild extends KDView
 
     account        = KD.whoami()
     mainController = KD.getSingleton('mainController')
+    activityController = KD.getSingleton('activityController')
 
     if data.originId is KD.whoami().getId()
       menu =
@@ -110,12 +132,12 @@ class ActivityItemChild extends KDView
         menu =
           'Unmark User as Troll' :
             callback             : ->
-              mainController.unmarkUserAsTroll data
+              activityController.emit "ActivityItemUnMarkUserAsTrollClicked", data
       else
         menu =
           'Mark User as Troll' :
             callback           : ->
-              mainController.markUserAsTroll data
+              activityController.emit "ActivityItemMarkUserAsTrollClicked", data
 
       menu['Delete Post'] =
         callback : =>
@@ -123,7 +145,7 @@ class ActivityItemChild extends KDView
 
       menu['Block User'] =
         callback : ->
-          mainController.openBlockUserModal data
+          activityController.emit "ActivityItemBlockUserClicked", data
 
       return menu
 

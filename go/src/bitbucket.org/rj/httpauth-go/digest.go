@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"hash"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -169,14 +170,14 @@ func parseDigestAuthHeader(r *http.Request) map[string]string {
 	return params
 }
 
-// Authorize retrieves the credientials from the HTTP request, and 
+// Authorize retrieves the credientials from the HTTP request, and
 // returns the username only if the credientials could be validated.
 // If the return value is blank, then the credentials are missing,
 // invalid, or a system error prevented verification.
 func (a *Digest) Authorize(r *http.Request) (username string) {
 	// Extract and parse the token
-	params := parseDigestAuthHeader( r )
-	if params==nil {
+	params := parseDigestAuthHeader(r)
+	if params == nil {
 		return ""
 	}
 
@@ -184,8 +185,13 @@ func (a *Digest) Authorize(r *http.Request) (username string) {
 	if params["opaque"] != a.opaque || params["algorithm"] != "MD5" || params["qop"] != "auth" {
 		return ""
 	}
-	if params["uri"] != r.URL.Path {
-		return ""
+
+	// Verify if the requested URI matches auth header
+	switch u, err := url.Parse(params["uri"]); {
+	case err != nil || r.URL == nil:
+		return
+	case r.URL.Path != u.Path:
+		return
 	}
 
 	username = params["username"]
@@ -197,7 +203,7 @@ func (a *Digest) Authorize(r *http.Request) (username string) {
 		return ""
 	}
 	ha1 := calcHash(a.md5, username+":"+a.Realm+":"+password)
-	ha2 := calcHash(a.md5, r.Method+":"+r.URL.Path)
+	ha2 := calcHash(a.md5, r.Method+":"+params["uri"])
 	ha3 := calcHash(a.md5, ha1+":"+params["nonce"]+":"+params["nc"]+
 		":"+params["cnonce"]+":"+params["qop"]+":"+ha2)
 	if ha3 != params["response"] {
@@ -213,11 +219,11 @@ func (a *Digest) Authorize(r *http.Request) (username string) {
 
 	// Pull out the nonce, and verify
 	nonce, ok := params["nonce"]
-	if !ok || len(nonce)!=nonceLen{
+	if !ok || len(nonce) != nonceLen {
 		return ""
 	}
 
-	// The next block of actions require accessing field internal to the 
+	// The next block of actions require accessing field internal to the
 	// digest structure.  Need to lock.
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -240,7 +246,7 @@ func (a *Digest) Authorize(r *http.Request) (username string) {
 	return username
 }
 
-// NotifyAuthRequired adds the headers to the HTTP response to 
+// NotifyAuthRequired adds the headers to the HTTP response to
 // inform the client of the failed authorization, and which scheme
 // must be used to gain authentication.
 func (a *Digest) NotifyAuthRequired(w http.ResponseWriter, r *http.Request) {
@@ -258,7 +264,7 @@ func (a *Digest) NotifyAuthRequired(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusUnauthorized)
 	a.WriteUnauthorized(w, r)
 
-	// The next block of actions require accessing field internal to the 
+	// The next block of actions require accessing field internal to the
 	// digest structure.  Need to lock.
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -272,9 +278,9 @@ func (a *Digest) NotifyAuthRequired(w http.ResponseWriter, r *http.Request) {
 // Logout removes the nonce associated with the HTTP request from the cache.
 func (a *Digest) Logout(r *http.Request) {
 	// Extract the authentication parameters
-	params := parseDigestAuthHeader( r )
-	if params==nil {
-		return 
+	params := parseDigestAuthHeader(r)
+	if params == nil {
+		return
 	}
 
 	nonce, ok := params["nonce"]
@@ -282,7 +288,7 @@ func (a *Digest) Logout(r *http.Request) {
 		return
 	}
 
-	// The next block of actions require accessing field internal to the 
+	// The next block of actions require accessing field internal to the
 	// digest structure.  Need to lock.
 	a.mutex.Lock()
 	defer a.mutex.Unlock()

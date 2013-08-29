@@ -28,8 +28,8 @@ class KodingAppsController extends KDController
     mainController  = KD.getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
     @publishedApps  = {}
-    @getPublishedApps()
 
+    @getPublishedApps()
     @createExtensionToAppMap()
     @fetchUserDefaultAppConfig()
 
@@ -103,7 +103,9 @@ class KodingAppsController extends KDController
           @putAppsToAppStorage manifests
           callback? null, manifests
     , ->
-      log "Timeout reached for kite request"
+      msg = "Timeout reached for kite request"
+      KD.logToExternal msg
+      log msg
       callback()
 
   fetchAppsFromDb:(callback)->
@@ -362,7 +364,6 @@ class KodingAppsController extends KDController
           nickname    = KD.nick()
           publishPath = "/home/#{nickname}/Web/.applications"
           @vmController.run
-            kiteName    : "os"
             method      : "fs.createDirectory"
             withArgs    :
               path      : publishPath
@@ -402,11 +403,16 @@ class KodingAppsController extends KDController
                 "Install Compiler":
                   cssClass: "modal-clean-green"
                   callback: =>
-                    modal.run "sudo npm install -g kdc"
+                    modal.run "sudo npm install -g kdc; echo $?|kdevent;" # find a clean/better way to do it.
 
             modal.on "terminal.event", (data)->
-              new KDNotificationView
-                title: "Installed successfully!"
+              if data is "0"
+                new KDNotificationView title: "Installed successfully!"
+                modal.destroy()
+              else
+                new KDNotificationView
+                  title   : "An error occured."
+                  content : "Something went wrong while installing Koding App Compiler. Please try again."
 
             callback? err
             return
@@ -487,11 +493,11 @@ class KodingAppsController extends KDController
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
-      content                     : 
+      content                     :
         """ <div class='modalformline'><p>
             Please select the application type you want to start with.
-            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder, 
-            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start 
+            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder,
+            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start
             reading <code>manifest.json</code>
             </p></div>
         """
@@ -617,7 +623,6 @@ class KodingAppsController extends KDController
         return
 
       @vmController.run
-        kiteName     : "os"
         method       : "app.download"
         withArgs     :
           owner      : manifest.authorNick
@@ -634,8 +639,6 @@ class KodingAppsController extends KDController
   # #
   # HELPERS
   # #
-
-  proxifyUrl = (url)-> KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
   escapeFilePath = FSHelper.escapeFilePath
 

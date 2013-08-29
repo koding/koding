@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+const HEARTBEAT_INTERVAL = time.Second * 10
+const HEARTBEAT_DELAY = time.Second * 10
+
 const (
 	Started WorkerStatus = iota
 	Killed
@@ -88,32 +91,48 @@ func NewWorkerResponse(name, uuid, command, log string) *WorkerResponse {
 }
 
 type WorkerConfig struct {
-	Hostname   string
-	Session    *mgo.Session
-	Collection *mgo.Collection
+	Hostname string
+	Session  *mgo.Session
 }
 
 // Start point. Needs to be called in order to use other methods
 func Connect() (*WorkerConfig, error) {
-	session, err := mgo.Dial(config.Current.Mongo)
-	if err != nil {
-		return nil, err
-	}
-	session.SetMode(mgo.Strong, true)
-	session.SetSafe(&mgo.Safe{})
-	database := session.DB("")
-
-	col := database.C("jKontrolWorkers")
-
 	hostname, _ := os.Hostname()
+	w := &WorkerConfig{Hostname: hostname}
+	w.CreateSession(config.Current.Mongo)
+	return w, nil
+}
 
-	wk := &WorkerConfig{
-		Hostname:   hostname,
-		Session:    session,
-		Collection: col,
+func (w *WorkerConfig) CreateSession(url string) {
+	var err error
+	w.Session, err = mgo.Dial(url)
+	if err != nil {
+		panic(err) // no, not really
 	}
 
-	return wk, nil
+	w.Session.SetSafe(&mgo.Safe{})
+}
+
+func (w *WorkerConfig) Close() {
+	w.Session.Close()
+}
+
+func (w *WorkerConfig) Copy() *mgo.Session {
+	return w.Session.Copy()
+}
+
+func (w *WorkerConfig) GetSession() *mgo.Session {
+	if w.Session == nil {
+		w.CreateSession(config.Current.Mongo)
+	}
+	return w.Copy()
+}
+
+func (w *WorkerConfig) RunCollection(collection string, s func(*mgo.Collection) error) error {
+	session := w.GetSession()
+	defer session.Close()
+	c := session.DB("").C(collection)
+	return s(c)
 }
 
 func (w *WorkerConfig) Delete(uuid string) error {
@@ -169,106 +188,98 @@ func (w *WorkerConfig) Start(uuid string) (WorkerResponse, error) {
 }
 
 func (w *WorkerConfig) Update(worker Worker) error {
-	// No check for uuid, this is a destructive action. Thus use with caution.
-	// After creating a processes, the process sends a new "update" message with
-	// child pid, a new uuid and his new status.
-	result := Worker{}
-	found := false
-
-	iter := w.Collection.Find(bson.M{"uuid": worker.Uuid, "hostname": worker.Hostname}).Iter()
-	for iter.Next(&result) {
-		w.DeleteWorker(result.Uuid)
-		found = true
+	r, err := w.GetWorker(worker.Uuid)
+	if err != nil {
+		return fmt.Errorf("no worker found with name '%s' and hostname '%s'",
+			worker.Name,
+			worker.Hostname,
+		)
 	}
 
-	if !found {
-		return fmt.Errorf("no worker found with name '%s' and hostname '%s'", worker.Name, worker.Hostname)
-	}
+	r.Timestamp = time.Now().Add(HEARTBEAT_INTERVAL)
+	r.Status = worker.Status
+	r.Pid = worker.Pid
+	r.Uuid = worker.Uuid
+	r.Version = worker.Version
 
-	result.Timestamp = worker.Timestamp
-	result.Status = worker.Status
-	result.Pid = worker.Pid
-	result.Uuid = worker.Uuid
-	result.Version = worker.Version
+	log.Printf("[%s (%d)] update allowed from: '%s' - '%s'",
+		worker.Name,
+		worker.Version,
+		worker.Hostname,
+		worker.Uuid,
+	)
 
-	log.Printf("[%s (%d)] updating with new info from '%s'", worker.Name, worker.Version, worker.Hostname)
-	w.AddWorker(result)
+	w.UpsertWorker(r)
 	return nil
 }
 
 func (w *WorkerConfig) Ack(worker Worker) error {
-	existingWorker, err := w.GetWorker(worker.Uuid)
+	worker.Timestamp = time.Now().Add(HEARTBEAT_INTERVAL)
+	r, err := w.GetWorker(worker.Uuid)
 	if err != nil {
-		return fmt.Errorf("ack method error for hostanme %s worker %s version %d '%s'", worker.Hostname, worker.Name, worker.Version, err)
+		// if not found insert it
+		w.UpsertWorker(worker)
+		return nil
 	}
 
-	existingWorker.Timestamp = worker.Timestamp
-	existingWorker.Status = worker.Status
-	existingWorker.Monitor.Uptime = worker.Monitor.Uptime
-
-	w.UpdateWorker(existingWorker)
-	return nil
-}
-
-func (w *WorkerConfig) RefreshStatusAll() error {
-	worker := Worker{}
-	iter := w.Collection.Find(nil).Iter()
-	for iter.Next(&worker) {
-		if worker.Status == Dead {
-			continue
-		}
-
-		if worker.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
-			log.Printf("[%s (%d)] no activity at '%s' (pid: %d). marking as dead\n", worker.Name, worker.Version, worker.Hostname, worker.Pid)
-			worker.Status = Dead
-			worker.Monitor.Mem = MemData{}
-			worker.Monitor.Uptime = 0
-			w.UpdateWorker(worker)
-		} // otherwise the workers are still alive
-	}
-
+	// only change those fields
+	r.Timestamp = worker.Timestamp
+	r.Status = Started
+	r.Monitor.Uptime = worker.Monitor.Uptime
+	w.UpdateWorker(r)
 	return nil
 }
 
 func (w *WorkerConfig) GetWorker(uuid string) (Worker, error) {
 	result := Worker{}
-	err := w.Collection.Find(bson.M{"uuid": uuid}).One(&result)
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"uuid": uuid}).One(&result)
+	}
+
+	err := w.RunCollection("jKontrolWorkers", query)
 	if err != nil {
 		return result, fmt.Errorf("no worker with the uuid %s exist.", uuid)
 	}
 
 	return result, nil
-
 }
 
 func (w *WorkerConfig) UpdateWorker(worker Worker) {
-	err := w.Collection.Update(bson.M{"uuid": worker.Uuid}, worker)
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"uuid": worker.Uuid}, worker)
+	}
+
+	err := w.RunCollection("jKontrolWorkers", query)
 	if err != nil {
 		log.Println(err)
 	}
 }
 
-func (w *WorkerConfig) AddWorker(worker Worker) {
-	_, err := w.GetWorker(worker.Uuid)
-	if err == nil {
-		return // there is already a worker with the same uuid, don't insert it
+func (w *WorkerConfig) UpsertWorker(worker Worker) error {
+	query := func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"uuid": worker.Uuid}, worker)
+		return err
 	}
 
-	err = w.Collection.Insert(worker)
-	if err != nil {
-		log.Println(err)
-	}
-
+	return w.RunCollection("jKontrolWorkers", query)
 }
 
-func (w *WorkerConfig) DeleteWorker(uuid string) {
-	err := w.Collection.Remove(bson.M{"uuid": uuid})
-	if err != nil {
-		log.Println(err)
+func (w *WorkerConfig) DeleteWorker(uuid string) error {
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"uuid": uuid})
 	}
+
+	return w.RunCollection("jKontrolWorkers", query)
 }
 
 func (w *WorkerConfig) NumberOfWorker(name string, version int) int {
-	count, _ := w.Collection.Find(bson.M{"name": name, "version": version}).Count()
+	var count int
+
+	query := func(c *mgo.Collection) error {
+		count, _ = c.Find(bson.M{"name": name, "version": version}).Count()
+		return nil
+	}
+
+	w.RunCollection("jKontrolWorkers", query)
 	return count
 }

@@ -2,6 +2,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
 
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
+  encoder         = require 'htmlencode'
 
   {profile, counts, skilltags} = renderedAccount
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
@@ -21,7 +22,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
   <!DOCTYPE html>
   <html>
   <head>
-    <title>#{title}</title>
+    <title>#{encoder.XSSEncode title}</title>
     #{getStyles()}
   </head>
   <body>
@@ -97,42 +98,41 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                     <span>
                       <span class="avatarview" style="width: 90px; height: 90px; background-image: url(https://gravatar.com/avatar/#{profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png);"></span>
                     </span>
-                    <button type="button" class="kdbutton kdwhitebtn profilefollowbtn w-loader" id="kd-274"><span class="kdview kdloader hidden" style="width: 18px; height: 18px; position: absolute; left: 50%; top: 50%; margin-top: -9px; margin-left: -9px;"><span id="cl_kd-287" class="canvas-loader" style="display: none;"><canvas width="18" height="18"></canvas><canvas style="display: none;" width="18" height="18"></canvas></span></span>
+                    <button type="button" class="kdbutton kdwhitebtn profilefollowbtn w-loader"><span class="kdview kdloader hidden" style="width: 18px; height: 18px; position: absolute; left: 50%; top: 50%; margin-top: -9px; margin-left: -9px;"><span class="canvas-loader" style="display: none;"><canvas width="18" height="18"></canvas><canvas style="display: none;" width="18" height="18"></canvas></span></span>
                       <span class="icon hidden"></span>
                       <span class="button-title">Follow</span>
                     </button>
-                    <cite class="data" data-paths="profile.nickname" id="el-98">@#{nickname}</cite>
+                    <cite class="data" data-paths="profile.nickname">@#{encoder.XSSEncode nickname}</cite>
                   </div>
 
                   <div class=""></div>
 
                   <section>
                     <div class="profileinfo">
-                      <h3 class="profilename"><span class="data" data-paths="profile.firstName" id="el-100">#{firstName}</span> <span class="data" data-paths="profile.lastName" id="el-101">#{lastName}</span></h3>
-                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{if locationTags then locationTags[0] else 'Earth'}</span></div></h4>
+                      <h3 class="profilename"><span class="data" data-paths="profile.firstName">#{encoder.XSSEncode firstName}</span> <span class="data" data-paths="profile.lastName">#{encoder.XSSEncode lastName}</span></h3>
+                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags">#{if locationTags then encoder.XSSEncode locationTags[0] else 'Earth'}</span></div></h4>
                       <h5>
-                        <a class="user-home-link" href="http://#{nickname}.koding.com" target="_blank">#{nickname}.koding.com</a>
+                        <a class="user-home-link" href="http://#{encoder.XSSEncode nickname}.koding.com" target="_blank">#{encoder.XSSEncode nickname}.koding.com</a>
                         <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
                       </h5>
                       <div class="profilestats">
                         <div class="fers">
-                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.followers" id="el-93">#{counts.followers}</span> <span>Followers</span></a>
+                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.followers">#{counts.followers}</span> <span>Followers</span></a>
                         </div>
                         <div class="fing">
-                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.following" id="el-94">#{counts.following}</span> <span>Following</span></a>
+                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.following">#{counts.following}</span> <span>Following</span></a>
                         </div>
                          <div class="liks">
-                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.likes" id="el-95">#{counts.likes}</span> <span>Likes</span></a>
+                          <a class="kdview" href="#"><cite></cite><span class="data" data-paths="counts.likes">#{counts.likes}</span> <span>Likes</span></a>
                         </div>
                         <div class="contact">
-                          <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName" id="el-110">#{firstName}</span></a>
+                          <a class="" href="#"><cite></cite><span>Contact</span><span class="data" data-paths="profile.firstName">#{encoder.XSSEncode firstName}</span></a>
                         </div>
                       </div>
 
                       <div class="profilebio">
-                        <p><span class="data" data-paths="profile.about" id="el-107">#{about}</span></p>
+                        <p><span class="data" data-paths="profile.about">#{encoder.XSSEncode about}</span></p>
                       </div>
-                      <div class="skilltags"><label>SKILLS</label><div class="tag-group"><div class="kdview listview-wrapper">...<div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-default skilltag-cloud"></div></div></div></div></div>
                     </div>
                   </section>
                 </div>
@@ -174,7 +174,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                             </div>
                             <div class="kdview help-box">
                                 <div>
-                                    <cite class="data" data-paths="title" id="el-614">NEED HELP?</cite> <a href="#"><span class="data" data-paths="subtitle" id="el-615">Learn Personal feed</span></a>
+                                    <cite class="data" data-paths="title">NEED HELP?</cite> <a href="#"><span class="data" data-paths="subtitle">Learn Personal feed</span></a>
                                 </div>
                             </div>
                         </div>
@@ -202,7 +202,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                                     <div class="kdview kdscrollview">
                                         <div class="kdview kdlistview kdlistview-everything activity-related"></div>
                                         <div class="lazy-loader">
-                                            Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-1275" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span>
+                                            Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span>
                                         </div>
                                     </div>
                                 </div>

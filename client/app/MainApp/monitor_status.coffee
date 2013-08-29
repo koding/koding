@@ -183,56 +183,30 @@ do ->
 
   window.jsonp =-> KD.externalPong()
 
-  brokerInterval       = null
-  failureCallback      = null
-  lastPong             = null
-  timesTroubleshootRan = 0
+class BrokerPing extends Pinger
+  constructor: (options, data) ->
+    super options, data
 
-  # use broker ping to determine internet connection
-  # TODO: refactor this ugliness
-  pingBrokerOnInterval = ->
-    brokerInterval = setInterval ->
-      clearTimeout failureCallback
-      failureCallback = null
+    @init()
 
-      brokerPong = ->
-        # account for people disconnecting at night, then reconnecting in the
-        # morning; if reconnection happens before failureCallback is trigged,
-        # we won't know that disconnection has happened.
-        if lastPong && (Date.now() - lastPong) > 600*1000  # 10 minutes
-          log "lastPong too long ago, possible computer sleep; disconnecting"
+  init:->
+    @channel = KD.remote.mq
+    @remote  = KD.remote
 
-          status = KD.getSingleton "status"
-          status.disconnect
-            reason:"internetDownForLongTime"
-            notify:no
+    @channel.on 'messageArrived'   , @bound 'handleMessageArrived'
+    @channel.on 'messagePublished' , @bound 'handleChannelPublish'
 
-        clearTimeout failureCallback
-        failureCallback = null
-        lastPong = Date.now()
+    @remote.on 'disconnected'      , @bound 'reset'
+    @remote.on 'disconnected'      , @bound 'setStopPinging'
+    @remote.on 'connected'         , @bound 'setStartPinging'
+    @remote.on 'connected'         , @bound 'pingChannel'
 
-      failureCallback = setTimeout ->
-        if timesTroubleshootRan > 3
-          log "broker ping failed too many times, stopping troubleshoot"
-          return
+  handleUnresponsiveChannel: ->
+    log "broker unresponsive since #{@lastPong}"
 
-        log 'broker ping failed, running troubleshoot'
-        KD.troubleshoot false
-        timesTroubleshootRan++
-      , 3000
+  pingChannel: (callback)->
+    return if @stopPinging
+    @channel.ping callback
 
-      KD.remote.mq.ping -> brokerPong()
-    , 5000
-
-  KD.remote.on 'connected', ->
-    resetIntervals()
-    pingBrokerOnInterval()
-
-  KD.remote.on 'disconnected', -> resetIntervals()
-
-  resetIntervals =->
-    clearInterval brokerInterval
-    clearTimeout failureCallback
-    brokerInterval  = null
-    failureCallback = null
-    lastPong        = null
+brokerPing = new BrokerPing
+window.brokerPing = brokerPing

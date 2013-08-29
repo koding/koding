@@ -33,6 +33,7 @@ class ActivityAppController extends AppController
 
   constructor:(options={})->
     options.view    = new ActivityAppView
+      testPath      : "activity-feed"
     options.appInfo =
       name          : 'Activity'
 
@@ -54,17 +55,6 @@ class ActivityAppController extends AppController
       if conn?.reason is "internetDownForLongTime" then @refresh()
 
     @on "activitiesCouldntBeFetched", => @listController?.hideLazyLoader()
-
-    @docTitle = document.title
-    windowController = KD.getSingleton "windowController"
-    windowController.addFocusListener (blurred)=>
-      return  unless @listController
-      if blurred
-        @listController.activityHeader.showNewItemsInTitle = yes
-        @listController.activityHeader.updateShowNewItemsTitle()
-      else
-        @listController.activityHeader.showNewItemsInTitle = no
-        @listController.activityHeader.hideDocumentTitleCount()
 
   loadView:->
     @getView().feedWrapper.ready (controller)=>
@@ -285,7 +275,7 @@ class ActivityAppController extends AppController
   showContentDisplay:(contentDisplay)->
     contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    return contentDisplayController
+    return contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayStatusUpdate

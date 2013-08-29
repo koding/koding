@@ -26,9 +26,11 @@ type VM struct {
 	Users         []Permissions `bson:"users"`
 	LdapPassword  string        `bson:"ldapPassword"`
 	DiskSizeInMB  int           `bson:"diskSizeInMB"`
+	NumCPUs       int           `bson:"numCPUs"`
 	SnapshotVM    bson.ObjectId `bson:"diskSnapshot"`
 	SnapshotName  string        `bson:"snapshotName"`
 	IP            net.IP        `bson:"ip"`
+	Region        string        `bson:"region"`
 	HostKite      string        `bson:"hostKite"`
 	VMRoot        string        `bson:"-"`
 }

@@ -86,6 +86,7 @@ module.exports = [
   "Framework/components/inputs/KDWmdInput.coffee",
   "Framework/components/inputs/tokenizedmenu.coffee",
   "Framework/components/inputs/tokenizedinput.coffee",
+  "Framework/components/inputs/KDContentEditableView.coffee",
 
   # upload
   "Framework/components/upload/KDFileUploadView.coffee",
@@ -112,6 +113,9 @@ module.exports = [
 
   # notification
   "Framework/components/notifications/KDNotificationView.coffee",
+
+  # progressbar
+  "Framework/components/progressbar/KDProgressBarView.coffee",
 
   # dialog
   "Framework/components/dialog/KDDialogView.coffee",
@@ -147,7 +151,7 @@ module.exports = [
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
   "app/CommonViews/applicationview/applicationtabhandleholder.coffee",
-
+  "app/CommonViews/sharepopup.coffee"
   "app/CommonViews/linkviews/linkview.coffee",
   "app/CommonViews/linkviews/customlinkview.coffee",
   "app/CommonViews/linkviews/linkgroup.coffee",
@@ -174,7 +178,9 @@ module.exports = [
   "app/CommonViews/ShowMoreDataModalView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
   "app/CommonViews/Tags/TagAutoCompleteController.coffee",
-  "app/CommonViews/FormViews.coffee",
+  "app/CommonViews/SkillTagFormView.coffee",
+  "app/CommonViews/SkillTagAutoCompleteController.coffee",
+  "app/CommonViews/SkillTagAutoCompletedItem.coffee",
   "app/CommonViews/messagesList.coffee",
   "app/CommonViews/CommonInputWithButton.coffee",
   "app/CommonViews/SplitViewWithOlderSiblings.coffee",
@@ -340,7 +346,7 @@ module.exports = [
   "app/MainApp/login/registerform.coffee",
   "app/MainApp/login/recoverform.coffee",
   "app/MainApp/login/resetform.coffee",
-  "app/MainApp/login/requestform.coffee",
+  "app/MainApp/login/redeemform.coffee",
 
   # BOTTOM PANEL
   # "app/MainApp/bottompanels/bottompanelcontroller.coffee",
@@ -517,18 +523,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemQuestion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
-
- # Static Profile List Items
-  # "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -622,7 +617,6 @@ module.exports = [
   # MEMBERS VIEWS
   "app/Applications/Members.kdapplication/AppView.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee",
-  "app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",
   "app/Applications/Members.kdapplication/newmemberactivitylistitem.coffee",
@@ -698,6 +692,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
+  "app/Applications/Account.kdapplication/account/accSettingsPersReferralSystem.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
@@ -709,6 +704,8 @@ module.exports = [
   # CONTENT DISPLAY VIEWS
   "app/MainApp/ContentDisplay/ContentDisplay.coffee",
   "app/MainApp/ContentDisplay/ContentDisplayController.coffee",
+
+  "app/MainApp/pinger.coffee",
 
   # KITE CONTROLLER
   "app/MainApp/kite/kite.coffee",
@@ -799,6 +796,7 @@ module.exports = [
   "Framework/themes/default/kd.buttons.styl",
   "Framework/themes/default/kd.scrollview.styl",
   "Framework/themes/default/kd.modal.styl",
+  "Framework/themes/default/kd.progressbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
 
@@ -847,6 +845,7 @@ module.exports = [
   "stylus/app.1024.styl",
   "stylus/app.768.styl",
   "stylus/app.480.styl",
+  "stylus/app.400.styl",
 
   "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",

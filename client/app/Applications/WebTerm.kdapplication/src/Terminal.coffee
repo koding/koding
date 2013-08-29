@@ -24,7 +24,6 @@ class WebTerm.Terminal
     @sizeY = 24
     @currentStyle = WebTerm.StyledText.DEFAULT_STYLE
     @currentWhitespaceStyle = null
-    @definedColors = []
     @currentCharacterSets = ["B", "A", "A", "A"]
     @currentCharacterSetIndex = 0
 
@@ -197,9 +196,6 @@ class WebTerm.Terminal
   resetStyle: ->
     @currentStyle = WebTerm.StyledText.DEFAULT_STYLE
     @currentWhitespaceStyle = null
-
-  defineColor: (index, color) ->
-    @definedColors[index] = color
 
   setCharacterSet: (index, charset) ->
     @currentCharacterSets[index] = charset

@@ -49,6 +49,7 @@ module.exports =
 
           WHERE  (
             members.`profile.nickname` =~ '(?i)#{seed}'
+            and members.type = 'registered'
             or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
             or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
           )
