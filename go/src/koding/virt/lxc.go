@@ -68,8 +68,8 @@ func (vm *VM) WaitForState(state string, timeout time.Duration) error {
 	return nil
 }
 
-func SendMessageToVMUsers(vmId bson.ObjectId, message string) error {
-	cmd := exec.Command("/usr/bin/lxc-attach", "--name", VMName(vmId), "--", "/usr/bin/wall", "--nobanner")
+func (vm *VM) SendMessageToVMUsers(message string) error {
+	cmd := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(), "--", "/usr/bin/wall", "--nobanner")
 	cmd.Stdin = strings.NewReader(message)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return commandError("wall failed.", err, out)
