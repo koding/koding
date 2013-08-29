@@ -162,11 +162,11 @@ class ChromeTerminalBanner extends JView
       cssClass : "action"
       title    : "What is This?"
       click    : =>
-        @descriptionHidden = not @descriptionHidden
         if @descriptionHidden
           @description.show()
         else
           @description.hide()
+        @descriptionHidden = not @descriptionHidden
 
     @description = new KDCustomHTMLView
       tagName : "p"
