@@ -12,6 +12,7 @@ class OpinionViewHeader extends JView
     @maxCommentToShow = 5
     @oldCount         = data.opinionCount
     @newCount         = 0
+    @newAnswers       = 0
     @onListCount      = if data.opinionCount > @maxCommentToShow then @maxCommentToShow else data.opinionCount
 
     # The snapshot view should always have a visible Header
@@ -161,7 +162,7 @@ class OpinionViewHeader extends JView
                 @allItemsLink.updatePartial "View new answers"
 
   updateNewItems: ->
-    if @getData().opinionCount > 0
+    if @getData().opinionCount > 0 and @newAnswers > 0
       @newItemsLink?.updatePartial "#{@newAnswers} new Answer#{if @newAnswers is 1 then "" else "s"}"
       @setClass "has-new-items"
       @show()
