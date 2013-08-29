@@ -46,14 +46,14 @@ func registerFileSystemMethods(k *kite.Kite) {
 					}
 					params.OnChange(map[string]interface{}{
 						"event": "added",
-						"file":  makeFileEntry(vos, path.Dir(ev.Name), info),
+						"file":  makeFileEntry(vos, ev.Name, info),
 					})
 					return
 				}
 				if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
 					params.OnChange(map[string]interface{}{
 						"event": "removed",
-						"file":  FileEntry{Name: path.Base(ev.Name)},
+						"file":  FileEntry{Name: path.Base(ev.Name), FullPath: ev.Name},
 					})
 					return
 				}
@@ -78,7 +78,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 		files := make([]FileEntry, len(infos))
 		for i, info := range infos {
-			files[i] = makeFileEntry(vos, params.Path, info)
+			files[i] = makeFileEntry(vos, path.Join(params.Path, info.Name()), info)
 		}
 		response["files"] = files
 
@@ -187,7 +187,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 			return nil, err
 		}
 
-		return makeFileEntry(vos, path.Dir(params.Path), fi), nil
+		return makeFileEntry(vos, params.Path, fi), nil
 	})
 
 	registerVmMethod(k, "fs.setPermissions", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -303,6 +303,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 type FileEntry struct {
 	Name     string      `json:"name"`
+	FullPath string      `json:"fullPath"`
 	IsDir    bool        `json:"isDir"`
 	Size     int64       `json:"size"`
 	Mode     os.FileMode `json:"mode"`
@@ -312,9 +313,10 @@ type FileEntry struct {
 	Writable bool        `json:"writable"`
 }
 
-func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
+func makeFileEntry(vos *virt.VOS, fullPath string, fi os.FileInfo) FileEntry {
 	entry := FileEntry{
 		Name:     fi.Name(),
+		FullPath: fullPath,
 		IsDir:    fi.IsDir(),
 		Size:     fi.Size(),
 		Mode:     fi.Mode(),
@@ -324,7 +326,7 @@ func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
 	}
 
 	if fi.Mode()&os.ModeSymlink != 0 {
-		symlinkInfo, err := vos.Stat(dir + "/" + fi.Name())
+		symlinkInfo, err := vos.Stat(path.Dir(fullPath) + "/" + fi.Name())
 		if err != nil {
 			entry.IsBroken = true
 			return entry

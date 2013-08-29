@@ -98,9 +98,7 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	if msg.Mode == "" {
-		err := "no 'mode' field available. should 'roundrobin' or  'random'"
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
+		// noop, can be roundrobin or random, if empty the first item in the list is used
 	}
 
 	if msg.Persistence == "" {
@@ -181,6 +179,22 @@ func DeleteKey(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	resp := fmt.Sprintf("key: '%s' is deleted for service: '%s'", key, servicename)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
+}
+
+func DeleteServices(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	username := vars["username"]
+	fmt.Printf("DELETE\t/services/%s\n", username)
+
+	err := proxyDB.DeleteServices(username)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	resp := fmt.Sprintf("user: '%s' is deleted from config", username)
 	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
 	return
 }

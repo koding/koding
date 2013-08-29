@@ -531,24 +531,37 @@ task 'test-all', 'Runs functional test suite', (options)->
       return path if fs.existsSync(path)
 
   # do we have the virtualenv ???
-  pip = which ['./env/bin/pip', '/usr/local/bin/pip']
+  pip = which ['./env/bin/pip', '/usr/local/bin/pip', '/usr/bin/pip']
   unless pip
     console.error "please install pip with \n brew install python --framework"
     return
 
-  cmd = "sudo #{pip} install -e 'git+ssh://git@git.in.koding.com/qa.git@master#egg=testengine'"
+  cmd = "sudo #{pip} install --src=/tmp/.koding-qa -e 'git+ssh://git@git.in.koding.com/qa.git@master#egg=testengine'"
   exec cmd, (err, stdout, stderr)->
-    # log.info err
-    # log.info stdout
-    # log.info stderr
-    # log.info "done installation"
+    if err
+      log.error """ 
+        TestEngine installation error, please copy and paste the output below
+        and send to QA
+      """
+      log.info "cmd:", cmd
+      log.info err
+      log.info stdout
+      log.info stderr
+      return
+
     testEngine = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run']
-    args = ['-p', './tests', '-c', options.configFile]
+    if not testEngine
+      throw "TestEngine installation error"
+    configFile = options.configFile or 'vagrant'
+    
+    args = ['-p', './tests', '-c', configFile]
     if options.file
       args.push '-f', options.file
     if options.location
       args.push '-l', options.location
+
     testProcess = spawn testEngine, args  
+    
     testProcess.stderr.on 'data', (data)->
       process.stdout.write data.toString()
     testProcess.stdout.on 'data', (data)->
