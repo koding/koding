@@ -6,18 +6,16 @@ class DNSRecordListController extends KDListViewController
     options.viewOptions or=
       type      : 'env-list'
       tagName   : 'ul'
-      # partial   :
-      #   """
-      #   <thead>
-      #     <tr>
-      #       <th>Record Type</th>
-      #       <th>Host</th>
-      #       <th>Value</th>
-      #       <th>TTL</th>
-      #       <th>Actions</th>
-      #     </tr>
-      #   </thead>
-      #   """
+      partial   :
+        """
+        <h3 class="records-title">
+          <div class="record-type record-element">Record Type</div>
+          <div class="record-host record-element">Host</div>
+          <div class="record-value record-element">Value</div>
+          <div class="record-ttl record-element">TTL</div>
+          <div class="record-buttons record-element">Actions</div>
+        </h3>
+        """
     super options, data
 
     {domain} = @getData()

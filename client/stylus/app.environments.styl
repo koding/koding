@@ -205,8 +205,8 @@ app.environments.styl
             display     block
 
         &.add-record
-          min-width     85px
-          max-width     100px
+          min-width     110px
+          max-width     120px
 
           button
             display   block
@@ -517,10 +517,72 @@ app.environments.styl
 
   .kdlistview-env-list
 
-    border-collapse    separate
-    border-spacing     0
-    width              auto
-    border             1px solid #ff9600
+    h3.records-title
+      font-size           13px
+      color               #ff9200 !important
+      font-weight         normal
+      border-bottom       1px solid #e6e6e6 !important
+      border-top          1px solid #e6e6e6 !important
+      text-shadow         0 1px 0 #fff
+      background          #fafafa
+
+    h3.records-title,
+    .kdlistitemview
+      width               100%
+      display             flex
+      align-items         center
+      padding             0 10px 0 5px !important
+      vendor              box-sizing,border-box
+      border-bottom       1px solid #f9f9f9
+      color               #888
+
+      &:nth-child(2n)
+        background        #fcfcfc
+        border-bottom     1px solid #f2f2f2
+
+      .record-element
+        display           block
+        width             100% !important
+        padding           4px 0 4px 5px
+
+        .kdselectbox
+          vendor            box-sizing,border-box
+          width             100%            
+
+        &~.record-element
+          margin-left       10px
+
+          input 
+            size            100%, 26px
+
+        &.record-type
+          text-align        center !important
+          min-width         80px !important
+          max-width         80px !important
+
+        &.record-buttons
+          min-width         110px
+          max-width         120px
+          display           flex
+
+          button
+            display         block
+            float           none
+            width           100%
+            size            100%, 26px
+
+            &:nth-child(2n)
+              margin-left   5px
+
+    h3.records-title 
+      .record-element 
+        padding-top            10px !important
+        &.record-type
+          text-align           left !important
+        &.record-buttons
+          justify-content      center
+
+
 
     th, td
       vertical-align   top
