@@ -88,14 +88,14 @@ func migrate(id bson.ObjectId) bool {
 		return false
 	}
 
-	cmd = exec.Command("/usr/bin/rbd", "import", "--pool", config.Current.VmPool, "--image", name+"-format-1", "--path", "/dev/rbd/vms/"+name, "--image-format", "1")
+	cmd = exec.Command("/usr/bin/rbd", "import", "--pool", config.Current.VmPool, "--image", name+"-format-1", "--path", "/dev/rbd/"+config.Current.VmPool+"/"+name, "--image-format", "1")
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		fmt.Println(err)
 		return false
 	}
 
-	cmd = exec.Command("/usr/bin/rbd", "unmap", "/dev/rbd/vms/"+name)
+	cmd = exec.Command("/usr/bin/rbd", "unmap", "/dev/rbd/"+config.Current.VmPool+"/"+name)
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		fmt.Println(err)

@@ -74,7 +74,7 @@ func (vm *VM) MAC() net.HardwareAddr {
 }
 
 func (vm *VM) RbdDevice() string {
-	return "/dev/rbd/vms/" + vm.String()
+	return "/dev/rbd/" + VMPool + "/" + vm.String()
 }
 
 func (vm *VM) File(p string) string {
