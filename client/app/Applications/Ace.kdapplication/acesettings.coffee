@@ -158,7 +158,7 @@ __aceSettings =
     typescript  : ["Typescript"   , "ts"]
     xml         : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
     xquery      : ["XQuery"       , "xq"]
-    yaml        : ["YAML"         , "yaml"]
+    yaml        : ["YAML"         , "yaml|yml"]
     objectivec  : ["Objective C"  , "__dummy__"]
 
   getSyntaxOptions : ->
