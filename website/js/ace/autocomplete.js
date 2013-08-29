@@ -46,7 +46,7 @@ var Autocomplete = function() {
     this.changeListener = this.changeListener.bind(this);
     this.mousedownListener = this.mousedownListener.bind(this);
     this.mousewheelListener = this.mousewheelListener.bind(this);
-    
+
     this.changeTimer = lang.delayedCall(function() {
         this.updateCompletions(true);
     }.bind(this))
@@ -87,7 +87,7 @@ var Autocomplete = function() {
         this.editor.removeEventListener("blur", this.changeListener);
         this.editor.removeEventListener("mousedown", this.changeListener);
         this.changeTimer.cancel();
-        
+
         if (this.popup)
             this.popup.hide();
 
@@ -176,6 +176,9 @@ var Autocomplete = function() {
             var penalty = 0;
             var index, distance;
             // caption char iteration is faster in Chrome but slower in Firefox, so lets use indexOf
+            if (!caption) {
+                continue loop
+            }
             for (var j = 0; j < needle.length; j++) {
                 // TODO add penalty on case mismatch
                 var i1 = caption.indexOf(lower[j], lastIndex + 1);
@@ -226,7 +229,7 @@ var Autocomplete = function() {
     this.showPopup = function(editor) {
         if (this.editor)
             this.detach();
-        
+
         this.activated = true;
 
         this.editor = editor;
@@ -242,13 +245,13 @@ var Autocomplete = function() {
         editor.on("mousedown", this.mousedownListener);
         this.updateCompletions();
     }
-    
+
     this.updateCompletions = function(keepPopupPosition) {
         this.gatherCompletions(this.editor, function(err, results) {
             var matches = results && results.matches;
             if (!matches || !matches.length)
                 return this.detach();
-            // TODO reenable this when we have proper change tracking 
+            // TODO reenable this when we have proper change tracking
             // if (matches.length == 1)
             //     return this.insertMatch(matches[0]);
 
