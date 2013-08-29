@@ -10,7 +10,7 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
     @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(options, callback)->
+  run:(options, callback = noop)->
     [callback, options] = [options, callback]  unless callback
     options ?= {}
     if "string" is typeof options
