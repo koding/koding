@@ -1,15 +1,20 @@
 package main
 
 import (
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
-	sessions "github.com/gorilla/sessions"
+	"github.com/fatih/goset"
+	"github.com/gorilla/sessions"
 	"github.com/streadway/amqp"
 	"html/template"
+	"io"
 	"io/ioutil"
+	"koding/databases/mongo"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"net/url"
@@ -193,7 +198,7 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, bool
 		loginName := r.PostFormValue("loginName")
 		loginPass := r.PostFormValue("loginPass")
 		if loginName != "" && loginPass != "" {
-			if loginName == "hus" && loginPass == "pass" {
+			if checkUserLogin(loginName, loginPass) {
 				session, _ := store.Get(r, "userData")
 				session.Values["userName"] = loginName
 				//err :=
@@ -221,6 +226,28 @@ func logOut(w http.ResponseWriter, r *http.Request) {
 	store.Save(r, w, session)
 }
 
+func checkUserLogin(username string, password string) bool {
+	admins := goset.New("huseyinalb", "devrim")
+	result, error := mongo.Search("koding", "jUsers", bson.M{"username": username}, 0, 1)
+	if error == "" && len(result) > 0 {
+		row := result[0].(bson.M)
+		salt := row["salt"].(string)
+		dbpassword := row["password"].(string)
+		iostring := sha1.New()
+		io.WriteString(iostring, salt)
+		io.WriteString(iostring, password)
+		sha1pass := fmt.Sprintf("%x", iostring.Sum(nil))
+		if dbpassword == sha1pass && admins.Has(username) {
+			return true
+		} else {
+			return false
+		}
+	} else {
+		return false
+	}
+
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Should be done first
@@ -245,9 +272,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	if action == "switchVersion" {
 		version := r.PostFormValue("switchVersion")
 		loginPass := r.PostFormValue("loginPass")
-		if loginPass != "pass" {
-			switchMessage = "Password is wrong"
-		} else {
+		if checkUserLogin(loginName, loginPass) {
 			log.Println("switching to version", version)
 			err := switchVersion(version)
 			if err != nil {
@@ -257,6 +282,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 				switchMessage = "Switched to version " + loginName
 				logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName))
 			}
+		} else {
+			switchMessage = "Password is wrong"
 		}
 	}
 
