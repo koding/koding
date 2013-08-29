@@ -19,7 +19,7 @@ class DNSRecordListItemView extends KDListItemView
     {{> @recordHostView }}
     {{> @recordValueView }}
     {{> @recordTtlView }}
-    <p>
+    <p class="record-buttons  record-element">
       {{> @editButton }}
       {{> @deleteButton }}
       {{> @updateButton }}
@@ -39,7 +39,7 @@ class DNSRecordListItemView extends KDListItemView
       callback : @bound "deleteRecord"
 
     @updateButton = new KDButtonView
-      title        : "Update Record"
+      title        : "Update"
       callback     : @bound "updateRecord"
 
     @cancelButton = new KDButtonView
@@ -134,6 +134,7 @@ class RecordElementView extends JView
 class RecordTypeView extends RecordElementView
 
   constructor:(options={}, data)->
+    options.cssClass = "record-type record-element"
     super options, data
 
     {recordType} = @getData()
@@ -157,6 +158,7 @@ class RecordTypeView extends RecordElementView
 
 class RecordHostView extends RecordElementView
   constructor:(options={}, data)->
+    options.cssClass = "record-host record-element"
     super options, data
 
     {host} = @getData()
@@ -171,6 +173,7 @@ class RecordHostView extends RecordElementView
 
 class RecordValueView extends RecordElementView
   constructor:(options={}, data)->
+    options.cssClass = "record-value record-element"
     super options, data
 
     {value} = @getData()
@@ -185,6 +188,7 @@ class RecordValueView extends RecordElementView
 
 class RecordTtlView extends RecordElementView
   constructor:(options={}, data)->
+    options.cssClass = "record-ttl record-element"
     super options, data
 
     {ttl} = @getData()
