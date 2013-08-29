@@ -22,6 +22,8 @@ class AceSettingsView extends JView
       callback      : (state) => button.emit "ace.changeSetting", "showInvisibles", state
     @vimMode        = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "vimMode", state
+    @scrollPastEnd  = new KDOnOffSwitch
+      callback      : (state) -> button.emit "ace.changeSetting", "scrollPastEnd", state
     @softWrap       = new KDSelectBox
       selectOptions : __aceSettings.softWrapOptions
       callback      : (value) => button.emit "ace.changeSetting", "softWrap", value
@@ -78,6 +80,7 @@ class AceSettingsView extends JView
 
     <p>Show invisibles          {{> @showInvisibles}}</p>
     <p>Use Vim Mode             {{> @vimMode}}</p>
+    <p>Use scroll past end      {{> @scrollPastEnd}}</p>
     <hr>
     <p>Soft wrap                {{> @softWrap}}</p>
     <p>Syntax                   {{> @syntax}}</p>
