@@ -227,7 +227,7 @@ func logOut(w http.ResponseWriter, r *http.Request) {
 }
 
 func checkUserLogin(username string, password string) bool {
-	admins := goset.New("huseyinalb", "devrim")
+	admins := goset.New("devrim", "fatih", "geraint", "huseyinalb")
 	result, error := mongo.Search("koding", "jUsers", bson.M{"username": username}, 0, 1)
 	if error == "" && len(result) > 0 {
 		row := result[0].(bson.M)
