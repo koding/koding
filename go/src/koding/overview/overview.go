@@ -549,7 +549,7 @@ func currentVersion() (string, error) {
 	return currentVersion, nil
 }
 
-func switchVersion(newVersion string, name string) error {
+func switchVersion(newVersion string) error {
 	if switchHost == "" {
 		errors.New("switchHost is not defined")
 	}
