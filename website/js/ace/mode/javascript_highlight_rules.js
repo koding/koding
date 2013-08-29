@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -61,11 +61,12 @@ var JavaScriptHighlightRules = function() {
         "constant.language":
             "null|Infinity|NaN|undefined",
         "support.function":
-            "alert"
+            "alert",
+        "constant.language.boolean": "true|false"
     }, "identifier");
 
     // keywords which can be followed by regular expressions
-    var kwBeforeRe = "case|do|else|finally|in|instanceof|return|throw|try|typeof|yield";
+    var kwBeforeRe = "case|do|else|finally|in|instanceof|return|throw|try|typeof|yield|void";
 
     // TODO: Unicode escape sequences
     var identifierRe = "[a-zA-Z\\$_\u00a1-\uffff][a-zA-Z\\d\\$_\u00a1-\uffff]*\\b";
@@ -82,15 +83,15 @@ var JavaScriptHighlightRules = function() {
     // regexps are ordered -> the first match is used
 
     this.$rules = {
-        "start" : [
+        "no_regex" : [
             {
                 token : "comment",
-                regex : /\/\/.*$/
+                regex : "\\/\\/",
+                next : "line_comment"
             },
             DocCommentHighlightRules.getStartRule("doc-start"),
             {
                 token : "comment", // multi line comment
-                merge : true,
                 regex : /\/\*/,
                 next : "comment"
             }, {
@@ -163,15 +164,12 @@ var JavaScriptHighlightRules = function() {
                 regex : "(:)(\\s*)(function)(\\s*)(\\()",
                 next: "function_arguments"
             }, {
-                token : "constant.language.boolean",
-                regex : /(?:true|false)\b/
-            }, {
                 token : "keyword",
                 regex : "(?:" + kwBeforeRe + ")\\b",
-                next : "regex_allowed"
+                next : "start"
             }, {
                 token : ["punctuation.operator", "support.function"],
-                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:opzzzz|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
+                regex : /(\.)(s(?:h(?:ift|ow(?:Mod(?:elessDialog|alDialog)|Help))|croll(?:X|By(?:Pages|Lines)?|Y|To)?|t(?:op|rike)|i(?:n|zeToContent|debar|gnText)|ort|u(?:p|b(?:str(?:ing)?)?)|pli(?:ce|t)|e(?:nd|t(?:Re(?:sizable|questHeader)|M(?:i(?:nutes|lliseconds)|onth)|Seconds|Ho(?:tKeys|urs)|Year|Cursor|Time(?:out)?|Interval|ZOptions|Date|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Date|FullYear)|FullYear|Active)|arch)|qrt|lice|avePreferences|mall)|h(?:ome|andleEvent)|navigate|c(?:har(?:CodeAt|At)|o(?:s|n(?:cat|textual|firm)|mpile)|eil|lear(?:Timeout|Interval)?|a(?:ptureEvents|ll)|reate(?:StyleSheet|Popup|EventObject))|t(?:o(?:GMTString|S(?:tring|ource)|U(?:TCString|pperCase)|Lo(?:caleString|werCase))|est|a(?:n|int(?:Enabled)?))|i(?:s(?:NaN|Finite)|ndexOf|talics)|d(?:isableExternalCapture|ump|etachEvent)|u(?:n(?:shift|taint|escape|watch)|pdateCommands)|j(?:oin|avaEnabled)|p(?:o(?:p|w)|ush|lugins.refresh|a(?:ddings|rse(?:Int|Float)?)|r(?:int|ompt|eference))|e(?:scape|nableExternalCapture|val|lementFromPoint|x(?:p|ec(?:Script|Command)?))|valueOf|UTC|queryCommand(?:State|Indeterm|Enabled|Value)|f(?:i(?:nd|le(?:ModifiedDate|Size|CreatedDate|UpdatedDate)|xed)|o(?:nt(?:size|color)|rward)|loor|romCharCode)|watch|l(?:ink|o(?:ad|g)|astIndexOf)|a(?:sin|nchor|cos|t(?:tachEvent|ob|an(?:2)?)|pply|lert|b(?:s|ort))|r(?:ou(?:nd|teEvents)|e(?:size(?:By|To)|calc|turnValue|place|verse|l(?:oad|ease(?:Capture|Events)))|andom)|g(?:o|et(?:ResponseHeader|M(?:i(?:nutes|lliseconds)|onth)|Se(?:conds|lection)|Hours|Year|Time(?:zoneOffset)?|Da(?:y|te)|UTC(?:M(?:i(?:nutes|lliseconds)|onth)|Seconds|Hours|Da(?:y|te)|FullYear)|FullYear|A(?:ttention|llResponseHeaders)))|m(?:in|ove(?:B(?:y|elow)|To(?:Absolute)?|Above)|ergeAttributes|a(?:tch|rgins|x))|b(?:toa|ig|o(?:ld|rderWidths)|link|ack))\b(?=\()/
             }, {
                 token : ["punctuation.operator", "support.function.dom"],
                 regex : /(\.)(s(?:ub(?:stringData|mit)|plitText|e(?:t(?:NamedItem|Attribute(?:Node)?)|lect))|has(?:ChildNodes|Feature)|namedItem|c(?:l(?:ick|o(?:se|neNode))|reate(?:C(?:omment|DATASection|aption)|T(?:Head|extNode|Foot)|DocumentFragment|ProcessingInstruction|E(?:ntityReference|lement)|Attribute))|tabIndex|i(?:nsert(?:Row|Before|Cell|Data)|tem)|open|delete(?:Row|C(?:ell|aption)|T(?:Head|Foot)|Data)|focus|write(?:ln)?|a(?:dd|ppend(?:Child|Data))|re(?:set|place(?:Child|Data)|move(?:NamedItem|Child|Attribute(?:Node)?)?)|get(?:NamedItem|Element(?:sBy(?:Name|TagName)|ById)|Attribute(?:Node)?)|blur)\b(?=\()/
@@ -186,57 +184,54 @@ var JavaScriptHighlightRules = function() {
                 regex : identifierRe
             }, {
                 token : "keyword.operator",
-                regex : /!|\$|%|&|\*|\-\-|\-|\+\+|\+|~|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\|\||\?\:|\*=|%=|\+=|\-=|&=|\^=|\b(?:in|instanceof|new|delete|typeof|void)/,
-                next  : "regex_allowed"
+                regex : /--|\+\+|[!$%&*+\-~]|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\|\||\?\:|\*=|%=|\+=|\-=|&=|\^=/,
+                next  : "start"
             }, {
                 token : "punctuation.operator",
                 regex : /\?|\:|\,|\;|\./,
-                next  : "regex_allowed"
+                next  : "start"
             }, {
                 token : "paren.lparen",
                 regex : /[\[({]/,
-                next  : "regex_allowed"
+                next  : "start"
             }, {
                 token : "paren.rparen",
                 regex : /[\])}]/
             }, {
                 token : "keyword.operator",
                 regex : /\/=?/,
-                next  : "regex_allowed"
+                next  : "start"
             }, {
                 token: "comment",
                 regex: /^#!.*$/
-            }, {
-                token : "text",
-                regex : /\s+/
             }
         ],
         // regular expressions are only allowed after certain tokens. This
         // makes sure we don't mix up regexps with the divison operator
-        "regex_allowed": [
+        "start": [
             DocCommentHighlightRules.getStartRule("doc-start"),
             {
                 token : "comment", // multi line comment
-                merge : true,
                 regex : "\\/\\*",
                 next : "comment_regex_allowed"
             }, {
                 token : "comment",
-                regex : "\\/\\/.*$"
+                regex : "\\/\\/",
+                next : "line_comment_regex_allowed"
             }, {
                 token: "string.regexp",
                 regex: "\\/",
-                next: "regex",
-                merge: true
+                next: "regex"
             }, {
                 token : "text",
-                regex : "\\s+"
+                regex : "\\s+|^$",
+                next : "start"
             }, {
                 // immediately return to the start mode without matching
                 // anything
                 token: "empty",
                 regex: "",
-                next: "start"
+                next: "no_regex"
             }
         ],
         "regex": [
@@ -248,29 +243,28 @@ var JavaScriptHighlightRules = function() {
                 // flag
                 token: "string.regexp",
                 regex: "/\\w*",
-                next: "start",
-                merge: true
+                next: "no_regex"
             }, {
                 // invalid operators
                 token : "invalid",
-                regex: /\{\d+,?(?:\d+)?}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
+                regex: /\{\d+\b,?\d*\}[+*]|[+*$^?][+*]|[$^][?]|\?{3,}/
             }, {
                 // operators
                 token : "constant.language.escape",
-                regex: /\(\?[:=!]|\)|{\d+,?(?:\d+)?}|{,\d+}|[+*]\?|[(|)$^+*?]/
+                regex: /\(\?[:=!]|\)|\{\d+\b,?\d*\}|[+*]\?|[()$^+*?]/
             }, {
-                token: "string.regexp",
-                regex: /{|[^{\[\/\\(|)$^+*?]+/,
-                merge: true
+                token : "constant.language.delimiter",
+                regex: /\|/
             }, {
                 token: "constant.language.escape",
                 regex: /\[\^?/,
-                next: "regex_character_class",
-                merge: true
+                next: "regex_character_class"
             }, {
                 token: "empty",
-                regex: "",
-                next: "start"
+                regex: "$",
+                next: "no_regex"
+            }, {
+                defaultToken: "string.regexp"
             }
         ],
         "regex_character_class": [
@@ -280,19 +274,16 @@ var JavaScriptHighlightRules = function() {
             }, {
                 token: "constant.language.escape",
                 regex: "]",
-                next: "regex",
-                merge: true
+                next: "regex"
             }, {
                 token: "constant.language.escape",
                 regex: "-"
             }, {
-                token: "string.regexp.charachterclass",
-                regex: /[^\]\-\\]+/,
-                merge: true
-            }, {
                 token: "empty",
-                regex: "",
-                next: "start"
+                regex: "$",
+                next: "no_regex"
+            }, {
+                defaultToken: "string.regexp.charachterclass"
             }
         ],
         "function_arguments": [
@@ -301,41 +292,31 @@ var JavaScriptHighlightRules = function() {
                 regex: identifierRe
             }, {
                 token: "punctuation.operator",
-                regex: "[, ]+",
-                merge: true
+                regex: "[, ]+"
             }, {
                 token: "punctuation.operator",
-                regex: "$",
-                merge: true
+                regex: "$"
             }, {
                 token: "empty",
                 regex: "",
-                next: "start"
+                next: "no_regex"
             }
         ],
         "comment_regex_allowed" : [
-            {
-                token : "comment", // closing comment
-                regex : ".*?\\*\\/",
-                merge : true,
-                next : "regex_allowed"
-            }, {
-                token : "comment", // comment spanning whole line
-                merge : true,
-                regex : ".+"
-            }
+            {token : "comment", regex : "\\*\\/", next : "start"},
+            {defaultToken : "comment"}
         ],
         "comment" : [
-            {
-                token : "comment", // closing comment
-                regex : ".*?\\*\\/",
-                merge : true,
-                next : "start"
-            }, {
-                token : "comment", // comment spanning whole line
-                merge : true,
-                regex : ".+"
-            }
+            {token : "comment", regex : "\\*\\/", next : "no_regex"},
+            {defaultToken : "comment"}
+        ],
+        "line_comment_regex_allowed" : [
+            {token : "comment", regex : "$|^", next : "start"},
+            {defaultToken : "comment"}
+        ],
+        "line_comment" : [
+            {token : "comment", regex : "$|^", next : "no_regex"},
+            {defaultToken : "comment"}
         ],
         "qqstring" : [
             {
@@ -343,18 +324,14 @@ var JavaScriptHighlightRules = function() {
                 regex : escapedRe
             }, {
                 token : "string",
-                regex : '[^"\\\\]+',
-                merge : true
-            }, {
-                token : "string",
                 regex : "\\\\$",
-                next  : "qqstring",
-                merge : true
+                next  : "qqstring"
             }, {
                 token : "string",
                 regex : '"|$',
-                next  : "start",
-                merge : true
+                next  : "no_regex"
+            }, {
+                defaultToken: "string"
             }
         ],
         "qstring" : [
@@ -363,24 +340,20 @@ var JavaScriptHighlightRules = function() {
                 regex : escapedRe
             }, {
                 token : "string",
-                regex : "[^'\\\\]+",
-                merge : true
-            }, {
-                token : "string",
                 regex : "\\\\$",
-                next  : "qstring",
-                merge : true
+                next  : "qstring"
             }, {
                 token : "string",
                 regex : "'|$",
-                next  : "start",
-                merge : true
+                next  : "no_regex"
+            }, {
+                defaultToken: "string"
             }
         ]
     };
 
     this.embedRules(DocCommentHighlightRules, "doc-",
-        [ DocCommentHighlightRules.getEndRule("start") ]);
+        [ DocCommentHighlightRules.getEndRule("no_regex") ]);
 };
 
 oop.inherits(JavaScriptHighlightRules, TextHighlightRules);
