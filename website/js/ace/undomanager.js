@@ -32,16 +32,18 @@ define(function(require, exports, module) {
 "use strict";
 
 /**
- * class UndoManager
+ * 
  *
  * This object maintains the undo stack for an [[EditSession `EditSession`]].
- *
+ * @class UndoManager
  **/
 
 /**
- * new UndoManager()
+ * 
  * 
  * Resets the current undo state and creates a new `UndoManager`.
+ * 
+ * @constructor
  **/
 var UndoManager = function() {
     this.reset();
@@ -50,27 +52,37 @@ var UndoManager = function() {
 (function() {
 
     /**
-    * UndoManager.execute(options) -> Void
-    * - options (Object): Contains additional properties
-    *
     * Provides a means for implementing your own undo manager. `options` has one property, `args`, an [[Array `Array`]], with two elements:
     *
-    * * `args[0]` is an array of deltas
-    * * `args[1]` is the document to associate with
+    * - `args[0]` is an array of deltas
+    * - `args[1]` is the document to associate with
+    *
+    * @param {Object} options Contains additional properties
     *
     **/
     this.execute = function(options) {
         var deltas = options.args[0];
         this.$doc  = options.args[1];
+        if (options.merge && this.hasUndo()){
+            deltas = this.$undoStack.pop().concat(deltas);
+        }
         this.$undoStack.push(deltas);
         this.$redoStack = [];
+
+        if (this.dirtyCounter < 0) {
+            // The user has made a change after undoing past the last clean state.
+            // We can never get back to a clean state now until markClean() is called.
+            this.dirtyCounter = NaN;
+        }
+        this.dirtyCounter++;
     };
 
     /**
-    * UndoManager.undo(dontSelect) -> Range
-    * - dontSelect (Boolean): {:dontSelect}
+    * [Perform an undo operation on the document, reverting the last change.]{: #UndoManager.undo}
+    * @param {Boolean} dontSelect {:dontSelect}
     *
-    * [Perform an undo operation on the document, reverting the last change. Returns the range of the undo.]{: #UndoManager.undo}
+    * 
+    * @returns {Range} The range of the undo.
     **/
     this.undo = function(dontSelect) {
         var deltas = this.$undoStack.pop();
@@ -79,15 +91,17 @@ var UndoManager = function() {
             undoSelectionRange =
                 this.$doc.undoChanges(deltas, dontSelect);
             this.$redoStack.push(deltas);
+            this.dirtyCounter--;
         }
+
         return undoSelectionRange;
     };
 
     /**
-    * UndoManager.redo(dontSelect) -> Void
-    * - dontSelect (Boolean): {:dontSelect}
-    *
     * [Perform a redo operation on the document, reimplementing the last change.]{: #UndoManager.redo}
+    * @param {Boolean} dontSelect {:dontSelect}
+    *
+    * 
     **/
     this.redo = function(dontSelect) {
         var deltas = this.$redoStack.pop();
@@ -96,36 +110,55 @@ var UndoManager = function() {
             redoSelectionRange =
                 this.$doc.redoChanges(deltas, dontSelect);
             this.$undoStack.push(deltas);
+            this.dirtyCounter++;
         }
+
         return redoSelectionRange;
     };
 
     /**
-    * UndoManager.reset() -> Void
-    *
+    * 
     * Destroys the stack of undo and redo redo operations.
     **/
     this.reset = function() {
         this.$undoStack = [];
         this.$redoStack = [];
+        this.dirtyCounter = 0;
     };
 
     /**
-    * UndoManager.hasUndo() -> Boolean
-    *
+    * 
     * Returns `true` if there are undo operations left to perform.
+    * @returns {Boolean}
     **/
     this.hasUndo = function() {
         return this.$undoStack.length > 0;
     };
 
     /**
-    * UndoManager.hasRedo() -> Boolean
-    *
+    * 
     * Returns `true` if there are redo operations left to perform.
+    * @returns {Boolean}
     **/
     this.hasRedo = function() {
         return this.$redoStack.length > 0;
+    };
+
+    /**
+    *
+    * Marks the current status clean
+    **/
+    this.markClean = function() {
+        this.dirtyCounter = 0;
+    };
+
+    /**
+    *
+    * Returns if the current status is clean
+    * @returns {Boolean}
+    **/
+    this.isClean = function() {
+        return this.dirtyCounter === 0;
     };
 
 }).call(UndoManager.prototype);

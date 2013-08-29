@@ -55,6 +55,17 @@ __aceSettings =
       title: '8 chars'
   ]
 
+  keyboardHandlers: [
+      value: "default"
+      title: "Default"
+    ,
+      value: "vim"
+      title: "Vim"
+    ,
+      value: "emacs"
+      title: "Emacs"
+  ]
+
   themes:
     Bright : [
       { title: 'Chrome',                value: 'chrome' }
@@ -147,7 +158,7 @@ __aceSettings =
     typescript  : ["Typescript"   , "ts"]
     xml         : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
     xquery      : ["XQuery"       , "xq"]
-    yaml        : ["YAML"         , "yaml"]
+    yaml        : ["YAML"         , "yaml|yml"]
     objectivec  : ["Objective C"  , "__dummy__"]
 
   getSyntaxOptions : ->

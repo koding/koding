@@ -37,14 +37,22 @@ var Tokenizer = require("../tokenizer").Tokenizer;
 var LuaHighlightRules = require("./lua_highlight_rules").LuaHighlightRules;
 var LuaFoldMode = require("./folding/lua").FoldMode;
 var Range = require("../range").Range;
+var WorkerClient = require("../worker/worker_client").WorkerClient;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new LuaHighlightRules().getRules());
+    var highlighter = new LuaHighlightRules();
+    
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.foldingRules = new LuaFoldMode();
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
+   
+    this.lineCommentStart = "--";
+    this.blockComment = {start: "--[", end: "]--"};
+    
     var indentKeywords = {
         "function": 1,
         "then": 1,
@@ -66,7 +74,7 @@ oop.inherits(Mode, TextMode);
         var level = 0;
         // Support single-line blocks by decrementing the indent level if
         // an ending token is found
-        for (var i in tokens){
+        for (var i = 0; i < tokens.length; i++) {
             var token = tokens[i];
             if (token.type == "keyword") {
                 if (token.value in indentKeywords) {
@@ -137,6 +145,21 @@ oop.inherits(Mode, TextMode);
             return;
         }
         session.outdentRows(new Range(row, 0, row + 2, 0));
+    };
+
+    this.createWorker = function(session) {
+        var worker = new WorkerClient(["ace"], "ace/mode/lua_worker", "Worker");
+        worker.attachToDocument(session.getDocument());
+        
+        worker.on("error", function(e) {
+            session.setAnnotations([e.data]);
+        });
+        
+        worker.on("ok", function(e) {
+            session.clearAnnotations();
+        });
+        
+        return worker;
     };
 
 }).call(Mode.prototype);

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34,6 +34,7 @@ define(function(require, exports, module) {
 require("./lib/fixoldbrowsers");
 
 var oop = require("./lib/oop");
+var dom = require("./lib/dom");
 var lang = require("./lib/lang");
 var useragent = require("./lib/useragent");
 var TextInput = require("./keyboard/textinput").TextInput;
@@ -46,21 +47,25 @@ var Range = require("./range").Range;
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
 var CommandManager = require("./commands/command_manager").CommandManager;
 var defaultCommands = require("./commands/default_commands").commands;
+var config = require("./config");
 
 /**
- * class Editor
+ * The main entry point into the Ace functionality.
  *
- * The main entry point into the Ace functionality. The `Editor` manages the `EditSession` (which manages `Document`s), as well as the `VirtualRenderer`, which draws everything to the screen. Event sessions dealing with the mouse and keyboard are bubbled up from `Document` to the `Editor`, which decides what to do with them.
+ * The `Editor` manages the [[EditSession]] (which manages [[Document]]s), as well as the [[VirtualRenderer]], which draws everything to the screen.
  *
+ * Event sessions dealing with the mouse and keyboard are bubbled up from `Document` to the `Editor`, which decides what to do with them.
+ * @class Editor
  **/
 
 /**
- * new Editor(renderer, session)
- * - renderer (VirtualRenderer): Associated `VirtualRenderer` that draws everything
- * - session (EditSession): The `EditSession` to refer to
- *
  * Creates a new `Editor` object.
  *
+ * @param {VirtualRenderer} renderer Associated `VirtualRenderer` that draws everything
+ * @param {EditSession} session The `EditSession` to refer to
+ *
+ *
+ * @constructor
  **/
 var Editor = function(renderer, session) {
     var container = renderer.getContainerElement();
@@ -81,42 +86,174 @@ var Editor = function(renderer, session) {
         wrap: true
     });
 
+    this.$historyTracker = this.$historyTracker.bind(this);
+    this.commands.on("exec", this.$historyTracker);
+
+    this.$initOperationListeners();
+
     this.setSession(session || new EditSession(""));
+    config.resetOptions(this);
+    config._emit("editor", this);
 };
 
 (function(){
 
     oop.implement(this, EventEmitter);
 
-    /**
-     * Editor.setKeyboardHandler(keyboardHandler) 
-     * 
-     * Sets a new keyboard handler.
-     **/
-    this.setKeyboardHandler = function(keyboardHandler) {
-        this.keyBinding.setKeyboardHandler(keyboardHandler);
+    this.$initOperationListeners = function() {
+        function last(a) {return a[a.length - 1]};
+
+        this.selections = [];
+        this.commands.on("exec", function(e) {
+            this.startOperation(e);
+
+            var command = e.command;
+            if (command.group == "fileJump") {
+                var prev = this.prevOp;
+                if (!prev || prev.command.group != "fileJump") {
+                    this.lastFileJumpPos = last(this.selections)
+                }
+            } else {
+                this.lastFileJumpPos = null;
+            }
+        }.bind(this), true);
+
+        this.commands.on("afterExec", function(e) {
+            var command = e.command;
+
+            if (command.group == "fileJump") {
+                if (this.lastFileJumpPos && !this.curOp.selectionChanged) {
+                    this.selection.fromJSON(this.lastFileJumpPos);
+                    return
+                }
+            }
+            this.endOperation(e);
+        }.bind(this), true);
+
+        this.$opResetTimer = lang.delayedCall(this.endOperation.bind(this));
+
+        this.on("change", function() {
+            this.curOp || this.startOperation();
+            this.curOp.docChanged = true;
+        }.bind(this), true);
+
+        this.on("changeSelection", function() {
+            this.curOp || this.startOperation();
+            this.curOp.selectionChanged = true;
+        }.bind(this), true);
+    }
+
+    this.curOp = null;
+    this.prevOp = {};
+    this.startOperation = function(commadEvent) {
+        if (this.curOp) {
+            if (!commadEvent || this.curOp.command)
+                return;
+            this.prevOp = this.curOp;
+        }
+        if (!commadEvent) {
+            this.previousCommand = null;
+            commadEvent = {};
+        }
+
+        this.$opResetTimer.schedule();
+        this.curOp = {
+            command: commadEvent.command || {},
+            args: commadEvent.args
+        };
+
+        this.selections.push(this.selection.toJSON());
     };
 
-    /** related to: KeyBinding
-     * Editor.getKeyboardHandler() -> String
-     * 
-     * Returns the keyboard handler.
+    this.endOperation = function() {
+        if (this.curOp) {
+            this.prevOp = this.curOp;
+            this.curOp = null;
+        }
+    };
+
+    this.$historyTracker = function(e) {
+        if (!this.$mergeUndoDeltas)
+            return;
+
+
+        var prev = this.prevOp;
+        var mergeableCommands = ["backspace", "del", "insertstring"];
+        // previous command was the same
+        var shouldMerge = prev.command && (e.command.name == prev.command.name);
+        if (e.command.name == "insertstring") {
+            var text = e.args;
+            if (this.mergeNextCommand === undefined)
+                this.mergeNextCommand = true;
+
+            shouldMerge = shouldMerge
+                && this.mergeNextCommand // previous command allows to coalesce with
+                && (!/\s/.test(text) || /\s/.test(prev.args)) // previous insertion was of same type
+
+            this.mergeNextCommand = true;
+        } else {
+            shouldMerge = shouldMerge
+                && mergeableCommands.indexOf(e.command.name) !== -1// the command is mergeable
+        }
+
+        if (
+            this.$mergeUndoDeltas != "always"
+            && Date.now() - this.sequenceStartTime > 2000
+        ) {
+            shouldMerge = false; // the sequence is too long
+        }
+
+        if (shouldMerge)
+            this.session.mergeUndoDeltas = true;
+        else if (mergeableCommands.indexOf(e.command.name) !== -1)
+            this.sequenceStartTime = Date.now();
+    };
+
+    /**
+     * Sets a new key handler, such as "vim" or "windows".
+     * @param {String} keyboardHandler The new key handler
+     *
+     *
+     **/
+    this.setKeyboardHandler = function(keyboardHandler) {
+        if (!keyboardHandler) {
+            this.keyBinding.setKeyboardHandler(null);
+        } else if (typeof keyboardHandler == "string") {
+            this.$keybindingId = keyboardHandler;
+            var _self = this;
+            config.loadModule(["keybinding", keyboardHandler], function(module) {
+                if (_self.$keybindingId == keyboardHandler)
+                    _self.keyBinding.setKeyboardHandler(module && module.handler);
+            });
+        } else {
+            this.$keybindingId = null;
+            this.keyBinding.setKeyboardHandler(keyboardHandler);
+        }
+    };
+
+    /**
+     * Returns the keyboard handler, such as "vim" or "windows".
+     *
+     * @returns {String}
+     *
      **/
     this.getKeyboardHandler = function() {
         return this.keyBinding.getKeyboardHandler();
     };
 
+
     /**
-     * Editor.setSession(session) 
-     * - session (EditSession): The new session to use
+     * Emitted whenever the [[EditSession]] changes.
+     * @event changeSession
+     * @param {Object} e An object with two properties, `oldSession` and `session`, that represent the old and new [[EditSession]]s.
      *
-     * Sets a new editsession to use. This method also emits the `'changeSession'` event.
+     *
      **/
     /**
-     * Editor@changeSession(e) 
-     * - e (Object): An object with two properties, `oldSession` and `session`, that represent the old and new [[EditSession]]s.
+     * Sets a new editsession to use. This method also emits the `'changeSession'` event.
+     * @param {EditSession} session The new session to use
      *
-     * Emitted whenever the [[EditSession]] changes.
+     *
      **/
     this.setSession = function(session) {
         if (this.session == session)
@@ -137,7 +274,7 @@ var Editor = function(renderer, session) {
             this.session.removeEventListener("changeAnnotation", this.$onChangeAnnotation);
             this.session.removeEventListener("changeOverwrite", this.$onCursorChange);
             this.session.removeEventListener("changeScrollTop", this.$onScrollTopChange);
-            this.session.removeEventListener("changeLeftTop", this.$onScrollLeftChange);
+            this.session.removeEventListener("changeScrollLeft", this.$onScrollLeftChange);
 
             var selection = this.session.getSelection();
             selection.removeEventListener("changeCursor", this.$onCursorChange);
@@ -218,20 +355,20 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.getSession() -> EditSession
-     * 
      * Returns the current session being used.
+     * @returns {EditSession}
      **/
     this.getSession = function() {
         return this.session;
     };
 
-    /** related to: Document.setValue
-     * Editor.setValue(val [,cursorPos]) -> String
-     * - val (String): The new value to set for the document
-     * - cursorPos (Number): Where to set the new value. `undefined` or 0 is selectAll, -1 is at the document start, and 1 is at the end
-     *
+    /**
      * Sets the current document to `val`.
+     * @param {String} val The new value to set for the document
+     * @param {Number} cursorPos Where to set the new value. `undefined` or 0 is selectAll, -1 is at the document start, and 1 is at the end
+     *
+     * @returns {String} The current document value
+     * @related Document.setValue
      **/
     this.setValue = function(val, cursorPos) {
         this.session.doc.setValue(val);
@@ -246,87 +383,93 @@ var Editor = function(renderer, session) {
         return val;
     };
 
-    /** related to: EditSession.getValue
-     * Editor.getValue() -> String
-     *
+    /**
      * Returns the current session's content.
+     *
+     * @returns {String}
+     * @related EditSession.getValue
      **/
     this.getValue = function() {
         return this.session.getValue();
     };
 
     /**
-     * Editor.getSelection() -> String
-     * 
+     *
      * Returns the currently highlighted selection.
+     * @returns {String} The highlighted selection
      **/
     this.getSelection = function() {
         return this.selection;
     };
 
-    /** related to: VirtualRenderer.onResize
-     * Editor.resize(force) 
-     * - force (Boolean): If `true`, recomputes the size, even if the height and width haven't changed
-     *
+    /**
      * {:VirtualRenderer.onResize}
+     * @param {Boolean} force If `true`, recomputes the size, even if the height and width haven't changed
+     *
+     *
+     * @related VirtualRenderer.onResize
      **/
     this.resize = function(force) {
         this.renderer.onResize(force);
     };
 
     /**
-     * Editor.setTheme(theme) 
-     * - theme (String): The path to a theme
-     *
      * {:VirtualRenderer.setTheme}
+     * @param {String} theme The path to a theme
+     *
+     *
      **/
     this.setTheme = function(theme) {
         this.renderer.setTheme(theme);
     };
 
-    /** related to: VirtualRenderer.getTheme
-     * Editor.getTheme() -> String
-     * 
+    /**
      * {:VirtualRenderer.getTheme}
+     *
+     * @returns {String} The set theme
+     * @related VirtualRenderer.getTheme
      **/
     this.getTheme = function() {
         return this.renderer.getTheme();
     };
 
-    /** related to: VirtualRenderer.setStyle
-     * Editor.setStyle(style) 
-     * - style (String): A class name
-     *
+    /**
      * {:VirtualRenderer.setStyle}
+     * @param {String} style A class name
+     *
+     *
+     * @related VirtualRenderer.setStyle
      **/
     this.setStyle = function(style) {
         this.renderer.setStyle(style);
     };
 
-    /** related to: VirtualRenderer.unsetStyle
-     * Editor.unsetStyle(style) 
-     * 
+    /**
      * {:VirtualRenderer.unsetStyle}
+     * @related VirtualRenderer.unsetStyle
      **/
     this.unsetStyle = function(style) {
         this.renderer.unsetStyle(style);
     };
 
     /**
-     * Editor.setFontSize(size) 
-     * - size (Number): A font size 
-     * 
-     * Set a new font size (in pixels) for the editor text.
-     **/
-    this.setFontSize = function(size) {
-        this.container.style.fontSize = size;
-        this.renderer.updateFontSize();
+     * Gets the current font size of the editor text.
+     */
+    this.getFontSize = function () {
+        return this.getOption("fontSize") ||
+           dom.computedStyle(this.container, "fontSize");
     };
 
-    /** internal, hide
-     * Editor.$highlightBrackets() 
-     *  
+    /**
+     * Set a new font size (in pixels) for the editor text.
+     * @param {String} size A font size ( _e.g._ "12px")
+     *
+     *
      **/
+    this.setFontSize = function(size) {
+        this.setOption("fontSize", size);
+    };
+
     this.$highlightBrackets = function() {
         if (this.session.$bracketHighlight) {
             this.session.removeMarker(this.session.$bracketHighlight);
@@ -346,14 +489,16 @@ var Editor = function(renderer, session) {
             var pos = self.session.findMatchingBracket(self.getCursorPosition());
             if (pos) {
                 var range = new Range(pos.row, pos.column, pos.row, pos.column+1);
-                self.session.$bracketHighlight = self.session.addMarker(range, "ace_bracket", "text");
+            } else if (self.session.$mode.getMatching) {
+                var range = self.session.$mode.getMatching(self.session);
             }
+            if (range)
+                self.session.$bracketHighlight = self.session.addMarker(range, "ace_bracket", "text");
         }, 50);
     };
 
     /**
-     * Editor.focus() 
-     * 
+     *
      * Brings the current `textInput` into focus.
      **/
     this.focus = function() {
@@ -368,17 +513,15 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.isFocused() -> Boolean
-     * 
-     * Returns true if the current `textInput` is in focus.
+     * Returns `true` if the current `textInput` is in focus.
+     * @return {Boolean}
      **/
     this.isFocused = function() {
         return this.textInput.isFocused();
     };
 
     /**
-     * Editor.blur() 
-     * 
+     *
      * Blurs the current `textInput`.
      **/
     this.blur = function() {
@@ -386,9 +529,10 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor@focus()
-     * 
      * Emitted once the editor comes into focus.
+     * @event focus
+     *
+     *
      **/
     this.onFocus = function() {
         if (this.$isFocused)
@@ -400,9 +544,10 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor@blur()
-     * 
      * Emitted once the editor has been blurred.
+     * @event blur
+     *
+     *
      **/
     this.onBlur = function() {
         if (!this.$isFocused)
@@ -418,11 +563,12 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor@change(e) 
-     * - e (Object): Contains a single property, `data`, which has the delta of changes
+     * Emitted whenever the document is changed.
+     * @event change
+     * @param {Object} e Contains a single property, `data`, which has the delta of changes
      *
-     * Emitted whenever the document is changed. 
-     * 
+     *
+     *
      **/
     this.onDocumentChange = function(e) {
         var delta = e.data;
@@ -450,16 +596,14 @@ var Editor = function(renderer, session) {
     this.onScrollTopChange = function() {
         this.renderer.scrollToY(this.session.getScrollTop());
     };
-    
+
     this.onScrollLeftChange = function() {
         this.renderer.scrollToX(this.session.getScrollLeft());
     };
 
     /**
-     * Editor@changeSelection() 
-     *
      * Emitted when the selection changes.
-     * 
+     *
      **/
     this.onCursorChange = function() {
         this.$cursorChange();
@@ -473,11 +617,6 @@ var Editor = function(renderer, session) {
         this._emit("changeSelection");
     };
 
-    /** internal, hide
-     * Editor.$updateHighlightActiveLine()
-     * 
-     * 
-     **/
     this.$updateHighlightActiveLine = function() {
         var session = this.getSession();
 
@@ -485,16 +624,21 @@ var Editor = function(renderer, session) {
         if (this.$highlightActiveLine) {
             if ((this.$selectionStyle != "line" || !this.selection.isMultiLine()))
                 highlight = this.getCursorPosition();
+            if (this.renderer.$maxLines && this.session.getLength() === 1)
+                highlight = false;
         }
 
         if (session.$highlightLineMarker && !highlight) {
             session.removeMarker(session.$highlightLineMarker.id);
             session.$highlightLineMarker = null;
         } else if (!session.$highlightLineMarker && highlight) {
-            session.$highlightLineMarker = session.highlightLines(highlight.row, highlight.row, "ace_active-line");
+            var range = new Range(highlight.row, highlight.column, highlight.row, Infinity);
+            range.id = session.addMarker(range, "ace_active-line", "screenLine");
+            session.$highlightLineMarker = range;
         } else if (highlight) {
             session.$highlightLineMarker.start.row = highlight.row;
             session.$highlightLineMarker.end.row = highlight.row;
+            session.$highlightLineMarker.start.column = highlight.column;
             session._emit("changeBackMarker");
         }
     };
@@ -517,7 +661,7 @@ var Editor = function(renderer, session) {
 
         var re = this.$highlightSelectedWord && this.$getSelectionHighLightRegexp()
         this.session.highlight(re);
-        
+
         this._emit("changeSelection");
     };
 
@@ -572,8 +716,9 @@ var Editor = function(renderer, session) {
     };
 
 
-    this.onChangeMode = function() {
+    this.onChangeMode = function(e) {
         this.renderer.updateText();
+        this._emit("changeMode", e);
     };
 
 
@@ -594,29 +739,33 @@ var Editor = function(renderer, session) {
         this.renderer.updateFull();
     };
 
+    
     /**
-     * Editor.getCopyText() -> String
-     * 
      * Returns the string of text currently highlighted.
+     * @returns {String}
+     **/
+    this.getSelectedText = function() {
+        return this.session.getTextRange(this.getSelectionRange());
+    };
+    
+    /**
+     * Emitted when text is copied.
+     * @event copy
+     * @param {String} text The copied text
+     *
      **/
     /**
-     * Editor@copy(text)
-     * - text (String): The copied text
-     *
-     * Emitted when text is copied.
+     * Returns the string of text currently highlighted.
+     * @returns {String}
+     * @deprecated Use getSelectedText instead.
      **/
     this.getCopyText = function() {
-        var text = "";
-        if (!this.selection.isEmpty())
-            text = this.session.getTextRange(this.getSelectionRange());
-
-        this._emit("copy", text);
+        var text = this.getSelectedText();
+        this._signal("copy", text);
         return text;
     };
 
     /**
-     * Editor.onCopy() 
-     * 
      * Called whenever a text "copy" happens.
      **/
     this.onCopy = function() {
@@ -624,29 +773,28 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.onCut() 
-     * 
-     * called whenever a text "cut" happens.
+     * Called whenever a text "cut" happens.
      **/
     this.onCut = function() {
         this.commands.exec("cut", this);
     };
 
     /**
-     * Editor.onPaste(text) 
-     * - text (String): The pasted text
+     * Emitted when text is pasted.
+     * @event paste
+     * @param {String} text The pasted text
      *
-     * Called whenever a text "paste" happens.
+     *
      **/
     /**
-     * Editor@paste(text)
-     * - text (String): The pasted text
+     * Called whenever a text "paste" happens.
+     * @param {String} text The pasted text
      *
-     * Emitted when text is pasted.
+     *
      **/
     this.onPaste = function(text) {
         // todo this should change when paste becomes a command
-        if (this.$readOnly) 
+        if (this.$readOnly)
             return;
         this._emit("paste", text);
         this.insert(text);
@@ -658,10 +806,10 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.insert(text) 
-     * - text (String): The new text to add
-     * 
      * Inserts `text` into wherever the cursor is pointing.
+     * @param {String} text The new text to add
+     *
+     *
      **/
     this.insert = function(text) {
         var session = this.session;
@@ -671,15 +819,23 @@ var Editor = function(renderer, session) {
         if (this.getBehavioursEnabled()) {
             // Get a transform if the current mode wants one.
             var transform = mode.transformAction(session.getState(cursor.row), 'insertion', this, session, text);
-            if (transform)
+            if (transform) {
+                if (text !== transform.text) {
+                    this.session.mergeUndoDeltas = false;
+                    this.$mergeNextCommand = false;
+                }
                 text = transform.text;
-        }
 
-        text = text.replace("\t", this.session.getTabString());
+            }
+        }
+        
+        if (text == "\t")
+            text = this.session.getTabString();
 
         // remove selected text
         if (!this.selection.isEmpty()) {
-            cursor = this.session.remove(this.getSelectionRange());
+            var range = this.getSelectionRange();
+            cursor = this.session.remove(range);
             this.clearSelection();
         }
         else if (this.session.getOverwrite()) {
@@ -688,6 +844,13 @@ var Editor = function(renderer, session) {
             this.session.remove(range);
         }
 
+        if (text == "\n" || text == "\r\n") {
+            var line = session.getLine(cursor.row)
+            if (cursor.column > line.search(/\S|$/)) {
+                var d = line.substr(cursor.column).search(/\S|$/);
+                session.doc.removeInLine(cursor.row, cursor.column, cursor.column + d);
+            }
+        }
         this.clearSelection();
 
         var start = cursor.column;
@@ -710,44 +873,10 @@ var Editor = function(renderer, session) {
             }
         }
 
-        // TODO disabled multiline auto indent
-        // possibly doing the indent before inserting the text
-        // if (cursor.row !== end.row) {
         if (session.getDocument().isNewLine(text)) {
             var lineIndent = mode.getNextLineIndent(lineState, line.slice(0, cursor.column), session.getTabString());
 
-            this.moveCursorTo(cursor.row+1, 0);
-
-            var size = session.getTabSize();
-            var minIndent = Number.MAX_VALUE;
-
-            for (var row = cursor.row + 1; row <= end.row; ++row) {
-                var indent = 0;
-
-                line = session.getLine(row);
-                for (var i = 0; i < line.length; ++i)
-                    if (line.charAt(i) == '\t')
-                        indent += size;
-                    else if (line.charAt(i) == ' ')
-                        indent += 1;
-                    else
-                        break;
-                if (/[^\s]/.test(line))
-                    minIndent = Math.min(indent, minIndent);
-            }
-
-            for (var row = cursor.row + 1; row <= end.row; ++row) {
-                var outdent = minIndent;
-
-                line = session.getLine(row);
-                for (var i = 0; i < line.length && outdent > 0; ++i)
-                    if (line.charAt(i) == '\t')
-                        outdent -= size;
-                    else if (line.charAt(i) == ' ')
-                        outdent -= 1;
-                session.remove(new Range(row, 0, row, i));
-            }
-            session.indentRows(cursor.row + 1, end.row, lineIndent);
+            session.insert({row: cursor.row+1, column: 0}, lineIndent);
         }
         if (shouldOutdent)
             mode.autoOutdent(lineState, session, cursor.row);
@@ -761,165 +890,121 @@ var Editor = function(renderer, session) {
         this.keyBinding.onCommandKey(e, hashId, keyCode);
     };
 
-    /** related to: EditSession.setOverwrite
-     * Editor.setOverwrite(overwrite) 
-     * - overwrite (Boolean): Defines wheter or not to set overwrites
-     * 
+    /**
      * Pass in `true` to enable overwrites in your session, or `false` to disable. If overwrites is enabled, any text you enter will type over any text after it. If the value of `overwrite` changes, this function also emites the `changeOverwrite` event.
+     * @param {Boolean} overwrite Defines wheter or not to set overwrites
      *
+     *
+     * @related EditSession.setOverwrite
      **/
     this.setOverwrite = function(overwrite) {
         this.session.setOverwrite(overwrite);
     };
 
-    /** related to: EditSession.getOverwrite
-     * Editor.getOverwrite() -> Boolean
-     * 
+    /**
      * Returns `true` if overwrites are enabled; `false` otherwise.
+     * @returns {Boolean}
+     * @related EditSession.getOverwrite
      **/
     this.getOverwrite = function() {
         return this.session.getOverwrite();
     };
 
-    /** related to: EditSession.toggleOverwrite
-     * Editor.toggleOverwrite() 
-     * 
+    /**
      * Sets the value of overwrite to the opposite of whatever it currently is.
+     * @related EditSession.toggleOverwrite
      **/
     this.toggleOverwrite = function() {
         this.session.toggleOverwrite();
     };
 
     /**
-     * Editor.setScrollSpeed(speed) 
-     * - speed (Number): A value indicating the new speed
-     * 
      * Sets how fast the mouse scrolling should do.
-     *
+     * @param {Number} speed A value indicating the new speed (in milliseconds)
      **/
     this.setScrollSpeed = function(speed) {
-        this.$mouseHandler.setScrollSpeed(speed);
+        this.setOption("scrollSpeed", speed);
     };
 
     /**
-     * Editor.getScrollSpeed() -> Number
-     * 
-     * Returns the value indicating how fast the mouse scroll speed is.
+     * Returns the value indicating how fast the mouse scroll speed is (in milliseconds).
+     * @returns {Number}
      **/
     this.getScrollSpeed = function() {
-        return this.$mouseHandler.getScrollSpeed();
+        return this.getOption("scrollSpeed");
     };
 
     /**
-     * Editor.setDragDelay(dragDelay) 
-     * - dragDelay (Number): A value indicating the new delay
-     * 
      * Sets the delay (in milliseconds) of the mouse drag.
-     *
+     * @param {Number} dragDelay A value indicating the new delay
      **/
     this.setDragDelay = function(dragDelay) {
-        this.$mouseHandler.setDragDelay(dragDelay);
+        this.setOption("dragDelay", dragDelay);
     };
 
     /**
-     * Editor.getDragDelay() -> Number
-     * 
      * Returns the current mouse drag delay.
+     * @returns {Number}
      **/
     this.getDragDelay = function() {
-        return this.$mouseHandler.getDragDelay();
+        return this.getOption("dragDelay");
     };
 
-    this.$selectionStyle = "line";
     /**
-     * Editor.setSelectionStyle(style) 
-     * - style (String): The new selection style
-     *
-     * Indicates how selections should occur. By default, selections are set to "line". This function also emits the `'changeSelectionStyle'` event.
-     * 
-     **/
-    /**
-     * Editor@changeSelectionStyle(data) 
-     * - data (Object): Contains one property, `data`, which indicates the new selection style
-     *
      * Emitted when the selection style changes, via [[Editor.setSelectionStyle]].
-     * 
+     * @event changeSelectionStyle
+     * @param {Object} data Contains one property, `data`, which indicates the new selection style
      **/
-    this.setSelectionStyle = function(style) {
-        if (this.$selectionStyle == style) return;
-
-        this.$selectionStyle = style;
-        this.onSelectionChange();
-        this._emit("changeSelectionStyle", {data: style});
+    /**
+     * Draw selection markers spanning whole line, or only over selected text. Default value is "line"
+     * @param {String} style The new selection style "line"|"text"
+     *
+     **/
+    this.setSelectionStyle = function(val) {
+        this.setOption("selectionStyle", val);
     };
 
     /**
-     * Editor.getSelectionStyle() -> String
-     * 
      * Returns the current selection style.
+     * @returns {String}
      **/
     this.getSelectionStyle = function() {
-        return this.$selectionStyle;
+        return this.getOption("selectionStyle");
     };
 
-    this.$highlightActiveLine = true;
-
     /**
-     * Editor.setHighlightActiveLine(shouldHighlight) 
-     * - shouldHighlight (Boolean): Set to `true` to highlight the current line
-     *
      * Determines whether or not the current line should be highlighted.
-     *
+     * @param {Boolean} shouldHighlight Set to `true` to highlight the current line
      **/
     this.setHighlightActiveLine = function(shouldHighlight) {
-        if (this.$highlightActiveLine == shouldHighlight)
-            return;
-
-        this.$highlightActiveLine = shouldHighlight;
-        this.$updateHighlightActiveLine();
+        this.setOption("highlightActiveLine", shouldHighlight);
     };
-
     /**
-     * Editor.getHighlightActiveLine() -> Boolean
-     * 
      * Returns `true` if current lines are always highlighted.
+     * @return {Boolean}
      **/
     this.getHighlightActiveLine = function() {
-        return this.$highlightActiveLine;
+        return this.getOption("highlightActiveLine");
     };
-
-    this.$highlightGutterLine = true;
     this.setHighlightGutterLine = function(shouldHighlight) {
-        if (this.$highlightGutterLine == shouldHighlight)
-            return;
-
-        this.renderer.setHighlightGutterLine(shouldHighlight);
-        this.$highlightGutterLine = shouldHighlight;
+        this.setOption("highlightGutterLine", shouldHighlight);
     };
 
     this.getHighlightGutterLine = function() {
-        return this.$highlightGutterLine;
+        return this.getOption("highlightGutterLine");
     };
-
-    this.$highlightSelectedWord = true;
     /**
-     * Editor.setHighlightSelectedWord(shouldHighlight)
-     * - shouldHighlight (Boolean): Set to `true` to highlight the currently selected word
-     *
      * Determines if the currently selected word should be highlighted.
+     * @param {Boolean} shouldHighlight Set to `true` to highlight the currently selected word
+     *
      **/
     this.setHighlightSelectedWord = function(shouldHighlight) {
-        if (this.$highlightSelectedWord == shouldHighlight)
-            return;
-
-        this.$highlightSelectedWord = shouldHighlight;
-        this.$onSelectionChange();
+        this.setOption("highlightSelectedWord", shouldHighlight);
     };
 
     /**
-     * Editor.getHighlightSelectedWord() -> Boolean
-     *
      * Returns `true` if currently highlighted words are to be highlighted.
+     * @returns {Boolean}
      **/
     this.getHighlightSelectedWord = function() {
         return this.$highlightSelectedWord;
@@ -934,19 +1019,17 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.setShowInvisibles(showInvisibles) 
-     * - showInvisibles (Boolean): Specifies whether or not to show invisible characters
-     * 
-     * If `showInvisibiles` is set to `true`, invisible characters&mdash;like spaces or new lines&mdash;are show in the editor.
+     * If `showInvisibles` is set to `true`, invisible characters&mdash;like spaces or new lines&mdash;are show in the editor.
+     * @param {Boolean} showInvisibles Specifies whether or not to show invisible characters
+     *
      **/
     this.setShowInvisibles = function(showInvisibles) {
         this.renderer.setShowInvisibles(showInvisibles);
     };
 
     /**
-     * Editor.getShowInvisibles() -> Boolean
-     * 
      * Returns `true` if invisible characters are being shown.
+     * @returns {Boolean}
      **/
     this.getShowInvisibles = function() {
         return this.renderer.getShowInvisibles();
@@ -961,147 +1044,118 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.setShowPrintMargin(showPrintMargin) 
-     * - showPrintMargin (Boolean): Specifies whether or not to show the print margin
-     * 
      * If `showPrintMargin` is set to `true`, the print margin is shown in the editor.
+     * @param {Boolean} showPrintMargin Specifies whether or not to show the print margin
+     *
      **/
     this.setShowPrintMargin = function(showPrintMargin) {
         this.renderer.setShowPrintMargin(showPrintMargin);
     };
 
     /**
-     * Editor.getShowPrintMargin() -> Boolean
-     * 
      * Returns `true` if the print margin is being shown.
+     * @returns {Boolean}
      **/
     this.getShowPrintMargin = function() {
         return this.renderer.getShowPrintMargin();
     };
 
     /**
-     * Editor.setPrintMarginColumn(showPrintMargin) 
-     * - showPrintMargin (Number): Specifies the new print margin
-     *
      * Sets the column defining where the print margin should be.
-     * 
+     * @param {Number} showPrintMargin Specifies the new print margin
+     *
      **/
     this.setPrintMarginColumn = function(showPrintMargin) {
         this.renderer.setPrintMarginColumn(showPrintMargin);
     };
 
     /**
-     * Editor.getPrintMarginColumn() -> Number
-     * 
      * Returns the column number of where the print margin is.
+     * @returns {Number}
      **/
     this.getPrintMarginColumn = function() {
         return this.renderer.getPrintMarginColumn();
     };
 
-    this.$readOnly = false;
     /**
-     * Editor.setReadOnly(readOnly) 
-     * - readOnly (Boolean): Specifies whether the editor can be modified or not
-     * 
      * If `readOnly` is true, then the editor is set to read-only mode, and none of the content can change.
+     * @param {Boolean} readOnly Specifies whether the editor can be modified or not
+     *
      **/
     this.setReadOnly = function(readOnly) {
-        this.$readOnly = readOnly;
+        this.setOption("readOnly", readOnly);
     };
 
     /**
-     * Editor.getReadOnly() -> Boolean
-     * 
      * Returns `true` if the editor is set to read-only mode.
+     * @returns {Boolean}
      **/
     this.getReadOnly = function() {
-        return this.$readOnly;
+        return this.getOption("readOnly");
     };
 
-    this.$modeBehaviours = true;
-
     /**
-     * Editor.setBehavioursEnabled(enabled) 
-     * - enabled (Boolean): Enables or disables behaviors
-     * 
-     * Specifies whether to use behaviors or not.
-     * See [[Editor.setWrapBehavioursEnabled]].
-     * ["Behaviors" in this case is the auto-pairing of special characters, like quotation marks, parenthesis, or brackets.]{: #BehaviorsDef}
+     * Specifies whether to use behaviors or not. ["Behaviors" in this case is the auto-pairing of special characters, like quotation marks, parenthesis, or brackets.]{: #BehaviorsDef}
+     * @param {Boolean} enabled Enables or disables behaviors
+     *
      **/
     this.setBehavioursEnabled = function (enabled) {
-        this.$modeBehaviours = enabled;
+        this.setOption("behavioursEnabled", enabled);
     };
 
     /**
-     * Editor.getBehavioursEnabled() -> Boolean
-     * 
      * Returns `true` if the behaviors are currently enabled. {:BehaviorsDef}
+     *
+     * @returns {Boolean}
      **/
     this.getBehavioursEnabled = function () {
-        return this.$modeBehaviours;
+        return this.getOption("behavioursEnabled");
     };
 
-    this.$modeWrapBehaviours = true;
-
     /**
-     * Editor.setWrapBehavioursEnabled(enabled) 
-     * - enabled (Boolean): Enables or disables wrapping behaviors
-     * 
      * Specifies whether to use wrapping behaviors or not, i.e. automatically wrapping the selection with characters such as brackets
      * when such a character is typed in.
+     * @param {Boolean} enabled Enables or disables wrapping behaviors
+     *
      **/
     this.setWrapBehavioursEnabled = function (enabled) {
-        this.$modeWrapBehaviours = enabled;
+        this.setOption("wrapBehavioursEnabled", enabled);
     };
 
     /**
-     * Editor.getWrapBehavioursEnabled() -> Boolean
-     * 
      * Returns `true` if the wrapping behaviors are currently enabled.
      **/
     this.getWrapBehavioursEnabled = function () {
-        return this.$modeWrapBehaviours;
+        return this.getOption("wrapBehavioursEnabled");
     };
 
     /**
-     * Editor.setShowFoldWidgets(show) 
-     * - show (Boolean): Specifies whether the fold widgets are shown
-     * 
-     * Indicates whether the fold widgets are shown or not.
+     * Indicates whether the fold widgets should be shown or not.
+     * @param {Boolean} show Specifies whether the fold widgets are shown
      **/
     this.setShowFoldWidgets = function(show) {
-        var gutter = this.renderer.$gutterLayer;
-        if (gutter.getShowFoldWidgets() == show)
-            return;
+        this.setOption("showFoldWidgets", show);
 
-        this.renderer.$gutterLayer.setShowFoldWidgets(show);
-        this.$showFoldWidgets = show;
-        this.renderer.updateFull();
     };
-
     /**
-     * Editor.getShowFoldWidgets() -> Boolean
-     * 
      * Returns `true` if the fold widgets are shown.
+     * @return {Boolean}
      **/
     this.getShowFoldWidgets = function() {
-        return this.renderer.$gutterLayer.getShowFoldWidgets();
+        return this.getOption("showFoldWidgets");
     };
 
-    this.setFadeFoldWidgets = function(show) {
-        this.renderer.setFadeFoldWidgets(show);
+    this.setFadeFoldWidgets = function(fade) {
+        this.setOption("fadeFoldWidgets", fade);
     };
 
     this.getFadeFoldWidgets = function() {
-        return this.renderer.getFadeFoldWidgets();
+        return this.getOption("fadeFoldWidgets");
     };
 
     /**
-     * Editor.remove(dir) 
-     * - dir (String): The direction of the deletion to occur, either "left" or "right"
-     * 
      * Removes words of text from the editor. A "word" is defined as a string of characters bookended by whitespace.
+     * @param {String} dir The direction of the deletion to occur, either "left" or "right"
      *
      **/
     this.remove = function(dir) {
@@ -1117,6 +1171,16 @@ var Editor = function(renderer, session) {
             var session = this.session;
             var state = session.getState(range.start.row);
             var new_range = session.getMode().transformAction(state, 'deletion', this, session, range);
+
+            if (range.end.column == 0) {
+                var text = session.getTextRange(range);
+                if (text[text.length - 1] == "\n") {
+                    var line = session.getLine(range.end.row)
+                    if (/^\s+$/.test(line)) {
+                        range.end.column = line.length
+                    }
+                }
+            }
             if (new_range)
                 range = new_range;
         }
@@ -1126,8 +1190,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.removeWordRight() 
-     * 
      * Removes the word directly to the right of the current selection.
      **/
     this.removeWordRight = function() {
@@ -1139,8 +1201,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.removeWordLeft() 
-     * 
      * Removes the word directly to the left of the current selection.
      **/
     this.removeWordLeft = function() {
@@ -1152,8 +1212,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.removeToLineStart() 
-     * 
      * Removes all the words to the left of the current selection, until the start of the line.
      **/
     this.removeToLineStart = function() {
@@ -1165,8 +1223,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.removeToLineEnd() 
-     * 
      * Removes all the words to the right of the current selection, until the end of the line.
      **/
     this.removeToLineEnd = function() {
@@ -1184,8 +1240,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.splitLine() 
-     * 
      * Splits the line at the current selection (by inserting an `'\n'`).
      **/
     this.splitLine = function() {
@@ -1200,8 +1254,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.transposeLetters() 
-     * 
      * Transposes current line.
      **/
     this.transposeLetters = function() {
@@ -1228,8 +1280,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.toLowerCase() 
-     * 
      * Converts the current selection entirely into lowercase.
      **/
     this.toLowerCase = function() {
@@ -1245,8 +1295,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.toUpperCase() 
-     * 
      * Converts the current selection entirely into uppercase.
      **/
     this.toUpperCase = function() {
@@ -1261,38 +1309,60 @@ var Editor = function(renderer, session) {
         this.selection.setSelectionRange(originalRange);
     };
 
-    /** related to: EditSession.indentRows
-     * Editor.indent() 
-     * 
-     * Indents the current line.
+    /**
+     * Inserts an indentation into the current cursor position or indents the selected lines.
+     *
+     * @related EditSession.indentRows
      **/
     this.indent = function() {
         var session = this.session;
         var range = this.getSelectionRange();
 
-        if (range.start.row < range.end.row || range.start.column < range.end.column) {
+        if (range.start.row < range.end.row) {
             var rows = this.$getSelectedRows();
             session.indentRows(rows.first, rows.last, "\t");
-        } else {
-            var indentString;
-
-            if (this.session.getUseSoftTabs()) {
-                var size        = session.getTabSize(),
-                    position    = this.getCursorPosition(),
-                    column      = session.documentToScreenColumn(position.row, position.column),
-                    count       = (size - column % size);
-
-                indentString = lang.stringRepeat(" ", count);
-            } else
-                indentString = "\t";
-            return this.insert(indentString);
+            return;
+        } else if (range.start.column < range.end.column) {
+            var text = session.getTextRange(range)
+            if (!/^\s+$/.test(text)) {
+                var rows = this.$getSelectedRows();
+                session.indentRows(rows.first, rows.last, "\t");
+                return;
+            }
         }
+        
+        var line = session.getLine(range.start.row)
+        var position = range.start;
+        var size = session.getTabSize();
+        var column = session.documentToScreenColumn(position.row, position.column);
+
+        if (this.session.getUseSoftTabs()) {
+            var count = (size - column % size);
+            var indentString = lang.stringRepeat(" ", count);
+        } else {
+            var count = column % size;
+            while (line[range.start.column] == " " && count) {
+                range.start.column--;
+                count--;
+            }
+            this.selection.setSelectionRange(range);
+            indentString = "\t";
+        }
+        return this.insert(indentString);
     };
 
-    /** related to: EditSession.outdentRows
-     * Editor.blockOutdent() 
-     * 
+    /**
+     * Indents the current line.
+     * @related EditSession.indentRows
+     **/
+    this.blockIndent = function() {
+        var rows = this.$getSelectedRows();
+        this.session.indentRows(rows.first, rows.last, "\t");
+    };
+
+    /**
      * Outdents the current line.
+     * @related EditSession.outdentRows
      **/
     this.blockOutdent = function() {
         var selection = this.session.getSelection();
@@ -1325,8 +1395,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.toggleCommentLines() 
-     * 
      * Given the currently selected range, this function either comments all the lines, or uncomments all of them.
      **/
     this.toggleCommentLines = function() {
@@ -1335,35 +1403,40 @@ var Editor = function(renderer, session) {
         this.session.getMode().toggleCommentLines(state, this.session, rows.first, rows.last);
     };
 
+    this.toggleBlockComment = function() {
+        var cursor = this.getCursorPosition();
+        var state = this.session.getState(cursor.row);
+        var range = this.getSelectionRange();
+        this.session.getMode().toggleBlockComment(state, this.session, range, cursor);
+    };
+
     /**
-     * Editor.getNumberAt() -> Number
-     * 
-     * Works like [[Editor.getTokenAt]], except it returns a number.
+     * Works like [[EditSession.getTokenAt]], except it returns a number.
+     * @returns {Number}
      **/
     this.getNumberAt = function( row, column ) {
         var _numberRx = /[\-]?[0-9]+(?:\.[0-9]+)?/g
         _numberRx.lastIndex = 0
 
         var s = this.session.getLine(row)
-        while(_numberRx.lastIndex < column - 1 ){
+        while (_numberRx.lastIndex < column) {
             var m = _numberRx.exec(s)
             if(m.index <= column && m.index+m[0].length >= column){
                 var number = {
                     value: m[0],
                     start: m.index,
                     end: m.index+m[0].length
-
                 }
-                return number
+                return number;
             }
         }
         return null;
     };
+
     /**
-     * Editor.modifyNumber(amount) 
-     * - amount (Number): The value to change the numeral by (can be negative to decrease value)
-     *
      * If the character before the cursor is a number, this functions changes its value by `amount`.
+     * @param {Number} amount The value to change the numeral by (can be negative to decrease value)
+     *
      **/
     this.modifyNumber = function(amount) {
         var row = this.selection.getCursor().row;
@@ -1384,14 +1457,14 @@ var Editor = function(renderer, session) {
 
                 var t = parseFloat(nr.value);
                 t *= Math.pow(10, decimals);
-                
+
 
                 if(fp !== nr.end && column < fp){
                     amount *= Math.pow(10, nr.end - column - 1);
                 } else {
                     amount *= Math.pow(10, nr.end - column);
                 }
-                
+
                 t += amount;
                 t /= Math.pow(10, decimals);
                 var nnr = t.toFixed(decimals);
@@ -1407,10 +1480,9 @@ var Editor = function(renderer, session) {
         }
     };
 
-    /** related to: EditSession.remove
-     * Editor.removeLines() 
-     * 
+    /**
      * Removes all the lines in the current selection
+     * @related EditSession.remove
      **/
     this.removeLines = function() {
         var rows = this.$getSelectedRows();
@@ -1430,28 +1502,25 @@ var Editor = function(renderer, session) {
         var sel = this.selection;
         var doc = this.session;
         var range = sel.getRange();
+        var reverse = sel.isBackwards();
         if (range.isEmpty()) {
             var row = range.start.row;
             doc.duplicateLines(row, row);
         } else {
-            var reverse = sel.isBackwards()
-            var point = sel.isBackwards() ? range.start : range.end;
+            var point = reverse ? range.start : range.end;
             var endPoint = doc.insert(point, doc.getTextRange(range), false);
             range.start = point;
             range.end = endPoint;
-            
+
             sel.setSelectionRange(range, reverse)
         }
     };
-    
-    /** related to: EditSession.moveLinesDown
-     * Editor.moveLinesDown() -> Number
-     * + (Number): On success, it returns -1.
-     *
+
+    /**
      * Shifts all the selected lines down one row.
      *
-     * 
-     *
+     * @returns {Number} On success, it returns -1.
+     * @related EditSession.moveLinesUp
      **/
     this.moveLinesDown = function() {
         this.$moveLines(function(firstRow, lastRow) {
@@ -1459,13 +1528,10 @@ var Editor = function(renderer, session) {
         });
     };
 
-    /** related to: EditSession.moveLinesUp
-     * Editor.moveLinesUp() -> Number
-     * + (Number): On success, it returns -1.
-     *
+    /**
      * Shifts all the selected lines up one row.
-     *
-     *
+     * @returns {Number} On success, it returns -1.
+     * @related EditSession.moveLinesDown
      **/
     this.moveLinesUp = function() {
         this.$moveLines(function(firstRow, lastRow) {
@@ -1473,32 +1539,25 @@ var Editor = function(renderer, session) {
         });
     };
 
-    /** related to: EditSession.moveText
-     * Editor.moveText(fromRange, toPosition) -> Range
-     * - fromRange (Range): The range of text you want moved within the document
-     * - toPosition (Object): The location (row and column) where you want to move the text to
-     * + (Range): The new range where the text was moved to.
-     *
+    /**
      * Moves a range of text from the given range to the given position. `toPosition` is an object that looks like this:
-     *
+     * ```json
      *    { row: newRowLocation, column: newColumnLocation }
-     * 
+     * ```
+     * @param {Range} fromRange The range of text you want moved within the document
+     * @param {Object} toPosition The location (row and column) where you want to move the text to
      *
+     * @returns {Range} The new range where the text was moved to.
+     * @related EditSession.moveText
      **/
     this.moveText = function(range, toPosition) {
-        if (this.$readOnly)
-            return null;
-
         return this.session.moveText(range, toPosition);
     };
 
-    /** related to: EditSession.duplicateLines
-     * Editor.copyLinesUp() -> Number
-     * + (Number): On success, returns 0.
-     *
+    /**
      * Copies all the selected lines up one row.
+     * @returns {Number} On success, returns 0.
      *
-     * 
      **/
     this.copyLinesUp = function() {
         this.$moveLines(function(firstRow, lastRow) {
@@ -1507,13 +1566,10 @@ var Editor = function(renderer, session) {
         });
     };
 
-    /** related to: EditSession.duplicateLines
-     * Editor.copyLinesDown() -> Number
-     * + (Number): On success, returns the number of new rows added; in other words, `lastRow - firstRow + 1`.
-     *
+    /**
      * Copies all the selected lines down one row.
-     *
-     * 
+     * @returns {Number} On success, returns the number of new rows added; in other words, `lastRow - firstRow + 1`.
+     * @related EditSession.duplicateLines
      *
      **/
     this.copyLinesDown = function() {
@@ -1522,44 +1578,57 @@ var Editor = function(renderer, session) {
         });
     };
 
-
     /**
-     * Editor.$moveLines(mover) 
-     * - mover (Function): A method to call on each selected row
-     * 
      * Executes a specific function, which can be anything that manipulates selected lines, such as copying them, duplicating them, or shifting them.
+     * @param {Function} mover A method to call on each selected row
+     *
      *
      **/
     this.$moveLines = function(mover) {
-        var rows = this.$getSelectedRows();
         var selection = this.selection;
-        if (!selection.isMultiLine()) {
-            var range = selection.getRange();
-            var reverse = selection.isBackwards();
-        }
+        if (!selection.inMultiSelectMode || this.inVirtualSelectionMode) {
+            var range = selection.toOrientedRange();
+            var rows = this.$getSelectedRows(range);
+            var linesMoved = mover.call(this, rows.first, rows.last);
+            range.moveBy(linesMoved, 0);
+            selection.fromOrientedRange(range);
+        } else {
+            var ranges = selection.rangeList.ranges;
+            selection.rangeList.detach(this.session);
 
-        var linesMoved = mover.call(this, rows.first, rows.last);
+            for (var i = ranges.length; i--; ) {
+                var rangeIndex = i;
+                var rows = ranges[i].collapseRows();
+                var last = rows.end.row;
+                var first = rows.start.row;
+                while (i--) {
+                    var rows = ranges[i].collapseRows();
+                    if (first - rows.end.row <= 1)
+                        first = rows.end.row;
+                    else
+                        break;
+                }
+                i++;
 
-        if (range) {
-            range.start.row += linesMoved;
-            range.end.row += linesMoved;
-            selection.setSelectionRange(range, reverse);
-        }
-        else {
-            selection.setSelectionAnchor(rows.last+linesMoved+1, 0);
-            selection.$moveSelection(function() {
-                selection.moveCursorTo(rows.first+linesMoved, 0);
-            });
+                var linesMoved = mover.call(this, first, last);
+                while (rangeIndex >= i) {
+                    ranges[rangeIndex].moveBy(linesMoved, 0);
+                    rangeIndex--;
+                }
+            }
+            selection.fromOrientedRange(selection.ranges[0]);
+            selection.rangeList.attach(this.session);
         }
     };
 
     /**
-     * Editor.$getSelectedRows() -> Object
-     * 
      * Returns an object indicating the currently selected rows. The object looks like this:
      *
+     * ```json
      * { first: range.start.row, last: range.end.row }
+     * ```
      *
+     * @returns {Object}
      **/
     this.$getSelectedRows = function() {
         var range = this.getSelectionRange().collapseRows();
@@ -1582,48 +1651,50 @@ var Editor = function(renderer, session) {
         this.renderer.hideComposition();
     };
 
-    /** related to: VirtualRenderer.getFirstVisibleRow
-     * Editor.getFirstVisibleRow() -> Number
-     * 
+    /**
      * {:VirtualRenderer.getFirstVisibleRow}
+     *
+     * @returns {Number}
+     * @related VirtualRenderer.getFirstVisibleRow
      **/
     this.getFirstVisibleRow = function() {
         return this.renderer.getFirstVisibleRow();
     };
 
-    /** related to: VirtualRenderer.getLastVisibleRow
-     * Editor.getLastVisibleRow() -> Number
-     * 
+    /**
      * {:VirtualRenderer.getLastVisibleRow}
+     *
+     * @returns {Number}
+     * @related VirtualRenderer.getLastVisibleRow
      **/
     this.getLastVisibleRow = function() {
         return this.renderer.getLastVisibleRow();
     };
 
     /**
-     * Editor.isRowVisible(row) -> Boolean
-     * - row (Number): The row to check
-     * 
      * Indicates if the row is currently visible on the screen.
+     * @param {Number} row The row to check
+     *
+     * @returns {Boolean}
      **/
     this.isRowVisible = function(row) {
         return (row >= this.getFirstVisibleRow() && row <= this.getLastVisibleRow());
     };
 
     /**
-     * Editor.isRowFullyVisible(row) -> Boolean
-     * - row (Number): The row to check
-     * 
      * Indicates if the entire row is currently visible on the screen.
+     * @param {Number} row The row to check
+     *
+     *
+     * @returns {Boolean}
      **/
     this.isRowFullyVisible = function(row) {
         return (row >= this.renderer.getFirstFullyVisibleRow() && row <= this.renderer.getLastFullyVisibleRow());
     };
 
     /**
-     * Editor.$getVisibleRowCount() -> Number
-     * 
      * Returns the number of currently visibile rows.
+     * @returns {Number}
      **/
     this.$getVisibleRowCount = function() {
         return this.renderer.getScrollBottomRow() - this.renderer.getScrollTopRow() + 1;
@@ -1655,8 +1726,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.selectPageDown() 
-     * 
      * Selects the text from the current position of the document until where a "page down" finishes.
      **/
     this.selectPageDown = function() {
@@ -1664,8 +1733,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.selectPageUp() 
-     * 
      * Selects the text from the current position of the document until where a "page up" finishes.
      **/
     this.selectPageUp = function() {
@@ -1673,8 +1740,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.gotoPageDown() 
-     * 
      * Shifts the document to wherever "page down" is, as well as moving the cursor position.
      **/
     this.gotoPageDown = function() {
@@ -1682,8 +1747,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.gotoPageUp() 
-     * 
      * Shifts the document to wherever "page up" is, as well as moving the cursor position.
      **/
     this.gotoPageUp = function() {
@@ -1691,8 +1754,6 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.scrollPageDown() 
-     * 
      * Scrolls the document to wherever "page down" is, without changing the cursor position.
      **/
     this.scrollPageDown = function() {
@@ -1700,41 +1761,35 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.scrollPageUp() 
-     * 
      * Scrolls the document to wherever "page up" is, without changing the cursor position.
      **/
     this.scrollPageUp = function() {
         this.$moveByPage(-1);
     };
 
-    /** related to: VirtualRenderer.scrollToRow
-     * Editor.scrollToRow(row) 
-     * - row (Number): The row to move to
-     *
+    /**
      * Moves the editor to the specified row.
-     * 
+     * @related VirtualRenderer.scrollToRow
      **/
     this.scrollToRow = function(row) {
         this.renderer.scrollToRow(row);
     };
 
-    /** related to: VirtualRenderer.scrollToLine
-     * Editor.scrollToLine(line, center, animate, callback()) 
-     * - line (Number): The line to scroll to
-     * - center (Boolean): If `true` 
-     * - animate (Boolean): If `true` animates scrolling
-     * - callback (Function): Function to be called when the animation has finished
+    /**
+     * Scrolls to a line. If `center` is `true`, it puts the line in middle of screen (or attempts to).
+     * @param {Number} line The line to scroll to
+     * @param {Boolean} center If `true`
+     * @param {Boolean} animate If `true` animates scrolling
+     * @param {Function} callback Function to be called when the animation has finished
      *
-     * TODO scrolls a to line, if center == true, puts line in middle of screen or attempts to)
+     *
+     * @related VirtualRenderer.scrollToLine
      **/
     this.scrollToLine = function(line, center, animate, callback) {
         this.renderer.scrollToLine(line, center, animate, callback);
     };
 
     /**
-     * Editor.centerSelection() 
-     * 
      * Attempts to center the current selection on the screen.
      **/
     this.centerSelection = function() {
@@ -1746,43 +1801,42 @@ var Editor = function(renderer, session) {
         this.renderer.alignCursor(pos, 0.5);
     };
 
-    /** related to: Selection.getCursor
-     * Editor.getCursorPosition() -> Object
-     * + (Object): This returns an object that looks something like this:<br/>
-     * ```{ row: currRow, column: currCol }```
-     *
+    /**
      * Gets the current position of the cursor.
+     * @returns {Object} An object that looks something like this:
      *
-     *    
+     * ```json
+     * { row: currRow, column: currCol }
+     * ```
      *
+     * @related Selection.getCursor
      **/
     this.getCursorPosition = function() {
         return this.selection.getCursor();
     };
 
-    /** related to: EditSession.documentToScreenPosition
-     * Editor.getCursorPositionScreen() -> Number
-     * 
+    /**
      * Returns the screen position of the cursor.
+     * @returns {Number}
+     * @related EditSession.documentToScreenPosition
      **/
     this.getCursorPositionScreen = function() {
         return this.session.documentToScreenPosition(this.getCursorPosition());
     };
 
-    /** related to: Selection.getRange
-     * Editor.getSelectionRange() -> Range
-     * 
+    /**
      * {:Selection.getRange}
+     * @returns {Range}
+     * @related Selection.getRange
      **/
     this.getSelectionRange = function() {
         return this.selection.getRange();
     };
 
 
-    /** related to: Selection.selectAll
-     * Editor.selectAll() 
-     * 
+    /**
      * Selects all the text in editor.
+     * @related Selection.selectAll
      **/
     this.selectAll = function() {
         this.$blockScrolling += 1;
@@ -1790,41 +1844,38 @@ var Editor = function(renderer, session) {
         this.$blockScrolling -= 1;
     };
 
-    /** related to: Selection.clearSelection
-     * Editor.clearSelection() 
-     * 
+    /**
      * {:Selection.clearSelection}
+     * @related Selection.clearSelection
      **/
     this.clearSelection = function() {
         this.selection.clearSelection();
     };
 
-    /** related to: Selection.moveCursorTo
-     * Editor.moveCursorTo(row, column) 
-     * - row (Number): The new row number
-     * - column (Number): The new column number
-     *
+    /**
      * Moves the cursor to the specified row and column. Note that this does not de-select the current selection.
+     * @param {Number} row The new row number
+     * @param {Number} column The new column number
      *
+     *
+     * @related Selection.moveCursorTo
      **/
     this.moveCursorTo = function(row, column) {
         this.selection.moveCursorTo(row, column);
     };
 
-    /** related to: Selection.moveCursorToPosition
-     * Editor.moveCursorToPosition(pos) 
-     * - pos (Object): An object with two properties, row and column
-     * 
+    /**
      * Moves the cursor to the position indicated by `pos.row` and `pos.column`.
+     * @param {Object} pos An object with two properties, row and column
      *
+     *
+     * @related Selection.moveCursorToPosition
      **/
     this.moveCursorToPosition = function(pos) {
         this.selection.moveCursorToPosition(pos);
     };
 
-    /** 
-     * Editor.jumpToMatching() 
-     * 
+    /**
      * Moves the cursor's row and column to the next matching bracket.
      *
      **/
@@ -1844,7 +1895,7 @@ var Editor = function(renderer, session) {
             if (pos.row == cursor.row && Math.abs(pos.column - cursor.column) < 2)
                 range = this.session.getBracketRange(pos);
         }
-        
+
         pos = range && range.cursor || pos;
         if (pos) {
             if (select) {
@@ -1860,19 +1911,19 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.gotoLine(lineNumber, column, animate) 
-     * - lineNumber (Number): The line number to go to
-     * - column (Number): A column number to go to
-     * - animate (Boolean): If `true` animates scolling
-     *
      * Moves the cursor to the specified line number, and also into the indiciated column.
-     * 
+     * @param {Number} lineNumber The line number to go to
+     * @param {Number} column A column number to go to
+     * @param {Boolean} animate If `true` animates scolling
+     *
      **/
     this.gotoLine = function(lineNumber, column, animate) {
         this.selection.clearSelection();
         this.session.unfold({row: lineNumber - 1, column: column || 0});
 
         this.$blockScrolling += 1;
+        // todo: find a way to automatically exit multiselect mode
+        this.exitMultiSelectMode && this.exitMultiSelectMode();
         this.moveCursorTo(lineNumber - 1, column || 0);
         this.$blockScrolling -= 1;
 
@@ -1880,13 +1931,13 @@ var Editor = function(renderer, session) {
             this.scrollToLine(lineNumber - 1, true, animate);
     };
 
-    /** related to: Editor.moveCursorTo
-     * Editor.navigateTo(row, column) 
-     * - row (Number): The new row number
-     * - column (Number): The new column number
-     *
+    /**
      * Moves the cursor to the specified row and column. Note that this does de-select the current selection.
+     * @param {Number} row The new row number
+     * @param {Number} column The new column number
      *
+     *
+     * @related Editor.moveCursorTo
      **/
     this.navigateTo = function(row, column) {
         this.clearSelection();
@@ -1894,34 +1945,42 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.navigateUp(times) 
-     * - times (Number): The number of times to change navigation
-     * 
      * Moves the cursor up in the document the specified number of times. Note that this does de-select the current selection.
+     * @param {Number} times The number of times to change navigation
+     *
+     *
      **/
     this.navigateUp = function(times) {
+        if (this.selection.isMultiLine() && !this.selection.isBackwards()) {
+            var selectionStart = this.selection.anchor.getPosition();
+            return this.moveCursorToPosition(selectionStart);
+        }
         this.selection.clearSelection();
         times = times || 1;
         this.selection.moveCursorBy(-times, 0);
     };
 
     /**
-     * Editor.navigateDown(times) 
-     * - times (Number): The number of times to change navigation
-     * 
      * Moves the cursor down in the document the specified number of times. Note that this does de-select the current selection.
+     * @param {Number} times The number of times to change navigation
+     *
+     *
      **/
     this.navigateDown = function(times) {
+        if (this.selection.isMultiLine() && this.selection.isBackwards()) {
+            var selectionEnd = this.selection.anchor.getPosition();
+            return this.moveCursorToPosition(selectionEnd);
+        }
         this.selection.clearSelection();
         times = times || 1;
         this.selection.moveCursorBy(times, 0);
     };
 
     /**
-     * Editor.navigateLeft(times) 
-     * - times (Number): The number of times to change navigation
-     * 
      * Moves the cursor left in the document the specified number of times. Note that this does de-select the current selection.
+     * @param {Number} times The number of times to change navigation
+     *
+     *
      **/
     this.navigateLeft = function(times) {
         if (!this.selection.isEmpty()) {
@@ -1938,10 +1997,10 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.navigateRight(times) 
-     * - times (Number): The number of times to change navigation
-     * 
      * Moves the cursor right in the document the specified number of times. Note that this does de-select the current selection.
+     * @param {Number} times The number of times to change navigation
+     *
+     *
      **/
     this.navigateRight = function(times) {
         if (!this.selection.isEmpty()) {
@@ -1958,8 +2017,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.navigateLineStart() 
-     * 
+     *
      * Moves the cursor to the start of the current line. Note that this does de-select the current selection.
      **/
     this.navigateLineStart = function() {
@@ -1968,8 +2026,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.navigateLineEnd() 
-     * 
+     *
      * Moves the cursor to the end of the current line. Note that this does de-select the current selection.
      **/
     this.navigateLineEnd = function() {
@@ -1978,8 +2035,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.navigateFileEnd() 
-     * 
+     *
      * Moves the cursor to the end of the current file. Note that this does de-select the current selection.
      **/
     this.navigateFileEnd = function() {
@@ -1990,8 +2046,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.navigateFileStart() 
-     * 
+     *
      * Moves the cursor to the start of the current file. Note that this does de-select the current selection.
      **/
     this.navigateFileStart = function() {
@@ -2002,8 +2057,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.navigateWordRight() 
-     * 
+     *
      * Moves the cursor to the word immediately to the right of the current position. Note that this does de-select the current selection.
      **/
     this.navigateWordRight = function() {
@@ -2012,8 +2066,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.navigateWordLeft() 
-     * 
+     *
      * Moves the cursor to the word immediately to the left of the current position. Note that this does de-select the current selection.
      **/
     this.navigateWordLeft = function() {
@@ -2022,11 +2075,11 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.replace(replacement, options) 
-     * - replacement (String): The text to replace with
-     * - options (Object): The [[Search `Search`]] options to use
-     *
      * Replaces the first occurance of `options.needle` with the value in `replacement`.
+     * @param {String} replacement The text to replace with
+     * @param {Object} options The [[Search `Search`]] options to use
+     *
+     *
      **/
     this.replace = function(replacement, options) {
         if (options)
@@ -2049,11 +2102,11 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.replaceAll(replacement, options) 
-     * - replacement (String): The text to replace with
-     * - options (Object): The [[Search `Search`]] options to use
-     *
      * Replaces all occurances of `options.needle` with the value in `replacement`.
+     * @param {String} replacement The text to replace with
+     * @param {Object} options The [[Search `Search`]] options to use
+     *
+     *
      **/
     this.replaceAll = function(replacement, options) {
         if (options) {
@@ -2094,22 +2147,23 @@ var Editor = function(renderer, session) {
         }
     };
 
-    /** related to: Search.getOptions
-     * Editor.getLastSearchOptions() -> Object
-     * 
+    /**
      * {:Search.getOptions} For more information on `options`, see [[Search `Search`]].
+     * @related Search.getOptions
+     * @returns {Object}
      **/
     this.getLastSearchOptions = function() {
         return this.$search.getOptions();
     };
 
-    /** related to: Search.find
-     * Editor.find(needle, options, animate)
-     * - needle (String): The text to search for (optional)
-     * - options (Object): An object defining various search properties
-     * - animate (Boolean): If `true` animate scrolling
-     *
+    /**
      * Attempts to find `needle` within the document. For more information on `options`, see [[Search `Search`]].
+     * @param {String} needle The text to search for (optional)
+     * @param {Object} options An object defining various search properties
+     * @param {Boolean} animate If `true` animate scrolling
+     *
+     *
+     * @related Search.find
      **/
     this.find = function(needle, options, animate) {
         if (!options)
@@ -2150,23 +2204,25 @@ var Editor = function(renderer, session) {
         this.selection.setRange(range);
     };
 
-    /** related to: Editor.find
-     * Editor.findNext(options, animate)
-     * - options (Object): search options
-     * - animate (Boolean): If `true` animate scrolling
-     *
+    /**
      * Performs another search for `needle` in the document. For more information on `options`, see [[Search `Search`]].
+     * @param {Object} options search options
+     * @param {Boolean} animate If `true` animate scrolling
+     *
+     *
+     * @related Editor.find
      **/
     this.findNext = function(options, animate) {
         this.find({skipCurrent: true, backwards: false}, options, animate);
     };
 
-    /** related to: Editor.find
-     * Editor.findPrevious(options, animate)
-     * - options (Object): search options
-     * - animate (Boolean): If `true` animate scrolling
-     *
+    /**
      * Performs a search for `needle` backwards. For more information on `options`, see [[Search `Search`]].
+     * @param {Object} options search options
+     * @param {Boolean} animate If `true` animate scrolling
+     *
+     *
+     * @related Editor.find
      **/
     this.findPrevious = function(options, animate) {
         this.find(options, {skipCurrent: true, backwards: true}, animate);
@@ -2184,10 +2240,9 @@ var Editor = function(renderer, session) {
             this.renderer.animateScrolling(scrollTop);
     };
 
-    /** related to: UndoManager.undo
-     * Editor.undo() 
-     * 
+    /**
      * {:UndoManager.undo}
+     * @related UndoManager.undo
      **/
     this.undo = function() {
         this.$blockScrolling++;
@@ -2196,10 +2251,9 @@ var Editor = function(renderer, session) {
         this.renderer.scrollCursorIntoView(null, 0.5);
     };
 
-    /** related to: UndoManager.redo
-     * Editor.redo() 
-     * 
+    /**
      * {:UndoManager.redo}
+     * @related UndoManager.redo
      **/
     this.redo = function() {
         this.$blockScrolling++;
@@ -2208,17 +2262,149 @@ var Editor = function(renderer, session) {
         this.renderer.scrollCursorIntoView(null, 0.5);
     };
 
-    /** 
-     * Editor.destroy() 
-     * 
+    /**
+     *
      * Cleans up the entire editor.
      **/
     this.destroy = function() {
         this.renderer.destroy();
+        this._emit("destroy", this);
+    };
+
+    /**
+     * Enables automatic scrolling of the cursor into view when editor itself is inside scrollable element
+     * @param {Boolean} enable default true
+     **/
+    this.setAutoScrollEditorIntoView = function(enable) {
+        if (enable === false)
+            return;
+        var rect;
+        var self = this;
+        var shouldScroll = false;
+        if (!this.$scrollAnchor)
+            this.$scrollAnchor = document.createElement("div");
+        var scrollAnchor = this.$scrollAnchor;
+        scrollAnchor.style.cssText = "position:absolute";
+        this.container.insertBefore(scrollAnchor, this.container.firstChild);
+        var onChangeSelection = this.on("changeSelection", function() {
+            shouldScroll = true;
+        });
+        // needed to not trigger sync reflow
+        var onBeforeRender = this.renderer.on("beforeRender", function() {
+            if (shouldScroll)
+                rect = self.renderer.container.getBoundingClientRect();
+        });
+        var onAfterRender = this.renderer.on("afterRender", function() {
+            if (shouldScroll && rect && self.isFocused()) {
+                var renderer = self.renderer;
+                var pos = renderer.$cursorLayer.$pixelPos;
+                var config = renderer.layerConfig;
+                var top = pos.top - config.offset;
+                if (pos.top >= 0 && top + rect.top < 0) {
+                    shouldScroll = true;
+                } else if (pos.top < config.height &&
+                    pos.top + rect.top + config.lineHeight > window.innerHeight) {
+                    shouldScroll = false;
+                } else {
+                    shouldScroll = null;
+                }
+                if (shouldScroll != null) {
+                    scrollAnchor.style.top = top + "px";
+                    scrollAnchor.style.left = pos.left + "px";
+                    scrollAnchor.style.height = config.lineHeight + "px";
+                    scrollAnchor.scrollIntoView(shouldScroll);
+                }
+                shouldScroll = rect = null;
+            }
+        });
+        this.setAutoScrollEditorIntoView = function(enable) {
+            if (enable === true)
+                return;
+            delete this.setAutoScrollEditorIntoView;
+            this.removeEventListener("changeSelection", onChangeSelection);
+            this.renderer.removeEventListener("afterRender", onAfterRender);
+            this.renderer.removeEventListener("beforeRender", onBeforeRender);
+        };
+    };
+
+
+    this.$resetCursorStyle = function() {
+        var style = this.$cursorStyle || "ace";
+        var cursorLayer = this.renderer.$cursorLayer;
+        if (!cursorLayer)
+            return;
+        cursorLayer.setSmoothBlinking(style == "smooth");
+        cursorLayer.isBlinking = !this.$readOnly && style != "wide";
     };
 
 }).call(Editor.prototype);
 
+
+
+config.defineOptions(Editor.prototype, "editor", {
+    selectionStyle: {
+        set: function(style) {
+            this.onSelectionChange();
+            this._emit("changeSelectionStyle", {data: style});
+        },
+        initialValue: "line"
+    },
+    highlightActiveLine: {
+        set: function() {this.$updateHighlightActiveLine();},
+        initialValue: true
+    },
+    highlightSelectedWord: {
+        set: function(shouldHighlight) {this.$onSelectionChange();},
+        initialValue: true
+    },
+    readOnly: {
+        set: function(readOnly) { this.$resetCursorStyle(); },
+        initialValue: false
+    },
+    cursorStyle: {
+        set: function(val) { this.$resetCursorStyle(); },
+        values: ["ace", "slim", "smooth", "wide"],
+        initialValue: "ace"
+    },
+    mergeUndoDeltas: {
+        values: [false, true, "always"],
+        initialValue: true
+    },
+    behavioursEnabled: {initialValue: true},
+    wrapBehavioursEnabled: {initialValue: true},
+
+    hScrollBarAlwaysVisible: "renderer",
+    vScrollBarAlwaysVisible: "renderer",
+    highlightGutterLine: "renderer",
+    animatedScroll: "renderer",
+    showInvisibles: "renderer",
+    showPrintMargin: "renderer",
+    printMarginColumn: "renderer",
+    printMargin: "renderer",
+    fadeFoldWidgets: "renderer",
+    showFoldWidgets: "renderer",
+    showGutter: "renderer",
+    displayIndentGuides: "renderer",
+    fontSize: "renderer",
+    fontFamily: "renderer",
+    maxLines: "renderer",
+    minLines: "renderer",
+    scrollPastEnd: "renderer",
+    fixedWidthGutter: "renderer",
+
+    scrollSpeed: "$mouseHandler",
+    dragDelay: "$mouseHandler",
+    focusTimout: "$mouseHandler",
+
+    firstLineNumber: "session",
+    overwrite: "session",
+    newLineMode: "session",
+    useWorker: "session",
+    useSoftTabs: "session",
+    tabSize: "session",
+    wrap: "session",
+    foldStyle: "session"
+});
 
 exports.Editor = Editor;
 });
