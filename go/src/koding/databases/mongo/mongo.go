@@ -24,7 +24,7 @@ func GetConnection() *mgo.Session {
 		MONGO_CONNECTION.SetSafe(&mgo.Safe{})
 		fmt.Println("connection established")
 	}
-	return MONGO_CONNECTION
+	return MONGO_CONNECTION.Copy()
 }
 
 func GetCollection(collectionName string) *mgo.Collection {
