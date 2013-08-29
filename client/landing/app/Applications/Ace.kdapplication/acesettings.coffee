@@ -55,6 +55,17 @@ __aceSettings =
       title: '8 chars'
   ]
 
+  keyboardHandlers: [
+      value: "default"
+      title: "Default"
+    ,
+      value: "vim"
+      title: "Vim"
+    ,
+      value: "emacs"
+      title: "Emacs"
+  ]
+
   themes:
     Bright : [
       { title: 'Chrome',                value: 'chrome' }

@@ -39,8 +39,10 @@ class Ace extends KDView
           # log to external
           KD.track "User Opened Ace", KD.getSingleton("groupsController").getCurrentGroup()
 
-      require ['ace/keyboard/vim'], (vimMode) =>
+      require ["ace/keyboard/vim"], (vimMode) =>
         @vimKeyboardHandler = vimMode.handler
+
+      @emacsKeyboardHandler = "ace/keyboard/emacs"
 
   prepareEditor:->
 
@@ -57,7 +59,8 @@ class Ace extends KDView
       @setSoftWrap            @appStorage.getValue('softWrap')            or 'off' ,no
       @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
       @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
-      @setVimMode             @appStorage.getValue('vimMode')             ? no
+      @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? "default"
+      @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? no
 
   setEditorListeners:->
 
@@ -186,8 +189,8 @@ class Ace extends KDView
     else
       if @getUseWordWrap() then "free" else "off"
 
-  getVimMode: ->
-    @appStorage.getValue('vimMode') ? no
+  getKeyboardHandler: ->
+    @appStorage.getValue('keyboardHandler') ? "default"
 
   getScrollPastEnd: ->
     @appStorage.getValue('scrollPastEnd') ? yes
@@ -204,7 +207,7 @@ class Ace extends KDView
     fontSize            : @getFontSize()
     tabSize             : @getTabSize()
     softWrap            : @getSoftWrap()
-    vimMode             : @getVimMode()
+    keyboardHandler     : @getKeyboardHandler()
     scrollPastEnd       : @getScrollPastEnd()
 
   ###
@@ -269,9 +272,15 @@ class Ace extends KDView
     return  unless save
     @appStorage.setValue 'showInvisibles', value
 
-  setVimMode: (value = no) ->
-    @editor.setKeyboardHandler if value then @vimKeyboardHandler else null
-    @appStorage.setValue "vimMode", value
+  setKeyboardHandler: (value = "default") ->
+    handlers =
+      default : null
+      vim     : @vimKeyboardHandler
+      emacs   : @emacsKeyboardHandler
+
+    @editor.setKeyboardHandler handlers[value]
+    @appStorage.setValue "keyboardHandler", value
+
   setScrollPastEnd: (value = yes) ->
     @editor.setOption "scrollPastEnd", value
     @appStorage.setValue "scrollPastEnd", value
