@@ -242,3 +242,11 @@ func (p *ProxyConfiguration) UpsertService(username string, service models.Servi
 
 	return p.RunCollection("jProxyServices", query)
 }
+
+func (p *ProxyConfiguration) DeleteServices(username string) error {
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"username": username})
+	}
+
+	return p.RunCollection("jProxyServices", query)
+}

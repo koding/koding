@@ -38,6 +38,7 @@ class LoginView extends KDScrollView
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Recover password"
+      testPath    : "landing-recover-password"
       click       : recoverHandler
 
     @goToRegisterLink = new KDCustomHTMLView
