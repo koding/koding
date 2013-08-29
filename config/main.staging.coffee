@@ -32,10 +32,10 @@ module.exports =
     enabled     : yes
     port        : 1337
   neo4j         :
-    read        : "http://neo4j-dev.in.koding.com"
-    write       : "http://neo4j-dev.in.koding.com"
+    read        : "http://172.16.6.12"
+    write       : "http://172.16.6.12"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@mongodb-staging.in.koding.com:27017/koding'
+  mongo         : 'dev:k9lc4G1k32nyD72@172.16.6.13:27017/koding'
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : no
@@ -140,13 +140,13 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
   mq            :
-    host        : 'rabbitmq-staging.in.koding.com'
+    host        : '172.16.6.14'
     port        : 5672
-    apiAddress  : "rabbitmq-staging.in.koding.com"
+    apiAddress  : "172.16.6.14"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'djfjfhgh4455__5'
     heartbeat   : 20
     vhost       : 'new'
   broker        :
@@ -154,7 +154,6 @@ module.exports =
     port        : 80
     certFile    : ""
     keyFile     : ""
-    useKontrold : no
     webProtocol : 'http:'
     webHostname : "stage-broker-#{version}.in.koding.com"
     webPort     : null
@@ -212,10 +211,10 @@ module.exports =
     bin   : '/usr/local/nagios/bin/send_nsca'
     conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
-    host        : 'rabbitmq-staging.in.koding.com'
+    host        : '172.16.6.14'
     port        : 5672
     componentUser: 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'djfjfhgh4455__5'
     vhost       : 'followfeed'
   github        :
     clientId    : "5891e574253e65ddb7ea"

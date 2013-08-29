@@ -31,6 +31,7 @@ type VMInfo struct {
 	timeout       *time.Timer
 	mutex         sync.Mutex
 	totalCpuUsage int
+	currentCpus   []string
 	hostname      string
 
 	State               string `json:"state"`
@@ -404,6 +405,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			info.hostname = vm.HostnameAlias
 		}
 
+		if vm.NumCPUs > 0 && len(info.currentCpus) != vm.NumCPUs {
+			info.currentCpus = make([]string, vm.NumCPUs)
+		}
+
 		vmWebDir := "/home/" + vm.WebHome + "/Web"
 		userWebDir := "/home/" + user.Name + "/Web"
 
@@ -584,10 +589,14 @@ func getUsers(vm *virt.VM) []virt.User {
 }
 
 func newInfo(vm *virt.VM) *VMInfo {
+	if vm.NumCPUs == 0 {
+		vm.NumCPUs = 1
+	}
 	return &VMInfo{
 		vmId:             vm.Id,
 		useCounter:       0,
 		totalCpuUsage:    utils.MaxInt,
+		currentCpus:      make([]string, vm.NumCPUs),
 		hostname:         vm.HostnameAlias,
 		CpuShares:        1000,
 		TotalMemoryLimit: MaxMemoryLimit,
