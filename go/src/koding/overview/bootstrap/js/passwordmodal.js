@@ -5,12 +5,12 @@ $(
 		var switchButton = $('#switchButton')
 		$(switchButton).click(
 			function(){ //listen for click event
-			showNameModal(function(){$(form).submit();});
+			showPasswordModal(function(){$(form).submit();});
 			})
 	}
 )
-// modal for user s name
-var showNameModal = function(callback) {
+// modal for user s password
+var showPasswordModal = function(callback) {
 	callback: callback;
     $("#myModal").bind("show", function() {
         $("#myModal a.primary").click(function(e) {
