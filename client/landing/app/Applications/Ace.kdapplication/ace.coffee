@@ -60,7 +60,7 @@ class Ace extends KDView
       @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
       @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? "default"
-      @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? no
+      @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
 
     require ["ace/ext/language_tools"], =>
       @editor.setOptions
