@@ -61,7 +61,7 @@ class AvatarView extends LinkView
 
     @$('cite').addClass flags
 
-    @$().attr href: profile.nickname
+    @setDomAttributes href: "/#{profile.nickname}"
 
   viewAppended:->
     super

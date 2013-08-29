@@ -111,13 +111,11 @@ class PermissionsModal extends KDFormViewWithFields
         callback    : =>
 
           group.updatePermissions @reducedList(), (err,res)=>
-            log 'updated permissions',err,res
             @buttons["Save"].hideLoader()
-            # TODO: do something with this callback
             unless err
-              new KDNotificationView 
+              new KDNotificationView
                 title : "Group permissions have been updated."
-            KD.showError "An error occured while updating permissions."
+            KD.showError err
 
     options.fields or= optionizePermissions roles, permissionSet
     super options,data

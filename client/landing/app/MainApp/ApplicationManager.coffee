@@ -81,7 +81,8 @@ class ApplicationManager extends KDObject
             options.params = newParams  if newParams
             @open name, options, callback
           else
-            appOptions.preCondition.failure? appParams, callback
+            params = newParams or appParams
+            appOptions.preCondition.failure? params, callback
         return
 
       # if there is no registered appController
@@ -189,11 +190,12 @@ class ApplicationManager extends KDObject
 
   show:(appOptions, callback)->
 
-    return if appOptions.background
-
     appInstance = @get appOptions.name
-    appView     = appInstance.getView?()
 
+    if appOptions.background
+      return @utils.defer -> callback? appInstance
+
+    appView     = appInstance.getView?()
     return unless appView
 
     @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
@@ -225,6 +227,16 @@ class ApplicationManager extends KDObject
 
     for own name, apps of @appControllers
       @quit app  for app in apps.instances
+
+  quitByName: (name, closeAllInstances = yes) ->
+    appController = @appControllers[name]
+    return  unless appController
+
+    if closeAllInstances
+      instances = appController.instances
+      @quit instances[0] while instances.length > 0
+    else
+      @quit appController.instances[appController.lastActiveIndex]
 
   get:(name)->
 

@@ -56,17 +56,23 @@ app.environments.styl
       height            36px
       font-size         14px
 
+      &.domain
+        padding-right   117px
+        margin-right    0
+
+    .kdselectbox.domains
+      position          absolute
+      top               6px
+      right             -4px
+
     > .input-wrapper
       width             400px
+      height            36px
       margin-right      0
       rel()
 
-      > .input-wrapper
-        display           inline-block
-        top               6px
-        right             6px
-        margin-right      0
-        abs()
+      > *
+        margin-right    10px
 
   h4.kdheaderview
     display               inline-block
@@ -204,11 +210,6 @@ app.environments.styl
   .kdsplitview-panel.panel-1
     border-left       1px solid #ddd
 
-
-
-
-
-
 .domain-detail-tabs
 
   .kdtabpaneview
@@ -310,8 +311,7 @@ app.environments.styl
     margin            0 5px 5px 0
     padding           5px
     display           inline-block
-    width             33%
-    width             calc(33.3%\-4px)
+    kalc              width, 33.3%\-4px, 33%
     height            auto
     cursor            pointer
     color             #555
@@ -470,7 +470,7 @@ app.environments.styl
     .filter-form-view
       margin-bottom  10px
 
-  .kdlistview-filters, .kdlistview-rules, .kdlistview-dns-records
+  .kdlistview-env-list
 
     border-collapse    separate
     border-spacing     0

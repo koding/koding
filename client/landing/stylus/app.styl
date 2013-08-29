@@ -2,7 +2,7 @@
 @import "./client/stylus/appfn"
 @import "./client/stylus/app.fonts"
 @import "nib/gradients"
-@import "nib/vendor"
+// @import "nib/vendor"
 
 active-color = rgb(246,162,32)
 
@@ -91,7 +91,7 @@ body
     opacity      0
 
 .pulsing
-  vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
+  vendor            transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
   vendor            animation, pulse 1.5s ease-in-out 100
 
 .main-loading
@@ -137,8 +137,7 @@ body
 }
 
 #kdmaincontainer
-  vendor              transition, opacity .6s ease-in-out
-  overflow            visible
+  // vendor              transition, opacity .6s ease-in-out
   &.scale
     vendor            animation, shrink 1s ease-out
     vendor            animation-iteration-count, 1
@@ -254,13 +253,13 @@ body
     shadow            none
   &.with-finder
     left              260px
-    width             calc(100%\-260px)
+    kalc              width, 100%\-260px, 100%
   &.mouse-on-nav
     left              173px!important
-    width             calc(100%\-173px)
+    kalc              width, 100%\-173px, 100%
   &.social
     left              160px!important
-    width             calc(100%\-160px)
+    kalc              width, 100%\-160px, 100%
   &.develop
     min-width         250px
   &.no-anim
@@ -272,10 +271,10 @@ body
     bottom            0!important
     right             0!important
     z-index           10
-    height            calc(100% \+ 51px)
+    kalc              height, 100% \+ 51px, 100%
     .application-page
       padding         0!important
-      height          calc(100% \+ 10px)
+      kalc            height, 100% \+ 10px, 100%
     .app-settings-menu
       top             0
       right           0
@@ -355,7 +354,7 @@ body
       size              20px, 20px
       margin            5px auto
       opacity           .2
-      vendor            transition, opacity .15s linear
+      // vendor            transition, opacity .15s linear
       sprite()
       &:hover
         opacity         1
@@ -543,6 +542,7 @@ span.main-nav-icon
   &.group
     bg                    position, 0 -560px
   &.invite-friends
+    bg                    position, -220px -360px
   &.transparent
     text-shadow     0 -1px 0 #26231F
     padding         3px 3px 1px 3px
@@ -627,14 +627,14 @@ span.main-nav-icon
   right               5px
   width               20px !important
   height              20px
-  border-radius       0 0 0 4px
+  border-radius       0 0 0 3px
   box-shadow          -1px 1px 1px 0px #ccc
   padding             0
   border              none
   .icon
     padding           0
     sprite()
-    bg                  position, -137px -298px !important
+    bg                  position, 0 -580px !important
 
 .app-settings
   .enable-fullscreen-menu-item
@@ -990,7 +990,7 @@ span.main-nav-icon
 
     .kdlistview-navigation
       opacity         1
-      vendor          transition, opacity .3s linear
+      // vendor          transition, opacity .3s linear
       margin-top      10px
       &.out
         opacity       0
@@ -1332,7 +1332,7 @@ span.main-nav-icon
       margin      15px 20px 0
       line-height 19px
       &:last-child
-        margin    15px 20px
+        margin    0 20px 15px
     cite
       font-size   11px
       color       linkColor1
@@ -1715,3 +1715,45 @@ span.main-nav-icon
   left                  25px
   color                 #fff
   abs()
+
+#chrome-terminal-banner
+  z-index               1
+  font-size             11px
+  position              absolute
+  right                 10px
+  height                auto
+  width                 auto
+  line-height           20px
+  top                   30px
+  padding-top           35px
+  min-height            30px
+  min-width             270px
+  overflow              visible
+  .koding-icon
+    position            absolute
+    top                 0
+    right               0
+    width               23px
+    height              30px
+    sprite()
+    bg                  position,-400px 0
+  .actions
+    position            absolute
+    top                 2px
+    right               25px
+    a.action
+      color             #fff
+      text-decoration   none
+      display           inline-block
+      padding           5px 15px
+      border-right      1px solid #444
+      &:last-of-type
+        border-right    none
+      &:hover
+        color           #ff9200
+  p
+    color               #fff
+    text-align          right
+    padding-right       40px
+    a
+      color             #ff9200

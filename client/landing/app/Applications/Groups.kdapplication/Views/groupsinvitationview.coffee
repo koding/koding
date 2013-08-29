@@ -16,7 +16,6 @@ class GroupsInvitationView extends KDView
         @saveInviteMessage 'inviteApprovedMessage', @getDefaultInvitationMessage()
 
     @on 'SearchInputChanged', (value)=>
-      console.log @tabView.getActivePane().mainView
       @tabView.getActivePane().mainView.emit 'SearchInputChanged', value
 
   showModalForm:(options)->
@@ -34,6 +33,7 @@ class GroupsInvitationView extends KDView
             buttons          :
               Send           :
                 itemClass    : KDButtonView
+                testPath     : "groups-dashboard-invite-button"
                 title        : options.submitButtonLabel or 'Send'
                 type         : 'submit'
                 loader       :
@@ -134,7 +134,7 @@ class GroupsInvitationView extends KDView
       title              : 'Invite by Email'
       cssClass           : 'invite-by-email'
       callback           : ({emails, message, saveMessage, bcc})=>
-        @getData().inviteByEmails emails, message, {bcc}, (err)=>
+        @getData().inviteByEmails emails, {message, bcc}, (err)=>
           @modalCallback @inviteByEmail, noop, err
           @saveInviteMessage 'invitationMessage', message  if saveMessage
       fields             :
@@ -142,6 +142,7 @@ class GroupsInvitationView extends KDView
           label          : 'Emails'
           type           : 'textarea'
           cssClass       : 'emails-input'
+          testPath       : "groups-dashboard-invite-list"
           placeholder    : 'Enter each email address on a new line...'
           validate       :
             rules        :
@@ -227,7 +228,7 @@ class GroupsInvitationView extends KDView
           scrollView.setPartial "#{errLine}<br/>"
         return scrollView.scrollTo top:scrollView.getScrollHeight()
 
-    new KDNotificationView title:'Invitation sent!'
+    new KDNotificationView title:'Success!'
     modal.destroy()
 
   saveInviteMessage:(messageType, message, callback=noop)->

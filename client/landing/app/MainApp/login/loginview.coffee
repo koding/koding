@@ -38,6 +38,7 @@ class LoginView extends KDScrollView
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Recover password"
+      testPath    : "landing-recover-password"
       click       : recoverHandler
 
     @goToRegisterLink = new KDCustomHTMLView
@@ -53,6 +54,7 @@ class LoginView extends KDScrollView
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
+      testPath : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
@@ -60,9 +62,16 @@ class LoginView extends KDScrollView
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
+      testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
         KD.track "Login", "RegisterButtonClicked"
+
+    @redeemForm = new RedeemInlineForm
+      cssClass : "login-form"
+      callback : (formData)=>
+        @doRedeem formData
+        KD.track "Login", "RedeemButtonClicked"
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
@@ -70,19 +79,12 @@ class LoginView extends KDScrollView
         @doRecover formData
         KD.track "Login", "RecoverButtonClicked"
 
-
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doReset formData
         KD.track "Login", "ResetButtonClicked"
-
-    @requestForm = new RequestInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
-        @doRequest formData
-        KD.track "Login", "RequestButtonClicked"
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -101,8 +103,7 @@ class LoginView extends KDScrollView
 
       KD.remote.api.JUser.authenticateWithOauth params, (err, resp)=>
         if err
-          new KDNotificationView
-            title : "An error occurred: #{err.message}"
+          showError err
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
@@ -148,21 +149,20 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rf">
         {{> @registerForm}}
       </div>
+      <div class="login-form-holder rdf">
+        {{> @redeemForm}}
+      </div>
       <div class="login-form-holder rcf">
         {{> @recoverForm}}
       </div>
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
-      <div class="login-form-holder rqf">
-        <h3 class="kdview kdheaderview "><span>REQUEST AN INVITE:</span></h3>
-        {{> @requestForm}}
-      </div>
     </div>
     <div class="login-footer">
-      <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
+      <p class='regLink'>Not a member? {{> @goToRegisterLink}}</p>
+      <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
-      <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
     </div>
     """
 
@@ -190,6 +190,7 @@ class LoginView extends KDScrollView
 
   doRegister:(formData)->
     formData.agree = 'on'
+    formData.referrer = $.cookie 'referrer'
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
@@ -241,7 +242,7 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, @bound "afterLoginCallback"
+    KD.remote.api.JUser.login credentials, @afterLoginCallback.bind this
 
   runExternal = (token)->
     KD.getSingleton("kiteController").run
@@ -258,25 +259,8 @@ class LoginView extends KDScrollView
   afterLoginCallback: (err, params={})->
     @loginForm.button.hideLoader()
     {entryPoint} = KD.config
-
     if err
-      if err.message.length > 50
-        new KDModalView
-          title        : "Something is wrong!"
-          width        : 500
-          overlay      : yes
-          cssClass     : "new-kdmodal"
-          content      :
-            """
-              <div class='modalformline'>
-                #{err.message}
-              </div>
-            """
-      else
-        new KDNotificationView
-          title   : err.message
-          duration: 1000
-
+      showError err
       @loginForm.resetDecoration()
     else
       {account, replacementToken} = params
@@ -287,12 +271,11 @@ class LoginView extends KDScrollView
       mainView.show()
       mainView.$().css "opacity", 1
 
-      KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
+      KD.getSingleton('router').handleRoute KD.singletons.router.visitedRoutes.first or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
-          # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
 
@@ -305,23 +288,15 @@ class LoginView extends KDScrollView
 
       @hide()
 
-  doRequest:(formData)->
-    {entryPoint} = KD.config
-    slug = if entryPoint?.type is 'group' and entryPoint.slug\
-           then entryPoint.slug else KD.defaultSlug
-    KD.remote.cacheable slug, (err, [group])=>
-      group.requestAccess formData, (err)=>
-        if err
-          warn err
-          new KDNotificationView
-            title     : 'Something went wrong, please try again!'
-            duration  : 2000
-        else
-          @requestForm.reset()
-          @requestForm.email.hide()
-          @requestForm.button.hide()
-          @$('.flex-wrapper').addClass 'expanded'
-        @requestForm.button.hideLoader()
+  doRedeem:({inviteCode})->
+    return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
+
+    KD.remote.cacheable KD.config.entryPoint.slug, (err, [group])=>
+      group.redeemInvitation inviteCode, (err)=>
+        @redeemForm.button.hideLoader()
+        return KD.notify_ err.message or err  if err
+        KD.notify_ 'Success!'
+        KD.getSingleton('mainController').accountChanged KD.whoami()
 
   showHeadBanner:(message, callback)->
     @headBannerMsg = message
@@ -362,8 +337,6 @@ class LoginView extends KDScrollView
     @setY -KD.getSingleton('windowController').winHeight
 
     cb = =>
-      @requestForm.email.show()
-      @requestForm.button.show()
       @$('.flex-wrapper').removeClass 'expanded'
 
       @emit "LoginViewHidden"
@@ -434,6 +407,8 @@ class LoginView extends KDScrollView
       switch name
         when "register"
           @registerForm.firstName.input.setFocus()
+        when "redeem"
+          @redeemForm.inviteCode.input.setFocus()
         when "login"
           @loginForm.username.input.setFocus()
         when "recover"
@@ -445,3 +420,21 @@ class LoginView extends KDScrollView
       return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"
+
+  showError = (err)->
+    if err.message.length > 50
+      new KDModalView
+        title        : "Something is wrong!"
+        width        : 500
+        overlay      : yes
+        cssClass     : "new-kdmodal"
+        content      :
+          """
+            <div class='modalformline'>
+              #{err.message}
+            </div>
+          """
+    else
+      new KDNotificationView
+        title   : err.message
+        duration: 1000

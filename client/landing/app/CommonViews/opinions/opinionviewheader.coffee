@@ -12,6 +12,7 @@ class OpinionViewHeader extends JView
     @maxCommentToShow = 5
     @oldCount         = data.opinionCount
     @newCount         = 0
+    @newAnswers       = 0
     @onListCount      = if data.opinionCount > @maxCommentToShow then @maxCommentToShow else data.opinionCount
 
     # The snapshot view should always have a visible Header
@@ -42,6 +43,7 @@ class OpinionViewHeader extends JView
       partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}"
       click     : (event)=>
         event.preventDefault()
+        @resetCounts()
         @newItemsLink.unsetClass "in"
         if @parent?.constructor isnt DiscussionActivityOpinionView
           @loader.show()
@@ -82,26 +84,26 @@ class OpinionViewHeader extends JView
       click     : (event)=>
         event.preventDefault()
 
+        @resetCounts()
         @newItemsLink.unsetClass "in"
 
-        if @parent?.constructor is not DiscussionActivityOpinionView
-          list.emit "AllOpinionsLinkWasClicked", @
-        else
+        list.emit "AllOpinionsLinkWasClicked", @
+        if @parent?.constructor is DiscussionActivityOpinionView
           KD.getSingleton('router').handleRoute "/Activity/#{@getDelegate().getData().slug}", state:@getDelegate().getData()
 
-    @newAnswers = 0
+    list.on "NewOpinionHasArrived", (reply) =>
+      {opinionCount} = @getData()
+      if reply?.replier?.id isnt KD.whoami().getId()
+        @newAnswers = opinionCount - (@oldCount or 0)
 
-    list.on "NewOpinionHasArrived",=>
-      @newAnswers++
       @updateRemainingText()
-      @newItemsLink?.updatePartial "#{if @newAnswers is 0 then "No" else @newAnswers} new Answer#{if @newAnswers is 1 then "" else "s"}"
+      @updateNewItems()
 
-      @setClass "has-new-items"
-      @show()
-      @allItemsLink.show()
-      @allItemsLink.setClass "in"
-      @newItemsLink.show()
-      @newItemsLink.setClass "in"
+    list.on "OpinionIsDeleted", => @updateNewItems()
+
+  resetCounts: ->
+    @oldCount = @getData().opinionCount
+    @newAnswers = 0
 
   hide:->
     @unsetClass "in"
@@ -132,7 +134,6 @@ class OpinionViewHeader extends JView
     if @parent?.constructor is OpinionView
       @hide() if @getData().opinionCount is 0
 
-
   updateRemainingText:->
     {opinionCount,repliesCount} = @getData()
 
@@ -141,15 +142,15 @@ class OpinionViewHeader extends JView
       else ''
     if @allItemsLink?
       if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
-        if @getData().opinionCount > 1
+        if opinionCount > 1
           @allItemsLink.updatePartial "View #{@getData().opinionCount} Answers"+commentText
-        else if @getData().opinionCount is 1
+        else if opinionCount is 1
           @allItemsLink.updatePartial "View one Answer"+commentText
         else
           @allItemsLink.updatePartial "No Answers yet#{if repliesCount > 0 then '. View '+repliesCount+' Comment'+(if repliesCount isnt 1 then 's' else '') else ''}"
       else
-        remainingOpinions = @getData().opinionCount-@getDelegate().items.length
-        if (remainingOpinions)<@maxCommentToShow
+        remainingOpinions = opinionCount - @getDelegate().items.length
+        if (remainingOpinions) < @maxCommentToShow
             if remainingOpinions is 1
               @allItemsLink.updatePartial "View remaining answer"
             else if remainingOpinions > 1
@@ -159,6 +160,18 @@ class OpinionViewHeader extends JView
                 @allItemsLink.updatePartial ""
               else
                 @allItemsLink.updatePartial "View new answers"
+
+  updateNewItems: ->
+    if @getData().opinionCount > 0 and @newAnswers > 0
+      @newItemsLink?.updatePartial "#{@newAnswers} new Answer#{if @newAnswers is 1 then "" else "s"}"
+      @setClass "has-new-items"
+      @show()
+      @allItemsLink.show()
+      @allItemsLink.setClass "in"
+      @newItemsLink.show()
+      @newItemsLink.setClass "in"
+    else
+      @newItemsLink.unsetClass "in"
 
   pistachio:->
     """

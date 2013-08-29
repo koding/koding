@@ -27,8 +27,10 @@ class Sidebar extends JView
     # Main Navigations
     @navController = new MainNavController
       view           : new NavigationList
+        testPath     : 'navigation-list'
         type         : "navigation"
         itemClass    : NavigationLink
+        testPath     : "navigation-list"
       wrapper        : no
       scrollView     : no
     ,
@@ -37,11 +39,11 @@ class Sidebar extends JView
       items     : []
 
     navAdditions = [
-      { type  : 'separator',      order : 65}
-      { title : 'Invite Friends', order : 66,  type : 'account',    role : 'member' }
-      { title : 'Logout',         order : 100, path : '/Logout',    type : 'account', role : 'member' }
-      { title : 'Login',          order : 101, path : '/Login',     type : 'account', role : 'guest' }
-      { title : 'Register',       order : 102, path : '/Register',  type : 'account', role : 'guest' }
+      { type  : 'separator',      order : 65 }
+      { title : 'Invite Friends', order : 66,  type : 'account',   role : 'member' }
+      { title : 'Logout',         order : 100, path : '/Logout',   type : 'account', loggedIn : yes }
+      { title : 'Login',          order : 101, path : '/Login',    type : 'account', loggedIn : no  }
+      { title : 'Register',       order : 102, path : '/Register', type : 'account', loggedIn : no  }
     ]
 
     KD.registerNavItem navItem for navItem in navAdditions
@@ -86,7 +88,7 @@ class Sidebar extends JView
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
-      defaultState : "show"
+      defaultState : "hide"
       states       : [
         title      : "show"
         iconClass  : "up"
@@ -126,6 +128,7 @@ class Sidebar extends JView
       iconOnly  : yes
       iconClass : "cog"
       cssClass  : "clean-gray open-environment"
+      testPath  : "environments-open"
       callback  :->
         if KD.whoami().type is 'unregistered'
           new KDNotificationView title: "This feature requires registration"
@@ -140,6 +143,8 @@ class Sidebar extends JView
       cssClass  : "clean-gray refresh-environment"
       callback  : =>
         @resourcesController.reset()
+
+    @environmentsRefreshButton.hide()  unless KD.checkFlag "super-admin"
 
     @listenWindowResize()
 

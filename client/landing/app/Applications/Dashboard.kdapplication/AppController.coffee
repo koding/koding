@@ -14,6 +14,7 @@ class DashboardAppController extends AppController
   constructor:(options={},data)->
 
     options.view = new DashboardAppView
+      testPath   : "groups-dashboard"
     data or= KD.getSingleton("groupsController").getCurrentGroup()
 
     super options, data
@@ -36,7 +37,6 @@ class DashboardAppController extends AppController
           callback   : @membersViewAdded
       ,
         name         : 'Invitations'
-        hiddenHandle : data.privacy is 'public'
         viewOptions  :
           viewClass  : GroupsInvitationView
           lazy       : yes
@@ -47,14 +47,14 @@ class DashboardAppController extends AppController
           lazy       : yes
       ,
         name         : 'Membership policy'
-        hiddenHandle : data.privacy is 'public'
+        hiddenHandle : @getData().privacy is 'public'
         viewOptions  :
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
           callback   : @policyViewAdded
       ,
         name         : 'Blocked Users'
-        hiddenHandle : data.privacy is 'public'
+        hiddenHandle : @getData().privacy is 'public'
         kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
         viewOptions  :
           viewClass  : GroupsBlockedUserView

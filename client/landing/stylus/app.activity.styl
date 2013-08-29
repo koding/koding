@@ -1,7 +1,8 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
-@import "nib/vendor"
+// @import "nib/vendor"
+
 
 @css {
 /*
@@ -34,7 +35,7 @@ body.group
         margin                 0 0 0 138px
       .update-widget-tabs
         .kdtabpaneview
-          width                calc(100% \- 160px)
+          kalc                width, 100% \- 160px, 100%
       &.loggedin
         .common-inner-nav
           top                  128px
@@ -219,7 +220,7 @@ h1.kdheaderview.notification-header
     borderBox()
     &.hidden-item
       border-width        0
-      background-color    #FDF5D9
+      // background-color    #FDF5D9
       left                -100%
     .kdloader
       vertical-align      bottom
@@ -248,7 +249,7 @@ h1.kdheaderview.notification-header
       size(20px,20px)
       blockMid()
       &.fx
-        vendor            transition, opacity .3s ease-in\, left .3s ease-in
+        vendor            transition, left .3s ease-in //\, opacity .3s ease-in
         top               2px
         opacity           1
         left              0
@@ -361,9 +362,9 @@ h1.kdheaderview.notification-header
         opacity         1
 
     div.activity-settings-menu
-      vendor            transition, opacity .1s ease-out
+      // vendor            transition, opacity .1s ease-out
       size              21px, 18px
-      opacity           .2
+      opacity           0
       abs()
       top               0
       right             20px
@@ -489,9 +490,12 @@ h1.kdheaderview.notification-header
 
 .activity-share-popup
   min-width             233px
+
   clear                 both
   .kdlistview-activity-share
+    width               281px
     padding             5px
+    right               55px
     overflow            visible
     padding             5px
     border              1px solid rgba(0,0,0,0.275)
@@ -521,21 +525,29 @@ h1.kdheaderview.notification-header
       vertical-align    top
       margin-top        6px
 
-    .share-twitter
-      .icon.tw
+    .icon-link
+      .icon
         display         block
         width           19px
         height          19px
         opacity         .7
-        vendor          transition, opacity .2s ease
         sprite()
-        bg              position, -71px -343px
       &:hover
-        .icon.tw
+        .icon
           opacity       1
 
+    .share-twitter
+      .icon
+        bg              position, -300px -360px
+    .share-linkedin
+      .icon
+        bg              position, -300px -340px
+    .share-facebook
+      .icon
+        bg              position, -320px -360px
+
     .custom-link-view
-      margin-right      4px
+      // margin-right      4px
       .icon.new-page
         opacity         .4
         bg              position, -180px -280px
@@ -787,6 +799,18 @@ form.status-widget
 
   .tags-selected-item-wrapper
     margin                0
+
+  .embed
+    &.embed-image-view
+      .details
+        strong
+        a
+          display         block
+          width           340px
+          white-space     nowrap
+          overflow        hidden
+          text-overflow   ellipsis
+
 
 .code-snip-holder
   rel()
@@ -1193,7 +1217,7 @@ div.show-more-opinions
     bg                    color, #FF9200
     border                1px solid #FF9200
     rounded(3px 3px 3px 3px)
-    vendor                transition, left .3s ease-in-out \, opacity .3s ease-in-out
+    vendor                transition, left .3s ease-in-out // \, opacity .3s ease-in-out
 
     &.in
       opacity             1
@@ -1277,7 +1301,7 @@ div.kdview.link-embed-box.condensed
   borderBox()
   rel()
 
-  vendor transition, opacity .1s linear
+  // vendor transition, opacity .1s linear
 
   width auto
   height auto
@@ -1307,6 +1331,23 @@ div.kdview.link-embed-box.condensed
   &.link-wigdet
     margin-top 0px
 
+  .embed
+    &.embed-image-view
+      > a
+        display           block
+      padding             10px
+      .details
+        borderBox()
+        height            45px
+        padding           10px 0
+        strong
+        a
+          display         block
+          width           340px
+          white-space     nowrap
+          overflow        hidden
+          text-overflow   ellipsis
+
   // report button for embeds
   > button.kdbutton.report-embed, button.kdbutton.hide-embed
     abs()
@@ -1318,7 +1359,7 @@ div.kdview.link-embed-box.condensed
     border none
     opacity 0.5
     background transparent
-    vendor transition, opacity 0.3s ease-in-out
+    // vendor transition, opacity 0.3s ease-in-out
     z-index 3
 
     > span.icon
@@ -1333,7 +1374,7 @@ div.kdview.link-embed-box.condensed
       opacity 1
 
   > div.embed-box-settings
-    vendor            transition, opacity .1s ease-out
+    // vendor            transition, opacity .1s ease-out
     size              21px, 18px
     opacity           .2
     abs()
@@ -1520,7 +1561,7 @@ div.kdview.link-embed-box.condensed
     borderBox()
     height inherit
     opacity 1
-    vendor transition, opacity 0.15s ease-in-out
+    // vendor transition, opacity 0.15s ease-in-out
 
     &.loading
       opacity 0.5
@@ -1707,7 +1748,7 @@ div.kdview.link-embed-box.condensed
             color white
             background-color #ccc
             padding 0px 3px
-            vendor transition, opacity 0.3s ease-in-out
+            // vendor transition, opacity 0.3s ease-in-out
             display inline-block
             rounded 3px
 
@@ -2127,7 +2168,7 @@ div.protocol-info-box
     border none
     opacity 0.5
     background transparent
-    vendor transition, opacity 0.3s ease-in-out
+    // vendor transition, opacity 0.3s ease-in-out
     z-index 3
 
     > span.icon
@@ -2678,7 +2719,7 @@ div.kdtooltip
       width                       100%
       height                      4px
       bg color,                   #5f5f5f//#adadad
-      vendor                      transition, opacity 0.4s ease-in-out
+      // vendor                      transition, opacity 0.4s ease-in-out
       opacity                     1
       rounded                     2px
       shadow                      inset 0px 0px 2px 0px rgba(255, 255, 255, 0.25) //\, 0px 0px 5px rgba(0,0,0,0.25)
@@ -2736,5 +2777,18 @@ div.kdtooltip
         text-decoration           none
 
 
-
+.activity-item
+  &.status
+    &.two-columns
+      .link-embed-box
+        float                     left
+        width                     363px
+        margin-right              10px
+        border                    none
+        .activity-item
+          padding                 0
+      .comment-container.fixed-height
+        float                     left
+        width                     363px
+        margin-top                15px
 
