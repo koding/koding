@@ -62,6 +62,11 @@ class Ace extends KDView
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? "default"
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? no
 
+    require ["ace/ext/language_tools"], =>
+      @editor.setOptions
+        enableBasicAutocompletion: yes
+        enableSnippets: yes
+
   setEditorListeners:->
 
     @editor.getSession().selection.on 'changeCursor', (cursor)=>
