@@ -761,7 +761,7 @@ class NFinderTreeController extends JTreeViewController
     kallback          = ->
       file            = fileItemViews[0]
       if file
-        file.emit "FileNeedsToBeDownloadad", filePath
+        file.emit "FileNeedsToBeDownloaded", filePath
         file.on   "FileDownloadDone", ->
           fileItemViews.shift()
           if fileItemViews.length
@@ -792,12 +792,12 @@ class NFinderTreeController extends JTreeViewController
               callback : -> modal.destroy()
 
         for file in files
-          fileItemView = modal.addSubView new DropboxDownloadItemView {}, file
+          fileItemView = modal.addSubView new DropboxDownloadItemView { nodeView }, file
           fileItemViews.push fileItemView
 
   saveToDropbox: (nodeView) ->
     notification     = null
-    kiteController   = KD.getSingleton "kiteController"
+    vmController     = KD.getSingleton "vmController"
     plainPath        = FSHelper.plainPath nodeView.getData().path
     isFolder         = nodeView.getData().type is "folder"
     timestamp        = Date.now()
@@ -826,14 +826,14 @@ class NFinderTreeController extends JTreeViewController
                   notification.notificationSetTitle "Your file has been uploaded."
                   notification.notificationSetTimer 4000
                   notification.setClass "success"
-                  kiteController.run "rm #{relativePath}"
+                  vmController.run "rm #{relativePath}"
                 error: ->
                   notification.notificationSetTitle "An error occured while uploading your file."
                   notification.notificationSetTimer 4000
                   notification.setClass "error"
-                  kiteController.run "rm #{relativePath}"
+                  vmController.run "rm #{relativePath}"
                 cancel: ->
-                  kiteController.run "rm #{relativePath}"
+                  vmController.run "rm #{relativePath}"
                   notification.destroy()
                 progress: (progress) ->
                   notification.notificationSetTitle "Uploading to Dropbox - #{progress * 100}% done..."
@@ -845,7 +845,7 @@ class NFinderTreeController extends JTreeViewController
             style    : "modal-cancel"
             callback : ->
               modal.destroy()
-              kiteController.run "rm #{relativePath}"
+              vmController.run "rm #{relativePath}"
 
     if isFolder
       notification = new KDNotificationView
@@ -853,7 +853,7 @@ class NFinderTreeController extends JTreeViewController
         type       : "mini"
         duration   : 120000
 
-      kiteController.run "mkdir -p Web ; zip -r #{relativePath} #{plainPath}", (err, res) =>
+      vmController.run "mkdir -p Web ; zip -r #{relativePath} #{plainPath}", (err, res) =>
         if err
           message = if err.name is "ExitError" then "An error occured. It seems zip is not installed on your VM."
           else "An error occured, please try again."
@@ -868,7 +868,7 @@ class NFinderTreeController extends JTreeViewController
         title      : "Uploading your file..."
         type       : "mini"
         duration   : 120000
-      kiteController.run "mkdir -p Web ; cp #{plainPath} #{relativePath}", (err, res) =>
+      vmController.run "mkdir -p Web ; cp #{plainPath} #{relativePath}", (err, res) =>
         return  warn err if err
         notification.hide()
         kallback()

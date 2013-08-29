@@ -30,9 +30,12 @@ class DropboxDownloadItemView extends JView
 
     @success.hide()
 
-    @on "FileNeedsToBeDownloadad", (path) ->
+    @on "FileNeedsToBeDownloaded", (path) ->
       @loader.show()
-      KD.getSingleton("kiteController").run "cd #{path} ; wget #{fileData.link}", (err, res) =>
+      KD.getSingleton("vmController").run
+        withArgs: "cd #{path} ; wget #{fileData.link}"
+        vmName  : @getOptions().nodeView.getData().vmName
+      , (err, res) =>
         return  warn err if err
         @loader.hide()
         @success.show()
