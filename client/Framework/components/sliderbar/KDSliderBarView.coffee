@@ -9,10 +9,10 @@ class KDSliderBarView extends KDCustomHTMLView
     options.snap       ?= yes
     data.handles
 
+    super options, data
+
     @handles            = []
     @labels             = []
-
-    super options, data
 
   createHandles:->
     for k, v of @getData().handles
