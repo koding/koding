@@ -60,6 +60,7 @@ app        = express()
   isLoggedIn
   saveOauthToSession
   getAlias
+  addReferralCode
 }          = require './helpers'
 
 
@@ -87,6 +88,9 @@ process.on 'uncaughtException',(err)->
   console.error err
 
 app.use (req, res, next) ->
+  # add referral code into session if there is one
+  addReferralCode req, res
+
   {JSession} = koding.models
   {clientId} = req.cookies
   clientIPAddress = req.connection.remoteAddress
@@ -94,6 +98,8 @@ app.use (req, res, next) ->
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
+
+app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
 app.get "/-/auth/check/:key", (req, res)->
   {key} = req.params

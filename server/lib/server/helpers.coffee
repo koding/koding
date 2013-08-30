@@ -141,6 +141,12 @@ getAlias = do->
       alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
     if alias and rooted then "/#{alias}" else alias
 
+# adds referral code into cookie if exists
+addReferralCode = (req, res)->
+  if refCode = req.query.r
+    console.log "refCode: #{refCode}"
+    res.cookie "referrer", refCode, { maxAge: 900000, httpOnly: false }
+
 module.exports = {
   error_
   error_404
@@ -156,4 +162,5 @@ module.exports = {
   isLoggedIn
   saveOauthToSession
   getAlias
+  addReferralCode
 }
