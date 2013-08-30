@@ -20,6 +20,7 @@ module.exports =
     address     : "https://koding.com"
   userSitesDomain: 'kd.io'
   containerSubnet: "10.128.2.0/9"
+  vmPool        : "vms"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -153,7 +154,6 @@ module.exports =
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    useKontrold : yes
     webProtocol : 'https:'
     webHostname : "broker-#{version}a.koding.com"
     webPort     : null

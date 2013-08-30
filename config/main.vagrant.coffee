@@ -20,6 +20,7 @@ module.exports =
     address     : "http://localhost:3020"
   userSitesDomain: 'localhost'
   containerSubnet: "10.128.2.0/9"
+  vmPool        : "vms"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -149,7 +150,6 @@ module.exports =
     port        : 8008
     certFile    : ""
     keyFile     : ""
-    useKontrold : no
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
