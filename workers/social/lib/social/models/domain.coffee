@@ -56,6 +56,15 @@ module.exports = class JDomain extends jraphical.Module
         required    : yes
         set         : (value)-> value.toLowerCase()
 
+      domainType    :
+        type    : String
+        enum    : ['invalid domain type', [
+          'new'
+          'subdomain'
+          'existing'
+        ]]
+        # default :  'subdomain'
+
       hostnameAlias : [String]
 
       proxy         :
@@ -77,12 +86,14 @@ module.exports = class JDomain extends jraphical.Module
         mode        :
           type      : String
           enum      : ['invalid load balancer mode',[
-            'roundrobin'
+            ''
+            # 'roundrobin'
             # 'sticky'
             # 'weighted'
             # 'weighted-roundrobin'
           ]]
-          default   : 'roundrobin'
+          # default   : 'roundrobin'
+          default : ''
         index       :
           type      : Number
           default   : 0
@@ -105,9 +116,13 @@ module.exports = class JDomain extends jraphical.Module
   @isDomainEligible: (params, callback)->
     {delegate, domain} = params
 
-    return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
+    # return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
+    # return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
 
-    match = domain.match /(.*)\.([\w\-]+)\.kd\.io$/
+    # match = domain.match /(.*)\.([\w\-]+)\.kd\.io$/
+    # match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
+
+    match = []
 
     return callback new KodingError("Invalid domain: #{domain}.")  unless match
 
@@ -243,8 +258,8 @@ module.exports = class JDomain extends jraphical.Module
       delegate.fetchDomains (err, domains)->
         return callback err if err
         for domain in domains
-          console.log "Testing domain:", domain, selector.domainName
-          # console.log "HULOOOOOOOOOOOGG"
+          # console.log "Testing domain:", domain, selector.domainName
+          console.log "HULOOOOOOOOOOOGG"
           return callback null, domain if domain.domain is selector.domainName
 
   fetchProxyRules: (callback)->

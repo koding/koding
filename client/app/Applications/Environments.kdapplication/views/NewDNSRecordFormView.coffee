@@ -4,6 +4,8 @@ class NewDNSRecordFormView extends KDCustomHTMLView
     options.cssClass = "record-form-view"
     super options, data
 
+    {domain} = @getData()
+
     @typeLabel        = new KDLabelView
       title : "Record Type"
 
@@ -19,6 +21,10 @@ class NewDNSRecordFormView extends KDCustomHTMLView
     @priorityLabel    = new KDLabelView
       cssClass : "hidden"
       title    : "Priority"
+
+    @header = new KDCustomHTMLView
+      tagName: "header"
+      partial: domain.domainType
 
     @typeSelectBox    = new KDSelectBox
       selectOptions : [
@@ -48,8 +54,13 @@ class NewDNSRecordFormView extends KDCustomHTMLView
       title    : "Add Record"
       callback : @bound "createNewRecord"
 
-  createNewRecord: ->
+  createNewRecord:->
     {domain} = @getData()
+
+    # if domain.domainType == "new"
+    #   console.log "EXXX"
+    # else
+    #   console.log "NOOOOOO"
 
     recordType = @typeSelectBox.getValue()
     host       = @hostInput.getValue()
@@ -59,30 +70,22 @@ class NewDNSRecordFormView extends KDCustomHTMLView
 
     recordObj = {recordType, host, value, ttl, priority}
 
-    # KD.remote.api.JDomain.one {domainName:domain}, (err, domain)=>
-    #   domain.createDNSRecord recordObj, (err, record)=>
-    #     if record
-    #       return new KDNotificationView {title: "Your record has been saved."}
-    #       @emit "newRecordCreated", recordObj
-    #     else
-    #       return new KDNotificationView {title: "ERRROORRRRRR"}
-
     domain.createDNSRecord recordObj, (err, record)=>
-      log "=============================================="
       log record, err
       if record
+        log "=============== LOGGGG =============="
+        log record
         return new KDNotificationView {title: "Your record has been saved."}
         @emit "newRecordCreated", recordObj
       else
-        return new KDNotificationView {title: "ERRROORRRRRR"}
+        return new KDNotificationView
+          title: "You need to activate your FREE DNS Services before you can perform this action"
 
   viewAppended: JView::viewAppended
 
   pistachio:->
     """
-      <header>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-      </header>
+      {{> @header}}
       <section class="clearfix">
         <div class="input-container record-type">
           {{> @typeLabel}}

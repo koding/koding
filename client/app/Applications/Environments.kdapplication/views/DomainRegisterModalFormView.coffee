@@ -36,6 +36,7 @@ class DomainForwardForm extends KDView
       hostnameAlias  : []
       loadBalancer   :
           mode       : "roundrobin"
+          # mode       : ""
     , (err, domain)=>
       unless err
         modalTabs.parent.emit "DomainForwarded", {domainName}
