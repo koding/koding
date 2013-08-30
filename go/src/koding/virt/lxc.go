@@ -13,7 +13,6 @@ func (vm *VM) Start() error {
 	if out, err := exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon").CombinedOutput(); err != nil {
 		return commandError("lxc-start failed.", err, out)
 	}
-	exec.Command("/sbin/ifconfig", vm.VEth(), "mtu", "1476").Run() // error ignored
 	return vm.WaitForState("RUNNING", time.Second)
 }
 
@@ -46,12 +45,16 @@ func (vm *VM) AttachCommand(uid int, tty string, command ...string) *exec.Cmd {
 	return cmd
 }
 
-func (vm *VM) GetState() string {
-	out, err := exec.Command("/usr/bin/lxc-info", "--name", vm.String(), "--state").CombinedOutput()
+func GetVMState(vmId bson.ObjectId) string {
+	out, err := exec.Command("/usr/bin/lxc-info", "--name", VMName(vmId), "--state").CombinedOutput()
 	if err != nil {
 		return ""
 	}
 	return strings.TrimSpace(string(out)[6:])
+}
+
+func (vm *VM) GetState() string {
+	return GetVMState(vm.Id)
 }
 
 func (vm *VM) WaitForState(state string, timeout time.Duration) error {
@@ -65,8 +68,8 @@ func (vm *VM) WaitForState(state string, timeout time.Duration) error {
 	return nil
 }
 
-func SendMessageToVMUsers(vmId bson.ObjectId, message string) error {
-	cmd := exec.Command("/usr/bin/lxc-attach", "--name", VMName(vmId), "--", "/usr/bin/wall", "--nobanner")
+func (vm *VM) SendMessageToVMUsers(message string) error {
+	cmd := exec.Command("/usr/bin/lxc-attach", "--name", vm.String(), "--", "/usr/bin/wall", "--nobanner")
 	cmd.Stdin = strings.NewReader(message)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return commandError("wall failed.", err, out)

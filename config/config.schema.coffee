@@ -46,6 +46,7 @@ config =
       address     : 1
     userSitesDomain: 1
     containerSubnet: 1
+    vmPool        : 1
     projectRoot   : 1
     version       : 1
     webserver     :
@@ -142,6 +143,8 @@ config =
         authExchange  : 1
         github        :
           clientId    : 1
+        embedly       :
+          apiKey      : 1
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
@@ -171,7 +174,6 @@ config =
       port        : 1
       certFile    : 1
       keyFile     : 1
-      useKontrold : 1
       webProtocol : 1
       webHostname : 1
       webPort     : 1

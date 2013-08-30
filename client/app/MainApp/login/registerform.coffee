@@ -15,6 +15,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : yes
           messages    :
             required  : "Please enter your first name."
+        testPath      : "register-form-firstname"
 
     @lastName = new LoginInputView
       cssClass        : "half-size"
@@ -28,11 +29,13 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : yes
           messages    :
             required  : "Please enter your last name."
+        testPath      : "register-form-lastname"
 
     @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : "email"
         placeholder   : "Your email address"
+        testPath      : "register-form-email"
         validate      :
           container   : this
           event       : "blur"
@@ -76,6 +79,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name             : "username"
         forceCase        : "lowercase"
         placeholder      : "Desired username"
+        testPath         : "register-form-username"
         validate         :
           container      : this
           rules          :
@@ -110,6 +114,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "password"
         type          : "password"
         placeholder   : "Create a password"
+        testPath      : "register-form-pass1"
         validate      :
           container   : this
           event       : "blur"
@@ -126,6 +131,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "passwordConfirm"
         type          : "password"
         placeholder   : "Confirm your password"
+        testPath      : "register-form-pass2"
         validate      :
           container   : this
           event       : "blur"

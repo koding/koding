@@ -7,12 +7,123 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
+	"unicode"
 )
 
 type Package struct {
 	Fields []string
 	Values map[string]string
+}
+
+type DpkgVersion struct {
+	Epoch    int
+	Version  string
+	Revision string
+}
+
+func ParseDpkgVerion(s string) *DpkgVersion {
+	var version DpkgVersion
+
+	epochParts := strings.SplitN(s, ":", 2)
+	if len(epochParts) == 2 {
+		version.Epoch, _ = strconv.Atoi(epochParts[0])
+	}
+
+	revisionParts := strings.SplitN(epochParts[len(epochParts)-1], "-", 2)
+	if len(revisionParts) == 2 {
+		version.Revision = revisionParts[1]
+	}
+
+	version.Version = revisionParts[0]
+
+	return &version
+}
+
+// translated from dpkg source code
+func dpkgOrder(r rune) int {
+	if unicode.IsDigit(r) {
+		return 0
+	}
+	if unicode.IsLetter(r) {
+		return int(r)
+	}
+	if r == '~' {
+		return -1
+	}
+	if r == 0 {
+		return 0
+	}
+	return int(r) + 256
+}
+
+// translated from dpkg source code
+func dpkgCompare(a string, b string) int {
+	c := func(s string, i int) rune {
+		if i >= len(s) {
+			return 0
+		}
+		return rune(s[i])
+	}
+
+	ai := 0
+	bi := 0
+	for c(a, ai) != 0 || c(b, bi) != 0 {
+		for (c(a, ai) != 0 && !unicode.IsDigit(c(a, ai))) || (c(b, bi) != 0 && !unicode.IsDigit(c(b, bi))) {
+			ac := dpkgOrder(c(a, ai))
+			bc := dpkgOrder(c(b, bi))
+
+			if ac != bc {
+				return ac - bc
+			}
+
+			ai += 1
+			bi += 1
+		}
+
+		for c(a, ai) == '0' {
+			ai += 1
+		}
+		for c(b, bi) == '0' {
+			bi += 1
+		}
+
+		firstDiff := 0
+		for unicode.IsDigit(c(a, ai)) && unicode.IsDigit(c(b, bi)) {
+			if firstDiff == 0 {
+				firstDiff = int(c(a, ai) - c(b, bi))
+			}
+			ai += 1
+			bi += 1
+		}
+		if unicode.IsDigit(c(a, ai)) {
+			return 1
+		}
+		if unicode.IsDigit(c(b, bi)) {
+			return -1
+		}
+		if firstDiff != 0 {
+			return firstDiff
+		}
+	}
+
+	return 0
+}
+
+func (a *DpkgVersion) Compare(b *DpkgVersion) int {
+	if a.Epoch > b.Epoch {
+		return 1
+	}
+	if a.Epoch < b.Epoch {
+		return -1
+	}
+
+	if r := dpkgCompare(a.Version, b.Version); r != 0 {
+		return r
+	}
+
+	return dpkgCompare(a.Revision, b.Revision)
 }
 
 var DPKG_INFO_EXTENSIONS = []string{"conffiles", "list", "md5sums", "postinst", "postrm", "preinst", "prerm", "shlibs", "symbols", "templates"}
@@ -49,7 +160,7 @@ func (vm *VM) MergeDpkgDatabase() {
 	// merge packages from lower to upper
 	for name, lowerPkg := range lowerPackages {
 		upperPkg, found := upperPackages[name]
-		if found && upperPkg.Values["Version"] != lowerPkg.Values["Version"] {
+		if found && ParseDpkgVerion(upperPkg.Values["Version"]).Compare(ParseDpkgVerion(lowerPkg.Values["Version"])) < 0 {
 			conffiles := make(map[string]string)
 
 			lines := strings.Split(upperPkg.Values["Conffiles"], "\n")

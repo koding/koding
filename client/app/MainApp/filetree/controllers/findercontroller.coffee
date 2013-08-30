@@ -11,6 +11,7 @@ class NFinderController extends KDViewController
     treeOptions.nodeParentIdPath  = options.nodeParentIdPath  or= "parentPath"
     treeOptions.dragdrop          = options.dragdrop           ?= yes
     treeOptions.foldersOnly       = options.foldersOnly        ?= no
+    treeOptions.hideDotFiles      = options.hideDotFiles       ?= no
     treeOptions.multipleSelection = options.multipleSelection  ?= yes
     treeOptions.addOrphansToRoot  = options.addOrphansToRoot   ?= no
     treeOptions.putDepthInfo      = options.putDepthInfo       ?= yes
@@ -25,21 +26,21 @@ class NFinderController extends KDViewController
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
+
     if options.useStorage
-
-      @treeController.on "file.opened", @bound 'setRecentFile'
-
-      # @treeController.on "folder.expanded", (folder)=>
-      #   @setRecentFolder folder.path
-
-      @treeController.on "folder.collapsed", ({path})=>
-        # @unsetRecentFolder path
-        @stopWatching path
+      @appStorage.ready =>
+        @treeController.on "file.opened", @bound 'setRecentFile'
+        @treeController.on "folder.expanded", (folder)=>
+          @setRecentFolder folder.path
+        @treeController.on "folder.collapsed", ({path})=>
+          @unsetRecentFolder path
+          @stopWatching path
 
     @noVMFoundWidget = new VMMountStateWidget
     @cleanup()
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
+    KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
 
   watchers: {}
 
@@ -56,7 +57,6 @@ class NFinderController extends KDViewController
       delete @watchers[path]
 
   loadView:(mainView)->
-
     mainView.addSubView @treeController.getView()
     mainView.addSubView @noVMFoundWidget
     @viewLoaded = yes
@@ -69,22 +69,16 @@ class NFinderController extends KDViewController
 
   reset:->
     if @getOptions().useStorage
-      @appStorage.once "storageFetched", @bound 'loadVms'
+      @appStorage.ready => @loadVms()
     else
       @utils.defer => @loadVms()
 
   mountVms: (vms) ->
-    unless Array.isArray vms
-      return callback? "vmNames should be an Array"
+    return  unless Array.isArray vms
     @cleanup()
     @mountVm vm  for vm in vms
-    callback?()
 
   loadVms:(vmNames, callback)->
-
-    # if KD.isGuest()
-    #   vmNames ?= ['guest']
-
     if vmNames then @mountVms vmNames
     else
       groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
@@ -123,12 +117,19 @@ class NFinderController extends KDViewController
         items.splice items.indexOf(vmName), 1
       @appStorage.setValue "mountedVM", vms
 
+  checkVMState: (err, vm, info)->
+    return warn err if err or not info
+    switch info.state
+      when "MAINTENANCE" then @unmountVm vm
+
   mountVm:(vm, fetchContent = yes)->
-    # return unless KD.isLoggedIn()
     return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
 
     [vmName, path] = vm.split ":"
-    path or= "/home/#{KD.nick()}"
+
+    vmRoots = (@appStorage.getValue 'vmRoots') or {}
+    pipedVm = @_pipedVmName vmName
+    path or= vmRoots[pipedVm] or "/home/#{KD.nick()}"
 
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
@@ -146,33 +147,42 @@ class NFinderController extends KDViewController
 
     vmItem = @getVmNode vmName
     if fetchContent and vmItem
-      @treeController.expandFolder vmItem, (err)=>
-        if err?.name is 'VMNotFoundError'
-          return @unmountVm vmName
-        @treeController.selectNode vmItem
-      , yes
+      # Without this, it fails to fetch Finder settings before creating
+      # Fileitems o_0 FIXME ~ GG
+      @utils.wait 1000, =>
+        @treeController.expandFolder vmItem, (err)=>
+          if err?.name is 'VMNotFoundError'
+            return @unmountVm vmName
+          @treeController.selectNode vmItem
+          @utils.defer =>
+            if @getOptions().useStorage then @reloadPreviousState vmName
+        , yes
 
   unmountVm:(vmName)->
-    # return unless KD.isLoggedIn()
-    return warn 'No such VM!'  unless vmItem = @getVmNode vmName
+    vmItem = @getVmNode vmName
+    return warn 'No such VM!'  unless vmItem
 
     @updateMountState vmName, no
+    @stopWatching vmItem.data.path
+    FSHelper.unregisterVmFiles vmName
+    @treeController.removeNodeView vmItem
+    @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
 
-    if vmItem
-      @stopWatching vmItem.data.path
-      FSHelper.deregisterVmFiles vmName
-      @treeController.removeNodeView vmItem
-      @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
-
-      if @vms.length is 0
-        @noVMFoundWidget.show()
-        @emit 'EnvironmentsTabRequested'
+    if @vms.length is 0
+      @noVMFoundWidget.show()
+      @emit 'EnvironmentsTabRequested'
 
   updateVMRoot:(vmName, path, callback)->
     return warn 'VM name and new path required!'  unless vmName or path
 
     @unmountVm vmName
     callback?()
+
+    vmRoots = (@appStorage.getValue 'vmRoots') or {}
+    pipedVm = @_pipedVmName vmName
+    vmRoots[pipedVm] = path
+    @appStorage.setValue 'vmRoots', vmRoots
+
     @mountVm "#{vmName}:#{path}"
 
   cleanup:->
@@ -182,9 +192,8 @@ class NFinderController extends KDViewController
     @vms = []
 
   setRecentFile:({path})->
-
     recentFiles = @appStorage.getValue('recentFiles')
-    recentFiles = [] unless Array.isArray recentFiles
+    recentFiles = []  unless Array.isArray recentFiles
 
     unless path in recentFiles
       if recentFiles.length is @treeController.getOptions().maxRecentFiles
@@ -194,28 +203,75 @@ class NFinderController extends KDViewController
     @appStorage.setValue 'recentFiles', recentFiles.slice(0,10), =>
       @emit 'recentfiles.updated', recentFiles
 
-  # FIXME Recent Folders support ~ GG
+  hideDotFiles:(vmName)->
+    return  unless vmName
+    @setNodesHidden vmName, yes
+    for path, node of @treeController.nodes
+      file = node.getData()
+      if (file.vmName is vmName) and file.isHidden()
+        @stopWatching file.path
+        @treeController.removeNodeView node
 
-  # setRecentFolder:(folderPath, callback)->
-  #   recentFolders = @appStorage.getValue('recentFolders')
-  #   recentFolders = [] unless Array.isArray recentFolders
-  #   unless folderPath in recentFolders
-  #     recentFolders.push folderPath
-  #   recentFolders.sort (path)-> if path is folderPath then -1 else 0
-  #   @appStorage.setValue 'recentFolders', recentFolders, callback
+  showDotFiles:(vmName)->
+    return  unless vmName
+    @setNodesHidden vmName, no
+    for path, node of @treeController.nodes when node.getData().type is 'vm'
+      return if node.getData().vmName is vmName
+        @treeController.collapseFolder node, =>
+          @reloadPreviousState vmName
+        , yes
 
-  # unsetRecentFolder:(folderPath, callback)->
-  #   recentFolders = @appStorage.getValue('recentFolders')
-  #   recentFolders = [] unless Array.isArray recentFolders
-  #   splicer = ->
-  #     recentFolders.forEach (recentFolderPath)->
-  #       if recentFolderPath.search(folderPath) > -1
-  #         recentFolders.splice recentFolders.indexOf(recentFolderPath), 1
-  #         splicer()
-  #         return
-  #   splicer()
-  #   recentFolders.sort (path)-> if path is folderPath then -1 else 0
-  #   @appStorage.setValue 'recentFolders', recentFolders, callback
+  isNodesHiddenFor:(vmName)->
+    pipedVm = @_pipedVmName vmName
+    return (@appStorage.getValue('vmsDotFileChoices') or {})[pipedVm]
+
+  setNodesHidden:(vmName, state)->
+    pipedVm = @_pipedVmName vmName
+    prefs   = @appStorage.getValue('vmsDotFileChoices') or {}
+    prefs[pipedVm] = state
+    @appStorage.setValue 'vmsDotFileChoices', prefs
+
+  getRecentFolders:->
+    recentFolders = @appStorage.getValue('recentFolders')
+    recentFolders = []  unless Array.isArray recentFolders
+    return recentFolders
+
+  setRecentFolder:(folderPath, callback)->
+    recentFolders = @getRecentFolders()
+    unless folderPath in recentFolders
+      recentFolders.push folderPath
+    recentFolders.sort (path)-> if path is folderPath then -1 else 0
+    @appStorage.setValue 'recentFolders', recentFolders, callback
+
+  unsetRecentFolder:(folderPath, callback)->
+    recentFolders = @getRecentFolders()
+    recentFolders = recentFolders.filter (path)->
+      path.indexOf(folderPath) isnt 0
+    recentFolders.sort (path)->
+      if path is folderPath then -1 else 0
+    @appStorage.setValue 'recentFolders', recentFolders, callback
+
+  expandFolder:(folderPath, callback=noop)->
+    return  unless folderPath
+    for path, node of @treeController.nodes
+      return @treeController.expandFolder node, callback  if path is folderPath
+    callback {message:"Folder not exists: #{folderPath}"}
+
+  reloadPreviousState:(vmName)->
+    iterate = (folders, index=0)=>
+      @expandFolder folders[index], (err)=>
+        if err then @unsetRecentFolder folders[index]
+        index++
+        iterate folders, index  if index <= folders.length
+    recentFolders = @getRecentFolders()
+    if vmName
+      recentFolders = recentFolders.filter (folder)->
+        folder.indexOf "[#{vmName}]" is 0
+      if recentFolders.length is 0
+        recentFolders = ["[#{vmName}]/home/#{KD.nick()}"]
+    iterate recentFolders
+
+  _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
 
 class VMMountStateWidget extends JView
 

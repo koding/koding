@@ -18,7 +18,7 @@ func main() {
 
 	start := time.Date(2012, 4, 2, 0, 0, 0, 0, time.UTC)
 	end := time.Now()
-	values := make([]int, end.Sub(start)/interval)
+	data := make([]int, end.Sub(start)/interval)
 
 	var user struct {
 		RegisteredAt time.Time `bson:"registeredAt"`
@@ -29,20 +29,24 @@ func main() {
 		if index < 0 {
 			index = 0
 		}
-		if index >= len(values) {
+		if index >= len(data) {
 			continue
 		}
-		values[index] += 1
+		data[index] += 1
 	}
 	if err := iter.Close(); err != nil {
 		panic(err)
 	}
 
-	labels := make([]string, len(values))
+	values := make([]int, len(data))
+	labels := make([]string, len(data))
 	total := 0
-	for i, v := range values {
-		total += v
+	for i := range data {
+		total += data[i]
 		values[i] = total
+		// if i > 2 {
+		// 	values[i] = data[i] - data[i-1]
+		// }
 
 		if i%5 == 0 {
 			labels[i] = start.Add(time.Duration(i) * interval).Format("2006-01-02")

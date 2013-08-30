@@ -80,19 +80,12 @@ var actions = map[string]func(){
 					Id: bson.NewObjectId(),
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
-				vm.Prepare(false)
+				vm.Prepare(false, func(text string, data ...interface{}) { fmt.Println(text) })
 				done <- i
 			}(i)
 		}
 		for i := 0; i < count; i++ {
 			fmt.Println(<-done)
-		}
-	},
-
-	"backup": func() {
-		for _, vm := range selectVMs(os.Args[2]) {
-			err := vm.Backup()
-			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 

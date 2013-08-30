@@ -28,8 +28,8 @@ class KodingAppsController extends KDController
     mainController  = KD.getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
     @publishedApps  = {}
-    @getPublishedApps()
 
+    @getPublishedApps()
     @createExtensionToAppMap()
     @fetchUserDefaultAppConfig()
 
@@ -104,7 +104,7 @@ class KodingAppsController extends KDController
           callback? null, manifests
     , ->
       msg = "Timeout reached for kite request"
-      KD.logToExternal msg
+      KD.logToExternal msg  unless KD.isGuest()
       log msg
       callback()
 
@@ -364,7 +364,6 @@ class KodingAppsController extends KDController
           nickname    = KD.nick()
           publishPath = "/home/#{nickname}/Web/.applications"
           @vmController.run
-            kiteName    : "os"
             method      : "fs.createDirectory"
             withArgs    :
               path      : publishPath
@@ -494,11 +493,11 @@ class KodingAppsController extends KDController
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
-      content                     : 
+      content                     :
         """ <div class='modalformline'><p>
             Please select the application type you want to start with.
-            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder, 
-            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start 
+            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder,
+            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start
             reading <code>manifest.json</code>
             </p></div>
         """
@@ -624,7 +623,6 @@ class KodingAppsController extends KDController
         return
 
       @vmController.run
-        kiteName     : "os"
         method       : "app.download"
         withArgs     :
           owner      : manifest.authorNick
@@ -641,8 +639,6 @@ class KodingAppsController extends KDController
   # #
   # HELPERS
   # #
-
-  proxifyUrl = (url)-> KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
   escapeFilePath = FSHelper.escapeFilePath
 

@@ -10,6 +10,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     decodedName = Encoder.htmlDecode name
 
     @smallInput = new KDInputView
+      testPath      : "status-update-input"
       cssClass      : "status-update-input warn-on-unsaved-data"
       placeholder   : "What's new #{decodedName}?"
       name          : 'dummy'

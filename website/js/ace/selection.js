@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -37,32 +37,36 @@ var EventEmitter = require("./lib/event_emitter").EventEmitter;
 var Range = require("./range").Range;
 
 /**
- * class Selection
  *
  * Contains the cursor position and the text selection of an edit session.
  *
  * The row/columns used in the selection are in document coordinates representing ths coordinates as thez appear in the document before applying soft wrap and folding.
+ * @class Selection
  **/
 
+
 /**
- * new Selection(session)
- * - session (EditSession): The session to use
- *
- * Creates a new `Selection` object.
- *
-**/
-/**
- * Selection@changeCursor()
- *
  * Emitted when the cursor position changes.
+ * @event changeCursor
+ *
+ *
  *
 **/
 /**
- * Selection@changeSelection()
- *
  * Emitted when the cursor selection changes.
+ *  @event changeSelection
+ *
+ *
  *
 **/
+/**
+ * Creates a new `Selection` object.
+ * @param {EditSession} session The session to use
+ *
+ *
+ *
+ * @constructor
+ **/
 var Selection = function(session) {
     this.session = session;
     this.doc = session.getDocument();
@@ -91,9 +95,9 @@ var Selection = function(session) {
     oop.implement(this, EventEmitter);
 
     /**
-    * Selection.isEmpty() -> Boolean
     *
     * Returns `true` if the selection is empty.
+    * @returns {Boolean}
     **/
     this.isEmpty = function() {
         return (this.$isEmpty || (
@@ -102,10 +106,9 @@ var Selection = function(session) {
         ));
     };
 
-    /** extension
-    * Selection.isMultiLine() -> Boolean
-    *
+    /**
     * Returns `true` if the selection is a multi-line.
+    * @returns {Boolean}
     **/
     this.isMultiLine = function() {
         if (this.isEmpty()) {
@@ -115,21 +118,20 @@ var Selection = function(session) {
         return this.getRange().isMultiLine();
     };
 
-    /** extension
-    * Selection.getCursor() -> Number
-    *
+    /**
     * Gets the current position of the cursor.
+    * @returns {Number}
     **/
     this.getCursor = function() {
         return this.lead.getPosition();
     };
 
     /**
-    * Selection.setSelectionAnchor(row, column)
-    * - row (Number): The new row
-    * - column (Number): The new column
-    *
     * Sets the row and column position of the anchor. This function also emits the `'changeSelection'` event.
+    * @param {Number} row The new row
+    * @param {Number} column The new column
+    *
+    *
     **/
     this.setSelectionAnchor = function(row, column) {
         this.anchor.setPosition(row, column);
@@ -140,11 +142,11 @@ var Selection = function(session) {
         }
     };
 
-    /** related to: Anchor.getPosition
-    * Selection.getSelectionAnchor() -> Object
-    *
+    /**
     * Returns an object containing the `row` and `column` of the calling selection anchor.
     *
+    * @returns {Object}
+    * @related Anchor.getPosition
     **/
     this.getSelectionAnchor = function() {
         if (this.$isEmpty)
@@ -154,19 +156,19 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.getSelectionLead() -> Object
     *
     * Returns an object containing the `row` and `column` of the calling selection lead.
+    * @returns {Object}
     **/
     this.getSelectionLead = function() {
         return this.lead.getPosition();
     };
 
     /**
-    * Selection.shiftSelection(columns)
-    * - columns (Number): The number of columns to shift by
-    *
     * Shifts the selection up (or down, if [[Selection.isBackwards `isBackwards()`]] is true) the given number of columns.
+    * @param {Number} columns The number of columns to shift by
+    *
+    *
     *
     **/
     this.shiftSelection = function(columns) {
@@ -191,9 +193,8 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.isBackwards() -> Boolean
-    *
     * Returns `true` if the selection is going backwards in the document.
+    * @returns {Boolean}
     **/
     this.isBackwards = function() {
         var anchor = this.anchor;
@@ -202,9 +203,8 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.getRange() -> Range
-    *
     * [Returns the [[Range]] for the selected text.]{: #Selection.getRange}
+    * @returns {Range}
     **/
     this.getRange = function() {
         var anchor = this.anchor;
@@ -222,8 +222,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.clearSelection()
-    *
     * [Empties the selection (by de-selecting it). This function also emits the `'changeSelection'` event.]{: #Selection.clearSelection}
     **/
     this.clearSelection = function() {
@@ -234,8 +232,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectAll()
-    *
     * Selects all the text in the document.
     **/
     this.selectAll = function() {
@@ -245,12 +241,13 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.setSelectionRange(range, reverse)
-    * - range (Range): The range of text to select
-    * - reverse (Boolean): Indicates if the range should go backwards (`true`) or not
-    *
     * Sets the selection to the provided range.
+    * @param {Range} range The range of text to select
+    * @param {Boolean} reverse Indicates if the range should go backwards (`true`) or not
     *
+    *
+    * @method setSelectionRange
+    * @alias setRange
     **/
     this.setRange =
     this.setSelectionRange = function(range, reverse) {
@@ -261,6 +258,8 @@ var Selection = function(session) {
             this.setSelectionAnchor(range.start.row, range.start.column);
             this.selectTo(range.end.row, range.end.column);
         }
+        if (this.getRange().isEmpty())
+            this.$isEmpty = true;
         this.$desiredColumn = null;
     };
 
@@ -273,11 +272,11 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectTo(row, column)
-    * - row (Number): The row to select to
-    * - column (Number): The column to select to
-    *
     * Moves the selection cursor to the indicated row and column.
+    * @param {Number} row The row to select to
+    * @param {Number} column The column to select to
+    *
+    *
     *
     **/
     this.selectTo = function(row, column) {
@@ -287,10 +286,10 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectToPosition(pos)
-    * - pos (Object): An object containing the row and column
-    *
     * Moves the selection cursor to the row and column indicated by `pos`.
+    * @param {Object} pos An object containing the row and column
+    *
+    *
     *
     **/
     this.selectToPosition = function(pos) {
@@ -300,7 +299,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectUp()
     *
     * Moves the selection up one row.
     **/
@@ -309,7 +307,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectDown()
     *
     * Moves the selection down one row.
     **/
@@ -318,7 +315,7 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectRight()
+    *
     *
     * Moves the selection right one column.
     **/
@@ -327,7 +324,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectLeft()
     *
     * Moves the selection left one column.
     **/
@@ -336,7 +332,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectLineStart()
     *
     * Moves the selection to the beginning of the current line.
     **/
@@ -345,7 +340,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectLineEnd()
     *
     * Moves the selection to the end of the current line.
     **/
@@ -354,7 +348,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectFileEnd()
     *
     * Moves the selection to the end of the file.
     **/
@@ -363,7 +356,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectFileStart()
     *
     * Moves the selection to the start of the file.
     **/
@@ -372,7 +364,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectWordRight()
     *
     * Moves the selection to the first word on the right.
     **/
@@ -381,7 +372,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectWordLeft()
     *
     * Moves the selection to the first word on the left.
     **/
@@ -389,10 +379,9 @@ var Selection = function(session) {
         this.$moveSelection(this.moveCursorWordLeft);
     };
 
-    /** related to: EditSession.getWordRange
-    * Selection.selectWord()
-    *
+    /**
     * Moves the selection to highlight the entire word.
+    * @related EditSession.getWordRange
     **/
     this.getWordRange = function(row, column) {
         if (typeof column == "undefined") {
@@ -403,14 +392,17 @@ var Selection = function(session) {
         return this.session.getWordRange(row, column);
     };
 
+    /**
+    *
+    * Selects an entire word boundary.
+    **/
     this.selectWord = function() {
         this.setSelectionRange(this.getWordRange());
     };
 
-    /** related to: EditSession.getAWordRange
-    * Selection.selectAWord()
-    *
+    /**
     * Selects a word, including its right whitespace.
+    * @related EditSession.getAWordRange
     **/
     this.selectAWord = function() {
         var cursor = this.getCursor();
@@ -436,8 +428,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.selectLine()
-    *
     * Selects the entire line.
     **/
     this.selectLine = function() {
@@ -445,7 +435,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorUp()
     *
     * Moves the cursor up one row.
     **/
@@ -454,7 +443,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorDown()
     *
     * Moves the cursor down one row.
     **/
@@ -463,7 +451,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorLeft()
     *
     * Moves the cursor left one column.
     **/
@@ -489,7 +476,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorRight()
     *
     * Moves the cursor right one column.
     **/
@@ -515,7 +501,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorLineStart()
     *
     * Moves the cursor to the start of the line.
     **/
@@ -534,21 +519,13 @@ var Selection = function(session) {
         );
 
         var leadingSpace = beforeCursor.match(/^\s*/);
-        if (leadingSpace[0].length == column) {
-            this.moveCursorTo(
-                firstColumnPosition.row, firstColumnPosition.column
-            );
-        }
-        else {
-            this.moveCursorTo(
-                firstColumnPosition.row,
-                firstColumnPosition.column + leadingSpace[0].length
-            );
-        }
+        // TODO find better way for emacs mode to override selection behaviors
+        if (leadingSpace[0].length != column && !this.session.$useEmacsStyleLineStart)
+            firstColumnPosition.column += leadingSpace[0].length;
+        this.moveCursorToPosition(firstColumnPosition);
     };
 
     /**
-    * Selection.moveCursorLineEnd()
     *
     * Moves the cursor to the end of the line.
     **/
@@ -568,7 +545,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorFileEnd()
     *
     * Moves the cursor to the end of the file.
     **/
@@ -579,7 +555,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorFileStart()
     *
     * Moves the cursor to the start of the file.
     **/
@@ -588,7 +563,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorLongWordRight()
     *
     * Moves the cursor to the word on the right.
     **/
@@ -635,7 +609,6 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorLongWordLeft()
     *
     * Moves the cursor to the word on the left.
     **/
@@ -697,7 +670,7 @@ var Selection = function(session) {
             while ((ch = rightOfCursor[index]) && whitespaceRe.test(ch))
                 index ++;
 
-            if (index <= 1) {
+            if (index < 1) {
                 tokenRe.lastIndex = 0;
                  while ((ch = rightOfCursor[index]) && !tokenRe.test(ch)) {
                     tokenRe.lastIndex = 0;
@@ -733,11 +706,11 @@ var Selection = function(session) {
 
         if (column == line.length) {
             var l = this.doc.getLength();
-            do {    
+            do {
                 row++;
                 rightOfCursor = this.doc.getLine(row)
             } while (row < l && /^\s*$/.test(rightOfCursor))
-            
+
             if (!/^\s+/.test(rightOfCursor))
                 rightOfCursor = ""
             column = 0;
@@ -758,11 +731,11 @@ var Selection = function(session) {
 
         var line = this.session.getLine(row).substring(0, column);
         if (column == 0) {
-            do {    
+            do {
                 row--;
                 line = this.doc.getLine(row);
             } while (row > 0 && /^\s*$/.test(line))
-            
+
             column = line.length;
             if (!/\s+$/.test(line))
                 line = ""
@@ -788,12 +761,13 @@ var Selection = function(session) {
             this.moveCursorShortWordLeft();
     };
 
-    /** related to: EditSession.documentToScreenPosition
-    * Selection.moveCursorBy(rows, chars)
-    * - rows (Number): The number of rows to move by
-    * - chars (Number): The number of characters to move by
-    *
+    /**
     * Moves the cursor to position indicated by the parameters. Negative numbers move the cursor backwards in the document.
+    * @param {Number} rows The number of rows to move by
+    * @param {Number} chars The number of characters to move by
+    *
+    *
+    * @related EditSession.documentToScreenPosition
     **/
     this.moveCursorBy = function(rows, chars) {
         var screenPos = this.session.documentToScreenPosition(
@@ -815,22 +789,22 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorToPosition(position)
-    * - position (Object): The position to move to
-    *
     * Moves the selection to the position indicated by its `row` and `column`.
+    * @param {Object} position The position to move to
+    *
+    *
     **/
     this.moveCursorToPosition = function(position) {
         this.moveCursorTo(position.row, position.column);
     };
 
     /**
-    * Selection.moveCursorTo(row, column, keepDesiredColumn)
-    * - row (Number): The row to move to
-    * - column (Number): The column to move to
-    * - keepDesiredColumn (Boolean): [If `true`, the cursor move does not respect the previous column]{: #preventUpdateBool}
-    *
     * Moves the cursor to the row and column provided. [If `preventUpdateDesiredColumn` is `true`, then the cursor stays in the same column position as its original point.]{: #preventUpdateBoolDesc}
+    * @param {Number} row The row to move to
+    * @param {Number} column The column to move to
+    * @param {Boolean} keepDesiredColumn [If `true`, the cursor move does not respect the previous column]{: #preventUpdateBool}
+    *
+    *
     **/
     this.moveCursorTo = function(row, column, keepDesiredColumn) {
         // Ensure the row/column is not inside of a fold.
@@ -849,12 +823,12 @@ var Selection = function(session) {
     };
 
     /**
-    * Selection.moveCursorToScreen(row, column, keepDesiredColumn)
-    * - row (Number): The row to move to
-    * - column (Number): The column to move to
-    * - keepDesiredColumn (Boolean): {:preventUpdateBool}
-    *
     * Moves the cursor to the screen position indicated by row and column. {:preventUpdateBoolDesc}
+    * @param {Number} row The row to move to
+    * @param {Number} column The column to move to
+    * @param {Boolean} keepDesiredColumn {:preventUpdateBool}
+    *
+    *
     **/
     this.moveCursorToScreen = function(row, column, keepDesiredColumn) {
         var pos = this.session.screenToDocumentPosition(row, column);
@@ -887,6 +861,52 @@ var Selection = function(session) {
         range.cursor = this.isBackwards() ? range.start : range.end;
         range.desiredColumn = this.$desiredColumn;
         return range;
+    }
+
+    this.toJSON = function() {
+        if (this.rangeCount) {
+            var data = this.ranges.map(function(r) {
+                var r1 = r.clone();
+                r1.isBackwards = r.cursor == r.start;
+                return r1;
+            });
+        } else {
+            var data = this.getRange();
+            data.isBackwards = this.isBackwards();
+        }
+        return data;
+    };
+
+    this.fromJSON = function(data) {
+        if (data.start == undefined) {
+            if (this.rangeList) {
+                this.toSingleRange(data[0]);
+                for (var i = data.length; i--; ) {
+                    var r = Range.fromPoints(data[i].start, data[i].end);
+                    if (data.isBackwards)
+                        r.cursor = r.start;
+                    this.addRange(r, true);
+                }
+                return;
+            } else
+                data = data[0];
+        }
+        if (this.rangeList)
+            this.toSingleRange(data);
+        this.setSelectionRange(data, data.isBackwards);
+    };
+
+    this.isEqual = function(data) {
+        if ((data.length || this.rangeCount) && data.length != this.rangeCount)
+            return false;
+        if (!data.length || !this.ranges)
+            return this.getRange().isEqual(data);
+
+        for (var i = this.ranges.length; i--; ) {
+            if (!this.ranges[i].isEqual(data[i]))
+                return false
+        }
+        return true;
     }
 
 }).call(Selection.prototype);

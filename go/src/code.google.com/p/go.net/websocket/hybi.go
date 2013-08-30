@@ -438,7 +438,7 @@ func hybiClientHandshake(config *Config, br *bufio.Reader, bw *bufio.Writer) (er
 		return ErrBadStatus
 	}
 	if strings.ToLower(resp.Header.Get("Upgrade")) != "websocket" ||
-		strings.ToLower(resp.Header.Get("Connection")) != "upgrade" {
+		!strings.Contains(strings.ToLower(resp.Header.Get("Connection")), "upgrade") {
 		return ErrBadUpgrade
 	}
 	expectedAccept, err := getNonceAccept(nonce)

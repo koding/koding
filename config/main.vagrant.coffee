@@ -10,6 +10,8 @@ socialQueueName = "koding-social-vagrant"
 authExchange    = "auth"
 authAllExchange = "authAll"
 
+embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
+
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -18,6 +20,7 @@ module.exports =
     address     : "http://localhost:3020"
   userSitesDomain: 'localhost'
   containerSubnet: "10.128.2.0/9"
+  vmPool        : "vms"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -116,6 +119,8 @@ module.exports =
       authExchange: authExchange
       github         :
         clientId     : "f8e440b796d953ea01e5"
+      embedly        :
+        apiKey       : embedlyApiKey
       userSitesDomain: 'localhost'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
@@ -145,7 +150,6 @@ module.exports =
     port        : 8008
     certFile    : ""
     keyFile     : ""
-    useKontrold : no
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
@@ -222,7 +226,7 @@ module.exports =
   recurly       :
     apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
   embedly       :
-    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
+    apiKey      : embedlyApiKey
   opsview       :
     push        : no
     host        : ''
