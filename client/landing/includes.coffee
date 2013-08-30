@@ -311,6 +311,9 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/vmdetailsview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
+
+  "app/MainApp/filetree/helpers/dropboxuploader.coffee",
+
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
   "app/MainApp/filetree/bottomlist/finderbottomlistitem.coffee",
