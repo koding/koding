@@ -76,7 +76,7 @@ class KDSliderBarView extends KDCustomHTMLView
     if name?
       for handle in @handles
         return handle if handle.getOption('name') is name
-      return console.error "Can't find a handle named #{name}"
+      return error "Can't find a handle named #{name}"
 
   setLimits:->
     {maxValue, minValue, interval} = @getOptions()
@@ -97,7 +97,6 @@ class KDSliderBarView extends KDCustomHTMLView
     @setLimits()
     @drawBar()   if @getOption('drawBar')
     @addLabels() if @getOption('showLabels')
-    window.asd = @
 
 class KDSliderBarHandleView extends KDCustomHTMLView
   constructor:(options = {}, data = {})->
