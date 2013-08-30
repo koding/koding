@@ -75,9 +75,8 @@ app.configure ->
   app.use express.compress()
   app.use express.static "#{projectRoot}/website/"
 
-app.use (req, res, next)->
-  res.removeHeader "X-Powered-By"
-  next()
+# disable express default header
+app.disable 'x-powered-by'
 
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
@@ -172,12 +171,6 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
             res.send 200, authTemplate "Authentication already established!"
 
 
-app.get "/-/imageProxy", (req, res)->
-  if req.query.url
-    require('request')(req.query.url).pipe(res)
-  else
-    res.send 404
-
 s3 = require('./s3') uploads.s3, findUsernameFromKey
 app.post "/-/kd/upload", s3..., (req, res)->
   {JUserKite} = koding.models
@@ -263,8 +256,6 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
     else
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
-
-app.post "/-/oauth/:provider/callback", (req,res)->
 
 app.get "/-/oauth/:provider/callback", (req,res)->
   {provider} = req.params
@@ -354,6 +345,7 @@ app.get '/:name/:section?*', (req, res, next)->
             else res.send 500, error_500()
 
 app.get "/", (req, res)->
+
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else

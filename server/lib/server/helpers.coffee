@@ -141,6 +141,7 @@ getAlias = do->
       alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
     if alias and rooted then "/#{alias}" else alias
 
+
 # adds referral code into cookie if exists
 addReferralCode = (req, res)->
   if refCode = req.query.r
