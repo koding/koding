@@ -15,9 +15,9 @@ class DomainCreationForm extends KDTabViewWithForms
     paymentController = KD.getSingleton('paymentController')
     group             = KD.getSingleton("groupsController").getCurrentGroup()
     domainOptions     = [
-      { title : "Create a subdomain",                                      value : "subdomain" }
-      { title : "I want to register a domain <cite>coming soon...</cite>", value : "new" }
-      { title : "I already have a domain <cite>coming soon...</cite>",     value : "existing" }
+      { title : "Create a subdomain", value : "subdomain" }
+      { title : "I want to register a domain", value : "new" }
+      { title : "I already have a domain", value : "existing" }
     ]
 
     super
@@ -204,7 +204,7 @@ class DomainCreationForm extends KDTabViewWithForms
             domain.setDomainCNameToProxyDomain()
 
     else if domainOptionValue is 'existing'
-      @createDomain {domainName, regYears:0}, (err, domain)=>
+      @createDomain {domainName, regYears:0, domainType:'existing'}, (err, domain)=>
         createButton.hideLoader()
         if err
           warn err
@@ -221,7 +221,7 @@ class DomainCreationForm extends KDTabViewWithForms
         return notifyUser "#{domainName} is an invalid subdomain."
       domainName = "#{domainName}.#{domains.getValue()}"
 
-      @createDomain {domainName, regYears:0}, (err, domain)=>
+      @createDomain {domainName, regYears:0, domainType:'subdomain'}, (err, domain)=>
         createButton.hideLoader()
         if err
           warn err
@@ -232,13 +232,17 @@ class DomainCreationForm extends KDTabViewWithForms
           @showSuccess domain
 
   createDomain:(params, callback)->
+    console.log "================= PARAMS ================"
+    console.log params
     KD.remote.api.JDomain.createDomain
         domain         : params.domainName
         regYears       : params.regYears
         proxy          : { mode: 'vm' }
         hostnameAlias  : []
+        domainType     : params.domainType
         loadBalancer   :
-            mode       : "roundrobin"
+            # mode       : "roundrobin"
+            mode         : ""
       , (err, domain)=>
         callback err, domain
 
