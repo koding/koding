@@ -125,9 +125,15 @@ type HomePage struct {
 }
 
 type User struct {
-	Username string
-	Password string
-	Salt     string
+	ObjectId      string
+	Email         string
+	LastLoginDate time.Time
+	Password      string
+	RegisteredAt  time.Time
+	Salt          string
+	Status        string
+	Uid           int
+	Username      string
 }
 
 func NewServerInfo() *ServerInfo {
