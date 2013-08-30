@@ -48,7 +48,8 @@ class ActivityItemChild extends KDView
       @commentBox = new OpinionView null, data
       list        = @commentBox.opinionList
     else
-      @commentBox = new CommentView null, data
+      commentSettings = options.commentSettings or null
+      @commentBox = new CommentView commentSettings, data
       list        = @commentBox.commentList
 
     @actionLinks = new ActivityActionsView

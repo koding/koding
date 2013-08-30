@@ -42,10 +42,10 @@ class WebTermView extends KDView
       @terminal.setFocused false
       KD.getSingleton('windowController').removeLayer @
 
-    $(window).bind "blur", =>
+    $(window).on "blur", =>
       @terminal.setFocused false
 
-    $(window).bind "focus", =>
+    $(window).on "focus", =>
       @terminal.setFocused @focused
 
     $(document).on "paste", (event) =>
@@ -65,7 +65,6 @@ class WebTermView extends KDView
       @updateSettings()
 
       KD.getSingleton("vmController").run
-        kiteName : 'os',
         method   : 'webterm.connect',
         vmName   : @getOption('delegate').getOption('vmName')
         withArgs :

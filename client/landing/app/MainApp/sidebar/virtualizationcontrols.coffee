@@ -40,7 +40,7 @@ class VirtualizationControls extends JView
     switch info.state
       when "RUNNING"
         @statusLED.setOnline()
-      when "STOPPED"
+      when "STOPPED", "MAINTENANCE"
         @statusLED.setOffline()
 
   viewAppended:->

@@ -19,11 +19,13 @@ class GroupCreationModal extends KDModalView
         title          : "Create"
         style          : "modal-clean-gray hidden"
         type           : "button"
+        testPath       : "groups-create-submit"
         callback       : @bound "createGroup"
       next             :
         title          : "Next"
         style          : "modal-clean-gray"
         type           : "button"
+        testPath       : "groups-create-next"
         disabled       : yes
         callback       : @bound "next"
       back             :
@@ -95,10 +97,12 @@ class GroupCreationModal extends KDModalView
 
       @addSubView @mainSettings = new KDFormViewWithFields
         cssClass                 : "general-settings hidden"
+        testPath                 : "groups-create-form"
         fields                   :
           "Title"                :
             label                : "Title"
             name                 : "title"
+            testPath             : "groups-create-title"
             validate             :
               event              : "blur"
               rules              :
@@ -115,10 +119,12 @@ class GroupCreationModal extends KDModalView
             label                : "Description"
             type                 : "textarea"
             name                 : "body"
+            testPath             : "groups-create-desc"
             placeholder          : "Please enter a description for your group here..."
           "Privacy"              :
             label                : "Privacy/Visibility"
             itemClass            : KDSelectBox
+            testPath             : "groups-create-privacy"
             type                 : "select"
             name                 : "privacy"
             defaultValue         : "public"

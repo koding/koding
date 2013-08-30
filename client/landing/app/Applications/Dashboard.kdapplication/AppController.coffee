@@ -14,6 +14,7 @@ class DashboardAppController extends AppController
   constructor:(options={},data)->
 
     options.view = new DashboardAppView
+      testPath   : "groups-dashboard"
     data or= KD.getSingleton("groupsController").getCurrentGroup()
 
     super options, data

@@ -490,9 +490,12 @@ h1.kdheaderview.notification-header
 
 .activity-share-popup
   min-width             233px
+
   clear                 both
   .kdlistview-activity-share
+    width               281px
     padding             5px
+    right               55px
     overflow            visible
     padding             5px
     border              1px solid rgba(0,0,0,0.275)
@@ -522,21 +525,29 @@ h1.kdheaderview.notification-header
       vertical-align    top
       margin-top        6px
 
-    .share-twitter
-      .icon.tw
+    .icon-link
+      .icon
         display         block
         width           19px
         height          19px
         opacity         .7
-        // vendor          transition, opacity .2s ease
         sprite()
-        bg              position, -71px -343px
       &:hover
-        .icon.tw
+        .icon
           opacity       1
 
+    .share-twitter
+      .icon
+        bg              position, -300px -360px
+    .share-linkedin
+      .icon
+        bg              position, -300px -340px
+    .share-facebook
+      .icon
+        bg              position, -320px -360px
+
     .custom-link-view
-      margin-right      4px
+      // margin-right      4px
       .icon.new-page
         opacity         .4
         bg              position, -180px -280px
@@ -788,6 +799,18 @@ form.status-widget
 
   .tags-selected-item-wrapper
     margin                0
+
+  .embed
+    &.embed-image-view
+      .details
+        strong
+        a
+          display         block
+          width           340px
+          white-space     nowrap
+          overflow        hidden
+          text-overflow   ellipsis
+
 
 .code-snip-holder
   rel()
@@ -1307,6 +1330,23 @@ div.kdview.link-embed-box.condensed
 
   &.link-wigdet
     margin-top 0px
+
+  .embed
+    &.embed-image-view
+      > a
+        display           block
+      padding             10px
+      .details
+        borderBox()
+        height            45px
+        padding           10px 0
+        strong
+        a
+          display         block
+          width           340px
+          white-space     nowrap
+          overflow        hidden
+          text-overflow   ellipsis
 
   // report button for embeds
   > button.kdbutton.report-embed, button.kdbutton.hide-embed
@@ -2737,5 +2777,18 @@ div.kdtooltip
         text-decoration           none
 
 
-
+.activity-item
+  &.status
+    &.two-columns
+      .link-embed-box
+        float                     left
+        width                     363px
+        margin-right              10px
+        border                    none
+        .activity-item
+          padding                 0
+      .comment-container.fixed-height
+        float                     left
+        width                     363px
+        margin-top                15px
 
