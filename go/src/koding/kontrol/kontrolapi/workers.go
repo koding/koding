@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"koding/kontrol/kontroldaemon/workerconfig"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
@@ -125,24 +126,29 @@ func queryResult(query bson.M, latestVersion bool) Workers {
 	workers := make(Workers, 0)
 	worker := workerconfig.Worker{}
 
-	iter := kontrolConfig.Collection.Find(query).Iter()
-	for iter.Next(&worker) {
-		apiWorker := &ApiWorker{
-			worker.Name,
-			worker.ServiceGenericName,
-			worker.ServiceUniqueName,
-			worker.Uuid,
-			worker.Hostname,
-			worker.Version,
-			worker.Timestamp,
-			worker.Pid,
-			StatusCode[worker.Status],
-			worker.Monitor.Uptime,
-			worker.Port,
-		}
+	queryFunc := func(c *mgo.Collection) error {
+		iter := c.Find(query).Iter()
+		for iter.Next(&worker) {
+			apiWorker := &ApiWorker{
+				worker.Name,
+				worker.ServiceGenericName,
+				worker.ServiceUniqueName,
+				worker.Uuid,
+				worker.Hostname,
+				worker.Version,
+				worker.Timestamp,
+				worker.Pid,
+				StatusCode[worker.Status],
+				worker.Monitor.Uptime,
+				worker.Port,
+			}
 
-		workers = append(workers, *apiWorker)
+			workers = append(workers, *apiWorker)
+		}
+		return nil
 	}
+
+	kontrolConfig.RunCollection("jKontrolWorkers", queryFunc)
 
 	// finding the largest number of a field in mongo is kinda problematic.
 	// therefore we are doing it on our side

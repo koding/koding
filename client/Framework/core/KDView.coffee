@@ -80,7 +80,6 @@ class KDView extends KDObject
     o.prefix      or= ""        # a String
     o.suffix      or= ""        # a String
     o.tooltip     or= null      # an Object of kdtooltip options
-    o.preserveValue or= null
 
     # TO BE IMPLEMENTED
     o.resizable   or= null      # TBDL
@@ -93,12 +92,12 @@ class KDView extends KDObject
 
     @setClass 'kddraggable' if o.draggable
 
-    @on 'childAppended', @childAppended.bind @
+    @on 'childAppended', @childAppended.bind this
 
     @on 'viewAppended', =>
       @setViewReady()
       @viewAppended()
-      @childAppended @
+      @childAppended this
       @parentIsInDom = yes
       subViews = @getSubViews()
       # temp fix for KDTreeView
@@ -117,7 +116,7 @@ class KDView extends KDObject
 
       if @getOptions().introId
         mainController = KD.getSingleton "mainController"
-        mainController.introductionTooltipController.emit "ShowIntroductionTooltip", @
+        mainController.introductionTooltipController.emit "ShowIntroductionTooltip", this
 
     # development only
     if location.hostname is "localhost"
@@ -128,7 +127,7 @@ class KDView extends KDObject
           event.preventDefault?()
           return false
         else if event.altKey and (event.metaKey or event.ctrlKey)
-          log @
+          log this
           return false
 
   setInstanceVariables:(options)->
@@ -143,9 +142,6 @@ class KDView extends KDObject
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
     @updatePartial options.partial           if options.partial
-    if options.preserveValue
-      log 'preserving', options.preserveValue
-      @setPreserveValue options.preserveValue
 
     @addEventHandlers options
 
@@ -196,7 +192,7 @@ class KDView extends KDObject
     @domElement.data "data-id",@getId()
 
   setDomAttributes:(attributes)->
-    @domElement.attr attributes
+    @getElement().setAttribute attr, val for attr, val of attributes
 
   isInDom:do ->
     findUltimateAncestor =(el)->
@@ -234,37 +230,37 @@ class KDView extends KDObject
     @$(selector).append child.$()
     if @parentIsInDom
       child.emit 'viewAppended', child
-    @
+    this
 
   appendTo:(parent, selector)->
     @$().appendTo parent.$(selector)
     if @parentIsInDom
-      @emit 'viewAppended', @
-    @
+      @emit 'viewAppended', this
+    this
 
   appendToSelector:(selector)->
     $(selector).append @$()
-    @emit 'viewAppended', @
+    @emit 'viewAppended', this
 
   prepend:(child, selector)->
     @$(selector).prepend child.$()
     if @parentIsInDom
       child.emit 'viewAppended', child
-    @
+    this
 
   prependTo:(parent, selector)->
     @$().prependTo parent.$(selector)
     if @parentIsInDom
-      @emit 'viewAppended', @
-    @
+      @emit 'viewAppended', this
+    this
 
   prependToSelector:(selector)->
     $(selector).prepend @$()
-    @emit 'viewAppended', @
+    @emit 'viewAppended', this
 
   setPartial:(partial,selector)->
     @$(selector).append partial
-    @
+    this
 
   updatePartial: (partial, selector) ->
     @$(selector).html partial
@@ -426,7 +422,7 @@ class KDView extends KDObject
     #     subView.parent.subViews.splice index, 1
 
     @subViews.push subView
-    subView.setParent @
+    subView.setParent this
     subView.parentIsInDom = @parentIsInDom
 
     unless subView.lazy
@@ -503,7 +499,7 @@ class KDView extends KDObject
   # if threshold is greater than 1 it is treated as pixel value
   setLazyLoader:(threshold=.75)->
     @getOptions().bind += ' scroll' unless /\bscroll\b/.test @getOptions().bind
-    view = @
+    view = this
     @on 'scroll', do ->
       lastRatio = 0
       (event)->
@@ -680,7 +676,7 @@ class KDView extends KDObject
     options = {} if options is yes
 
     @setEmptyDragState()
-    handle = if options.handle instanceof KDView then options.handle else @
+    handle = if options.handle instanceof KDView then options.handle else this
 
     @on "DragFinished", (e) => @beingDragged = no
 
@@ -699,7 +695,7 @@ class KDView extends KDObject
       dragState.axis        = options.axis
 
       dragMeta              = dragState.meta
-      dragEl                = @$()[0]
+      dragEl                = @getElement()
       dragMeta.top          = parseInt(dragEl.style.top,    10) or 0
       dragMeta.right        = parseInt(dragEl.style.right,  10) or 0
       dragMeta.bottom       = parseInt(dragEl.style.bottom, 10) or 0
@@ -709,7 +705,7 @@ class KDView extends KDObject
       dragPos.initial.x     = event.pageX
       dragPos.initial.y     = event.pageY
 
-      KD.getSingleton('windowController').setDragView @
+      KD.getSingleton('windowController').setDragView this
       @emit "DragStarted", event, @dragState
       event.stopPropagation()
       event.preventDefault()
@@ -814,12 +810,12 @@ class KDView extends KDObject
       @utils.defer =>
         @$overlay.addClass "in"
       @utils.wait 300, =>
-        @emit "OverlayAdded", @
+        @emit "OverlayAdded", this
     else
-      @emit "OverlayAdded", @
+      @emit "OverlayAdded", this
 
     if isRemovable
-      @$overlay.on "click.overlay", @removeOverlay.bind @
+      @$overlay.on "click.overlay", @removeOverlay.bind this
 
   removeOverlay:->
 
@@ -831,7 +827,7 @@ class KDView extends KDObject
       @$overlay.remove()
       delete @__zIndex
       delete @$overlay
-      @emit "OverlayRemoved", @
+      @emit "OverlayRemoved", this
 
     if @$overlay.hasClass "animated"
       @$overlay.removeClass "in"
@@ -865,9 +861,8 @@ class KDView extends KDObject
     o.fallback  or= o.title
     o.view      or= null
     o.sticky     ?= no
-    o.delegate  or= @
+    o.delegate  or= this
     o.events    or= ['mouseenter','mouseleave','mousemove']
-    o.viewCssClass or= null
 
     @tooltip ?= new KDTooltip o, {}
 
@@ -878,9 +873,9 @@ class KDView extends KDObject
   listenWindowResize:(state=yes)->
 
     if state
-      KD.getSingleton('windowController').registerWindowResizeListener @
+      KD.getSingleton('windowController').registerWindowResizeListener this
     else
-      KD.getSingleton('windowController').unregisterWindowResizeListener @
+      KD.getSingleton('windowController').unregisterWindowResizeListener this
 
   notifyResizeListeners:->
 
@@ -888,41 +883,4 @@ class KDView extends KDObject
 
   setKeyView:->
 
-    KD.getSingleton("windowController").setKeyView @
-
-  # setPreserveValue:(preserveValue={})->
-  #   storedValue = KD.getSingleton('localStorageController').getValueById preserveValue.name
-
-  #   if "string" is typeof preserveValue.saveEvents
-  #     preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
-  #   if "string" is typeof preserveValue.clearEvents
-  #     preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
-
-  #   for preserveEvent in preserveValue.saveEvents
-  #     @on preserveEvent, (event)=>
-  #       value = @getOptions().preserveValue.getValue?() ? @getValue?()
-  #       @savePreserveValue preserveValue.name, value
-
-  #   for preserveEvent in preserveValue.clearEvents
-  #     @on preserveEvent, (event)=>
-  #       @clearPreserveValue()
-
-  #   if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
-  #     @on displayEvent, (event)=>
-  #       @applyPreserveValue storedvalue if storedValue
-
-  #   if storedValue
-  #     @utils.defer => @applyPreserveValue storedValue
-
-  # applyPreserveValue:(value)->
-  #   if @getOptions().preserveValue.setValue
-  #     @getOptions().preserveValue.setValue value
-  #   else @setValue? value
-
-  # savePreserveValue:(id,value)->
-  #   KD.getSingleton('localStorageController').setValueById id, value
-
-  # clearPreserveValue:->
-  #   if @getOptions().preserveValue
-  #     KD.getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
-
+    KD.getSingleton("windowController").setKeyView this
