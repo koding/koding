@@ -42,16 +42,22 @@ class KDSliderBarView extends KDCustomHTMLView
     @bar.setX "#{left}%"
 
   addLabels:->
-    {maxValue, minValue, interval} = @getOptions()
+    {maxValue, minValue, interval, showLabels} = @getOptions()
 
-    for value in [minValue..maxValue] by interval
+    createLabel = (value)=>
       pos = ((value-minValue)*100)/(maxValue-minValue)
-
       @labels.push @addSubView label = new KDCustomHTMLView
         cssClass    : "sliderbar-label"
         partial     : "#{value}"
 
       label.setX "#{pos}%"
+
+    if Array.isArray showLabels
+      for value in showLabels
+        createLabel value
+    else
+      for value in [minValue..maxValue] by interval
+        createLabel value
 
   getValues:(handleName)->
     if handleName?
