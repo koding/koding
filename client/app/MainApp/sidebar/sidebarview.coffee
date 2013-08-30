@@ -1,8 +1,9 @@
 class Sidebar extends JView
 
-  constructor:->
+  constructor: (options={}, data)->
 
-    super
+    options.bind = "dragleave"
+    super options, data
 
     account           = KD.whoami()
     {profile}         = account
@@ -89,9 +90,6 @@ class Sidebar extends JView
 
     @finderController.treeController.on "dragEnter", _onDrag
     @finderController.treeController.on "dragOver",  _onDrag
-
-    # FIXME: This is not that good -- fka
-    @$().on "dragleave", => @dndUploadHolder.hide()
 
     @finder = @finderController.getView()
 
@@ -218,6 +216,10 @@ class Sidebar extends JView
         @$avatarPlaceholder.addClass "collapsed"
 
     @utils.wait 300, => @emit "NavigationPanelWillCollapse"
+
+  dragLeave: ->
+    super
+    @dndUploadHolder.hide()
 
   viewAppended:->
     super

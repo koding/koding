@@ -211,6 +211,6 @@ class KDModalView extends KDView
   @addToStack: (modal)->
     @stack.addModal modal
 
-  @destroyStack: (force=no)->
+  @destroyStack: ->
     @stack.destroy()
     delete @stack
