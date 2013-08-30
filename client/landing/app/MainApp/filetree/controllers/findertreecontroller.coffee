@@ -615,8 +615,7 @@ class NFinderTreeController extends JTreeViewController
     """
 
     type        = "application/octet-stream"
-    url         = KD.getPublicURLOfPath(path)
-    log url
+    url         = KD.getPublicURLOfPath path
     unless url
       url       = "data:#{type};base64,#{btoa warningText}"
       name     += ".txt"
