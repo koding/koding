@@ -20,7 +20,7 @@ module.exports =
     address     : "https://koding.com"
   userSitesDomain: 'staging.kd.io'
   containerSubnet: "10.128.2.0/9"
-  vmPool        : "vms"
+  vmPool        : "vms-staging"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -185,7 +185,7 @@ module.exports =
     webPort     : 3020
   kontrold        :
     overview      :
-      apiHost     : "kontrol-staging.in.koding.com"
+      apiHost     : "172.16.6.16"
       apiPort     : 80
       port        : 8080
       switchHost  : "y.koding.com"
@@ -197,18 +197,18 @@ module.exports =
       ftpip       : '54.208.3.200'
       sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     rabbitmq      :
-      host        : 'kontrol-staging.in.koding.com'
+      host        : '172.16.6.14'
       port        : '5672'
       login       : 'guest'
-      password    : 's486auEkPzvUjYfeFTMQ'
+      password    : 'djfjfhgh4455__5'
       vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :
     apiKey      : embedlyApiKey
-  opsview	:
-    push	: yes
-    host	: 'opsview.in.koding.com'
+  opsview :
+    push  : yes
+    host  : 'opsview.in.koding.com'
     bin   : '/usr/local/nagios/bin/send_nsca'
     conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
@@ -220,4 +220,3 @@ module.exports =
   github        :
     clientId    : "5891e574253e65ddb7ea"
     clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"
-
