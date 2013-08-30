@@ -1,9 +1,7 @@
 @import "./client/Framework/themes/default/kdfn"
 
 div.kdtooltip
-  transform                   translate3d(0,0,0)
-  borderBox()
-  abs()
+  // transform                   translate3d(0,0,0)
   bg                          color, transparent
   top                         -100%
   left                        -100%
@@ -13,6 +11,8 @@ div.kdtooltip
   min-height                  50px
   overflow                    visible
   z-index                     100000
+  borderBox()
+  abs()
   // vendor                      transition, opacity 0.1s ease-out
 
   &.animate-movement
@@ -23,7 +23,6 @@ div.kdtooltip
     sprite()
     bg                        color, transparent
     z-index                   9002
-    size                      15px 15px
 
   div.wrapper
     borderBox()
@@ -42,8 +41,10 @@ div.kdtooltip
 
   &.placement-top
     div.arrow
-      bg                      position, -220px -32px
-      bottom                  -5px
+      bg                      position, -222px -33px
+      bottom                  14px
+      size                    9px, 5px
+
     &.direction-right
       div.arrow
         left                  5px
@@ -165,8 +166,8 @@ div.kdtooltip
           left                50%
     &.placement-top
       div.arrow
-        bg                    position, -122px -568px
-        bottom                -14px
+        bg                    position, -125px -569px
+        bottom                -5px
       &.direction-left
         margin-left           10px
       &.direction-center
