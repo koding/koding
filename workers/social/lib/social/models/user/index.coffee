@@ -13,6 +13,7 @@ module.exports = class JUser extends jraphical.Module
   JName          = require '../name'
   JGroup         = require '../group'
   JLog           = require '../log'
+  JMail          = require '../email'
 
   createId       = require 'hat'
 
@@ -180,35 +181,6 @@ module.exports = class JUser extends jraphical.Module
                   callback null, account
         else @logout clientId, callback
 
-
-  createNewMemberActivity =(account, callback=->)->
-    CNewMemberBucket = require '../bucket/newmemberbucket'
-    CBucketActivity = require '../activity/bucketactivity'
-    bucket = new CNewMemberBucket
-      anchor      : account
-      sourceName  : 'JAccount'
-    bucket.save (err)->
-      if err
-        callback err
-      else
-        activity = CBucketActivity.create bucket
-        activity.save (err)->
-          if err
-            callback err
-          else
-            activity.addSubject bucket, (err)->
-              if err
-                callback err
-              else
-                activity.update
-                  $set          :
-                    snapshot    : JSON.stringify(bucket)
-                  $addToSet     :
-                    snapshotIds : bucket.getId()
-                , ->
-                  CActivity = require "../activity"
-                  CActivity.emit "ActivityIsCreated", activity
-                  callback()
 
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
@@ -418,7 +390,6 @@ module.exports = class JUser extends jraphical.Module
 
   @configureNewAcccount = (account, user, replacementToken, callback) ->
     JUser.emit 'UserCreated', user
-    createNewMemberActivity account
     JAccount.emit "AccountAuthenticated", account
     callback null, {account, replacementToken}
 
@@ -530,7 +501,7 @@ module.exports = class JUser extends jraphical.Module
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
     { username, email, password, passwordConfirm, firstName, lastName,
-      agree, inviteCode } = userFormData
+      agree, inviteCode, referrer } = userFormData
 
     # only unreigstered accounts can be "converted"
     if account.status is "registered"
@@ -539,80 +510,67 @@ module.exports = class JUser extends jraphical.Module
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
-    @validateAll userFormData, (err) =>
-      return callback err  if err?
-      @changePasswordByUsername oldUsername, password, (err) =>
-        return callback err  if err?
+    newToken  = null
+    invite    = null
+
+    queue = [
+      =>
+        @validateAll userFormData, (err) =>
+          return callback err  if err?
+          queue.next()
+      =>
+        @changePasswordByUsername oldUsername, password, (err) =>
+          return callback err  if err?
+          queue.next()
+      =>
         options = { account, oldUsername, email }
         @changeEmailByUsername options, (err) =>
           return callback err  if err?
-          @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
-            return callback err  if err
-            options = { account, username, clientId, isRegistration: yes }
-            @changeUsernameByAccount options, (err, newToken) =>
-              return callback err  if err?
-              @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
-                return callback err  if err
-                @addToGroups account, invite, email, (err) =>
-                  return callback err  if err?
-                  @removeFromGuestsGroup account, (err) =>
-                    return callback err  if err?
-                    account.update $set: {
-                      'profile.firstName' : firstName
-                      'profile.lastName'  : lastName
-                      type                : 'registered'
-                    }, (err) =>
-                      return callback err  if err?
-                      @sendEmailConfirmationByUsername username, (err) -> console.error err  if err
-                      callback null, newToken
+          queue.next()
+      =>
+        @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
+          return callback err  if err
+          queue.next()
+      =>
+        options = { account, username, clientId, isRegistration: yes }
+        @changeUsernameByAccount options, (err, newToken_) =>
+          return callback err  if err?
+          newToken = newToken_
+          queue.next()
+      =>
+        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite_) =>
+          return callback err  if err
+          invite = invite_
+          queue.next()
+      =>
+        @addToGroups account, invite, email, (err) =>
+          return callback err  if err?
+          queue.next()
+      =>
+        @removeFromGuestsGroup account, (err) =>
+          return callback err  if err?
+          queue.next()
+      ->
+        account.update $set: {
+          'profile.firstName' : firstName
+          'profile.lastName'  : lastName
+          type                : 'registered'
+        }, (err) ->
+          return callback err  if err?
+          queue.next()
+      =>
+        @sendEmailConfirmationByUsername username, (err) =>
+          return console.error err if err
+          queue.next()
+      ->
+        JAccount.emit "AccountRegistered", account, referrer
+        queue.next()
+      =>
+        callback null, newToken
+        queue.next()
+    ]
 
-  @register = secure (client, userFormData, callback) ->
-    { connection } = client
-    { username, email, password, passwordConfirm, firstName, lastName,
-      agree, inviteCode } = userFormData
-
-    @validateUsername username, (err) ->
-      return callback err  if err?
-
-      @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
-        return callback createKodingError err.message  if err
-
-        if passwordConfirm isnt password
-          return callback createKodingError 'Passwords must be the same'
-        else if agree isnt 'on'
-          return callback createKodingError 'You have to agree to the TOS'
-        else if not username? or not email?
-          return callback createKodingError 'Username and email are required fields'
-
-        JSession.one {clientId: client.sessionToken}, (err, session) =>
-          if err
-            callback err
-          else unless session
-            callback createKodingError 'Could not restore your session!'
-          else
-            userData = {
-              username, password, email, firstName, lastName
-            }
-            userData.foreignAuth = session.foreignAuth  if session.foreignAuth
-
-            @createUser userData, (err, user, account) =>
-              return callback err  if err
-              @removeUnsubscription userData, (err)=>
-                return callback err  if err
-                @addToGroups account, invite, email, (err) ->
-                  return callback err  if err
-
-                  replacementToken = createId()
-                  session.update {
-                    $set:
-                      username      : user.username
-                      lastLoginDate : new Date
-                      clientId      : replacementToken
-                    $unset          :
-                      guestId       : 1
-                  }, (err, docs) ->
-                    return callback err  if err
-                    @configureNewAcccount account, user, replacementToken, callback
+    daisy queue
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'
@@ -638,7 +596,16 @@ module.exports = class JUser extends jraphical.Module
           callback null
 
   @changePassword = secure (client,password,callback)->
-    @fetchUser client, (err,user)-> user.changePassword password, callback
+    @fetchUser client, (err,user)->
+      user.changePassword password, callback
+      email = new JMail {
+        email: user.email
+        subject : "Your password has changed"
+        content : """
+Your password has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+"""
+      }
+      email.save ()->
 
   @changeEmail = secure (client,options,callback)->
 

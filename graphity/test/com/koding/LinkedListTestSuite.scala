@@ -1,0 +1,110 @@
+package com.koding
+
+import org.scalatest.BeforeAndAfter
+import org.scalatest.FunSuite
+import com.sun.jersey.api.client.Client
+import com.google.gson.Gson
+import com.sun.jersey.core.util.MultivaluedMapImpl
+import com.sun.jersey.api.client.ClientResponse
+
+class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
+
+  class Node {
+    var self = ""
+  }
+
+  val gson = new Gson
+  val client = Client.create
+  val db = client.resource("http://localhost:7474/db/data/")
+  val linkedlist = client.resource("http://localhost:7474/linkedlist/")
+
+  var head, tail: String = _
+
+  before {
+    head = createNode("head")
+    tail = createNode("tail")
+    createList(head, tail)
+  }
+
+  test("creating a list") {
+    assert(getPrevious(tail) === head)
+  }
+
+  test("adding entries") {
+    val entry1 = createNode("entry1")
+    val entry2 = createNode("entry2")
+    val entry3 = createNode("entry3")
+    val entry4 = createNode("entry4")
+    val entry5 = createNode("entry5")
+
+    addEntryAfter(head, entry2)
+    addEntryAfter(entry2, entry4)
+    addEntryAfter(head, entry1)
+    addEntryBefore(entry4, entry3)
+    addEntryBefore(tail, entry5)
+
+    assert(getPrevious(entry1) === head)
+    assert(getPrevious(entry2) === entry1)
+    assert(getPrevious(entry3) === entry2)
+    assert(getPrevious(entry4) === entry3)
+    assert(getPrevious(entry5) === entry4)
+    assert(getPrevious(tail) === entry5)
+  }
+
+  test("get full list") {
+    val entry1 = createNode("entry1")
+    val entry2 = createNode("entry2")
+
+    addEntryBefore(tail, entry1)
+    addEntryBefore(tail, entry2)
+
+    val list = getAll(tail)
+    assert(list.size === 2)
+    assert(list.get(0) === entry1)
+    assert(list.get(1) === entry2)
+  }
+
+  def createNode(name: String) = {
+    val json = db.path("node").accept("application/json").post(classOf[String])
+    val node = gson.fromJson(json, classOf[Node])
+    val parts = node.self.split("/")
+    val shortUrl = "/" + parts(parts.size - 2) + "/" + parts(parts.size - 1)
+    println(name + ": " + shortUrl)
+    shortUrl
+  }
+
+  def createList(head: String, tail: String) {
+    val map = new MultivaluedMapImpl();
+    map.add("head", head)
+    map.add("tail", tail)
+    linkedlist.path("list").post(classOf[ClientResponse], map)
+  }
+
+  def addEntryAfter(previous: String, entry: String) {
+    val map = new MultivaluedMapImpl();
+    map.add("previous", previous)
+    map.add("entry", entry)
+    linkedlist.path("entry").post(classOf[ClientResponse], map)
+  }
+
+  def addEntryBefore(next: String, entry: String) {
+    val map = new MultivaluedMapImpl();
+    map.add("next", next)
+    map.add("entry", entry)
+    linkedlist.path("entry").post(classOf[ClientResponse], map)
+  }
+
+  def getPrevious(entry: String) = {
+    linkedlist.path("entry/previous").queryParam("entry", entry).get(classOf[String])
+  }
+
+  def getAll(entry: String) = {
+    val json = linkedlist.path("entry/all").queryParam("entry", entry).get(classOf[String])
+    gson.fromJson(json, classOf[java.util.List[String]])
+  }
+
+  def deleteSubscription(stream: String, source: String) {
+    linkedlist.path("subscriptions").queryParam("stream", stream).queryParam("source", source).delete
+  }
+
+}
