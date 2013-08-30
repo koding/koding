@@ -58,6 +58,7 @@ var startCommands = {
 };
 
 exports.handler = {
+	$id: "ace/keyboard/vim",
     // workaround for j not repeating with `defaults write -g ApplePressAndHoldEnabled -bool true`
     handleMacRepeat: function(data, hashId, key) {
         if (hashId == -1) {
@@ -79,16 +80,61 @@ exports.handler = {
             data.lastEvent = "keypress";
         }
     },
+    // on mac, with some keyboard layouts (e.g swedish) ^ starts composition, we don't need it in normal mode
+    updateMacCompositionHandlers: function(editor, enable) {
+        var onCompositionUpdateOverride = function(text) {
+            if (util.currentMode !== "insert") {
+                var el = this.textInput.getElement();
+                el.blur();
+                el.focus();
+                el.value = text;
+            } else {
+                this.onCompositionUpdateOrig(text);
+            }
+        };
+        var onCompositionStartOverride = function(text) {
+            if (util.currentMode === "insert") {            
+                this.onCompositionStartOrig(text);
+            }
+        }
+        if (enable) {
+            if (!editor.onCompositionUpdateOrig) {
+                editor.onCompositionUpdateOrig = editor.onCompositionUpdate;
+                editor.onCompositionUpdate = onCompositionUpdateOverride;
+                editor.onCompositionStartOrig = editor.onCompositionStart;
+                editor.onCompositionStart = onCompositionStartOverride;
+            }
+        } else {
+            if (editor.onCompositionUpdateOrig) {
+                editor.onCompositionUpdate = editor.onCompositionUpdateOrig;
+                editor.onCompositionUpdateOrig = null;
+                editor.onCompositionStart = editor.onCompositionStartOrig;
+                editor.onCompositionStartOrig = null;
+            }
+        }
+    },
 
     handleKeyboard: function(data, hashId, key, keyCode, e) {
         // ignore command keys (shift, ctrl etc.)
         if (hashId != 0 && (key == "" || key == "\x00"))
             return null;
-
+        
+        var editor = data.editor;
+        
         if (hashId == 1)
             key = "ctrl-" + key;
-        
-        if ((key == "esc" && hashId == 0) || key == "ctrl-[") {
+        if (key == "ctrl-c") {
+            if (!useragent.isMac && editor.getCopyText()) {
+                editor.once("copy", function() {
+                    if (data.state == "start")
+                        coreCommands.stop.exec(editor);
+                    else
+                        editor.selection.clearSelection();
+                });
+                return {command: "null", passEvent: true};
+            }
+            return {command: coreCommands.stop};            
+        } else if ((key == "esc" && hashId == 0) || key == "ctrl-[") {
             return {command: coreCommands.stop};
         } else if (data.state == "start") {
             if (useragent.isMac && this.handleMacRepeat(data, hashId, key)) {
@@ -96,14 +142,11 @@ exports.handler = {
                 key = data.inputChar;
             }
             
-            if (hashId == -1 || hashId == 1) {
+            if (hashId == -1 || hashId == 1 || hashId == 0 && key.length > 1) {
                 if (cmds.inputBuffer.idle && startCommands[key])
                     return startCommands[key];
-                return {
-                    command: {
-                        exec: function(editor) {cmds.inputBuffer.push(editor, key);}
-                    }
-                };
+                cmds.inputBuffer.push(editor, key);
+                return {command: "null", passEvent: false}; 
             } // if no modifier || shift: wait for input.
             else if (key.length == 1 && (hashId == 0 || hashId == 4)) {
                 return {command: "null", passEvent: true};
@@ -122,12 +165,15 @@ exports.handler = {
         if (util.currentMode !== "insert")
             cmds.coreCommands.stop.exec(editor);
         editor.$vimModeHandler = this;
+        
+        this.updateMacCompositionHandlers(editor, true);
     },
 
     detach: function(editor) {
         editor.removeListener("click", exports.onCursorMove);
         util.noMode(editor);
         util.currentMode = "normal";
+        this.updateMacCompositionHandlers(editor, false);
     },
 
     actions: cmds.actions,

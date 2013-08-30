@@ -63,6 +63,20 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
     assert(list.get(0) === entry1)
     assert(list.get(1) === entry2)
   }
+  
+  test("inserting at head and tail") {
+    val entry1 = createNode("entry1")
+    val entry2 = createNode("entry2")
+    val entry3 = createNode("entry3")
+    
+    addEntryAfter(tail + ":head", entry2)
+    addEntryBefore(entry2 + ":tail", entry3)
+    addEntryAfter(entry2 + ":head", entry1)
+    
+    assert(getPrevious(entry1) === head)
+    assert(getPrevious(entry2) === entry1)
+    assert(getPrevious(entry3) === entry2)
+  }
 
   def createNode(name: String) = {
     val json = db.path("node").accept("application/json").post(classOf[String])

@@ -104,7 +104,7 @@ class KodingAppsController extends KDController
           callback? null, manifests
     , ->
       msg = "Timeout reached for kite request"
-      KD.logToExternal msg
+      KD.logToExternal msg  unless KD.isGuest()
       log msg
       callback()
 

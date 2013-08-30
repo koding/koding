@@ -6,20 +6,15 @@ var HashHandler = require("../keyboard/hash_handler").HashHandler;
 var EventEmitter = require("../lib/event_emitter").EventEmitter;
 
 /**
- * class CommandManager
- *
- * 
+ * @class CommandManager
  *
  *
  **/
 
 /**
  * new CommandManager(platform, commands)
- * - platform (String): Identifier for the platform; must be either `'mac'` or `'win'`
- * - commands (Array): A list of commands
- *
- * TODO
- *
+ * @param {String} platform Identifier for the platform; must be either `'mac'` or `'win'`
+ * @param {Array} commands A list of commands
  *
  **/
 
@@ -29,7 +24,7 @@ var CommandManager = function(platform, commands) {
     this.commmandKeyBinding = {};
 
     this.addCommands(commands);
-    
+
     this.setDefaultHandler("exec", function(e) {
         return e.command.exec(e.editor, e.args || {});
     });
@@ -51,11 +46,9 @@ oop.inherits(CommandManager, HashHandler);
         if (editor && editor.$readOnly && !command.readOnly)
             return false;
 
-        var retvalue = this._emit("exec", {
-            editor: editor,
-            command: command,
-            args: args
-        });
+        var e = {editor: editor, command: command, args: args};
+        var retvalue = this._emit("exec", e);
+        this._signal("afterExec", e);
 
         return retvalue === false ? false : true;
     };

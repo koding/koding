@@ -15,6 +15,7 @@ type Config struct {
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
+	VmPool          string
 	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string

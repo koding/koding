@@ -68,7 +68,7 @@ oop.inherits(Worker, Mirror);
             ruleNames.forEach(function(x) {
                 delete all[x];
             });
-            console.log(all)
+            
             this.ruleset = all;
         }
         this.doc.getValue() && this.deferredUpdate.schedule(100);
@@ -84,7 +84,8 @@ oop.inherits(Worker, Mirror);
                 row: msg.line - 1,
                 column: msg.col - 1,
                 text: msg.message,
-                type: infoRules[msg.rule.id] ? "info" : msg.type
+                type: infoRules[msg.rule.id] ? "info" : msg.type,
+                rule: msg.rule.name
             }
         }));
     };
