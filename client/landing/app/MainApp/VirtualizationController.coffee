@@ -10,7 +10,7 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
     @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(options, callback)->
+  run:(options, callback = noop)->
     [callback, options] = [options, callback]  unless callback
     options ?= {}
     if "string" is typeof options
@@ -43,6 +43,9 @@ class VirtualizationController extends KDController
             vmName   : vm
           , cb
         else unless command is 'vm.info' then @info vm
+
+  resizeDisk:(vm, callback)->
+    @_runWrapper 'vm.resizeDisk', vm, callback
 
   start:(vm, callback)->
     @_runWrapper 'vm.start', vm, callback
@@ -112,12 +115,12 @@ class VirtualizationController extends KDController
     if region = @vmRegions[vmName]
       return @utils.defer -> callback region
 
-    KD.remote.api.JVM.fetchVmInfo vmName, (err, info)=>
-      if err
-        warn err
-        callback 'aws' # This by default 'aws' please change it if needed! ~ GG
+    KD.remote.api.JVM.fetchVmRegion vmName, (err, region)=>
+      if err or not region
+        warn err  if err
+        callback 'sj' # This by default 'aws' please change it if needed! ~ GG
       else
-        @vmRegions[vmName] = info.region
+        @vmRegions[vmName] = region
         callback @vmRegions[vmName]
 
   fetchVmName: (options, callback) ->
