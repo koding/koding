@@ -57,13 +57,13 @@ module.exports = class JDomain extends jraphical.Module
         set         : (value)-> value.toLowerCase()
 
       domainType    :
-        type    : String
-        enum    : ['invalid domain type', [
+        type        : String
+        enum        : ['invalid domain type', [
           'new'
           'subdomain'
           'existing'
         ]]
-        # default :  'subdomain'
+        default :  'subdomain'
 
       hostnameAlias : [String]
 
