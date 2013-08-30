@@ -8,7 +8,6 @@ class KDSliderBarView extends KDCustomHTMLView
     options.drawBar    ?= yes
     options.showLabels ?= yes
     options.snap       ?= yes
-    data.handles
 
     super options, data
 
@@ -21,8 +20,8 @@ class KDSliderBarView extends KDCustomHTMLView
 
     sortRef = (a,b) ->
       return -1 if a.getData().value < b.getData().value
-      return 1 if a.getData().value > b.getData().value
-      return 0
+      return  1 if a.getData().value > b.getData().value
+      return  0
     @handles.sort sortRef
 
   drawBar:->
@@ -82,15 +81,15 @@ class KDSliderBarView extends KDCustomHTMLView
     {maxValue, minValue, interval} = @getOptions()
 
     if @handles.length is 1
-      @handles.first.leftLimit     = minValue
-      @handles.first.rightLimit    = maxValue
+      @handles.first.data.leftLimit     = minValue
+      @handles.first.data.rightLimit    = maxValue
     else
       for handle in @handles
         i    = @handles.indexOf(handle)
         data = handle.data
 
         data.leftLimit  = @handles[i-1]?.getData().value + interval or minValue
-        data.rightLimit = @handles[i+1]?.getData().value - interval or maxValue 
+        data.rightLimit = @handles[i+1]?.getData().value - interval or maxValue
 
   viewAppended:->
     @createHandles()
@@ -101,7 +100,7 @@ class KDSliderBarView extends KDCustomHTMLView
 class KDSliderBarHandleView extends KDCustomHTMLView
   constructor:(options = {}, data = {})->
     options.cssClass  = "handle"
-    options.name
+    options.name    or= "defaultHandle"
     data.value       ?= 0
 
     super options, data
@@ -113,18 +112,23 @@ class KDSliderBarHandleView extends KDCustomHTMLView
     @on "mousedown", ->
       @parent.bindEvent "mousemove"
       windowController.setDragInAction true
+      @parent.emit "dragstart"
 
       @parent.on "mousemove", (event) =>
         relPos  = (((event.pageX - @parent.getX())/@parent.getWidth())*100)
         @setValue ((relPos*(maxValue - minValue))/100)+minValue
 
-      @on "mouseup", dragEnded
-      @parent.on "mouseleave", dragEnded
+        @parent.emit "draginaction"
 
-    dragEnded = ->
+      @on "mouseup", dragDidEnd
+      @parent.on "mouseleave", dragDidEnd
+
+    dragDidEnd =(e) ->
+      @off "mouseup"
       @parent.off "mousemove"
       windowController.setDragInAction false
       @snap() if @parent.getOption "snap"
+      @parent.emit "dragend"
 
   getPosition:->
     {maxValue, minValue} = @parent.getOptions()
@@ -147,6 +151,7 @@ class KDSliderBarHandleView extends KDCustomHTMLView
     @parent.drawBar()
     @parent.setLimits()
     @setX "#{@getPosition()}%"
+    @parent.emit "valuechange"
       
   getSnappedValue:->
     {interval}  = @parent.getOptions()
@@ -174,3 +179,4 @@ class KDSliderBarHandleView extends KDCustomHTMLView
     @setX "#{@getPosition()}%"
     @attachEvents()
     @snap() if @parent.getOption "snap"
+    
