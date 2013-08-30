@@ -3,6 +3,7 @@ class DNDUploader extends KDView
   constructor: (options={}, data)->
 
     options.cssClass      = "file-droparea"
+    options.bind          = "dragenter dragover dragleave dragend drop"
     options.hoverDetect  ?= yes
     options.uploadToVM   ?= yes
     options.defaultPath or= "/home/#{KD.nick()}/Uploads"
@@ -27,21 +28,6 @@ class DNDUploader extends KDView
         """
         duration: 5000
 
-  viewAppended: ->
-
-    super
-
-    @$().on "dragenter dragover dragleave dragend drop", (event)=>
-      switch event.type
-        when "dragenter"  then @dragEnter.call this, event
-        when "dragover"   then @dragOver.call  this, event
-        when "dragleave"  then @dragLeave.call this, event
-        when "dragend"    then @dragEnd.call   this, event
-        when "drop"       then @drop.call      this, event
-
-      event.preventDefault()
-      event.stopPropagation()
-
   reset: ->
     {uploadToVM, defaultPath, title} = @getOptions()
     @setPath()
@@ -52,15 +38,24 @@ class DNDUploader extends KDView
       </div>
     """
 
-  dragOver  : (event)-> @emit "dragOver"
+  dragOver  : (event)->
+    super
+    @emit "dragOver", event
 
-  dragEnd   : (event)-> @emit "dragEnd"
+  dragEnd   : (event)->
+    super
+    @emit "dragEnd", event
 
-  dragLeave : (event)-> @emit "dragLeave"
+  dragLeave : (event)->
+    super
+    @emit "dragLeave", event
 
-  dragEnter : (event)-> @emit "dragEnter"
+  dragEnter : (event)->
+    super
+    @emit "dragEnter", event
 
   drop: (event)->
+    super
     {files}  = event.originalEvent.dataTransfer
     lastFile = files[files.length-1]
     for file, index in files
@@ -79,7 +74,7 @@ class DNDUploader extends KDView
 
         if file is lastFile
           @reset()
-          @emit "drop", file.name, event.target.result
+          @emit "drop", file.name, event.target.result, event
 
       reader.readAsBinaryString file
 
