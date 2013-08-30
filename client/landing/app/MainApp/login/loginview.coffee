@@ -38,6 +38,7 @@ class LoginView extends KDScrollView
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Recover password"
+      testPath    : "landing-recover-password"
       click       : recoverHandler
 
     @goToRegisterLink = new KDCustomHTMLView
@@ -189,6 +190,7 @@ class LoginView extends KDScrollView
 
   doRegister:(formData)->
     formData.agree = 'on'
+    formData.referrer = $.cookie 'referrer'
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
