@@ -14,9 +14,9 @@ class DNDUploader extends KDView
     @setPath options.path  if options.path
 
     if options.hoverDetect
-      @on "dragEnter", => @setClass   "hover"
-      @on "dragOver",  => @setClass   "hover"
-      @on "dragLeave", => @unsetClass "hover"
+      @on "dragenter", => @setClass   "hover"
+      @on "dragover",  => @setClass   "hover"
+      @on "dragleave", => @unsetClass "hover"
       @on "drop",      => @unsetClass "hover"
 
     @on "uploadFile", (file)=>
@@ -38,45 +38,53 @@ class DNDUploader extends KDView
       </div>
     """
 
-  dragOver  : (event)->
-    super
-    @emit "dragOver", event
-
-  dragEnd   : (event)->
-    super
-    @emit "dragEnd", event
-
-  dragLeave : (event)->
-    super
-    @emit "dragLeave", event
-
-  dragEnter : (event)->
-    super
-    @emit "dragEnter", event
-
   drop: (event)->
     super
     {files}  = event.originalEvent.dataTransfer
-    lastFile = files[files.length-1]
-    for file, index in files
-      sizeInMb = file.size/1000/1000
-      if sizeInMb > 5 && @getOptions().uploadToVM
-        new KDNotificationView
-          type    : "tray"
-          title   : "File is too big to upload!"
-          content : "#{file.name} is too big to upload, please upload files smaller than 5mb."
-          duration: 3000
-        continue
-      reader = new FileReader
-      reader.onloadend = do (file=files[index])=> (event)=>
-        if @getOptions().uploadToVM
-          @upload file.name, event.target.result
+    if files.length
+      lastFile = files[files.length-1]
+      for file, index in files
+        sizeInMb = file.size/1000/1000
+        if sizeInMb > 5 && @getOptions().uploadToVM
+          new KDNotificationView
+            type    : "tray"
+            title   : "File is too big to upload!"
+            content : "#{file.name} is too big to upload, please upload files smaller than 5mb."
+            duration: 3000
+          continue
+        reader = new FileReader
+        reader.onloadend = do (file=files[index])=> (readEvent)=>
+          if @getOptions().uploadToVM
+            fsFile = @upload file.name, readEvent.target.result
 
-        if file is lastFile
-          @reset()
-          @emit "drop", file.name, event.target.result, event
+          @emit "dropFile",
+            origin  : "external"
+            filename: file.name
+            instance: fsFile
+            content : readEvent.target.result
+          , event, readEvent
 
-      reader.readAsBinaryString file
+          if file is lastFile
+            @reset()
+
+        reader.readAsBinaryString file
+    else
+      internalData = event.originalEvent.dataTransfer.getData "Text"
+      if internalData
+        multipleItems = internalData.split ","
+        lastItem = multipleItems[multipleItems.length-1]
+        for item in multipleItems
+          {basename} = KD.getPathInfo item
+          fsFile = FSHelper.createFileFromPath item
+          @emit "dropFile",
+            origin  : "internal"
+            filename: basename
+            instance: fsFile
+            content : null
+          , event, no
+
+          if item is lastItem
+            @reset()
 
   setPath: (@path=@options.defaultPath)->
     {uploadToVM, title} = @getOptions()
@@ -133,3 +141,5 @@ class DNDUploader extends KDView
       unless exists
       then uploadDir.save -> upload()
       else upload()
+
+    return uploadFile

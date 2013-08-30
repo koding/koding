@@ -82,7 +82,7 @@ class Sidebar extends JView
         @dndUploadHolder.show()
         @dnduploader.unsetClass "hover"
 
-    @dnduploader.on "dragLeave", => @dndUploadHolder.hide()
+    @dnduploader.on "dragleave", => @dndUploadHolder.hide()
     @dnduploader.on "drop",      => @dndUploadHolder.hide()
     @dnduploader.on "cancel",    =>
       @dnduploader.setPath()
