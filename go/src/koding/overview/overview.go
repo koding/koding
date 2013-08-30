@@ -125,15 +125,15 @@ type HomePage struct {
 }
 
 type User struct {
-	ObjectId      string
-	Email         string
-	LastLoginDate time.Time
-	Password      string
-	RegisteredAt  time.Time
-	Salt          string
-	Status        string
-	Uid           int
-	Username      string
+	Id            bson.ObjectId `bson:"_id" json:"-"`
+	Email         string        `bson:"email" json:"email"`
+	LastLoginDate time.Time     `bson:"lastLoginDate" json:"lastLoginDate"`
+	Password      string        `bson:"password" json:"password"`
+	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
+	Salt          string        `bson:"salt" json:"salt"`
+	Status        string        `bson:"status" json:"status"`
+	Uid           int           `bson:"uid" json:"uid"`
+	Username      string        `bson:"username" json:"username"`
 }
 
 func NewServerInfo() *ServerInfo {
