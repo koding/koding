@@ -3,7 +3,6 @@ jraphical = require 'jraphical'
 module.exports = class JEmailConfirmation extends jraphical.Module
 
   JUser       = require './user'
-  JLog        = require './log'
   crypto      = require 'crypto'
   createSalt  = require 'hat'
   KodingError = require './../error'
@@ -30,9 +29,6 @@ module.exports = class JEmailConfirmation extends jraphical.Module
           'invalid status code'
           ['unconfirmed','confirmed', 'obsolete']
         ]
-#
-#  @createMailSentLog = (username, success, callback)->
-#    JLog.log { type: "emailConfirmationTokenSent", username, success }, callback
 
   @getUsernameFromFormData = (usernameOrEmail, callback)->
     JUser = require './user'
@@ -54,7 +50,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
 
         if confirmations and confirmations.length > 0
           createdAt = confirmations.first.createdAt
-          # if it is resent in one day, do not send again
+          # if it is resent in one day(if lt 1), do not send again
           if ((Date.now() - createdAt) / 1000 / 60 / 24) < 1
             return callback new KodingError "You can receive confirmation mail one a day"
 
@@ -113,13 +109,6 @@ module.exports = class JEmailConfirmation extends jraphical.Module
   getTextBody:->
     { host, protocol } = require '../config.email'
     url = "#{protocol}//#{host}/Verify/#{encodeURIComponent @getAt('token')}"
-
-    #
-    # chris: you can do this at some point, i did setup kd.io/ domain.
-    #
-    # bitly.shorten url,(err,res)->
-    #   unless err
-    #     url = res.data.url
 
     """
     Hi #{@getAt('username')},
