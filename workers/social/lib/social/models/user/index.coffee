@@ -237,6 +237,10 @@ module.exports = class JUser extends jraphical.Module
             JLog.log { type: "login", username: username, success: no }
             , () ->
               callback createKodingError 'Access denied!'
+          else if user.status is 'unconfirmed'
+            error = createKodingError "You must confirm your email address to continue using Koding.com"
+            error.code = 403
+            return callback error
           else
             JLog.log { type: "login", username: username, success: yes }, ()->
               afterLogin connection, user, clientId, session, callback
@@ -714,11 +718,7 @@ Your password has been changed!  If you didn't request this change, please conta
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require '../emailconfirmation'
-    JEmailConfirmation.create @, (err, confirmation)->
-      if err
-        callback err
-      else
-        confirmation.send callback
+    JEmailConfirmation.createAndSendEmail @, callback
 
   confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
 

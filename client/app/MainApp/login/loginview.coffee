@@ -19,10 +19,11 @@ class LoginView extends KDScrollView
       stop event
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
-    homeHandler       = handler.bind null, '/'
-    loginHandler      = handler.bind null, '/Login'
-    registerHandler   = handler.bind null, '/Register'
-    recoverHandler    = handler.bind null, '/Recover'
+    homeHandler                   = handler.bind null, '/'
+    loginHandler                  = handler.bind null, '/Login'
+    registerHandler               = handler.bind null, '/Register'
+    recoverHandler                = handler.bind null, '/Recover'
+    resendMailConfirmationHandler = handler.bind null, '/ResendToken'
 
     @logo = new KDCustomHTMLView
       tagName     : "div"
@@ -40,6 +41,11 @@ class LoginView extends KDScrollView
       partial     : "Recover password"
       testPath    : "landing-recover-password"
       click       : recoverHandler
+
+    @goToResendMailConfirmationLink = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Resend E-Mail"
+      click       : resendMailConfirmationHandler
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
@@ -78,6 +84,12 @@ class LoginView extends KDScrollView
       callback : (formData)=>
         @doRecover formData
         KD.track "Login", "RecoverButtonClicked"
+
+    @resendForm= new ResendEmailConfirmationLinkInlineForm
+      cssClass : "resend-form"
+      callback : (formData)=>
+        @resendEmailConfirmationToken formData
+        KD.track "Login", "ResendEmailConfirmationTokenButtonClicked"
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
@@ -158,11 +170,15 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
+      <div class="login-form-holder rectf">
+        {{> @resendForm}}
+      </div>
     </div>
     <div class="login-footer">
       <p class='regLink'>Not a member? {{> @goToRegisterLink}}</p>
       <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
+      <p class='rectfLink'>Confirm Your Email? {{> @goToResendMailConfirmationLink}}</p>
     </div>
     """
 
@@ -186,6 +202,21 @@ class LoginView extends KDScrollView
         new KDNotificationView
           title     : "Check your email"
           content   : "We've sent you a password recovery token."
+          duration  : 4500
+
+  resendEmailConfirmationToken:(formData)->
+    KD.remote.api.JEmailConfirmation.resetToken formData['username-or-email'], (err)=>
+      @resendForm.button.hideLoader()
+      if err
+        new KDNotificationView
+          title : "An error occurred: #{err.message}"
+      else
+        @resendForm.reset()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute '/Login', {entryPoint}
+        new KDNotificationView
+          title     : "Check your email"
+          content   : "We've sent you a confirmation mail."
           duration  : 4500
 
   doRegister:(formData)->
@@ -372,7 +403,7 @@ class LoginView extends KDScrollView
             if entryPoint?.type is 'group' and entryPoint.slug
             then route.replace "/#{entryPoint.slug}", ''
             else route
-          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover']
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover', '/ResendToken']
             router.handleRoute route
             routed = yes
             break
@@ -413,6 +444,8 @@ class LoginView extends KDScrollView
           @loginForm.username.input.setFocus()
         when "recover"
           @recoverForm.usernameOrEmail.input.setFocus()
+        when "resendEmailToken"
+          @resendEmailConfirmationTokenForm.usernameOrEmail.input.setFocus()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
