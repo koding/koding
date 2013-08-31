@@ -124,12 +124,15 @@ class ClassroomWorkspace extends CollaborativeWorkspace
           callback : => modal.destroy()
 
   goToNextChapter: (modal) ->
-    nextChapterLayout = @getDelegate().nextChapterConfig.panel
+    {nextChapterConfig} = @getDelegate()
+    nextChapterLayout = nextChapterConfig.panel
     @addDefaultButtons nextChapterLayout
     @getOptions().panels.push nextChapterLayout
 
     @next()
     modal.destroy()
+
+    @getData().config = nextChapterConfig
 
   goToCoursesView: (modal) ->
     modal.destroy()  if modal
