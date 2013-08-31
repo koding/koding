@@ -93,7 +93,8 @@ class ClassroomWorkspace extends CollaborativeWorkspace
         Next       :
           title    : "Next Chapter"
           cssClass : "modal-clean-green"
-          callback : => @goToNextChapter modal
+          callback : =>
+            @goToNextChapter modal, remainingChapters is 1
     else
       title        = "Well done!"
       content      = "You have completed this course. You can go to courses to start another one."
@@ -123,16 +124,23 @@ class ClassroomWorkspace extends CollaborativeWorkspace
           cssClass : "modal-clean-gray"
           callback : => modal.destroy()
 
-  goToNextChapter: (modal) ->
+  goToNextChapter: (modal, nextChapterIsLastChapter) ->
     {nextChapterConfig} = @getDelegate()
-    nextChapterLayout = nextChapterConfig.panel
+    nextChapterLayout   = nextChapterConfig.panel
     @addDefaultButtons nextChapterLayout
     @getOptions().panels.push nextChapterLayout
 
     @next()
-    modal.destroy()
+    data = @getData()
+    data.config = nextChapterConfig
+    data.courseMeta.index++
 
-    @getData().config = nextChapterConfig
+    unless nextChapterIsLastChapter
+      delegate = @getDelegate()
+      delegate.currentChapterIndex++
+      delegate.fetchNextCourseConfig()
+
+    modal.destroy()
 
   goToCoursesView: (modal) ->
     modal.destroy()  if modal
@@ -155,9 +163,3 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       KD.getSingleton("windowController").addLayer container
       container.once "ReceivedClickElsewhere", ->
         container.toggleClass "active"
-
-  next: ->
-    super
-    delegate = @getDelegate()
-    delegate.currentChapterIndex++
-    delegate.fetchNextCourseConfig()
