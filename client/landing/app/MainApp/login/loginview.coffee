@@ -445,7 +445,7 @@ class LoginView extends KDScrollView
         when "recover"
           @recoverForm.usernameOrEmail.input.setFocus()
         when "resendEmailToken"
-          @resendEmailConfirmationTokenForm.usernameOrEmail.input.setFocus()
+          @resendForm.usernameOrEmail.input.setFocus()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
