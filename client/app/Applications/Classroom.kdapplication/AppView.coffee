@@ -79,7 +79,7 @@ class ClassroomAppView extends KDScrollView
         name              : courseManifest.name
         index             : ++chapterIndex
 
-      @addSubView new ClassroomWorkspace { delegate: this }, { config, courseManifest, courseMeta }
+      @addSubView @workspace = new ClassroomWorkspace { delegate: this }, { config, courseManifest, courseMeta }
       @fetchNextCourseConfig()
 
   fetchNextCourseConfig: ->
