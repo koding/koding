@@ -156,3 +156,9 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       KD.getSingleton("windowController").addLayer container
       container.once "ReceivedClickElsewhere", ->
         container.toggleClass "active"
+
+  next: ->
+    super
+    delegate = @getDelegate()
+    delegate.currentChapterIndex++
+    delegate.fetchNextCourseConfig()
