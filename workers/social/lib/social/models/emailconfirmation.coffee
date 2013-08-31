@@ -61,8 +61,10 @@ module.exports = class JEmailConfirmation extends jraphical.Module
 
   @confirmByToken = (token, callback)->
     @one {token}, (err, confirmation)->
-      if err or !confirmation?
-        return callback new KodingError err.message or 'Unrecogized token.'
+      if err
+        return callback new KodingError err.message
+      if not confirmation
+        return callback new KodingError 'Unrecogized token.'
       if confirmation.status is 'obsolete'
         return callback new KodingError "Please use your latest token or get another token"
       if confirmation.status is 'confirmed'

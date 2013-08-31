@@ -120,6 +120,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+      referrerUsername      : String
       isExempt              : # is a troll ?
         type                : Boolean
         default             : false

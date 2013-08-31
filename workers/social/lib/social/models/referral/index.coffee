@@ -1,6 +1,7 @@
 jraphical = require 'jraphical'
 
 JAccount = require '../account'
+JUser = require '../user'
 JVM = require '../vm'
 KodingError = require '../../error'
 
@@ -257,20 +258,32 @@ module.exports = class JReferral extends jraphical.Message
       if me.profile.nickname is referrerCode
           return console.error "#{me.profile.nickname} - User tried to refer themself"
 
-      # get referrer
-      JAccount.one {'profile.nickname': referrerCode}, (err, referrer)->
-        # if error occured than do nothing and return
-        return console.error "Error while fetching referrer", err if err
-        # if referrer not fonud then do nothing and return
-        return console.error "Referrer couldnt found" if not referrer
+      me.update { $set : 'referrerUsername' :  referrerCode }, (err)->
+        return console.error err if err
+        console.log "referal saved successfully for #{me.profile.nickname} from #{referrerCode}"
 
-        referral = new JReferral { type: "disk", unit: "MB", amount: 250 }
-        referral.save (err) ->
-          return console.error err if err
-          #add referrer as referrer to the referral system
-          referrer.addReferrer referral, (err)->
+    JUser.on 'EmailConfirmed', (user)->
+      return console.log "User is not defined in event" unless user
+
+      user.fetchOwnAccount (err, me)->
+        return console.error err if err
+        # if account not fonud then do nothing and return
+        return console.error "Account couldnt found" unless me
+        referrerUsername = me.referrerUsername
+        return console.log "User doesn't have any referrer" unless referrerUsername
+        # get referrer
+        JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
+          # if error occured than do nothing and return
+          return console.error "Error while fetching referrer", err if err
+          # if referrer not fonud then do nothing and return
+          return console.error "Referrer couldnt found" if not referrer
+          referral = new JReferral { type: "disk", unit: "MB", amount: 250 }
+          referral.save (err) ->
             return console.error err if err
-            # add me as referred to the referral system
-            me.addReferred referral, (err)->
+            #add referrer as referrer to the referral system
+            referrer.addReferrer referral, (err)->
               return console.error err if err
-              console.log "referal saved successfully for #{me.profile.nickname} from #{referrerCode}"
+              # add me as referred to the referral system
+              me.addReferred referral, (err)->
+                return console.error err if err
+                console.log "referal saved successfully for #{me.profile.nickname} from #{referrerUsername}"

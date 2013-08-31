@@ -720,7 +720,10 @@ Your password has been changed!  If you didn't request this change, please conta
     JEmailConfirmation = require '../emailconfirmation'
     JEmailConfirmation.createAndSendEmail @, callback
 
-  confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
+  confirmEmail: (callback)->
+    @update {$set: status: 'confirmed'}, (err, res)=>
+      return callback err if err
+      JUser.emit "EmailConfirmed", @
 
   block:(blockedUntil, callback)->
     unless blockedUntil then return callback createKodingError "Blocking date is not defined"
