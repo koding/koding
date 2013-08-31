@@ -41,7 +41,7 @@ class ClassroomWorkspace extends CollaborativeWorkspace
         color    : "#FFFFFF"
         diameter : 13
       callback   : (panel, workspace) =>
-        button   = @getActivePanel().headerButtons['Submit Code']
+        button   = @getActivePanel().headerButtons["Submit Code"]
         button.showLoader()
         @validateChapter panel, workspace, (result) => button.hideLoader()
     ,
@@ -124,16 +124,12 @@ class ClassroomWorkspace extends CollaborativeWorkspace
           callback : => modal.destroy()
 
   goToNextChapter: (modal) ->
-    parent = @parent
-    modal.destroy()
-    parent.destroySubViews()
+    nextChapterLayout = @getDelegate().nextChapterConfig.panel
+    @addDefaultButtons nextChapterLayout
+    @getOptions().panels.push nextChapterLayout
 
-    {index, name} = @getData().courseMeta
-    {chapters}    = @getData().courseManifest
-    if chapters.length > index
-      newIndex = ++index
-      KD.getSingleton("router").handleQuery "?course=#{name}&chapter=#{newIndex}"
-      @chapterRef.child("index").set newIndex
+    @next()
+    modal.destroy()
 
   goToCoursesView: (modal) ->
     modal.destroy()  if modal
