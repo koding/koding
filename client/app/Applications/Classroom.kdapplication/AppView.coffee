@@ -74,11 +74,17 @@ class ClassroomAppView extends KDScrollView
     return if not chapters or not @isCourseStarted()
 
     @readFileContent "/#{courseManifest.name}.kdcourse/#{chapters[chapterIndex].resourcesPath}", (config) =>
-      courseMeta   =
-        name       : courseManifest.name
-        index      : ++chapterIndex
+      @currentChapterIndex = chapterIndex
+      courseMeta          =
+        name              : courseManifest.name
+        index             : ++chapterIndex
 
       @addSubView new ClassroomWorkspace { delegate: this }, { config, courseManifest, courseMeta }
+      @fetchNextCourseConfig()
+
+  fetchNextCourseConfig: ->
+    @readFileContent "/#{@manifest.name}.kdcourse/#{@manifest.chapters[@currentChapterIndex + 1].resourcesPath}", (config) =>
+      @nextChapterConfig = config
 
   createCoursesView: (manifest) ->
     @addSubView new ClassroomCourseView { delegate: this }, manifest
