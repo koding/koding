@@ -193,7 +193,7 @@ class CollaborativeWorkspace extends Workspace
     options        = @getOptions()
     modal          = new KDModalView
       title        : options.joinModalTitle   or "Join New Session"
-      content      : options.joinModalContent or "This is your session key, you can share this key with your friends to work together."
+      content      : options.joinModalContent or "<p>This is your session key, you can share this key with your friends to work together.</p>"
       overlay      : yes
       cssClass     : "workspace-modal join-modal"
       width        : 500
