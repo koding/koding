@@ -9,11 +9,6 @@ class CollaborativeFinderPane extends CollaborativePane
 
     super options, data
 
-    panel             = @getDelegate()
-    @workspace        = panel.getDelegate()
-    @sessionKey       = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef     = @workspace.firepadRef.child @sessionKey
-
     @finderController = new NFinderController
       nodeIdPath          : "path"
       nodeParentIdPath    : "parentPath"
@@ -26,7 +21,7 @@ class CollaborativeFinderPane extends CollaborativePane
 
     @finderController.reset()
 
-    @finder = @finderController.getView()
+    @finder = @container = @finderController.getView()
 
     @workspaceRef.on "value", (snapshot) =>
       clientData = snapshot.val()?.ClientWantsToInteractWithRemoteFileTree
@@ -42,7 +37,7 @@ class CollaborativeFinderPane extends CollaborativePane
       @syncContent files
 
     @finderController.on "OpenedAFile", (file, content) =>
-      for pane in panel.panes
+      for pane in @panel.panes
         if pane instanceof CollaborativeEditorPane or pane instanceof CollaborativeTabbedEditorPane
           editorPane = pane
 
@@ -54,14 +49,6 @@ class CollaborativeFinderPane extends CollaborativePane
 
   syncContent: (files) ->
     @workspaceRef.set { files }
-
-  pistachio: ->
-    """
-      {{> @header}}
-      {{> @finder}}
-    """
-
-
 
 
 class CollaborativeFinderTreeController extends NFinderTreeController

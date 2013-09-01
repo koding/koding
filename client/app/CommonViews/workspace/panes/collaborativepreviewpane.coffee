@@ -4,14 +4,6 @@ class CollaborativePreviewPane extends CollaborativePane
 
     super options, data
 
-    @panel            = @getDelegate()
-    @workspace        = @panel.getDelegate()
-    @sessionKey       = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef     = @workspace.firepadRef.child @sessionKey
-    @isJoinedASession = @getOptions().sessionKey
-    @amIHost          = @workspace.amIHost()
-    @container        = new KDView
-
     @container.addSubView @previewPane = new PreviewPane @getOptions()
 
     {@previewer} = @previewPane
@@ -34,9 +26,3 @@ class CollaborativePreviewPane extends CollaborativePane
   saveUrl: (force) ->
     url = @previewer.path.replace /\?.*/, ""
     @workspaceRef.child("url").set if force then "#{url}?#{Date.now()}" else url
-
-  pistachio: ->
-    """
-      {{> @header}}
-      {{> @container}}
-    """

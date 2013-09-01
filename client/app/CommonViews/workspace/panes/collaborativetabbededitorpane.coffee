@@ -4,11 +4,6 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     super options, data
 
-    @panel            = @getDelegate()
-    @workspace        = @panel.getDelegate()
-    @sessionKey       = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef     = @workspace.firepadRef.child @sessionKey
-    @isJoinedASession = @getOptions().sessionKey
     @openedFiles      = []
     @activeTabIndex   = 0
 

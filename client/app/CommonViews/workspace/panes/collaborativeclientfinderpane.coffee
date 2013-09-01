@@ -34,10 +34,9 @@ class CollaborativeClientFinderPane extends Pane
 
   pistachio: ->
     """
+      {{> @header}}
       {{> @container}}
     """
-
-
 
 
 class CollaborativeClientTreeViewController extends JTreeViewController
