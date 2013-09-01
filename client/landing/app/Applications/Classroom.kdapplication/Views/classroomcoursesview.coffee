@@ -6,29 +6,25 @@ class ClassroomCoursesView extends JView
 
     super options, data
 
-    @enrolledCourseNames = []
-    @relatedCourseNames  = []
-
     @createElements()
     @createCourses()
 
   createCourses: ->
-    if @getData().enrolled
-      for enrolled in @getData().enrolled
-        @enrolledCourseNames.push enrolled.name
-        @createThumbView @enrolledContainer, "enrolled", enrolled
+    {enrolled, related, imported} = @getData()
 
-    if @getData().related
-      for related in @getData().related
-        @relatedCourseNames.push related.name
-        @createThumbView @relatedContainer, "related", related
+    for courseName, courseManifest of enrolled
+      @createThumbView @enrolledContainer, "enrolled", courseManifest
+
+    for courseName, courseManifest of imported
+      @createThumbView @enrolledContainer, "imported", courseManifest
+
+    for courseName, courseManifest of related
+      @createThumbView @relatedContainer, "related", courseManifest
 
   createThumbView: (container, type, data) ->
-    appView        = @getDelegate()
-    {cdnRoot}      = appView
-    data.completed = @getData().completedChapters?[data.name]
-    thumbView      = new ClassroomCourseThumbView { cdnRoot, type, delegate: appView }, data
-    container.addSubView thumbView
+    delegate       = @getDelegate()
+    data.completed = @getData().completed[data.name] is yes
+    container.addSubView new ClassroomCourseThumbView { type, delegate }, data
 
   createElements: ->
     @enrolledContainer = new KDCustomHTMLView
@@ -52,8 +48,12 @@ class ClassroomCoursesView extends JView
     @enrolledContainer.addSubView @noEnrolledCourse
     @relatedContainer.addSubView  @noRelatedCourse
 
-    @noRelatedCourse.show()   unless @getData().related.length
-    @noEnrolledCourse.show()  unless @getData().enrolled.length
+    data = @getData()
+    unless Object.keys(data.enrolled).length or Object.keys(data.imported).length
+      @noEnrolledCourse.show()
+
+    unless Object.keys(data.related).length
+      @noRelatedCourse.show()
 
   pistachio: ->
     """

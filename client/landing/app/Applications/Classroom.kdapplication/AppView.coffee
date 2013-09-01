@@ -6,31 +6,30 @@ class ClassroomAppView extends KDScrollView
 
     super options, data
 
-    @appStorage  = KD.getSingleton("appStorageController").storage "Classroom", "1.0"
+    @appStorage  = KD.getSingleton("appStorageController").storage "Classroom", "1.101"
 
     @emit "ready"
 
     @on "ChapterSucceed", (chapterData) => @markChapterAsCompleted chapterData
 
   fetchCourses: ->
-    @appStorage.ready =>
-      @enrolledCourses    = @appStorage.getValue("EnrolledCourses") or []
-      @relatedCourses     = []
-      enrolledCourseNames = []
+    url     = "https://raw.github.com/fatihacet/ClassroomCourses/master/manifest.json"
+    storage = @appStorage
 
-      enrolledCourseNames.push enrolled.name for enrolled in @enrolledCourses
+    @readFileContent url, (manifests) =>
+      storage.ready =>
+        enrolled    = storage.getValue("Enrolled")  or {}
+        related     = storage.getValue("Related")   or {}
+        imported    = storage.getValue("Imported")  or {}
+        completed   = storage.getValue("Completed") or {}
 
-      for courseDetails in @getPredefinedCourses()
-        courseName = courseDetails.name
-        if @enrolledCourses.length is 0 or enrolledCourseNames.indexOf(courseName) is -1
-          @relatedCourses.push courseDetails
+        for manifest in manifests
+          {name}        = manifest
+          related[name] = manifest  unless enrolled[name] or imported[name]
 
-      @addSubView @coursesView = new ClassroomCoursesView
-        delegate : this
-      ,
-        enrolled          : @enrolledCourses
-        related           : @relatedCourses
-        completedChapters : @appStorage.getValue "CompletedChapters"
+        @addSubView @coursesView = new ClassroomCoursesView
+          delegate : this
+        , { enrolled, related, completed, imported }
 
   createHeader: ->
     @addSubView @header = new KDView
@@ -43,23 +42,37 @@ class ClassroomAppView extends KDScrollView
         </div>
       """
 
-  enrollToCourse: (courseData) ->
-    @enrolledCourses.push courseData
-    @appStorage.setValue "EnrolledCourses", @enrolledCourses
+    @header.addSubView importButton = new KDButtonView
+      title    : "Import Course"
+      cssClass : "cupid-green course-import-button"
+      callback : @bound "showCourseImportModal"
 
-  cancelEnrollment: (courseData) ->
-    pos = i for enrolled, i in @enrolledCourses when enrolled.name is courseData.name
-    @enrolledCourses.splice pos, 1
-    @appStorage.setValue "EnrolledCourses", @enrolledCourses
+    $(".container .banner").append $(".course-import-button") # hack to reposition button
+
+  enrollToCourse: (courseData) ->
+    enrolled = @appStorage.getValue("Enrolled") or {}
+    enrolled[courseData.name] = courseData
+    @appStorage.setValue "Enrolled", enrolled
+
+  cancelEnrollment: (courseData, appStorageKey = "Enrolled") ->
+    items = @appStorage.getValue appStorageKey
+    delete items[courseData.name]
+    @appStorage.setValue appStorageKey, items
+
+    # TODO: Get item count from appStorage, subview count may mislead
     if @coursesView.enrolledContainer.getSubViews().length is 1
       @coursesView.noEnrolledCourse.show()
 
   goToCourse: (courseName, callback = noop) ->
-    @readFileContent "/#{courseName}.kdcourse/manifest.json", (@manifest) =>
-      return unless @isCourseStarted()
-      manifest.startWithSplashView = yes
-      @createCoursesView manifest
-      callback()
+    @appStorage.ready =>
+      enrolled = @appStorage.getValue "Enrolled"
+      manifest = course for course in enrolled when course.name is courseName
+
+      @readFileContent url, (@manifest) =>
+        return unless @isCourseStarted()
+        manifest.startWithSplashView = yes
+        @createCoursesView manifest
+        callback()
 
   goToChapter: (courseName, chapter) ->
     if @manifest
@@ -130,47 +143,63 @@ class ClassroomAppView extends KDScrollView
 
     return no
 
-  getPredefinedCourses: ->
-    [
-      {
-        devMode       : true
-        version       : "0.1"
-        name          : "CoffeeScript"
-        author        : "Fatih Acet"
-        authorNick    : "fatihacet"
-        totalChapters : 3
-        icns          :
-          "128"       : "./resources/icon.128.png"
-      }
-      {
-        devMode       : true
-        version       : "0.1"
-        name          : "JavaScript"
-        author        : "Fatih Acet"
-        authorNick    : "fatihacet"
-        icns          :
-          "128"       : "./resources/icon.128.png"
-      }
-      {
-        devMode       : true
-        version       : "0.1"
-        name          : "PHP"
-        author        : "Fatih Acet"
-        authorNick    : "fatihacet"
-        icns          :
-          "128"       : "./resources/icon.128.png"
-      }
-    ]
+  showCourseImportModal: ->
+    modal              = new KDModalView
+      title            : "Import Course via URL"
+      content          : "<p>Type URL of your course manifest.json and hit enter.</p>"
+      cssClass         : "workspace-modal join-modal"
+      overlay          : yes
+      width            : 500
+      buttons          :
+        Import         :
+          title        : "Start Import"
+          cssClass     : "modal-clean-green"
+          loader       :
+            color      : "#FFFFFF"
+            diameter   : 13
+          callback     : => @importCourse urlInput.getValue(), modal
+        Close          :
+          title        : "Close"
+          cssClass     : "modal-cancel"
+          callback     : -> modal.destroy()
 
-  readFileContent: (relativePath, callback = noop) ->
-    url = "#{@cdnRoot}#{relativePath}"
+    modal.addSubView urlInput = new KDHitEnterInputView
+      type             : "text"
+      placeholder      : "Path to course manifest.json"
+      callback         : => @importCourse urlInput.getValue(), modal
 
-    if location.hostname is "localhost"
-      KD.getSingleton("vmController").run "curl -s #{url}", (err, content) =>
-        extension = FSItem.getFileExtension url
-        switch extension
-          when "json"    then callback JSON.parse content
-          when "md"      then callback KD.utils.applyMarkdown content
-          when "coffee"  then KD.utils.compileCoffeeOnClient content, callback
+  showImportDoneModal: ->
+    modal              = new KDBlockingModalView
+      title            : "Your course imported"
+      content          : "<p>Your course has been imported successfully.</p>"
+      cssClass         : "modal-with-text"
+      overlay          : yes
+      buttons          :
+        Import         :
+          title        : "Let's Start"
+          cssClass     : "modal-clean-green"
+          callback     : => log "dsada"
+        Close          :
+          title        : "Close"
+          cssClass     : "modal-cancel"
+          callback     : -> modal.destroy()
 
-  cdnRoot: "http://fatihacet.kd.io/cdn/courses"
+  importCourse: (url, modal) ->
+    modal.buttons.Import.showLoader()
+    @readFileContent url, (manifest) => # TODO: sanity check for course manifest.
+      importedCourses = @appStorage.getValue("Imported") or {}
+      importedCourses[manifest.name] = manifest
+      @appStorage.setValue "Imported", importedCourses
+      @showImportDoneModal()
+      modal.buttons.Import.hideLoader()
+      modal.destroy()
+
+  readFileContent: (path, callback = noop) ->
+    url = if path.indexOf("http") is 0 then path else "#{path}"
+
+    KD.getSingleton("vmController").run "curl -s #{url}", (err, content) =>
+      extension = FSItem.getFileExtension url
+      switch extension
+        when "json"    then callback JSON.parse content
+        when "md"      then callback KD.utils.applyMarkdown content
+        when "coffee"  then KD.utils.compileCoffeeOnClient content, callback
