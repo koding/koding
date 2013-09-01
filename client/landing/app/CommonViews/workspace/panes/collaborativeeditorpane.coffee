@@ -6,12 +6,6 @@ class CollaborativeEditorPane extends CollaborativePane
 
     super options, data
 
-    @panel      = @getDelegate()
-    @workspace  = @panel.getDelegate()
-    @sessionKey = @getOptions().sessionKey or @createSessionKey()
-    @amIHost    = @workspace.amIHost()
-    @container  = new KDView
-
     @container.on "viewAppended", =>
       @createEditor()
       @ref        = @workspace.firepadRef.child @sessionKey
@@ -103,9 +97,3 @@ class CollaborativeEditorPane extends CollaborativePane
     if modeName
       @codeMirrorEditor.setOption "mode", modeName
       CodeMirror.autoLoadMode @codeMirrorEditor, modeName
-
-  pistachio: ->
-    """
-      {{> @header}}
-      {{> @container}}
-    """
