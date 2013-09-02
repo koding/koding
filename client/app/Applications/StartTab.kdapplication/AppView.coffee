@@ -204,7 +204,7 @@ class StartTabMainView extends JView
     @removeAppIcon app  for app in removedApps
     @createAppsIcons @appsController.getManifests()  if newApps.length > 0
 
-  createAppIcon:(app, appData)->
+  createAppIcon:(app, appData, bulk=no)->
 
     log "ADDING:", appData
     @appIcons[app]?.destroy()
@@ -212,10 +212,13 @@ class StartTabMainView extends JView
       delegate : @
     , appData
 
+    # To make sure its always the last icon
+    @createGetMoreAppsButton()  unless bulk
+
   createAppsIcons:(apps)->
     for app, appData of apps
       do (app, appData)=>
-        @createAppIcon app, appData
+        @createAppIcon app, appData, yes
 
     # To make sure its always the last icon
     @createGetMoreAppsButton()
