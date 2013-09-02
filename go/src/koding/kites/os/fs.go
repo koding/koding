@@ -93,7 +93,11 @@ func registerFileSystemMethods(k *kite.Kite) {
 			return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
 		}
 
-		return vos.Glob(params.Pattern)
+		matches, err := vos.Glob(params.Pattern)
+		if err == nil && matches == nil {
+			matches = []string{}
+		}
+		return matches, err
 	})
 
 	registerVmMethod(k, "fs.readFile", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
