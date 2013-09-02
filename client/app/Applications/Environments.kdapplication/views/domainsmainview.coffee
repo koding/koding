@@ -4,7 +4,7 @@ class DomainsMainView extends JView
       { name : "Routing",     partial  : "<p class='soon'>Select a domain from left to see its settings.</p>"}
       { name : "Analytics",   partial  : "<p class='soon'>Domain analytics will be here soon.</p>" }
       { name : "Firewall",    partial  : "<p class='soon'>Firewall settings will be here soon.</p>" }
-      { name : "DNS Manager", partial  : "<p class='soon'>DNS settings will be here soon.</p>" }
+      { name : "DNS Manager", partial  : "<p class='soon'>Select a domain from left to see its settings.</p>" }
     ]
 
   constructor:(options={}, data)->
