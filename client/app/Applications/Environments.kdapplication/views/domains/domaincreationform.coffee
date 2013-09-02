@@ -12,8 +12,6 @@ class DomainCreationForm extends KDTabViewWithForms
 
     {nickname, firstName, lastName} = KD.whoami().profile
 
-    paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
     domainOptions     = [
       { title : "Create a subdomain", value : "subdomain" }
       { title : "I want to register a domain", value : "new" }
@@ -29,22 +27,13 @@ class DomainCreationForm extends KDTabViewWithForms
           callback                    : @bound "registerDomain"
           buttons                     :
             billingButton             :
-              title                   : "Billing Info"
+              title                   : "Register Domain"
               style                   : "cupid-green hidden"
               type                    : "submit"
               loader                  :
                 color                 : "#ffffff"
                 diameter              : 24
               callback                : =>
-                form = @forms["Domain Address"]
-                {createButton, billingButton} = form.buttons
-
-                billingButton.hideLoader()
-
-                paymentController.setBillingInfo 'user', group, (success)->
-                  if success
-                    billingButton.hide()
-                    createButton.show()
 
             createButton              :
               title                   : "Add Domain"
@@ -161,7 +150,7 @@ class DomainCreationForm extends KDTabViewWithForms
 
   registerDomain:->
     form = @forms["Domain Address"]
-    {createButton} = form.buttons
+    {createButton, billingButton} = form.buttons
     @clearSuggestions()
 
     {DomainOption, domainName, regYears, domains} = form.inputs
@@ -186,22 +175,33 @@ class DomainCreationForm extends KDTabViewWithForms
         switch status
           when "regthroughus", "regthroughothers"
             @showSuggestions suggestions
+            billingButton.hideLoader()
             return createButton.hideLoader()
           when "unknown"
             notifyUser "An error occured. Please try again later."
             return createButton.hideLoader()
+        form = @forms["Domain Address"]
+        {createButton, billingButton} = form.buttons
+        paymentController = KD.getSingleton('paymentController')
+        group             = KD.getSingleton("groupsController").getCurrentGroup()
+        billingButton.hideLoader()
+        paymentController.setBillingInfo 'user', group, (success)->
+          if success
+            billingButton.hideLoader()
+            billingButton.hide()
+            createButton.show()
 
-        KD.remote.api.JDomain.registerDomain
-          domainName : domainInput.getValue()
-          years      : regYears.getValue()
-        , (err, domain)=>
-          createButton.hideLoader()
-          if err
-            warn err
-            notifyUser "An error occured. Please try again later."
-          else
-            @showSuccess domain
-            domain.setDomainCNameToProxyDomain()
+            KD.remote.api.JDomain.registerDomain
+              domainName : domainInput.getValue()
+              years      : regYears.getValue()
+            , (err, domain)=>
+              createButton.hideLoader()
+              if err
+                warn err
+                notifyUser "An error occured. Please try again later."
+              else
+                @showSuccess domain
+                domain.setDomainCNameToProxyDomain()
 
     else if domainOptionValue is 'existing'
       @createDomain {domainName, regYears:0, domainType:'existing'}, (err, domain)=>
