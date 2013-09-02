@@ -61,7 +61,7 @@ class DNDUploader extends KDView
             origin  : "external"
             filename: file.name
             instance: fsFile
-            content : readEvent.target.multipleItems
+            content : readEvent.target.result
           , event, readEvent
 
           @reset() if file is lastFile
