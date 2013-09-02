@@ -18,6 +18,8 @@ class StartTabMainView extends JView
       @decorateApps apps
 
     @appsController.on "AppsDataChanged", @bound "updateAppIcons"
+    @appsController.on "InvalidateApp", @bound "removeAppIcon"
+    @appsController.on "UpdateAppData", @bound "createAppIcon"
 
     @finderController = KD.getSingleton "finderController"
     @finderController.on 'recentfiles.updated', =>
@@ -197,20 +199,18 @@ class StartTabMainView extends JView
 
   updateAppIcons:(changes)->
 
-    {removedApps, newApps, force} = changes
-    return @decorateApps()  if force
+    {removedApps, newApps, existingApps, force} = changes
+    return @decorateApps()  if force or existingApps.length is 0
     @removeAppIcon app  for app in removedApps
     @createAppsIcons @appsController.getManifests()  if newApps.length > 0
 
   createAppIcon:(app, appData)->
 
     log "ADDING:", appData
-    if @appIcons[appData.name]?
-      @appIcons[appData.name].setData appData
-    else
-      @appItemContainer.addSubView @appIcons[appData.name] = new StartTabAppThumbView
-        delegate : @
-      , appData
+    @appIcons[app]?.destroy()
+    @appItemContainer.addSubView @appIcons[app] = new StartTabAppThumbView
+      delegate : @
+    , appData
 
   createAppsIcons:(apps)->
     for app, appData of apps
