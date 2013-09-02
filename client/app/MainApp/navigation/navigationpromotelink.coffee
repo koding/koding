@@ -4,6 +4,15 @@ class NavigationPromoteLink extends JView
 
     options.tagName  = "a"
     options.cssClass = "title"
+    options.tooltip  =
+      placement      : "right"
+      # offset         : -10
+      title          :
+        """
+        If anyone registers with your referrer code,
+        you will get 250MB Free disk space for your VM.
+        Up to 16GB!.
+        """
 
     super options, data
 
