@@ -91,14 +91,6 @@ class AppsWatcher extends FSWatcher
     super options
     @_trackedApps = []
 
-  onFolderAdded:(change)->
-    if @isKdApp change
-      app = @getAppName change
-      return  if app in @_trackedApps
-      @_trackedApps.push app
-      log "A new app added:", app
-      @emit "ANewAppAdded", app, change
-
   onFileRemoved:(change)->
     app = @getAppName change
     if (@isKdApp change) or (@isManifest change)
@@ -113,10 +105,14 @@ class AppsWatcher extends FSWatcher
     app = @getAppName change
     if @isInKdApp change
       if @isManifest change
-        log "A manifest changed/added:", @getAppName change
-        @emit "AManifestChanged", app, change
+        log "A manifest changed/added:", app
+        if app in @_trackedApps
+          @emit "AManifestChanged", app, change
+        else
+          @_trackedApps.push app
+          log "A new app added:", app
+          @emit "ANewAppAdded", app, change
       else
-        # log "A sourcefile changed/added:", @getAppName change
         @emit "AFileChanged", app, change
 
   # Helpers

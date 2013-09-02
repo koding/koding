@@ -45,11 +45,9 @@ class KodingAppsController extends KDController
     #  - AManifestChanged
 
     @watcher.on "ANewAppAdded", (app, change)=>
-      # @bound "syncAppStorageWithFS"
       @fetchAppFromFs app, => @syncAppStorageWithFS()
 
     @watcher.on "AnAppRemoved", (app, change)=>
-      # @bound "syncAppStorageWithFS"
       @invalidateDeletedApps [app], no, =>
         @emit "InvalidateApp", app
 
@@ -93,7 +91,7 @@ class KodingAppsController extends KDController
 
     manifest = FSHelper.createFileFromPath "#{appsPath}#{appName}#{suffix}"
     manifest.fetchContents (err, response)=>
-      warn err  if err
+      # warn err  if err
       return cb null  if err
       return cb null  unless response
 
