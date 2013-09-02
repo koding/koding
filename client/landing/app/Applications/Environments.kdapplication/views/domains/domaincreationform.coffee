@@ -26,7 +26,7 @@ class DomainCreationForm extends KDTabViewWithForms
         "Domain Address"              :
           callback                    : @bound "registerDomain"
           buttons                     :
-            billingButton             :
+            registerButton             :
               title                   : "Register Domain"
               style                   : "cupid-green hidden"
               type                    : "submit"
@@ -129,28 +129,18 @@ class DomainCreationForm extends KDTabViewWithForms
 
   needBilling:(paymentRequired)->
     form = @forms["Domain Address"]
-    {createButton, billingButton} = form.buttons
+    {createButton, registerButton} = form.buttons
 
     unless paymentRequired
       createButton.show()
-      billingButton.hide()
+      registerButton.hide()
       return
-
-    paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
-
-    paymentController.getBillingInfo 'user', group, (err, account)->
-      need = err or not account or not account.cardNumber
-      if need
-        billingButton.show()
-        createButton.hide()
-      else
-        createButton.show()
-        billingButton.hide()
+    createButton.hide()
+    registerButton.show()
 
   registerDomain:->
     form = @forms["Domain Address"]
-    {createButton, billingButton} = form.buttons
+    {createButton, registerButton} = form.buttons
     @clearSuggestions()
 
     {DomainOption, domainName, regYears, domains} = form.inputs
@@ -175,33 +165,41 @@ class DomainCreationForm extends KDTabViewWithForms
         switch status
           when "regthroughus", "regthroughothers"
             @showSuggestions suggestions
-            billingButton.hideLoader()
+            registerButton.hideLoader()
             return createButton.hideLoader()
           when "unknown"
             notifyUser "An error occured. Please try again later."
             return createButton.hideLoader()
         form = @forms["Domain Address"]
-        {createButton, billingButton} = form.buttons
+        {createButton, registerButton} = form.buttons
         paymentController = KD.getSingleton('paymentController')
         group             = KD.getSingleton("groupsController").getCurrentGroup()
-        billingButton.hideLoader()
-        paymentController.setBillingInfo 'user', group, (success)->
-          if success
-            billingButton.hideLoader()
-            billingButton.hide()
-            createButton.show()
 
+        registerTheDomain () = ->
             KD.remote.api.JDomain.registerDomain
               domainName : domainInput.getValue()
               years      : regYears.getValue()
             , (err, domain)=>
-              createButton.hideLoader()
               if err
                 warn err
                 notifyUser "An error occured. Please try again later."
               else
                 @showSuccess domain
                 domain.setDomainCNameToProxyDomain()
+              registerButton.hideLoader()
+
+        paymentController.getBillingInfo 'user', group, (err, account)->
+          need = err or not account or not account.cardNumber
+          if need
+            paymentController.setBillingInfo 'user', group, (success)->
+              if success
+                registerTheDomain()
+              else
+                registerButton.hideLoader()
+          else
+            registerTheDomain()
+
+
 
     else if domainOptionValue is 'existing'
       @createDomain {domainName, regYears:0, domainType:'existing'}, (err, domain)=>
