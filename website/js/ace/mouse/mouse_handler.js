@@ -37,6 +37,7 @@ var DefaultHandlers = require("./default_handlers").DefaultHandlers;
 var DefaultGutterHandler = require("./default_gutter_handler").GutterHandler;
 var MouseEvent = require("./mouse_event").MouseEvent;
 var DragdropHandler = require("./dragdrop").DragdropHandler;
+var config = require("../config");
 
 var MouseHandler = function(editor) {
     this.editor = editor;
@@ -44,11 +45,6 @@ var MouseHandler = function(editor) {
     new DefaultHandlers(this);
     new DefaultGutterHandler(this);
     new DragdropHandler(this);
-
-    event.addListener(editor.container, "mousedown", function(e) {
-        editor.focus();
-        return event.preventDefault(e);
-    });
 
     var mouseTarget = editor.renderer.getMouseEventTarget();
     event.addListener(mouseTarget, "click", this.onMouseEvent.bind(this, "click"));
@@ -61,30 +57,21 @@ var MouseHandler = function(editor) {
     event.addListener(gutterEl, "click", this.onMouseEvent.bind(this, "gutterclick"));
     event.addListener(gutterEl, "dblclick", this.onMouseEvent.bind(this, "gutterdblclick"));
     event.addListener(gutterEl, "mousemove", this.onMouseEvent.bind(this, "guttermousemove"));
+    
+    event.addListener(mouseTarget, "mousedown", function(e) {
+        editor.focus();
+        return event.preventDefault(e);
+    });
+    
+    event.addListener(gutterEl, "mousedown", function(e) {
+        editor.focus();
+        return event.preventDefault(e);
+    });
 };
 
 (function() {
-
-    this.$scrollSpeed = 1;
-    this.setScrollSpeed = function(speed) {
-        this.$scrollSpeed = speed;
-    };
-
-    this.getScrollSpeed = function() {
-        return this.$scrollSpeed;
-    };
-
     this.onMouseEvent = function(name, e) {
         this.editor._emit(name, new MouseEvent(e, this.editor));
-    };
-
-    this.$dragDelay = 250;
-    this.setDragDelay = function(dragDelay) {
-        this.$dragDelay = dragDelay;
-    };
-
-    this.getDragDelay = function() {
-        return this.$dragDelay;
     };
 
     this.onMouseMove = function(name, e) {
@@ -131,6 +118,7 @@ var MouseHandler = function(editor) {
 
         var onCaptureEnd = function(e) {
             clearInterval(timerId);
+            onCaptureInterval();
             self[self.state + "End"] && self[self.state + "End"](e);
             self.$clickSelection = null;
             if (renderer.$keepTextAreaAtCursor == null) {
@@ -138,24 +126,28 @@ var MouseHandler = function(editor) {
                 renderer.$moveTextAreaToCursor();
             }
             self.isMousePressed = false;
+            self.onMouseEvent("mouseup", e)
         };
 
         var onCaptureInterval = function() {
             self[self.state] && self[self.state]();
-        }
+        };
         
         if (useragent.isOldIE && ev.domEvent.type == "dblclick") {
-            setTimeout(function() {
-                onCaptureInterval();
-                onCaptureEnd(ev.domEvent);
-            });
-            return;
+            return setTimeout(function() {onCaptureEnd(ev);});
         }
 
         event.capture(this.editor.container, onMouseMove, onCaptureEnd);
         var timerId = setInterval(onCaptureInterval, 20);
     };
 }).call(MouseHandler.prototype);
+
+config.defineOptions(MouseHandler.prototype, "mouseHandler", {
+    scrollSpeed: {initialValue: 2},
+    dragDelay: {initialValue: 150},
+    focusTimout: {initialValue: 0}
+});
+
 
 exports.MouseHandler = MouseHandler;
 });

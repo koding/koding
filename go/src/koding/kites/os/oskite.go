@@ -26,12 +26,13 @@ import (
 )
 
 type VMInfo struct {
-	vmId          bson.ObjectId
-	useCounter    int
-	timeout       *time.Timer
-	mutex         sync.Mutex
-	totalCpuUsage int
-	hostname      string
+	vm              *virt.VM
+	useCounter      int
+	timeout         *time.Timer
+	mutex           sync.Mutex
+	totalCpuUsage   int
+	currentCpus     []string
+	currentHostname string
 
 	State               string `json:"state"`
 	CpuUsage            int    `json:"cpuUsage"`
@@ -64,6 +65,7 @@ func main() {
 		return
 	}
 
+	virt.VMPool = config.Current.VmPool
 	if err := virt.LoadTemplates(templateDir); err != nil {
 		log.LogError(err, 0)
 		return
@@ -92,6 +94,7 @@ func main() {
 				}
 				continue
 			}
+			vm.ApplyDefaults()
 			info := newInfo(&vm)
 			infos[vm.Id] = info
 			info.startTimeout()
@@ -107,7 +110,7 @@ func main() {
 		requestWaitGroup.Wait()
 		if sig == syscall.SIGUSR1 {
 			for _, info := range infos {
-				log.Info("Unpreparing " + virt.VMName(info.vmId) + "...")
+				log.Info("Unpreparing " + info.vm.String() + "...")
 				info.unprepareVM()
 			}
 			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": k.ServiceUniqueName}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
@@ -278,11 +281,12 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			query = bson.M{"_id": bson.ObjectIdHex(channel.CorrelationName)}
 		}
 		if info != nil {
-			query = bson.M{"_id": info.vmId}
+			query = bson.M{"_id": info.vm.Id}
 		}
 		if err := db.VMs.Find(query).One(&vm); err != nil {
 			return nil, &VMNotFoundError{Name: channel.CorrelationName}
 		}
+		vm.ApplyDefaults()
 
 		if method == "webterm.connect" {
 			var params struct {
@@ -342,6 +346,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		info.mutex.Lock()
 		defer info.mutex.Unlock()
 
+		info.vm = vm
+
 		if channel.KiteData == nil {
 			info.useCounter += 1
 			if info.timeout != nil {
@@ -396,12 +402,12 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 			isPrepared = false
 		}
-		if !isPrepared || info.hostname != vm.HostnameAlias {
+		if !isPrepared || info.currentHostname != vm.HostnameAlias {
 			vm.Prepare(false, log.Warn)
 			if err := vm.Start(); err != nil {
 				log.LogError(err, 0)
 			}
-			info.hostname = vm.HostnameAlias
+			info.currentHostname = vm.HostnameAlias
 		}
 
 		vmWebDir := "/home/" + vm.WebHome + "/Web"
@@ -585,12 +591,14 @@ func getUsers(vm *virt.VM) []virt.User {
 
 func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
-		vmId:             vm.Id,
-		useCounter:       0,
-		totalCpuUsage:    utils.MaxInt,
-		hostname:         vm.HostnameAlias,
-		CpuShares:        1000,
-		TotalMemoryLimit: MaxMemoryLimit,
+		vm:                  vm,
+		useCounter:          0,
+		totalCpuUsage:       utils.MaxInt,
+		currentCpus:         nil,
+		currentHostname:     vm.HostnameAlias,
+		CpuShares:           1000,
+		PhysicalMemoryLimit: 100 * 1024 * 1024,
+		TotalMemoryLimit:    1024 * 1024 * 1024,
 	}
 }
 
@@ -599,8 +607,8 @@ func (info *VMInfo) startTimeout() {
 		if info.useCounter != 0 {
 			return
 		}
-		if virt.GetVMState(info.vmId) == "RUNNING" {
-			if err := virt.SendMessageToVMUsers(info.vmId, "========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
+		if info.vm.GetState() == "RUNNING" {
+			if err := info.vm.SendMessageToVMUsers("========================================\nThis VM will be turned off in 5 minutes.\nLog in to Koding.com to keep it running.\n========================================\n"); err != nil {
 				log.Warn(err.Error())
 			}
 		}
@@ -617,13 +625,13 @@ func (info *VMInfo) unprepareVM() {
 	infosMutex.Lock()
 	defer infosMutex.Unlock()
 
-	if err := virt.UnprepareVM(info.vmId); err != nil {
+	if err := virt.UnprepareVM(info.vm.Id); err != nil {
 		log.Warn(err.Error())
 	}
 
-	if err := db.VMs.Update(bson.M{"_id": info.vmId}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil && err != mgo.ErrNotFound {
+	if err := db.VMs.Update(bson.M{"_id": info.vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil && err != mgo.ErrNotFound {
 		log.LogError(err, 0)
 	}
 
-	delete(infos, info.vmId)
+	delete(infos, info.vm.Id)
 }

@@ -114,7 +114,7 @@ class KodingAppsController extends KDController
           @_fetchQueue = []
     , ->
       warn msg = "Timeout reached for kite request"
-      KD.logToExternal msg
+      KD.logToExternal msg  unless KD.isGuest()
       callback() for callback in @_fetchQueue
       @_fetchQueue = []
 

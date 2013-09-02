@@ -80,6 +80,7 @@ func main() {
 	// Service handlers
 	rout.HandleFunc("/services", GetUsers).Methods("GET")
 	rout.HandleFunc("/services/{username}", GetServices).Methods("GET")
+	rout.HandleFunc("/services/{username}", DeleteServices).Methods("DELETE")
 	rout.HandleFunc("/services/{username}/{servicename}", GetService).Methods("GET")
 	rout.HandleFunc("/services/{username}/{servicename}", DeleteService).Methods("DELETE")
 	rout.HandleFunc("/services/{username}/{servicename}/{key}", GetKey).Methods("GET")

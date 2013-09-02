@@ -18,17 +18,14 @@
 define(function(require, exports, module) {
    "use strict";
 
-   var Editor = require("ace/editor").Editor;
-   var EditSession = require("ace/edit_session").EditSession;
-   var Range = require("ace/range").Range;
-   var oop = require("ace/lib/oop");
-   var TextMode = require("ace/mode/text").Mode;
-   var Tokenizer = require("ace/tokenizer").Tokenizer;
-   var TextHighlightRules = require("ace/mode/text_highlight_rules")
-         .TextHighlightRules;
+   var Range = require("../range").Range;
+   var oop = require("../lib/oop");
+   var TextMode = require("./text").Mode;
+   var Tokenizer = require("../tokenizer").Tokenizer;
+   var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
    var RHighlightRules = require("./r_highlight_rules").RHighlightRules;
-   var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-   var unicode = require("ace/unicode");
+   var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+   var unicode = require("../unicode");
 
    var Mode = function()
    {
@@ -39,7 +36,9 @@ define(function(require, exports, module) {
 
    (function()
    {
-      this.tokenRe = new RegExp("^["
+      this.lineCommentStart = "#";
+      // todo import codeModel from RStudio
+      /*this.tokenRe = new RegExp("^["
           + unicode.packages.L
           + unicode.packages.Mn + unicode.packages.Mc
           + unicode.packages.Nd
@@ -129,7 +128,7 @@ define(function(require, exports, module) {
             }
          }
          return false;
-      };
+      };*/
    }).call(Mode.prototype);
    exports.Mode = Mode;
 });

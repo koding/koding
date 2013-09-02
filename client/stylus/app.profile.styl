@@ -54,13 +54,27 @@ app.profile.styl
         > *
           display         inline-block
           min-width       5px
-          padding         5px
+          padding         4px
 
         > [contenteditable="true"]
           background      white
-          padding         4px
+          padding         3px
           border          1px solid #C7C7C7
           border-radius   5px
+
+        &.firstName
+          > [contenteditable="true"]
+            border-right  none
+
+        &.lastName
+          > [contenteditable="true"]
+            padding-left  5px
+            border-left   none
+
+        &.firstName
+        &.lastName
+          > [contenteditable="true"]
+            border-radius 0
 
         &.bio > *[contenteditable="true"]
           min-height      80px

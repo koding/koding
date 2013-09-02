@@ -10,7 +10,7 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
     @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(options, callback)->
+  run:(options, callback = noop)->
     [callback, options] = [options, callback]  unless callback
     options ?= {}
     if "string" is typeof options
@@ -43,6 +43,9 @@ class VirtualizationController extends KDController
             vmName   : vm
           , cb
         else unless command is 'vm.info' then @info vm
+
+  resizeDisk:(vm, callback)->
+    @_runWrapper 'vm.resizeDisk', vm, callback
 
   start:(vm, callback)->
     @_runWrapper 'vm.start', vm, callback
