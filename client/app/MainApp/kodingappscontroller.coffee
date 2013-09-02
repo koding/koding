@@ -26,6 +26,7 @@ class KodingAppsController extends KDController
     @publishedApps  = {}
     @_fetchQueue    = []
     @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
+    @watcher       = new AppsWatcher
 
     @fetchApps =>
       @getPublishedApps()
@@ -36,6 +37,25 @@ class KodingAppsController extends KDController
       @updateDefaultAppConfig extension, appName
 
     mainController.on "accountChanged.to.loggedIn", @bound "getPublishedApps"
+
+    #  - ANewAppAdded
+    #  - AFileRemoved
+    #  - AnAppRemoved
+    #  - AFileChanged
+    #  - AManifestChanged
+
+    @watcher.on "ANewAppAdded", (app, change)=>
+      # @bound "syncAppStorageWithFS"
+      @fetchAppFromFs app, => @syncAppStorageWithFS()
+
+    @watcher.on "AnAppRemoved", (app, change)=>
+      # @bound "syncAppStorageWithFS"
+      @invalidateDeletedApps [app], no, =>
+        @emit "InvalidateApp", app
+
+    @watcher.on "AManifestChanged", (app, change)=>
+      @fetchAppFromFs app, =>
+        @emit "UpdateAppData", app, @getManifest app
 
   getAppPath:(manifest, escaped=no)->
 
@@ -99,9 +119,7 @@ class KodingAppsController extends KDController
     @_fetchQueue.push cb  if cb
     return if @_fetchQueue.length > 1
 
-    path   = "/home/#{KD.nick()}/Applications"
-    appDir = FSHelper.createFileFromPath path, 'folder'
-    appDir.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+    @watcher.watch KD.utils.getTimedOutCallback (err, files)=>
       if err or not Array.isArray files or files.length is 0
         @putAppsToAppStorage {}
         callback()  for callback in @_fetchQueue
@@ -136,9 +154,8 @@ class KodingAppsController extends KDController
 
     log "Synchronizing AppStorage with FileSystem..."
 
-    path   = "/home/#{KD.nick()}/Applications"
-    appDir = FSHelper.createFileFromPath path, 'folder'
-    appDir.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+    @watcher.watch (err, files)=>
+
       return warn err  if err
 
       existingApps = @filterAppsFromFileList files
