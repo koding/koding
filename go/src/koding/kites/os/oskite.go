@@ -340,20 +340,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				info = newInfo(vm)
 				infos[vm.Id] = info
 			}
-			infosMutex.Unlock()
-		}
 
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
-
-		info.vm = vm
-
-		if channel.KiteData == nil {
 			info.useCounter += 1
-			if info.timeout != nil {
-				info.timeout.Stop()
-				info.timeout = nil
-			}
+			info.timeout.Stop()
 
 			channel.KiteData = info
 			channel.OnDisconnect(func() {
@@ -365,7 +354,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					info.startTimeout()
 				}
 			})
+
+			infosMutex.Unlock()
 		}
+
+		info.vm = vm
+		info.mutex.Lock()
+		defer info.mutex.Unlock()
 
 		defer func() {
 			if err := recover(); err != nil {
@@ -593,6 +588,7 @@ func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
 		vm:                  vm,
 		useCounter:          0,
+		timeout:             time.NewTimer(0),
 		totalCpuUsage:       utils.MaxInt,
 		currentCpus:         nil,
 		currentHostname:     vm.HostnameAlias,
@@ -613,6 +609,8 @@ func (info *VMInfo) startTimeout() {
 			}
 		}
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
 			if info.useCounter != 0 {
 				return
 			}
@@ -622,9 +620,6 @@ func (info *VMInfo) startTimeout() {
 }
 
 func (info *VMInfo) unprepareVM() {
-	info.mutex.Lock()
-	defer info.mutex.Unlock()
-
 	if err := virt.UnprepareVM(info.vm.Id); err != nil {
 		log.Warn(err.Error())
 	}
@@ -634,6 +629,8 @@ func (info *VMInfo) unprepareVM() {
 	}
 
 	infosMutex.Lock()
-	delete(infos, info.vm.Id)
+	if info.useCounter == 0 {
+		delete(infos, info.vm.Id)
+	}
 	infosMutex.Unlock()
 }
