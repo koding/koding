@@ -40,3 +40,4 @@ class KDModalViewStack extends KDObject
   destroy: ->
     @modals.forEach (modal)-> KD.utils.defer -> modal.destroy()
     @modals = []
+    super
