@@ -6,7 +6,7 @@ class ClassroomCourseView extends JView
 
     super options, data
 
-    @courseRoot = "#{@getDelegate().cdnRoot}/#{@getData().name}.kdcourse"
+    {@resourcesRoot} = @getData()
 
     @buildSplashView()
     @createChapters()
@@ -27,7 +27,7 @@ class ClassroomCourseView extends JView
       cssClass   : "cupid-green start-now-button hidden"
       title      : "Start Course Now >>"
 
-    appView.readFileContent "/#{data.name}.kdcourse/#{data.splashViewText}", (markdown) =>
+    appView.readFileContent "#{@resourcesRoot}/#{data.splashViewText}", (markdown) =>
       @headerText.updatePartial markdown
       loader.destroy()
       @startNow.show()
@@ -49,7 +49,7 @@ class ClassroomCourseView extends JView
     """
       <div class="header-container">
         <div class="header">
-          <img src="#{@courseRoot}/#{data.icns["128"]}" />
+          <img src="#{@resourcesRoot}/#{data.icns["128"]}" />
           {{> @headerText}}
           {{> @startNow}}
         </div>

@@ -64,29 +64,31 @@ class ClassroomAppView extends KDScrollView
       @coursesView.noEnrolledCourse.show()
 
   goToCourse: (courseName, callback = noop) ->
-    @appStorage.ready =>
-      enrolled = @appStorage.getValue "Enrolled"
-      manifest = course for course in enrolled when course.name is courseName
-
-      @readFileContent url, (@manifest) =>
-        return unless @isCourseStarted()
-        manifest.startWithSplashView = yes
-        @createCoursesView manifest
-        callback()
+    @getManifestFromAppStorage courseName, =>
+      return unless @isCourseStarted()
+      @createCoursesView()
+      callback()
 
   goToChapter: (courseName, chapter) ->
-    if @manifest
+    @getManifestFromAppStorage courseName, =>
       @handleGoToChapter chapter
-    else
-      @readFileContent "/#{courseName}.kdcourse/manifest.json", (@manifest) =>
-        @handleGoToChapter chapter
+
+  getManifestFromAppStorage: (courseName, callback = noop) ->
+    appStorage  = @appStorage
+    @appStorage.ready =>
+      enrolled  = appStorage.getValue "Enrolled"
+      imported  = appStorage.getValue "Imported"
+      @manifest = enrolled[courseName] or imported[courseName] or null
+      return warn "Course manifest file is not exist"  unless @manifest
+
+      callback()
 
   handleGoToChapter: (chapterIndex) ->
     courseManifest = @manifest
     {chapters}     = courseManifest
     return if not chapters or not @isCourseStarted()
 
-    @readFileContent "/#{courseManifest.name}.kdcourse/#{chapters[chapterIndex].resourcesPath}", (config) =>
+    @readFileContent "#{courseManifest.resourcesRoot}/#{chapters[chapterIndex].resourcesPath}", (config) =>
       @currentChapterIndex = chapterIndex
       courseMeta          =
         name              : courseManifest.name
@@ -96,14 +98,14 @@ class ClassroomAppView extends KDScrollView
       @fetchNextCourseConfig()
 
   fetchNextCourseConfig: ->
-    @readFileContent "/#{@manifest.name}.kdcourse/#{@manifest.chapters[@currentChapterIndex + 1].resourcesPath}", (config) =>
+    @readFileContent "#{@manifest.resourcesRoot}/#{@manifest.chapters[@currentChapterIndex + 1].resourcesPath}", (config) =>
       @nextChapterConfig = config
 
-  createCoursesView: (manifest) ->
-    @addSubView new ClassroomCourseView { delegate: this }, manifest
+  createCoursesView: ->
+    @addSubView new ClassroomCourseView { delegate: this }, @manifest
 
   markChapterAsCompleted: (data) ->
-    completedCourses           = @appStorage.getValue("CompletedChapters") or {}
+    completedCourses           = @appStorage.getValue("Completed") or {}
     {courseName, chapterTitle} = data
     completedOnCourse          = completedCourses[courseName] or []
 
@@ -111,7 +113,7 @@ class ClassroomAppView extends KDScrollView
       completedOnCourse.push chapterTitle
       completedCourses[courseName] = completedOnCourse
 
-    @appStorage.setValue "CompletedChapters", completedCourses
+    @appStorage.setValue "Completed", completedCourses
 
   handleQuery: (query) ->
     @destroySubViews()
@@ -168,7 +170,7 @@ class ClassroomAppView extends KDScrollView
       placeholder      : "Path to course manifest.json"
       callback         : => @importCourse urlInput.getValue(), modal
 
-  showImportDoneModal: ->
+  showImportDoneModal: (coursePath) ->
     modal              = new KDBlockingModalView
       title            : "Your course imported"
       content          : "<p>Your course has been imported successfully.</p>"
@@ -178,7 +180,9 @@ class ClassroomAppView extends KDScrollView
         Import         :
           title        : "Let's Start"
           cssClass     : "modal-clean-green"
-          callback     : => log "dsada"
+          callback     : =>
+            KD.getSingleton("router").handleQuery coursePath
+            modal.destroy()
         Close          :
           title        : "Close"
           cssClass     : "modal-cancel"
@@ -190,7 +194,7 @@ class ClassroomAppView extends KDScrollView
       importedCourses = @appStorage.getValue("Imported") or {}
       importedCourses[manifest.name] = manifest
       @appStorage.setValue "Imported", importedCourses
-      @showImportDoneModal()
+      @showImportDoneModal "?course=#{manifest.name}"
       modal.buttons.Import.hideLoader()
       modal.destroy()
 
