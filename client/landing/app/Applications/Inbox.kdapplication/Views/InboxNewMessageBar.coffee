@@ -5,7 +5,7 @@ class InboxNewMessageBar extends KDView
     @addSubView newMessageButton = new KDButtonView
       title     : "New Message"
       style     : "clean-gray left"
-      testPath  : "inbox-new"
+      testPath  : "inbox-new-message-button"
       callback  : => @createNewMessageModal()
 
     @addSubView @refreshButton = new KDButtonView
