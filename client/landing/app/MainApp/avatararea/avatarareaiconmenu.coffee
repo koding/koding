@@ -28,7 +28,7 @@ class AvatarAreaIconMenu extends JView
 
     @messagesIcon = new AvatarAreaIconLink
       cssClass   : 'messages'
-      testPath   : "avatar-messages"
+      testPath   : "avatararea-messages-icon"
       attributes :
         title    : 'Messages'
       delegate   : @messagesPopup
