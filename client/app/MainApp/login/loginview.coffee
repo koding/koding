@@ -42,15 +42,15 @@ class LoginView extends KDScrollView
       testPath    : "landing-recover-password"
       click       : recoverHandler
 
-    @goToResendMailConfirmationLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Resend E-Mail"
-      click       : resendMailConfirmationHandler
-
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register an account"
       click       : registerHandler
+
+    @goToResendMailConfirmationLink = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Resend"
+      click       : resendMailConfirmationHandler
 
     @loginOptions = new LoginOptions
       cssClass : "login-options-holder log"
@@ -86,7 +86,7 @@ class LoginView extends KDScrollView
         KD.track "Login", "RecoverButtonClicked"
 
     @resendForm= new ResendEmailConfirmationLinkInlineForm
-      cssClass : "resend-form"
+      cssClass : "login-form"
       callback : (formData)=>
         @resendEmailConfirmationToken formData
         KD.track "Login", "ResendEmailConfirmationTokenButtonClicked"
@@ -170,7 +170,7 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
-      <div class="login-form-holder rectf">
+      <div class="login-form-holder resend-confirmation-form">
         {{> @resendForm}}
       </div>
     </div>
@@ -178,7 +178,7 @@ class LoginView extends KDScrollView
       <p class='regLink'>Not a member? {{> @goToRegisterLink}}</p>
       <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
-      <p class='rectfLink'>Confirm Your Email? {{> @goToResendMailConfirmationLink}}</p>
+      <p class='resend-confirmation-link'>Didn't receive confirmation email? {{> @goToResendMailConfirmationLink}}</p>
     </div>
     """
 
@@ -431,7 +431,7 @@ class LoginView extends KDScrollView
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "register recover login reset home"
+      @unsetClass "register recover login reset home resendEmail"
       @emit "LoginViewAnimated", name
       @setClass name
 
@@ -444,7 +444,7 @@ class LoginView extends KDScrollView
           @loginForm.username.input.setFocus()
         when "recover"
           @recoverForm.usernameOrEmail.input.setFocus()
-        when "resendEmailToken"
+        when "resendEmail"
           @resendForm.usernameOrEmail.input.setFocus()
 
   getRouteWithEntryPoint:(route)->

@@ -253,7 +253,7 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'      : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
       '/:name?/ResendToken'  : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'resendEmailToken'
+        requireLogout -> mainController.loginScreen.animateToForm 'resendEmail'
 
       # apps
       '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
