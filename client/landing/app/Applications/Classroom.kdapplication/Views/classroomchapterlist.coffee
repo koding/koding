@@ -8,7 +8,7 @@ class ClassroomChapterList extends KDScrollView
 
     courseName = @getData().name
     appStorage = KD.getSingleton("appStorageController").storage "Classroom"
-    completed  = appStorage.getValue("CompletedChapters")?[courseName] or []
+    completed  = appStorage.getValue("Completed")?[courseName] or []
 
     for chapter, index in @getData().chapters
       chapter.index      = index
@@ -17,5 +17,5 @@ class ClassroomChapterList extends KDScrollView
 
       @addSubView new ClassroomChapterThumbView
         delegate   : this
-        courseRoot : "#{ClassroomAppView::cdnRoot}/#{@getData().name}.kdcourse"
+        courseRoot : @getData().resourcesRoot
       , chapter
