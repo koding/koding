@@ -182,6 +182,8 @@ class DomainCreationForm extends KDTabViewWithForms
             , (err, domain)=>
               if err
                 warn err
+                console.log "==== BUG ===="
+                console.log err
                 notifyUser "An error occured. Please try again later."
               else
                 @showSuccess domain
