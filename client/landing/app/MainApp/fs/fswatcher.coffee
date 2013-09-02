@@ -72,3 +72,56 @@ class FSWatcher extends KDObject
     FSWatcher.stopWatching @getFullPath()
 
   getFullPath:-> "[#{@vmName}]#{@path}"
+
+
+class AppsWatcher extends FSWatcher
+
+  # Emits following signals:
+  #
+  #  - ANewAppAdded
+  #  - AFileRemoved
+  #  - AnAppRemoved
+  #  - AFileChanged
+  #  - AManifestChanged
+  #
+  # All includes (app, change) as parameter
+
+  constructor:(options={})->
+    options.path = "~/Applications"
+    super options
+    @_trackedApps = []
+
+  onFolderAdded:(change)->
+    if @isKdApp change
+      app = @getAppName change
+      return  if app in @_trackedApps
+      @_trackedApps.push app
+      log "A new app added:", app
+      @emit "ANewAppAdded", app, change
+
+  onFileRemoved:(change)->
+    app = @getAppName change
+    if (@isKdApp change) or (@isManifest change)
+      @_trackedApps = (_app for _app in @_trackedApps when _app isnt app)
+      log "An app removed:", app
+      @emit "AnAppRemoved", app, change
+    else if @isInKdApp change
+      log "A file '#{change.file.name}' removed from #{app} app."
+      @emit "AFileRemoved", app, change
+
+  onFileAdded:(change)->
+    app = @getAppName change
+    if @isInKdApp change
+      if @isManifest change
+        log "A manifest changed/added:", @getAppName change
+        @emit "AManifestChanged", app, change
+      else
+        # log "A sourcefile changed/added:", @getAppName change
+        @emit "AFileChanged", app, change
+
+  # Helpers
+  isKdApp   :(change)-> /\.kdapp$/.test change.file.fullPath
+  isInKdApp :(change)-> /Applications\/.*\.kdapp/.test change.file.fullPath
+  isManifest:(change)-> /manifest\.json$/.test change.file.fullPath
+  getAppName:(change)->
+    (change.file.fullPath.match /Applications\/([^\/]+)\.kdapp/)[1]
