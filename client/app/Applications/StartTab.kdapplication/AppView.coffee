@@ -206,7 +206,6 @@ class StartTabMainView extends JView
 
   createAppIcon:(app, appData, bulk=no)->
 
-    log "ADDING:", appData
     @appIcons[app]?.destroy()
     @appItemContainer.addSubView @appIcons[app] = new StartTabAppThumbView
       delegate : @
