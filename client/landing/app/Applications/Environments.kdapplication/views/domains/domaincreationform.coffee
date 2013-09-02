@@ -175,7 +175,7 @@ class DomainCreationForm extends KDTabViewWithForms
         paymentController = KD.getSingleton('paymentController')
         group             = KD.getSingleton("groupsController").getCurrentGroup()
 
-        registerTheDomain () = ->
+        registerTheDomain = ->
             KD.remote.api.JDomain.registerDomain
               domainName : domainInput.getValue()
               years      : regYears.getValue()
