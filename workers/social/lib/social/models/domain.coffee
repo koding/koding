@@ -186,11 +186,11 @@ module.exports = class JDomain extends jraphical.Module
       params =
         domainName         : data.domainName
         years              : data.years
-        customerId         : "9663202"
-        regContactId       : "28083911"
-        adminContactId     : "28083911"
-        techContactId      : "28083911"
-        billingContactId   : "28083911"
+        customerId         : "10073817"
+        regContactId       : "29527195"
+        adminContactId     : "29527195"
+        techContactId      : "29527195"
+        billingContactId   : "29527195"
         invoiceOption      : "NoInvoice"
         protectPrivacy     : no
 
@@ -211,7 +211,8 @@ module.exports = class JDomain extends jraphical.Module
               orderId        :
                 resellerClub : data.entityid
               loadBalancer   :
-                  mode       : "roundrobin"
+                  # mode       : "roundrobin"
+                  mode       : ""
               , (err, model) =>
                 callback err, model
           else
