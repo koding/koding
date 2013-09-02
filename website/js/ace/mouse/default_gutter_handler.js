@@ -38,11 +38,11 @@ function GutterHandler(mouseHandler) {
     var gutter = editor.renderer.$gutterLayer;
 
     mouseHandler.editor.setDefaultHandler("guttermousedown", function(e) {
-        if (!editor.isFocused())
+        if (!editor.isFocused() || e.getButton() != 0)
             return;
         var gutterRegion = gutter.getRegion(e);
 
-        if (gutterRegion)
+        if (gutterRegion == "foldWidgets")
             return;
 
         var row = e.getDocumentPosition().row;
@@ -66,7 +66,6 @@ function GutterHandler(mouseHandler) {
     function createTooltip() {
         tooltip = dom.createElement("div");
         tooltip.className = "ace_gutter-tooltip";
-        tooltip.style.maxWidth = "500px";
         tooltip.style.display = "none";
         editor.container.appendChild(tooltip);
     }
@@ -111,10 +110,10 @@ function GutterHandler(mouseHandler) {
 
     function moveTooltip(e) {
         var rect = editor.renderer.$gutter.getBoundingClientRect();
-        tooltip.style.left = e.x - rect.left + 15 + "px";
+        tooltip.style.left = e.x + 15 + "px";
         if (e.y + 3 * editor.renderer.lineHeight + 15 < rect.bottom) {
             tooltip.style.bottom =  "";
-            tooltip.style.top =  e.y - rect.top + 15 + "px";
+            tooltip.style.top =  e.y + 15 + "px";
         } else {
             tooltip.style.top =  "";
             tooltip.style.bottom = rect.bottom - e.y + 5 + "px";
@@ -151,7 +150,8 @@ function GutterHandler(mouseHandler) {
             hideTooltip();
         }, 50);
     });
-
+    
+    editor.on("changeSession", hideTooltip);
 }
 
 exports.GutterHandler = GutterHandler;
