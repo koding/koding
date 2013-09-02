@@ -622,8 +622,8 @@ func (info *VMInfo) startTimeout() {
 }
 
 func (info *VMInfo) unprepareVM() {
-	infosMutex.Lock()
-	defer infosMutex.Unlock()
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
 
 	if err := virt.UnprepareVM(info.vm.Id); err != nil {
 		log.Warn(err.Error())
@@ -633,5 +633,7 @@ func (info *VMInfo) unprepareVM() {
 		log.LogError(err, 0)
 	}
 
+	infosMutex.Lock()
 	delete(infos, info.vm.Id)
+	infosMutex.Unlock()
 }
