@@ -45,6 +45,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
 
 	var latestVersion bool
+	var sortFields []string // not initialized means do not sort
 	query := bson.M{}
 	for key, value := range queries {
 		switch key {
@@ -60,6 +61,12 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 				if value[0] == state {
 					query["status"] = status
 				}
+			}
+		case "sort":
+			sortFields = []string{value[0]}
+			// override "state" with status, they are not the same in db
+			if value[0] == "state" {
+				sortFields = []string{"status"}
 			}
 		default:
 			if key == "name" {
@@ -77,7 +84,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	matchedWorkers := queryResult(query, latestVersion)
+	matchedWorkers := queryResult(query, latestVersion, sortFields)
 	data, err := json.MarshalIndent(matchedWorkers, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
@@ -93,7 +100,7 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 	fmt.Printf("GET /workers/%s\n", uuid)
 
 	query := bson.M{"uuid": uuid}
-	matchedWorkers := queryResult(query, false)
+	matchedWorkers := queryResult(query, false, nil)
 	data, err := json.MarshalIndent(matchedWorkers, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
@@ -122,12 +129,13 @@ func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	io.WriteString(writer, resp)
 }
 
-func queryResult(query bson.M, latestVersion bool) Workers {
+func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers {
 	workers := make(Workers, 0)
 	worker := workerconfig.Worker{}
 
 	queryFunc := func(c *mgo.Collection) error {
-		iter := c.Find(query).Iter()
+		// sorting is no-op when sortFields is empty
+		iter := c.Find(query).Sort(sortFields...).Iter()
 		for iter.Next(&worker) {
 			apiWorker := &ApiWorker{
 				worker.Name,

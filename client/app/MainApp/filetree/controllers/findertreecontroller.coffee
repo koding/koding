@@ -130,6 +130,7 @@ class NFinderTreeController extends JTreeViewController
 
     failCallback = (err)=>
       unless silence
+        KD.logToExternal "Couldn't fetch files"
         @notify "Couldn't fetch files! Click to retry", 'clickable', \
                 """Sorry, a problem occured while communicating with servers,
                    please try again later.""", yes
