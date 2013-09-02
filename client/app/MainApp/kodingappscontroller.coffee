@@ -819,6 +819,7 @@ class KodingAppsController extends KDController
       openWith      : "lastActive"
       behavior      : "application"
       version       : "0.1"
+      title         : "#{name or type.capitalize()}"
       name          : "#{name or type.capitalize()}"
       identifier    : "com.koding.apps.#{__utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"

@@ -13,7 +13,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     @appsController = KD.getSingleton("kodingAppsController")
 
-    {icns, name, identifier, version, author, description,
+    {icns, name, identifier, version, author, description, title,
      authorNick, additionalinfo} = manifest = @getData()
 
     additionalinfo or= ''
@@ -56,7 +56,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
           left : -5
         title  : """
           <div class='app-tip'>
-            <header><strong>#{Encoder.XSSEncode name} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
+            <header><strong>#{Encoder.XSSEncode title} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
             <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
             #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
           <div>
@@ -74,8 +74,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @delete.getTooltip().hide()
         @deleteModal = new KDModalView
-          title          : "Delete #{Encoder.XSSEncode name}"
-          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode name}</strong> application?</div>"
+          title          : "Delete #{Encoder.XSSEncode title}"
+          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode title}</strong> application?</div>"
           height         : "auto"
           overlay        : yes
           buttons        :
@@ -233,7 +233,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       </div>
       {{> @loader}}
       <p>{{> @img}}</p>
-      <cite>{{ #(name)}} {{ #(version)}}</cite>
+      <cite>{{ #(title) or #(name) }} {{ #(version)}}</cite>
     """
 
 class GetMoreAppsButton extends StartTabAppThumbView
