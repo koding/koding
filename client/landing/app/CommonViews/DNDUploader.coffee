@@ -42,14 +42,14 @@ class DNDUploader extends KDView
     super
     {files}  = event.originalEvent.dataTransfer
     if files.length
-      lastFile = files[files.length-1]
+      lastFile = files.last
       for file, index in files
-        sizeInMb = file.size/1000/1000
+        sizeInMb = file.size/1024/1024
         if sizeInMb > 5 && @getOptions().uploadToVM
           new KDNotificationView
             type    : "tray"
             title   : "File is too big to upload!"
-            content : "#{file.name} is too big to upload, please upload files smaller than 5mb."
+            content : "#{file.name} is too big to upload, please upload files smaller than 5MB."
             duration: 3000
           continue
         reader = new FileReader
@@ -61,18 +61,17 @@ class DNDUploader extends KDView
             origin  : "external"
             filename: file.name
             instance: fsFile
-            content : readEvent.target.result
+            content : readEvent.target.multipleItems
           , event, readEvent
 
-          if file is lastFile
-            @reset()
+          @reset() if file is lastFile
 
         reader.readAsBinaryString file
     else
       internalData = event.originalEvent.dataTransfer.getData "Text"
       if internalData
         multipleItems = internalData.split ","
-        lastItem = multipleItems[multipleItems.length-1]
+        lastItem = multipleItems.last
         for item in multipleItems
           {basename} = KD.getPathInfo item
           fsFile = FSHelper.createFileFromPath item
@@ -83,8 +82,7 @@ class DNDUploader extends KDView
             content : null
           , event, no
 
-          if item is lastItem
-            @reset()
+          @reset() if item is lastItem
 
   setPath: (@path=@options.defaultPath)->
     {uploadToVM, title} = @getOptions()
