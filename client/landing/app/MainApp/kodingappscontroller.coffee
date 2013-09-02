@@ -69,19 +69,25 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
 
+    kb = (manifests)=>
+      callback null, manifests
+      @watcher._trackedApps = Object.keys manifests
+
     @appStorage.ready =>
       manifests = @getManifests()
-      if Object.keys(manifests).length > 0
-        callback null, manifests
+      apps      = Object.keys manifests
+      if apps.length > 0 then kb manifests
       else
         @fetchAppsFromDb (err, apps)=>
           if err and not @_loadedOnce
             @fetchAppsFromFs (err, apps)=>
               @_loadedOnce = yes
-              if err then callback? err
-              else callback? null, apps
+              return callback? err  if err
+              kb apps
+          else if err
+            callback? err
           else
-            callback? err, apps
+            kb apps
 
   fetchAppFromFs:(appName, cb)->
 
@@ -223,6 +229,7 @@ class KodingAppsController extends KDController
   putAppsToAppStorage:(apps, callback = noop)->
     warn "calling putAppsToAppStorage:", apps
     apps or= @getManifests()
+    @constructor.manifests = apps
     @appStorage.setValue 'apps', apps, -> callback()
 
   invalidateDeletedApps:(deletedApps, force=no, callback)->
