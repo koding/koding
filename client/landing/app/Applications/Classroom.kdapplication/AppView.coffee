@@ -6,7 +6,7 @@ class ClassroomAppView extends KDScrollView
 
     super options, data
 
-    @appStorage  = KD.getSingleton("appStorageController").storage "Classroom", "1.101"
+    @appStorage  = KD.getSingleton("appStorageController").storage "Classroom", "1.2"
 
     @emit "ready"
 
@@ -201,7 +201,7 @@ class ClassroomAppView extends KDScrollView
   readFileContent: (path, callback = noop) ->
     url = if path.indexOf("http") is 0 then path else "#{path}"
 
-    KD.getSingleton("vmController").run "curl -s #{url}", (err, content) =>
+    KD.getSingleton("vmController").run "curl -kLs #{url}", (err, content) =>
       extension = FSItem.getFileExtension url
       switch extension
         when "json"    then callback JSON.parse content
