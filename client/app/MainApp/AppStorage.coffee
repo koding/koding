@@ -48,7 +48,7 @@ class AppStorage extends KDObject
     @fetchStorage (storage)=>
       storage.update {
         $set: pack
-      }, callback
+      }, -> callback?()
 
   unsetKey: (key, callback, group = 'bucket')->
 
