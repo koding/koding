@@ -190,16 +190,39 @@ class DomainCreationForm extends KDTabViewWithForms
                 domain.setDomainCNameToProxyDomain()
               registerButton.hideLoader()
 
+        showPriceModal = (successCallback) ->
+          KD.remote.api.JDomain.getTldPrice domainName.match(/[\w\-]+\.(.*)/)[1], (tldPrice)-> 
+            registerButton.hideLoader()
+            modal           = new KDModalView
+              title         : "Confirm Domain Price for #{domainName}"
+              content       : """
+                  <div class='modalformline'>
+                    <p><label>Domain Name:  </label> <i>#{domainName}</i></p>
+                    <p><label>Price:        </label> <i>#{tldPrice} $</i></p>
+                  </div>"""
+              cssClass      : "vm-new"
+              overlay       : yes
+              buttons       :
+                No          :
+                  title     : "Cancel"
+                  cssClass  : "modal-clean-gray"
+                  callback  : =>
+                    modal.destroy()
+                Yes         :
+                  title     : "Buy"
+                  cssClass  : "modal-clean-green"
+                  callback  : =>
+                    modal.destroy()
+                    successCallback()
+
         paymentController.getBillingInfo 'user', group, (err, account)->
           need = err or not account or not account.cardNumber
           if need
             paymentController.setBillingInfo 'user', group, (success)->
               if success
-                registerTheDomain()
-              else
-                registerButton.hideLoader()
+                showPriceModal registerTheDomain
           else
-            registerTheDomain()
+            showPriceModal registerTheDomain
 
 
 
