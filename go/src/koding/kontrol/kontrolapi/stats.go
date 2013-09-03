@@ -9,7 +9,6 @@ import (
 )
 
 func GetDomainStats(writer http.ResponseWriter, req *http.Request) {
-	fmt.Printf("GET\t/stats/domains\n")
 	res := proxyDB.GetDomainStats()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
@@ -22,7 +21,6 @@ func GetDomainStats(writer http.ResponseWriter, req *http.Request) {
 func GetDomainStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("GET\t/stats/domains/%s\n", domain)
 	res, err := proxyDB.GetDomainStat(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -43,7 +41,6 @@ func GetDomainStat(writer http.ResponseWriter, req *http.Request) {
 }
 
 func GetProxyStats(writer http.ResponseWriter, req *http.Request) {
-	fmt.Printf("GET\t/stats/proxies\n")
 	res := proxyDB.GetProxyStats()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
@@ -56,7 +53,6 @@ func GetProxyStats(writer http.ResponseWriter, req *http.Request) {
 func GetProxyStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	proxy := vars["proxy"]
-	fmt.Printf("GET\t/stats/proxies/%s\n", proxy)
 	res, err := proxyDB.GetProxyStat(proxy)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -79,7 +75,6 @@ func GetProxyStat(writer http.ResponseWriter, req *http.Request) {
 func DeleteDomainStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("DELETE\t/stats/domains/%s\n", domain)
 	err := proxyDB.DeleteDomainStat(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -94,7 +89,6 @@ func DeleteDomainStat(writer http.ResponseWriter, req *http.Request) {
 func DeleteProxyStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	proxy := vars["proxy"]
-	fmt.Printf("DELETE\t/stats/proxies/%s\n", proxy)
 	err := proxyDB.DeleteProxyStat(proxy)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)

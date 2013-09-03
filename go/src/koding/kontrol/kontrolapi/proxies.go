@@ -10,7 +10,6 @@ import (
 )
 
 func GetProxies(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/proxies")
 	proxies := proxyDB.GetProxies()
 	data, err := json.MarshalIndent(proxies, "", "  ")
 	if err != nil {
@@ -24,7 +23,6 @@ func GetProxies(writer http.ResponseWriter, req *http.Request) {
 func GetProxy(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	proxyname := vars["proxyname"]
-	fmt.Printf("GET\t/proxies/%s\n", proxyname)
 	res, err := proxyDB.GetProxy(proxyname)
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
@@ -42,7 +40,6 @@ func GetProxy(writer http.ResponseWriter, req *http.Request) {
 func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	proxyname := vars["proxyname"]
-	fmt.Printf("POST\t/proxies/%s\n", proxyname)
 
 	if proxyname == "" {
 		err := errors.New("aborting. 'proxyname' field is empty")
@@ -64,7 +61,6 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	proxyname := vars["proxyname"]
-	fmt.Printf("DELETE\t/proxies/%s\n", proxyname)
 
 	err := proxyDB.DeleteProxy(proxyname)
 	if err != nil {
