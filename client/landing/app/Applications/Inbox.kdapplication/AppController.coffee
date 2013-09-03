@@ -55,6 +55,7 @@ class InboxAppController extends AppController
                 label         : "Subject:"
                 placeholder   : 'Enter a subject'
                 name          : "subject"
+                testPath      : "inbox-new-message-subject"
                 validate      :
                   rules       :
                     required  : yes
@@ -64,6 +65,7 @@ class InboxAppController extends AppController
                 label         : "Message:"
                 type          : "textarea"
                 name          : "body"
+                testPath      : "inbox-new-message-body"
                 placeholder   : 'Enter your message'
                 validate      :
                   rules       :
@@ -75,6 +77,7 @@ class InboxAppController extends AppController
                 title         : "Send"
                 style         : "modal-clean-gray"
                 type          : "submit"
+                testPath      : "inbox-new-message-submit"
               Cancel          :
                 title         : "cancel"
                 style         : "modal-cancel"
@@ -94,6 +97,7 @@ class InboxAppController extends AppController
       outputWrapper       : recipientsWrapper
       form                : modal.modalTabs.forms.sendForm
       itemDataPath        : "profile.nickname"
+      testPath            : "inbox-new-message-to"
       listWrapperCssClass : "users"
       submitValuesAsText  : yes
       dataSource          : (args, callback)=>
