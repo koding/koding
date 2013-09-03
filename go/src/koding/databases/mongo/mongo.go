@@ -24,16 +24,14 @@ func GetConnection() *mgo.Session {
 		MONGO_CONNECTION.SetSafe(&mgo.Safe{})
 		fmt.Println("connection established")
 	}
-	return MONGO_CONNECTION
+
+	return MONGO_CONNECTION.Copy()
 }
 
 func GetCollection(collectionName string) *mgo.Collection {
-	if DATABASE == nil {
-		session := GetConnection()
-		DATABASE = session.DB("")
-		fmt.Println("database selected")
-	}
-	// defer session.Close()
+	session := GetConnection()
+	DATABASE = session.DB("")
+
 	if collectionName == "" {
 		collectionName = MONGO_DEFAULT_COLLECTION_NAME
 	}
