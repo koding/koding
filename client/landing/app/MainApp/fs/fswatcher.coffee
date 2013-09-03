@@ -96,10 +96,10 @@ class AppsWatcher extends FSWatcher
     if (@isKdApp change) or (@isManifest change)
       @_trackedApps = (_app for _app in @_trackedApps when _app isnt app)
       log "An app removed:", app
-      @emit "AnAppRemoved", app, change
+      @throttle => @emit "AnAppRemoved", app, change
     else if @isInKdApp change
       log "A file '#{change.file.name}' removed from #{app} app."
-      @emit "AFileRemoved", app, change
+      @throttle => @emit "AFileRemoved", app, change
 
   onFileAdded:(change)->
     app = @getAppName change
@@ -107,13 +107,13 @@ class AppsWatcher extends FSWatcher
       if @isManifest change
         log "A manifest changed/added:", app
         if app in @_trackedApps
-          @emit "AManifestChanged", app, change
+          @throttle => @emit "AManifestChanged", app, change
         else
           @_trackedApps.push app
           log "A new app added:", app
-          @emit "ANewAppAdded", app, change
+          @throttle => @emit "ANewAppAdded", app, change
       else
-        @emit "AFileChanged", app, change
+        @throttle => @emit "AFileChanged", app, change
 
   # Helpers
   isKdApp   :(change)-> /\.kdapp$/.test change.file.fullPath
@@ -121,3 +121,4 @@ class AppsWatcher extends FSWatcher
   isManifest:(change)-> /manifest\.json$/.test change.file.fullPath
   getAppName:(change)->
     (change.file.fullPath.match /Applications\/([^\/]+)\.kdapp/)[1]
+  throttle  :(cb)-> do @utils.throttle cb, 300

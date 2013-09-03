@@ -169,6 +169,7 @@ class StartTabMainView extends JView
     appIcon = @appIcons[appName]
     return warn "App icon not found for #{appName}"  unless appIcon
     appIcon.destroy()
+    delete @appIcons[appName]
 
   removeAppIcons:->
 
