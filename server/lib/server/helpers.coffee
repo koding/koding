@@ -98,7 +98,7 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
       callback(err, account)
 
 renderLoginTemplate = (resp, res)->
-  saveOauthToSession resp, ->
+  saveOauthToSession resp, -> # FIXME: this seems like spaghetti code to me — C.T.
     {loginTemplate} = require './staticpages'
     serve loginTemplate, res
 
@@ -119,18 +119,20 @@ isLoggedIn = (req, res, callback)->
 
 saveOauthToSession = (resp, callback)->
   {JSession} = koding.models
-  {provider, access_token, id, login, email, firstName, lastName, clientId} = resp
-  JSession.one {clientId}, (err, session)->
-    foreignAuth           = {}
-    foreignAuth[provider] =
-      token     : access_token
-      foreignId : String(id)
-      username  : login
-      email     : email
-      firstName : firstName
-      lastName  : lastName
+  { provider, access_token, id, login
+    email, firstName, lastName, clientId } = resp
 
-    JSession.update {clientId}, $set: {foreignAuth}, callback
+  foreignAuth = {}
+  foreignAuth[provider] = {
+    token     : access_token
+    foreignId : String(id)
+    username  : login
+    email
+    firstName
+    lastName
+  }
+
+  JSession.update { clientId }, $set:{ foreignAuth }, callback
 
 getAlias = do->
   caseSensitiveAliases = ['auth']

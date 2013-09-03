@@ -536,7 +536,7 @@ task 'test-all', 'Runs functional test suite', (options)->
     console.error "please install pip with \n brew install python --framework"
     return
 
-  cmd = "sudo #{pip} install --src=/tmp/.koding-qa -e 'git+ssh://git@git.in.koding.com/qa.git@master#egg=testengine'"
+  cmd = "sudo #{pip} install --src=/tmp/.koding-qa -e 'git+ssh://git@git.sj.koding.com/qa.git@master#egg=testengine'"
   exec cmd, (err, stdout, stderr)->
     if err
       log.error """ 

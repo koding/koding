@@ -261,7 +261,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func keyLookup(key string) (map[string]bool, map[string]bool) {
-	workersApi := apiUrl + "/workers?version=" + key
+	workersApi := apiUrl + "/workers/?version=" + key
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		fmt.Println(err)
@@ -324,7 +324,7 @@ func jenkinsInfo() *JenkinsInfo {
 
 func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 	s := StatusInfo{}
-	workersApi := apiUrl + "/workers?version=" + build
+	workersApi := apiUrl + "/workers/?sort=state&version=" + build
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		return nil, s, err
@@ -353,6 +353,8 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 			workers[i].Info = "warning"
 		case "waiting":
 			workers[i].Info = "info"
+		case "dead":
+			workers[i].Info = "error"
 		}
 
 		d, err := time.ParseDuration(strconv.Itoa(workers[i].Uptime) + "s")
@@ -370,7 +372,7 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 }
 
 func buildsInfo() []int {
-	serverApi := apiUrl + "/deployments"
+	serverApi := apiUrl + "/deployments/"
 	fmt.Println(serverApi)
 	resp, err := http.Get(serverApi)
 	if err != nil {

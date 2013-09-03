@@ -137,7 +137,7 @@ module.exports =
       apiUri    : 'https://www.koding.com'
       # Is this correct?
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
-      sourceUri : "http://webserver-staging-#{version}a.in.koding.com:1337"
+      sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
   mq            :

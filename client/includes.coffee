@@ -263,6 +263,8 @@ module.exports = [
   "app/MainApp/navigation/navigationinvitationlink.coffee",
   "app/MainApp/navigation/navigationactivitylink.coffee",
   "app/MainApp/navigation/navigationappslink.coffee",
+  "app/MainApp/navigation/navigationdocsjobslink.coffee",
+  "app/MainApp/navigation/navigationpromotelink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",
