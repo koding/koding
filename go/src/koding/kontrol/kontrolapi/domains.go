@@ -13,7 +13,6 @@ import (
 )
 
 func GetDomains(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/domains")
 	domains := proxyDB.GetDomains()
 	data, err := json.MarshalIndent(domains, "", "  ")
 	if err != nil {
@@ -27,7 +26,6 @@ func GetDomains(writer http.ResponseWriter, req *http.Request) {
 func GetDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domainname := vars["domain"]
-	fmt.Printf("GET\t/domains/%s\n", domainname)
 
 	domain, err := proxyDB.GetDomain(domainname)
 	if err != nil {
@@ -52,7 +50,6 @@ func GetDomain(writer http.ResponseWriter, req *http.Request) {
 func ResolveDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domainname := vars["domain"]
-	fmt.Printf("GET\t/domains/%s/resolv\n", domainname)
 
 	target, err := resolver.GetTarget(domainname)
 	if err != nil {
@@ -72,7 +69,6 @@ func ResolveDomain(writer http.ResponseWriter, req *http.Request) {
 func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domainname := vars["domain"]
-	fmt.Printf("POST\t/domains/%s\n", domainname)
 
 	p, err := unmarshalAndValidate(req)
 	if err != nil {
@@ -124,7 +120,6 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 func DeleteDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("DELETE\t/domains/%s\n", domain)
 	err := proxyDB.DeleteDomain(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
