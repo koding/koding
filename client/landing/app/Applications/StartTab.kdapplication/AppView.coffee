@@ -27,24 +27,11 @@ class StartTabMainView extends JView
 
     @loader = new KDLoaderView size : width : 16
 
-    @refreshButton = new KDButtonView
-      cssClass    : "editor-button refresh-apps-button"
-      title       : "Refresh Apps"
-      icon        : yes
-      iconClass   : "refresh"
-      loader      :
-        diameter  : 16
-      callback    : =>
-        @appsController.syncAppStorageWithFS yes, =>
-          @refreshButton.hideLoader()
+    @on 'refreshAppsMenuItemClicked', =>
+      @appsController.syncAppStorageWithFS yes
 
-    @addAnAppButton = new KDButtonView
-      cssClass    : "editor-button new-app-button"
-      icon        : yes
-      iconClass   : "plus-black"
-      title       : "Make a new App"
-      callback    : =>
-        @appsController.makeNewApp()
+    @on 'makeANewAppMenuItemClicked', =>
+      @appsController.makeNewApp()
 
     @appItemContainer = new StartTabAppItemContainer
       cssClass : 'app-item-container'
@@ -125,11 +112,6 @@ class StartTabMainView extends JView
   pistachio:->
     """
     <div class='app-list-wrapper'>
-      <div class='app-button-holder'>
-        {{> @downloadFilesLink}}
-        {{> @addAnAppButton}}
-        {{> @refreshButton}}
-      </div>
       <header>
         <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
         <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
@@ -164,7 +146,6 @@ class StartTabMainView extends JView
 
     @removeAppIcons()
     @showLoader()
-    @refreshButton.hide()
 
     @appsController.appStorage.fetchValue 'shortcuts', (shortcuts)=>
 
@@ -178,7 +159,6 @@ class StartTabMainView extends JView
       @createGetMoreAppsButton()
 
       @hideLoader()
-      @refreshButton.show()
 
   createGetMoreAppsButton:->
     @appIcons['GET_MORE_APPS']?.destroy()
