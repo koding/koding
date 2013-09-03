@@ -333,7 +333,7 @@ class KDInputView extends KDView
       @$()[0].style.height = "none" # hack to set to initial
 
     @on "keydown", =>
-      $growCalculator.text @getValue()
+      $growCalculator.html @getValue().replace /\n/gm, "<br />"
       height = $growCalculator.height()
       if @$().css('box-sizing') is "border-box"
         padding    = parseInt($growCalculator.css("padding-top"), 10) + parseInt($growCalculator.css("padding-bottom"), 10)
