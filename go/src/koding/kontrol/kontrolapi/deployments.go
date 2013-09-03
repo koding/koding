@@ -20,7 +20,6 @@ type DeployPostMessage struct {
 }
 
 func GetClients(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET /deployments")
 	clients := clientDB.GetClients()
 
 	data, err := json.MarshalIndent(clients, "", "  ")
@@ -35,7 +34,6 @@ func GetClients(writer http.ResponseWriter, req *http.Request) {
 func GetClient(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	build := vars["build"]
-	fmt.Printf("GET /deployments/%s\n", build)
 
 	client := clientconfig.ServerInfo{}
 	clients := make([]clientconfig.ServerInfo, 0)
@@ -90,7 +88,6 @@ func GetClient(writer http.ResponseWriter, req *http.Request) {
 }
 
 func CreateClient(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("POST /deployments")
 	var msg DeployPostMessage
 	var build string
 	var git string
@@ -148,7 +145,6 @@ func CreateClient(writer http.ResponseWriter, req *http.Request) {
 func DeleteClient(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	build := vars["build"]
-	fmt.Printf("DELETE\t/deployments/%s\n", build)
 
 	err := clientDB.DeleteClient(build)
 	if err != nil {
