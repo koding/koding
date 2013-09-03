@@ -217,7 +217,10 @@ module.exports = class JUser extends jraphical.Module
     constructor = @
     JSession.one {clientId}, (err, session)->
       return callback err  if err
-      if not session? or session.username isnt username
+      # temp fix:
+      # this broke login, reverted. - SY
+      # if not session? or session.username isnt username
+      unless session
         return callback createKodingError 'Could not restore your session!'
 
       bruteForceControlData =
