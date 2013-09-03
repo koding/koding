@@ -216,8 +216,10 @@ module.exports = class JUser extends jraphical.Module
     {username, password, clientId} = credentials
     constructor = @
     JSession.one {clientId}, (err, session)->
-      if err then return callback err
-      unless session then return callback createKodingError 'Could not restore your session!'
+      return callback err  if err
+      if not session? or session.username isnt username
+        return callback createKodingError 'Could not restore your session!'
+
       bruteForceControlData =
         ip : session.clientIP
         username : username
@@ -226,19 +228,16 @@ module.exports = class JUser extends jraphical.Module
         unless res then return callback createKodingError "Your login access is blocked for #{JLog.timeLimit()} minutes."
         JUser.one {username}, (err, user)->
           if err
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError err.message
           else unless user?
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError "Unknown user name"
           else unless user.getAt('password') is hashPassword password, user.getAt('salt')
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError 'Access denied!'
           else
-            JLog.log { type: "login", username: username, success: yes }, ()->
+            JLog.log { type: "login", username: username, success: yes }, ->
               afterLogin connection, user, clientId, session, callback
 
   afterLogin = (connection, user, clientId, session, callback)->
