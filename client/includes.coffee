@@ -35,6 +35,7 @@ module.exports = [
 
   # image
   "Framework/components/image/KDImage.coffee",
+  "Framework/components/image/KDPhotoCapture.coffee",
 
   # split
   "Framework/components/split/splitview.coffee",

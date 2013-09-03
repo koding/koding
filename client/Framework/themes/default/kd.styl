@@ -563,3 +563,32 @@ span.close-btn-x
 .kdcontenteditableview
   display     inline-block
   min-width   1px
+
+.kdphotocapture
+  width             auto
+  height            auto
+  display           inline-block
+  background-color  #000
+
+  video
+    abs             0px 0 0 0px
+    width           100%
+    vendor          transition-duration, 2s
+    &.invisible
+      opacity       0
+
+  .snap-photo-button
+  .snap-photo-retake
+    abs             0 0px 0px 0
+    z-index         1
+    height          35px
+    background-color #444
+    color           #ff9200
+    rounded         5px
+    margin          10px
+    kalc            width, 100% \- 20px, 90%
+    opacity         0.8
+    font-weight     bold
+    border          2px solid #333
+    &:hover
+      opacity       0.9
