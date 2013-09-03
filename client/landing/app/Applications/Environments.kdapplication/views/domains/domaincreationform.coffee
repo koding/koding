@@ -1,22 +1,20 @@
 class DomainCreationForm extends KDTabViewWithForms
-
-  domainNameValidation =
-    rules      :
-      required : yes
-      regExp   : /^([\da-z\.-]+)\.([a-z\.]{2,6})$/i
-    messages   :
-      required : "Enter your domain name"
-      regExp   : "This doesn't look like a valid domain name."
-
-  constructor:->
-
-    {nickname, firstName, lastName} = KD.whoami().profile
-
-    domainOptions     = [
+#  domainNameValidation =
+#    rules      :
+#      required : yes
+#      regExp   : /^([\da-z\.-]+)\.([a-z\.]{2,6})$/i
+#    messages   :
+#      required : "Enter your domain name"
+#      regExp   : "This doesn't look like a valid domain name."
+  domainOptions = [
       { title : "Create a subdomain", value : "subdomain" }
       { title : "I want to register a domain", value : "new" }
       { title : "I already have a domain", value : "existing" }
     ]
+
+  constructor:->
+
+    {nickname, firstName, lastName} = KD.whoami().profile
 
     super
       navigable                       : no
@@ -26,7 +24,7 @@ class DomainCreationForm extends KDTabViewWithForms
         "Domain Address"              :
           callback                    : @bound "registerDomain"
           buttons                     :
-            registerButton             :
+            registerButton            :
               title                   : "Register Domain"
               style                   : "cupid-green hidden"
               type                    : "submit"
@@ -111,7 +109,6 @@ class DomainCreationForm extends KDTabViewWithForms
                       required        : "Please select a parent domain."
             suggestionBox             :
               type                    : "hidden"
-
     form = @forms["Domain Address"]
     {createButton} = form.buttons
 
@@ -144,11 +141,11 @@ class DomainCreationForm extends KDTabViewWithForms
     @clearSuggestions()
 
     {DomainOption, domainName, regYears, domains} = form.inputs
-    splittedDomain    = domainName.getValue().split "."
-    domain            = splittedDomain.first
-    tld               = splittedDomain.slice(1).join('')
     domainInput       = domainName
-    domainName        = domainInput.getValue()
+    domainName        = form.inputs.domainName.getValue()
+    splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
+    domain            = splittedDomain[1]
+    tld               = splittedDomain[2]
 
     domainOptionValue = DomainOption.getValue()
 
@@ -191,7 +188,7 @@ class DomainCreationForm extends KDTabViewWithForms
               registerButton.hideLoader()
 
         showPriceModal = (successCallback) ->
-          KD.remote.api.JDomain.getTldPrice domainName.match(/[\w\-]+\.(.*)/)[1], (tldPrice)-> 
+          KD.remote.api.JDomain.getTldPrice tld, (tldPrice)-> 
             registerButton.hideLoader()
             modal           = new KDModalView
               title         : "Confirm Domain Price for #{domainName}"
@@ -223,8 +220,6 @@ class DomainCreationForm extends KDTabViewWithForms
                 showPriceModal registerTheDomain
           else
             showPriceModal registerTheDomain
-
-
 
     else if domainOptionValue is 'existing'
       @createDomain {domainName, regYears:0, domainType:'existing'}, (err, domain)=>
