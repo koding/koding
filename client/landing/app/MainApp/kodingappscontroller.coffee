@@ -216,21 +216,22 @@ class KodingAppsController extends KDController
   removeShortcut:(shortcut, callback)->
     @appStorage.fetchValue 'shortcuts', (shortcuts)=>
       delete shortcuts[shortcut]
-      @appStorage.setValue 'shortcuts', shortcuts, (err)=>
+      @appStorage.setValue 'shortcuts', shortcuts, (err)->
         callback err
 
-  putDefaultShortcutsBack:(callback)->
+  putDefaultShortcutsBack:(callback=noop)->
     if @appStorage.getValue 'shortcuts'
-      return  @utils.defer -> callback? null
+      return  @utils.defer -> callback null
 
     @appStorage.reset()
-    @appStorage.setValue 'shortcuts', defaultShortcuts, callback
+    @appStorage.setValue 'shortcuts', defaultShortcuts, (err)->
+      callback err
 
   putAppsToAppStorage:(apps, callback = noop)->
     warn "calling putAppsToAppStorage:", apps
     apps or= @getManifests()
     @constructor.manifests = apps
-    @appStorage.setValue 'apps', apps, -> callback()
+    @appStorage.setValue 'apps', apps, (err)-> callback err
 
   invalidateDeletedApps:(deletedApps, force=no, callback)->
     log "REQUESTED TO INVALIDATE:", deletedApps
