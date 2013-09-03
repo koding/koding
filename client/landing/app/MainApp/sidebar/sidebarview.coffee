@@ -39,11 +39,15 @@ class Sidebar extends JView
       items     : []
 
     navAdditions = [
-      { type  : 'separator',      order : 65 }
-      { title : 'Invite Friends', order : 66,  type : 'account',   role : 'member' }
-      { title : 'Logout',         order : 100, path : '/Logout',   type : 'account', loggedIn : yes }
-      { title : 'Login',          order : 101, path : '/Login',    type : 'account', loggedIn : no  }
-      { title : 'Register',       order : 102, path : '/Register', type : 'account', loggedIn : no  }
+      { type  : 'separator',            order : 65 }
+      # { title : 'Invite Friends', order : 66,  type : 'account',   role : 'member' }
+      { title : 'Get extra 250MB!',     order : 66,  type : 'account promote', promote: yes,   role : 'member' }
+      { title : 'Docs / Jobs',          order : 67,  type : 'account docs', docs : yes }
+      { type  : 'separator',            order : 99 }
+      { title : 'Logout',               order : 100, path : '/Logout',   type : 'account', loggedIn : yes }
+      { title : 'Login',                order : 101, path : '/Login',    type : 'account', loggedIn : no  }
+      { title : 'Register',             order : 102, path : '/Register', type : 'account', loggedIn : no  }
+
     ]
 
     KD.registerNavItem navItem for navItem in navAdditions
@@ -147,14 +151,6 @@ class Sidebar extends JView
     @environmentsRefreshButton.hide()  unless KD.checkFlag "super-admin"
 
     @listenWindowResize()
-
-  resetAdminNavController:->
-    @utils.wait 1000, =>
-      @adminNavController.removeAllItems()
-      # if KD.isLoggedIn()
-      KD.whoami().fetchRole? (err, role)=>
-        if role is "super-admin"
-          @adminNavController.instantiateListItems adminNavItems.items
 
   setListeners:->
 
@@ -301,17 +297,6 @@ class Sidebar extends JView
       {
         title   : "your servers",   icon : "resources",
         action  : "showEnvironments"
-      }
-    ]
-
-  adminNavItems =
-    id    : "admin-navigation"
-    title : "admin-navigation"
-    items : [
-      {
-        title    : "Admin Panel",
-        loggedIn : yes,
-        callback : -> new AdminModal
       }
     ]
 

@@ -330,9 +330,20 @@ body
         padding-top     3px
         margin-top      -1px
         font-size       11px
+    &.promote
+      .title
+        color           #ddd !important
+    &.docs
+      .ext
+        display         inline-block
+        color           #adadad
+        &:hover
+          color         #adadad
+          text-decoration underline
+
 
     &.separator
-      margin            10px 0 6px
+      margin            3px 0 0
       padding           0 11px
       cursor            default
       borderBox()
@@ -561,6 +572,10 @@ span.main-nav-icon
     bg                    position, 0 -540px
   &.open-group
     bg                    position, 0 -260px
+  &.promote
+    bg                    position, 0 -600px
+  &.docs-jobs
+    bg                    position, 0 -620px
 
 
 .kdlistitemview.selected

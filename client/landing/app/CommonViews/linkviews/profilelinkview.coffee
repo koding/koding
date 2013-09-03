@@ -14,7 +14,7 @@ class ProfileLinkView extends LinkView
 
     if @avatarPreview then options.tooltip or=
       view             : unless options.noTooltip then @avatarPreview else null
-      viewCssClass     : 'avatar-tooltip'
+      cssClass         : 'avatar-tooltip'
       animate          : yes
       placement        : 'top'#['top','bottom','right','left'][Math.floor(Math.random()*4)]
       direction        : 'left'#['left','right','center','top','bottom'][Math.floor(Math.random()*5)]
