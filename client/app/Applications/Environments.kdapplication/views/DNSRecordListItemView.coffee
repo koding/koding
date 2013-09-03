@@ -202,5 +202,4 @@ class RecordTtlView extends RecordElementView
 
 
 class EmptyDNSRecordListItemView extends KDListItemView
-
-  partial:-> "There is no DNS record for this domain."
+  partial:-> "<p class='domains-no-record'>There is no DNS record for this domain.</p>"
