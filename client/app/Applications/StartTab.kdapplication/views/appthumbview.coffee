@@ -19,6 +19,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     additionalinfo or= ''
     description    or= ''
     version        or= ''
+    appPath          = ''
 
     if not authorNick
       authorNick = KD.whoami().profile.nickname
@@ -47,6 +48,10 @@ class StartTabAppThumbView extends KDCustomHTMLView
       size          :
         width       : 40
 
+    if name isnt title
+      appPath = Encoder.XSSEncode "/home/#{KD.nick()}/Applications/#{name}"
+      appPath = "<p class='app-path'><cite>#{appPath}</cite></p>"
+
     @info = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "icon info"
@@ -59,6 +64,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
             <header><strong>#{Encoder.XSSEncode title} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
             <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
             #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
+            #{appPath}
           <div>
           """
       click    : -> no
