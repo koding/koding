@@ -8,35 +8,36 @@ import (
 
 var (
 	MONGO_CONNECTION              *mgo.Session
-	DATABASE                      *mgo.Database
 	MONGO_CONN_STRING             = config.Current.Mongo
 	MONGO_DEFAULT_COLLECTION_NAME = "relationships"
 )
 
-func GetConnection() *mgo.Session {
-	if MONGO_CONNECTION == nil {
-		// connnect to mongo
-		var err error
-		MONGO_CONNECTION, err = mgo.Dial(MONGO_CONN_STRING)
-		if err != nil {
-			fmt.Println(err)
-		}
-		MONGO_CONNECTION.SetSafe(&mgo.Safe{})
-		fmt.Println("connection established")
+func init() {
+	var err error
+
+	MONGO_CONNECTION, err = mgo.Dial(MONGO_CONN_STRING)
+	if err != nil {
+		panic(err)
 	}
 
+	MONGO_CONNECTION.SetSafe(&mgo.Safe{})
+
+	fmt.Println("connected to mongo")
+}
+
+func GetConnection() *mgo.Session {
 	return MONGO_CONNECTION.Copy()
 }
 
 func GetCollection(collectionName string) *mgo.Collection {
 	session := GetConnection()
-	DATABASE = session.DB("")
 
 	if collectionName == "" {
 		collectionName = MONGO_DEFAULT_COLLECTION_NAME
 	}
+
 	//default db, as in connection string
-	c := DATABASE.C(collectionName)
+	c := session.DB("").C(collectionName)
 	return c
 }
 
