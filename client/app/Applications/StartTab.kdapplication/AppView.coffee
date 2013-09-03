@@ -11,7 +11,7 @@ class StartTabMainView extends JView
     @appIcons = {}
     mainView  = KD.getSingleton('mainView')
 
-    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
+    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
     @appsController = KD.getSingleton("kodingAppsController")
 
     @appsController.on "AppsRefreshed", (apps)=>
@@ -58,8 +58,6 @@ class StartTabMainView extends JView
     oldKodingDownDate  = 1374267600000
 
     if userJoinDate < oldKodingDownDate
-      @appStorage = KD.getSingleton("appStorageController").storage "Finder", "1.0"
-
       @appStorage.fetchStorage (err, storage) =>
         return if @appStorage.getValue "HideOldKodingDownloadLink"
 
