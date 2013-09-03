@@ -7,21 +7,21 @@ class AppStorage extends KDObject
     @reset()
     super
 
-  fetchStorage: (callback = noop)->
+  fetchStorage: (callback)->
 
     [appId, version] = [@_applicationID, @_applicationVersion]
 
     unless @_storage
       KD.whoami().fetchStorage {appId, version}, (error, storage) =>
         unless error
-          callback @_storage = storage or {appId, version, bucket:{}}
+          callback? @_storage = storage or {appId, version, bucket:{}}
           @emit "storageFetched"
           @emit "ready"
         else
-          callback null
+          callback? null
 
     else
-      callback @_storage
+      callback? @_storage
       KD.utils.defer =>
         @emit "storageFetched"
         @emit "ready"
