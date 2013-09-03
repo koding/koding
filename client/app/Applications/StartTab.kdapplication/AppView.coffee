@@ -204,10 +204,16 @@ class StartTabMainView extends JView
 
   createAppIcon:(app, appData, bulk=no)->
 
-    @appIcons[app]?.destroy()
-    @appItemContainer.addSubView @appIcons[app] = new StartTabAppThumbView
-      delegate : @
+    oldIcon = @appIcons[app]
+    @appItemContainer.addSubView newIcon = new StartTabAppThumbView
+      delegate : this
     , appData
+
+    if oldIcon
+      newIcon.$().insertAfter oldIcon.$()
+      oldIcon.destroy()
+
+    @appIcons[app] = newIcon
 
     # To make sure its always the last icon
     @createGetMoreAppsButton()  unless bulk
