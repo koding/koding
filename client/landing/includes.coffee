@@ -111,6 +111,7 @@ module.exports = [
   "Framework/components/modals/KDModalViewLoad.coffee",
   "Framework/components/modals/KDBlockingModalView.coffee",
   "Framework/components/modals/KDModalViewWithForms.coffee",
+  "Framework/components/modals/KDModalViewStack.coffee",
 
   # notification
   "Framework/components/notifications/KDNotificationView.coffee",
@@ -243,6 +244,7 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   "app/CommonViews/ModalViewWithTerminal.coffee",
+  "app/CommonViews/DNDUploader.coffee",
 
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
