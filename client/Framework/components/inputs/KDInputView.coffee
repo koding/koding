@@ -314,12 +314,14 @@ class KDInputView extends KDView
     $input = @$()
 
     @setClass "autogrow"
-    $growCalculator = $ "<div/>", class : "invisible"
+
+    # input content is copied into clone element to get calculated height
+    @_clone = $ "<div/>", class : "invisible"
 
     @on "focus", =>
       @utils.defer =>
-        $growCalculator.appendTo 'body'
-        $growCalculator.css
+        @_clone.appendTo 'body'
+        @_clone.css
           height        : "auto"
           "z-index"     : 100000
           width         : $input.width()
@@ -329,21 +331,23 @@ class KDInputView extends KDView
           "line-height" : $input.css('line-height')
 
     @on "blur", =>
-      $growCalculator.detach()
+      @_clone.detach()
       @$()[0].style.height = "none" # hack to set to initial
 
-    resize = =>
-      $growCalculator.html @getValue().replace /\n/gm, "<br />"
-      height = $growCalculator.height()
-      if @$().css('box-sizing') is "border-box"
-        padding    = parseInt($growCalculator.css("padding-top"), 10) + parseInt($growCalculator.css("padding-bottom"), 10)
-        border     = parseInt($growCalculator.css("border-top-width"), 10) + parseInt($growCalculator.css("border-bottom-width"), 10)
-        height     = height + border + padding
+    @on "keydown", @bound "resize"
+    @on "keyup", (event) => @resize() if @getValue().length is 0
 
-      @setHeight height
+  resize: ->
+    return  unless @_clone
+    @_clone.appendTo 'body' unless document.body.contains @_clone[0]
+    @_clone.html @getValue().replace /\n/gm, "<br />"
+    height = @_clone.height()
+    if @$().css('box-sizing') is "border-box"
+      padding    = parseInt(@_clone.css("padding-top"), 10) + parseInt(@_clone.css("padding-bottom"), 10)
+      border     = parseInt(@_clone.css("border-top-width"), 10) + parseInt(@_clone.css("border-bottom-width"), 10)
+      height     = height + border + padding
 
-    @on "keydown", => resize()
-    @on "keyup", (event) => resize() if @getValue().length is 0
+    @setHeight height
 
   enableTabKey:-> @inputTabKeyEnabled = yes
 
