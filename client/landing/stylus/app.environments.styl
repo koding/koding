@@ -187,39 +187,34 @@ app.environments.styl
 
   .record-form-view
     padding             0
-
     section
       padding           10px
       background        #f7f7f7
       shadow            inset 0 2px 3px -2px rgba(0,0,0,0.3)
-      display           flex
-      align-items       flex-end
+      position          relative
 
       .input-container
-        width           100%
-        float           none
+        width           22%
+        float           left
+        borderBox()
         
         &~.input-container
-          margin-left   10px
+          padding-left  5px
         
         &.priority
           margin        none
           display       none
 
         &.record-type
-          min-width     80px
-          max-width     80px
+          width         16%
           .kdselectbox
             display     block
 
         &.add-record
-          min-width     110px
-          max-width     120px
-
+          width         18%
           button
             display   block
             size      100%, 26px
-
         input
           size        100%, 26px
         
@@ -537,50 +532,49 @@ app.environments.styl
     h3.records-title,
     .kdlistitemview
       width               100%
-      display             flex
-      align-items         center
-      padding             0 10px 0 5px !important
-      vendor              box-sizing,border-box
+      padding             0 10px !important
       border-bottom       1px solid #f9f9f9
       color               #888
+      borderBox()
 
       &:nth-child(2n)
         background        #fcfcfc
         border-bottom     1px solid #f2f2f2
 
       .record-element
-        display           block
-        width             100% !important
-        padding           4px 0 4px 5px
+        float             left
+        letter-spacing    normal
+        padding           0 0 5px 0
+        borderBox()
 
         .kdselectbox
-          vendor            box-sizing,border-box
-          width             100%            
+          width           100%
+          borderBox()
 
         &~.record-element
-          margin-left       10px
-
+          padding-left    5px
+          width           22%   
           input 
-            size            100%, 26px
+            size          100%, 26px
 
         &.record-type
-          text-align        center !important
-          min-width         80px !important
-          max-width         80px !important
+          text-align      center !important
+          width           16%
 
         &.record-buttons
-          min-width         110px
-          max-width         120px
-          display           flex
-
+          width           18%
+          text-align      center
+          display         -webkit-box
+          display         -moz-box
+          display         flex
           button
-            display         block
-            float           none
-            width           100%
-            size            100%, 26px
+            display       block
+            float         none
+            width         100%
+            size          100%, 26px
 
             &:nth-child(2n)
-              margin-left   5px
+              margin-left      5px
 
     h3.records-title 
       .record-element 
@@ -588,7 +582,9 @@ app.environments.styl
         &.record-type
           text-align           left !important
         &.record-buttons
-          justify-content      center
+          -webkit-justify-content   center
+          -moz-justify-content      center
+          justify-content           center
 
 
 
