@@ -48,6 +48,9 @@ class NewDNSRecordFormView extends KDCustomHTMLView
       title    : "Add Record"
       callback : @bound "createNewRecord"
 
+    @addRecordLabel  = new KDLabelView
+      title : ""
+
   createNewRecord: ->
     {domain} = @getData()
 
@@ -105,6 +108,7 @@ class NewDNSRecordFormView extends KDCustomHTMLView
           {{> @ttlInput }}
         </div>
         <div class="input-container add-record">
+          {{> @addRecordLabel}}
           {{> @addButton }}
         </div>
       </section>
