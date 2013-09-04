@@ -57,11 +57,6 @@ class NewDNSRecordFormView extends KDCustomHTMLView
   createNewRecord:->
     {domain} = @getData()
 
-    # if domain.domainType == "new"
-    #   console.log "EXXX"
-    # else
-    #   console.log "NOOOOOO"
-
     recordType = @typeSelectBox.getValue()
     host       = @hostInput.getValue()
     value      = @destinationInput.getValue()
@@ -73,8 +68,6 @@ class NewDNSRecordFormView extends KDCustomHTMLView
     domain.createDNSRecord recordObj, (err, record)=>
       log record, err
       if record
-        log "=============== LOGGGG =============="
-        log record
         return new KDNotificationView {title: "Your record has been saved."}
         @emit "newRecordCreated", recordObj
       else
