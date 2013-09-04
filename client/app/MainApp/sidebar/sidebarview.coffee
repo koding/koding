@@ -1,8 +1,9 @@
 class Sidebar extends JView
 
-  constructor:->
+  constructor: (options={}, data)->
 
-    super
+    options.bind = "dragleave"
+    super options, data
 
     account           = KD.whoami()
     {profile}         = account
@@ -75,8 +76,27 @@ class Sidebar extends JView
     @finderController = new NFinderController
       useStorage        : yes
       addOrphansToRoot  : no
+      delegate          : this
+
+    @dndUploadHolder = new KDView domId: "finder-dnduploader", cssClass: "hidden"
+    @dndUploadHolder.addSubView @dnduploader = new DNDUploader hoverDetect: no
+
+    _onDrag = =>
+      unless @finderController.treeController.internalDragging
+        @dndUploadHolder.show()
+        @dnduploader.unsetClass "hover"
+
+    @dnduploader.on "dragleave", => @dndUploadHolder.hide()
+    @dnduploader.on "drop",      => @dndUploadHolder.hide()
+    @dnduploader.on "cancel",    =>
+      @dnduploader.setPath()
+      @dndUploadHolder.hide()
+
+    @finderController.treeController.on "dragEnter", _onDrag
+    @finderController.treeController.on "dragOver",  _onDrag
 
     @finder = @finderController.getView()
+
     KD.registerSingleton "finderController", @finderController
     @finderController.on 'ShowEnvironments', => @finderBottomControlPin.click()
 
@@ -193,6 +213,10 @@ class Sidebar extends JView
 
     @utils.wait 300, => @emit "NavigationPanelWillCollapse"
 
+  dragLeave: ->
+    super
+    @dndUploadHolder.hide()
+
   viewAppended:->
     super
     @setListeners()
@@ -213,6 +237,9 @@ class Sidebar extends JView
       <div id='finder-header-holder'>
         {{> @finderHeader}}
       </div>
+
+      {{> @dndUploadHolder}}
+
       <div id='finder-holder'>
         {{> @finder}}
       </div>

@@ -202,3 +202,15 @@ class KDModalView extends KDView
       uber()
 
     @emit 'KDModalViewDestroyed', @
+
+  ### STACK HELPERS ###
+
+  @createStack: (options)->
+    @stack or= new KDModalViewStack options
+
+  @addToStack: (modal)->
+    @stack.addModal modal
+
+  @destroyStack: ->
+    @stack.destroy()
+    delete @stack
