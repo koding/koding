@@ -32,7 +32,7 @@ class Ace extends KDView
             @setContents contents
             @lastSavedContents = contents
           @editor.on "change", =>
-            if @isContentChanged() then @emit "FileContentChanged" else @emit "FileContentSynced"
+            if @isCurrentContentChanged() then @emit "FileContentChanged" else @emit "FileContentSynced"
           @editor.gotoLine 0
           @focus()
           @show()
@@ -119,8 +119,8 @@ class Ace extends KDView
         mac   : macKey
       exec    : => callback?()
 
-  isContentChanged: ->
-    return @getContents() isnt @lastSavedContents
+  isContentChanged: -> @contentChanged
+  isCurrentContentChanged:-> @getContents() isnt @lastSavedContents
 
   ###
   FS REQUESTS
