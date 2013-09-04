@@ -564,7 +564,7 @@ span.close-btn-x
   display     inline-block
   min-width   1px
 
-.kdphotocapture
+.kdwebcamview
   width             auto
   height            auto
   display           inline-block
@@ -579,6 +579,7 @@ span.close-btn-x
 
   .snap-photo-button
   .snap-photo-retake
+  .snap-photo-save
     abs             0 0px 0px 0
     z-index         1
     height          35px
@@ -592,3 +593,14 @@ span.close-btn-x
     border          2px solid #333
     &:hover
       opacity       0.9
+
+  .snap-photo-retake
+  .snap-photo-save
+    kalc            width, 50% \- 15px, 45%
+
+  .snap-photo-retake
+    abs             0 0 0px 0px
+
+  .snap-photo-save
+    background-color green
+    color           #fff
