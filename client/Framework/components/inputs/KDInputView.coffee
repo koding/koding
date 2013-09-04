@@ -332,8 +332,8 @@ class KDInputView extends KDView
       $growCalculator.detach()
       @$()[0].style.height = "none" # hack to set to initial
 
-    @on "keydown", =>
-      $growCalculator.text @getValue()
+    resize = =>
+      $growCalculator.html @getValue().replace /\n/gm, "<br />"
       height = $growCalculator.height()
       if @$().css('box-sizing') is "border-box"
         padding    = parseInt($growCalculator.css("padding-top"), 10) + parseInt($growCalculator.css("padding-bottom"), 10)
@@ -341,6 +341,9 @@ class KDInputView extends KDView
         height     = height + border + padding
 
       @setHeight height
+
+    @on "keydown", => resize()
+    @on "keyup", (event) => resize() if @getValue().length is 0
 
   enableTabKey:-> @inputTabKeyEnabled = yes
 
