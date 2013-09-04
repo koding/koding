@@ -151,22 +151,28 @@ class DomainCreationForm extends KDTabViewWithForms
 
     if domainOptionValue is 'new'
       KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status, suggestions)=>
+      # KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status)=>
 
         if avErr
           createButton.hideLoader()
           log domain
           log tld
           log avErr
+          log status
+          log suggestions
           return notifyUser "An error occured: #{avErr}"
 
         switch status
           when "regthroughus", "regthroughothers"
             @showSuggestions suggestions
+            console.log suggestions
             registerButton.hideLoader()
             return createButton.hideLoader()
           when "unknown"
-            notifyUser "An error occured. Please try again later."
+            notifyUser "Connections are not available. re-check the domain name availability after some time."
             return createButton.hideLoader()
+
+
         form = @forms["Domain Address"]
         {createButton, registerButton} = form.buttons
         paymentController = KD.getSingleton('paymentController')
@@ -179,7 +185,6 @@ class DomainCreationForm extends KDTabViewWithForms
             , (err, domain)=>
               if err
                 warn err
-                console.log "==== BUG ===="
                 console.log err
                 notifyUser "An error occured. Please try again later."
               else
@@ -221,6 +226,7 @@ class DomainCreationForm extends KDTabViewWithForms
           else
             showPriceModal registerTheDomain
 
+
     else if domainOptionValue is 'existing'
       @createDomain {domainName, regYears:0, domainType:'existing'}, (err, domain)=>
         createButton.hideLoader()
@@ -231,6 +237,7 @@ class DomainCreationForm extends KDTabViewWithForms
           return notifyUser "Invalid domain #{domainName}.  "
         else
           @showSuccess domain
+
 
     else # create a subdomain
       subDomainPattern = /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
@@ -249,8 +256,8 @@ class DomainCreationForm extends KDTabViewWithForms
         else
           @showSuccess domain
 
-  createDomain:(params, callback)->
-    console.log "================= PARAMS ================"
+
+  createDomain:(params, callback) ->
     console.log params
     KD.remote.api.JDomain.createDomain
         domain         : params.domainName
@@ -266,7 +273,7 @@ class DomainCreationForm extends KDTabViewWithForms
 
   clearSuggestions:-> @suggestionBox?.destroy()
 
-  showSuggestions:(suggestions)->
+  showSuggestions:(suggestions) ->
     @clearSuggestions()
 
     form            = @forms["Domain Address"]
@@ -285,7 +292,7 @@ class DomainCreationForm extends KDTabViewWithForms
       click   : (event)->
         domainName.setValue $(event.target).closest('li').text()
 
-  showSuccess:(domain)->
+  showSuccess:(domain) ->
     @clearSuggestions()
     form            = @forms["Domain Address"]
     {domainName}    = form.inputs
@@ -341,7 +348,7 @@ class DomainCreationForm extends KDTabViewWithForms
     domainName.setValue ''
     domainName.setFocus()
 
-  notifyUser = (msg)->
+  notifyUser = (msg) ->
     new KDNotificationView
       type     : 'tray'
       title    : msg

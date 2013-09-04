@@ -263,7 +263,6 @@ module.exports = class JDomain extends jraphical.Module
         return callback err if err
         for domain in domains
           # console.log "Testing domain:", domain, selector.domainName
-          console.log "HULOOOOOOOOOOOGG"
           return callback null, domain if domain.domain is selector.domainName
 
   fetchProxyRules: (callback)->
