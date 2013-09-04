@@ -24,6 +24,11 @@ class InboxAppController extends AppController
     @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback
 
+    nc = KD.getSingleton 'notificationController'
+    nc.on 'PrivateMessageSent', @bound 'refreshMessages'
+    nc.on 'ReplyIsAdded', ({subject:{constructorName}})=>
+      @refreshMessages()  if constructorName is 'JPrivateMessage'
+
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback
 
@@ -174,6 +179,8 @@ class InboxAppController extends AppController
     @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback, newMessageBar
 
+    @on 'RefreshMessages', -> newMessageBar?.emit 'RefreshButtonClicked'
+
     newMessageBar.on 'MessageShouldBeDisowned', do =>
       if not @selection
         newMessageBar.disableMessageActionButtons()
@@ -229,6 +236,9 @@ class InboxAppController extends AppController
         title : "Sending private message for guests not allowed."
 
     KD.remote.api.JPrivateMessage.create messageDetails, callback
+
+  refreshMessages:->
+    @emit "RefreshMessages"
 
   prepareMessage:(formOutput, callback, newMessageBar)->
     {body, subject, recipients} = formOutput
