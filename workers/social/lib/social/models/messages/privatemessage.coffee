@@ -18,7 +18,7 @@ module.exports = class JPrivateMessage extends JPost
       static          : ['create','on']
       instance        : [
         'reply','restComments','commentsByRange','like',
-        'fetchLikedByes','disown','collectParticipants','mark',
+        'fetchLikedByes','disown','mark',
         'unmark','fetchRelativeComments'
       ]
     schema        : jraphical.Message.schema
@@ -35,17 +35,6 @@ module.exports = class JPrivateMessage extends JPost
     delegate.removePrivateMessage @, {as: $in: ['sender', 'recipient']}, \
     callback
 
-  collectParticipants: secure ({connection}, callback)->
-    {delegate} = connection
-    register = new Register # a register per message...
-    jraphical.Relationship.all targetName: 'JPrivateMessage', \
-      targetId: @getId(), sourceId: $ne: delegate.getId(), (err, rels)=>
-      if err
-        callback err
-      else
-        # only include unique participants.
-        @participants = (rel for rel in rels when register.sign rel.sourceId)
-        callback null,@
 
   @create = do ->
     # a helper for sending to mulitple recipients.
