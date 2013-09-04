@@ -501,7 +501,7 @@ class NFinderTreeController extends JTreeViewController
   cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
   cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
   cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> @appManager.notify()
+  cmUpload:        (nodeView, contextMenuItem)-> @uploadFile nodeView
   cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
@@ -603,6 +603,26 @@ class NFinderTreeController extends JTreeViewController
     @showDragOverFeedback nodeView, event
     super
 
+  dragStart: (nodeView, event)->
+    super
+
+    @internalDragging = yes
+
+    {name, vmName, path} = nodeView.data
+
+    warningText = """
+    You should move #{name} file to Web folder to download using drag and drop. -- Koding
+    """
+
+    type        = "application/octet-stream"
+    url         = KD.getPublicURLOfPath path
+    unless url
+      url       = "data:#{type};base64,#{btoa warningText}"
+      name     += ".txt"
+    dndDownload = "#{type}:#{name}:#{url}"
+
+    event.originalEvent.dataTransfer.setData 'DownloadURL', dndDownload
+
   lastEnteredNode = null
   dragEnter: (nodeView, event)->
 
@@ -632,6 +652,7 @@ class NFinderTreeController extends JTreeViewController
 
     # log "clear after drag"
     @clearAllDragFeedback()
+    @internalDragging = no
     super
 
   drop: (nodeView, event)->
@@ -644,6 +665,7 @@ class NFinderTreeController extends JTreeViewController
     else
       @moveFiles @selectedNodes, nodeView
 
+    @internalDragging = no
     super
 
   ###
@@ -795,3 +817,8 @@ class NFinderTreeController extends JTreeViewController
         for file in files
           fileItemView = modal.addSubView new DropboxDownloadItemView { nodeView }, file
           fileItemViews.push fileItemView
+
+  uploadFile: (nodeView)->
+    finderController = KD.getSingleton "finderController"
+    {path} = nodeView.data
+    finderController.uploadTo path  if path
