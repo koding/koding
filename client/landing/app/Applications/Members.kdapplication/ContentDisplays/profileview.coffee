@@ -97,6 +97,7 @@ class ProfileView extends JView
       {callback, inputValue, blacklist} = event
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
+    newAvatar      = ''
     @avatar        = new AvatarStaticView
       size         :
         width      : 90
@@ -111,7 +112,32 @@ class ProfileView extends JView
           overlay  : yes
           draggable: yes
           position : pos
-        modal.addSubView new AvatarStaticView
+          buttons  :
+            "Upload Image":
+              cssClass: "modal-clean-gray"
+              callback: =>
+                avatar.hide()
+                modal.addSubView uploader = new DNDUploader
+                  title: "Drop your avatar here!"
+                uploader.on "dropFile", ->
+                  log arguments
+            "Take Photo" :
+              cssClass: "modal-clean-gray"
+              callback: =>
+                avatar.hide()
+                modal.addSubView capture = new KDWebcamView
+                  countdown: 0
+                  snapTitle: "Take Avatar Picture"
+                  size:
+                    width : 400
+                    height: 400
+                capture.on "snap", (data)-> newAvatar = data
+                capture.on "save", =>
+                  avatar.show()
+                  capture.hide()
+                  avatar.setAvatar "url(#{newAvatar})"
+                  @avatar.setAvatar "url(#{newAvatar})"
+        modal.addSubView avatar = new AvatarStaticView
           size     :
             width  : 400
             height : 400
