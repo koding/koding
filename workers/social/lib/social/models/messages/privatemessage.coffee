@@ -8,6 +8,7 @@ module.exports = class JPrivateMessage extends JPost
   {ObjectRef, secure, race} = require 'bongo'
 
   jraphical = require 'jraphical'
+  {unique}  = require 'underscore'
 
   @trait __dirname, '../../traits/grouprelated'
 
@@ -26,6 +27,11 @@ module.exports = class JPrivateMessage extends JPost
     # We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
 
+  constructor:->
+    super
+    @on 'ReplyIsAdded', ({replier})=>
+      @informParticipants replier
+
   reply: secure (client, comment, callback)->
     JComment = require './comment'
     JPost::reply.call @, client, JComment, comment, callback
@@ -35,6 +41,17 @@ module.exports = class JPrivateMessage extends JPost
     delegate.removePrivateMessage @, {as: $in: ['sender', 'recipient']}, \
     callback
 
+  informParticipants:(replier)->
+    jraphical.Relationship.all
+      targetName : 'JPrivateMessage'
+      targetId   : @getId()
+    , (err, rels)=>
+      return warn err  if err
+      rels.forEach (rel)=>
+        rel.update $set: timestamp: new Date, (err)->
+          console.warn "Relationship date update failed:", err  if err
+        unless rel.sourceId.equals replier.id
+          @unflag 'read', rel.sourceId, ['recipient', 'sender']
 
   @create = do ->
     # a helper for sending to mulitple recipients.
