@@ -67,47 +67,38 @@ class Ace extends KDView
         enableBasicAutocompletion: yes
         enableSnippets: yes
 
+  saveStarted:->
+    @lastContentsSentForSave = @getContents()
+
+  saveFinished:(err, res)->
+    unless err
+      @notify "Successfully saved!", "success"
+      @lastSavedContents = @lastContentsSentForSave
+      @emit "FileContentSynced"
+      # unless @askedForSave
+        # log "this file has changed, put a modal and block editing @fatihacet!"
+        # fatihacet - this case works buggy.
+      @askedForSave = no
+    else if err?.message?.indexOf? "permission denied" > -1
+      @notify "You don't have enough permission to save!", "error"
+
+  saveAsFinished:->
+    @emit "FileContentSynced"
+    @emit "FileHasBeenSavedAs", @getData()
+
   setEditorListeners:->
 
     @editor.getSession().selection.on 'changeCursor', (cursor)=>
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
 
-    file = @getData()
-
-    file.on "fs.save.finished", (err,res)=>
-      unless err
-        @notify "Successfully saved!", "success"
-        @lastSavedContents = @lastContentsSentForSave
-        @emit "FileContentSynced"
-        # unless @askedForSave
-          # log "this file has changed, put a modal and block editing @fatihacet!"
-          # fatihacet - this case works buggy.
-        @askedForSave = no
-      else if err?.message?.indexOf? "permission denied" > -1
-        @notify "You don't have enough permission to save!", "error"
-
-    file.on "fs.save.started", =>
-      @lastContentsSentForSave = @getContents()
-
-    file.on "fs.saveAs.finished", =>
-      @emit "FileContentSynced"
-      @emit "FileHasBeenSavedAs", file
-
     if @getOptions().enableShortcuts
       @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
-
       @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
-
       @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
-
       @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
-
       @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
-
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
-
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
-
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
 
   showFindReplaceView: (openReplaceView) ->
