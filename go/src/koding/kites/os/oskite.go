@@ -350,9 +350,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				defer info.mutex.Unlock()
 
 				info.useCounter -= 1
-				if info.useCounter == 0 {
-					info.startTimeout()
-				}
+				info.startTimeout()
 			})
 
 			infosMutex.Unlock()
@@ -599,8 +597,11 @@ func newInfo(vm *virt.VM) *VMInfo {
 }
 
 func (info *VMInfo) startTimeout() {
+	if info.useCounter != 0 || info.vm.AlwaysOn {
+		return
+	}
 	info.timeout = time.AfterFunc(5*time.Minute, func() {
-		if info.useCounter != 0 {
+		if info.useCounter != 0 || info.vm.AlwaysOn {
 			return
 		}
 		if info.vm.GetState() == "RUNNING" {
@@ -611,7 +612,7 @@ func (info *VMInfo) startTimeout() {
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
 			info.mutex.Lock()
 			defer info.mutex.Unlock()
-			if info.useCounter != 0 {
+			if info.useCounter != 0 || info.vm.AlwaysOn {
 				return
 			}
 			info.unprepareVM()
