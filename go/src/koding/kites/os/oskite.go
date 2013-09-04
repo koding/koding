@@ -195,7 +195,7 @@ func main() {
 	})
 
 	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		info := infos[vos.VM.Id]
+		info, _ := channel.KiteData.(*VMInfo)
 		info.State = vos.VM.GetState()
 		return info, nil
 	})
