@@ -109,7 +109,7 @@ class InboxAppController extends AppController
     toField.addSubView recipientsWrapper
     if users
       recipient.setDefaultValue users
-      
+
       if users.length is 1
         toField.hide()
 
