@@ -75,12 +75,14 @@ class AceView extends JView
         file.emit "file.requests.save", contents
 
     @ace.on "FileContentChanged", =>
+      @ace.contentChanged = yes
       @getActiveTabHandle().setClass "modified"
       @getDelegate().quitOptions =
         message : "You have unsaved changes. You will lose them if you close this tab."
         title   : "Do you want to close this tab?"
 
     @ace.on "FileContentSynced", =>
+      @ace.contentChanged = no
       @getActiveTabHandle().unsetClass "modified"
       delete @getDelegate().quitOptions
 
