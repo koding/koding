@@ -118,9 +118,19 @@ class ProfileView extends JView
               callback: =>
                 avatar.hide()
                 modal.addSubView uploader = new DNDUploader
-                  title: "Drop your avatar here!"
-                uploader.on "dropFile", ->
-                  log arguments
+                  title       : "Drop your avatar here!"
+                  uploadToVM  : no
+                  size: height: 400
+                uploader.on "dropFile", ({origin, content})=>
+                  if origin is "external"
+                    newAvatar = btoa content
+                    log newAvatar
+                    avatar.show()
+                    uploader.hide()
+                    avatar.setAvatar "url(data:;base64,#{newAvatar})"
+                    @avatar.setAvatar "url(data:;base64,#{newAvatar})"
+                    @avatar.$().css backgroundSize: "100%"
+
             "Take Photo" :
               cssClass: "modal-clean-gray"
               callback: =>
@@ -137,6 +147,7 @@ class ProfileView extends JView
                   capture.hide()
                   avatar.setAvatar "url(#{newAvatar})"
                   @avatar.setAvatar "url(#{newAvatar})"
+                  @avatar.$().css backgroundSize: "100%"
         modal.addSubView avatar = new AvatarStaticView
           size     :
             width  : 400
