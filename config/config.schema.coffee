@@ -157,6 +157,7 @@ config =
           sockJS      : 1
         apiUri        : 1
         appsUri       : 1
+        uploadsUri    : 1
         sourceUri     : 1
         # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :

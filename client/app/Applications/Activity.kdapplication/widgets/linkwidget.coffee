@@ -130,8 +130,9 @@ class ActivityLinkWidget extends KDFormView
     @removeCustomData "activity"
 
     @title.setValue ''
-    @description.setValue ''
     @link.setValue ''
+    @description.setValue ''
+    @description.resize()
 
     @embedBox.resetEmbedAndHide()
 
