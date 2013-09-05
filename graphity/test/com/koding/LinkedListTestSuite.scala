@@ -58,10 +58,20 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
     addEntryBefore(tail, entry1)
     addEntryBefore(tail, entry2)
 
-    val list = getAll(tail)
-    assert(list.size === 2)
-    assert(list.get(0) === entry1)
-    assert(list.get(1) === entry2)
+    val list1 = getAll(head)
+    assert(list1.size === 2)
+    assert(list1.get(0) === entry1)
+    assert(list1.get(1) === entry2)
+    
+    val list2 = getAll(tail)
+    assert(list2.size === 2)
+    assert(list2.get(0) === entry1)
+    assert(list2.get(1) === entry2)
+    
+    val list3 = getAll(entry1)
+    assert(list3.size === 2)
+    assert(list3.get(0) === entry1)
+    assert(list3.get(1) === entry2)
   }
 
   test("inserting at head and tail") {
