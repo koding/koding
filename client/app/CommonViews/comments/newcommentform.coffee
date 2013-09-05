@@ -45,10 +45,6 @@ class NewCommentForm extends KDView
     @commentInput.on "focus", => 
       @getDelegate().emit "commentInputReceivedFocus"
 
-  commentPosted:->
-    @commentInput.setValue ""
-    @resetCommentField()
-
   makeCommentFieldActive:->
     @getDelegate().emit "commentInputReceivedFocus"
     (KD.getSingleton "windowController").setKeyView @commentInput
@@ -69,6 +65,7 @@ class NewCommentForm extends KDView
       callback  : =>
         reply = @commentInput.getValue()
         @commentInput.setValue ''
+        @commentInput.resize()
         @commentInput.blur()
         @commentInput.$().blur()
         @getDelegate().emit 'CommentSubmitted', reply

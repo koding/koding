@@ -18,6 +18,9 @@ object LinkedList {
 
   // Initializes a linked list with given head and tail nodes.
   def init(head: Node, tail: Node) {
+    if (head.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null || tail.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null) {
+      return
+    }
     head.createRelationshipTo(head, LINKED_LIST_HEAD)
     head.createRelationshipTo(tail, LINKED_LIST_TAIL)
     tail.createRelationshipTo(head, LINKED_LIST_HEAD)

@@ -55,15 +55,11 @@ func decorateResult(result map[string]interface{}) map[string]interface{} {
 func Fetch(idHex, name string) (map[string]interface{}, error) {
 	id := bson.ObjectIdHex(idHex)
 
-	if _, ok := COLLECTIONS[name]; !ok {
-		collectionName := getCollectionName(name)
-
-		collection := GetCollection(collectionName)
-		COLLECTIONS[name] = collection
-	}
+	collectionName := getCollectionName(name)
+	collection := GetCollection(collectionName)
 
 	result := make(map[string]interface{})
-	err := COLLECTIONS[name].FindId(id).One(result)
+	err := collection.FindId(id).One(result)
 	if err != nil {
 		return nil, err
 	}
@@ -95,15 +91,11 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 
 	var jsonResult string
 
-	if _, ok := COLLECTIONS[name]; !ok {
-		collectionName := getCollectionName(name)
-
-		collection := GetCollection(collectionName)
-		COLLECTIONS[name] = collection
-	}
+	collectionName := getCollectionName(name)
+	collection := GetCollection(collectionName)
 
 	result := make(map[string]interface{})
-	err := COLLECTIONS[name].FindId(id).One(result)
+	err := collection.FindId(id).One(result)
 	if err != nil {
 		return "", err
 	}

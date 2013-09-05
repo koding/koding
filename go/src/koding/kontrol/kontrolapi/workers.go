@@ -41,10 +41,10 @@ var StatusCode = map[workerconfig.WorkerStatus]string{
 }
 
 func GetWorkers(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET /workers")
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
 
 	var latestVersion bool
+	var sortFields []string // not initialized means do not sort
 	query := bson.M{}
 	for key, value := range queries {
 		switch key {
@@ -60,6 +60,12 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 				if value[0] == state {
 					query["status"] = status
 				}
+			}
+		case "sort":
+			sortFields = []string{value[0]}
+			// override "state" with status, they are not the same in db
+			if value[0] == "state" {
+				sortFields = []string{"status"}
 			}
 		default:
 			if key == "name" {
@@ -77,7 +83,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	matchedWorkers := queryResult(query, latestVersion)
+	matchedWorkers := queryResult(query, latestVersion, sortFields)
 	data, err := json.MarshalIndent(matchedWorkers, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
@@ -90,10 +96,9 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 func GetWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	fmt.Printf("GET /workers/%s\n", uuid)
 
 	query := bson.M{"uuid": uuid}
-	matchedWorkers := queryResult(query, false)
+	matchedWorkers := queryResult(query, false, nil)
 	data, err := json.MarshalIndent(matchedWorkers, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
@@ -105,7 +110,6 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid, action := vars["uuid"], vars["action"]
-	fmt.Printf("%s /workers/%s\n", strings.ToUpper(action), uuid)
 
 	buildSendCmd(action, uuid)
 	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
@@ -115,19 +119,19 @@ func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	fmt.Printf("DELETE /workers/%s\n", uuid)
 
 	buildSendCmd("delete", uuid)
 	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
 	io.WriteString(writer, resp)
 }
 
-func queryResult(query bson.M, latestVersion bool) Workers {
+func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers {
 	workers := make(Workers, 0)
 	worker := workerconfig.Worker{}
 
 	queryFunc := func(c *mgo.Collection) error {
-		iter := c.Find(query).Iter()
+		// sorting is no-op when sortFields is empty
+		iter := c.Find(query).Sort(sortFields...).Iter()
 		for iter.Next(&worker) {
 			apiWorker := &ApiWorker{
 				worker.Name,

@@ -120,45 +120,26 @@ class AccountReferralSystemListController extends AccountListViewController
     wrapper = new KDCustomHTMLView tagName : 'header', cssClass : 'clearfix'
     @scrollView.addSubView wrapper, '', yes
 
-    wrapper.addSubView getYourRefererCode = new CustomLinkView
-      title       : "Get Your Referer Code"
+    wrapper.addSubView getYourReferrerCode = new CustomLinkView
+      title       : "Get Your Referrer Code"
       tooltip     :
         title     :
           """
-            If anyone registers with your referrer code,
-            you will get 250MB Free disk space for your VM.
-            Up to 16GB!.
+          If anyone registers with your referrer code,
+          you will get 250MB Free disk space for your VM.
+          Up to 16GB!.
           """
-      click : ->
-        refererCode = KD.whoami().profile.nickname
-        shareUrl      = "#{location.origin}/?r=#{refererCode}"
-        getYourRefererCode._shorten = shareUrl
+      click       : ->
+        appManager = KD.getSingleton "appManager"
+        appManager.tell "Account", "showReferrerTooltip",
+          linkView    : getYourReferrerCode
+          top         : 50
+          left        : 35
+          arrowMargin : 110
 
-        contextMenu   = new JContextMenu
-          cssClass    : "activity-share-popup"
-          type        : "activity-share"
-          delegate    : getYourRefererCode
-          x           : getYourRefererCode.getX() - 35
-          y           : getYourRefererCode.getY() - 50
-          arrow       :
-            placement : "bottom"
-            margin    : 110
-          lazyLoad    : yes
-        , customView  : new SharePopup {
-            url       : shareUrl
-            shortenURL: false
-            twitter   :
-              text    : "Join to Koding! The next generation develepment environment #{shareUrl}"
-            linkedin  :
-              title   : "Join to Koding!"
-              text    : "The next generation development environment #{shareUrl}"
-          }
-        new KDOverlayView
-          parent      : KD.singletons.mainView.mainTabView.activePane
-          transparent : yes
 
     wrapper.addSubView redeem = new CustomLinkView
-      title : "Redeem Your Referer Points"
+      title : "Redeem Your Referrer Points"
       click : => @emit "ShowRedeemReferralPointModal", this
 
 class AccountReferralSystemList extends KDListView

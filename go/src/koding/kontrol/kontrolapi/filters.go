@@ -17,7 +17,6 @@ type FiltersPostMessage struct {
 }
 
 func GetFilters(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/filters")
 	res := proxyDB.GetFilters()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
@@ -31,7 +30,6 @@ func GetFilters(writer http.ResponseWriter, req *http.Request) {
 func GetFilterByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	name := vars["name"]
-	fmt.Printf("GET\t/filters/%s\n", name)
 
 	res, err := proxyDB.GetFilterByField("name", name)
 	if err != nil {
@@ -48,7 +46,6 @@ func GetFilterByName(writer http.ResponseWriter, req *http.Request) {
 }
 
 func CreateFilterByName(writer http.ResponseWriter, req *http.Request) {
-	fmt.Printf("POST\t/filters\n")
 	var msg FiltersPostMessage
 	var filterType string
 	var filterMatch string
@@ -109,7 +106,6 @@ func CreateFilterByName(writer http.ResponseWriter, req *http.Request) {
 func DeleteFilterByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	name := vars["name"]
-	fmt.Printf("DELETE\t/filters/%s\n", name)
 
 	err := proxyDB.DeleteFilterByField("name", name)
 	if err != nil {
