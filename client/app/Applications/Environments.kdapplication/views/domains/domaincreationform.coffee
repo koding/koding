@@ -1,3 +1,10 @@
+splitDomain = (domainName) ->
+  splitted =  domainName.split "."
+  return {
+    first: splitted[0],
+    extension: if splitted.length > 1 then splitted[1..].join "." else ""
+  }
+
 class DomainCreationForm extends KDTabViewWithForms
 
   domainOptions = [
@@ -153,9 +160,9 @@ class DomainCreationForm extends KDTabViewWithForms
     form = @forms["Domain Address"]
     domainInput       = domainName
     domainName        = form.inputs.domainName.getValue()
-    splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
-    domain            = splittedDomain[1]
-    tld               = splittedDomain[2]
+    splittedDomain    = splitDomain(domainName)
+    domain            = splittedDomain.first
+    tld               = splittedDomain.extension
     {createButton, checkButton, registerButton} = form.buttons
     @clearSuggestions()
     KD.remote.api.JDomain.getTldPrice tld, (tldPrice) => 
@@ -196,9 +203,9 @@ class DomainCreationForm extends KDTabViewWithForms
     domainOptionValue = DomainOption.getValue()
 
     if domainOptionValue is 'new'
-      splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
-      domain            = splittedDomain[1]
-      tld               = splittedDomain[2]
+      splittedDomain    = splitDomain(domainName)
+      domain            = splittedDomain.first
+      tld               = splittedDomain.extension
       form = @forms["Domain Address"]
       {createButton, registerButton} = form.buttons
       paymentController = KD.getSingleton('paymentController')
