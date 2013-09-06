@@ -24,7 +24,9 @@ class NewDNSRecordFormView extends KDCustomHTMLView
 
     @header = new KDCustomHTMLView
       tagName: "header"
-      partial: domain.domainType
+      # partial: domain.domainType
+      partial: "Add our NameServers: <b>ns0.koding.com, ns1.koding.com</b>" if domain.domainType is "existing"
+
 
     @typeSelectBox    = new KDSelectBox
       selectOptions : [
@@ -95,13 +97,13 @@ class NewDNSRecordFormView extends KDCustomHTMLView
           {{> @destinationLabel}}
           {{> @destinationInput }}
         </div>
-        <div class="input-container priority">
-          {{> @priorityLabel }}
-          {{> @priorityInput }}
-        </div>
         <div class="input-container">
           {{> @ttlLabel}}
           {{> @ttlInput }}
+        </div>
+        <div class="input-container priority">
+          {{> @priorityLabel }}
+          {{> @priorityInput }}
         </div>
         <div class="input-container add-record">
           {{> @addRecordLabel}}
