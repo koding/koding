@@ -40,7 +40,8 @@ class DomainCreationForm extends KDTabViewWithForms
               loader                  :
                 color                 : "#ffffff"
                 diameter              : 24
-
+              callback                : =>
+                @registerDomain()
             checkButton              :
               title                   : "Check Domain"
               style                   : "cupid-green hidden"
@@ -156,7 +157,7 @@ class DomainCreationForm extends KDTabViewWithForms
     splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
     domain            = splittedDomain[1]
     tld               = splittedDomain[2]
-    
+
     {createButton, checkButton, registerButton} = form.buttons
     @clearSuggestions()
     KD.remote.api.JDomain.getTldPrice tld, (tldPrice) => 
