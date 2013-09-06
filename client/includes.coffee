@@ -331,6 +331,7 @@ module.exports = [
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
   "app/MainApp/fs/fsvm.coffee",
+  "app/MainApp/fs/appswatcher.coffee",
 
   # avatararea
   "app/MainApp/avatararea/avatarareapopup.coffee",
