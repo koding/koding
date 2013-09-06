@@ -52,18 +52,18 @@ class DomainCreationForm extends KDTabViewWithForms
               callback                : =>
                 @checkAvailability()
 
-
             close                     :
               title                   : "Back to settings"
               style                   : "cupid-green hidden"
               callback                : => @reset()
             cancel                    :
-              style                   : "modal-cancel"
+              style                   : "cupid-green"
               callback                : => @emit 'DomainCreationCancelled'
             another                   :
               title                   : "add another domain"
               style                   : "modal-cancel hidden"
               callback                : => @addAnotherDomainClicked()
+
           fields                      :
             header                    :
               title                   : "Add a domain"
