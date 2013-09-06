@@ -16,10 +16,9 @@ class FSWatcher extends KDObject
       delete @watchers[path]
 
   constructor:(options={})->
-    super options = $.extend
-      recursive         : yes
-      ignoreTempChanges : yes
-    , options
+    options.recursive         ?= yes
+    options.ignoreTempChanges ?= yes
+    super options
 
     @path = @getOption 'path'
 
