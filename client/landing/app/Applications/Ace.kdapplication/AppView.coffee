@@ -66,18 +66,23 @@ class AceView extends JView
       @openSaveDialog()
 
     @ace.on "ace.requests.save", (contents)=>
-      if /localfile:/.test @getData().path
+      file = @getData()
+      if /localfile:/.test file.path
         @openSaveDialog()
       else
-        @getData().emit "file.requests.save", contents
+        file.once "fs.save.started",    @ace.bound "saveStarted"
+        file.once "fs.save.finished",   @ace.bound "saveFinished"
+        file.emit "file.requests.save", contents
 
     @ace.on "FileContentChanged", =>
+      @ace.contentChanged = yes
       @getActiveTabHandle().setClass "modified"
       @getDelegate().quitOptions =
         message : "You have unsaved changes. You will lose them if you close this tab."
         title   : "Do you want to close this tab?"
 
     @ace.on "FileContentSynced", =>
+      @ace.contentChanged = no
       @getActiveTabHandle().unsetClass "modified"
       delete @getDelegate().quitOptions
 
@@ -170,6 +175,7 @@ class AceView extends JView
             @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation
               parent = node.getData()
               file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
+              file.once "fs.saveAs.finished",   @ace.bound "saveAsFinished"
               @ace.emit "AceDidSaveAs", name, parent.path
               oldCursorPosition = @ace.editor.getCursorPosition()
               file.on "fs.saveAs.finished", =>

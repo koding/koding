@@ -156,6 +156,7 @@ class DomainCreationForm extends KDTabViewWithForms
     splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
     domain            = splittedDomain[1]
     tld               = splittedDomain[2]
+    
     {createButton, checkButton, registerButton} = form.buttons
     @clearSuggestions()
     KD.remote.api.JDomain.getTldPrice tld, (tldPrice) => 
