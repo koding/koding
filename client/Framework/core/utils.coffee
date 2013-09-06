@@ -170,9 +170,8 @@ __utils =
     text.replace /(^|\s)(www\.[A-Za-z0-9-_]+.[A-Za-z0-9-_:%&\?\/.=]+)/g, (_, whitespace, www) ->
       "#{whitespace}<a href='http://#{www}' target='_blank'>#{www}</a>"
 
-  expandUsernames: (text,sensitiveTo=no) ->
-    # sensitiveTo is a string containing parent elements whose children
-    # should not receive name expansion
+  expandUsernames: (text, excludeSelector) ->
+    # excludeSelector is a jQuery selector
 
     # as a JQuery selector, e.g. "pre"
     # means that all @s in <pre> tags will not be expanded
@@ -180,21 +179,25 @@ __utils =
     return null unless text
 
     # default case for regular text
-    if not sensitiveTo
+    if not excludeSelector
       text.replace /\B\@([\w\-]+)/gim, (u) ->
         username = u.replace "@", ""
         u.link "/#{username}"
     # context-sensitive expansion
     else
       result = ""
-      $(text).each (i,element)->
-        if ($(element).parents(sensitiveTo).length is 0) and not ($(element).is sensitiveTo)
-          if $(element).html()?
-            replacedText =  $(element).html().replace /\B\@([\w\-]+)/gim, (u) ->
+      $(text).each (i, element) ->
+        $element = $(element)
+        elementCheck = $element.not excludeSelector
+        parentCheck = $element.parents(excludeSelector).length is 0
+        childrenCheck = $element.find(excludeSelector).length is 0
+        if elementCheck and parentCheck and childrenCheck
+          if $element.html()?
+            replacedText =  $element.html().replace /\B\@([\w\-]+)/gim, (u) ->
               username = u.replace "@", ""
               u.link "/#{username}"
-            $(element).html replacedText
-        result += $(element).get(0).outerHTML or "" # in case there is a text-only element
+            $element.html replacedText
+        result += $element.get(0).outerHTML or "" # in case there is a text-only element
       result
 
   expandTags: (text) ->

@@ -24,6 +24,12 @@ class InboxAppController extends AppController
     @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback
 
+    nc = KD.getSingleton 'notificationController'
+    nc.on 'PrivateMessageSent', =>
+      @emit 'PrivateMessageReceived'
+    nc.on 'ReplyIsAdded', ({subject:{constructorName}})=>
+      @emit 'PrivateMessageReceived'  if constructorName is 'JPrivateMessage'
+
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback
 
@@ -109,7 +115,7 @@ class InboxAppController extends AppController
     toField.addSubView recipientsWrapper
     if users
       recipient.setDefaultValue users
-      
+
       if users.length is 1
         toField.hide()
 
@@ -173,6 +179,8 @@ class InboxAppController extends AppController
     @off 'MessageShouldBeSent'
     @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback, newMessageBar
+
+    @on 'PrivateMessageReceived', -> newMessageBar?.emit 'RefreshButtonClicked'
 
     newMessageBar.on 'MessageShouldBeDisowned', do =>
       if not @selection

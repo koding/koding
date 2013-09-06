@@ -425,13 +425,9 @@ module.exports = class JApp extends jraphical.Module
                           callback err
                         else
                           callback null, review
-                          # @fetchActivityId (err, id)->
-                          #   CActivity.update {_id: id}, {
-                          #     $set: 'sorts.reviewsCount': count
-                          #   }, log
                           @fetchCreator (err, origin)=>
                             if err
-                              console.log "Couldn't fetch the origin"
+                              console.log "Couldn't fetch the origin for app."
                             else
                               @emit 'ReviewIsAdded', {
                                 origin
