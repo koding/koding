@@ -1,11 +1,5 @@
 class DomainCreationForm extends KDTabViewWithForms
-#  domainNameValidation =
-#    rules      :
-#      required : yes
-#      regExp   : /^([\da-z\.-]+)\.([a-z\.]{2,6})$/i
-#    messages   :
-#      required : "Enter your domain name"
-#      regExp   : "This doesn't look like a valid domain name."
+
   domainOptions = [
       { title : "Create a subdomain", value : "subdomain" }
       { title : "I want to register a domain", value : "new" }
@@ -35,7 +29,7 @@ class DomainCreationForm extends KDTabViewWithForms
                 @registerDomain()
             createButton              :
               title                   : "Add Domain"
-              style                   : "cupid-green hidden"
+              style                   : "cupid-green"
               type                    : "submit"
               loader                  :
                 color                 : "#ffffff"
@@ -75,14 +69,16 @@ class DomainCreationForm extends KDTabViewWithForms
               defaultValue            : "subdomain"
               radios                  : domainOptions
               change                  : =>
-                {DomainOption, domainName, domains, regYears} = @forms["Domain Address"].inputs
+                {DomainOption, domainName, domains, regYears, extensionSelect} = @forms["Domain Address"].inputs
                 {checkButton, registerButton} = @forms["Domain Address"].buttons
                 actionState = DomainOption.getValue()
+                domainName.setValue ''
                 domainName.getElement().setAttribute 'placeholder', switch actionState
                   when "new"
                     @suggestionBox?.show()
                     # domainName.setValidation domainNameValidation
                     domains.hide()
+                    extensionSelect.show()
                     regYears.show()
                     createButton.hide()
                     checkButton.show()
@@ -92,6 +88,7 @@ class DomainCreationForm extends KDTabViewWithForms
                     @suggestionBox?.hide()
                     # domainName.setValidation domainNameValidation
                     domains.hide()
+                    extensionSelect.hide()
                     regYears.hide()
                     checkButton.hide()
                     registerButton.hide()
@@ -100,6 +97,7 @@ class DomainCreationForm extends KDTabViewWithForms
                   when "subdomain"
                     # domainName.unsetValidation()
                     @suggestionBox?.hide()
+                    extensionSelect.hide()
                     domains.show()
                     regYears.hide()
                     checkButton.hide()
@@ -136,6 +134,14 @@ class DomainCreationForm extends KDTabViewWithForms
                       required        : yes
                     messages          :
                       required        : "Please select a parent domain."
+                extensionSelect       :
+                  cssClass            : "domains hidden"
+                  itemClass           : KDSelectBox
+                  validate            :
+                    rules             :
+                      required        : yes
+                    messages          :
+                      required        : "Please select an extension"
             suggestionBox             :
               type                    : "hidden"
     form = @forms["Domain Address"]
@@ -151,17 +157,22 @@ class DomainCreationForm extends KDTabViewWithForms
       for domain in userDomains
         if not domain.regYears > 0
           domainList.push {title:".#{domain.domain}", value:domain.domain}
-      @forms["Domain Address"].inputs.domains.setSelectOptions domainList
+      {domains, extensionSelect} = @forms["Domain Address"].inputs
+      domains.setSelectOptions domainList
+      availableTldList = ["com", "net", "org"]
+      extensionsList = ({title:'.'+ext, value:ext} for ext in availableTldList)
+      extensionSelect.setSelectOptions extensionsList
+      extensionSelect.setDefaultValue availableTldList[0]
 
   checkAvailability: ->
     form = @forms["Domain Address"]
-    domainInput       = domainName
-    domainName        = form.inputs.domainName.getValue()
-    splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
-    domain            = splittedDomain[1]
-    tld               = splittedDomain[2]
-
+    domain            = form.inputs.domainName.getValue()
+    tld               = form.inputs.extensionSelect.getValue()
     {createButton, checkButton, registerButton} = form.buttons
+    unless domain.match(/^\w+$/)
+      notifyUser "Please select the extension from the select box"
+      checkButton.hideLoader()
+      return
     @clearSuggestions()
     KD.remote.api.JDomain.getTldPrice tld, (tldPrice) => 
       KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status, price, suggestions) =>
@@ -194,13 +205,14 @@ class DomainCreationForm extends KDTabViewWithForms
     {createButton, registerButton} = form.buttons
     @clearSuggestions()
 
-    {DomainOption, domainName, regYears, domains} = form.inputs
+    {DomainOption, domainName, regYears, domains, extensionSelect} = form.inputs
     domainInput       = domainName
-    domainName        = form.inputs.domainName.getValue()
-    splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
-    domain            = splittedDomain[1]
-    tld               = splittedDomain[2]
-
+    domain            = domainName.getValue()
+    tld               = extensionSelect.getValue()
+    unless domain.match(/^\w+$/)
+      notifyUser "Please select the extension from the select box"
+      registerButton.hideLoader()
+      return
     domainOptionValue = DomainOption.getValue()
 
     if domainOptionValue is 'new'
@@ -233,7 +245,7 @@ class DomainCreationForm extends KDTabViewWithForms
 
 
     else if domainOptionValue is 'existing'
-      @createDomain {domainName, regYears:0, domainType:'existing'}, (err, domain)=>
+      @createDomain {domain, regYears:0, domainType:'existing'}, (err, domain)=>
         createButton.hideLoader()
         if err
           warn err
@@ -246,12 +258,12 @@ class DomainCreationForm extends KDTabViewWithForms
 
     else # create a subdomain
       subDomainPattern = /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
-      unless subDomainPattern.test domainName
+      unless subDomainPattern.test domain
         createButton.hideLoader()
         return notifyUser "#{domainName} is an invalid subdomain."
-      domainName = "#{domainName}.#{domains.getValue()}"
+      domain = "#{domainName}.#{domains.getValue()}"
 
-      @createDomain {domainName, regYears:0, domainType:'subdomain'}, (err, domain)=>
+      @createDomain {domain, regYears:0, domainType:'subdomain'}, (err, domain)=>
         createButton.hideLoader()
         if err
           warn err
@@ -285,7 +297,7 @@ class DomainCreationForm extends KDTabViewWithForms
     {domainName}    = form.inputs
     {suggestionBox} = form.fields
     if not available
-      partial         = "<p>This domain is already registered. #{'You may click and try one below.' ? suggestions.length > 0 : ''}</p>"
+      partial         = "<p>This domain is already registered. #{if suggestions.length > 0 then 'You may click and try one below.' else ''}</p>"
     else
       partial         = "<p>Domain price is: #{price}$</p>"
 
@@ -302,7 +314,7 @@ class DomainCreationForm extends KDTabViewWithForms
   showSuccess:(domain) ->
     @clearSuggestions()
     form            = @forms["Domain Address"]
-    {domainName}    = form.inputs
+    {domainName, extensionSelect}    = form.inputs
     {suggestionBox} = form.fields
     {close, createButton, cancel, another} = form.buttons
 
@@ -321,7 +333,7 @@ class DomainCreationForm extends KDTabViewWithForms
       # partial : "<b>Thank you!</b><br>Your domain #{domainName.getValue()} has been added to our database. Please go to your provider's website and add a CNAME record mapping to kontrol.in.koding.com."
 
       # change this part when registering is there.
-      partial : "<b>Thank you!</b><br>Your subdomain <strong>#{domainName.getValue()}</strong> has been added to our database. You can dismiss this panel and point your new domain to one of your VMs on the settings screen."
+      partial : "<b>Thank you!</b><br>Your subdomain <strong>#{domainName.getValue()}.#{extensionSelect.getValue()}</strong> has been added to our database. You can dismiss this panel and point your new domain to one of your VMs on the settings screen."
       click   : => @reset()
 
 
