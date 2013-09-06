@@ -123,10 +123,10 @@ class AccountAppController extends AppController
         url       : shareUrl
         shortenURL: false
         twitter   :
-          text    : "Join to Koding! The next generation develepment environment #{shareUrl}"
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
         linkedin  :
-          title   : "Join to Koding!"
-          text    : "The next generation development environment #{shareUrl}"
+          title   : "Join me @koding!"
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
       }
 
     new KDOverlayView
