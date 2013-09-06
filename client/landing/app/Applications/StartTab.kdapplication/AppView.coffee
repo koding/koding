@@ -154,7 +154,7 @@ class StartTabMainView extends JView
             delegate : @
           , manifest
 
-      @createAppsIcons apps
+      @createAllAppIcons apps
       @createGetMoreAppsButton()
 
       @hideLoader()
@@ -180,7 +180,7 @@ class StartTabMainView extends JView
     {removedApps, newApps, existingApps, force} = changes
     return @decorateApps()  if force or existingApps.length is 0
     @removeAppIcon app  for app in removedApps
-    @createAppsIcons @appsController.getManifests()  if newApps.length > 0
+    @createAllAppIcons @appsController.getManifests()  if newApps.length > 0
 
   createAppIcon:(app, appData, bulk=no)->
 
@@ -198,7 +198,7 @@ class StartTabMainView extends JView
     # To make sure its always the last icon
     @createGetMoreAppsButton()  unless bulk
 
-  createAppsIcons:(apps)->
+  createAllAppIcons:(apps)->
     for app, appData of apps
       do (app, appData)=>
         @createAppIcon app, appData, yes
