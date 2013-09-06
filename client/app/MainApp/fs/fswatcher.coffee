@@ -33,7 +33,7 @@ class FSWatcher extends KDObject
       method     : 'fs.readDirectory'
       vmName     : @vmName
       withArgs   :
-        onChange : (change)=> @onChange @path, change
+        onChange : (change)=> @onFileChange @path, change
         path     : FSHelper.plainPath @path
         watchSubdirectories : @getOption 'recursive'
     , (err, response)=>
@@ -54,7 +54,7 @@ class FSWatcher extends KDObject
   onFileRemoved:(change)->
     # warn "File removed:", change.file.fullPath
 
-  onChange:(path, change)->
+  onFileChange:(path, change)->
 
     if @getOption 'ignoreTempChanges'
       return  if /^\.|\~$/.test change.file.name
