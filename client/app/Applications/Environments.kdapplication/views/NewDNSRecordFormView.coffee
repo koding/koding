@@ -30,13 +30,13 @@ class NewDNSRecordFormView extends KDCustomHTMLView
 
     @typeSelectBox    = new KDSelectBox
       selectOptions : [
-        {title: "A", value: "A"}
-        {title: "CNAME", value: "CNAME"}
-        {title: "MX", value: "MX"}
-        {title: "TXT", value: "TXT"}
-        {title: "NS", value: "NS"}
-        {title: "SRV", value: "SRV"}
-        {title: "AAAA", value: "AAAA"}
+        {title: "A"     , value: "A"}
+        {title: "CNAME" , value: "CNAME"}
+        {title: "MX"    , value: "MX"}
+        {title: "TXT"   , value: "TXT"}
+        {title: "NS"    , value: "NS"}
+        {title: "SRV"   , value: "SRV"}
+        {title: "AAAA"  , value: "AAAA"}
       ]
       change:=>
         if @typeSelectBox.getValue() isnt "MX"
@@ -74,7 +74,7 @@ class NewDNSRecordFormView extends KDCustomHTMLView
         @emit "newRecordCreated", recordObj
       else
         return new KDNotificationView
-          title: "You need to activate your FREE DNS Services before you can perform this action"
+          title: "#{err}"
 
   viewAppended: JView::viewAppended
 
