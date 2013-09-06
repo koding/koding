@@ -151,7 +151,6 @@ class DomainCreationForm extends KDTabViewWithForms
 
     if domainOptionValue is 'new'
       KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status, suggestions)=>
-      # KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status)=>
 
         if avErr
           createButton.hideLoader()
