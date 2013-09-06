@@ -22,7 +22,7 @@ class DomainCreationForm extends KDTabViewWithForms
       hideHandleContainer             : yes
       forms                           :
         "Domain Address"              :
-          callback                    : @bound "registerDomain"
+          callback                    : ->
           buttons                     :
             registerButton            :
               title                   : "Register Domain"
@@ -32,14 +32,27 @@ class DomainCreationForm extends KDTabViewWithForms
                 color                 : "#ffffff"
                 diameter              : 24
               callback                : =>
-
+                @registerDomain()
             createButton              :
               title                   : "Add Domain"
-              style                   : "cupid-green"
+              style                   : "cupid-green hidden"
               type                    : "submit"
               loader                  :
                 color                 : "#ffffff"
                 diameter              : 24
+              callback                : =>
+                @registerDomain()
+            checkButton              :
+              title                   : "Check Domain"
+              style                   : "cupid-green hidden"
+              type                    : "submit"
+              loader                  :
+                color                 : "#ffffff"
+                diameter              : 24
+              callback                : =>
+                @checkAvailability()
+
+
             close                     :
               title                   : "Back to settings"
               style                   : "cupid-green hidden"
@@ -63,6 +76,7 @@ class DomainCreationForm extends KDTabViewWithForms
               radios                  : domainOptions
               change                  : =>
                 {DomainOption, domainName, domains, regYears} = @forms["Domain Address"].inputs
+                {checkButton, registerButton} = @forms["Domain Address"].buttons
                 actionState = DomainOption.getValue()
                 domainName.getElement().setAttribute 'placeholder', switch actionState
                   when "new"
@@ -70,21 +84,27 @@ class DomainCreationForm extends KDTabViewWithForms
                     # domainName.setValidation domainNameValidation
                     domains.hide()
                     regYears.show()
-                    @needBilling yes
+                    createButton.hide()
+                    checkButton.show()
+                    registerButton.hide()
                     "#{KD.utils.slugify firstName}s-new-domain.com"
                   when "existing"
                     @suggestionBox?.hide()
                     # domainName.setValidation domainNameValidation
                     domains.hide()
                     regYears.hide()
-                    @needBilling no
+                    checkButton.hide()
+                    registerButton.hide()
+                    createButton.show()
                     "#{KD.utils.slugify firstName}s-existing-domain.com"
                   when "subdomain"
                     # domainName.unsetValidation()
                     @suggestionBox?.hide()
                     domains.show()
                     regYears.hide()
-                    @needBilling no
+                    checkButton.hide()
+                    registerButton.hide()
+                    createButton.show()
                     "#{KD.utils.slugify firstName}s-subdomain"
             domainName                :
               cssClass                : "domain"
@@ -94,6 +114,12 @@ class DomainCreationForm extends KDTabViewWithForms
                   required            : yes
                 messages              :
                   required            : "Subdomain name is required!"
+              keydown                 :
+                =>
+                  @clearSuggestions()
+                  {registerButton, checkButton} = form.buttons
+                  registerButton.hide()
+                  checkButton.show()
               nextElement             :
                 regYears              :
                   cssClass            : "hidden"
@@ -124,18 +150,43 @@ class DomainCreationForm extends KDTabViewWithForms
           domainList.push {title:".#{domain.domain}", value:domain.domain}
       @forms["Domain Address"].inputs.domains.setSelectOptions domainList
 
-  needBilling:(paymentRequired)->
+  checkAvailability: ->
     form = @forms["Domain Address"]
-    {createButton, registerButton} = form.buttons
+    domainInput       = domainName
+    domainName        = form.inputs.domainName.getValue()
+    splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
+    domain            = splittedDomain[1]
+    tld               = splittedDomain[2]
 
-    unless paymentRequired
-      createButton.show()
-      registerButton.hide()
-      return
-    createButton.hide()
-    registerButton.show()
+    {createButton, checkButton, registerButton} = form.buttons
+    @clearSuggestions()
+    KD.remote.api.JDomain.getTldPrice tld, (tldPrice) => 
+      KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status, price, suggestions) =>
+      # KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status)=>
+        if avErr
+          checkButton.hideLoader()
+          log domain
+          log tld
+          log avErr
+          log status
+          log suggestions
+          return notifyUser "An error occured: #{avErr}"
+        checkButton.hideLoader()
+        switch status
+          when "available"
+            checkButton.hide()
+            registerButton.show()
+            @showSuggestions true, price, suggestions
+          when "regthroughus", "regthroughothers"
+            checkButton.show()
+            registerButton.hide()
+            @showSuggestions false, price, suggestions 
+          when "unknown"
+            checkButton.show()
+            registerButton.hide()
+            notifyUser "Connections are not available. re-check the domain name availability after some time."
 
-  registerDomain:->
+  registerDomain: ->
     form = @forms["Domain Address"]
     {createButton, registerButton} = form.buttons
     @clearSuggestions()
@@ -150,38 +201,15 @@ class DomainCreationForm extends KDTabViewWithForms
     domainOptionValue = DomainOption.getValue()
 
     if domainOptionValue is 'new'
-      KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status, suggestions)=>
-
-        if avErr
-          createButton.hideLoader()
-          log domain
-          log tld
-          log avErr
-          log status
-          log suggestions
-          return notifyUser "An error occured: #{avErr}"
-
-        switch status
-          when "regthroughus", "regthroughothers"
-            @showSuggestions suggestions
-            console.log suggestions
-            registerButton.hideLoader()
-            return createButton.hideLoader()
-          when "unknown"
-            notifyUser "Connections are not available. re-check the domain name availability after some time."
-            return createButton.hideLoader()
-
-
         form = @forms["Domain Address"]
         {createButton, registerButton} = form.buttons
         paymentController = KD.getSingleton('paymentController')
         group             = KD.getSingleton("groupsController").getCurrentGroup()
-
         registerTheDomain = ->
             KD.remote.api.JDomain.registerDomain
               domainName : domainInput.getValue()
               years      : regYears.getValue()
-            , (err, domain)=>
+            , (err, domain) =>
               if err
                 warn err
                 console.log err
@@ -191,39 +219,14 @@ class DomainCreationForm extends KDTabViewWithForms
                 domain.setDomainCNameToProxyDomain()
               registerButton.hideLoader()
 
-        showPriceModal = (successCallback) ->
-          KD.remote.api.JDomain.getTldPrice tld, (tldPrice)-> 
-            registerButton.hideLoader()
-            modal           = new KDModalView
-              title         : "Confirm Domain Price for #{domainName}"
-              content       : """
-                  <div class='modalformline'>
-                    <p><label>Domain Name:  </label> <i>#{domainName}</i></p>
-                    <p><label>Price:        </label> <i>#{tldPrice} $</i></p>
-                  </div>"""
-              cssClass      : "vm-new"
-              overlay       : yes
-              buttons       :
-                No          :
-                  title     : "Cancel"
-                  cssClass  : "modal-clean-gray"
-                  callback  : =>
-                    modal.destroy()
-                Yes         :
-                  title     : "Buy"
-                  cssClass  : "modal-clean-green"
-                  callback  : =>
-                    modal.destroy()
-                    successCallback()
-
         paymentController.getBillingInfo 'user', group, (err, account)->
           need = err or not account or not account.cardNumber
           if need
             paymentController.setBillingInfo 'user', group, (success)->
               if success
-                showPriceModal registerTheDomain
+                registerTheDomain()
           else
-            showPriceModal registerTheDomain
+            registerTheDomain()
 
 
     else if domainOptionValue is 'existing'
@@ -272,17 +275,19 @@ class DomainCreationForm extends KDTabViewWithForms
 
   clearSuggestions:-> @suggestionBox?.destroy()
 
-  showSuggestions:(suggestions) ->
+  showSuggestions:(available, price, suggestions) ->
     @clearSuggestions()
 
     form            = @forms["Domain Address"]
     {domainName}    = form.inputs
     {suggestionBox} = form.fields
-    partial         = "<p>This domain is already registered. You may click and try one below.</p>"
+    if not available
+      partial         = "<p>This domain is already registered. #{'You may click and try one below.' ? suggestions.length > 0 : ''}</p>"
+    else
+      partial         = "<p>Domain price is: #{price}$</p>"
 
-    for domain, variants of suggestions
-      for variant, status of variants when status is "available"
-        partial += "<li class='#{variant}'>#{domain}.#{variant}</li>"
+    for domain in suggestions
+        partial += "<li class=''>#{domain.domain}</li><i>#{domain.price}$</i>"
 
     suggestionBox.addSubView @suggestionBox = new KDCustomHTMLView
       tagName : 'ul'
