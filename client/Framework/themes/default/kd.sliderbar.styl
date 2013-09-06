@@ -1,0 +1,76 @@
+@import "./client/Framework/themes/default/kdfn"
+
+.sliderbar-container
+  size                100%, 13px
+  border              1px solid #cfcfcf
+  border-bottom-color #dbdbdb
+  rounded             3px
+  gradient            #e7e6e6, #fff
+  rel()
+
+  margin              50px
+
+  .sliderbar-label
+    top               20px
+    font-size         11px
+    color             #999
+    width             40px
+    text-align        center
+    margin            0 0 0 -20px
+    z-index           1
+    abs()
+    &.active
+      color           #d77d13
+    &:after
+      content         ""
+      size            1px, 3px
+      background      #aaa
+      left            50%
+      bottom          100%
+      abs()
+
+  .handle
+    size              14px, 17px
+    rounded           3px
+    shadow            0 -1px 0 0 #ddd, 0 1px 0 0 #999, 0 0 0 1px #bbb
+    gradient          #f1f1f1, #dedede
+    top               -2px
+    left              0
+    z-index           3
+    cursor            pointer !important
+    margin            0 0 0 -7px
+    abs()
+    &:active
+      z-index         4
+    &:after
+      content         ""
+      display         ""
+      background      #fcfcfc
+      border-right    1px solid #d1d1d1
+      size            1px 60%
+      top             20%
+      left            50%
+      margin          0 0 0 -4px
+      abs()
+    &:before
+      content         ""
+      display         ""
+      background      #d1d1d1
+      border-left     1px solid #fcfcfc
+      size            1px 60%
+      top             20%
+      left            50%
+      margin          0 0 0 2px
+      abs()
+
+  .bar
+    size              40px, 100%
+    rounded           3px
+    gradient          #f39e3e, #d77d13
+    shadow            0 -1px 0 rgba(255,255,255,.4), 
+                      0 1px 0 rgba(0,0,0,0.2), 
+                      0 0 0 1px #cb7b2c, 
+                      inset 0 1px 2px rgba(255,255,255,.5)
+    overflow          hidden
+    z-index           2
+    abs()
