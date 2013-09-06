@@ -21,8 +21,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     version        or= ''
     appPath          = ''
 
-    if not authorNick
-      authorNick = KD.whoami().profile.nickname
+    authorNick or= KD.nick()
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}"
 
