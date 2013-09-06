@@ -152,8 +152,6 @@ class KodingAppsController extends KDController
   syncAppStorageWithFS:(force=no, callback=noop)->
 
     currentApps = Object.keys(@getManifests())
-    removedApps = []
-    newApps     = []
 
     log "Synchronizing AppStorage with FileSystem..."
 
@@ -162,12 +160,8 @@ class KodingAppsController extends KDController
       return warn err  if err
 
       existingApps = @filterAppsFromFileList files
-
-      for app in existingApps
-        newApps.push app  if app not in currentApps
-
-      for app in currentApps
-        removedApps.push app  if app not in existingApps
+      newApps      = app for app in existingApps when app not in currentApps
+      removedApps  = app for app in currentApps  when app not in existingApps
 
       log "APPS FOUND IN AppStorage:", currentApps
       log "APPS FOUND IN FS:", existingApps
@@ -265,10 +259,9 @@ class KodingAppsController extends KDController
 
   getPublishedApps: (callback) ->
     # return unless KD.isLoggedIn()
-    appNames = []
-    appNames.push appName for appName, manifest of @getManifests()
+    appNames = appName for appName, manifest of @getManifests()
+    query    = "manifest.name": "$in": appNames
 
-    query = "manifest.name": "$in": appNames
     KD.remote.api.JApp.someWithRelationship query, {}, (err, apps) =>
       @publishedApps = map = {}
       apps.forEach (app) =>
@@ -788,14 +781,14 @@ class KodingAppsController extends KDController
 
     for key, app of @getManifests()
       fileTypes = app.fileTypes
-      if fileTypes
-        for type in fileTypes
-          map[type] = [] unless map[type]
-          map[type].push app.name
+      continue  unless fileTypes
+      for type in fileTypes
+        map[type] or= []
+        map[type].push app.name
 
     # Still there should be a more elagant way to add ace file types into map.
     for type in KD.getAppOptions("Ace").fileTypes
-      map[type] = [] unless map[type]
+      map[type] or= []
       map[type].push "Ace"
 
   fetchUserDefaultAppConfig: ->
