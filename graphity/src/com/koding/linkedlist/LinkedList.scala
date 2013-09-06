@@ -30,6 +30,10 @@ object LinkedList {
 
   // Inserts entry between previous and the following node.
   def insertAfter(previous: Node, entry: Node): Unit = {
+    if (entry.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null) {
+      throw new IllegalArgumentException("Entry is already part of a list.")
+    }
+
     val head = previous.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING).getEndNode
     entry.createRelationshipTo(head, LINKED_LIST_HEAD)
 
@@ -45,6 +49,10 @@ object LinkedList {
 
   // Inserts entry between next and the node before.
   def insertBefore(next: Node, entry: Node): Unit = {
+    if (entry.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null) {
+      throw new IllegalArgumentException("Entry is already part of a list.")
+    }
+
     val head = next.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING).getEndNode
     entry.createRelationshipTo(head, LINKED_LIST_HEAD)
 
