@@ -131,9 +131,11 @@ class FSHelper
 
   @createFileFromPath = (path, type = "file")->
     return warn "pass a path to create a file instance" unless path
+    vmName     = @getVMNameFromPath(path) or null
+    path       = @plainPath path  if vmName
     parentPath = @getParentPath path
     name       = @getFileNameFromPath path
-    return @createFile { path, parentPath, name, type }
+    return @createFile { path, parentPath, name, type, vmName }
 
   @createFile = (data)->
     unless data and data.type and data.path

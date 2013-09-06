@@ -35,10 +35,15 @@ class DNSRecordListController extends KDListViewController
     {domain} = @getData()
 
     domain.deleteDNSRecord {recordType, value, host}, (err, response)=>
+    # domain.deleteDNSRecord {recordType, value}, (err, response)=>
+      log err
       unless err
         @removeItem recordItem
+        log "=========000=======000=========="
+        return new KDNotificationView {title: "Record has been removed."}
       else
-        new KDNotificationView
+        log err
+        return new KDNotificationView
           title : "An error occured while removing your record. Please try again."
 
   updateRecordItem:(oldData, recordItem)->

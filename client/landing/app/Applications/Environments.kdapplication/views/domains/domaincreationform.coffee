@@ -1,24 +1,20 @@
 class DomainCreationForm extends KDTabViewWithForms
-
-  domainNameValidation =
-    rules      :
-      required : yes
-      regExp   : /^([\da-z\.-]+)\.([a-z\.]{2,6})$/i
-    messages   :
-      required : "Enter your domain name"
-      regExp   : "This doesn't look like a valid domain name."
+#  domainNameValidation =
+#    rules      :
+#      required : yes
+#      regExp   : /^([\da-z\.-]+)\.([a-z\.]{2,6})$/i
+#    messages   :
+#      required : "Enter your domain name"
+#      regExp   : "This doesn't look like a valid domain name."
+  domainOptions = [
+      { title : "Create a subdomain", value : "subdomain" }
+      { title : "I want to register a domain", value : "new" }
+      { title : "I already have a domain", value : "existing" }
+    ]
 
   constructor:->
 
     {nickname, firstName, lastName} = KD.whoami().profile
-
-    paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
-    domainOptions     = [
-      { title : "Create a subdomain",                                      value : "subdomain" }
-      { title : "I want to register a domain <cite>coming soon...</cite>", value : "new" }
-      { title : "I already have a domain <cite>coming soon...</cite>",     value : "existing" }
-    ]
 
     super
       navigable                       : no
@@ -28,23 +24,14 @@ class DomainCreationForm extends KDTabViewWithForms
         "Domain Address"              :
           callback                    : @bound "registerDomain"
           buttons                     :
-            billingButton             :
-              title                   : "Billing Info"
+            registerButton            :
+              title                   : "Register Domain"
               style                   : "cupid-green hidden"
               type                    : "submit"
               loader                  :
                 color                 : "#ffffff"
                 diameter              : 24
               callback                : =>
-                form = @forms["Domain Address"]
-                {createButton, billingButton} = form.buttons
-
-                billingButton.hideLoader()
-
-                paymentController.setBillingInfo 'user', group, (success)->
-                  if success
-                    billingButton.hide()
-                    createButton.show()
 
             createButton              :
               title                   : "Add Domain"
@@ -122,7 +109,6 @@ class DomainCreationForm extends KDTabViewWithForms
                       required        : "Please select a parent domain."
             suggestionBox             :
               type                    : "hidden"
-
     form = @forms["Domain Address"]
     {createButton} = form.buttons
 
@@ -140,71 +126,109 @@ class DomainCreationForm extends KDTabViewWithForms
 
   needBilling:(paymentRequired)->
     form = @forms["Domain Address"]
-    {createButton, billingButton} = form.buttons
+    {createButton, registerButton} = form.buttons
 
     unless paymentRequired
       createButton.show()
-      billingButton.hide()
+      registerButton.hide()
       return
-
-    paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
-
-    paymentController.getBillingInfo 'user', group, (err, account)->
-      need = err or not account or not account.cardNumber
-      if need
-        billingButton.show()
-        createButton.hide()
-      else
-        createButton.show()
-        billingButton.hide()
+    createButton.hide()
+    registerButton.show()
 
   registerDomain:->
     form = @forms["Domain Address"]
-    {createButton} = form.buttons
+    {createButton, registerButton} = form.buttons
     @clearSuggestions()
 
     {DomainOption, domainName, regYears, domains} = form.inputs
-    splittedDomain    = domainName.getValue().split "."
-    domain            = splittedDomain.first
-    tld               = splittedDomain.slice(1).join('')
     domainInput       = domainName
-    domainName        = domainInput.getValue()
+    domainName        = form.inputs.domainName.getValue()
+    splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
+    domain            = splittedDomain[1]
+    tld               = splittedDomain[2]
 
     domainOptionValue = DomainOption.getValue()
 
     if domainOptionValue is 'new'
       KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status, suggestions)=>
+      # KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status)=>
 
         if avErr
           createButton.hideLoader()
           log domain
           log tld
           log avErr
+          log status
+          log suggestions
           return notifyUser "An error occured: #{avErr}"
 
         switch status
           when "regthroughus", "regthroughothers"
             @showSuggestions suggestions
+            console.log suggestions
+            registerButton.hideLoader()
             return createButton.hideLoader()
           when "unknown"
-            notifyUser "An error occured. Please try again later."
+            notifyUser "Connections are not available. re-check the domain name availability after some time."
             return createButton.hideLoader()
 
-        KD.remote.api.JDomain.registerDomain
-          domainName : domainInput.getValue()
-          years      : regYears.getValue()
-        , (err, domain)=>
-          createButton.hideLoader()
-          if err
-            warn err
-            notifyUser "An error occured. Please try again later."
+
+        form = @forms["Domain Address"]
+        {createButton, registerButton} = form.buttons
+        paymentController = KD.getSingleton('paymentController')
+        group             = KD.getSingleton("groupsController").getCurrentGroup()
+
+        registerTheDomain = ->
+            KD.remote.api.JDomain.registerDomain
+              domainName : domainInput.getValue()
+              years      : regYears.getValue()
+            , (err, domain)=>
+              if err
+                warn err
+                console.log err
+                notifyUser "An error occured. Please try again later."
+              else
+                @showSuccess domain
+                domain.setDomainCNameToProxyDomain()
+              registerButton.hideLoader()
+
+        showPriceModal = (successCallback) ->
+          KD.remote.api.JDomain.getTldPrice tld, (tldPrice)-> 
+            registerButton.hideLoader()
+            modal           = new KDModalView
+              title         : "Confirm Domain Price for #{domainName}"
+              content       : """
+                  <div class='modalformline'>
+                    <p><label>Domain Name:  </label> <i>#{domainName}</i></p>
+                    <p><label>Price:        </label> <i>#{tldPrice} $</i></p>
+                  </div>"""
+              cssClass      : "vm-new"
+              overlay       : yes
+              buttons       :
+                No          :
+                  title     : "Cancel"
+                  cssClass  : "modal-clean-gray"
+                  callback  : =>
+                    modal.destroy()
+                Yes         :
+                  title     : "Buy"
+                  cssClass  : "modal-clean-green"
+                  callback  : =>
+                    modal.destroy()
+                    successCallback()
+
+        paymentController.getBillingInfo 'user', group, (err, account)->
+          need = err or not account or not account.cardNumber
+          if need
+            paymentController.setBillingInfo 'user', group, (success)->
+              if success
+                showPriceModal registerTheDomain
           else
-            @showSuccess domain
-            domain.setDomainCNameToProxyDomain()
+            showPriceModal registerTheDomain
+
 
     else if domainOptionValue is 'existing'
-      @createDomain {domainName, regYears:0}, (err, domain)=>
+      @createDomain {domainName, regYears:0, domainType:'existing'}, (err, domain)=>
         createButton.hideLoader()
         if err
           warn err
@@ -214,6 +238,7 @@ class DomainCreationForm extends KDTabViewWithForms
         else
           @showSuccess domain
 
+
     else # create a subdomain
       subDomainPattern = /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
       unless subDomainPattern.test domainName
@@ -221,7 +246,7 @@ class DomainCreationForm extends KDTabViewWithForms
         return notifyUser "#{domainName} is an invalid subdomain."
       domainName = "#{domainName}.#{domains.getValue()}"
 
-      @createDomain {domainName, regYears:0}, (err, domain)=>
+      @createDomain {domainName, regYears:0, domainType:'subdomain'}, (err, domain)=>
         createButton.hideLoader()
         if err
           warn err
@@ -231,20 +256,24 @@ class DomainCreationForm extends KDTabViewWithForms
         else
           @showSuccess domain
 
-  createDomain:(params, callback)->
+
+  createDomain:(params, callback) ->
+    console.log params
     KD.remote.api.JDomain.createDomain
         domain         : params.domainName
         regYears       : params.regYears
         proxy          : { mode: 'vm' }
         hostnameAlias  : []
+        domainType     : params.domainType
         loadBalancer   :
-            mode       : "roundrobin"
+            # mode       : "roundrobin"
+            mode         : ""
       , (err, domain)=>
         callback err, domain
 
   clearSuggestions:-> @suggestionBox?.destroy()
 
-  showSuggestions:(suggestions)->
+  showSuggestions:(suggestions) ->
     @clearSuggestions()
 
     form            = @forms["Domain Address"]
@@ -263,7 +292,7 @@ class DomainCreationForm extends KDTabViewWithForms
       click   : (event)->
         domainName.setValue $(event.target).closest('li').text()
 
-  showSuccess:(domain)->
+  showSuccess:(domain) ->
     @clearSuggestions()
     form            = @forms["Domain Address"]
     {domainName}    = form.inputs
@@ -319,7 +348,7 @@ class DomainCreationForm extends KDTabViewWithForms
     domainName.setValue ''
     domainName.setFocus()
 
-  notifyUser = (msg)->
+  notifyUser = (msg) ->
     new KDNotificationView
       type     : 'tray'
       title    : msg

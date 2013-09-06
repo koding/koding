@@ -110,6 +110,7 @@ module.exports = [
   "Framework/components/modals/KDModalViewLoad.coffee",
   "Framework/components/modals/KDBlockingModalView.coffee",
   "Framework/components/modals/KDModalViewWithForms.coffee",
+  "Framework/components/modals/KDModalViewStack.coffee",
 
   # notification
   "Framework/components/notifications/KDNotificationView.coffee",
@@ -242,6 +243,7 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   "app/CommonViews/ModalViewWithTerminal.coffee",
+  "app/CommonViews/DNDUploader.coffee",
 
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
@@ -263,6 +265,8 @@ module.exports = [
   "app/MainApp/navigation/navigationinvitationlink.coffee",
   "app/MainApp/navigation/navigationactivitylink.coffee",
   "app/MainApp/navigation/navigationappslink.coffee",
+  "app/MainApp/navigation/navigationdocsjobslink.coffee",
+  "app/MainApp/navigation/navigationpromotelink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",
@@ -311,6 +315,9 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/vmdetailsview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
+
+  "app/MainApp/filetree/helpers/dropboxuploader.coffee",
+
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
   "app/MainApp/filetree/bottomlist/finderbottomlistitem.coffee",
