@@ -265,5 +265,5 @@ class OpinionBodyView extends JView
   
   pistachio:->
     """
-      {{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}
+      {{@utils.expandUsernames @utils.applyMarkdown(#(body)), "pre, code"}}
     """
