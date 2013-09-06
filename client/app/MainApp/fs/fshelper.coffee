@@ -188,4 +188,24 @@ class FSHelper
   @isPublicPath = (path)->
     /^\/home\/.*\/Web\//.test FSHelper.plainPath path
 
+  @s3 =
+    get    : (name)->
+      "#{KD.config.uploadsUri}/#{KD.whoami().getId()}/#{name}"
+
+    upload : (name, content, callback)->
+      vmController = KD.getSingleton 'vmController'
+      vmController.run
+        method    : 's3.store'
+        withArgs  : {name, content}
+      , (err, res)->
+        if err then callback err
+        else callback null, FSHelper.s3.get name
+
+    remove : (name, callback)->
+      vmController = KD.getSingleton 'vmController'
+      vmController.run
+        method    : 's3.delete'
+        withArgs  : {name}
+      , callback
+
 KD.classes.FSHelper = FSHelper

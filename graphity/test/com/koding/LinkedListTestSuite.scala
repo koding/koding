@@ -58,24 +58,54 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
     addEntryBefore(tail, entry1)
     addEntryBefore(tail, entry2)
 
-    val list = getAll(tail)
-    assert(list.size === 2)
-    assert(list.get(0) === entry1)
-    assert(list.get(1) === entry2)
+    val list1 = getAll(head)
+    assert(list1.size === 2)
+    assert(list1.get(0) === entry1)
+    assert(list1.get(1) === entry2)
+
+    val list2 = getAll(tail)
+    assert(list2.size === 2)
+    assert(list2.get(0) === entry1)
+    assert(list2.get(1) === entry2)
+
+    val list3 = getAll(entry1)
+    assert(list3.size === 2)
+    assert(list3.get(0) === entry1)
+    assert(list3.get(1) === entry2)
   }
-  
+
   test("inserting at head and tail") {
     val entry1 = createNode("entry1")
     val entry2 = createNode("entry2")
     val entry3 = createNode("entry3")
-    
+
     addEntryAfter(tail + ":head", entry2)
     addEntryBefore(entry2 + ":tail", entry3)
     addEntryAfter(entry2 + ":head", entry1)
-    
+
     assert(getPrevious(entry1) === head)
     assert(getPrevious(entry2) === entry1)
     assert(getPrevious(entry3) === entry2)
+    assert(getPrevious(tail) === entry3)
+  }
+
+  test("initializing a list multiple times") {
+    createList(head, tail)
+    createList(head, tail)
+
+    val entry1 = createNode("entry1")
+    addEntryBefore(tail, entry1)
+
+    assert(getPrevious(entry1) === head)
+    assert(getPrevious(tail) === entry1)
+  }
+
+  test("inserting an entry twice fails") {
+    val entry1 = createNode("entry1")
+    addEntryBefore(tail, entry1)
+    intercept[IllegalArgumentException] {
+      addEntryBefore(tail, entry1)
+    }
   }
 
   def createNode(name: String) = {
@@ -98,14 +128,18 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
     val map = new MultivaluedMapImpl();
     map.add("previous", previous)
     map.add("entry", entry)
-    linkedlist.path("entry").post(classOf[ClientResponse], map)
+    if (linkedlist.path("entry").post(classOf[ClientResponse], map).getClientResponseStatus() != ClientResponse.Status.NO_CONTENT) {
+      throw new IllegalArgumentException
+    }
   }
 
   def addEntryBefore(next: String, entry: String) {
     val map = new MultivaluedMapImpl();
     map.add("next", next)
     map.add("entry", entry)
-    linkedlist.path("entry").post(classOf[ClientResponse], map)
+    if (linkedlist.path("entry").post(classOf[ClientResponse], map).getClientResponseStatus() != ClientResponse.Status.NO_CONTENT) {
+      throw new IllegalArgumentException
+    }
   }
 
   def getPrevious(entry: String) = {

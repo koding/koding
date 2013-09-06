@@ -135,8 +135,8 @@ module.exports =
         servicesEndpoint: "/-/services/broker"
         sockJS   : "http://stage-broker-#{version}.in.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
-      # Is this correct?
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
