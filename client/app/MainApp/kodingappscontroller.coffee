@@ -81,7 +81,6 @@ class KodingAppsController extends KDController
         @fetchAppsFromDb (err, apps)=>
           if err and not @_loadedOnce
             @fetchAppsFromFs (err, apps)=>
-              @_loadedOnce = yes
               return callback? err  if err
               kb apps
           else if err
@@ -124,6 +123,7 @@ class KodingAppsController extends KDController
     return if @_fetchQueue.length > 1
 
     @watcher.watch KD.utils.getTimedOutCallback (err, files)=>
+      @_loadedOnce = yes
       if err or not Array.isArray files or files.length is 0
         @putAppsToAppStorage {}
         callback()  for callback in @_fetchQueue
@@ -186,6 +186,7 @@ class KodingAppsController extends KDController
           log "APPS FETCHED"
           @emit "AppsDataChanged", {removedApps, newApps, existingApps, force}
 
+      @_loadedOnce = yes
       callback?()
 
   filterAppsFromFileList:(files)->
