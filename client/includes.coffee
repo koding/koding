@@ -324,12 +324,14 @@ module.exports = [
 
   # fs representation
   "app/MainApp/fs/fshelper.coffee",
+  "app/MainApp/fs/fswatcher.coffee",
   "app/MainApp/fs/fsitem.coffee",
   "app/MainApp/fs/fsfile.coffee",
   "app/MainApp/fs/fsfolder.coffee",
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
   "app/MainApp/fs/fsvm.coffee",
+  "app/MainApp/fs/appswatcher.coffee",
 
   # avatararea
   "app/MainApp/avatararea/avatarareapopup.coffee",
