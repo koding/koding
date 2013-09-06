@@ -38,20 +38,20 @@ class KodingAppsController extends KDController
 
     mainController.on "accountChanged.to.loggedIn", @bound "getPublishedApps"
 
-    #  - ANewAppAdded
-    #  - AFileRemoved
-    #  - AnAppRemoved
-    #  - AFileChanged
-    #  - AManifestChanged
+    #  - NewAppIsAdded
+    #  - FileIsRemoved
+    #  - AppIsRemoved
+    #  - FileHasChanged
+    #  - ManifestHasChanged
 
-    @watcher.on "ANewAppAdded", (app, change)=>
+    @watcher.on "NewAppIsAdded", (app, change)=>
       @fetchAppFromFs app, => @syncAppStorageWithFS()
 
-    @watcher.on "AnAppRemoved", (app, change)=>
+    @watcher.on "AppIsRemoved", (app, change)=>
       @invalidateDeletedApps [app], no, =>
         @emit "InvalidateApp", app
 
-    @watcher.on "AManifestChanged", (app, change)=>
+    @watcher.on "ManifestHasChanged", (app, change)=>
       @fetchAppFromFs app, =>
         @emit "UpdateAppData", app, @getManifest app
 
