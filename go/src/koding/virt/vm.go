@@ -103,6 +103,18 @@ func (vm *VM) GetPermissions(user *User) *Permissions {
 	return nil
 }
 
+func (vm *VM) ApplyDefaults() {
+	if vm.NumCPUs == 0 {
+		vm.NumCPUs = 1
+	}
+	if vm.MaxMemoryInMB == 0 {
+		vm.MaxMemoryInMB = 1024
+	}
+	if vm.DiskSizeInMB == 0 {
+		vm.DiskSizeInMB = 1200
+	}
+}
+
 func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
 	vm.Unprepare()
 
@@ -247,9 +259,6 @@ func (vm *VM) MountRBD(mountDir string) error {
 			return commandError("rbd info failed.", err, out)
 		}
 
-		if vm.DiskSizeInMB == 0 {
-			vm.DiskSizeInMB = 1200
-		}
 		if vm.SnapshotName == "" {
 			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", VMPool, "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "1").CombinedOutput(); err != nil {
 				return commandError("rbd create failed.", err, out)

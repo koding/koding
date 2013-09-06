@@ -37,7 +37,7 @@ module.exports = class JDomain extends jraphical.Module
                        'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord', 'updateDNSRecord'
                        'remove'
                       ]
-      static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
+      static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain', 'getTldPrice']
 
     sharedEvents    :
       static        : [
@@ -55,6 +55,15 @@ module.exports = class JDomain extends jraphical.Module
         type        : String
         required    : yes
         set         : (value)-> value.toLowerCase()
+
+      domainType    :
+        type        : String
+        enum        : ['invalid domain type', [
+          'new'
+          'subdomain'
+          'existing'
+        ]]
+        default :  'subdomain'
 
       hostnameAlias : [String]
 
@@ -77,12 +86,14 @@ module.exports = class JDomain extends jraphical.Module
         mode        :
           type      : String
           enum      : ['invalid load balancer mode',[
-            'roundrobin'
+            ''
+            # 'roundrobin'
             # 'sticky'
             # 'weighted'
             # 'weighted-roundrobin'
           ]]
-          default   : 'roundrobin'
+          # default   : 'roundrobin'
+          default : ''
         index       :
           type      : Number
           default   : 0
@@ -105,9 +116,13 @@ module.exports = class JDomain extends jraphical.Module
   @isDomainEligible: (params, callback)->
     {delegate, domain} = params
 
-    return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
+    # return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
+    # return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
 
-    match = domain.match /(.*)\.([\w\-]+)\.kd\.io$/
+    # match = domain.match /(.*)\.([\w\-]+)\.kd\.io$/
+    # match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
+
+    match = []
 
     return callback new KodingError("Invalid domain: #{domain}.")  unless match
 
@@ -165,17 +180,20 @@ module.exports = class JDomain extends jraphical.Module
   @isDomainAvailable = (domainName, tld, callback)->
     domainManager.domainService.isDomainAvailable domainName, tld, callback
 
+  @getTldPrice = (tld, callback)->
+    domainManager.domainService.getTldPrice tld, callback
+
   @registerDomain = permit 'create domains',
     success: (client, data, callback)->
       #default user info / all domains are under koding account.
       params =
         domainName         : data.domainName
         years              : data.years
-        customerId         : "9663202"
-        regContactId       : "28083911"
-        adminContactId     : "28083911"
-        techContactId      : "28083911"
-        billingContactId   : "28083911"
+        customerId         : "10073817"
+        regContactId       : "29527195"
+        adminContactId     : "29527195"
+        techContactId      : "29527195"
+        billingContactId   : "29527195"
         invoiceOption      : "NoInvoice"
         protectPrivacy     : no
 
@@ -196,7 +214,8 @@ module.exports = class JDomain extends jraphical.Module
               orderId        :
                 resellerClub : data.entityid
               loadBalancer   :
-                  mode       : "roundrobin"
+                  # mode       : "roundrobin"
+                  mode       : ""
               , (err, model) =>
                 callback err, model
           else
@@ -243,8 +262,7 @@ module.exports = class JDomain extends jraphical.Module
       delegate.fetchDomains (err, domains)->
         return callback err if err
         for domain in domains
-          console.log "Testing domain:", domain, selector.domainName
-          # console.log "HULOOOOOOOOOOOGG"
+          # console.log "Testing domain:", domain, selector.domainName
           return callback null, domain if domain.domain is selector.domainName
 
   fetchProxyRules: (callback)->

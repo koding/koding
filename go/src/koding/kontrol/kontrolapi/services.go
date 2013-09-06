@@ -10,7 +10,6 @@ import (
 )
 
 func GetUsers(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/services")
 	users := make([]string, 0)
 	services := proxyDB.GetServices()
 
@@ -30,7 +29,6 @@ func GetUsers(writer http.ResponseWriter, req *http.Request) {
 func GetServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	username := vars["username"]
-	fmt.Printf("GET\t/services/%s\n", username)
 	services := make([]string, 0)
 	service, _ := proxyDB.GetService(username)
 
@@ -51,7 +49,6 @@ func GetService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	servicename := vars["servicename"]
 	username := vars["username"]
-	fmt.Printf("GET\t/services/%s/%s\n", username, servicename)
 
 	service, _ := proxyDB.GetService(username)
 	data, err := json.MarshalIndent(service.Services[servicename], "", "  ")
@@ -68,7 +65,6 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	servicename := vars["servicename"]
 	username := vars["username"]
 	key := vars["key"]
-	fmt.Printf("POST\t/services/%s/%s/%s\n", username, servicename, key)
 
 	var msg ProxyPostMessage
 
@@ -132,7 +128,6 @@ func GetKey(writer http.ResponseWriter, req *http.Request) {
 	servicename := vars["servicename"]
 	username := vars["username"]
 	key := vars["key"]
-	fmt.Printf("GET\t/services/%s/%s/%s\n", username, servicename, key)
 
 	res, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
@@ -153,7 +148,6 @@ func DeleteService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	servicename := vars["servicename"]
 	username := vars["username"]
-	fmt.Printf("DELETE\t/services/%s/%s\n", username, servicename)
 
 	err := proxyDB.DeleteService(username, servicename)
 	if err != nil {
@@ -171,7 +165,6 @@ func DeleteKey(writer http.ResponseWriter, req *http.Request) {
 	key := vars["key"]
 	servicename := vars["servicename"]
 	username := vars["username"]
-	fmt.Printf("DELETE\t/services/%s/%s/%s\n", username, servicename, key)
 
 	err := proxyDB.DeleteKey(username, servicename, key)
 	if err != nil {
@@ -186,7 +179,6 @@ func DeleteKey(writer http.ResponseWriter, req *http.Request) {
 func DeleteServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	username := vars["username"]
-	fmt.Printf("DELETE\t/services/%s\n", username)
 
 	err := proxyDB.DeleteServices(username)
 	if err != nil {

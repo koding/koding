@@ -30,7 +30,7 @@ lxc.cgroup.cpu.shares = 1000
 lxc.cgroup.memory.limit_in_bytes = 100M
 
 {{if swapAccountingEnabled}}
-# fixed limit
+# initial limit, will be changed by limiter
 lxc.cgroup.memory.memsw.limit_in_bytes = 1G
 {{end}}
 

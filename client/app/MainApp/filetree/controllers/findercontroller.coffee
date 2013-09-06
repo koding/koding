@@ -271,6 +271,11 @@ class NFinderController extends KDViewController
         recentFolders = ["[#{vmName}]/home/#{KD.nick()}"]
     iterate recentFolders
 
+  uploadTo: (path)->
+    sidebarView = @getDelegate()
+    sidebarView.dnduploader.setPath path
+    sidebarView.dndUploadHolder.show()
+
   _pipedVmName:(vmName)-> vmName.replace /\./g, '|'
 
 class VMMountStateWidget extends JView

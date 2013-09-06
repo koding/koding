@@ -627,27 +627,28 @@ class JTreeViewController extends KDViewController
     nodeView.setClass "drag-started"
 
   dragEnter: (nodeView, event)->
-
-    # log event.type
+    @emit "dragEnter", nodeView, event
 
   dragLeave: (nodeView, event)->
-
-    # log event.type
+    @clearAllDragFeedback()
+    @emit "dragLeave", nodeView, event
 
   dragOver: (nodeView, event)->
-
-    no
+    @emit "dragOver", nodeView, event
 
   dragEnd: (nodeView, event)->
 
     @dragIsActive = no
     nodeView.unsetClass "drag-started"
+    @clearAllDragFeedback()
+    @emit "dragEnd", nodeView, event
 
   drop: (nodeView, event)->
 
     @dragIsActive = no
     event.preventDefault()
     event.stopPropagation()
+    @emit "drop", nodeView, event
     no
 
   ###
