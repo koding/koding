@@ -117,9 +117,12 @@ class DomainCreationForm extends KDTabViewWithForms
               keydown                 :
                 =>
                   @clearSuggestions()
-                  {registerButton, checkButton} = form.buttons
-                  registerButton.hide()
-                  checkButton.show()
+                  {DomainOption} = @forms["Domain Address"].inputs
+                  actionState = DomainOption.getValue()
+                  if actionState is "new"
+                    {registerButton, checkButton} = form.buttons
+                    registerButton.hide()
+                    checkButton.show()
               nextElement             :
                 regYears              :
                   cssClass            : "hidden"
