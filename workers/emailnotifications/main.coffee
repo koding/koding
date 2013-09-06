@@ -130,7 +130,7 @@ fetchSubjectContentLink = (content, type, callback)->
       if err then callback err
       else
         if relatedContent.slug? or constructorName in ['JReview']
-          callback null, contentTypeLinkMap(relatedContent.slug)[type]
+          callback null, contentTypeLinkMap(relatedContent.slug, relatedContent.group)[type]
         else
           constructor = \
             Base.constructors[relatedContent.bongo_.constructorName]
