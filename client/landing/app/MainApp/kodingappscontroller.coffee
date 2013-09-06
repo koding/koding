@@ -53,7 +53,7 @@ class KodingAppsController extends KDController
 
     @watcher.on "ManifestHasChanged", (app, change)=>
       @fetchAppFromFs app, =>
-        @emit "UpdateAppData", app, @getManifest app
+        @emit "UpdateAppData", app
 
   getAppPath:(manifest, escaped=no)->
 
@@ -79,7 +79,7 @@ class KodingAppsController extends KDController
       if apps.length > 0 then kb manifests
       else
         @fetchAppsFromDb (err, apps)=>
-          if err and not @_loadedOnce
+          if err
             @fetchAppsFromFs (err, apps)=>
               return callback? err  if err
               kb apps
@@ -160,8 +160,8 @@ class KodingAppsController extends KDController
       return warn err  if err
 
       existingApps = @filterAppsFromFileList files
-      newApps      = app for app in existingApps when app not in currentApps
-      removedApps  = app for app in currentApps  when app not in existingApps
+      newApps      = (app for app in existingApps when app not in currentApps) or []
+      removedApps  = (app for app in currentApps  when app not in existingApps) or []
 
       log "APPS FOUND IN AppStorage:", currentApps
       log "APPS FOUND IN FS:", existingApps
@@ -259,12 +259,12 @@ class KodingAppsController extends KDController
 
   getPublishedApps: (callback) ->
     # return unless KD.isLoggedIn()
-    appNames = appName for appName, manifest of @getManifests()
+    appNames = (appName for appName, manifest of @getManifests()) or []
     query    = "manifest.name": "$in": appNames
 
     KD.remote.api.JApp.someWithRelationship query, {}, (err, apps) =>
       @publishedApps = map = {}
-      apps.forEach (app) =>
+      apps?.forEach (app) =>
         map[app.manifest.name] = app
       @emit "UserAppModelsFetched", map
       callback? map
@@ -278,7 +278,7 @@ class KodingAppsController extends KDController
       return warn err  if err
       stack = []
       delete @notification
-      apps.forEach (app) =>
+      apps?.forEach (app) =>
         stack.push (callback) =>
           @updateUserApp app.manifest, callback
       async.series stack
@@ -527,7 +527,7 @@ class KodingAppsController extends KDController
             type : "mini", title : "App is already installed!"
           callback? yes
         else
-          if not app.approved and not KD.checkFlag 'super-admin'
+          if app.approved isnt yes and not KD.checkFlag 'app-publisher'
             KD.showError "This app is not approved, installation cancelled."
             callback? err
           else
