@@ -6,7 +6,7 @@
 #   width      : 500
 #   snap       : yes
 #   snapOnDrag : no
-#   drawBar    : yes - [0, 25, 50, 75, 100]
+#   drawBar    : yes or [0, 25, 50, 75, 100]
 #   showLabels : yes 
 #   handles    : [100, 60]
 
@@ -54,7 +54,7 @@ class KDSliderBarView extends KDCustomHTMLView
     @bar.setWidth diff
     @bar.setX "#{left}px"
 
-  _ಠcreateLabel : (value) =>
+  _createLabel : (value) =>
     {maxValue, minValue, interval, showLabels} = @getOptions()
 
     pos = ((value - minValue) * 100) / (maxValue - minValue)
@@ -67,8 +67,8 @@ class KDSliderBarView extends KDCustomHTMLView
     {maxValue, minValue, interval, showLabels} = @getOptions()
 
     if Array.isArray showLabels
-    then @_ಠcreateLabel value for value in showLabels
-    else @_ಠcreateLabel value for value in [minValue..maxValue] by interval
+    then @_createLabel value for value in showLabels
+    else @_createLabel value for value in [minValue..maxValue] by interval
 
   getValues:-> handle.getOptions().value for handle in @handles
 
@@ -110,76 +110,3 @@ class KDSliderBarView extends KDCustomHTMLView
     @drawBar()   if @getOption('drawBar')
     @addLabels() if @getOption('showLabels')
     @attachEvents()
-    window.asd = @
-
-class KDSliderBarHandleView extends KDCustomHTMLView
-  constructor:(options = {})->
-    options.tagName   = "a"
-    options.cssClass  = "handle"
-    options.value    ?= 0
-    options.draggable =
-      axis            : "x"
-
-    super options
-
-  attachEvents:->
-    {maxValue, minValue, width} = @parent.getOptions()
-    value                       = @getOption "value"
-
-    @on "DragStarted", ->
-      value = @getOption "value"
-    @on "DragInAction", ->
-      relPos             = @dragState.position.relative.x
-      valueChange        = ((maxValue - minValue) * relPos) / width
-      @setValue value + valueChange
-      @snap() if @parent.getOption "snapOnDrag"
-    @on "DragFinished", -> @snap() if @parent.getOption "snap"
-
-  getPosition:->
-    {maxValue, minValue} = @parent.getOptions()
-    {value}              = @getOptions()
-    sliderWidth          = @parent.getWidth()
-
-    percentage = ((value - minValue) * 100) / (maxValue - minValue)
-    position   = (sliderWidth / 100) * percentage
-    return "#{position}px"
-
-
-  setValue:(value)->
-    {leftLimit, rightLimit} = @getOptions()
-
-    value = Math.min value, rightLimit if typeof rightLimit is "number"
-    value = Math.max value, leftLimit  if typeof leftLimit  is "number"
-
-    @options.value = value
-
-    @setX "#{@getPosition()}"
-    @parent.drawBar() if @parent.getOption('drawBar')
-    @parent.setLimits()
-    @emit "ValueChange"
-      
-  getSnappedValue:(value)->
-    {interval}  = @parent.getOptions()
-    {value}     = value or @getOptions()
-    
-    if interval
-      mod = value % interval
-      mid = interval / 2
-
-      return value = switch
-        when mod <= mid then value - mod
-        when mod >  mid then value + (interval - mod)
-        else value
-
-  snap:->
-    {interval}  = @parent.getOptions()
-    value       = @getSnappedValue()
-
-    if interval and @parent.getOption "snap"
-      @setValue value
-      @parent.drawBar() if @parent.getOption('drawBar')
-
-  viewAppended:->
-    @setX "#{@getPosition()}"
-    @attachEvents()
-    @snap() if @parent.getOption "snap"
