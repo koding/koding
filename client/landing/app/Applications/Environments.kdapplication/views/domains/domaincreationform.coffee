@@ -52,18 +52,18 @@ class DomainCreationForm extends KDTabViewWithForms
               callback                : =>
                 @checkAvailability()
 
-
             close                     :
               title                   : "Back to settings"
               style                   : "cupid-green hidden"
               callback                : => @reset()
             cancel                    :
-              style                   : "modal-cancel"
+              style                   : "cupid-green"
               callback                : => @emit 'DomainCreationCancelled'
             another                   :
               title                   : "add another domain"
               style                   : "modal-cancel hidden"
               callback                : => @addAnotherDomainClicked()
+
           fields                      :
             header                    :
               title                   : "Add a domain"
@@ -117,9 +117,12 @@ class DomainCreationForm extends KDTabViewWithForms
               keydown                 :
                 =>
                   @clearSuggestions()
-                  {registerButton, checkButton} = form.buttons
-                  registerButton.hide()
-                  checkButton.show()
+                  {DomainOption} = @forms["Domain Address"].inputs
+                  actionState = DomainOption.getValue()
+                  if actionState is "new"
+                    {registerButton, checkButton} = form.buttons
+                    registerButton.hide()
+                    checkButton.show()
               nextElement             :
                 regYears              :
                   cssClass            : "hidden"
