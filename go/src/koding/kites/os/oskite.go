@@ -16,6 +16,8 @@ import (
 	"koding/virt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"launchpad.net/goamz/aws"
+	"launchpad.net/goamz/s3"
 	"net"
 	"os"
 	"os/signal"
@@ -55,6 +57,16 @@ var firstContainerIP net.IP
 var containerSubnet *net.IPNet
 var shuttingDown = false
 var requestWaitGroup sync.WaitGroup
+
+var s3store = s3.New(
+	aws.Auth{
+		AccessKey: "AKIAJI6CLCXQ73BBQ2SQ",
+		SecretKey: "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",
+	},
+	aws.USEast,
+)
+var uploadsBucket = s3store.Bucket("koding-uploads")
+var appsBucket = s3store.Bucket("koding-apps")
 
 func main() {
 	lifecycle.Startup("kite.os", true)
@@ -183,7 +195,7 @@ func main() {
 	})
 
 	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		info := infos[vos.VM.Id]
+		info := channel.KiteData.(*VMInfo)
 		info.State = vos.VM.GetState()
 		return info, nil
 	})
@@ -232,11 +244,61 @@ func main() {
 		return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
 
+	registerVmMethod(k, "s3.store", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		var params struct {
+			Name    string
+			Content []byte
+		}
+		if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
+			return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
+		}
+
+		if len(params.Content) > 5*1024*1024 {
+			return nil, errors.New("Content size larger than maximum of 5MB.")
+		}
+
+		result, err := uploadsBucket.List(UserAccountId(vos.User).Hex()+"/", "", "", 10)
+		if err != nil {
+			return nil, err
+		}
+		if len(result.Contents) >= 10 {
+			return nil, errors.New("Maximum of 10 stored files reached.")
+		}
+
+		if err := uploadsBucket.Put(UserAccountId(vos.User).Hex()+"/"+params.Name, params.Content, "", s3.Private); err != nil {
+			return nil, err
+		}
+		return true, nil
+	})
+
+	registerVmMethod(k, "s3.delete", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		var params struct {
+			Name string
+		}
+		if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
+			return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
+		}
+		if err := uploadsBucket.Del(UserAccountId(vos.User).Hex() + "/" + params.Name); err != nil {
+			return nil, err
+		}
+		return true, nil
+	})
+
 	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
 	registerAppMethods(k)
 
 	k.Run()
+}
+
+func UserAccountId(user *virt.User) bson.ObjectId {
+	var account struct {
+		Id bson.ObjectId `bson:"_id"`
+	}
+	if err := db.Accounts.Find(bson.M{"profile.nickname": user.Name}).One(&account); err != nil {
+		panic(err)
+	}
+	return account.Id
 }
 
 type VMNotFoundError struct {
@@ -350,9 +412,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				defer info.mutex.Unlock()
 
 				info.useCounter -= 1
-				if info.useCounter == 0 {
-					info.startTimeout()
-				}
+				info.startTimeout()
 			})
 
 			infosMutex.Unlock()
@@ -599,8 +659,11 @@ func newInfo(vm *virt.VM) *VMInfo {
 }
 
 func (info *VMInfo) startTimeout() {
+	if info.useCounter != 0 || info.vm.AlwaysOn {
+		return
+	}
 	info.timeout = time.AfterFunc(5*time.Minute, func() {
-		if info.useCounter != 0 {
+		if info.useCounter != 0 || info.vm.AlwaysOn {
 			return
 		}
 		if info.vm.GetState() == "RUNNING" {
@@ -611,7 +674,7 @@ func (info *VMInfo) startTimeout() {
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
 			info.mutex.Lock()
 			defer info.mutex.Unlock()
-			if info.useCounter != 0 {
+			if info.useCounter != 0 || info.vm.AlwaysOn {
 				return
 			}
 			info.unprepareVM()

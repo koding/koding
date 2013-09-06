@@ -14,6 +14,7 @@ type Counter struct {
 var database *mgo.Database
 
 var counters *mgo.Collection
+var Accounts *mgo.Collection
 var Domains *mgo.Collection
 var Users *mgo.Collection
 var VMs *mgo.Collection
@@ -26,6 +27,7 @@ func init() {
 	session.SetSafe(&mgo.Safe{})
 	database = session.DB("")
 	counters = database.C("counters")
+	Accounts = database.C("jAccounts")
 	Domains = database.C("jDomains")
 	Users = database.C("jUsers")
 	VMs = database.C("jVMs")
