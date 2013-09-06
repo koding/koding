@@ -17,9 +17,12 @@ class EditorPane extends Pane
     , file
 
   createSingleEditor: ->
-    path = @files or "localfile:/Untitled.txt"
-    file = FSHelper.createFileFromPath path
-    @ace = @createEditorInstance file
+    path      = @files or "localfile:/Untitled.txt"
+    file      = FSHelper.createFileFromPath path
+    @ace      = @createEditorInstance file
+    {content} = @getOptions()
+    @ace.on "ace.ready", =>
+      @ace.editor.setValue content  if content
 
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
