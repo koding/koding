@@ -33,7 +33,7 @@ class FSWatcher extends KDObject
       method     : 'fs.readDirectory'
       vmName     : @vmName
       withArgs   :
-        onChange : (change)=> @onFileChange @path, change
+        onChange : (change)=> @fileChanged @path, change
         path     : FSHelper.plainPath @path
         watchSubdirectories : @getOption 'recursive'
     , (err, response)=>
@@ -45,26 +45,26 @@ class FSWatcher extends KDObject
       else
         callback? err, null
 
-  onFileAdded:(change)->
+  fileAdded:(change)->
     # warn "File added:", change.file.fullPath
 
-  onFolderAdded:(change)->
+  folderAdded:(change)->
     # warn "Folder added:", change.file.fullPath
 
-  onFileRemoved:(change)->
+  fileRemoved:(change)->
     # warn "File removed:", change.file.fullPath
 
-  onFileChange:(path, change)->
+  fileChanged:(path, change)->
 
     if @getOption 'ignoreTempChanges'
       return  if /^\.|\~$/.test change.file.name
 
     switch change.event
       when 'added'
-        if change.file.isDir then @onFolderAdded change
-        else @onFileAdded change
+        if change.file.isDir then @folderAdded change
+        else @fileAdded change
       when 'removed'
-        @onFileRemoved change
+        @fileRemoved change
 
     # log "Change happened on #{@path}:", change
 
@@ -91,7 +91,7 @@ class AppsWatcher extends FSWatcher
     super options
     @_trackedApps = []
 
-  onFileRemoved:(change)->
+  fileRemoved:(change)->
     app = @getAppName change
     if (@isKdApp change) or (@isManifest change)
       @_trackedApps = (_app for _app in @_trackedApps when _app isnt app)
@@ -101,7 +101,7 @@ class AppsWatcher extends FSWatcher
       log "A file '#{change.file.name}' removed from #{app} app."
       @throttle => @emit "AFileRemoved", app, change
 
-  onFileAdded:(change)->
+  fileAdded:(change)->
     app = @getAppName change
     if @isInKdApp change
       if @isManifest change
