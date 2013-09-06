@@ -87,6 +87,14 @@ class FSHelper
       withArgs : {path}
     , callback
 
+  @getGlobList = (pattern, vmName, callback)->
+    [vmName, callback] = [callback, vmName]  if typeof vmName is "function"
+    KD.getSingleton('vmController').run
+      method   : "fs.glob"
+      vmName   : vmName
+      withArgs : {pattern}
+    , callback
+
   @ensureNonexistentPath = (path, vmName, callback=noop)->
     KD.getSingleton('vmController').run
       method   : "fs.ensureNonexistentPath"
