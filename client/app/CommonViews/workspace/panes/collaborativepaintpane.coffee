@@ -55,6 +55,35 @@ class CollaborativePaintPane extends CollaborativePane
 
     @workspaceRef.onDisconnect().remove()  if @amIHost
 
+    if @isJoinedASession
+      @linesRef.once "value", (snapshot) =>
+        value = snapshot.val()
+        return unless value
+        @context.beginPath()
+        for key, points of value
+          pointsArr = points.split "|"
+          for point, index in pointsArr
+            [x, y] = point.split ","
+            @context.moveTo x, y  if index is 0
+            @addPoint x, y
+
+    @isContextMoved = yes
+
+    @pointRef.on "value", (snapshot) =>
+      return if @startDrawing
+      value = snapshot.val()
+      if value
+        unless @isContextMoved
+          @context.beginPath()
+          @context.moveTo value.x, value.y
+          @isContextMoved = yes
+
+        @addPoint value.x, value.y
+
+    @stateRef.on "value", (snapshot) =>
+      if snapshot.val() is no
+        @isContextMoved  = no
+
   addPoint: (x, y) ->
     ctx = @context
     ctx.lineTo x, y
