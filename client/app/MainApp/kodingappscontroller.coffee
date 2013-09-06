@@ -97,12 +97,11 @@ class KodingAppsController extends KDController
     manifest = FSHelper.createFileFromPath "#{appsPath}#{appName}#{suffix}"
     manifest.fetchContents (err, response)=>
       # warn err  if err
-      return cb null  if err
-      return cb null  unless response
+      return cb null  if err or not response
 
       try
         manifest = JSON.parse response
-        manifests["#{manifest.name}"] = manifest
+        manifests[manifest.name] = manifest
       catch e
         warn "Manifest file is broken:", e
         return cb null
