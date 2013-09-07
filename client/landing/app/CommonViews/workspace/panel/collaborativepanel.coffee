@@ -67,5 +67,5 @@ CollaborativePanel::TerminalPaneClass      = SharableTerminalPane
 CollaborativePanel::FinderPaneClass        = CollaborativeFinderPane
 CollaborativePanel::TabbedEditorPaneClass  = CollaborativeTabbedEditorPane
 CollaborativePanel::PreviewPaneClass       = CollaborativePreviewPane
-CollaborativePanel::PaintPaneClass         = CollaborativePaintPane
+CollaborativePanel::DrawingPaneClass       = CollaborativeDrawingPane
 CollaborativePanel::VideoPaneClass         = VideoPane

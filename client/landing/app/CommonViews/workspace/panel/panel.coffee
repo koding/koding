@@ -99,7 +99,7 @@ class Panel extends JView
       "preview"          : @PreviewPaneClass
       "finder"           : @FinderPaneClass
       "tabbedEditor"     : @TabbedEditorPaneClass
-      "paint"            : @PaintPaneClass
+      "drawing"          : @DrawingPaneClass
 
     return paneTypesToPaneClass[paneType]
 
@@ -134,4 +134,4 @@ Panel::TabbedEditorPaneClass  = EditorPane
 Panel::TerminalPaneClass      = TerminalPane
 Panel::VideoPaneClass         = VideoPane
 Panel::PreviewPaneClass       = PreviewPane
-Panel::PaintPaneClass         = KDView
+Panel::DrawingPaneClass       = KDView
