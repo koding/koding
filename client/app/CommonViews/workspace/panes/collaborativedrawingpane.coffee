@@ -1,4 +1,4 @@
-class CollaborativePaintPane extends CollaborativePane
+class CollaborativeDrawingPane extends CollaborativePane
 
   constructor: (options = {}, data) ->
 
