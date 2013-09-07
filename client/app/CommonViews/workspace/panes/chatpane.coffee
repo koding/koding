@@ -37,6 +37,7 @@ class ChatPane extends JView
         @chatRef.child(message.time).set message
         @input.setValue ""
         @input.setFocus()
+        @workspace.setHistory "<strong>#{nickname}:</strong> #{message.body}"
 
     @wrapper.addSubView @messages
     @wrapper.addSubView @input

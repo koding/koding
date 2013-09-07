@@ -735,6 +735,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/terminalpane.coffee",
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/workspacelayout.coffee",
   "app/CommonViews/workspace/workspace.coffee",
 
   # COLLABORATIVE WORKSPACE
@@ -749,18 +750,28 @@ module.exports = [
   "libs/codemirror/lib/codemirror.css",
   "app/CommonViews/workspace/panes/collaborativepane.coffee",
   "app/CommonViews/workspace/panes/collaborativetabbededitorpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativepreviewpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativepaintpane.coffee",
   "app/CommonViews/workspace/panes/chatitem.coffee",
   "app/CommonViews/workspace/panes/chatpane.coffee",
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
+
+  # CLASSROOM
+  "app/Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomchapterthumbview.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomcoursethumbview.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomcoursesview.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomcourseview.coffee",
+  "app/Applications/Classroom.kdapplication/AppView.coffee",
+  "app/Applications/Classroom.kdapplication/AppController.coffee",
 
   "app/CommonViews/modalappslistitemview.coffee",
 
@@ -848,6 +859,7 @@ module.exports = [
   "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
+  "stylus/app.classroom.styl",
   "stylus/temp.styl",
   # "stylus/app.landing.styl",
   # "stylus/app.predefined.styl",

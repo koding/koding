@@ -773,6 +773,10 @@ __utils =
 
     return "#{bytes.toFixed 2} #{units[unitIndex]}"
 
+  compileCoffeeOnClient: (coffeeCode, callback = noop) ->
+    require ["https://raw.github.com/jashkenas/coffee-script/master/extras/coffee-script.js"], (coffeeCompiler) ->
+      callback coffeeCompiler.eval coffeeCode
+
   openGithubPopUp:->
     {clientId} = KD.config.github
     url        = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
