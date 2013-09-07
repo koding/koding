@@ -7,6 +7,7 @@ class CollaborativeDrawingPane extends CollaborativePane
     @pointRef    = @workspaceRef.child "point"
     @linesRef    = @workspaceRef.child "lines"
     @stateRef    = @workspaceRef.child "state"
+    @usersRef    = @workspaceRef.child "users"
 
     @canvas      = new KDCustomHTMLView
       tagName    : "canvas"
@@ -19,6 +20,8 @@ class CollaborativeDrawingPane extends CollaborativePane
 
     @context     = @canvas.getElement().getContext "2d"
     @drawedQueue = []
+    @userColors  = {}
+    @setUserColor()
 
     @canvas.on "mousedown", (e) =>
       KD.utils.stopDOMEvent e
@@ -31,7 +34,7 @@ class CollaborativeDrawingPane extends CollaborativePane
 
       @addPoint x, y
       @drawedQueue.push "#{x},#{y}"
-      @pointRef.set { x, y }
+      @pointRef.set { x, y, nickname: KD.nick() }
       @stateRef.set yes
 
     @canvas.on "mouseup", (e) =>
@@ -39,6 +42,7 @@ class CollaborativeDrawingPane extends CollaborativePane
       @startDrawing = no
       @stateRef.set   no
 
+      @drawedQueue.unshift KD.nick(), @userColors[KD.nick()]
       @linesRef.push @drawedQueue.join "|"
       @drawedQueue.length = 0
 
@@ -47,25 +51,32 @@ class CollaborativeDrawingPane extends CollaborativePane
         x = e.offsetX
         y = e.offsetY
 
-        @addPoint   x, y
+        @addPoint x, y
         @drawedQueue.push "#{x},#{y}"
-        @pointRef.set { x, y }
+
+        @pointRef.set { x, y, nickname: KD.nick() }
 
     @container.addSubView @canvas
 
     @workspaceRef.onDisconnect().remove()  if @amIHost
 
     if @isJoinedASession
+      @context.closePath()
       @linesRef.once "value", (snapshot) =>
         value = snapshot.val()
         return unless value
         @context.beginPath()
         for key, points of value
           pointsArr = points.split "|"
+          [username, color]     = pointsArr.splice 0, 2
+          @userColors[username] = color
+
+          @context.closePath()
+          @context.beginPath()
           for point, index in pointsArr
             [x, y] = point.split ","
             @context.moveTo x, y  if index is 0
-            @addPoint x, y
+            @addPoint x, y, username
 
     @isContextMoved = yes
 
@@ -78,13 +89,26 @@ class CollaborativeDrawingPane extends CollaborativePane
           @context.moveTo value.x, value.y
           @isContextMoved = yes
 
-        @addPoint value.x, value.y
+        @addPoint value.x, value.y, value.nickname
 
     @stateRef.on "value", (snapshot) =>
-      if snapshot.val() is no
-        @isContextMoved  = no
+      @isContextMoved = no  if snapshot.val() is no
 
-  addPoint: (x, y) ->
-    ctx = @context
+    @usersRef.on "value", (snapshot) =>
+      value = snapshot.val()
+      return unless value
+      for key, userData of value
+        @userColors[userData.nickname] = userData.color
+
+
+  addPoint: (x, y, nickname = KD.nick()) ->
+    ctx             = @context
+    ctx.strokeStyle = @userColors[nickname]
     ctx.lineTo x, y
     ctx.stroke()
+
+  setUserColor: () ->
+    nickname              = KD.nick()
+    color                 = KD.utils.getRandomHex()
+    @userColors[nickname] = color
+    @usersRef.push { nickname, color }
