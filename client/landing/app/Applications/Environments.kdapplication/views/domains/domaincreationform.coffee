@@ -165,16 +165,18 @@ class DomainCreationForm extends KDTabViewWithForms
     tld               = splittedDomain.extension
     {createButton, checkButton, registerButton} = form.buttons
     @clearSuggestions()
-    KD.remote.api.JDomain.getTldPrice tld, (tldPrice) => 
-      KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status, price, suggestions) =>
-      # KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status)=>
+    KD.remote.api.JDomain.getTldPrice tld, (err, tldPrice) =>
+      if err
+        notifyUser "An error occured. Please try again later."
+      KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, result) =>
+        status = result.status
+        price = result.price
+        suggestions = result.price
         if avErr
           checkButton.hideLoader()
-          log domain
+          log result
           log tld
           log avErr
-          log status
-          log suggestions
           return notifyUser "An error occured: #{avErr}"
         checkButton.hideLoader()
         switch status
