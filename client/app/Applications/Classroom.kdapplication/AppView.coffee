@@ -222,14 +222,27 @@ class ClassroomAppView extends KDScrollView
           callback     : -> modal.destroy()
 
   importCourse: (url, modal) ->
-    modal.buttons.Import.showLoader()
     @readFileContent url, (manifest) => # TODO: sanity check for course manifest.
       importedCourses = @appStorage.getValue("Imported") or {}
       importedCourses[manifest.name] = manifest
       @appStorage.setValue "Imported", importedCourses
       @showImportDoneModal "?course=#{manifest.name}"
-      modal.buttons.Import.hideLoader()
       modal.destroy()
+
+  importZippedCourse: (url, modal) ->
+    fileName     = "course#{Date.now()}.zip"
+    path         = "Documents/Classroom/Imported/zip"
+    vmController = KD.getSingleton "vmController"
+    notification = new KDNotificationView
+      type       : "mini"
+      title      : "Fetching zip file..."
+      duration   : 200000
+    vmController.run "mkdir -p #{path} ; cd #{path} ; wget -O #{fileName} #{url}", (err, res) =>
+      return warn err if err
+      notification.notificationSetTitle "Extracting zip file..."
+      vmController.run "cd #{path} ; unzip #{fileName} ; rm #{fileName} ; rm -rf __MACOSX", (err, res) =>
+        return warn err if err
+
 
   readFileContent: (path, callback = noop) ->
     url = if path.indexOf("http") is 0 then path else "#{path}"
