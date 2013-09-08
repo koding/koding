@@ -859,29 +859,16 @@ module.exports = class JAccount extends jraphical.Module
       , callback
       fetchParticipants(message) for message in messages when message?
 
-    secure ({connection}, options, callback)->
+    secure ({connection:{delegate}}, options, callback)->
       [callback, options] = [options, callback] unless callback
-      unless @equals connection.delegate
+      unless @equals delegate
         callback new KodingError 'Access denied'
       else
         options or= {}
-        selector =
-          if options.as
-            as: options.as
-          else
-            {}
-        # options.limit     = 8
-        options.fetchMail = yes
-        @fetchPrivateMessages selector, options, (err, messages)->
-          if err
-            callback err
-          else
-            callback null, [] if messages.length is 0
-            collectParticipants messages, connection.delegate, (err)->
-              if err
-                callback err
-              else
-                callback null, messages
+        @fetchPrivateMessages {}, options, (err, messages)->
+          return callback err, []  if err or messages.length is 0
+          collectParticipants messages, delegate, (err)->
+            callback err, messages
 
   fetchTopics: secure (client, query, page, callback)->
     query       =

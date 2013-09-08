@@ -2,8 +2,6 @@ class FSFolder extends FSFile
 
   fetchContents:(callback, dontWatch=yes)->
 
-    {nickname} = KD.whoami().profile
-
     @emit "fs.job.started"
     @vmController.run
       method     : 'fs.readDirectory'
