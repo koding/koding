@@ -17,19 +17,18 @@ class ClassroomAppView extends KDScrollView
     storage = @appStorage
 
     @readFileContent url, (manifests) =>
-      storage.ready =>
-        enrolled    = storage.getValue("Enrolled")  or {}
-        related     = storage.getValue("Related")   or {}
-        imported    = storage.getValue("Imported")  or {}
-        completed   = storage.getValue("Completed") or {}
+      enrolled    = storage.getValue("Enrolled")  or {}
+      related     = storage.getValue("Related")   or {}
+      imported    = storage.getValue("Imported")  or {}
+      completed   = storage.getValue("Completed") or {}
 
-        for manifest in manifests
-          {name}        = manifest
-          related[name] = manifest  unless enrolled[name] or imported[name]
+      for manifest in manifests
+        {name}        = manifest
+        related[name] = manifest  unless enrolled[name] or imported[name]
 
-        @addSubView @coursesView = new ClassroomCoursesView
-          delegate : this
-        , { enrolled, related, completed, imported }
+      @addSubView @coursesView = new ClassroomCoursesView
+        delegate : this
+      , { enrolled, related, completed, imported }
 
   createHeader: ->
     @addSubView @header = new KDView
@@ -75,13 +74,13 @@ class ClassroomAppView extends KDScrollView
 
   getManifestFromAppStorage: (courseName, callback = noop) ->
     appStorage  = @appStorage
-    @appStorage.ready =>
-      enrolled  = appStorage.getValue "Enrolled"
-      imported  = appStorage.getValue "Imported"
-      @manifest = enrolled[courseName] or imported[courseName] or null
-      return warn "Course manifest file is not exist"  unless @manifest
 
-      callback()
+    enrolled  = appStorage.getValue("Enrolled") or {}
+    imported  = appStorage.getValue("Imported") or {}
+    @manifest = enrolled[courseName] or imported[courseName] or null
+    return warn "Course manifest file is not exist"  unless @manifest
+
+    callback()
 
   handleGoToChapter: (chapterIndex) ->
     courseManifest = @manifest
@@ -116,15 +115,16 @@ class ClassroomAppView extends KDScrollView
     @appStorage.setValue "Completed", completedCourses
 
   handleQuery: (query) ->
-    @destroySubViews()
-    unless query.course
-      @createHeader()
-      @fetchCourses()
-    else
-      if query.chapter
-        @goToChapter query.course, query.chapter - 1
+    @appStorage.fetchStorage (storage) =>
+      @destroySubViews()
+      unless query.course
+        @createHeader()
+        @fetchCourses()
       else
-        @goToCourse query.course
+        if query.chapter
+          @goToChapter query.course, query.chapter - 1
+        else
+          @goToCourse query.course
 
   isCourseStarted: ->
     {startDate} = @manifest
