@@ -7,12 +7,12 @@ class InboxMessageListController extends KDListViewController
   loadMessages:(callback, continueLoading = no)->
 
     options =
-      limit       : 10
-      sort        :
-        timestamp : -1
-    options.skip = @getItemCount() if continueLoading
+      limit : 10
+      sort  : timestamp : -1
+    options.skip = @getItemCount()  if continueLoading
 
     KD.whoami().fetchMail options, (err, messages)=>
+
       @removeAllItems() if not continueLoading
       @loadMoreMessagesItem?.destroy()
       @instantiateListItems messages
