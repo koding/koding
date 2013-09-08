@@ -30,36 +30,13 @@ class DemosAppController extends AppController
           ]
           layout        : {
             direction   : "vertical"
-            sizes       : [ "50%", null ]
-            views       : [
+            sizes       : [ "100%", null ]
+            views   : [
               {
-                type    : "split"
-                options :
-                  direction: "horizontal"
-                  sizes : [ "50%", null ]
-                views   : [
-                  {
-                    type    : "finder"
-                  }
-                  {
-                    type    : "preview"
-                    url     : "http://www.stanford.edu/class/cs101/code-1-introduction.html"
-                  }
-                ]
+                type    : "drawing"
               }
               {
-                type    : "split"
-                options :
-                  direction: "horizontal"
-                  sizes : [ "50%", null ]
-                views   : [
-                  {
-                    type    : "tabbedEditor"
-                  }
-                  {
-                    type    : "terminal"
-                  }
-                ]
+                type: "preview"
               }
             ]
           }
