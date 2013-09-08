@@ -146,29 +146,62 @@ class ClassroomAppView extends KDScrollView
     return no
 
   showCourseImportModal: ->
-    modal              = new KDModalView
-      title            : "Import Course via URL"
-      content          : "<p>Type URL of your course manifest.json and hit enter.</p>"
-      cssClass         : "workspace-modal join-modal"
-      overlay          : yes
-      width            : 500
-      buttons          :
-        Import         :
-          title        : "Start Import"
-          cssClass     : "modal-clean-green"
-          loader       :
-            color      : "#FFFFFF"
-            diameter   : 13
-          callback     : => @importCourse urlInput.getValue(), modal
-        Close          :
-          title        : "Close"
-          cssClass     : "modal-cancel"
-          callback     : -> modal.destroy()
-
-    modal.addSubView urlInput = new KDHitEnterInputView
-      type             : "text"
-      placeholder      : "Path to course manifest.json"
-      callback         : => @importCourse urlInput.getValue(), modal
+    modal = new KDModalViewWithForms
+      title                     : "Import Course"
+      cssClass                  : "course-import-modal"
+      content                   : ""
+      overlay                   : yes
+      width                     : 500
+      tabs                      :
+        goToNextFormOnSubmit    : no
+        forms                   :
+          "From manifest.json"  :
+            fields              :
+              url               :
+                label           : "Manifest URL"
+                placeholder     : "Paste URL of your manifest.json and hit enter"
+            buttons             :
+              Import            :
+                style           : "modal-clean-green"
+                type            : "submit"
+                loader          :
+                  color         : "#FFFFFF"
+                  diameter      : 16
+              Cancel            :
+                style           : "modal-cancel"
+                callback        : -> modal.destroy()
+            callback            : =>
+              url = modal.modalTabs.forms["From manifest.json"].inputs.url.getValue()
+              @importCourse url, modal
+          "From a Zip File"     :
+            fields              :
+              url               :
+                label           : "Zip file URL"
+                placeholder     : "Paste URL of your zip file and hit enter"
+            buttons             :
+              Import            :
+                style           : "modal-clean-green"
+                type            : "submit"
+                loader          :
+                  color         : "#FFFFFF"
+                  diameter      : 16
+              Cancel            :
+                style           : "modal-cancel"
+                callback        : -> modal.destroy()
+            callback            : =>
+              @importZippedCourse modal.modalTabs.forms["From a Zip File"].inputs.url.getValue(), modal
+          "From Local File"     :
+            fields              :
+              url               :
+                type            : "hidden"
+                nextElement     :
+                  notYet        :
+                    itemClass   : KDView
+                    partial     : "This option is not supported yet."
+            buttons             :
+              Cancel            :
+                style           : "modal-cancel"
+                callback        : -> modal.destroy()
 
   showImportDoneModal: (coursePath) ->
     modal              = new KDBlockingModalView
