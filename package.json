@@ -7,7 +7,7 @@
   "private" : true,
   "repository": {
     "type": "git",
-    "url": "git@git.in.koding.com:koding.git"
+    "url": "git@git.sj.koding.com:koding/koding.git"
   },
   "main": "server/index.js",
   "scripts": {
