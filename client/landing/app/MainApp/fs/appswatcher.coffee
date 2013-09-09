@@ -60,5 +60,5 @@ class AppsWatcher extends FSWatcher
   isInKdApp  = (change)-> /Applications\/.*\.kdapp/.test change.file.fullPath
   isManifest = (change)-> /manifest\.json$/.test change.file.fullPath
   getAppName = (change)->
-    (change.file.fullPath.match /Applications\/([^\/]+)\.kdapp/)[1]
+    (change.file.fullPath.match /Applications\/([^\/]+)\.kdapp/)?[1]
   throttle   = (cb)-> do KD.utils.throttle cb, 300
