@@ -207,26 +207,18 @@ func main() {
 		return true, vos.VM.ResizeRBD()
 	})
 
-	// registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	// 	if !vos.Permissions.Sudo {
-	// 		return nil, &kite.PermissionError{}
-	// 	}
+	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
+			return nil, &kite.PermissionError{}
+		}
 
-	// 	snippet := virt.VM{
-	// 		Id:         bson.NewObjectId(),
-	// 		SnapshotOf: vos.VM.Id,
-	// 	}
+		snippetId := bson.NewObjectId().Hex()
+		if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
+			return nil, err
+		}
 
-	// 	if err := vos.VM.CreateConsistentSnapshot(snippet.Id.Hex()); err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	if err := db.VMs.Insert(snippet); err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	return snippet.Id.Hex(), nil
-	// })
+		return snippetId, nil
+	})
 
 	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var command []string
