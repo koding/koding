@@ -13,6 +13,3 @@ class KodingAppController extends KDViewController
 
   openFile: (file) ->
     @ready => @getView().emit "FileNeedsToBeOpened", file
-
-
-
