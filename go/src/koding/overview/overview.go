@@ -132,7 +132,7 @@ var (
 	apiUrl     = "http://kontrol.in.koding.com:80" // default
 	checkAuth  *auth.Basic
 	templates  = template.Must(template.ParseFiles(
-		"templates/index.html",
+		"go/templates/overview/index.html",
 	))
 )
 
@@ -163,8 +163,9 @@ func main() {
 		return true
 	}, nil)
 
+	bootstrapFolder := "go/templates/overview/bootstrap/"
 	http.HandleFunc("/", viewHandler)
-	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir("bootstrap/"))))
+	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir(bootstrapFolder))))
 
 	fmt.Println("koding overview started")
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
