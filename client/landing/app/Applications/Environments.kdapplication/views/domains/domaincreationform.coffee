@@ -171,7 +171,7 @@ class DomainCreationForm extends KDTabViewWithForms
       KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, result) =>
         status = result.status
         price = result.price
-        suggestions = result.price
+        suggestions = result.suggestions
         if avErr
           checkButton.hideLoader()
           log result
