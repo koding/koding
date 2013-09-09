@@ -177,14 +177,14 @@ module.exports = class JDomain extends jraphical.Module
             callback err, model
 
 
-  @isDomainAvailable = (domainName, tld, callback)->
+  @isDomainAvailable = (domainName, tld, callback) ->
     domainManager.domainService.isDomainAvailable domainName, tld, callback
 
-  @getTldPrice = (tld, callback)->
+  @getTldPrice = (tld, callback) ->
     domainManager.domainService.getTldPrice tld, callback
 
   @registerDomain = permit 'create domains',
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
       #default user info / all domains are under koding account.
       params =
         domainName         : data.domainName
