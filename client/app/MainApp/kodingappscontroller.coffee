@@ -153,7 +153,7 @@ class KodingAppsController extends KDController
 
     currentApps = Object.keys(@getManifests())
 
-    log "Synchronizing AppStorage with FileSystem..."
+    # log "Synchronizing AppStorage with FileSystem..."
 
     @watcher.watch (err, files)=>
 
@@ -163,20 +163,20 @@ class KodingAppsController extends KDController
       newApps      = (app for app in existingApps when app not in currentApps) or []
       removedApps  = (app for app in currentApps  when app not in existingApps) or []
 
-      log "APPS FOUND IN AppStorage:", currentApps
-      log "APPS FOUND IN FS:", existingApps
-      log "REMOVED APPS:", removedApps
-      log "NEW APPS:", newApps
+      # log "APPS FOUND IN AppStorage:", currentApps
+      # log "APPS FOUND IN FS:", existingApps
+      # log "REMOVED APPS:", removedApps
+      # log "NEW APPS:", newApps
 
-      log "Nothing changed"  if removedApps.length is 0 and \
-                                newApps.length is 0
+      # log "Nothing changed"  if removedApps.length is 0 and \
+      #                           newApps.length is 0
 
       @invalidateDeletedApps removedApps, force, =>
-        log "DELETED APPS REMOVED FROM APPSTORAGE"
+        # log "DELETED APPS REMOVED FROM APPSTORAGE"
         appsToFetch = if force then existingApps else newApps
-        log "FOLLOWING APPS WILL BE FETCHED", appsToFetch
+        # log "FOLLOWING APPS WILL BE FETCHED", appsToFetch
         @fetchAppsFromFsHelper appsToFetch, =>
-          log "APPS FETCHED"
+          # log "APPS FETCHED"
           @emit "AppsDataChanged", {removedApps, newApps, existingApps, force}
 
       @_loadedOnce = yes
@@ -222,13 +222,13 @@ class KodingAppsController extends KDController
       callback? err
 
   putAppsToAppStorage:(apps, callback)->
-    warn "calling putAppsToAppStorage:", apps
+    # warn "calling putAppsToAppStorage:", apps
     apps or= @getManifests()
     @constructor.manifests = apps
     @appStorage.setValue 'apps', apps, (err)-> callback? err
 
   invalidateDeletedApps:(deletedApps, force=no, callback)->
-    log "REQUESTED TO INVALIDATE:", deletedApps
+    # log "REQUESTED TO INVALIDATE:", deletedApps
     return if force
       @constructor.manifests = {}
       @putAppsToAppStorage manifests, callback
@@ -549,8 +549,6 @@ class KodingAppsController extends KDController
                 app.install (err)=>
                   KD.showError err
                   @appManager.open "StartTab"
-                  warn "APPS NEEDS TO BE REFRESHED!!"
-                  # @refreshApps()
                   callback?()
 
   # #

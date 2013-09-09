@@ -20,7 +20,7 @@ class AppsWatcher extends FSWatcher
     app = getAppName change
     if (isKdApp change) or (isManifest change)
       @_trackedApps = (_app for _app in @_trackedApps when _app isnt app)
-      log "An app removed:", app
+      # log "An app removed:", app
       throttle => @emit "AppIsRemoved", app, change
     else if isInKdApp change
       log "A file '#{change.file.name}' removed from #{app} app."
@@ -35,7 +35,7 @@ class AppsWatcher extends FSWatcher
           throttle => @emit "ManifestHasChanged", app, change
         else
           @_trackedApps.push app
-          log "A new app added:", app
+          # log "A new app added:", app
           throttle => @emit "NewAppIsAdded", app, change
       else
         throttle => @emit "FileHasChanged", app, change
