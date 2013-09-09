@@ -269,7 +269,7 @@ module.exports = class JApp extends jraphical.Module
             else
               callback new KodingError 'App is not approved so activity is not created.'
           else
-            callback new KodingError 'Relationship already exists, App already installed'
+            callback null
 
   approve: secure ({connection}, state = yes, callback)->
 
