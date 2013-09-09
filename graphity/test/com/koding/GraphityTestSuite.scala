@@ -56,6 +56,17 @@ class GraphityTestSuite extends FunSuite with BeforeAndAfter {
     assert(list.get(1) === event2)
     assert(list.get(2) === event1)
   }
+  
+  test("adding the same event multiple times") {
+    addEvent(source1, event1, 1)
+    addEvent(source1, event2, 2)
+    addEvent(source1, event1, 1)
+
+    val list = getEvents(stream, 10)
+    assert(list.size === 2)
+    assert(list.get(0) === event2)
+    assert(list.get(1) === event1)
+  }
 
   test("getting only a subset of events") {
     addEvent(source1, event1, 1)

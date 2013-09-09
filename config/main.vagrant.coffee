@@ -130,10 +130,10 @@ module.exports =
         servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'http://localhost:3020'
-      # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
   mq            :
     host        : 'localhost'

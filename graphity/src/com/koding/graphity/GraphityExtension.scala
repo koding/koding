@@ -111,10 +111,18 @@ class GraphityExtension(@Context db: GraphDatabaseService) {
       val source = getInternalNode(sourceUrl, GRAPHITY_SOURCE)
       val externalEventNode = getNodeFromUrl(eventUrl)
 
+      val previousEvent = LinkedList.find(source, { previous => getEventTimestamp(previous) <= timestamp })
+      if (getEventTimestamp(previousEvent) == timestamp) {
+        val eventRel = previousEvent.getSingleRelationship(GRAPHITY_EVENT, Direction.INCOMING)
+        if (eventRel != null && eventRel.getStartNode() == externalEventNode) {
+          return
+        }
+      }
+
       val event = db.createNode
       event.setProperty("timestamp", timestamp)
       externalEventNode.createRelationshipTo(event, GRAPHITY_EVENT)
-      LinkedList.insertAfter(LinkedList.find(source, { previous => getEventTimestamp(previous) <= timestamp }), event)
+      LinkedList.insertAfter(previousEvent, event)
 
       updateSource(source)
 

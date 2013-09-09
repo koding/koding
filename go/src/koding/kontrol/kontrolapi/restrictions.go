@@ -19,7 +19,6 @@ type RulePostMessage struct {
 }
 
 func GetRestrictions(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/restrictions")
 	res := proxyDB.GetRestrictions()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
@@ -33,7 +32,6 @@ func GetRestrictions(writer http.ResponseWriter, req *http.Request) {
 func GetRestrictionByDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("GET\t/restrictions/%s\n", domain)
 
 	res, err := proxyDB.GetRestrictionByDomain(domain)
 	if err != nil {
@@ -52,7 +50,6 @@ func GetRestrictionByDomain(writer http.ResponseWriter, req *http.Request) {
 func DeleteRestriction(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("DELETE\t/restrictions/%s\n", domain)
 
 	err := proxyDB.DeleteRestriction(domain)
 	if err != nil {
@@ -69,7 +66,6 @@ func CreateRuleByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
 	name := vars["name"]
-	fmt.Printf("POST\t/restrictions/%s/%s\n", domain, name)
 
 	var msg RulePostMessage
 	var ruleEnabled bool
@@ -151,7 +147,6 @@ func DeleteRuleByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
 	name := vars["name"]
-	fmt.Printf("DELETE\t/restrictions/%s/%s\n", domain, name)
 	err := proxyDB.DeleteRuleByName(domain, name)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)

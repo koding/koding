@@ -216,8 +216,13 @@ module.exports = class JUser extends jraphical.Module
     {username, password, clientId} = credentials
     constructor = @
     JSession.one {clientId}, (err, session)->
-      if err then return callback err
-      unless session then return callback createKodingError 'Could not restore your session!'
+      return callback err  if err
+      # temp fix:
+      # this broke login, reverted. - SY
+      # if not session? or session.username isnt username
+      unless session
+        return callback createKodingError 'Could not restore your session!'
+
       bruteForceControlData =
         ip : session.clientIP
         username : username
@@ -226,23 +231,20 @@ module.exports = class JUser extends jraphical.Module
         unless res then return callback createKodingError "Your login access is blocked for #{JLog.timeLimit()} minutes."
         JUser.one {username}, (err, user)->
           if err
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError err.message
           else unless user?
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError "Unknown user name"
           else unless user.getAt('password') is hashPassword password, user.getAt('salt')
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError 'Access denied!'
           else if user.status is 'unconfirmed'
             error = createKodingError "You must confirm your email address to continue using Koding.com"
             error.code = 403
             return callback error
           else
-            JLog.log { type: "login", username: username, success: yes }, ()->
+            JLog.log { type: "login", username: username, success: yes }, ->
               afterLogin connection, user, clientId, session, callback
 
   afterLogin = (connection, user, clientId, session, callback)->
@@ -609,7 +611,7 @@ module.exports = class JUser extends jraphical.Module
 Your password has been changed!  If you didn't request this change, please contact support@koding.com immediately!
 """
       }
-      email.save ()->
+      email.save()
 
   @changeEmail = secure (client,options,callback)->
 
@@ -625,6 +627,14 @@ Your password has been changed!  If you didn't request this change, please conta
         @fetchUser client, (err,user)->
           account = client.connection.delegate
           user.changeEmail account, options, callback
+          email = new JMail {
+            email: user.email
+            subject : "Your email has changed"
+            content : """
+    Your email has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+    """
+          }
+          email.save()
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->

@@ -102,6 +102,38 @@ class AccountAppController extends AppController
     lastWrapper = @wrapperController.sectionLists[@wrapperController.sectionLists.length-1]
     lastWrapper.setHeight @navController.getView().getHeight()
 
+  showReferrerTooltip:(options)->
+
+    {linkView, top, left, arrowMargin} = options
+
+    referrerCode  = KD.whoami().profile.nickname
+    shareUrl      = "#{location.origin}/?r=#{referrerCode}"
+
+    contextMenu   = new JContextMenu
+      cssClass    : "activity-share-popup"
+      type        : "activity-share"
+      delegate    : linkView
+      x           : linkView.getX() - left
+      y           : linkView.getY() - top
+      arrow       :
+        placement : "bottom"
+        margin    : arrowMargin
+      lazyLoad    : yes
+    , customView  : new SharePopup {
+        url       : shareUrl
+        shortenURL: false
+        twitter   :
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
+        linkedin  :
+          title   : "Join me @koding!"
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
+      }
+
+    new KDOverlayView
+      parent      : KD.getSingleton("mainView").mainTabView.activePane
+      transparent : yes
+
+
   toggleSidebar:(options)->
     {show} = options
     controller = @
