@@ -45,7 +45,8 @@ class KodingAppsController extends KDController
     #  - ManifestHasChanged
 
     @watcher.on "NewAppIsAdded", (app, change)=>
-      @fetchAppFromFs app, => @syncAppStorageWithFS()
+      @fetchAppFromFs app, =>
+        @emit "UpdateAppData", app
 
     @watcher.on "AppIsRemoved", (app, change)=>
       @invalidateDeletedApps [app], no, =>
