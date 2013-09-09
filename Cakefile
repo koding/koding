@@ -218,6 +218,27 @@ task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
         onChange  : (path) ->
           processes.kill "guestCleanerWorker"
 
+
+task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", ({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.fork
+    name           : 'emailConfirmationCheckerWorker'
+    cmd            : "./workers/emailconfirmationchecker/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 1
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
+  watcher = new Watcher
+    groups        :
+      guestcleaner:
+        folders   : ['./workers/emailconfirmationchecker']
+        onChange  : (path) ->
+          processes.kill "emailConfirmationCheckerWorker"
+
 task 'emailWorker', "Run the email worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
@@ -539,7 +560,7 @@ task 'test-all', 'Runs functional test suite', (options)->
   cmd = "sudo #{pip} install --src=/tmp/.koding-qa -e 'git+ssh://git@git.sj.koding.com/qa.git@master#egg=testengine'"
   exec cmd, (err, stdout, stderr)->
     if err
-      log.error """ 
+      log.error """
         TestEngine installation error, please copy and paste the output below
         and send to QA
       """
@@ -553,21 +574,21 @@ task 'test-all', 'Runs functional test suite', (options)->
     if not testEngine
       throw "TestEngine installation error"
     configFile = options.configFile or 'vagrant'
-    
+
     args = ['-p', './tests', '-c', configFile]
     if options.file
       args.push '-f', options.file
     if options.location
       args.push '-l', options.location
 
-    testProcess = spawn testEngine, args  
-    
+    testProcess = spawn testEngine, args
+
     testProcess.stderr.on 'data', (data)->
       process.stdout.write data.toString()
     testProcess.stdout.on 'data', (data)->
       process.stdout.write data.toString()
     testProcess.on 'close', (code)->
-      process.exit code      
+      process.exit code
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 

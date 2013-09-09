@@ -83,6 +83,14 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  emailConfirmationCheckerWorker :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '* * * * * *'
+    usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : yes
     login                : 'prod-social'
