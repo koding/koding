@@ -8,7 +8,7 @@ import (
 	"github.com/streadway/amqp"
 	"html/template"
 	"io/ioutil"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
 	"net/http"
@@ -131,7 +131,6 @@ var (
 	switchHost string
 	apiUrl     = "http://kontrol.in.koding.com:80" // default
 	checkAuth  *auth.Basic
-	proxyDB    *proxyconfig.ProxyConfiguration
 	templates  = template.Must(template.ParseFiles(
 		"templates/index.html",
 	))
@@ -141,12 +140,6 @@ const uptimeLayout = "03:04:00"
 
 func main() {
 	var err error
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
-		log.Println(res)
-	}
-
 	// used for kontrolapi
 	apiHost := config.Current.Kontrold.Overview.ApiHost
 	apiPort := config.Current.Kontrold.Overview.ApiPort
@@ -468,7 +461,7 @@ func currentVersion() (string, error) {
 		errors.New("switchHost is not defined")
 	}
 
-	domain, err := proxyDB.GetDomain(switchHost)
+	domain, err := modelhelper.GetDomain(switchHost)
 	if err != nil {
 		return "", err
 	}
@@ -496,7 +489,7 @@ func switchVersion(newVersion string, name string) error {
 		return err
 	}
 
-	domain, err := proxyDB.GetDomain(switchHost)
+	domain, err := modelhelper.GetDomain(switchHost)
 	if err != nil {
 		return err
 	}
@@ -511,7 +504,7 @@ func switchVersion(newVersion string, name string) error {
 
 	domain.Proxy.Key = newVersion
 
-	err = proxyDB.UpdateDomain(&domain)
+	err = modelhelper.UpdateDomain(&domain)
 	if err != nil {
 		log.Printf("could not update %+v\n", domain)
 		return err

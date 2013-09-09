@@ -6,7 +6,6 @@ import (
 	"io"
 	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/workerconfig"
-	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
 	"log"
 	"net/http"
@@ -29,7 +28,6 @@ type ProxyPostMessage struct {
 
 var clientDB *clientconfig.ClientConfig
 var kontrolConfig *workerconfig.WorkerConfig
-var proxyDB *proxyconfig.ProxyConfiguration
 var amqpWrapper *AmqpWrapper
 
 func init() {
@@ -40,14 +38,10 @@ func main() {
 	amqpWrapper = setupAmqp()
 
 	var err error
+	// TODO: remove them...
 	kontrolConfig, err = workerconfig.Connect()
 	if err != nil {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
-	}
-
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
 	clientDB, err = clientconfig.Connect()

@@ -1,8 +1,9 @@
-package proxyconfig
+package modelhelper
 
 import (
 	"fmt"
-	"koding/kontrol/kontrolproxy/models"
+	"koding/db/models"
+	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"sort"
@@ -33,7 +34,7 @@ func NewService(username string) *models.Service {
 	}
 }
 
-func (p *ProxyConfiguration) GetServices() []models.Service {
+func GetServices() []models.Service {
 	service := models.Service{}
 	services := make([]models.Service, 0)
 
@@ -45,22 +46,22 @@ func (p *ProxyConfiguration) GetServices() []models.Service {
 		return nil
 	}
 
-	p.RunCollection("jProxyServices", query)
+	mongodb.Run("jProxyServices", query)
 	return services
 }
 
-func (p *ProxyConfiguration) GetService(username string) (models.Service, error) {
+func GetService(username string) (models.Service, error) {
 	service := models.Service{}
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&service)
 	}
 
-	err := p.RunCollection("jProxyServices", query)
+	err := mongodb.Run("jProxyServices", query)
 	return service, err
 }
 
-func (p *ProxyConfiguration) GetLatestKey(username, servicename string) string {
-	service, err := p.GetService(username)
+func GetLatestKey(username, servicename string) string {
+	service, err := GetService(username)
 	if err != nil {
 		return ""
 	}
@@ -84,8 +85,8 @@ func (p *ProxyConfiguration) GetLatestKey(username, servicename string) string {
 	return key
 }
 
-func (p *ProxyConfiguration) GetKey(username, servicename, key string) (models.KeyData, error) {
-	service, err := p.GetService(username)
+func GetKey(username, servicename, key string) (models.KeyData, error) {
+	service, err := GetService(username)
 	if err != nil {
 		return models.KeyData{}, err
 	}
@@ -119,8 +120,8 @@ func (p *ProxyConfiguration) GetKey(username, servicename, key string) (models.K
 }
 
 // Update or add a key. service and username will be created if not available
-func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename, key, host, hostdata, rabbitkey string) error {
-	service, err := p.GetService(username)
+func UpsertKey(username, persistence, mode, servicename, key, host, hostdata, rabbitkey string) error {
+	service, err := GetService(username)
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			return err
@@ -139,7 +140,7 @@ func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename,
 		hosts := []string{host}
 		keyRoutingTable.Keys[key] = *NewKeyData(key, persistence, mode, hostdata, rabbitkey, hosts)
 		service.Services[servicename] = keyRoutingTable
-		err = p.UpsertService(username, service)
+		err = UpsertService(username, service)
 		if err != nil {
 			return err
 		}
@@ -166,15 +167,15 @@ func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename,
 
 	keyRoutingTable.Keys[key] = keyData
 	service.Services[servicename] = keyRoutingTable
-	err = p.UpsertService(username, service)
+	err = UpsertService(username, service)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *ProxyConfiguration) UpdateKeyData(username, servicename string, keyData models.KeyData) error {
-	service, err := p.GetService(username)
+func UpdateKeyData(username, servicename string, keyData models.KeyData) error {
+	service, err := GetService(username)
 	if err != nil {
 		return err
 	}
@@ -187,15 +188,15 @@ func (p *ProxyConfiguration) UpdateKeyData(username, servicename string, keyData
 	keyRoutingTable.Keys[keyData.Key] = keyData
 	service.Services[servicename] = keyRoutingTable
 
-	err = p.UpsertService(username, service)
+	err = UpsertService(username, service)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *ProxyConfiguration) DeleteKey(username, servicename, key string) error {
-	service, err := p.GetService(username)
+func DeleteKey(username, servicename, key string) error {
+	service, err := GetService(username)
 	if err != nil {
 		return err
 	}
@@ -208,15 +209,15 @@ func (p *ProxyConfiguration) DeleteKey(username, servicename, key string) error 
 	delete(keyRoutingTable.Keys, key)
 	service.Services[servicename] = keyRoutingTable
 
-	err = p.UpsertService(username, service)
+	err = UpsertService(username, service)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *ProxyConfiguration) DeleteService(username, servicename string) error {
-	service, err := p.GetService(username)
+func DeleteService(username, servicename string) error {
+	service, err := GetService(username)
 	if err != nil {
 		return err
 	}
@@ -227,26 +228,26 @@ func (p *ProxyConfiguration) DeleteService(username, servicename string) error {
 	}
 	delete(service.Services, servicename)
 
-	err = p.UpsertService(username, service)
+	err = UpsertService(username, service)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *ProxyConfiguration) UpsertService(username string, service models.Service) error {
+func UpsertService(username string, service models.Service) error {
 	query := func(c *mgo.Collection) error {
 		_, err := c.Upsert(bson.M{"username": username}, service)
 		return err
 	}
 
-	return p.RunCollection("jProxyServices", query)
+	return mongodb.Run("jProxyServices", query)
 }
 
-func (p *ProxyConfiguration) DeleteServices(username string) error {
+func DeleteServices(username string) error {
 	query := func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"username": username})
 	}
 
-	return p.RunCollection("jProxyServices", query)
+	return mongodb.Run("jProxyServices", query)
 }

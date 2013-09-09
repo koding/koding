@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 )
 
 func GetDomainStats(writer http.ResponseWriter, req *http.Request) {
-	res := proxyDB.GetDomainStats()
+	res := modelhelper.GetDomainStats()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -21,7 +22,7 @@ func GetDomainStats(writer http.ResponseWriter, req *http.Request) {
 func GetDomainStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	res, err := proxyDB.GetDomainStat(domain)
+	res, err := modelhelper.GetDomainStat(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -41,7 +42,7 @@ func GetDomainStat(writer http.ResponseWriter, req *http.Request) {
 }
 
 func GetProxyStats(writer http.ResponseWriter, req *http.Request) {
-	res := proxyDB.GetProxyStats()
+	res := modelhelper.GetProxyStats()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -53,7 +54,7 @@ func GetProxyStats(writer http.ResponseWriter, req *http.Request) {
 func GetProxyStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	proxy := vars["proxy"]
-	res, err := proxyDB.GetProxyStat(proxy)
+	res, err := modelhelper.GetProxyStat(proxy)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -75,7 +76,7 @@ func GetProxyStat(writer http.ResponseWriter, req *http.Request) {
 func DeleteDomainStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	err := proxyDB.DeleteDomainStat(domain)
+	err := modelhelper.DeleteDomainStat(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -89,7 +90,7 @@ func DeleteDomainStat(writer http.ResponseWriter, req *http.Request) {
 func DeleteProxyStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	proxy := vars["proxy"]
-	err := proxyDB.DeleteProxyStat(proxy)
+	err := modelhelper.DeleteProxyStat(proxy)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

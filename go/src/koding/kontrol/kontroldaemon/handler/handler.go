@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
-	"koding/kontrol/kontrolproxy/proxyconfig"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
@@ -24,7 +24,6 @@ type IncomingMessage struct {
 }
 
 var kontrolDB *workerconfig.WorkerConfig
-var proxyDB *proxyconfig.ProxyConfiguration
 var clientDB *clientconfig.ClientConfig
 var producer *kontrolhelper.Producer
 
@@ -52,11 +51,6 @@ func Startup() {
 	clientDB, err = clientconfig.Connect()
 	if err != nil {
 		log.Fatalf("clientconfig mongodb connect: %s", err)
-	}
-
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
 	runHelperFunctions()
@@ -231,7 +225,7 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
-		err = proxyDB.UpsertKey(
+		err = modelhelper.UpsertKey(
 			"koding",    // username
 			"",          // persistence, empty means disabled
 			mode,        // loadbalancing mode
