@@ -169,15 +169,15 @@ class DomainCreationForm extends KDTabViewWithForms
       if err
         notifyUser "An error occured. Please try again later."
       KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, result) =>
-        status = result.status
-        price = result.price
-        suggestions = result.suggestions
         if avErr
           checkButton.hideLoader()
           log result
           log tld
           log avErr
           return notifyUser "An error occured: #{avErr}"
+        status = result.status
+        price = result.price
+        suggestions = result.suggestions
         checkButton.hideLoader()
         switch status
           when "available"
