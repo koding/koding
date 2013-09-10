@@ -96,6 +96,7 @@ module.exports = class JAccount extends jraphical.Module
         enum                : ['invalid account type',[
                                 'registered'
                                 'unregistered'
+                                'deleted'
                               ]]
         default             : 'unregistered'
       profile               :
@@ -104,9 +105,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           validate          : require('../name').validateName
           set               : (value)-> value.toLowerCase()
-        hash                :
-          type              : String
-          # email             : yes
+        hash                : String
         ircNickname         : String
         firstName           :
           type              : String
@@ -222,7 +221,6 @@ module.exports = class JAccount extends jraphical.Module
         return callback new KodingError "An error occured!" if err
         return callback null, no unless relation
         return callback null, yes
-
 
   changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options

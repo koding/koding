@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
-	"koding/databases/mongo"
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
+	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
@@ -158,7 +158,7 @@ func createNode(data map[string]interface{}) {
 		return
 	}
 
-	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
+	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		fmt.Println("sourceContent", err)
 		return
@@ -166,7 +166,7 @@ func createNode(data map[string]interface{}) {
 	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
 	neo4j.UpdateNode(sourceId, sourceContent)
 
-	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(targetId), targetName)
+	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		fmt.Println("targetContent", err)
 		return
@@ -256,7 +256,7 @@ func updateNode(data map[string]interface{}) {
 		return
 	}
 
-	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
+	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		fmt.Println("sourceContent", err)
 		return
