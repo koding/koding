@@ -78,16 +78,15 @@ class KodingRouter extends KDRouter
         app = 'Activity' if app is 'Home' and KD.isLoggedIn()
 
         @setPageTitle nicenames[app] ? app
-        appManager = KD.getSingleton "appManager"
+        appManager  = KD.getSingleton "appManager"
+        handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
 
-        if appManager.get app
-          appManager.tell app, "handleQuery", query
-        else
-          appManager.once "AppCreated", (appInstance) ->
-            appManager.tell app, "handleQuery", query
+        appManager.once "AppCreated", handleQuery  unless appManager.get app
 
         appManager.open app, (appInstance)=>
           appInstance.setOption "initialRoute", @getCurrentPath()
+
+        handleQuery.call this  if appManager.get app
 
   handleNotFound:(route)->
 
