@@ -19,7 +19,7 @@ class DNSRecordListItemView extends KDListItemView
     {{> @recordHostView }}
     {{> @recordValueView }}
     {{> @recordTtlView }}
-    <p class="record-buttons  record-element">
+    <p class="record-buttons record-element">
       {{> @editButton }}
       {{> @deleteButton }}
       {{> @updateButton }}

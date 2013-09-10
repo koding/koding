@@ -47,7 +47,6 @@ app.environments.styl
     text-align         center
     padding            20px
     display            block
-    width              100%
     font-size          18px
     color              #aaa
     text-shadow        0 1px 0 #fff
@@ -191,11 +190,14 @@ app.environments.styl
       padding           10px
       background        #f7f7f7
       shadow            inset 0 2px 3px -2px rgba(0,0,0,0.3)
-      position          relative
+      rel()
 
       .input-container
         width           22%
         float           left
+        vendor          transition, width .3s ease \,\
+                                    padding .3s ease \,\
+                                    opacity .3s ease
         borderBox()
         
         &~.input-container
@@ -203,7 +205,9 @@ app.environments.styl
         
         &.priority
           margin        none
-          display       none
+          padding-left  0
+          width         0
+          opacity       0
 
         &.record-type
           width         16%
@@ -213,11 +217,20 @@ app.environments.styl
         &.add-record
           width         18%
           button
-            display   block
-            size      100%, 26px
+            display     block
+            size        100%, 26px
         input
-          size        100%, 26px
-        
+          size          100%, 26px
+    &.mx-selected
+      .priority
+        width           13% !important
+        padding-left    5px !important
+        opacity         1   !important
+      .host,
+      .value
+        width           20%
+      .ttl
+        width           13%
 
 
   .split-layout
@@ -522,29 +535,33 @@ app.environments.styl
 
     h3.records-title
       font-size           13px
-      color               #ff9200 !important
+      color               #ff9200
       font-weight         normal
-      border-bottom       1px solid #e6e6e6 !important
-      border-top          1px solid #e6e6e6 !important
+      border-bottom       1px solid #e6e6e6
+      border-top          1px solid #e6e6e6
       text-shadow         0 1px 0 #fff
       background          #fafafa
+
+    .kdlistitemview
+      border-bottom       1px solid #ededed
+      color               #888
 
     h3.records-title,
     .kdlistitemview
       width               100%
       padding             0 10px !important
-      border-bottom       1px solid #f9f9f9
-      color               #888
+      vendor              transition, background .1s linear
       borderBox()
 
       &:nth-child(2n)
         background        #fcfcfc
-        border-bottom     1px solid #f2f2f2
+        border-bottom     1px solid #ededed
 
       .record-element
         float             left
         letter-spacing    normal
-        padding           0 0 5px 0
+        padding           5px 0
+        line-height       25px
         borderBox()
 
         .kdselectbox
@@ -554,19 +571,31 @@ app.environments.styl
         &~.record-element
           padding-left    5px
           width           22%   
-          input 
+          input
             size          100%, 26px
 
         &.record-type
-          text-align      center !important
           width           16%
 
+        &.record-ttl,
+        &.record-priority
+          width           12%
+
         &.record-buttons
-          width           18%
+          width           120px
+          background      #fff
           text-align      center
           display         -webkit-box
           display         -moz-box
           display         flex
+          top             0
+          right           -120px
+          padding         5px
+          opacity         0
+          border-left     1px dotted #ccc
+          vendor          transition, right .3s ease \,\
+                                      opacity .3s ease
+          abs()
           button
             display       block
             float         none
@@ -574,13 +603,16 @@ app.environments.styl
             size          100%, 26px
 
             &:nth-child(2n)
-              margin-left      5px
+              margin-left 5px
+      &:hover
+        background        #f4f4f4
+        .record-buttons
+          opacity           1
+          right             5px
 
     h3.records-title 
       .record-element 
         padding-top            10px !important
-        &.record-type
-          text-align           left !important
         &.record-buttons
           -webkit-justify-content   center
           -moz-justify-content      center
@@ -646,7 +678,7 @@ app.environments.styl
       margin-left    10px
       sprite()
       bg position,   -25px -145px
-      position       relative
+      rel()
       top            6px
       left           -5px
 
@@ -656,7 +688,7 @@ app.environments.styl
       margin-left    10px
       sprite()
       bg position,   -25px -125px
-      position       relative
+      rel()
       top            6px
       left           -5px
 
