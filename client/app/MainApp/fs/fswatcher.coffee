@@ -27,13 +27,16 @@ class FSWatcher extends KDObject
     vmController = KD.getSingleton 'vmController'
     @vmName or= (@getOption 'vmName') or vmController.defaultVmName
 
+    unless @vmName
+      return callback? {message: "No VM provided!"}
+
     FSWatcher.stopWatching @getFullPath()
 
     vmController.run
       method     : 'fs.readDirectory'
       vmName     : @vmName
       withArgs   :
-        onChange : (change)=> @fileChanged @path, change
+        onChange : (change)=> @changeHappened @path, change
         path     : FSHelper.plainPath @path
         watchSubdirectories : @getOption 'recursive'
     , (err, response)=>
@@ -54,7 +57,10 @@ class FSWatcher extends KDObject
   fileRemoved:(change)->
     # warn "File removed:", change.file.fullPath
 
-  fileChanged:(path, change)->
+  fileChanged:(change)->
+    # warn "File updated:", change.file.fullPath
+
+  changeHappened:(path, change)->
 
     if @getOption 'ignoreTempChanges'
       return  if /^\.|\~$/.test change.file.name
@@ -65,6 +71,8 @@ class FSWatcher extends KDObject
         else @fileAdded change
       when 'removed'
         @fileRemoved change
+      when 'attributesChanged'
+        @fileChanged change
 
     # log "Change happened on #{@path}:", change
 
