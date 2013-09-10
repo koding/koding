@@ -413,6 +413,10 @@ func serverInfo(build string) (*ServerInfo, error) {
 		return nil, err
 	}
 
+	if s.BuildNumber == "" {
+		return s, fmt.Errorf("there is no deployment for build number %s\n", build)
+	}
+
 	s.MongoLogin = parseMongoLogin(s.Config.Mongo)
 
 	return s, nil
