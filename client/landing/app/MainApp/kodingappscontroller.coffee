@@ -78,7 +78,7 @@ class KodingAppsController extends KDController
 
     kb = (manifests)=>
       callback null, manifests
-      @watcher._trackedApps = Object.keys manifests
+      @watcher._trackedApps = if manifests then Object.keys manifests else []
 
     @appStorage.ready =>
       manifests = @getManifests()
