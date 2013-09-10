@@ -5,6 +5,7 @@ module.exports = [
   "libs/sha1.encapsulated.coffee",
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
+  "libs/jquery.cookie.js",
 
   # --- Base class ---
   "Framework/core/utils.coffee",
@@ -394,7 +395,6 @@ module.exports = [
 
   "libs/jquery-timeago.js",
   "libs/date.format.js",
-  "libs/jquery.cookie.js",
   "libs/jquery.getcss.js",
   "libs/mousetrap.js",
   "libs/md5-min.js",
