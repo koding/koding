@@ -4,20 +4,11 @@ class LocalStorage extends AppStorage
     callback window["localStorage"][@getSignature()]
     KD.utils.defer => @emit "ready"
 
-  getSignature:(key, group)->
-    "koding-#{@_applicationID}-#{@_applicationVersion}-#{group}-#{key}"
-
-  setValue: (key, value, callback, group = 'bucket')->
-    sign = "#{group}.#{key}"
-    @_storageData[sign] = value
-    window["localStorage"][@getSignature key, group] = JSON.stringify value
-    KD.utils.defer => callback? null
-
-  getValue: (key, group = 'bucket')->
-    data = @_storageData["#{group}.#{key}"]
+  getValue: (key)->
+    data = @_storageData[key]
     return data  if data
 
-    data = window["localStorage"][@getSignature key, group]
+    data = window["localStorage"][@getSignature key]
     if data
       try
         data = JSON.parse data
@@ -25,12 +16,37 @@ class LocalStorage extends AppStorage
         warn "parse failed", e
     return data
 
-  fetchValue:(key, callback, group = 'bucket')->
-    callback? @getValue key, group
+  getAt: (path)->
+    return null  unless path
+    keys = path.split '.'
+    data = @getValue keys.shift()
+    return null  unless data
+    return data  if keys.length is 0
+    JsPath.getAt data, keys.join '.'
 
-  unsetKey: (key, callback, group = 'bucket')->
-    delete window["localStorage"][@getSignature key, group]
-    delete @_storageData["#{group}.#{key}"]
+  setAt: (path, value, callback)->
+    return null  unless path and value
+    keys = path.split '.'
+    key  = keys.shift()
+    if keys.length is 0
+      @setValue key, value, callback
+    else
+      @setValue key, (JsPath.setAt {}, (keys.join '.'), value), callback
+
+  fetchValue:(key, callback)->
+    callback? @getValue key
+
+  setValue: (key, value, callback)->
+    @_storageData[key] = value
+    window["localStorage"][@getSignature key] = JSON.stringify value
+    KD.utils.defer => callback? null
+
+  unsetKey: (key, callback)->
+    delete window["localStorage"][@getSignature key]
+    delete @_storageData[key]
+
+  getSignature:(key)->
+    "koding-#{@_applicationID}-#{@_applicationVersion}-#{key}"
 
 class LocalStorageController extends KDController
 
