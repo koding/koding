@@ -51,7 +51,8 @@ module.exports = class JApp extends jraphical.Module
         'fetchRelativeReviews', 'approve'
       ]
       static        : [
-        'one', 'create', 'someWithRelationship', 'updateAllSlugs', 'some'
+        'one', 'create', 'someWithRelationship', 'updateAllSlugs'
+        'some', 'each', 'fetchAllAppsData'
       ]
 
     schema          :
@@ -368,9 +369,20 @@ module.exports = class JApp extends jraphical.Module
     options.limit = Math.min(options.limit or 0, 10)
 
     @some selector, options, (err, apps)=>
-      return callback err  if err
       @markInstalled client, apps, (err, apps)=>
         @markFollowing client, apps, callback
+
+  @each$: secure (client, selector, fields, options, callback)->
+    selector = getDefaultSelector client, selector
+    @each selector, fields, options, callback
+
+  @fetchAllAppsData: secure (client, selector, callback)->
+    selector = getDefaultSelector client, selector
+    apps     = []
+    @each selector, {}, {}, (err, app)=>
+      return callback err  if err
+      if app then apps.push app
+      else callback err, apps
 
   @markInstalled = secure (client, apps, callback)->
     Relationship.all
