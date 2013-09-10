@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"koding/db/models"
+	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
@@ -19,11 +20,10 @@ import (
 )
 
 type IncomingMessage struct {
-	Worker  *workerconfig.Worker
-	Monitor *workerconfig.Monitor
+	Worker  *models.Worker
+	Monitor *models.Monitor
 }
 
-var kontrolDB *workerconfig.WorkerConfig
 var producer *kontrolhelper.Producer
 
 func init() {
@@ -40,11 +40,6 @@ func Startup() {
 	err = producer.Channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
 	if err != nil {
 		log.Printf("clientExchange exchange.declare: %s", err)
-	}
-
-	kontrolDB, err = workerconfig.Connect()
-	if err != nil {
-		log.Fatalf("workerconfig mongodb connect: %s", err)
 	}
 
 	runHelperFunctions()
@@ -75,10 +70,10 @@ func runHelperFunctions() {
 		for now := range tickerWorker.C {
 
 			queryFunc := func(c *mgo.Collection) error {
-				worker := workerconfig.Worker{}
+				worker := models.Worker{}
 				iter := c.Find(nil).Iter()
 				for iter.Next(&worker) {
-					if worker.Status == workerconfig.Dead {
+					if worker.Status == models.Dead {
 						continue // already dead, nothing to do
 					}
 
@@ -94,15 +89,15 @@ func runHelperFunctions() {
 						worker.Pid,
 					)
 
-					worker.Status = workerconfig.Dead
-					worker.Monitor.Mem = workerconfig.MemData{}
+					worker.Status = models.Dead
+					worker.Monitor.Mem = models.MemData{}
 					worker.Monitor.Uptime = 0
-					kontrolDB.UpdateWorker(worker)
+					modelhelper.UpdateWorker(worker)
 				}
 				return nil
 			}
 
-			kontrolDB.RunCollection("jKontrolWorkers", queryFunc)
+			mongodb.Run("jKontrolWorkers", queryFunc)
 		}
 	}()
 
@@ -118,14 +113,14 @@ func runHelperFunctions() {
 				foundWorker := false
 				query := func(c *mgo.Collection) error {
 					iter := c.Find(bson.M{"version": version}).Iter()
-					worker := workerconfig.Worker{}
+					worker := models.Worker{}
 					for iter.Next(&worker) {
 						foundWorker = true
 					}
 					return nil
 				}
 
-				kontrolDB.RunCollection("jKontrolWorkers", query)
+				mongodb.Run("jKontrolWorkers", query)
 
 				// remove deployment if no workers are available
 				if !foundWorker {
@@ -188,7 +183,7 @@ func ApiMessage(data []byte) {
 }
 
 // DoWorkerCommand is used to handle messages coming from workers.
-func DoWorkerCommand(command string, worker workerconfig.Worker) error {
+func DoWorkerCommand(command string, worker models.Worker) error {
 	if worker.Uuid == "" {
 		fmt.Errorf("worker %s does have an empty uuid", worker.Name)
 	}
@@ -233,7 +228,7 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 			return fmt.Errorf("register to kontrol proxy not possible: %s", err.Error())
 		}
 	case "ack":
-		err := kontrolDB.Ack(worker)
+		err := workerconfig.Ack(worker)
 		if err != nil {
 			return err
 		}
@@ -244,7 +239,7 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 			worker.Hostname,
 			worker.Uuid,
 		)
-		err := kontrolDB.Update(worker)
+		err := workerconfig.Update(worker)
 		if err != nil {
 			return err
 		}
@@ -265,18 +260,18 @@ func DoApiRequest(command, uuid string) error {
 	log.Printf("[%s] received: %s", uuid, command)
 	switch command {
 	case "delete":
-		err := kontrolDB.Delete(uuid)
+		err := workerconfig.Delete(uuid)
 		if err != nil {
 			return err
 		}
 	case "kill":
-		res, err := kontrolDB.Kill(uuid, "normal")
+		res, err := workerconfig.Kill(uuid, "normal")
 		if err != nil {
 			log.Println(err)
 		}
 		go deliver(res)
 	case "start":
-		res, err := kontrolDB.Start(uuid)
+		res, err := workerconfig.Start(uuid)
 		if err != nil {
 			log.Println(err)
 		}
@@ -287,19 +282,19 @@ func DoApiRequest(command, uuid string) error {
 	return nil
 }
 
-func SaveMonitorData(data *workerconfig.Monitor) error {
-	worker, err := kontrolDB.GetWorker(data.Uuid)
+func SaveMonitorData(data *models.Monitor) error {
+	worker, err := modelhelper.GetWorker(data.Uuid)
 	if err != nil {
 		return fmt.Errorf("monitor data error '%s'", err)
 	}
 
 	worker.Monitor.Mem = *data.Mem
 	worker.Monitor.Uptime = data.Uptime
-	kontrolDB.UpdateWorker(worker)
+	modelhelper.UpdateWorker(worker)
 	return nil
 }
 
-func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) {
+func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 	option := worker.Message.Option
 
 	switch option {
@@ -312,7 +307,7 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 		log.Printf("[%s (%d)] killing all other workers except hostname '%s'\n",
 			worker.Name, worker.Version, worker.Hostname)
 
-		result := workerconfig.Worker{}
+		result := models.Worker{}
 		query := func(c *mgo.Collection) error {
 			iter := c.Find(bson.M{
 				"name": bson.RegEx{Pattern: "^" + normalizeName(worker.Name),
@@ -320,13 +315,13 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 				"hostname": bson.M{"$ne": worker.Hostname},
 			}).Iter()
 			for iter.Next(&result) {
-				res, err := kontrolDB.Kill(result.Uuid, "force")
+				res, err := workerconfig.Kill(result.Uuid, "force")
 				if err != nil {
 					log.Println(err)
 				}
 				go deliver(res)
 
-				err = kontrolDB.Delete(result.Uuid)
+				err = workerconfig.Delete(result.Uuid)
 				if err != nil {
 					log.Println(err)
 				}
@@ -336,7 +331,7 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 
 		}
 
-		kontrolDB.RunCollection("jKontrolWorkers", query)
+		mongodb.Run("jKontrolWorkers", query)
 
 		startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
 			worker.Name,
@@ -347,8 +342,9 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 		)
 		log.Println(startLog)
 
-		worker.Status = workerconfig.Started
-		kontrolDB.UpsertWorker(worker)
+		worker.Status = models.Started
+		worker.ObjectId = bson.NewObjectId()
+		modelhelper.UpsertWorker(worker)
 
 		response := *workerconfig.NewWorkerResponse(
 			worker.Name,
@@ -367,8 +363,8 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 			query = bson.M{
 				"name": worker.Name,
 				"status": bson.M{"$in": []int{
-					int(workerconfig.Started),
-					int(workerconfig.Waiting),
+					int(models.Started),
+					int(models.Waiting),
 				}}}
 			reason = "workers with same names: "
 		}
@@ -384,13 +380,13 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 					Options: "i"},
 				"version": bson.M{"$ne": worker.Version},
 				"status": bson.M{"$in": []int{
-					int(workerconfig.Started),
-					int(workerconfig.Waiting),
+					int(models.Started),
+					int(models.Waiting),
 				}}}
 			reason = "workers with different versions: "
 		}
 
-		result := workerconfig.Worker{}
+		result := models.Worker{}
 		otherWorkers := false
 		queryFunc := func(c *mgo.Collection) error {
 			iter := c.Find(query).Iter()
@@ -402,7 +398,7 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 			return nil
 		}
 
-		kontrolDB.RunCollection("jKontrolWorkers", queryFunc)
+		mongodb.Run("jKontrolWorkers", queryFunc)
 
 		if !otherWorkers {
 			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
@@ -414,8 +410,9 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 			)
 			log.Println(startLog)
 
-			worker.Status = workerconfig.Started
-			kontrolDB.UpsertWorker(worker)
+			worker.Status = models.Started
+			worker.ObjectId = bson.NewObjectId()
+			modelhelper.UpsertWorker(worker)
 
 			response := *workerconfig.NewWorkerResponse(
 				worker.Name,
@@ -453,9 +450,10 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 		)
 		log.Println(startLog)
 
-		worker.Status = workerconfig.Started
+		worker.ObjectId = bson.NewObjectId()
+		worker.Status = models.Started
 		worker.Timestamp = time.Now().Add(workerconfig.HEARTBEAT_INTERVAL)
-		kontrolDB.UpsertWorker(worker)
+		modelhelper.UpsertWorker(worker)
 
 		response := *workerconfig.NewWorkerResponse(
 			worker.Name,
