@@ -1,11 +1,12 @@
+splitDomain = (domainName) ->
+  splitted =  domainName.split "."
+  return {
+    first: splitted[0],
+    extension: if splitted.length > 1 then splitted[1..].join "." else ""
+  }
+
 class DomainCreationForm extends KDTabViewWithForms
-#  domainNameValidation =
-#    rules      :
-#      required : yes
-#      regExp   : /^([\da-z\.-]+)\.([a-z\.]{2,6})$/i
-#    messages   :
-#      required : "Enter your domain name"
-#      regExp   : "This doesn't look like a valid domain name."
+
   domainOptions = [
       { title : "Create a subdomain", value : "subdomain" }
       { title : "I want to register a domain", value : "new" }
@@ -35,7 +36,7 @@ class DomainCreationForm extends KDTabViewWithForms
                 @registerDomain()
             createButton              :
               title                   : "Add Domain"
-              style                   : "cupid-green hidden"
+              style                   : "cupid-green"
               type                    : "submit"
               loader                  :
                 color                 : "#ffffff"
@@ -52,18 +53,18 @@ class DomainCreationForm extends KDTabViewWithForms
               callback                : =>
                 @checkAvailability()
 
-
             close                     :
               title                   : "Back to settings"
               style                   : "cupid-green hidden"
               callback                : => @reset()
             cancel                    :
-              style                   : "modal-cancel"
+              style                   : "cupid-green"
               callback                : => @emit 'DomainCreationCancelled'
             another                   :
               title                   : "add another domain"
               style                   : "modal-cancel hidden"
               callback                : => @addAnotherDomainClicked()
+
           fields                      :
             header                    :
               title                   : "Add a domain"
@@ -78,6 +79,7 @@ class DomainCreationForm extends KDTabViewWithForms
                 {DomainOption, domainName, domains, regYears} = @forms["Domain Address"].inputs
                 {checkButton, registerButton} = @forms["Domain Address"].buttons
                 actionState = DomainOption.getValue()
+                domainName.setValue ''
                 domainName.getElement().setAttribute 'placeholder', switch actionState
                   when "new"
                     @suggestionBox?.show()
@@ -117,9 +119,12 @@ class DomainCreationForm extends KDTabViewWithForms
               keydown                 :
                 =>
                   @clearSuggestions()
-                  {registerButton, checkButton} = form.buttons
-                  registerButton.hide()
-                  checkButton.show()
+                  {DomainOption} = @forms["Domain Address"].inputs
+                  actionState = DomainOption.getValue()
+                  if actionState is "new"
+                    {registerButton, checkButton} = form.buttons
+                    registerButton.hide()
+                    checkButton.show()
               nextElement             :
                 regYears              :
                   cssClass            : "hidden"
@@ -148,29 +153,31 @@ class DomainCreationForm extends KDTabViewWithForms
       for domain in userDomains
         if not domain.regYears > 0
           domainList.push {title:".#{domain.domain}", value:domain.domain}
-      @forms["Domain Address"].inputs.domains.setSelectOptions domainList
+      {domains} = @forms["Domain Address"].inputs
+      domains.setSelectOptions domainList
 
   checkAvailability: ->
     form = @forms["Domain Address"]
     domainInput       = domainName
     domainName        = form.inputs.domainName.getValue()
-    splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
-    domain            = splittedDomain[1]
-    tld               = splittedDomain[2]
-
+    splittedDomain    = splitDomain(domainName)
+    domain            = splittedDomain.first
+    tld               = splittedDomain.extension
     {createButton, checkButton, registerButton} = form.buttons
     @clearSuggestions()
-    KD.remote.api.JDomain.getTldPrice tld, (tldPrice) => 
-      KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status, price, suggestions) =>
-      # KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, status)=>
+    KD.remote.api.JDomain.getTldPrice tld, (err, tldPrice) =>
+      if err
+        notifyUser "An error occured. Please try again later."
+      KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, result) =>
         if avErr
           checkButton.hideLoader()
-          log domain
+          log result
           log tld
           log avErr
-          log status
-          log suggestions
           return notifyUser "An error occured: #{avErr}"
+        status = result.status
+        price = result.price
+        suggestions = result.suggestions
         checkButton.hideLoader()
         switch status
           when "available"
@@ -194,39 +201,39 @@ class DomainCreationForm extends KDTabViewWithForms
     {DomainOption, domainName, regYears, domains} = form.inputs
     domainInput       = domainName
     domainName        = form.inputs.domainName.getValue()
-    splittedDomain    = domainName.match(/([\w\-]+)\.(.*)/)
-    domain            = splittedDomain[1]
-    tld               = splittedDomain[2]
 
     domainOptionValue = DomainOption.getValue()
 
     if domainOptionValue is 'new'
-        form = @forms["Domain Address"]
-        {createButton, registerButton} = form.buttons
-        paymentController = KD.getSingleton('paymentController')
-        group             = KD.getSingleton("groupsController").getCurrentGroup()
-        registerTheDomain = ->
-            KD.remote.api.JDomain.registerDomain
-              domainName : domainInput.getValue()
-              years      : regYears.getValue()
-            , (err, domain) =>
-              if err
-                warn err
-                console.log err
-                notifyUser "An error occured. Please try again later."
-              else
-                @showSuccess domain
-                domain.setDomainCNameToProxyDomain()
-              registerButton.hideLoader()
+      splittedDomain    = splitDomain(domainName)
+      domain            = splittedDomain.first
+      tld               = splittedDomain.extension
+      form = @forms["Domain Address"]
+      {createButton, registerButton} = form.buttons
+      paymentController = KD.getSingleton('paymentController')
+      group             = KD.getSingleton("groupsController").getCurrentGroup()
+      registerTheDomain = ->
+          KD.remote.api.JDomain.registerDomain
+            domainName : domainInput.getValue()
+            years      : regYears.getValue()
+          , (err, domain) =>
+            if err
+              warn err
+              console.log err
+              notifyUser "An error occured. Please try again later."
+            else
+              @showSuccess domain
+              domain.setDomainCNameToProxyDomain()
+            registerButton.hideLoader()
 
-        paymentController.getBillingInfo 'user', group, (err, account)->
-          need = err or not account or not account.cardNumber
-          if need
-            paymentController.setBillingInfo 'user', group, (success)->
-              if success
-                registerTheDomain()
-          else
-            registerTheDomain()
+      paymentController.getBillingInfo 'user', group, (err, account)->
+        need = err or not account or not account.cardNumber
+        if need
+          paymentController.setBillingInfo 'user', group, (success)->
+            if success
+              registerTheDomain()
+        else
+          registerTheDomain()
 
 
     else if domainOptionValue is 'existing'
@@ -282,7 +289,7 @@ class DomainCreationForm extends KDTabViewWithForms
     {domainName}    = form.inputs
     {suggestionBox} = form.fields
     if not available
-      partial         = "<p>This domain is already registered. #{'You may click and try one below.' ? suggestions.length > 0 : ''}</p>"
+      partial         = "<p>This domain is already registered. #{if suggestions.length > 0 then 'You may click and try one below.' else ''}</p>"
     else
       partial         = "<p>Domain price is: #{price}$</p>"
 

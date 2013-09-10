@@ -118,6 +118,10 @@ module.exports = [
   # progressbar
   "Framework/components/progressbar/KDProgressBarView.coffee",
 
+  # sliderbar
+  "Framework/components/sliderbar/KDSliderBarView.coffee",
+  "Framework/components/sliderbar/KDSliderBarHandleView.coffee",
+
   # dialog
   "Framework/components/dialog/KDDialogView.coffee",
 
@@ -324,12 +328,14 @@ module.exports = [
 
   # fs representation
   "app/MainApp/fs/fshelper.coffee",
+  "app/MainApp/fs/fswatcher.coffee",
   "app/MainApp/fs/fsitem.coffee",
   "app/MainApp/fs/fsfile.coffee",
   "app/MainApp/fs/fsfolder.coffee",
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
   "app/MainApp/fs/fsvm.coffee",
+  "app/MainApp/fs/appswatcher.coffee",
 
   # avatararea
   "app/MainApp/avatararea/avatarareapopup.coffee",
@@ -804,6 +810,7 @@ module.exports = [
   "Framework/themes/default/kd.scrollview.styl",
   "Framework/themes/default/kd.modal.styl",
   "Framework/themes/default/kd.progressbar.styl",
+  "Framework/themes/default/kd.sliderbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
 
