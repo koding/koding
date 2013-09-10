@@ -54,7 +54,8 @@ class KodingAppsController extends KDController
 
     @watcher.on "ManifestHasChanged", (app, change)=>
       @fetchAppFromFs app, =>
-        @emit "UpdateAppData", app
+        @putAppsToAppStorage null, =>
+          @emit "UpdateAppData", app
 
   getAppPath:(manifest, escaped=no)->
 
@@ -107,7 +108,7 @@ class KodingAppsController extends KDController
         warn "Manifest file is broken:", e
         return cb null
 
-      @putAppsToAppStorage manifests
+      @constructor.manifests = manifests
       cb null
 
   fetchAppsFromFsHelper:(apps, callback)->
@@ -131,6 +132,7 @@ class KodingAppsController extends KDController
       else
         apps = @filterAppsFromFileList files
         @fetchAppsFromFsHelper apps, (result)=>
+          @putAppsToAppStorage()
           for callback in @_fetchQueue
             callback null, @getManifests()
           @_fetchQueue = []
