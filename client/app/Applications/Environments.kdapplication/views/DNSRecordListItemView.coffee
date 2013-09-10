@@ -19,7 +19,7 @@ class DNSRecordListItemView extends KDListItemView
     {{> @recordHostView }}
     {{> @recordValueView }}
     {{> @recordTtlView }}
-    <p class="record-buttons  record-element">
+    <p class="record-buttons record-element">
       {{> @editButton }}
       {{> @deleteButton }}
       {{> @updateButton }}
@@ -202,5 +202,4 @@ class RecordTtlView extends RecordElementView
 
 
 class EmptyDNSRecordListItemView extends KDListItemView
-
-  partial:-> "There is no DNS record for this domain."
+  partial:-> "<p class='domains-no-record'>There is no DNS record for this domain.</p>"
