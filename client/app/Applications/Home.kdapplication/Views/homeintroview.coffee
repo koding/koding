@@ -97,7 +97,10 @@ class HomeIntroView extends JView
     vmController = KD.getSingleton("vmController")
     {JAccount, JTag, JGroup, CActivity} = KD.remote.api
 
-    members.ready    => JAccount.count type: 'registered', (err, count)=> members.update count    or 0
+    members.ready =>
+      JAccount.fetchCachedUserCount (err, count)=>
+        members.update count or 0
+      
     vms.ready        => vmController.fetchTotalVMCount (err, count)=> vms.update count            or 0
     groups.ready     => JGroup.count                   (err, count)=> groups.update count         or 0
     topics.ready     => JTag.fetchCount                (err, count)=> topics.update count         or 0
