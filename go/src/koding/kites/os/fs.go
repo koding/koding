@@ -159,6 +159,12 @@ func registerFileSystemMethods(k *kite.Kite) {
 		}
 		defer file.Close()
 
+		if params.Append {
+			_, err := file.Seek(0, 2)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return file.Write(params.Content)
 	})
 
