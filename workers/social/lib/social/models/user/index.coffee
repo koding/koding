@@ -66,6 +66,7 @@ module.exports = class JUser extends jraphical.Module
     indexes         :
       username      : 'unique'
       email         : 'unique'
+      'foreignAuth.github.foreignId' : 1
 
     sharedEvents    :
       static        : [

@@ -24,6 +24,8 @@ module.exports = class JAccount extends jraphical.Module
   @getFlagRole = 'content'
   JName = require '../name'
 
+  @lastUserCountFetchTime = 0
+
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
   {permit} = require '../group/permissionset'
@@ -51,6 +53,7 @@ module.exports = class JAccount extends jraphical.Module
     indexes:
       'profile.nickname' : 'unique'
       isExempt           : 1
+      type               : 1
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
@@ -351,6 +354,15 @@ module.exports = class JAccount extends jraphical.Module
             else callback null, about
 
   @renderHomepage: require '../../render/profile.coffee'
+
+  @fetchCachedUserCount: (callback)->
+    if (Date.now() - @lastUserCountFetchTime)/1000 < 60
+      return callback null, @cachedUserCount
+    JAccount.count type:'registered', (err, count)=> 
+      return callback err if err
+      @lastUserCountFetchTime = Date.now()
+      @cachedUserCount = count
+      callback null, count
 
   fetchHomepageView:(account, callback)->
 

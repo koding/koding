@@ -199,7 +199,6 @@ module.exports =
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-      sslips      : '127.0.0.1'
     rabbitmq      :
       host        : 'localhost'
       port        : '5672'

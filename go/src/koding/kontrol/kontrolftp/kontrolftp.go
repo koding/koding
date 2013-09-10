@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"koding/tools/fastproxy"
 	"log"
@@ -11,22 +11,13 @@ import (
 	"strings"
 )
 
-var (
-	proxyDB *proxyconfig.ProxyConfiguration
-	logs    *syslog.Writer
-)
+var logs *syslog.Writer
 
 func main() {
 	fmt.Println("Starting FTP proxy")
 	var err error
 
 	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_FTP")
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
-		logs.Alert(res)
-		log.Fatalln(res)
-	}
 
 	err = startFTP()
 	if err != nil {
@@ -46,7 +37,7 @@ func startFTP() error {
 			vmName = userParts[1]
 		}
 
-		vm, err := proxyDB.GetVM(vmName)
+		vm, err := modelhelper.GetVM(vmName)
 		if err != nil {
 			req.Respond("530 No Koding VM with name '" + vmName + "' found.\r\n")
 			return

@@ -133,10 +133,8 @@ class StartTabMainView extends JView
     @removeAppIcons()
     @showLoader()
     @appsController.fetchApps (err, apps)=>
-
       if not @appsController._loadedOnce and apps and Object.keys(apps).length > 0
         @appsController.syncAppStorageWithFS()
-
       @decorateApps apps
 
   decorateApps:(apps)->
@@ -166,7 +164,7 @@ class StartTabMainView extends JView
 
   removeAppIcon:(appName)->
     appIcon = @appIcons[appName]
-    return warn "App icon not found for #{appName}"  unless appIcon
+    return  unless appIcon
     appIcon.destroy()
     delete @appIcons[appName]
 
@@ -183,6 +181,9 @@ class StartTabMainView extends JView
     @createAllAppIcons @appsController.getManifests()  if newApps.length > 0
 
   createAppIcon:(app, appData, bulk=no)->
+
+    appData or= @appsController.getManifest app
+    return  unless appData
 
     oldIcon = @appIcons[app]
     @appItemContainer.addSubView newIcon = new StartTabAppThumbView
