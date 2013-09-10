@@ -10,6 +10,8 @@ module.exports = class JEmailConfirmation extends jraphical.Module
   @set
     sharedMethods:
       static    : ['confirmByToken']
+    indexes:
+      token : 1
     schema      :
       email     :
         type    : String

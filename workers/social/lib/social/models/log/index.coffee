@@ -15,6 +15,9 @@ module.exports = class JLog extends Module
     sharedMethods   :
       instance      : []
       static        : [ 'some', 'log', 'checkLoginBruteForce' ]
+    indexes:
+      username : 1
+      ip       : 1
     schema                :
       type                :
         type              : String
