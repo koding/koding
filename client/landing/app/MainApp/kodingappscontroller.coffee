@@ -545,8 +545,11 @@ class KodingAppsController extends KDController
                   appPath    : @getAppPath app.manifest
                   version    : version
               , (err, res)=>
-                return KD.showError err  if err
-
+                if err
+                  KD.showError err,
+                    KodingError: """Something wrong with Apps server,
+                                    please try again later"""
+                  return callback?()
                 app.install (err)=>
                   KD.showError err
                   @appManager.open "StartTab"
