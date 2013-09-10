@@ -39,7 +39,7 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
-  runKontrol    : no
+  runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
   runPersistence: yes
@@ -72,7 +72,7 @@ module.exports =
     queueName   : socialQueueName+'auth'
     authExchange: authExchange
     authAllExchange: authAllExchange
-    numberOfWorkers: 1
+    numberOfWorkers: 4
     watch       : yes
   guestCleanerWorker     :
     enabled              : yes
@@ -199,7 +199,6 @@ module.exports =
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-      sslips      : '127.0.0.1'
     rabbitmq      :
       host        : 'localhost'
       port        : '5672'

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
-	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/tools/config"
 	"log"
 	"net/http"
@@ -25,7 +24,6 @@ type ProxyPostMessage struct {
 	Hostdata      string
 }
 
-var kontrolConfig *workerconfig.WorkerConfig
 var amqpWrapper *AmqpWrapper
 
 func init() {
@@ -34,15 +32,6 @@ func init() {
 
 func main() {
 	amqpWrapper = setupAmqp()
-
-	var err error
-	// TODO: remove them...
-	kontrolConfig, err = workerconfig.Connect()
-	if err != nil {
-		log.Fatalf("wokerconfig mongodb connect: %s", err)
-	}
-
-	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
 
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
@@ -111,13 +100,11 @@ func main() {
 	stats.HandleFunc("/proxies/{proxy}", changeHandler(GetProxyStat)).Methods("GET")
 	stats.HandleFunc("/proxies/{proxy}", changeHandler(DeleteProxyStat)).Methods("DELETE")
 
+	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
 	log.Printf("kontrol api is started. serving at :%s ...", port)
 
 	http.Handle("/", rout)
-	err = http.ListenAndServe(":"+port, nil)
-	if err != nil {
-		log.Println(err)
-	}
+	log.Println(http.ListenAndServe(":"+port, nil))
 }
 
 func home(writer http.ResponseWriter, request *http.Request) {
