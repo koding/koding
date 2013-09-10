@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
-	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/tools/config"
 	"log"
@@ -26,7 +25,6 @@ type ProxyPostMessage struct {
 	Hostdata      string
 }
 
-var clientDB *clientconfig.ClientConfig
 var kontrolConfig *workerconfig.WorkerConfig
 var amqpWrapper *AmqpWrapper
 
@@ -42,11 +40,6 @@ func main() {
 	kontrolConfig, err = workerconfig.Connect()
 	if err != nil {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
-	}
-
-	clientDB, err = clientconfig.Connect()
-	if err != nil {
-		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
 	port := strconv.Itoa(config.Current.Kontrold.Api.Port)

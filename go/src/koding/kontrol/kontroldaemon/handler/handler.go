@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"labix.org/v2/mgo"
@@ -24,7 +24,6 @@ type IncomingMessage struct {
 }
 
 var kontrolDB *workerconfig.WorkerConfig
-var clientDB *clientconfig.ClientConfig
 var producer *kontrolhelper.Producer
 
 func init() {
@@ -46,11 +45,6 @@ func Startup() {
 	kontrolDB, err = workerconfig.Connect()
 	if err != nil {
 		log.Fatalf("workerconfig mongodb connect: %s", err)
-	}
-
-	clientDB, err = clientconfig.Connect()
-	if err != nil {
-		log.Fatalf("clientconfig mongodb connect: %s", err)
 	}
 
 	runHelperFunctions()
@@ -117,7 +111,7 @@ func runHelperFunctions() {
 	go func() {
 		for _ = range tickerDeployment.C {
 			log.Println("starting to remove unused deployments")
-			infos := clientDB.GetClients()
+			infos := modelhelper.GetClients()
 			for _, info := range infos {
 				version, _ := strconv.Atoi(info.BuildNumber)
 
@@ -136,7 +130,7 @@ func runHelperFunctions() {
 				// remove deployment if no workers are available
 				if !foundWorker {
 					log.Printf("removing deployment with build number %s\n", info.BuildNumber)
-					err := clientDB.DeleteClient(info.BuildNumber)
+					err := modelhelper.DeleteClient(info.BuildNumber)
 					if err != nil {
 						log.Println(err)
 					}
@@ -148,13 +142,13 @@ func runHelperFunctions() {
 
 func ClientMessage(data amqp.Delivery) {
 	if data.RoutingKey == "kontrol-client" {
-		var info clientconfig.ServerInfo
+		var info models.ServerInfo
 		err := json.Unmarshal(data.Body, &info)
 		if err != nil {
 			log.Print("bad json client msg: ", err)
 		}
 
-		clientDB.AddClient(info)
+		modelhelper.AddClient(info)
 	}
 }
 
