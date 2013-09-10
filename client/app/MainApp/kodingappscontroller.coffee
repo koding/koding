@@ -45,8 +45,13 @@ class KodingAppsController extends KDController
     #  - ManifestHasChanged
 
     @watcher.on "NewAppIsAdded", (app, change)=>
-      @fetchAppFromFs app, =>
-        @emit "UpdateAppData", app
+      manifestPath = "#{change.file.fullPath}/manifest.json"
+      manifest = FSHelper.createFileFromPath manifestPath
+      manifest.exists (err, exists)=>
+        return  unless exists
+        @fetchAppFromFs app, =>
+          @putAppsToAppStorage null, =>
+            @emit "UpdateAppData", app
 
     @watcher.on "AppIsRemoved", (app, change)=>
       @invalidateDeletedApps [app], no, =>
