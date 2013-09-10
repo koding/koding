@@ -44,8 +44,12 @@ func registerFileSystemMethods(k *kite.Kite) {
 					if info == nil {
 						return // skip this event, file was deleted and deletion event will follow
 					}
+					event := "added"
+					if ev.Mask&inotify.IN_ATTRIB != 0 {
+						event = "attributesChanged"
+					}
 					params.OnChange(map[string]interface{}{
-						"event": "added",
+						"event": event,
 						"file":  makeFileEntry(vos, ev.Name, info),
 					})
 					return
@@ -136,14 +140,18 @@ func registerFileSystemMethods(k *kite.Kite) {
 			Path           string
 			Content        []byte
 			DoNotOverwrite bool
+			Append         bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool], append: [bool] }"}
 		}
 
-		flags := os.O_RDWR | os.O_CREATE | os.O_TRUNC
+		flags := os.O_RDWR | os.O_CREATE
 		if params.DoNotOverwrite {
 			flags |= os.O_EXCL
+		}
+		if !params.Append {
+			flags |= os.O_TRUNC
 		}
 		file, err := vos.OpenFile(params.Path, flags, 0666)
 		if err != nil {

@@ -7,7 +7,7 @@ import (
 	libgeo "github.com/nranchev/go-libGeoIP"
 	"html/template"
 	"io"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
@@ -54,9 +54,6 @@ type interval struct {
 }
 
 var (
-	// mongoDB connection wrapper
-	proxyDB *proxyconfig.ProxyConfiguration
-
 	// used to extract the Country information via the IP
 	geoIP *libgeo.GeoIP
 
@@ -117,14 +114,7 @@ func configureProxy() {
 	log.Println(res)
 	logs.Info(res)
 
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
-		logs.Alert(res)
-		log.Fatalln(res)
-	}
-
-	err = proxyDB.AddProxy(proxyName)
+	err = modelhelper.AddProxy(proxyName)
 	if err != nil {
 		logs.Warning(err.Error())
 	}
@@ -478,21 +468,21 @@ func logDomainRequests(domain string) {
 		return
 	}
 
-	err := proxyDB.AddDomainRequests(domain)
+	err := modelhelper.AddDomainRequests(domain)
 	if err != nil {
 		logs.Warning(fmt.Sprintf("could not add domain statistisitcs for %s\n", err.Error()))
 	}
 }
 
 func logProxyStat(name, country string) {
-	err := proxyDB.AddProxyStat(name, country)
+	err := modelhelper.AddProxyStat(name, country)
 	if err != nil {
 		logs.Warning(fmt.Sprintf("could not add proxy statistisitcs for %s\n", err.Error()))
 	}
 }
 
 func validate(ip, country, domain string) (bool, error) {
-	restriction, err := proxyDB.GetRestrictionByDomain(domain)
+	restriction, err := modelhelper.GetRestrictionByDomain(domain)
 	if err != nil {
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}

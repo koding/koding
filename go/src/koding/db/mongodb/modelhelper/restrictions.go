@@ -1,8 +1,9 @@
-package proxyconfig
+package modelhelper
 
 import (
 	"fmt"
-	"koding/kontrol/kontrolproxy/models"
+	"koding/db/models"
+	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
@@ -26,9 +27,9 @@ func NewRestriction(domainname string) *models.Restriction {
 	}
 }
 
-func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, name string, index int, mode string) (models.Rule, error) {
+func AddOrUpdateRule(enabled bool, domainname, action, name string, index int, mode string) (models.Rule, error) {
 	rule := models.Rule{}
-	restriction, err := p.GetRestrictionByDomain(domainname)
+	restriction, err := GetRestrictionByDomain(domainname)
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			return rule, err
@@ -36,7 +37,7 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, n
 		restriction = *NewRestriction(domainname)
 	}
 
-	_, err = p.GetFilterByField("name", name)
+	_, err = GetFilterByField("name", name)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			return rule, fmt.Errorf("rule name '%s' does not exist. you have to create a filter that contains the name '%s'.", name, name)
@@ -81,54 +82,54 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, n
 		return err
 	}
 
-	err = p.RunCollection("jProxyRestrictions", query)
+	err = mongodb.Run("jProxyRestrictions", query)
 	return rule, err
 }
 
-func (p *ProxyConfiguration) DeleteRuleByName(domainname, name string) error {
+func DeleteRuleByName(domainname, name string) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"domainname": domainname},
 			bson.M{"$pull": bson.M{"ruleList": bson.M{"name": name}}})
 	}
 
-	return p.RunCollection("jProxyRestrictions", query)
+	return mongodb.Run("jProxyRestrictions", query)
 }
 
-func (p *ProxyConfiguration) DeleteRestriction(domainname string) error {
+func DeleteRestriction(domainname string) error {
 	query := func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"domainName": domainname})
 	}
 
-	return p.RunCollection("jProxyRestrictions", query)
+	return mongodb.Run("jProxyRestrictions", query)
 }
 
-func (p *ProxyConfiguration) GetRestrictionByDomain(domainname string) (models.Restriction, error) {
+func GetRestrictionByDomain(domainname string) (models.Restriction, error) {
 	restriction := models.Restriction{}
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"domainName": domainname}).One(&restriction)
 	}
 
-	err := p.RunCollection("jProxyRestrictions", query)
+	err := mongodb.Run("jProxyRestrictions", query)
 	if err != nil {
 		return restriction, err
 	}
 	return restriction, nil
 }
 
-func (p *ProxyConfiguration) GetRestrictionByID(id bson.ObjectId) (models.Restriction, error) {
+func GetRestrictionByID(id bson.ObjectId) (models.Restriction, error) {
 	restriction := models.Restriction{}
 	query := func(c *mgo.Collection) error {
 		return c.FindId(id).One(&restriction)
 	}
 
-	err := p.RunCollection("jProxyRestrictions", query)
+	err := mongodb.Run("jProxyRestrictions", query)
 	if err != nil {
-		return models.Restriction{}, err
+		return restriction, err
 	}
 	return restriction, nil
 }
 
-func (p *ProxyConfiguration) GetRestrictions() []models.Restriction {
+func GetRestrictions() []models.Restriction {
 	restriction := models.Restriction{}
 	restrictions := make([]models.Restriction, 0)
 
@@ -140,7 +141,7 @@ func (p *ProxyConfiguration) GetRestrictions() []models.Restriction {
 		return nil
 	}
 
-	p.RunCollection("jProxyRestrictions", query)
+	mongodb.Run("jProxyRestrictions", query)
 	return restrictions
 }
 
