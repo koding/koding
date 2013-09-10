@@ -388,11 +388,12 @@ module.exports = class JApp extends jraphical.Module
     Relationship.all
       targetId  : client.connection.delegate.getId()
       as        : 'user'
+      sourceType: 'JApp'
     , (err, relationships)->
-      for app in apps
+      apps.forEach (app)->
         app.installed = no
         for relationship, index in relationships
-          if app.getId().equals relationship.sourceId
+          if app._id is relationship.sourceId
             app.installed = yes
             relationships.splice index,1
             break
@@ -471,58 +472,3 @@ module.exports = class JApp extends jraphical.Module
     if limit > 0
       options.limit = limit
     @fetchReviews selector, options, callback
-
-  ####
-
-
-  # @create = secure (client, data, callback)->
-  #   {connection:{delegate}} = client
-  #   {thumbnails, screenshots, meta:{tags}} = data
-  #   Resource.storeImages client, thumbnails, (err, thumbnailsFilenames)->
-  #     if err
-  #       callback err
-  #     else
-  #       Resource.storeImages client, screenshots, (err, screenshotsFilenames)->
-  #         if err
-  #           callback err
-  #         else
-  #           app = new JApp {
-  #             title       : data.title
-  #             body        : data.body
-  #             thumbnails  : thumbnailsFilenames
-  #             screenshots : screenshotsFilenames
-  #             attachments : [
-  #               {
-  #                 as          : 'script'
-  #                 content     : data.scriptCode
-  #                 description : data.scriptDescription
-  #                 syntax      : data.scriptSyntax
-  #               },{
-  #                 as          : 'requirements'
-  #                 content     : data.requirementsCode
-  #                 syntax      : data.requirementsSyntax
-  #               }
-  #             ]
-  #           }
-  #           app.save (err)->
-  #             if err
-  #               callback err
-  #             else
-  #               if tags then app.addTags client, tags, (err)->
-  #                 if err
-  #                   callback err
-  #                 else
-  #                   callback null, app
-
-  # @findSuggestions = (client, seed, options, callback)->
-  #   {limit,blacklist}  = options
-
-  #   @some {
-  #     title   : seed
-  #     _id     :
-  #       $nin  : blacklist
-  #   },{
-  #     limit
-  #     sort    : 'title' : 1
-  #   }, callback
-
