@@ -19,7 +19,6 @@ class NewDNSRecordFormView extends KDCustomHTMLView
       title : "TTL"
 
     @priorityLabel    = new KDLabelView
-      cssClass : "hidden"
       title    : "Priority"
 
     @header = new KDCustomHTMLView
@@ -40,23 +39,23 @@ class NewDNSRecordFormView extends KDCustomHTMLView
       ]
       change:=>
         if @typeSelectBox.getValue() isnt "MX"
-          @priorityLabel.hide()
-          @priorityInput.hide()
+          @unsetClass "mx-selected"
         else
-          @priorityLabel.show()
-          @priorityInput.show()
+          @setClass "mx-selected"
 
     @hostInput        = new KDInputView
     @destinationInput = new KDInputView
     @ttlInput         = new KDInputView
     @priorityInput    = new KDInputView
-      cssClass : "hidden"
 
     @addButton = new KDButtonView
       title    : "Add Record"
       callback : @bound "createNewRecord"
 
-  createNewRecord:->
+    @addRecordLabel  = new KDLabelView
+      title : ""
+
+  createNewRecord: ->
     {domain} = @getData()
 
     recordType = @typeSelectBox.getValue()
@@ -87,15 +86,15 @@ class NewDNSRecordFormView extends KDCustomHTMLView
           {{> @typeLabel}}
           <div>{{> @typeSelectBox }}</div>
         </div>
-        <div class="input-container">
+        <div class="input-container host">
           {{> @hostLabel}}
           {{> @hostInput }}
         </div>
-        <div class="input-container">
+        <div class="input-container value">
           {{> @destinationLabel}}
           {{> @destinationInput }}
         </div>
-        <div class="input-container">
+        <div class="input-container ttl">
           {{> @ttlLabel}}
           {{> @ttlInput }}
         </div>
@@ -104,6 +103,7 @@ class NewDNSRecordFormView extends KDCustomHTMLView
           {{> @priorityInput }}
         </div>
         <div class="input-container add-record">
+          {{> @addRecordLabel}}
           {{> @addButton }}
         </div>
       </section>
