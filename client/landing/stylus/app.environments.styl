@@ -585,14 +585,12 @@ app.environments.styl
           width           120px
           background      #fff
           text-align      center
-          display         -webkit-box
-          display         -moz-box
-          display         flex
           top             0
           right           -120px
           padding         5px
           opacity         0
           border-left     1px dotted #ccc
+          flex()
           vendor          transition, right .3s ease \,\
                                       opacity .3s ease
           abs()
@@ -614,11 +612,7 @@ app.environments.styl
       .record-element 
         padding-top            10px !important
         &.record-buttons
-          -webkit-justify-content   center
-          -moz-justify-content      center
-          justify-content           center
-
-
+          vendor               justify-content, center
 
     th, td
       vertical-align   top
