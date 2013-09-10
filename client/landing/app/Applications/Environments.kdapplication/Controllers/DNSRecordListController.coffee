@@ -8,12 +8,12 @@ class DNSRecordListController extends KDListViewController
       tagName   : 'ul'
       partial   :
         """
-        <h3 class="records-title">
+        <h3 class="records-title clearfix">
           <div class="record-type record-element">Record Type</div>
           <div class="record-host record-element">Host</div>
           <div class="record-value record-element">Value</div>
           <div class="record-ttl record-element">TTL</div>
-          <div class="record-buttons record-element">Actions</div>
+          <div class="record-priority record-element">Priority</div>
         </h3>
         """
     super options, data
