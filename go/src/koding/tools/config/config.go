@@ -71,7 +71,6 @@ type Config struct {
 			Port    int
 			PortSSL int
 			FTPIP   string
-			SSLIPS  string
 		}
 		RabbitMq struct {
 			Host     string

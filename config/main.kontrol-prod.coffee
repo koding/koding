@@ -36,7 +36,7 @@ module.exports =
     read        : "http://kgraph.sj.koding.com"
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
+  mongo         : 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
@@ -184,7 +184,7 @@ module.exports =
     webPort     : 3020
   kontrold        :
     overview      :
-      apiHost     : "kontrol.in.koding.com"
+      apiHost     : "172.16.3.11"
       apiPort     : 80
       port        : 8080
       switchHost  : "koding.com"
@@ -194,7 +194,6 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     rabbitmq      :
       host        : '172.16.3.4'
       port        : '5672'

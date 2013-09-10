@@ -44,8 +44,12 @@ func registerFileSystemMethods(k *kite.Kite) {
 					if info == nil {
 						return // skip this event, file was deleted and deletion event will follow
 					}
+					event := "added"
+					if ev.Mask&inotify.IN_ATTRIB != 0 {
+						event = "attributesChanged"
+					}
 					params.OnChange(map[string]interface{}{
-						"event": "added",
+						"event": event,
 						"file":  makeFileEntry(vos, ev.Name, info),
 					})
 					return
@@ -155,6 +159,12 @@ func registerFileSystemMethods(k *kite.Kite) {
 		}
 		defer file.Close()
 
+		if params.Append {
+			_, err := file.Seek(0, 2)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return file.Write(params.Content)
 	})
 

@@ -1,8 +1,9 @@
-package proxyconfig
+package modelhelper
 
 import (
 	"fmt"
-	"koding/kontrol/kontrolproxy/models"
+	"koding/db/models"
+	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -14,37 +15,37 @@ func NewProxy(name string) *models.Proxy {
 	}
 }
 
-func (p *ProxyConfiguration) AddProxy(proxyname string) error {
+func AddProxy(proxyname string) error {
 	proxy := *NewProxy(proxyname)
 	query := func(c *mgo.Collection) error {
 		_, err := c.Upsert(bson.M{"name": proxyname}, proxy)
 		return err
 	}
-	return p.RunCollection("jProxies", query)
+	return mongodb.Run("jProxies", query)
 }
 
-func (p *ProxyConfiguration) DeleteProxy(proxyname string) error {
+func DeleteProxy(proxyname string) error {
 	query := func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"name": proxyname})
 	}
 
-	return p.RunCollection("jProxies", query)
+	return mongodb.Run("jProxies", query)
 }
 
-func (p *ProxyConfiguration) GetProxy(proxyname string) (models.Proxy, error) {
+func GetProxy(proxyname string) (models.Proxy, error) {
 	proxy := models.Proxy{}
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"name": proxyname}).One(&proxy)
 	}
 
-	err := p.RunCollection("jProxies", query)
+	err := mongodb.Run("jProxies", query)
 	if err != nil {
 		return proxy, fmt.Errorf("no proxy with name %s exist.", proxyname)
 	}
 	return proxy, nil
 }
 
-func (p *ProxyConfiguration) GetProxies() []models.Proxy {
+func GetProxies() []models.Proxy {
 	proxy := models.Proxy{}
 	proxies := make([]models.Proxy, 0)
 
@@ -57,7 +58,7 @@ func (p *ProxyConfiguration) GetProxies() []models.Proxy {
 		return nil
 	}
 
-	p.RunCollection("jProxies", query)
+	mongodb.Run("jProxies", query)
 
 	return proxies
 }
