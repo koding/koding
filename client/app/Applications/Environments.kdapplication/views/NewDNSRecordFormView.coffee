@@ -23,9 +23,8 @@ class NewDNSRecordFormView extends KDCustomHTMLView
 
     @header = new KDCustomHTMLView
       tagName: "header"
-      # partial: domain.domainType
-      partial: "Add our NameServers: <b>ns0.koding.com, ns1.koding.com</b>" if domain.domainType is "existing"
-
+      partial: domain.domainType
+      # partial: "Add our NameServers: <b>ns0.koding.com, ns1.koding.com</b>" if domain.domainType is "existing"
 
     @typeSelectBox    = new KDSelectBox
       selectOptions : [

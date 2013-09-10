@@ -190,10 +190,10 @@ module.exports = class JDomain extends jraphical.Module
         domainName         : data.domainName
         years              : data.years
         customerId         : "10073817"
-        regContactId       : "29527195"
-        adminContactId     : "29527195"
-        techContactId      : "29527195"
-        billingContactId   : "29527195"
+        regContactId       : "29527194"
+        adminContactId     : "29527194"
+        techContactId      : "29527194"
+        billingContactId   : "29527194"
         invoiceOption      : "NoInvoice"
         protectPrivacy     : no
 
