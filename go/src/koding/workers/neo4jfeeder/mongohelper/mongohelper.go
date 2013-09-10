@@ -1,10 +1,11 @@
-package mongo
+package mongohelper
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/chuckpreslar/inflect"
+	"koding/db/mongodb"
 	"koding/tools/mapping"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -12,9 +13,8 @@ import (
 )
 
 var (
-	DATA        = make(map[string]interface{})
-	ERR_DATA    = make(map[string]interface{})
-	COLLECTIONS = make(map[string]*mgo.Collection)
+	DATA     = make(map[string]interface{})
+	ERR_DATA = make(map[string]interface{})
 )
 
 func FetchOneContentBy(queryFunc func() map[string]interface{}) (map[string]interface{}, error) {
@@ -55,14 +55,13 @@ func decorateResult(result map[string]interface{}) map[string]interface{} {
 func Fetch(idHex, name string) (map[string]interface{}, error) {
 	id := bson.ObjectIdHex(idHex)
 
-	collectionName := getCollectionName(name)
-	collection := GetCollection(collectionName)
-
 	result := make(map[string]interface{})
-	err := collection.FindId(id).One(result)
-	if err != nil {
-		return nil, err
+
+	query := func(c *mgo.Collection) error {
+		return c.FindId(id).One(result)
 	}
+
+	mongodb.Run(getCollectionName(name), query)
 
 	fmt.Println("positive")
 	result["id"] = idHex
@@ -91,14 +90,12 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 
 	var jsonResult string
 
-	collectionName := getCollectionName(name)
-	collection := GetCollection(collectionName)
-
 	result := make(map[string]interface{})
-	err := collection.FindId(id).One(result)
-	if err != nil {
-		return "", err
+	query := func(c *mgo.Collection) error {
+		return c.FindId(id).One(result)
 	}
+
+	mongodb.Run(getCollectionName(name), query)
 
 	// add object id and object class name
 	result["id"] = idHex
