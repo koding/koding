@@ -30,7 +30,7 @@ class DNSRecordListItemView extends KDListItemView
   buildSubViews:->
     {recordType, host, value, ttl, priority} = @getData()
 
-    @editButton = new KDButtonView
+    @editButton   = new KDButtonView
       title    : "Edit"
       callback : @bound "editRecord"
 
@@ -86,9 +86,9 @@ class DNSRecordListItemView extends KDListItemView
     [recordTypeView, hostView, valueView, ttlView] = @subViews
 
     data.recordType = recordTypeView.getInputValue()
-    data.host = hostView.getInputValue()
-    data.value = valueView.getInputValue()
-    data.ttl = ttlView.getInputValue()
+    data.host       = hostView.getInputValue()
+    data.value      = valueView.getInputValue()
+    data.ttl        = ttlView.getInputValue()
 
     @setData data
     @getDelegate().emit "recordUpdateRequested", oldData, this
@@ -142,13 +142,13 @@ class RecordTypeView extends RecordElementView
     @formElmView = new KDSelectBox
       cssClass      : 'editable'
       selectOptions : [
-        {title: "A", value: "A"}
+        {title: "A"    , value: "A"}
         {title: "CNAME", value: "CNAME"}
-        {title: "MX", value: "MX"}
-        {title: "TXT", value: "TXT"}
-        {title: "NS", value: "NS"}
-        {title: "SRV", value: "SRV"}
-        {title: "AAAA", value: "AAAA"}
+        {title: "MX"   , value: "MX"}
+        {title: "TXT"  , value: "TXT"}
+        {title: "NS"   , value: "NS"}
+        {title: "SRV"  , value: "SRV"}
+        {title: "AAAA" , value: "AAAA"}
       ]
       defaultValue : recordType
 

@@ -121,7 +121,6 @@ class NotificationController extends KDObject
       # Ignore all guest notifications
       # https://app.asana.com/0/1177356931469/7014047104322
       return  if actorAccount.type is 'unregistered'
-
       fetchSubjectObj (err, subjectObj)=>
         actorName = KD.utils.getFullnameFromAccount actorAccount
         options.title = switch actionType

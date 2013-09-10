@@ -8,6 +8,7 @@ module.exports = class JPrivateMessage extends JPost
   {ObjectRef, secure, race} = require 'bongo'
 
   jraphical = require 'jraphical'
+  {unique}  = require 'underscore'
 
   @trait __dirname, '../../traits/grouprelated'
 
@@ -18,13 +19,18 @@ module.exports = class JPrivateMessage extends JPost
       static          : ['create','on']
       instance        : [
         'reply','restComments','commentsByRange','like',
-        'fetchLikedByes','disown','collectParticipants','mark',
+        'fetchLikedByes','disown','mark',
         'unmark','fetchRelativeComments'
       ]
     schema        : jraphical.Message.schema
     # TODO: copying and pasting this for now...
     # We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
+
+  constructor:->
+    super
+    @on 'ReplyIsAdded', ({replier})=>
+      @informParticipants replier
 
   reply: secure (client, comment, callback)->
     JComment = require './comment'
@@ -35,17 +41,17 @@ module.exports = class JPrivateMessage extends JPost
     delegate.removePrivateMessage @, {as: $in: ['sender', 'recipient']}, \
     callback
 
-  collectParticipants: secure ({connection}, callback)->
-    {delegate} = connection
-    register = new Register # a register per message...
-    jraphical.Relationship.all targetName: 'JPrivateMessage', \
-      targetId: @getId(), sourceId: $ne: delegate.getId(), (err, rels)=>
-      if err
-        callback err
-      else
-        # only include unique participants.
-        @participants = (rel for rel in rels when register.sign rel.sourceId)
-        callback null,@
+  informParticipants:(replier)->
+    jraphical.Relationship.all
+      targetName : 'JPrivateMessage'
+      targetId   : @getId()
+    , (err, rels)=>
+      return warn err  if err
+      rels.forEach (rel)=>
+        rel.update $set: timestamp: new Date, (err)->
+          console.warn "Relationship date update failed:", err  if err
+        unless rel.sourceId.equals replier.id
+          @unflag 'read', rel.sourceId, ['recipient', 'sender']
 
   @create = do ->
     # a helper for sending to mulitple recipients.
