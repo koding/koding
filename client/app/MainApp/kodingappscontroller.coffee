@@ -262,11 +262,11 @@ class KodingAppsController extends KDController
     # return unless KD.isLoggedIn()
     appNames = (appName for appName, manifest of @getManifests()) or []
     query    = "manifest.name": "$in": appNames
-
-    KD.remote.api.JApp.someWithRelationship query, {}, (err, apps) =>
+    {JApp}   = KD.remote.api
+    JApp.fetchAllAppsData query, (err, apps)=>
       @publishedApps = map = {}
       apps?.forEach (app) =>
-        map[app.manifest.name] = app
+        map[app.manifest.name] = new JApp app
       @emit "UserAppModelsFetched", map
       callback? map
 
