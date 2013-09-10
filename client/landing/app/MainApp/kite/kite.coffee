@@ -88,7 +88,7 @@ class Kite extends Pinger
     @channel.exchange = resourceName
     @emit 'ready'
 
-  handleError: (err) -> console.error err
+  handleError: (err) -> error err
 
   handlePing: ->
     @channel.publish JSON.stringify
