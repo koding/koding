@@ -38,10 +38,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @img = new KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
-      error       : =>
-        @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
         src       : encodeURI thumb
+
+    @img.off 'error'
+    @img.on  'error', ->
+      @$().attr "src", "/images/default.app.thumb.png"
 
     @loader = new KDLoaderView
       size          :

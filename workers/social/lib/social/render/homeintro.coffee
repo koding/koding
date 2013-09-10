@@ -22,7 +22,7 @@ module.exports = (loggedIn = no)->
             <li><a class="" href="#"><i></i><img src="/images/video/twomins.jpg"></a></li>
             <li><a class="" href="#"><i></i><img src="/images/video/timedude.jpg"></a></li>
           </ul>
-          <div class="formline"><div class="toc">By signing up, you agree to our <a href="/toc.html" target="_blank">terms of service</a> and <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.</div></div>
+          <div class="formline"><div class="tos">By signing up, you agree to our <a href="/tos.html" target="_blank">terms of service</a> and <a href="/privacy.html" target="_blank">privacy policy</a>.</div></div>
         </form>
       </aside>
     </section>

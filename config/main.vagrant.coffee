@@ -39,7 +39,7 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
-  runKontrol    : yes
+  runKontrol    : no
   runRerouting  : yes
   runUserPresence: yes
   runPersistence: yes
@@ -72,7 +72,7 @@ module.exports =
     queueName   : socialQueueName+'auth'
     authExchange: authExchange
     authAllExchange: authAllExchange
-    numberOfWorkers: 4
+    numberOfWorkers: 1
     watch       : yes
   guestCleanerWorker     :
     enabled              : yes
