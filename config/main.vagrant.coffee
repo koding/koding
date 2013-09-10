@@ -72,7 +72,7 @@ module.exports =
     queueName   : socialQueueName+'auth'
     authExchange: authExchange
     authAllExchange: authAllExchange
-    numberOfWorkers: 4
+    numberOfWorkers: 1
     watch       : yes
   guestCleanerWorker     :
     enabled              : yes
