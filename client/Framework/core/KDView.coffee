@@ -141,7 +141,7 @@ class KDView extends KDObject
     @setDomAttributes options.attributes  if options.attributes
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
-    @updatePartial options.partial           if options.partial
+    @updatePartial options.partial        if options.partial
 
     @addEventHandlers options
 

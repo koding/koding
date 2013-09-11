@@ -246,7 +246,7 @@ func GetTarget(host string) (*Target, error) {
 			index := getIndex(host) // gives 0 if not available
 			hostname, n = roundRobin(keyData.Host, index, 0)
 			addOrUpdateIndex(host, n)
-			if hostname == "" { // means all servers are death, show maintenance page
+			if hostname == "" { // means all servers are dead, show maintenance page
 				return NewTarget(nil, "maintenance", persistence), nil
 			}
 		case "random":
@@ -283,6 +283,11 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 	hostname := hosts[n]
 
 	if err := utils.CheckServer(hostname); err != nil {
+		fmt.Printf("[%s] hostname '%s' is dead %s\n",
+			time.Now().String(),
+			hostname,
+			err.Error(),
+		)
 		hostname, n = roundRobin(hosts, index+1, iter+1)
 	}
 
