@@ -13,15 +13,15 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     @appsController = KD.getSingleton("kodingAppsController")
 
-    {icns, name, identifier, version, author, description,
+    {icns, name, identifier, version, author, description, title,
      authorNick, additionalinfo} = manifest = @getData()
 
     additionalinfo or= ''
     description    or= ''
     version        or= ''
+    appPath          = ''
 
-    if not authorNick
-      authorNick = KD.whoami().profile.nickname
+    authorNick or= KD.nick()
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}"
 
@@ -38,14 +38,20 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @img = new KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
-      error       : =>
-        @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
         src       : encodeURI thumb
+
+    @img.off 'error'
+    @img.on  'error', ->
+      @$().attr "src", "/images/default.app.thumb.png"
 
     @loader = new KDLoaderView
       size          :
         width       : 40
+
+    if name isnt title
+      appPath = Encoder.XSSEncode "/home/#{KD.nick()}/Applications/#{name}"
+      appPath = "<p class='app-path'><cite>#{appPath}</cite></p>"
 
     @info = new KDCustomHTMLView
       tagName  : "span"
@@ -56,9 +62,10 @@ class StartTabAppThumbView extends KDCustomHTMLView
           left : -5
         title  : """
           <div class='app-tip'>
-            <header><strong>#{Encoder.XSSEncode name} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
+            <header><strong>#{Encoder.XSSEncode title} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
             <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
             #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
+            #{appPath}
           <div>
           """
       click    : -> no
@@ -74,8 +81,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @delete.getTooltip().hide()
         @deleteModal = new KDModalView
-          title          : "Delete #{Encoder.XSSEncode name}"
-          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode name}</strong> application?</div>"
+          title          : "Delete #{Encoder.XSSEncode title}"
+          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode title}</strong> application?</div>"
           height         : "auto"
           overlay        : yes
           buttons        :
@@ -189,17 +196,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
     appPath   = @appsController.getAppPath manifest.path, yes
     appFolder = FSHelper.createFileFromPath appPath, 'folder'
     appFolder.remove (err, res) =>
-      unless err
-        @appsController.refreshApps =>
-          @deleteModal.destroy()
-          @destroy()
-        , no
-      else
-        new KDNotificationView
-          title    : "An error occured while deleting the App!"
-          type     : 'mini'
-          cssClass : 'error'
-        @deleteModal.destroy()
+
+      KD.showError err,
+        KodingError : "An error occured while deleting the App!"
+
+      @deleteModal.destroy()
+      @destroy()  unless err
 
   viewAppended:->
 
@@ -238,7 +240,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       </div>
       {{> @loader}}
       <p>{{> @img}}</p>
-      <cite>{{ #(name)}} {{ #(version)}}</cite>
+      <cite>{{ #(title) or #(name) }} {{ #(version)}}</cite>
     """
 
 class GetMoreAppsButton extends StartTabAppThumbView

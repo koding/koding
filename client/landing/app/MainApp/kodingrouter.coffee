@@ -78,10 +78,15 @@ class KodingRouter extends KDRouter
         app = 'Activity' if app is 'Home' and KD.isLoggedIn()
 
         @setPageTitle nicenames[app] ? app
-        appManager = KD.getSingleton "appManager"
+        appManager  = KD.getSingleton "appManager"
+        handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
+
+        appManager.once "AppCreated", handleQuery  unless appManager.get app
+
         appManager.open app, (appInstance)=>
           appInstance.setOption "initialRoute", @getCurrentPath()
-        appManager.tell app, 'handleQuery', query
+
+        handleQuery()  if appManager.get app
 
   handleNotFound:(route)->
 
@@ -122,12 +127,25 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-    KD.getSingleton("appManager").tell section, method, options ? models,
-      (contentDisplay)=>
+
+    callback = =>
+      KD.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
         routeWithoutParams = route.split('?')[0]
         @openRoutes[routeWithoutParams] = contentDisplay
         @openRoutesById[contentDisplay.id] = routeWithoutParams
         contentDisplay.emit 'handleQuery', query
+
+    groupsController = KD.getSingleton('groupsController')
+    currentGroup = groupsController.getCurrentGroup()
+
+    # change group if necessary
+    unless currentGroup
+      groupName = if section is "Groups" then name else "koding"
+      groupsController.changeGroup groupName, (err) =>
+        KD.showError err if err
+        callback()
+    else
+      callback()
 
   loadContent:(name, section, slug, route, query, passOptions)->
     routeWithoutParams = route.split('?')[0]
