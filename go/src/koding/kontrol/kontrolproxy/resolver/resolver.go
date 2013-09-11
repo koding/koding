@@ -275,7 +275,7 @@ func GetTarget(host string) (*Target, error) {
 // string, otherwise it returns the correct server name.
 func roundRobin(hosts []string, index, iter int) (string, int) {
 	if iter == len(hosts) {
-		fmt.Printf("[%s] all hostnames are dead. list of hostnames: '%v'\n",
+		fmt.Printf("[%s] ALL HOSTNAMES ARE DEAD. List of hostnames: '%v'\n",
 			time.Now().Format(time.Stamp),
 			hosts,
 		)
@@ -288,7 +288,7 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 	hostname := hosts[n]
 
 	if err := utils.CheckServer(hostname); err != nil {
-		fmt.Printf("[%s] hostname '%s', index '%s' check error: '%s'\n",
+		fmt.Printf("[%s] dead   : hostname '%s', index '%d' error: '%s'\n",
 			time.Now().Format(time.Stamp),
 			hostname,
 			index,
@@ -296,7 +296,7 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 		)
 
 		hostname, n = roundRobin(hosts, index+1, iter+1)
-		fmt.Printf("[%s] trying new hostname '%s' index '%d' \n",
+		fmt.Printf("[%s] trying : hostname '%s' index '%d' \n",
 			time.Now().Format(time.Stamp),
 			hostname,
 			index+1,
