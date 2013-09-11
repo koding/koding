@@ -409,7 +409,7 @@ module.exports = [
   "app/MainApp/AppController.coffee",
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
-  "app/MainApp/LocalStorage.coffee",
+  "app/MainApp/localstorage.coffee",
 
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
