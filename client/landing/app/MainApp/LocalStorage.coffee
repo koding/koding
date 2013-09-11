@@ -1,14 +1,14 @@
 class LocalStorage extends AppStorage
 
-  fetchStorage:(callback=noop)->
-    callback window["localStorage"][@getSignature()]
+  storage = window.localStorage
+
+  fetchStorage:->
     KD.utils.defer => @emit "ready"
 
   getValue: (key)->
     data = @_storageData[key]
     return data  if data
-
-    data = window["localStorage"][@getSignature key]
+    data = storage[@getSignature key]
     if data
       try
         data = JSON.parse data
@@ -37,12 +37,12 @@ class LocalStorage extends AppStorage
     callback? @getValue key
 
   setValue: (key, value, callback)->
-    @_storageData[key] = value
-    window["localStorage"][@getSignature key] = JSON.stringify value
+    @_storageData[key] = value or ''
+    storage[@getSignature key] = (JSON.stringify value) or ''
     KD.utils.defer => callback? null
 
   unsetKey: (key, callback)->
-    delete window["localStorage"][@getSignature key]
+    delete storage[@getSignature key]
     delete @_storageData[key]
 
   getSignature:(key)->
