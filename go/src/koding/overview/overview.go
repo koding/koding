@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fatih/goset"
 	"github.com/gorilla/sessions"
 	"github.com/streadway/amqp"
 	"html/template"
@@ -206,7 +207,7 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, stri
 		}
 		// abort if password and username is not valid
 		user, err := modelhelper.CheckAndGetUser(loginName, loginPass)
-		if user != nil {
+		if user == nil {
 			log.Println(err)
 			return "", "Username or Password invalid"
 		}
@@ -260,7 +261,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	loginName, loginMessage := checkSessionOrDoLogin(w, r)
-
 	if loginName == "" {
 		home := HomePage{
 			LoginMessage: loginMessage,
@@ -280,7 +280,10 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		version := r.PostFormValue("switchVersion")
 		loginPass := r.PostFormValue("loginPass")
 		user, err := modelhelper.CheckAndGetUser(loginName, loginPass)
-		if user != nil {
+		switchers := goset.New("sinan", "devrim", "gokmen", "chris", "neelance", "halk",
+			"sent-hil", "kiwigeraint", "cihangirsavas",
+			"bahadir", "arslan")
+		if user != nil && switchers.Has(user.Name) {
 			log.Println("switching to version", version)
 			err := switchVersion(version)
 			if err != nil {
@@ -378,7 +381,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, home interface{}) {
 
 func jenkinsInfo() *JenkinsInfo {
 	j := &JenkinsInfo{}
-	jenkinsApi := "http://salt-master.in.koding.com/job/build-koding/api/json"
+	jenkinsApi := "http://jenkins.sj.koding.com:8080/job/Koding%20Deployment/api/json"
 	resp, err := http.Get(jenkinsApi)
 	if err != nil {
 		fmt.Println(err)
