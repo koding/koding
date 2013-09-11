@@ -219,6 +219,29 @@ class CollaborativeWorkspace extends Workspace
     @joinSession sessionKey
     modal.destroy()
 
+  showShareView: (panel, workspace, event) ->
+    button   = KD.instances[event.currentTarget.id]
+    shareUrl = "#{location.origin}/Develop/#{@getOptions().name}?sessionKey=#{@sessionKey}"
+    new JContextMenu
+      cssClass    : "activity-share-popup"
+      type        : "activity-share"
+      delegate    : this
+      x           : button.getX() + 25
+      y           : button.getY() + 25
+      arrow       :
+        placement : "top"
+        margin    : -10
+      lazyLoad    : yes
+    , customView  : new SharePopup {
+        url       : shareUrl
+        shortenURL: false
+        twitter   :
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
+        linkedin  :
+          title   : "Join me @koding!"
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
+      }
+
   createUserListContainer: ->
     @container.addSubView @userListContainer = new KDView
       cssClass : "user-list"
