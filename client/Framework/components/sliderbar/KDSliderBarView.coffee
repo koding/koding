@@ -6,8 +6,8 @@
 #   width      : 500
 #   snap       : yes
 #   snapOnDrag : no
-#   drawBar    : yes or [0, 25, 50, 75, 100]
-#   showLabels : yes 
+#   drawBar    : yes
+#   showLabels : yes or [0, 25, 50, 75, 100] 
 #   handles    : [100, 60]
 
 class KDSliderBarView extends KDCustomHTMLView
@@ -37,6 +37,7 @@ class KDSliderBarView extends KDCustomHTMLView
       return  0
 
     @handles.sort(sortRef)
+    @setClass "labeled"
 
   drawBar:->
     positions = []
