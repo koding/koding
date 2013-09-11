@@ -56,12 +56,7 @@ class LocalStorageController extends KDController
 
   storage:(appName, version = "1.0")->
     key = "#{appName}-{version}"
-    if @localStorages[key]?
-      storage = @localStorages[key]
-    else
-      storage = @localStorages[key] = new LocalStorage appName, version
-
-    return storage
+    return @localStorages[key] or= new LocalStorage appName, version
 
 # Let people can use AppStorage
 KD.classes.LocalStorage = LocalStorage
