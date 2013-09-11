@@ -194,7 +194,7 @@ module.exports = class JDomain extends jraphical.Module
         adminContactId     : "29527194"
         techContactId      : "29527194"
         billingContactId   : "29527194"
-        invoiceOption      : "NoInvoice"
+        invoiceOption      : "KeepInvoice"
         protectPrivacy     : no
 
       # Make transaction
@@ -216,6 +216,7 @@ module.exports = class JDomain extends jraphical.Module
               loadBalancer   :
                   # mode       : "roundrobin"
                   mode       : ""
+              domainType     : "new"
               , (err, model) =>
                 callback err, model
           else
@@ -224,7 +225,7 @@ module.exports = class JDomain extends jraphical.Module
   @makeTransaction: (client, data, callback)->
     JRecurlyCharge = require './recurly/charge'
 
-    amount = 100 * 10 * data.years
+    amount = 10 * 10 * data.years
 
     JRecurlyCharge.charge client,
       code   : 'domain_abc'
