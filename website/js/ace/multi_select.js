@@ -66,12 +66,11 @@ var EditSession = require("./edit_session").EditSession;
     // automatically sorted list of ranges
     this.rangeList = null;
 
-    /** extension
-     * Selection.addRange(range, $blockChangeEvents)
-     * - range (Range): The new range to add
-     * - $blockChangeEvents (Boolean): Whether or not to block changing events
-     *
+    /** 
      * Adds a range to a selection by entering multiselect mode, if necessary.
+     * @param {Range} range The new range to add
+     * @param {Boolean} $blockChangeEvents Whether or not to block changing events
+     * @method Selection.addRange
      **/
     this.addRange = function(range, $blockChangeEvents) {
         if (!range)
@@ -79,9 +78,13 @@ var EditSession = require("./edit_session").EditSession;
 
         if (!this.inMultiSelectMode && this.rangeCount == 0) {
             var oldRange = this.toOrientedRange();
-            if (range.intersects(oldRange))
+            this.rangeList.add(oldRange);
+            this.rangeList.add(range);
+            if (this.rangeList.ranges.length != 2) {
+                this.rangeList.removeAll();
                 return $blockChangeEvents || this.fromOrientedRange(range);
-
+            }
+            this.rangeList.removeAll();
             this.rangeList.add(oldRange);
             this.$onAddRange(oldRange);
         }
@@ -106,6 +109,10 @@ var EditSession = require("./edit_session").EditSession;
         return $blockChangeEvents || this.fromOrientedRange(range);
     };
 
+    /**
+     * @method Selection.toSingleRange
+     **/
+
     this.toSingleRange = function(range) {
         range = range || this.ranges[0];
         var removed = this.rangeList.removeAll();
@@ -115,11 +122,10 @@ var EditSession = require("./edit_session").EditSession;
         range && this.fromOrientedRange(range);
     };
 
-    /** extension
-     * Selection.substractPoint(pos) -> Range
-     * - pos (Range): The position to remove, as a `{row, column}` object
-     *
+    /**
      * Removes a Range containing pos (if it exists).
+     * @param {Range} pos The position to remove, as a `{row, column}` object
+     * @method Selection.substractPoint
      **/
     this.substractPoint = function(pos) {
         var removed = this.rangeList.substractPoint(pos);
@@ -129,10 +135,9 @@ var EditSession = require("./edit_session").EditSession;
         }
     };
 
-    /** extension
-     * Selection.mergeOverlappingRanges()
-     *
+    /**
      * Merges overlapping ranges ensuring consistency after changes
+     * @method Selection.mergeOverlappingRanges
      **/
     this.mergeOverlappingRanges = function() {
         var removed = this.rangeList.merge();
@@ -185,9 +190,19 @@ var EditSession = require("./edit_session").EditSession;
         this.rangeCount = 0;
     };
 
+    /**
+     * Returns a concatenation of all the ranges.
+     * @returns {Array}
+     * @method Selection.getAllRanges
+     **/
     this.getAllRanges = function() {
         return this.rangeList.ranges.concat();
     };
+
+    /**
+     * Splits all the ranges into lines.
+     * @method Selection.splitIntoLines
+     **/
 
     this.splitIntoLines = function () {
         if (this.rangeCount > 1) {
@@ -229,6 +244,9 @@ var EditSession = require("./edit_session").EditSession;
         }
     };
 
+    /**
+     * @method Selection.toggleBlockSelection
+     **/
     this.toggleBlockSelection = function () {
         if (this.rangeCount > 1) {
             var ranges = this.rangeList.ranges;
@@ -246,14 +264,15 @@ var EditSession = require("./edit_session").EditSession;
         }
     };
 
-    /** extension
-     * Selection.rectangularRangeBlock(screenCursor, screenAnchor, includeEmptyLines) -> Range
-     * - screenCursor (Cursor): The cursor to use
-     * - screenAnchor (Anchor): The anchor to use
-     * - includeEmptyLines (Boolean): If true, this includes ranges inside the block which are empty due to clipping
-     *
+    /**
+     * 
      * Gets list of ranges composing rectangular block on the screen
-     *
+     * 
+     * @param {Cursor} screenCursor The cursor to use
+     * @param {Anchor} screenAnchor The anchor to use
+     * @param {Boolean} includeEmptyLines If true, this includes ranges inside the block which are empty due to clipping
+     * @returns {Range}
+     * @method Selection.rectangularRangeBlock
      **/
     this.rectangularRangeBlock = function(screenCursor, screenAnchor, includeEmptyLines) {
         var rectSel = [];
@@ -324,21 +343,22 @@ var EditSession = require("./edit_session").EditSession;
 var Editor = require("./editor").Editor;
 (function() {
 
-    /** extension
-     * Editor.updateSelectionMarkers()
-     *
+    /** 
+     * 
      * Updates the cursor and marker layers.
+     * @method Editor.updateSelectionMarkers
+     *
      **/
     this.updateSelectionMarkers = function() {
         this.renderer.updateCursor();
         this.renderer.updateBackMarkers();
     };
 
-    /** extension
-     * Editor.addSelectionMarker(orientedRange) -> Range
-     * - orientedRange (Range): A range containing a cursor
-     *
+    /** 
      * Adds the selection and cursor.
+     * @param {Range} orientedRange A range containing a cursor
+     * @returns {Range}
+     * @method Editor.addSelectionMarker
      **/
     this.addSelectionMarker = function(orientedRange) {
         if (!orientedRange.cursor)
@@ -352,11 +372,10 @@ var Editor = require("./editor").Editor;
         return orientedRange;
     };
 
-    /** extension
-     * Editor.removeSelectionMarker(range)
-     * - range (Range): The selection range added with [[Editor.addSelectionMarker `addSelectionMarker()`]].
-     *
+    /** 
      * Removes the selection marker.
+     * @param {Range} range The selection range added with [[Editor.addSelectionMarker `addSelectionMarker()`]].
+     * @method Editor.removeSelectionMarker
      **/
     this.removeSelectionMarker = function(range) {
         if (!range.marker)
@@ -401,7 +420,7 @@ var Editor = require("./editor").Editor;
 
         this.setStyle("ace_multiselect");
         this.keyBinding.addKeyboardHandler(commands.keyboardHandler);
-        this.commands.on("exec", this.$onMultiSelectExec);
+        this.commands.setDefaultHandler("exec", this.$onMultiSelectExec);
 
         this.renderer.updateCursor();
         this.renderer.updateBackMarkers();
@@ -415,7 +434,7 @@ var Editor = require("./editor").Editor;
         this.unsetStyle("ace_multiselect");
         this.keyBinding.removeKeyboardHandler(commands.keyboardHandler);
 
-        this.commands.removeEventListener("exec", this.$onMultiSelectExec);
+        this.commands.removeDefaultHandler("exec", this.$onMultiSelectExec);
         this.renderer.updateCursor();
         this.renderer.updateBackMarkers();
     };
@@ -426,44 +445,52 @@ var Editor = require("./editor").Editor;
         if (!editor.multiSelect)
             return;
         if (!command.multiSelectAction) {
-            command.exec(editor, e.args || {});
+            var result = command.exec(editor, e.args || {});
             editor.multiSelect.addRange(editor.multiSelect.toOrientedRange());
             editor.multiSelect.mergeOverlappingRanges();
         } else if (command.multiSelectAction == "forEach") {
-            editor.forEachSelection(command, e.args);
+            result = editor.forEachSelection(command, e.args);
+        } else if (command.multiSelectAction == "forEachLine") {
+            result = editor.forEachSelection(command, e.args, true);
         } else if (command.multiSelectAction == "single") {
             editor.exitMultiSelectMode();
-            command.exec(editor, e.args || {});
+            result = command.exec(editor, e.args || {});
         } else {
-            command.multiSelectAction(editor, e.args || {});
+            result = command.multiSelectAction(editor, e.args || {});
         }
-        e.preventDefault();
+        return result;
     };
 
-    /** extension
-     * Editor.forEachSelection(cmd, args)
-     * - cmd (String): The command to execute
-     * - args (String): Any arguments for the command
-     *
+    /** 
      * Executes a command for each selection range.
-     **/
-    this.forEachSelection = function(cmd, args) {
+     * @param {String} cmd The command to execute
+     * @param {String} args Any arguments for the command
+     * @method Editor.forEachSelection
+     **/ 
+    this.forEachSelection = function(cmd, args, $byLines) {
         if (this.inVirtualSelectionMode)
             return;
 
         var session = this.session;
         var selection = this.selection;
         var rangeList = selection.rangeList;
-
+        var result;
+        
         var reg = selection._eventRegistry;
         selection._eventRegistry = {};
 
         var tmpSel = new Selection(session);
         this.inVirtualSelectionMode = true;
         for (var i = rangeList.ranges.length; i--;) {
+            if ($byLines) {
+                while (i > 0 && rangeList.ranges[i].start.row == rangeList.ranges[i - 1].end.row)
+                    i--;
+            }
             tmpSel.fromOrientedRange(rangeList.ranges[i]);
             this.selection = session.selection = tmpSel;
-            cmd.exec(this, args || {});
+            var cmdResult = cmd.exec(this, args || {});
+            if (!result == undefined)
+                result = cmdResult;
             tmpSel.toOrientedRange(rangeList.ranges[i]);
         }
         tmpSel.detach();
@@ -472,35 +499,41 @@ var Editor = require("./editor").Editor;
         this.inVirtualSelectionMode = false;
         selection._eventRegistry = reg;
         selection.mergeOverlappingRanges();
-
+        
+        var anim = this.renderer.$scrollAnimation;
         this.onCursorChange();
         this.onSelectionChange();
+        if (anim && anim.from == anim.to)
+            this.renderer.animateScrolling(anim.from);
+        
+        return result;
     };
 
-    /** extension
-    * Editor.exitMultiSelectMode() -> Void
-    *
+    /** 
     * Removes all the selections except the last added one.
+    * @method Editor.exitMultiSelectMode
     **/
     this.exitMultiSelectMode = function() {
-        if (this.inVirtualSelectionMode)
+        if (!this.inMultiSelectMode || this.inVirtualSelectionMode)
             return;
         this.multiSelect.toSingleRange();
     };
 
-    this.getCopyText = function() {
+    this.getSelectedText = function() {
         var text = "";
-        if (this.inMultiSelectMode) {
+        if (this.inMultiSelectMode && !this.inVirtualSelectionMode) {
             var ranges = this.multiSelect.rangeList.ranges;
-            text = [];
+            var buf = [];
             for (var i = 0; i < ranges.length; i++) {
-                text.push(this.session.getTextRange(ranges[i]));
+                buf.push(this.session.getTextRange(ranges[i]));
             }
-            text = text.join(this.session.getDocument().getNewLineCharacter());
+            var nl = this.session.getDocument().getNewLineCharacter();
+            text = buf.join(nl);
+            if (text.length == (buf.length - 1) * nl.length)
+                text = "";
         } else if (!this.selection.isEmpty()) {
             text = this.session.getTextRange(this.getSelectionRange());
         }
-
         return text;
     };
 
@@ -509,17 +542,17 @@ var Editor = require("./editor").Editor;
         if (this.$readOnly)
             return;
 
-        this._emit("paste", text);
-        if (!this.inMultiSelectMode)
+        this._signal("paste", text);
+        if (!this.inMultiSelectMode || this.inVirtualSelectionMode)
             return this.insert(text);
 
         var lines = text.split(/\r\n|\r|\n/);
         var ranges = this.selection.rangeList.ranges;
 
-        if (lines.length > ranges.length || (lines.length <= 2 || !lines[1]))
+        if (lines.length > ranges.length || lines.length < 2 || !lines[1])
             return this.commands.exec("insertstring", this, text);
 
-        for (var i = ranges.length; i--; ) {
+        for (var i = ranges.length; i--;) {
             var range = ranges[i];
             if (!range.isEmpty())
                 this.session.remove(range);
@@ -528,13 +561,14 @@ var Editor = require("./editor").Editor;
         }
     };
 
-    /** extension
-     * Editor.findAll(needle, options, additive) -> Number
-     * - needle (String): The text to find
-     * - options (Object): The search options
-     * - additive (Boolean): keeps
-     *
+    /**
      * Finds and selects all the occurences of `needle`.
+     * @param {String} The text to find
+     * @param {Object} The search options
+     * @param {Boolean} keeps
+     *
+     * @returns {Number} The cumulative count of all found matches 
+     * @method Editor.findAll
      **/
     this.findAll = function(needle, options, additive) {
         options = options || {};
@@ -559,14 +593,14 @@ var Editor = require("./editor").Editor;
         return ranges.length;
     };
 
-    // commands
-    /** extension
-     * Editor.selectMoreLines(dir, skip)
-     * - dir (Number): The direction of lines to select: -1 for up, 1 for down
-     * - skip (Boolean): If `true`, removes the active selection range
-     *
+    /**
      * Adds a cursor above or below the active cursor.
-     **/
+     * 
+     * @param {Number} dir The direction of lines to select: -1 for up, 1 for down
+     * @param {Boolean} skip If `true`, removes the active selection range
+     *
+     * @method Editor.selectMoreLines 
+     */
     this.selectMoreLines = function(dir, skip) {
         var range = this.selection.toOrientedRange();
         var isBackwards = range.cursor == range.end;
@@ -605,11 +639,10 @@ var Editor = require("./editor").Editor;
             this.selection.substractPoint(toRemove);
     };
 
-    /** extension
-     * Editor.transposeSelections(dir)
-     * - dir (Number): The direction to rotate selections
-     *
+    /** 
      * Transposes the selected ranges.
+     * @param {Number} dir The direction to rotate selections
+     * @method Editor.transposeSelections
      **/
     this.transposeSelections = function(dir) {
         var session = this.session;
@@ -646,14 +679,13 @@ var Editor = require("./editor").Editor;
             range.start.row = tmp.start.row;
             range.start.column = tmp.start.column;
         }
-    }
+    };
 
-    /** extension
-     * Editor.selectMore(dir, skip)
-     * - dir (Number): The direction of lines to select: -1 for up, 1 for down
-     * - skip (Boolean): If `true`, removes the active selection range
-     *
+    /** 
      * Finds the next occurence of text in an active selection and adds it to the selections.
+     * @param {Number} dir The direction of lines to select: -1 for up, 1 for down
+     * @param {Boolean} skip If `true`, removes the active selection range
+     * @method Editor.selectMore
      **/
     this.selectMore = function(dir, skip) {
         var session = this.session;
@@ -676,10 +708,9 @@ var Editor = require("./editor").Editor;
             this.multiSelect.substractPoint(range.cursor);
     };
 
-    /** extension
-     * Editor.alignCursors()
-     *
-     * aligns cursors or selected text
+    /** 
+     * Aligns the cursors or selected text.
+     * @method Editor.alignCursors
      **/
     this.alignCursors = function() {
         var session = this.session;
@@ -770,23 +801,23 @@ var Editor = require("./editor").Editor;
             return m;
         }).map(isLeftAligned ? isRightAligned ? alignRight : alignLeft : unAlign);
 
-        function strRepeat(n, ch) {
-            return Array(n + 1).join(ch)
+        function spaces(n) {
+            return lang.stringRepeat(" ", n);
         }
 
         function alignLeft(m) {
-            return !m[2] ? m[0] : strRepeat(startW, " ") + m[2]
-                + strRepeat(textW - m[2].length + endW, " ")
+            return !m[2] ? m[0] : spaces(startW) + m[2]
+                + spaces(textW - m[2].length + endW)
                 + m[4].replace(/^([=:])\s+/, "$1 ")
         }
         function alignRight(m) {
-            return !m[2] ? m[0] : strRepeat(startW + textW - m[2].length, " ") + m[2]
-                + strRepeat(endW, " ")
+            return !m[2] ? m[0] : spaces(startW + textW - m[2].length) + m[2]
+                + spaces(endW, " ")
                 + m[4].replace(/^([=:])\s+/, "$1 ")
         }
         function unAlign(m) {
-            return !m[2] ? m[0] : strRepeat(startW, " ") + m[2]
-                + strRepeat(endW, " ")
+            return !m[2] ? m[0] : spaces(startW) + m[2]
+                + spaces(endW)
                 + m[4].replace(/^([=:])\s+/, "$1 ")
         }
     }
@@ -810,14 +841,10 @@ exports.onSessionChange = function(e) {
 
     var oldSession = e.oldSession;
     if (oldSession) {
-        // todo use events
-        if (oldSession.multiSelect && oldSession.multiSelect.editor == this)
-            oldSession.multiSelect.editor = null;
-
-        session.multiSelect.removeEventListener("addRange", this.$onAddRange);
-        session.multiSelect.removeEventListener("removeRange", this.$onRemoveRange);
-        session.multiSelect.removeEventListener("multiSelect", this.$onMultiSelect);
-        session.multiSelect.removeEventListener("singleSelect", this.$onSingleSelect);
+        oldSession.multiSelect.removeEventListener("addRange", this.$onAddRange);
+        oldSession.multiSelect.removeEventListener("removeRange", this.$onRemoveRange);
+        oldSession.multiSelect.removeEventListener("multiSelect", this.$onMultiSelect);
+        oldSession.multiSelect.removeEventListener("singleSelect", this.$onSingleSelect);
     }
 
     session.multiSelect.on("addRange", this.$onAddRange);
@@ -839,13 +866,16 @@ exports.onSessionChange = function(e) {
 // adds multiple selection support to the editor
 // (note: should be called only once for each editor instance)
 function MultiSelect(editor) {
+    if (editor.$multiselectOnSessionChange)
+        return;
     editor.$onAddRange = editor.$onAddRange.bind(editor);
     editor.$onRemoveRange = editor.$onRemoveRange.bind(editor);
     editor.$onMultiSelect = editor.$onMultiSelect.bind(editor);
     editor.$onSingleSelect = editor.$onSingleSelect.bind(editor);
+    editor.$multiselectOnSessionChange = exports.onSessionChange.bind(editor);
 
-    exports.onSessionChange.call(editor, editor);
-    editor.on("changeSession", exports.onSessionChange.bind(editor));
+    editor.$multiselectOnSessionChange(editor);
+    editor.on("changeSession", editor.$multiselectOnSessionChange);
 
     editor.on("mousedown", onMouseDown);
     editor.commands.addCommands(commands.defaultCommands);
@@ -856,28 +886,48 @@ function MultiSelect(editor) {
 function addAltCursorListeners(editor){
     var el = editor.textInput.getElement();
     var altCursor = false;
-    var contentEl = editor.renderer.content;
     event.addListener(el, "keydown", function(e) {
         if (e.keyCode == 18 && !(e.ctrlKey || e.shiftKey || e.metaKey)) {
             if (!altCursor) {
-                contentEl.style.cursor = "crosshair";
+                editor.renderer.setMouseCursor("crosshair");
                 altCursor = true;
             }
         } else if (altCursor) {
-            contentEl.style.cursor = "";
+            reset();
         }
     });
 
     event.addListener(el, "keyup", reset);
     event.addListener(el, "blur", reset);
-    function reset() {
+    function reset(e) {
         if (altCursor) {
-            contentEl.style.cursor = "";
+            editor.renderer.setMouseCursor("");
             altCursor = false;
+            // TODO disable menu poping up
+            // e && e.preventDefault()
         }
     }
 }
 
 exports.MultiSelect = MultiSelect;
+
+
+require("./config").defineOptions(Editor.prototype, "editor", {
+    enableMultiselect: {
+        set: function(val) {
+            MultiSelect(this);
+            if (val) {
+                this.on("changeSession", this.$multiselectOnSessionChange);
+                this.on("mousedown", onMouseDown);
+            } else {
+                this.off("changeSession", this.$multiselectOnSessionChange);
+                this.off("mousedown", onMouseDown);
+            }
+        },
+        value: true
+    }
+})
+
+
 
 });

@@ -128,7 +128,7 @@ class KDWindowController extends KDController
 
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
-        @utils.defer -> window.location.pathname = KD.singletons.router.visitedRoutes.first or "/"
+        @utils.defer -> window.location.pathname = KD.getSingleton("router").visitedRoutes.first or "/"
       cookie = $.cookie 'clientId'
 
     document.addEventListener getVisibilityEventName(), (event)=>

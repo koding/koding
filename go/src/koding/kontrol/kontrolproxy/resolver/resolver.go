@@ -3,8 +3,8 @@ package resolver
 import (
 	"errors"
 	"fmt"
-	"koding/kontrol/kontrolproxy/models"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/utils"
 	"labix.org/v2/mgo"
 	"log"
@@ -23,11 +23,11 @@ type Target struct {
 	// Url contains the final target
 	Url *url.URL
 
-	// Mode contains the information get via proxyconfig.ProxyTable.Mode
+	// Mode contains the information get via model.ProxyTable.Mode
 	Mode string
 
 	// Persistence contains the information get via
-	// proxyconfig.LoadBalancer.Persistence
+	// model.LoadBalancer.Persistence
 	Persistence string
 
 	// FetchedAt contains the time the target was fetched and stored. Useful
@@ -53,7 +53,6 @@ func NewTarget(url *url.URL, mode, persistence string) *Target {
 	}
 }
 
-var proxyDB *proxyconfig.ProxyConfiguration
 var ErrGone = errors.New("target is gone")
 
 // used for inmemory lookup
@@ -64,14 +63,6 @@ var cacheTimeout = time.Second * 20
 // used for loadbalance modes, like roundrobin or random
 var indexes = make(map[string]int)
 var indexesLock sync.RWMutex
-
-func init() {
-	var err error
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		log.Fatalf("proxyconfig mongodb connect: %s", err)
-	}
-}
 
 // GetMemTarget is like GetTarget with a difference, that it f first makes a
 // lookup from the in-memory lookup, if not found it returns the result from
@@ -120,25 +111,51 @@ func GetTarget(host string) (*Target, error) {
 		}
 	}
 
-	domain, err = proxyDB.GetDomain(host)
+	domain, err = modelhelper.GetDomain(host)
 	if err != nil {
-
+		// Lookup didn't found anything, move on to .x.koding.com and .kd.io
+		// domains. This is fallback mechanism, you can overide those domains
+		// always by adding a new entry for the domain itself into to jDomains
+		// collection. (hence the lookup via modelhelper.GetDomain will not fail)
 		if err != mgo.ErrNotFound {
 			return nil, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
 		}
 
-		// lookup didn't found anything, move on to .x.koding.com domains
-		if strings.HasSuffix(host, "x.koding.com") {
-			if c := strings.Count(host, "-"); c != 1 {
+		h := strings.SplitN(host, ".", 2) // input: xxxxx.kd.io, output: [xxxxx kd.io]
+
+		if len(h) != 2 {
+			return nil, fmt.Errorf("not valid req host", host)
+		}
+
+		var servicename, key, username string
+		s := strings.Split(h[0], "-") // input: service-key-username, output: [service key username]
+
+		switch h[1] {
+		case "x.koding.com":
+			// in form of: server-123.x.koding.com, assuming the user is 'koding'
+			fmt.Println("X.KODING.COM", host)
+			if c := strings.Count(h[0], "-"); c != 1 {
 				return nil, fmt.Errorf("not valid req host", host)
 			}
-			subdomain := strings.TrimSuffix(host, ".x.koding.com")
-			servicename := strings.Split(subdomain, "-")[0]
-			key := strings.Split(subdomain, "-")[1]
-			domain = *proxyconfig.NewDomain(host, "internal", "koding", servicename, key, "", []string{})
-		} else {
-			return nil, fmt.Errorf("domain %s is unknown", host)
+			servicename, key, username = s[0], s[1], "koding"
+		case "kd.io":
+			// in form of: chatkite-1-arslan.kd.io
+			//           : webserver-917-fatih.kd.io
+			fmt.Println("KD.IO", host)
+			if c := strings.Count(h[0], "-"); c != 2 {
+				return nil, fmt.Errorf("not valid req host", host)
+			}
+			servicename, key, username = s[0], s[1], s[2]
+		default:
+			// any other domains are discarded
+			return nil, fmt.Errorf("not valid req host", host)
 		}
+
+		if servicename == "" || key == "" || username == "" {
+			return nil, fmt.Errorf("not valid req host", host)
+		}
+
+		domain = *modelhelper.NewDomain(host, "internal", username, servicename, key, "", []string{})
 	}
 
 	if domain.Proxy == nil {
@@ -179,7 +196,7 @@ func GetTarget(host string) (*Target, error) {
 			hostname = domain.HostnameAlias[0]
 		}
 
-		vm, err := proxyDB.GetVM(hostname)
+		vm, err := modelhelper.GetVM(hostname)
 		if err != nil {
 			return nil, err
 		}
@@ -207,12 +224,12 @@ func GetTarget(host string) (*Target, error) {
 		username := domain.Proxy.Username
 		servicename := domain.Proxy.Servicename
 		key := domain.Proxy.Key
-		latestKey := proxyDB.GetLatestKey(username, servicename)
+		latestKey := modelhelper.GetLatestKey(username, servicename)
 		if latestKey == "" {
 			latestKey = key
 		}
 
-		keyData, err := proxyDB.GetKey(username, servicename, key)
+		keyData, err := modelhelper.GetKey(username, servicename, key)
 		if err != nil {
 			currentVersion, _ := strconv.Atoi(key)
 			latestVersion, _ := strconv.Atoi(latestKey)

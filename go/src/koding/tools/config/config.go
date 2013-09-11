@@ -15,6 +15,7 @@ type Config struct {
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
+	VmPool          string
 	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
@@ -70,7 +71,6 @@ type Config struct {
 			Port    int
 			PortSSL int
 			FTPIP   string
-			SSLIPS  string
 		}
 		RabbitMq struct {
 			Host     string

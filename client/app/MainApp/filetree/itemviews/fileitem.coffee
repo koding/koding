@@ -77,13 +77,13 @@ class NFileItemView extends KDCustomHTMLView
 
 
   pistachio:->
-
-    path = FSHelper.plainPath @getData().path
-
+    data = @getData()
+    path = FSHelper.plainPath data.path
+    name = Encoder.XSSEncode data.name
     """
       {{> @arrow}}
       {{> @icon}}
       {{> @loader}}
-      {span.title[title="#{path}"]{ #(name)}}
+      <span class='title' title="#{path}">#{name}</span>
       <span class='chevron'></span>
     """

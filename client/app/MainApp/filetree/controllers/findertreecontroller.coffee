@@ -130,6 +130,7 @@ class NFinderTreeController extends JTreeViewController
 
     failCallback = (err)=>
       unless silence
+        KD.logToExternal "Couldn't fetch files"
         @notify "Couldn't fetch files! Click to retry", 'clickable', \
                 """Sorry, a problem occured while communicating with servers,
                    please try again later.""", yes
@@ -500,7 +501,7 @@ class NFinderTreeController extends JTreeViewController
   cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
   cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
   cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> @appManager.notify()
+  cmUpload:        (nodeView, contextMenuItem)-> @uploadFile nodeView
   cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
@@ -513,7 +514,7 @@ class NFinderTreeController extends JTreeViewController
   cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
-  cmDropboxSaver:  (nodeView, contextMenuItem)-> @saveToDropbox nodeView
+  cmDropboxSaver:  (nodeView, contextMenuItem)-> __saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
@@ -602,6 +603,26 @@ class NFinderTreeController extends JTreeViewController
     @showDragOverFeedback nodeView, event
     super
 
+  dragStart: (nodeView, event)->
+    super
+
+    @internalDragging = yes
+
+    {name, vmName, path} = nodeView.data
+
+    warningText = """
+    You should move #{name} file to Web folder to download using drag and drop. -- Koding
+    """
+
+    type        = "application/octet-stream"
+    url         = KD.getPublicURLOfPath path
+    unless url
+      url       = "data:#{type};base64,#{btoa warningText}"
+      name     += ".txt"
+    dndDownload = "#{type}:#{name}:#{url}"
+
+    event.originalEvent.dataTransfer.setData 'DownloadURL', dndDownload
+
   lastEnteredNode = null
   dragEnter: (nodeView, event)->
 
@@ -631,6 +652,7 @@ class NFinderTreeController extends JTreeViewController
 
     # log "clear after drag"
     @clearAllDragFeedback()
+    @internalDragging = no
     super
 
   drop: (nodeView, event)->
@@ -643,6 +665,7 @@ class NFinderTreeController extends JTreeViewController
     else
       @moveFiles @selectedNodes, nodeView
 
+    @internalDragging = no
     super
 
   ###
@@ -761,7 +784,7 @@ class NFinderTreeController extends JTreeViewController
     kallback          = ->
       file            = fileItemViews[0]
       if file
-        file.emit "FileNeedsToBeDownloadad", filePath
+        file.emit "FileNeedsToBeDownloaded", filePath
         file.on   "FileDownloadDone", ->
           fileItemViews.shift()
           if fileItemViews.length
@@ -792,83 +815,10 @@ class NFinderTreeController extends JTreeViewController
               callback : -> modal.destroy()
 
         for file in files
-          fileItemView = modal.addSubView new DropboxDownloadItemView {}, file
+          fileItemView = modal.addSubView new DropboxDownloadItemView { nodeView }, file
           fileItemViews.push fileItemView
 
-  saveToDropbox: (nodeView) ->
-    notification     = null
-    kiteController   = KD.getSingleton "kiteController"
-    plainPath        = FSHelper.plainPath nodeView.getData().path
-    isFolder         = nodeView.getData().type is "folder"
-    timestamp        = Date.now()
-    tmpFileName      = if isFolder then "tmp#{timestamp}.zip" else "tmp#{timestamp}"
-    relativePath     = "/home/#{KD.nick()}/Web/#{tmpFileName}"
-    kallback         = ->
-      modal          = new KDBlockingModalView
-        title        : "Upload to Dropbox"
-        cssClass     : "modal-with-text"
-        content      : "<p>Zipping your content is done. Click \"Choose Folder\" button to choose a folder on your Dropbox to start upload.</p>"
-        overlay      : yes
-        buttons      :
-          "Choose"   :
-            title    : "Choose Folder"
-            style    : "modal-clean-green"
-            callback : =>
-              modal.destroy()
-              fileName     = FSHelper.getFileNameFromPath plainPath
-              fileName     = "#{fileName}.zip"  if isFolder
-              options      =
-                files      : [
-                  filename : fileName
-                  url      : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
-                ]
-                success: ->
-                  notification.notificationSetTitle "Your file has been uploaded."
-                  notification.notificationSetTimer 4000
-                  notification.setClass "success"
-                  kiteController.run "rm #{relativePath}"
-                error: ->
-                  notification.notificationSetTitle "An error occured while uploading your file."
-                  notification.notificationSetTimer 4000
-                  notification.setClass "error"
-                  kiteController.run "rm #{relativePath}"
-                cancel: ->
-                  kiteController.run "rm #{relativePath}"
-                  notification.destroy()
-                progress: (progress) ->
-                  notification.notificationSetTitle "Uploading to Dropbox - #{progress * 100}% done..."
-                  notification.show()
-
-              Dropbox.save options
-
-          Cancel     :
-            style    : "modal-cancel"
-            callback : ->
-              modal.destroy()
-              kiteController.run "rm #{relativePath}"
-
-    if isFolder
-      notification = new KDNotificationView
-        title      : "Zipping your folder..."
-        type       : "mini"
-        duration   : 120000
-
-      kiteController.run "mkdir -p Web ; zip -r #{relativePath} #{plainPath}", (err, res) =>
-        if err
-          message = if err.name is "ExitError" then "An error occured. It seems zip is not installed on your VM."
-          else "An error occured, please try again."
-          notification.notificationSetTitle message
-          notification.notificationSetTimer 4000
-          notification.setClass "error"
-        else
-          notification.hide()
-          kallback()
-    else
-      notification = new KDNotificationView
-        title      : "Uploading your file..."
-        type       : "mini"
-        duration   : 120000
-      kiteController.run "mkdir -p Web ; cp #{plainPath} #{relativePath}", (err, res) =>
-        return  warn err if err
-        notification.hide()
-        kallback()
+  uploadFile: (nodeView)->
+    finderController = KD.getSingleton "finderController"
+    {path} = nodeView.data
+    finderController.uploadTo path  if path
