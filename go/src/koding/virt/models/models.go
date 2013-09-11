@@ -25,8 +25,10 @@ type VM struct {
 	WebHome       string        `bson:"webHome"`
 	Users         []Permissions `bson:"users"`
 	LdapPassword  string        `bson:"ldapPassword"`
-	DiskSizeInMB  int           `bson:"diskSizeInMB"`
 	NumCPUs       int           `bson:"numCPUs"`
+	MaxMemoryInMB int           `bson:"maxMemoryInMB"`
+	DiskSizeInMB  int           `bson:"diskSizeInMB"`
+	AlwaysOn      bool          `bson:"alwaysOn"`
 	SnapshotVM    bson.ObjectId `bson:"diskSnapshot"`
 	SnapshotName  string        `bson:"snapshotName"`
 	IP            net.IP        `bson:"ip"`

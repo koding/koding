@@ -61,6 +61,13 @@ class AccountAppController extends AppController
         ,{item,section}
         @wrapperController.sectionLists.push wrapper
 
+    navView.setPartial """
+      <div class="kdview kdlistview">
+      <h3>Legal</h3>
+      <div class="kdview kdlistitemview newpage"><a href="/tos.html" target="_blank">Terms of service <span class="icon new-page"></span></a></div>
+      <div class="kdview kdlistitemview newpage"><a href="/privacy.html" target="_blank">Privacy policy <span class="icon new-page"></span></a></div>
+      </div>
+      """
 
     # SET UP SPLIT VIEW AND TOGGLERS
     @split = split = new SplitView
@@ -101,6 +108,38 @@ class AccountAppController extends AppController
   _windowDidResize:->
     lastWrapper = @wrapperController.sectionLists[@wrapperController.sectionLists.length-1]
     lastWrapper.setHeight @navController.getView().getHeight()
+
+  showReferrerTooltip:(options)->
+
+    {linkView, top, left, arrowMargin} = options
+
+    referrerCode  = KD.whoami().profile.nickname
+    shareUrl      = "#{location.origin}/?r=#{referrerCode}"
+
+    contextMenu   = new JContextMenu
+      cssClass    : "activity-share-popup"
+      type        : "activity-share"
+      delegate    : linkView
+      x           : linkView.getX() - left
+      y           : linkView.getY() - top
+      arrow       :
+        placement : "bottom"
+        margin    : arrowMargin
+      lazyLoad    : yes
+    , customView  : new SharePopup {
+        url       : shareUrl
+        shortenURL: false
+        twitter   :
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
+        linkedin  :
+          title   : "Join me @koding!"
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
+      }
+
+    new KDOverlayView
+      parent      : KD.getSingleton("mainView").mainTabView.activePane
+      transparent : yes
+
 
   toggleSidebar:(options)->
     {show} = options

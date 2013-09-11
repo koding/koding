@@ -6,13 +6,13 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 )
 
 func GetUsers(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/services")
 	users := make([]string, 0)
-	services := proxyDB.GetServices()
+	services := modelhelper.GetServices()
 
 	for _, service := range services {
 		users = append(users, service.Username)
@@ -30,9 +30,8 @@ func GetUsers(writer http.ResponseWriter, req *http.Request) {
 func GetServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	username := vars["username"]
-	fmt.Printf("GET\t/services/%s\n", username)
 	services := make([]string, 0)
-	service, _ := proxyDB.GetService(username)
+	service, _ := modelhelper.GetService(username)
 
 	for name, _ := range service.Services {
 		services = append(services, name)
@@ -51,9 +50,8 @@ func GetService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	servicename := vars["servicename"]
 	username := vars["username"]
-	fmt.Printf("GET\t/services/%s/%s\n", username, servicename)
 
-	service, _ := proxyDB.GetService(username)
+	service, _ := modelhelper.GetService(username)
 	data, err := json.MarshalIndent(service.Services[servicename], "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -68,7 +66,6 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	servicename := vars["servicename"]
 	username := vars["username"]
 	key := vars["key"]
-	fmt.Printf("POST\t/services/%s/%s/%s\n", username, servicename, key)
 
 	var msg ProxyPostMessage
 
@@ -110,7 +107,7 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 		msg.Hostdata = "FromKontrolAPI"
 	}
 
-	err = proxyDB.UpsertKey(username, msg.Persistence, msg.Mode, servicename, key, msg.Host, msg.Hostdata, msg.RabbitKey)
+	err = modelhelper.UpsertKey(username, msg.Persistence, msg.Mode, servicename, key, msg.Host, msg.Hostdata, msg.RabbitKey)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -132,9 +129,8 @@ func GetKey(writer http.ResponseWriter, req *http.Request) {
 	servicename := vars["servicename"]
 	username := vars["username"]
 	key := vars["key"]
-	fmt.Printf("GET\t/services/%s/%s/%s\n", username, servicename, key)
 
-	res, err := proxyDB.GetKey(username, servicename, key)
+	res, err := modelhelper.GetKey(username, servicename, key)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -153,9 +149,8 @@ func DeleteService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	servicename := vars["servicename"]
 	username := vars["username"]
-	fmt.Printf("DELETE\t/services/%s/%s\n", username, servicename)
 
-	err := proxyDB.DeleteService(username, servicename)
+	err := modelhelper.DeleteService(username, servicename)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -171,9 +166,8 @@ func DeleteKey(writer http.ResponseWriter, req *http.Request) {
 	key := vars["key"]
 	servicename := vars["servicename"]
 	username := vars["username"]
-	fmt.Printf("DELETE\t/services/%s/%s/%s\n", username, servicename, key)
 
-	err := proxyDB.DeleteKey(username, servicename, key)
+	err := modelhelper.DeleteKey(username, servicename, key)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -186,9 +180,8 @@ func DeleteKey(writer http.ResponseWriter, req *http.Request) {
 func DeleteServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	username := vars["username"]
-	fmt.Printf("DELETE\t/services/%s\n", username)
 
-	err := proxyDB.DeleteServices(username)
+	err := modelhelper.DeleteServices(username)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

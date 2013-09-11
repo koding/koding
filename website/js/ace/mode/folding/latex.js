@@ -34,7 +34,7 @@ define(function(require, exports, module) {
 var oop = require("../../lib/oop");
 var BaseFoldMode = require("./fold_mode").FoldMode;
 var Range = require("../../range").Range;
-var TokenIterator = require("ace/token_iterator").TokenIterator;
+var TokenIterator = require("../../token_iterator").TokenIterator;
 
 var FoldMode = exports.FoldMode = function() {};
 
@@ -114,8 +114,8 @@ oop.inherits(FoldMode, BaseFoldMode);
         var row = stream.getCurrentTokenRow();
         if (dir === -1)
             return new Range(row, session.getLine(row).length, startRow, startColumn);
-        else
-            return new Range(startRow, startColumn, row, stream.getCurrentTokenColumn());
+        stream.stepBackward();
+        return new Range(startRow, startColumn, row, stream.getCurrentTokenColumn());
     };
 
     this.latexSection = function(session, row, column) {

@@ -32,9 +32,19 @@ class LinkedListExtension(@Context db: GraphDatabaseService) {
     val tx = db.beginTx
     try {
       if (previousUrl != null) {
-        LinkedList.insertAfter(getNodeFromUrl(previousUrl), getNodeFromUrl(entryUrl))
+        val previous = if (previousUrl.endsWith(":head")) {
+          LinkedList.getHead(getNodeFromUrl(previousUrl.substring(0, previousUrl.length() - 5)))
+        } else {
+          getNodeFromUrl(previousUrl)
+        }
+        LinkedList.insertAfter(previous, getNodeFromUrl(entryUrl))
       } else {
-        LinkedList.insertBefore(getNodeFromUrl(nextUrl), getNodeFromUrl(entryUrl))
+        val next = if (nextUrl.endsWith(":tail")) {
+          LinkedList.getTail(getNodeFromUrl(nextUrl.substring(0, nextUrl.length() - 5)))
+        } else {
+          getNodeFromUrl(nextUrl)
+        }
+        LinkedList.insertBefore(next, getNodeFromUrl(entryUrl))
       }
       tx.success
     } finally {
@@ -70,10 +80,11 @@ class LinkedListExtension(@Context db: GraphDatabaseService) {
 
   @GET
   @Path("/entry/all")
-  def getAllPreviousEntries(@QueryParam("entry") entryUrl: String) = {
+  def getAllEntries(@QueryParam("entry") entryUrl: String) = {
     val tx = db.beginTx
     try {
-      val response = Response.ok(LinkedList.getAll(getNodeFromUrl(entryUrl)).tail.reverseMap(e => {
+      val tail = LinkedList.getTail(getNodeFromUrl(entryUrl))
+      val response = Response.ok(LinkedList.getAll(tail).tail.reverseMap(e => {
         "\"" + getUrlFromNode(e) + "\""
       }).mkString("[", ", ", "]")).build
 

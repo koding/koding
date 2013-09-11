@@ -72,16 +72,25 @@ getHomeItem = (loggedIn)->
 getSmallNavigation = ({loggedIn})->
   if loggedIn
     """
+    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account promote">
+      <a class="kdview title"><span class="main-nav-icon promote"></span><span>Get extra 250MB!</span></a>
+    </div>
+    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account docs">
+      <span class="title"><span class="main-nav-icon docs-jobs"></span><a class="ext" href="http://koding.github.io/docs/" target="_blank">Docs</a> / <a class="ext" href="http://koding.github.io/jobs/" target="_blank">Jobs</a></span>
+    </div>
     <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
-      <a class="title"><span class="main-nav-icon login"></span>Login</a>
+      <a class="title"><span class="main-nav-icon account"></span>Account</a>
+    </div>
+    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
+      <hr class="">
+    </div>
+    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
+      <a class="title"><span class="main-nav-icon logout"></span>Logout</a>
     </div>
     """
   else
     """
     <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
-      <a class="title"><span class="main-nav-icon account"></span>Account</a>
-    </div>
-    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
-      <a class="title"><span class="main-nav-icon logout"></span>Logout</a>
+      <a class="title"><span class="main-nav-icon login"></span>Login</a>
     </div>
     """

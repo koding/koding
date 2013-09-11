@@ -44,8 +44,12 @@ func registerFileSystemMethods(k *kite.Kite) {
 					if info == nil {
 						return // skip this event, file was deleted and deletion event will follow
 					}
+					event := "added"
+					if ev.Mask&inotify.IN_ATTRIB != 0 {
+						event = "attributesChanged"
+					}
 					params.OnChange(map[string]interface{}{
-						"event": "added",
+						"event": event,
 						"file":  makeFileEntry(vos, ev.Name, info),
 					})
 					return
@@ -85,6 +89,21 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return response, nil
 	})
 
+	registerVmMethod(k, "fs.glob", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		var params struct {
+			Pattern string
+		}
+		if args.Unmarshal(&params) != nil || params.Pattern == "" {
+			return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
+		}
+
+		matches, err := vos.Glob(params.Pattern)
+		if err == nil && matches == nil {
+			matches = []string{}
+		}
+		return matches, err
+	})
+
 	registerVmMethod(k, "fs.readFile", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
@@ -121,14 +140,18 @@ func registerFileSystemMethods(k *kite.Kite) {
 			Path           string
 			Content        []byte
 			DoNotOverwrite bool
+			Append         bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool], append: [bool] }"}
 		}
 
-		flags := os.O_RDWR | os.O_CREATE | os.O_TRUNC
+		flags := os.O_RDWR | os.O_CREATE
 		if params.DoNotOverwrite {
 			flags |= os.O_EXCL
+		}
+		if !params.Append {
+			flags |= os.O_TRUNC
 		}
 		file, err := vos.OpenFile(params.Path, flags, 0666)
 		if err != nil {
@@ -136,6 +159,12 @@ func registerFileSystemMethods(k *kite.Kite) {
 		}
 		defer file.Close()
 
+		if params.Append {
+			_, err := file.Seek(0, 2)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return file.Write(params.Content)
 	})
 

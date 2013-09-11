@@ -51,11 +51,15 @@ var Mode = function() {
     this.foldingRules = new FoldMode();
     
     this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-    // Extra logic goes here. 
+       
+    this.lineCommentStart = "#";    
+    this.$indentWithTabs = true;
+    
 }).call(Mode.prototype);
 
 exports.Mode = Mode;

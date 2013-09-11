@@ -7,6 +7,9 @@ import org.neo4j.graphdb.RelationshipType
 // Linked list with fixed head and tail nodes.
 object LinkedList {
 
+  // Points from tail node and each entry node to head node.
+  object LINKED_LIST_HEAD extends RelationshipType { def name: String = "LINKED_LIST_HEAD" }
+
   // Points from head node and each entry node to tail node.
   object LINKED_LIST_TAIL extends RelationshipType { def name: String = "LINKED_LIST_TAIL" }
 
@@ -15,13 +18,25 @@ object LinkedList {
 
   // Initializes a linked list with given head and tail nodes.
   def init(head: Node, tail: Node) {
+    if (head.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null || tail.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null) {
+      return
+    }
+    head.createRelationshipTo(head, LINKED_LIST_HEAD)
     head.createRelationshipTo(tail, LINKED_LIST_TAIL)
+    tail.createRelationshipTo(head, LINKED_LIST_HEAD)
     tail.createRelationshipTo(tail, LINKED_LIST_TAIL)
     head.createRelationshipTo(tail, LINKED_LIST_NEXT)
   }
 
   // Inserts entry between previous and the following node.
   def insertAfter(previous: Node, entry: Node): Unit = {
+    if (entry.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null) {
+      throw new IllegalArgumentException("Entry is already part of a list.")
+    }
+
+    val head = previous.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING).getEndNode
+    entry.createRelationshipTo(head, LINKED_LIST_HEAD)
+
     val tail = previous.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).getEndNode
     entry.createRelationshipTo(tail, LINKED_LIST_TAIL)
 
@@ -34,6 +49,13 @@ object LinkedList {
 
   // Inserts entry between next and the node before.
   def insertBefore(next: Node, entry: Node): Unit = {
+    if (entry.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null) {
+      throw new IllegalArgumentException("Entry is already part of a list.")
+    }
+
+    val head = next.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING).getEndNode
+    entry.createRelationshipTo(head, LINKED_LIST_HEAD)
+
     val tail = next.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).getEndNode
     entry.createRelationshipTo(tail, LINKED_LIST_TAIL)
 
@@ -46,16 +68,28 @@ object LinkedList {
 
   // Remove entry and return tail node. Do not execute on head or tail node.
   def remove(entry: Node) = {
+    val headRel = entry.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING)
     val tailRel = entry.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING)
     val outgoingNextRel = entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.OUTGOING)
     val incomingNextRel = entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING)
 
+    headRel.delete
     tailRel.delete
     outgoingNextRel.delete
     incomingNextRel.delete
     incomingNextRel.getStartNode.createRelationshipTo(outgoingNextRel.getEndNode, LINKED_LIST_NEXT)
 
     tailRel.getEndNode
+  }
+
+  // Get head entry.
+  def getHead(entry: Node) = {
+    entry.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING).getEndNode
+  }
+
+  // Get tail entry.
+  def getTail(entry: Node) = {
+    entry.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).getEndNode
   }
 
   // Get previous entry. Do not execute on head node.

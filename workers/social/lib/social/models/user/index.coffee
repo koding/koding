@@ -66,6 +66,7 @@ module.exports = class JUser extends jraphical.Module
     indexes         :
       username      : 'unique'
       email         : 'unique'
+      'foreignAuth.github.foreignId' : 1
 
     sharedEvents    :
       static        : [
@@ -80,7 +81,7 @@ module.exports = class JUser extends jraphical.Module
         'login','logout','register','usernameAvailable','emailAvailable',
         'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
         'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
-        'authenticateWithOauth'
+        'authenticateWithOauth','unregister'
       ]
 
     schema          :
@@ -102,7 +103,7 @@ module.exports = class JUser extends jraphical.Module
         type        : String
         enum        : [
           'invalid status type', [
-            'unconfirmed','confirmed','blocked'
+            'unconfirmed','confirmed','blocked','deleted'
           ]
         ]
         default     : 'unconfirmed'
@@ -140,17 +141,54 @@ module.exports = class JUser extends jraphical.Module
   users     = {}
   guests    = {}
 
+  @unregister = secure (client, confirmUsername, callback) ->
+    {delegate} = client.connection
+    if delegate.type is 'unregistered'
+      return callback createKodingError "You are not registered!"
+    unless confirmUsername is delegate.profile.nickname
+      return callback createKodingError "You must confirm this action!"
 
-
-  # @fetchUser = Bongo.secure (client,options,callback)->
-  #   {username} = options
-  #   constructor = @
-  #   connection.remote.fetchClientId (clientId)->
-  #     visitor = JVisitor.visitors[clientId]
-  #     unless visitor
-  #       callback new KodingError 'No visitor instance was found.'
-  #     else
-  #       constructor.one {username}, callback
+    @createGuestUsername (err, username) =>
+      return callback err  if err?
+      email = "#{username}@koding.com"
+      @fetchUser client, (err, user) =>
+        return callback err  if err?
+        userValues = {
+          username
+          email
+          password        : createId()
+          status          : 'deleted'
+          registeredAt    : new Date 0
+          lastLoginDate   : new Date 0
+          onlineStatus    : 'offline'
+          emailFrequency  : {}
+          sshKeys         : []
+          foreignAuth     : {}
+        }
+        modifier = { $set: userValues, $unset: { oldUsername: 1 }}
+        user.update modifier, (err, callback) =>
+          return callback err  if err?
+          accountValues = {
+            'profile.nickname'    : username
+            'profile.firstName'   : 'a former'
+            'profile.lastName'    : 'koding user'
+            'profile.about'       : ''
+            'profile.hash'        : getHash createId()
+            'profile.avatar'      : ''
+            'profile.experience'  : ''
+            'profile.experiencePoints': 0
+            'profile.lastStatusUpdate': ''
+            'foreignAuth.github'  : no
+            type                  : 'deleted'
+            ircNickame            : ''
+            skillTags             : []
+            locationTags          : []
+            globalFlags           : ['deleted']
+            onlineStatus          : 'offline'
+          }
+          delegate.update $set: accountValues, (err) =>
+            return callback err  if err?
+            @logout client, callback
 
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences = require '../registrationpreferences'
@@ -216,8 +254,13 @@ module.exports = class JUser extends jraphical.Module
     {username, password, clientId} = credentials
     constructor = @
     JSession.one {clientId}, (err, session)->
-      if err then return callback err
-      unless session then return callback createKodingError 'Could not restore your session!'
+      return callback err  if err
+      # temp fix:
+      # this broke login, reverted. - SY
+      # if not session? or session.username isnt username
+      unless session
+        return callback createKodingError 'Could not restore your session!'
+
       bruteForceControlData =
         ip : session.clientIP
         username : username
@@ -226,19 +269,16 @@ module.exports = class JUser extends jraphical.Module
         unless res then return callback createKodingError "Your login access is blocked for #{JLog.timeLimit()} minutes."
         JUser.one {username}, (err, user)->
           if err
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError err.message
           else unless user?
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError "Unknown user name"
           else unless user.getAt('password') is hashPassword password, user.getAt('salt')
-            JLog.log { type: "login", username: username, success: no }
-            , () ->
+            JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError 'Access denied!'
           else
-            JLog.log { type: "login", username: username, success: yes }, ()->
+            JLog.log { type: "login", username: username, success: yes }, ->
               afterLogin connection, user, clientId, session, callback
 
   afterLogin = (connection, user, clientId, session, callback)->
@@ -311,15 +351,18 @@ module.exports = class JUser extends jraphical.Module
       else
         callback null
 
-  @createTemporaryUser = (callback) ->
+  @createGuestUsername = (callback) ->
     ((require 'koding-counter') {
       db          : @getClient()
       counterName : 'guest'
       offset      : 0
-    }).next (err, guestId) =>
+    }).next (err, guestId) ->
       return callback err  if err?
+      callback null, "guest-#{guestId}"
 
-      username = "guest-#{guestId}"
+  @createTemporaryUser = (callback) ->
+    @createGuestUsername (err, username) =>
+      return callback err  if err?
 
       options     =
         username  : username
@@ -605,7 +648,7 @@ module.exports = class JUser extends jraphical.Module
 Your password has been changed!  If you didn't request this change, please contact support@koding.com immediately!
 """
       }
-      email.save ()->
+      email.save()
 
   @changeEmail = secure (client,options,callback)->
 
@@ -621,6 +664,14 @@ Your password has been changed!  If you didn't request this change, please conta
         @fetchUser client, (err,user)->
           account = client.connection.delegate
           user.changeEmail account, options, callback
+          email = new JMail {
+            email: user.email
+            subject : "Your email has changed"
+            content : """
+    Your email has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+    """
+          }
+          email.save()
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->

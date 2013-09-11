@@ -1,20 +1,15 @@
 package main
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fatih/goset"
 	"github.com/gorilla/sessions"
 	"github.com/streadway/amqp"
 	"html/template"
-	"io"
 	"io/ioutil"
-	"koding/databases/mongo"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
@@ -151,10 +146,9 @@ func NewServerInfo() *ServerInfo {
 var (
 	switchHost string
 	apiUrl     = "http://kontrol.in.koding.com:80" // default
-	proxyDB    *proxyconfig.ProxyConfiguration
 	templates  = template.Must(template.ParseFiles(
-		"templates/index.html",
-		"templates/login.html",
+		"go/templates/overview/index.html",
+		"go/templates/overview/login.html",
 	))
 )
 
@@ -164,12 +158,6 @@ var store = sessions.NewCookieStore([]byte("user"))
 
 func main() {
 	var err error
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
-		log.Println(res)
-	}
-
 	// used for kontrolapi
 	apiHost := config.Current.Kontrold.Overview.ApiHost
 	apiPort := config.Current.Kontrold.Overview.ApiPort
@@ -181,8 +169,10 @@ func main() {
 	// domain to be switched, like 'koding.com'
 	switchHost = config.Current.Kontrold.Overview.SwitchHost
 
+	bootstrapFolder := "go/templates/overview/bootstrap/"
+
 	http.HandleFunc("/", viewHandler)
-	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir("bootstrap/"))))
+	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir(bootstrapFolder))))
 
 	fmt.Println("koding overview started")
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
@@ -215,14 +205,10 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, stri
 			return "", "Please enter a username and password"
 		}
 		// abort if password and username is not valid
-		success, err, loginMessage := checkUserLogin(loginName, loginPass)
-		if !success {
-			if err != nil {
-				log.Println(err)
-				return "", loginMessage
-			} else {
-				return "", loginMessage
-			}
+		user, err := modelhelper.CheckAndGetUser(loginName, loginPass)
+		if user != nil {
+			log.Println(err)
+			return "", "Username or Password invalid"
 		}
 		session, err := store.Get(r, "userData")
 		if err != nil {
@@ -262,32 +248,6 @@ func logOut(w http.ResponseWriter, r *http.Request) error {
 	}
 }
 
-func checkUserLogin(username string, password string) (bool, error, string) {
-	admins := goset.New("devrim", "fatih", "geraint", "huseyinalb")
-	user := User{}
-	query := func(c *mgo.Collection) error {
-		err := c.Find(bson.M{"username": username}).One(&user)
-		return err
-	}
-	mgoerror := mongo.SearchCollection("koding", "jUsers", query)
-	if mgoerror != nil {
-		log.Println(mgoerror)
-		return false, nil, "Username not found"
-	}
-
-	iostring := sha1.New()
-	io.WriteString(iostring, user.Salt)
-	io.WriteString(iostring, password)
-
-	sha1pass := fmt.Sprintf("%x", iostring.Sum(nil))
-	if user.Password == sha1pass && admins.Has(user.Username) {
-		return true, nil, ""
-	} else {
-		return false, nil, "Password is incorrect"
-	}
-
-}
-
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Should be done first
@@ -319,8 +279,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	if operation == "switchVersion" {
 		version := r.PostFormValue("switchVersion")
 		loginPass := r.PostFormValue("loginPass")
-		success, err, loginMessage := checkUserLogin(loginName, loginPass)
-		if success {
+		user, err := modelhelper.CheckAndGetUser(loginName, loginPass)
+		if user != nil {
 			log.Println("switching to version", version)
 			err := switchVersion(version)
 			if err != nil {
@@ -331,10 +291,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 				logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName))
 			}
 		} else {
-			if err != nil {
-				log.Println(err)
-			}
-			switchMessage = loginMessage
+			log.Println(err)
+			switchMessage = "Username or Password invalid"
 		}
 	}
 
@@ -378,7 +336,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func keyLookup(key string) (map[string]bool, map[string]bool) {
-	workersApi := apiUrl + "/workers?version=" + key
+	workersApi := apiUrl + "/workers/?version=" + key
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		fmt.Println(err)
@@ -441,7 +399,7 @@ func jenkinsInfo() *JenkinsInfo {
 
 func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 	s := StatusInfo{}
-	workersApi := apiUrl + "/workers?version=" + build
+	workersApi := apiUrl + "/workers/?sort=state&version=" + build
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		return nil, s, err
@@ -470,6 +428,8 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 			workers[i].Info = "warning"
 		case "waiting":
 			workers[i].Info = "info"
+		case "dead":
+			workers[i].Info = "error"
 		}
 
 		d, err := time.ParseDuration(strconv.Itoa(workers[i].Uptime) + "s")
@@ -487,7 +447,7 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 }
 
 func buildsInfo() []int {
-	serverApi := apiUrl + "/deployments"
+	serverApi := apiUrl + "/deployments/"
 	fmt.Println(serverApi)
 	resp, err := http.Get(serverApi)
 	if err != nil {
@@ -532,6 +492,10 @@ func serverInfo(build string) (*ServerInfo, error) {
 	err = json.Unmarshal(body, &s)
 	if err != nil {
 		return nil, err
+	}
+
+	if s.BuildNumber == "" {
+		return s, fmt.Errorf("there is no deployment for build number %s\n", build)
 	}
 
 	s.MongoLogin = parseMongoLogin(s.Config.Mongo)
@@ -583,7 +547,7 @@ func currentVersion() (string, error) {
 		errors.New("switchHost is not defined")
 	}
 
-	domain, err := proxyDB.GetDomain(switchHost)
+	domain, err := modelhelper.GetDomain(switchHost)
 	if err != nil {
 		return "", err
 	}
@@ -611,7 +575,7 @@ func switchVersion(newVersion string) error {
 		return err
 	}
 
-	domain, err := proxyDB.GetDomain(switchHost)
+	domain, err := modelhelper.GetDomain(switchHost)
 	if err != nil {
 		return err
 	}
@@ -626,7 +590,7 @@ func switchVersion(newVersion string) error {
 
 	domain.Proxy.Key = newVersion
 
-	err = proxyDB.UpdateDomain(&domain)
+	err = modelhelper.UpdateDomain(&domain)
 	if err != nil {
 		log.Printf("could not update %+v\n", domain)
 		return err

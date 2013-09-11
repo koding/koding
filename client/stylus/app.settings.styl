@@ -59,6 +59,16 @@ positiveGreen = rgba(58,200,2,1)
     color           rgba(255,255,255,.5)
   .kdlistitemview
     line-height     25px
+    &.newpage
+      a:hover
+        text-decoration underline
+      a span.icon
+        sprite()
+        size            20px, 20px
+        bg              position, -180px -520px
+        display         inline-block
+        vertical-align  bottom
+        opacity         .4
     a
       font-size     12px
       color         rgba(255,255,255,1)!important
