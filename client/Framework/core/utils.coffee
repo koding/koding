@@ -791,6 +791,57 @@ __utils =
     if provider then mainController.emit "ForeignAuthCompleted", provider
     else mainController.emit "ForeignAuthFailed"
 
+  showSaveDialog: (container, callback = noop, options = {}) ->
+    container.addSubView dialog = new KDDialogView
+      cssClass      : KD.utils.curryCssClass "save-as-dialog", options.cssClass
+      duration      : 200
+      topOffset     : 0
+      overlay       : yes
+      height        : "auto"
+      buttons       :
+        Save        :
+          style     : "modal-clean-gray"
+          callback  : => callback input, finderController, dialog
+        Cancel      :
+          style     : "modal-cancel"
+          callback  : =>
+            finderController.stopAllWatchers()
+            delete finderController
+            finderController.destroy()
+            dialog.destroy()
+
+    dialog.addSubView wrapper = new KDView
+      cssClass : "kddialog-wrapper"
+
+    wrapper.addSubView form = new KDFormView
+
+    form.addSubView label = new KDLabelView
+      title : options.inputLabelTitle or "Filename:"
+
+    form.addSubView input = new KDInputView
+      label        : label
+      defaultValue : options.inputDefaultValue or ""
+
+    form.addSubView labelFinder = new KDLabelView
+      title : "Select a folder:"
+
+    dialog.show()
+    input.setFocus()
+
+    finderController    = new NFinderController
+      nodeIdPath        : "path"
+      nodeParentIdPath  : "parentPath"
+      foldersOnly       : yes
+      contextMenu       : no
+      loadFilesOnInit   : yes
+
+    finder = finderController.getView()
+    finderController.reset()
+
+    form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog save-file-container", null
+    finderWrapper.addSubView finder
+    finderWrapper.setHeight 200
+
   # deprecated ends
 
 ###
