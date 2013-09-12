@@ -257,19 +257,37 @@ class NFinderController extends KDViewController
       return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
+  folderIterate: (folders, callback=noop, index=0)->
+    @expandFolder folders[index], (err)=>
+      if err
+        callback? err
+        @unsetRecentFolder folders[index]
+      index++
+      if index <= folders.length
+        @folderIterate folders, callback, index
+
+      if index is folders.length
+        callback? null, @treeController.nodes[folders.last]
+
+  revealPath: (fullPath, callback)->
+    {path, vmName} = KD.getPathInfo fullPath
+    path = path.replace /^~/, "/home/#{KD.nick()}"
+    nodes = path.split("/").filter (node)-> return !!node
+    queue = for node in nodes
+      subPath = nodes.join "/"
+      nodes.pop()
+      "[#{vmName}]/#{subPath}"
+    queue.reverse() # reverse the queue to open files to back
+    @folderIterate queue, callback
+
   reloadPreviousState:(vmName)->
-    iterate = (folders, index=0)=>
-      @expandFolder folders[index], (err)=>
-        if err then @unsetRecentFolder folders[index]
-        index++
-        iterate folders, index  if index <= folders.length
     recentFolders = @getRecentFolders()
     if vmName
       recentFolders = recentFolders.filter (folder)->
         folder.indexOf "[#{vmName}]" is 0
       if recentFolders.length is 0
         recentFolders = ["[#{vmName}]/home/#{KD.nick()}"]
-    iterate recentFolders
+    @folderIterate recentFolders
 
   uploadTo: (path)->
     sidebarView = @getDelegate()

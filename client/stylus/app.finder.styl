@@ -225,6 +225,30 @@ dimmedNeighbor()
       a.cancel
         bg          position, -62px -242px
 
+  .progressbar-container
+    hidden()
+
+  &.progress
+    vendor          transition-duration, 100ms
+    opacity         0.7
+    .title
+      width         70px
+    .progressbar-container
+      visible()
+      abs           8px 30px
+      size          40px 5px
+      .bar
+        gradient    #afafaf, #afafaf
+        shadow      none
+    .vm
+      .vm-info
+        hidden()
+      .title
+        width       auto
+      & + .progressbar-container
+        top         23px
+        right       11px
+        width       187px
 
 
 .drop-helper

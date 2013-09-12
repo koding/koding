@@ -19,14 +19,31 @@ class DNDUploader extends KDView
       @on "dragleave", => @unsetClass "hover"
       @on "drop",      => @unsetClass "hover"
 
-    @on "uploadFile", (file)=>
-      new KDNotificationView
-        type    : "tray"
-        title   : file.name
-        content : """
-        #{file.name} successfully uploaded to #{file.parentPath}!
-        """
-        duration: 5000
+    @on "uploadFile", (file, percent)=>
+      finder = KD.getSingleton "finderController"
+      filePath  = "[#{file.vmName}]#{file.path}"
+      finder.treeController.nodes[filePath]?.updateProgressView percent
+
+    @on "uploadStart", (file)=>
+      finder = KD.getSingleton "finderController"
+      filePath   = "[#{file.vmName}]#{file.path}"
+      parentPath = "[#{file.vmName}]#{file.parentPath}"
+
+      file._isBeingUploaded = yes
+      nodeView = finder.treeController.nodes[filePath]
+      if nodeView
+        nodeView.updateProgressView 1
+        nodeView.on "abortProgress", => file.abort yes
+      else
+        finder.treeController.on "NodeWasAdded", (nodeView)->
+          if nodeView.getData().path is filePath and file._isBeingUploaded
+            nodeView.updateProgressView 1
+            nodeView.on "abortProgress", => file.abort yes
+
+        file.save "", -> finder.revealPath parentPath
+
+    @on "uploadEnd", (file)->
+      file._isBeingUploaded = no
 
   reset: ->
     {uploadToVM, defaultPath, title} = @getOptions()
@@ -40,12 +57,26 @@ class DNDUploader extends KDView
 
   drop: (event)->
     super
-    {files}  = event.originalEvent.dataTransfer
+    {files, items}  = event.originalEvent.dataTransfer
+    # folders are not allowed
+    if items.length
+      for item in items
+        itemEntry = item.webkitGetAsEntry?()
+        if itemEntry.isDirectory
+          return new KDNotificationView
+            title: "Folder uploads not available for now."
+
+    if files.length >= 20
+      return new KDNotificationView
+        title   : "Too many files to transfer!"
+        content : "Please archive your files and upload again."
+        duration: 3000
+
     if files.length
       lastFile = files.last
       for file, index in files
         sizeInMb = file.size/1024/1024
-        if sizeInMb > 5 && @getOptions().uploadToVM
+        if sizeInMb > 50 && @getOptions().uploadToVM
           new KDNotificationView
             type    : "tray"
             title   : "File is too big to upload!"
@@ -62,6 +93,7 @@ class DNDUploader extends KDView
             filename: file.name
             instance: fsFile
             content : readEvent.target.result
+            isLast  : file is lastFile
           , event, readEvent
 
           @reset() if file is lastFile
@@ -80,6 +112,7 @@ class DNDUploader extends KDView
             filename: basename
             instance: fsFile
             content : null
+            isLast  : item is lastItem
           , event, no
 
           @reset() if item is lastItem
@@ -93,6 +126,10 @@ class DNDUploader extends KDView
         <small>#{if uploadToVM then FSHelper.plainPath @path else ''}</small>
       </div>
     """
+    if uploadToVM
+      finder = KD.getSingleton "finderController"
+      finder?.revealPath @path
+
     @addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "cancel"
@@ -100,16 +137,26 @@ class DNDUploader extends KDView
       attributes: href: "#"
       click     : => @emit "cancel"
 
+  saveFile: (uploadFile, data)->
+    @emit "uploadStart", uploadFile
+    uploadFile.saveBinary data, (err, res, progress)=>
+      return if err
+      if res.finished
+        @emit "uploadEnd", uploadFile
+      else if res.abort
+        @emit "uploadAbort", uploadFile
+      else
+        @emit "uploadFile", uploadFile, progress.percent
+
   upload: (file, data)->
     modalStack  = KDModalView.createStack lastToFirst: yes
     uploadDir   = FSHelper.createFileFromPath @path, 'folder'
     uploadFile  = FSHelper.createFileFromPath "#{@path}/#{file}"
 
     upload      = =>
-
       uploadFile.exists (err, exists)=>
         unless exists
-        then uploadFile.save data, => @emit "uploadFile", uploadFile
+        then @saveFile uploadFile, data
         else
           modalStack.addModal modal = new KDModalView
             overlay : no
@@ -124,7 +171,7 @@ class DNDUploader extends KDView
               Overwrite:
                 cssClass: "modal-clean-green"
                 callback: =>
-                  uploadFile.save data, => @emit "uploadFile", uploadFile
+                  @saveFile uploadFile, data
                   modal.destroy()
               cancel:
                 cssClass: "modal-cancel"

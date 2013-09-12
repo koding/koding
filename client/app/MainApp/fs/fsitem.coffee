@@ -90,23 +90,29 @@ class FSItem extends KDObject
 
   @extract:(file, callback)->
 
+    reTar = /\.tar\.gz$/
+    reZip = /\.zip$/
+
     file.emit "fs.job.started"
     path = FSHelper.plainPath file.path
     vmName = file.vmName or FSHelper.getVMNameFromPath path
-    FSItem.create path, "folder", vmName, (err, folder)=>
-      if err then warn err
-      else
-        command = if /\.tar\.gz$/.test file.name
-          "cd #{escapeFilePath file.parentPath};tar -zxf #{escapeFilePath file.name} -C #{folder.path}"
-        else if /\.zip$/.test file.name
-          "cd #{escapeFilePath file.parentPath};unzip #{escapeFilePath file.name} -d #{folder.path}"
+    command = if reTar.test file.name
+      extractFolder = file.path.replace reTar, ''
+      "cd #{escapeFilePath file.parentPath};mkdir -p #{escapeFilePath extractFolder};tar -zxf #{escapeFilePath file.name} -C #{escapeFilePath extractFolder}"
+    else if reZip.test file.name
+      extractFolder = file.path.replace reZip, ''
+      "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath extractFolder}"
+
+    if command
       KD.getSingleton('vmController').run
         vmName   : vmName
         withArgs : command
       , (err, res)->
         file.emit "fs.job.finished"
         if err then warn err
+        folder = FSHelper.createFileFromPath extractFolder, 'folder'
         callback? err, folder
+    else callback? yes
 
   @getFileExtension: (path) ->
     fileName = path or ''
