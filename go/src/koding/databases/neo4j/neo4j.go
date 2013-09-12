@@ -7,6 +7,8 @@ import (
 	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
 	"log"
+	"time"
+
 	"net/http"
 	"strconv"
 	"strings"
@@ -33,6 +35,15 @@ type Relationship struct {
 // Gets URL and string data to be sent and makes POST request
 // reads response body and returns as string
 func sendRequest(requestType, url, data string) string {
+
+	timer := time.NewTimer(30 * time.Second)
+
+	go func() {
+		<-timer.C
+		panic(fmt.Sprintf("req to %v timed out", url))
+	}()
+
+	defer timer.Stop()
 
 	//convert string into bytestream
 	dataByte := strings.NewReader(data)

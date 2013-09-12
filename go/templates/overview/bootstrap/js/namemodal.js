@@ -1,30 +1,30 @@
 $('.dropdown-toggle').dropdown();
 $(
-	function(){
-		var form = $('#switchVersionForm')
-		var switchButton = $('#switchButton')
-		$(switchButton).click(
-			function(){ //listen for click event
-			showNameModal(function(){$(form).submit();});
-			})
-	}
+    function(){
+        var form = $('#switchVersionForm')
+        var switchButton = $('#switchButton')
+        $(switchButton).click(
+            function(){ //listen for click event
+            showNameModal(function(){$(form).submit();});
+            })
+    }
 )
 // modal for user s name
 var showNameModal = function(callback) {
-	callback: callback;
+    callback: callback;
     $("#myModal").bind("show", function() {
-    	debugger
+        debugger
         $("#myModal a.primary").click(function(e) {
             var modalSwitcherName = $("#modalSwitcherName")[0]
             if (modalSwitcherName.value !== "") {
-	            var switcherName = $("#switcherName")[0]
-	            switcherName.value = modalSwitcherName.value
-	            $("#myModal").modal('hide');
-	            callback();
-        	}
+                var switcherName = $("#switcherName")[0]
+                switcherName.value = modalSwitcherName.value
+                $("#myModal").modal('hide');
+                callback();
+            }
         });
         $("#myModal a.inverse").click(function(e) {
-	        $("#myModal").modal('hide');
+            $("#myModal").modal('hide');
         });
     });
  

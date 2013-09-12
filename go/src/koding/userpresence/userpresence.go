@@ -159,12 +159,16 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 	userQuery := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}
-	mongodb.Run("jUsers", userQuery)
+	if err := mongodb.Run("jUsers", userQuery); err != nil {
+		return err
+	}
 
 	accountQuery := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": username}).One(&account)
 	}
-	mongodb.Run("jAccounts", accountQuery)
+	if err := mongodb.Run("jAccounts", accountQuery); err != nil {
+		return err
+	}
 
 	userUpdateQuery := func(c *mgo.Collection) error {
 		c.Update(

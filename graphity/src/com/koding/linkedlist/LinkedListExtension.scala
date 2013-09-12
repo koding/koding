@@ -26,6 +26,18 @@ class LinkedListExtension(@Context db: GraphDatabaseService) {
     }
   }
 
+  @DELETE
+  @Path("/list")
+  def destroyList(@QueryParam("entry") entryUrl: String) {
+    val tx = db.beginTx
+    try {
+      LinkedList.destroy(getNodeFromUrl(entryUrl))
+      tx.success
+    } finally {
+      tx.finish
+    }
+  }
+
   @POST
   @Path("/entry")
   def addEntry(@FormParam("previous") previousUrl: String, @FormParam("next") nextUrl: String, @FormParam("entry") entryUrl: String) {
