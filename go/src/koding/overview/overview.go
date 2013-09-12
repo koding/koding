@@ -151,6 +151,9 @@ var (
 		"go/templates/overview/index.html",
 		"go/templates/overview/login.html",
 	))
+	admins = goset.New("sinan", "devrim", "gokmen", "chris", "neelance", "halk",
+		"sent-hil", "kiwigeraint", "cihangirsavas",
+		"bahadir", "arslan")
 )
 
 const uptimeLayout = "03:04:00"
@@ -205,27 +208,29 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, stri
 		if loginName == "" || loginPass == "" {
 			return "", "Please enter a username and password"
 		}
+
 		// abort if password and username is not valid
-		user, err := modelhelper.CheckAndGetUser(loginName, loginPass)
-		if user == nil {
-			log.Println(err)
-			return "", "Username or Password invalid"
+		err := authenticateUser(loginName, loginPass)
+		if err != nil {
+			return "", "Username or password is invalid"
 		}
+
 		session, err := store.Get(r, "userData")
 		if err != nil {
 			log.Println("Session could not be retrieved")
-			return "", "An internal problem occured"
+			return "", "An internal problem occured - 1"
 		}
+
 		session.Values["userName"] = loginName
 		store.Save(r, w, session)
 		return loginName, ""
 	}
 
 	session, err := store.Get(r, "userData")
-	if err != nil {
-		log.Println("Session could not be retrieved")
-		return "", "An internal problem occured"
+	if err == nil {
+
 	}
+
 	loginName, ok := session.Values["userName"]
 	if ok == true {
 		if loginName == nil {
@@ -235,7 +240,7 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, stri
 		s := loginName.(string)
 		return s, ""
 	}
-	return "", "An internal problem occured"
+	return "", ""
 }
 
 func logOut(w http.ResponseWriter, r *http.Request) error {
@@ -279,12 +284,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	if operation == "switchVersion" {
 		version := r.PostFormValue("switchVersion")
 		loginPass := r.PostFormValue("loginPass")
-		user, err := modelhelper.CheckAndGetUser(loginName, loginPass)
-		switchers := goset.New("sinan", "devrim", "gokmen", "chris", "neelance", "halk",
-			"sent-hil", "kiwigeraint", "cihangirsavas",
-			"bahadir", "arslan")
-		if user != nil && switchers.Has(user.Name) {
-			log.Println("switching to version", version)
+
+		err := authenticateUser(loginName, loginPass)
+		if err == nil {
 			err := switchVersion(version)
 			if err != nil {
 				switchMessage = fmt.Sprintf("Error switching, err: %s version: %s", err, version)
@@ -293,9 +295,6 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 				switchMessage = "Switched to version " + loginName
 				logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName))
 			}
-		} else {
-			log.Println(err)
-			switchMessage = "Username or Password invalid"
 		}
 	}
 
@@ -565,6 +564,19 @@ func currentVersion() (string, error) {
 	}
 
 	return currentVersion, nil
+}
+
+func authenticateUser(username, password string) error {
+	if !admins.Has(username) {
+		return fmt.Errorf("Username %s is not authenticated\n", username)
+	}
+
+	_, err := modelhelper.CheckAndGetUser(username, password)
+	if err != nil {
+		return fmt.Errorf("Username %s is not authenticated\n", username)
+	}
+
+	return nil
 }
 
 func switchVersion(newVersion string) error {
