@@ -290,7 +290,7 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 	fmt.Printf("[%s] trying : hostname '%s' index '%d' \n",
 		time.Now().Format(time.Stamp),
 		hostname,
-		index+1,
+		index,
 	)
 
 	if err := utils.CheckServer(hostname); err != nil {
@@ -302,11 +302,6 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 		)
 
 		hostname, n = roundRobin(hosts, index+1, iter+1)
-		fmt.Printf("[%s] new    : hostname '%s' index '%d' \n",
-			time.Now().Format(time.Stamp),
-			hostname,
-			index+1,
-		)
 	}
 
 	return hostname, n
