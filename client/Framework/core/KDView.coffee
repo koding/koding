@@ -687,10 +687,18 @@ class KDView extends KDObject
       @dragIsAllowed = yes
       @setEmptyDragState()
 
-      dragState             = @dragState
+      dragState = @dragState
+
+      if options.containment
+        dragState.containment = {}
+        {view} = options.containment
+        if 'string' is typeof view
+          dragState.containment.viewBounds = @[view].getBounds()
+        dragState.containment.viewBounds or= @parent.getBounds()
+        dragState.containment.padding = \
+          options.containment.padding or x: 0, y: 0
 
       # TODO: should move these lines
-      dragState.containment = options.containment
       dragState.handle      = options.handle
       dragState.axis        = options.axis
 
@@ -713,7 +721,7 @@ class KDView extends KDObject
 
   drag:(event, delta)->
 
-    {directionX, directionY, axis} = @dragState
+    {directionX, directionY, axis, containment} = @dragState
 
     {x, y}       = delta
     dragPos      = @dragState.position
@@ -755,6 +763,15 @@ class KDView extends KDObject
 
       newX = if targetPosX is 'left' then dragMeta.left + dragRelPos.x else dragMeta.right  - dragRelPos.x
       newY = if targetPosY is 'top'  then dragMeta.top  + dragRelPos.y else dragMeta.bottom - dragRelPos.y
+
+      if containment
+        m  = w: @getWidth(), h: @getHeight()
+        p  = containment.viewBounds
+        cp = containment.padding
+        if newX <= 0 + cp.x then newX = 0 + cp.x
+        if newY <= 0 + cp.y then newY = 0 + cp.y
+        if newX + m.w + cp.x >= p.w - cp.x then newX = p.w - m.w - cp.x
+        if newY + m.h + cp.y >= p.h - cp.y then newY = p.h - m.h - cp.y
 
       el.css targetPosX, newX unless axis is 'y'
       el.css targetPosY, newY unless axis is 'x'
