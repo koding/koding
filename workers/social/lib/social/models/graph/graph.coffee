@@ -167,14 +167,18 @@ module.exports = class Graph
       callback null, ""
 
   fetchAll:(requestOptions, callback)->
-    {group:{groupName, groupId}, startDate, client} = requestOptions
+    {group:{groupName, groupId}, startDate, client, first} = requestOptions
+
+    if first
+      # def. a hack
+      startDate = "2378988709"
 
     # do not remove white-spaces
     query = """
       START koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->members<-[:author]-content
       WHERE content.`meta.createdAtEpoch` < #{startDate}
-    """
+      """
 
     facets = @facets
     if facets and facets isnt "Everything"
@@ -226,7 +230,7 @@ module.exports = class Graph
       JCache.get query, (err, results)=>
         if err or not results 
           @db.query query, {}, (err, results)=>
-            JCache.add query, JSON.stringify(results)
+            JCache.add query, results
             returnResults(err, results)
         else
           returnResults(err, results)
@@ -284,19 +288,10 @@ module.exports = class Graph
       limit 20
       """
 
-    returnResults = (err, results)=>
-      @db.query query, {}, (err, results) =>
-        if err then throw err
-        @generateInstalledApps [], results, callback
-
-    JCache.get query, (err, results)=>
-      if err or not results 
-        @db.query query, {}, (err, results)=>
-          JCache.add query, JSON.stringify(results)
-          returnResults(err, results)
-      else
-        returnResults(err, results)
-
+    @db.query query, {}, (err, results)=>
+      if err then throw err
+      @generateInstalledApps [], results, callback
+  
 
 
   generateInstalledApps:(resultData, results, callback)->
@@ -367,14 +362,14 @@ module.exports = class Graph
       """
 
     @db.query query, {}, (err, results) ->
-        if err then throw err
-        resultData = []
-        for result in results
-          data = result.members.data
-          resultData.push data
+      if err then throw err
+      resultData = []
+      for result in results
+        data = result.members.data
+        resultData.push data
 
-        objectify resultData, (objected)->
-          callback err, objected
+      objectify resultData, (objected)->
+        callback err, objected
 
   fetchMemberFollows:(group, startDate, callback)->
     {groupId} = group
@@ -406,20 +401,9 @@ module.exports = class Graph
     @fetchFollows query, callback
 
   fetchFollows:(query, callback)->
-
-    returnResults = (err, results)=>    
+    @db.query query, {}, (err, results)=>
       if err then throw err
       @generateFollows [], results, callback
-
-    JCache.get query, (err, results)=>
-      if err or not results 
-        @db.query query, {}, (err, results)=>
-          JCache.add query, JSON.stringify(results)
-          if err then throw err
-          @generateFollows [], results, callback
-      else
-          if err then throw err
-          @generateFollows [], results, callback
 
 
   generateFollows:(resultData, results, callback)->
