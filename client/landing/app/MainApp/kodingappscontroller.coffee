@@ -132,7 +132,8 @@ class KodingAppsController extends KDController
       @_loadedOnce = yes
       if err or not Array.isArray files or files.length is 0
         @putAppsToAppStorage {}
-        callback()  for callback in @_fetchQueue
+        unless err
+          callback()  for callback in @_fetchQueue
         @_fetchQueue = []
       else
         apps = @filterAppsFromFileList files
