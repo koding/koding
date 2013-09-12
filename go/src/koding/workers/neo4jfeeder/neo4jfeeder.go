@@ -71,7 +71,7 @@ func startConsuming() {
 	}
 
 	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
-	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", true, false, false, false, nil)
+	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", false, false, false, false, nil)
 	if err != nil {
 		fmt.Println("basic.consume: %s", err)
 		panic(err)
@@ -108,6 +108,8 @@ func startConsuming() {
 		} else {
 			fmt.Println(message.Event)
 		}
+
+		msg.Ack(true)
 	}
 }
 
