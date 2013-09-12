@@ -128,6 +128,13 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
 
+    if folder.depth > 10
+      new KDNotificationView
+        type     : "mini"
+        title    : "The folder is in a deep place, changing top folder."
+        duration : 3000
+      @makeTopFolder nodeView
+
     failCallback = (err)=>
       unless silence
         KD.logToExternal "Couldn't fetch files"
@@ -768,7 +775,7 @@ class NFinderTreeController extends JTreeViewController
 
   refreshTopNode:->
     {nickname} = KD.whoami().profile
-    @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"
+    @refreshFolder @nodes["/home/#{nickname}"], => @emit "fs.retry.success"
 
   showOpenWithModal: (nodeView) ->
     KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>

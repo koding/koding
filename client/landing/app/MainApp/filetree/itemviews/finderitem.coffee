@@ -19,12 +19,34 @@ class NFinderItem extends JTreeItemView
       when "brokenLink" then NBrokenLinkItemView
       else NFileItemView
 
-    @childView = new childConstructor {}, data
+    @childView = new childConstructor delegate: this, data
     @childView.$().css "margin-left", (data.depth)*10
 
     if data.name? and data.name.length > 20 - data.depth
       @childView.setDomAttributes
         title : FSHelper.plainPath data.name
+
+    @progress = new KDProgressBarView
+      click: =>
+        info = new KDView
+        info.addSubView new KDButtonView
+          title: "Pause"
+          callback: => @emit "abortProgress"
+        progressInfo  = new JContextMenu
+          delegate    : this
+          x           : @getX() + 20
+          y           : @getY() - 30
+          arrow       :
+            placement : "bottom"
+            margin    : 150
+          lazyLoad    : yes
+        , customView  : info
+
+    log data
+    if data?.runs?.length > 0
+      total  = data.runs.first.totalChunk
+      remain = data.runs.length
+      @updateProgressView 100 * (total-remain) / total
 
   mouseDown:-> yes
 
@@ -78,8 +100,17 @@ class NFinderItem extends JTreeItemView
       @resetView()
     @renameView.input.setFocus()
 
+  updateProgressView: (percent=0, determinate=yes)->
+    @progress.setOption "determinate", determinate
+    @progress.updateBar percent, "%", ""
+    if 0 <= percent < 100
+    then @setClass   "progress"
+    else
+      @utils.wait 1000, => @unsetClass "progress"
+
   pistachio:->
 
     """
     {{> @childView}}
+    {{> @progress}}
     """
