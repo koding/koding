@@ -2,7 +2,12 @@ class KDDiaObject extends JView
 
   constructor:(options, data)->
     options.cssClass = "kddia-object #{options.type}"
-    options.draggable = yes
+
+    options.draggable or= {}
+    options.draggable.containment or= {}
+    options.draggable.containment.view or= 'parent'
+    options.draggable.containment.padding ?= x:10, y:10
+
     super options, data
 
     @joints = {}
