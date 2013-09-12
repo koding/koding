@@ -1,54 +1,60 @@
-package proxyconfig
+package modelhelper
 
 import (
+	"koding/db/models"
+	"koding/db/mongodb"
 	"koding/newkite/protocol"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
-func NewKite() *protocol.Kite {
-	return &protocol.Kite{}
+func NewKite() *models.Kite {
+	return &models.Kite{
+		Base: protocol.Base{
+			Id: bson.NewObjectId(),
+		},
+	}
 }
 
-func (p *ProxyConfiguration) UpsertKite(kite *protocol.Kite) error {
+func UpsertKite(kite *models.Kite) error {
 	query := func(c *mgo.Collection) error {
 		_, err := c.Upsert(bson.M{"uuid": kite.Uuid}, kite)
 		return err
 	}
 
-	return p.RunCollection("jKites", query)
+	return mongodb.Run("jKites", query)
 }
 
-func (p *ProxyConfiguration) GetKite(uuid string) (*protocol.Kite, error) {
-	kite := protocol.Kite{}
+func GetKite(uuid string) (*models.Kite, error) {
+	kite := models.Kite{}
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"uuid": uuid}).One(&kite)
 	}
 
-	err := p.RunCollection("jKites", query)
+	err := mongodb.Run("jKites", query)
 	if err != nil {
 		return nil, err
 	}
 	return &kite, nil
 }
 
-func (p *ProxyConfiguration) UpdateKite(kite *protocol.Kite) error {
+func UpdateKite(kite *models.Kite) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"uuid": kite.Uuid}, kite)
 	}
 
-	return p.RunCollection("jKites", query)
+	return mongodb.Run("jKites", query)
 }
 
-func (p *ProxyConfiguration) DeleteKite(uuid string) error {
+func DeleteKite(uuid string) error {
 	query := func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"uuid": uuid})
 	}
 
-	return p.RunCollection("jKites", query)
+	return mongodb.Run("jKites", query)
 }
 
-func (p *ProxyConfiguration) SizeKites() (int, error) {
+func SizeKites() (int, error) {
 	var count int
 	var err error
 	query := func(c *mgo.Collection) error {
@@ -56,12 +62,12 @@ func (p *ProxyConfiguration) SizeKites() (int, error) {
 		return err
 	}
 
-	err = p.RunCollection("jKites", query)
+	err = mongodb.Run("jKites", query)
 	return count, err
 }
 
-func (p *ProxyConfiguration) ListKites() []*protocol.Kite {
-	kites := make([]*protocol.Kite, 0)
+func ListKites() []*models.Kite {
+	kites := make([]*models.Kite, 0)
 	query := func(c *mgo.Collection) error {
 		// todo use Limit() to decrease the memory overhead, future
 		// improvements...
@@ -69,6 +75,6 @@ func (p *ProxyConfiguration) ListKites() []*protocol.Kite {
 		return iter.All(&kites)
 	}
 
-	p.RunCollection("jKites", query)
+	mongodb.Run("jKites", query)
 	return kites
 }
