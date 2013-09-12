@@ -366,7 +366,7 @@ module.exports = class Graph
       limit 20
       """
 
-    returnResults = (err, results) =>
+    @db.query query, {}, (err, results) ->
         if err then throw err
         resultData = []
         for result in results
@@ -375,15 +375,6 @@ module.exports = class Graph
 
         objectify resultData, (objected)->
           callback err, objected
-
-    JCache.get query, (err, results)=>
-      if err or not results 
-        @db.query query, {}, (err, results)=>
-          JCache.add query, JSON.stringify(results)
-          returnResults(err, results)
-      else
-        returnResults(err, results)
-
 
   fetchMemberFollows:(group, startDate, callback)->
     {groupId} = group
