@@ -3,6 +3,8 @@ neo4j = require "neo4j"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
+JCache = require '../cache.coffee'
+
 module.exports = class Graph
   constructor:({config, facets})->
     @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
@@ -193,7 +195,9 @@ module.exports = class Graph
         order by content.`meta.createdAtEpoch` DESC
         limit 20
       """
-      @db.query query, {}, (err, results)=>
+
+      returnResults = (err, results)=>   
+
         tempRes = []
         if err then callback err
         else if results.length is 0 then callback null, []
@@ -218,6 +222,14 @@ module.exports = class Graph
             for objected in objecteds
               tempRes.push objected
               collectRelations objected
+
+      JCache.get query, (err, results)=>
+        if err or not results 
+          @db.query query, {}, (err, results)=>
+            JCache.add query, JSON.stringify(results)
+            returnResults(err, results)
+        else
+          returnResults(err, results)
 
   fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
@@ -272,9 +284,20 @@ module.exports = class Graph
       limit 20
       """
 
-    @db.query query, {}, (err, results) =>
-      if err then throw err
-      @generateInstalledApps [], results, callback
+    returnResults = (err, results)=>
+      @db.query query, {}, (err, results) =>
+        if err then throw err
+        @generateInstalledApps [], results, callback
+
+    JCache.get query, (err, results)=>
+      if err or not results 
+        @db.query query, {}, (err, results)=>
+          JCache.add query, JSON.stringify(results)
+          returnResults(err, results)
+      else
+        returnResults(err, results)
+
+
 
   generateInstalledApps:(resultData, results, callback)->
 
@@ -342,7 +365,8 @@ module.exports = class Graph
       order by r.createdAtEpoch DESC
       limit 20
       """
-    @db.query query, {}, (err, results) ->
+
+    returnResults = (err, results) =>
         if err then throw err
         resultData = []
         for result in results
@@ -351,6 +375,15 @@ module.exports = class Graph
 
         objectify resultData, (objected)->
           callback err, objected
+
+    JCache.get query, (err, results)=>
+      if err or not results 
+        @db.query query, {}, (err, results)=>
+          JCache.add query, JSON.stringify(results)
+          returnResults(err, results)
+      else
+        returnResults(err, results)
+
 
   fetchMemberFollows:(group, startDate, callback)->
     {groupId} = group
@@ -382,9 +415,21 @@ module.exports = class Graph
     @fetchFollows query, callback
 
   fetchFollows:(query, callback)->
-    @db.query query, {}, (err, results)=>
+
+    returnResults = (err, results)=>    
       if err then throw err
       @generateFollows [], results, callback
+
+    JCache.get query, (err, results)=>
+      if err or not results 
+        @db.query query, {}, (err, results)=>
+          JCache.add query, JSON.stringify(results)
+          if err then throw err
+          @generateFollows [], results, callback
+      else
+          if err then throw err
+          @generateFollows [], results, callback
+
 
   generateFollows:(resultData, results, callback)->
 
