@@ -19,7 +19,11 @@ class KDSliderBarHandleView extends KDCustomHTMLView
       valueChange        = ((maxValue - minValue) * relPos) / width
       @setValue value + valueChange
       @snap() if @parent.getOption "snapOnDrag"
-    @on "DragFinished", -> @snap() if @parent.getOption "snap"
+    @on "DragFinished", ->
+      @snap() if @parent.getOption "snap"
+      if value isnt @getOption "value"
+        @emit        "ValueChange"
+        @parent.emit "ValueChange", @
 
   getPosition:->
     {maxValue, minValue} = @parent.getOptions()
@@ -42,12 +46,11 @@ class KDSliderBarHandleView extends KDCustomHTMLView
     @setX "#{@getPosition()}"
     @parent.drawBar() if @parent.getOption('drawBar')
     @parent.setLimits()
-    @emit "ValueChange"
-
+      
   getSnappedValue:(value)->
     {interval}  = @parent.getOptions()
     {value}     = value or @getOptions()
-
+    
     if interval
       mod = value % interval
       mid = interval / 2
