@@ -127,7 +127,6 @@ class KDScrollThumb extends KDView
     o = @getOptions()
     dragOptions =
       drag : @_drag
-      containment : "parent"
     if o.type = "vertical"
       dragOptions.axis = "y"
     else
