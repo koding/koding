@@ -1,11 +1,12 @@
 package main
 
 import (
-	"koding/tools/db"
+	"koding/db/mongodb"
 	"koding/tools/fastproxy"
 	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"koding/virt"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"strings"
@@ -41,7 +42,9 @@ func main() {
 		vmName := strings.SplitN(req.Host, ".", 2)[0]
 
 		var vm virt.VM
-		if err := db.VMs.Find(bson.M{"name": vmName}).One(&vm); err != nil {
+		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Find(bson.M{"name": vmName}).One(&vm)
+		}); err != nil {
 			req.Redirect("http://www.koding.com/notfound.html")
 			return
 		}
