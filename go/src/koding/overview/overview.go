@@ -202,6 +202,12 @@ func logAction(msg string) {
 
 func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, string) {
 	operation := r.PostFormValue("operation")
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		log.Println("Session could not be retrieved")
+		return "", "An internal problem occured"
+	}
+
 	if operation == "login" {
 		loginName := r.PostFormValue("loginName")
 		loginPass := r.PostFormValue("loginPass")
@@ -214,33 +220,23 @@ func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, stri
 		if err != nil {
 			return "", "Username or password is invalid"
 		}
-
-		session, err := store.Get(r, "userData")
-		if err != nil {
-			log.Println("Session could not be retrieved")
-			return "", "An internal problem occured - 1"
-		}
-
 		session.Values["userName"] = loginName
 		store.Save(r, w, session)
 		return loginName, ""
 	}
 
-	session, err := store.Get(r, "userData")
-	if err == nil {
-
-	}
-
 	loginName, ok := session.Values["userName"]
-	if ok == true {
-		if loginName == nil {
-			// no login operation or no session initialized
-			return "", ""
-		}
-		s := loginName.(string)
-		return s, ""
+	if ok == false {
+		return "", "An internal problem occured"
 	}
-	return "", ""
+
+	if loginName == nil {
+		// no login operation or no session initialized
+		return "", ""
+	}
+
+	s := loginName.(string)
+	return s, ""
 }
 
 func logOut(w http.ResponseWriter, r *http.Request) error {
@@ -252,6 +248,32 @@ func logOut(w http.ResponseWriter, r *http.Request) error {
 	} else {
 		return errors.New("Session could not be retrieved")
 	}
+}
+
+func switchOperation(loginName string, r *http.Request) string {
+	operation := r.FormValue("operation")
+	if operation != "switchVersion" {
+		return ""
+	}
+
+	version := r.PostFormValue("switchVersion")
+	loginPass := r.PostFormValue("loginPass")
+
+	err := authenticateUser(loginName, loginPass)
+
+	if err != nil {
+		return "Password wrong"
+	}
+
+	err = switchVersion(version)
+
+	if err != nil {
+		log.Println("error switching", err, version)
+		return fmt.Sprintf("Error switching, err: %s version: %s", err, version)
+	}
+
+	logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName))
+	return "Switched to version " + loginName
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -280,23 +302,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		build = version
 	}
 
-	switchMessage := ""
-	if operation == "switchVersion" {
-		version := r.PostFormValue("switchVersion")
-		loginPass := r.PostFormValue("loginPass")
-
-		err := authenticateUser(loginName, loginPass)
-		if err == nil {
-			err := switchVersion(version)
-			if err != nil {
-				switchMessage = fmt.Sprintf("Error switching, err: %s version: %s", err, version)
-				log.Println("error switching", err, version)
-			} else {
-				switchMessage = "Switched to version " + loginName
-				logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName))
-			}
-		}
-	}
+	switchMessage := switchOperation(loginName, r)
 
 	workers, status, err := workerInfo(build)
 	if err != nil {
@@ -566,14 +572,15 @@ func currentVersion() (string, error) {
 	return currentVersion, nil
 }
 
-func authenticateUser(username, password string) error {
+func authenticateUser(username string, password string) error {
+
 	if !admins.Has(username) {
-		return fmt.Errorf("Username %s is not authenticated\n", username)
+		return fmt.Errorf("Username %s is not authenticated :)\n", username)
 	}
 
 	_, err := modelhelper.CheckAndGetUser(username, password)
 	if err != nil {
-		return fmt.Errorf("Username %s is not authenticated\n", username)
+		return fmt.Errorf("Username %s does not match or wrong password\n", username)
 	}
 
 	return nil
