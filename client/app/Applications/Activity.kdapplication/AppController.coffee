@@ -147,8 +147,9 @@ class ActivityAppController extends AppController
       #@isExempt (exempt)=>
       #if exempt or @getFilter() isnt activityTypes
       groupObj     = KD.getSingleton("groupsController").getCurrentGroup()
+      mydate = new Date((new Date()).setSeconds(0) + 60000)
       options      =
-        to         : options.to or 2378993941345 #Date.now() we cant cache if we change ts everytime.
+        to         : options.to or mydate #Date.now() we cant cache if we change ts everytime.
         group      :
           slug     : groupObj?.slug or "koding"
           id       : groupObj.getId()
