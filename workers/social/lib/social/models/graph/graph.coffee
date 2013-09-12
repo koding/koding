@@ -167,11 +167,7 @@ module.exports = class Graph
       callback null, ""
 
   fetchAll:(requestOptions, callback)->
-    {group:{groupName, groupId}, startDate, client, first} = requestOptions
-
-    if first
-      # def. a hack
-      startDate = "2378988709"
+    {group:{groupName, groupId}, startDate, client} = requestOptions
 
     # do not remove white-spaces
     query = """

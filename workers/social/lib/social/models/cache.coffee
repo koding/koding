@@ -1,27 +1,8 @@
 {Model} = require 'bongo'
 
-class MongoCache
-  @add: (key, value, callback)->
-    JCache.one {key: key}, (err, jc)->
-      if err or not jc      
-        jc = new JCache()
-      jc.key = key
-      jc.value = JSON.stringify value
-      jc.createdAt = Date.now()
-      jc.save (err)->
-        if callback
-          callback(err)
-
-  @get: (key, callback)->
-    JCache.one {key: key}, (err, jc)->
-      if jc
-        timediff = Math.abs(Date.now() - jc.createdAt) / 1000
-        if timediff < 2000000
-          return callback null, JSON.parse(jc.value)
-      callback null, null
-
 class ProcessCache
   @cache = {}
+  @cacheTimeout = 7
 
   @add: (key, value, callback)->
     ProcessCache.cache[key] = {value: value, ts: Date.now()}
@@ -30,8 +11,7 @@ class ProcessCache
     jc = ProcessCache.cache[key]
     if jc
       timediff = Math.abs(Date.now() - jc.ts) / 1000
-      console.log timediff
-      if timediff < 200000
+      if timediff < ProcessCache.cacheTimeout
         return callback null, jc.value
       else
         delete ProcessCache.cache[key]
