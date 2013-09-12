@@ -1,11 +1,12 @@
 package ldapserver
 
 import (
-	"github.com/hsoj/asn1-ber"
+	ber "github.com/hsoj/asn1-ber"
 	"io"
-	"koding/tools/db"
+	"koding/db/mongodb"
 	"koding/tools/log"
 	"koding/virt"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"strconv"
@@ -110,7 +111,10 @@ func authenticate(name, password string) (bool, *virt.VM) {
 		id := bson.ObjectIdHex(name[3:])
 		vm, found := vmCache[id]
 		if !found {
-			if err := db.VMs.FindId(id).One(&vm); err != nil {
+			err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+				return c.FindId(id).One(&vm)
+			})
+			if err != nil {
 				return false, nil
 			}
 			vmCache[id] = vm
@@ -212,7 +216,10 @@ func findUserInFilter(filter *ber.Packet) (*virt.User, error) {
 
 func findUser(query interface{}) (*virt.User, error) {
 	var user virt.User
-	if err := db.Users.Find(query).One(&user); err != nil {
+	err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Find(query).One(&user)
+	})
+	if err != nil {
 		return nil, err
 	}
 	if user.Uid < virt.UserIdOffset {
