@@ -18,15 +18,6 @@ class KDDiaObject extends JView
     @addSubView joint = new KDDiaJoint {type}
     @joints[type] = joint
 
-  drag:(event, delta)->
-    super
-    [m, p] = [@getBounds(), @parent.getBounds()]
-    if p.x - m.x > 0 then @setX 0
-    if p.y - m.y > 0 then @setY 0
-    if m.x + m.w > p.x + p.w then @setX p.w - m.w
-    if m.y + m.h > p.y + p.h then @setY p.h - m.h
-    @emit 'DiaObjectDragged'
-
   viewAppended:->
     type = @getOption 'type'
     @addJoint 'right'

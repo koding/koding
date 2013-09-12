@@ -10,8 +10,8 @@ class KDDiaScene extends JView
     @connections = []
 
   diaAdded:(container, diaObj)->
-    diaObj.on "JointRequestsLine", @bound "handleLineRequest"
-    diaObj.on 'DiaObjectDragged',      @bound "updateScene"
+    diaObj.on 'JointRequestsLine', @bound "handleLineRequest"
+    diaObj.on 'DragInAction',      @bound "updateScene"
     diaObj.setX 20 + (Object.keys(container.dias).length-1) * 80
     diaObj.setY 20
 
