@@ -32,7 +32,7 @@ module.exports = class JCache extends Model
         if jc
           timediff = Math.abs(Date.now() - jc.createdAt) / 1000
           console.log "timediff", timediff
-          if timediff < 2000000
+          if timediff < 2
             console.log "coming from cache !!!!"
             return callback null, JSON.parse(jc.value)
         callback err, null
