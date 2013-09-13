@@ -71,12 +71,22 @@ class CollaborativeWorkspace extends Workspace
       @setHistory "#{snapshot.name()} is disconnected."
 
     @workspaceRef.on "child_removed", (snapshot) =>
-      @showDisconnectedModal()  unless @disconnectedModal
+      return  if @disconnectedModal
+      # we are protecting root node to write. however when someone call remove method
+      # on root node it triggers disconnect event once which is a really wrong behaviour
+      # we have to be sure client is really disconnected by checking it's value again.
+      KD.utils.wait 1500, =>
+        @workspaceRef.once "value", (snapshot) =>
+          @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
 
     @on "AllPanesAddedToPanel", (panel, panes) ->
       paneSessionKeys = []
       paneSessionKeys.push pane.sessionKey for pane in panes
       @sessionData.push paneSessionKeys
+
+    @on "KDObjectWillBeDestroyed", =>
+      @forceDisconnect()
+      @workspaceRef.off eventName for eventName in ["value", "child_added", "child_removed", "child_changed"]
 
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -151,9 +161,20 @@ class CollaborativeWorkspace extends Workspace
     options.sessionKey = sessionKey
     @destroy()
 
+    @forceDisconnect()
+
     parent.addSubView new CollaborativeWorkspace options
 
+  forceDisconnect: ->
+    return  unless @amIHost()
+    @forcedToDisconnect = yes
+    @workspaceRef.remove()
+    KD.utils.wait 2000, =>
+      @forcedToDisconnect = no
+
   showDisconnectedModal: ->
+    return if @forcedToDisconnect
+
     if @amIHost()
       title   = "Disconnected from remote"
       content = "It seems, you have been disconnected from Firebase server. You cannot continue this session."
