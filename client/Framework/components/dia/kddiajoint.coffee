@@ -1,4 +1,5 @@
 class KDDiaJoint extends JView
+
   constructor:(options={}, data)->
     options.type   or= 'left'
     options.cssClass = "kddia-joint #{options.type}"

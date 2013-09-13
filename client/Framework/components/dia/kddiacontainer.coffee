@@ -11,8 +11,13 @@ class KDDiaContainer extends JView
     super options, data
     @dias = {}
 
+  mouseDown:->
+    super
+    @emit "HighlightLines", (dia for key, dia of @dias)
+
   addDia:(type='square')->
     diaObj = new KDDiaObject {type}
+    diaObj.on "DiaObjectClicked", => @emit "HighlightLines", diaObj
     @dias[diaObj.getId()] = diaObj
     @addSubView diaObj
     @emit "NewDiaObjectAdded", this, diaObj

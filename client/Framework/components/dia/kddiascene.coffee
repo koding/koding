@@ -8,22 +8,25 @@ class KDDiaScene extends JView
     @dias        = {}
     @containers  = []
     @connections = []
+    @activeDias  = []
 
   diaAdded:(container, diaObj)->
     diaObj.on 'JointRequestsLine', @bound "handleLineRequest"
-    diaObj.on 'DragInAction',      @bound "updateScene"
+    diaObj.on 'DragInAction', => @setActiveDia diaObj
     diaObj.setX 20 + (Object.keys(container.dias).length-1) * 80
     diaObj.setY 20
 
   addContainer:(container)->
-    container.on 'NewDiaObjectAdded', @bound 'diaAdded'
-    container.on 'DragInAction', @bound "updateScene"
+    container.on "NewDiaObjectAdded", @bound "diaAdded"
+    container.on "HighlightLines", @bound "setActiveDia"
+    container.on "DragInAction", @bound "updateScene"
     @containers.push container
     @addSubView container
     container.setX 20 + (@containers.length - 1) * 320
 
-  drawLine:(options={})->
-    {sx,sy,ex,ey} = options
+  drawFakeLine:(options={})->
+    {sx,sy,ex,ey,lineStyle} = options
+    lineStyle or= {}
     canvas = document.getElementById 'fakeCanvas'
     canvas.width = canvas.width
     context = canvas.getContext '2d'
@@ -37,9 +40,10 @@ class KDDiaScene extends JView
 
   mouseMove:(e)->
     return  unless @_trackJoint
-    {x, y} = @_trackJoint.getPos()# @_trackJoint
-    [ex, ey] = [x + (e.clientX - @_trackJoint.getX()) - 10, y + (e.clientY - @_trackJoint.getY()) - 7]
-    @drawLine {sx:x, sy:y, ex, ey}
+    {x, y} = @_trackJoint.getPos()
+    ex = x + (e.clientX - @_trackJoint.getX()) - 10
+    ey = y + (e.clientY - @_trackJoint.getY()) - 7
+    @drawFakeLine {sx:x, sy:y, ex, ey}
 
   mouseUp:(e)->
     return  unless @_trackJoint
@@ -67,6 +71,11 @@ class KDDiaScene extends JView
       break  if dia = container.dias[objId]
     return {dia, jointType, container}
 
+  setActiveDia:(dia=[], update=yes)->
+    if not Array.isArray dia then dia = [dia]
+    @activeDias = dia
+    @updateScene()  if update
+
   viewAppended:->
     super
     @addContainer new KDDiaContainer
@@ -77,20 +86,22 @@ class KDDiaScene extends JView
 
   connect:(source, target)->
     if source and target
+      return if source.dia.id is target.dia.id
       @connections.push {source, target}
-      @updateScene()
+      @setActiveDia target.dia
 
   updateScene:->
     canvas = document.getElementById 'jointCanvas'
     canvas.width = canvas.width
     context = canvas.getContext '2d'
-    context.beginPath()
-    #console.log @circle.joint.getRelativeX(), @circle.joint.getRelativeY()
 
-    #[cPos, sPos] = [@circle.getJointPos(), @square.getJointPos()]
     for connection in @connections
+      context.beginPath()
       {source, target} = connection
-      #log connection
+      if (source.dia in @activeDias) or (target.dia in @activeDias)
+        context.strokeStyle = 'green'
+      else
+        context.strokeStyle = '#ccc'
       sJoint = source.dia.getJointPos source.jointType
       eJoint = target.dia.getJointPos target.jointType
 
@@ -98,27 +109,11 @@ class KDDiaScene extends JView
       sdiff = if source.jointType is 'right' then 50 else -50
       ediff = if target.jointType is 'right' then -50 else 50
       context.bezierCurveTo(sJoint.x+sdiff, sJoint.y, eJoint.x-ediff, eJoint.y, eJoint.x, eJoint.y)
-
-    #context.moveTo(0, 0)
-    #context.lineTo(100, 160)
-
-
-    #context.quadraticCurveTo(230, 130, sPos.x, sPos.y+add)
-    #context.bezierCurveTo(290, -10, 300, 100, sPos.x, sPos.y)
-    #context.lineTo(500, 90)
-
-    context.lineWidth = 5
-    context.strokeStyle = 'red'
-    context.stroke()
+      context.lineWidth = 5
+      context.stroke()
 
   pistachio:->
     """
     <canvas id="jointCanvas" width="1200" height="500"></canvas>
     <canvas id="fakeCanvas"  width="1200" height="500"></canvas>
     """
-
-    # Example
-    # app = new KDView cssClass: 'dia'
-    # app.addSubView scene = new KDDiaScene
-    # #scene.addContainer new KDDiaContainer
-    # appView.addSubView app

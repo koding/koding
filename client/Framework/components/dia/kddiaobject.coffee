@@ -13,6 +13,10 @@ class KDDiaObject extends JView
     @joints = {}
     @domElement.attr "dia-id", "dia-#{@getId()}"
 
+  mouseDown:->
+    super
+    @emit "DiaObjectClicked"
+
   addJoint:(type)->
     @joints[type]?.destroy?()
     @addSubView joint = new KDDiaJoint {type}
