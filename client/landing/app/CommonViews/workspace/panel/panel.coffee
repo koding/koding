@@ -57,11 +57,11 @@ class Panel extends JView
     if pane
       newPane = @createPane pane
       @container.addSubView newPane
-      @getDelegate().emit "AllPanesAddedToPanel", @, [newPane]
+      @getDelegate().emit "AllPanesAddedToPanel", this, [newPane]
     else if layout
       @layoutContainer = new WorkspaceLayout
-        delegate      : @
-        layoutOptions : layout
+        delegate       : this
+        layoutOptions  : layout
 
       @container.addSubView @layoutContainer
     else
@@ -79,7 +79,7 @@ class Panel extends JView
 
   getPaneClass: (paneOptions) ->
     paneType             = paneOptions.type
-    paneOptions.delegate = @
+    paneOptions.delegate = this
 
     if paneType is "custom"
       PaneClass = paneOptions.paneClass
@@ -121,7 +121,7 @@ class Panel extends JView
 
   viewAppended: ->
     super
-    @getDelegate().emit "NewPanelAdded", @
+    @getDelegate().emit "NewPanelAdded", this
 
   pistachio: ->
     """
