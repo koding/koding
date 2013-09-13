@@ -2,7 +2,7 @@
 
 class ProcessCache
   @cache = {}
-  @cacheTimeout = 7
+  @cacheTimeout = 20
 
   @add: (key, value, callback)->
     ProcessCache.cache[key] = {value: value, ts: Date.now()}
