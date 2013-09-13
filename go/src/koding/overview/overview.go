@@ -152,7 +152,7 @@ var (
 		"go/templates/overview/login.html",
 	))
 	admins = goset.New("sinan", "devrim", "gokmen", "chris", "neelance", "halk",
-		"sent-hil", "kiwigeraint", "cihangirsavas",
+		"sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
 		"bahadir", "arslan")
 )
 

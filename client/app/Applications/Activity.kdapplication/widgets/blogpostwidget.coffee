@@ -94,7 +94,6 @@ class ActivityBlogPostWidget extends KDFormView
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
     @inputContent.setValue ''
-    @inputContent.resize()
 
     # deferred resets
     @utils.defer => @tagController.reset()
