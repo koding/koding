@@ -34,20 +34,37 @@ div.kddia-object
     rounded            30px
 
 div.kddia-joint
-  top                24px
-  left               -6px
   width              10px
   height             10px
   border             1px solid #aaa
   bg                 color, white
   rounded            30px
+  borderBox()
   abs()
+
   &:hover
     bg                color, orange
 
+  &.top
+    top              -5px
+    left             50%
+    margin-left      -5px
+
   &.right
-    right             -6px
-    left              auto
+    right            -5px
+    top              50%
+    margin-top       -5px
+
+
+  &.bottom
+    bottom           -5px
+    left             50%
+    margin-left      -5px
+
+  &.left
+    left             -5px
+    top              50%
+    margin-top       -5px
 
 #fakeCanvas
   left              0

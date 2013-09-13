@@ -5,7 +5,6 @@ class KDDiaScene extends JView
       cssClass : 'kddia-scene'
       bind     : 'mousemove'
 
-    @dias        = {}
     @containers  = []
     @connections = []
     @activeDias  = []
@@ -16,12 +15,12 @@ class KDDiaScene extends JView
     diaObj.setX 20 + (Object.keys(container.dias).length-1) * 80
     diaObj.setY 20
 
-  addContainer:(container)->
+  addSubView:(container)->
+    super container
     container.on "NewDiaObjectAdded", @bound "diaAdded"
     container.on "HighlightLines", @bound "setActiveDia"
     container.on "DragInAction", @bound "updateScene"
     @containers.push container
-    @addSubView container
     container.setX 20 + (@containers.length - 1) * 320
 
   drawFakeLine:(options={})->
@@ -41,7 +40,7 @@ class KDDiaScene extends JView
   mouseMove:(e)->
     return  unless @_trackJoint
     {x, y} = @_trackJoint.getPos()
-    ex = x + (e.clientX - @_trackJoint.getX()) - 10
+    ex = x + (e.clientX - @_trackJoint.getX()) - 4
     ey = y + (e.clientY - @_trackJoint.getY()) - 7
     @drawFakeLine {sx:x, sy:y, ex, ey}
 
@@ -64,22 +63,17 @@ class KDDiaScene extends JView
   getDia:(id)->
     parts = ( id.match /dia\-((.*)\-joint\-(.*)|(.*))/ ).filter (m)->return !!m
     return null  unless parts
-    [objId, jointType] = parts.slice(-2)
-    return null  if  objId is jointType
+    [objId, joint] = parts.slice(-2)
+    return null  if  objId is joint
     # Find a better way for this
     for container in @containers
       break  if dia = container.dias[objId]
-    return {dia, jointType, container}
+    return {dia, joint, container}
 
   setActiveDia:(dia=[], update=yes)->
     if not Array.isArray dia then dia = [dia]
     @activeDias = dia
     @updateScene()  if update
-
-  viewAppended:->
-    super
-    @addContainer new KDDiaContainer
-    @addContainer new KDDiaContainer
 
   handleLineRequest:(joint)->
     @_trackJoint = joint
@@ -102,15 +96,30 @@ class KDDiaScene extends JView
         context.strokeStyle = 'green'
       else
         context.strokeStyle = '#ccc'
-      sJoint = source.dia.getJointPos source.jointType
-      eJoint = target.dia.getJointPos target.jointType
 
+      sJoint = source.dia.getJointPos source.joint
+      tJoint = target.dia.getJointPos target.joint
+      # context.setLineDash([5])
       context.moveTo sJoint.x, sJoint.y
-      sdiff = if source.jointType is 'right' then 50 else -50
-      ediff = if target.jointType is 'right' then -50 else 50
-      context.bezierCurveTo(sJoint.x+sdiff, sJoint.y, eJoint.x-ediff, eJoint.y, eJoint.x, eJoint.y)
+
+      [sx, sy, tx, ty] = [0, 0, 0, 0]
+      if source.joint in ['top', 'bottom']
+        sy = if source.joint is 'top' then -50 else 50
+      if source.joint in ['left', 'right']
+        sx = if source.joint is 'left' then -50 else 50
+      if target.joint in ['top', 'bottom']
+        ty = if target.joint is 'top' then -50 else 50
+      if target.joint in ['left', 'right']
+        tx = if target.joint is 'left' then -50 else 50
+
+      context.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \
+                            tJoint.x + tx, tJoint.y + ty, \
+                            tJoint.x, tJoint.y)
       context.lineWidth = 5
       context.stroke()
+
+  dumpScene:->
+    log @containers, @connections
 
   pistachio:->
     """
