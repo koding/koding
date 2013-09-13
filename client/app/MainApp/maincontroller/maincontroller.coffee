@@ -40,8 +40,7 @@ class MainController extends KDController
     KD.registerSingleton "paymentController",         new PaymentController
     KD.registerSingleton "linkController",            new LinkController
     KD.registerSingleton 'router',           router = new KodingRouter location.pathname
-
-    KD.registerSingleton "localStorageController", new LocalStorageController
+    KD.registerSingleton "localStorageController",    new LocalStorageController
     # KD.registerSingleton "fatih", new Fatih
 
     appManager.create 'Groups', (groupsController)->
@@ -52,9 +51,9 @@ class MainController extends KDController
 
     @ready =>
       router.listen()
-      KD.registerSingleton "activityController",   new ActivityController
-      KD.registerSingleton "appStorageController", new AppStorageController
-      KD.registerSingleton "kodingAppsController", new KodingAppsController
+      KD.registerSingleton "activityController",      new ActivityController
+      KD.registerSingleton "appStorageController",    new AppStorageController
+      KD.registerSingleton "kodingAppsController",    new KodingAppsController
       @showInstructionsBookIfNeeded()
       @emit 'AppIsReady'
 
@@ -106,6 +105,26 @@ class MainController extends KDController
 
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
+
+    # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
+    wc = @getSingleton 'windowController'
+    @utils.wait 15000, ->
+      KD.remote.api?.JSystemStatus.on 'forceReload', ->
+        window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
+        location.reload()
+
+    # async clientId change checking procedures causes
+    # race conditions between window reloading and post-login callbacks
+    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
+      if cookie? and cookie isnt $.cookie 'clientId'
+        window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
+        @emit "clientIdChanged"
+
+        # window location path is set to last route to ensure visitor is not
+        # redirected to another page
+        @utils.defer -> window.location.pathname = KD.getSingleton("router").visitedRoutes.first or "/"
+      cookie = $.cookie 'clientId'
+
 
 
   # some day we'll have this :)
