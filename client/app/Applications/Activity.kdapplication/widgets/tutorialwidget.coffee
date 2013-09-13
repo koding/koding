@@ -144,7 +144,6 @@ class ActivityTutorialWidget extends KDFormView
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
     @inputContent.setValue ''
-    @inputContent.resize()
     @inputTutorialEmbedShowLink.setValue off
     @embedBox.resetEmbedAndHide()
 

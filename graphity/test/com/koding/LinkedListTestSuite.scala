@@ -108,6 +108,33 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
     }
   }
 
+  test("deleting an entry") {
+    val entry1 = createNode("entry1")
+    val entry2 = createNode("entry2")
+    val entry3 = createNode("entry3")
+
+    addEntryBefore(tail, entry1)
+    addEntryBefore(tail, entry2)
+    addEntryBefore(tail, entry3)
+    deleteEntry(entry2)
+
+    assert(getPrevious(entry1) === head)
+    assert(getPrevious(entry3) === entry1)
+    assert(getPrevious(tail) === entry3)
+  }
+
+  test("deleting and recreating a list") {
+    val entry1 = createNode("entry1")
+
+    addEntryBefore(tail, entry1)
+    deleteList(entry1)
+    createList(head, tail)
+    addEntryBefore(tail, entry1)
+
+    assert(getPrevious(entry1) === head)
+    assert(getPrevious(tail) === entry1)
+  }
+
   def createNode(name: String) = {
     val json = db.path("node").accept("application/json").post(classOf[String])
     val node = gson.fromJson(json, classOf[Node])
@@ -122,6 +149,10 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
     map.add("head", head)
     map.add("tail", tail)
     linkedlist.path("list").post(classOf[ClientResponse], map)
+  }
+
+  def deleteList(entry: String) {
+    linkedlist.path("list").queryParam("entry", entry).delete
   }
 
   def addEntryAfter(previous: String, entry: String) {
@@ -142,6 +173,10 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
     }
   }
 
+  def deleteEntry(entry: String) {
+    linkedlist.path("entry").queryParam("entry", entry).delete
+  }
+
   def getPrevious(entry: String) = {
     linkedlist.path("entry/previous").queryParam("entry", entry).get(classOf[String])
   }
@@ -149,10 +184,6 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
   def getAll(entry: String) = {
     val json = linkedlist.path("entry/all").queryParam("entry", entry).get(classOf[String])
     gson.fromJson(json, classOf[java.util.List[String]])
-  }
-
-  def deleteSubscription(stream: String, source: String) {
-    linkedlist.path("subscriptions").queryParam("stream", stream).queryParam("source", source).delete
   }
 
 }

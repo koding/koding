@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"os"
@@ -11,11 +12,6 @@ import (
 const interval = time.Duration(int64(time.Hour) * 24 * 7)
 
 func main() {
-	session, err := mgo.Dial("dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017")
-	if err != nil {
-		panic(err)
-	}
-
 	start := time.Date(2012, 4, 2, 0, 0, 0, 0, time.UTC)
 	end := time.Now()
 	data := make([]int, end.Sub(start)/interval)
@@ -23,7 +19,14 @@ func main() {
 	var user struct {
 		RegisteredAt time.Time `bson:"registeredAt"`
 	}
-	iter := session.DB("koding").C("jUsers").Find(bson.M{"username": bson.M{"$not": bson.RegEx{Pattern: "^guest-"}}}).Select(bson.M{"registeredAt": 1}).Iter()
+
+	iter := new(mgo.Iter)
+	query := func(c *mgo.Collection) error {
+		iter = c.Find(bson.M{"username": bson.M{"$not": bson.RegEx{Pattern: "^guest-"}}}).Select(bson.M{"registeredAt": 1}).Iter()
+		return nil
+	}
+	mongodb.Run("jUsers", query)
+
 	for iter.Next(&user) {
 		index := int(user.RegisteredAt.Sub(start) / interval)
 		if index < 0 {
