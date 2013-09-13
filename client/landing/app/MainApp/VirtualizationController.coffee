@@ -22,7 +22,8 @@ class VirtualizationController extends KDController
       return callback err  if err?
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
-        options.kiteName = "os-#{region}"
+        # NEWKITE
+        options.kiteName = "os-local"
         @kc.run options, (rest...) ->
           # log rest...
           callback rest...
