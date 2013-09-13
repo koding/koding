@@ -73,6 +73,10 @@ class NewKite extends KDEventEmitter
 
     id = Bongo.createId 12
 
+    # converts something like: fs.readDirectory to ReadDirectory
+    [prefix, methodName] = methodName.split "."
+    methodName = methodName.capitalize()
+
     request =
       name      : "#{KD.whoami().profile.nickname}"
       method    : "#{@kiteName}.#{methodName}"
