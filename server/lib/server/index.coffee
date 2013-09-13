@@ -363,14 +363,30 @@ app.get "/-/oauth/:provider/callback", (req,res)->
   r.end()
 
 app.get '/:name/:section?*', (req, res, next)->
-  {JName} = koding.models
-  {name} = req.params
+  {JName, JGroup} = koding.models
+  {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
+
   if firstLetter.toUpperCase() is firstLetter
-    next()
+    unless section
+    then next()
+    else
+      isLoggedIn req, res, (err, loggedIn, account)->
+        prefix = if loggedIn then 'loggedIn' else 'loggedOut'
+        if name is "Develop"
+          subPage = JGroup.render[prefix].subPage {account}
+          return serve subPage, res
+
+        JName.fetchModels "#{name}/#{section}", (err, models)->
+          if err
+            subPage = JGroup.render[prefix].subPage {account}
+            return serve subPage, res
+          else unless models? then res.send 404, error_404()
+          else
+            subPage = JGroup.render[prefix].subPage {account}
+            return serve subPage, res
   else
-    {JGroup} = koding.models
     isLoggedIn req, res, (err, loggedIn, account)->
       JName.fetchModels name, (err, models)->
         if err then next err
@@ -393,11 +409,11 @@ app.get "/", (req, res)->
         console.error err
       else if loggedIn
         # go to koding activity
-        activityPage = JGroup.renderKodingHomeLoggedIn {account}
+        activityPage = JGroup.render.loggedIn.kodingHome {account}
         serve activityPage, res
       else
         # go to koding home
-        homePage = JGroup.renderKodingHomeLoggedOut()
+        homePage = JGroup.render.loggedOut.kodingHome()
         serve homePage, res
 
 

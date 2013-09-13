@@ -1,10 +1,10 @@
 module.exports = ({account})->
 
-  getHomeIntro    = require './homeintro'
-  getStyles       = require './styleblock'
-  getScripts      = require './scriptblock'
+  getHomeIntro    = require './../homeintro'
+  getStyles       = require './../styleblock'
+  getScripts      = require './../scriptblock'
+  getInnerNav     = require './../innernav'
   getSidebar      = require './sidebar'
-  getInnerNav     = require './innernav'
   getStatusWidget = require './statuswidget'
 
   """
