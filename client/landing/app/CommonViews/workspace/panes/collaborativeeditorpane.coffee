@@ -19,7 +19,9 @@ class CollaborativeEditorPane extends CollaborativePane
           @codeMirrorEditor.scrollTo 0, 0
 
       @ref.on "value", (snapshot) =>
-        return @save()  if snapshot.val().WaitingSaveRequest is yes
+        value = snapshot.val()
+        return unless value
+        return @save()  if value.WaitingSaveRequest is yes
 
       @ref.onDisconnect().remove()  if @amIHost
 
