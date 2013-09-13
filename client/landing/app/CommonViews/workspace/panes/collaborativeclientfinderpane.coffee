@@ -6,14 +6,15 @@ class CollaborativeClientFinderPane extends Pane
 
     super options, data
 
-    @container = new KDView
-      cssClass : "client-finder-pane"
-      partial  : "Fetching remote file tree"
+    @container    = new KDView
+      cssClass    : "client-finder-pane"
 
-    panel              = @getDelegate()
-    workspace          = panel.getDelegate()
-    {@sessionKey}      = @getOptions()
-    @workspaceRef      = workspace.firepadRef.child @sessionKey
+    panel         = @getDelegate()
+    workspace     = panel.getDelegate()
+    {@sessionKey} = @getOptions()
+    @workspaceRef = workspace.firepadRef.child @sessionKey
+
+    @createLoader()
 
     @workspaceRef.on "value", (snapshot) =>
       files = snapshot.val()?.files
@@ -31,6 +32,19 @@ class CollaborativeClientFinderPane extends Pane
       view = @fileTree.getView()
       @container.updatePartial ""
       @container.addSubView view
+
+  createLoader: ->
+    @container.addSubView loaderContainer = new KDView
+      cssClass    : "loader-container"
+
+    loaderContainer.addSubView new KDLoaderView
+      showLoader  : yes
+      size        :
+        width     : 32
+
+    loaderContainer.addSubView new KDCustomHTMLView
+      tagName     : "p"
+      partial     : "Fetching remote file tree"
 
   pistachio: ->
     """
