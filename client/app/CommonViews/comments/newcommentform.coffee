@@ -65,6 +65,7 @@ class NewCommentForm extends KDView
       callback  : =>
         reply = @commentInput.getValue()
         @commentInput.setValue ''
+        @commentInput.resize()
         @commentInput.blur()
         @commentInput.$().blur()
         @getDelegate().emit 'CommentSubmitted', reply
