@@ -860,6 +860,7 @@ module.exports = [
   "stylus/app.markdown.styl",
   "stylus/app.classroom.styl",
   "stylus/temp.styl",
+  "stylus/third.workspace.styl",
   # "stylus/app.landing.styl",
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",
