@@ -17,6 +17,9 @@ module.exports = [
   "libs/broker.js",
   "libs/bongo.js",
 
+  # the bongo api (or an empty file, depending on the config)
+  "../.build/api.js",
+
   # TODO: reenable closure wrapping:
   # "includes/header.inc.js",
   # core
