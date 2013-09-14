@@ -7,11 +7,11 @@ import (
 	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
 	"log"
-	"time"
-
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -20,6 +20,8 @@ var (
 	UNIQUE_NODE_PATH = "/db/data/index/node/koding?unique"
 	INDEX_PATH       = "/db/data/index/node"
 	NODE_URL         = "/db/data/node"
+	MAX_RETRIES      = 5
+	TIMEOUT          = 3
 )
 
 type Relationship struct {
@@ -32,18 +34,31 @@ type Relationship struct {
 	Data       bson.Binary
 }
 
+// Setup the dial timeout
+func dialTimeout(timeout time.Duration) func(network, addr string) (c net.Conn, err error) {
+	return func(netw, addr string) (net.Conn, error) {
+		conn, err := net.DialTimeout(netw, addr, timeout)
+		if err != nil {
+			return nil, err
+		}
+		return conn, nil
+	}
+}
+
 // Gets URL and string data to be sent and makes POST request
 // reads response body and returns as string
-func sendRequest(requestType, url, data string) string {
+func sendRequest(requestType, url, data string, attempt int) string {
 
-	timer := time.NewTimer(30 * time.Second)
+	// Set the timeout
+	timeOut := time.Duration(TIMEOUT) * time.Second
 
-	go func() {
-		<-timer.C
-		panic(fmt.Sprintf("req to %v timed out", url))
-	}()
+	transport := http.Transport{
+		Dial: dialTimeout(timeOut),
+	}
 
-	defer timer.Stop()
+	client := http.Client{
+		Transport: &transport,
+	}
 
 	//convert string into bytestream
 	dataByte := strings.NewReader(data)
@@ -53,9 +68,14 @@ func sendRequest(requestType, url, data string) string {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
+	res, err := client.Do(req)
+	if err != nil && attempt < MAX_RETRIES {
+		log.Print(err)
+		attempt++
+		sendRequest(requestType, url, data, attempt)
+	}
+	if err != nil && attempt == MAX_RETRIES {
+		panic(fmt.Sprintf("req to %v timed out after %v retries", url, attempt))
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
@@ -71,7 +91,7 @@ func sendRequest(requestType, url, data string) string {
 func CreateRelationship(relation, source, target string) map[string]interface{} {
 
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s" }`, target, relation)
-	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData)
+	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData, 0)
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
@@ -86,7 +106,7 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 func CreateRelationshipWithData(relation, source, target, data string) map[string]interface{} {
 
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s", "data" : %s }`, target, relation, data)
-	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData)
+	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData, 0)
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
@@ -104,7 +124,7 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 	postData := generatePostJsonData(id, name)
 
-	response := sendRequest("POST", url, postData)
+	response := sendRequest("POST", url, postData, 0)
 
 	node, err := jsonDecode(response)
 	if err != nil {
@@ -139,7 +159,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	relationshipsURL := fmt.Sprintf("%s", sourceInfo[0]["self"]) + "/relationships/all/" + relationship
 
 	//this request returns objects in an array
-	response := sendRequest("GET", relationshipsURL, "")
+	response := sendRequest("GET", relationshipsURL, "", 0)
 	//so use json array decoder
 	relationships, err := jsonArrayDecode(response)
 	if err != nil {
@@ -160,7 +180,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	for _, relation := range relationships {
 		if relation["end"] == targetInfo[0]["self"] {
 			toBeDeletedRelationURL := fmt.Sprintf("%s", relation["self"])
-			deletionResponse := sendRequest("DELETE", toBeDeletedRelationURL, "")
+			deletionResponse := sendRequest("DELETE", toBeDeletedRelationURL, "", 0)
 			log.Println(deletionResponse)
 			foundNode = true
 
@@ -181,7 +201,7 @@ func GetNode(id string) []map[string]interface{} {
 
 	url := BASE_URL + INDEX_NODE_PATH + "/id/" + id
 
-	response := sendRequest("GET", url, "")
+	response := sendRequest("GET", url, "", 0)
 
 	nodeData, err := jsonArrayDecode(response)
 	if err != nil {
@@ -209,7 +229,7 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 	// create  url to get relationship information of source node
 	propertiesURL := fmt.Sprintf("%s", node[0]["self"]) + "/properties"
 
-	response := sendRequest("PUT", propertiesURL, propertiesJSON)
+	response := sendRequest("PUT", propertiesURL, propertiesJSON, 0)
 	if response != "" {
 		log.Println(response)
 		res, err := jsonDecode(response)
@@ -238,7 +258,7 @@ func DeleteNode(id string) bool {
 
 	relationshipsURL := nodeURL + "/relationships/all"
 
-	response := sendRequest("GET", relationshipsURL, "")
+	response := sendRequest("GET", relationshipsURL, "", 0)
 
 	relations, err := jsonArrayDecode(response)
 	if err != nil {
@@ -249,11 +269,11 @@ func DeleteNode(id string) bool {
 	for _, relation := range relations {
 		if _, ok := relation["self"]; ok {
 			relationshipURL := fmt.Sprintf("%s", relation["self"])
-			sendRequest("DELETE", relationshipURL, "")
+			sendRequest("DELETE", relationshipURL, "", 0)
 		}
 	}
 
-	sendRequest("DELETE", nodeURL, "")
+	sendRequest("DELETE", nodeURL, "", 0)
 
 	return true
 }
@@ -264,7 +284,7 @@ func CreateUniqueIndex(name string) {
 	//create unique index
 	url := BASE_URL + INDEX_PATH
 
-	bd := sendRequest("POST", url, `{"name":"`+name+`"}`)
+	bd := sendRequest("POST", url, `{"name":"`+name+`"}`, 0)
 
 	log.Println("Created unique index for data", bd)
 }
