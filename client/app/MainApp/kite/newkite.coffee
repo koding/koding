@@ -4,6 +4,7 @@ class NewKite extends KDEventEmitter
     super
     @readyState = false
     @localStore = {}
+    @localMethods = {}
     @token = ""
     @getKiteAddr()
 
@@ -51,15 +52,19 @@ class NewKite extends KDEventEmitter
 
   onMessage : (evt) ->
     try
-      {id, result, error} = JSON.parse evt.data
-      id = "#{id}"
-      @localStore[id].call null, error, result
-
-      delete @localStore[id]
+      data = JSON.parse evt.data
+      {id} = data
+      if id
+        {result, error} = data
+        id = "#{id}"
+        @localStore[id].call null, error, result
+        delete @localStore[id]
+      else
+        {method, params} = data
+        @localMethods[method].call null, params[0]
     catch e
       console.log "error: ", e, evt.data
 
-    # @websocket.close()
 
   onError : (evt) -> console.log "#{@kiteName}: Error #{evt.data}"
 
@@ -70,6 +75,12 @@ class NewKite extends KDEventEmitter
   call : (methodName, rest..., callback)->
     if not KD.isLoggedIn()
       return
+
+    for method, param of rest[0]
+      if typeof param is "function"
+        console.log "ADDING FUNCTION", method, param
+        @localMethods[method] = param
+
 
     id = Bongo.createId 12
 
