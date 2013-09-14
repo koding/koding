@@ -1,8 +1,8 @@
 module.exports = ->
 
-  getHomeIntro = require './homeintro'
-  getStyles    = require './styleblock'
-  getScripts   = require './scriptblock'
+  getHomeIntro = require './../homeintro'
+  getStyles    = require './../styleblock'
+  getScripts   = require './../scriptblock'
   getSidebar   = require './sidebar'
 
   """
