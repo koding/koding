@@ -32,21 +32,22 @@ class FSWatcher extends KDObject
 
     FSWatcher.stopWatching @getFullPath()
 
-    vmController.run
-      method     : 'fs.readDirectory'
-      vmName     : @vmName
-      withArgs   :
-        onChange : (change)=> @changeHappened @path, change
-        path     : FSHelper.plainPath @path
-        watchSubdirectories : @getOption 'recursive'
-    , (err, response)=>
+    # NEWKITE
+    # vmController.run
+    #   method     : 'fs.readDirectory'
+    #   vmName     : @vmName
+    #   withArgs   :
+    #     onChange : (change)=> @changeHappened @path, change
+    #     path     : FSHelper.plainPath @path
+    #     watchSubdirectories : @getOption 'recursive'
+    # , (err, response)=>
 
-      if not err and response?.files
-        files = FSHelper.parseWatcher @vmName, @path, response.files
-        FSWatcher.registerWatcher @getFullPath(), response.stopWatching
-        callback? err, files
-      else
-        callback? err, null
+    #   if not err and response?.files
+    #     files = FSHelper.parseWatcher @vmName, @path, response.files
+    #     FSWatcher.registerWatcher @getFullPath(), response.stopWatching
+    #     callback? err, files
+    #   else
+    #     callback? err, null
 
   fileAdded:(change)->
     # warn "File added:", change.file.fullPath
@@ -61,6 +62,8 @@ class FSWatcher extends KDObject
     # warn "File updated:", change.file.fullPath
 
   changeHappened:(path, change)->
+
+    console.log "path, change", path, change
 
     if @getOption 'ignoreTempChanges'
       return  if /^\.|\~$/.test change.file.name

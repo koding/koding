@@ -61,7 +61,9 @@ class NewKite extends KDEventEmitter
         delete @localStore[id]
       else
         {method, params} = data
+        console.log "method is", method, params[0], @localMethods[method].toString()
         @localMethods[method].call null, params[0]
+
     catch e
       console.log "error: ", e, evt.data
 
@@ -76,11 +78,14 @@ class NewKite extends KDEventEmitter
     if not KD.isLoggedIn()
       return
 
-    for method, param of rest[0]
-      if typeof param is "function"
-        console.log "ADDING FUNCTION", method, param
-        @localMethods[method] = param
-
+    callbacks = []
+    for method, value of rest[0]
+      if typeof value is "function"
+        methodID = "#{method}"
+        unless method of @localMethods
+          @localMethods[method] = value
+          console.log "Adding callback", method
+        callbacks.push method
 
     id = Bongo.createId 12
 
@@ -88,16 +93,19 @@ class NewKite extends KDEventEmitter
     [prefix, methodName] = methodName.split "."
     methodName = methodName.capitalize()
 
+
     request =
       username  : "#{KD.whoami().profile.nickname}"
       method    : "#{@kiteName}.#{methodName}"
       params    : rest
+      callbacks : callbacks
       token     : @token #get via kontrol, needed for authentication
       id        : id
 
     # store callback at localstore
     @localStore[id] = callback
     # send query over websocket
+    #
     @websocket.send JSON.stringify(request)
 
   # wrapper function for call method
