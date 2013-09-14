@@ -39,7 +39,7 @@ class MainController extends KDController
     KD.registerSingleton "notificationController",    new NotificationController
     KD.registerSingleton "paymentController",         new PaymentController
     KD.registerSingleton "linkController",            new LinkController
-    KD.registerSingleton 'router',           router = new KodingRouter location.pathname
+    KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton "localStorageController",    new LocalStorageController
     # KD.registerSingleton "fatih", new Fatih
 
