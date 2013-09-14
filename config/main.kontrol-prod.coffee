@@ -120,6 +120,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      precompiledApi: yes
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
