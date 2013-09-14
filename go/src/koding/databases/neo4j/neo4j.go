@@ -69,7 +69,7 @@ func sendRequest(requestType, url, data string, attempt int) string {
 	req.Header.Set("Content-Type", "application/json")
 	log.Print(fmt.Sprintf("Attempt [%v/%v] to req %v", MAX_RETRIES, attempt, url))
 	res, err := client.Do(req)
-	if err != nil && attempt =< MAX_RETRIES {
+	if err != nil && attempt <= MAX_RETRIES {
 		log.Print(err)
 		attempt++
 		sendRequest(requestType, url, data, attempt)
