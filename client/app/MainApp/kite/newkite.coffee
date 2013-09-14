@@ -57,7 +57,7 @@ class NewKite extends KDEventEmitter
 
       delete @localStore[id]
     catch e
-      console.log "json parse error: ", evt.data
+      console.log "error: ", e, evt.data
 
     # @websocket.close()
 
@@ -78,7 +78,7 @@ class NewKite extends KDEventEmitter
     methodName = methodName.capitalize()
 
     request =
-      name      : "#{KD.whoami().profile.nickname}"
+      username  : "#{KD.whoami().profile.nickname}"
       method    : "#{@kiteName}.#{methodName}"
       params    : rest
       token     : @token #get via kontrol, needed for authentication
