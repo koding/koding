@@ -11,7 +11,6 @@ class NewKite extends KDEventEmitter
     @remoteStore  = new Store
 
     @readyState = false
-    @localMethods = {}
     @token = ""
     @getKiteAddr()
 
@@ -59,27 +58,38 @@ class NewKite extends KDEventEmitter
 
   onMessage : (evt) ->
     try
-      data = JSON.parse evt.data
-      {id} = data
-      if id
-        {result, error} = data
-        id = "#{id}"
-        @localStore[id].call null, error, result
-        delete @localStore[id]
-      else
-        {method, params} = data
-        console.log "method is", method, params[0], @localMethods[method].toString()
-        @localMethods[method].call null, params[0]
+      args = JSON.parse evt.data
+      {method} = args
+      callback = @localStore.get method
+      callback.apply this, @unscrub args
+      # data = JSON.parse evt.data
+      # {id} = data
+      # if id
+      #   {result, error} = data
+      #   id = "#{id}"
+      #   @localStore[id].call null, error, result
+      #   delete @localStore[id]
+      # else
+      #   {method, params} = data
+      #   console.log "method is", method, params[0], @localMethods[method].toString()
+      #   @localMethods[method].call null, params[0]
 
     catch e
       console.log "error: ", e, evt.data
-
 
   onError : (evt) -> console.log "#{@kiteName}: Error #{evt.data}"
 
   ready:(callback)->
     return KD.utils.defer callback  if @readyState
     @once 'ready', callback
+
+  unscrub: (args) ->
+    scrubber = new Scrubber @localStore
+    return scrubber.unscrub args, (callbackId) =>
+      unless @remoteStore.has callbackId
+        @remoteStore.add callbackId, (rest...) =>
+          @handleRequest callbackId, rest
+      @remoteStore.get callbackId
 
   handleRequest: (method, args) ->
     console.log {method}, {args}
@@ -96,6 +106,5 @@ class NewKite extends KDEventEmitter
       callback scrubbed
 
   tell:(options, callback) ->
-    console.log "SENDING", options
     @handleRequest options.method, [options, callback]
 
