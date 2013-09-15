@@ -103,6 +103,7 @@ class Kite extends Pinger
   handleRequest: (method, args) ->
     @scrub method, args, (scrubbed) =>
       messageString = JSON.stringify(scrubbed)
+      console.log {messageString}
       @ready => @channel.publish messageString
 
   scrub: (method, args, callback) ->
