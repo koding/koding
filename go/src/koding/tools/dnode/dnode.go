@@ -45,7 +45,7 @@ func (d *DNode) SendRemote(object interface{}) {
 
 func (d *DNode) Send(method interface{}, arguments ...interface{}) {
 	callbacks := make(map[string]([]string))
-	d.collectCallbacks(arguments, make([]string, 0), callbacks)
+	d.CollectCallbacks(arguments, make([]string, 0), callbacks)
 
 	rawArgs, err := json.Marshal(arguments)
 	if err != nil {
@@ -77,13 +77,13 @@ func (d *DNode) Close() {
 	close(d.SendChan)
 }
 
-func (d *DNode) collectCallbacks(rawObj interface{}, path []string, callbackMap map[string]([]string)) {
+func (d *DNode) CollectCallbacks(rawObj interface{}, path []string, callbackMap map[string]([]string)) {
 	switch obj := rawObj.(type) {
 	case nil:
 		// skip
 	case []interface{}:
 		for i, v := range obj {
-			d.collectCallbacks(v, append(path, strconv.Itoa(i)), callbackMap)
+			d.CollectCallbacks(v, append(path, strconv.Itoa(i)), callbackMap)
 		}
 	case map[string]interface{}:
 		for key, value := range obj {
@@ -129,7 +129,7 @@ func (d *DNode) ProcessMessage(data []byte) {
 		callback := Callback(func(args ...interface{}) {
 			d.Send(methodId, args...)
 		})
-		m.Arguments.callbacks = append(m.Arguments.callbacks, CallbackSpec{path, callback})
+		m.Arguments.Callbacks = append(m.Arguments.Callbacks, CallbackSpec{path, callback})
 	}
 
 	if m.Method == "methods" {
@@ -181,7 +181,7 @@ func (d *DNode) ProcessDnode(m Message) {
 		callback := Callback(func(args ...interface{}) {
 			d.Send(methodId, args...)
 		})
-		m.Arguments.callbacks = append(m.Arguments.callbacks, CallbackSpec{path, callback})
+		m.Arguments.Callbacks = append(m.Arguments.Callbacks, CallbackSpec{path, callback})
 	}
 
 	if m.Method == "methods" {

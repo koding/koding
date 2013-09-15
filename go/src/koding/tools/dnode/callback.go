@@ -52,7 +52,7 @@ func (c *CallbackSpec) Apply(value reflect.Value) error {
 			value = value.Elem()
 		case reflect.Struct:
 			if innerPartial, ok := value.Addr().Interface().(*Partial); ok {
-				innerPartial.callbacks = append(innerPartial.callbacks, CallbackSpec{c.Path[i:], c.Callback})
+				innerPartial.Callbacks = append(innerPartial.Callbacks, CallbackSpec{c.Path[i:], c.Callback})
 				return nil
 			}
 			name := c.Path[i]

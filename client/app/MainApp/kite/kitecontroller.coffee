@@ -114,11 +114,6 @@ class KiteController extends KDController
              """
       log "Kite Request:", options
 
-    # NEWKITE
-    # if options.kiteName is 'os-local'
-    #   kite.tell options.method, options.withArgs, callback
-    # else
-    console.log "OPTIONS", {options}
     kite.tell options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
 
