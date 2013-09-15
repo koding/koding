@@ -30,8 +30,9 @@ class KiteController extends KDController
 
   # NEWKITE
   createKite:(kiteName, correlationName, kiteKey)->
-    if kiteName is 'os-local' then kite = new NewKite kiteName
+    if kiteName is 'os-local' then kite = new NewKite {kiteName, correlationName, kiteKey }
     else kite = new Kite { kiteName, correlationName, kiteKey }
+    # kite = new Kite { kiteName, correlationName, kiteKey }
     kite.on 'destroy', => @destroyKite kite
     return kite
 
@@ -114,11 +115,12 @@ class KiteController extends KDController
       log "Kite Request:", options
 
     # NEWKITE
-    if options.kiteName is 'os-local'
-      kite.tell options.method, options.withArgs, callback
-    else
-      kite.tell options, (err, response)=>
-        @parseKiteResponse {err, response}, options, callback
+    # if options.kiteName is 'os-local'
+    #   kite.tell options.method, options.withArgs, callback
+    # else
+    console.log "OPTIONS", {options}
+    kite.tell options, (err, response)=>
+      @parseKiteResponse {err, response}, options, callback
 
   setListeners:->
 

@@ -1,9 +1,16 @@
 class NewKite extends KDEventEmitter
 
-  constructor: (@kiteName)->
+  { Scrubber, Store } = Bongo.dnodeProtocol
+
+  constructor: (options)->
     super
+
+    { @kiteName, @correlationName, @kiteKey } = options
+
+    @localStore   = new Store
+    @remoteStore  = new Store
+
     @readyState = false
-    @localStore = {}
     @localMethods = {}
     @token = ""
     @getKiteAddr()
@@ -74,39 +81,21 @@ class NewKite extends KDEventEmitter
     return KD.utils.defer callback  if @readyState
     @once 'ready', callback
 
-  call : (methodName, rest..., callback)->
-    if not KD.isLoggedIn()
-      return
+  handleRequest: (method, args) ->
+    console.log {method}, {args}
+    @scrub method, args, (scrubbed) =>
+      messageString = JSON.stringify(scrubbed)
+      console.log {messageString}
+      @ready => @websocket.send messageString
 
-    callbacks = []
-    for method, value of rest[0]
-      if typeof value is "function"
-        methodID = "#{method}"
-        unless method of @localMethods
-          @localMethods[method] = value
-          console.log "Adding callback", method
-        callbacks.push method
+  scrub: (method, args, callback) ->
+    scrubber = new Scrubber @localStore
+    scrubber.scrub args, =>
+      scrubbed = scrubber.toDnodeProtocol()
+      scrubbed.method or= method
+      callback scrubbed
 
-    id = Bongo.createId 12
+  tell:(options, callback) ->
+    console.log "SENDING", options
+    @handleRequest options.method, [options, callback]
 
-    # converts something like: fs.readDirectory to ReadDirectory
-    [prefix, methodName] = methodName.split "."
-    methodName = methodName.capitalize()
-
-
-    request =
-      username  : "#{KD.whoami().profile.nickname}"
-      method    : "#{@kiteName}.#{methodName}"
-      params    : rest
-      callbacks : callbacks
-      token     : @token #get via kontrol, needed for authentication
-      id        : id
-
-    # store callback at localstore
-    @localStore[id] = callback
-    # send query over websocket
-    #
-    @websocket.send JSON.stringify(request)
-
-  # wrapper function for call method
-  tell:(rest...)-> @ready => @call rest...
