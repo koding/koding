@@ -60,20 +60,9 @@ class NewKite extends KDEventEmitter
     try
       args = JSON.parse evt.data
       {method} = args
+      console.log "received", {args}
       callback = @localStore.get method
       callback.apply this, @unscrub args
-      # data = JSON.parse evt.data
-      # {id} = data
-      # if id
-      #   {result, error} = data
-      #   id = "#{id}"
-      #   @localStore[id].call null, error, result
-      #   delete @localStore[id]
-      # else
-      #   {method, params} = data
-      #   console.log "method is", method, params[0], @localMethods[method].toString()
-      #   @localMethods[method].call null, params[0]
-
     catch e
       console.log "error: ", e, evt.data
 
@@ -95,7 +84,7 @@ class NewKite extends KDEventEmitter
     console.log {method}, {args}
     @scrub method, args, (scrubbed) =>
       messageString = JSON.stringify(scrubbed)
-      console.log {messageString}
+      console.log "Sending", {messageString}
       @ready => @websocket.send messageString
 
   scrub: (method, args, callback) ->
