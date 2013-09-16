@@ -11,6 +11,7 @@ class ResourcesController extends KDListViewController
 
     @getView().on 'DeselectAllItems', @bound 'deselectAllItems'
     KD.getSingleton("vmController").on 'VMListChanged', @bound 'reset'
+    KD.getSingleton('notificationController').on 'VMMaintenance', @bound 'reset'
 
   reset:->
     # FIXME ~ BK
@@ -29,7 +30,6 @@ class ResourcesController extends KDListViewController
     vmController = KD.getSingleton("vmController")
     vmController.resetVMData()
     vmController.fetchVMs yes, (err, vms)=>
-      log "Found these vms:", err, vms
       return  unless vms
       # vms.sort cmp
       stack   = []
@@ -120,7 +120,6 @@ class ResourcesListItem extends KDListItemView
       cssClass  : "chevron"
 
     {vmName, info} = @getData()
-    log vmName, info
     @checkVMState null, vmName, info
 
   click:->

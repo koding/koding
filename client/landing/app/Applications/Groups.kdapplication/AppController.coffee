@@ -339,6 +339,7 @@ class GroupsAppController extends AppController
       buttons        :
         request      :
           title      : title
+          testPath   : "groups-request-button"
           loader     :
             color    : "#ffffff"
             diameter : 12

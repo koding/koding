@@ -323,6 +323,14 @@ dimmedNeighbor()
     span
       margin-left   5px
 
+#finder-dnduploader
+  position          absolute
+  z-index           100
+  width             100%
+  kalc              height, 100% \- 45px, 100%
+  background-color  inherit
+  top               45px
+
 #finder-bottom-controls
   abs()
   top                       100%
@@ -656,6 +664,11 @@ div.led-wrapper
     span.icon.ftp
       bg          position,-40px -60px
 
+#finder-dnduploader
+  .file-droparea
+    .file-drop
+      z-index     -1
+
 .file-container
 
   .vm
@@ -923,6 +936,12 @@ div.led-wrapper
 .vm-details-menu
   font-size       12px
   padding         8px 4px 7px 10px
+
+  .progressbar-container.ram-bar
+    width         58px
+    margin        0 2px 0 0 
+    span
+      width       58px
 
 .open-with-modal
   .separator

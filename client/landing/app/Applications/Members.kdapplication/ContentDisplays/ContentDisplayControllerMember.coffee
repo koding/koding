@@ -84,7 +84,11 @@ class ContentDisplayControllerMember extends KDViewController
       domId      : 'profilearea' unless @revivedContentDisplay
       delegate   : @getView()
 
-    options.bind = "mouseenter" unless KD.isMine member
+    if KD.isMine member
+      options.cssClass = KD.utils.curryCssClass "own-profile", options.cssClass
+    else
+      options.bind = "mouseenter" unless KD.isMine member
+
     return @getView().addSubView memberProfile = new ProfileView options, member
 
   # mouseEnterOnFeed:->

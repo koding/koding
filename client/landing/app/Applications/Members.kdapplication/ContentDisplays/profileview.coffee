@@ -11,12 +11,14 @@ class ProfileView extends JView
     @editButton = new KDCustomHTMLView
     if KD.isMine @memberData
       @editButton   = new KDButtonView
+        testPath    : "profile-edit-button"
         cssClass    : "edit"
         style       : "clean-gray"
         title       : "Edit your profile"
         callback    : @bound 'onEdit'
 
     @saveButton     = new KDButtonView
+      testPath      : "profile-save-button"
       cssClass      : "save hidden"
       style         : "cupid-green"
       title         : "Save"
@@ -29,6 +31,7 @@ class ProfileView extends JView
       callback      : @bound 'onCancel'
 
     @firstName      = new KDContentEditableView
+      testPath      : "profile-first-name"
       pistachio     : "{{#(profile.firstName) or ''}}"
       cssClass      : "firstName"
       placeholder   : "First name"
@@ -42,6 +45,7 @@ class ProfileView extends JView
       , @memberData
 
     @lastName       = new KDContentEditableView
+      testPath      : "profile-last-name"
       pistachio     : "{{#(profile.lastName) or ''}}"
       cssClass      : "lastName"
       placeholder   : "Last name"
@@ -54,6 +58,7 @@ class ProfileView extends JView
     @memberData.locationTags or= []
 
     @location     = new KDContentEditableView
+      testPath    : "profile-location"
       pistachio   : "{{#(locationTags)}}"
       cssClass    : "location"
       placeholder : "Earth"
@@ -62,6 +67,7 @@ class ProfileView extends JView
       , @memberData
 
     @bio            = new KDContentEditableView
+      testPath      : "profile-bio"
       pistachio     : "{{ @utils.applyTextExpansions #(profile.about), yes}}"
       cssClass      : "bio"
       placeholder   : if KD.isMine @memberData then @bioPlaceholder else ""
@@ -80,7 +86,7 @@ class ProfileView extends JView
     @bio.on "PreviousTabStop", => @lastName.focus()
 
     for input in [@firstName, @lastName, @location, @bio]
-      input.on "click", => unless @editingMode then @setEditingMode on
+      input.on "click", => if not @editingMode and KD.isMine @memberData then @setEditingMode on
 
     if KD.isMine @memberData or @memberData.skillTags.length > 0
       @skillTagView = new SkillTagFormView {}, @memberData
@@ -112,9 +118,23 @@ class ProfileView extends JView
         , @memberData
     , @memberData
 
-    @followButton = new MemberFollowToggleButton
-      style : "kdwhitebtn profilefollowbtn"
-    , @memberData
+    userDomain = @memberData.profile.nickname + "." + KD.config.userSitesDomain
+    @userHomeLink = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "user-home-link"
+      attributes  :
+        href      : "http://#{userDomain}"
+        target    : "_blank"
+      pistachio   : userDomain
+      click       : (event) =>
+        KD.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
+
+    if KD.whoami().getId() is @memberData.getId()
+      @followButton = new KDCustomHTMLView
+    else
+      @followButton = new MemberFollowToggleButton
+        style : "kdwhitebtn profilefollowbtn"
+      , @memberData
 
     for route in ['followers', 'following', 'likes']
       @[route] = @getActionLink route, @memberData
@@ -248,9 +268,25 @@ class ProfileView extends JView
       </div>
     """
 
+  updateUserHomeLink: ->
+    return  unless @userHomeLink
+
+    if @memberData.onlineStatus is "online"
+      @userHomeLink.unsetClass "offline"
+      @userHomeLink.tooltip?.destroy()
+    else
+      @userHomeLink.setClass "offline"
+
+      @userHomeLink.setTooltip
+        title     : "#{@memberData.profile.nickname}'s VM is offline"
+        placement : "right"
+
+  render: ->
+    @updateUserHomeLink()
+    super
+
   pistachio: ->
     account      = @getData()
-    userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
@@ -266,10 +302,10 @@ class ProfileView extends JView
     <section>
       <div class="profileinfo">
         {{> @editButton}} {{> @saveButton}} {{> @cancelButton}}
-        <h3 class="profilename">{{> @firstName}}&nbsp;{{> @lastName}}</h3>
+        <h3 class="profilename">{{> @firstName}}{{> @lastName}}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
-          <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
+          {{> @userHomeLink}}
           <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
         </h5>
         <div class="profilestats">

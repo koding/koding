@@ -7,7 +7,7 @@ KD.extend
       else location.reload()
 
   notify_:(message, type='')->
-    console.log message
+    log message
     new KDNotificationView
       cssClass : "#{type}"
       title    : message
@@ -120,6 +120,30 @@ KD.extend
     new KDNotificationView {title, content, duration}
 
     warn "KodingError:", err.message  unless err.name is 'AccessDenied'
+
+  getPathInfo: (fullPath)->
+    return no unless fullPath
+    path      = FSHelper.plainPath fullPath
+    basename  = FSHelper.getFileNameFromPath fullPath
+    parent    = FSHelper.getParentPath path
+    vmName    = FSHelper.getVMNameFromPath fullPath
+    isPublic  = FSHelper.isPublicPath fullPath
+    {path, basename, parent, vmName, isPublic}
+
+  getPublicURLOfPath: (fullPath, secure=no)->
+    {vmName, isPublic, path} = KD.getPathInfo fullPath
+    return unless isPublic
+    pathPartials = path.match /^\/home\/(\w+)\/Web\/(.*)/
+    return unless pathPartials
+    [_, user, publicPath] = pathPartials
+
+    publicPath or= ""
+    subdomain =
+      if /^shared\-/.test(vmName) and user is KD.nick()
+      then "#{user}."
+      else ""
+
+    return "#{if secure then 'https' else 'http'}://#{subdomain}#{vmName}/#{publicPath}"
 
 Object.defineProperty KD, "defaultSlug",
   get:->
