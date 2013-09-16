@@ -49,7 +49,7 @@ class ChatPane extends JView
     ownerNickname = details.user.nickname
     if @lastChatItemOwner is ownerNickname
       @lastChatItem.messageList.addSubView new KDCustomHTMLView
-        partial : details.body
+        partial : Encoder.XSSEncode details.body
       return  @scrollToTop()
 
     @lastChatItem      = new ChatItem details, @workspace.users[ownerNickname]
