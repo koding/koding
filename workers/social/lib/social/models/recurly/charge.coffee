@@ -33,17 +33,14 @@ module.exports = class JRecurlyCharge extends jraphical.Module
     {delegate} = client.connection
     selector = userCode : "user_#{delegate._id}"
 
-    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}
+    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
-  @updateCache = secure (client, callback)->
-    {delegate} = client.connection
-    userCode = "user_#{delegate._id}"
-
+  @updateCache = (selector, callback)->
     JRecurly.updateCache
       constructor   : this
-      selector      : {userCode}
+      selector      : {userCode: selector.userCode}
       method        : 'getTransactions'
-      methodOptions : userCode
+      methodOptions : selector.userCode
       keyField      : 'uuid'
       message       : 'user transactions'
       forEach       : (k, cached, transaction, stackCb)->
@@ -52,6 +49,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
         charge.setData extend charge.getData(), {userCode, amount, status}
         charge.lastUpdate = (new Date()).getTime()
         charge.save stackCb
+    , callback
 
   @getToken = secure (client, data, callback)->
     {delegate} = client.connection

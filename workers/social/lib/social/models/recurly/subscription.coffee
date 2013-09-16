@@ -67,14 +67,14 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     @getAllSubscriptions {userCode}, callback
 
   @getAllSubscriptions = (selector, callback)->
-    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}
+    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
-  @updateCache = (userCode, selector, callback)->
+  @updateCache = (selector, callback)->
     JRecurly.updateCache
       constructor   : this
-      selector      : {userCode}
+      selector      : {userCode: selector.userCode}
       method        : 'getSubscriptions'
-      methodOptions : userCode
+      methodOptions : selector.userCode
       keyField      : 'uuid'
       message       : 'user subscriptions'
       forEach       : (uuid, cached, sub, stackCb)=>
@@ -84,6 +84,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         }
         cached.lastUpdate = (new Date()).getTime()
         cached.save stackCb
+    , callback
 
   refund: (percent, callback)->
     JRecurlyPlan = require './plan'

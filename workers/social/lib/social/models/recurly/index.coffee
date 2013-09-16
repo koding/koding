@@ -65,15 +65,15 @@ module.exports = class JRecurly extends Base
     return cb()  unless options.forceRefresh
 
     constructor.one selector, sort:lastUpdate:1, (err, obj)=>
-      return constructor.updateCache cb  if err or not obj
+      return constructor.updateCache selector, cb  if err or not obj
       obj.lastUpdate ?= 0
       now = (new Date()).getTime()
       if now - obj.lastUpdate > 1000 * options.forceInterval
-        constructor.updateCache cb
+        constructor.updateCache selector, cb
       else
         cb()
 
-  @updateCache = (options, callback=->)->
+  @updateCache = (options, callback)->
     {constructor, selector, method, methodOptions, keyField, message, forEach} = options
     selector ?= {}
 

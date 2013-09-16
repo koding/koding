@@ -43,7 +43,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     selector['product.category'] = category  if category
     selector['product.item']     = item      if item
 
-    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}
+    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @getPlanWithCode = (code, callback)-> JRecurlyPlan.one {code}, callback
 
@@ -111,7 +111,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
 
-  @updateCache = (callback)->
+  @updateCache = (selector, callback)->
     JRecurly.updateCache
       constructor   : this
       method        : 'getPlans'
@@ -127,3 +127,4 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         cached.lastUpdate = (new Date()).getTime()
         cached.setData extend cached.getData(), {title, desc, feeMonthly, feeInitial, feeInterval}
         cached.save stackCb
+    , callback
