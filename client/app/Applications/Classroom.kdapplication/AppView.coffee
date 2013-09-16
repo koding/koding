@@ -245,10 +245,8 @@ class ClassroomAppView extends KDScrollView
 
 
   readFileContent: (path, callback = noop) ->
-    url = if path.indexOf("http") is 0 then path else "#{path}"
-
-    KD.getSingleton("vmController").run "curl -kLs #{url}", (err, content) =>
-      extension = FSItem.getFileExtension url
+    KD.getSingleton("vmController").run "curl -kLs #{path}", (err, content) =>
+      extension = FSItem.getFileExtension path
       switch extension
         when "json"    then callback JSON.parse content
         when "md"      then callback KD.utils.applyMarkdown content

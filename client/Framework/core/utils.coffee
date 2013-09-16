@@ -823,7 +823,7 @@ __utils =
       defaultValue : options.inputDefaultValue or ""
 
     form.addSubView labelFinder = new KDLabelView
-      title : "Select a folder:"
+      title : options.finderLabel or "Select a folder:"
 
     dialog.show()
     input.setFocus()

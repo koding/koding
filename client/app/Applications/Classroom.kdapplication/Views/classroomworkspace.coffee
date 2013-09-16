@@ -3,7 +3,7 @@ class ClassroomWorkspace extends CollaborativeWorkspace
   constructor: (options = {}, data) ->
 
     panelOptions      = data.config.panel
-    config            = @extendOptions panelOptions
+    config            = @putOptionsToConfig panelOptions
     config.delegate   = options.delegate # TODO: fatihacet - it's a quick hack, we neeed to merge all other options.
 
     @addDefaultButtons panelOptions
@@ -20,7 +20,7 @@ class ClassroomWorkspace extends CollaborativeWorkspace
       KD.utils.wait 500, => # intentional to show slide in
         @animateContent @chapterDescription
 
-  extendOptions: (options) ->
+  putOptionsToConfig: (options) ->
     config = {}
     config.name                = "Classroom"
     config.joinModalTitle      = "Join a coding session"

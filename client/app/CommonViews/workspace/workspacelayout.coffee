@@ -1,8 +1,8 @@
 class WorkspaceLayout extends KDSplitComboView
 
   init: ->
-    {layoutOptions} = @getOptions()
-    @addSubView @createSplitView layoutOptions.direction, layoutOptions.sizes, layoutOptions.views
+    {direction, sizes, views} = @getOptions().layoutOptions
+    @addSubView @createSplitView direction, sizes, views
 
   createSplitView: (type, sizes, viewsConfig) ->
     views = []

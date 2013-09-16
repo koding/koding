@@ -92,7 +92,7 @@ class CollaborativeDrawingPane extends CollaborativePane
         @addPoint value.x, value.y, value.nickname
 
     @stateRef.on "value", (snapshot) =>
-      @isContextMoved = no  if snapshot.val() is no
+      @isContextMoved = snapshot.val() isnt no
 
     @usersRef.on "value", (snapshot) =>
       value = snapshot.val()

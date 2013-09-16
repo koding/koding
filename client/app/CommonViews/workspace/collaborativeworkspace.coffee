@@ -169,7 +169,7 @@ class CollaborativeWorkspace extends Workspace
     return  unless @amIHost()
     @forcedToDisconnect = yes
     @workspaceRef.remove()
-    KD.utils.wait 2000, =>
+    KD.utils.wait 2000, => # check for user is still connected
       @forcedToDisconnect = no
 
   showDisconnectedModal: ->
@@ -284,7 +284,4 @@ class CollaborativeWorkspace extends Workspace
     user    = KD.nick()
     message = message.replace "$0", user
 
-    @historyRef.child(Date.now()).set {
-      message
-      user
-    }
+    @historyRef.child(Date.now()).set { message, user }
