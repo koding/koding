@@ -714,6 +714,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsDevRepos.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsDevSshKeys.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsDevKodingKeys.coffee",
+  "app/Applications/Account.kdapplication/account/accSettingsPersReferralSystem.coffee",
 
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
