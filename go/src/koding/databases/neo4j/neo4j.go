@@ -53,7 +53,7 @@ func sendRequest(requestType, url, data string, attempt int) string {
 
 	// Set the timeout & deadline
 	timeOut := time.Duration(TIMEOUT) * time.Second
-    deadLine := time.Duration(DEADLINE) * time.Second
+	deadLine := time.Duration(DEADLINE) * time.Second
 
 	transport := http.Transport{
 		Dial: dialTimeout(timeOut, deadLine),
