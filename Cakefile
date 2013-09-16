@@ -155,6 +155,7 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
               processes.kill "social"
             else
               processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
+    watcher.on 'change', -> console.log 'change happened', arguments
 
 
 task 'authWorker', "Run the authWorker", ({configFile}) ->
