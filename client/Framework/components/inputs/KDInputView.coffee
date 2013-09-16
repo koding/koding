@@ -312,35 +312,47 @@ class KDInputView extends KDView
   setAutoGrow:->
 
     $input = @$()
+    $input.css "overflow", "hidden"
 
     @setClass "autogrow"
-    $growCalculator = $ "<div/>", class : "invisible"
+
+    # input content is copied into clone element to get calculated height
+    @_clone = $ "<div/>", class : "invisible"
 
     @on "focus", =>
       @utils.defer =>
-        $growCalculator.appendTo 'body'
-        $growCalculator.css
+        @_clone.appendTo 'body'
+        @_clone.css
           height        : "auto"
-          "z-index"     : 100000
+          zIndex        : 100000
           width         : $input.width()
-          padding       : $input.css('padding')
-          "word-break"  : $input.css('word-break')
-          "font-size"   : $input.css('font-size')
-          "line-height" : $input.css('line-height')
+          border        : $input.css 'border'
+          padding       : $input.css 'padding'
+          wordBreak     : $input.css 'wordBreak'
+          fontSize      : $input.css 'fontSize'
+          lineHeight    : $input.css 'lineHeight'
+          whiteSpace    : "pre"
 
     @on "blur", =>
-      $growCalculator.detach()
+      @_clone.detach()
       @$()[0].style.height = "none" # hack to set to initial
 
-    @on "keydown", =>
-      $growCalculator.text @getValue()
-      height = $growCalculator.height()
-      if @$().css('box-sizing') is "border-box"
-        padding    = parseInt($growCalculator.css("padding-top"), 10) + parseInt($growCalculator.css("padding-bottom"), 10)
-        border     = parseInt($growCalculator.css("border-top-width"), 10) + parseInt($growCalculator.css("border-bottom-width"), 10)
-        height     = height + border + padding
+    @on "keydown", @bound "resize"
+    @on "keyup", (event) => @resize() if @getValue().length is 0
 
-      @setHeight height
+  resize: ->
+    return  unless @_clone
+    @_clone.appendTo 'body' unless document.body.contains @_clone[0]
+    @_clone.html Encoder.XSSEncode @getValue()
+    @_clone.append document.createElement "br"
+
+    height = @_clone.height()
+    if @$().css("boxSizing") is "border-box"
+      padding = parseInt(@_clone.css("paddingTop"),     10) + parseInt(@_clone.css("paddingBottom"),     10)
+      border  = parseInt(@_clone.css("borderTopWidth"), 10) + parseInt(@_clone.css("borderBottomWidth"), 10)
+      height  = height + border + padding
+
+    @setHeight Math.max @initialHeight, height
 
   enableTabKey:-> @inputTabKeyEnabled = yes
 
@@ -431,5 +443,5 @@ class KDInputView extends KDView
       event.preventDefault()
       t.selectionStart = t.selectionEnd = ss + tabLength
 
-
-
+  viewAppended: ->
+    @initialHeight = @$().height()

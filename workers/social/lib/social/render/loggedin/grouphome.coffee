@@ -1,7 +1,7 @@
 module.exports = ({account, slug, title, content, body, avatar, counts, policy, customize})->
 
-  getStyles       = require './styleblock'
-  getScripts      = require './scriptblock'
+  getStyles       = require './../styleblock'
+  getScripts      = require './../scriptblock'
   getSidebar      = require './sidebar'
   encoder         = require 'htmlencode'
 
@@ -23,8 +23,8 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
       </div>
     </header>
     <section class="kdview" id="main-panel-wrapper">
-      #{getSidebar()}
-      <div class="kdview full" id="content-panel">
+      #{getSidebar account}
+      <div class="kdview transition social" id="content-panel">
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
           <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
             <div id="content-page-activity" class="kdview content-page activity kdscrollview">

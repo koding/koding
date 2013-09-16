@@ -2,6 +2,14 @@ class MainView extends KDView
 
   viewAppended:->
 
+    if el = document.getElementById 'main-loading'
+      KD.utils.wait 750, ->
+        el.childNodes[0].classList.add 'out'
+        KD.utils.wait 250, ->
+          el.classList.add 'out'
+          KD.utils.wait 750, ->
+            el.parentElement.removeChild el
+
     @bindTransitionEnd()
     # @addServerStack()
     @addHeader()
@@ -58,7 +66,8 @@ class MainView extends KDView
 
   createMainPanels:->
 
-    @addSubView @homeIntro = new HomeIntroView
+    klass = if KD.isLoggedIn() then KDCustomHTMLView else HomeIntroView
+    @addSubView @homeIntro = new klass
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
@@ -89,7 +98,9 @@ class MainView extends KDView
       tagName : "header"
       domId   : "main-header"
 
-    @logo = new KDCustomHTMLView
+    @header.getElement().innerHTML = ''
+
+    @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type? is 'group' then 'group' else ''
@@ -99,9 +110,9 @@ class MainView extends KDView
         homeRoute = if KD.isLoggedIn() then "/Activity" else "/Home"
         KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
 
-    loginLink = new CustomLinkView
+    @header.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
-      title       : 'Already a user? Sign in'
+      title       : 'Already a user? Sign in.'
       icon        :
         placement : 'right'
       cssClass    : 'login'
