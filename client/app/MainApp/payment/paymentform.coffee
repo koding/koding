@@ -1,9 +1,5 @@
 class PaymentForm extends KDModalViewWithForms
 
-  required = (msg)->
-    rules    : required  : yes
-    messages : required  : msg
-
   constructor:(options={}, data)->
     options.title    or= 'Billing Information'
     options.width    or= 520
@@ -23,49 +19,51 @@ class PaymentForm extends KDModalViewWithForms
               type              : 'submit'
               loader            : { color : '#fff', diameter : 12 }
           fields                :
+            _.extend
+              cardFirstName       :
+                label             : 'Name'
+                placeholder       : 'First Name'
+                defaultValue      : KD.whoami().profile.firstName
+                validate          : @required 'First name is required!'
+                nextElementFlat   :
+                  cardLastName    :
+                    placeholder   : 'Last Name'
+                    defaultValue  : KD.whoami().profile.lastName
+                    validate      : @required 'Last name is required!'
 
-            cardFirstName       :
-              label             : 'Name'
-              placeholder       : 'First Name'
-              defaultValue      : KD.whoami().profile.firstName
-              validate          : required 'First name is required!'
-              nextElementFlat   :
+              cardNumber          :
+                label             : 'Credit Card'
+                placeholder       : 'Credit Card Number'
+                validate          :
+                  event           : 'blur'
+                  rules           :
+                    creditCard    : yes
+                    maxLength     : 16
+                  messages        :
+                    maxLength     : 'Credit card number should be 12 to 16 digits long!'
+                nextElementFlat   :
+                  cardCV          :
+                    placeholder   : 'CVC'
+                    validate      :
+                      rules       :
+                        required  : yes
+                        regExp    : /[0-9]{3,4}/
+                      messages    :
+                        required  : 'Card verification code (CVC) is required!'
+                        regExp    : 'Card verification code (CVC) should be a 3- or 4-digit number!'
 
-                cardLastName    :
-                  placeholder   : 'Last Name'
-                  defaultValue  : KD.whoami().profile.lastName
-                  validate      : required 'Last name is required!'
+              cardMonth           :
+                label             : 'Expires'
+                itemClass         : KDSelectBox
+                selectOptions     : __utils.getMonthOptions()
+                defaultValue      : (new Date().getMonth())+2
+                nextElementFlat   :
+                  cardYear        :
+                    itemClass     : KDSelectBox
+                    selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+25))
+                    defaultValue  : (new Date().getFullYear())
 
-            cardNumber          :
-              label             : 'Credit Card'
-              placeholder       : 'Credit Card Number'
-              validate          :
-                event           : 'blur'
-                rules           :
-                  creditCard    : yes
-              nextElementFlat   :
-
-                cardCV          :
-                  placeholder   : 'CVC'
-                  validate      :
-                    rules       :
-                      required  : yes
-                      regExp    : /[0-9]{3,4}/
-                    messages    :
-                      required  : 'Card verification code (CVC) is required!'
-                      regExp    : 'Card verification code (CVC) should be a 3- or 4-digit number!'
-
-            cardMonth           :
-              label             : 'Expires'
-              itemClass         : KDSelectBox
-              selectOptions     : __utils.getMonthOptions()
-              defaultValue      : (new Date().getMonth())+2
-              nextElementFlat   :
-
-                cardYear        :
-                  itemClass     : KDSelectBox
-                  selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+25))
-                  defaultValue  : (new Date().getFullYear())
+            , options.additionalFields
 
     super options, data
 
@@ -112,10 +110,10 @@ class PaymentForm extends KDModalViewWithForms
     Discover:         start with 6011 or 65. All have 16 digits.
     ###
 
-    type = if /^4/.test(value)                    then 'Visa'
-    else if /^5[1-5]/.test(value)                 then 'MasterCard'
-    else if /^3[47]/.test(value)                  then 'Amex'
-    else if /^6(?:011|5[0-9]{2})/.test(value)     then 'Discover'
+    type = if /^4/.test(value)                then 'Visa'
+    else if /^5[1-5]/.test(value)             then 'MasterCard'
+    else if /^3[47]/.test(value)              then 'Amex'
+    else if /^6(?:011|5[0-9]{2})/.test(value) then 'Discover'
     else no
 
     cardType = type.toLowerCase?()
@@ -123,3 +121,7 @@ class PaymentForm extends KDModalViewWithForms
     unless $icon.hasClass cardType
       $icon.removeClass 'visa mastercard discover amex'
       $icon.addClass cardType  if type
+
+  required:(msg)->
+    rules    : required  : yes
+    messages : required  : msg

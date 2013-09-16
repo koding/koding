@@ -13,12 +13,12 @@ module.exports = class JRecurly extends Base
   @set
     sharedMethods  :
       static       : [
-        'getBalance', 'setAccount', 'getAccount', 'getTransactions'
+        'getBalance', 'setAccount', 'getAccount', 'getTransactions', 'getCountryData'
       ]
 
   @setAccount = secure (client, data, callback)->
-    {delegate}     = client.connection
-    JSession       = require '../session'
+    {delegate} = client.connection
+    JSession   = require '../session'
     JSession.one {clientId: client.sessionToken}, (err, session) =>
       {username, firstName, lastName} = delegate.profile
       extend data, {username, firstName, lastName}
@@ -115,3 +115,16 @@ module.exports = class JRecurly extends Base
       recurly[method] methodOptions, cb
     else
       recurly[method] cb
+
+  @getCountryData:(ip, callback)->
+    countries = require './countries.json'
+    {sortBy}  = require 'underscore'
+
+    data = {}
+    data[c.cca2] = {value: c.cca2, title: c.name}  for c in countries
+
+    return callback null, data, null  unless ip
+
+    geoIp = require 'node-freegeoip'
+    geoIp.getLocation ip, (err, location)->
+      callback err, data, unless err then location.country_code else null

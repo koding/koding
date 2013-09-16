@@ -9,8 +9,17 @@ class PaymentController extends KDController
     else
       KD.remote.api.JRecurlyPlan.getGroupBalance callback
 
-  setBillingInfo: (type, callback=->)->
-    @createPaymentMethodModal {}, (newData)=>
+  updateCreditCard: (type, callback=->)->
+    @updateCreditCardModal {}, (newData)=>
+      @modal.buttons.Save.hideLoader()
+      if type is ['group', 'expensed']
+        getGroup().setBillingInfo newData, callback
+      else
+        KD.remote.api.JRecurlyPlan.setUserAccount newData, callback
+
+  updateBillingInfo: (type, callback=->)->
+    @updateBillingInfoModal {}, (newData)=>
+      log 'updateBillingInfo', newData
       @modal.buttons.Save.hideLoader()
       if type is ['group', 'expensed']
         getGroup().setBillingInfo newData, callback
@@ -89,7 +98,7 @@ class PaymentController extends KDController
 
   # views
 
-  createPaymentMethodModal:(data, callback) ->
+  updateCreditCardModal:(data, callback) ->
     @modal = new PaymentForm {callback}
 
     form = @modal.modalTabs.forms['Billing Info']
@@ -97,6 +106,16 @@ class PaymentController extends KDController
 
     @modal.on 'KDObjectWillBeDestroyed', => delete @modal
     return @modal
+
+  updateBillingInfoModal:(data, callback)->
+    @loadCountryData (err, countries, countryOfIp)=>
+      @modal = new BillingForm {callback, countries, countryOfIp}
+
+  loadCountryData:(callback)->
+    return callback null, @countries, @countryOfIp  if @countries or @countryOfIp
+    ip = $.cookie('clientIPAddress')
+    KD.remote.api.JRecurly.getCountryData ip, (err, @countries, @countryOfIp)=>
+      callback err, @countries, @countryOfIp
 
   createPaymentConfirmationModal: (options, callback)->
     options.callback or= callback

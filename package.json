@@ -40,6 +40,7 @@
     "mongoskin"       : "0.3.7",
     "nib"             : "0.5.0",
     "nodemailer"      : "0.3.21",
+    "node-freegeoip"  : "0.0.1",
     "noxmox"          : "0.1.8",
     "optimist"        : "0.3.1",
     "portchecker"     : "0.1.1",
