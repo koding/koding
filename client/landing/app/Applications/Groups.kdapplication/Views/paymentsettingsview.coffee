@@ -143,8 +143,10 @@ class GroupPaymentSettingsView extends JView
       if err or not data
         data = {}
 
+      console.log { data }
+
       paymentController = KD.getSingleton "paymentController"
-      paymentController.createPaymentMethodModal data, (newData, onError, onSuccess)=>
+      paymentController.updateBillingInfo data, (newData, onError, onSuccess)=>
         group.setBillingInfo newData, (err, result)=>
           if err
             onError err
