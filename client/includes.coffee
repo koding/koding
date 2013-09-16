@@ -763,14 +763,14 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # CLASSROOM
-  "app/Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
-  "app/Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
-  "app/Applications/Classroom.kdapplication/Views/classroomchapterthumbview.coffee",
-  "app/Applications/Classroom.kdapplication/Views/classroomcoursethumbview.coffee",
-  "app/Applications/Classroom.kdapplication/Views/classroomcoursesview.coffee",
-  "app/Applications/Classroom.kdapplication/Views/classroomcourseview.coffee",
-  "app/Applications/Classroom.kdapplication/AppView.coffee",
-  "app/Applications/Classroom.kdapplication/AppController.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomchapterthumbview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcoursethumbview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcoursesview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcourseview.coffee",
+  # "app/Applications/Classroom.kdapplication/AppView.coffee",
+  # "app/Applications/Classroom.kdapplication/AppController.coffee",
 
   "app/CommonViews/modalappslistitemview.coffee",
 
@@ -858,7 +858,7 @@ module.exports = [
   "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
-  "stylus/app.classroom.styl",
+  # "stylus/app.classroom.styl",
   "stylus/temp.styl",
   "stylus/third.workspace.styl",
   # "stylus/app.landing.styl",
