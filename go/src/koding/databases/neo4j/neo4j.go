@@ -22,6 +22,7 @@ var (
 	NODE_URL         = "/db/data/node"
 	MAX_RETRIES      = 5
 	TIMEOUT          = 3
+	DEADLINE         = 30
 )
 
 type Relationship struct {
@@ -35,12 +36,13 @@ type Relationship struct {
 }
 
 // Setup the dial timeout
-func dialTimeout(timeout time.Duration) func(network, addr string) (c net.Conn, err error) {
+func dialTimeout(timeout time.Duration, deadline time.Duration) func(network, addr string) (c net.Conn, err error) {
 	return func(netw, addr string) (net.Conn, error) {
 		conn, err := net.DialTimeout(netw, addr, timeout)
 		if err != nil {
 			return nil, err
 		}
+		conn.SetDeadline(time.Now().Add(deadline))
 		return conn, nil
 	}
 }
@@ -49,11 +51,12 @@ func dialTimeout(timeout time.Duration) func(network, addr string) (c net.Conn, 
 // reads response body and returns as string
 func sendRequest(requestType, url, data string, attempt int) string {
 
-	// Set the timeout
+	// Set the timeout & deadline
 	timeOut := time.Duration(TIMEOUT) * time.Second
+    deadLine := time.Duration(DEADLINE) * time.Second
 
 	transport := http.Transport{
-		Dial: dialTimeout(timeOut),
+		Dial: dialTimeout(timeOut, deadLine),
 	}
 
 	client := http.Client{
