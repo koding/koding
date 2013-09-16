@@ -11,6 +11,7 @@ class NewKite extends KDEventEmitter
     @remoteStore  = new Store
     @autoReconnect = true
     @readyState = NOTREADY
+    @kontrolEndpoint = "http://localhost:4000/request" #kontrol addr
     @token = ""
     @addr = ""
     @initBackoff options  if @autoReconnect
@@ -30,17 +31,15 @@ class NewKite extends KDEventEmitter
     @ws.onmessage = @bound 'onMessage'
     @ws.onerror   = @bound 'onError'
 
-  getKiteAddr:()->
+  getKiteAddr:->
     requestData =
       username   : "#{KD.nick()}"
       remoteKite : @kiteName
       token      : KD.remote.getSessionToken()
 
-    url = "http://localhost:4000/request" #kontrol addr
-
     # $.ajax was used here...
     xhr = new XMLHttpRequest
-    xhr.open "POST", url, yes
+    xhr.open "POST", @kontrolEndpoint, yes
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
     xhr.send JSON.stringify requestData
     xhr.onload = =>
@@ -54,20 +53,19 @@ class NewKite extends KDEventEmitter
     @autoReconnect = !!reconnect  if reconnect?
     @ws.close()
 
-  onOpen: ->
-    console.log "connected"
+  onOpen:->
+    console.log "I'm connected. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
     @emit 'ready'
-    @emit 'connected'
 
-  onClose : (evt) ->
-    console.log "#{@kiteName}: Disconnected"
+  onClose: (evt) ->
+    console.log "#{@kiteName}: disconnected, trying to reconnect"
     @readyState = CLOSED
     if @autoReconnect
       KD.utils.defer => @setBackoffTimeout @bound "connect"
 
-  onMessage : (evt) ->
+  onMessage: (evt) ->
     try
       args = JSON.parse evt.data
       {method} = args
@@ -77,7 +75,8 @@ class NewKite extends KDEventEmitter
     catch e
       console.log "error: ", e, evt.data
 
-  onError : (evt) -> console.log "#{@kiteName}: Error #{evt.data}"
+  onError: (evt) ->
+    # console.log "#{@kiteName}: error #{evt.data}"
 
   initBackoff:(options)->
     backoff = options.backoff ? {}
@@ -100,7 +99,7 @@ class NewKite extends KDEventEmitter
       else
         @emit "connectionFailed"
 
-  ready:(callback)->
+  ready: (callback)->
     return KD.utils.defer callback  if @readyState
     @once 'ready', callback
 
@@ -132,9 +131,9 @@ class NewKite extends KDEventEmitter
     try
       if @readyState is READY
         @ws.send JSON.stringify data
-        console.log "Sending", {data}
+        console.log "sending", {data}
       else
-        console.log "I'm still trying to reconnect, slow down..."
+        console.log "slow down ... I'm still trying to reconnect!"
     catch e
       @disconnect()
 
