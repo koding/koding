@@ -136,6 +136,8 @@ class ApplicationManager extends KDObject
 
       for name, manifest of manifests when name is appName
 
+        err = no
+
         manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
         manifest.behavior   or= "application"
         manifest.navItem      = title : "Develop"

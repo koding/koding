@@ -281,6 +281,8 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     super
 
+    @largeInput.resize()
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
