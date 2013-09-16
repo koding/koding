@@ -30,7 +30,7 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : yes
+    enabled     : no
     port        : 1337
   neo4j         :
     read        : "http://kgraph.sj.koding.com"
