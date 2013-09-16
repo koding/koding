@@ -2,7 +2,7 @@ class HomeIntroView extends JView
 
   constructor:(options = {}, data)->
 
-    options.tagName or= "section"
+    # options.tagName or= "section"
     options.domId   or= "home-intro"
 
     super options, data
@@ -106,8 +106,9 @@ class HomeIntroView extends JView
     activities.ready => CActivity.fetchCount           (err, count)=> activities.update count     or 0
     # loc.ready        => vmController.fetchTotalLoC     (err, count)=> loc.update count        or 0
 
-    KD.getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
-      activities.increment newActivities.length
+    KD.getSingleton("mainController").ready ->
+      KD.getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
+        activities.increment newActivities.length
 
   show:-> @unsetClass 'out'
 
