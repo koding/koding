@@ -3,6 +3,7 @@ package dnode
 import (
 	"encoding/json"
 	"fmt"
+
 	"reflect"
 	"strconv"
 	"strings"
@@ -16,7 +17,7 @@ type DNode struct {
 	OnReady      func()
 	OnRootMethod func(method string, args *Partial)
 	closeMutex   sync.Mutex
-	callbacks    []reflect.Value
+	Callbacks    []reflect.Value
 }
 
 type Message struct {
@@ -93,6 +94,14 @@ func (d *DNode) CollectCallbacks(rawObj interface{}, path []string, callbackMap 
 				delete(obj, key)
 			}
 		}
+	case *map[string]interface{}:
+		for key, value := range *obj {
+			v := reflect.ValueOf(value)
+			if v.Kind() == reflect.Func {
+				d.registerCallback(key, v, path, callbackMap)
+				delete(*obj, key)
+			}
+		}
 	default:
 		v := reflect.ValueOf(obj)
 		for i := 0; i < v.NumMethod(); i++ {
@@ -110,8 +119,8 @@ func (d *DNode) registerCallback(name string, callback reflect.Value, path []str
 	copy(pathCopy, path)
 	pathCopy[len(path)] = name
 
-	callbackMap[strconv.Itoa(len(d.callbacks))] = pathCopy
-	d.callbacks = append(d.callbacks, callback)
+	callbackMap[strconv.Itoa(len(d.Callbacks))] = pathCopy
+	d.Callbacks = append(d.Callbacks, callback)
 }
 
 func (d *DNode) ProcessMessage(data []byte) {
@@ -152,66 +161,14 @@ func (d *DNode) ProcessMessage(data []byte) {
 		if err != nil {
 			panic(err)
 		}
-		if index < 0 || index >= len(d.callbacks) {
+		if index < 0 || index >= len(d.Callbacks) {
 			return
 		}
 		callArgs := make([]reflect.Value, len(args))
 		for i, v := range args {
 			callArgs[i] = reflect.ValueOf(v)
 		}
-		d.callbacks[index].Call(callArgs)
-		return
-	}
-
-	if d.OnRootMethod != nil {
-		d.OnRootMethod(fmt.Sprint(m.Method), m.Arguments)
-		return
-	}
-
-	panic(fmt.Sprintf("Unknown method: %v.", m.Method))
-}
-
-func (d *DNode) ProcessDnode(m Message) {
-	for id, path := range m.Callbacks {
-		fmt.Println("appending callbacks")
-		methodId, err := strconv.Atoi(id)
-		if err != nil {
-			panic(err)
-		}
-		callback := Callback(func(args ...interface{}) {
-			d.Send(methodId, args...)
-		})
-		m.Arguments.Callbacks = append(m.Arguments.Callbacks, CallbackSpec{path, callback})
-	}
-
-	if m.Method == "methods" {
-		var args [](map[string]interface{})
-		err := m.Arguments.Unmarshal(&args)
-		if err != nil {
-			panic(err)
-		}
-		if d.OnRemote != nil {
-			d.OnRemote(args[0])
-		}
-		if d.OnReady != nil {
-			d.OnReady()
-		}
-		return
-	}
-
-	if index, err := strconv.Atoi(fmt.Sprint(m.Method)); err == nil {
-		args, err := m.Arguments.Array()
-		if err != nil {
-			panic(err)
-		}
-		if index < 0 || index >= len(d.callbacks) {
-			return
-		}
-		callArgs := make([]reflect.Value, len(args))
-		for i, v := range args {
-			callArgs[i] = reflect.ValueOf(v)
-		}
-		d.callbacks[index].Call(callArgs)
+		d.Callbacks[index].Call(callArgs)
 		return
 	}
 
