@@ -26,5 +26,5 @@ class CollaborativePreviewPane extends CollaborativePane
     @previewer.openPath value.url  if value?.url
 
   saveUrl: (force) ->
-    url = @previewer.path.replace /\?.*/, ""
-    @workspaceRef.child("url").set if force then "#{url}?#{Date.now()}" else url
+    url = unless force then @previewer.path.replace(/\?.*/, "") else "#{url}?#{Date.now()}"
+    @workspaceRef.child("url").set url

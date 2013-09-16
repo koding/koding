@@ -81,10 +81,7 @@ class Panel extends JView
     paneType             = paneOptions.type
     paneOptions.delegate = this
 
-    if paneType is "custom"
-      PaneClass = paneOptions.paneClass
-    else
-      PaneClass = @findPaneClass paneType
+    PaneClass = if paneType is "custom" then paneOptions.paneClass else @findPaneClass paneType
 
     return unless PaneClass
       new Error "PaneClass is not defined for \"#{paneOptions.type}\" pane type"
@@ -129,9 +126,9 @@ class Panel extends JView
       {{> @container}}
     """
 
-Panel::EditorPaneClass        = EditorPane
-Panel::TabbedEditorPaneClass  = EditorPane
-Panel::TerminalPaneClass      = TerminalPane
-Panel::VideoPaneClass         = VideoPane
-Panel::PreviewPaneClass       = PreviewPane
-Panel::DrawingPaneClass       = KDView
+  EditorPaneClass       : EditorPane
+  TabbedEditorPaneClass : EditorPane
+  TerminalPaneClass     : TerminalPane
+  VideoPaneClass        : VideoPane
+  PreviewPaneClass      : PreviewPane
+  DrawingPaneClass      : KDView

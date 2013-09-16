@@ -10,7 +10,7 @@
 
 .classroom-app-view
   background                #EFEFEF
-  vendor                    transition, left 0.4s ease-in-out
+  vendor                    transition, left .4s ease-in-out
   .inner-header
     z-index                 10001
     .chapters, .information
@@ -21,7 +21,7 @@
       fr()
       pointer()
       sprite()
-      bg                    position, 0px -477px
+      bg                    position, 0 -477px
     .information
       bg                    position, -260px -437px
   .panel-container
@@ -29,7 +29,7 @@
   .container
     background              url('../images/bg/blurred/4.jpg')
     height                  320px
-    box-shadow              0px 0px 700px rgba(255, 255, 255, .5) inset
+    shadow              0 0 700px rgba(255, 255, 255, .5) inset
   .banner
     margin                  0 auto
     size                    1280px, 320px
@@ -103,8 +103,8 @@
 
 .classroom-chapters, .chapter-description
   abs()
-  vendor                    border-radius, 0 0 6px 6px
-  vendor                    box-shadow, 0 0 12px rgba(0, 0, 0, .6)
+  rounded                   0 0 6px 6px
+  shadow                    0 0 12px rgba(0, 0, 0, .6)
   vendor                    transition, top .4s ease
   background                #eee
   z-index                   10000
@@ -133,22 +133,9 @@
   padding                   6px
   border-bottom             1px solid #CCC
   text-align                left !important
-  .chapter-number
-    size                    30px, 30px
-    vendor                  border-radius, 80px
-    background              #CCC
-    font-size               22px
-    font-weight             600
-    text-align              center
-    margin-right            6px
-    position                relative
-    top                     9px
-    fl()
   .chapter-title
     size                    198px, 20px
-    overflow                hidden
-    text-overflow           ellipsis
-    white-space             nowrap
+    overflow                ellipsis
     font-size               13px
     font-weight             600
     cursor                  default
@@ -179,7 +166,7 @@
   .header-container
     padding                 40px 0 30px
     background              #fefefe // cok fe fe fe
-    box-shadow              0px 0px 10px rgba(0, 0, 0, .3)
+    shadow                  0 0 10px rgba(0, 0, 0, .3)
     overflow                hidden
     .header
       width                 1024px
@@ -283,7 +270,7 @@
   height: 26px;
 }
 .classroomcoursebuilder .start-tab-split-option.highlight span .pane-type {
-  opacity: 0.5;
+  opacity: .5;
 }
 .classroomcoursebuilder .start-tab-split-option .pane-type .cog {
   background: url("https://koding.com/images/_kd.sprites.png");
@@ -332,10 +319,4 @@
   font-size: 12px;
   font-weight: normal;
   line-height: 32px;
-}
-
-
-
-.teamwork-export-dialog label:first-child, .teamwork-export-dialog input.text {
-  display: none !important;
 }

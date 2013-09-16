@@ -150,17 +150,12 @@ class AceView extends JView
   openSaveDialog: (callback) ->
 
     file = @getData()
-    KD.utils.showSaveDialog @, (input, finderController, dialog) =>
+    KD.utils.showSaveDialog this, (input, finderController, dialog) =>
       [node] = finderController.treeController.selectedNodes
       name   = input.getValue()
 
-      if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
-        @ace.notify "Please type valid file name!", "error"
-        return
-
-      unless node
-        @ace.notify "Please select a folder to save!", "error"
-        return
+      return @ace.notify "Please type valid file name!"   , "error"  unless FSHelper.isValidFileName name
+      return @ace.notify "Please select a folder to save!", "error"  unless node
 
       dialog.destroy()
       @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation

@@ -18,17 +18,16 @@ class ClassroomCourseThumbView extends JView
   createElements: ->
     {type}             = @getOptions()
     data               = @getData()
-    devModeOptions     = {}
+    devModeOptions     =
+      partial          : "Imported"
+      cssClass         : "top-badge orange"
+      tooltip          :
+        title          : "This course is exported from somewhere else."
     cancelIconOptions  = {}
     @progressContainer = new KDView
       cssClass         : "progress-container"
 
-    if type is "imported"
-      devModeOptions.partial  = "Imported"
-      devModeOptions.cssClass = "top-badge orange"
-      devModeOptions.tooltip  =
-        title                 : "This course is exported from somewhere else."
-    else if data.devMode
+    if data.devMode
       devModeOptions.cssClass = "top-badge gray"
       devModeOptions.partial  = "Dev Mode"
       devModeOptions.tooltip  =
@@ -80,8 +79,8 @@ class ClassroomCourseThumbView extends JView
         {{> @cancelIcon}}
       </div>
       <cite>
-        <span>#{data.name}</span>
-        <span>#{data.version}</span>
+        {{ #(name)}}
+        {{ #(version)}}
       </cite>
       {{> @progressContainer}}
     """

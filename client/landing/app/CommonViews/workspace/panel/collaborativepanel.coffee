@@ -21,14 +21,6 @@ class CollaborativePanel extends Panel
         title  : "Show Users"
       click    : => @getDelegate().showUsers()
 
-  createHeaderHint: ->
-    super
-    @header.addSubView new KDCustomHTMLView
-      cssClass : "session-key"
-      partial  : @getDelegate().sessionKey
-      tooltip  :
-        title  : "This is your session key, you can share this key with your friends to work together."
-
   createPane: (paneOptions, targetContainer) ->
     PaneClass = @getPaneClass paneOptions
     paneOptions.sessionKey = @getOptions().sessionKeys[@panes.length]  if @getOptions().sessionKeys
@@ -62,10 +54,10 @@ class CollaborativePanel extends Panel
 
       return length
 
-CollaborativePanel::EditorPaneClass        = CollaborativeEditorPane
-CollaborativePanel::TerminalPaneClass      = SharableTerminalPane
-CollaborativePanel::FinderPaneClass        = CollaborativeFinderPane
-CollaborativePanel::TabbedEditorPaneClass  = CollaborativeTabbedEditorPane
-CollaborativePanel::PreviewPaneClass       = CollaborativePreviewPane
-CollaborativePanel::DrawingPaneClass       = CollaborativeDrawingPane
-CollaborativePanel::VideoPaneClass         = VideoPane
+  EditorPaneClass       : CollaborativeEditorPane
+  TerminalPaneClass     : SharableTerminalPane
+  FinderPaneClass       : CollaborativeFinderPane
+  TabbedEditorPaneClass : CollaborativeTabbedEditorPane
+  PreviewPaneClass      : CollaborativePreviewPane
+  DrawingPaneClass      : CollaborativeDrawingPane
+  VideoPaneClass        : VideoPane

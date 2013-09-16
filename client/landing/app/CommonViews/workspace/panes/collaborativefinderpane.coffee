@@ -21,6 +21,7 @@ class CollaborativeFinderPane extends CollaborativePane
 
     @finderController.reset()
 
+    @container?.destroy()
     @finder = @container = @finderController.getView()
 
     @workspaceRef.on "value", (snapshot) =>

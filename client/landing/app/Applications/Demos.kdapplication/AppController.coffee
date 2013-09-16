@@ -14,31 +14,3 @@ class DemosAppController extends AppController
     super options, data
 
   loadView:(mainView)->
-    mainView.addSubView new CollaborativeWorkspace
-      firebaseInstance  : "teamwork-local"
-      enableChat        : yes
-      panels            : [
-        {
-          title         : "Collaborative Preview Pane"
-          hint          : "Huloggg"
-          buttons       : [
-            {
-              title     : "Join"
-              cssClass  : "cupid-green join-button"
-              callback  : (panel, workspace) => workspace.showJoinModal()
-            }
-          ]
-          layout        : {
-            direction   : "vertical"
-            sizes       : [ "100%", null ]
-            views   : [
-              {
-                type    : "drawing"
-              }
-              {
-                type: "preview"
-              }
-            ]
-          }
-        }
-      ]
