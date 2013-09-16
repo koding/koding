@@ -21,12 +21,6 @@ class AccountSubscriptionsListController extends AccountListViewController
   loadView:->
     super
 
-    @getView().parent.addSubView updateButton = new KDButtonView
-      style     : 'clean-gray account-header-cc'
-      title     : 'Update Credit Card'
-      callback  : ->
-        KD.getSingleton('paymentController').setBillingInfo 'user'
-
     @getView().parent.addSubView reloadButton = new KDButtonView
       style     : 'clean-gray account-header-button'
       title     : ''
