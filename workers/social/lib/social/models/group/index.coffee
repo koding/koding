@@ -255,10 +255,15 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-  @renderGroupHomeLoggedIn   : require '../../render/grouphomeloggedin'
-  @renderGroupHomeLoggedOut  : require '../../render/grouphomeloggedout'
-  @renderKodingHomeLoggedIn  : require '../../render/kodinghomeloggedin'
-  @renderKodingHomeLoggedOut : require '../../render/kodinghomeloggedout'
+  @render        :
+    loggedIn     :
+      kodingHome : require '../../render/loggedin/kodinghome'
+      groupHome  : require '../../render/loggedin/grouphome'
+      subPage    : require '../../render/loggedin/subpage'
+    loggedOut    :
+      groupHome  : require '../../render/loggedout/grouphome'
+      kodingHome : require '../../render/loggedout/kodinghome'
+      subPage    : require '../../render/loggedout/subpage'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection

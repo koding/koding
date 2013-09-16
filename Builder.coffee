@@ -19,11 +19,20 @@ log =
   warn  : console.log
 
 module.exports = class Builder
-  buildClient: (options)->
+  buildClient: (options) ->
     @config = require('koding-config-manager').load("main.#{options.configFile}")
-    @incluesFileTime = 0
 
     try fs.mkdirSync ".build"
+
+    if @config.client.runtimeOptions.precompiledApi
+      exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
+        @buildAndWatchClient options
+    else
+      fs.writeFileSync '.build/api.js', '', 'utf-8'
+      @buildAndWatchClient options
+
+  buildAndWatchClient: (options) ->
+    @includesFileTime = 0
     @compileChanged options, true
 
   compileChanged: (options, initial)->
@@ -68,8 +77,8 @@ module.exports = class Builder
   readIncludesFile: ->
     includesFile = @config.client.includesPath + "/includes.coffee"
     time = Date.parse(fs.statSync(includesFile).mtime)
-    return false if @incluesFileTime == time
-    @incluesFileTime = time
+    return false if @includesFileTime == time
+    @includesFileTime = time
 
     @scripts = []
     @styles = []
@@ -187,7 +196,7 @@ module.exports = class Builder
     # DON'T DO THIS:
     # js = "(function(){ "
     # serve the JS bare instead:
-    js = ""
+    js = ''
     sourceMap =
       version: 3
       file: @config.client.js

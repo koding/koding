@@ -1,15 +1,17 @@
 package main
 
 import (
-	auth "bitbucket.org/rj/httpauth-go"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fatih/goset"
+	"github.com/gorilla/sessions"
 	"github.com/streadway/amqp"
 	"html/template"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"net/url"
@@ -108,11 +110,26 @@ type StatusInfo struct {
 }
 
 type HomePage struct {
-	Status  StatusInfo
-	Workers []WorkerInfo
-	Jenkins *JenkinsInfo
-	Server  *ServerInfo
-	Builds  []int
+	Status        StatusInfo
+	Workers       []WorkerInfo
+	Jenkins       *JenkinsInfo
+	Server        *ServerInfo
+	Builds        []int
+	LoginName     string
+	SwitchMessage string
+	LoginMessage  string
+}
+
+type User struct {
+	Id            bson.ObjectId `bson:"_id" json:"-"`
+	Email         string        `bson:"email" json:"email"`
+	LastLoginDate time.Time     `bson:"lastLoginDate" json:"lastLoginDate"`
+	Password      string        `bson:"password" json:"password"`
+	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
+	Salt          string        `bson:"salt" json:"salt"`
+	Status        string        `bson:"status" json:"status"`
+	Uid           int           `bson:"uid" json:"uid"`
+	Username      string        `bson:"username" json:"username"`
 }
 
 func NewServerInfo() *ServerInfo {
@@ -130,13 +147,18 @@ func NewServerInfo() *ServerInfo {
 var (
 	switchHost string
 	apiUrl     = "http://kontrol.in.koding.com:80" // default
-	checkAuth  *auth.Basic
 	templates  = template.Must(template.ParseFiles(
 		"go/templates/overview/index.html",
+		"go/templates/overview/login.html",
 	))
+	admins = goset.New("sinan", "devrim", "gokmen", "chris", "neelance", "halk",
+		"sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
+		"bahadir", "arslan")
 )
 
 const uptimeLayout = "03:04:00"
+
+var store = sessions.NewCookieStore([]byte("user"))
 
 func main() {
 	var err error
@@ -151,19 +173,8 @@ func main() {
 	// domain to be switched, like 'koding.com'
 	switchHost = config.Current.Kontrold.Overview.SwitchHost
 
-	checkAuth = auth.NewBasic("kontrol.in.koding.com", func(username, password string) bool {
-		if username != "koding" {
-			return false
-		}
-
-		if password != "1234567890-=" {
-			return false
-		}
-
-		return true
-	}, nil)
-
 	bootstrapFolder := "go/templates/overview/bootstrap/"
+
 	http.HandleFunc("/", viewHandler)
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir(bootstrapFolder))))
 
@@ -189,10 +200,98 @@ func logAction(msg string) {
 	f.WriteString(fmt.Sprintf("[%s] %s\n", time.Now().Format(time.RFC1123), msg))
 }
 
+func checkSessionOrDoLogin(w http.ResponseWriter, r *http.Request) (string, string) {
+	operation := r.PostFormValue("operation")
+	session, err := store.Get(r, "userData")
+	if err != nil {
+		return "", ""
+	}
+
+	if operation == "login" {
+		loginName := r.PostFormValue("loginName")
+		loginPass := r.PostFormValue("loginPass")
+		if loginName == "" || loginPass == "" {
+			return "", "Please enter a username and password"
+		}
+
+		// abort if password and username is not valid
+		err := authenticateUser(loginName, loginPass)
+		if err != nil {
+			return "", "Username or password is invalid"
+		}
+		session.Values["userName"] = loginName
+		store.Save(r, w, session)
+		return loginName, ""
+	}
+
+	loginName, ok := session.Values["userName"]
+	if !ok {
+		return "", ""
+	}
+
+	if loginName == nil {
+		// no login operation or no session initialized
+		return "", ""
+	}
+
+	s := loginName.(string)
+	return s, ""
+}
+
+func logOut(w http.ResponseWriter, r *http.Request) error {
+	session, err := store.Get(r, "userData")
+	if err == nil {
+		session.Values["userName"] = nil
+		store.Save(r, w, session)
+		return nil
+	} else {
+		return errors.New("Session could not be retrieved")
+	}
+}
+
+func switchOperation(loginName string, r *http.Request) string {
+	operation := r.FormValue("operation")
+	if operation != "switchVersion" {
+		return ""
+	}
+
+	version := r.PostFormValue("switchVersion")
+	loginPass := r.PostFormValue("loginPass")
+
+	err := authenticateUser(loginName, loginPass)
+	if err != nil {
+		return "Password is wrong"
+	}
+
+	err = switchVersion(version)
+	if err != nil {
+		log.Println("error switching", err, version)
+		return fmt.Sprintf("Error switching: %s version %s", err, version)
+	}
+
+	res := fmt.Sprintf("Switched to version %s switcher name: %s", version, loginName)
+	logAction(res)
+	log.Println(res)
+	return "Switched to version " + loginName
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-	username := checkAuth.Authorize(r)
-	if username == "" {
-		checkAuth.NotifyAuthRequired(w, r)
+
+	// Should be done first
+	operation := r.FormValue("operation")
+	if operation == "logout" {
+		err := logOut(w, r)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	loginName, loginMessage := checkSessionOrDoLogin(w, r)
+	if loginName == "" {
+		home := HomePage{
+			LoginMessage: loginMessage,
+		}
+		renderTemplate(w, "login", home)
 		return
 	}
 
@@ -202,20 +301,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		build = version
 	}
 
-	version := r.PostFormValue("switchVersion")
-	name := r.PostFormValue("name")
-
-	if version != "" && name != "" {
-		err := switchVersion(version, name)
-		if err != nil {
-			log.Println("error switching", err, version)
-		} else {
-			logAction(fmt.Sprintf("Switched to version %s switcher name: %s", version, name))
-		}
-
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
+	switchMessage := switchOperation(loginName, r)
 
 	workers, status, err := workerInfo(build)
 	if err != nil {
@@ -243,11 +329,13 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	status.Koding.BrokerLen = len(b) + 1
 
 	home := HomePage{
-		Status:  status,
-		Workers: workers,
-		Jenkins: jenkins,
-		Server:  server,
-		Builds:  builds,
+		Status:        status,
+		Workers:       workers,
+		Jenkins:       jenkins,
+		Server:        server,
+		Builds:        builds,
+		LoginName:     loginName,
+		SwitchMessage: switchMessage,
 	}
 
 	renderTemplate(w, "index", home)
@@ -288,7 +376,7 @@ func keyLookup(key string) (map[string]bool, map[string]bool) {
 	return servers, brokers
 }
 
-func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
+func renderTemplate(w http.ResponseWriter, tmpl string, home interface{}) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", home)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -297,7 +385,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
 
 func jenkinsInfo() *JenkinsInfo {
 	j := &JenkinsInfo{}
-	jenkinsApi := "http://salt-master.in.koding.com/job/build-koding/api/json"
+	jenkinsApi := "http://jenkins.sj.koding.com:8080/job/Koding%20Deployment/api/json"
 	resp, err := http.Get(jenkinsApi)
 	if err != nil {
 		fmt.Println(err)
@@ -483,7 +571,20 @@ func currentVersion() (string, error) {
 	return currentVersion, nil
 }
 
-func switchVersion(newVersion string, name string) error {
+func authenticateUser(username, password string) error {
+	if !admins.Has(username) {
+		return fmt.Errorf("Username %s is not authenticated\n", username)
+	}
+
+	_, err := modelhelper.CheckAndGetUser(username, password)
+	if err != nil {
+		return fmt.Errorf("Username %s does not match or wrong password\n", username)
+	}
+
+	return nil
+}
+
+func switchVersion(newVersion string) error {
 	if switchHost == "" {
 		errors.New("switchHost is not defined")
 	}

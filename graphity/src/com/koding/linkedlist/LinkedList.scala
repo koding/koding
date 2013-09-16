@@ -28,17 +28,29 @@ object LinkedList {
     head.createRelationshipTo(tail, LINKED_LIST_NEXT)
   }
 
+  // Destroy whole list.
+  def destroy(entry: Node) {
+    destroyEntries(getHead(entry))
+  }
+
+  private def destroyEntries(entry: Node) {
+    entry.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING).delete()
+    entry.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).delete()
+    val nextRel = entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.OUTGOING)
+    if (nextRel != null) {
+      nextRel.delete()
+      destroyEntries(nextRel.getEndNode())
+    }
+  }
+
   // Inserts entry between previous and the following node.
   def insertAfter(previous: Node, entry: Node): Unit = {
     if (entry.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING) != null) {
       throw new IllegalArgumentException("Entry is already part of a list.")
     }
 
-    val head = previous.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING).getEndNode
-    entry.createRelationshipTo(head, LINKED_LIST_HEAD)
-
-    val tail = previous.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).getEndNode
-    entry.createRelationshipTo(tail, LINKED_LIST_TAIL)
+    entry.createRelationshipTo(getHead(previous), LINKED_LIST_HEAD)
+    entry.createRelationshipTo(getTail(previous), LINKED_LIST_TAIL)
 
     val nextRel = previous.getSingleRelationship(LINKED_LIST_NEXT, Direction.OUTGOING)
     nextRel.delete
@@ -53,11 +65,8 @@ object LinkedList {
       throw new IllegalArgumentException("Entry is already part of a list.")
     }
 
-    val head = next.getSingleRelationship(LINKED_LIST_HEAD, Direction.OUTGOING).getEndNode
-    entry.createRelationshipTo(head, LINKED_LIST_HEAD)
-
-    val tail = next.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING).getEndNode
-    entry.createRelationshipTo(tail, LINKED_LIST_TAIL)
+    entry.createRelationshipTo(getHead(next), LINKED_LIST_HEAD)
+    entry.createRelationshipTo(getTail(next), LINKED_LIST_TAIL)
 
     val nextRel = next.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING)
     nextRel.delete

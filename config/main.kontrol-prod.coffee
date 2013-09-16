@@ -30,7 +30,7 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : yes
+    enabled     : no
     port        : 1337
   neo4j         :
     read        : "http://kgraph.sj.koding.com"
@@ -120,6 +120,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      precompiledApi: yes
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"

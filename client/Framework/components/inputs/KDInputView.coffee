@@ -312,6 +312,7 @@ class KDInputView extends KDView
   setAutoGrow:->
 
     $input = @$()
+    $input.css "overflow", "hidden"
 
     @setClass "autogrow"
 
@@ -323,12 +324,14 @@ class KDInputView extends KDView
         @_clone.appendTo 'body'
         @_clone.css
           height        : "auto"
-          "z-index"     : 100000
+          zIndex        : 100000
           width         : $input.width()
-          padding       : $input.css('padding')
-          "word-break"  : $input.css('word-break')
-          "font-size"   : $input.css('font-size')
-          "line-height" : $input.css('line-height')
+          border        : $input.css 'border'
+          padding       : $input.css 'padding'
+          wordBreak     : $input.css 'wordBreak'
+          fontSize      : $input.css 'fontSize'
+          lineHeight    : $input.css 'lineHeight'
+          whiteSpace    : "pre"
 
     @on "blur", =>
       @_clone.detach()
@@ -340,14 +343,16 @@ class KDInputView extends KDView
   resize: ->
     return  unless @_clone
     @_clone.appendTo 'body' unless document.body.contains @_clone[0]
-    @_clone.html @getValue().replace /\n/gm, "<br />"
-    height = @_clone.height()
-    if @$().css('box-sizing') is "border-box"
-      padding    = parseInt(@_clone.css("padding-top"), 10) + parseInt(@_clone.css("padding-bottom"), 10)
-      border     = parseInt(@_clone.css("border-top-width"), 10) + parseInt(@_clone.css("border-bottom-width"), 10)
-      height     = height + border + padding
+    @_clone.html Encoder.XSSEncode @getValue()
+    @_clone.append document.createElement "br"
 
-    @setHeight height
+    height = @_clone.height()
+    if @$().css("boxSizing") is "border-box"
+      padding = parseInt(@_clone.css("paddingTop"),     10) + parseInt(@_clone.css("paddingBottom"),     10)
+      border  = parseInt(@_clone.css("borderTopWidth"), 10) + parseInt(@_clone.css("borderBottomWidth"), 10)
+      height  = height + border + padding
+
+    @setHeight Math.max @initialHeight, height
 
   enableTabKey:-> @inputTabKeyEnabled = yes
 
@@ -438,5 +443,5 @@ class KDInputView extends KDView
       event.preventDefault()
       t.selectionStart = t.selectionEnd = ss + tabLength
 
-
-
+  viewAppended: ->
+    @initialHeight = @$().height()

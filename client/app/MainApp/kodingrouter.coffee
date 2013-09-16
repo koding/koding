@@ -12,7 +12,8 @@ class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
 
-    @openRoutes = {}
+    @defaultRoute or= location.pathname + location.search
+    @openRoutes     = {}
     @openRoutesById = {}
     KD.getSingleton('contentDisplayController')
       .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
