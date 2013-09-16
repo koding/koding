@@ -7,7 +7,7 @@ import (
 	libgeo "github.com/nranchev/go-libGeoIP"
 	"html/template"
 	"io"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
@@ -54,9 +54,6 @@ type interval struct {
 }
 
 var (
-	// mongoDB connection wrapper
-	proxyDB *proxyconfig.ProxyConfiguration
-
 	// used to extract the Country information via the IP
 	geoIP *libgeo.GeoIP
 
@@ -98,7 +95,7 @@ var (
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	log.Printf("I'm using %d cpus for goroutines\n", runtime.NumCPU())
+	fmt.Printf("[%s] I'm using %d cpus for goroutines\n", time.Now().Format(time.Stamp), runtime.NumCPU())
 
 	configureProxy()
 	startProxy()
@@ -110,21 +107,14 @@ func configureProxy() {
 	var err error
 	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_PROXY")
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
 
 	res := "kontrol proxy started"
-	log.Println(res)
+	fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp), res)
 	logs.Info(res)
 
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
-		logs.Alert(res)
-		log.Fatalln(res)
-	}
-
-	err = proxyDB.AddProxy(proxyName)
+	err = modelhelper.AddProxy(proxyName)
 	if err != nil {
 		logs.Warning(err.Error())
 	}
@@ -172,7 +162,7 @@ func startHTTPS(reverseProxy *Proxy) {
 			err := http.ListenAndServeTLS(ip+":"+portssl, ip+"_cert.pem", ip+"_key.pem", reverseProxy)
 			if err != nil {
 				logs.Alert(err.Error())
-				log.Println(err)
+				fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp))
 			}
 		}(ip)
 	}
@@ -184,15 +174,19 @@ func startHTTPS(reverseProxy *Proxy) {
 func startHTTP(reverseProxy *Proxy) {
 	// HTTP Handling for VM port forwardings
 	logs.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
-	for i := 1024; i <= 10000; i++ {
-		go func(i int) {
-			port := strconv.Itoa(i)
-			err := http.ListenAndServe(":"+port, reverseProxy)
-			if err != nil {
-				logs.Alert(err.Error())
-				log.Println(err)
-			}
-		}(i)
+
+	if config.VMProxies {
+		for i := 1024; i <= 10000; i++ {
+			go func(i int) {
+				port := strconv.Itoa(i)
+				err := http.ListenAndServe(":"+port, reverseProxy)
+				if err != nil {
+					logs.Alert(err.Error())
+					log.Println(err)
+				}
+			}(i)
+
+		}
 	}
 
 	// HTTP handling (port 80, main)
@@ -201,7 +195,8 @@ func startHTTP(reverseProxy *Proxy) {
 	err := http.ListenAndServe(":"+port, reverseProxy)
 	if err != nil {
 		logs.Alert(err.Error())
-		log.Println(err) // don't use panic. It output full stack which we don't care.
+		// don't use panic. It output full stack which we don't care.
+		fmt.Printf("[%s] %s\n", time.Now().Format(time.Stamp), err.Error())
 		os.Exit(1)
 	}
 }
@@ -478,21 +473,21 @@ func logDomainRequests(domain string) {
 		return
 	}
 
-	err := proxyDB.AddDomainRequests(domain)
+	err := modelhelper.AddDomainRequests(domain)
 	if err != nil {
 		logs.Warning(fmt.Sprintf("could not add domain statistisitcs for %s\n", err.Error()))
 	}
 }
 
 func logProxyStat(name, country string) {
-	err := proxyDB.AddProxyStat(name, country)
+	err := modelhelper.AddProxyStat(name, country)
 	if err != nil {
 		logs.Warning(fmt.Sprintf("could not add proxy statistisitcs for %s\n", err.Error()))
 	}
 }
 
 func validate(ip, country, domain string) (bool, error) {
-	restriction, err := proxyDB.GetRestrictionByDomain(domain)
+	restriction, err := modelhelper.GetRestrictionByDomain(domain)
 	if err != nil {
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}

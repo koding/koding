@@ -6,6 +6,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 )
 
 type SysUser struct {
@@ -21,14 +22,18 @@ type SysGroup struct {
 	Users map[string]bool
 }
 
-func (vm *VM) MergePasswdFile() {
+func (vm *VM) MergePasswdFile(logWarning func(string, ...interface{})) {
 	passwdFile := vm.OverlayFile("/etc/passwd")
 	users, err := ReadPasswd(passwdFile) // error ignored
 	if err != nil {
-		if !os.IsNotExist(err) {
+		if os.IsNotExist(err) {
+			return // no file in upper, no need to merge
+		}
+		if err := os.Rename(passwdFile, passwdFile+"_corrupt_"+time.Now().Format(time.RFC3339)); err != nil {
 			panic(err)
 		}
-		return // no file in upper, no need to merge
+		logWarning("Renamed /etc/passwd file, because it was corrupted.", vm.String(), err)
+		return
 	}
 
 	lowerUsers, err := ReadPasswd(vm.LowerdirFile("/etc/passwd"))
@@ -46,14 +51,18 @@ func (vm *VM) MergePasswdFile() {
 	os.Chown(passwdFile, RootIdOffset, RootIdOffset)
 }
 
-func (vm *VM) MergeGroupFile() {
+func (vm *VM) MergeGroupFile(logWarning func(string, ...interface{})) {
 	groupFile := vm.OverlayFile("/etc/group")
 	groups, err := ReadGroup(groupFile) // error ignored
 	if err != nil {
-		if !os.IsNotExist(err) {
+		if os.IsNotExist(err) {
+			return // no file in upper, no need to merge
+		}
+		if err := os.Rename(groupFile, groupFile+"_corrupt_"+time.Now().Format(time.RFC3339)); err != nil {
 			panic(err)
 		}
-		return // no file in upper, no need to merge
+		logWarning("Renamed /etc/group file, because it was corrupted.", vm.String(), err)
+		return
 	}
 
 	lowerGroups, err := ReadGroup(vm.LowerdirFile("/etc/group"))
@@ -75,7 +84,13 @@ func (vm *VM) MergeGroupFile() {
 	os.Chown(groupFile, RootIdOffset, RootIdOffset)
 }
 
-func ReadPasswd(fileName string) (map[int]*SysUser, error) {
+func ReadPasswd(fileName string) (users map[int]*SysUser, err error) {
+	defer func() {
+		if recoveredErr := recover(); recoveredErr != nil {
+			err = fmt.Errorf("%v", recoveredErr)
+		}
+	}()
+
 	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
@@ -83,7 +98,7 @@ func ReadPasswd(fileName string) (map[int]*SysUser, error) {
 	defer f.Close()
 	r := bufio.NewReader(f)
 
-	users := make(map[int]*SysUser, 0)
+	users = make(map[int]*SysUser, 0)
 	for !atEndOfFile(r) {
 		user := SysUser{}
 		user.Name = readUntil(r, ':')
@@ -95,7 +110,8 @@ func ReadPasswd(fileName string) (map[int]*SysUser, error) {
 		user.Shell = readUntil(r, '\n')
 		users[uid] = &user
 	}
-	return users, nil
+
+	return
 }
 
 func WritePasswd(users map[int]*SysUser, fileName string) error {
@@ -121,7 +137,13 @@ func WritePasswd(users map[int]*SysUser, fileName string) error {
 	return nil
 }
 
-func ReadGroup(fileName string) (map[int]*SysGroup, error) {
+func ReadGroup(fileName string) (groups map[int]*SysGroup, err error) {
+	defer func() {
+		if recoveredErr := recover(); recoveredErr != nil {
+			err = fmt.Errorf("%v", recoveredErr)
+		}
+	}()
+
 	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
@@ -129,7 +151,7 @@ func ReadGroup(fileName string) (map[int]*SysGroup, error) {
 	defer f.Close()
 	r := bufio.NewReader(f)
 
-	groups := make(map[int]*SysGroup, 0)
+	groups = make(map[int]*SysGroup, 0)
 	for !atEndOfFile(r) {
 		group := SysGroup{Users: make(map[string]bool)}
 		group.Name = readUntil(r, ':')
@@ -140,7 +162,8 @@ func ReadGroup(fileName string) (map[int]*SysGroup, error) {
 		}
 		groups[gid] = &group
 	}
-	return groups, nil
+
+	return
 }
 
 func WriteGroup(groups map[int]*SysGroup, fileName string) error {

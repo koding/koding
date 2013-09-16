@@ -5,6 +5,7 @@ module.exports = [
   "libs/sha1.encapsulated.coffee",
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
+  "libs/jquery.cookie.js",
 
   # --- Base class ---
   "Framework/core/utils.coffee",
@@ -15,6 +16,9 @@ module.exports = [
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
+
+  # the bongo api (or an empty file, depending on the config)
+  "../.build/api.js",
 
   # TODO: reenable closure wrapping:
   # "includes/header.inc.js",
@@ -110,9 +114,17 @@ module.exports = [
   "Framework/components/modals/KDModalViewLoad.coffee",
   "Framework/components/modals/KDBlockingModalView.coffee",
   "Framework/components/modals/KDModalViewWithForms.coffee",
+  "Framework/components/modals/KDModalViewStack.coffee",
 
   # notification
   "Framework/components/notifications/KDNotificationView.coffee",
+
+  # progressbar
+  "Framework/components/progressbar/KDProgressBarView.coffee",
+
+  # sliderbar
+  "Framework/components/sliderbar/KDSliderBarView.coffee",
+  "Framework/components/sliderbar/KDSliderBarHandleView.coffee",
 
   # dialog
   "Framework/components/dialog/KDDialogView.coffee",
@@ -147,7 +159,7 @@ module.exports = [
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
   "app/CommonViews/applicationview/applicationtabhandleholder.coffee",
-
+  "app/CommonViews/sharepopup.coffee"
   "app/CommonViews/linkviews/linkview.coffee",
   "app/CommonViews/linkviews/customlinkview.coffee",
   "app/CommonViews/linkviews/linkgroup.coffee",
@@ -239,6 +251,7 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   "app/CommonViews/ModalViewWithTerminal.coffee",
+  "app/CommonViews/DNDUploader.coffee",
 
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
@@ -260,6 +273,8 @@ module.exports = [
   "app/MainApp/navigation/navigationinvitationlink.coffee",
   "app/MainApp/navigation/navigationactivitylink.coffee",
   "app/MainApp/navigation/navigationappslink.coffee",
+  "app/MainApp/navigation/navigationdocsjobslink.coffee",
+  "app/MainApp/navigation/navigationpromotelink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",
@@ -314,18 +329,23 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/vmdetailsview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
+
+  "app/MainApp/filetree/helpers/dropboxuploader.coffee",
+
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
   "app/MainApp/filetree/bottomlist/finderbottomlistitem.coffee",
 
   # fs representation
   "app/MainApp/fs/fshelper.coffee",
+  "app/MainApp/fs/fswatcher.coffee",
   "app/MainApp/fs/fsitem.coffee",
   "app/MainApp/fs/fsfile.coffee",
   "app/MainApp/fs/fsfolder.coffee",
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
   "app/MainApp/fs/fsvm.coffee",
+  "app/MainApp/fs/appswatcher.coffee",
 
   # avatararea
   "app/MainApp/avatararea/avatarareapopup.coffee",
@@ -365,8 +385,6 @@ module.exports = [
   "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
-  "app/MainApp/localstorage.coffee",
-
 
   # got rid of static controllers
 
@@ -384,7 +402,6 @@ module.exports = [
 
   "libs/jquery-timeago.js",
   "libs/date.format.js",
-  "libs/jquery.cookie.js",
   "libs/jquery.getcss.js",
   "libs/mousetrap.js",
   "libs/md5-min.js",
@@ -401,6 +418,7 @@ module.exports = [
   "app/MainApp/AppController.coffee",
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
+  "app/MainApp/localstorage.coffee",
 
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
@@ -526,18 +544,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemQuestion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
-
- # Static Profile List Items
-  # "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -812,6 +819,8 @@ module.exports = [
   "Framework/themes/default/kd.buttons.styl",
   "Framework/themes/default/kd.scrollview.styl",
   "Framework/themes/default/kd.modal.styl",
+  "Framework/themes/default/kd.progressbar.styl",
+  "Framework/themes/default/kd.sliderbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
 

@@ -4,6 +4,8 @@
 
 { run }   = require './run'
 
+{ ObjectID: ObjectId } = (require 'mongodb').BSONPure
+
 run (db) ->
 
   (db.collection 'jVMs').findAndModify(
@@ -11,8 +13,11 @@ run (db) ->
     # selector:
     {
 
-      # the hostnameAlias of the vm that we want to move:
-      hostnameAlias : argv.h
+      # # the hostnameAlias of the vm that we want to move:
+      # hostnameAlias : argv.h
+
+      # the id of the vm:
+      _id: ObjectId argv.i
 
       # this is the region that we're migrating from:
       region        : argv.r

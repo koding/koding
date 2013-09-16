@@ -42,10 +42,10 @@ class WebTermView extends KDView
       @terminal.setFocused false
       KD.getSingleton('windowController').removeLayer @
 
-    $(window).bind "blur", =>
+    $(window).on "blur", =>
       @terminal.setFocused false
 
-    $(window).bind "focus", =>
+    $(window).on "focus", =>
       @terminal.setFocused @focused
 
     $(document).on "paste", (event) =>

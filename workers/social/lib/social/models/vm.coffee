@@ -7,6 +7,8 @@ module.exports = class JVM extends Module
   {secure} = require 'bongo'
   {uniq}   = require 'underscore'
 
+  {argv} = require 'optimist'
+
   KodingError = require '../error'
 
   JRecurlySubscription = require './recurly/subscription'
@@ -38,7 +40,7 @@ module.exports = class JVM extends Module
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVmInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
-                           'count', 'fetchDefaultVm' #'calculateUsage'
+                           'count', 'fetchDefaultVm', 'fetchVmRegion' #'calculateUsage'
                           ]
       instance          : []
     schema              :
@@ -60,7 +62,7 @@ module.exports = class JVM extends Module
                             'sj'  # San Jose
                             'vagrant'
                           ]]
-        default         : 'sj'
+        default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
       planOwner         : String
       planCode          : String
@@ -85,6 +87,10 @@ module.exports = class JVM extends Module
       shouldDelete      :
         type            : Boolean
         default         : no
+      diskSizeInMB      :
+        type            : Number
+        default         : 1200
+
 
   @createDomains = (account, domains, hostnameAlias)->
 
@@ -302,11 +308,18 @@ module.exports = class JVM extends Module
       , (err, vm)->
         return callback err  if err
         return callback null, null  unless vm
-        {planCode, planOwner, hostnameAlias, hostKite, region} = vm
-        underMaintenance = hostKite is '(maintenance)'
-        region         or= 'aws'
+        callback null,
+          planCode         : vm.planCode
+          planOwner        : vm.planOwner
+          hostnameAlias    : vm.hostnameAlias
+          underMaintenance : vm.hostKite is "(maintenance)"
+          region           : vm.region or 'sj'
 
-        callback null, {planCode, planOwner, hostnameAlias, underMaintenance, region}
+  @fetchVmRegion = secure (client, hostnameAlias, callback)->
+    {delegate} = client.connection
+    JVM.one {hostnameAlias}, (err, vm)->
+      return callback err  if err or not vm
+      callback null, vm.region
 
   @fetchDefaultVm = secure (client, callback)->
     {delegate} = client.connection

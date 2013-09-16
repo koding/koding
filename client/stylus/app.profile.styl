@@ -51,19 +51,30 @@ app.profile.styl
         overflow    visible
         width       auto
 
-        > [contenteditable="false"]:hover
-          background-color  #FFFBD3
-
         > *
           display         inline-block
           min-width       5px
-          padding         5px
+          padding         4px
 
         > [contenteditable="true"]
           background      white
-          padding         4px
+          padding         3px
           border          1px solid #C7C7C7
           border-radius   5px
+
+        &.firstName
+          > [contenteditable="true"]
+            border-right  none
+
+        &.lastName
+          > [contenteditable="true"]
+            padding-left  5px
+            border-left   none
+
+        &.firstName
+        &.lastName
+          > [contenteditable="true"]
+            border-radius 0
 
         &.bio > *[contenteditable="true"]
           min-height      80px
@@ -100,6 +111,11 @@ app.profile.styl
       .personal-profile-about.active
         p
           display     none
+
+  .profilearea.own-profile
+    .kdcontenteditableview
+      > [contenteditable="false"]:hover
+        background-color  #FFFBD3
 
 .content-display-wrapper
   .content-display

@@ -20,6 +20,7 @@ module.exports =
     address     : "http://localhost:3020"
   userSitesDomain: 'localhost'
   containerSubnet: "10.128.2.0/9"
+  vmPool        : "vms"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -115,6 +116,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      precompiledApi: no
       authExchange: authExchange
       github         :
         clientId     : "f8e440b796d953ea01e5"
@@ -129,10 +131,10 @@ module.exports =
         servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'http://localhost:3020'
-      # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
   mq            :
     host        : 'localhost'
@@ -149,7 +151,6 @@ module.exports =
     port        : 8008
     certFile    : ""
     keyFile     : ""
-    useKontrold : no
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
@@ -199,7 +200,6 @@ module.exports =
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-      sslips      : '127.0.0.1'
     rabbitmq      :
       host        : 'localhost'
       port        : '5672'

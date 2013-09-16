@@ -61,6 +61,13 @@ class AccountAppController extends AppController
         ,{item,section}
         @wrapperController.sectionLists.push wrapper
 
+    navView.setPartial """
+      <div class="kdview kdlistview">
+      <h3>Legal</h3>
+      <div class="kdview kdlistitemview newpage"><a href="/tos.html" target="_blank">Terms of service <span class="icon new-page"></span></a></div>
+      <div class="kdview kdlistitemview newpage"><a href="/privacy.html" target="_blank">Privacy policy <span class="icon new-page"></span></a></div>
+      </div>
+      """
 
     # SET UP SPLIT VIEW AND TOGGLERS
     @split = split = new SplitView
@@ -102,6 +109,38 @@ class AccountAppController extends AppController
     lastWrapper = @wrapperController.sectionLists[@wrapperController.sectionLists.length-1]
     lastWrapper.setHeight @navController.getView().getHeight()
 
+  showReferrerTooltip:(options)->
+
+    {linkView, top, left, arrowMargin} = options
+
+    referrerCode  = KD.whoami().profile.nickname
+    shareUrl      = "#{location.origin}/?r=#{referrerCode}"
+
+    contextMenu   = new JContextMenu
+      cssClass    : "activity-share-popup"
+      type        : "activity-share"
+      delegate    : linkView
+      x           : linkView.getX() - left
+      y           : linkView.getY() - top
+      arrow       :
+        placement : "bottom"
+        margin    : arrowMargin
+      lazyLoad    : yes
+    , customView  : new SharePopup {
+        url       : shareUrl
+        shortenURL: false
+        twitter   :
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
+        linkedin  :
+          title   : "Join me @koding!"
+          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
+      }
+
+    new KDOverlayView
+      parent      : KD.getSingleton("mainView").mainTabView.activePane
+      transparent : yes
+
+
   toggleSidebar:(options)->
     {show} = options
     controller = @
@@ -123,16 +162,17 @@ class AccountAppController extends AppController
     personal :
       title : "Personal"
       items : [
-        { title : "Login & Email",        listHeader: "Email & username",      listType: "username",       id : 10,      parentId : null }
-        { title : "Password & Security",  listHeader: "Password & Security",   listType: "security",       id : 20,      parentId : null }
-        { title : "E-mail Notifications", listHeader: "E-mail Notifications",  listType: "emailNotifications", id : 22,  parentId : null }
-        { title : "Linked accounts",      listHeader: "Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
+        { title : "Login & Email",        listHeader: "Email & username",           listType: "username",       id : 10,      parentId : null }
+        { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
+        { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
+        { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
+        { title : "Referrals",            listHeader: "Referrals ",                 listType: "referralSystem", id : 40,      parentId : null }
       ]
     billing :
       title : "Billing"
       items : [
-        { title : "Subscriptions",        listHeader: "Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
-        { title : "Billing history",      listHeader: "Billing History",       listType: "history",        id : 30,      parentId : null }
+        { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
+        { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
       ]
     develop :
       title : "Develop"

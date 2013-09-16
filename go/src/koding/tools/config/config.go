@@ -15,6 +15,7 @@ type Config struct {
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
+	VmPool          string
 	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
@@ -70,7 +71,6 @@ type Config struct {
 			Port    int
 			PortSSL int
 			FTPIP   string
-			SSLIPS  string
 		}
 		RabbitMq struct {
 			Host     string
@@ -98,6 +98,7 @@ var Uuid string
 var Host string
 var BrokerDomain string
 var Region string
+var VMProxies bool // used to enable ports for users
 
 func init() {
 	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
@@ -109,6 +110,8 @@ func init() {
 	flag.StringVar(&BrokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flag.StringVar(&BrokerDomain, "domain", "", "Alias for -a")
 	flag.StringVar(&Region, "r", "", "Region")
+
+	flag.BoolVar(&VMProxies, "v", false, "Enable ports for VM users (1024-10000)")
 
 	flag.Parse()
 	if flag.NArg() != 0 {

@@ -57,13 +57,6 @@ body
   input,textarea,button,select,option
     font-weight     400
 
-#main-koding-loader
-  abs()
-  top               0
-  left              0
-  z-index           1000
-  background        #332F2A url(../images/koding-new-bg.png) repeat-x scroll 0 0
-
 @keyframes pulse
   0%
     opacity .5
@@ -71,6 +64,12 @@ body
     opacity 1
   100%
     opacity .5
+
+@keyframes pulse-to-fade-out
+  0%
+    opacity 1
+  100%
+    opacity 0
 
 @keyframes shrink
   0%
@@ -91,18 +90,34 @@ body
     opacity      0
 
 .pulsing
-  vendor            transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
-  vendor            animation, pulse 1.5s ease-in-out 100
+  vendor              transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
+  vendor              animation, pulse 1.5s ease-in-out 100
+  &.out
+    vendor            animation, pulse-to-fade-out .75s ease-in-out
+    vendor            animation-iteration-count, 1
 
 .main-loading
-  vendor            animation, shrink 5s ease-in-out
-  vendor            animation-iteration-count, 1
-  vendor            transform, scale(0)
-  size              100%, 100%
-  rel()
+  abs()
+  top                 0
+  left                0
+  z-index             1000
+  background          #332F2A url("../images/koding-new-bg.png") repeat-x scroll 0 0
+  vendor              transition, opacity .75s ease-in-out
+  opacity             1
+  &.out
+    opacity           0
+
+  .out
+  &.about
+    vendor            animation, shrink 5s ease-in-out
+    vendor            animation-iteration-count, 1
+    vendor            transform, scale(0)
+    size              100%, 100%
+    rel()
+    ul
+      opacity         0
+      transition      opacity 1s ease-in
   ul
-    opacity         0
-    transition      opacity 1s ease-in
     top             50%
     left            50%
     margin          -75px 0 0 -57px
@@ -330,9 +345,20 @@ body
         padding-top     3px
         margin-top      -1px
         font-size       11px
+    &.promote
+      .title
+        color           #ddd !important
+    &.docs
+      .ext
+        display         inline-block
+        color           #adadad
+        &:hover
+          color         #adadad
+          text-decoration underline
+
 
     &.separator
-      margin            10px 0 6px
+      margin            3px 0 0
       padding           0 11px
       cursor            default
       borderBox()
@@ -561,6 +587,10 @@ span.main-nav-icon
     bg                    position, 0 -540px
   &.open-group
     bg                    position, 0 -260px
+  &.promote
+    bg                    position, 0 -600px
+  &.docs-jobs
+    bg                    position, 0 -620px
 
 
 .kdlistitemview.selected
@@ -627,14 +657,14 @@ span.main-nav-icon
   right               5px
   width               20px !important
   height              20px
-  border-radius       0 0 0 4px
+  rounded             0 0 0 3px
   box-shadow          -1px 1px 1px 0px #ccc
   padding             0
   border              none
   .icon
     padding           0
     sprite()
-    bg                  position, -137px -298px !important
+    bg                  position, 0 -580px !important
 
 .app-settings
   .enable-fullscreen-menu-item
@@ -1701,3 +1731,73 @@ span.main-nav-icon
   left                  25px
   color                 #fff
   abs()
+
+
+.file-droparea
+  borderBox()
+  noTextSelection()
+  margin          10px
+  border          5px dashed #afafaf
+  kalc            height, 100% \- 20px, 100%
+  kalc            width,  100% \- 20px, 100%
+  border-radius   5px
+  &.hover
+    border-color  #444
+  .file-drop
+    text-align    center
+    font-size     20px
+    font-weight   bold
+    position      absolute
+    top           50%
+    margin-top    -10px
+    width         100%
+    z-index       0
+    small
+      font-size   10px
+      word-wrap   break-word
+      display     block
+  .cancel
+    position      absolute
+    width         100%
+    bottom        20px
+    text-align    center
+
+#chrome-terminal-banner
+  abs                   30px, 30px
+  size                  auto, auto
+  z-index               1
+  font-size             11px
+  line-height           20px
+  padding-top           35px
+  min-height            30px
+  min-width             270px
+  overflow              visible
+  .koding-icon
+    abs                 0px, 0px
+    size                23px, 30px
+    sprite()
+    bg                  position,-400px 0
+  .actions
+    abs                 2px, 25px
+    a.action
+      color             #fff
+      text-decoration   none
+      display           inline-block
+      padding           5px 15px
+      border-right      1px solid #444
+      &:last-of-type
+        border-right    none
+      &:hover
+        color           #ff9200
+        .title
+          color         #ff9200
+      .title
+        font-size       inherit !important
+        color           #fff
+  p
+    color               #fff
+    text-align          right
+    padding-right       40px
+    a
+      color             #ff9200
+
