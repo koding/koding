@@ -91,7 +91,7 @@ func windowrect(ws *winsize, fd uintptr) error {
 	_, _, errno := syscall.Syscall(
 		syscall.SYS_IOCTL,
 		fd,
-		syscall.TIOCGWINSZ,
+		syscall.TIOCSWINSZ,
 		uintptr(unsafe.Pointer(ws)),
 	)
 	if errno != 0 {
