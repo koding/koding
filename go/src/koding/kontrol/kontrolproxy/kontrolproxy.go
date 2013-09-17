@@ -131,7 +131,7 @@ func configureProxy() {
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
 	reverseProxy := &Proxy{
-		EnableFirewall: true,
+		EnableFirewall: false,
 	}
 
 	startHTTPS(reverseProxy) // non-blocking
