@@ -14,4 +14,3 @@ class DemosAppController extends AppController
     super options, data
 
   loadView:(mainView)->
-
