@@ -3,7 +3,7 @@ class NavigationLink extends KDListItemView
   constructor:(options = {},data)->
 
     data.type      or= ""
-    options.cssClass = KD.utils.curryCssClass "navigation-item clearfix", data.type
+    options.cssClass = KD.utils.curry "navigation-item clearfix", data.type
 
     super options,data
 

@@ -2,7 +2,7 @@ class FollowButton extends KDToggleButton
 
   constructor:(options = {}, data)->
 
-    options.cssClass = @utils.curryCssClass "follow-btn", options.cssClass
+    options.cssClass = @utils.curry "follow-btn", options.cssClass
     options = $.extend
       defaultState : if data.followee then "Following" else "Follow"
       bind         : 'mouseenter mouseleave'
