@@ -11,30 +11,33 @@ module.exports = class JRecurlyGroup extends JRecurly
     JRecurlyPlan.fetchGroupAccount group, (err, groupAccount)=>
       return callback err  if err
       {email, username, firstName, lastName} = groupAccount
-      accountCode = "group_#{group._id}"
+      accountCode = "group_#{group.getId()}"
       extend data, {accountCode, email, username, firstName, lastName}
 
       recurly.setAccount accountCode, data, (err, res)->
         return callback err  if err
         recurly.setBilling accountCode, data, callback
 
-  @getAccount = (group, callback)->
-    recurly.getAccount "group_#{group._id}", callback
+  @getAccount = (group, callback) ->
+    recurly.getAccount "group_#{group.getId()}", callback
+
+  @getBilling = (group, callback) ->
+    recurly.getBilling "group_#{group.getId()}", callback
 
   @getTransactions = (group, callback)->
-    recurly.getTransactions "group_#{group._id}", callback
+    recurly.getTransactions "group_#{group.getId()}", callback
 
   @addPlan = (group, data, callback)->
     data.feeMonthly = data.price
     data.feeInitial = 0
-    data.code       = "groupplan_#{group._id}_#{data.name}_0"
+    data.code       = "groupplan_#{group.getId()}_#{data.name}_0"
     # 9999 is a hack, since Recurly sucks at non-recurring payments
     data.feeInterval = if data.type is 'recurring' then 1 else 9999
 
     recurly.createPlan data, callback
 
   @deletePlan = (group, data, callback)->
-    if data.code.indexOf("groupplan_#{group._id}_") > -1
+    if data.code.indexOf("groupplan_#{group.getId()}_") > -1
       recurly.deletePlan data, callback
 
   @fetchAccount = (group, callback)->
@@ -49,4 +52,4 @@ module.exports = class JRecurlyGroup extends JRecurly
           lastName  : group.title
 
   @getBalance = (group, callback)->
-    @getBalance_ "group_#{group._id}", callback
+    @getBalance_ "group_#{group.getId()}", callback

@@ -1285,7 +1285,7 @@ module.exports = class JGroup extends Module
   getBillingInfo: permit 'manage payment methods',
     success: (client, callback)->
       JRecurlyGroup = require '../recurly/group'
-      JRecurlyGroup.getAccount this, callback
+      JRecurlyGroup.getBilling this, callback
 
   checkUserBalance: secure (client, data, callback)->
     @fetchBundle (err, bundle)=>
