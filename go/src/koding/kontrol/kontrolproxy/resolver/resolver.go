@@ -203,11 +203,11 @@ func GetTarget(host string) (*Target, error) {
 		}
 
 		if vm.HostKite == "" {
-			return nil, fmt.Errorf("vm for hostname %s is not active", hostname)
+			return nil, ErrVMNotActive
 		}
 
 		if vm.IP == nil {
-			return nil, fmt.Errorf("vm for hostname %s is not active", hostname)
+			return nil, ErrVMNotActive
 		}
 
 		vmAddr := vm.IP.String()
