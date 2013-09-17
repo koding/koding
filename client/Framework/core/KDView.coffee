@@ -36,6 +36,7 @@ class KDView extends KDObject
     mouseleave    : "mouseLeave"
     mousemove     : "mouseMove"
     mousewheel    : "mouseWheel"
+    mouseover     : "mouseOver"
     contextmenu   : "contextMenu"
     dragstart     : "dragStart"
     dragenter     : "dragEnter"
@@ -601,11 +602,13 @@ class KDView extends KDObject
 
   mouseUp:(event)->    yes
 
-  paste:(event)->      yes
+  mouseOver:(event)->  yes
 
   mouseDown:(event)->
     (KD.getSingleton "windowController").setKeyView null
     yes
+
+  paste:(event)->      yes
 
   # HTML5 DND
   dragEnter:(e)->
@@ -696,7 +699,7 @@ class KDView extends KDObject
           dragState.containment.viewBounds = @[view].getBounds()
         dragState.containment.viewBounds or= @parent.getBounds()
         dragState.containment.padding = \
-          options.containment.padding or x: 0, y: 0
+          options.containment.padding or top: 0, right: 0, bottom: 0, left: 0
 
       # TODO: should move these lines
       dragState.handle      = options.handle
@@ -755,8 +758,8 @@ class KDView extends KDObject
     dragGlobDir.x = if x > 0 then 'right'  else 'left'
     dragGlobDir.y = if y > 0 then 'bottom' else 'top'
 
-    el = @$()
     if @dragIsAllowed
+      el = @$()
       dragMeta   = @dragState.meta
       targetPosX = if dragMeta.right  and not dragMeta.left then 'right'  else 'left'
       targetPosY = if dragMeta.bottom and not dragMeta.top  then 'bottom' else 'top'
@@ -768,10 +771,10 @@ class KDView extends KDObject
         m  = w: @getWidth(), h: @getHeight()
         p  = containment.viewBounds
         cp = containment.padding
-        if newX <= 0 + cp.x then newX = 0 + cp.x
-        if newY <= 0 + cp.y then newY = 0 + cp.y
-        if newX + m.w + cp.x >= p.w - cp.x then newX = p.w - m.w - cp.x
-        if newY + m.h + cp.y >= p.h - cp.y then newY = p.h - m.h - cp.y
+        if newX <= 0 + cp.left then newX = 0 + cp.left
+        if newY <= 0 + cp.top  then newY = 0 + cp.top
+        if newX + m.w >= p.w - cp.right  then newX = p.w - m.w - cp.right
+        if newY + m.h >= p.h - cp.bottom then newY = p.h - m.h - cp.bottom
 
       el.css targetPosX, newX unless axis is 'y'
       el.css targetPosY, newY unless axis is 'x'
