@@ -774,7 +774,7 @@ __utils =
     return "#{bytes.toFixed 2} #{units[unitIndex]}"
 
   compileCoffeeOnClient: (coffeeCode, callback = noop) ->
-    require ["https://raw.github.com/jashkenas/coffee-script/master/extras/coffee-script.js"], (coffeeCompiler) ->
+    require ["//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"], (coffeeCompiler) ->
       callback coffeeCompiler.eval coffeeCode
 
   openGithubPopUp:->
