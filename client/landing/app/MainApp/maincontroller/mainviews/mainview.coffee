@@ -103,7 +103,7 @@ class MainView extends KDView
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
-      cssClass  : if entryPoint?.type? is 'group' then 'group' else ''
+      cssClass  : if entryPoint?.type is 'group' then 'group' else ''
       partial   : "<span></span>"
       click     : (event)=>
         KD.utils.stopDOMEvent event
