@@ -260,8 +260,9 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	if _, ok := getClient(userIP); !ok {
-		go logDomainRequests(req.Host)
-		go logProxyStat(proxyName, userCountry)
+		// these are not used for any purpose, disable them to avoid load on mongodb
+		// go logDomainRequests(req.Host)
+		// go logProxyStat(proxyName, userCountry)
 		go registerClient(userIP, target.Url.String())
 	}
 
