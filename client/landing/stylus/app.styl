@@ -686,7 +686,11 @@ span.main-nav-icon
   size                100%,25px
   z-index             0
   bg                  color,transparent
-  vendor              transition, top .3s linear \, width .3s linear
+  vendor              transition, top .3s linear\,\
+                                  width .3s linear
+  &.in
+    top               -25px
+
   .kdtabhandle
     color             rgba(255,255,255,0.95)
     line-height       23px
