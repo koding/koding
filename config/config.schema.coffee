@@ -140,6 +140,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        precompiledApi: 1
         authExchange  : 1
         github        :
           clientId    : 1

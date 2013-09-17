@@ -1,11 +1,7 @@
 module.exports = (account)->
 
-  loggedIn = !!account
-  bgImg    = encodeURIComponent "//images/defaultavatar/default.avatar.160.png"
-
-  if loggedIn
-    hash  = account.profile?.hash or ''
-    bgImg = "//gravatar.com/avatar/#{hash}?size=160&d=#{bgImg}"
+  hash  = account.profile?.hash or ''
+  bgImg = "//gravatar.com/avatar/#{hash}?size=160&d=#{encodeURIComponent '//images/defaultavatar/default.avatar.160.png'}"
 
   markup =
     """
@@ -23,8 +19,7 @@ module.exports = (account)->
             <a class="group-switcher" href="#"><span class="count"><cite>0</cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
           </div>
           <div class="kdview kdlistview kdlistview-navigation">
-            #{getHomeItem loggedIn}
-            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix#{ if loggedIn then ' selected' else ''}">
+            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix selected}">
               <a class="title" href="#"><span class="main-nav-icon activity"></span>Activity</a>
             </div>
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
@@ -45,7 +40,7 @@ module.exports = (account)->
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
               <hr class="">
             </div>
-            #{getSmallNavigation({loggedIn})}
+            #{getSmallNavigation()}
           </div>
           <div class="kdview kdlistview kdlistview-footer-menu">
             <div class="kdview kdlistitemview kdlistitemview-default help"><span></span></div>
@@ -60,37 +55,21 @@ module.exports = (account)->
 
   return markup
 
-getHomeItem = (loggedIn)->
-  if loggedIn then ''
-  else
-    """
-    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-      <a class="title" href="#"><span class="main-nav-icon home"></span>Home</a>
-    </div>
-    """
-
-getSmallNavigation = ({loggedIn})->
-  if loggedIn
-    """
-    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account promote">
-      <a class="kdview title"><span class="main-nav-icon promote"></span><span>Get extra 250MB!</span></a>
-    </div>
-    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account docs">
-      <span class="title"><span class="main-nav-icon docs-jobs"></span><a class="ext" href="http://koding.github.io/docs/" target="_blank">Docs</a> / <a class="ext" href="http://koding.github.io/jobs/" target="_blank">Jobs</a></span>
-    </div>
-    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
-      <a class="title"><span class="main-nav-icon account"></span>Account</a>
-    </div>
-    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
-      <hr class="">
-    </div>
-    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
-      <a class="title"><span class="main-nav-icon logout"></span>Logout</a>
-    </div>
-    """
-  else
-    """
-    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
-      <a class="title"><span class="main-nav-icon login"></span>Login</a>
-    </div>
-    """
+getSmallNavigation = ->
+  """
+  <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account promote">
+    <a class="kdview title"><span class="main-nav-icon promote"></span><span>Get extra 250MB!</span></a>
+  </div>
+  <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account docs">
+    <span class="title"><span class="main-nav-icon docs-jobs"></span><a class="ext" href="http://koding.github.io/docs/" target="_blank">Docs</a> / <a class="ext" href="http://koding.github.io/jobs/" target="_blank">Jobs</a></span>
+  </div>
+  <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
+    <a class="title"><span class="main-nav-icon account"></span>Account</a>
+  </div>
+  <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
+    <hr class="">
+  </div>
+  <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
+    <a class="title"><span class="main-nav-icon logout"></span>Logout</a>
+  </div>
+  """

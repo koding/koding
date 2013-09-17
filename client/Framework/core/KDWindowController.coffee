@@ -111,25 +111,8 @@ class KDWindowController extends KDController
         if href and not /^#/.test href
           KD.getSingleton('router').handleRoute href
 
-    window.addEventListener 'beforeunload', @bound "beforeUnload"
-
-    # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
-    @utils.wait 15000, =>
-      KD.remote.api.JSystemStatus.on 'forceReload', =>
-        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-        location.reload()
-
-    # async clientId change checking procedures causes
-    # race conditions between window reloading and post-login callbacks
-    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
-      if cookie? and cookie isnt $.cookie 'clientId'
-        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-        @emit "clientIdChanged"
-
-        # window location path is set to last route to ensure visitor is not
-        # redirected to another page
-        @utils.defer -> window.location.pathname = KD.getSingleton("router").visitedRoutes.first or "/"
-      cookie = $.cookie 'clientId'
+    unless location.hostname is 'localhost'
+      window.addEventListener 'beforeunload', @bound "beforeUnload"
 
     document.addEventListener getVisibilityEventName(), (event)=>
       @focusChange event, @isFocused()
