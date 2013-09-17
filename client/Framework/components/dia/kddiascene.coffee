@@ -1,9 +1,41 @@
 class KDDiaScene extends JView
 
-  constructor:->
+  # Example usage:
+  #
+  # @addSubView scene = new KDDiaScene
+
+  # scene.addSubView container1 = new KDDiaContainer draggable : yes
+  # scene.addSubView container2 = new KDDiaContainer
+  # scene.addSubView container3 = new KDDiaContainer draggable : yes
+
+  # container1.addSubView diaObject1 = new KDDiaObject type:'square'
+  # container1.addSubView diaObject2 = new KDDiaObject type:'square'
+  # container1.addSubView diaObject3 = new KDDiaObject type:'square'
+
+  # container2.addSubView diaObject4 = new KDDiaObject type:'circle'
+  # container2.addSubView diaObject5 = new KDDiaObject type:'circle'
+  # container2.addSubView diaObject6 = new KDDiaObject type:'square'
+
+  # container3.addSubView diaObject7 = new KDDiaObject type:'square'
+
+  # scene.connect {dia:diaObject1, joint:'bottom'}, \
+  #               {dia:diaObject2, joint:'bottom'}
+  # scene.connect {dia:diaObject2, joint:'top'},    \
+  #               {dia:diaObject3, joint:'top'}
+  # scene.connect {dia:diaObject3, joint:'bottom'}, \
+  #               {dia:diaObject7, joint:'bottom'}
+  # scene.connect {dia:diaObject3, joint:'right'},  \
+  #               {dia:diaObject4, joint:'left'}
+  # scene.connect {dia:diaObject4, joint:'bottom'}, \
+  #               {dia:diaObject6, joint:'bottom'}
+  # scene.connect {dia:diaObject6, joint:'top'},    \
+  #               {dia:diaObject7, joint:'top'}
+
+  constructor:(options = {}, data)->
+    options.cssClass = KD.utils.curry 'kddia-scene', options.cssClass
+    options.bind     = KD.utils.curry 'mousemove',   options.bind
+
     super
-      cssClass : 'kddia-scene'
-      bind     : 'mousemove'
 
     @containers  = []
     @connections = []
@@ -12,16 +44,17 @@ class KDDiaScene extends JView
   diaAdded:(container, diaObj)->
     diaObj.on 'JointRequestsLine', @bound "handleLineRequest"
     diaObj.on 'DragInAction', => @setActiveDia diaObj
-    diaObj.setX 20 + (Object.keys(container.dias).length-1) * 80
-    diaObj.setY 20
 
-  addSubView:(container)->
-    super container
+  addContainer:(container, pos = {})->
+    @addSubView container
+
     container.on "NewDiaObjectAdded", @bound "diaAdded"
     container.on "HighlightLines", @bound "setActiveDia"
     container.on "DragInAction", @bound "updateScene"
     @containers.push container
-    container.setX 20 + (@containers.length - 1) * 320
+
+    container.setX pos.x  if pos.x?
+    container.setY pos.y  if pos.y?
 
   drawFakeLine:(options={})->
     {sx,sy,ex,ey,lineStyle} = options
@@ -32,21 +65,21 @@ class KDDiaScene extends JView
     context.beginPath()
     context.moveTo sx, sy
     context.lineTo ex, ey
-    context.lineWidth = 5
-    context.strokeStyle = 'blue'
+    context.lineWidth = 2
+    context.strokeStyle = 'orange'
     context.lineCap = 'round'
     context.stroke()
 
   mouseMove:(e)->
     return  unless @_trackJoint
     {x, y} = @_trackJoint.getPos()
-    ex = x + (e.clientX - @_trackJoint.getX()) - 4
-    ey = y + (e.clientY - @_trackJoint.getY()) - 7
+    ex = x + (e.clientX - @_trackJoint.getX())
+    ey = y + (e.clientY - @_trackJoint.getY())
     @drawFakeLine {sx:x, sy:y, ex, ey}
 
   mouseUp:(e)->
     return  unless @_trackJoint
-    targetId = $(e.target).attr("dia-id")
+    targetId = $(e.target).closest(".kddia-object").attr('dia-id')
     sourceId = @_trackJoint.getDiaId()
     delete @_trackJoint
 
@@ -58,13 +91,18 @@ class KDDiaScene extends JView
       log "Connect #{sourceId} to #{targetId}"
       source = @getDia sourceId
       target = @getDia targetId
+      target.joint = @guessJoint target, source  unless target.joint
       @connect source, target
+
+  guessJoint:(target, source)->
+    return 'left'  if source.joint is 'right' and target.dia.joints.left?
+    return 'right' if source.joint is 'left'  and target.dia.joints.right?
 
   getDia:(id)->
     parts = ( id.match /dia\-((.*)\-joint\-(.*)|(.*))/ ).filter (m)->return !!m
     return null  unless parts
     [objId, joint] = parts.slice(-2)
-    return null  if  objId is joint
+    joint = null  if objId is joint
     # Find a better way for this
     for container in @containers
       break  if dia = container.dias[objId]
@@ -115,7 +153,7 @@ class KDDiaScene extends JView
       context.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \
                             tJoint.x + tx, tJoint.y + ty, \
                             tJoint.x, tJoint.y)
-      context.lineWidth = 5
+      context.lineWidth = 2
       context.stroke()
 
   dumpScene:->
@@ -123,6 +161,6 @@ class KDDiaScene extends JView
 
   pistachio:->
     """
-    <canvas id="jointCanvas" width="1200" height="500"></canvas>
-    <canvas id="fakeCanvas"  width="1200" height="500"></canvas>
+    <canvas id="jointCanvas" width="1200px" height="500px"></canvas>
+    <canvas id="fakeCanvas"  width="1200px" height="500px"></canvas>
     """

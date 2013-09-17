@@ -337,7 +337,7 @@ __utils =
     if "function" is typeof duration
       fn = duration
       duration = 0
-    setTimeout fn, duration
+    return setTimeout fn, duration
 
   killWait:(id)->
     clearTimeout id if id

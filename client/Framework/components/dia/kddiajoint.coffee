@@ -9,10 +9,13 @@ class KDDiaJoint extends JView
       warn "Unknown joint type '#{options.type}', falling back to 'left'"
       options.type = 'left'
 
-    options.cssClass = "kddia-joint #{options.type}"
+    options.cssClass = \
+      KD.utils.curry "kddia-joint #{options.type}", options.cssClass
+
     super options, data
 
     @type = @getOption 'type'
+    @size = (@getOption 'size') or 10
 
   viewAppended:->
     super

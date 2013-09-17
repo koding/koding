@@ -1,12 +1,9 @@
 @import "./client/Framework/themes/default/kdfn"
 
 div.kddia-scene
-  margin             15px
-  margin-left        20px
+  cursor             default
   width              auto
-  height             500px
   bg                 color, rgba(255,255,255,0.9)
-  border             1px solid red
   rounded            6px
 
 div.kddia-container
@@ -14,7 +11,6 @@ div.kddia-container
   left               20px
   width              300px
   height             300px
-  border             1px solid blue
   rounded            6px
   abs()
 
@@ -70,3 +66,63 @@ div.kddia-joint
   left              0
   top               0
   abs()
+
+
+
+/// ----------------
+
+
+div.environments-container
+  width           240px
+  height          auto
+  border          1px dashed #ccc
+  background      rgba(253, 253, 253, 0.1)
+  noTextSelection()
+
+  .kdheaderview
+    padding       14px
+    border        none
+
+div.environments-item
+  cursor          default
+  width           200px
+  height          40px
+  border          1px solid rgba(217, 216, 217, 1.0)
+  border-left     5px solid rgba(217, 216, 217, 1.0)
+  gradient        rgba(252, 253, 253, 1.0), rgba(228, 229, 230, 1.0)
+  rounded         2px
+  noTextSelection()
+  borderBox()
+
+  &:hover
+    gradient     rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
+
+  &.activated
+    border-left   5px solid green
+
+  h3
+    font-size     12px
+
+  div.details
+    padding       8px
+    span
+      font-size   10px
+      color       #aaa
+      margin-top  -2px
+      abs()
+
+  div.progressbar-container
+    height          4px
+    margin-top      4px
+
+div.environments-joint
+  width             4px
+  height            4px
+  background-color  #ccc
+  border            none
+  &.right
+    right           -2px
+    margin-top      -2px
+  &.left
+    left            -2px
+    margin-top      -2px

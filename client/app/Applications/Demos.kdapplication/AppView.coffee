@@ -1,31 +1,162 @@
 class DemosMainView extends KDScrollView
 
   viewAppended:->
-    @addSubView scene = new KDDiaScene
 
-    scene.addSubView container1 = new KDDiaContainer draggable : yes
-    scene.addSubView container2 = new KDDiaContainer
-    scene.addSubView container3 = new KDDiaContainer draggable : yes
+    @addSubView scene = new EnvironmentScene
 
-    container1.addSubView diaObject1 = new KDDiaObject type:'square'
-    container1.addSubView diaObject2 = new KDDiaObject type:'square'
-    container1.addSubView diaObject3 = new KDDiaObject type:'square'
+    rulesContainer    = new EnvironmentContainer
+      title           : "Rules"
+      itemClass       : EnvironmentRuleItem
+    scene.addContainer rulesContainer
 
-    container2.addSubView diaObject4 = new KDDiaObject type:'circle'
-    container2.addSubView diaObject5 = new KDDiaObject type:'circle'
-    container2.addSubView diaObject6 = new KDDiaObject type:'square'
+    domainsContainer  = new EnvironmentContainer
+      title           : "Domains"
+      itemClass       : EnvironmentDomainItem
+    scene.addContainer domainsContainer, x: 300
 
-    container3.addSubView diaObject7 = new KDDiaObject type:'square'
+    machinesContainer = new EnvironmentContainer
+      title           : "Machines"
+      itemClass       : EnvironmentMachineItem
+    scene.addContainer machinesContainer, x: 580
 
-    scene.connect {dia:diaObject1, joint:'bottom'}, \
-                  {dia:diaObject2, joint:'bottom'}
-    scene.connect {dia:diaObject2, joint:'top'},    \
-                  {dia:diaObject3, joint:'top'}
-    scene.connect {dia:diaObject3, joint:'bottom'}, \
-                  {dia:diaObject7, joint:'bottom'}
-    scene.connect {dia:diaObject3, joint:'right'},  \
-                  {dia:diaObject4, joint:'left'}
-    scene.connect {dia:diaObject4, joint:'bottom'}, \
-                  {dia:diaObject6, joint:'bottom'}
-    scene.connect {dia:diaObject6, joint:'top'},    \
-                  {dia:diaObject7, joint:'top'}
+    rulesContainer.addItem
+      title       : 'Internal Access'
+      description : 'Deny: All, Allow: 127.0.0.1'
+      activated   : yes
+
+    rulesContainer.addItem
+      title       : 'No China'
+      description : 'Deny: All, Allow: Loc: [China]'
+      notes       : 'We need this for bla bla bla...'
+
+    domainsContainer.addItem
+      title       : 'gokmen.kd.io'
+      description : 'Main domain'
+      activated   : yes
+
+    domainsContainer.addItem
+      title       : 'git.gokmen.kd.io'
+      description : 'Koding GIT repository'
+      notes       : 'I keep all the source in here.'
+
+    domainsContainer.addItem
+      title       : 'svn.gokmen.kd.io'
+      description : 'Koding SVN repository'
+
+    machinesContainer.addItem
+      title : 'vm-0.gokmen.koding.kd.io'
+      usage : 20
+
+    machinesContainer.addItem
+      title     : 'vm-1.gokmen.koding.kd.io'
+      usage     : 45
+      activated : yes
+
+class EnvironmentScene extends KDDiaScene
+  constructor:->
+    super
+      cssClass : 'environments-scene'
+
+class EnvironmentContainer extends KDDiaContainer
+  constructor:(options={}, data)->
+    options.cssClass  = 'environments-container'
+    options.draggable = yes
+    super options, data
+
+    title = @getOption 'title'
+    @header = new KDHeaderView {type : "medium", title}
+
+  viewAppended:->
+    super
+    @addSubView @header
+
+  addDia:(diaObj, pos)->
+    pos = x: 20, y: 60 + @diaCount() * 50
+    super diaObj, pos
+    @updateHeight()
+
+  diaCount:-> Object.keys(@dias).length
+  updateHeight:-> @setHeight 80 + @diaCount() * 50
+
+class EnvironmentItem extends KDDiaObject
+  constructor:(options={}, data)->
+    options.cssClass = KD.utils.curry 'environments-item', options.cssClass
+    options.jointItemClass = EnvironmentItemJoint
+    options.draggable = no
+
+    super options, data
+
+  viewAppended:->
+    super
+    @setClass 'activated'  if @getData().activated?
+
+  pistachio:->
+    """
+      <div class='details'>
+        {h3{#(title)}}
+        {{#(description)}}
+      </div>
+    """
+
+class EnvironmentRuleItem extends EnvironmentItem
+  constructor:(options={}, data)->
+    options.joints = ['right']
+    options.cssClass = 'rule'
+    super options, data
+
+class EnvironmentDomainItem extends EnvironmentItem
+  constructor:(options={}, data)->
+    options.joints = ['left', 'right']
+    options.cssClass = 'domain'
+    super options, data
+
+class EnvironmentMachineItem extends EnvironmentItem
+  constructor:(options={}, data)->
+    options.joints = ['left']
+    options.cssClass = 'machine'
+    super options, data
+    @usage = new KDProgressBarView
+
+  viewAppended:->
+    super
+    @usage.updateBar @getData().usage, '%', ''
+
+  pistachio:->
+    """
+      <div class='details'>
+        {h3{#(title)}}
+        {{> @usage}}
+      </div>
+    """
+
+class EnvironmentItemJoint extends KDDiaJoint
+  constructor:(options={}, data)->
+    options.cssClass = 'environments-joint'
+    options.size     = 4
+    super options, data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
