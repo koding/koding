@@ -1,6 +1,6 @@
 class KDContentEditableView extends KDView
   constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curryCssClass "kdcontenteditableview", options.cssClass
+    options.cssClass = KD.utils.curry "kdcontenteditableview", options.cssClass
     options.bind = "click input keydown"
     super options, data
     options.placeholder ?= ""

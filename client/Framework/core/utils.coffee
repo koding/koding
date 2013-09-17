@@ -53,7 +53,8 @@ __utils =
 
   trimIllegalChars :(word)->
 
-  curryCssClass:(obligatoryClass, optionalClass)-> obligatoryClass + if optionalClass then ' ' + optionalClass else ''
+  curry:(obligatory, optional)->
+    obligatory + if optional then ' ' + optional else ''
 
   parseQuery:do->
     params  = /([^&=]+)=?([^&]*)/g    # for chunking the key-val pairs
@@ -793,7 +794,7 @@ __utils =
 
   showSaveDialog: (container, callback = noop, options = {}) ->
     container.addSubView dialog = new KDDialogView
-      cssClass      : KD.utils.curryCssClass "save-as-dialog", options.cssClass
+      cssClass      : KD.utils.curry "save-as-dialog", options.cssClass
       duration      : 200
       topOffset     : 0
       overlay       : yes

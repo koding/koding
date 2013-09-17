@@ -4,7 +4,7 @@ class KDScrollView extends KDView
 
     options.ownScrollBars ?= no
     options.bind         or= "mouseenter"
-    options.cssClass       = KD.utils.curryCssClass "kdscrollview", options.cssClass
+    options.cssClass       = KD.utils.curry "kdscrollview", options.cssClass
 
     super options,data
 

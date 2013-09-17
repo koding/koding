@@ -12,7 +12,7 @@ class KDTabView extends KDScrollView
     options.tabHandleContainer   ?= null
     options.tabHandleClass      or= KDTabHandleView
     options.paneData            or= []
-    options.cssClass              = KD.utils.curryCssClass "kdtabview", options.cssClass
+    options.cssClass              = KD.utils.curry "kdtabview", options.cssClass
     @handles                      = []
     @panes                        = []
     @selectedIndex                = []
