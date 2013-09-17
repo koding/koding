@@ -54,6 +54,7 @@ func NewTarget(url *url.URL, mode, persistence string) *Target {
 }
 
 var ErrGone = errors.New("target is gone")
+var ErrVMNotActive = errors.New("vm is not active")
 
 // used for inmemory lookup
 var targets = make(map[string]Target)
@@ -199,6 +200,10 @@ func GetTarget(host string) (*Target, error) {
 		vm, err := modelhelper.GetVM(hostname)
 		if err != nil {
 			return nil, err
+		}
+
+		if vm.HostKite == "" {
+			return nil, fmt.Errorf("vm for hostname %s is not active", hostname)
 		}
 
 		if vm.IP == nil {

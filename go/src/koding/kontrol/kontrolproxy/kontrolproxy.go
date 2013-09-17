@@ -235,6 +235,11 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		if err == resolver.ErrGone {
 			return templateHandler("notfound.html", req.Host, 410)
 		}
+
+		if err == resolver.ErrVMNotActive {
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+
 		logs.Info(fmt.Sprintf("resolver error %s", err))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
@@ -271,12 +276,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return templateHandler("maintenance.html", nil, 200)
 	case "redirect":
 		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
-	case "vm":
-		err := utils.CheckServer(target.Url.Host)
-		if err != nil {
-			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
-			return templateHandler("notactiveVM.html", req.Host, 404)
-		}
 	}
 
 	if isWebsocket(req) {
