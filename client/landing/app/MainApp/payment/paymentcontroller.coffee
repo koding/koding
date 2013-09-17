@@ -18,7 +18,6 @@ class PaymentController extends KDController
         KD.remote.api.JRecurlyPlan.setUserAccount newData, callback
 
   updateBillingInfo: (type, callback=->)->
-    console.trace()
     @updateBillingInfoModal {}, (newData)=>
       log 'updateBillingInfo', newData
       @modal.buttons.Save.hideLoader()
