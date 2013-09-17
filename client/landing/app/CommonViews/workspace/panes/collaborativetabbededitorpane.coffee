@@ -5,6 +5,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     super options, data
 
     @openedFiles      = []
+    @editors          = []
     @activeTabIndex   = 0
 
     @createEditorTabs()
@@ -26,14 +27,20 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
+  getActivePaneEditor: ->
+    return @editors[@getActivePaneIndex()] or null
+
   getActivePaneContent: ->
-    return @tabView.getActivePane().subViews[0].getValue()
+    return @getActivePaneEditor().getValue()
 
   getActivePaneFileData: ->
-    return @tabView.getActivePane().subViews[0].getData()
+    return @getActivePaneEditor().getData()
 
   getActivePane: ->
     return @tabView.getActivePane()
+
+  getActivePaneIndex: ->
+    return @tabView.getPaneIndex @getActivePane()
 
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
@@ -77,6 +84,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     }
 
     pane.addSubView editor
+    @editors.push editor
     @tabView.addPane pane
     @activeTabIndex = @tabView.panes.length
 
@@ -90,6 +98,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @workspaceRef.child("tabs").push workspaceRefData  unless sessionKey
 
     pane.on "KDTabPaneDestroy", =>
+      removedPaneIndex = @tabView.getPaneIndex pane
+      @editors.splice removedPaneIndex, 1
       @workspaceRef.once "value", (snapshot) =>
         {tabs} = snapshot.val()
         return unless tabs
