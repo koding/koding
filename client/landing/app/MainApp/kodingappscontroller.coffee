@@ -296,6 +296,9 @@ class KodingAppsController extends KDController
           @updateUserApp app.manifest, callback
       async.series stack
 
+  # added this to keep backward compatibility
+  refreshApps: (callback) -> @syncAppStorageWithFS yes, callback
+
   updateUserApp:(manifest, callback)->
     appName = manifest.name
     unless @notification
