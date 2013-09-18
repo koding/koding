@@ -1,14 +1,20 @@
 class MainView extends KDView
 
+  removePulsing = ->
+    if el = document.getElementById 'main-loading'
+      el.children[0].classList.add 'out'
+      KD.utils.wait 750, ->
+        el.classList.add 'out'
+        KD.utils.wait 750, ->
+          el.parentElement.removeChild el
+
+  attachListener = (instance, view)->
+    instance.getView().once 'viewAppended', removePulsing
+    KD.getSingleton('appManager').off 'AppManagerWantsToShowAnApp', attachListener
+
   viewAppended:->
 
-    if el = document.getElementById 'main-loading'
-      KD.utils.wait 750, ->
-        el.children[0].classList.add 'out'
-        KD.utils.wait 250, ->
-          el.classList.add 'out'
-          KD.utils.wait 750, ->
-            el.parentElement.removeChild el
+    KD.getSingleton('appManager').on 'AppManagerWantsToShowAnApp', attachListener
 
     @bindTransitionEnd()
     # @addServerStack()
@@ -83,12 +89,12 @@ class MainView extends KDView
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
 
-  addServerStack:->
-    @addSubView @serverStack = new KDView
-      domId : "server-rack"
-      click : ->
-        $('body').removeClass 'server-stack'
-        $('.kdoverlay').remove()
+  # addServerStack:->
+  #   @addSubView @serverStack = new KDView
+  #     domId : "server-rack"
+  #     click : ->
+  #       $('body').removeClass 'server-stack'
+  #       $('.kdoverlay').remove()
 
   addHeader:->
 
