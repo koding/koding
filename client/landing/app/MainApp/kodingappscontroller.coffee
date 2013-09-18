@@ -281,6 +281,11 @@ class KodingAppsController extends KDController
     if @publishedApps[appName]
       return @utils.versionCompare appVersion, "lt", @publishedApps[appName].manifest.version
 
+  getAppUpdateType: (appName) ->
+    app = @publishedApps[appName]
+    return null unless app
+    return if app.manifest.forceUpdate is yes then "required" else "available"
+
   updateAllApps:->
     @fetchUpdateAvailableApps (err, apps) =>
       return warn err  if err
@@ -290,6 +295,9 @@ class KodingAppsController extends KDController
         stack.push (callback) =>
           @updateUserApp app.manifest, callback
       async.series stack
+
+  # added this to keep backward compatibility
+  refreshApps: (callback) -> @syncAppStorageWithFS yes, callback
 
   updateUserApp:(manifest, callback)->
     appName = manifest.name
@@ -320,16 +328,18 @@ class KodingAppsController extends KDController
   # KITE INTERACTIONS
   # #
 
-  putAppResources:(appInstance)->
+  putAppResources:(appInstance, callback = noop)->
     return  unless appInstance
 
     manifest = appInstance.getOptions()
-    {devMode, forceUpdate, name, options, version, thirdParty} = manifest
+    {devMode, name, options, version, thirdParty} = manifest
+    forceUpdate = @getAppUpdateType(name) is "required"
 
     return  unless thirdParty
 
     if @isAppUpdateAvailable(name, version) and not devMode and forceUpdate
       @showUpdateRequiredModal manifest
+      KD.utils.defer -> KD.getSingleton("appManager").quitByName name, yes
       return callback()
 
     appView = appInstance.getView()
@@ -819,7 +829,6 @@ class KodingAppsController extends KDController
     raw =
       devMode       : yes
       experimental  : no
-      authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
       hiddenHandle  : no
