@@ -25,11 +25,11 @@ class GroupPermissionsView extends JView
 
             @permissions.destroy() if @permissions
 
-            @addSubView @permissions = new PermissionsModal {
+            @addSubView @permissions = new PermissionsForm {
               privacy: group.privacy
               permissionSet
               roles
-              delegate : @
+              delegate : this
             }, group
 
             @permissions.emit 'RoleViewRefreshed'
