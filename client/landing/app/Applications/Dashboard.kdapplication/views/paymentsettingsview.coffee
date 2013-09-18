@@ -36,9 +36,9 @@ class GroupPaymentSettingsView extends JView
       fields                :
         billing             :
           label             : "Billing Method"
-          tagName           : "a"
-          partial           : "Enter Billing Information"
-          itemClass         : KDCustomHTMLView
+          # tagName           : "a"
+          # partial           : "Enter Billing Information"
+          itemClass         : BillingMethodView
           cssClass          : "billing-link"
           click             : =>
             @updateBillingInfo group
@@ -168,7 +168,7 @@ class GroupPaymentSettingsView extends JView
                    """
       else
         cardInfo = "Enter Billing Information"
-      @settingsForm.inputs.billing.updatePartial cardInfo
+      @settingsForm.inputs.billing.setBillingInfo cardInfo
       callback err, billing
 
   pistachio:-> "{{> @settingsForm}}"
