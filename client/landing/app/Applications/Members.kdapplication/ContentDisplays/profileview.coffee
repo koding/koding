@@ -97,6 +97,29 @@ class ProfileView extends JView
       {callback, inputValue, blacklist} = event
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
+    avatarSetter = (newAvatar, callback)=>
+      loader = new KDNotificationView
+        overlay : yes
+        title   : "Your avatar is being uploaded, please wait..."
+        loader  :
+          color : "#ffffff"
+        duration: 12000
+      FSHelper.s3.upload "avatar.png", newAvatar, (err, url)=>
+        resized = KD.utils.proxifyUrl url,
+          crop: true, width: 400, height: 400
+        cssUrlPattern = "url(#{resized})"
+        @bigAvatar.setAvatar cssUrlPattern
+        @avatar.setAvatar cssUrlPattern
+        @avatar.$().css backgroundSize: "100%"
+        @memberData.modify "profile.avatar": [url, +new Date()].join("?"), (err)=>
+          loader.destroy()
+          callback? err
+          @bigAvatar.show()
+          unless err
+            new KDNotificationView
+              title: "Your avatar updated successfully!"
+              type : "mini"
+
     newAvatar      = ''
     avatarOptions  =
       size         :
@@ -106,58 +129,105 @@ class ProfileView extends JView
         pos        =
           top      : @avatar.getBounds().y - 8
           left     : @avatar.getBounds().x - 8
-        modal      = new KDModalView
+
+        modalOptions =
           width    : 400
           fx       : yes
           overlay  : yes
           draggable: yes
           position : pos
-          buttons  :
-            "Upload Image":
-              cssClass: "modal-clean-gray"
+
+        if KD.isMine @memberData
+
+          isVideoSupported = KDWebcamView.getUserMediaVendor()
+          isDNDSupported   = do ->
+            tester = document.createElement('div')
+            "draggable" of tester or\
+            ("ondragstart" of tester and "ondrop" of tester)
+
+          modalOptions.buttons =
+            gravatar:
+              title   : "Use Gravatar"
+              cssClass: "modal-clean-gray #{if @memberData.profile.avatar is '' then 'hidden' else ''}"
               callback: =>
-                avatar.hide()
+                modal = new KDModalView
+                  title   : "Are you sure?"
+                  content : """
+                  <div class="modalformline">
+                    <p>
+                      <strong>This will remove your current avatar!</strong>
+                    </p>
+                    <p>
+                      Are you sure you want to remove your picture and use your Gravatar?
+                    </p>
+                  </div>
+                  """
+                  buttons:
+                    "Yes, use Gravatar":
+                      cssClass: "modal-clean-green"
+                      callback: =>
+                        @memberData.modify "profile.avatar": "", (err)->
+                          return log err if err
+                          modal.destroy()
+                          modal.buttons.gravatar.hide()
+                    "Cancel":
+                      cssClass: "modal-cancel"
+                      callback: -> modal.destroy()
+
+            upload:
+              title   : "Upload Image"
+              cssClass: "modal-clean-gray #{unless isDNDSupported then 'hidden' else ''}"
+              callback: =>
+                @bigAvatar.hide()
                 modal.addSubView uploader = new DNDUploader
                   title       : "Drop your avatar here!"
                   uploadToVM  : no
-                  size: height: 400
+                  size: height: 380
+
+                uploader.showCancel()
+
+                uploader.on "cancel", =>
+                  uploader.destroy()
+                  @bigAvatar.show()
+                  modal.buttons.upload.enable()
+
                 uploader.on "dropFile", ({origin, content})=>
                   if origin is "external"
                     newAvatar = btoa content
-                    log newAvatar
-                    avatar.show()
-                    uploader.hide()
-                    avatar.setAvatar "url(data:;base64,#{newAvatar})"
-                    @avatar.setAvatar "url(data:;base64,#{newAvatar})"
-                    @avatar.$().css backgroundSize: "100%"
+                    avatarSetter newAvatar, ->
+                      uploader.emit "cancel"
 
-            "Take Photo" :
-              cssClass: "modal-clean-gray"
+                modal.buttons.upload.disable()
+
+            webcam:
+              title   : "Take Photo"
+              cssClass: "modal-clean-gray #{unless isVideoSupported then 'hidden' else ''}"
               callback: =>
-                avatar.hide()
+                @bigAvatar.hide()
                 modal.addSubView capture = new KDWebcamView
-                  countdown: 0
+                  countdown: 3
                   snapTitle: "Take Avatar Picture"
                   size:
                     width : 400
                     height: 400
-                capture.on "snap", (data)-> newAvatar = data
+                capture.on "snap", (data)-> [_, newAvatar] = data.split ','
                 capture.on "save", =>
-                  avatar.show()
-                  capture.hide()
-                  avatar.setAvatar "url(#{newAvatar})"
-                  @avatar.setAvatar "url(#{newAvatar})"
-                  @avatar.$().css backgroundSize: "100%"
-        modal.addSubView avatar = new AvatarStaticView
+                  avatarSetter newAvatar, -> capture.hide()
+
+        modal = new KDModalView modalOptions
+        modal.addSubView @bigAvatar = new AvatarStaticView
           size     :
             width  : 400
             height : 400
         , @memberData
 
-    if KD.whoami().getId() is @memberData.getId()
+    if KD.isMine @memberData
       avatarOptions.tooltip =
-        title    : "<p class='centertext'>please use gravatar.com<br/>to set your avatar</p>"
-        placement: "below"
+        title       : "<p class='centertext'>click to edit</p>"
+        placement   : "below"
+        arrow       :
+          placement : "bottom"
+          margin    : 300
 
     @avatar = new AvatarStaticView avatarOptions, @memberData
 
@@ -214,7 +284,7 @@ class ProfileView extends JView
     if state
       @editButton.hide()
       @saveButton.show()
-      @cancelButton.show()    
+      @cancelButton.show()
     else
       @editButton.show()
       @saveButton.hide()
