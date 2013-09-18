@@ -8,13 +8,9 @@ class MainView extends KDView
         KD.utils.wait 750, ->
           el.parentElement.removeChild el
 
-  attachListener = (instance, view)->
-    instance.getView().once 'viewAppended', removePulsing
-    KD.getSingleton('appManager').off 'AppManagerWantsToShowAnApp', attachListener
-
   viewAppended:->
 
-    KD.getSingleton('appManager').on 'AppManagerWantsToShowAnApp', attachListener
+    KD.utils.wait 1000, removePulsing
 
     @bindTransitionEnd()
     # @addServerStack()
