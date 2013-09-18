@@ -1,8 +1,17 @@
 class KDDiaScene extends JView
 
   constructor:(options = {}, data)->
-    options.cssClass = KD.utils.curry 'kddia-scene', options.cssClass
-    options.bind     = KD.utils.curry 'mousemove',   options.bind
+
+    options.cssClass = KD.utils.curry "kddia-scene", options.cssClass
+    options.bind     = KD.utils.curry "mousemove",   options.bind
+
+    options.lineCap         or= "round"
+    options.lineWidth        ?= 2
+    options.lineColor       or= "#ccc"
+    options.lineColorActive or= "orange"
+    options.lineColorHelper or= "green"
+    options.lineDashes       ?= []
+    options.curveDistance    ?= 50
 
     super
 
@@ -11,8 +20,8 @@ class KDDiaScene extends JView
     @activeDias  = []
 
   diaAdded:(container, diaObj)->
-    diaObj.on 'JointRequestsLine', @bound "handleLineRequest"
-    diaObj.on 'DragInAction',   => @setActiveDia diaObj
+    diaObj.on "JointRequestsLine", @bound "handleLineRequest"
+    diaObj.on "DragInAction",   => @setActiveDia diaObj
 
   addContainer:(container, pos = {})->
     @addSubView container
@@ -28,14 +37,17 @@ class KDDiaScene extends JView
 
   drawFakeLine:(options={})->
     {sx,sy,ex,ey} = options
+
     @cleanup @fakeCanvas
 
     @fakeContext.beginPath()
     @fakeContext.moveTo sx, sy
     @fakeContext.lineTo ex, ey
-    @fakeContext.lineWidth = 2
-    @fakeContext.strokeStyle = 'orange'
-    @fakeContext.lineCap = 'round'
+
+    @fakeContext.lineCap     = @getOption "lineCap"
+    @fakeContext.lineWidth   = @getOption "lineWidth"
+    @fakeContext.strokeStyle = @getOption "lineColorHelper"
+
     @fakeContext.stroke()
 
   mouseMove:(e)->
@@ -48,7 +60,7 @@ class KDDiaScene extends JView
   mouseUp:(e)->
     return  unless @_trackJoint
 
-    targetId = $(e.target).closest(".kddia-object").attr('dia-id')
+    targetId = $(e.target).closest(".kddia-object").attr("dia-id")
     sourceId = @_trackJoint.getDiaId()
     delete @_trackJoint
 
@@ -64,8 +76,8 @@ class KDDiaScene extends JView
     @connect source, target  if target.joint
 
   guessJoint:(target, source)->
-    return 'left'  if source.joint is 'right' and target.dia.joints.left?
-    return 'right' if source.joint is 'left'  and target.dia.joints.right?
+    return "left"  if source.joint is "right" and target.dia.joints.left?
+    return "right" if source.joint is "left"  and target.dia.joints.right?
 
   getDia:(id)->
     parts = ( id.match /dia\-((.*)\-joint\-(.*)|(.*))/ ).filter (m)->return !!m
@@ -102,29 +114,34 @@ class KDDiaScene extends JView
       {source, target} = connection
 
       if (source.dia in @activeDias) or (target.dia in @activeDias)
-        @realContext.strokeStyle = 'green'
+        @realContext.strokeStyle = @getOption 'lineColorActive'
       else
-        @realContext.strokeStyle = '#ccc'
+        @realContext.strokeStyle = @getOption 'lineColor'
 
       sJoint = source.dia.getJointPos source.joint
       tJoint = target.dia.getJointPos target.joint
-      # @realContext.setLineDash([5])
+
+      ld = @getOption 'lineDashes'
+      @realContext.setLineDash ld  if ld.length > 0
+
       @realContext.moveTo sJoint.x, sJoint.y
 
+      cd = @getOption 'curveDistance'
       [sx, sy, tx, ty] = [0, 0, 0, 0]
-      if source.joint in ['top', 'bottom']
-        sy = if source.joint is 'top' then -50 else 50
-      if source.joint in ['left', 'right']
-        sx = if source.joint is 'left' then -50 else 50
-      if target.joint in ['top', 'bottom']
-        ty = if target.joint is 'top' then -50 else 50
-      if target.joint in ['left', 'right']
-        tx = if target.joint is 'left' then -50 else 50
+      if source.joint in ["top", "bottom"]
+        sy = if source.joint is "top" then -cd else cd
+      if source.joint in ["left", "right"]
+        sx = if source.joint is "left" then -cd else cd
+      if target.joint in ["top", "bottom"]
+        ty = if target.joint is "top" then -cd else cd
+      if target.joint in ["left", "right"]
+        tx = if target.joint is "left" then -cd else cd
 
       @realContext.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \
                                  tJoint.x + tx, tJoint.y + ty, \
                                  tJoint.x, tJoint.y)
-      @realContext.lineWidth = 2
+
+      @realContext.lineWidth = @getOption 'lineWidth'
       @realContext.stroke()
 
   viewAppended:->
