@@ -87,7 +87,7 @@ class DashboardAppController extends AppController
       #     callback  : @bundleViewAdded
     ]
 
-  fetchTabData:(callback)-> callback @tabData
+  fetchTabData:(callback)-> @utils.defer => callback @tabData
 
   membersViewAdded:(pane, view)->
     group = view.getData()
@@ -105,11 +105,11 @@ class DashboardAppController extends AppController
 
   productViewAdded:(pane, view)->
 
-  vocabularyViewAdded:(pane, view)->
-    group = view.getData()
-    group.fetchVocabulary (err, vocab)-> view.setVocabulary vocab
-    view.on 'VocabularyCreateRequested', ->
-      {JVocabulary} = KD.remote.api
-      JVocabulary.create {}, (err, vocab)-> view.setVocabulary vocab
+  # vocabularyViewAdded:(pane, view)->
+  #   group = view.getData()
+  #   group.fetchVocabulary (err, vocab)-> view.setVocabulary vocab
+  #   view.on 'VocabularyCreateRequested', ->
+  #     {JVocabulary} = KD.remote.api
+  #     JVocabulary.create {}, (err, vocab)-> view.setVocabulary vocab
 
-  bundleViewAdded:(pane, view)-> console.log 'bundle view', view
+  # bundleViewAdded:(pane, view)-> console.log 'bundle view', view
