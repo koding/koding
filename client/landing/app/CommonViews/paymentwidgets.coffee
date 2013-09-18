@@ -51,7 +51,7 @@ class PaymentWidget extends KDView
     paymentController = KD.getSingleton('paymentController')
     group             = KD.getSingleton("groupsController").getCurrentGroup()
 
-    paymentController.getBillingInfo 'user', group, (err, account)=>
+    paymentController.fetchBillingInfo 'user', group, (err, account)=>
       callback err or not account or not account.cardNumber
 
   checkSubscription:(callback)->

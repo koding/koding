@@ -11,7 +11,7 @@ class DashboardAppController extends AppController
       role       : "admin"
       type       : "account"
 
-  constructor:(options={},data)->
+  constructor: (options = {}, data) ->
 
     options.view = new DashboardAppView
       testPath   : "groups-dashboard"
@@ -87,9 +87,9 @@ class DashboardAppController extends AppController
       #     callback  : @bundleViewAdded
     ]
 
-  fetchTabData:(callback)-> @utils.defer => callback @tabData
+  fetchTabData: (callback) -> @utils.defer => callback @tabData
 
-  membersViewAdded:(pane, view)->
+  membersViewAdded: (pane, view) ->
     group = view.getData()
     # pane.on 'PaneDidShow', ->
     #   view.refresh()  if pane.tabHandle.isDirty
@@ -99,11 +99,21 @@ class DashboardAppController extends AppController
       # {tabHandle} = pane
       # tabHandle.markDirty()
 
-  policyViewAdded:(pane, view)->
+  policyViewAdded: (pane, view) ->
 
-  paymentViewAdded:(pane, view)->
+  paymentViewAdded: (pane, view) ->
 
-  productViewAdded:(pane, view)->
+  productViewAdded: (pane, view) ->
+
+  showBillingInfoModal: (type, group) ->
+    @fetchBillingInfo group, (err, billing) =>
+      billing = {}  if err or not billing?
+
+      paymentController = KD.getSingleton "paymentController"
+      paymentController.showBillingInfoModal type, billing
+
+  fetchBillingInfo: (group, callback = (->)) ->
+    group.fetchBillingInfo (err, billing) -> callback err, billing
 
   # vocabularyViewAdded:(pane, view)->
   #   group = view.getData()

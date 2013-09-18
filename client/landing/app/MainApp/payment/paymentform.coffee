@@ -25,7 +25,7 @@ class PaymentForm extends KDModalViewWithForms
                 placeholder       : 'First Name'
                 defaultValue      : KD.whoami().profile.firstName
                 validate          : @required 'First name is required!'
-                nextElementFlat   :
+                nextElement   :
                   cardLastName    :
                     placeholder   : 'Last Name'
                     defaultValue  : KD.whoami().profile.lastName
@@ -41,7 +41,7 @@ class PaymentForm extends KDModalViewWithForms
                     maxLength     : 16
                   messages        :
                     maxLength     : 'Credit card number should be 12 to 16 digits long!'
-                nextElementFlat   :
+                nextElement   :
                   cardCV          :
                     placeholder   : 'CVC'
                     validate      :
@@ -57,7 +57,7 @@ class PaymentForm extends KDModalViewWithForms
                 itemClass         : KDSelectBox
                 selectOptions     : __utils.getMonthOptions()
                 defaultValue      : (new Date().getMonth())+2
-                nextElementFlat   :
+                nextElement   :
                   cardYear        :
                     itemClass     : KDSelectBox
                     selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+25))

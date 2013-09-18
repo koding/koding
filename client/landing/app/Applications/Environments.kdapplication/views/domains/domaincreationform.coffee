@@ -147,7 +147,7 @@ class DomainCreationForm extends KDTabViewWithForms
       return
 
     paymentController = KD.getSingleton('paymentController')
-    paymentController.getBillingInfo 'user', (err, account)->
+    paymentController.fetchBillingInfo 'user', (err, account)->
       need = err or not account or not account.cardNumber
       if need
         billingButton.show()
