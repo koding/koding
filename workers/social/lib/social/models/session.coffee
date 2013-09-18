@@ -40,6 +40,7 @@ module.exports = class JSession extends Model
           firstName : String
           lastName  : String
           email     : String
+        odesk       : Object
     sharedEvents    :
       instance      : [
         { name: 'updateInstance' }

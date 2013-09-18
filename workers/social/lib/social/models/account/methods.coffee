@@ -31,4 +31,5 @@ module.exports =
       'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
       'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
       'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
+      'getOdeskAuthorizeUrl'
     ]

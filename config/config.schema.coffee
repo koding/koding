@@ -236,4 +236,7 @@ config =
     github          :
       clientId      : 1
       clientSecret  : 1
+    odesk           :
+      key           : 1
+      secret        : 1
 module.exports = config

@@ -294,6 +294,48 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
+app.get "/-/odesk/callback", (req,res)->
+  console.log ">>>>>>", res
+  {oauth_token, oauth_verifier} = req.query
+
+  console.log oauth_token, oauth_verifier
+
+  {clientId} = req.cookies
+  {JSession, JUser} = koding.models
+  JSession.one {clientId}, (err, session)=>
+    if err
+      console.error err
+    else
+      {username} = session.data
+      console.log username
+      JUser.one {username}, (err, user) =>
+        console.log err
+        {requestTokenSecret} = user.foreignAuth.odesk
+
+        Odesk  = require 'node-odesk'
+        config = KONFIG.odesk
+        {key, secret} = config
+
+        o = new Odesk key, secret
+        o.OAuth.getAccessToken oauth_token, requestTokenSecret, oauth_verifier,\
+          (err, accessToken, accessTokenSecret) ->
+            console.log err
+
+            o.OAuth.accessToken = accessToken
+            o.OAuth.accessTokenSecret = accessTokenSecret
+
+            o.get 'auth/v1/info', (error, data)->
+              console.log(error || data);
+
+              odesk = user.foreignAuth.odesk
+              odesk.accessToken = accessToken
+              odesk.accessTokenSecret = accessTokenSecret
+              odesk.foreignId = data.auth_user.uid
+
+              session.update $set: {"foreignAuth.odesk": odesk}, ->
+                {odeskLoginTemplate} = require './staticpages'
+                serve odeskLoginTemplate, res
+
 app.get "/-/oauth/:provider/callback", (req,res)->
   {provider} = req.params
   code = req.query.code
