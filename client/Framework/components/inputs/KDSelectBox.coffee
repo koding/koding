@@ -52,7 +52,7 @@ class KDSelectBox extends KDInputView
   setSelectOptions:(options)->
     firstOption = null
     unless options.length
-      for optGroup, subOptions of options
+      for own optGroup, subOptions of options
         $optGroup = $ "<optgroup label='#{optGroup}'/>"
         @_$select.append $optGroup
         for option in subOptions

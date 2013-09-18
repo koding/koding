@@ -112,7 +112,7 @@ class KDView extends KDObject
       if Array.isArray subViews
         fireViewAppended child for child in subViews
       else if subViews? and 'object' is typeof subViews
-        fireViewAppended child for key, child of subViews
+        fireViewAppended child for own key, child of subViews
 
       if @getOptions().introId
         mainController = KD.getSingleton "mainController"
@@ -192,7 +192,7 @@ class KDView extends KDObject
     @domElement.data "data-id",@getId()
 
   setDomAttributes:(attributes)->
-    @getElement().setAttribute attr, val for attr, val of attributes
+    @getElement().setAttribute attr, val for own attr, val of attributes
 
   isInDom:do ->
     findUltimateAncestor =(el)->
@@ -549,7 +549,7 @@ class KDView extends KDObject
       'webkitTransition': 'webkitTransitionEnd'
 
     transitionEvent = 'transitionend'
-    for key, val of transitions when key of el.style
+    for own key, val of transitions when key of el.style
       transitionEvent = val
       break
 
@@ -632,7 +632,7 @@ class KDView extends KDObject
   submit:(event)-> no #propagations leads to window refresh
 
   addEventHandlers:(options)->
-    for eventName, cb of options
+    for own eventName, cb of options
       if eventNames.test(eventName) and "function" is typeof cb
         @on eventName, cb
 
