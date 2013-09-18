@@ -268,13 +268,13 @@ body
     shadow            none
   &.with-finder
     left              260px
-    kalc              width, 100%\-260px, 100%
+    kalc              width, 100%\-260px
   &.mouse-on-nav
     left              173px!important
-    kalc              width, 100%\-173px, 100%
+    kalc              width, 100%\-173px
   &.social
     left              160px!important
-    kalc              width, 100%\-160px, 100%
+    kalc              width, 100%\-160px
   &.develop
     min-width         250px
   &.no-anim
@@ -286,10 +286,10 @@ body
     bottom            0!important
     right             0!important
     z-index           10
-    kalc              height, 100% \+ 51px, 100%
+    kalc              height, 100% \+ 51px
     .application-page
       padding         0!important
-      kalc            height, 100% \+ 10px, 100%
+      kalc            height, 100% \+ 10px
     .app-settings-menu
       top             0
       right           0
@@ -681,12 +681,19 @@ span.main-nav-icon
   left                0
   padding             0
   margin              0
+  opacity             0
   border              none
   overflow            hidden
   size                100%,25px
   z-index             0
   bg                  color,transparent
-  vendor              transition, top .3s linear \, width .3s linear
+  vendor              transition, top .3s linear\,\
+                                  opacity .3s ease-out\,\
+                                  width .3s linear
+  &.in
+    top               -25px
+    opacity           1
+
   .kdtabhandle
     color             rgba(255,255,255,0.95)
     line-height       23px
@@ -1752,8 +1759,8 @@ span.main-nav-icon
   noTextSelection()
   margin          10px
   border          5px dashed #afafaf
-  kalc            height, 100% \- 20px, 100%
-  kalc            width,  100% \- 20px, 100%
+  kalc            height, 100% \- 20px
+  kalc            width,  100% \- 20px
   border-radius   5px
   &.hover
     border-color  #444

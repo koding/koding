@@ -82,12 +82,12 @@ class KodingRouter extends KDRouter
         appManager  = KD.getSingleton "appManager"
         handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
 
-        appManager.once "AppCreated", handleQuery  unless appManager.get app
+        appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
 
         appManager.open app, (appInstance)=>
           appInstance.setOption "initialRoute", @getCurrentPath()
 
-        handleQuery()  if appManager.get app
+        handleQuery()  if appWasOpen
 
   handleNotFound:(route)->
 

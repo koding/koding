@@ -192,7 +192,8 @@ class ApplicationManager extends KDObject
     @register appInstance = new AppClass appOptions  if AppClass
     @utils.defer =>
       @emit "AppCreated", appInstance
-      KD.getSingleton("kodingAppsController").putAppResources appInstance  if appOptions.thirdParty
+      if appOptions.thirdParty
+        KD.getSingleton("kodingAppsController").putAppResources appInstance, callback
       callback? appInstance
 
   show:(appOptions, callback)->
