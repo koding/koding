@@ -142,6 +142,15 @@ class KDDiaScene extends JView
   cleanup:(canvas)->
     canvas.setDomAttributes width: canvas.getWidth()
 
+  updateCanvasSize:->
+    @realCanvas.setDomAttributes @getSceneSize()
+    @fakeCanvas.setDomAttributes @getSceneSize()
+    @updateScene()
+
+  parentDidResize:->
+    super
+    do _.throttle => @updateCanvasSize()
+
   getSceneSize:-> width: @getWidth(), height: @getHeight()
 
   dumpScene:->
