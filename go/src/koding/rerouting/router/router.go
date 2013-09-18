@@ -136,15 +136,13 @@ func (r *Router) RemoveRoute(msg *amqp.Delivery) error {
 }
 
 func (r *Router) publishTo(join *AuthMsg, msg *amqp.Delivery) error {
-	err := r.producer.Channel.Publish(
-		join.PublishingExchange,
-		join.RoutingKey,
-		false,
-		false,
-		amqp.Publishing{Headers: msg.Headers, Body: msg.Body},
+	return r.producer.Channel.Publish(
+		join.PublishingExchange, // exchange name
+		join.RoutingKey,         // routing key
+		false,                   // mandatory
+		false,                   // immediate
+		amqp.Publishing{Headers: msg.Headers, Body: msg.Body}, // args
 	)
-
-	return err
 }
 
 func (r *Router) addBinding(exchange string) error {
@@ -155,23 +153,52 @@ func (r *Router) addBinding(exchange string) error {
 
 	var err error
 
-	err = c.ExchangeDeclare(exchange, "topic", false, true, false, false, nil)
+	err = c.ExchangeDeclare(
+		exchange, // exchange name
+		"topic",  // exchange type
+		false,    // durable
+		true,     // auto-delete
+		false,    // internal
+		false,    // no-wait
+		nil,      // args
+	)
 	if err != nil {
 		log.Fatalf("exchange.declare: %s", err)
 		return err
 	}
 
-	if _, err := c.QueueDeclare("", false, true, false, false, nil); err != nil {
+	if _, err := c.QueueDeclare(
+		"",    // queue name
+		false, // durable
+		true,  // auto-delete
+		false, // exclusive
+		false, // no-wait
+		nil,   // args
+	); err != nil {
 		log.Fatalf("queue.declare: %s", err)
 		return err
 	}
 
-	if err := c.QueueBind("", "#", exchange, false, nil); err != nil {
+	if err := c.QueueBind(
+		"",       // queue name
+		"#",      // routing key
+		exchange, // exchange name
+		false,    // no-wait
+		nil,      // args
+	); err != nil {
 		log.Fatalf("queue.bind: %s", err)
 		return err
 	}
 
-	deliveries, err := c.Consume("", "", true, false, false, false, nil)
+	deliveries, err := c.Consume(
+		"",    // queue name
+		"",    // consumer tag
+		true,  // auto-ack
+		false, // exclusive
+		false, // no-local
+		false, // no-wait
+		nil,   // args
+	)
 	if err != nil {
 		log.Fatalf("basic.consume: %s", err)
 		return err
