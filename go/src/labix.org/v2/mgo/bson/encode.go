@@ -46,6 +46,7 @@ var (
 	typeMongoTimestamp = reflect.TypeOf(MongoTimestamp(0))
 	typeOrderKey       = reflect.TypeOf(MinKey)
 	typeDocElem        = reflect.TypeOf(DocElem{})
+	typeRawDocElem     = reflect.TypeOf(RawDocElem{})
 	typeRaw            = reflect.TypeOf(Raw{})
 	typeURL            = reflect.TypeOf(url.URL{})
 	typeTime           = reflect.TypeOf(time.Time{})
@@ -178,26 +179,48 @@ func isZero(v reflect.Value) bool {
 		if v.Type() == typeTime {
 			return v.Interface().(time.Time).IsZero()
 		}
+		for i := v.NumField()-1; i >= 0; i-- {
+			if !isZero(v.Field(i)) {
+				return false
+			}
+		}
+		return true
 	}
 	return false
 }
 
 func (e *encoder) addSlice(v reflect.Value) {
-	if d, ok := v.Interface().(D); ok {
+	vi := v.Interface()
+	if d, ok := vi.(D); ok {
 		for _, elem := range d {
 			e.addElem(elem.Name, reflect.ValueOf(elem.Value), false)
 		}
-	} else if v.Type().Elem() == typeDocElem {
-		l := v.Len()
+		return
+	}
+	if d, ok := vi.(RawD); ok {
+		for _, elem := range d {
+			e.addElem(elem.Name, reflect.ValueOf(elem.Value), false)
+		}
+		return
+	}
+	l := v.Len()
+	et  := v.Type().Elem()
+	if et == typeDocElem {
 		for i := 0; i < l; i++ {
 			elem := v.Index(i).Interface().(DocElem)
 			e.addElem(elem.Name, reflect.ValueOf(elem.Value), false)
 		}
-	} else {
-		l := v.Len()
+		return
+	}
+	if et == typeRawDocElem {
 		for i := 0; i < l; i++ {
-			e.addElem(itoa(i), v.Index(i), false)
+			elem := v.Index(i).Interface().(RawDocElem)
+			e.addElem(elem.Name, reflect.ValueOf(elem.Value), false)
 		}
+		return
+	}
+	for i := 0; i < l; i++ {
+		e.addElem(itoa(i), v.Index(i), false)
 	}
 }
 
@@ -269,32 +292,27 @@ func (e *encoder) addElem(name string, v reflect.Value, minSize bool) {
 		}
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if v.Type().Kind() <= reflect.Int32 {
-			e.addElemName('\x10', name)
-			e.addInt32(int32(v.Int()))
-		} else {
-			switch v.Type() {
-			case typeMongoTimestamp:
-				e.addElemName('\x11', name)
-				e.addInt64(v.Int())
+		switch v.Type() {
+		case typeMongoTimestamp:
+			e.addElemName('\x11', name)
+			e.addInt64(v.Int())
 
-			case typeOrderKey:
-				if v.Int() == int64(MaxKey) {
-					e.addElemName('\x7F', name)
-				} else {
-					e.addElemName('\xFF', name)
-				}
+		case typeOrderKey:
+			if v.Int() == int64(MaxKey) {
+				e.addElemName('\x7F', name)
+			} else {
+				e.addElemName('\xFF', name)
+			}
 
-			default:
-				i := v.Int()
-				if minSize && i >= math.MinInt32 && i <= math.MaxInt32 {
-					// It fits into an int32, encode as such.
-					e.addElemName('\x10', name)
-					e.addInt32(int32(i))
-				} else {
-					e.addElemName('\x12', name)
-					e.addInt64(i)
-				}
+		default:
+			i := v.Int()
+			if (minSize || v.Type().Kind() != reflect.Int64) && i >= math.MinInt32 && i <= math.MaxInt32 {
+				// It fits into an int32, encode as such.
+				e.addElemName('\x10', name)
+				e.addInt32(int32(i))
+			} else {
+				e.addElemName('\x12', name)
+				e.addInt64(i)
 			}
 		}
 

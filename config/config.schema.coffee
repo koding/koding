@@ -46,6 +46,7 @@ config =
       address     : 1
     userSitesDomain: 1
     containerSubnet: 1
+    vmPool        : 1
     projectRoot   : 1
     version       : 1
     webserver     :
@@ -104,6 +105,7 @@ config =
       numberOfWorkers : 1
       watch           : 1
     guestCleanerWorker    :
+      enabled             : 1
       login               : 1
       queueName           : 1
       numberOfWorkers     : 1
@@ -138,9 +140,12 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        precompiledApi: 1
         authExchange  : 1
         github        :
           clientId    : 1
+        embedly       :
+          apiKey      : 1
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
@@ -153,6 +158,7 @@ config =
           sockJS      : 1
         apiUri        : 1
         appsUri       : 1
+        uploadsUri    : 1
         sourceUri     : 1
         # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
@@ -170,7 +176,6 @@ config =
       port        : 1
       certFile    : 1
       keyFile     : 1
-      useKontrold : 1
       webProtocol : 1
       webHostname : 1
       webPort     : 1
@@ -196,13 +201,17 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     kontrold        :
+      overview      :
+        apiHost     : 1
+        apiPort     : 1
+        port        : 1
+        switchHost  : 1
       api           :
         port        : 1
       proxy         :
         port        : 1
         portssl     : 1
         ftpip       : 1
-        sslips      : 1
       rabbitmq      :
         host        : 1
         port        : 1

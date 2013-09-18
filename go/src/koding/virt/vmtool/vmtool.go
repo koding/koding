@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/db/mongodb"
 	"koding/tools/utils"
 	"koding/virt"
 	"labix.org/v2/mgo"
@@ -80,19 +81,12 @@ var actions = map[string]func(){
 					Id: bson.NewObjectId(),
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
-				vm.Prepare(false)
+				vm.Prepare(false, func(text string, data ...interface{}) { fmt.Println(text) })
 				done <- i
 			}(i)
 		}
 		for i := 0; i < count; i++ {
 			fmt.Println(<-done)
-		}
-	},
-
-	"backup": func() {
-		for _, vm := range selectVMs(os.Args[2]) {
-			err := vm.Backup()
-			fmt.Printf("%v: %v\n", vm, err)
 		}
 	},
 
@@ -137,13 +131,13 @@ var actions = map[string]func(){
 	},
 
 	"rbd-orphans": func() {
-		session, err := mgo.Dial(os.Args[2])
-		if err != nil {
-			panic(err)
+		iter := new(mgo.Iter)
+		query := func(c *mgo.Collection) error {
+			iter = c.Find(bson.M{}).Select(bson.M{"_id": 1}).Iter()
+			return nil
 		}
-		session.SetSafe(&mgo.Safe{})
-		database := session.DB("")
-		iter := database.C("jVMs").Find(bson.M{}).Select(bson.M{"_id": 1}).Iter()
+		mongodb.Run("jVMs", query)
+
 		var vm struct {
 			Id bson.ObjectId `bson:"_id"`
 		}

@@ -20,8 +20,9 @@ class NFinderTreeController extends JTreeViewController
 
   addNode:(nodeData, index)->
 
-    o = @getOptions()
-    return if o.foldersOnly and nodeData.type is "file"
+    fc = KD.getSingleton 'finderController'
+    return if @getOption('foldersOnly') and nodeData.type is "file"
+    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
     item = super nodeData, index
 
   highlightFile:(view)->
@@ -88,6 +89,12 @@ class NFinderTreeController extends JTreeViewController
     {vmName} = nodeView.data
     @appManager.open "WebTerm", params: {vmName}, forceNew: yes
 
+  setDotFiles:(nodeView, show=yes)->
+    {vmName, path} = nodeView.getData()
+    finder = KD.getSingleton 'finderController'
+    unless show then finder.hideDotFiles vmName
+    else finder.showDotFiles vmName
+
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
     finder = KD.getSingleton 'finderController'
@@ -123,6 +130,7 @@ class NFinderTreeController extends JTreeViewController
 
     failCallback = (err)=>
       unless silence
+        KD.logToExternal "Couldn't fetch files"
         @notify "Couldn't fetch files! Click to retry", 'clickable', \
                 """Sorry, a problem occured while communicating with servers,
                    please try again later.""", yes
@@ -136,20 +144,20 @@ class NFinderTreeController extends JTreeViewController
         if files
           @addNodes files
         callback? null, nodeView
-        @emit "folder.expanded", nodeView.getData()
+        @emit "folder.expanded", nodeView.getData()  unless silence
         @emit 'fs.retry.success'
         @hideNotification()
       else
         failCallback err
     , failCallback), no
 
-  collapseFolder:(nodeView, callback)->
+  collapseFolder:(nodeView, callback, silence=no)->
 
     return unless nodeView
     folder = nodeView.getData()
     {path} = folder
 
-    @emit "folder.collapsed", folder
+    @emit "folder.collapsed", folder  unless silence
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
@@ -480,6 +488,8 @@ class NFinderTreeController extends JTreeViewController
   cmCollapse:      (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
   cmMakeTopFolder: (nodeView, contextMenuItem)-> @makeTopFolder nodeView
   cmRefresh:       (nodeView, contextMenuItem)-> @refreshFolder nodeView
+  cmShowDotFiles:  (nodeView, contextMenuItem)-> @setDotFiles nodeView, yes
+  cmHideDotFiles:  (nodeView, contextMenuItem)-> @setDotFiles nodeView, no
   cmResetVm:       (nodeView, contextMenuItem)-> @resetVm nodeView
   cmUnmountVm:     (nodeView, contextMenuItem)-> @unmountVm nodeView
   cmOpenVmTerminal:(nodeView, contextMenuItem)-> @openVmTerminal nodeView
@@ -491,7 +501,7 @@ class NFinderTreeController extends JTreeViewController
   cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
   cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
   cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> @appManager.notify()
+  cmUpload:        (nodeView, contextMenuItem)-> @uploadFile nodeView
   cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
@@ -504,7 +514,7 @@ class NFinderTreeController extends JTreeViewController
   cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
-  cmDropboxSaver:  (nodeView, contextMenuItem)-> @saveToDropbox nodeView
+  cmDropboxSaver:  (nodeView, contextMenuItem)-> __saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
@@ -593,6 +603,26 @@ class NFinderTreeController extends JTreeViewController
     @showDragOverFeedback nodeView, event
     super
 
+  dragStart: (nodeView, event)->
+    super
+
+    @internalDragging = yes
+
+    {name, vmName, path} = nodeView.data
+
+    warningText = """
+    You should move #{name} file to Web folder to download using drag and drop. -- Koding
+    """
+
+    type        = "application/octet-stream"
+    url         = KD.getPublicURLOfPath path
+    unless url
+      url       = "data:#{type};base64,#{btoa warningText}"
+      name     += ".txt"
+    dndDownload = "#{type}:#{name}:#{url}"
+
+    event.originalEvent.dataTransfer.setData 'DownloadURL', dndDownload
+
   lastEnteredNode = null
   dragEnter: (nodeView, event)->
 
@@ -622,6 +652,7 @@ class NFinderTreeController extends JTreeViewController
 
     # log "clear after drag"
     @clearAllDragFeedback()
+    @internalDragging = no
     super
 
   drop: (nodeView, event)->
@@ -634,6 +665,7 @@ class NFinderTreeController extends JTreeViewController
     else
       @moveFiles @selectedNodes, nodeView
 
+    @internalDragging = no
     super
 
   ###
@@ -752,7 +784,7 @@ class NFinderTreeController extends JTreeViewController
     kallback          = ->
       file            = fileItemViews[0]
       if file
-        file.emit "FileNeedsToBeDownloadad", filePath
+        file.emit "FileNeedsToBeDownloaded", filePath
         file.on   "FileDownloadDone", ->
           fileItemViews.shift()
           if fileItemViews.length
@@ -783,52 +815,10 @@ class NFinderTreeController extends JTreeViewController
               callback : -> modal.destroy()
 
         for file in files
-          fileItemView = modal.addSubView new DropboxDownloadItemView {}, file
+          fileItemView = modal.addSubView new DropboxDownloadItemView { nodeView }, file
           fileItemViews.push fileItemView
 
-  saveToDropbox: (nodeView) ->
-    notification   = null
-    kiteController = KD.getSingleton "kiteController"
-    plainPath      = FSHelper.plainPath nodeView.getData().path
-    isFolder       = nodeView.getData().type is "folder"
-    timestamp      = Date.now()
-    tmpFileName    = if isFolder then "tmp#{timestamp}.zip" else "tmp#{timestamp}"
-    relativePath   = "/home/#{KD.nick()}/Web/#{tmpFileName}"
-    kallback       = ->
-      fileName     = FSHelper.getFileNameFromPath plainPath
-      fileName     = "#{fileName}.zip"  if isFolder
-      options      =
-        files      : [
-          filename : fileName
-          url      : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
-        ]
-        success: ->
-          notification.notificationSetTitle "Your file has been uploaded."
-          notification.notificationSetTimer 4000
-          notification.setClass "success"
-          kiteController.run "rm #{relativePath}"
-        error: ->
-          notification.notificationSetTitle "An error occured while uploading your file."
-          notification.notificationSetTimer 4000
-          notification.setClass "error"
-
-      Dropbox.save options
-
-    if isFolder
-      notification = new KDNotificationView
-        title      : "Zipping your folder..."
-        type       : "mini"
-        duration   : 120000
-
-      kiteController.run "mkdir -p Web ; zip -r #{relativePath} #{plainPath}", (err, res) =>
-        return  warn err if err
-        notification.notificationSetTitle "Uploading zipped file..."
-        kallback()
-    else
-      notification = new KDNotificationView
-        title      : "Uploading your file..."
-        type       : "mini"
-        duration   : 120000
-      kiteController.run "mkdir -p Web ; cp #{plainPath} #{relativePath}", (err, res) =>
-        return  warn err if err
-        kallback()
+  uploadFile: (nodeView)->
+    finderController = KD.getSingleton "finderController"
+    {path} = nodeView.data
+    finderController.uploadTo path  if path

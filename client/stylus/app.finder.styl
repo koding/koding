@@ -1,7 +1,8 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
-@import "nib/vendor"
+// @import "nib/vendor"
+
 
 active-color = rgb(246,162,32)
 finderDimmedColor1 = #cccccc
@@ -321,6 +322,14 @@ dimmedNeighbor()
     min-width       208px
     span
       margin-left   5px
+
+#finder-dnduploader
+  position          absolute
+  z-index           100
+  width             100%
+  kalc              height, 100% \- 45px
+  background-color  inherit
+  top               45px
 
 #finder-bottom-controls
   abs()
@@ -655,6 +664,11 @@ div.led-wrapper
     span.icon.ftp
       bg          position,-40px -60px
 
+#finder-dnduploader
+  .file-droparea
+    .file-drop
+      z-index     -1
+
 .file-container
 
   .vm
@@ -826,7 +840,27 @@ div.led-wrapper
 
     &.online
       .icon
+      .vm-info
         opacity       1
+
+    &.maintenance
+      .icon
+        opacity       1
+        width         16px !important
+        height        16px !important
+        top           12px
+        sprite()
+        bg            position,-300px -140px
+      &.selected
+        background      linear-gradient(top, #aaa 0%, #bbb 50%)
+
+      .vm-info
+      .vm-desc
+        opacity       0.6
+
+    &:hover
+      .vm-terminal
+        display       block
 
     .icon
       width           20px !important
@@ -835,12 +869,13 @@ div.led-wrapper
       height          20px
       display         block
       margin          0
-      opacity         1
+      opacity         0.6
       abs()
       sprite()
       bg              position,-260px -160px
 
     .vm-info
+      opacity         0.6
       font-size       13px
       font-weight     bold
       left            36px
@@ -860,14 +895,18 @@ div.led-wrapper
       abs()
 
     .vm-terminal
+      display         none
       width           20px
       height          20px
       right           25px
       top             17px
       border          0px
+      opacity         0.6
       bg              position, -100px -300px
       sprite()
       abs()
+      &:hover
+        opacity       1
 
     .chevron
       width           20px
@@ -888,9 +927,21 @@ div.led-wrapper
     top              2px
     abs()
 
+.vm-maintenance
+  padding            2px 0 3px 10px
+  font-style         italic
+  width              180px
+  text-align         center
+
 .vm-details-menu
   font-size       12px
   padding         8px 4px 7px 10px
+
+  .progressbar-container.ram-bar
+    width         58px
+    margin        0 2px 0 0 
+    span
+      width       58px
 
 .open-with-modal
   .separator

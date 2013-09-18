@@ -45,7 +45,9 @@ class MembersListItemView extends KDListItemView
     if memberData.locationTags.length < 1
       memberData.locationTags[0] = "Earth"
 
-    @location = new LocationView {},memberData
+    @location     = new KDCustomHTMLView
+      partial     : memberData.locationTags[0]
+      cssClass    : "location"
 
     @profileLink = new ProfileLinkView {}, memberData
     @profileLink.render()
@@ -75,7 +77,8 @@ class MembersListItemView extends KDListItemView
 
       <div class='member-details'>
         <header class='personal'>
-          <h3>{{> @profileLink}}</h3> <span>{{> @location}}</span>
+          <h3>{{> @profileLink}}</h3> {{#(profile.nickname)}}
+          <span>{{> @location}}</span>
         </header>
 
         <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>

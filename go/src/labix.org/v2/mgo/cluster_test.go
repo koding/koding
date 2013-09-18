@@ -1,18 +1,18 @@
 // mgo - MongoDB driver for Go
-// 
+//
 // Copyright (c) 2010-2012 - Gustavo Niemeyer <gustavo@niemeyer.net>
-// 
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met: 
-// 
+// modification, are permitted provided that the following conditions are met:
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer. 
+//    list of conditions and the following disclaimer.
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution. 
-// 
+//    and/or other materials provided with the distribution.
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29,11 +29,12 @@ package mgo_test
 import (
 	"fmt"
 	"io"
-	. "launchpad.net/gocheck"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	. "launchpad.net/gocheck"
 	"net"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -537,6 +538,9 @@ func (s *S) TestPrimaryShutdownMonotonic(c *C) {
 	err = coll.Insert(M{"a": 1})
 	c.Assert(err, IsNil)
 
+	// Wait a bit for this to be synchronized to slaves.
+	time.Sleep(3 * time.Second)
+
 	result := &struct{ Host string }{}
 	err = session.Run("serverStatus", result)
 	c.Assert(err, IsNil)
@@ -661,6 +665,9 @@ func (s *S) TestPrimaryShutdownEventual(c *C) {
 	err = coll.Insert(M{"a": 1})
 	c.Assert(err, IsNil)
 
+	// Wait a bit for this to be synchronized to slaves.
+	time.Sleep(3 * time.Second)
+
 	// Kill the master.
 	s.Stop(master)
 
@@ -766,7 +773,7 @@ func (s *S) TestTopologySyncWithSlaveSeed(c *C) {
 	c.Assert(result.Ok, Equals, true)
 
 	// One connection to each during discovery. Master
-	// socket recycled for insert. 
+	// socket recycled for insert.
 	stats := mgo.GetStats()
 	c.Assert(stats.MasterConns, Equals, 1)
 	c.Assert(stats.SlaveConns, Equals, 2)
@@ -823,6 +830,75 @@ func (s *S) TestDialWithTimeout(c *C) {
 	c.Assert(started.After(time.Now().Add(-timeout*2)), Equals, true)
 }
 
+func (s *S) TestSocketTimeout(c *C) {
+	if *fast {
+		c.Skip("-fast")
+	}
+
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	s.Freeze("localhost:40001")
+
+	timeout := 3 * time.Second
+	session.SetSocketTimeout(timeout)
+	started := time.Now()
+
+	// Do something.
+	result := struct{ Ok bool }{}
+	err = session.Run("getLastError", &result)
+	c.Assert(err, ErrorMatches, ".*: i/o timeout")
+	c.Assert(started.Before(time.Now().Add(-timeout)), Equals, true)
+	c.Assert(started.After(time.Now().Add(-timeout*2)), Equals, true)
+}
+
+func (s *S) TestSocketTimeoutOnDial(c *C) {
+	if *fast {
+		c.Skip("-fast")
+	}
+
+	timeout := 1 * time.Second
+
+	defer mgo.HackSyncSocketTimeout(timeout)()
+
+	s.Freeze("localhost:40001")
+
+	started := time.Now()
+
+	session, err := mgo.DialWithTimeout("localhost:40001", timeout)
+	c.Assert(err, ErrorMatches, "no reachable servers")
+	c.Assert(session, IsNil)
+
+	c.Assert(started.Before(time.Now().Add(-timeout)), Equals, true)
+	c.Assert(started.After(time.Now().Add(-20 * time.Second)), Equals, true)
+}
+
+func (s *S) TestSocketTimeoutOnInactiveSocket(c *C) {
+	if *fast {
+		c.Skip("-fast")
+	}
+
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	timeout := 2 * time.Second
+	session.SetSocketTimeout(timeout)
+
+	// Do something that relies on the timeout and works.
+	c.Assert(session.Ping(), IsNil)
+
+	// Freeze and wait for the timeout to go by.
+	s.Freeze("localhost:40001")
+	time.Sleep(timeout + 500 * time.Millisecond)
+	s.Thaw("localhost:40001")
+
+	// Do something again. The timeout above should not have killed
+	// the socket as there was nothing to be done.
+	c.Assert(session.Ping(), IsNil)
+}
+
 func (s *S) TestDirect(c *C) {
 	session, err := mgo.Dial("localhost:40012?connect=direct")
 	c.Assert(err, IsNil)
@@ -848,7 +924,19 @@ func (s *S) TestDirect(c *C) {
 	err = coll.Insert(M{"test": 1})
 	c.Assert(err, ErrorMatches, "no reachable servers")
 
-	// Slave is still reachable.
+	// Writing to the local database is okay.
+	coll = session.DB("local").C("mycoll")
+	defer coll.RemoveAll(nil)
+	id := bson.NewObjectId()
+	err = coll.Insert(M{"_id": id})
+	c.Assert(err, IsNil)
+
+	// Data was stored in the right server.
+	n, err := coll.Find(M{"_id": id}).Count()
+	c.Assert(err, IsNil)
+	c.Assert(n, Equals, 1)
+
+	// Server hasn't changed.
 	result.Host = ""
 	err = session.Run("serverStatus", result)
 	c.Assert(err, IsNil)
@@ -990,7 +1078,10 @@ func (s *S) TestRemovalOfClusterMember(c *C) {
 		c.Fatalf("Test started with bad cluster state: %v", master.LiveServers())
 	}
 
-	result := &struct{ IsMaster bool; Me string }{}
+	result := &struct {
+		IsMaster bool
+		Me       string
+	}{}
 	slave := master.Copy()
 	slave.SetMode(mgo.Monotonic, true) // Monotonic can hold a non-master socket persistently.
 	err = slave.Run("isMaster", result)
@@ -1137,7 +1228,7 @@ func (s *S) TestCustomDial(c *C) {
 	}
 	info := mgo.DialInfo{
 		Addrs: []string{"localhost:40012"},
-		Dial: dial,
+		Dial:  dial,
 	}
 
 	// Use hostname here rather than IP, to make things trickier.
@@ -1177,7 +1268,7 @@ func (s *S) TestPrimaryShutdownOnAuthShard(c *C) {
 	c.Assert(err, IsNil)
 
 	// Dial the replica set to figure the master out.
-	rs, err := mgo.Dial("localhost:40031")
+	rs, err := mgo.Dial("root:rapadura@localhost:40031")
 	c.Assert(err, IsNil)
 	defer rs.Close()
 
@@ -1277,3 +1368,136 @@ func (s *S) TestNearestSecondary(c *C) {
 	}
 }
 
+func (s *S) TestConnectCloseConcurrency(c *C) {
+	restore := mgo.HackPingDelay(500 * time.Millisecond)
+	defer restore()
+	var wg sync.WaitGroup
+	const n = 500
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			session, err := mgo.Dial("localhost:40001")
+			if err != nil {
+				c.Fatal(err)
+			}
+			time.Sleep(1)
+			session.Close()
+		}()
+	}
+	wg.Wait()
+}
+
+func (s *S) TestSelectServers(c *C) {
+	if !s.versionAtLeast(2, 2) {
+		c.Skip("read preferences introduced in 2.2")
+	}
+
+	session, err := mgo.Dial("localhost:40011")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	session.SetMode(mgo.Eventual, true)
+
+	var result struct{ Host string }
+
+	session.Refresh()
+	session.SelectServers(bson.D{{"rs1", "b"}})
+	err = session.Run("serverStatus", &result)
+	c.Assert(err, IsNil)
+	c.Assert(hostPort(result.Host), Equals, "40012")
+
+	session.Refresh()
+	session.SelectServers(bson.D{{"rs1", "c"}})
+	err = session.Run("serverStatus", &result)
+	c.Assert(err, IsNil)
+	c.Assert(hostPort(result.Host), Equals, "40013")
+}
+
+func (s *S) TestSelectServersWithMongos(c *C) {
+	if !s.versionAtLeast(2, 2) {
+		c.Skip("read preferences introduced in 2.2")
+	}
+
+	session, err := mgo.Dial("localhost:40021")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	ssresult := &struct{ Host string }{}
+	imresult := &struct{ IsMaster bool }{}
+
+	// Figure the master while still using the strong session.
+	err = session.Run("serverStatus", ssresult)
+	c.Assert(err, IsNil)
+	err = session.Run("isMaster", imresult)
+	c.Assert(err, IsNil)
+	master := ssresult.Host
+	c.Assert(imresult.IsMaster, Equals, true, Commentf("%s is not the master", master))
+
+	var slave1, slave2 string
+	switch hostPort(master) {
+	case "40021":
+		slave1, slave2 = "b", "c"
+	case "40022":
+		slave1, slave2 = "a", "c"
+	case "40023":
+		slave1, slave2 = "a", "b"
+	}
+
+	// Collect op counters for everyone.
+	opc21a, err := getOpCounters("localhost:40021")
+	c.Assert(err, IsNil)
+	opc22a, err := getOpCounters("localhost:40022")
+	c.Assert(err, IsNil)
+	opc23a, err := getOpCounters("localhost:40023")
+	c.Assert(err, IsNil)
+
+	// Do a SlaveOk query through MongoS
+	mongos, err := mgo.Dial("localhost:40202")
+	c.Assert(err, IsNil)
+	defer mongos.Close()
+
+	mongos.SetMode(mgo.Monotonic, true)
+
+	mongos.Refresh()
+	mongos.SelectServers(bson.D{{"rs2", slave1}})
+	coll := mongos.DB("mydb").C("mycoll")
+	result := &struct{}{}
+	for i := 0; i != 5; i++ {
+		err := coll.Find(nil).One(result)
+		c.Assert(err, Equals, mgo.ErrNotFound)
+	}
+
+	mongos.Refresh()
+	mongos.SelectServers(bson.D{{"rs2", slave2}})
+	coll = mongos.DB("mydb").C("mycoll")
+	for i := 0; i != 7; i++ {
+		err := coll.Find(nil).One(result)
+		c.Assert(err, Equals, mgo.ErrNotFound)
+	}
+
+	// Collect op counters for everyone again.
+	opc21b, err := getOpCounters("localhost:40021")
+	c.Assert(err, IsNil)
+	opc22b, err := getOpCounters("localhost:40022")
+	c.Assert(err, IsNil)
+	opc23b, err := getOpCounters("localhost:40023")
+	c.Assert(err, IsNil)
+
+	switch hostPort(master) {
+	case "40021":
+		c.Check(opc21b.Query - opc21a.Query, Equals, 0)
+		c.Check(opc22b.Query - opc22a.Query, Equals, 5)
+		c.Check(opc23b.Query - opc23a.Query, Equals, 7)
+	case "40022":
+		c.Check(opc21b.Query - opc21a.Query, Equals, 5)
+		c.Check(opc22b.Query - opc22a.Query, Equals, 0)
+		c.Check(opc23b.Query - opc23a.Query, Equals, 7)
+	case "40023":
+		c.Check(opc21b.Query - opc21a.Query, Equals, 5)
+		c.Check(opc22b.Query - opc22a.Query, Equals, 7)
+		c.Check(opc23b.Query - opc23a.Query, Equals, 0)
+	default:
+		c.Fatal("Uh?")
+	}
+}

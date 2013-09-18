@@ -58,6 +58,7 @@ app        = express()
   isLoggedIn
   saveOauthToSession
   getAlias
+  addReferralCode
 }          = require './helpers'
 
 
@@ -72,9 +73,8 @@ app.configure ->
   app.use express.compress()
   app.use express.static "#{projectRoot}/website/"
 
-app.use (req, res, next)->
-  res.removeHeader "X-Powered-By"
-  next()
+# disable express default header
+app.disable 'x-powered-by'
 
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
@@ -85,19 +85,18 @@ process.on 'uncaughtException',(err)->
   console.error err
 
 app.use (req, res, next) ->
+  # add referral code into session if there is one
+  addReferralCode req, res
+
   {JSession} = koding.models
   {clientId} = req.cookies
-  clientIPAddress = req.connection.remoteAddress
+  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
   res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: false }
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
 
-app.get "/-/imageProxy", (req, res)->
-  if req.query.url
-    require('request')(req.query.url).pipe(res)
-  else
-    res.send 404
+app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
@@ -364,14 +363,30 @@ app.get "/-/oauth/:provider/callback", (req,res)->
   r.end()
 
 app.get '/:name/:section?*', (req, res, next)->
-  {JName} = koding.models
-  {name} = req.params
+  {JName, JGroup} = koding.models
+  {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
+
   if firstLetter.toUpperCase() is firstLetter
-    next()
+    unless section
+    then next()
+    else
+      isLoggedIn req, res, (err, loggedIn, account)->
+        prefix = if loggedIn then 'loggedIn' else 'loggedOut'
+        if name is "Develop"
+          subPage = JGroup.render[prefix].subPage {account, name, section}
+          return serve subPage, res
+
+        JName.fetchModels "#{name}/#{section}", (err, models)->
+          if err
+            subPage = JGroup.render[prefix].subPage {account, name, section}
+            return serve subPage, res
+          else unless models? then res.send 404, error_404()
+          else
+            subPage = JGroup.render[prefix].subPage {account, name, section, models}
+            return serve subPage, res
   else
-    {JGroup} = koding.models
     isLoggedIn req, res, (err, loggedIn, account)->
       JName.fetchModels name, (err, models)->
         if err then next err
@@ -383,6 +398,7 @@ app.get '/:name/:section?*', (req, res, next)->
             else res.send 500, error_500()
 
 app.get "/", (req, res)->
+
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
@@ -393,11 +409,11 @@ app.get "/", (req, res)->
         console.error err
       else if loggedIn
         # go to koding activity
-        activityPage = JGroup.renderKodingHomeLoggedIn {account}
+        activityPage = JGroup.render.loggedIn.kodingHome {account}
         serve activityPage, res
       else
         # go to koding home
-        homePage = JGroup.renderKodingHomeLoggedOut()
+        homePage = JGroup.render.loggedOut.kodingHome()
         serve homePage, res
 
 

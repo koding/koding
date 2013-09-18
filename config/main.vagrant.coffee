@@ -10,6 +10,8 @@ socialQueueName = "koding-social-vagrant"
 authExchange    = "auth"
 authAllExchange = "authAll"
 
+embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
+
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -18,6 +20,7 @@ module.exports =
     address     : "http://localhost:3020"
   userSitesDomain: 'localhost'
   containerSubnet: "10.128.2.0/9"
+  vmPool        : "vms"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -72,6 +75,7 @@ module.exports =
     numberOfWorkers: 1
     watch       : yes
   guestCleanerWorker     :
+    enabled              : yes
     login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
@@ -112,9 +116,12 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      precompiledApi: no
       authExchange: authExchange
       github         :
         clientId     : "f8e440b796d953ea01e5"
+      embedly        :
+        apiKey       : embedlyApiKey
       userSitesDomain: 'localhost'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
@@ -124,10 +131,10 @@ module.exports =
         servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'http://localhost:3020'
-      # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
   mq            :
     host        : 'localhost'
@@ -137,14 +144,16 @@ module.exports =
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
-    heartbeat   : 10
+    # heartbeat disabled in vagrant, because it'll interfere with node-inspector
+    # when the debugger is paused, the target is not able to send the heartbeat,
+    # so it'll disconnect from RabbitMQ if heartbeat is enabled.
+    heartbeat   : 0
     vhost       : '/'
   broker        :
     ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""
-    useKontrold : no
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
@@ -183,13 +192,17 @@ module.exports =
   haproxy         :
     webPort       : 3020
   kontrold        :
+    overview      :
+      apiHost     : "127.0.0.1"
+      apiPort     : 8888
+      port        : 8080
+      switchHost  : "example.com"
     api           :
       port        : 8888
     proxy         :
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-      sslips      : '127.0.0.1'
     rabbitmq      :
       host        : 'localhost'
       port        : '5672'
@@ -214,9 +227,9 @@ module.exports =
   #     b = decipher.final('utf-8')
   #     return b
   recurly       :
-    apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
+    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding-test.recurly.com
   embedly       :
-    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
+    apiKey      : embedlyApiKey
   opsview       :
     push        : no
     host        : ''

@@ -7,7 +7,7 @@ KD.extend
       else location.reload()
 
   notify_:(message, type='')->
-    console.log message
+    log message
     new KDNotificationView
       cssClass : "#{type}"
       title    : message
@@ -32,14 +32,16 @@ KD.extend
       # if there is callback and we want to try again
       if callback? and tryAgain
         unless KD.lastFuncCall
+          KD.lastFuncCall = callback
+
           mainController = KD.getSingleton("mainController")
           mainController.once "accountChanged.to.loggedIn", =>
-            if groupName and KD.isLoggedIn()
-              @joinGroup_ groupName, (err)=>
-                return @notify_ "Joining #{groupName} group failed", "error"  if err
-                KD.lastFuncCall?()
-                KD.lastFuncCall = null
-        KD.lastFuncCall = callback
+            if KD.isLoggedIn()
+              KD.lastFuncCall?()
+              KD.lastFuncCall = null
+              if groupName
+                @joinGroup_ groupName, (err) =>
+                  return @notify_ "Joining #{groupName} group failed", "error"  if err
     else if groupName
       @joinGroup_ groupName, (err)=>
         return @notify_ "Joining #{groupName} group failed", "error"  if err
@@ -48,21 +50,19 @@ KD.extend
       callback?()
 
   joinGroup_:(groupName, callback)->
-    return callback yes  unless groupName
-
-    @whoami().fetchGroups (err, groups)=>
+    return callback null unless groupName
+    user = @whoami()
+    user.checkGroupMembership groupName, (err, isMember)=>
       return callback err  if err
+      return callback null if isMember
 
-      for group in groups
-        if groupName is group.group.slug
-          return callback null
-
+      #join to group
       @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
-        return @notify_ err.message, "error"  if err
-        return callback null                  unless currentGroup.privacy is 'public'
+        return callback err if err
+        return callback null unless currentGroup
         currentGroup.join (err)=>
-          return callback err  if err
-          @notify_ "You have joined #{groupName} group!", "success"
+          return callback err if err
+          @notify_ "You have joined to #{groupName} group!", "success"
           return callback null
 
   nick:-> KD.whoami().profile.nickname
@@ -120,6 +120,30 @@ KD.extend
     new KDNotificationView {title, content, duration}
 
     warn "KodingError:", err.message  unless err.name is 'AccessDenied'
+
+  getPathInfo: (fullPath)->
+    return no unless fullPath
+    path      = FSHelper.plainPath fullPath
+    basename  = FSHelper.getFileNameFromPath fullPath
+    parent    = FSHelper.getParentPath path
+    vmName    = FSHelper.getVMNameFromPath fullPath
+    isPublic  = FSHelper.isPublicPath fullPath
+    {path, basename, parent, vmName, isPublic}
+
+  getPublicURLOfPath: (fullPath, secure=no)->
+    {vmName, isPublic, path} = KD.getPathInfo fullPath
+    return unless isPublic
+    pathPartials = path.match /^\/home\/(\w+)\/Web\/(.*)/
+    return unless pathPartials
+    [_, user, publicPath] = pathPartials
+
+    publicPath or= ""
+    subdomain =
+      if /^shared\-/.test(vmName) and user is KD.nick()
+      then "#{user}."
+      else ""
+
+    return "#{if secure then 'https' else 'http'}://#{subdomain}#{vmName}/#{publicPath}"
 
 Object.defineProperty KD, "defaultSlug",
   get:->

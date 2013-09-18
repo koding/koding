@@ -2,11 +2,8 @@ class FSFolder extends FSFile
 
   fetchContents:(callback, dontWatch=yes)->
 
-    {nickname} = KD.whoami().profile
-
     @emit "fs.job.started"
     @vmController.run
-      kiteName   : 'os'
       method     : 'fs.readDirectory'
       vmName     : @vmName
       withArgs   :
@@ -27,7 +24,6 @@ class FSFolder extends FSFile
     @emit "fs.save.started"
 
     @vmController.run
-      kiteName  : 'os'
       vmName    : @vmName
       method    : 'fs.createDirectory'
       withArgs  :

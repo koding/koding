@@ -1,7 +1,8 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
-@import "nib/vendor"
+// @import "nib/vendor"
+
 
 @css {
 /*
@@ -58,6 +59,16 @@ positiveGreen = rgba(58,200,2,1)
     color           rgba(255,255,255,.5)
   .kdlistitemview
     line-height     25px
+    &.newpage
+      a:hover
+        text-decoration underline
+      a span.icon
+        sprite()
+        size            20px, 20px
+        bg              position, -180px -520px
+        display         inline-block
+        vertical-align  bottom
+        opacity         .4
     a
       font-size     12px
       color         rgba(255,255,255,1)!important
@@ -165,6 +176,16 @@ positiveGreen = rgba(58,200,2,1)
 .settings-list-wrapper
   height              auto
   min-height          50px
+  header
+    bg                color, rgba(0,0,0,.1)
+    border-bottom     1px solid rgba(0,0,0,0.3)
+    a.custom-link-view
+      margin-left     15px
+      text-decoration underline
+      fl()
+      span.title
+        line-height   24px
+        font-size     11px !important
   a.action-link
     abs()
     display         none
@@ -193,7 +214,7 @@ positiveGreen = rgba(58,200,2,1)
         input
           margin-bottom   10px
       .actions-wrapper
-        top             -7px
+        top             -4px
     .on-off
       display           inline-block
       size              auto, 23px
@@ -716,3 +737,8 @@ button.kdbutton.account-header-second-button
 @media (min-width: 2050px)
   .personal-emailNotifications .kdformview
     width           25%
+.personal-referralSystem
+  margin            18px
+  a
+    color           #888
+    clear           both

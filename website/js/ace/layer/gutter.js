@@ -126,6 +126,7 @@ var Gutter = function(parentEl) {
         var foldWidgets = this.$showFoldWidgets && this.session.foldWidgets;
         var breakpoints = this.session.$breakpoints;
         var decorations = this.session.$decorations;
+        var firstLineNumber = this.session.$firstLineNumber;
         var lastLineNumber = 0;
 
         while (true) {
@@ -142,7 +143,7 @@ var Gutter = function(parentEl) {
                 "<div class='ace_gutter-cell ",
                 breakpoints[i] || "", decorations[i] || "", annotation.className,
                 "' style='height:", this.session.getRowLength(i) * config.lineHeight, "px;'>", 
-                lastLineNumber = i + 1
+                lastLineNumber = i + firstLineNumber
             );
 
             if (foldWidgets) {
@@ -167,19 +168,21 @@ var Gutter = function(parentEl) {
         this.element = dom.setInnerHtml(this.element, html.join(""));
         this.element.style.height = config.minHeight + "px";
         
-        if (this.session.$useWrapMode)
+        if (this.$fixedWidth || this.session.$useWrapMode)
             lastLineNumber = this.session.getLength();
         
         var gutterWidth = ("" + lastLineNumber).length * config.characterWidth;
         var padding = this.$padding || this.$computePadding();
         gutterWidth += padding.left + padding.right;
-        if (gutterWidth !== this.gutterWidth) {
+        if (gutterWidth !== this.gutterWidth && !isNaN(gutterWidth)) {
             this.gutterWidth = gutterWidth;
             this.element.style.width = Math.ceil(this.gutterWidth) + "px";
             this._emit("changeGutterWidth", gutterWidth);
         }
     };
 
+    this.$fixedWidth = false;
+    
     this.$showFoldWidgets = true;
     this.setShowFoldWidgets = function(show) {
         if (show)
@@ -199,9 +202,9 @@ var Gutter = function(parentEl) {
         if (!this.element.firstChild)
             return {left: 0, right: 0};
         var style = dom.computedStyle(this.element.firstChild);
-        this.$padding = {}
-        this.$padding.left = parseInt(style.paddingLeft) + 1;
-        this.$padding.right = parseInt(style.paddingRight);  
+        this.$padding = {};
+        this.$padding.left = parseInt(style.paddingLeft) + 1 || 0;
+        this.$padding.right = parseInt(style.paddingRight) || 0;
         return this.$padding;
     };
 

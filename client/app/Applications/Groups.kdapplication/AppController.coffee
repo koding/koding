@@ -339,6 +339,7 @@ class GroupsAppController extends AppController
       buttons        :
         request      :
           title      : title
+          testPath   : "groups-request-button"
           loader     :
             color    : "#ffffff"
             diameter : 12
@@ -551,6 +552,7 @@ class GroupsAppController extends AppController
       modal = new KDModalView
         title        : "#{group.title} has been created!"
         content      : body
+        testPath     : "groups-create-confirm"
         buttons      :
           dashboard  :
             title    : 'Go to Dashboard'

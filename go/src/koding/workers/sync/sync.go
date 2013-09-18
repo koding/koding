@@ -21,7 +21,10 @@ type strToInf map[string]interface{}
 var GRAPH_URL = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
 
 func main() {
+	log.Println("Sync worker started")
+
 	amqpChannel := connectToRabbitMQ()
+	log.Println("Connected to Rabbit")
 
 	coll := mongo.GetCollection("relationships")
 	query := strToInf{
@@ -32,6 +35,8 @@ func main() {
 
 	var result oldNeo.Relationship
 	for iter.Next(&result) {
+		log.Printf("relId: %v", result.Id.Hex())
+
 		if relationshipNeedsToBeSynced(result) {
 			createRelationship(result, amqpChannel)
 		}
@@ -82,19 +87,19 @@ func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 func relationshipNeedsToBeSynced(result oldNeo.Relationship) bool {
 	exists, sourceId := checkNodeExists(result.SourceId.Hex())
 	if exists != true {
-		log.Println("err: No SourceNode:", result.SourceName, result.As)
+		logError(result, "No source node")
 		return true
 	}
 
 	exists, targetId := checkNodeExists(result.TargetId.Hex())
 	if exists != true {
-		log.Println("err: No TargetNode:", result.TargetName, result.Id, result.As)
+		logError(result, "No target node")
 		return true
 	}
 
 	exists = checkRelationshipExists(sourceId, targetId, result.As)
 	if exists != true {
-		log.Printf("err: No '%v' relationship exists between %v and %v", result.SourceName, result.TargetName, result.As)
+		logError(result, "No relationship")
 		return true
 	}
 
@@ -167,4 +172,9 @@ func checkNodeExists(id string) (bool, string) {
 	}
 
 	return true, nodeId
+}
+
+func logError(result oldNeo.Relationship, errMsg string) {
+	log.Printf("relId: %v error: %v", result.Id.Hex(), errMsg)
+	log.Printf("relId: %v rel: %v source: {%v %v} target: {%v %v}", result.Id.Hex(), result.As, result.SourceId.Hex(), result.SourceName, result.TargetId.Hex(), result.TargetName)
 }

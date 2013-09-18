@@ -5,7 +5,7 @@ module.exports =
       'one', 'some', 'cursor', 'each', 'someWithRelationship'
       'someData', 'getAutoCompleteData', 'count'
       'byRelevance', 'fetchVersion','reserveNames'
-      'impersonate', 'fetchBlockedUsers'
+      'impersonate', 'fetchBlockedUsers', 'fetchCachedUserCount'
     ]
   sharedInstanceMethods:->
     [
@@ -30,5 +30,5 @@ module.exports =
       'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
       'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
       'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
-      'markUserAsExempt', 'checkFlag', 'userIsExempt'
+      'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
     ]

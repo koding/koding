@@ -31,7 +31,7 @@ class FSHelper
     return data
 
   @folderOnChange = (vm, path, change, treeController)->
-    console.log "THEY CHANGED:", vm, path, change, treeController
+    # log "THEY CHANGED:", vm, path, change, treeController
     file = @parseWatcher(vm, path, change.file).first
     switch change.event
       when "added"
@@ -87,6 +87,14 @@ class FSHelper
       withArgs : {path}
     , callback
 
+  @glob = (pattern, vmName, callback)->
+    [vmName, callback] = [callback, vmName]  if typeof vmName is "function"
+    KD.getSingleton('vmController').run
+      method   : "fs.glob"
+      vmName   : vmName
+      withArgs : {pattern}
+    , callback
+
   @ensureNonexistentPath = (path, vmName, callback=noop)->
     KD.getSingleton('vmController').run
       method   : "fs.ensureNonexistentPath"
@@ -102,12 +110,12 @@ class FSHelper
     @setFileListeners file
     @registry[file.path] = file
 
-  @deregister = (path)->
+  @unregister = (path)->
     delete @registry[path]
 
-  @deregisterVmFiles = (vmName)->
+  @unregisterVmFiles = (vmName)->
     for path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
-      @deregister path
+      @unregister path
 
   @updateInstance = (fileData)->
     for prop, value of fileData
@@ -131,9 +139,11 @@ class FSHelper
 
   @createFileFromPath = (path, type = "file")->
     return warn "pass a path to create a file instance" unless path
+    vmName     = @getVMNameFromPath(path) or null
+    path       = @plainPath path  if vmName
     parentPath = @getParentPath path
     name       = @getFileNameFromPath path
-    return @createFile { path, parentPath, name, type }
+    return @createFile { path, parentPath, name, type, vmName }
 
   @createFile = (data)->
     unless data and data.type and data.path
@@ -163,7 +173,6 @@ class FSHelper
     return warn "Pass a path to create folders recursively"  unless path
 
     KD.getSingleton("vmController").run {
-      kiteName    : "os"
       method      : "fs.createDirectory"
       withArgs    : {
         recursive : yes
@@ -186,5 +195,25 @@ class FSHelper
 
   @isPublicPath = (path)->
     /^\/home\/.*\/Web\//.test FSHelper.plainPath path
+
+  @s3 =
+    get    : (name)->
+      "#{KD.config.uploadsUri}/#{KD.whoami().getId()}/#{name}"
+
+    upload : (name, content, callback)->
+      vmController = KD.getSingleton 'vmController'
+      vmController.run
+        method    : 's3.store'
+        withArgs  : {name, content}
+      , (err, res)->
+        if err then callback err
+        else callback null, FSHelper.s3.get name
+
+    remove : (name, callback)->
+      vmController = KD.getSingleton 'vmController'
+      vmController.run
+        method    : 's3.delete'
+        withArgs  : {name}
+      , callback
 
 KD.classes.FSHelper = FSHelper

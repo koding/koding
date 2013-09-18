@@ -56,6 +56,9 @@ class AceAppView extends JView
       # ace.on "AceDidSaveAs", (name, parentPath) =>
       #   update tooltip title here
 
+    @on "KDObjectWillBeDestroyed", ->
+      KD.getSingleton("mainView").disableFullscreen()
+
     @bindAppMenuEvents()
 
     @listenWindowResize()
@@ -177,6 +180,8 @@ class AceAppView extends JView
     @on "findMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView()
 
     @on "findAndReplaceMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView yes
+
+    @on "gotoLineMenuItemClicked", => @getActiveAceView().ace.showGotoLine()
 
     @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
 

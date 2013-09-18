@@ -5,6 +5,7 @@ module.exports = [
   "libs/sha1.encapsulated.coffee",
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
+  "libs/jquery.cookie.js",
 
   # --- Base class ---
   "Framework/core/utils.coffee",
@@ -15,6 +16,9 @@ module.exports = [
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
+
+  # the bongo api (or an empty file, depending on the config)
+  "../.build/api.js",
 
   # TODO: reenable closure wrapping:
   # "includes/header.inc.js",
@@ -86,6 +90,7 @@ module.exports = [
   "Framework/components/inputs/KDWmdInput.coffee",
   "Framework/components/inputs/tokenizedmenu.coffee",
   "Framework/components/inputs/tokenizedinput.coffee",
+  "Framework/components/inputs/KDContentEditableView.coffee",
 
   # upload
   "Framework/components/upload/KDFileUploadView.coffee",
@@ -109,9 +114,17 @@ module.exports = [
   "Framework/components/modals/KDModalViewLoad.coffee",
   "Framework/components/modals/KDBlockingModalView.coffee",
   "Framework/components/modals/KDModalViewWithForms.coffee",
+  "Framework/components/modals/KDModalViewStack.coffee",
 
   # notification
   "Framework/components/notifications/KDNotificationView.coffee",
+
+  # progressbar
+  "Framework/components/progressbar/KDProgressBarView.coffee",
+
+  # sliderbar
+  "Framework/components/sliderbar/KDSliderBarView.coffee",
+  "Framework/components/sliderbar/KDSliderBarHandleView.coffee",
 
   # dialog
   "Framework/components/dialog/KDDialogView.coffee",
@@ -147,7 +160,7 @@ module.exports = [
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
   "app/CommonViews/applicationview/applicationtabhandleholder.coffee",
-
+  "app/CommonViews/sharepopup.coffee"
   "app/CommonViews/linkviews/linkview.coffee",
   "app/CommonViews/linkviews/customlinkview.coffee",
   "app/CommonViews/linkviews/linkgroup.coffee",
@@ -174,7 +187,9 @@ module.exports = [
   "app/CommonViews/ShowMoreDataModalView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
   "app/CommonViews/Tags/TagAutoCompleteController.coffee",
-  "app/CommonViews/FormViews.coffee",
+  "app/CommonViews/SkillTagFormView.coffee",
+  "app/CommonViews/SkillTagAutoCompleteController.coffee",
+  "app/CommonViews/SkillTagAutoCompletedItem.coffee",
   "app/CommonViews/messagesList.coffee",
   "app/CommonViews/CommonInputWithButton.coffee",
   "app/CommonViews/SplitViewWithOlderSiblings.coffee",
@@ -236,6 +251,7 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   "app/CommonViews/ModalViewWithTerminal.coffee",
+  "app/CommonViews/DNDUploader.coffee",
 
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
@@ -257,6 +273,8 @@ module.exports = [
   "app/MainApp/navigation/navigationinvitationlink.coffee",
   "app/MainApp/navigation/navigationactivitylink.coffee",
   "app/MainApp/navigation/navigationappslink.coffee",
+  "app/MainApp/navigation/navigationdocsjobslink.coffee",
+  "app/MainApp/navigation/navigationpromotelink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",
@@ -305,18 +323,23 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/vmdetailsview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
+
+  "app/MainApp/filetree/helpers/dropboxuploader.coffee",
+
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
   "app/MainApp/filetree/bottomlist/finderbottomlistitem.coffee",
 
   # fs representation
   "app/MainApp/fs/fshelper.coffee",
+  "app/MainApp/fs/fswatcher.coffee",
   "app/MainApp/fs/fsitem.coffee",
   "app/MainApp/fs/fsfile.coffee",
   "app/MainApp/fs/fsfolder.coffee",
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
   "app/MainApp/fs/fsvm.coffee",
+  "app/MainApp/fs/appswatcher.coffee",
 
   # avatararea
   "app/MainApp/avatararea/avatarareapopup.coffee",
@@ -356,8 +379,6 @@ module.exports = [
   "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
-  "app/MainApp/localstorage.coffee",
-
 
   # got rid of static controllers
 
@@ -375,7 +396,6 @@ module.exports = [
 
   "libs/jquery-timeago.js",
   "libs/date.format.js",
-  "libs/jquery.cookie.js",
   "libs/jquery.getcss.js",
   "libs/mousetrap.js",
   "libs/md5-min.js",
@@ -392,6 +412,7 @@ module.exports = [
   "app/MainApp/AppController.coffee",
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
+  "app/MainApp/localstorage.coffee",
 
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
@@ -517,18 +538,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemQuestion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
-
- # Static Profile List Items
-  # "app/Applications/Activity.kdapplication/views/staticactivityitemchild.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitem.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemstatusupdate.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemblogpost.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemcodesnippet.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemdiscussion.coffee",
-  # "app/Applications/Activity.kdapplication/ListItems/staticactivitylistitemtutorial.coffee",
 
   # TOPICS VIEWS
   "app/Applications/Topics.kdapplication/AppView.coffee",
@@ -622,7 +632,6 @@ module.exports = [
   # MEMBERS VIEWS
   "app/Applications/Members.kdapplication/AppView.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee",
-  "app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",
   "app/Applications/Members.kdapplication/newmemberactivitylistitem.coffee",
@@ -698,6 +707,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
+  "app/Applications/Account.kdapplication/account/accSettingsPersReferralSystem.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
@@ -709,6 +719,8 @@ module.exports = [
   # CONTENT DISPLAY VIEWS
   "app/MainApp/ContentDisplay/ContentDisplay.coffee",
   "app/MainApp/ContentDisplay/ContentDisplayController.coffee",
+
+  "app/MainApp/pinger.coffee",
 
   # KITE CONTROLLER
   "app/MainApp/kite/kite.coffee",
@@ -725,6 +737,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/terminalpane.coffee",
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/workspacelayout.coffee",
   "app/CommonViews/workspace/workspace.coffee",
 
   # COLLABORATIVE WORKSPACE
@@ -739,18 +752,28 @@ module.exports = [
   "libs/codemirror/lib/codemirror.css",
   "app/CommonViews/workspace/panes/collaborativepane.coffee",
   "app/CommonViews/workspace/panes/collaborativetabbededitorpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativepreviewpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativedrawingpane.coffee",
   "app/CommonViews/workspace/panes/chatitem.coffee",
   "app/CommonViews/workspace/panes/chatpane.coffee",
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
+
+  # CLASSROOM
+  # "app/Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomchapterthumbview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcoursethumbview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcoursesview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcourseview.coffee",
+  # "app/Applications/Classroom.kdapplication/AppView.coffee",
+  # "app/Applications/Classroom.kdapplication/AppController.coffee",
 
   "app/CommonViews/modalappslistitemview.coffee",
 
@@ -799,6 +822,8 @@ module.exports = [
   "Framework/themes/default/kd.buttons.styl",
   "Framework/themes/default/kd.scrollview.styl",
   "Framework/themes/default/kd.modal.styl",
+  "Framework/themes/default/kd.progressbar.styl",
+  "Framework/themes/default/kd.sliderbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
 
@@ -836,7 +861,9 @@ module.exports = [
   "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
+  # "stylus/app.classroom.styl",
   "stylus/temp.styl",
+  "stylus/third.workspace.styl",
   # "stylus/app.landing.styl",
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",

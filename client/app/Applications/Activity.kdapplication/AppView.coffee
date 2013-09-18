@@ -34,12 +34,13 @@ class ActivityAppView extends KDScrollView
     @feedWrapper.ready =>
       @activityHeader = @feedWrapper.controller.activityHeader
       @on 'scroll', (event) =>
-        if event.delegateTarget.scrollTop > 0
+        if event.delegateTarget.scrollTop > 50
           @activityHeader.setClass "scrolling-up-outset"
           @activityHeader.liveUpdateButton.setValue off
         else
           @activityHeader.unsetClass "scrolling-up-outset"
           @activityHeader.liveUpdateButton.setValue on
+          KD.getSingleton("activityController").clearNewItemsCount()
 
     @decorate()
 

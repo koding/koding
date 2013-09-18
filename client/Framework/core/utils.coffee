@@ -107,10 +107,19 @@ __utils =
     s = t
     s
 
-  proxifyUrl:(url="")->
+  proxifyUrl:(url="", options={})->
+
+    options.width   or= -1
+    options.height  or= -1
+
     if url is ""
-    then "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
-    else "#{location.protocol}//#{location.host}/-/imageProxy?url=#{encodeURIComponent(url)}"
+      return "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+
+    if options.width or options.height
+      endpoint = "/resize"
+    if options.crop
+      endpoint = "/crop"
+    return "https://i.embed.ly/1/display#{endpoint or ''}?grow=false&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
 
 
   applyMarkdown: (text)->
@@ -161,9 +170,8 @@ __utils =
     text.replace /(^|\s)(www\.[A-Za-z0-9-_]+.[A-Za-z0-9-_:%&\?\/.=]+)/g, (_, whitespace, www) ->
       "#{whitespace}<a href='http://#{www}' target='_blank'>#{www}</a>"
 
-  expandUsernames: (text,sensitiveTo=no) ->
-    # sensitiveTo is a string containing parent elements whose children
-    # should not receive name expansion
+  expandUsernames: (text, excludeSelector) ->
+    # excludeSelector is a jQuery selector
 
     # as a JQuery selector, e.g. "pre"
     # means that all @s in <pre> tags will not be expanded
@@ -171,21 +179,25 @@ __utils =
     return null unless text
 
     # default case for regular text
-    if not sensitiveTo
+    if not excludeSelector
       text.replace /\B\@([\w\-]+)/gim, (u) ->
         username = u.replace "@", ""
         u.link "/#{username}"
     # context-sensitive expansion
     else
       result = ""
-      $(text).each (i,element)->
-        if ($(element).parents(sensitiveTo).length is 0) and not ($(element).is sensitiveTo)
-          if $(element).html()?
-            replacedText =  $(element).html().replace /\B\@([\w\-]+)/gim, (u) ->
+      $(text).each (i, element) ->
+        $element = $(element)
+        elementCheck = $element.not excludeSelector
+        parentCheck = $element.parents(excludeSelector).length is 0
+        childrenCheck = $element.find(excludeSelector).length is 0
+        if elementCheck and parentCheck and childrenCheck
+          if $element.html()?
+            replacedText =  $element.html().replace /\B\@([\w\-]+)/gim, (u) ->
               username = u.replace "@", ""
               u.link "/#{username}"
-            $(element).html replacedText
-        result += $(element).get(0).outerHTML or "" # in case there is a text-only element
+            $element.html replacedText
+        result += $element.get(0).outerHTML or "" # in case there is a text-only element
       result
 
   expandTags: (text) ->
@@ -310,12 +322,12 @@ __utils =
   getFullnameFromAccount:(account, justName=no)->
     account or= KD.whoami()
     if account.type is 'unregistered'
-      name = account.profile.nickname.capitalize()
+      name = "a guest"
     else if justName
       name = account.profile.firstName
     else
       name = "#{account.profile.firstName} #{account.profile.lastName}"
-    return Encoder.htmlEncode name
+    return Encoder.htmlEncode name or 'a Koding user'
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
@@ -326,7 +338,9 @@ __utils =
       duration = 0
     setTimeout fn, duration
 
-  killWait:(id)-> clearTimeout id if id
+  killWait:(id)->
+    clearTimeout id if id
+    return null
 
   repeat: (duration, fn)->
     if "function" is typeof duration
@@ -759,6 +773,10 @@ __utils =
 
     return "#{bytes.toFixed 2} #{units[unitIndex]}"
 
+  compileCoffeeOnClient: (coffeeCode, callback = noop) ->
+    require ["//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"], (coffeeCompiler) ->
+      callback coffeeCompiler.eval coffeeCode
+
   openGithubPopUp:->
     {clientId} = KD.config.github
     url        = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
@@ -772,6 +790,57 @@ __utils =
 
     if provider then mainController.emit "ForeignAuthCompleted", provider
     else mainController.emit "ForeignAuthFailed"
+
+  showSaveDialog: (container, callback = noop, options = {}) ->
+    container.addSubView dialog = new KDDialogView
+      cssClass      : KD.utils.curryCssClass "save-as-dialog", options.cssClass
+      duration      : 200
+      topOffset     : 0
+      overlay       : yes
+      height        : "auto"
+      buttons       :
+        Save        :
+          style     : "modal-clean-gray"
+          callback  : => callback input, finderController, dialog
+        Cancel      :
+          style     : "modal-cancel"
+          callback  : =>
+            finderController.stopAllWatchers()
+            delete finderController
+            finderController.destroy()
+            dialog.destroy()
+
+    dialog.addSubView wrapper = new KDView
+      cssClass : "kddialog-wrapper"
+
+    wrapper.addSubView form = new KDFormView
+
+    form.addSubView label = new KDLabelView
+      title : options.inputLabelTitle or "Filename:"
+
+    form.addSubView input = new KDInputView
+      label        : label
+      defaultValue : options.inputDefaultValue or ""
+
+    form.addSubView labelFinder = new KDLabelView
+      title : options.finderLabel or "Select a folder:"
+
+    dialog.show()
+    input.setFocus()
+
+    finderController    = new NFinderController
+      nodeIdPath        : "path"
+      nodeParentIdPath  : "parentPath"
+      foldersOnly       : yes
+      contextMenu       : no
+      loadFilesOnInit   : yes
+
+    finder = finderController.getView()
+    finderController.reset()
+
+    form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog save-file-container", null
+    finderWrapper.addSubView finder
+    finderWrapper.setHeight 200
 
   # deprecated ends
 

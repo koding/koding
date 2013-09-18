@@ -4,7 +4,7 @@ class KDLabelView extends KDView
     super options
 
   setDomElement:(cssClass)->
-    @domElement = $ "<label for='' class='kdlabel #{cssClass}'>#{@getTitle()}</label>"
+    @domElement = $ "<label class='kdlabel #{cssClass}'>#{@getTitle()}</label>"
 
   setTitle:(title)->
     @labelTitle = title or ''

@@ -38,6 +38,7 @@ class LoginView extends KDScrollView
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Recover password"
+      testPath    : "landing-recover-password"
       click       : recoverHandler
 
     @goToRegisterLink = new KDCustomHTMLView
@@ -53,6 +54,7 @@ class LoginView extends KDScrollView
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
+      testPath : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
@@ -60,6 +62,7 @@ class LoginView extends KDScrollView
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
+      testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
         KD.track "Login", "RegisterButtonClicked"
@@ -100,8 +103,7 @@ class LoginView extends KDScrollView
 
       KD.remote.api.JUser.authenticateWithOauth params, (err, resp)=>
         if err
-          new KDNotificationView
-            title : "An error occurred: #{err.message}"
+          showError err
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
@@ -188,6 +190,7 @@ class LoginView extends KDScrollView
 
   doRegister:(formData)->
     formData.agree = 'on'
+    formData.referrer = $.cookie 'referrer'
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
@@ -239,7 +242,7 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, @bound "afterLoginCallback"
+    KD.remote.api.JUser.login credentials, @afterLoginCallback.bind this
 
   runExternal = (token)->
     KD.getSingleton("kiteController").run
@@ -256,25 +259,8 @@ class LoginView extends KDScrollView
   afterLoginCallback: (err, params={})->
     @loginForm.button.hideLoader()
     {entryPoint} = KD.config
-
     if err
-      if err.message.length > 50
-        new KDModalView
-          title        : "Something is wrong!"
-          width        : 500
-          overlay      : yes
-          cssClass     : "new-kdmodal"
-          content      :
-            """
-              <div class='modalformline'>
-                #{err.message}
-              </div>
-            """
-      else
-        new KDNotificationView
-          title   : err.message
-          duration: 1000
-
+      showError err
       @loginForm.resetDecoration()
     else
       {account, replacementToken} = params
@@ -285,7 +271,7 @@ class LoginView extends KDScrollView
       mainView.show()
       mainView.$().css "opacity", 1
 
-      KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
+      KD.getSingleton('router').handleRoute KD.singletons.router.visitedRoutes.first or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView
           cssClass  : "login"
@@ -434,3 +420,21 @@ class LoginView extends KDScrollView
       return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"
+
+  showError = (err)->
+    if err.message.length > 50
+      new KDModalView
+        title        : "Something is wrong!"
+        width        : 500
+        overlay      : yes
+        cssClass     : "new-kdmodal"
+        content      :
+          """
+            <div class='modalformline'>
+              #{err.message}
+            </div>
+          """
+    else
+      new KDNotificationView
+        title   : err.message
+        duration: 1000

@@ -79,7 +79,7 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
       callback(err, account)
 
 renderLoginTemplate = (resp, res)->
-  saveOauthToSession resp, ->
+  saveOauthToSession resp, -> # FIXME: this seems like spaghetti code to me — C.T.
     {loginTemplate} = require './staticpages'
     serve loginTemplate, res
 
@@ -92,6 +92,7 @@ isLoggedIn = (req, res, callback)->
   findUsernameFromSession req, res, (err, isLoggedIn, username)->
     return callback null, no, {}  unless username
     JName.fetchModels username, (err, models)->
+      return callback null, no, {}  if err or not models.first
       user = models.last
       user.fetchAccount "koding", (err, account)->
         if err or account.type is 'unregistered'
@@ -100,18 +101,20 @@ isLoggedIn = (req, res, callback)->
 
 saveOauthToSession = (resp, callback)->
   {JSession} = koding.models
-  {provider, access_token, id, login, email, firstName, lastName, clientId} = resp
-  JSession.one {clientId}, (err, session)->
-    foreignAuth           = {}
-    foreignAuth[provider] =
-      token     : access_token
-      foreignId : String(id)
-      username  : login
-      email     : email
-      firstName : firstName
-      lastName  : lastName
+  { provider, access_token, id, login
+    email, firstName, lastName, clientId } = resp
 
-    JSession.update {clientId}, $set: {foreignAuth}, callback
+  foreignAuth = {}
+  foreignAuth[provider] = {
+    token     : access_token
+    foreignId : String(id)
+    username  : login
+    email
+    firstName
+    lastName
+  }
+
+  JSession.update { clientId }, $set:{ foreignAuth }, callback
 
 getAlias = do->
   caseSensitiveAliases = ['auth']
@@ -121,6 +124,13 @@ getAlias = do->
     if url in caseSensitiveAliases
       alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
     if alias and rooted then "/#{alias}" else alias
+
+
+# adds referral code into cookie if exists
+addReferralCode = (req, res)->
+  if refCode = req.query.r
+    console.log "refCode: #{refCode}"
+    res.cookie "referrer", refCode, { maxAge: 900000, httpOnly: false }
 
 module.exports = {
   error_
@@ -135,4 +145,5 @@ module.exports = {
   isLoggedIn
   saveOauthToSession
   getAlias
+  addReferralCode
 }

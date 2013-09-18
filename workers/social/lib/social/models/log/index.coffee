@@ -15,6 +15,9 @@ module.exports = class JLog extends Module
     sharedMethods   :
       instance      : []
       static        : [ 'some', 'log', 'checkLoginBruteForce' ]
+    indexes:
+      username : 1
+      ip       : 1
     schema                :
       type                :
         type              : String
@@ -44,6 +47,9 @@ module.exports = class JLog extends Module
   @log = (data, callback)->
     log = new JLog data
     log.save (err) -> callback err
+
+  @timeLimit = ()->
+    TIME_LIMIT_IN_MIN
 
   checkRestrictions = (err, results, callback)->
     # if err dont let to login

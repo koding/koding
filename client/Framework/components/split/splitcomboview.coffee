@@ -6,6 +6,9 @@ class KDSplitComboView extends KDView
 
     super options, data
 
+    @init options
+
+  init: (options) ->
     @addSubView @createSplitView options.direction, options.sizes, options.views
 
   createSplitView: (type, sizes, viewsConfig) ->
@@ -18,7 +21,7 @@ class KDSplitComboView extends KDView
       else
         views.push config
 
-    new KDSplitView { type, sizes, views }
+    return new KDSplitView { type, sizes, views }
 
 
 # Example Usage

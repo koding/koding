@@ -1,11 +1,13 @@
 {Model} = require 'bongo'
-{Relationship} = require 'jraphical'
+{Relationship, Module} = require 'jraphical'
 
-module.exports = class JVM extends Model
+module.exports = class JVM extends Module
 
   {permit} = require './group/permissionset'
   {secure} = require 'bongo'
   {uniq}   = require 'underscore'
+
+  {argv} = require 'optimist'
 
   KodingError = require '../error'
 
@@ -27,11 +29,18 @@ module.exports = class JVM extends Model
       'sudoer'          : []
       'create vms'      : ['member','moderator']
       'delete vms'      : ['member','moderator']
+    sharedEvents        :
+      static            : [
+        { name : "RemovedFromCollection" }
+      ]
+      instance          : [
+        { name : "RemovedFromCollection" }
+      ]
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVmInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
-                           'count', 'fetchDefaultVm' #'calculateUsage'
+                           'count', 'fetchDefaultVm', 'fetchVmRegion' #'calculateUsage'
                           ]
       instance          : []
     schema              :
@@ -42,6 +51,18 @@ module.exports = class JVM extends Model
         type            : String
         default         : -> null
       hostnameAlias     : String
+      hostKite          :
+        type            : String
+        default         : -> null
+      region            :
+        type            : String
+        enum            : ['unknown region'
+                          [
+                            'aws' # Amazon Web Services
+                            'sj'  # San Jose
+                            'vagrant'
+                          ]]
+        default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
       planOwner         : String
       planCode          : String
@@ -63,6 +84,10 @@ module.exports = class JVM extends Model
       shouldDelete      :
         type            : Boolean
         default         : no
+      diskSizeInMB      :
+        type            : Number
+        default         : 1200
+
 
   @createDomains = (account, domains, hostnameAlias)->
 
@@ -276,9 +301,17 @@ module.exports = class JVM extends Model
         return callback err  if err
         return callback null, null  unless vm
         callback null,
-          planCode      : vm.planCode
-          planOwner     : vm.planOwner
-          hostnameAlias : vm.hostnameAlias
+          planCode         : vm.planCode
+          planOwner        : vm.planOwner
+          hostnameAlias    : vm.hostnameAlias
+          underMaintenance : vm.hostKite is "(maintenance)"
+          region           : vm.region or 'sj'
+
+  @fetchVmRegion = secure (client, hostnameAlias, callback)->
+    {delegate} = client.connection
+    JVM.one {hostnameAlias}, (err, vm)->
+      return callback err  if err or not vm
+      callback null, vm.region
 
   @fetchDefaultVm = secure (client, callback)->
     {delegate} = client.connection
@@ -444,6 +477,7 @@ module.exports = class JVM extends Model
               if hasPermission
                 @deleteVM vm, callback
 
+
   do ->
 
     JAccount  = require './account'
@@ -531,8 +565,8 @@ module.exports = class JVM extends Model
             return console.error err  if err or not account
             # New account found
             webHome       = username
-            hostnameAlias = newHostNameAlias
-            vm.update {$set: {hostnameAlias, webHome}}, (err)=>
+            vm.update {$set: {hostnameAlias:newHostNameAlias, webHome}},(err)=>
+
               return console.error err  if err
               # VM hostnameAlias updated
 
@@ -544,10 +578,11 @@ module.exports = class JVM extends Model
                 return console.error err  if err
                 # Counter created
 
-                JVM.ensureDomainSettings {
-                  type:'user', nickname:username, groupSlug:'koding'
-                  account, vm
+                hostnameAliases = JVM.createAliases {
+                  nickname:username
+                  type:'user', uid, groupSlug:'koding'
                 }
+                JVM.createDomains account, hostnameAliases, hostnameAliases[0]
 
                 console.log """Migration completed for
                                #{hostnameAlias} to #{newHostNameAlias}"""
@@ -581,7 +616,13 @@ module.exports = class JVM extends Model
             webHome   : user.username
             groups    : wrapGroup group
           }
-        else unless group.slug is 'koding'
+        else if group.slug is 'koding'
+          member.fetchVms (err, vms)->
+            if err then handleError err
+            else
+              vms.forEach (vm) ->
+                vm.update $set: groups: [id: group.getId()], handleError
+        else
           member.checkPermission group, 'sudoer', (err, hasPermission)->
             if err then handleError err
             else
