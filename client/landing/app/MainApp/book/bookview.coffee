@@ -267,7 +267,7 @@ class BookView extends JView
       "Hi all - this looks interesting..."
       "Just got started Koding, I'm excited!"
       "This is pretty nifty."
-      "I liked it here :)"
+      "I like it here :)"
       "Looking forward to try Koding"
       "Just joined the Koding community"
       "Checking out Koding."
