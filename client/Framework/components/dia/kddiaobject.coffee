@@ -56,6 +56,8 @@ class KDDiaObject extends JView
   viewAppended:->
     super
     @addJoint joint for joint in @getOption 'joints'
+    # FIXME. Find better solution ~ GG
+    @parent.on 'UnhighlightJoints', => @emit 'UnhighlightJoints'
 
   getJointPos:(joint)->
     if typeof joint is "string"

@@ -9,17 +9,20 @@ class KDDiaJoint extends JView
       warn "Unknown joint type '#{options.type}', falling back to 'left'"
       options.type = 'left'
 
+    options.size    ?= 10
     options.cssClass = \
       KD.utils.curry "kddia-joint #{options.type}", options.cssClass
 
     super options, data
 
     @type = @getOption 'type'
-    @size = (@getOption 'size') or 10
+    @size = @getOption 'size'
 
   viewAppended:->
     super
     @domElement.attr "dia-id", @getDiaId()
+    @parent.on 'HighlightJoint',    @bound 'showDeleteButton'
+    @parent.on 'UnhighlightJoints', @bound 'hideDeleteButton'
 
   getDiaId:->
     "dia-#{@parent.getId()}-joint-#{@type}"
@@ -31,3 +34,14 @@ class KDDiaJoint extends JView
     e.preventDefault()
     @parent.emit "JointRequestsLine", this
     return no
+
+  showDeleteButton:(type)->
+    return  unless type is this.type
+
+    @deleteButton?.destroy()
+    @addSubView @deleteButton = new KDButtonView title: 'Delete'
+    @setSize width: 32, height: 16
+
+  hideDeleteButton:->
+    @deleteButton?.destroy()
+    @setSize width: @getOption('size'), height: @getOption('size')
