@@ -11,7 +11,7 @@ class NewKite extends KDEventEmitter
     @remoteStore  = new Store
     @autoReconnect = true
     @readyState = NOTREADY
-    @kontrolEndpoint = "http://localhost:4000/request" #kontrol addr
+    @kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
     @token = ""
     @addr = ""
     @initBackoff options  if @autoReconnect
@@ -69,7 +69,7 @@ class NewKite extends KDEventEmitter
     try
       args = JSON.parse evt.data
       {method} = args
-      console.log "received", {args}
+      # console.log "received", {args}
       callback = @localStore.get method
       callback.apply this, @unscrub args
     catch e
@@ -131,9 +131,9 @@ class NewKite extends KDEventEmitter
     try
       if @readyState is READY
         @ws.send JSON.stringify data
-        console.log "sending", {data}
+        # console.log "sending", {data}
       else
-        console.log "slow down ... I'm still trying to reconnect!"
+        # console.log "slow down ... I'm still trying to reconnect!"
     catch e
       @disconnect()
 
