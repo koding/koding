@@ -375,16 +375,16 @@ app.get '/:name/:section?*', (req, res, next)->
       isLoggedIn req, res, (err, loggedIn, account)->
         prefix = if loggedIn then 'loggedIn' else 'loggedOut'
         if name is "Develop"
-          subPage = JGroup.render[prefix].subPage {account}
+          subPage = JGroup.render[prefix].subPage {account, name, section}
           return serve subPage, res
 
         JName.fetchModels "#{name}/#{section}", (err, models)->
           if err
-            subPage = JGroup.render[prefix].subPage {account}
+            subPage = JGroup.render[prefix].subPage {account, name, section}
             return serve subPage, res
           else unless models? then res.send 404, error_404()
           else
-            subPage = JGroup.render[prefix].subPage {account}
+            subPage = JGroup.render[prefix].subPage {account, name, section, models}
             return serve subPage, res
   else
     isLoggedIn req, res, (err, loggedIn, account)->

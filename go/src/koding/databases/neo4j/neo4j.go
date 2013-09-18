@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
-	"log"
 	"net"
 	"net/http"
 	"strconv"
@@ -23,6 +22,8 @@ var (
 	MAX_RETRIES      = 5
 	TIMEOUT          = 3
 	DEADLINE         = 30
+	CYPHER_PATH      = "db/data/cypher"
+	CYPHER_URL       = fmt.Sprintf("%v/%v", BASE_URL, CYPHER_PATH)
 )
 
 type Relationship struct {
@@ -70,10 +71,9 @@ func sendRequest(requestType, url, data string, attempt int) string {
 	// read response body
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
-	log.Print(fmt.Sprintf("Attempt [%v/%v] to req %v", MAX_RETRIES, attempt, url))
 	res, err := client.Do(req)
 	if err != nil && attempt <= MAX_RETRIES {
-		log.Print(err)
+		fmt.Print(err)
 		attempt++
 		sendRequest(requestType, url, data, attempt)
 	}
@@ -98,7 +98,7 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
-		log.Println("Problem with relation response", relRes)
+		fmt.Println("Problem with relation response", relRes)
 	}
 
 	return relNode
@@ -113,7 +113,7 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
-		log.Println("Problem with relation response", relRes)
+		fmt.Println("Problem with relation response", relRes)
 	}
 
 	return relNode
@@ -131,7 +131,7 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 	node, err := jsonDecode(response)
 	if err != nil {
-		log.Println("Problem with unique node creation response", response)
+		fmt.Println("Problem with unique node creation response", response)
 	}
 
 	return node
@@ -166,7 +166,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	//so use json array decoder
 	relationships, err := jsonArrayDecode(response)
 	if err != nil {
-		log.Println("Problem with unique node creation response", response)
+		fmt.Println("Problem with unique node creation response", response)
 		return false
 	}
 
@@ -184,7 +184,6 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 		if relation["end"] == targetInfo[0]["self"] {
 			toBeDeletedRelationURL := fmt.Sprintf("%s", relation["self"])
 			deletionResponse := sendRequest("DELETE", toBeDeletedRelationURL, "", 1)
-			log.Println(deletionResponse)
 			foundNode = true
 
 			break
@@ -192,7 +191,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	}
 
 	if !foundNode {
-		log.Println("not found!", relationships[0]["self"])
+		fmt.Println("not found!", relationships[0]["self"])
 	}
 
 	return true
@@ -208,7 +207,7 @@ func GetNode(id string) []map[string]interface{} {
 
 	nodeData, err := jsonArrayDecode(response)
 	if err != nil {
-		log.Println("Problem with response", response)
+		fmt.Println("Problem with response", response)
 	}
 
 	return nodeData
@@ -234,10 +233,9 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 
 	response := sendRequest("PUT", propertiesURL, propertiesJSON, 1)
 	if response != "" {
-		log.Println(response)
 		res, err := jsonDecode(response)
 		if err != nil {
-			log.Println("Problem with response", err, res)
+			fmt.Println("Problem with response", err, res)
 		}
 	}
 
@@ -253,30 +251,26 @@ func DeleteNode(id string) bool {
 	}
 
 	//if self is not there!
-	if _, ok := node[0]["self"]; !ok {
+	selfUrl, ok := node[0]["self"]
+	if !ok {
 		return false
 	}
 
-	nodeURL := fmt.Sprintf("%s", node[0]["self"])
+	splitStrings := strings.Split(selfUrl.(string), "/")
+	nodeId := splitStrings[len(splitStrings)-1]
 
-	relationshipsURL := nodeURL + "/relationships/all"
+	query := fmt.Sprintf(`
+    {"query" : "START n=node(%v) MATCH n-[r?]-items DELETE r, n"}
+  `, nodeId)
 
-	response := sendRequest("GET", relationshipsURL, "", 1)
+	response := sendRequest("POST", CYPHER_URL, query, 1)
 
-	relations, err := jsonArrayDecode(response)
+	var result map[string][]interface{}
+	err := json.Unmarshal([]byte(response), &result)
 	if err != nil {
-		log.Println("Problem with response", response)
+		fmt.Println("Deleting node Marshalling error:", err)
 		return false
 	}
-
-	for _, relation := range relations {
-		if _, ok := relation["self"]; ok {
-			relationshipURL := fmt.Sprintf("%s", relation["self"])
-			sendRequest("DELETE", relationshipURL, "", 1)
-		}
-	}
-
-	sendRequest("DELETE", nodeURL, "", 1)
 
 	return true
 }
@@ -289,7 +283,7 @@ func CreateUniqueIndex(name string) {
 
 	bd := sendRequest("POST", url, `{"name":"`+name+`"}`, 1)
 
-	log.Println("Created unique index for data", bd)
+	fmt.Println("Created unique index for data", bd)
 }
 
 // This is a custom json string generator as http request body to neo4j
@@ -303,7 +297,7 @@ func jsonArrayDecode(data string) ([]map[string]interface{}, error) {
 
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		log.Println("Marshalling error:", err)
+		fmt.Println("Marshalling error:", err)
 		return nil, err
 	}
 
@@ -316,7 +310,7 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		log.Println("Marshalling error:", err)
+		fmt.Println("Marshalling error:", err)
 		return nil, err
 	}
 
