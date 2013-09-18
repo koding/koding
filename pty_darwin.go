@@ -21,45 +21,45 @@ type PTY struct {
 // see ioccom.h
 const sys_IOCPARM_MASK = 0x1fff
 
-func New() *PTY {
-	p, err := os.OpenFile("/dev/ptmx", os.O_RDWR, 0)
+func New(ptsPath string) *PTY {
+	pty, err := os.OpenFile(ptsPath+"/ptmx", os.O_RDWR, 0)
 	if err != nil {
 		fmt.Println("open pty", err)
 	}
 
-	sname, err := ptsname(p)
+	sname, err := ptsname(pty)
 	if err != nil {
 		fmt.Println("ptsname", err)
 	}
 
-	err = grantpt(p)
+	err = grantpt(pty)
 	if err != nil {
 		fmt.Println("grantpt", err)
 	}
 
-	err = unlockpt(p)
+	err = unlockpt(pty)
 	if err != nil {
 		fmt.Println("unlockpt", err)
 	}
 
-	t, err := os.OpenFile(sname, os.O_RDWR, 0)
+	tty, err := os.OpenFile(sname, os.O_RDWR, 0)
 	if err != nil {
 		fmt.Println("open tty", err)
 	}
 
-	masterEncoded, err := charset.NewWriter("ISO-8859-1", p)
+	masterEncoded, err := charset.NewWriter("ISO-8859-1", pty)
 	if err != nil {
 		fmt.Println("charset err", err)
 	}
 
-	pty := &PTY{
-		Master:        p,
-		Slave:         t,
+	p := &PTY{
+		Master:        pty,
+		Slave:         tty,
 		No:            0,
 		MasterEncoded: masterEncoded,
 	}
 
-	return pty
+	return p
 }
 
 func (pty *PTY) GetSize() (int, int, error) {
