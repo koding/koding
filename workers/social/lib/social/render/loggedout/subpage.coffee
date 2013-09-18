@@ -18,11 +18,11 @@ module.exports = ({account, name, section, models})->
     <script>(function(){window.location.href='/unsupported.html'})();</script>
     <![endif]-->
 
+    <div id='main-loading' class="kdview main-loading">
+      <figure class='pulsing'><ul><li/><li/><li/><li/><li/><li/></ul></figure>
+      #{putSplash(name, section, model)}
+    </div>
     <div class="kdview#{if isLoggedIn then '' else ' home'}" id="kdmaincontainer">
-      <div id='main-loading' class="kdview main-loading">
-        <figure class='pulsing'><ul><li/><li/><li/><li/><li/><li/></ul></figure>
-        #{putSplash(name, section, model)}
-      </div>
     </div>
 
     #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
