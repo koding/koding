@@ -90,7 +90,7 @@ app.use (req, res, next) ->
 
   {JSession} = koding.models
   {clientId} = req.cookies
-  clientIPAddress = req.connection.remoteAddress
+  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
   res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: false }
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
