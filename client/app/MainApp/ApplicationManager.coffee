@@ -87,7 +87,7 @@ class ApplicationManager extends KDObject
 
       # if there is no registered appController
       # we assume it should be a 3rd party app
-      # that's why it should be run via kodingappscontroller
+      # that's why it should be run via kodingAppsController
 
       if not appOptions?
         return @fetchManifests name, (err)=>
@@ -190,6 +190,13 @@ class ApplicationManager extends KDObject
     appOptions            = $.extend {}, true, KD.getAppOptions name
     appOptions.params     = params
     @register appInstance = new AppClass appOptions  if AppClass
+
+    if appOptions.thirdParty
+      if KD.getSingleton("kodingAppsController").hasForceUpdate appInstance
+        @emit "AppCouldntBeCreated", appInstance
+        @utils.defer => @quitByName appOptions.name, yes
+        return no
+
     @utils.defer =>
       @emit "AppCreated", appInstance
       if appOptions.thirdParty
