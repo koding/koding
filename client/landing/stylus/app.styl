@@ -93,6 +93,7 @@ body
   vendor              transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
   vendor              animation, pulse 1.5s ease-in-out 100
   &.out
+    opacity           0
     vendor            animation, pulse-to-fade-out .75s ease-in-out
     vendor            animation-iteration-count, 1
 
@@ -104,6 +105,7 @@ body
   background          #332F2A url("../images/koding-new-bg.png") repeat-x scroll 0 0
   vendor              transition, opacity .75s ease-in-out
   opacity             1
+  overflow            hidden
   &.out
     opacity           0
   figure.splash
