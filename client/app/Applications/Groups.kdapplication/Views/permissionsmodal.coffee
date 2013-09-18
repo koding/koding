@@ -1,4 +1,4 @@
-class PermissionsModal extends KDFormViewWithFields
+class PermissionsForm extends KDFormViewWithFields
 
   # TODO: this class is a bit of a mess.  I did some light refactoring, but
   # I decided that at least some of the concerns I have with this file are
