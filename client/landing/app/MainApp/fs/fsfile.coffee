@@ -9,7 +9,10 @@ class FSFile extends FSItem
     @on "file.requests.save", (contents)=>
       @save contents
 
-  fetchContents:(callback)->
+  fetchContentsBinary: (callback)->
+    @fetchContents callback, no
+
+  fetchContents:(callback, useEncoding=yes)->
 
     @emit "fs.job.started"
     @vmController.run
@@ -21,10 +24,10 @@ class FSFile extends FSItem
 
       if err then warn err
       else
-        {content} = response
+        content = atob response.content
 
-        # Convert to String
-        content = KD.utils.utf8Decode atob content
+        if useEncoding
+          content = KD.utils.utf8Decode content # Convert to String
 
       callback.call @, err, content
       @emit "fs.job.finished", err, content
