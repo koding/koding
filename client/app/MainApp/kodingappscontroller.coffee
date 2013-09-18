@@ -201,7 +201,7 @@ class KodingAppsController extends KDController
     @updateAvailableApps = []
 
     @fetchApps (err, apps) =>
-      for appName, app of apps
+      for own appName, app of apps
         if @isAppUpdateAvailable app.name, app.version
           @updateAvailableApps.push publishedApps[app.name]
       callback? null, @updateAvailableApps
@@ -267,7 +267,7 @@ class KodingAppsController extends KDController
 
   getPublishedApps: (callback) ->
     # return unless KD.isLoggedIn()
-    appNames = (appName for appName, manifest of @getManifests()) or []
+    appNames = (appName for own appName, manifest of @getManifests()) or []
     query    = "manifest.name": "$in": appNames
     {JApp}   = KD.remote.api
     JApp.fetchAllAppsData query, (err, apps)=>
@@ -800,7 +800,7 @@ class KodingAppsController extends KDController
   createExtensionToAppMap: ->
     @extensionToApp = map = {}
 
-    for key, app of @getManifests()
+    for own key, app of @getManifests()
       fileTypes = app.fileTypes
       continue  unless fileTypes
       for type in fileTypes
@@ -816,7 +816,7 @@ class KodingAppsController extends KDController
     @appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
     @appConfigStorage.fetchStorage (storage) =>
       settings = @appConfigStorage.getValue "settings"
-      for extension, appName of settings
+      for own extension, appName of settings
         @appManager.defaultApps[extension] = appName
 
   updateDefaultAppConfig: (extension, appName) ->
