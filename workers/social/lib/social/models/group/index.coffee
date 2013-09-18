@@ -88,7 +88,7 @@ module.exports = class JGroup extends Module
         'kickMember', 'transferOwnership', 'fetchRolesByClientId',
         'fetchInvitationsFromGraph', 'countInvitationsFromGraph', 'fetchMembersFromGraph'
         'remove', 'bulkApprove', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
+        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'fetchBillingInfo',
         'checkUserBalance', 'makeExpense', 'getUserExpenses', 'getAllExpenses', 'getTransactions',
         'fetchBundle', 'updateBundle', 'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage',
@@ -1280,7 +1280,7 @@ module.exports = class JGroup extends Module
       JRecurlyGroup = require '../recurly/group'
       JRecurlyGroup.setAccount this, data, callback
 
-  getBillingInfo: permit 'manage payment methods',
+  fetchBillingInfo: permit 'manage payment methods',
     success: (client, callback)->
       JRecurlyGroup = require '../recurly/group'
       JRecurlyGroup.getBilling this, callback

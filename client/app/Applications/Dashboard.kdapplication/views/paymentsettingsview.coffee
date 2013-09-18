@@ -36,12 +36,8 @@ class GroupPaymentSettingsView extends JView
       fields                :
         billing             :
           label             : "Billing Method"
-          # tagName           : "a"
-          # partial           : "Enter Billing Information"
           itemClass         : BillingMethodView
-          cssClass          : "billing-link"
-          click             : =>
-            @updateBillingInfo group
+          data              : group
         history             :
           label             : "Payment History"
           tagName           : "a"
@@ -117,8 +113,6 @@ class GroupPaymentSettingsView extends JView
 
     @settingsForm = new KDFormViewWithFields formOptions, group
 
-    @getBillingInfo group
-
     group.fetchBundle (err, bundle)=>
       if err or not bundle
         return
@@ -137,38 +131,5 @@ class GroupPaymentSettingsView extends JView
       else if bundle.overagePolicy is "allowed"
         @settingsForm.inputs.overagePolicy.setOn()
         @settingsForm.fields.approval.show()
-
-  updateBillingInfo:(group)->
-    @getBillingInfo group, (err, data)=>
-      if err or not data
-        data = {}
-
-      console.log { data }
-
-      paymentController = KD.getSingleton "paymentController"
-      paymentController.updateBillingInfo data, (newData, onError, onSuccess)=>
-        group.setBillingInfo newData, (err, result)=>
-          if err
-            onError err
-          else
-            @getBillingInfo group
-            onSuccess result
-
-  getBillingInfo:(group, callback=->)->
-    group.getBillingInfo (err, billing)=>
-      unless err
-        cardInfo = """
-                   #{billing.cardFirstName} #{billing.cardLastName}
-                   <br><br>
-                   #{billing.cardNumber} - #{billing.cardMonth}/#{billing.cardYear} (#{billing.cardType})
-                   <br><br>
-                   #{billing.address1} #{billing.address2}
-                   <br>
-                   #{billing.city} #{billing.state} #{billing.zip}
-                   """
-      else
-        cardInfo = "Enter Billing Information"
-      @settingsForm.inputs.billing.setBillingInfo cardInfo
-      callback err, billing
 
   pistachio:-> "{{> @settingsForm}}"

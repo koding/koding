@@ -22,7 +22,7 @@ class KDFormViewWithFields extends KDFormView
     @createButtons sanitizeOptions buttons if buttons
 
   createFields:(fields)->
-    @addSubView @createField fieldData for fieldData in fields
+    @addSubView @createField fieldOptions for fieldOptions in fields
 
   createButtons:(buttons)->
     @addSubView @buttonField = new KDView cssClass : "formline button-field clearfix"
@@ -30,35 +30,35 @@ class KDFormViewWithFields extends KDFormView
       @buttonField.addSubView button = @createButton buttonOptions
       @buttons[buttonOptions.key] = button
 
-  createField:(fieldData, field, isNextElement = no)->
-    {itemClass, title} = fieldData
-    itemClass          or= KDInputView
-    fieldData.cssClass or= ""
-    fieldData.name     or= title
-    field or= new KDView cssClass : "formline #{KD.utils.slugify fieldData.name} #{fieldData.cssClass}"
-    field.addSubView label = fieldData.label = @createLabel(fieldData) if fieldData.label
+  createField:(fieldOptions, field, isNextElement = no)->
+    {itemClass, title, itemData} = fieldOptions
+    itemClass             or= KDInputView
+    fieldOptions.cssClass or= ""
+    fieldOptions.name     or= title
+    field or= new KDView cssClass : "formline #{KD.utils.slugify fieldOptions.name} #{fieldOptions.cssClass}"
+    field.addSubView label = fieldOptions.label = @createLabel(fieldOptions) if fieldOptions.label
 
     unless isNextElement
       field.addSubView inputWrapper = new KDCustomHTMLView cssClass : "input-wrapper"
-      inputWrapper.addSubView input = @createInput itemClass, fieldData
+      inputWrapper.addSubView input = @createInput itemClass, fieldOptions
     else
-      field.addSubView input = @createInput itemClass, fieldData
+      field.addSubView input = @createInput itemClass, fieldOptions
 
-    if fieldData.hint
+    if fieldOptions.hint
       inputWrapper.addSubView hint  = new KDCustomHTMLView
-        partial  : fieldData.hint
+        partial  : fieldOptions.hint
         tagName  : "cite"
         cssClass : "hint"
     @fields[title] = field
-    if fieldData.nextElement
-      for key, next of fieldData.nextElement
+    if fieldOptions.nextElement
+      for key, next of fieldOptions.nextElement
         next.title or= key
         @createField next, (inputWrapper or field), yes
 
-    if fieldData.nextElementFlat
-      for key, next of fieldData.nextElementFlat
-        next.title or= key
-        @createField next, field
+    # if fieldOptions.nextElement
+    #   for key, next of fieldOptions.nextElement
+    #     next.title or= key
+    #     @createField next, field
 
 
     return field

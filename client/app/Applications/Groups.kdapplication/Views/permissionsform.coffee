@@ -162,7 +162,7 @@ class PermissionsForm extends KDFormViewWithFields
       cascadeData[current].defaultValue = yes
       cascadeData[current].disabled = yes
     if current and remainder.length > 0
-      cascadeData[current].nextElementFlat = cascadeFormElements set, remainder, module, permission
+      cascadeData[current].nextElement = cascadeFormElements set, remainder, module, permission
     return cascadeData
 
   cascadeHeaderElements = (roles)->
@@ -175,7 +175,7 @@ class PermissionsForm extends KDFormViewWithFields
       attributes    :
         title       : readableText current
     if current and remainder.length > 0
-      cascadeData[current].nextElementFlat = cascadeHeaderElements remainder
+      cascadeData[current].nextElement = cascadeHeaderElements remainder
     return cascadeData
 
   optionizePermissions = (roles, set)->
@@ -183,7 +183,7 @@ class PermissionsForm extends KDFormViewWithFields
       head              :
         itemClass       : KDView
         cssClass        : 'permissions-header col-'+roles.length
-        nextElementFlat :
+        nextElement :
           cascadeHeaderElements roles
 
     for module, permissions of set.permissionsByModule
@@ -199,7 +199,7 @@ class PermissionsForm extends KDFormViewWithFields
           cssClass      : 'text'
           attributes    :
             title       : readableText permission
-          nextElementFlat :
+          nextElement :
             cascadeFormElements set, roles, module, permission
     permissionOptions
 

@@ -12,23 +12,14 @@ class PaymentController extends KDController
   updateCreditCard: (type, callback=->)->
     @updateCreditCardModal {}, (newData)=>
       @modal.buttons.Save.hideLoader()
-      if type is ['group', 'expensed']
+      if type in ['group', 'expensed']
         getGroup().setBillingInfo newData, callback
       else
         KD.remote.api.JRecurlyPlan.setUserAccount newData, callback
 
-  updateBillingInfo: (type, callback=->)->
-    @updateBillingInfoModal {}, (newData)=>
-      log 'updateBillingInfo', newData
-      @modal.buttons.Save.hideLoader()
-      if type is ['group', 'expensed']
-        getGroup().setBillingInfo newData, callback
-      else
-        KD.remote.api.JRecurlyPlan.setUserAccount newData, callback
-
-  getBillingInfo: (type, callback)->
-    if type is ['group', 'expensed']
-      getGroup().getBillingInfo callback
+  fetchBillingInfo: (type, callback)->
+    if type in ['group', 'expensed']
+      getGroup().fetchBillingInfo callback
     else
       KD.remote.api.JRecurlyPlan.getUserAccount callback
 
@@ -62,7 +53,7 @@ class PaymentController extends KDController
         if status
           cb no, 0, 0
         else
-          @getBillingInfo type, group, (err, account)=>
+          @fetchBillingInfo type, group, (err, account)=>
             needBilling = err or not account or not account.cardNumber
 
             @getBalance type, group, (err, balance)=>
@@ -76,10 +67,8 @@ class PaymentController extends KDController
       vmController.createGroupVM type, plan.code
     else
       if type in ['group', 'expensed']
-        getGroup().makePayment
-          plan     : plan.code
-          multiple : yes
-        , (err, result)->
+        paymentInfo = { plan: plan.code, multiple: yes }
+        getGroup().makePayment paymentInfo, (err, result)->
           return KD.showError err  if err
           vmController.createGroupVM type, plan.code
       else
@@ -89,9 +78,9 @@ class PaymentController extends KDController
 
   deleteVM: (vmInfo, callback)->
     type  =
-      if vmInfo.planOwner.indexOf('user_') > -1 then 'user'
-      else if vmInfo.type is 'expensed'         then 'expensed'
-      else                                           'group'
+      if (vmInfo.planOwner.indexOf 'user_') > -1 then 'user'
+      else if vmInfo.type is 'expensed'          then 'expensed'
+      else 'group'
 
     @getSubscription @getGroup(), type, vmInfo.planCode,\
       @createDeleteConfirmationModal.bind this, type, callback
@@ -107,13 +96,16 @@ class PaymentController extends KDController
     @modal.on 'KDObjectWillBeDestroyed', => delete @modal
     return @modal
 
-  updateBillingInfoModal:(data, callback)->
+  showBillingInfoModal:(type, billingInfo)->
     @loadCountryData (err, countries, countryOfIp)=>
-      @modal = new BillingForm {callback, countries, countryOfIp}
+      new BillingForm { countries, countryOfIp }, billingInfo
 
   loadCountryData:(callback)->
-    return callback null, @countries, @countryOfIp  if @countries or @countryOfIp
-    ip = $.cookie('clientIPAddress')
+    if @countries or @countryOfIp
+      return @utils.defer =>
+        callback null, @countries, @countryOfIp
+
+    ip = $.cookie 'clientIPAddress'
     KD.remote.api.JRecurly.getCountryData ip, (err, @countries, @countryOfIp)=>
       callback err, @countries, @countryOfIp
 
