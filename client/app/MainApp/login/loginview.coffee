@@ -112,9 +112,9 @@ class LoginView extends KDScrollView
               setValue field, value
           else
             if isUserLoggedIn
-              mainController.emit "ForeignAuthSuccess", provider
+              mainController.emit "ForeignAuthSuccess.#{provider}"
               new KDNotificationView
-                title : "Thanks for linking your account!"
+                title : "Thanks for linking your #{provider.capitalize()} account!"
             else
               @afterLoginCallback err, {account, replacementToken}
 
