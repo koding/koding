@@ -20,7 +20,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
         return @workspaceRef.child("ActiveTabIndex").remove()
 
       if val.tabs?
-        for key, data of val.tabs
+        for own key, data of val.tabs
           if data.path and @openedFiles.indexOf(data.path) is -1
             file = FSHelper.createFileFromPath data.path
             @createEditorInstance file, null, data.sessionKey
@@ -103,7 +103,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       @workspaceRef.once "value", (snapshot) =>
         {tabs} = snapshot.val()
         return unless tabs
-        for key, value of tabs when value.sessionKey is editor.sessionKey
+        for own key, value of tabs when value.sessionKey is editor.sessionKey
           fileName = FSHelper.getFileNameFromPath tabs[key].path
           delete tabs[key]
         @workspaceRef.set { tabs }
