@@ -12,11 +12,6 @@ module.exports = class JBlogPost extends JPost
 
   @share()
 
-  schema = extend {}, JPost.schema, {
-    html    : String
-    checksum: String
-  }
-
   @set
     slugifyFrom       : 'title'
     sharedMethods     :
@@ -39,7 +34,7 @@ module.exports = class JBlogPost extends JPost
         { name: 'updateInstance' }
         { name: 'RemovedFromCollection' }
       ]
-    schema            : schema
+    schema            : JPost.schema
     relationships     : JPost.relationships
 
   @getActivityType =-> require './blogpostactivity'
@@ -51,8 +46,6 @@ module.exports = class JBlogPost extends JPost
       title       : data.title
       body        : data.body
       group       : data.group
-      html        : JMarkdownDoc.generateHTML data.body
-      checksum    : JMarkdownDoc.generateChecksum data.body
     JPost.create.call @, client, blogPost, callback
 
   modify: secure (client, data, callback)->
@@ -61,8 +54,6 @@ module.exports = class JBlogPost extends JPost
       meta        : data.meta
       title       : data.title
       body        : data.body
-      html        : JMarkdownDoc.generateHTML data.body
-      checksum    : JMarkdownDoc.generateChecksum data.body
     JPost::modify.call @, client, blogPost, callback
 
   reply: permit 'reply to posts',
