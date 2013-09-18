@@ -93,6 +93,9 @@ class DNDUploader extends KDView
         <small>#{if uploadToVM then FSHelper.plainPath @path else ''}</small>
       </div>
     """
+    @showCancel()
+
+  showCancel:->
     @addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "cancel"

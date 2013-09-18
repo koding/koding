@@ -111,20 +111,26 @@ class KDWebcamView extends JView
       @button.show()
       @autoResize()
 
+  @getUserMediaVendor: ->
+    navigator.getUserMedia or\
+    navigator.webkitGetUserMedia or\
+    navigator.mozGetUserMedia
+
+  @getURLVendor: ->
+    window.URL or\
+    window.webkitURL or\
+    window.mozURL
+
   getUserMedia: ->
     _onError = (error)=> @emit "error", error
-    navigator.getUserMedia = navigator.getUserMedia or\
-                             navigator.webkitGetUserMedia or\
-                             navigator.mozGetUserMedia
-    window.URL = window.URL or\
-                 window.webkitURL or\
-                 window.mozURL
+    navigator.getUserMedia = KDWebcamView.getUserMediaVendor()
+    window.URL = KDWebcamView.getURLVendor()
 
     if navigator.getUserMedia
       navigator.getUserMedia video: yes, (stream)=>
         @setVideoStream (window.URL and window.URL.createObjectURL stream) or stream
       , _onError
-    else _onError null
+    else _onError notSupported: yes
 
   flash: ->
     flash  = new KDView

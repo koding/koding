@@ -9,16 +9,12 @@ class NewCommentForm extends KDView
     super options, data
 
   viewAppended:->
-    {profile} = KD.whoami()
-    host = "//#{location.host}/"
-    defaultAvatarUrl = encodeURIComponent(host + '/images/defaultavatar/default.avatar.30.png')
-    fallbackUrl = if profile.hash
-    then "url(//www.gravatar.com/avatar/#{profile.hash}?size=30&d=#{defaultAvatarUrl})"
-    else "url(#{defaultAvatarUrl})"
 
-    @addSubView commenterAvatar = new KDCustomHTMLView
-      tagName : "span"
-      partial : "<a href='#' style='background-image:#{fallbackUrl};'></a>"
+    @addSubView commenterAvatar = new AvatarStaticView
+      size    :
+        width : 30
+        height: 30
+    , KD.whoami()
 
     @addSubView commentFormWrapper = new KDView
       cssClass    : "item-add-comment-form"
