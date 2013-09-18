@@ -61,7 +61,10 @@ func Fetch(idHex, name string) (map[string]interface{}, error) {
 		return c.FindId(id).One(result)
 	}
 
-	mongodb.Run(getCollectionName(name), query)
+	err := mongodb.Run(getCollectionName(name), query)
+	if err != nil {
+		return nil, err
+	}
 
 	fmt.Println("positive")
 	result["id"] = idHex
@@ -95,7 +98,10 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 		return c.FindId(id).One(result)
 	}
 
-	mongodb.Run(getCollectionName(name), query)
+	err := mongodb.Run(getCollectionName(name), query)
+	if err != nil {
+		return "", err
+	}
 
 	// add object id and object class name
 	result["id"] = idHex

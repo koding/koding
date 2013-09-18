@@ -262,16 +262,16 @@ func main() {
 			return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
 		}
 
-		if len(params.Content) > 5*1024*1024 {
-			return nil, errors.New("Content size larger than maximum of 5MB.")
+		if len(params.Content) > 2*1024*1024 {
+			return nil, errors.New("Content size larger than maximum of 2MB.")
 		}
 
-		result, err := uploadsBucket.List(UserAccountId(vos.User).Hex()+"/", "", "", 10)
+		result, err := uploadsBucket.List(UserAccountId(vos.User).Hex()+"/", "", "", 100)
 		if err != nil {
 			return nil, err
 		}
-		if len(result.Contents) >= 10 {
-			return nil, errors.New("Maximum of 10 stored files reached.")
+		if len(result.Contents) >= 100 {
+			return nil, errors.New("Maximum of 100 stored files reached.")
 		}
 
 		if err := uploadsBucket.Put(UserAccountId(vos.User).Hex()+"/"+params.Name, params.Content, "", s3.Private); err != nil {
