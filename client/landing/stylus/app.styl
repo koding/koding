@@ -93,6 +93,7 @@ body
   vendor              transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
   vendor              animation, pulse 1.5s ease-in-out 100
   &.out
+    opacity           0
     vendor            animation, pulse-to-fade-out .75s ease-in-out
     vendor            animation-iteration-count, 1
 
@@ -104,10 +105,40 @@ body
   background          #332F2A url("../images/koding-new-bg.png") repeat-x scroll 0 0
   vendor              transition, opacity .75s ease-in-out
   opacity             1
+  overflow            hidden
   &.out
     opacity           0
+  figure.splash
+    // max-width         40%
+    // margin            0 auto
+    text-align        center
+    text-shadow       0 1px 0 rgba(0,0,0,.5)
+    padding           20px
+    // bg                color, rgba(0, 0, 0, .05)
+    // border            1px solid rgba(0, 0, 0, .1)
+    top               50px
+    rel()
+    .splash-title
+      font-weight     300
+      font-size       18px
+      padding         0 0 20px
+      color           #eee
+    .splash-name
+      bg              color, rgba(0, 0, 0, .05)
+      display         inline-block
+      font-weight     300
+      font-size       24px
+      color           linkColor1
+      padding         5px 10px
+    .splash-body
+      font-weight     300
+      margin          0 auto
+      max-width       400px
+      max-height      100px
+      font-size       14px
+      color           #ccc
 
-  .out
+
   &.about
     vendor            animation, shrink 5s ease-in-out
     vendor            animation-iteration-count, 1
@@ -268,13 +299,13 @@ body
     shadow            none
   &.with-finder
     left              260px
-    kalc              width, 100%\-260px, 100%
+    kalc              width, 100%\-260px
   &.mouse-on-nav
     left              173px!important
-    kalc              width, 100%\-173px, 100%
+    kalc              width, 100%\-173px
   &.social
     left              160px!important
-    kalc              width, 100%\-160px, 100%
+    kalc              width, 100%\-160px
   &.develop
     min-width         250px
   &.no-anim
@@ -286,10 +317,10 @@ body
     bottom            0!important
     right             0!important
     z-index           10
-    kalc              height, 100% \+ 51px, 100%
+    kalc              height, 100% \+ 51px
     .application-page
       padding         0!important
-      kalc            height, 100% \+ 10px, 100%
+      kalc            height, 100% \+ 10px
     .app-settings-menu
       top             0
       right           0
@@ -681,12 +712,19 @@ span.main-nav-icon
   left                0
   padding             0
   margin              0
+  opacity             0
   border              none
   overflow            hidden
   size                100%,25px
   z-index             0
   bg                  color,transparent
-  vendor              transition, top .3s linear \, width .3s linear
+  vendor              transition, top .3s linear\,\
+                                  opacity .3s ease-out\,\
+                                  width .3s linear
+  &.in
+    top               -25px
+    opacity           1
+
   .kdtabhandle
     color             rgba(255,255,255,0.95)
     line-height       23px
@@ -1752,8 +1790,8 @@ span.main-nav-icon
   noTextSelection()
   margin          10px
   border          5px dashed #afafaf
-  kalc            height, 100% \- 20px, 100%
-  kalc            width,  100% \- 20px, 100%
+  kalc            height, 100% \- 20px
+  kalc            width,  100% \- 20px
   border-radius   5px
   &.hover
     border-color  #444
