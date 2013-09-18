@@ -296,7 +296,7 @@ class StartTabMainView extends JView
     guestCreateTime  = guestCreate.getTime()
 
     endTime       = new Date(guestCreateTime + guestTimeout*60*1000)
-    log endTime
+
     notification  = new GlobalNotification
       title       : "Your session will end in"
       targetDate  : endTime

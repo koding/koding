@@ -90,8 +90,10 @@ class ApplicationManager extends KDObject
       # that's why it should be run via kodingappscontroller
 
       if not appOptions?
-        return @fetchManifests name, =>
-          @open name, options, callback
+        return @fetchManifests name, (err)=>
+          unless err
+          then @open name, options, callback
+          else do defaultCallback
 
       appParams = options.params or {}
 
@@ -129,7 +131,12 @@ class ApplicationManager extends KDObject
 
     KD.getSingleton("kodingAppsController").fetchApps (err, manifests)->
       manifestsFetched = yes
+
+      return callback? yes  if err or not manifests
+
       for name, manifest of manifests when name is appName
+
+        err = no
 
         manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
         manifest.behavior   or= "application"
@@ -185,7 +192,8 @@ class ApplicationManager extends KDObject
     @register appInstance = new AppClass appOptions  if AppClass
     @utils.defer =>
       @emit "AppCreated", appInstance
-      KD.getSingleton("kodingAppsController").putAppResources appInstance  if appOptions.thirdParty
+      if appOptions.thirdParty
+        KD.getSingleton("kodingAppsController").putAppResources appInstance, callback
       callback? appInstance
 
   show:(appOptions, callback)->
