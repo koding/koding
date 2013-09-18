@@ -134,29 +134,3 @@ class EnvironmentItemJoint extends KDDiaJoint
     options.cssClass = 'environments-joint'
     options.size     = 4
     super options, data
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

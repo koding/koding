@@ -1,36 +1,5 @@
 class KDDiaScene extends JView
 
-  # Example usage:
-  #
-  # @addSubView scene = new KDDiaScene
-
-  # scene.addSubView container1 = new KDDiaContainer draggable : yes
-  # scene.addSubView container2 = new KDDiaContainer
-  # scene.addSubView container3 = new KDDiaContainer draggable : yes
-
-  # container1.addSubView diaObject1 = new KDDiaObject type:'square'
-  # container1.addSubView diaObject2 = new KDDiaObject type:'square'
-  # container1.addSubView diaObject3 = new KDDiaObject type:'square'
-
-  # container2.addSubView diaObject4 = new KDDiaObject type:'circle'
-  # container2.addSubView diaObject5 = new KDDiaObject type:'circle'
-  # container2.addSubView diaObject6 = new KDDiaObject type:'square'
-
-  # container3.addSubView diaObject7 = new KDDiaObject type:'square'
-
-  # scene.connect {dia:diaObject1, joint:'bottom'}, \
-  #               {dia:diaObject2, joint:'bottom'}
-  # scene.connect {dia:diaObject2, joint:'top'},    \
-  #               {dia:diaObject3, joint:'top'}
-  # scene.connect {dia:diaObject3, joint:'bottom'}, \
-  #               {dia:diaObject7, joint:'bottom'}
-  # scene.connect {dia:diaObject3, joint:'right'},  \
-  #               {dia:diaObject4, joint:'left'}
-  # scene.connect {dia:diaObject4, joint:'bottom'}, \
-  #               {dia:diaObject6, joint:'bottom'}
-  # scene.connect {dia:diaObject6, joint:'top'},    \
-  #               {dia:diaObject7, joint:'top'}
-
   constructor:(options = {}, data)->
     options.cssClass = KD.utils.curry 'kddia-scene', options.cssClass
     options.bind     = KD.utils.curry 'mousemove',   options.bind
@@ -43,32 +12,31 @@ class KDDiaScene extends JView
 
   diaAdded:(container, diaObj)->
     diaObj.on 'JointRequestsLine', @bound "handleLineRequest"
-    diaObj.on 'DragInAction', => @setActiveDia diaObj
+    diaObj.on 'DragInAction',   => @setActiveDia diaObj
 
   addContainer:(container, pos = {})->
     @addSubView container
 
     container.on "NewDiaObjectAdded", @bound "diaAdded"
-    container.on "HighlightLines", @bound "setActiveDia"
-    container.on "DragInAction", @bound "updateScene"
+    container.on "HighlightLines",    @bound "setActiveDia"
+    container.on "DragInAction",      @bound "updateScene"
+
     @containers.push container
 
     container.setX pos.x  if pos.x?
     container.setY pos.y  if pos.y?
 
   drawFakeLine:(options={})->
-    {sx,sy,ex,ey,lineStyle} = options
-    lineStyle or= {}
-    canvas = document.getElementById 'fakeCanvas'
-    canvas.width = canvas.width
-    context = canvas.getContext '2d'
-    context.beginPath()
-    context.moveTo sx, sy
-    context.lineTo ex, ey
-    context.lineWidth = 2
-    context.strokeStyle = 'orange'
-    context.lineCap = 'round'
-    context.stroke()
+    {sx,sy,ex,ey} = options
+    @cleanup @fakeCanvas
+
+    @fakeContext.beginPath()
+    @fakeContext.moveTo sx, sy
+    @fakeContext.lineTo ex, ey
+    @fakeContext.lineWidth = 2
+    @fakeContext.strokeStyle = 'orange'
+    @fakeContext.lineCap = 'round'
+    @fakeContext.stroke()
 
   mouseMove:(e)->
     return  unless @_trackJoint
@@ -79,20 +47,21 @@ class KDDiaScene extends JView
 
   mouseUp:(e)->
     return  unless @_trackJoint
+
     targetId = $(e.target).closest(".kddia-object").attr('dia-id')
     sourceId = @_trackJoint.getDiaId()
     delete @_trackJoint
 
     # Cleanup fake scene
-    canvas = document.getElementById 'fakeCanvas'
-    canvas.width = canvas.width
+    @cleanup @fakeCanvas
 
-    if targetId
-      log "Connect #{sourceId} to #{targetId}"
-      source = @getDia sourceId
-      target = @getDia targetId
-      target.joint = @guessJoint target, source  unless target.joint
-      @connect source, target
+    return  unless targetId
+
+    log "Connect #{sourceId} to #{targetId}"
+    source = @getDia sourceId
+    target = @getDia targetId
+    target.joint = @guessJoint target, source  unless target.joint
+    @connect source, target  if target.joint
 
   guessJoint:(target, source)->
     return 'left'  if source.joint is 'right' and target.dia.joints.left?
@@ -117,28 +86,30 @@ class KDDiaScene extends JView
     @_trackJoint = joint
 
   connect:(source, target)->
-    if source and target
-      return if source.dia.id is target.dia.id
-      @connections.push {source, target}
-      @setActiveDia target.dia
+    return  unless source and target
+    return  if source.dia?.id is target.dia?.id
+    @connections.push {source, target}
+    @setActiveDia target.dia
 
   updateScene:->
-    canvas = document.getElementById 'jointCanvas'
-    canvas.width = canvas.width
-    context = canvas.getContext '2d'
+
+    @cleanup @realCanvas
 
     for connection in @connections
-      context.beginPath()
+
+      @realContext.beginPath()
+
       {source, target} = connection
+
       if (source.dia in @activeDias) or (target.dia in @activeDias)
-        context.strokeStyle = 'green'
+        @realContext.strokeStyle = 'green'
       else
-        context.strokeStyle = '#ccc'
+        @realContext.strokeStyle = '#ccc'
 
       sJoint = source.dia.getJointPos source.joint
       tJoint = target.dia.getJointPos target.joint
-      # context.setLineDash([5])
-      context.moveTo sJoint.x, sJoint.y
+      # @realContext.setLineDash([5])
+      @realContext.moveTo sJoint.x, sJoint.y
 
       [sx, sy, tx, ty] = [0, 0, 0, 0]
       if source.joint in ['top', 'bottom']
@@ -150,17 +121,28 @@ class KDDiaScene extends JView
       if target.joint in ['left', 'right']
         tx = if target.joint is 'left' then -50 else 50
 
-      context.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \
-                            tJoint.x + tx, tJoint.y + ty, \
-                            tJoint.x, tJoint.y)
-      context.lineWidth = 2
-      context.stroke()
+      @realContext.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \
+                                 tJoint.x + tx, tJoint.y + ty, \
+                                 tJoint.x, tJoint.y)
+      @realContext.lineWidth = 2
+      @realContext.stroke()
+
+  viewAppended:->
+    super
+    @addSubView @realCanvas = new KDCustomHTMLView
+      tagName    : "canvas"
+      attributes : @getSceneSize()
+    @realContext = @realCanvas.getElement().getContext "2d"
+    @addSubView @fakeCanvas = new KDCustomHTMLView
+      tagName    : "canvas"
+      cssClass   : "fakeCanvas"
+      attributes : @getSceneSize()
+    @fakeContext = @fakeCanvas.getElement().getContext "2d"
+
+  cleanup:(canvas)->
+    canvas.setDomAttributes width: canvas.getWidth()
+
+  getSceneSize:-> width: @getWidth(), height: @getHeight()
 
   dumpScene:->
     log @containers, @connections
-
-  pistachio:->
-    """
-    <canvas id="jointCanvas" width="1200px" height="500px"></canvas>
-    <canvas id="fakeCanvas"  width="1200px" height="500px"></canvas>
-    """
