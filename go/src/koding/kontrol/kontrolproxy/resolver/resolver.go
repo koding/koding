@@ -54,6 +54,7 @@ func NewTarget(url *url.URL, mode, persistence string) *Target {
 }
 
 var ErrGone = errors.New("target is gone")
+var ErrNotOnVM = errors.New("vm is turned off")
 
 // used for inmemory lookup
 var targets = make(map[string]Target)
@@ -201,8 +202,12 @@ func GetTarget(host string) (*Target, error) {
 			return nil, err
 		}
 
+		if vm.HostKite == "" {
+			return nil, ErrNotOnVM
+		}
+
 		if vm.IP == nil {
-			return nil, fmt.Errorf("vm for hostname %s is not active", hostname)
+			return nil, ErrNotOnVM
 		}
 
 		vmAddr := vm.IP.String()

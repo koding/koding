@@ -39,12 +39,17 @@ app.aceeditor.styl
     span.close-tab
       bg          color,transparent
 
-.application-page
-  .file-container
-    bg                    color, #eee
-    borderBox()
-    &.save-as-dialog
-      border              1px solid #bbb
+.save-file-container
+  bg                    color, #eee
+  borderBox()
+  &.save-as-dialog
+    border              1px solid #bbb
+.save-as-dialog
+  .kddialog-buttons
+    .modal-clean-gray
+      margin            10px 10px 10px 0
+    .modal-cancel
+      margin            9px 5px 0 0
 
 .split-placeholder
   background            #5C5853

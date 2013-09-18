@@ -19,10 +19,10 @@ class ChatItem extends JView
       partial  : "#{user.firstName} #{user.lastName}"
 
     @messageList = new KDView
-      cssClass   : "items-container"
+      cssClass : "items-container"
 
     @messageList.addSubView new KDCustomHTMLView
-      partial : @getOptions().body
+      partial  : Encoder.XSSEncode @getOptions().body
 
   pistachio: ->
     """
