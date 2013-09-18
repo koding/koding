@@ -30,13 +30,13 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : yes
+    enabled     : no
     port        : 1337
   neo4j         :
     read        : "http://kgraph.sj.koding.com"
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
+  mongo         : 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
@@ -120,6 +120,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      precompiledApi: yes
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
@@ -140,9 +141,9 @@ module.exports =
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
-    host        : 'rabbitmq.in.koding.com'
+    host        : '172.16.3.4'
     port        : 5672
-    apiAddress  : "rabbitmq.in.koding.com"
+    apiAddress  : "172.16.3.4"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
@@ -184,7 +185,7 @@ module.exports =
     webPort     : 3020
   kontrold        :
     overview      :
-      apiHost     : "kontrol.in.koding.com"
+      apiHost     : "172.16.3.11"
       apiPort     : 80
       port        : 8080
       switchHost  : "koding.com"
@@ -194,9 +195,8 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     rabbitmq      :
-      host        : 'kontrol.in.koding.com'
+      host        : '172.16.3.4'
       port        : '5672'
       login       : 'guest'
       password    : 's486auEkPzvUjYfeFTMQ'
@@ -211,7 +211,7 @@ module.exports =
     bin   : '/usr/local/nagios/bin/send_nsca'
     conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
-    host        : 'rabbitmq1.in.koding.com'
+    host        : '172.16.3.4'
     port        : 5672
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'

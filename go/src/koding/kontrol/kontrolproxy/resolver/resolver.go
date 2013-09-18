@@ -3,8 +3,8 @@ package resolver
 import (
 	"errors"
 	"fmt"
-	"koding/kontrol/kontrolproxy/models"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/utils"
 	"labix.org/v2/mgo"
 	"log"
@@ -23,11 +23,11 @@ type Target struct {
 	// Url contains the final target
 	Url *url.URL
 
-	// Mode contains the information get via proxyconfig.ProxyTable.Mode
+	// Mode contains the information get via model.ProxyTable.Mode
 	Mode string
 
 	// Persistence contains the information get via
-	// proxyconfig.LoadBalancer.Persistence
+	// model.LoadBalancer.Persistence
 	Persistence string
 
 	// FetchedAt contains the time the target was fetched and stored. Useful
@@ -53,8 +53,8 @@ func NewTarget(url *url.URL, mode, persistence string) *Target {
 	}
 }
 
-var proxyDB *proxyconfig.ProxyConfiguration
 var ErrGone = errors.New("target is gone")
+var ErrNotOnVM = errors.New("vm is turned off")
 
 // used for inmemory lookup
 var targets = make(map[string]Target)
@@ -64,14 +64,6 @@ var cacheTimeout = time.Second * 20
 // used for loadbalance modes, like roundrobin or random
 var indexes = make(map[string]int)
 var indexesLock sync.RWMutex
-
-func init() {
-	var err error
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		log.Fatalf("proxyconfig mongodb connect: %s", err)
-	}
-}
 
 // GetMemTarget is like GetTarget with a difference, that it f first makes a
 // lookup from the in-memory lookup, if not found it returns the result from
@@ -120,12 +112,12 @@ func GetTarget(host string) (*Target, error) {
 		}
 	}
 
-	domain, err = proxyDB.GetDomain(host)
+	domain, err = modelhelper.GetDomain(host)
 	if err != nil {
 		// Lookup didn't found anything, move on to .x.koding.com and .kd.io
 		// domains. This is fallback mechanism, you can overide those domains
 		// always by adding a new entry for the domain itself into to jDomains
-		// collection. (hence the lookup via proxyDB.GetDomain will not fail)
+		// collection. (hence the lookup via modelhelper.GetDomain will not fail)
 		if err != mgo.ErrNotFound {
 			return nil, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
 		}
@@ -164,7 +156,7 @@ func GetTarget(host string) (*Target, error) {
 			return nil, fmt.Errorf("not valid req host", host)
 		}
 
-		domain = *proxyconfig.NewDomain(host, "internal", username, servicename, key, "", []string{})
+		domain = *modelhelper.NewDomain(host, "internal", username, servicename, key, "", []string{})
 	}
 
 	if domain.Proxy == nil {
@@ -205,13 +197,17 @@ func GetTarget(host string) (*Target, error) {
 			hostname = domain.HostnameAlias[0]
 		}
 
-		vm, err := proxyDB.GetVM(hostname)
+		vm, err := modelhelper.GetVM(hostname)
 		if err != nil {
 			return nil, err
 		}
 
+		if vm.HostKite == "" {
+			return nil, ErrNotOnVM
+		}
+
 		if vm.IP == nil {
-			return nil, fmt.Errorf("vm for hostname %s is not active", hostname)
+			return nil, ErrNotOnVM
 		}
 
 		vmAddr := vm.IP.String()
@@ -233,12 +229,12 @@ func GetTarget(host string) (*Target, error) {
 		username := domain.Proxy.Username
 		servicename := domain.Proxy.Servicename
 		key := domain.Proxy.Key
-		latestKey := proxyDB.GetLatestKey(username, servicename)
+		latestKey := modelhelper.GetLatestKey(username, servicename)
 		if latestKey == "" {
 			latestKey = key
 		}
 
-		keyData, err := proxyDB.GetKey(username, servicename, key)
+		keyData, err := modelhelper.GetKey(username, servicename, key)
 		if err != nil {
 			currentVersion, _ := strconv.Atoi(key)
 			latestVersion, _ := strconv.Atoi(latestKey)
@@ -255,7 +251,7 @@ func GetTarget(host string) (*Target, error) {
 			index := getIndex(host) // gives 0 if not available
 			hostname, n = roundRobin(keyData.Host, index, 0)
 			addOrUpdateIndex(host, n)
-			if hostname == "" { // means all servers are death, show maintenance page
+			if hostname == "" { // means all servers are dead, show maintenance page
 				return NewTarget(nil, "maintenance", persistence), nil
 			}
 		case "random":
@@ -284,6 +280,11 @@ func GetTarget(host string) (*Target, error) {
 // string, otherwise it returns the correct server name.
 func roundRobin(hosts []string, index, iter int) (string, int) {
 	if iter == len(hosts) {
+		fmt.Printf("[%s] ALL HOSTNAMES ARE DEAD. List of hostnames: '%v'\n",
+			time.Now().Format(time.Stamp),
+			hosts,
+		)
+
 		return "", 0 // all hosts are dead
 	}
 
@@ -291,7 +292,20 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 	n := int(math.Mod(float64(index+1), N))
 	hostname := hosts[n]
 
+	fmt.Printf("[%s] trying : hostname '%s' index '%d' \n",
+		time.Now().Format(time.Stamp),
+		hostname,
+		index,
+	)
+
 	if err := utils.CheckServer(hostname); err != nil {
+		fmt.Printf("[%s] dead   : hostname '%s', index '%d' error: '%s'\n",
+			time.Now().Format(time.Stamp),
+			hostname,
+			index,
+			err.Error(),
+		)
+
 		hostname, n = roundRobin(hosts, index+1, iter+1)
 	}
 

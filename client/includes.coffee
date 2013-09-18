@@ -5,6 +5,7 @@ module.exports = [
   "libs/sha1.encapsulated.coffee",
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
+  "libs/jquery.cookie.js",
 
   # --- Base class ---
   "Framework/core/utils.coffee",
@@ -15,6 +16,9 @@ module.exports = [
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
+
+  # the bongo api (or an empty file, depending on the config)
+  "../.build/api.js",
 
   # TODO: reenable closure wrapping:
   # "includes/header.inc.js",
@@ -118,6 +122,10 @@ module.exports = [
 
   # progressbar
   "Framework/components/progressbar/KDProgressBarView.coffee",
+
+  # sliderbar
+  "Framework/components/sliderbar/KDSliderBarView.coffee",
+  "Framework/components/sliderbar/KDSliderBarHandleView.coffee",
 
   # dialog
   "Framework/components/dialog/KDDialogView.coffee",
@@ -325,12 +333,14 @@ module.exports = [
 
   # fs representation
   "app/MainApp/fs/fshelper.coffee",
+  "app/MainApp/fs/fswatcher.coffee",
   "app/MainApp/fs/fsitem.coffee",
   "app/MainApp/fs/fsfile.coffee",
   "app/MainApp/fs/fsfolder.coffee",
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
   "app/MainApp/fs/fsvm.coffee",
+  "app/MainApp/fs/appswatcher.coffee",
 
   # avatararea
   "app/MainApp/avatararea/avatarareapopup.coffee",
@@ -370,8 +380,6 @@ module.exports = [
   "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
-  "app/MainApp/localstorage.coffee",
-
 
   # got rid of static controllers
 
@@ -389,7 +397,6 @@ module.exports = [
 
   "libs/jquery-timeago.js",
   "libs/date.format.js",
-  "libs/jquery.cookie.js",
   "libs/jquery.getcss.js",
   "libs/mousetrap.js",
   "libs/md5-min.js",
@@ -406,6 +413,7 @@ module.exports = [
   "app/MainApp/AppController.coffee",
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
+  "app/MainApp/localstorage.coffee",
 
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
@@ -730,6 +738,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/terminalpane.coffee",
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/workspacelayout.coffee",
   "app/CommonViews/workspace/workspace.coffee",
 
   # COLLABORATIVE WORKSPACE
@@ -744,18 +753,28 @@ module.exports = [
   "libs/codemirror/lib/codemirror.css",
   "app/CommonViews/workspace/panes/collaborativepane.coffee",
   "app/CommonViews/workspace/panes/collaborativetabbededitorpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativepreviewpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativedrawingpane.coffee",
   "app/CommonViews/workspace/panes/chatitem.coffee",
   "app/CommonViews/workspace/panes/chatpane.coffee",
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
+
+  # CLASSROOM
+  # "app/Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomchapterthumbview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcoursethumbview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcoursesview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcourseview.coffee",
+  # "app/Applications/Classroom.kdapplication/AppView.coffee",
+  # "app/Applications/Classroom.kdapplication/AppController.coffee",
 
   "app/CommonViews/modalappslistitemview.coffee",
 
@@ -805,6 +824,7 @@ module.exports = [
   "Framework/themes/default/kd.scrollview.styl",
   "Framework/themes/default/kd.modal.styl",
   "Framework/themes/default/kd.progressbar.styl",
+  "Framework/themes/default/kd.sliderbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
 
@@ -842,7 +862,9 @@ module.exports = [
   "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
+  # "stylus/app.classroom.styl",
   "stylus/temp.styl",
+  "stylus/third.workspace.styl",
   # "stylus/app.landing.styl",
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",

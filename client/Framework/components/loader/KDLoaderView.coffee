@@ -6,11 +6,12 @@ class KDLoaderView extends KDView
     o.loaderOptions or= {}
     o.size          or= {}
     options =
-      tagName       : o.tagName      or "span"
-      bind          : o.bind         or "mouseenter mouseleave"
+      tagName       : o.tagName                 or "span"
+      bind          : o.bind                    or "mouseenter mouseleave"
+      showLoader    : o.showLoader              or no
       size          :
-        width       : o.size.width  or 12
-        height      : o.size.height or 12
+        width       : o.size.width              or 12
+        height      : o.size.height             or 12
       loaderOptions :
         color       : o.loaderOptions.color     or "#000000"   # hex color
         shape       : o.loaderOptions.shape     or "spiral"    # "spiral", "oval", "square", "rect", "roundRect"
@@ -27,9 +28,11 @@ class KDLoaderView extends KDView
   viewAppended:->
 
     @canvas = new CanvasLoader @getElement(), id : "cl_#{@id}"
-    {loaderOptions} = @getOptions()
+    {loaderOptions, showLoader} = @getOptions()
     for option,value of loaderOptions
       @canvas["set#{option.capitalize()}"] value
+
+    @show()  if showLoader
 
   show:->
 

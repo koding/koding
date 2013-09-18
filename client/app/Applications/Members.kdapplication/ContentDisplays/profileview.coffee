@@ -98,15 +98,15 @@ class ProfileView extends JView
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
     newAvatar      = ''
-    @avatar        = new AvatarStaticView
+    avatarOptions  =
       size         :
         width      : 90
         height     : 90
       click        : =>
-        pos =
+        pos        =
           top      : @avatar.getBounds().y - 8
           left     : @avatar.getBounds().x - 8
-        modal = new KDModalView
+        modal      = new KDModalView
           width    : 400
           fx       : yes
           overlay  : yes
@@ -153,7 +153,13 @@ class ProfileView extends JView
             width  : 400
             height : 400
         , @memberData
-    , @memberData
+
+    if KD.whoami().getId() is @memberData.getId()
+      avatarOptions.tooltip =
+        title    : "<p class='centertext'>please use gravatar.com<br/>to set your avatar</p>"
+        placement: "below"
+
+    @avatar = new AvatarStaticView avatarOptions, @memberData
 
     userDomain = @memberData.profile.nickname + "." + KD.config.userSitesDomain
     @userHomeLink = new KDCustomHTMLView

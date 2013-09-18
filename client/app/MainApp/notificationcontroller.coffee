@@ -35,10 +35,12 @@ class NotificationController extends KDObject
         @emit notification.event, notification.contents
         @prepareNotification notification
 
-    @on 'UsernameChanged', ({username, oldUsername}) ->
-      # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
     @on 'GuestTimePeriodHasEnded', ()->
       # todo add a notification to user
+      $.cookie 'clientId', erase: yes
+
+    @on 'UsernameChanged', ({username, oldUsername}) ->
+      # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
       $.cookie 'clientId', erase: yes
 
       new KDModalView
@@ -121,7 +123,6 @@ class NotificationController extends KDObject
       # Ignore all guest notifications
       # https://app.asana.com/0/1177356931469/7014047104322
       return  if actorAccount.type is 'unregistered'
-
       fetchSubjectObj (err, subjectObj)=>
         actorName = KD.utils.getFullnameFromAccount actorAccount
         options.title = switch actionType

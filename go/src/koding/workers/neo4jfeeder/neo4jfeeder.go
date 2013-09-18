@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
-	"koding/databases/mongo"
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
+	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
@@ -71,7 +71,7 @@ func startConsuming() {
 	}
 
 	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
-	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", true, false, false, false, nil)
+	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", false, false, false, false, nil)
 	if err != nil {
 		fmt.Println("basic.consume: %s", err)
 		panic(err)
@@ -85,13 +85,13 @@ func startConsuming() {
 		message, err := jsonDecode(body)
 		if err != nil {
 			fmt.Println("Wrong message format", err, body)
-
+			msg.Ack(true)
 			continue
 		}
 
 		if len(message.Payload) < 1 {
 			fmt.Println("Wrong message format; payload should be an Array", message)
-
+			msg.Ack(true)
 			continue
 		}
 		data := message.Payload[0]
@@ -108,6 +108,8 @@ func startConsuming() {
 		} else {
 			fmt.Println(message.Event)
 		}
+
+		msg.Ack(true)
 	}
 }
 
@@ -158,7 +160,11 @@ func createNode(data map[string]interface{}) {
 		return
 	}
 
-	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
+	if checkForGuestGroup(sourceId, targetId) {
+		return
+	}
+
+	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		fmt.Println("sourceContent", err)
 		return
@@ -166,7 +172,7 @@ func createNode(data map[string]interface{}) {
 	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
 	neo4j.UpdateNode(sourceId, sourceContent)
 
-	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(targetId), targetName)
+	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		fmt.Println("targetContent", err)
 		return
@@ -224,6 +230,11 @@ func deleteNode(data map[string]interface{}) {
 func deleteRelationship(data map[string]interface{}) {
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	targetId := fmt.Sprintf("%s", data["targetId"])
+
+	if checkForGuestGroup(sourceId, targetId) {
+		return
+	}
+
 	as := fmt.Sprintf("%s", data["as"])
 
 	// we are not doing anything with result for now
@@ -256,7 +267,11 @@ func updateNode(data map[string]interface{}) {
 		return
 	}
 
-	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
+	if checkForGuestGroup(sourceId, sourceId) {
+		return
+	}
+
+	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		fmt.Println("sourceContent", err)
 		return
@@ -264,4 +279,17 @@ func updateNode(data map[string]interface{}) {
 
 	neo4j.CreateUniqueNode(sourceId, sourceName)
 	neo4j.UpdateNode(sourceId, sourceContent)
+}
+
+func checkForGuestGroup(sourceId, targetId string) bool {
+
+	// this is the guest group id of production database
+	guestGroupId := "51f41f195f07655e560001c1"
+	// this is the guest group in vagrant
+	// guestGroupId = "51defdb73ed22b2905000023"
+
+	if sourceId == guestGroupId || targetId == guestGroupId {
+		return true
+	}
+	return false
 }

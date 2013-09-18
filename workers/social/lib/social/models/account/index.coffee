@@ -24,6 +24,8 @@ module.exports = class JAccount extends jraphical.Module
   @getFlagRole = 'content'
   JName = require '../name'
 
+  @lastUserCountFetchTime = 0
+
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
   {permit} = require '../group/permissionset'
@@ -51,6 +53,7 @@ module.exports = class JAccount extends jraphical.Module
     indexes:
       'profile.nickname' : 'unique'
       isExempt           : 1
+      type               : 1
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
@@ -93,6 +96,7 @@ module.exports = class JAccount extends jraphical.Module
         enum                : ['invalid account type',[
                                 'registered'
                                 'unregistered'
+                                'deleted'
                               ]]
         default             : 'unregistered'
       profile               :
@@ -101,9 +105,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           validate          : require('../name').validateName
           set               : (value)-> value.toLowerCase()
-        hash                :
-          type              : String
-          # email             : yes
+        hash                : String
         ircNickname         : String
         firstName           :
           type              : String
@@ -219,7 +221,6 @@ module.exports = class JAccount extends jraphical.Module
         return callback new KodingError "An error occured!" if err
         return callback null, no unless relation
         return callback null, yes
-
 
   changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options
@@ -351,6 +352,15 @@ module.exports = class JAccount extends jraphical.Module
             else callback null, about
 
   @renderHomepage: require '../../render/profile.coffee'
+
+  @fetchCachedUserCount: (callback)->
+    if (Date.now() - @lastUserCountFetchTime)/1000 < 60
+      return callback null, @cachedUserCount
+    JAccount.count type:'registered', (err, count)=> 
+      return callback err if err
+      @lastUserCountFetchTime = Date.now()
+      @cachedUserCount = count
+      callback null, count
 
   fetchHomepageView:(account, callback)->
 
@@ -859,29 +869,16 @@ module.exports = class JAccount extends jraphical.Module
       , callback
       fetchParticipants(message) for message in messages when message?
 
-    secure ({connection}, options, callback)->
+    secure ({connection:{delegate}}, options, callback)->
       [callback, options] = [options, callback] unless callback
-      unless @equals connection.delegate
+      unless @equals delegate
         callback new KodingError 'Access denied'
       else
         options or= {}
-        selector =
-          if options.as
-            as: options.as
-          else
-            {}
-        # options.limit     = 8
-        options.fetchMail = yes
-        @fetchPrivateMessages selector, options, (err, messages)->
-          if err
-            callback err
-          else
-            callback null, [] if messages.length is 0
-            collectParticipants messages, connection.delegate, (err)->
-              if err
-                callback err
-              else
-                callback null, messages
+        @fetchPrivateMessages {}, options, (err, messages)->
+          return callback err, []  if err or messages.length is 0
+          collectParticipants messages, delegate, (err)->
+            callback err, messages
 
   fetchTopics: secure (client, query, page, callback)->
     query       =

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/virt/models"
+	"koding/db/models"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"

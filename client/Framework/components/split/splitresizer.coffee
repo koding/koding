@@ -24,11 +24,12 @@ class KDSplitResizer extends KDView
     if @isVertical then @getRelativeX() else @getRelativeY()
 
   _animateTo:(offset)->
-    offset -= @getWidth() / 2
     d = @parent.options.duration
     if @isVertical
+      offset -= @getWidth() / 2
       @$().animate left : offset,d
     else
+      offset -= @getHeight() / 2
       @$().animate top : offset,d
 
   dragFinished:(event, dragState)->
