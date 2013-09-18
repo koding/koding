@@ -58,7 +58,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
       </span>
       <div class='activity-item-right-col'>
         <h3 class='blog-post-title'>{{ @applyTextExpansions #(title)}}</h3>
-        <p class="blog-post-body has-markdown">{{ KD.utils.applyMarkdown #(body)}}</p>
+        <p class="blog-post-body has-markdown">{{ KD.utils.applyMarkdown Encoder.htmlDecode #(body)}}</p>
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> {{> @contentGroupLink }} by {{> @author}}
