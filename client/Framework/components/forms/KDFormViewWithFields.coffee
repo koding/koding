@@ -1,7 +1,7 @@
 class KDFormViewWithFields extends KDFormView
 
   sanitizeOptions = (options)->
-    for key,option of options
+    for own key,option of options
       option.title or= key
       option.key     = key
       option
@@ -51,14 +51,14 @@ class KDFormViewWithFields extends KDFormView
         cssClass : "hint"
     @fields[title] = field
     if fieldOptions.nextElement
-      for key, next of fieldOptions.nextElement
+      for own key, next of fieldOptions.nextElement
         next.title or= key
         @createField next, (inputWrapper or field), yes
 
-    # if fieldOptions.nextElement
-    #   for key, next of fieldOptions.nextElement
-    #     next.title or= key
-    #     @createField next, field
+    if fieldOptions.nextElementFlat
+      for own key, next of fieldOptions.nextElementFlat
+        next.title or= key
+        @createField next, field
 
 
     return field
