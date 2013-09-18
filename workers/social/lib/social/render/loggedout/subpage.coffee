@@ -1,7 +1,8 @@
-module.exports = ({account})->
+module.exports = ({account, name, section, models})->
 
-  getStyles       = require './../styleblock'
-  getScripts      = require './../scriptblock'
+  getStyles  = require './../styleblock'
+  getScripts = require './../scriptblock'
+  model      = models.first if models and Array.isArray models
 
   """
   <!doctype html>
@@ -17,7 +18,10 @@ module.exports = ({account})->
     <![endif]-->
 
     <div class="kdview home" id="kdmaincontainer">
-      <div id='main-loading' class="kdview main-loading"><figure class='pulsing'><ul><li/><li/><li/><li/><li/><li/></ul></figure></div>
+      <div id='main-loading' class="kdview main-loading">
+        <figure class='pulsing'><ul><li/><li/><li/><li/><li/><li/></ul></figure>
+        #{putSplash(name, section, model)}
+      </div>
     </div>
 
     #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
@@ -26,3 +30,23 @@ module.exports = ({account})->
   </body>
   </html>
   """
+
+putSplash = (name, section, model)->
+  name = if model?.title then model.title else section
+  body = if model?.body  then model.body  else ""
+
+  title  = if model?.bongo_?.constructorName
+    # console.log model.bongo_.constructorName
+    switch model.bongo_.constructorName
+      when "JStatusUpdate"  then "loading a status update"
+      when "JCodeSnip"      then "loading a code snippet"
+      when "JDiscussion"    then "loading a discussion"
+      when "JBlogPost"      then "loading a blog post"
+      when "JTutorial"      then "loading a tutorial"
+      when "JTag"           then "loading a topic"
+      when "JApp"           then "loading a koding app page"
+      else "loading something."
+  else "launching an application"
+
+  content  = "<figure class='splash'><h2 class='splash-title'>Please wait, #{title}:</h2>"
+  content += "<h3 class='splash-name'>[ #{name.substr 0, 100}#{if name.length > 100 then '...' else ''} ]</h3></figure>"

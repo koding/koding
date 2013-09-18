@@ -67,36 +67,35 @@ func runHelperFunctions() {
 	// HeartBeat checker for workers
 	tickerWorker := time.NewTicker(workerconfig.HEARTBEAT_INTERVAL)
 	go func() {
-		for now := range tickerWorker.C {
-
-			queryFunc := func(c *mgo.Collection) error {
-				worker := models.Worker{}
-				iter := c.Find(nil).Iter()
-				for iter.Next(&worker) {
-					if worker.Status == models.Dead {
-						continue // already dead, nothing to do
-					}
-
-					if now.Before(worker.Timestamp.Add(workerconfig.HEARTBEAT_DELAY)) {
-						continue // still alive, pick up the next one
-					}
-
-					log.Printf("[%s (%d)] no activity at '%s' - '%s' (pid: %d). marking them as dead\n",
-						worker.Name,
-						worker.Version,
-						worker.Hostname,
-						worker.Uuid,
-						worker.Pid,
-					)
-
-					worker.Status = models.Dead
-					worker.Monitor.Mem = models.MemData{}
-					worker.Monitor.Uptime = 0
-					modelhelper.UpdateWorker(worker)
+		queryFunc := func(c *mgo.Collection) error {
+			worker := models.Worker{}
+			iter := c.Find(nil).Iter()
+			for iter.Next(&worker) {
+				if worker.Status == models.Dead {
+					continue // already dead, nothing to do
 				}
-				return nil
-			}
 
+				if time.Now().Before(worker.Timestamp.Add(workerconfig.HEARTBEAT_DELAY)) {
+					continue // still alive, pick up the next one
+				}
+
+				log.Printf("[%s (%d)] no activity at '%s' - '%s' (pid: %d). marking them as dead\n",
+					worker.Name,
+					worker.Version,
+					worker.Hostname,
+					worker.Uuid,
+					worker.Pid,
+				)
+
+				worker.Status = models.Dead
+				worker.Monitor.Mem = models.MemData{}
+				worker.Monitor.Uptime = 0
+				modelhelper.UpdateIDWorker(worker)
+			}
+			return nil
+		}
+
+		for _ = range tickerWorker.C {
 			mongodb.Run("jKontrolWorkers", queryFunc)
 		}
 	}()
@@ -356,16 +355,16 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 	case "one", "version":
 		query := bson.M{}
 		reason := ""
+
 		// one means that only one single instance of the worker can work. For
 		// example if we start an emailWorker with the mode "one", another
 		// emailWorker don't get the permission to run.
 		if option == "one" {
 			query = bson.M{
-				"name": worker.Name,
-				"status": bson.M{"$in": []int{
-					int(models.Started),
-					int(models.Waiting),
-				}}}
+				"name":   worker.Name,
+				"status": bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
+			}
+
 			reason = "workers with same names: "
 		}
 
@@ -379,65 +378,43 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 				"name": bson.RegEx{Pattern: "^" + normalizeName(worker.Name),
 					Options: "i"},
 				"version": bson.M{"$ne": worker.Version},
-				"status": bson.M{"$in": []int{
-					int(models.Started),
-					int(models.Waiting),
-				}}}
+				"status":  bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
+			}
+
 			reason = "workers with different versions: "
 		}
 
-		result := models.Worker{}
-		otherWorkers := false
-		queryFunc := func(c *mgo.Collection) error {
-			iter := c.Find(query).Iter()
-			for iter.Next(&result) {
-				reason = reason + fmt.Sprintf("\n version: %d (pid: %d) at %s",
-					result.Version, result.Pid, result.Hostname)
-				otherWorkers = true
-			}
-			return nil
+		worker.ObjectId = bson.NewObjectId()
+		worker.Status = models.Started
+
+		// If the query above for 'one' and 'version' doesn't match anything,
+		// then add our new worker. Apply() is atomic and uses findAndModify.
+		// Adding it causes no err, therefore the worker get 'start' message.
+		// However if the query matches, then the 'upsert' will fail (means
+		// that there is some workers that are running).
+		change := mgo.Change{
+			Update: worker,
+			Upsert: true,
 		}
 
-		mongodb.Run("jKontrolWorkers", queryFunc)
+		result := models.Worker{}
+		err := mongodb.Run("jKontrolWorkers", func(c *mgo.Collection) error {
+			_, err := c.Find(query).Apply(change, &result)
+			return err
+		})
 
-		if !otherWorkers {
-			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
-				worker.Name,
-				worker.Version,
-				option,
-				worker.Hostname,
-				worker.Uuid,
-			)
+		if err == nil {
+			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'", worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
 			log.Println(startLog)
-
-			worker.Status = models.Started
-			worker.ObjectId = bson.NewObjectId()
-			modelhelper.UpsertWorker(worker)
-
-			response := *workerconfig.NewWorkerResponse(
-				worker.Name,
-				worker.Uuid,
-				"start",
-				startLog,
-			)
+			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
 			return response, nil
 		}
 
-		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s",
-			worker.Name,
-			worker.Version,
-			worker.Hostname,
-			reason,
-		)
-
-		response := *workerconfig.NewWorkerResponse(
-			worker.Name,
-			worker.Uuid,
-			"noPermission",
-			denyLog,
-		)
-
+		reason = reason + fmt.Sprintf("\n version: %d (pid: %d) at %s", result.Version, result.Pid, result.Hostname)
+		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "noPermission", denyLog)
 		return response, nil // contains start or noPermission
+
 	case "many":
 		// many just starts the worker. That means a worker can be started as
 		// many times as we wished with this option.
