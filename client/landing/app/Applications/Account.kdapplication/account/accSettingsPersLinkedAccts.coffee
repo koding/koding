@@ -4,7 +4,8 @@ class AccountLinkedAccountsListController extends KDListViewController
 
     data =
       items : [
-        { title : "GitHub",   type : "github",    linked : no, account : ""}
+        { title : "GitHub", type : "github", linked : no, account : ""},
+        { title : "Odesk", type : "odesk", linked : no, account : ""},
       ]
 
     super options, data
@@ -45,12 +46,14 @@ class AccountLinkedAccountsListItem extends KDListItemView
       @provider = provider
       @viewAppendedHelper()
 
-  getProvider:-> @provider
+  getProvider:(name)->
+    if name is "github" then @githubProvider else @odeskProvider
 
   click:(event)->
+    {type} = @getData()
+
     if $(event.target).is "a.delete-icon"
-      {type} = @getData()
-      @getDelegate().emit "UnlinkAccount", accountType : @getData().type
+      @getDelegate().emit "UnlinkAccount", accountType : type
 
       notify = (message)->
         new KDNotificationView
@@ -63,7 +66,11 @@ class AccountLinkedAccountsListItem extends KDListItemView
           @provider = null
           @viewAppendedHelper()
     else
-      KD.utils.openGithubPopUp()  unless @getProvider()
+      unless @getProvider() # TODO: why is this here?
+        if type is "github"
+          KD.utils.openGithubPopUp()
+        else
+          KD.utils.openOdeskPopUp()
 
   viewAppendedHelper:->
     @setTemplate @pistachio()
@@ -71,29 +78,30 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
   viewAppended:->
     KD.remote.api.JUser.fetchUser (err, user)=>
-      @provider = user.foreignAuth?.github
+      @githubProvider = user.foreignAuth?.github
+      @odeskProvider  = user.foreignAuth?.odesk
       @viewAppendedHelper()
 
-  getLinkedString:->
-    if @getProvider() then "Linked" else "Not linked."
+  getLinkedString:(provider)->
+    if @getProvider(@getData().type) then "Linked" else "Not linked."
 
-  getLinkedClass:->
-    if @getProvider() then "yes" else "no"
+  getLinkedClass:(provider)->
+    if @getProvider(@getData().type) then "yes" else "no"
 
-  getAccountString:->
-    if @getProvider() then "" else "Link now."
+  getAccountString:(provider)->
+    if @getProvider(@getData().type) then "" else "Link now."
 
   pistachio:->
     """
     <div class='linked-account-title'>
       <span class='icon github'></span>
-      <cite>Github</cite>
+      <cite>#{@getData().title}</cite>
       <a href='#' class='delete-icon #{@getLinkedClass()}'></a>
     </div>
 
     <div class='linked-status #{@getLinkedClass()}'>
       <span class='icon-check'></span>
       <span>#{@getLinkedString()}</span>
-      <a href="#" title="Not available on Private Beta">#{@getAccountString()}</a>
+      <a href="#">#{@getAccountString()}</a>
     </div>
     """
