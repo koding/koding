@@ -94,7 +94,7 @@ class AccountLinkedAccountsListItem extends KDListItemView
   pistachio:->
     """
     <div class='linked-account-title'>
-      <span class='icon github'></span>
+      <span class='icon #{@getData().type}'></span>
       <cite>#{@getData().title}</cite>
       <a href='#' class='delete-icon #{@getLinkedClass()}'></a>
     </div>
