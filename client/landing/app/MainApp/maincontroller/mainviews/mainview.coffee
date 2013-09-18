@@ -176,7 +176,8 @@ class MainView extends KDView
 
   createChatPanel:->
     @addSubView @chatPanel   = new MainChatPanel
-    @addSubView @chatHandler = new MainChatHandler
+    # @addSubView @chatHandler = new MainChatHandler
+    @chatHandler = new MainChatHandler
 
   setStickyNotification:->
     # sticky = KD.getSingleton('windowController')?.stickyNotification
