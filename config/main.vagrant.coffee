@@ -144,7 +144,10 @@ module.exports =
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
-    heartbeat   : 10
+    # heartbeat disabled in vagrant, because it'll interfere with node-inspector
+    # when the debugger is paused, the target is not able to send the heartbeat,
+    # so it'll disconnect from RabbitMQ if heartbeat is enabled.
+    heartbeat   : 0
     vhost       : '/'
   broker        :
     ip          : ""

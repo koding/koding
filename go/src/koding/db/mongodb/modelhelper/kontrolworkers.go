@@ -23,6 +23,17 @@ func GetWorker(uuid string) (models.Worker, error) {
 	return result, nil
 }
 
+func UpdateIDWorker(worker models.Worker) {
+	query := func(c *mgo.Collection) error {
+		return c.UpdateId(worker.ObjectId, worker)
+	}
+
+	err := mongodb.Run("jKontrolWorkers", query)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func UpdateWorker(worker models.Worker) {
 	query := func(c *mgo.Collection) error {
 		return c.Update(bson.M{"uuid": worker.Uuid}, worker)
