@@ -179,7 +179,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     updateText        = "Update Available"
     updateTooltip     = "An update available for this app. Click here to see."
 
-    if manifest.forceUpdate is yes
+    if @appsController.getAppUpdateType(manifest.name) is "required"
       updateClass     = "orange"
       updateText      = "Update Required"
       updateTooltip   = "You must update this app. Click here to see."
