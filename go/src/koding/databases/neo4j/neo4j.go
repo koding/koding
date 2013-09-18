@@ -183,7 +183,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	for _, relation := range relationships {
 		if relation["end"] == targetInfo[0]["self"] {
 			toBeDeletedRelationURL := fmt.Sprintf("%s", relation["self"])
-			deletionResponse := sendRequest("DELETE", toBeDeletedRelationURL, "", 1)
+			sendRequest("DELETE", toBeDeletedRelationURL, "", 1)
 			foundNode = true
 
 			break

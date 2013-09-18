@@ -328,19 +328,21 @@ class KodingAppsController extends KDController
   # KITE INTERACTIONS
   # #
 
-  putAppResources:(appInstance, callback = noop)->
+  hasForceUpdate: (appInstance) ->
+    manifest                 = appInstance.getOptions()
+    {devMode, name, version} = manifest
+    forceUpdate              = @getAppUpdateType(name) is "required"
+    updateAvailable          = @isAppUpdateAvailable(name, version)
+    hasUpdate                = updateAvailable and not devMode and forceUpdate
+
+    @showUpdateRequiredModal manifest  if hasUpdate
+    return hasUpdate
+
+  putAppResources: (appInstance) ->
     return  unless appInstance
 
     manifest = appInstance.getOptions()
-    {devMode, name, options, version, thirdParty} = manifest
-    forceUpdate = @getAppUpdateType(name) is "required"
-
-    return  unless thirdParty
-
-    if @isAppUpdateAvailable(name, version) and not devMode and forceUpdate
-      @showUpdateRequiredModal manifest
-      KD.utils.defer -> KD.getSingleton("appManager").quitByName name, yes
-      return callback()
+    return  unless manifest.thirdParty
 
     appView = appInstance.getView()
     appView.addSubView loader = new KDLoaderView
