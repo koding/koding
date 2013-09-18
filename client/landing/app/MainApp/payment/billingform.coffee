@@ -1,8 +1,9 @@
 class BillingForm extends PaymentForm
 
   constructor:(options={}, data)->
-    super
   
+    data = @getData() or {}
+
     cip            = options.countryOfIp
     defaultCountry = if options.countries[cip] then cip else 'US'
 
@@ -10,28 +11,34 @@ class BillingForm extends PaymentForm
       company             :
         label             : 'Company & VAT'
         placeholder       : 'Company (optional)'
-        nextElement   :
+        value             : data.company
+        nextElementFlat   :
           vatNumber       :
             placeholder   : 'VAT Number (optional)'
+            value         : data.vatNumber 
 
       address             :
         label             : 'Address & ZIP'
         placeholder       : 'Address (optional)'
-        nextElement   :
+        value             : data.value
+        nextElementFlat   :
           zip             :
             placeholder   : 'ZIP (optional)'
 
       city                :
         label             : 'City & Country'
         placeholder       : 'City (optional)'
-        nextElement   :
+        value             : data.city
+        nextElementFlat   :
           country         :
             itemClass     : KDSelectBox
             selectOptions : _.values options.countries
             defaultValue  : defaultCountry
+            value         : data.country
 
       phone               :
         label             : 'Phone'
         placeholder       : '(optional)'
+        value             : data.phone
 
     super options, data

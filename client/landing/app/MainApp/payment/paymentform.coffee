@@ -6,6 +6,51 @@ class PaymentForm extends KDModalViewWithForms
     options.height   or= 'auto'
     options.cssClass or= 'payments-modal'
     options.overlay   ?= yes
+
+    fields =
+      cardFirstName       :
+        label             : 'Name'
+        placeholder       : 'First Name'
+        defaultValue      : KD.whoami().profile.firstName
+        validate          : @required 'First name is required!'
+        nextElementFlat   :
+          cardLastName    :
+            placeholder   : 'Last Name'
+            defaultValue  : KD.whoami().profile.lastName
+            validate      : @required 'Last name is required!'
+
+      cardNumber          :
+        label             : 'Credit Card'
+        placeholder       : 'Credit Card Number'
+        validate          :
+          event           : 'blur'
+          rules           :
+            creditCard    : yes
+            maxLength     : 16
+          messages        :
+            maxLength     : 'Credit card number should be 12 to 16 digits long!'
+        nextElementFlat   :
+          cardCV          :
+            placeholder   : 'CVC'
+            validate      :
+              rules       :
+                required  : yes
+                regExp    : /[0-9]{3,4}/
+              messages    :
+                required  : 'Card verification code (CVC) is required!'
+                regExp    : 'Card verification code (CVC) should be a 3- or 4-digit number!'
+      cardMonth           :
+        label             : 'Expires'
+        itemClass         : KDSelectBox
+        selectOptions     : __utils.getMonthOptions()
+        defaultValue      : (new Date().getMonth())+2
+        nextElementFlat   :
+          cardYear        :
+            itemClass     : KDSelectBox
+            selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+25))
+            defaultValue  : (new Date().getFullYear())
+
+
     options.tabs     or=
       navigable                 : yes
       goToNextFormOnSubmit      : no
@@ -18,52 +63,7 @@ class PaymentForm extends KDModalViewWithForms
               style             : 'modal-clean-green'
               type              : 'submit'
               loader            : { color : '#fff', diameter : 12 }
-          fields                :
-            _.extend
-              cardFirstName       :
-                label             : 'Name'
-                placeholder       : 'First Name'
-                defaultValue      : KD.whoami().profile.firstName
-                validate          : @required 'First name is required!'
-                nextElement   :
-                  cardLastName    :
-                    placeholder   : 'Last Name'
-                    defaultValue  : KD.whoami().profile.lastName
-                    validate      : @required 'Last name is required!'
-
-              cardNumber          :
-                label             : 'Credit Card'
-                placeholder       : 'Credit Card Number'
-                validate          :
-                  event           : 'blur'
-                  rules           :
-                    creditCard    : yes
-                    maxLength     : 16
-                  messages        :
-                    maxLength     : 'Credit card number should be 12 to 16 digits long!'
-                nextElement   :
-                  cardCV          :
-                    placeholder   : 'CVC'
-                    validate      :
-                      rules       :
-                        required  : yes
-                        regExp    : /[0-9]{3,4}/
-                      messages    :
-                        required  : 'Card verification code (CVC) is required!'
-                        regExp    : 'Card verification code (CVC) should be a 3- or 4-digit number!'
-
-              cardMonth           :
-                label             : 'Expires'
-                itemClass         : KDSelectBox
-                selectOptions     : __utils.getMonthOptions()
-                defaultValue      : (new Date().getMonth())+2
-                nextElement   :
-                  cardYear        :
-                    itemClass     : KDSelectBox
-                    selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+25))
-                    defaultValue  : (new Date().getFullYear())
-
-            , options.additionalFields
+          fields                : ($.extend fields, options.additionalFields)
 
     super options, data
 
