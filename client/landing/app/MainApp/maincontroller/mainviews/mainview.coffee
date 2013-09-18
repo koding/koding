@@ -4,7 +4,7 @@ class MainView extends KDView
 
     if el = document.getElementById 'main-loading'
       KD.utils.wait 750, ->
-        el.childNodes[0].classList.add 'out'
+        el.children[0].classList.add 'out'
         KD.utils.wait 250, ->
           el.classList.add 'out'
           KD.utils.wait 750, ->
