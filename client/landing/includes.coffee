@@ -870,17 +870,14 @@ module.exports = [
   "stylus/app.codeshare.styl",
   "stylus/app.group.general.styl",
   "stylus/app.group.dashboard.styl",
-  "stylus/app.group.summary.styl",
   "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
   # "stylus/app.classroom.styl",
   "stylus/temp.styl",
   "stylus/third.workspace.styl",
-  # "stylus/app.landing.styl",
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",
-  # "stylus/app.group.landing.styl",
 
   # mediaqueries should stay at the bottom
   "stylus/app.1200.styl",

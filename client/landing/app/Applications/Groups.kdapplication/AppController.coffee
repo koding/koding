@@ -237,7 +237,7 @@ class GroupsAppController extends AppController
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
       owner : (view)-> view.markOwnGroup()
-    for as, callback of fetchRoles
+    for own as, callback of fetchRoles
       do (as, callback)->
         KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
           return error err if err
