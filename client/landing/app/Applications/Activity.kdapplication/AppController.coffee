@@ -27,7 +27,7 @@ class ActivityAppController extends AppController
   ]
 
   @clearQuotes = clearQuotes = (activities)->
-    return activities = for activityId, activity of activities
+    return activities = for own activityId, activity of activities
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '\"'
       activity
 

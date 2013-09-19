@@ -124,7 +124,7 @@ class BookView extends JView
     return page
 
   changePageFromRoute:(route)->
-    @fillPage index for index, page of __bookPages when page.routeURL is route
+    @fillPage index for own index, page of __bookPages when page.routeURL is route
 
   openFileWithPage:(file)->
     user = KD.nick()
