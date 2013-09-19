@@ -55,7 +55,8 @@ class DemosMainView extends KDScrollView
 class EnvironmentScene extends KDDiaScene
   constructor:->
     super
-      cssClass : 'environments-scene'
+      cssClass  : 'environments-scene'
+      lineWidth : 1
 
 class EnvironmentContainer extends KDDiaContainer
   constructor:(options={}, data)->

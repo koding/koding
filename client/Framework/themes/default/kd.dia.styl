@@ -84,7 +84,7 @@ div.environments-container
   width           240px
   height          auto
   border          1px dashed #ccc
-  background      rgba(253, 253, 253, 0.1)
+  background      rgba(203, 203, 203, 0.2)
   noTextSelection()
 
   .kdheaderview
@@ -124,13 +124,29 @@ div.environments-item
     margin-top      4px
 
 div.environments-joint
-  width             4px
-  height            4px
+  size              4px, 4px
   background-color  #ccc
   border            none
+
+  &.deleteMode
+    size             14px,14px
+    z-index          2
+    border           1px solid white
+    borderBox()
+    sprite()
+    bg               position,-84px -544px
+    background-color rgba(169, 39, 84, 1.0)
+
   &.right
     right           -2px
     margin-top      -2px
+    &.deleteMode
+      margin-top    -7px
+      right         -7px
+
   &.left
-    left            -2px
+    left            -7px
     margin-top      -2px
+    &.deleteMode
+      left          -12px
+      margin-top    -7px
