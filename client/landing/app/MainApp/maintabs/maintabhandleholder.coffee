@@ -81,7 +81,7 @@ class MainTabHandleHolder extends KDView
 
       index = 4
       appsController.fetchApps (err, apps)=>
-        for name, app of apps
+        for own name, app of apps
           app.callback = appManager.open.bind appManager, name, {forceNew : yes}, contextMenu.bound("destroy")
           app.title    = name
           contextMenu.treeController.addNode app, index
