@@ -10,6 +10,7 @@ import (
 	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
+	"labix.org/v2/mgo"
 	"log"
 	"net/http"
 	"strconv"
@@ -32,75 +33,86 @@ func main() {
 	amqpChannel := connectToRabbitMQ()
 	log.Println("Connected to Rabbit")
 
-	mongo := mongodb.NewMongoDB(config.Current.Mongo)
-	coll := mongo.GetSession().DB("").C("relationships")
-	filter := strToInf{
-		"targetName": strToInf{"$nin": oldNeo.NotAllowedNames},
-		"sourceName": strToInf{"$nin": oldNeo.NotAllowedNames},
-	}
-	query := coll.Find(filter)
-	totalCount, err := query.Count()
+	err := mongodb.Run("relationships", createQuery(amqpChannel))
 	if err != nil {
-		log.Println("Err while getting count, exiting", err)
-		return
+		fmt.Println("Error >>>", err)
 	}
+}
 
-	skip := config.Skip
-	// this is a starting point
-	index := skip
-	// this is the item count to be processed
-	limit := config.Count
-	// this will be the ending point
-	count := index + limit
+func createQuery(amqpChannel *amqp.Channel) func(coll *mgo.Collection) error {
 
-	var result oldNeo.Relationship
+	return func(coll *mgo.Collection) error {
+		filter := strToInf{
+			"targetName": strToInf{"$nin": oldNeo.NotAllowedNames},
+			"sourceName": strToInf{"$nin": oldNeo.NotAllowedNames},
+		}
+		query := coll.Find(filter)
 
-	iteration := 0
-	for {
-		// if we reach to the end of the all collection, exit
-		if index == totalCount {
-			log.Println("All items are processed, exiting")
-			break
+		totalCount, err := query.Count()
+		if err != nil {
+			log.Println("Err while getting count, exiting", err)
+			return err
 		}
 
-		// this is the max re-iterating count
-		if iteration == MAX_ITERATION_COUNT {
-			break
-		}
+		skip := config.Skip
+		// this is a starting point
+		index := skip
+		// this is the item count to be processed
+		limit := config.Count
+		// this will be the ending point
+		count := index + limit
 
-		// if we processed all items then exit
-		if index == count {
-			break
-		}
+		var result oldNeo.Relationship
 
-		iter := query.Skip(index).Limit(count - index).Iter()
-		for iter.Next(&result) {
-			time.Sleep(100 * time.Millisecond)
-
-			if relationshipNeedsToBeSynced(result) {
-				createRelationship(result, amqpChannel)
+		iteration := 0
+		for {
+			// if we reach to the end of the all collection, exit
+			if index >= totalCount {
+				log.Println("All items are processed, exiting")
+				break
 			}
 
-			index++
-			log.Println(index)
+			// this is the max re-iterating count
+			if iteration == MAX_ITERATION_COUNT {
+				break
+			}
+
+			// if we processed all items then exit
+			if index == count {
+				break
+			}
+
+			iter := query.Skip(index).Limit(count - index).Iter()
+			for iter.Next(&result) {
+				time.Sleep(100 * time.Millisecond)
+
+				if relationshipNeedsToBeSynced(result) {
+					createRelationship(result, amqpChannel)
+				}
+
+				index++
+				log.Println(index)
+			}
+
+			if err := iter.Close(); err != nil {
+				log.Println(err)
+			}
+
+			if iter.Timeout() {
+				continue
+			}
+
+			log.Printf("iter existed, starting over from %v  -- %v  item(s) are processsed on this iter", index+1, index-skip)
+			iteration++
 		}
 
-		if err := iter.Close(); err != nil {
-			log.Println(err)
+		if iteration == MAX_ITERATION_COUNT {
+			log.Printf("Max iteration count %v reached, exiting", iteration)
 		}
+		log.Printf("Synced %v entries on this process", index-skip)
 
-		if iter.Timeout() {
-			continue
-		}
-
-		log.Printf("iter existed, starting over from %v  -- %v  item(s) are processsed on this iter", index+1, index-skip)
-		iteration++
+		return nil
 	}
-
-	if iteration == MAX_ITERATION_COUNT {
-		log.Printf("Max iteration count %v reached, exiting", iteration)
-	}
-	log.Printf("Synced %v entries on this process", index-skip)
 }
 
 func connectToRabbitMQ() *amqp.Channel {
