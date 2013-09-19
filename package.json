@@ -25,7 +25,7 @@
     "csv"             : "0.2.9",
     "dateformat"      : "1.0.2-1.2.3",
     "embedly"         : "1.0.1",
-    "express"         : "3.0.2",
+    "express"         : "3.4.0",
     "formidable"      : "1.0.12",
     "hat"             : "0.0.3",
     "highlight.js"    : "7.3.0",
