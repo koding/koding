@@ -226,6 +226,7 @@ class NFinderTreeController extends JTreeViewController
         node.getData().remove (err, response)=>
           if err then @notify null, null, err
           else
+            node.emit "ItemBeingDeleted"
             cb err, node
 
     async.parallel stack, (error, result) =>
