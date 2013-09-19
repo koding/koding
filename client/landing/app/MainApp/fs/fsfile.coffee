@@ -10,7 +10,15 @@ class FSFile extends FSItem
       @save contents
 
     @localStorage = KD.getSingleton("localStorageController").storage "Finder"
-    @lastChunk    = @localStorage.getAt("lastChunk-#{btoa @path}") or 0
+    @fileInfo     = @localStorage.getValue(btoa FSHelper.plainPath @path) or {}
+
+  getLocalFileInfo: -> @fileInfo or {}
+  setLocalFileInfo: (data={})->
+    @fileInfo[key] = value for own key, value of data
+    @localStorage.setValue btoa(FSHelper.plainPath @path), @fileInfo
+
+  removeLocalFileInfo: ->
+    @localStorage.unsetKey btoa FSHelper.plainPath @path
 
   fetchContentsBinary: (callback)->
     @fetchContents callback, no
@@ -80,39 +88,53 @@ class FSFile extends FSItem
     chunkSize           = 1024*1024
     chunks              = []
     runs                = []
+    info                = @getLocalFileInfo()
 
     sendChunk = =>
       next = runs.shift()
       return unless next
+
+      if next.skip
+        callback null, {},
+          percent: 100 * info.lastUploadedChunk / info.totalChunks
+        sendChunk()
+        return
+
       @vmController.run next, (err, res) =>
         return callback? err  if err
 
+        @setLocalFileInfo
+          lastUploadedChunk: chunks.length - runs.length
         if @abortRequested
           @abortRequested = no # reset the state
           callback? null, abort: yes
-          if @abortResumable and runs.length > 0
-            @localStorage.setAt "lastChunk-#{btoa @path}", runs.length
           return
 
         total    = chunks.length
-        loaded   = chunks.length - runs.length
+        loaded   = total - runs.length
         percent  = 100 * loaded / total
 
         callback? null, res, {total, loaded, percent}
         sendChunk()
         if runs.length is 0 # finished all the chunks
           callback? null, finished: yes
+          @removeLocalFileInfo()
 
     if runs.length is 0
       while contents
         if contents.length < chunkSize
           chunks.push contents
+          @setLocalFileInfo totalChunks: chunks.length
           break
         else
           chunks.push contents.substr 0, chunkSize
           contents = contents.substr chunkSize
 
-      for chunk in chunks
+      for chunk, index in chunks
+        if info.lastUploadedChunk > index
+          runs.push skip: yes
+          continue
+
         runs.push
           method    : 'fs.writeFile'
           vmName    : @vmName
@@ -124,12 +146,8 @@ class FSFile extends FSItem
     else
       sendChunk()
 
-  abort: (resumable=no)->
+  abort: ->
     @abortRequested = yes
-    @abortResumable = resumable
-
-  resume: ->
-    return unless @localChunks is 0
 
   save:(contents, callback, useEncoding=yes)->
 
