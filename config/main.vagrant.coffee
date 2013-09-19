@@ -124,6 +124,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      precompiledApi: no
       authExchange: authExchange
       github         :
         clientId     : "f8e440b796d953ea01e5"
@@ -151,7 +152,10 @@ module.exports =
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
-    heartbeat   : 10
+    # heartbeat disabled in vagrant, because it'll interfere with node-inspector
+    # when the debugger is paused, the target is not able to send the heartbeat,
+    # so it'll disconnect from RabbitMQ if heartbeat is enabled.
+    heartbeat   : 0
     vhost       : '/'
   broker        :
     ip          : ""
@@ -207,7 +211,6 @@ module.exports =
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-      sslips      : '127.0.0.1'
     rabbitmq      :
       host        : 'localhost'
       port        : '5672'
@@ -232,7 +235,7 @@ module.exports =
   #     b = decipher.final('utf-8')
   #     return b
   recurly       :
-    apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
+    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding-test.recurly.com
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :

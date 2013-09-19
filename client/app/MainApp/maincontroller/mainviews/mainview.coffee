@@ -1,6 +1,16 @@
 class MainView extends KDView
 
+  removePulsing = ->
+    if el = document.getElementById 'main-loading'
+      el.children[0].classList.add 'out'
+      KD.utils.wait 750, ->
+        el.classList.add 'out'
+        KD.utils.wait 750, ->
+          el.parentElement.removeChild el
+
   viewAppended:->
+
+    KD.utils.wait 1000, removePulsing
 
     @bindTransitionEnd()
     # @addServerStack()
@@ -58,7 +68,8 @@ class MainView extends KDView
 
   createMainPanels:->
 
-    @addSubView @homeIntro = new HomeIntroView
+    klass = if KD.isLoggedIn() then KDCustomHTMLView else HomeIntroView
+    @addSubView @homeIntro = new klass
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
@@ -74,12 +85,12 @@ class MainView extends KDView
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
 
-  addServerStack:->
-    @addSubView @serverStack = new KDView
-      domId : "server-rack"
-      click : ->
-        $('body').removeClass 'server-stack'
-        $('.kdoverlay').remove()
+  # addServerStack:->
+  #   @addSubView @serverStack = new KDView
+  #     domId : "server-rack"
+  #     click : ->
+  #       $('body').removeClass 'server-stack'
+  #       $('.kdoverlay').remove()
 
   addHeader:->
 
@@ -89,19 +100,21 @@ class MainView extends KDView
       tagName : "header"
       domId   : "main-header"
 
-    @logo = new KDCustomHTMLView
+    @header.getElement().innerHTML = ''
+
+    @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
-      cssClass  : if entryPoint?.type? is 'group' then 'group' else ''
+      cssClass  : if entryPoint?.type is 'group' then 'group' else ''
       partial   : "<span></span>"
       click     : (event)=>
         KD.utils.stopDOMEvent event
         homeRoute = if KD.isLoggedIn() then "/Activity" else "/Home"
         KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
 
-    loginLink = new CustomLinkView
+    @header.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
-      title       : 'Already a user? Sign in'
+      title       : 'Already a user? Sign in.'
       icon        :
         placement : 'right'
       cssClass    : 'login'
@@ -165,7 +178,8 @@ class MainView extends KDView
 
   createChatPanel:->
     @addSubView @chatPanel   = new MainChatPanel
-    @addSubView @chatHandler = new MainChatHandler
+    # @addSubView @chatHandler = new MainChatHandler
+    @chatHandler = new MainChatHandler
 
   setStickyNotification:->
     # sticky = KD.getSingleton('windowController')?.stickyNotification

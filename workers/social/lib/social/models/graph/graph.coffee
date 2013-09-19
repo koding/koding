@@ -3,6 +3,8 @@ neo4j = require "neo4j"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
+JCache = require '../cache.coffee'
+
 module.exports = class Graph
   constructor:({config, facets})->
     @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
@@ -97,6 +99,7 @@ module.exports = class Graph
     {startDate, client} = options
     @db.query query, {}, (err, results)=>
       if err
+        console.log ">>> err", query, err
         callback err
       else if results.length is 0 then callback null, []
       else
@@ -172,7 +175,7 @@ module.exports = class Graph
       START koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->members<-[:author]-content
       WHERE content.`meta.createdAtEpoch` < #{startDate}
-    """
+      """
 
     facets = @facets
     if facets and facets isnt "Everything"
@@ -193,7 +196,9 @@ module.exports = class Graph
         order by content.`meta.createdAtEpoch` DESC
         limit 20
       """
-      @db.query query, {}, (err, results)=>
+
+      returnResults = (err, results)=>   
+
         tempRes = []
         if err then callback err
         else if results.length is 0 then callback null, []
@@ -219,9 +224,19 @@ module.exports = class Graph
               tempRes.push objected
               collectRelations objected
 
+      JCache.get query, (err, results)=>
+        if err or not results 
+          @db.query query, {}, (err, results)=>
+            JCache.add query, results
+            returnResults(err, results)
+        else
+          returnResults(err, results)
+
   fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
-      if err then callback err
+      if err
+        console.log ">>> err fetchRelateds error", query, err
+        callback err
       resultData = []
       results.reverse()
       for result in results
@@ -272,8 +287,10 @@ module.exports = class Graph
       limit 20
       """
 
-    @db.query query, {}, (err, results) =>
-      if err then throw err
+    @db.query query, {}, (err, results)=>
+      if err
+        console.log ">>> err fetchNewInstalledApps", query, err
+        callback err
       @generateInstalledApps [], results, callback
 
   generateInstalledApps:(resultData, results, callback)->
@@ -323,6 +340,7 @@ module.exports = class Graph
 
       @db.query query, {}, (err, results) =>
         if err
+          console.log ">>> err search members", query, err
           return callback err
         else if results.length is 0 then callback null, []
         else
@@ -342,15 +360,18 @@ module.exports = class Graph
       order by r.createdAtEpoch DESC
       limit 20
       """
-    @db.query query, {}, (err, results) ->
-        if err then throw err
-        resultData = []
-        for result in results
-          data = result.members.data
-          resultData.push data
 
-        objectify resultData, (objected)->
-          callback err, objected
+    @db.query query, {}, (err, results) ->
+      if err
+        console.log ">>> err fetchNewMembers", query, err
+        callback err, null
+      resultData = []
+      for result in results
+        data = result.members.data
+        resultData.push data
+
+      objectify resultData, (objected)->
+        callback err, objected
 
   fetchMemberFollows:(group, startDate, callback)->
     {groupId} = group
@@ -383,8 +404,11 @@ module.exports = class Graph
 
   fetchFollows:(query, callback)->
     @db.query query, {}, (err, results)=>
-      if err then throw err
+      if err
+        console.log ">>> err fetchFollows", query, err
+        callback err
       @generateFollows [], results, callback
+
 
   generateFollows:(resultData, results, callback)->
 
@@ -430,7 +454,9 @@ module.exports = class Graph
       RETURN count(members) as count
       """
     @db.query query, options, (err, results) ->
-      if err then throw err
+      if err
+        console.log ">>> err", query, err
+        callback err
       count = if results and results[0]['count'] then results[0]['count'] else 0
       callback null, count
 
@@ -562,7 +588,9 @@ module.exports = class Graph
 
   queryMembers:(query, options={}, callback)->
     @db.query query, options, (err, results) ->
-        if err then throw err
+        if err
+          console.log ">>> err queryMembers", query, err
+          callback err
         resultData = []
         for result in results
           data = result.members.data
@@ -601,7 +629,9 @@ module.exports = class Graph
 
   fetchItems:(query, modelName, callback)->
     @db.query query, {}, (err, results)=>
-      if err then throw err
+      if err
+        console.log ">>> err fetchItems", query, err
+        callback err
       else
         tempRes = []
         collectContents = race (i, id, fin)=>
@@ -626,5 +656,7 @@ module.exports = class Graph
     """
 
     @db.query query, {}, (err, results) ->
-      if err then callback err, null
+      if err
+        console.log ">>> err fetchRelationshipCount", query, err
+        callback err, null
       else callback null, results[0].count

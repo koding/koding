@@ -5,6 +5,7 @@ module.exports = [
   "libs/sha1.encapsulated.coffee",
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
+  "libs/jquery.cookie.js",
 
   # --- Base class ---
   "Framework/core/utils.coffee",
@@ -15,6 +16,9 @@ module.exports = [
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
+
+  # the bongo api (or an empty file, depending on the config)
+  "../.build/api.js",
 
   # TODO: reenable closure wrapping:
   # "includes/header.inc.js",
@@ -376,8 +380,6 @@ module.exports = [
   "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
-  "app/MainApp/localstorage.coffee",
-
 
   # got rid of static controllers
 
@@ -395,7 +397,6 @@ module.exports = [
 
   "libs/jquery-timeago.js",
   "libs/date.format.js",
-  "libs/jquery.cookie.js",
   "libs/jquery.getcss.js",
   "libs/mousetrap.js",
   "libs/md5-min.js",
@@ -412,6 +413,7 @@ module.exports = [
   "app/MainApp/AppController.coffee",
   "app/MainApp/kodingappscontroller.coffee",
   "app/MainApp/AppStorage.coffee",
+  "app/MainApp/localstorage.coffee",
 
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
@@ -736,6 +738,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/terminalpane.coffee",
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/workspacelayout.coffee",
   "app/CommonViews/workspace/workspace.coffee",
 
   # COLLABORATIVE WORKSPACE
@@ -750,18 +753,28 @@ module.exports = [
   "libs/codemirror/lib/codemirror.css",
   "app/CommonViews/workspace/panes/collaborativepane.coffee",
   "app/CommonViews/workspace/panes/collaborativetabbededitorpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativepreviewpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativedrawingpane.coffee",
   "app/CommonViews/workspace/panes/chatitem.coffee",
   "app/CommonViews/workspace/panes/chatpane.coffee",
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
+
+  # CLASSROOM
+  # "app/Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomchapterthumbview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcoursethumbview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcoursesview.coffee",
+  # "app/Applications/Classroom.kdapplication/Views/classroomcourseview.coffee",
+  # "app/Applications/Classroom.kdapplication/AppView.coffee",
+  # "app/Applications/Classroom.kdapplication/AppController.coffee",
 
   "app/CommonViews/modalappslistitemview.coffee",
 
@@ -845,15 +858,14 @@ module.exports = [
   "stylus/app.codeshare.styl",
   "stylus/app.group.general.styl",
   "stylus/app.group.dashboard.styl",
-  "stylus/app.group.summary.styl",
   "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
+  # "stylus/app.classroom.styl",
   "stylus/temp.styl",
-  # "stylus/app.landing.styl",
+  "stylus/third.workspace.styl",
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",
-  # "stylus/app.group.landing.styl",
 
   # mediaqueries should stay at the bottom
   "stylus/app.1200.styl",

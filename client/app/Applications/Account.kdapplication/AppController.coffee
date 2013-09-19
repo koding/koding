@@ -61,6 +61,13 @@ class AccountAppController extends AppController
         ,{item,section}
         @wrapperController.sectionLists.push wrapper
 
+    navView.setPartial """
+      <div class="kdview kdlistview">
+      <h3>Legal</h3>
+      <div class="kdview kdlistitemview newpage"><a href="/tos.html" target="_blank">Terms of service <span class="icon new-page"></span></a></div>
+      <div class="kdview kdlistitemview newpage"><a href="/privacy.html" target="_blank">Privacy policy <span class="icon new-page"></span></a></div>
+      </div>
+      """
 
     # SET UP SPLIT VIEW AND TOGGLERS
     @split = split = new SplitView

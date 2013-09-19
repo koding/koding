@@ -104,7 +104,7 @@ catch e
 
   extend:(obj)->
     for key, val of obj
-      if @[key] then throw new Error "#{key} is allready registered"
+      if @[key] then throw new Error "#{key} is already registered"
       else @[key] = val
 
   registerSingleton:(singletonName,object,override = no)->
@@ -212,7 +212,7 @@ catch e
       return "Logs are enabled now."
 
   exportKDFramework:->
-    (window[item] = KD.classes[item] for item of KD.classes)
+    (window[item] = KD.classes[item] for own item of KD.classes)
     KD.exportKDFramework = -> "Already exported."
     "KDFramework loaded successfully."
 

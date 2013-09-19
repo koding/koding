@@ -127,6 +127,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      precompiledApi: yes
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
@@ -203,7 +204,6 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     rabbitmq      :
       host        : '172.16.6.14'
       port        : '5672'

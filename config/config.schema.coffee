@@ -148,6 +148,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        precompiledApi: 1
         authExchange  : 1
         github        :
           clientId    : 1
@@ -219,7 +220,6 @@ config =
         port        : 1
         portssl     : 1
         ftpip       : 1
-        sslips      : 1
       rabbitmq      :
         host        : 1
         port        : 1

@@ -51,7 +51,7 @@ class KDButtonViewWithMenu extends KDButtonView
       if o.menu instanceof Array
         menuArrayToObj = {}
         for menuObject in o.menu
-          for menuObjectProperty,menuObjectValue of menuObject
+          for own menuObjectProperty,menuObjectValue of menuObject
             menuArrayToObj[menuObjectProperty]=menuObjectValue if menuObjectProperty? and menuObjectValue?
 
         # leave original o.menu array intact so it can be modified

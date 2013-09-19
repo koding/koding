@@ -5,6 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
+mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
+
 socialQueueName = "koding-social-#{version}"
 
 authExchange    = "auth-#{version}"
@@ -30,13 +32,13 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : yes
+    enabled     : no
     port        : 1337
   neo4j         :
     read        : "http://kgraph.sj.koding.com"
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
+  mongo         : mongo
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
@@ -128,6 +130,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      precompiledApi: yes
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
@@ -192,7 +195,7 @@ module.exports =
     webPort     : 3020
   kontrold        :
     overview      :
-      apiHost     : "kontrol.in.koding.com"
+      apiHost     : "172.16.3.11"
       apiPort     : 80
       port        : 8080
       switchHost  : "koding.com"
@@ -202,7 +205,6 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     rabbitmq      :
       host        : '172.16.3.4'
       port        : '5672'
