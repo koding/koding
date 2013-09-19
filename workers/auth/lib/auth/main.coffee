@@ -7,7 +7,7 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 AuthWorker = require './authworker'
 
-{librato, authWorker} = require('koding-config-manager').load("main.#{argv.c}")
+{librato, authWorker} = KONFIG
 
 processMonitor = (require 'processes-monitor').start
   name : "Auth Worker #{process.pid}"
