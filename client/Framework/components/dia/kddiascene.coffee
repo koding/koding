@@ -15,9 +15,10 @@ class KDDiaScene extends JView
 
     super
 
-    @containers  = []
-    @connections = []
-    @activeDias  = []
+    @containers   = []
+    @connections  = []
+    @activeDias   = []
+    @activeJoints = []
 
   diaAdded:(container, diaObj)->
     diaObj.on "JointRequestsLine", @bound "handleLineRequest"
@@ -101,16 +102,25 @@ class KDDiaScene extends JView
       for connection in @connections
         {source, target} = connection
         if (source.dia in @activeDias) or (target.dia in @activeDias)
-          source.dia.joints[source.joint].showDeleteButton()
-          target.dia.joints[target.joint].showDeleteButton()
+          [source, target].forEach (conn)=>
+            joint = conn.dia.joints[conn.joint]
+            if joint not in @activeJoints
+              joint.showDeleteButton()
+              joint.on 'DeleteRequested', @bound 'disconnectHelper'
+              @activeJoints.push joint
 
     @updateScene()  if update
 
   deselectAllDias:->
     container.emit 'UnhighlightJoints' for container in @containers
+    joint.off 'DeleteRequested'        for joint in @activeJoints
+    @activeJoints = []
 
   handleLineRequest:(joint)->
     @_trackJoint = joint
+
+  disconnectHelper:(dia, joint)->
+    log "Delete", dia, joint
 
   connect:(source, target)->
     return  unless source and target

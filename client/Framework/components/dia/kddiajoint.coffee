@@ -29,7 +29,7 @@ class KDDiaJoint extends JView
     @parent.getJointPos this
 
   click:(e)->
-    @emit 'DeleteRequested', @type  if @inDeleteMode()
+    @emit 'DeleteRequested', @parent, @type  if @inDeleteMode()
     @utils.stopDOMEvent e
 
   mouseDown:(e)->
