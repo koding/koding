@@ -240,6 +240,10 @@ dimmedNeighbor()
       .bar
         gradient    #afafaf, #afafaf
         shadow      none
+    &.being-deleted
+    &.being-edited
+      .progressbar-container
+        hidden()
     .vm
       .vm-info
         hidden()
@@ -350,8 +354,7 @@ dimmedNeighbor()
 #finder-dnduploader
   position          absolute
   z-index           100
-  width             100%
-  kalc              height, 100% \- 45px
+  size              100%, 100%
   background-color  inherit
   top               45px
 

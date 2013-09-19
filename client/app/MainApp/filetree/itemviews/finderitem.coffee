@@ -27,26 +27,15 @@ class NFinderItem extends JTreeItemView
         title : FSHelper.plainPath data.name
 
     @progress = new KDProgressBarView
-      click: =>
-        info = new KDView
-        info.addSubView new KDButtonView
-          title: "Pause"
-          callback: => @emit "abortProgress"
-        progressInfo  = new JContextMenu
-          delegate    : this
-          x           : @getX() + 20
-          y           : @getY() - 30
-          arrow       :
-            placement : "bottom"
-            margin    : 150
-          lazyLoad    : yes
-        , customView  : info
 
-    log data
-    if data?.runs?.length > 0
-      total  = data.runs.first.totalChunk
-      remain = data.runs.length
-      @updateProgressView 100 * (total-remain) / total
+    @on "viewAppended", =>
+      if data?.fileInfo?.lastUploadedChunk
+        {lastUploadedChunk, totalChunks} = data.fileInfo
+        if lastUploadedChunk is totalChunks
+          data.removeLocalFileInfo()
+          @updateProgressView 100
+        else
+          @updateProgressView 100 * lastUploadedChunk / totalChunks
 
   mouseDown:-> yes
 
