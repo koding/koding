@@ -5,6 +5,11 @@ div.kddia-scene
   width              auto
   bg                 color, rgba(255,255,255,0.9)
   rounded            6px
+  canvas
+    pointer-events   none
+    left             0
+    top              0
+    abs()
 
 div.kddia-container
   top                20px
@@ -68,12 +73,6 @@ div.kddia-joint
     left             -5px
     top              50%
     margin-top       -5px
-
-canvas.fakeCanvas
-  left              0
-  top               0
-  abs()
-
     &.deleteMode
       margin-top     -8px
       left           -8px

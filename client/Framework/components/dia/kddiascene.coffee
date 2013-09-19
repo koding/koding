@@ -35,6 +35,8 @@ class KDDiaScene extends JView
     container.setX pos.x  if pos.x?
     container.setY pos.y  if pos.y?
 
+    @createCanvas()
+
   drawFakeLine:(options={})->
     {sx,sy,ex,ey} = options
 
@@ -157,8 +159,10 @@ class KDDiaScene extends JView
       @realContext.lineWidth = @getOption 'lineWidth'
       @realContext.stroke()
 
-  viewAppended:->
-    super
+  createCanvas:->
+    @realCanvas?.destroy()
+    @fakeCanvas?.destroy()
+
     @addSubView @realCanvas = new KDCustomHTMLView
       tagName    : "canvas"
       attributes : @getSceneSize()
