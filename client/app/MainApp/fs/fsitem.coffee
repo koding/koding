@@ -90,17 +90,17 @@ class FSItem extends KDObject
 
   @extract:(file, callback)->
 
-    reTar = /\.tar\.gz$/
-    reZip = /\.zip$/
+    tarPattern = /\.tar\.gz$/
+    zipPattern = /\.zip$/
 
     file.emit "fs.job.started"
     path = FSHelper.plainPath file.path
     vmName = file.vmName or FSHelper.getVMNameFromPath path
-    command = if reTar.test file.name
-      extractFolder = file.path.replace reTar, ''
+    command = if tarPattern.test file.name
+      extractFolder = file.path.replace tarPattern, ''
       "cd #{escapeFilePath file.parentPath};mkdir -p #{escapeFilePath extractFolder};tar -zxf #{escapeFilePath file.name} -C #{escapeFilePath extractFolder}"
-    else if reZip.test file.name
-      extractFolder = file.path.replace reZip, ''
+    else if zipPattern.test file.name
+      extractFolder = file.path.replace zipPattern, ''
       "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath extractFolder}"
 
     if command
