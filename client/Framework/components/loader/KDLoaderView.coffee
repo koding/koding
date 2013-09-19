@@ -29,7 +29,7 @@ class KDLoaderView extends KDView
 
     @canvas = new CanvasLoader @getElement(), id : "cl_#{@id}"
     {loaderOptions, showLoader} = @getOptions()
-    for option,value of loaderOptions
+    for own option, value of loaderOptions
       @canvas["set#{option.capitalize()}"] value
 
     @show()  if showLoader

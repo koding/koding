@@ -26,7 +26,7 @@ class AccountEmailNotifications extends KDView
       groupApproved    :
         title          : 'Group admin approves my access request'
 
-    for flag, field of fields
+    for own flag, field of fields
       @addSubView field.formView = new KDFormView
       field.formView.addSubView    new KDLabelView
         title        : field.title
@@ -64,7 +64,7 @@ class AccountEmailNotifications extends KDView
           color       : "#FFFFFF"
 
     toggleFieldStates = (state)->
-      for flag, field of fields when flag isnt 'global'
+      for own flag, field of fields when flag isnt 'global'
         if state is false
           field.formView.hide()
         else
