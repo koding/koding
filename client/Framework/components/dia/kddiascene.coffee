@@ -52,6 +52,10 @@ class KDDiaScene extends JView
 
     @fakeContext.stroke()
 
+  click:(e)->
+    return if e.target isnt e.currentTarget
+    @setActiveDia()
+
   mouseMove:(e)->
     return  unless @_trackJoint
     {x, y} = @_trackJoint.getPos()
