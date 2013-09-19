@@ -54,11 +54,11 @@ class MainTabView extends KDTabView
       @appManager.showInstance appInstance
 
   showHandleContainer:->
-    @tabHandleContainer.$().css top : -25
+    @tabHandleContainer.setClass 'in'
     @handlesHidden = no
 
   hideHandleContainer:->
-    @tabHandleContainer.$().css top : 0
+    @tabHandleContainer.unsetClass 'in'
     @handlesHidden = yes
 
   showPane:(pane)->

@@ -38,10 +38,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @img = new KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
-      error       : =>
-        @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
         src       : encodeURI thumb
+
+    @img.off 'error'
+    @img.on  'error', ->
+      @$().attr "src", "/images/default.app.thumb.png"
 
     @loader = new KDLoaderView
       size          :
@@ -177,7 +179,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     updateText        = "Update Available"
     updateTooltip     = "An update available for this app. Click here to see."
 
-    if manifest.forceUpdate is yes
+    if @appsController.getAppUpdateType(manifest.name) is "required"
       updateClass     = "orange"
       updateText      = "Update Required"
       updateTooltip   = "You must update this app. Click here to see."
@@ -210,10 +212,16 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     return if $(event.target).closest('.icon-container').length > 0 or \
               $(event.target).closest('.dev-mode').length > 0
-    manifest = @getData()
+
     @showLoader()
-    KD.getSingleton("appManager").open manifest.name, =>
-      @hideLoader()
+
+    manifest   = @getData()
+    appManager = KD.getSingleton "appManager"
+    hideLoader = => @hideLoader()
+    appManager.once "AppCouldntBeCreated", => hideLoader()
+    appManager.open manifest.name, =>
+      hideLoader()
+      appManager.off "AppCouldntBeCreated", hideLoader
       KD.track "Apps", "ApplicationRun", manifest.name
 
   showLoader:->

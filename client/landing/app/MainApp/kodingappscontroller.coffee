@@ -45,7 +45,13 @@ class KodingAppsController extends KDController
     #  - ManifestHasChanged
 
     @watcher.on "NewAppIsAdded", (app, change)=>
-      @fetchAppFromFs app, => @syncAppStorageWithFS()
+      manifestPath = "#{change.file.fullPath}/manifest.json"
+      manifest = FSHelper.createFileFromPath manifestPath
+      manifest.exists (err, exists)=>
+        return  unless exists
+        @fetchAppFromFs app, =>
+          @putAppsToAppStorage null, =>
+            @emit "UpdateAppData", app
 
     @watcher.on "AppIsRemoved", (app, change)=>
       @invalidateDeletedApps [app], no, =>
@@ -53,7 +59,8 @@ class KodingAppsController extends KDController
 
     @watcher.on "ManifestHasChanged", (app, change)=>
       @fetchAppFromFs app, =>
-        @emit "UpdateAppData", app
+        @putAppsToAppStorage null, =>
+          @emit "UpdateAppData", app
 
   getAppPath:(manifest, escaped=no)->
 
@@ -71,7 +78,7 @@ class KodingAppsController extends KDController
 
     kb = (manifests)=>
       callback null, manifests
-      @watcher._trackedApps = Object.keys manifests
+      @watcher._trackedApps = if manifests then Object.keys manifests else []
 
     @appStorage.ready =>
       manifests = @getManifests()
@@ -106,7 +113,7 @@ class KodingAppsController extends KDController
         warn "Manifest file is broken:", e
         return cb null
 
-      @putAppsToAppStorage manifests
+      @constructor.manifests = manifests
       cb null
 
   fetchAppsFromFsHelper:(apps, callback)->
@@ -130,10 +137,11 @@ class KodingAppsController extends KDController
       else
         apps = @filterAppsFromFileList files
         @fetchAppsFromFsHelper apps, (result)=>
+          @putAppsToAppStorage()
           for callback in @_fetchQueue
             callback null, @getManifests()
           @_fetchQueue = []
-    , ->
+    , =>
       warn msg = "Timeout reached for kite request"
       KD.logToExternal msg  unless KD.isGuest()
       callback() for callback in @_fetchQueue
@@ -153,7 +161,7 @@ class KodingAppsController extends KDController
 
     currentApps = Object.keys(@getManifests())
 
-    log "Synchronizing AppStorage with FileSystem..."
+    # log "Synchronizing AppStorage with FileSystem..."
 
     @watcher.watch (err, files)=>
 
@@ -163,20 +171,20 @@ class KodingAppsController extends KDController
       newApps      = (app for app in existingApps when app not in currentApps) or []
       removedApps  = (app for app in currentApps  when app not in existingApps) or []
 
-      log "APPS FOUND IN AppStorage:", currentApps
-      log "APPS FOUND IN FS:", existingApps
-      log "REMOVED APPS:", removedApps
-      log "NEW APPS:", newApps
+      # log "APPS FOUND IN AppStorage:", currentApps
+      # log "APPS FOUND IN FS:", existingApps
+      # log "REMOVED APPS:", removedApps
+      # log "NEW APPS:", newApps
 
-      log "Nothing changed"  if removedApps.length is 0 and \
-                                newApps.length is 0
+      # log "Nothing changed"  if removedApps.length is 0 and \
+      #                           newApps.length is 0
 
       @invalidateDeletedApps removedApps, force, =>
-        log "DELETED APPS REMOVED FROM APPSTORAGE"
+        # log "DELETED APPS REMOVED FROM APPSTORAGE"
         appsToFetch = if force then existingApps else newApps
-        log "FOLLOWING APPS WILL BE FETCHED", appsToFetch
+        # log "FOLLOWING APPS WILL BE FETCHED", appsToFetch
         @fetchAppsFromFsHelper appsToFetch, =>
-          log "APPS FETCHED"
+          # log "APPS FETCHED"
           @emit "AppsDataChanged", {removedApps, newApps, existingApps, force}
 
       @_loadedOnce = yes
@@ -193,7 +201,7 @@ class KodingAppsController extends KDController
     @updateAvailableApps = []
 
     @fetchApps (err, apps) =>
-      for appName, app of apps
+      for own appName, app of apps
         if @isAppUpdateAvailable app.name, app.version
           @updateAvailableApps.push publishedApps[app.name]
       callback? null, @updateAvailableApps
@@ -222,13 +230,13 @@ class KodingAppsController extends KDController
       callback? err
 
   putAppsToAppStorage:(apps, callback)->
-    warn "calling putAppsToAppStorage:", apps
+    # warn "calling putAppsToAppStorage:", apps
     apps or= @getManifests()
     @constructor.manifests = apps
     @appStorage.setValue 'apps', apps, (err)-> callback? err
 
   invalidateDeletedApps:(deletedApps, force=no, callback)->
-    log "REQUESTED TO INVALIDATE:", deletedApps
+    # log "REQUESTED TO INVALIDATE:", deletedApps
     return if force
       @constructor.manifests = {}
       @putAppsToAppStorage manifests, callback
@@ -259,19 +267,24 @@ class KodingAppsController extends KDController
 
   getPublishedApps: (callback) ->
     # return unless KD.isLoggedIn()
-    appNames = (appName for appName, manifest of @getManifests()) or []
+    appNames = (appName for own appName, manifest of @getManifests()) or []
     query    = "manifest.name": "$in": appNames
-
-    KD.remote.api.JApp.someWithRelationship query, {}, (err, apps) =>
+    {JApp}   = KD.remote.api
+    JApp.fetchAllAppsData query, (err, apps)=>
       @publishedApps = map = {}
       apps?.forEach (app) =>
-        map[app.manifest.name] = app
+        map[app.manifest.name] = new JApp app
       @emit "UserAppModelsFetched", map
       callback? map
 
   isAppUpdateAvailable: (appName, appVersion) ->
     if @publishedApps[appName]
       return @utils.versionCompare appVersion, "lt", @publishedApps[appName].manifest.version
+
+  getAppUpdateType: (appName) ->
+    app = @publishedApps[appName]
+    return null unless app
+    return if app.manifest.forceUpdate is yes then "required" else "available"
 
   updateAllApps:->
     @fetchUpdateAvailableApps (err, apps) =>
@@ -282,6 +295,9 @@ class KodingAppsController extends KDController
         stack.push (callback) =>
           @updateUserApp app.manifest, callback
       async.series stack
+
+  # added this to keep backward compatibility
+  refreshApps: (callback) -> @syncAppStorageWithFS yes, callback
 
   updateUserApp:(manifest, callback)->
     appName = manifest.name
@@ -312,17 +328,21 @@ class KodingAppsController extends KDController
   # KITE INTERACTIONS
   # #
 
-  putAppResources:(appInstance)->
+  hasForceUpdate: (appInstance) ->
+    manifest                 = appInstance.getOptions()
+    {devMode, name, version} = manifest
+    forceUpdate              = @getAppUpdateType(name) is "required"
+    updateAvailable          = @isAppUpdateAvailable(name, version)
+    hasUpdate                = updateAvailable and not devMode and forceUpdate
+
+    @showUpdateRequiredModal manifest  if hasUpdate
+    return hasUpdate
+
+  putAppResources: (appInstance) ->
     return  unless appInstance
 
     manifest = appInstance.getOptions()
-    {devMode, forceUpdate, name, options, version, thirdParty} = manifest
-
-    return  unless thirdParty
-
-    if @isAppUpdateAvailable(name, version) and not devMode and forceUpdate
-      @showUpdateRequiredModal manifest
-      return callback()
+    return  unless manifest.thirdParty
 
     appView = appInstance.getView()
     appView.addSubView loader = new KDLoaderView
@@ -544,13 +564,14 @@ class KodingAppsController extends KDController
                   appPath    : @getAppPath app.manifest
                   version    : version
               , (err, res)=>
-                return KD.showError err  if err
-
+                if err
+                  KD.showError err,
+                    KodingError: """Something wrong with Apps server,
+                                    please try again later"""
+                  return callback?()
                 app.install (err)=>
                   KD.showError err
                   @appManager.open "StartTab"
-                  warn "APPS NEEDS TO BE REFRESHED!!"
-                  # @refreshApps()
                   callback?()
 
   # #
@@ -779,7 +800,7 @@ class KodingAppsController extends KDController
   createExtensionToAppMap: ->
     @extensionToApp = map = {}
 
-    for key, app of @getManifests()
+    for own key, app of @getManifests()
       fileTypes = app.fileTypes
       continue  unless fileTypes
       for type in fileTypes
@@ -795,7 +816,7 @@ class KodingAppsController extends KDController
     @appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
     @appConfigStorage.fetchStorage (storage) =>
       settings = @appConfigStorage.getValue "settings"
-      for extension, appName of settings
+      for own extension, appName of settings
         @appManager.defaultApps[extension] = appName
 
   updateDefaultAppConfig: (extension, appName) ->
@@ -810,7 +831,6 @@ class KodingAppsController extends KDController
     raw =
       devMode       : yes
       experimental  : no
-      authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
       hiddenHandle  : no
