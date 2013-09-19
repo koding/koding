@@ -20,9 +20,6 @@ class KDDiaObject extends JView
     @domElement.attr "dia-id", "dia-#{@getId()}"
     @wc = KD.getSingleton 'windowController'
 
-  getDiaId:->
-    @domElement.attr "dia-id"
-
   mouseDown:(e)->
     @emit "DiaObjectClicked"
     @_mouseDown = yes
@@ -47,25 +44,31 @@ class KDDiaObject extends JView
     if joint then @emit "JointRequestsLine", joint
 
   addJoint:(type)->
-    warn "Tried to add same joint! Destroying old one. "  if @joints[type]?
-    @joints[type]?.destroy?()
-    jointItem = @getOption 'jointItemClass'
-    @addSubView joint = new jointItem {type}
-    @joints[type] = joint
 
-  viewAppended:->
-    super
-    @addJoint joint for joint in @getOption 'joints'
-    # FIXME. Find better solution ~ GG
-    @parent.on 'UnhighlightJoints', => @emit 'UnhighlightJoints'
+    if @joints[type]?
+      warn "KDDiaObject: Tried to add same joint! Destroying old one. "
+      @joints[type].destroy?()
+
+    jointItemClass = @getOption 'jointItemClass'
+    @addSubView joint = new jointItemClass {type}
+    @joints[type] = joint
 
   getJointPos:(joint)->
     if typeof joint is "string"
       joint = @joints[joint]
     return {x:0, y:0}  unless joint
-    size = joint.size or 10
     [ x , y  ] = [@parent.getRelativeX() + @getRelativeX(),
                   @parent.getRelativeY() + @getRelativeY()]
     [ jx, jy ] = [joint.getRelativeX(), joint.getRelativeY()]
-    [ dx, dy ] = if joint.type in ['left', 'right'] then [size, 2] else [2, size]
+    [ dx, dy ] = if joint.type in ['left', 'right'] then [10, 2] else [2, 10]
     x:x + jx + dx, y: y + jy + dy
+
+  viewAppended:->
+    super
+
+    @addJoint joint for joint in @getOption 'joints'
+    @parent.on 'UnhighlightJoints', =>
+      joint.hideDeleteButton()  for key, joint of @joints
+
+  getDiaId:->
+    @domElement.attr "dia-id"

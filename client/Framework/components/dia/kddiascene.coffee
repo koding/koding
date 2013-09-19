@@ -90,16 +90,17 @@ class KDDiaScene extends JView
     return {dia, joint, container}
 
   setActiveDia:(dia=[], update=yes)->
-
     if not Array.isArray dia then dia = [dia]
     @activeDias = dia
 
     @deselectAllDias()
-    for connection in @connections
-      {source, target} = connection
-      if (source.dia in @activeDias) or (target.dia in @activeDias)
-        source.dia.emit 'HighlightJoint', source.joint
-        target.dia.emit 'HighlightJoint', target.joint
+
+    if @activeDias.length is 1
+      for connection in @connections
+        {source, target} = connection
+        if (source.dia in @activeDias) or (target.dia in @activeDias)
+          source.dia.joints[source.joint].showDeleteButton()
+          target.dia.joints[target.joint].showDeleteButton()
 
     @updateScene()  if update
 

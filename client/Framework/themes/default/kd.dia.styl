@@ -38,6 +38,11 @@ div.kddia-joint
   borderBox()
   abs()
 
+  &.deleteMode
+    width            16px
+    height           16px
+    z-index           2
+
   &:hover
     bg                color, orange
 
@@ -50,7 +55,9 @@ div.kddia-joint
     right            -5px
     top              50%
     margin-top       -5px
-
+    &.deleteMode
+      margin-top     -8px
+      right          -8px
 
   &.bottom
     bottom           -5px
@@ -67,6 +74,9 @@ canvas.fakeCanvas
   top               0
   abs()
 
+    &.deleteMode
+      margin-top     -8px
+      left           -8px
 
 /// ----------------
 

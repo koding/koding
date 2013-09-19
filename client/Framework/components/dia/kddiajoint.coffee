@@ -21,8 +21,6 @@ class KDDiaJoint extends JView
   viewAppended:->
     super
     @domElement.attr "dia-id", @getDiaId()
-    @parent.on 'HighlightJoint',    @bound 'showDeleteButton'
-    @parent.on 'UnhighlightJoints', @bound 'hideDeleteButton'
 
   getDiaId:->
     "dia-#{@parent.getId()}-joint-#{@type}"
@@ -30,18 +28,21 @@ class KDDiaJoint extends JView
   getPos:->
     @parent.getJointPos this
 
+  click:(e)->
+    @emit 'DeleteRequested', @type  if @inDeleteMode()
+    @utils.stopDOMEvent e
+
   mouseDown:(e)->
-    e.preventDefault()
+    return  if @inDeleteMode()
+    @utils.stopDOMEvent e
     @parent.emit "JointRequestsLine", this
     return no
 
-  showDeleteButton:(type)->
-    return  unless type is this.type
+  inDeleteMode:->
+    @hasClass 'deleteMode'
 
-    @deleteButton?.destroy()
-    @addSubView @deleteButton = new KDButtonView title: 'Delete'
-    @setSize width: 32, height: 16
+  showDeleteButton:->
+    @setClass 'deleteMode'
 
   hideDeleteButton:->
-    @deleteButton?.destroy()
-    @setSize width: @getOption('size'), height: @getOption('size')
+    @unsetClass 'deleteMode'
