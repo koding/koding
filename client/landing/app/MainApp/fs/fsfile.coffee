@@ -10,9 +10,11 @@ class FSFile extends FSItem
       @save contents
 
     @localStorage = KD.getSingleton("localStorageController").storage "Finder"
-    @fileInfo     = @localStorage.getValue(btoa FSHelper.plainPath @path) or {}
+    @fileInfo     = @getLocalFileInfo()
 
-  getLocalFileInfo: -> @fileInfo or {}
+  getLocalFileInfo: ->
+    @localStorage.getValue(btoa FSHelper.plainPath @path) or {}
+
   setLocalFileInfo: (data={})->
     @fileInfo[key] = value for own key, value of data
     @localStorage.setValue btoa(FSHelper.plainPath @path), @fileInfo

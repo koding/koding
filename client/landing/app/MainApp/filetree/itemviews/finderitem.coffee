@@ -28,9 +28,13 @@ class NFinderItem extends JTreeItemView
 
     @progress = new KDProgressBarView
 
+    @on "ItemBeingDeleted", =>
+      data.removeLocalFileInfo()
+
     @on "viewAppended", =>
-      if data?.fileInfo?.lastUploadedChunk
-        {lastUploadedChunk, totalChunks} = data.fileInfo
+      fileInfo = data.getLocalFileInfo()
+      if fileInfo.lastUploadedChunk
+        {lastUploadedChunk, totalChunks} = fileInfo
         if lastUploadedChunk is totalChunks
           data.removeLocalFileInfo()
           @updateProgressView 100
