@@ -99,6 +99,7 @@ module.exports = class Graph
     {startDate, client} = options
     @db.query query, {}, (err, results)=>
       if err
+        console.log ">>> err", query, err
         callback err
       else if results.length is 0 then callback null, []
       else
@@ -233,7 +234,9 @@ module.exports = class Graph
 
   fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
-      if err then callback err
+      if err
+        console.log ">>> err fetchRelateds error", query, err
+        callback err
       resultData = []
       results.reverse()
       for result in results
@@ -285,10 +288,10 @@ module.exports = class Graph
       """
 
     @db.query query, {}, (err, results)=>
-      if err then throw err
+      if err
+        console.log ">>> err fetchNewInstalledApps", query, err
+        callback err
       @generateInstalledApps [], results, callback
-  
-
 
   generateInstalledApps:(resultData, results, callback)->
 
@@ -337,6 +340,7 @@ module.exports = class Graph
 
       @db.query query, {}, (err, results) =>
         if err
+          console.log ">>> err search members", query, err
           return callback err
         else if results.length is 0 then callback null, []
         else
@@ -358,7 +362,9 @@ module.exports = class Graph
       """
 
     @db.query query, {}, (err, results) ->
-      if err then throw err
+      if err
+        console.log ">>> err fetchNewMembers", query, err
+        callback err, null
       resultData = []
       for result in results
         data = result.members.data
@@ -398,7 +404,9 @@ module.exports = class Graph
 
   fetchFollows:(query, callback)->
     @db.query query, {}, (err, results)=>
-      if err then throw err
+      if err
+        console.log ">>> err fetchFollows", query, err
+        callback err
       @generateFollows [], results, callback
 
 
@@ -446,7 +454,9 @@ module.exports = class Graph
       RETURN count(members) as count
       """
     @db.query query, options, (err, results) ->
-      if err then throw err
+      if err
+        console.log ">>> err", query, err
+        callback err
       count = if results and results[0]['count'] then results[0]['count'] else 0
       callback null, count
 
@@ -578,7 +588,9 @@ module.exports = class Graph
 
   queryMembers:(query, options={}, callback)->
     @db.query query, options, (err, results) ->
-        if err then throw err
+        if err
+          console.log ">>> err queryMembers", query, err
+          callback err
         resultData = []
         for result in results
           data = result.members.data
@@ -617,7 +629,9 @@ module.exports = class Graph
 
   fetchItems:(query, modelName, callback)->
     @db.query query, {}, (err, results)=>
-      if err then throw err
+      if err
+        console.log ">>> err fetchItems", query, err
+        callback err
       else
         tempRes = []
         collectContents = race (i, id, fin)=>
@@ -642,5 +656,7 @@ module.exports = class Graph
     """
 
     @db.query query, {}, (err, results) ->
-      if err then callback err, null
+      if err
+        console.log ">>> err fetchRelationshipCount", query, err
+        callback err, null
       else callback null, results[0].count
