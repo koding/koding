@@ -131,7 +131,7 @@ class NFinderTreeController extends JTreeViewController
     if folder.depth > 10
       new KDNotificationView
         type     : "mini"
-        title    : "The folder is in a deep place, changing top folder."
+        title    : "Folder is nested deeply, making it top folder"
         duration : 3000
       @makeTopFolder nodeView
 
