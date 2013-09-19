@@ -529,15 +529,18 @@ module.exports = class JVM extends Module
         target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
-
-    uidFactory = (require 'koding-counter') {
-      db          : JVM.getClient()
-      counterName : 'uid'
-      offset      : 1e6
-    }
-
-    uidFactory.reset (err, lastId)->
-      console.log "UID counter is reset: %s", lastId
+    
+    uidFactory = null
+    
+    require('bongo').Model.on 'dbClientReady', ->
+      uidFactory = (require 'koding-counter') {
+        db          : JVM.getClient()
+        counterName : 'uid'
+        offset      : 1e6
+      }
+  
+      uidFactory.reset (err, lastId)->
+        console.log "UID counter is reset: %s", lastId
 
     JUser.on 'UserCreated', (user)->
       uidFactory.next (err, uid)->

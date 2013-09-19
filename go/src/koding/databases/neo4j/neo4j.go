@@ -32,7 +32,8 @@ type Relationship struct {
 	TargetName string        `bson:"targetName"`
 	SourceId   bson.ObjectId `bson:"sourceId,omitempty"`
 	SourceName string        `bson:"sourceName"`
-	As         string
+	As         string        `bson:"as"`
+	Timestamp  time.Time     `bson:"timestamp"`
 	Data       bson.Binary
 }
 

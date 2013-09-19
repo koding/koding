@@ -2,11 +2,11 @@ JPost = require '../post'
 
 module.exports = class JBlogPost extends JPost
 
-  {secure} = require 'bongo'
+  {secure}       = require 'bongo'
   {Relationship} = require 'jraphical'
-  {permit} = require '../../group/permissionset'
-  {once, extend} = require 'underscore'
-  {sanitize} = require 'validator'
+  {permit}       = require '../../group/permissionset'
+  {once}         = require 'underscore'
+  {sanitize}     = require 'validator'
 
   @trait __dirname, '../../../traits/grouprelated'
 

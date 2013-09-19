@@ -245,8 +245,8 @@ class DomainCreationForm extends KDTabViewWithForms
     {suggestionBox} = form.fields
     partial         = "<p>This domain is already registered. You may click and try one below.</p>"
 
-    for domain, variants of suggestions
-      for variant, status of variants when status is "available"
+    for own domain, variants of suggestions
+      for own variant, status of variants when status is "available"
         partial += "<li class='#{variant}'>#{domain}.#{variant}</li>"
 
     suggestionBox.addSubView @suggestionBox = new KDCustomHTMLView

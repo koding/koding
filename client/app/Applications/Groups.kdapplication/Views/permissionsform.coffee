@@ -186,7 +186,7 @@ class PermissionsForm extends KDFormViewWithFields
         nextElement :
           cascadeHeaderElements roles
 
-    for module, permissions of set.permissionsByModule
+    for own module, permissions of set.permissionsByModule
       permissionOptions['header '+module.toLowerCase()] =
         itemClass       : KDView
         partial         : readableText module
