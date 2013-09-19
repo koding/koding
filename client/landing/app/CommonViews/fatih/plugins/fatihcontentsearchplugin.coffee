@@ -26,7 +26,7 @@ class FatihContentSearchView extends JView
     result = @getData()
 
     files = []
-    files.push { path } for path of result
+    files.push { path } for own path of result
 
     @fileList = new KDListViewController
       wrapper     : no
@@ -79,7 +79,7 @@ class FatihContentSearchSummary extends JView
     data   = @getData()
     markup = ""
 
-    for lineNumber of data
+    for own lineNumber of data
       {line, isMatchedLine} = data[lineNumber]
       className             = if isMatchedLine then "matched" else ""
 

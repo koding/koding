@@ -66,7 +66,7 @@ class CollaborativeDrawingPane extends CollaborativePane
         value = snapshot.val()
         return unless value
         @context.beginPath()
-        for key, points of value
+        for own key, points of value
           pointsArr = points.split "|"
           [username, color]     = pointsArr.splice 0, 2
           @userColors[username] = color
@@ -97,7 +97,7 @@ class CollaborativeDrawingPane extends CollaborativePane
     @usersRef.on "value", (snapshot) =>
       value = snapshot.val()
       return unless value
-      for key, userData of value
+      for own key, userData of value
         @userColors[userData.nickname] = userData.color
 
 
