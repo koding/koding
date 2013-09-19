@@ -25,6 +25,7 @@ var (
 	EXCHANGENAME        = "graphFeederExchange"
 	MAX_ITERATION_COUNT = 50
 	GUEST_GROUP_ID      = "51f41f195f07655e560001c1"
+	SLEEPING_TIME_IN_MS = 100
 )
 
 func main() {
@@ -84,9 +85,9 @@ func createQuery(amqpChannel *amqp.Channel) func(coll *mgo.Collection) error {
 
 			iter := query.Skip(index).Limit(count - index).Iter()
 			for iter.Next(&result) {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(SLEEPING_TIME_IN_MS * time.Millisecond)
 
-				if relationshipNeedsToBeSynced(result) {
+				if relationshipNeedsToBeSynced(result) || doNotCheck {
 					createRelationship(result, amqpChannel)
 				}
 
