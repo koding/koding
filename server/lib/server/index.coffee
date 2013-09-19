@@ -6,7 +6,6 @@ Object.defineProperty global, 'KONFIG',
 
 {
   webserver
-  mongo
   mq
   projectRoot
   kites
@@ -15,6 +14,7 @@ Object.defineProperty global, 'KONFIG',
   neo4j
   github
 }       = KONFIG
+
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
 
@@ -90,7 +90,7 @@ app.use (req, res, next) ->
 
   {JSession} = koding.models
   {clientId} = req.cookies
-  clientIPAddress = req.connection.remoteAddress
+  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
   res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: false }
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
@@ -375,16 +375,16 @@ app.get '/:name/:section?*', (req, res, next)->
       isLoggedIn req, res, (err, loggedIn, account)->
         prefix = if loggedIn then 'loggedIn' else 'loggedOut'
         if name is "Develop"
-          subPage = JGroup.render[prefix].subPage {account}
+          subPage = JGroup.render[prefix].subPage {account, name, section}
           return serve subPage, res
 
         JName.fetchModels "#{name}/#{section}", (err, models)->
           if err
-            subPage = JGroup.render[prefix].subPage {account}
+            subPage = JGroup.render[prefix].subPage {account, name, section}
             return serve subPage, res
           else unless models? then res.send 404, error_404()
           else
-            subPage = JGroup.render[prefix].subPage {account}
+            subPage = JGroup.render[prefix].subPage {account, name, section, models}
             return serve subPage, res
   else
     isLoggedIn req, res, (err, loggedIn, account)->

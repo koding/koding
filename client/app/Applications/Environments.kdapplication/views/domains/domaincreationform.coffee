@@ -293,8 +293,14 @@ class DomainCreationForm extends KDTabViewWithForms
     else
       partial         = "<p>Domain price is: #{price}$</p>"
 
+<<<<<<< HEAD
     for domain in suggestions
         partial += "<li class=''>#{domain.domain}</li><i>#{domain.price}$</i>"
+=======
+    for own domain, variants of suggestions
+      for own variant, status of variants when status is "available"
+        partial += "<li class='#{variant}'>#{domain}.#{variant}</li>"
+>>>>>>> master
 
     suggestionBox.addSubView @suggestionBox = new KDCustomHTMLView
       tagName : 'ul'

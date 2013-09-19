@@ -424,7 +424,8 @@ class KodingRouter extends KDRouter
             open.call this, routeInfo, state
 
           else
-            KD.remote.cacheable routeInfo.params.name, (err, [model], name)=>
+            KD.remote.cacheable routeInfo.params.name, (err, models, name)=>
+              model = models.first  if models
               open.call this, routeInfo, model
 
     routes

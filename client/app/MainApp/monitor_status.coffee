@@ -48,7 +48,7 @@ class MonitorItems extends KDObject
     @registerSingleton "monitorItems", this
 
   register: (items) ->
-    for name, item of items
+    for own name, item of items
       @items[name] = item
 
   getItems: ->
@@ -65,7 +65,7 @@ class MonitorStatus extends KDObject
     @setupListerners()
 
   copyItemsToMonitor: (items) ->
-    for name, item of items
+    for own name, item of items
       @itemsToMonitor[name] = new Ping item, name
 
   setupListerners: ->
@@ -125,7 +125,7 @@ class MonitorStatus extends KDObject
     reasons.kitesDown         = ["os"]
     reasons.bongoDown         = ["bongo"]
 
-    for reason, items of reasons
+    for own reason, items of reasons
       intersection = _.intersection items, @failedPings
       if _.size(intersection) is _.size(items)
         @emit reason, _.first(@failedPings)
@@ -138,11 +138,11 @@ class MonitorStatus extends KDObject
     @emit 'internetUp'
 
   printReport: ->
-    for name, item of @itemsToMonitor
+    for own name, item of @itemsToMonitor
       log name, item.getResponseTime()
 
   run: ->
-    for name, item of @itemsToMonitor
+    for own name, item of @itemsToMonitor
       item.once "finish", (i, n) =>
         @emit "pingDone", i, n
       item.once "failed", (i, n) =>

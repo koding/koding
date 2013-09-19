@@ -1,7 +1,7 @@
 class KDTabViewWithForms extends KDTabView
 
   sanitizeOptions = (options)->
-    for key,option of options
+    for own key, option of options
       option.title = key
       option
 
