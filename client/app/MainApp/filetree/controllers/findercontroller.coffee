@@ -48,11 +48,11 @@ class NFinderController extends KDViewController
     @watchers[path] = stop: stopWatching
 
   stopAllWatchers:->
-    (watcher.stop() for path, watcher of @watchers)
+    (watcher.stop() for own path, watcher of @watchers)
     @watchers = {}
 
   stopWatching:(pathToStop)->
-    for path, watcher of @watchers  when (path.indexOf pathToStop) is 0
+    for own path, watcher of @watchers  when (path.indexOf pathToStop) is 0
       watcher.stop()
       delete @watchers[path]
 
@@ -100,7 +100,7 @@ class NFinderController extends KDViewController
 
   getVmNode:(vmName)->
     return null  unless vmName
-    for path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
+    for own path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
       return vmItem  if vmItem.data.vmName is vmName
 
   updateMountState:(vmName, state)->
@@ -206,7 +206,7 @@ class NFinderController extends KDViewController
   hideDotFiles:(vmName)->
     return  unless vmName
     @setNodesHidden vmName, yes
-    for path, node of @treeController.nodes
+    for own path, node of @treeController.nodes
       file = node.getData()
       if (file.vmName is vmName) and file.isHidden()
         @stopWatching file.path
@@ -215,7 +215,7 @@ class NFinderController extends KDViewController
   showDotFiles:(vmName)->
     return  unless vmName
     @setNodesHidden vmName, no
-    for path, node of @treeController.nodes when node.getData().type is 'vm'
+    for own path, node of @treeController.nodes when node.getData().type is 'vm'
       return if node.getData().vmName is vmName
         @treeController.collapseFolder node, =>
           @reloadPreviousState vmName
@@ -253,7 +253,7 @@ class NFinderController extends KDViewController
 
   expandFolder:(folderPath, callback=noop)->
     return  unless folderPath
-    for path, node of @treeController.nodes
+    for own path, node of @treeController.nodes
       return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
