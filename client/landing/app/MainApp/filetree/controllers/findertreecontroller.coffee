@@ -392,21 +392,39 @@ class NFinderTreeController extends JTreeViewController
       folder.emit "fs.job.finished"
       callback?()
 
+  cloneRepo: (nodeView) ->
+    folder     = nodeView.getData()
+    modal      = new ModalViewWithTerminal
+      title    : "Clone Remote Repository"
+      cssClass : "modal-with-text clone-repo-modal"
+      content  : "<p>Enter the URL of remote Git repository to clone.</p>"
+      overlay  : yes
+      width    : 500
+      terminal :
+        hidden : yes
+        vmName : folder.vmName
+        height : 300
 
-  cloneRepo:(nodeView)->
-
-    folder = nodeView.getData()
-
-    @notify "not yet there!", "error"
-
-    # folder.emit "fs.job.started"
-    # KD.getSingleton('kodingAppsController').cloneApp folder.path, =>
-    #   folder.emit "fs.job.finished"
-    #   @refreshFolder @nodes[folder.parentPath], =>
-    #     @utils.wait 500, =>
-    #       @selectNode @nodes[folder.path]
-    #       @refreshFolder @nodes[folder.path]
-    #   @notify "App cloned!", "success"
+    modal.addSubView repoPath = new KDHitEnterInputView
+      type         : "text"
+      placeholder  : "Paste a repo url to clone"
+      validationNotifications: yes
+      validate     :
+        rules      :
+          required : yes
+        messages   :
+          required : "Please enter a repo url..."
+      callback     : ->
+        command    = "cd #{FSHelper.plainPath folder.path} ; git clone #{repoPath.getValue()}; echo $?|kdevent;"
+        modal.setClass "running"
+        modal.run command
+        modal.once "terminal.event", (data) ->
+          if data is "0"
+            modal.destroy()
+            new KDNotificationView
+              title    : "Repo cloned successfully."
+              type     : "mini"
+              cssClass : "success"
 
   publishApp:(nodeView)->
 
