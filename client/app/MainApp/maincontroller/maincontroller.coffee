@@ -61,12 +61,12 @@ class MainController extends KDController
     @userAccount             = account
     connectedState.connected = yes
 
-    KD.whoami().fetchMyPermissionsAndRoles (err, permissions, roles)=>
+    account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
       KD.config.roles       = roles
       KD.config.permissions = permissions
 
-      @ready @emit.bind @, "AccountChanged", account, firstLoad
+      @ready @emit.bind this, "AccountChanged", account, firstLoad
 
       @createMainViewController()  unless @mainViewController
 
