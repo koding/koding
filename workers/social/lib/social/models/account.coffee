@@ -1,35 +1,33 @@
 jraphical   = require 'jraphical'
-KodingError = require '../../error'
+KodingError = require '../error'
 
 likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
                       'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
                       'JBlogPost']
 
-{sharedStaticMethods, sharedInstanceMethods} = require '../account/methods'
-
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
 
-  @trait __dirname, '../../traits/followable'
-  @trait __dirname, '../../traits/filterable'
-  @trait __dirname, '../../traits/taggable'
-  @trait __dirname, '../../traits/notifying'
-  @trait __dirname, '../../traits/flaggable'
+  @trait __dirname, '../traits/followable'
+  @trait __dirname, '../traits/filterable'
+  @trait __dirname, '../traits/taggable'
+  @trait __dirname, '../traits/notifying'
+  @trait __dirname, '../traits/flaggable'
 
-  JAppStorage = require '../appstorage'
-  JTag = require '../tag'
-  CActivity = require '../activity'
-  Graph     = require "../graph/graph"
+  JAppStorage = require './appstorage'
+  JTag = require './tag'
+  CActivity = require './activity'
+  Graph     = require "./graph/graph"
   @getFlagRole = 'content'
-  JName = require '../name'
+  JName = require './name'
 
   @lastUserCountFetchTime = 0
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
-  {permit} = require '../group/permissionset'
-  Validators = require '../group/validators'
+  {permit} = require './group/permissionset'
+  Validators = require './group/validators'
 
   @share()
   Experience =
@@ -65,8 +63,36 @@ module.exports = class JAccount extends jraphical.Module
         { name : "RemovedFromCollection" }
       ]
     sharedMethods :
-      static      : sharedStaticMethods()
-      instance    : sharedInstanceMethods()
+      static: [
+        'one', 'some', 'cursor', 'each', 'someWithRelationship'
+        'someData', 'getAutoCompleteData', 'count'
+        'byRelevance', 'fetchVersion','reserveNames'
+        'impersonate', 'fetchBlockedUsers', 'fetchCachedUserCount'
+      ]
+      instance: [
+        'modify','follow','unfollow','fetchFollowersWithRelationship'
+        'countFollowersWithRelationship', 'countFollowingWithRelationship'
+        'fetchFollowingWithRelationship', 'fetchTopics'
+        'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
+        'fetchMail','fetchNotificationsTimeline','fetchActivities'
+        'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
+        'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
+        'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
+        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
+        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
+        'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
+        'setHandle','setAbout','fetchAbout','setStaticPageTitle',
+        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
+        'fetchGroupsWithPendingInvitations', 'fetchGroupsWithPendingRequests',
+        'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
+        'fetchMyGroupInvitationStatus', 'fetchMyPermissions',
+        'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
+        'fetchMyFollowersFromGraph', 'blockUser',
+        'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
+        'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
+        'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
+        'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
+      ]
     schema                  :
       foreignAuth           :
         github              : Boolean
@@ -103,7 +129,7 @@ module.exports = class JAccount extends jraphical.Module
         about               : String
         nickname            :
           type              : String
-          validate          : require('../name').validateName
+          validate          : require('./name').validateName
           set               : (value)-> value.toLowerCase()
         hash                : String
         ircNickname         : String
@@ -133,7 +159,7 @@ module.exports = class JAccount extends jraphical.Module
         default             : 'online'
 
     relationships           : ->
-      JPrivateMessage = require '../messages/privatemessage'
+      JPrivateMessage = require './messages/privatemessage'
 
       follower      :
         as          : 'follower'
@@ -208,7 +234,7 @@ module.exports = class JAccount extends jraphical.Module
 
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection
-    JGroup = require "../group"
+    JGroup = require "./group"
     JGroup.one {slug : groupName}, (err, group)->
       return callback new KodingError "An error occured!" if err
       return callback null, no unless group
@@ -292,7 +318,7 @@ module.exports = class JAccount extends jraphical.Module
     @changeUsername options, callback
 
   checkPermission: (target, permission, callback)->
-    JPermissionSet = require '../group/permissionset'
+    JPermissionSet = require './group/permissionset'
     client =
       context     : { group: target.slug }
       connection  : { delegate: this }
@@ -328,7 +354,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchAbout (err, about)=>
         console.log err if err
         unless about
-          JMarkdownDoc = require '../markdowndoc'
+          JMarkdownDoc = require './markdowndoc'
           about = new JMarkdownDoc content: text
 
           daisy queue = [
@@ -351,7 +377,7 @@ module.exports = class JAccount extends jraphical.Module
             if err then callback err
             else callback null, about
 
-  @renderHomepage: require '../../render/profile.coffee'
+  @renderHomepage: require '../render/profile.coffee'
 
   @fetchCachedUserCount: (callback)->
     if (Date.now() - @lastUserCountFetchTime)/1000 < 60
@@ -440,7 +466,7 @@ module.exports = class JAccount extends jraphical.Module
 
 
   fetchGroups: secure (client, callback)->
-    JGroup        = require '../group'
+    JGroup        = require './group'
     {groupBy}     = require 'underscore'
     {delegate}    = client.connection
     isMine        = this.equals delegate
@@ -473,7 +499,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchGroupRoles: secure (client, slug, callback)->
     {delegate} = client.connection
-    JGroup = require '../group'
+    JGroup = require './group'
     JGroup.fetchIdBySlug slug, (err, groupId)->
       if err then callback err
       else
@@ -493,7 +519,7 @@ module.exports = class JAccount extends jraphical.Module
     unless delegate.can 'administer accounts'
       callback new KodingError 'Access denied'
     else
-      JSession = require '../session'
+      JSession = require './session'
       JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
 
   @reserveNames =(options, callback)->
@@ -531,7 +557,7 @@ module.exports = class JAccount extends jraphical.Module
 
     fields = { username:1, blockedUntil:1 }
 
-    JUser = require '../user'
+    JUser = require './user'
     JUser.someData selector, fields, options, (err, cursor) ->
       return callback err  if err?
       cursor.toArray (err, users) ->
@@ -603,7 +629,7 @@ module.exports = class JAccount extends jraphical.Module
     user.update {$set: emailFrequency: current}, callback
 
   setEmailPreferences$: secure (client, prefs, callback)->
-    JUser = require '../user'
+    JUser = require './user'
     JUser.fetchUser client, (err, user)=>
       if err
         callback err
@@ -769,7 +795,7 @@ module.exports = class JAccount extends jraphical.Module
       JAccount.one _id : targetId, (err, account)=>
         if err then return callback err
 
-        JUser = require '../user'
+        JUser = require './user'
         JUser.one {username: account.profile.nickname}, (err, user)=>
 
           if err then return callback err
@@ -965,7 +991,7 @@ module.exports = class JAccount extends jraphical.Module
         callback err, storage
 
   fetchUser:(callback)->
-    JUser = require '../user'
+    JUser = require './user'
     JUser.one {username: @profile.nickname}, callback
 
   markAllContentAsLowQuality:->
@@ -1024,7 +1050,7 @@ module.exports = class JAccount extends jraphical.Module
 
     @["fetchInvitation#{method}s"] {}, relOptions, (err, rels)->
       return callback err  if err
-      JGroup = require '../group'
+      JGroup = require './group'
       JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
 
   fetchGroupsWithPendingRequests:(options, callback)->
@@ -1060,7 +1086,7 @@ module.exports = class JAccount extends jraphical.Module
       return callback err                          if err
       return callback 'could not find invitation'  unless invite
 
-      JGroup = require '../group'
+      JGroup = require './group'
       JGroup.one _id: group._id, (err, groupObj)->
         return callback err  if err
         callback null, invite, groupObj
@@ -1088,7 +1114,7 @@ module.exports = class JAccount extends jraphical.Module
         """
 
       options['resultsKey'] = 'followers'
-      Graph          = require "../graph/graph"
+      Graph          = require "./graph/graph"
       graph = new Graph(config:KONFIG['neo4j'])
       graph.fetchFromNeo4j(query, options, callback)
 
@@ -1101,7 +1127,7 @@ module.exports = class JAccount extends jraphical.Module
       callback err, permissions
 
   fetchMyPermissionsAndRoles: secure (client, callback)->
-    JGroup = require '../group'
+    JGroup = require './group'
 
     slug = client.context.group ? 'koding'
     JGroup.one {slug}, (err, group)=>
@@ -1127,7 +1153,7 @@ module.exports = class JAccount extends jraphical.Module
     oldAddTags.call this, client, tags, options, callback
 
   fetchUserDomains: (callback) ->
-    JDomain = require '../domain'
+    JDomain = require './domain'
 
     Relationship.some
       targetName: "JDomain"
@@ -1203,8 +1229,8 @@ module.exports = class JAccount extends jraphical.Module
 
   sendEmailVMTurnOnFailureToSysAdmin: secure (client, vmName, reason)->
     time = (new Date).toJSON()
-    JMail = require '../email'
-    JUser = require '../user'
+    JMail = require './email'
+    JUser = require './user'
     JUser.one username:client.context.user, (err, user)->
       emailAddr = if user then user.email else ''
       email     = new JMail
