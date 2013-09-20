@@ -124,7 +124,7 @@ class KDDiaScene extends JView
               @activeJoints.push joint
 
   setPassiveDia:()->
-    
+
 
   deselectAllDias:->
     joint.off 'DeleteRequested'      for joint in @activeJoints
@@ -173,9 +173,6 @@ class KDDiaScene extends JView
         @realContext.strokeStyle = @getOption 'lineColorActive'
       else
         @realContext.strokeStyle = @getOption 'lineColor'
-
-      if (source.dia in @passiveDias) or (target.dia in @passiveDias)
-        @realContext.strokeStyle = @getOption 'lineColorPassive'
 
       sJoint = source.dia.getJointPos source.joint
       tJoint = target.dia.getJointPos target.joint
