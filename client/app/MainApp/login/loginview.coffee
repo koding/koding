@@ -118,8 +118,8 @@ class LoginView extends KDScrollView
             else
               @afterLoginCallback err, {account, replacementToken}
 
-    mainController.on "ForeignAuthFailed", ->
-      new KDNotificationView title : "Authorization failed."
+    #mainController.on "ForeignAuthFailed", ->
+      #new KDNotificationView title : "Authorization failed."
 
   viewAppended:->
 

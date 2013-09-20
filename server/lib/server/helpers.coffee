@@ -80,8 +80,12 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
 
 renderLoginTemplate = (resp, res)->
   saveOauthToSession resp, -> # FIXME: this seems like spaghetti code to me — C.T.
-    {loginTemplate} = require './staticpages'
-    serve loginTemplate, res
+    {projectRoot}      = KONFIG
+    fs                 = require 'fs'
+    oauthLoginPath     = "#{projectRoot}/website/oauth_login.jade"
+    oauthLoginTemplate = fs.readFileSync oauthLoginPath, 'utf-8'
+
+    serve oauthLoginTemplate, res
 
 serve = (content, res)->
   res.header 'Content-type', 'text/html'

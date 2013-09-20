@@ -1226,15 +1226,15 @@ module.exports = class JAccount extends jraphical.Module
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
 
-  getOdeskAuthorizeUrl: (callback)->
-    Odesk         = require 'node-odesk'
-    config        = KONFIG.odesk
-    {key, secret} = config
-    o = new Odesk key, secret
-    o.OAuth.getAuthorizeUrl (err, url, requestToken, requestTokenSecret) =>
-      return callback err  if err
-      @fetchUser (err, user)->
-        return callback err  if err
-        odesk = {requestToken, requestTokenSecret}
-        user.update $set: {"foreignAuth.odesk" : odesk}, (err)->
-          callback err, url
+  #getOdeskAuthorizeUrl: (callback)->
+    #Odesk         = require 'node-odesk'
+    #config        = KONFIG.odesk
+    #{key, secret} = config
+    #o = new Odesk key, secret
+    #o.OAuth.getAuthorizeUrl (err, url, requestToken, requestTokenSecret) =>
+      #return callback err  if err
+      #@fetchUser (err, user)->
+        #return callback err  if err
+        #odesk = {requestToken, requestTokenSecret}
+        #user.update $set: {"foreignAuth.odesk" : odesk}, (err)->
+          #callback err, url
