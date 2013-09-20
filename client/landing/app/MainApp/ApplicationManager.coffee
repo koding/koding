@@ -177,10 +177,7 @@ class ApplicationManager extends KDObject
     # log "::: Telling #{command} to #{name}"
 
     app = @get name
-    cb  = (appInstance)->
-      console.trace()
-      console.log command, appInstance, appInstance[command], rest
-      appInstance?[command]? rest...
+    cb  = (appInstance)-> appInstance?[command]? rest...
 
     if app then @utils.defer -> cb app
     else @create name, cb

@@ -1,44 +1,58 @@
 class BillingForm extends PaymentForm
 
   constructor:(options={}, data)->
-  
-    data = @getData() or {}
-
-    cip            = options.countryOfIp
-    defaultCountry = if options.countries[cip] then cip else 'US'
 
     options.additionalFields =
       company             :
         label             : 'Company & VAT'
         placeholder       : 'Company (optional)'
-        value             : data.company
+        defaultValue      : data.company
         nextElementFlat   :
           vatNumber       :
             placeholder   : 'VAT Number (optional)'
-            value         : data.vatNumber 
+            defaultValue  : data.vatNumber 
 
       address             :
         label             : 'Address & ZIP'
         placeholder       : 'Address (optional)'
-        value             : data.value
+        defaultValue      : data.address1
         nextElementFlat   :
           zip             :
             placeholder   : 'ZIP (optional)'
+            defaultValue  : data.zip
 
       city                :
         label             : 'City & Country'
         placeholder       : 'City (optional)'
-        value             : data.city
+        defaultValue      : data.city
         nextElementFlat   :
           country         :
             itemClass     : KDSelectBox
-            selectOptions : _.values options.countries
-            defaultValue  : defaultCountry
-            value         : data.country
+            defaultValue  :  data.country or defaultCountry
 
       phone               :
         label             : 'Phone'
         placeholder       : '(optional)'
-        value             : data.phone
+        defaultValue      : data.phone
 
     super options, data
+
+    # set up a loader to compensate for latency while we load the country list
+    @countryLoader = new KDLoaderView
+      size        : { width: 14 }
+      showLoader  : yes
+
+    @billingForm.fields.country.addSubView @countryLoader
+
+  setCountryData: ({ countries, countryOfIp }) ->
+    { country } = @billingForm.inputs
+
+    country.setSelectOptions _.values countries
+
+    country.setValue(
+      if countries[countryOfIp]
+      then countryOfIp
+      else 'US'
+    )
+
+    @countryLoader.hide()

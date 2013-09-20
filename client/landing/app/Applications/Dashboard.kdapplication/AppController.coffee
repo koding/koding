@@ -105,12 +105,12 @@ class DashboardAppController extends AppController
 
   productViewAdded: (pane, view) ->
 
-  showBillingInfoModal: (type, group) ->
+  showBillingInfoModal: (type, group, callback) ->
     @fetchBillingInfo group, (err, billing) =>
       billing = {}  if err or not billing?
 
       paymentController = KD.getSingleton "paymentController"
-      paymentController.showBillingInfoModal type, billing
+      paymentController.showBillingInfoModal type, billing, callback
 
   fetchBillingInfo: (group, callback = (->)) ->
     group.fetchBillingInfo (err, billing) -> callback err, billing

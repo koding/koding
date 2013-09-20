@@ -8,6 +8,7 @@ class BillingMethodView extends JView
     @loader = new KDLoaderView
       size        : { width: 14 }
       showLoader  : yes
+      cssClass    : 'fr'
 
     @billingMethodInfo = new KDCustomHTMLView
       tagName   : 'a'
