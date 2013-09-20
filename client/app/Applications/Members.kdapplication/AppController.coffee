@@ -34,7 +34,7 @@ class MembersAppController extends AppController
           placement         : "above"
       filter                :
         everything          :
-          title             : "All Members <span class='member-numbers-all'></span>"
+          title             : "All members <span class='member-numbers-all'></span>"
           optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
             {JAccount} = KD.remote.api
@@ -249,7 +249,8 @@ class MembersAppController extends AppController
     return contentDisplay
 
   setCurrentViewNumber:(type, count)->
-    @getView().$(".feeder-header span.member-numbers-#{type}").html count ? "n/a"
+    countFmt = count.toLocaleString() ? "n/a"
+    @getView().$(".feeder-header span.member-numbers-#{type}").text countFmt
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
