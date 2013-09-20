@@ -2,9 +2,11 @@
 Bongo     = require 'bongo'
 {CronJob} = require 'cron'
 
-{mongo, amqp, guests} = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-mongo += '?auto_reconnect'
+{amqp, guests} = KONFIG
+
+mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"
 
 error =(err)->
   err = message: err if 'string' is typeof err
