@@ -11,53 +11,34 @@ module.exports = class EmailConfirmationChecker
 
     lessThanFilterDate = new Date(Date.now() - (1000 * 60 * usageLimitInMinutes))
     #greater than filter date is only 5 min before than the actual usage limit
-    greaterThanFilterDate = new Date(Date.now() - (1000 * 60 * (usageLimitInMinutes + 5) ))
+    greaterThanFilterDate = new Date(Date.now() - (100000 * 60 * (usageLimitInMinutes + 5) ))
 
     userSelector = {
       "status": 'unconfirmed'
-      "username": { $nin: @getInProgressUsers() }
       "registeredAt": {
         $lte: lessThanFilterDate
         $gt: greaterThanFilterDate
       }
     }
 
-    JUser.one userSelector, (err, user)=>
+    JUser.each userSelector, {}, (err, user)=>
       if err then return console.error err
       if not user or user.length < 1
-        @clearInProgressUsers()
-        return console.log "No unconfirmed user between last 60 and 65 min"
-
+        return console.log "No unconfirmed user left"
       {username} = user
-      @addToInProgressUsers username
-      JAccount.one { "profile.nickname": username }, (err, account)=>
-        if err
-          @removeFromInProgressUsers username
-          return console.error err
+      accountSelector = {
+        type   : {$ne : "unregistered" }
+        status : {$ne : 'tobedeleted'  }
+        "profile.nickname": username
+      }
 
-        unless account
-          console.log "account not found!"
-          return @removeFromInProgressUsers username
-
-        account.sendNotification "GuestTimePeriodHasEnded", account
-
+      JAccount.one accountSelector, (err, account)=>
+        return console.error err  if err
+        return  unless account
+        account.sendNotification "EmailShouldBeConfirmed", account
+        console.log "#{username} did not confirmed password, will be logged out"
         JSession.remove {"username": username}, (err)=>
-          if err then return console.error err
-          @removeFromInProgressUsers username
-
-
-  inProgressUsers = {}
-  addToInProgressUsers: (username)->
-    inProgressUsers[username] = true
-
-  removeFromInProgressUsers: (username)->
-    delete inProgressUsers[username]
-
-  clearInProgressUsers:->
-    inProgressUsers = {}
-
-  getInProgressUsers: ->
-    Object.keys inProgressUsers
+          return  console.error err  if err
 
   init: ->
     guestCleanerCron = new CronJob @options.cronSchedule, @logoutUnregisteredUsers

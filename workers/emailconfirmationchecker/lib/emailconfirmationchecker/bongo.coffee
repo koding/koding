@@ -11,6 +11,7 @@ mongo += '?auto_reconnect'  if 'string' is typeof mongo
 mqOptions = extend {}, mq
 mqOptions.login = config.login if config?.login?
 
+mongo = "mongodb://#{mongo}?auto_reconnect"  if 'string' is typeof mongo
 module.exports = new Bongo {
   mongo
   root: projectRoot

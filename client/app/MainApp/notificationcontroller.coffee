@@ -39,6 +39,25 @@ class NotificationController extends KDObject
       # todo add a notification to user
       $.cookie 'clientId', erase: yes
 
+    @on 'EmailShouldBeConfirmed', ()->
+      modal = new KDModalView
+        title         : "Email Confirmation needed."
+        overlay       : yes
+        content       :
+          """
+          <div class="modalformline">
+          You should confirm your email address to continue.
+          </div>
+          """
+        buttons       :
+          "Ok"        :
+            style     : "modal-clean-gray"
+            callback  : (event) ->
+              modal.destroy()
+
+      modal.on "KDObjectWillBeDestroyed", ->
+        $.cookie 'clientId', erase: yes
+
     @on 'UsernameChanged', ({username, oldUsername}) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
       $.cookie 'clientId', erase: yes

@@ -89,9 +89,9 @@ module.exports =
     enabled              : yes
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
-    numberOfWorkers      : 2
+    numberOfWorkers      : 1
     watch                : yes
-    cronSchedule         : '* * * * * *'
+    cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : no # for production, workers are running as a service
