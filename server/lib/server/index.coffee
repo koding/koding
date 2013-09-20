@@ -295,7 +295,6 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
     res.end "#{state}"
 
 app.get "/-/odesk/callback", (req,res)->
-  console.log ">>>>>>", res
   {oauth_token, oauth_verifier} = req.query
 
   console.log oauth_token, oauth_verifier
@@ -424,7 +423,7 @@ app.get '/:name/:section?*', (req, res, next)->
           if err
             subPage = JGroup.render[prefix].subPage {account, name, section}
             return serve subPage, res
-          else unless models? then res.send 404, error_404()
+          else unless models? then next()
           else
             subPage = JGroup.render[prefix].subPage {account, name, section, models}
             return serve subPage, res
