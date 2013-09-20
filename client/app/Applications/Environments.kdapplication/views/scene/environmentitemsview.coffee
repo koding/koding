@@ -19,11 +19,12 @@ class EnvironmentItem extends KDDiaObject
 
   viewAppended:->
     super
+    @setClass 'activated'  if @getData().activated?
+
     if not @getData().activated
       KD.utils.defer =>
-        @setClass "passivated"
-        @emit "DiaObjectPassivated"
-
+        @setClass 'passivated'
+        @emit 'DiaObjectPassivated'
     @addStatusIndicator() if @getOption "showStatusIndicator"
 
   pistachio:->
@@ -36,20 +37,27 @@ class EnvironmentItem extends KDDiaObject
 
 class EnvironmentRuleItem extends EnvironmentItem
   constructor:(options={}, data)->
-    options.joints = ['right']
-    options.cssClass = 'rule'
+    options.joints             = ['right']
+    options.cssClass           = 'rule'
+    options.allowedConnections =
+      EnvironmentDomainItem : ['left']
     super options, data
 
 class EnvironmentDomainItem extends EnvironmentItem
   constructor:(options={}, data)->
     options.joints = ['left', 'right']
     options.cssClass = 'domain'
+    options.allowedConnections =
+      EnvironmentRuleItem    : ['right']
+      EnvironmentMachineItem : ['left']
     super options, data
 
 class EnvironmentMachineItem extends EnvironmentItem
   constructor:(options={}, data)->
     options.joints = ['left']
     options.cssClass = 'machine'
+    options.allowedConnections =
+      EnvironmentDomainItem : ['right']
     super options, data
     @usage = new KDProgressBarView
 
