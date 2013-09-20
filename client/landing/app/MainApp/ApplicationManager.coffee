@@ -89,8 +89,9 @@ class ApplicationManager extends KDObject
       # we assume it should be a 3rd party app
       # that's why it should be run via kodingAppsController
 
-      if not appOptions?
+      if not appOptions? and not options.avoidRecursion?
         return @fetchManifests name, (err)=>
+          options.avoidRecursion = yes
           unless err
           then @open name, options, callback
           else do defaultCallback
@@ -198,6 +199,7 @@ class ApplicationManager extends KDObject
         return no
 
     @utils.defer =>
+      return @emit "AppCouldntBeCreated"  unless appInstance
       @emit "AppCreated", appInstance
       if appOptions.thirdParty
         KD.getSingleton("kodingAppsController").putAppResources appInstance, callback

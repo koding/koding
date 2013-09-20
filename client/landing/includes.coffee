@@ -766,6 +766,13 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
+  # TEAMWORK
+  "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
+  "app/Applications/Teamwork.kdapplication/AppView.coffee",
+  "app/Applications/Teamwork.kdapplication/AppController.coffee",
+
   # CLASSROOM
   # "app/Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
   # "app/Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
@@ -864,6 +871,7 @@ module.exports = [
   # "stylus/app.classroom.styl",
   "stylus/temp.styl",
   "stylus/third.workspace.styl",
+  "stylus/app.teamwork.styl",
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",
 
