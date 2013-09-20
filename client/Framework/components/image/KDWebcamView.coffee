@@ -106,15 +106,17 @@ class KDWebcamView extends JView
 
   setVideoStream: (stream)->
     video = @video.getElement()
-    if video.mozSrcObject isnt undefined
-      video.mozSrcObject = stream
-    else
-      video.src = stream
+    KDWebcamView.setVideoStreamVendor video, stream
     video.play()
     video.addEventListener "playing", =>
       @show()
       @button.show()
       @autoResize()
+
+  @setVideoStreamVendor: (video, stream)->
+    if video.mozSrcObject isnt undefined
+    then video.mozSrcObject = stream
+    else video.src = stream
 
   @getUserMediaVendor: ->
     navigator.getUserMedia or\
