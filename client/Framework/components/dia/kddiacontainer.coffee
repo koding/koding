@@ -12,11 +12,11 @@ class KDDiaContainer extends JView
 
   mouseDown:->
     super
-    @emit "HighlightLines", (dia for key, dia of @dias)
+    @emit "HighlightDia", (dia for key, dia of @dias)
 
   addDia:(diaObj, pos = {})->
     @addSubView diaObj
-    diaObj.on "DiaObjectClicked", => @emit "HighlightLines", diaObj
+    diaObj.on "DiaObjectClicked", => @emit "HighlightDia", diaObj
     @dias[diaObj.getId()] = diaObj
     @emit "NewDiaObjectAdded", this, diaObj
 

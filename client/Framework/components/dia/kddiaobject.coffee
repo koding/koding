@@ -67,7 +67,8 @@ class KDDiaObject extends JView
     super
 
     @addJoint joint for joint in @getOption 'joints'
-    @parent.on 'UnhighlightJoints', =>
+    @parent.on 'UnhighlightDias', =>
+      @unsetClass 'highlight'
       joint.hideDeleteButton()  for key, joint of @joints
 
   getDiaId:->
