@@ -1,5 +1,5 @@
 _ = require 'underscore'
-neo4j = require "neo4j"
+neo4j = require "neo4j-koding"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
@@ -197,7 +197,7 @@ module.exports = class Graph
         limit 20
       """
 
-      returnResults = (err, results)=>   
+      returnResults = (err, results)=>
 
         tempRes = []
         if err then callback err
@@ -225,7 +225,7 @@ module.exports = class Graph
               collectRelations objected
 
       JCache.get query, (err, results)=>
-        if err or not results 
+        if err or not results
           @db.query query, {}, (err, results)=>
             JCache.add query, results
             returnResults(err, results)
