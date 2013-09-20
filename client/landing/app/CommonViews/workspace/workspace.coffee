@@ -13,6 +13,11 @@ class Workspace extends JView
     @lastCreatedPanelIndex = 0
     @currentPanelIndex     = 0
 
+    @on "PanelCreated", (panel) =>
+      {header, container} = panel
+      container.setHeight panel.getHeight() - header.getHeight()  if header
+      KD.getSingleton("windowController").notifyWindowResizeListeners()
+
     @init()
 
   init: -> @createPanel()
@@ -27,7 +32,7 @@ class Workspace extends JView
     @activePanel = newPanel
 
     callback()
-    @emit "PanelCreated"
+    @emit "PanelCreated", newPanel
 
   next: ->
     if @lastCreatedPanelIndex is @currentPanelIndex
