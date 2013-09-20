@@ -129,10 +129,7 @@ class NFinderTreeController extends JTreeViewController
     folder = nodeView.getData()
 
     if folder.depth > 10
-      new KDNotificationView
-        type     : "mini"
-        title    : "Folder is nested deeply, making it top folder"
-        duration : 3000
+      @notify "Folder is nested deeply, making it top folder"
       @makeTopFolder nodeView
 
     failCallback = (err)=>

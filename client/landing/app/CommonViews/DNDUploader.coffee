@@ -29,16 +29,18 @@ class DNDUploader extends KDView
       filePath   = "[#{fsFile.vmName}]#{fsFile.path}"
       parentPath = "[#{fsFile.vmName}]#{fsFile.parentPath}"
 
+      bindAbort = ->
+        nodeView.updateProgressView 1
+        nodeView.once "abortProgress", => fsFile.abort yes
+
       fsFile._isBeingUploaded = yes
       nodeView = finder.treeController.nodes[filePath]
       if nodeView
-        nodeView.updateProgressView 1
-        nodeView.on "abortProgress", => fsFile.abort yes
+      then bindAbort()
       else
         finder.treeController.on "NodeWasAdded", (nodeView)->
           if nodeView.getData().path is filePath and fsFile._isBeingUploaded
-            nodeView.updateProgressView 1
-            nodeView.on "abortProgress", => fsFile.abort yes
+            bindAbort()
 
         fsFile.save "", -> finder.revealPath parentPath
 
@@ -66,22 +68,23 @@ class DNDUploader extends KDView
           return new KDNotificationView
             title: "Folder uploads not available for now."
 
+    finder = KD.getSingleton "finderController"
+    {notify} = finder.treeController
     if files.length >= 20
-      return new KDNotificationView
-        title   : "Too many files to transfer!"
-        content : "Please archive your files and upload again."
-        duration: 3000
+      notify """
+      Too many files to transfer!<br>
+      Archive your files and try again.
+      """, "error", """
+      Max 20 files allowed to upload at once.
+      You can archive your files and try again.
+      """
 
     if files.length
       lastFile = files.last
       for file, index in files
         sizeInMb = file.size/1024/1024
         if sizeInMb > 100 && @getOptions().uploadToVM
-          new KDNotificationView
-            type    : "tray"
-            title   : "File is too big to upload!"
-            content : "#{file.name} is too big to upload, please upload files smaller than 5MB."
-            duration: 3000
+          notify "Too big file to upload.", "error", "Max 100MB allowed per file."
           continue
         reader = new FileReader
         reader.onloadend = do (file=files[index])=> (readEvent)=>
