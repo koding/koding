@@ -3,11 +3,28 @@ class EnvironmentItem extends KDDiaObject
     options.cssClass = KD.utils.curry 'environments-item', options.cssClass
     options.jointItemClass = EnvironmentItemJoint
     options.draggable = no
+    options.showStatusIndicator ?= yes
 
     super options, data
 
+  addStatusIndicator:()->
+    @addSubView @statusIndicator = new KDCustomHTMLView
+      cssClass    : "status-indicator"
+      click       : => @toggleStatus()
+
+  toggleStatus:()->
+    @toggleClass "passivated"
+    @data.activated = !@data.activated
+    @emit 'DiaObjectPassivated' if not @getData().activated
+
   viewAppended:->
     super
+    if not @getData().activated
+      KD.utils.defer =>
+        @setClass "passivated"
+        @emit "DiaObjectPassivated"
+
+    @addStatusIndicator() if @getOption "showStatusIndicator"
 
   pistachio:->
     """
