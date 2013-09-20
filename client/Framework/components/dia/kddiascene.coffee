@@ -99,32 +99,49 @@ class KDDiaScene extends JView
   setActiveDia:(dia=[], update=yes)->
     if not Array.isArray dia then dia = [dia]
     @activeDias = dia
-
     @deselectAllDias()
+    @updateScene()  if update
+    return  unless @activeDias.length is 1
 
-    if @activeDias.length is 1
-      for connection in @connections
-        {source, target} = connection
-        if (source.dia in @activeDias) or (target.dia in @activeDias)
-          [source, target].forEach (conn)=>
+    dia = dia.first
+    for connection in @connections
+      {source, target} = connection
+      if (source.dia is dia) or (target.dia is dia)
+        [source, target].forEach (conn)=>
+          conn.dia.setClass 'highlight'
+          unless conn.dia is dia
             joint = conn.dia.joints[conn.joint]
             if joint not in @activeJoints
               joint.showDeleteButton()
               joint.on 'DeleteRequested', @bound 'disconnectHelper'
               @activeJoints.push joint
 
-    @updateScene()  if update
-
   deselectAllDias:->
-    container.emit 'UnhighlightJoints' for container in @containers
-    joint.off 'DeleteRequested'        for joint in @activeJoints
+    joint.off 'DeleteRequested'      for joint in @activeJoints
+    container.emit 'UnhighlightDias' for container in @containers
     @activeJoints = []
 
   handleLineRequest:(joint)->
     @_trackJoint = joint
 
+  # Needs refactoring ~ GG
   disconnectHelper:(dia, joint)->
-    log "Delete", dia, joint
+    return  if @activeDias.length isnt 1
+
+    isEqual = (connection)=>
+      (dia is connection.dia) and (joint is connection.joint)
+
+    activeDia = @activeDias.first
+    oldConnections = []
+    for conn in @connections
+      if ((isEqual conn.source) or (isEqual conn.target)) and \
+         ((conn.source.dia is activeDia) or (conn.target.dia is activeDia))
+        oldConnections.push conn
+
+    @connections = (c for c in @connections when c not in oldConnections)
+    @deselectAllDias()
+    @setActiveDia @activeDias
+    @updateScene()
 
   connect:(source, target)->
     return  unless source and target
