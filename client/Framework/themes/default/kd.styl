@@ -587,7 +587,7 @@ span.close-btn-x
     color           #ff9200
     rounded         5px
     margin          10px
-    kalc            width, 100% \- 20px, 90%
+    kalc            width, 100% \- 20px, !important
     opacity         0.8
     font-weight     bold
     border          2px solid #333
@@ -596,7 +596,7 @@ span.close-btn-x
 
   .snap-photo-retake
   .snap-photo-save
-    kalc            width, 50% \- 15px, 45%
+    kalc            width, 50% \- 15px, !important
 
   .snap-photo-retake
     abs             0 0 0px 0px
@@ -604,3 +604,13 @@ span.close-btn-x
   .snap-photo-save
     background-color green
     color           #fff
+
+.kdwebcamview-flash
+  abs               0px 0 0 0px
+  z-index           10002
+  background-color  #ffffff
+  opacity           0.95
+  &.flashed
+    vendor        transition-property, opacity
+    vendor        transition-duration, 500ms
+    opacity       0

@@ -3,7 +3,7 @@ class KDWebcamView extends JView
   constructor: (options={}, data)->
 
     options.cssClass    or= "kdwebcamview"
-    options.screenFlash or= yes
+    options.screenFlash  ?= yes
 
     options.snapTitle   or= "Snap Photo"
     options.resnapTitle or= "Resnap"
@@ -13,18 +13,7 @@ class KDWebcamView extends JView
 
     super options, data
 
-    @on "viewAppended", =>
-      @context = @picture.getElement().getContext "2d"
-      @getUserMedia()
-
-    @on "error", (error)->
-      @setClass "forbidden"
-      new KDNotificationView
-        type    : "tiny"
-        title   : "Your browser doesn't allow to use camera."
-
-    @on "snap", =>
-      @video.setClass "invisible"
+    @attachEvents()
 
     @video = new KDCustomHTMLView
       tagName   : "video"
@@ -52,21 +41,37 @@ class KDWebcamView extends JView
     @retake = new KDButtonView
       title     : options.resnapTitle
       cssClass  : "snap-photo-retake hidden"
-      callback  : =>
-        @button.show()
-        @retake.hide()
-        @save.hide()
-        @reset()
+      callback  : => @resetView()
+
 
     @save = new KDButtonView
       title     : options.saveTitle
       cssClass  : "snap-photo-save hidden"
       callback  : =>
-        @button.show()
-        @retake.hide()
-        @save.hide()
-        @reset()
+        @resetView()
+        @video.setClass "invisible"
+        @button.hide()
         @emit "save"
+
+  attachEvents: ->
+    @on "viewAppended", =>
+      @context = @picture.getElement().getContext "2d"
+      @getUserMedia()
+
+    @on "error", (error)->
+      @setClass "forbidden"
+      new KDNotificationView
+        type    : "tiny"
+        title   : "Your browser doesn't allow to use camera."
+
+    @on "snap", =>
+      @video.setClass "invisible"
+
+  resetView: ->
+    @button.show()
+    @retake.hide()
+    @save.hide()
+    @reset()
 
   reset: ->
     @video.unsetClass "invisible"
@@ -134,16 +139,12 @@ class KDWebcamView extends JView
 
   flash: ->
     flash  = new KDView
-    $flash = flash.$()
-    $flash.css
-      zIndex          : 10002
-      backgroundColor : "#ffffff"
-      position        : "absolute"
-      top             : 0
-      left            : 0
-      opacity         : 0.95
+      cssClass: "kdwebcamview-flash"
+
     KDView.appendToDOMBody flash
-    $flash.fadeOut -> flash.destroy()
+    KD.utils.defer ->
+      flash.setClass "flashed"
+      KD.utils.wait 500, -> flash.destroy()
 
   takePicture: ->
     video   = @video.getElement()
