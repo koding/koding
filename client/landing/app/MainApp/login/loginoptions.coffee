@@ -19,6 +19,6 @@ class LoginOptions extends KDView
       tagName   : "li"
       cssClass  : "github"
       partial   : "github"
-      click     : -> KD.utils.openGithubPopUp()
+      click     : -> KD.singletons.OAuthController.openPopup "github"
       tooltip   :
         title   : "<p class='login-tip'>Sign in with GitHub</p>"

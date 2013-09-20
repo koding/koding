@@ -54,7 +54,7 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
   link:->
     {type} = @getData()
-    KD.utils["open#{type.capitalize()}PopUp"]()
+    KD.singletons.OAuthController.openPopup type
 
   unlink:->
     {title, type} = @getData()
