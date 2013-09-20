@@ -3,14 +3,13 @@ JRecurly = require './index'
 
 module.exports = class JRecurlyGroup extends JRecurly
 
-  {secure} = require 'bongo'
-
   @setAccount = (client, group, data, callback)->
     JSession = require '../session'
     JSession.one {clientId: client.sessionToken}, (err, session) =>
-    JRecurlyPlan.fetchGroupAccount group, (err, groupAccount)=>
+    JRecurlyPlan.fetchGroupAccount group, (err, groupAccount) =>
       return callback err  if err
       {email, username, firstName, lastName} = groupAccount
+      
       accountCode = "group_#{group.getId()}"
       extend data, {accountCode, email, username, firstName, lastName}
 
@@ -22,7 +21,18 @@ module.exports = class JRecurlyGroup extends JRecurly
     recurly.getAccount "group_#{group.getId()}", callback
 
   @getBilling = (group, callback) ->
-    recurly.getBilling "group_#{group.getId()}", callback
+    recurlyId = "group_#{group.getId()}"
+    JRecurlyBillingMethod = require '../recurly/billingmethod'
+
+    recurly.getBilling recurlyId, (err, billing) ->
+      return callback err  if err?
+
+      JRecurlyBillingMethod.one { recurlyId }, (err, mixin) ->
+        return callback err  if err?
+
+        billing = _.extend billing, mixin  if mixin?
+
+        callback null, billing
 
   @getTransactions = (group, callback)->
     recurly.getTransactions "group_#{group.getId()}", callback

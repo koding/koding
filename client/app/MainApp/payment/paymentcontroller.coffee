@@ -53,8 +53,8 @@ class PaymentController extends KDController
         if status
           cb no, 0, 0
         else
-          @fetchBillingInfo type, group, (err, account)=>
-            needBilling = err or not account or not account.cardNumber
+          @fetchBillingInfo type, group, (err, billing)=>
+            needBilling = err or not billing?.cardNumber?
 
             @getBalance type, group, (err, balance)=>
               balance = 0  if err
@@ -96,9 +96,12 @@ class PaymentController extends KDController
     @modal.on 'KDObjectWillBeDestroyed', => delete @modal
     return @modal
 
-  showBillingInfoModal:(type, billingInfo)->
-    @loadCountryData (err, countries, countryOfIp)=>
-      new BillingForm { countries, countryOfIp }, billingInfo
+  showBillingInfoModal:(type, billingInfo, callback)->
+    form = new BillingForm { type }, billingInfo
+    @loadCountryData (err, countries, countryOfIp) =>
+      form.setCountryData { countries, countryOfIp }
+      callback null
+    return form
 
   loadCountryData:(callback)->
     if @countries or @countryOfIp
