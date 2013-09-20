@@ -149,72 +149,17 @@ class ProfileView extends JView
             gravatar:
               title   : "Use Gravatar"
               cssClass: "modal-clean-gray #{if @memberData.profile.avatar is '' then 'hidden' else ''}"
-              callback: =>
-                modal = new KDModalView
-                  title   : "Are you sure?"
-                  content : """
-                  <div class="modalformline">
-                    <p>
-                      <strong>This will remove your current avatar!</strong>
-                    </p>
-                    <p>
-                      Are you sure you want to remove your picture and use your Gravatar?
-                    </p>
-                  </div>
-                  """
-                  buttons:
-                    "Yes, use Gravatar":
-                      cssClass: "modal-clean-green"
-                      callback: =>
-                        @memberData.modify "profile.avatar": "", (err)->
-                          return log err if err
-                          modal.destroy()
-                          modal.buttons.gravatar.hide()
-                    "Cancel":
-                      cssClass: "modal-cancel"
-                      callback: -> modal.destroy()
+              callback: @bound "avatarSetGravatar"
 
             upload:
               title   : "Upload Image"
               cssClass: "modal-clean-gray #{unless isDNDSupported then 'hidden' else ''}"
-              callback: =>
-                @bigAvatar.hide()
-                modal.addSubView uploader = new DNDUploader
-                  title       : "Drop your avatar here!"
-                  uploadToVM  : no
-                  size: height: 380
-
-                uploader.showCancel()
-
-                uploader.on "cancel", =>
-                  uploader.destroy()
-                  @bigAvatar.show()
-                  modal.buttons.upload.enable()
-
-                uploader.on "dropFile", ({origin, content})=>
-                  if origin is "external"
-                    newAvatar = btoa content
-                    avatarSetter newAvatar, ->
-                      uploader.emit "cancel"
-
-                modal.buttons.upload.disable()
+              callback: @bound "avatarUploadImage"
 
             webcam:
               title   : "Take Photo"
               cssClass: "modal-clean-gray #{unless isVideoSupported then 'hidden' else ''}"
-              callback: =>
-                @bigAvatar.hide()
-                modal.addSubView capture = new KDWebcamView
-                  countdown: 3
-                  snapTitle: "Take Avatar Picture"
-                  size:
-                    width : 400
-                    height: 400
-                capture.on "snap", (data)-> [_, newAvatar] = data.split ','
-                capture.on "save", =>
-                  avatarSetter newAvatar, =>
-                    @bigAvatar.show()
-                    capture.hide()
+              callback: @bound "avatarCapturePhoto"
 
         modal = new KDModalView modalOptions
         modal.addSubView @bigAvatar = new AvatarStaticView
@@ -278,6 +223,67 @@ class ProfileView extends JView
             KD.getSingleton('mainController').markUserAsTroll @memberData
     else
       @trollSwitch = new KDCustomHTMLView
+
+  avatarSetGravatar: ->
+    modal = new KDModalView
+      title   : "Are you sure?"
+      content : """
+      <div class="modalformline">
+        <p>
+          <strong>This will remove your current avatar!</strong>
+        </p>
+        <p>
+          Are you sure you want to remove your picture and use your Gravatar?
+        </p>
+      </div>
+      """
+      buttons:
+        "Yes, use Gravatar":
+          cssClass: "modal-clean-green"
+          callback: =>
+            @memberData.modify "profile.avatar": "", (err)->
+              return log err if err
+              modal.destroy()
+              modal.buttons.gravatar.hide()
+        "Cancel":
+          cssClass: "modal-cancel"
+          callback: -> modal.destroy()
+
+  avatarUploadImage: ->
+    @bigAvatar.hide()
+    modal.addSubView uploader = new DNDUploader
+      title       : "Drop your avatar here!"
+      uploadToVM  : no
+      size: height: 380
+
+    uploader.showCancel()
+
+    uploader.on "cancel", =>
+      uploader.destroy()
+      @bigAvatar.show()
+      modal.buttons.upload.enable()
+
+    uploader.on "dropFile", ({origin, content})=>
+      if origin is "external"
+        newAvatar = btoa content
+        avatarSetter newAvatar, ->
+          uploader.emit "cancel"
+
+    modal.buttons.upload.disable()
+
+  avatarCapturePhoto: ->
+    @bigAvatar.hide()
+    modal.addSubView capture = new KDWebcamView
+      countdown: 3
+      snapTitle: "Take Avatar Picture"
+      size:
+        width : 400
+        height: 400
+    capture.on "snap", (data)-> [_, newAvatar] = data.split ','
+    capture.on "save", =>
+      avatarSetter newAvatar, =>
+        @bigAvatar.show()
+        capture.hide()
 
   setEditingMode: (state) ->
     @editingMode = state
