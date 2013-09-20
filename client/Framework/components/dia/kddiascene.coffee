@@ -9,22 +9,26 @@ class KDDiaScene extends JView
     options.lineWidth         ?= 2
     options.lineColor        or= "#ccc"
     options.lineColorActive  or= "orange"
-    options.lineColorPassive or= "#dedede"
+    options.lineColorPassive or= "red"
     options.lineColorHelper  or= "green"
     options.lineDashes        ?= []
     options.curveDistance     ?= 50
 
     super
 
-    @containers   = []
-    @connections  = []
-    @activeDias   = []
-    @activeJoints = []
-    @passiveDias  = []
+    @containers    = []
+    @connections   = []
+    @activeDias    = []
+    @activeJoints  = []
+    @passiveDias   = []
+    @passiveJoints = []
 
   diaAdded:(container, diaObj)->
     diaObj.on "JointRequestsLine", @bound "handleLineRequest"
     diaObj.on "DragInAction",   => @setActiveDia diaObj
+
+  passivateLines:()->
+
 
   addContainer:(container, pos = {})->
     @addSubView container
@@ -32,6 +36,7 @@ class KDDiaScene extends JView
     container.on "NewDiaObjectAdded", @bound "diaAdded"
     container.on "DragInAction",      @bound "updateScene"
     container.on "HighlightDia",      @bound "setActiveDia"
+    container.on "PassivateLines",    @bound "setPassiveDia"
 
     @containers.push container
 
@@ -118,6 +123,9 @@ class KDDiaScene extends JView
               joint.on 'DeleteRequested', @bound 'disconnectHelper'
               @activeJoints.push joint
 
+  setPassiveDia:()->
+    
+
   deselectAllDias:->
     joint.off 'DeleteRequested'      for joint in @activeJoints
     container.emit 'UnhighlightDias' for container in @containers
@@ -165,6 +173,9 @@ class KDDiaScene extends JView
         @realContext.strokeStyle = @getOption 'lineColorActive'
       else
         @realContext.strokeStyle = @getOption 'lineColor'
+
+      if (source.dia in @passiveDias) or (target.dia in @passiveDias)
+        @realContext.strokeStyle = @getOption 'lineColorPassive'
 
       sJoint = source.dia.getJointPos source.joint
       tJoint = target.dia.getJointPos target.joint
