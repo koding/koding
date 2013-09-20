@@ -67,13 +67,13 @@ func main() {
 		sourceContent, err := mongohelper.FetchContent(result.SourceId, result.SourceName)
 		if err != nil {
 			fmt.Println("sourceContent", err)
-			return
+			continue
 		}
 
 		targetContent, err := mongohelper.FetchContent(result.TargetId, result.TargetName)
 		if err != nil {
 			fmt.Println("targetContent", err)
-			return
+			continue
 		}
 
 		if sourceContent == "" || targetContent == "" {

@@ -184,20 +184,6 @@ task 'authWorker', "Run the authWorker", ({configFile}) ->
             else
               processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
-task 'guestCleanup', "Runs guestCleanup which removes old guests from mongo", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.fork
-    name           : 'guestCleanup'
-    cmd            : "./workers/guestcleanup/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-    verbose        : yes
-
-
 task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
@@ -455,19 +441,20 @@ run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile, ->
-    invoke 'goBroker'       if config.runGoBroker
-    invoke 'osKite'         if config.runOsKite
-    invoke 'rerouting'      if config.runRerouting
-    invoke 'userpresence'   if config.runUserPresence
-    invoke 'persistence'    if config.runPersistence
-    invoke 'proxy'          if config.runProxy
-    invoke 'neo4jfeeder'    if config.runNeo4jFeeder
-    invoke 'authWorker'     if config.authWorker
-    invoke 'guestCleanerWorker'   if config.guestCleanerWorker.enabled
-    invoke 'cacheWorker'    if config.cacheWorker?.run is yes
+    invoke 'goBroker'                         if config.runGoBroker
+    invoke 'osKite'                           if config.runOsKite
+    invoke 'rerouting'                        if config.runRerouting
+    invoke 'userpresence'                     if config.runUserPresence
+    invoke 'persistence'                      if config.runPersistence
+    invoke 'proxy'                            if config.runProxy
+    invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+    invoke 'authWorker'                       if config.authWorker
+    invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
+    invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
+    invoke 'cacheWorker'                      if config.cacheWorker?.run is yes
     invoke 'socialWorker'
-    invoke 'emailWorker'    if config.emailWorker?.run is yes
-    invoke 'emailSender'    if config.emailSender?.run is yes
+    invoke 'emailWorker'                      if config.emailWorker?.run is yes
+    invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'webserver'
 
 task 'run', (options)->

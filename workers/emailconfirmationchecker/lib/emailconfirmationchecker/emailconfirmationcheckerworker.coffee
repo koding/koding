@@ -23,8 +23,7 @@ module.exports = class EmailConfirmationChecker
 
     JUser.each userSelector, {}, (err, user)=>
       if err then return console.error err
-      if not user or user.length < 1
-        return console.log "No unconfirmed user left"
+      return  if not user
       {username} = user
       accountSelector = {
         type   : {$ne : "unregistered" }
