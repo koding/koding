@@ -1,5 +1,5 @@
 _ = require 'underscore'
-neo4j = require "neo4j-koding"
+neo4j = require "neo4j"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
