@@ -8,7 +8,6 @@ module.exports = class JUser extends jraphical.Module
 
   JAccount       = require '../account'
   JSession       = require '../session'
-  JGuest         = require '../guest'
   JInvitation    = require '../invitation'
   JName          = require '../name'
   JGroup         = require '../group'
@@ -201,7 +200,6 @@ module.exports = class JUser extends jraphical.Module
         callback createKodingError err
       else unless session?
         JUser.createTemporaryUser callback
-#        JGuest.obtain null, clientId, callback
       else
         {username} = session
         if username?
@@ -289,7 +287,6 @@ module.exports = class JUser extends jraphical.Module
     checkBlockedStatus user, (err)->
       if err then return callback err
       replacementToken = createId()
-      JGuest.recycle session.guestId
       session.update {
         $set            :
           username      : user.username

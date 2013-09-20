@@ -58,7 +58,7 @@ module.exports = (account)->
 getSmallNavigation = ->
   """
   <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account promote">
-    <a class="kdview title"><span class="main-nav-icon promote"></span><span>Get extra 250MB!</span></a>
+    <a class="kdview title"><span class="main-nav-icon promote"></span><span>Up to 16GB free!</span></a>
   </div>
   <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account docs">
     <span class="title"><span class="main-nav-icon docs-jobs"></span><a class="ext" href="http://koding.github.io/docs/" target="_blank">Docs</a> / <a class="ext" href="http://koding.github.io/jobs/" target="_blank">Jobs</a></span>

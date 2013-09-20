@@ -1,5 +1,5 @@
 _ = require 'underscore'
-neo4j = require "neo4j"
+neo4j = require "neo4j-koding"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
@@ -37,8 +37,7 @@ module.exports = class Graph
       res.klass.all res.selector, (err, objects)->
         if err then callback err
         else
-          for o in objects
-            ret[o._id + '_' + res.modelName] = o
+          ret[o._id + '_' + res.modelName] = o  for o in objects
         fin()
     , -> sortThem null, ret
 
@@ -46,12 +45,11 @@ module.exports = class Graph
       ids = collections[modelName]
       klass = Base.constructors[modelName]
       selector = {
-        _id:
-          $in: ids.map (id)->
-            if 'string' is typeof id then ObjectId(id)
-            else id
+        _id: $in: ids.map (id)->
+          if 'string' is typeof id then ObjectId(id)
+          else id
       }
-      collectObjects({klass:klass, selector:selector, modelName:modelName})
+      collectObjects { klass, selector, modelName }
 
   # returns object ids from a result set as array
   # returns dict {colections: {'users':[id1,id2,id3]},
@@ -156,7 +154,7 @@ module.exports = class Graph
   getExemptUsersClauseIfNeeded: (requestOptions, callback)->
     if not requestOptions.withExempt
       {delegate} = requestOptions.client.connection
-      JAccount = require '../account/index'
+      JAccount = require '../account'
       JAccount.getExemptUserIds (err, ids)=>
         return callback err, null if err
         trollIds = ('"' + id + '"' for id in ids when id.toString() isnt delegate.getId().toString()).join(',')
@@ -197,7 +195,7 @@ module.exports = class Graph
         limit 20
       """
 
-      returnResults = (err, results)=>   
+      returnResults = (err, results)=>
 
         tempRes = []
         if err then callback err
@@ -225,7 +223,7 @@ module.exports = class Graph
               collectRelations objected
 
       JCache.get query, (err, results)=>
-        if err or not results 
+        if err or not results
           @db.query query, {}, (err, results)=>
             JCache.add query, results
             returnResults(err, results)
