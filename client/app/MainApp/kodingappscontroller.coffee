@@ -329,7 +329,7 @@ class KodingAppsController extends KDController
   # #
 
   hasForceUpdate: (appInstance) ->
-    manifest                 = appInstance.getOptions()
+    manifest                 = @constructor.manifests[appInstance.getOptions().name]
     {devMode, name, version} = manifest
     forceUpdate              = @getAppUpdateType(name) is "required"
     updateAvailable          = @isAppUpdateAvailable(name, version)

@@ -10,8 +10,7 @@ class MainView extends KDView
 
   viewAppended:->
 
-    KD.utils.wait 1000, removePulsing
-
+    @bindPulsingRemove()
     @bindTransitionEnd()
     # @addServerStack()
     @addHeader()
@@ -23,6 +22,25 @@ class MainView extends KDView
     @listenWindowResize()
 
     @utils.defer => @_windowDidResize()
+
+  bindPulsingRemove:->
+    router     = KD.getSingleton 'router'
+    appManager = KD.getSingleton 'appManager'
+
+    appManager.once 'AppCouldntBeCreated', removePulsing
+
+    appManager.on 'AppCreated', (appInstance)->
+      options = appInstance.getOptions()
+      {title, name, appEmitsReady} = options
+      routeArr = location.pathname.split('/')
+      routeArr.shift()
+      checkedRoute = if routeArr.first is "Develop" then routeArr.last else routeArr.first
+
+      if checkedRoute is name or checkedRoute is title
+        if appEmitsReady
+          appView = appInstance.getView()
+          appView.ready removePulsing
+        else removePulsing()
 
   putAbout:->
 
