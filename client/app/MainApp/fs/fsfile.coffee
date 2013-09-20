@@ -84,6 +84,7 @@ class FSFile extends FSItem
       @emit "fs.append.finished", err, res
       callback? err,res
 
+  # TODO: This method has too many logic with chunks etc. should be retought later. -- fka
   saveBinary:(contents, callback)->
 
     @abortRequested     = no

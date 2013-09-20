@@ -98,8 +98,7 @@ class NFinderItem extends JTreeItemView
     @progress.updateBar percent, "%", ""
     if 0 <= percent < 100
     then @setClass   "progress"
-    else
-      @utils.wait 1000, => @unsetClass "progress"
+    else @utils.wait 1000, => @unsetClass "progress"
 
   pistachio:->
 
