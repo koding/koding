@@ -73,10 +73,10 @@ class MembersAppController extends AppController
           title             : "Latest activity"
           direction         : -1
         'counts.followers'  :
-          title             : "Most Followers"
+          title             : "Most followers"
           direction         : -1
         'counts.following'  :
-          title             : "Most Following"
+          title             : "Most following"
           direction         : -1
     }, (controller)=>
       @feedController = controller
@@ -115,10 +115,10 @@ class MembersAppController extends AppController
           title             : "Latest activity"
           direction         : -1
         'counts.followers'  :
-          title             : "Most Followers"
+          title             : "Most followers"
           direction         : -1
         'counts.following'  :
-          title             : "Most Following"
+          title             : "Most following"
           direction         : -1
     }, (controller)=>
       view.addSubView controller.getView()
