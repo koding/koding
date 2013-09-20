@@ -13,10 +13,12 @@ class KDDiaObject extends JView
     options.bind = KD.utils.curry 'mouseleave', options.bind
     options.joints ?= ['left', 'right']
     options.jointItemClass ?= KDDiaJoint
+    options.allowedConnections or= {}
 
     super options, data
 
     @joints = {}
+    @allowedConnections = @getOption 'allowedConnections'
     @domElement.attr "dia-id", "dia-#{@getId()}"
     @wc = KD.getSingleton 'windowController'
 

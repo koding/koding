@@ -146,8 +146,24 @@ class KDDiaScene extends JView
   connect:(source, target)->
     return  unless source and target
     return  if source.dia?.id is target.dia?.id
+
+    if not @allowedToConnect source, target
+      return warn """Connection from #{source.dia.constructor.name}
+                     to #{target.dia.constructor.name} is not allowed!"""
+
     @connections.push {source, target}
     @setActiveDia target.dia
+
+  allowedToConnect:(source, target)->
+    for i in [0..1]
+      if source.dia.allowedConnections? and \
+         Object.keys(source.dia.allowedConnections).length > 0
+        allowList = source.dia.allowedConnections
+        restrictions = allowList[target.dia.constructor.name]
+        return no  unless restrictions
+        return no  if source.joint in restrictions
+      [source, target] = [target, source]
+    return yes
 
   updateScene:->
 
