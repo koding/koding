@@ -229,7 +229,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @hideLoader()
 
     appManager.once "AppCouldntBeCreated", couldntCreate
-    appManager.once "AppCreated", appCreated
+    appManager.once "AppCreated",          appCreated
 
     route = if manifest.route
       if "string" is typeof manifest.route

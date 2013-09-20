@@ -883,7 +883,7 @@ class KodingAppsController extends KDController
     Teamwork      :
       name        : 'Teamwork'
       type        : 'koding-app'
-      icon        : 'teamwork/icon.160.png'
+      icon        : 'teamwork/icon.256.png'
       description : 'Koding\'s official collaboration app'
       author      : 'Koding'
       route       : '/Develop/Teamwork'
