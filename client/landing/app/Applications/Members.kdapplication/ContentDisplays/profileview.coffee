@@ -241,10 +241,10 @@ class ProfileView extends JView
         "Yes, use Gravatar":
           cssClass: "modal-clean-green"
           callback: =>
-            @memberData.modify "profile.avatar": "", (err)->
+            @memberData.modify "profile.avatar": "", (err)=>
               return log err if err
               modal.destroy()
-              modal.buttons.gravatar.hide()
+              @modal.buttons.gravatar.hide()
         "Cancel":
           cssClass: "modal-cancel"
           callback: -> modal.destroy()
