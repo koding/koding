@@ -9,11 +9,12 @@ class NewKite extends KDEventEmitter
     { @kiteName, @correlationName, @kiteKey } = options
     @localStore   = new Store
     @remoteStore  = new Store
+    @tokenStore = {}
     @autoReconnect = true
     @readyState = NOTREADY
     @kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
-    @token = ""
     @addr = ""
+    @token = ""
     @initBackoff options  if @autoReconnect
     @connect()
 
@@ -25,6 +26,7 @@ class NewKite extends KDEventEmitter
   bound: Bongo.bound
 
   connectDirectly:->
+    console.log "trying to connect to #{@addr}"
     @ws = new WebSocket "ws://#{@addr}/sock"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
@@ -35,9 +37,9 @@ class NewKite extends KDEventEmitter
     requestData =
       username   : "#{KD.nick()}"
       remoteKite : @kiteName
-      token      : KD.remote.getSessionToken()
+      sessionID  : KD.remote.getSessionToken()
 
-    # $.ajax was used here...
+    # $.ajax was used here... added if we want to replace the following in the future
     xhr = new XMLHttpRequest
     xhr.open "POST", @kontrolEndpoint, yes
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
@@ -46,6 +48,7 @@ class NewKite extends KDEventEmitter
        if xhr.status is 200
          data = JSON.parse xhr.responseText
          @token = data[0].token
+         console.log {@token}
          @addr = data[0].addr
          @connectDirectly()
 
@@ -112,7 +115,6 @@ class NewKite extends KDEventEmitter
       @remoteStore.get callbackId
 
   handleRequest: (method, args) ->
-    console.log {method}, {args}
     @scrub method, args, (scrubbed) =>
       messageString = JSON.stringify(scrubbed)
       @ready => @send scrubbed
@@ -125,13 +127,16 @@ class NewKite extends KDEventEmitter
       callback scrubbed
 
   tell:(options, callback) ->
-    @handleRequest options.method, [options, callback]
+    @ready => 
+      # token is needed to initiate a valid session
+      options.token = @token
+      options.username  = "#{KD.nick()}"
+      @handleRequest options.method, [options, callback]
 
   send: (data) ->
     try
       if @readyState is READY
         @ws.send JSON.stringify data
-        # console.log "sending", {data}
       else
         # console.log "slow down ... I'm still trying to reconnect!"
     catch e
