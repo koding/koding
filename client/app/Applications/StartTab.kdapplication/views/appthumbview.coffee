@@ -312,29 +312,3 @@ class AppShortcutButton extends StartTabAppThumbView
       unless err
         @destroy()
         KD.track "Apps", "RemoveShortcutClicked"
-
-  # click:(event)->
-
-  #   return if $(event.target).closest('.icon-container').length > 0
-
-  #   {type, name, path} = @getData()
-  #   path = name if not path
-
-  #   appManager = KD.getSingleton "appManager"
-  #   router     = KD.getSingleton "router"
-
-  #   couldntCreate = =>
-  #     appManager.off "AppCouldntBeCreated", appCreated
-  #     @hideLoader()
-
-  #   appCreated    = =>
-  #     appManager.off "AppCreated", couldntCreate
-  #     KD.track "Apps", "ApplicationRun", manifest.name
-  #     @hideLoader()
-
-  #   appManager.once "AppCouldntBeCreated", couldntCreate
-  #   appManager.once "AppCreated", appCreated
-
-  #   router.handleRoute path
-  #   return no
-
