@@ -99,14 +99,30 @@ div.environments-item
   border-left     5px solid rgba(217, 216, 217, 1.0)
   gradient        rgba(252, 253, 253, 1.0), rgba(228, 229, 230, 1.0)
   rounded         2px
+  vendor          transition, opacity .3s ease
   noTextSelection()
   borderBox()
 
   &:hover
     gradient     rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
 
-  &.activated
-    border-left   5px solid green
+  .status-indicator
+    size          8px, 8px
+    background    #ff9600
+    border        1px solid #ff9600
+    top           50%
+    right         5px
+    margin-top    -4px
+    rounded       100%
+    cursor        pointer
+    vendor        transition, background .3s ease
+    borderBox()
+    abs()
+
+  &.passivated
+    opacity       0.5
+    .status-indicator
+      background  none
 
   &.highlight
     gradient      white, rgba(244, 244, 244, 1.0)

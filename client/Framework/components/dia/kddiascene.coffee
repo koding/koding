@@ -5,13 +5,14 @@ class KDDiaScene extends JView
     options.cssClass = KD.utils.curry "kddia-scene", options.cssClass
     options.bind     = KD.utils.curry "mousemove",   options.bind
 
-    options.lineCap         or= "round"
-    options.lineWidth        ?= 2
-    options.lineColor       or= "#ccc"
-    options.lineColorActive or= "orange"
-    options.lineColorHelper or= "green"
-    options.lineDashes       ?= []
-    options.curveDistance    ?= 50
+    options.lineCap          or= "round"
+    options.lineWidth         ?= 2
+    options.lineColor        or= "#ccc"
+    options.lineColorActive  or= "orange"
+    options.lineColorPassive or= "#dedede"
+    options.lineColorHelper  or= "green"
+    options.lineDashes        ?= []
+    options.curveDistance     ?= 50
 
     super
 
@@ -19,6 +20,7 @@ class KDDiaScene extends JView
     @connections  = []
     @activeDias   = []
     @activeJoints = []
+    @passiveDias  = []
 
   diaAdded:(container, diaObj)->
     diaObj.on "JointRequestsLine", @bound "handleLineRequest"

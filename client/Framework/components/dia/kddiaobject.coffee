@@ -13,6 +13,7 @@ class KDDiaObject extends JView
     options.bind = KD.utils.curry 'mouseleave', options.bind
     options.joints ?= ['left', 'right']
     options.jointItemClass ?= KDDiaJoint
+    options.showStatusIndicator ?= yes
 
     super options, data
 
@@ -63,6 +64,16 @@ class KDDiaObject extends JView
     [ dx, dy ] = if joint.type in ['left', 'right'] then [10, 2] else [2, 10]
     x:x + jx + dx, y: y + jy + dy
 
+  addStatusIndicator:()->
+    @addSubView @statusIndicator = new KDCustomHTMLView
+      cssClass    : "status-indicator"
+      click       : => @toggleStatus()
+
+  toggleStatus:()->
+    @toggleClass "passivated"
+    @data.activated = !@data.activated
+    @emit 'DiaObjectPassivated' if not @getData().activated
+
   viewAppended:->
     super
 
@@ -70,6 +81,15 @@ class KDDiaObject extends JView
     @parent.on 'UnhighlightDias', =>
       @unsetClass 'highlight'
       joint.hideDeleteButton()  for key, joint of @joints
+
+    if not @getData().activated
+      KD.utils.wait 10, =>
+        @setClass 'passivated'
+        @emit 'DiaObjectPassivated'
+
+    @addStatusIndicator() if @getOption "showStatusIndicator"
+
+    window.asd = @
 
   getDiaId:->
     @domElement.attr "dia-id"

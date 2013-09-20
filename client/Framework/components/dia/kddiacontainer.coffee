@@ -16,7 +16,8 @@ class KDDiaContainer extends JView
 
   addDia:(diaObj, pos = {})->
     @addSubView diaObj
-    diaObj.on "DiaObjectClicked", => @emit "HighlightDia", diaObj
+    diaObj.on "DiaObjectClicked",    => @emit "HighlightDia", diaObj
+    diaObj.on "DiaObjectPassivated", => @emit "PassivateLines", diaObj
     @dias[diaObj.getId()] = diaObj
     @emit "NewDiaObjectAdded", this, diaObj
 
