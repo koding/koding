@@ -121,7 +121,7 @@ class KDDiaScene extends JView
               @activeJoints.push joint
 
   setPassiveDia:->
-    log arguments
+    #setPassive
 
   deselectAllDias:->
     joint.off 'DeleteRequested'      for joint in @activeJoints

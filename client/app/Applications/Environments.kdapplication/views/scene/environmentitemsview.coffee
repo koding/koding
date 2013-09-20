@@ -7,17 +7,72 @@ class EnvironmentItem extends KDDiaObject
 
     super options, data
 
-  addStatusIndicator:()->
+  addStatusIndicator : ->
     @addSubView @statusIndicator = new KDCustomHTMLView
       cssClass    : "status-indicator"
       click       : => @toggleStatus()
 
-  toggleStatus:()->
+  toggleStatus : ->
     @toggleClass "passivated"
     @data.activated = !@data.activated
     @emit 'DiaObjectPassivated' if not @getData().activated
 
-  viewAppended:->
+  dblClick : (event) ->
+    @contextMenu = new JContextMenu
+      menuWidth   : 200
+      delegate    : @
+      x           : event.pageX + 15
+      y           : event.pageY - 23
+      arrow       :
+        placement : "left"
+        margin    : 19
+      lazyLoad    : yes
+    ,
+      'Properties'            :
+        callback              : =>
+      'Focus On This Rule'    :
+        callback              : =>
+      'Unfocus'               :
+        callback              : =>
+      'Edit Bindings'         :
+        separator             : yes
+        callback              : =>
+      'Color Tag'             :
+        separator             : yes
+        callback              : =>
+      'Rename'                :
+        callback              : =>
+      'Duplicate'             :
+        callback              : =>
+      'Combine Into Group...' :
+        callback              : =>
+      'Delete'                :
+        separator             : yes
+        callback              : @_confirmDestroy
+      'Create New Rule...'    :
+        callback              : =>
+      'Create Empty Group'    :
+        callback              : =>
+
+  _confirmDestroy : =>
+    parent       = @parent
+    modal        = new KDModalView
+      title      : "Are you sure?"
+      cssClass   : "environments-confirm-destroy"
+      content    : "<div><strong>\"#{@getData().title}\"</strong> item will be deleted. Please confirm.</div>"
+      buttons    :
+        confirm         :
+          title         : "Delete"
+          style         : "modal-clean-red"
+          callback      : =>
+            modal.destroy()
+            @destroy()
+        cancel          :
+          title         : "Cancel"
+          style         : "modal-cancel"
+          callback      : (event)-> modal.destroy()
+
+  viewAppended : ->
     super
     @setClass 'activated'  if @getData().activated?
 
