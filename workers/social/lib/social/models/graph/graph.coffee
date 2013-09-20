@@ -156,7 +156,7 @@ module.exports = class Graph
   getExemptUsersClauseIfNeeded: (requestOptions, callback)->
     if not requestOptions.withExempt
       {delegate} = requestOptions.client.connection
-      JAccount = require '../account/index'
+      JAccount = require '../account'
       JAccount.getExemptUserIds (err, ids)=>
         return callback err, null if err
         trollIds = ('"' + id + '"' for id in ids when id.toString() isnt delegate.getId().toString()).join(',')
