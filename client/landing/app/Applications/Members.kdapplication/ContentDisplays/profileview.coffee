@@ -212,7 +212,9 @@ class ProfileView extends JView
                     height: 400
                 capture.on "snap", (data)-> [_, newAvatar] = data.split ','
                 capture.on "save", =>
-                  avatarSetter newAvatar, -> capture.hide()
+                  avatarSetter newAvatar, =>
+                    @bigAvatar.show()
+                    capture.hide()
 
         modal = new KDModalView modalOptions
         modal.addSubView @bigAvatar = new AvatarStaticView
