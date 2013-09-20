@@ -107,7 +107,7 @@ class TeamworkTools extends JView
 
     modal.addSubView urlInput = new KDInputView
       cssClass       : "teamwork-url-share-input"
-      defaultValue   : "#{location.origin}/Develop/Teamwork?import=#{shorten}"
+      defaultValue   : "#{location.origin}/Develop/Teamwork?import=#{shortenUrl}"
       attributes     :
         readonly     : "readonly"
       click          : => urlInput.getDomElement().select()
