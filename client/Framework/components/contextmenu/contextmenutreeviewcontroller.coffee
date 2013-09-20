@@ -9,7 +9,7 @@ class JContextMenuTreeViewController extends JTreeViewController
   convertToArray = @convertToArray = (items, pId = null)->
     results = []
 
-    for title, options of items
+    for own title, options of items
       id = null
       if (title.indexOf "customView") is 0
         newItem = { type : 'customView', parentId : pId, view : options }

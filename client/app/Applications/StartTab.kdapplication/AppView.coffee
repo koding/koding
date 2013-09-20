@@ -146,7 +146,7 @@ class StartTabMainView extends JView
 
     @appsController.appStorage.fetchValue 'shortcuts', (shortcuts)=>
 
-      for shortcut, manifest of shortcuts
+      for own shortcut, manifest of shortcuts
         do (shortcut, manifest)=>
           @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
             delegate : @
@@ -200,7 +200,7 @@ class StartTabMainView extends JView
     @createGetMoreAppsButton()  unless bulk
 
   createAllAppIcons:(apps)->
-    for app, appData of apps
+    for own app, appData of apps
       do (app, appData)=>
         @createAppIcon app, appData, yes
 
@@ -232,7 +232,7 @@ class StartTabMainView extends JView
     @recentFileViews or= {}
     recentFilePaths   ?= @appStorage.getValue('recentFiles') or []
 
-    for path, view of @recentFileViews
+    for own path, view of @recentFileViews
       @recentFileViews[path].destroy()
       delete @recentFileViews[path]
 

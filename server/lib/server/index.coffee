@@ -6,7 +6,6 @@ Object.defineProperty global, 'KONFIG',
 
 {
   webserver
-  mongo
   mq
   projectRoot
   kites
@@ -15,6 +14,7 @@ Object.defineProperty global, 'KONFIG',
   neo4j
   github
 }       = KONFIG
+
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
 

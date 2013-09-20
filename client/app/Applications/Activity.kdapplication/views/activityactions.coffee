@@ -115,7 +115,7 @@ class ActivityActionsView extends KDView
       BackgroundActivityStarted  : 'show'
       BackgroundActivityFinished : 'hide'
 
-    for ev, func of events
+    for own ev, func of events
       commentList.off ev
       commentList.on ev, @loader.bound func
 

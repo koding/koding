@@ -22,7 +22,7 @@ class FatihOpenAppPlugin extends FatihPluginAbstract
     keyword        = keyword.toLowerCase()
     possibleApps   = []
 
-    for appName of @index
+    for own appName of @index
       currentApp   = @index[appName]
       lowerAppName = currentApp.name.toLowerCase()
       app          = currentApp.name if lowerAppName is keyword
