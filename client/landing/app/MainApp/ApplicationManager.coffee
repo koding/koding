@@ -31,7 +31,7 @@ class ApplicationManager extends KDObject
     # set unload listener
     windowController = @getSingleton 'windowController'
     windowController.addUnloadListener 'window', =>
-      safeToUnload = no for app of @appControllers when app in ['Ace', 'WebTerm']
+      safeToUnload = no for own app of @appControllers when app in ['Ace', 'WebTerm']
       return safeToUnload ? yes
 
   setMissingRoute:(appController, appView, appOptions)->
@@ -134,7 +134,7 @@ class ApplicationManager extends KDObject
 
       return callback? yes  if err or not manifests
 
-      for name, manifest of manifests when name is appName
+      for own name, manifest of manifests when name is appName
 
         err = no
 
@@ -263,7 +263,7 @@ class ApplicationManager extends KDObject
   getByView: (view)->
 
     appInstance = null
-    for name, apps of @appControllers
+    for own name, apps of @appControllers
       for appController in apps.instances
         if view.getId() is appController.getView?()?.getId()
           appInstance = appController
