@@ -25,28 +25,18 @@ class KDWebcamView extends JView
 
     @button = new KDButtonView
       title     : options.snapTitle
-      cssClass  : "snap-photo-button hidden"
-      callback  : =>
-        @countDown
-          counting: (remaining)=>
-            @button.setTitle remaining
-          finish: =>
-            @button.hide()
-            @retake.show()
-            @save.show()
-            @takePicture()
-            @button.setTitle options.snapTitle
-
+      cssClass  : "snap-button hidden"
+      callback  : @bound 'countDown'
 
     @retake = new KDButtonView
       title     : options.resnapTitle
-      cssClass  : "snap-photo-retake hidden"
+      cssClass  : "snap-button retake hidden"
       callback  : => @resetView()
 
 
     @save = new KDButtonView
       title     : options.saveTitle
-      cssClass  : "snap-photo-save hidden"
+      cssClass  : "snap-button save hidden"
       callback  : =>
         @resetView()
         @video.setClass "invisible"
@@ -67,6 +57,13 @@ class KDWebcamView extends JView
     @on "snap", =>
       @video.setClass "invisible"
 
+    @on "countDownEnd", =>
+      @button.hide()
+      @retake.show()
+      @save.show()
+      @takePicture()
+      @button.setTitle options.snapTitle
+
   resetView: ->
     @button.show()
     @retake.hide()
@@ -76,13 +73,12 @@ class KDWebcamView extends JView
   reset: ->
     @video.unsetClass "invisible"
 
-  countDown: ({start, counting, finish})->
-    start?()
+  countDown: ->
     {countdown} = @getOptions()
 
     if countdown > 0
       counter = =>
-        counting countdown
+        @button.setTitle countdown
         countdown--
 
       count = @utils.repeat 1000, counter
@@ -91,9 +87,9 @@ class KDWebcamView extends JView
       timer = @utils.wait (countdown+1)*1000, =>
         @utils.killRepeat count
         @utils.killWait timer
-        finish?()
+        @emit "countDownEnd"
     else
-      finish?()
+      @emit "countDownEnd"
 
   autoResize: ->
     video = @video.getElement()

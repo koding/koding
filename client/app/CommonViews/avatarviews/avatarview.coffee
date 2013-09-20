@@ -53,12 +53,12 @@ class AvatarView extends LinkView
 
     height = width unless height
 
-    avatarCssPattern = "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
+    avatarURI = "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
     if profile.avatar?.match /^https?:\/\//
       resizedAvatar = KD.utils.proxifyUrl profile.avatar, {crop: yes, width, height}
-      avatarCssPattern = "url(#{resizedAvatar})"
+      avatarURI = "url(#{resizedAvatar})"
 
-    @setAvatar avatarCssPattern
+    @setAvatar avatarURI
 
     flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags

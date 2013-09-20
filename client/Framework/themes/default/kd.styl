@@ -577,9 +577,7 @@ span.close-btn-x
     &.invisible
       opacity       0
 
-  .snap-photo-button
-  .snap-photo-retake
-  .snap-photo-save
+  .snap-button
     abs             0 0px 0px 0
     z-index         1
     height          35px
@@ -594,16 +592,14 @@ span.close-btn-x
     &:hover
       opacity       0.9
 
-  .snap-photo-retake
-  .snap-photo-save
-    kalc            width, 50% \- 15px, !important
+    &.save
+      kalc            width, 50% \- 15px, !important
+      background-color green
+      color           #fff
 
-  .snap-photo-retake
-    abs             0 0 0px 0px
-
-  .snap-photo-save
-    background-color green
-    color           #fff
+    &.retake
+      kalc            width, 50% \- 15px, !important
+      abs             0 0 0px 0px
 
 .kdwebcamview-flash
   abs               0px 0 0 0px

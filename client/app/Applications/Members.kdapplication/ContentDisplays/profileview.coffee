@@ -97,29 +97,6 @@ class ProfileView extends JView
       {callback, inputValue, blacklist} = event
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
-    avatarSetter = (newAvatar, callback)=>
-      loader = new KDNotificationView
-        overlay : yes
-        title   : "Your avatar is being uploaded, please wait..."
-        loader  :
-          color : "#ffffff"
-        duration: 12000
-      FSHelper.s3.upload "avatar.png", newAvatar, (err, url)=>
-        resized = KD.utils.proxifyUrl url,
-          crop: true, width: 400, height: 400
-        cssUrlPattern = "url(#{resized})"
-        @bigAvatar.setAvatar cssUrlPattern
-        @avatar.setAvatar cssUrlPattern
-        @avatar.$().css backgroundSize: "100%"
-        @memberData.modify "profile.avatar": [url, +new Date()].join("?"), (err)=>
-          loader.destroy()
-          callback? err
-          @bigAvatar.show()
-          unless err
-            new KDNotificationView
-              title: "Your avatar updated successfully!"
-              type : "mini"
-
     newAvatar      = ''
     avatarOptions  =
       size         :
@@ -161,8 +138,8 @@ class ProfileView extends JView
               cssClass: "modal-clean-gray #{unless isVideoSupported then 'hidden' else ''}"
               callback: @bound "avatarCapturePhoto"
 
-        modal = new KDModalView modalOptions
-        modal.addSubView @bigAvatar = new AvatarStaticView
+        @modal = new KDModalView modalOptions
+        @modal.addSubView @bigAvatar = new AvatarStaticView
           size     :
             width  : 400
             height : 400
@@ -224,6 +201,29 @@ class ProfileView extends JView
     else
       @trollSwitch = new KDCustomHTMLView
 
+  uploadAvatar: (newAvatar, callback)->
+    loader = new KDNotificationView
+      overlay : yes
+      title   : "Your avatar is being uploaded, please wait..."
+      loader  :
+        color : "#ffffff"
+      duration: 30000
+    FSHelper.s3.upload "avatar.png", newAvatar, (err, url)=>
+      resized = KD.utils.proxifyUrl url,
+        crop: true, width: 400, height: 400
+      cssUrlPattern = "url(#{resized})"
+      @bigAvatar.setAvatar cssUrlPattern
+      @avatar.setAvatar cssUrlPattern
+      @avatar.$().css backgroundSize: "100%"
+      @memberData.modify "profile.avatar": [url, +new Date()].join("?"), (err)=>
+        loader.destroy()
+        callback? err
+        @bigAvatar.show()
+        unless err
+          new KDNotificationView
+            title: "Your avatar updated successfully!"
+            type : "mini"
+
   avatarSetGravatar: ->
     modal = new KDModalView
       title   : "Are you sure?"
@@ -251,7 +251,7 @@ class ProfileView extends JView
 
   avatarUploadImage: ->
     @bigAvatar.hide()
-    modal.addSubView uploader = new DNDUploader
+    @modal.addSubView uploader = new DNDUploader
       title       : "Drop your avatar here!"
       uploadToVM  : no
       size: height: 380
@@ -261,19 +261,20 @@ class ProfileView extends JView
     uploader.on "cancel", =>
       uploader.destroy()
       @bigAvatar.show()
-      modal.buttons.upload.enable()
+      @modal.buttons.upload.enable()
 
     uploader.on "dropFile", ({origin, content})=>
       if origin is "external"
         newAvatar = btoa content
-        avatarSetter newAvatar, ->
+        @uploadAvatar newAvatar, ->
           uploader.emit "cancel"
 
-    modal.buttons.upload.disable()
+    @modal.buttons.upload.disable()
 
   avatarCapturePhoto: ->
+    newAvatar = ''
     @bigAvatar.hide()
-    modal.addSubView capture = new KDWebcamView
+    @modal.addSubView capture = new KDWebcamView
       countdown: 3
       snapTitle: "Take Avatar Picture"
       size:
@@ -281,7 +282,7 @@ class ProfileView extends JView
         height: 400
     capture.on "snap", (data)-> [_, newAvatar] = data.split ','
     capture.on "save", =>
-      avatarSetter newAvatar, =>
+      @uploadAvatar newAvatar, =>
         @bigAvatar.show()
         capture.hide()
 
