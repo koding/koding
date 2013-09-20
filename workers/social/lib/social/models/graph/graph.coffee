@@ -37,8 +37,7 @@ module.exports = class Graph
       res.klass.all res.selector, (err, objects)->
         if err then callback err
         else
-          for o in objects
-            ret[o._id + '_' + res.modelName] = o
+          ret[o._id + '_' + res.modelName] = o  for o in objects
         fin()
     , -> sortThem null, ret
 
@@ -46,12 +45,11 @@ module.exports = class Graph
       ids = collections[modelName]
       klass = Base.constructors[modelName]
       selector = {
-        _id:
-          $in: ids.map (id)->
-            if 'string' is typeof id then ObjectId(id)
-            else id
+        _id: $in: ids.map (id)->
+          if 'string' is typeof id then ObjectId(id)
+          else id
       }
-      collectObjects({klass:klass, selector:selector, modelName:modelName})
+      collectObjects { klass, selector, modelName }
 
   # returns object ids from a result set as array
   # returns dict {colections: {'users':[id1,id2,id3]},
