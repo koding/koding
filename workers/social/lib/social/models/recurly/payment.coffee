@@ -35,8 +35,8 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       data.quantity ?= 1  # Default quantity is 1
       data.multiple ?= no # Don't allow multiple subscriptions by default
 
-      user  = buyer = "user_#{account._id}"
-      buyer = "group_#{group._id}"  if data.chargeTo is 'group'
+      user  = buyer = "user_#{account.getId()}"
+      buyer = "group_#{group.getId()}"  if data.chargeTo is 'group'
 
       charge = (subscription)->
         pay = new JRecurlyPayment {
@@ -96,7 +96,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       return callback err  if err
       {nickname, firstName, lastName} = account.profile
       data = {email: user.email, nickname, firstName, lastName}
-      recurly.setAccount "user_#{account._id}", data, callback
+      recurly.setAccount "user_#{account.getId()}", data, callback
 
   # Create group account on Recurly
   @createGroupAccount = (group, callback)->
@@ -109,7 +109,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
           firstName : 'Group'
           lastName  : group.title
           email     : user.email
-        recurly.setAccount "group_#{group._id}", data, callback
+        recurly.setAccount "group_#{group.getId()}", data, callback
 
   # Tell if user can buy an item and expense it to group.
   @canChargeGroup = (group, account, data, callback)->
@@ -147,22 +147,22 @@ module.exports = class JRecurlyPayment extends jraphical.Module
   # List group's payments
   @getGroupPayments = (group, callback)->
     @getExpenses
-      buyer     : "group_#{group._id}"
+      buyer     : "group_#{group.getId()}"
       active    : yes
     , callback
 
   # List user's payments
   @getUserPayments = (account, callback)->
     @getExpenses
-      buyer     : "user_#{account._id}"
+      buyer     : "user_#{account.getId()}"
       active    : yes
     , callback
 
   # List a user's payments expensed to group
   @getUserExpenses = (group, account, callback)->
     @getExpenses
-      buyer     : "group_#{group._id}"
-      user      : "user_#{account._id}"
+      buyer     : "group_#{group.getId()}"
+      user      : "user_#{account.getId()}"
       active    : yes
     , callback
 
@@ -173,7 +173,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
 
     JRecurlyPayment.some pattern, {subscription: 1}, (err, items)->
       return callback error err  if err
-      recurly.getSubscriptions "group_#{group._id}", (err, subs)->
+      recurly.getSubscriptions "group_#{group.getId()}", (err, subs)->
         return callback error err  if err
         uuids = (item.subscription for item in items)
         expenses = 0

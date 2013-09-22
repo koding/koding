@@ -17,6 +17,7 @@ module.exports = class JRecurly extends Base
       ]
 
   @setAccount = secure (client, data, callback)->
+    console.log { arguments }
     {delegate} = client.connection
     JSession   = require '../session'
     JSession.one {clientId: client.sessionToken}, (err, session) =>
@@ -26,25 +27,26 @@ module.exports = class JRecurly extends Base
 
       JUser.fetchUser client, (err, user)->
         data.email = user.email
-        recurly.setAccount "user_#{delegate._id}", data, (err, res)->
-          return callback err  if err
-          recurly.setBilling "user_#{delegate._id}", data, callback
+        recurly.setAccount "user_#{delegate.getId()}", data, (err, res)->
+          return callback err  if err?
+          recurly.setBilling "user_#{delegate.getId()}", data, callback
 
   @getAccount = secure ({connection:{delegate}}, callback)->
-    recurly.getAccount "user_#{delegate._id}", callback
+    recurly.getAccount "user_#{delegate.getId()}", callback
 
   @getTransactions = secure ({connection:{delegate}}, callback)->
-    recurly.getTransactions "user_#{delegate._id}", callback
+    recurly.getTransactions "user_#{delegate.getId()}", callback
 
   @fetchAccount = secure (client, callback)->
     {delegate} = client.connection
     delegate.fetchUser (err, user)->
-      return callback err  if err
+      return callback err  if err?
       {username, firstName, lastName} = delegate.profile
       callback null, {email: user.email, username, firstName, lastName}
 
   @getBalance_ = (account, callback)->
     recurly.getTransactions account, (err, adjs)->
+      return callback err  if err?
       spent = 0
       adjs.forEach (adj)->
         spent += parseInt adj.amount, 10  if adj.status is 'success'
@@ -58,7 +60,7 @@ module.exports = class JRecurly extends Base
 
   @getBalance = secure (client, callback)->
     {delegate} = client.connection
-    @getBalance_ "user_#{delegate._id}", callback
+    @getBalance_ "user_#{delegate.getId()}", callback
 
   @invalidateCacheAndLoad: (constructor, selector, options, callback)->
     cb = -> constructor.all selector, callback

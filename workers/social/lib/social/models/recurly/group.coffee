@@ -4,6 +4,7 @@ JRecurly = require './index'
 module.exports = class JRecurlyGroup extends JRecurly
 
   @setAccount = (client, group, data, callback)->
+    console.log { client, group, data }
     JSession = require '../session'
     JSession.one {clientId: client.sessionToken}, (err, session) =>
     JRecurlyPlan.fetchGroupAccount group, (err, groupAccount) =>

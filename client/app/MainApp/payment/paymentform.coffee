@@ -1,11 +1,13 @@
 class PaymentForm extends KDModalViewWithForms
 
   constructor:(options={}, data)->
-    options.title    or= 'Billing Information'
+    options.title    or= 'Billing information'
     options.width    or= 520
     options.height   or= 'auto'
     options.cssClass or= 'payments-modal'
     options.overlay   ?= yes
+    
+    thisYear = (new Date).getFullYear()
 
     fields =
       cardFirstName       :
@@ -43,12 +45,12 @@ class PaymentForm extends KDModalViewWithForms
         label             : 'Expires'
         itemClass         : KDSelectBox
         selectOptions     : __utils.getMonthOptions()
-        defaultValue      : (new Date().getMonth())+2
+        defaultValue      : (new Date).getMonth() + 2
         nextElementFlat   :
           cardYear        :
             itemClass     : KDSelectBox
-            selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+25))
-            defaultValue  : (new Date().getFullYear())
+            selectOptions : __utils.getYearOptions thisYear, thisYear + 25
+            defaultValue  : thisYear
 
 
     options.tabs     or=
@@ -64,6 +66,7 @@ class PaymentForm extends KDModalViewWithForms
               type              : 'submit'
               loader            : { color : '#fff', diameter : 12 }
           fields                : ($.extend fields, options.additionalFields)
+          callback              : @bound 'handleFormData'
 
     super options, data
 
@@ -80,8 +83,7 @@ class PaymentForm extends KDModalViewWithForms
     input.clearValidationFeedback()  for input in inputs
 
   handleRecurlyResponse:(callback, err) ->
-    return callback yes  unless err
-
+    
     @billingForm.buttons.Save.hideLoader()
 
     recurlyFieldMap =
@@ -122,6 +124,9 @@ class PaymentForm extends KDModalViewWithForms
       $icon.removeClass 'visa mastercard discover amex'
       $icon.addClass cardType  if type
 
+  handleFormData: ->
+    debugger
+  
   required:(msg)->
     rules    : required  : yes
     messages : required  : msg

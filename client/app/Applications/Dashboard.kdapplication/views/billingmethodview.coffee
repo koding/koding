@@ -16,10 +16,8 @@ class BillingMethodView extends JView
       click     : =>
         @loader.show()
         appManager.tell(
-          'Dashboard'
-          'showBillingInfoModal'
-          'group'
-          group
+          'Dashboard' , 'showBillingInfoModal'
+          'group'     , group
           => @loader.hide()
         )
 
@@ -32,7 +30,7 @@ class BillingMethodView extends JView
           <p>#{billing.address1} #{billing.address2}</p>
           <p>#{billing.city} #{billing.state} #{billing.zip}</p>
           """
-        else "Enter Billing Information"
+        else "Enter billing information"
 
       @setBillingInfo cardInfo
 
