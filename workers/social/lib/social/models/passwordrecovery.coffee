@@ -8,7 +8,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   KodingError = require '../error'
   JUser       = require './user'
-  JGuest      = require './guest'
 
   @share()
 
@@ -63,7 +62,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @recoverPasswordByUsername = secure (client, username, callback)->
     JUser = require './user'
-    JGuest = require './guest'
     {delegate} = client.connection
     unless delegate.type is 'unregistered'
       callback new KodingError 'You are already logged in.'
@@ -74,7 +72,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @recoverPasswordByEmail = secure (client, email, callback)->
     JUser = require './user'
-    JGuest = require './guest'
     {delegate} = client.connection
     unless delegate.type is 'unregistered'
       callback new KodingError 'You are already logged in.'
