@@ -16,8 +16,8 @@ module.exports = class OAuth extends jraphical.Module
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
         callback null, url
       when "facebook"
-        {clientId, redirectUri} = KONFIG.github
-        url = "https://facebook.com/dialog/oauth?client_id=#{facebook.clientId}&redirect_uri=#{facebook.redirectUri}"
+        {clientId, redirectUri} = KONFIG.facebook
+        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}"
         callback null, url
       when "odesk"
         @getOdeskUrl (err, url, requestToken, requestTokenSecret)=>

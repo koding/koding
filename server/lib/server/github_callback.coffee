@@ -6,13 +6,14 @@
 {github} = KONFIG
 http     = require "https"
 
-saveOauthAndRenderPopup = (resp, res)->
-  saveOauthToSession resp, ->
+saveOauthAndRenderPopup = (resp, res, clientId)->
+  saveOauthToSession resp, clientId, ->
     renderOauthPopup res, {error:null, provider:"github"}
 
 module.exports = (req, res) ->
   {provider}    = req.params
   {code}        = req.query
+  {clientId}    = req.cookies
   access_token  = null
 
   unless code
@@ -48,11 +49,11 @@ module.exports = (req, res) ->
         [firstName, restOfNames...] = name.split ' '
         lastName = restOfNames.join ' '
 
-      {clientId} = req.cookies
-      resp = {provider, firstName, lastName, email, clientId}
+      resp = {provider, firstName, lastName, email}
       resp["foreignId"] = String(id)
       resp["token"]     = access_token
       resp["username"]  = login
+      resp["provider"]  = "github"
 
       # Some users don't have email in public profile, so we make 2nd call
       # to get them.
@@ -65,7 +66,7 @@ module.exports = (req, res) ->
         r = http.request options, (newResp)-> fetchUserEmail newResp, resp
         r.end()
       else
-        saveOauthAndRenderPopup resp, res
+        saveOauthAndRenderPopup resp, res, clientId
 
   fetchUserEmail = (userEmailResp, originalResp)->
     rawResp = ""
@@ -74,7 +75,7 @@ module.exports = (req, res) ->
       email = JSON.parse(rawResp)[0]
       originalResp.email = email
 
-      saveOauthAndRenderPopup originalResp, res
+      saveOauthAndRenderPopup originalResp, res, clientId
 
   options =
     host   : "github.com"
