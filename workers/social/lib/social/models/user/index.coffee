@@ -789,7 +789,13 @@ Your password has been changed!  If you didn't request this change, please conta
         callback err
       else
         if session.foreignAuth
-          @update {username}, $set: foreignAuth: session.foreignAuth, callback
+          foreignAuth                      = session.foreignAuth
+          provider                         = Object.keys(foreignAuth)[0]
+          query                            = {}
+          query["foreignAuth.#{provider}"] = foreignAuth[provider]
+
+          @update {username}, $set: query, ->
+            session.update $unset: foreignAuth: "", callback
         else
           callback()
 

@@ -13,37 +13,31 @@ module.exports = (req, res) ->
       return
 
     {username} = session.data
-    JUser.one {username}, (err, user) =>
-      if err
-        console.log "odesk err: fetching user", err
-        renderOauthPopup res, {error:err, provider:"odesk"}
-        return
+    {requestTokenSecret} = session.foreignAuth.odesk
+    Odesk                = require 'node-odesk'
+    {key, secret}        = KONFIG.odesk
 
-      {requestTokenSecret} = user.foreignAuth.odesk
-      Odesk                = require 'node-odesk'
-      {key, secret}        = KONFIG.odesk
+    o = new Odesk key, secret
+    o.OAuth.getAccessToken oauth_token, requestTokenSecret, oauth_verifier,\
+      (err, accessToken, accessTokenSecret) ->
+        if err
+          console.log "odesk err: getting tokens", err
+          renderOauthPopup res, {error:err, provider:"odesk"}
+          return
 
-      o = new Odesk key, secret
-      o.OAuth.getAccessToken oauth_token, requestTokenSecret, oauth_verifier,\
-        (err, accessToken, accessTokenSecret) ->
+        o.OAuth.accessToken       = accessToken
+        o.OAuth.accessTokenSecret = accessTokenSecret
+
+        o.get 'auth/v1/info', (err, data)->
           if err
-            console.log "odesk err: getting tokens", err
+            console.log "odesk err, fetching user info", err, data
             renderOauthPopup res, {error:err, provider:"odesk"}
             return
 
-          o.OAuth.accessToken       = accessToken
-          o.OAuth.accessTokenSecret = accessTokenSecret
+          odesk                   = session.foreignAuth.odesk
+          odesk.accessToken       = accessToken
+          odesk.accessTokenSecret = accessTokenSecret
+          odesk.foreignId         = data.auth_user.uid
 
-          o.get 'auth/v1/info', (err, data)->
-            if err
-              console.log "odesk err, fetching user info", err, data
-              renderOauthPopup res, {error:err, provider:"odesk"}
-              return
-
-            odesk                   = user.foreignAuth.odesk
-            odesk.accessToken       = accessToken
-            odesk.accessTokenSecret = accessTokenSecret
-            odesk.foreignId         = data.auth_user.uid
-
-            session.update $set: {"foreignAuth.odesk": odesk}, ->
-              renderOauthPopup res, {error:null, provider:"odesk"}
+          session.update $set: {"foreignAuth.odesk": odesk}, ->
+            renderOauthPopup res, {error:null, provider:"odesk"}
