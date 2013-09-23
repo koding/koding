@@ -10,7 +10,7 @@ class TeamworkApp extends KDObject
       joinModalTitle      : "Join a coding session"
       joinModalContent    : "<p>Paste the session key that you received and start coding together.</p>"
       shareSessionKeyInfo : "<p>This is your session key, you can share this key with your friends to work together.</p>"
-      firebaseInstance    : "teamwork-local"
+      firebaseInstance    : "kd-prod-1"
       sessionKey          : @getOptions().sessionKey
       enableChat          : yes
       panels              : [
