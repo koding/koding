@@ -222,10 +222,10 @@ class KodingAppsController extends KDController
         callback err
 
   putDefaultShortcutsBack:(callback)->
-    if @appStorage.getValue 'shortcuts'
-      return  @utils.defer -> callback null
+    # if @appStorage.getValue 'shortcuts'
+    #   return  @utils.defer -> callback null
 
-    @appStorage.reset()
+    # @appStorage.reset()
     @appStorage.setValue 'shortcuts', defaultShortcuts, (err)->
       callback? err
 
@@ -329,7 +329,7 @@ class KodingAppsController extends KDController
   # #
 
   hasForceUpdate: (appInstance) ->
-    manifest                 = appInstance.getOptions()
+    manifest                 = @constructor.manifests[appInstance.getOptions().name]
     {devMode, name, version} = manifest
     forceUpdate              = @getAppUpdateType(name) is "required"
     updateAvailable          = @isAppUpdateAvailable(name, version)
@@ -872,10 +872,18 @@ class KodingAppsController extends KDController
       icon        : 'icn-ace.png'
       description : 'Code Editor'
       author      : 'Mozilla'
+      route       : '/Develop/Ace'
     Terminal      :
       name        : 'Terminal'
       type        : 'koding-app'
       icon        : 'icn-terminal.png'
       description : 'Koding Terminal'
       author      : 'Koding'
-      path        : 'WebTerm'
+      route       : '/Develop/Terminal'
+    Teamwork      :
+      name        : 'Teamwork'
+      type        : 'koding-app'
+      icon        : 'teamwork/icon.256.png'
+      description : 'Koding\'s official collaboration app'
+      author      : 'Koding'
+      route       : '/Develop/Teamwork'
