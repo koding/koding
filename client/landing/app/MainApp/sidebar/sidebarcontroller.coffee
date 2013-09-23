@@ -46,7 +46,7 @@ class SidebarController extends KDViewController
     KD.whoami().fetchRole? (err, role)=>
       if role is "super-admin"
         @getView().navController.addItem
-          title    : "Admin Panel"
+          title    : "Admin panel"
           type     : "admin"
           loggedIn : yes
           callback : -> new AdminModal

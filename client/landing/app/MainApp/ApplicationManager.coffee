@@ -31,7 +31,7 @@ class ApplicationManager extends KDObject
     # set unload listener
     windowController = @getSingleton 'windowController'
     windowController.addUnloadListener 'window', =>
-      safeToUnload = no for app of @appControllers when app in ['Ace', 'WebTerm']
+      safeToUnload = no for own app of @appControllers when app in ['Ace', 'WebTerm']
       return safeToUnload ? yes
 
   setMissingRoute:(appController, appView, appOptions)->
@@ -87,10 +87,11 @@ class ApplicationManager extends KDObject
 
       # if there is no registered appController
       # we assume it should be a 3rd party app
-      # that's why it should be run via kodingappscontroller
+      # that's why it should be run via kodingAppsController
 
-      if not appOptions?
+      if not appOptions? and not options.avoidRecursion?
         return @fetchManifests name, (err)=>
+          options.avoidRecursion = yes
           unless err
           then @open name, options, callback
           else do defaultCallback
@@ -134,7 +135,7 @@ class ApplicationManager extends KDObject
 
       return callback? yes  if err or not manifests
 
-      for name, manifest of manifests when name is appName
+      for own name, manifest of manifests when name is appName
 
         err = no
 
@@ -190,7 +191,15 @@ class ApplicationManager extends KDObject
     appOptions            = $.extend {}, true, KD.getAppOptions name
     appOptions.params     = params
     @register appInstance = new AppClass appOptions  if AppClass
+
+    if appOptions.thirdParty
+      if KD.getSingleton("kodingAppsController").hasForceUpdate appInstance
+        @emit "AppCouldntBeCreated", appInstance
+        @utils.defer => @quitByName appOptions.name, yes
+        return no
+
     @utils.defer =>
+      return @emit "AppCouldntBeCreated"  unless appInstance
       @emit "AppCreated", appInstance
       if appOptions.thirdParty
         KD.getSingleton("kodingAppsController").putAppResources appInstance, callback
@@ -256,7 +265,7 @@ class ApplicationManager extends KDObject
   getByView: (view)->
 
     appInstance = null
-    for name, apps of @appControllers
+    for own name, apps of @appControllers
       for appController in apps.instances
         if view.getId() is appController.getView?()?.getId()
           appInstance = appController
