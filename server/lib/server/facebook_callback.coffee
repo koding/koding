@@ -14,7 +14,7 @@ module.exports = (req, res) ->
   {code}       = req.query
 
   unless code
-    renderOauthPopup res, {error:{message:"No code"}, provider:"facebook"}
+    renderOauthPopup res, {error:"No code", provider:"facebook"}
     return
 
   url  = "https://graph.facebook.com/oauth/access_token?"

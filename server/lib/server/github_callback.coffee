@@ -17,7 +17,7 @@ module.exports = (req, res) ->
   access_token  = null
 
   unless code
-    renderOauthPopup res, {error:{message:"No code"}, provider:"github"}
+    renderOauthPopup res, {error:"No code", provider:"github"}
     return
 
   headers =
