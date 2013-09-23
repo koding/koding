@@ -44,7 +44,6 @@ nodePath   = require 'path'
 http       = require "https"
 {JSession} = koding.models
 app        = express()
-jade       = require 'jade'
 
 {
   error_
@@ -293,13 +292,9 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get "/-/oauth/odesk/callback", require "./odesk_callback"
-
-app.get "/-/oauth/github/callback", require "./github_callback"
-
+app.get "/-/oauth/odesk/callback",    require "./odesk_callback"
+app.get "/-/oauth/github/callback",   require "./github_callback"
 app.get "/-/oauth/facebook/callback", require "./facebook_callback"
-
-#app.get "/-/oauth/facebook/callback", (req, res)->
 
 app.get '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models
