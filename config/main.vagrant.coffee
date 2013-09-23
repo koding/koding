@@ -244,4 +244,4 @@ module.exports =
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
-    redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+    redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"

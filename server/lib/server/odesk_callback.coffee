@@ -1,7 +1,10 @@
-koding             = require './bongo'
-{renderOauthPopup} = require './helpers'
-Odesk              = require 'node-odesk'
-{key, secret}      = KONFIG.odesk
+{
+  renderOauthPopup
+  saveOauthToSession
+}             = require './helpers'
+Odesk         = require 'node-odesk'
+koding        = require './bongo'
+{key, secret} = KONFIG.odesk
 
 module.exports = (req, res) ->
   {oauth_token, oauth_verifier} = req.query
@@ -40,7 +43,7 @@ module.exports = (req, res) ->
           odesk.accessToken       = accessToken
           odesk.accessTokenSecret = accessTokenSecret
           odesk.foreignId         = data.auth_user.uid
-          odes.provider           = "odesk"
+          odesk.provider          = "odesk"
 
           saveOauthToSession odesk, clientId, (err)->
             if err

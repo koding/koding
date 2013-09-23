@@ -1,6 +1,6 @@
 {
-  saveOauthToSession
   renderOauthPopup
+  saveOauthToSession
 }        = require './helpers'
 
 {github} = KONFIG
