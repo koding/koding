@@ -100,7 +100,6 @@ class FSFile extends FSItem
 
     return queue
 
-  # TODO: This method has too many logic with chunks etc. should be retought later. -- fka
   saveBinary:(contents, callback)->
 
     @abortRequested     = no
