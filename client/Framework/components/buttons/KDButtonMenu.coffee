@@ -2,7 +2,7 @@ class JButtonMenu extends JContextMenu
 
   constructor:(options = {}, data)->
 
-    options.cssClass        = @utils.curryCssClass "kdbuttonmenu", options.cssClass
+    options.cssClass        = @utils.curry "kdbuttonmenu", options.cssClass
     # options.type            = "buttonmenu"
     options.listViewClass or= JContextMenuTreeView
     # options.offset        or= {}
