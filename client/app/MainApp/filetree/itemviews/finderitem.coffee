@@ -10,6 +10,7 @@ class NFinderItem extends JTreeItemView
     @isLoading        = no
     @beingDeleted     = no
     @beingEdited      = no
+    @beingProgress    = no
 
     childConstructor = switch data.type
       when "vm"         then NVMItemView
@@ -26,8 +27,6 @@ class NFinderItem extends JTreeItemView
       @childView.setDomAttributes
         title : FSHelper.plainPath data.name
 
-    @progress = new KDProgressBarView
-
     @on "ItemBeingDeleted", =>
       data.removeLocalFileInfo()
 
@@ -35,11 +34,8 @@ class NFinderItem extends JTreeItemView
       fileInfo = data.getLocalFileInfo()
       if fileInfo.lastUploadedChunk
         {lastUploadedChunk, totalChunks} = fileInfo
-        if lastUploadedChunk is totalChunks
-          data.removeLocalFileInfo()
-          @updateProgressView 100
-        else
-          @updateProgressView 100 * lastUploadedChunk / totalChunks
+        data.removeLocalFileInfo() if lastUploadedChunk is totalChunks
+        @showProgressView 100 * lastUploadedChunk / totalChunks
 
   mouseDown:-> yes
 
@@ -53,11 +49,16 @@ class NFinderItem extends JTreeItemView
       @renameView.destroy()
       delete @renameView
 
+    if @progressView
+      @progressView.destroy()
+      delete @progressView
+
     @childView.show()
     @beingDeleted = no
     @beingEdited = no
+    @beingProgress = no
     @callback = null
-    @unsetClass "being-deleted being-edited"
+    @unsetClass "being-deleted being-edited progress"
     @getDelegate().setKeyView()
 
   confirmDelete:(callback)->
@@ -93,16 +94,20 @@ class NFinderItem extends JTreeItemView
       @resetView()
     @renameView.input.setFocus()
 
-  updateProgressView: (percent=0, determinate=yes)->
-    @progress.setOption "determinate", determinate
-    @progress.updateBar percent, "%", ""
+  showProgressView: (percent=0, determinate=yes)->
+
+    unless @progressView
+      @addSubView @progressView = new KDProgressBarView
+
+    @progressView.setOption "determinate", determinate
+    @progressView.updateBar percent, "%", ""
     if 0 <= percent < 100
-    then @setClass   "progress"
-    else @utils.wait 1000, => @unsetClass "progress"
+    then @setClass "progress"
+    else @utils.wait 1000, =>
+      @resetView()
 
   pistachio:->
 
     """
     {{> @childView}}
-    {{> @progress}}
     """
