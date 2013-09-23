@@ -28,7 +28,7 @@ class BillingForm extends PaymentForm
         nextElementFlat   :
           country         :
             itemClass     : KDSelectBox
-            defaultValue  :  data.country or defaultCountry
+            defaultValue  : data.country or defaultCountry
 
       phone               :
         label             : 'Phone'
