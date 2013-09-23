@@ -24,8 +24,6 @@ module.exports = class JSession extends Model
       username      : String
       guestId       : Number
       terminalId    : String
-      oAuthCodes    :
-        github      : String
       sessionBegan  :
         type        : Date
         default     : -> new Date
@@ -40,7 +38,12 @@ module.exports = class JSession extends Model
           firstName : String
           lastName  : String
           email     : String
-        odesk       : Object
+        odesk                :
+          accessToken        : String
+          accessTokenSecret  : String
+          foreignId          : String
+          requestToken       : String
+          requestTokenSecret : String
     sharedEvents    :
       instance      : [
         { name: 'updateInstance' }
