@@ -82,13 +82,13 @@ class PaymentController extends KDController
       else if vmInfo.type is 'expensed'          then 'expensed'
       else 'group'
 
-    @getSubscription @getGroup(), type, vmInfo.planCode,\
+    @getSubscription getGroup(), type, vmInfo.planCode,\
       @createDeleteConfirmationModal.bind this, type, callback
 
   # views
 
   updateCreditCardModal:(data, callback) ->
-    @modal = new PaymentForm {callback}
+    @modal = new PaymentFormModal {callback}
 
     form = @modal.modalTabs.forms['Billing Info']
     form.inputs[k]?.setValue v  for k, v of data
@@ -97,11 +97,14 @@ class PaymentController extends KDController
     return @modal
 
   showBillingInfoModal:(type, billingInfo, callback)->
-    form = new BillingForm { type }, billingInfo
+    modal = new BillingFormModal { type }, billingInfo
+    modal.on 'PaymentInfoSubmitted', (formData) ->
+      getGroup().setBillingInfo formData, -> debugger
     @loadCountryData (err, countries, countryOfIp) =>
-      form.setCountryData { countries, countryOfIp }
+      modal.setCountryData { countries, countryOfIp }
       callback null
-    return form
+
+    return this
 
   loadCountryData:(callback)->
     if @countries or @countryOfIp
