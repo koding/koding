@@ -555,6 +555,8 @@ module.exports = [
   # VMs
 
   "app/Applications/Environments.kdapplication/views/scene/environmentcontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentdomaincontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentmachinecontainer.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentitemjointview.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentitemsview.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentruleitem.coffee",
