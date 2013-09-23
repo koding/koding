@@ -15,13 +15,12 @@ class EnvironmentContainer extends KDDiaContainer
     pos = x: 20, y: 60 + @diaCount() * 50
     super diaObj, pos
     @updateHeight()
-    diaObj.on "KDObjectWillBeDestroyed", @refresh
+    
+    diaObj.on "KDObjectWillBeDestroyed",=> @refresh diaObj
 
   refresh:=>
-    @updateHeight()
-    for key, dia of @dias
-      #setY 
-    
+    log arguments
+    #Recalculate item positions and container height
 
   diaCount:-> Object.keys(@dias).length
   updateHeight:-> @setHeight 80 + @diaCount() * 50

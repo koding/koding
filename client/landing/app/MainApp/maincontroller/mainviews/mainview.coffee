@@ -1,15 +1,16 @@
 class MainView extends KDView
 
+  removePulsing = ->
+    if el = document.getElementById 'main-loading'
+      el.children[0].classList.add 'out'
+      KD.utils.wait 750, ->
+        el.classList.add 'out'
+        KD.utils.wait 750, ->
+          el.parentElement.removeChild el
+
   viewAppended:->
 
-    if el = document.getElementById 'main-loading'
-      KD.utils.wait 750, ->
-        el.children[0].classList.add 'out'
-        KD.utils.wait 250, ->
-          el.classList.add 'out'
-          KD.utils.wait 750, ->
-            el.parentElement.removeChild el
-
+    @bindPulsingRemove()
     @bindTransitionEnd()
     # @addServerStack()
     @addHeader()
@@ -21,6 +22,25 @@ class MainView extends KDView
     @listenWindowResize()
 
     @utils.defer => @_windowDidResize()
+
+  bindPulsingRemove:->
+    router     = KD.getSingleton 'router'
+    appManager = KD.getSingleton 'appManager'
+
+    appManager.once 'AppCouldntBeCreated', removePulsing
+
+    appManager.on 'AppCreated', (appInstance)->
+      options = appInstance.getOptions()
+      {title, name, appEmitsReady} = options
+      routeArr = location.pathname.split('/')
+      routeArr.shift()
+      checkedRoute = if routeArr.first is "Develop" then routeArr.last else routeArr.first
+
+      if checkedRoute is name or checkedRoute is title
+        if appEmitsReady
+          appView = appInstance.getView()
+          appView.ready removePulsing
+        else removePulsing()
 
   putAbout:->
 
@@ -83,12 +103,12 @@ class MainView extends KDView
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
 
-  addServerStack:->
-    @addSubView @serverStack = new KDView
-      domId : "server-rack"
-      click : ->
-        $('body').removeClass 'server-stack'
-        $('.kdoverlay').remove()
+  # addServerStack:->
+  #   @addSubView @serverStack = new KDView
+  #     domId : "server-rack"
+  #     click : ->
+  #       $('body').removeClass 'server-stack'
+  #       $('.kdoverlay').remove()
 
   addHeader:->
 

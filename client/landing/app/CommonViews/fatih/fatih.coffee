@@ -80,7 +80,7 @@ class Fatih extends KDModalView
 
       @addDefaultPlugins()
 
-      @plugins[plugin].registerIndex() for plugin of @plugins when @isUserLoggedIn()
+      @plugins[plugin].registerIndex() for own plugin of @plugins when @isUserLoggedIn()
 
     # @on "ReceivedClickElsewhere", => @destroy()
 
@@ -110,7 +110,7 @@ class Fatih extends KDModalView
 
   detectPlugin: (pluginKeyword) ->
     plugin = null
-    for currentPlugin of @plugins
+    for own currentPlugin of @plugins
       if @plugins[currentPlugin].getOption("keyword") is pluginKeyword
         plugin = @plugins[currentPlugin]
 
@@ -121,7 +121,7 @@ class Fatih extends KDModalView
 
   updatePluginsKeyword: (prefs) ->
     return unless prefs
-    for plugin of @plugins
+    for own plugin of @plugins
       keyword = prefs.aliases?[plugin]
       @plugins[plugin].setOption "keyword", keyword if keyword
       # log "#{plugin}'s keyword set to #{prefs.aliases[plugin]}"
@@ -132,7 +132,7 @@ class Fatih extends KDModalView
       searchablePlugins = prefs.search
       hasFoundAnyPlugin = no
 
-      for plugin of searchablePlugins when searchablePlugins[plugin] is yes
+      for own plugin of searchablePlugins when searchablePlugins[plugin] is yes
         plugin = @plugins[plugin]
         @activePlugin = plugin
         plugin.emit "FatihQueryPerformed", keyword
