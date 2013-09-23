@@ -27,13 +27,13 @@ class EnvironmentItem extends KDDiaObject
     ctxMenuContent['Focus On This ' + kind] =
       callback       : -> @destroy()
     ctxMenuContent['Unfocus']               =
-      callback       : -> 
+      callback       : ->
     ctxMenuContent['Edit Bindings']         =
       separator      : yes
       callback       : ->
     ctxMenuContent['Color Tag']             =
       separator      : yes
-      children       : 
+      children       :
         customView   : new ColorSelection
           parentItem : @
     ctxMenuContent['Rename']                =
@@ -119,7 +119,7 @@ class ColorSelection extends KDCustomHTMLView
       @addSubView new KDCustomHTMLView
         cssClass    : "environments-cs-color"
         color       : color
-        attributes  : 
+        attributes  :
           style     : "background-color : #{color}"
         click : ->
           parentItem.setColorTag @getOption "color"
