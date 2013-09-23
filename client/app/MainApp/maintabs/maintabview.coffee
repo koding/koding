@@ -98,7 +98,7 @@ class MainTabView extends KDTabView
   createTabPane:(options = {}, mainView)->
 
     o = {}
-    o.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
+    o.cssClass = @utils.curry "content-area-pane", options.cssClass
     o.class  or= KDView
 
     # adding a domId is a temporary hack

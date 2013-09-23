@@ -10,7 +10,7 @@ class KDInputRadioGroup extends KDInputView
 
   setDomElement:->
     options = @getOptions()
-    @domElement = $ "<fieldset class='#{@utils.curryCssClass 'radiogroup kdinput', options.cssClass}'></fieldset>"
+    @domElement = $ "<fieldset class='#{@utils.curry 'radiogroup kdinput', options.cssClass}'></fieldset>"
 
     for radioOptions, i in options.radios
       radioOptions.visible   ?= yes

@@ -72,8 +72,11 @@ func GetMemTarget(host string) (*Target, string, error) {
 	var err error
 	var target = &Target{}
 	dataSource := "cache"
+
 	target, ok := getCacheTarget(host)
-	if !ok {
+	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
+		fmt.Printf("[%s] lookup host '%s' from db\n", time.Now().Format(time.Stamp), host)
+
 		dataSource = "db"
 		target, err = GetTarget(host)
 		if err != nil {
@@ -81,7 +84,7 @@ func GetMemTarget(host string) (*Target, string, error) {
 		}
 
 		if target.UseCache {
-			go registerCacheTarget(host, target)
+			registerCacheTarget(host, target)
 		}
 	}
 
@@ -357,8 +360,8 @@ func getCacheTarget(host string) (*Target, bool) {
 func registerCacheTarget(host string, target *Target) {
 	targetsLock.Lock()
 	defer targetsLock.Unlock()
+	fmt.Printf("adding target '%s' with '%s' ttl\n", host, target.CacheTimeout.String())
 	targets[host] = *target
-	go cacheInvalidator(host, target.CacheTimeout)
 }
 
 // deleteCacheTarget is used to remove the incoming host from the cache. It's
@@ -366,20 +369,8 @@ func registerCacheTarget(host string, target *Target) {
 func deleteCacheTarget(host string) {
 	targetsLock.Lock()
 	defer targetsLock.Unlock()
-	fmt.Printf("removing target from cache\n", host)
+	fmt.Printf("removing target '%s' from cache\n", host)
 	delete(targets, host)
-}
-
-// cacheInvalidator invalidates the cache for the host after timeout has been expired.
-func cacheInvalidator(host string, timeout time.Duration) {
-	fmt.Printf("invalidator started for '%s'\n", host)
-	if timeout == time.Duration(0) {
-		return // don't delete from cache if it set to 0
-	}
-
-	// negative duration is no-op, means it will not panic
-	time.Sleep(timeout)
-	deleteCacheTarget(host)
 }
 
 // cacheCleaner is used for cache invalidation. It is started whenever you call

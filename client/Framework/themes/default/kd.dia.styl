@@ -1,0 +1,78 @@
+@import "./client/Framework/themes/default/kdfn"
+
+div.kddia-scene
+  cursor             default
+  width              auto
+  bg                 color, rgba(255,255,255,0.9)
+  rounded            6px
+  canvas
+    pointer-events   none
+    left             0
+    top              0
+    abs()
+
+div.kddia-container
+  top                20px
+  left               20px
+  width              300px
+  height             300px
+  rounded            6px
+  abs()
+
+div.kddia-object
+  width              60px
+  height             60px
+  border             1px solid #aaa
+  overflow           visible
+  abs()
+
+  &.square
+    background-color   #aaa
+    rounded            6px
+
+  &.circle
+    background-color   lightyellow
+    rounded            30px
+
+div.kddia-joint
+  width              10px
+  height             10px
+  border             1px solid #aaa
+  bg                 color, white
+  rounded            30px
+  borderBox()
+  abs()
+
+  &.deleteMode
+    width            16px
+    height           16px
+    z-index           2
+
+  &:hover
+    bg                color, orange
+
+  &.top
+    top              -5px
+    left             50%
+    margin-left      -5px
+
+  &.right
+    right            -5px
+    top              50%
+    margin-top       -5px
+    &.deleteMode
+      margin-top     -8px
+      right          -8px
+
+  &.bottom
+    bottom           -5px
+    left             50%
+    margin-left      -5px
+
+  &.left
+    left             -5px
+    top              50%
+    margin-top       -5px
+    &.deleteMode
+      margin-top     -8px
+      left           -8px
