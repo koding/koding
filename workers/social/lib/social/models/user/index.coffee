@@ -144,7 +144,8 @@ module.exports = class JUser extends jraphical.Module
     {delegate} = client.connection
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
-    unless confirmUsername is delegate.profile.nickname
+    unless confirmUsername is delegate.profile.nickname or
+           delegate.can 'administer accounts'
       return callback createKodingError "You must confirm this action!"
 
     @createGuestUsername (err, username) =>
