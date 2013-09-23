@@ -240,7 +240,7 @@ config =
       key           : 1
       secret        : 1
     facebook        :
-      key           : 1
-      secret        : 1
+      clientId      : 1
+      clientSecret  : 1
       redirectUri   : 1
 module.exports = config
