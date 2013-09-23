@@ -2,7 +2,7 @@ class ClassroomCourseView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curryCssClass "classroom-course", options.name
+    options.cssClass = KD.utils.curry "classroom-course", options.name
 
     super options, data
 

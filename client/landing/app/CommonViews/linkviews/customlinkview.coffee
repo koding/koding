@@ -3,7 +3,7 @@ class CustomLinkView extends KDCustomHTMLView
   constructor:(options = {}, data = {})->
 
     options.tagName or= 'a'
-    options.cssClass  = KD.utils.curryCssClass 'custom-link-view', options.cssClass
+    options.cssClass  = KD.utils.curry 'custom-link-view', options.cssClass
     data.title        ?= options.title
 
     options.attributes ?= {}
@@ -19,7 +19,7 @@ class CustomLinkView extends KDCustomHTMLView
 
     if options.icon
       options.icon.tagName  = 'span'
-      options.icon.cssClass = KD.utils.curryCssClass "icon", options.icon.cssClass
+      options.icon.cssClass = KD.utils.curry "icon", options.icon.cssClass
 
       @icon = new KDCustomHTMLView options.icon
 
