@@ -5,8 +5,6 @@
 
 {github} = KONFIG
 http     = require "https"
-express  = require 'express'
-app      = express()
 
 saveOauthAndRenderPopup = (resp, res)->
   saveOauthToSession resp, ->
@@ -14,7 +12,7 @@ saveOauthAndRenderPopup = (resp, res)->
 
 module.exports = (req, res) ->
   {provider}    = req.params
-  code          = req.query.code
+  {code}        = req.query
   access_token  = null
 
   unless code
