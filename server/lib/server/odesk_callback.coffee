@@ -1,5 +1,7 @@
 koding             = require './bongo'
 {renderOauthPopup} = require './helpers'
+Odesk              = require 'node-odesk'
+{key, secret}      = KONFIG.odesk
 
 module.exports = (req, res) ->
   {oauth_token, oauth_verifier} = req.query
@@ -14,9 +16,8 @@ module.exports = (req, res) ->
 
     {username} = session.data
     {requestTokenSecret} = session.foreignAuth.odesk
-    Odesk                = require 'node-odesk'
-    {key, secret}        = KONFIG.odesk
 
+    # Get access token with tokens
     o = new Odesk key, secret
     o.OAuth.getAccessToken oauth_token, requestTokenSecret, oauth_verifier,\
       (err, accessToken, accessTokenSecret) ->
@@ -28,6 +29,7 @@ module.exports = (req, res) ->
         o.OAuth.accessToken       = accessToken
         o.OAuth.accessTokenSecret = accessTokenSecret
 
+        # Get user info with access token
         o.get 'auth/v1/info', (err, data)->
           if err
             console.log "odesk err, fetching user info", err, data

@@ -23,6 +23,7 @@ module.exports = (req, res) ->
     "Accept"     : "application/json"
     "User-Agent" : "Koding"
 
+  # Get access token with code
   authorizeUser = (authUserResp)->
     rawResp = ""
     authUserResp.on "data", (chunk) -> rawResp += chunk
@@ -37,6 +38,7 @@ module.exports = (req, res) ->
         r = http.request options, fetchUserInfo
         r.end()
 
+  # Get user info with access token
   fetchUserInfo = (userInfoResp) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk

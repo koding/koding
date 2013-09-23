@@ -23,6 +23,7 @@ module.exports = (req, res) ->
   url += "client_secret=#{facebook.clientSecret}&"
   url += "code=#{code}"
 
+  # Get access token with code
   http.get url, (httpResp)->
     rawResp = ""
     httpResp.on "data", (chunk) -> rawResp += chunk
@@ -36,9 +37,10 @@ module.exports = (req, res) ->
         r = http.request options, fetchUserInfo
         r.end()
       else
-        console.log "facebook err, no access token", err
+        console.log "facebook err, no access token", rawResp
         renderOauthPopup res, {error:"No access token", provider:"facebook"}
 
+  # Get user info with access token
   fetchUserInfo = (userInfoResp) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
