@@ -49,7 +49,7 @@ class PaymentForm extends KDModalViewWithForms
         nextElementFlat   :
           cardYear        :
             itemClass     : KDSelectBox
-            selectOptions : __utils.getYearOptions thisYear, thisYear + 25
+            selectOptions : (__utils.getYearOptions thisYear, thisYear + 25)
             defaultValue  : thisYear
 
 
@@ -66,7 +66,6 @@ class PaymentForm extends KDModalViewWithForms
               type              : 'submit'
               loader            : { color : '#fff', diameter : 12 }
           fields                : ($.extend fields, options.additionalFields)
-          callback              : @bound 'handleFormData'
 
     super options, data
 
@@ -123,9 +122,6 @@ class PaymentForm extends KDModalViewWithForms
     unless $icon.hasClass cardType
       $icon.removeClass 'visa mastercard discover amex'
       $icon.addClass cardType  if type
-
-  handleFormData: ->
-    debugger
   
   required:(msg)->
     rules    : required  : yes

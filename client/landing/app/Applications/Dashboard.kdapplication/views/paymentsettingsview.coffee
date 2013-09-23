@@ -6,8 +6,8 @@ class GroupPaymentSettingsView extends JView
     group = @getData()
 
     formOptions =
-      callback:(formData)=>
-        saveButton = @settingsForm.buttons.Save
+      callback: (formData) =>
+        { Save: saveButton } = @settingsForm.buttons
 
         if formData['allow-over-usage']
           if formData['require-approval']
@@ -19,12 +19,12 @@ class GroupPaymentSettingsView extends JView
 
         # TODO: Delete shared VM if it's disabled?
 
-        group.updateBundle
-          overagePolicy: overagePolicy
-          sharedVM     : formData['shared-vm']
-          allocation   : formData.allocation
-        , ->
-          saveButton.hideLoader()
+        updateOptions = 
+          overagePolicy : overagePolicy
+          sharedVM      : formData['shared-vm']
+          allocation    : formData.allocation
+
+        group.updateBundle updateOptions, -> saveButton.hideLoader()
 
       buttons:
         Save                :
@@ -116,20 +116,24 @@ class GroupPaymentSettingsView extends JView
     group.fetchBundle (err, bundle)=>
       if err or not bundle
         return
+
+      { fields, inputs } = @settingsForm
         
       if bundle.allocation
-        @settingsForm.inputs.allocation.setValue bundle.allocation
+        inputs.allocation.setValue bundle.allocation
 
       if bundle.sharedVM
-        @settingsForm.inputs.sharedVM.setOn()
+        inputs.sharedVM.setOn()
 
-      @settingsForm.fields.approval.hide()
+      fields.approval.hide()
+      
       if bundle.overagePolicy is "by permission"
-        @settingsForm.inputs.overagePolicy.setOn()
-        @settingsForm.inputs.approval.setOn()
-        @settingsForm.fields.approval.show()
+        inputs.overagePolicy.setOn()
+        inputs.approval.setOn()
+        fields.approval.show()
+
       else if bundle.overagePolicy is "allowed"
-        @settingsForm.inputs.overagePolicy.setOn()
-        @settingsForm.fields.approval.show()
+        inputs.overagePolicy.setOn()
+        fields.approval.show()
 
   pistachio:-> "{{> @settingsForm}}"
