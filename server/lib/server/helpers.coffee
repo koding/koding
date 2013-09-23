@@ -95,22 +95,11 @@ isLoggedIn = (req, res, callback)->
         then callback err, no, account
         else callback null, yes, account
 
-saveOauthToSession = (resp, callback)->
+saveOauthToSession = (resp, clientId, callback)->
   {JSession} = koding.models
-  { provider, access_token, id, login
-    email, firstName, lastName, clientId } = resp
+  query = {"foreignAuth.#{resp.provider}" : resp}
 
-  foreignAuth = {}
-  foreignAuth[provider] = {
-    token     : access_token
-    foreignId : String(id)
-    username  : login
-    email
-    firstName
-    lastName
-  }
-
-  JSession.update { clientId }, $set:{ foreignAuth }, callback
+  JSession.update { clientId }, $set:query, callback
 
 renderOauthPopup = (res, locals)->
   {projectRoot}    = KONFIG

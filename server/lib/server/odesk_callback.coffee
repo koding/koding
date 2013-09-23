@@ -40,8 +40,9 @@ module.exports = (req, res) ->
           odesk.accessToken       = accessToken
           odesk.accessTokenSecret = accessTokenSecret
           odesk.foreignId         = data.auth_user.uid
+          odes.provider           = "odesk"
 
-          session.update $set: {"foreignAuth.odesk": odesk}, (err)->
+          saveOauthToSession odesk, clientId, (err)->
             if err
               console.log "odesk err, saving to session", err
               renderOauthPopup res, {error:err, provider:"odesk"}

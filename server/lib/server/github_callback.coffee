@@ -49,8 +49,10 @@ module.exports = (req, res) ->
         lastName = restOfNames.join ' '
 
       {clientId} = req.cookies
-      resp = {provider, firstName, lastName, login, id, email, access_token,
-              clientId}
+      resp = {provider, firstName, lastName, email, clientId}
+      resp["foreignId"] = String(id)
+      resp["token"]     = access_token
+      resp["username"]  = login
 
       # Some users don't have email in public profile, so we make 2nd call
       # to get them.

@@ -45,20 +45,15 @@ module.exports = (req, res) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
-      JSession.one {clientId}, (err, session)->
+      {id, username}            = JSON.parse rawResp
+      facebookResp              = {access_token, username}
+      facebookResp["foreignId"] = id
+      facebookResp["provider"]  = "facebook"
+
+      saveOauthToSession facebookResp, clientId, (err)->
         if err
-          console.log "facebook err: fetch session", err
+          console.log "facebook err, saving to session", err
           renderOauthPopup res, {error:err, provider:"facebook"}
           return
 
-        {id, username} = JSON.parse rawResp
-        facebookResp = {access_token, username}
-        facebookResp["foreignId"] = id
-
-        session.update $set: {"foreignAuth.facebook": facebookResp}, (err)->
-          if err
-            console.log "facebook err, saving to session", err
-            renderOauthPopup res, {error:err, provider:"facebook"}
-            return
-
-          renderOauthPopup res, {error:null, provider:"facebook"}
+        renderOauthPopup res, {error:null, provider:"facebook"}
