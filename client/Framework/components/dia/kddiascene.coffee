@@ -21,8 +21,9 @@ class KDDiaScene extends JView
     @activeJoints = []
 
   diaAdded:(container, diaObj)->
-    diaObj.on "JointRequestsLine", @bound "handleLineRequest"
-    diaObj.on "DragInAction",   => @setActiveDia diaObj
+    diaObj.on "JointRequestsLine",   @bound "handleLineRequest"
+    diaObj.on "DragInAction",        => @setActiveDia diaObj
+    diaObj.on "RemoveMyConnections", => @disconnect diaObj
 
   addContainer:(container, pos = {})->
     @addSubView container
@@ -87,11 +88,11 @@ class KDDiaScene extends JView
     return "right" if source.joint is "left"  and target.dia.joints.right?
 
   getDia:(id)->
+    # Find a better way for this
     parts = ( id.match /dia\-((.*)\-joint\-(.*)|(.*))/ ).filter (m)->return !!m
     return null  unless parts
     [objId, joint] = parts.slice(-2)
     joint = null  if objId is joint
-    # Find a better way for this
     for container in @containers
       break  if dia = container.dias[objId]
     return {dia, joint, container}
@@ -132,16 +133,25 @@ class KDDiaScene extends JView
       (dia is connection.dia) and (joint is connection.joint)
 
     activeDia = @activeDias.first
-    oldConnections = []
+    connectionsToDelete = []
     for conn in @connections
       if ((isEqual conn.source) or (isEqual conn.target)) and \
          ((conn.source.dia is activeDia) or (conn.target.dia is activeDia))
-        oldConnections.push conn
+        connectionsToDelete.push conn
 
-    @connections = (c for c in @connections when c not in oldConnections)
-    @deselectAllDias()
+    @connections = (c for c in @connections when c not in connectionsToDelete)
     @setActiveDia @activeDias
-    @updateScene()
+
+  disconnect:(dia)->
+
+    newConnections = []
+    for connection in @connections
+      {source, target} = connection
+      if dia.getDiaId() not in [source.dia.getDiaId(), target.dia.getDiaId()]
+        newConnections.push connection
+    @connections = newConnections
+
+    @setActiveDia()
 
   connect:(source, target)->
     return  unless source and target

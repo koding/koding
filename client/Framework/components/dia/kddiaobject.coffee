@@ -22,6 +22,8 @@ class KDDiaObject extends JView
     @domElement.attr "dia-id", "dia-#{@getId()}"
     @wc = KD.getSingleton 'windowController'
 
+    @on "KDObjectWillBeDestroyed", => @emit 'RemoveMyConnections'
+
   mouseDown:(e)->
     @emit "DiaObjectClicked"
     @_mouseDown = yes

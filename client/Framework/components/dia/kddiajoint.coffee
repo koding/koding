@@ -15,6 +15,7 @@ class KDDiaJoint extends JView
 
     super options, data
 
+    @connections = {}
     @type = @getOption 'type'
     @size = @getOption 'size'
 
