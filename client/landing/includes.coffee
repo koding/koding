@@ -75,6 +75,12 @@ module.exports = [
   "Framework/components/contextmenu/contextmenutreeview.coffee",
   "Framework/components/contextmenu/contextmenuitem.coffee",
 
+  # dias
+  "Framework/components/dia/kddiajoint.coffee",
+  "Framework/components/dia/kddiaobject.coffee",
+  "Framework/components/dia/kddiacontainer.coffee",
+  "Framework/components/dia/kddiascene.coffee",
+
   # inputs
   "Framework/components/inputs/KDInputValidator.coffee",
   "Framework/components/inputs/KDLabelView.coffee",
@@ -834,6 +840,7 @@ module.exports = [
   "Framework/themes/default/kd.sliderbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
+  "Framework/themes/default/kd.dia.styl",
 
   "stylus/app.styl",
   "stylus/app.bottom.styl",
