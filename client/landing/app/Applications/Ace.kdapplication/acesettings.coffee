@@ -191,6 +191,7 @@ __aceSettings =
     json        : "javascript"
     # json        : "json"
     latex       : "tex"
+    go          : "golang"
     less        : "css"
     lisp        : "lisp"
     # liquid      : null
