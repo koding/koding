@@ -268,8 +268,8 @@ func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
 		return nil, err
 	}
 
-	// cache VM's target forever, they have static IP's and don't change
-	return newTarget(target, domain.Proxy.Mode, 0), nil
+	// cache VM's target for one day, they have static IP's and don't never change
+	return newTarget(target, domain.Proxy.Mode, time.Hour*24), nil
 }
 
 // fallbackDomain is used to return a fallback domain when the incoming host
@@ -358,9 +358,7 @@ func registerCacheTarget(host string, target *Target) {
 	targetsLock.Lock()
 	defer targetsLock.Unlock()
 	targets[host] = *target
-	if len(targets) == 1 {
-		go cacheCleaner()
-	}
+	go cacheInvalidator(host, target.CacheTimeout)
 }
 
 // deleteCacheTarget is used to remove the incoming host from the cache. It's
@@ -368,9 +366,20 @@ func registerCacheTarget(host string, target *Target) {
 func deleteCacheTarget(host string) {
 	targetsLock.Lock()
 	defer targetsLock.Unlock()
-
 	fmt.Printf("removing target from cache\n", host)
 	delete(targets, host)
+}
+
+// cacheInvalidator invalidates the cache for the host after timeout has been expired.
+func cacheInvalidator(host string, timeout time.Duration) {
+	fmt.Printf("invalidator started for '%s'\n", host)
+	if timeout == time.Duration(0) {
+		return // don't delete from cache if it set to 0
+	}
+
+	// negative duration is no-op, means it will not panic
+	time.Sleep(timeout)
+	deleteCacheTarget(host)
 }
 
 // cacheCleaner is used for cache invalidation. It is started whenever you call
@@ -395,13 +404,11 @@ func cacheCleaner() {
 			}
 		}
 
-		if cacheTimeout != 0 {
-			targetsLock.RUnlock()
-			// negative duration is no-op, means it will not panic
-			time.Sleep(cacheTimeout - time.Now().Sub(nextTime))
-			deleteCacheTarget(nextTarget)
-			targetsLock.RLock()
-		}
+		targetsLock.RUnlock()
+		// negative duration is no-op, means it will not panic
+		time.Sleep(cacheTimeout - time.Now().Sub(nextTime))
+		deleteCacheTarget(nextTarget)
+		targetsLock.RLock()
 	}
 	targetsLock.RUnlock()
 }
