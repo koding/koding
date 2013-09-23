@@ -1,4 +1,5 @@
-koding     = require './bongo'
+koding = require './bongo'
+jade   = require "jade"
 
 error_messages =
   404: "Page not found."
@@ -111,6 +112,16 @@ saveOauthToSession = (resp, callback)->
 
   JSession.update { clientId }, $set:{ foreignAuth }, callback
 
+renderOauthPopup = (res, locals)->
+  {projectRoot}    = KONFIG
+  popupPath        = "#{projectRoot}/website/jade/oauth_login.jade"
+
+  template         = require("fs").readFileSync popupPath, "utf8"
+  jadeFn           = jade.compile(template)
+  renderedTemplate = jadeFn locals
+
+  serve renderedTemplate, res
+
 getAlias = do->
   caseSensitiveAliases = ['auth']
   (url)->
@@ -137,7 +148,8 @@ module.exports = {
   fetchJAccountByKiteUserNameAndKey
   serve
   isLoggedIn
-  saveOauthToSession
   getAlias
   addReferralCode
+  saveOauthToSession
+  renderOauthPopup
 }

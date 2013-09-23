@@ -16,11 +16,11 @@ module.exports = class OAuth extends jraphical.Module
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
         callback null, url
       when "odesk"
-        @getOdeskUrl (err, url, rToken, rSecret)->
+        @getOdeskUrl (err, url, rToken, rSecret)=>
           if err then callback err
           else
-            @saveOdeskTokens client, rToken, rSecret, (err)->
-              calback err, url
+            @saveOdeskTokens client, url, rToken, rSecret, (err)->
+              callback err, url
 
   @getOdeskUrl = (callback)->
     Odesk         = require 'node-odesk'
@@ -30,11 +30,11 @@ module.exports = class OAuth extends jraphical.Module
     odesk = new Odesk key, secret
     odesk.OAuth.getAuthorizeUrl callback
 
-  @saveOdeskTokens = (client, rToken, rSecret, callback)->
+  @saveOdeskTokens = (client, url, requestToken, requestTokenSecret, callback)->
     JUser = require './user'
     JUser.one username:client.context.user, (err, user)->
       if err then callback err
       else
-        odesk = {rToken, rSecret}
+        odesk = {requestToken, requestTokenSecret}
         user.update $set: {"foreignAuth.odesk" : odesk}, (err)->
           callback err, url

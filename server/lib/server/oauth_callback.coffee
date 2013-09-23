@@ -1,35 +1,24 @@
-{github}= KONFIG
-
-{ serve
+{
   saveOauthToSession
-}       = require './helpers'
+  renderOauthPopup
+}        = require './helpers'
 
-http    = require "https"
-jade    = require "jade"
-express = require 'express'
-app     = express()
+{github} = KONFIG
+http     = require "https"
+express  = require 'express'
+app      = express()
+
+saveOauthAndRenderPopup = (resp, res)->
+  saveOauthToSession resp, ->
+    renderOauthPopup res, {error:null, provider:"github"}
 
 module.exports = (req, res) ->
-  renderLoginTemplate = (resp, res)->
-    saveOauthToSession resp, ->
-      {projectRoot}    = KONFIG
-      oauthLoginPath   = "#{projectRoot}/website/jade/oauth_login.jade"
-
-      template         = require('fs').readFileSync(oauthLoginPath, 'utf8')
-      jadeFn           = jade.compile(template)
-      renderedTemplate = jadeFn({error:null, provider:"github"})
-
-      serve renderedTemplate, res
-
   {provider}    = req.params
   code          = req.query.code
   access_token  = null
 
-  console.log ">>> code", code
-
   unless code
-    {loginFailureTemplate} = require './staticpages'
-    serve loginFailureTemplate, res
+    renderOauthPopup res, {error:{message:"No code"}, provider:"github"}
     return
 
   headers =
@@ -41,7 +30,6 @@ module.exports = (req, res) ->
     authUserResp.on "data", (chunk) -> rawResp += chunk
     authUserResp.on "end", ->
       {access_token} = JSON.parse rawResp
-      console.log ">>> access_token", access_token
       if access_token
         options =
           host    : "api.github.com"
@@ -64,6 +52,8 @@ module.exports = (req, res) ->
       resp = {provider, firstName, lastName, login, id, email, access_token,
               clientId}
 
+      # Some users don't have email in public profile, so we make 2nd call
+      # to get them.
       if not email? or email is ""
         options =
           host    : "api.github.com"
@@ -73,7 +63,7 @@ module.exports = (req, res) ->
         r = http.request options, (newResp)-> fetchUserEmail newResp, resp
         r.end()
       else
-        renderLoginTemplate resp, res
+        saveOauthAndRenderPopup resp, res
 
   fetchUserEmail = (userEmailResp, originalResp)->
     rawResp = ""
@@ -81,7 +71,8 @@ module.exports = (req, res) ->
     userEmailResp.on "end", ->
       email = JSON.parse(rawResp)[0]
       originalResp.email = email
-      renderLoginTemplate originalResp, res
+
+      saveOauthAndRenderPopup originalResp, res
 
   options =
     host   : "github.com"
