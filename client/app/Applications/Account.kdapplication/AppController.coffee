@@ -70,13 +70,12 @@ class AccountAppController extends AppController
       """
 
     # SET UP SPLIT VIEW AND TOGGLERS
-    @split = split = new SplitView
+    mainView.addSubView @split = split = new SplitView
       domId     : "account-split-view"
-      sizes     : [188,null]
-      views     : [navView,wrapperView]
-      minimums  : [null,null]
+      sizes     : [188, null]
+      views     : [navView, wrapperView]
+      minimums  : [null, null]
       resizable : yes
-    mainView.addSubView split
 
     [panel0, panel1] = split.panels
 
