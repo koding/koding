@@ -13,9 +13,8 @@ class Workspace extends JView
     @lastCreatedPanelIndex = 0
     @currentPanelIndex     = 0
 
-    @on "PanelCreated", (panel) =>
-      {header, container} = panel
-      container.setHeight panel.getHeight() - header.getHeight()  if header
+    @on "PanelCreated", =>
+      @doInternalResize()
       KD.getSingleton("windowController").notifyWindowResizeListeners()
 
     @init()
@@ -56,7 +55,13 @@ class Workspace extends JView
 
   _windowDidResize: ->
     return unless @activePanel
+    @doInternalResize()
     pane.emit "PaneResized" for pane in @activePanel.panes
+
+  doInternalResize: ->
+    panel               = @getActivePanel()
+    {header, container} = panel
+    container.setHeight panel.getHeight() - header.getHeight()  if header
 
   viewAppended: ->
     super
