@@ -9,6 +9,7 @@ class DNDUploader extends KDView
     options.defaultPath or= "/home/#{KD.nick()}/Uploads"
 
     super options, data
+
     @reset()
 
     @setPath options.path  if options.path
@@ -20,12 +21,10 @@ class DNDUploader extends KDView
       @on "drop",      => @unsetClass "hover"
 
     @on "uploadFile", (fsFile, percent)=>
-      finder = KD.getSingleton "finderController"
       filePath  = "[#{fsFile.vmName}]#{fsFile.path}"
-      finder.treeController.nodes[filePath]?.updateProgressView percent
+      @finder.treeController.nodes[filePath]?.updateProgressView percent
 
     @on "uploadStart", (fsFile)=>
-      finder = KD.getSingleton "finderController"
       filePath   = "[#{fsFile.vmName}]#{fsFile.path}"
       parentPath = "[#{fsFile.vmName}]#{fsFile.parentPath}"
 
@@ -34,18 +33,24 @@ class DNDUploader extends KDView
         nodeView.once "abortProgress", => fsFile.abort yes
 
       fsFile._isBeingUploaded = yes
-      nodeView = finder.treeController.nodes[filePath]
+      nodeView = @finder.treeController.nodes[filePath]
       if nodeView
       then bindAbort()
       else
-        finder.treeController.on "NodeWasAdded", (nodeView)->
+        @finder.treeController.on "NodeWasAdded", (nodeView)->
           if nodeView.getData().path is filePath and fsFile._isBeingUploaded
             bindAbort()
 
-        fsFile.save "", -> finder.revealPath parentPath
+        fsFile.save "", -> @finder.revealPath parentPath
 
     @on "uploadEnd", (fsFile)->
       fsFile._isBeingUploaded = no
+
+  viewAppended: ->
+    super
+    @finder = KD.getSingleton "finderController"
+    tc      = @finder.treeController
+    @notify = tc.notify.bind tc
 
   reset: ->
     {uploadToVM, defaultPath, title} = @getOptions()
@@ -65,13 +70,10 @@ class DNDUploader extends KDView
       for item in items
         itemEntry = item.webkitGetAsEntry?()
         if itemEntry.isDirectory
-          return new KDNotificationView
-            title: "Folder uploads not available for now."
+          return @notify "Folder uploads not available for now.", "error"
 
-    finder = KD.getSingleton "finderController"
-    {notify} = finder.treeController
     if files.length >= 20
-      notify """
+      @notify """
       Too many files to transfer!<br>
       Archive your files and try again.
       """, "error", """
@@ -84,7 +86,7 @@ class DNDUploader extends KDView
       for file, index in files
         sizeInMb = file.size/1024/1024
         if sizeInMb > 100 && @getOptions().uploadToVM
-          notify "Too big file to upload.", "error", "Max 100MB allowed per file."
+          @notify "Too big file to upload.", "error", "Max 100MB allowed per file."
           continue
         reader = new FileReader
         reader.onloadend = do (file=files[index])=> (readEvent)=>
@@ -129,8 +131,7 @@ class DNDUploader extends KDView
       </div>
     """
     if uploadToVM
-      finder = KD.getSingleton "finderController"
-      finder?.revealPath @path
+      @finder?.revealPath @path
 
     @addSubView new KDCustomHTMLView
       tagName   : "a"
