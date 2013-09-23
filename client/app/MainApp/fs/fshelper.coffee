@@ -37,7 +37,7 @@ class FSHelper
       when "added"
         treeController.addNode file
       when "removed"
-        for npath, node of treeController.nodes
+        for own npath, node of treeController.nodes
           if npath is file.path
             treeController.removeNodeView node
             break
@@ -114,11 +114,11 @@ class FSHelper
     delete @registry[path]
 
   @unregisterVmFiles = (vmName)->
-    for path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
+    for own path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
       @unregister path
 
   @updateInstance = (fileData)->
-    for prop, value of fileData
+    for own prop, value of fileData
       @registry[fileData.path][prop] = value
 
   @setFileListeners = (file)->

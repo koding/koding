@@ -105,7 +105,7 @@ class KDInputView extends KDView
 
   setSelectOptions:(options)->
     unless options.length
-      for optGroup, subOptions of options
+      for own optGroup, subOptions of options
         $optGroup = $ "<optgroup label='#{optGroup}'/>"
         @$().append $optGroup
         for option in subOptions
@@ -178,7 +178,7 @@ class KDInputView extends KDView
     @validationCallbacks or= {}
     @createRuleChain ruleSet
 
-    for oldEventName, oldCallbacks of @validationCallbacks
+    for own oldEventName, oldCallbacks of @validationCallbacks
       for oldCallback in oldCallbacks
         @off oldEventName, oldCallback
 
@@ -215,7 +215,7 @@ class KDInputView extends KDView
       @valid = yes
 
     allClear = yes
-    for result, errMsg of @validationResults
+    for own result, errMsg of @validationResults
       if errMsg then allClear = no
 
     @valid = if allClear then yes else no
@@ -229,7 +229,7 @@ class KDInputView extends KDView
 
     {rules} = ruleSet
     @validationResults or= {}
-    @ruleChain = if typeof rules is "object" then (rule for rule,value of rules) else [rules]
+    @ruleChain = if typeof rules is "object" then (rule for own rule,value of rules) else [rules]
     for rule in @ruleChain
       @validationResults[rule] = null
 

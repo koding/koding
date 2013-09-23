@@ -163,7 +163,7 @@ __aceSettings =
 
   getSyntaxOptions : ->
 
-    o = for syntax, info of __aceSettings.syntaxAssociations
+    o = for own syntax, info of __aceSettings.syntaxAssociations
       { title : info[0], value : syntax }
 
     o.sort (a, b) -> if a.title < b.title then -1 else 1

@@ -2,6 +2,7 @@ class WebTermController extends AppController
 
   KD.registerAppClass this,
     name         : "WebTerm"
+    title        : "Terminal"
     navItem      :
       title      : "Develop"
     route        :
