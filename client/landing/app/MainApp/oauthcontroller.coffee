@@ -1,3 +1,6 @@
+# Api:
+#   KD.singletons.oauthController.openPopup "github"
+#   KD.singletons.oauthController.authCompleted null, "github"
 class OAuthController extends KDController
   openPopup: (provider)->
     KD.remote.api.OAuth.getUrl provider, (err, url)=>
@@ -8,6 +11,7 @@ class OAuthController extends KDController
         newWindow  = window.open url, name, size
         newWindow.focus()
 
+  # This is called from the popup to indicate the process is complete.
   authCompleted: (err, provider)->
     mainController = KD.getSingleton "mainController"
 
@@ -17,6 +21,3 @@ class OAuthController extends KDController
   notify: (err)->
     message = if err then err else "Something went wrong"
     new KDNotificationView message
-
-# KD.singletons.OAuthController.openPopup "github"
-# KD.singletons.OAuthController.authCompleted null, "github"
