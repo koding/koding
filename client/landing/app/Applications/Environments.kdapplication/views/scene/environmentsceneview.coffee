@@ -3,3 +3,4 @@ class EnvironmentScene extends KDDiaScene
     super
       cssClass  : 'environments-scene'
       lineWidth : 1
+
