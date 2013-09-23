@@ -1,12 +1,18 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
+	"os/exec"
+	"time"
 )
 
-type VM struct{}
+type VM struct {
+	ProgramName string
+}
 
 var (
 	port = flag.String("port", "4000", "port to bind itself")
@@ -30,7 +36,7 @@ func main() {
 		"vm.reinitialize":   VM.Reinitialize,
 		"vm.info":           VM.Info,
 		"vm.resizeDisk":     VM.ResizeDisk,
-		"vm.createSnaphost": VM.CreateSnaphost,
+		"vm.createSnapshot": VM.CreateSnapshot,
 	}
 
 	k := kite.New(o, new(VM), methods)
@@ -38,6 +44,17 @@ func main() {
 }
 
 func (VM) Start(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
+	var params struct {
+		Name string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.Name == "" {
+		return errors.New("{ path: [string] }")
+	}
+
+	if out, err := exec.Command("/usr/bin/lxc-start", "--name", params.Name, "--daemon").CombinedOutput(); err != nil {
+		return fmt.Errorf("[%s] lxc-start failed.", time.Now().Format(time.Stamp), err, out)
+	}
 	return nil
 }
 
@@ -57,7 +74,7 @@ func (VM) Reinitialize(r *protocol.KiteDnodeRequest, result *map[string]interfac
 	return nil
 }
 
-func (VM) CreateSnaphost(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
+func (VM) CreateSnapshot(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
 	return nil
 }
 
