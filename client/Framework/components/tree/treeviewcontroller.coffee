@@ -204,7 +204,8 @@ class JTreeViewController extends KDViewController
       list = @createList(parentId).getListView()
       @addSubList @nodes[parentId], parentId
 
-    list.addItem nodeData
+    node = list.addItem nodeData
+    @emit "NodeWasAdded", node
 
     # Enable this to make indexedNodes work correctly with indexes ~ GG
     #
@@ -214,6 +215,7 @@ class JTreeViewController extends KDViewController
     #   KD.timeEnd "Starting to guess"
 
     @addIndexedNode nodeData
+    return node
 
   addNodes:(nodes)->
     @addNode node for node in nodes
