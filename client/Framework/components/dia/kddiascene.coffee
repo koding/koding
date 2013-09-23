@@ -30,6 +30,7 @@ class KDDiaScene extends JView
 
     container.on "NewDiaObjectAdded", @bound "diaAdded"
     container.on "DragInAction",      @bound "updateScene"
+    container.on "HighlightDia",      @bound "highlightLines"
 
     @containers.push container
 
