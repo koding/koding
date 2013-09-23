@@ -1,4 +1,4 @@
-class PaymentForm extends KDModalViewWithForms
+class PaymentFormModal extends KDModalViewWithForms
 
   constructor:(options={}, data)->
     options.title    or= 'Billing information'
@@ -53,12 +53,15 @@ class PaymentForm extends KDModalViewWithForms
             defaultValue  : thisYear
 
 
+    { callback } = options
+    delete options.callback
+    
     options.tabs     or=
       navigable                 : yes
       goToNextFormOnSubmit      : no
       forms                     :
         'Billing Info'          :
-          callback              : @handleRecurlyResponse.bind this, options.callback
+          callback              : callback
           buttons               :
             Save                :
               title             : 'Save'
@@ -82,7 +85,6 @@ class PaymentForm extends KDModalViewWithForms
     input.clearValidationFeedback()  for input in inputs
 
   handleRecurlyResponse:(callback, err) ->
-    
     @billingForm.buttons.Save.hideLoader()
 
     recurlyFieldMap =

@@ -1,6 +1,8 @@
-class BillingForm extends PaymentForm
+class BillingFormModal extends PaymentFormModal
 
   constructor:(options={}, data)->
+
+    options.callback = (formData) => @emit 'PaymentInfoSubmitted', formData
 
     options.additionalFields =
       company             :
@@ -56,3 +58,5 @@ class BillingForm extends PaymentForm
     )
 
     @countryLoader.hide()
+
+  handleFormData:->
