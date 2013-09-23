@@ -237,10 +237,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			return templateHandler("notfound.html", req.Host, 410)
 		}
 
-		if err == resolver.ErrNotOnVM {
-			return templateHandler("notOnVM.html", req.Host, 404)
-		}
-
 		logs.Info(fmt.Sprintf("resolver error %s", err))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
@@ -283,6 +279,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
+	case "vmOff":
+		return templateHandler("notOnVM.html", req.Host, 404)
 	}
 
 	if isWebsocket(req) {

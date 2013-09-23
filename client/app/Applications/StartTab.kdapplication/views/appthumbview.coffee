@@ -212,11 +212,32 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     return if $(event.target).closest('.icon-container').length > 0 or \
               $(event.target).closest('.dev-mode').length > 0
-    manifest = @getData()
+
     @showLoader()
-    KD.getSingleton("appManager").open manifest.name, =>
+
+    manifest   = @getData()
+    appManager = KD.getSingleton "appManager"
+    router     = KD.getSingleton "router"
+
+    couldntCreate = =>
+      appManager.off "AppCouldntBeCreated", appCreated
       @hideLoader()
+
+    appCreated    = =>
+      appManager.off "AppCreated", couldntCreate
       KD.track "Apps", "ApplicationRun", manifest.name
+      @hideLoader()
+
+    appManager.once "AppCouldntBeCreated", couldntCreate
+    appManager.once "AppCreated",          appCreated
+
+    route = if manifest.route
+      if "string" is typeof manifest.route
+      then manifest.route
+      else manifest.route.slug
+    else "/Develop/#{manifest.name}"
+
+    router.handleRoute route
 
   showLoader:->
 
@@ -291,16 +312,3 @@ class AppShortcutButton extends StartTabAppThumbView
       unless err
         @destroy()
         KD.track "Apps", "RemoveShortcutClicked"
-
-  click:(event)->
-
-    return if $(event.target).closest('.icon-container').length > 0
-
-    {type, name, path} = @getData()
-    path = name if not path
-
-    if type is 'koding-app'
-      @showLoader()
-      KD.getSingleton("appManager").open path, => @hideLoader()
-
-    return no

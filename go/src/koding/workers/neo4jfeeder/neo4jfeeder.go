@@ -156,6 +156,11 @@ func createNode(data map[string]interface{}) {
 	targetId := fmt.Sprintf("%s", data["targetId"])
 	targetName := fmt.Sprintf("%s", data["targetName"])
 
+	if sourceId == "" || sourceName == "" || targetId == "" || targetName == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
+
 	if !checkIfEligible(sourceName, targetName) {
 		return
 	}
@@ -231,6 +236,11 @@ func deleteRelationship(data map[string]interface{}) {
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	targetId := fmt.Sprintf("%s", data["targetId"])
 
+	if sourceId == "" || targetId == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
+
 	if checkForGuestGroup(sourceId, targetId) {
 		return
 	}
@@ -262,6 +272,11 @@ func updateNode(data map[string]interface{}) {
 
 	sourceId := fmt.Sprintf("%s", obj["_id"])
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
+
+	if sourceId == "" || sourceName == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
 
 	if !checkIfEligible(sourceName, "") {
 		return

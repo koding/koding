@@ -21,19 +21,15 @@ class KDDiaScene extends JView
     @activeJoints  = []
 
   diaAdded:(container, diaObj)->
-    diaObj.on "JointRequestsLine", @bound "handleLineRequest"
-    diaObj.on "DragInAction",   => @setActiveDia diaObj
-
-  passivateLines:()->
-
+    diaObj.on "JointRequestsLine",   @bound "handleLineRequest"
+    diaObj.on "DragInAction",        => @highlightLines diaObj
+    diaObj.on "RemoveMyConnections", => @disconnect diaObj
 
   addContainer:(container, pos = {})->
     @addSubView container
 
     container.on "NewDiaObjectAdded", @bound "diaAdded"
     container.on "DragInAction",      @bound "updateScene"
-    container.on "HighlightDia",      @bound "setActiveDia"
-    container.on "PassivateLines",    @bound "setPassiveDia"
 
     @containers.push container
 
@@ -59,7 +55,7 @@ class KDDiaScene extends JView
 
   click:(e)->
     return if e.target isnt e.currentTarget
-    @setActiveDia()
+    @highlightLines()
 
   mouseMove:(e)->
     return  unless @_trackJoint
@@ -91,19 +87,21 @@ class KDDiaScene extends JView
     return "right" if source.joint is "left"  and target.dia.joints.right?
 
   getDia:(id)->
+    # Find a better way for this
     parts = ( id.match /dia\-((.*)\-joint\-(.*)|(.*))/ ).filter (m)->return !!m
     return null  unless parts
     [objId, joint] = parts.slice(-2)
     joint = null  if objId is joint
-    # Find a better way for this
     for container in @containers
       break  if dia = container.dias[objId]
     return {dia, joint, container}
 
-  setActiveDia:(dia=[], update=yes)->
+  highlightLines:(dia=[], update=yes)->
     if not Array.isArray dia then dia = [dia]
     @activeDias = dia
-    @deselectAllDias()
+    joint.off 'DeleteRequested'      for joint in @activeJoints
+    container.emit 'UnhighlightDias' for container in @containers
+    @activeJoints = []
     @updateScene()  if update
     return  unless @activeDias.length is 1
 
@@ -120,14 +118,6 @@ class KDDiaScene extends JView
               joint.on 'DeleteRequested', @bound 'disconnectHelper'
               @activeJoints.push joint
 
-  setPassiveDia:->
-    #setPassive
-
-  deselectAllDias:->
-    joint.off 'DeleteRequested'      for joint in @activeJoints
-    container.emit 'UnhighlightDias' for container in @containers
-    @activeJoints = []
-
   handleLineRequest:(joint)->
     @_trackJoint = joint
 
@@ -139,16 +129,25 @@ class KDDiaScene extends JView
       (dia is connection.dia) and (joint is connection.joint)
 
     activeDia = @activeDias.first
-    oldConnections = []
+    connectionsToDelete = []
     for conn in @connections
       if ((isEqual conn.source) or (isEqual conn.target)) and \
          ((conn.source.dia is activeDia) or (conn.target.dia is activeDia))
-        oldConnections.push conn
+        connectionsToDelete.push conn
 
-    @connections = (c for c in @connections when c not in oldConnections)
-    @deselectAllDias()
-    @setActiveDia @activeDias
-    @updateScene()
+    @connections = (c for c in @connections when c not in connectionsToDelete)
+    @highlightLines @activeDias
+
+  disconnect:(dia)->
+
+    newConnections = []
+    for connection in @connections
+      {source, target} = connection
+      if dia.getDiaId() not in [source.dia.getDiaId(), target.dia.getDiaId()]
+        newConnections.push connection
+    @connections = newConnections
+
+    @highlightLines()
 
   connect:(source, target)->
     return  unless source and target
@@ -159,7 +158,7 @@ class KDDiaScene extends JView
                      to #{target.dia.constructor.name} is not allowed!"""
 
     @connections.push {source, target}
-    @setActiveDia target.dia
+    @highlightLines target.dia
 
   allowedToConnect:(source, target)->
     for i in [0..1]
@@ -199,11 +198,11 @@ class KDDiaScene extends JView
       [sx, sy, tx, ty] = [0, 0, 0, 0]
       if source.joint in ["top", "bottom"]
         sy = if source.joint is "top" then -cd else cd
-      if source.joint in ["left", "right"]
+      else if source.joint in ["left", "right"]
         sx = if source.joint is "left" then -cd else cd
       if target.joint in ["top", "bottom"]
         ty = if target.joint is "top" then -cd else cd
-      if target.joint in ["left", "right"]
+      else if target.joint in ["left", "right"]
         tx = if target.joint is "left" then -cd else cd
 
       @realContext.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \

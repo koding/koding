@@ -4,6 +4,7 @@ class EnvironmentItem extends KDDiaObject
     options.jointItemClass = EnvironmentItemJoint
     options.draggable = no
     options.showStatusIndicator ?= yes
+    options.bind = KD.utils.curry 'contextmenu', options.bind
 
     super options, data
 
@@ -15,10 +16,41 @@ class EnvironmentItem extends KDDiaObject
   toggleStatus : ->
     @toggleClass "passivated"
     @data.activated = !@data.activated
-    @emit 'DiaObjectPassivated' if not @getData().activated
 
-  dblClick : (event) ->
-    @contextMenu = new JContextMenu
+  contextMenu : (event) ->
+    KD.utils.stopDOMEvent event
+    kind = @getOption 'kind'
+
+    ctxMenuContent = {}
+    ctxMenuContent['Properties']            =
+      callback       : ->
+    ctxMenuContent['Focus On This ' + kind] =
+      callback       : -> @destroy()
+    ctxMenuContent['Unfocus']               =
+      callback       : -> 
+    ctxMenuContent['Edit Bindings']         =
+      separator      : yes
+      callback       : ->
+    ctxMenuContent['Color Tag']             =
+      separator      : yes
+      children       : 
+        customView   : new ColorSelection
+          parentItem : @
+    ctxMenuContent['Rename']                =
+      callback       : ->
+    ctxMenuContent['Duplicate']             =
+      callback       : ->
+    ctxMenuContent['Combine Into Group']    =
+      callback       : ->
+    ctxMenuContent['Delete']                =
+      separator      : yes
+      callback       : @confirmDestroy
+    ctxMenuContent['Create New ' + kind]    =
+      callback       : ->
+    ctxMenuContent['Create Empty Group']    =
+      callback       : ->
+
+    @ctxMenu = new JContextMenu
       menuWidth   : 200
       delegate    : @
       x           : event.pageX + 15
@@ -28,34 +60,11 @@ class EnvironmentItem extends KDDiaObject
         margin    : 19
       lazyLoad    : yes
     ,
-      'Properties'            :
-        callback              : =>
-      'Focus On This Rule'    :
-        callback              : =>
-      'Unfocus'               :
-        callback              : =>
-      'Edit Bindings'         :
-        separator             : yes
-        callback              : =>
-      'Color Tag'             :
-        separator             : yes
-        callback              : =>
-      'Rename'                :
-        callback              : =>
-      'Duplicate'             :
-        callback              : =>
-      'Combine Into Group...' :
-        callback              : =>
-      'Delete'                :
-        separator             : yes
-        callback              : @_confirmDestroy
-      'Create New Rule...'    :
-        callback              : =>
-      'Create Empty Group'    :
-        callback              : =>
+      ctxMenuContent
 
-  _confirmDestroy : =>
-    parent       = @parent
+  setColorTag : (color) -> @getElement().style.borderLeftColor = color
+
+  confirmDestroy : =>
     modal        = new KDModalView
       title      : "Are you sure?"
       cssClass   : "environments-confirm-destroy"
@@ -75,11 +84,10 @@ class EnvironmentItem extends KDDiaObject
   viewAppended : ->
     super
     @setClass 'activated'  if @getData().activated?
-
+    @setColorTag '#a2a2a2'
     if not @getData().activated
       KD.utils.defer =>
         @setClass 'passivated'
-        @emit 'DiaObjectPassivated'
     @addStatusIndicator() if @getOption "showStatusIndicator"
 
   pistachio:->
@@ -90,18 +98,49 @@ class EnvironmentItem extends KDDiaObject
       </div>
     """
 
+class ColorSelection extends KDCustomHTMLView
+  constructor:(options={})->
+    options.cssClass = 'environments-cs-container'
+    options.colors   = [
+      '#a2a2a2'
+      '#ffa800'
+      '#e13986'
+      '#39bce1'
+      '#0018ff'
+      '#e24d45'
+      '#34b700'
+      '#a861ff' ]
+    super options
+
+  createColors : ->
+    for color in @getOption "colors"
+      parentItem = @getOption "parentItem"
+
+      @addSubView new KDCustomHTMLView
+        cssClass    : "environments-cs-color"
+        color       : color
+        attributes  : 
+          style     : "background-color : #{color}"
+        click : ->
+          parentItem.setColorTag @getOption "color"
+
+  viewAppended : ->
+    @createColors()
+
 class EnvironmentRuleItem extends EnvironmentItem
   constructor:(options={}, data)->
     options.joints             = ['right']
     options.cssClass           = 'rule'
+    options.kind               = 'Rule'
     options.allowedConnections =
       EnvironmentDomainItem : ['left']
     super options, data
 
 class EnvironmentDomainItem extends EnvironmentItem
   constructor:(options={}, data)->
-    options.joints = ['left', 'right']
-    options.cssClass = 'domain'
+    options.joints             = ['left', 'right']
+    options.cssClass           = 'domain'
+    options.kind               = 'Domain'
     options.allowedConnections =
       EnvironmentRuleItem    : ['right']
       EnvironmentMachineItem : ['left']
@@ -109,8 +148,9 @@ class EnvironmentDomainItem extends EnvironmentItem
 
 class EnvironmentMachineItem extends EnvironmentItem
   constructor:(options={}, data)->
-    options.joints = ['left']
-    options.cssClass = 'machine'
+    options.joints             = ['left']
+    options.cssClass           = 'machine'
+    options.kind               = 'Machine'
     options.allowedConnections =
       EnvironmentDomainItem : ['right']
     super options, data

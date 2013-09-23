@@ -68,7 +68,7 @@ class CollaborativeFinderTreeController extends NFinderTreeController
   getSnapshot: ->
     snapshot = []
 
-    for path, node of @nodes
+    for own path, node of @nodes
       nodeData = node.data
 
       snapshot.push

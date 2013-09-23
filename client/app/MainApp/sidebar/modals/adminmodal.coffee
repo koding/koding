@@ -3,7 +3,7 @@ class AdminModal extends KDModalViewWithForms
   constructor : (options = {}, data) ->
 
     options =
-      title                   : "Admin Panel"
+      title                   : "Admin panel"
       content                 : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       overlay                 : yes
       width                   : 600

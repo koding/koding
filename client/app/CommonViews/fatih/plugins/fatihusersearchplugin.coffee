@@ -49,7 +49,7 @@ class FatihUserActionView extends KDView
         height : 36
     , user
 
-    for action of actionTypes
+    for own action of actionTypes
       do (action) =>
         @addSubView new KDButtonView
           title     : actionTypes[action]
