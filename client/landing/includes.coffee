@@ -562,7 +562,6 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
   "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
-  "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallFilterListItemView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
