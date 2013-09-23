@@ -768,11 +768,11 @@ class KDView extends KDObject
       newY = if targetPosY is 'top'  then dragMeta.top  + dragRelPos.y else dragMeta.bottom - dragRelPos.y
 
       if containment
-        m  = w: @getWidth(), h: @getHeight()
-        p  = containment.viewBounds
-        cp = containment.padding
-        if newX <= 0 + cp.left then newX = 0 + cp.left
-        if newY <= 0 + cp.top  then newY = 0 + cp.top
+        m  = w: @getWidth(), h: @getHeight()  # My sizes
+        p  = containment.viewBounds           # Containment's sizes
+        cp = containment.padding              # Containment paddings
+        if newX <= cp.left then newX = cp.left
+        if newY <= cp.top  then newY = cp.top
         if newX + m.w >= p.w - cp.right  then newX = p.w - m.w - cp.right
         if newY + m.h >= p.h - cp.bottom then newY = p.h - m.h - cp.bottom
 
