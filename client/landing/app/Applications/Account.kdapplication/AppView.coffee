@@ -39,6 +39,8 @@ class AccountListWrapper extends KDView
       keys                           : AccountSshKeyList
       kodingKeysController           : AccountKodingKeyListController
       kodingKeys                     : AccountKodingKeyList
+    danger                           :
+      delete                         : DeleteAccountView
 
   viewAppended:->
 
