@@ -3,10 +3,10 @@ class EnvironmentsMainView extends JView
   constructor:(options = {}, data)->
     super options, data
 
-    @header = new HeaderViewSection type : "big", title : "Environments"
 
   viewAppended:->
 
+    @addSubView new HeaderViewSection type : "big", title : "Environments"
     @addSubView scene = new EnvironmentScene
 
     rulesContainer    = new EnvironmentContainer

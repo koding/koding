@@ -1,7 +1,11 @@
 class EnvironmentContainer extends KDDiaContainer
   constructor:(options={}, data)->
     options.cssClass  = 'environments-container'
-    options.draggable = yes
+    options.draggable =
+      containment     :
+        view          : 'parent'
+        padding       : 10
+
     super options, data
 
     title = @getOption 'title'
