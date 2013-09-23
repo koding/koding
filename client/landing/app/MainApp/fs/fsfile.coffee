@@ -84,70 +84,70 @@ class FSFile extends FSItem
       @emit "fs.append.finished", err, res
       callback? err,res
 
+  @createChunkQueue: (data, chunkSize=1024*1024, skip=0)->
+
+    return unless data
+
+    chunks     = FSHelper.chunkify data, chunkSize
+    queue      = []
+
+    for chunk, index in chunks
+      isSkip = skip > index
+      queue.push
+        content : unless isSkip then btoa chunk
+        skip    : isSkip
+        append  : yes if queue.length > 0 # first chunk is not an append
+
+    return queue
+
   # TODO: This method has too many logic with chunks etc. should be retought later. -- fka
   saveBinary:(contents, callback)->
 
     @abortRequested     = no
-    chunkSize           = 1024*1024
-    chunks              = []
-    runs                = []
     info                = @getLocalFileInfo()
+    chunkQueue          = FSFile.createChunkQueue contents, null, info.lastUploadedChunk
+    total               = chunkQueue.length
 
-    sendChunk = =>
-      next = runs.shift()
+    @setLocalFileInfo totalChunks: total
+
+    iterateChunks = =>
+      next = chunkQueue.shift()
       return unless next
 
       if next.skip
         callback null, {},
           percent: 100 * info.lastUploadedChunk / info.totalChunks
-        sendChunk()
+        iterateChunks()
         return
 
-      @vmController.run next, (err, res) =>
+      @vmController.run
+        method    : 'fs.writeFile'
+        vmName    : @vmName
+        withArgs  :
+          path    : FSHelper.plainPath @path
+          content : next.content
+          append  : next.append
+      , (err, res) =>
+
         return callback? err  if err
 
-        @setLocalFileInfo
-          lastUploadedChunk: chunks.length - runs.length
+        @setLocalFileInfo lastUploadedChunk: total - chunkQueue.length
+
         if @abortRequested
           @abortRequested = no # reset the state
           callback? null, abort: yes
           return
 
-        total    = chunks.length
-        loaded   = total - runs.length
+        loaded   = total - chunkQueue.length
         percent  = 100 * loaded / total
 
         callback? null, res, {total, loaded, percent}
-        sendChunk()
-        if runs.length is 0 # finished all the chunks
+        iterateChunks()
+        if chunkQueue.length is 0 # finished all the chunks
           callback? null, finished: yes
           @removeLocalFileInfo()
 
-    if runs.length is 0
-      while contents
-        if contents.length < chunkSize
-          chunks.push contents
-          @setLocalFileInfo totalChunks: chunks.length
-          break
-        else
-          chunks.push contents.substr 0, chunkSize
-          contents = contents.substr chunkSize
-
-      for chunk, index in chunks
-        if info.lastUploadedChunk > index
-          runs.push skip: yes
-          continue
-
-        runs.push
-          method    : 'fs.writeFile'
-          vmName    : @vmName
-          withArgs  :
-            path    : FSHelper.plainPath @path
-            content : btoa chunk
-            append  : yes if runs.length > 0 # first chunk is not an append
-        sendChunk() if chunks.length is runs.length
-    else
-      sendChunk()
+    iterateChunks() if chunkQueue.length > 0
 
   abort: ->
     @abortRequested = yes
