@@ -1,7 +1,7 @@
 class DNSRecordListItemView extends KDListItemView
 
   constructor:(options={}, data)->
-    options.tagName = "tr"
+    options.tagName = "li"
     super options, data
 
     @buildSubViews()
@@ -13,23 +13,24 @@ class DNSRecordListItemView extends KDListItemView
 
   pistachio:->
     {recordType, host, value, ttl} = @getData()
+
     """
-    <td>{{> @recordView }}</td>
-    <td>{{> @recordHostView }}</td>
-    <td>{{> @recordValueView }}</td>
-    <td>{{> @recordTtlView }}</td>
-    <td>
+    {{> @recordView }}
+    {{> @recordHostView }}
+    {{> @recordValueView }}
+    {{> @recordTtlView }}
+    <p class="record-buttons record-element">
       {{> @editButton }}
       {{> @deleteButton }}
       {{> @updateButton }}
       {{> @cancelButton }}
-    </td>
+    </p>
     """
 
   buildSubViews:->
     {recordType, host, value, ttl, priority} = @getData()
 
-    @editButton = new KDButtonView
+    @editButton   = new KDButtonView
       title    : "Edit"
       callback : @bound "editRecord"
 
@@ -38,7 +39,7 @@ class DNSRecordListItemView extends KDListItemView
       callback : @bound "deleteRecord"
 
     @updateButton = new KDButtonView
-      title        : "Update Record"
+      title        : "Update"
       callback     : @bound "updateRecord"
 
     @cancelButton = new KDButtonView
@@ -85,9 +86,9 @@ class DNSRecordListItemView extends KDListItemView
     [recordTypeView, hostView, valueView, ttlView] = @subViews
 
     data.recordType = recordTypeView.getInputValue()
-    data.host = hostView.getInputValue()
-    data.value = valueView.getInputValue()
-    data.ttl = ttlView.getInputValue()
+    data.host       = hostView.getInputValue()
+    data.value      = valueView.getInputValue()
+    data.ttl        = ttlView.getInputValue()
 
     @setData data
     @getDelegate().emit "recordUpdateRequested", oldData, this
@@ -133,6 +134,7 @@ class RecordElementView extends JView
 class RecordTypeView extends RecordElementView
 
   constructor:(options={}, data)->
+    options.cssClass = "record-type record-element"
     super options, data
 
     {recordType} = @getData()
@@ -140,13 +142,13 @@ class RecordTypeView extends RecordElementView
     @formElmView = new KDSelectBox
       cssClass      : 'editable'
       selectOptions : [
-        {title: "A", value: "A"}
+        {title: "A"    , value: "A"}
         {title: "CNAME", value: "CNAME"}
-        {title: "MX", value: "MX"}
-        {title: "TXT", value: "TXT"}
-        {title: "NS", value: "NS"}
-        {title: "SRV", value: "SRV"}
-        {title: "AAAA", value: "AAAA"}
+        {title: "MX"   , value: "MX"}
+        {title: "TXT"  , value: "TXT"}
+        {title: "NS"   , value: "NS"}
+        {title: "SRV"  , value: "SRV"}
+        {title: "AAAA" , value: "AAAA"}
       ]
       defaultValue : recordType
 
@@ -156,6 +158,7 @@ class RecordTypeView extends RecordElementView
 
 class RecordHostView extends RecordElementView
   constructor:(options={}, data)->
+    options.cssClass = "record-host record-element"
     super options, data
 
     {host} = @getData()
@@ -170,6 +173,7 @@ class RecordHostView extends RecordElementView
 
 class RecordValueView extends RecordElementView
   constructor:(options={}, data)->
+    options.cssClass = "record-value record-element"
     super options, data
 
     {value} = @getData()
@@ -184,6 +188,7 @@ class RecordValueView extends RecordElementView
 
 class RecordTtlView extends RecordElementView
   constructor:(options={}, data)->
+    options.cssClass = "record-ttl record-element"
     super options, data
 
     {ttl} = @getData()
@@ -196,9 +201,5 @@ class RecordTtlView extends RecordElementView
       defaultValue : ttl
 
 
-class EmptyDNSRecordListItemView extends DNSRecordListItemView
-
-  pistachio:->
-    """
-    <td colspan="5">There is no DNS record for this domain.</td>
-    """
+class EmptyDNSRecordListItemView extends KDListItemView
+  partial:-> "<p class='domains-no-record'>There is no DNS record for this domain.</p>"
