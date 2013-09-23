@@ -13,6 +13,7 @@ class ChatPane extends JView
     @dock        = new KDView
       cssClass   : "dock"
       click      : =>
+        @dock.unsetClass "pulsing"
         @toggleClass "active"
         @toggle.toggleClass "active"
         @unreadCount = 0
@@ -23,7 +24,6 @@ class ChatPane extends JView
       partial    : "Chat"
 
     @toggle      = new KDView cssClass : "toggle"
-    @wrapper     = new KDView cssClass : "wrapper"
     @messages    = new KDView cssClass : "messages"
     @input       = new KDHitEnterInputView
       type       : "text"
@@ -41,12 +41,12 @@ class ChatPane extends JView
 
     @dock.addSubView @toggle
     @dock.addSubView @title
-    @wrapper.addSubView @messages
-    @wrapper.addSubView @input
 
     @chatRef.on "child_added", (snapshot) =>
       unless @isVisible()
         @title.updatePartial "Chat (#{++@unreadCount})"
+        @dock.setClass "pulsing"
+
       @utils.wait 300, => @addNew snapshot.val() # to prevent a possible race condition
 
   isVisible: -> return @hasClass "active"
@@ -56,12 +56,17 @@ class ChatPane extends JView
     if @lastChatItemOwner is ownerNickname
       @lastChatItem.messageList.addSubView new KDCustomHTMLView
         partial : Encoder.XSSEncode details.body
+      @updateDate details.time
       return  @scrollToTop()
 
     @lastChatItem      = new ChatItem details, @workspace.users[ownerNickname]
     @lastChatItemOwner = ownerNickname
     @messages.addSubView @lastChatItem
+    @updateDate details.time
     @scrollToTop()
+
+  updateDate: (timestamp) ->
+    @lastChatItem.timeAgo.setData new Date timestamp
 
   scrollToTop: ->
     $messages = @messages.$()
@@ -70,5 +75,8 @@ class ChatPane extends JView
   pistachio: ->
     """
       {{> @dock}}
-      {{> @wrapper}}
+      {{> @messages}}
+      <div class="input-container">
+        {{> @input}}
+      </div>
     """
