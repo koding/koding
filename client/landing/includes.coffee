@@ -557,6 +557,9 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/scene/environmentcontainerview.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentitemjointview.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentitemsview.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentruleitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentdomainitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentmachineitem.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentsceneview.coffee",
 
   "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
