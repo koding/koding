@@ -22,7 +22,7 @@ class KDDiaScene extends JView
 
   diaAdded:(container, diaObj)->
     diaObj.on "JointRequestsLine",   @bound "handleLineRequest"
-    diaObj.on "DragInAction",        => @setActiveDia diaObj
+    diaObj.on "DragInAction",        => @highlightLines diaObj
     diaObj.on "RemoveMyConnections", => @disconnect diaObj
 
   addContainer:(container, pos = {})->
@@ -30,7 +30,7 @@ class KDDiaScene extends JView
 
     container.on "NewDiaObjectAdded", @bound "diaAdded"
     container.on "DragInAction",      @bound "updateScene"
-    container.on "HighlightDia",      @bound "setActiveDia"
+    container.on "HighlightDia",      @bound "highlightLines"
 
     @containers.push container
 
@@ -56,7 +56,7 @@ class KDDiaScene extends JView
 
   click:(e)->
     return if e.target isnt e.currentTarget
-    @setActiveDia()
+    @highlightLines()
 
   mouseMove:(e)->
     return  unless @_trackJoint
@@ -97,10 +97,12 @@ class KDDiaScene extends JView
       break  if dia = container.dias[objId]
     return {dia, joint, container}
 
-  setActiveDia:(dia=[], update=yes)->
+  highlightLines:(dia=[], update=yes)->
     if not Array.isArray dia then dia = [dia]
     @activeDias = dia
-    @deselectAllDias()
+    joint.off 'DeleteRequested'      for joint in @activeJoints
+    container.emit 'UnhighlightDias' for container in @containers
+    @activeJoints = []
     @updateScene()  if update
     return  unless @activeDias.length is 1
 
@@ -116,11 +118,6 @@ class KDDiaScene extends JView
               joint.showDeleteButton()
               joint.on 'DeleteRequested', @bound 'disconnectHelper'
               @activeJoints.push joint
-
-  deselectAllDias:->
-    joint.off 'DeleteRequested'      for joint in @activeJoints
-    container.emit 'UnhighlightDias' for container in @containers
-    @activeJoints = []
 
   handleLineRequest:(joint)->
     @_trackJoint = joint
@@ -140,7 +137,7 @@ class KDDiaScene extends JView
         connectionsToDelete.push conn
 
     @connections = (c for c in @connections when c not in connectionsToDelete)
-    @setActiveDia @activeDias
+    @highlightLines @activeDias
 
   disconnect:(dia)->
 
@@ -151,7 +148,7 @@ class KDDiaScene extends JView
         newConnections.push connection
     @connections = newConnections
 
-    @setActiveDia()
+    @highlightLines()
 
   connect:(source, target)->
     return  unless source and target
@@ -162,7 +159,7 @@ class KDDiaScene extends JView
                      to #{target.dia.constructor.name} is not allowed!"""
 
     @connections.push {source, target}
-    @setActiveDia target.dia
+    @highlightLines target.dia
 
   allowedToConnect:(source, target)->
     for i in [0..1]
@@ -202,11 +199,11 @@ class KDDiaScene extends JView
       [sx, sy, tx, ty] = [0, 0, 0, 0]
       if source.joint in ["top", "bottom"]
         sy = if source.joint is "top" then -cd else cd
-      if source.joint in ["left", "right"]
+      else if source.joint in ["left", "right"]
         sx = if source.joint is "left" then -cd else cd
       if target.joint in ["top", "bottom"]
         ty = if target.joint is "top" then -cd else cd
-      if target.joint in ["left", "right"]
+      else if target.joint in ["left", "right"]
         tx = if target.joint is "left" then -cd else cd
 
       @realContext.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \
