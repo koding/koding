@@ -3,8 +3,9 @@ class AccountLinkedAccountsListController extends KDListViewController
   constructor:(options = {}, data)->
 
     data = items : [
-      { title : "GitHub", type : "github" }
-      { title : "oDesk",  type : "odesk" }
+      { title : "GitHub", type    : "github" }
+      { title : "oDesk",  type    : "odesk" }
+      { title : "Facebook",  type : "facebook" }
     ]
 
     super options, data
