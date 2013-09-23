@@ -6,44 +6,50 @@ class ChatPane extends JView
 
     super options, data
 
-    @workspace = @getDelegate()
-    @chatRef   = @workspace.workspaceRef.child "chat"
+    @unreadCount = 0
+    @workspace   = @getDelegate()
+    @chatRef     = @workspace.workspaceRef.child "chat"
 
-    @dock      = new KDView
-      partial  : "Chat"
-      cssClass : "dock"
-      click    : =>
+    @dock        = new KDView
+      cssClass   : "dock"
+      click      : =>
         @toggleClass "active"
         @toggle.toggleClass "active"
+        @unreadCount = 0
+        @title.updatePartial "Chat"
 
-    @dock.addSubView @toggle = new KDView
-      cssClass : "toggle"
+    @title       = new KDCustomHTMLView
+      tagName    : "span"
+      partial    : "Chat"
 
-    @wrapper   = new KDView
-      cssClass : "wrapper"
-
-    @messages  = new KDView
-      cssClass : "messages"
-
-    @input     = new KDHitEnterInputView
-      type     : "text"
-      callback : =>
+    @toggle      = new KDView cssClass : "toggle"
+    @wrapper     = new KDView cssClass : "wrapper"
+    @messages    = new KDView cssClass : "messages"
+    @input       = new KDHitEnterInputView
+      type       : "text"
+      callback   : =>
         {nickname, firstName, lastName} = KD.whoami().profile
-        message =
-          user : { nickname, firstName, lastName }
-          time : Date.now()
-          body : @input.getValue()
+        message  =
+          user   : { nickname, firstName, lastName }
+          time   : Date.now()
+          body   : @input.getValue()
 
         @chatRef.child(message.time).set message
         @input.setValue ""
         @input.setFocus()
         @workspace.setHistory "<strong>#{nickname}:</strong> #{message.body}"
 
+    @dock.addSubView @toggle
+    @dock.addSubView @title
     @wrapper.addSubView @messages
     @wrapper.addSubView @input
 
     @chatRef.on "child_added", (snapshot) =>
+      unless @isVisible()
+        @title.updatePartial "Chat (#{++@unreadCount})"
       @utils.wait 300, => @addNew snapshot.val() # to prevent a possible race condition
+
+  isVisible: -> return @hasClass "active"
 
   addNew: (details) ->
     ownerNickname = details.user.nickname
