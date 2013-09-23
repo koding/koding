@@ -74,6 +74,12 @@ module.exports = [
   "Framework/components/contextmenu/contextmenutreeview.coffee",
   "Framework/components/contextmenu/contextmenuitem.coffee",
 
+  # dias
+  "Framework/components/dia/kddiajoint.coffee",
+  "Framework/components/dia/kddiaobject.coffee",
+  "Framework/components/dia/kddiacontainer.coffee",
+  "Framework/components/dia/kddiascene.coffee",
+
   # inputs
   "Framework/components/inputs/KDInputValidator.coffee",
   "Framework/components/inputs/KDLabelView.coffee",
@@ -708,6 +714,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersReferralSystem.coffee",
+  "app/Applications/Account.kdapplication/account/deleteaccountview.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
@@ -764,6 +771,13 @@ module.exports = [
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
+
+  # TEAMWORK
+  "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
+  "app/Applications/Teamwork.kdapplication/AppView.coffee",
+  "app/Applications/Teamwork.kdapplication/AppController.coffee",
 
   # CLASSROOM
   # "app/Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
@@ -826,6 +840,7 @@ module.exports = [
   "Framework/themes/default/kd.sliderbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
+  "Framework/themes/default/kd.dia.styl",
 
   "stylus/app.styl",
   "stylus/app.bottom.styl",
@@ -863,6 +878,7 @@ module.exports = [
   # "stylus/app.classroom.styl",
   "stylus/temp.styl",
   "stylus/third.workspace.styl",
+  "stylus/app.teamwork.styl",
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",
 
