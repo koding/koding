@@ -36,21 +36,27 @@ module.exports = (req, res) ->
         r = http.request options, fetchUserInfo
         r.end()
       else
-        # TODO: handle errors in a better way
-        console.log "no access token"
+        console.log "facebook err, no access token", err
+        renderOauthPopup res, {error:"No access token", provider:"facebook"}
 
   fetchUserInfo = (userInfoResp) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
       JSession.one {clientId}, (err, session)->
-        if err then console.log err
-        else
-          {id, username} = JSON.parse rawResp
-          facebookResp = {access_token, username}
-          facebookResp["foreignId"] = id
+        if err
+          console.log "facebook err: fetch session", err
+          renderOauthPopup res, {error:err, provider:"facebook"}
+          return
 
-          session.update $set: {"foreignAuth.facebook": facebookResp}, (err)->
-            if err then console.log err
-            else
-              renderOauthPopup res, {error:null, provider:"facebook"}
+        {id, username} = JSON.parse rawResp
+        facebookResp = {access_token, username}
+        facebookResp["foreignId"] = id
+
+        session.update $set: {"foreignAuth.facebook": facebookResp}, (err)->
+          if err
+            console.log "facebook err, saving to session", err
+            renderOauthPopup res, {error:err, provider:"facebook"}
+            return
+
+          renderOauthPopup res, {error:null, provider:"facebook"}

@@ -3,8 +3,8 @@ koding             = require './bongo'
 
 module.exports = (req, res) ->
   {oauth_token, oauth_verifier} = req.query
-  {clientId}                  = req.cookies
-  {JSession, JUser}           = koding.models
+  {clientId}                    = req.cookies
+  {JSession, JUser}             = koding.models
 
   JSession.one {clientId}, (err, session)=>
     if err
@@ -39,5 +39,10 @@ module.exports = (req, res) ->
           odesk.accessTokenSecret = accessTokenSecret
           odesk.foreignId         = data.auth_user.uid
 
-          session.update $set: {"foreignAuth.odesk": odesk}, ->
+          session.update $set: {"foreignAuth.odesk": odesk}, (err)->
+            if err
+              console.log "odesk err, saving to session", err
+              renderOauthPopup res, {error:err, provider:"odesk"}
+              return
+
             renderOauthPopup res, {error:null, provider:"odesk"}
