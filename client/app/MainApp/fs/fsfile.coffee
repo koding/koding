@@ -102,9 +102,9 @@ class FSFile extends FSItem
 
   saveBinary:(contents, callback)->
 
-    info                = @getLocalFileInfo()
-    chunkQueue          = FSFile.createChunkQueue contents, null, info.lastUploadedChunk
-    total               = chunkQueue.length
+    info       = @getLocalFileInfo()
+    chunkQueue = FSFile.createChunkQueue contents, null, info.lastUploadedChunk
+    total      = chunkQueue.length
 
     @setLocalFileInfo totalChunks: total
 
@@ -141,9 +141,9 @@ class FSFile extends FSItem
         return
 
       @vmController.run
-        method    : 'fs.writeFile'
-        vmName    : @vmName
-        withArgs  : {path: FSHelper.plainPath(@path), content, append}
+        method   : 'fs.writeFile'
+        vmName   : @vmName
+        withArgs : {path: FSHelper.plainPath(@path), content, append}
       , (err, res) =>
         return callback? err  if err
         @emit "ChunkUploaded", res
