@@ -102,18 +102,39 @@ class FSFile extends FSItem
 
   saveBinary:(contents, callback)->
 
-    @abortRequested     = no
     info                = @getLocalFileInfo()
     chunkQueue          = FSFile.createChunkQueue contents, null, info.lastUploadedChunk
     total               = chunkQueue.length
 
     @setLocalFileInfo totalChunks: total
 
+    @on "ChunkUploaded", (response)=>
+      loaded   = total - chunkQueue.length
+      percent  = 100 * loaded / total
+      @setLocalFileInfo lastUploadedChunk: loaded
+      callback? null, response, {total, loaded, percent}
+
+    @once "AllChunksUploaded", =>
+      @off "ChunkUploaded"
+      @removeLocalFileInfo()
+      callback? null, finished: yes
+
+    @once "AbortRequested", =>
+      @abortRequested = yes
+      callback? null, abort: yes
+
     iterateChunks = =>
+
+      unless chunkQueue.length
+        @emit "AllChunksUploaded"
+
       next = chunkQueue.shift()
       return unless next
+      return if @abortRequested
 
-      if next.skip
+      {skip, content, append} = next
+
+      if skip
         callback null, {},
           percent: 100 * info.lastUploadedChunk / info.totalChunks
         iterateChunks()
@@ -122,34 +143,15 @@ class FSFile extends FSItem
       @vmController.run
         method    : 'fs.writeFile'
         vmName    : @vmName
-        withArgs  :
-          path    : FSHelper.plainPath @path
-          content : next.content
-          append  : next.append
+        withArgs  : {path: FSHelper.plainPath(@path), content, append}
       , (err, res) =>
-
         return callback? err  if err
-
-        @setLocalFileInfo lastUploadedChunk: total - chunkQueue.length
-
-        if @abortRequested
-          @abortRequested = no # reset the state
-          callback? null, abort: yes
-          return
-
-        loaded   = total - chunkQueue.length
-        percent  = 100 * loaded / total
-
-        callback? null, res, {total, loaded, percent}
+        @emit "ChunkUploaded", res
         iterateChunks()
-        if chunkQueue.length is 0 # finished all the chunks
-          callback? null, finished: yes
-          @removeLocalFileInfo()
 
     iterateChunks() if chunkQueue.length > 0
 
-  abort: ->
-    @abortRequested = yes
+  abort: -> @emit "AbortRequested"
 
   save:(contents, callback, useEncoding=yes)->
 
