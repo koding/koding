@@ -12,7 +12,7 @@ module.exports = class OAuth extends jraphical.Module
   @getUrl = secure (client, provider, callback)->
     switch provider
       when "github"
-        clientId = KONFIG.github
+        {clientId} = KONFIG.github
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
         callback null, url
       when "odesk"

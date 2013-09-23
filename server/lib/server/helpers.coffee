@@ -78,15 +78,6 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
       req.account = account
       callback(err, account)
 
-renderLoginTemplate = (resp, res)->
-  saveOauthToSession resp, -> # FIXME: this seems like spaghetti code to me — C.T.
-    {projectRoot}      = KONFIG
-    fs                 = require 'fs'
-    oauthLoginPath     = "#{projectRoot}/website/oauth_login.jade"
-    oauthLoginTemplate = fs.readFileSync oauthLoginPath, 'utf-8'
-
-    serve oauthLoginTemplate, res
-
 serve = (content, res)->
   res.header 'Content-type', 'text/html'
   res.send content
@@ -144,7 +135,6 @@ module.exports = {
   findUsernameFromKey
   findUsernameFromSession
   fetchJAccountByKiteUserNameAndKey
-  renderLoginTemplate
   serve
   isLoggedIn
   saveOauthToSession

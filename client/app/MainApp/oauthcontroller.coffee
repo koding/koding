@@ -1,6 +1,6 @@
 class OAuthController extends KDController
   openPopup: (provider)->
-    KD.remote.api.OAuth.getUrl provider, (url)=>
+    KD.remote.api.OAuth.getUrl provider, (err, url)=>
       if err then @notify err
       else
         name       = "Login"

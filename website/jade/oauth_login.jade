@@ -6,8 +6,8 @@ head
     meta(name='viewport', content='width=device-width,initial-scale=1')
     link(rel='stylesheet', href='//koding.com/hello/css/style.css')
     link(href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800', rel='stylesheet', type='text/css')
-    script
-      window.opener.KD.utils.useForeignAuth("github");
+    script.
+      window.opener.KD.singletons.OAuthController.authCompleted "#{error}", "#{provider}"
       window.close();
   body
     #container
