@@ -17,7 +17,7 @@ class EnvironmentsMainView extends JView
         log "Looking for machine...", machine
         for _, domain of domainsContainer.dias
           log "Looking for domain...", domain
-          if machine.data.title in domain.data.aliases
+          if domain.data.aliases and machine.data.title in domain.data.aliases
             scene.connect \
               {dia : domain , joint : 'right', container: domainsContainer}, \
               {dia : machine, joint : 'left',  container: machinesContainer}
