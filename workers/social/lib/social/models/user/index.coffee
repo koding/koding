@@ -166,7 +166,7 @@ module.exports = class JUser extends jraphical.Module
           foreignAuth     : {}
         }
         modifier = { $set: userValues, $unset: { oldUsername: 1 }}
-        user.update modifier, (err, callback) =>
+        user.update modifier, (err, docs) =>
           return callback err  if err?
           accountValues = {
             'profile.nickname'    : username
