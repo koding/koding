@@ -239,4 +239,8 @@ config =
     odesk           :
       key           : 1
       secret        : 1
+    facebook        :
+      key           : 1
+      secret        : 1
+      redirectUri   : 1
 module.exports = config

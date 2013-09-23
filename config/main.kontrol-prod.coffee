@@ -219,3 +219,10 @@ module.exports =
   github        :
     clientId    : "5891e574253e65ddb7ea"
     clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"
+  odesk          :
+    key          : "639ec9419bc6500a64a2d5c3c29c2cf8"
+    secret       : "549b7635e1e4385e"
+  facebook       :
+    clientId     : "475071279247628"
+    clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
+    redirectUri  : "https://koding.com/-/oauth/facebook/callback"
