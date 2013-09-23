@@ -12,7 +12,8 @@ template  = require './templates'
 {mq, mongo, emailWorker, uri} = \
   require('koding-config-manager').load("main.#{argv.c}")
 
-mongo += '?auto_reconnect'
+if 'string' is typeof mongo
+  mongo = "mongodb://#{mongo}?auto_reconnect"
 
 broker = new Broker mq
 
