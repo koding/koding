@@ -22,14 +22,14 @@ class DNDUploader extends KDView
 
     @on "uploadFile", (fsFile, percent)=>
       filePath  = "[#{fsFile.vmName}]#{fsFile.path}"
-      @finder.treeController.nodes[filePath]?.updateProgressView percent
+      @finder.treeController.nodes[filePath]?.showProgressView percent
 
     @on "uploadStart", (fsFile)=>
       filePath   = "[#{fsFile.vmName}]#{fsFile.path}"
       parentPath = "[#{fsFile.vmName}]#{fsFile.parentPath}"
 
       bindAbort = ->
-        nodeView.updateProgressView 1
+        nodeView.showProgressView 1
         nodeView.once "abortProgress", => fsFile.abort yes
 
       fsFile._isBeingUploaded = yes
@@ -41,7 +41,8 @@ class DNDUploader extends KDView
           if nodeView.getData().path is filePath and fsFile._isBeingUploaded
             bindAbort()
 
-        fsFile.save "", -> @finder.revealPath parentPath
+        fsFile.save "", =>
+          @finder.expandFolders FSHelper.getPathHierarchy parentPath
 
     @on "uploadEnd", (fsFile)->
       fsFile._isBeingUploaded = no
@@ -130,8 +131,8 @@ class DNDUploader extends KDView
         <small>#{if uploadToVM then FSHelper.plainPath @path else ''}</small>
       </div>
     """
-    if uploadToVM
-      @finder?.revealPath @path
+    if uploadToVM and @finder
+      @finder.expandFolders FSHelper.getPathHierarchy @path
 
     @addSubView new KDCustomHTMLView
       tagName   : "a"
@@ -152,21 +153,21 @@ class DNDUploader extends KDView
         @emit "uploadFile", fsFile, progress.percent
 
   upload: (fileName, contents)->
-    modalStack      = KDModalView.createStack lastToFirst: yes
-    fsUploadFolder  = FSHelper.createFileFromPath @path, 'folder'
-    fsFileToUpload  = FSHelper.createFileFromPath "#{@path}/#{fileName}"
+    modalStack   = KDModalView.createStack lastToFirst: yes
+    fsFolderItem = FSHelper.createFileFromPath @path, 'folder'
+    fsFileItem   = FSHelper.createFileFromPath "#{@path}/#{fileName}"
 
     upload = =>
-      fsFileToUpload.exists (err, exists)=>
-        if not exists or fsFileToUpload.getLocalFileInfo().lastUploadedChunk?
-        then @saveFile fsFileToUpload, contents
+      fsFileItem.exists (err, exists)=>
+        if not exists or fsFileItem.getLocalFileInfo().lastUploadedChunk?
+        then @saveFile fsFileItem, contents
         else
           modalStack.addModal modal = new KDModalView
             overlay : no
             title   : "Overwrite File?"
             content : """
             <div class="modalformline">
-            You already have the file <code>#{fsFileToUpload.path}</code>. Do you want
+            You already have the file <code>#{fsFileItem.path}</code>. Do you want
             to overwrite it?
             </div>
             """
@@ -174,7 +175,7 @@ class DNDUploader extends KDView
               Overwrite:
                 cssClass: "modal-clean-green"
                 callback: =>
-                  @saveFile fsFileToUpload, contents
+                  @saveFile fsFileItem, contents
                   modal.destroy()
               cancel:
                 cssClass: "modal-cancel"
@@ -185,9 +186,9 @@ class DNDUploader extends KDView
                 callback: ->
                   modalStack.destroy()
 
-    fsUploadFolder.exists (err, exists)=>
+    fsFolderItem.exists (err, exists)=>
       unless exists
-      then fsUploadFolder.save -> upload()
+      then fsFolderItem.save -> upload()
       else upload()
 
-    return fsFileToUpload
+    return fsFileItem

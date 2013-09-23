@@ -257,30 +257,20 @@ class NFinderController extends KDViewController
       return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
-  expandedFolderIndex = 0
-  expandFolders: (paths, callback=noop)->
-    @expandFolder paths[expandedFolderIndex], (err)=>
-      if err
-        callback? err
-        @unsetRecentFolder paths[expandedFolderIndex]
-      expandedFolderIndex++
-      if expandedFolderIndex <= paths.length
-        @expandFolders paths, callback, expandedFolderIndex
+  expandFolders: do ->
+    expandedFolderIndex = 0
+    (paths, callback=noop)->
+      @expandFolder paths[expandedFolderIndex], (err)=>
+        if err
+          callback? err
+          @unsetRecentFolder paths[expandedFolderIndex]
+        expandedFolderIndex++
+        if expandedFolderIndex <= paths.length
+          @expandFolders paths, callback, expandedFolderIndex
 
-      if expandedFolderIndex is paths.length
-        callback? null, @treeController.nodes[paths.last]
-        expandedFolderIndex = 0
-
-  revealPath: (fullPath, callback)->
-    {path, vmName} = KD.getPathInfo fullPath
-    path = path.replace /^~/, "/home/#{KD.nick()}"
-    nodes = path.split("/").filter (node)-> return !!node
-    queue = for node in nodes
-      subPath = nodes.join "/"
-      nodes.pop()
-      "[#{vmName}]/#{subPath}"
-    queue.reverse() # reverse the queue to open files to back
-    @expandFolders queue, callback
+        if expandedFolderIndex is paths.length
+          callback? null, @treeController.nodes[paths.last]
+          expandedFolderIndex = 0
 
   reloadPreviousState:(vmName)->
     recentFolders = @getRecentFolders()
