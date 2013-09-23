@@ -23,4 +23,4 @@ class KDHeaderView extends KDView
       when "small"  then "h3"
       else "h4"
 
-    super @utils.curryCssClass("kdheaderview", cssClass)
+    super @utils.curry("kdheaderview", cssClass)

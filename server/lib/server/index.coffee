@@ -362,7 +362,8 @@ app.get "/-/oauth/:provider/callback", (req,res)->
   r = http.request options, authorizeUser
   r.end()
 
-app.get '/:name/:section?*', (req, res, next)->
+
+app.all '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
