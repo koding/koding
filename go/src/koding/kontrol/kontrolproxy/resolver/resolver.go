@@ -75,7 +75,7 @@ func GetMemTarget(host string) (*Target, string, error) {
 
 	target, ok := getCacheTarget(host)
 	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
-		fmt.Printf("[%s] lookup from db %s\n", time.Now().Format(time.Stamp), host)
+		fmt.Printf("[%s] lookup host '%s' from db\n", time.Now().Format(time.Stamp), host)
 
 		dataSource = "db"
 		target, err = GetTarget(host)
@@ -360,7 +360,7 @@ func getCacheTarget(host string) (*Target, bool) {
 func registerCacheTarget(host string, target *Target) {
 	targetsLock.Lock()
 	defer targetsLock.Unlock()
-	fmt.Printf("adding target '%s' with '%d' ttl\n", host, target.CacheTimeout)
+	fmt.Printf("adding target '%s' with '%s' ttl\n", host, target.CacheTimeout.String())
 	targets[host] = *target
 }
 
