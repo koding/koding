@@ -40,10 +40,9 @@ module.exports = (req, res) ->
             return
 
           odesk                   = session.foreignAuth.odesk
-          odesk.accessToken       = accessToken
+          odesk.token             = accessToken
           odesk.accessTokenSecret = accessTokenSecret
           odesk.foreignId         = data.auth_user.uid
-          odesk.provider          = "odesk"
 
           saveOauthToSession odesk, clientId, "odesk", (err)->
             if err

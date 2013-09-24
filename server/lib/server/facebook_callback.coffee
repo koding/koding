@@ -44,9 +44,9 @@ module.exports = (req, res) ->
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
       {id, username}            = JSON.parse rawResp
-      facebookResp              = {access_token, username}
+      facebookResp              = {username}
+      facebookResp["token"]     = access_token
       facebookResp["foreignId"] = id
-      facebookResp["provider"]  = "facebook"
 
       saveOauthToSession facebookResp, clientId, "facebook", (err)->
         if err
