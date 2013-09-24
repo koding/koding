@@ -1,8 +1,8 @@
 class ColorSelection extends KDCustomHTMLView
   constructor:(options={})->
-    options.cssClass = 'environments-cs-container'
-    options.instant ?= yes
-    options.colors   = [
+    options.cssClass       = "environments-cs-container"
+    options.instant       ?= yes
+    options.colors         = [
       '#a2a2a2'
       '#ffa800'
       '#e13986'
@@ -13,20 +13,25 @@ class ColorSelection extends KDCustomHTMLView
       '#a861ff' ]
     super options
 
-    @selectedColor = '#a2a2a2'
-
   createColors : ->
+    colorBoxes = []
+
     for color in @getOption "colors"
 
-      @addSubView new KDCustomHTMLView
+      @addSubView colorBox = new KDCustomHTMLView
         cssClass    : "environments-cs-color"
         color       : color
         attributes  :
           style     : "background-color : #{color}"
         click : ->
-          @selectedColor  = @getOption "color"
-          @emit "colorChanged", @selectedColor
+          @parent.options.selectedColor  = @getOption "color"
+          @parent.emit "ColorChanged", @parent.getOption "selectedColor"
+
+          box.unsetClass "selected" for box in colorBoxes
+          @setClass      "selected"
+
+      colorBoxes.push colorBox
+      colorBox.setClass "selected" if color is @getOption "selectedColor"
 
   viewAppended : ->
     @createColors()
-    log @selectedColor

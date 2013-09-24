@@ -2,11 +2,13 @@ class EnvironmentItem extends KDDiaObject
 
   constructor:(options={}, data)->
 
-    options.cssClass = KD.utils.curry 'environments-item', options.cssClass
+    options.cssClass = KD.utils.curry "environments-item", options.cssClass
     options.jointItemClass = EnvironmentItemJoint
     options.draggable = no
     options.showStatusIndicator ?= yes
-    options.bind = KD.utils.curry 'contextmenu', options.bind
+    options.bind = KD.utils.curry "contextmenu", options.bind
+    options.colorTag ?= "#ffa800"
+    data.activated   ?= yes
 
     super options, data
 
@@ -21,7 +23,7 @@ class EnvironmentItem extends KDDiaObject
 
   contextMenu : (event) ->
     KD.utils.stopDOMEvent event
-    kind = @getOption 'kind'
+    kind = @getOption "kind"
 
     @ctxMenu = new JContextMenu
       menuWidth   : 200
@@ -45,7 +47,8 @@ class EnvironmentItem extends KDDiaObject
       'Color Tag'             :
         separator             : yes
         children              :
-          customView          : new ColorSelection
+          customView          : @colorSelection = new ColorSelection
+            selectedColor     : @getOption 'colorTag'
       'Rename'                :
         callback              : ->
       'Duplicate'             :
@@ -54,13 +57,19 @@ class EnvironmentItem extends KDDiaObject
         callback              : ->
       'Delete'                :
         separator             : yes
-        callback              : @confirmDestroy
+        callback              : =>
+          @ctxMenu.destroy()
+          @confirmDestroy()
       'Create New'            :
         callback              : ->
       'Create Empty Group'    :
         callback              : ->
 
-  setColorTag : (color) -> @getElement().style.borderLeftColor = color
+    @colorSelection.on "ColorChanged", (color) => @setColorTag color
+
+  setColorTag : (color) ->
+    @getElement().style.borderLeftColor = color
+    @options.colorTag                   = color
 
   confirmDestroy : =>
     modal        = new KDModalView
@@ -82,11 +91,11 @@ class EnvironmentItem extends KDDiaObject
   viewAppended : ->
     super
     @setClass 'activated'  if @getData().activated?
-    @setColorTag '#a2a2a2'
     if not @getData().activated
       KD.utils.defer =>
         @setClass 'passivated'
     @addStatusIndicator() if @getOption "showStatusIndicator"
+    @setColorTag @getOption('colorTag')
 
   pistachio:->
     """
