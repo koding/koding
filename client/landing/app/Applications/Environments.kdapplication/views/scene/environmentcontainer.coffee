@@ -15,7 +15,7 @@ class EnvironmentContainer extends KDDiaContainer
 
     @newItemPlus = new KDCustomHTMLView
       cssClass   : 'new-item-plus'
-      click      : -> @emit 'newItemPlusClicked'
+      click      : => @emit 'PlusButtonClicked'
 
   viewAppended:->
     super
