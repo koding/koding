@@ -4,9 +4,11 @@ Broker      = require 'broker'
 {argv}      = require 'optimist'
 {extend}    = require 'underscore'
 
-{mongo, mq, projectRoot, authWorker} = require('koding-config-manager').load("main.#{argv.c}")
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-mongo += '?auto_reconnect'
+{mq, projectRoot, authWorker} = KONFIG
+
+mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"
 
 mqOptions = extend {}, mq
 mqOptions.login = authWorker.login if authWorker?.login?

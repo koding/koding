@@ -1,5 +1,5 @@
 _ = require 'underscore'
-neo4j = require "neo4j"
+neo4j = require "neo4j-koding"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
@@ -7,7 +7,7 @@ JCache = require '../cache.coffee'
 
 module.exports = class Graph
   constructor:({config, facets})->
-    @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
+    @db = new neo4j.GraphDatabase "#{config.read}:#{config.port}"
     @facets = facets
 
   @reviveFromData: (data, className)->
@@ -27,9 +27,9 @@ module.exports = class Graph
       for i in wantedOrder
         obj = objects[i.idx]
         if obj
-          ret.push(obj)
+          ret.push obj
         else
-          console.log("id in neo4j but not in mongo, maybe a sync problem ??? " + i.idx)
+          console.log "id in neo4j but not in mongo, maybe a sync problem ??? #{i.idx}"
       callback null, ret
 
     ret = {}
@@ -37,8 +37,7 @@ module.exports = class Graph
       res.klass.all res.selector, (err, objects)->
         if err then callback err
         else
-          for o in objects
-            ret[o._id + '_' + res.modelName] = o
+          ret[o._id + '_' + res.modelName] = o  for o in objects
         fin()
     , -> sortThem null, ret
 
@@ -46,12 +45,11 @@ module.exports = class Graph
       ids = collections[modelName]
       klass = Base.constructors[modelName]
       selector = {
-        _id:
-          $in: ids.map (id)->
-            if 'string' is typeof id then ObjectId(id)
-            else id
+        _id: $in: ids.map (id)->
+          if 'string' is typeof id then ObjectId(id)
+          else id
       }
-      collectObjects({klass:klass, selector:selector, modelName:modelName})
+      collectObjects { klass, selector, modelName }
 
   # returns object ids from a result set as array
   # returns dict {colections: {'users':[id1,id2,id3]},
@@ -99,6 +97,7 @@ module.exports = class Graph
     {startDate, client} = options
     @db.query query, {}, (err, results)=>
       if err
+        console.log ">>> err", query, err
         callback err
       else if results.length is 0 then callback null, []
       else
@@ -155,7 +154,7 @@ module.exports = class Graph
   getExemptUsersClauseIfNeeded: (requestOptions, callback)->
     if not requestOptions.withExempt
       {delegate} = requestOptions.client.connection
-      JAccount = require '../account/index'
+      JAccount = require '../account'
       JAccount.getExemptUserIds (err, ids)=>
         return callback err, null if err
         trollIds = ('"' + id + '"' for id in ids when id.toString() isnt delegate.getId().toString()).join(',')
@@ -196,7 +195,7 @@ module.exports = class Graph
         limit 20
       """
 
-      returnResults = (err, results)=>   
+      returnResults = (err, results)=>
 
         tempRes = []
         if err then callback err
@@ -224,7 +223,7 @@ module.exports = class Graph
               collectRelations objected
 
       JCache.get query, (err, results)=>
-        if err or not results 
+        if err or not results
           @db.query query, {}, (err, results)=>
             JCache.add query, results
             returnResults(err, results)
@@ -233,7 +232,9 @@ module.exports = class Graph
 
   fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
-      if err then callback err
+      if err
+        console.log ">>> err fetchRelateds error", query, err
+        callback err
       resultData = []
       results.reverse()
       for result in results
@@ -285,10 +286,10 @@ module.exports = class Graph
       """
 
     @db.query query, {}, (err, results)=>
-      if err then throw err
+      if err
+        console.log ">>> err fetchNewInstalledApps", query, err
+        callback err
       @generateInstalledApps [], results, callback
-  
-
 
   generateInstalledApps:(resultData, results, callback)->
 
@@ -337,6 +338,7 @@ module.exports = class Graph
 
       @db.query query, {}, (err, results) =>
         if err
+          console.log ">>> err search members", query, err
           return callback err
         else if results.length is 0 then callback null, []
         else
@@ -358,7 +360,9 @@ module.exports = class Graph
       """
 
     @db.query query, {}, (err, results) ->
-      if err then throw err
+      if err
+        console.log ">>> err fetchNewMembers", query, err
+        callback err, null
       resultData = []
       for result in results
         data = result.members.data
@@ -398,7 +402,9 @@ module.exports = class Graph
 
   fetchFollows:(query, callback)->
     @db.query query, {}, (err, results)=>
-      if err then throw err
+      if err
+        console.log ">>> err fetchFollows", query, err
+        callback err
       @generateFollows [], results, callback
 
 
@@ -446,7 +452,9 @@ module.exports = class Graph
       RETURN count(members) as count
       """
     @db.query query, options, (err, results) ->
-      if err then throw err
+      if err
+        console.log ">>> err", query, err
+        callback err
       count = if results and results[0]['count'] then results[0]['count'] else 0
       callback null, count
 
@@ -578,7 +586,9 @@ module.exports = class Graph
 
   queryMembers:(query, options={}, callback)->
     @db.query query, options, (err, results) ->
-        if err then throw err
+        if err
+          console.log ">>> err queryMembers", query, err
+          callback err
         resultData = []
         for result in results
           data = result.members.data
@@ -617,7 +627,9 @@ module.exports = class Graph
 
   fetchItems:(query, modelName, callback)->
     @db.query query, {}, (err, results)=>
-      if err then throw err
+      if err
+        console.log ">>> err fetchItems", query, err
+        callback err
       else
         tempRes = []
         collectContents = race (i, id, fin)=>
@@ -642,5 +654,7 @@ module.exports = class Graph
     """
 
     @db.query query, {}, (err, results) ->
-      if err then callback err, null
+      if err
+        console.log ">>> err fetchRelationshipCount", query, err
+        callback err, null
       else callback null, results[0].count

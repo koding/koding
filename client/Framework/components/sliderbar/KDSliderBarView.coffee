@@ -7,13 +7,13 @@
 #   snap       : yes
 #   snapOnDrag : no
 #   drawBar    : yes
-#   showLabels : yes or [0, 25, 50, 75, 100] 
+#   showLabels : yes or [0, 25, 50, 75, 100]
 #   handles    : [100, 60]
 
 class KDSliderBarView extends KDCustomHTMLView
   constructor:(options = {}, data = {})->
 
-    options.cssClass    = KD.utils.curryCssClass "sliderbar-container", options.cssClass
+    options.cssClass    = KD.utils.curry "sliderbar-container", options.cssClass
     options.minValue   ?= 0
     options.maxValue   ?= 100
     options.interval   ?= no

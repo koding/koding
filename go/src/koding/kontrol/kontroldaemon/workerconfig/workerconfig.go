@@ -130,6 +130,6 @@ func Ack(worker models.Worker) error {
 	r.Timestamp = worker.Timestamp
 	r.Status = models.Started
 	r.Monitor.Uptime = worker.Monitor.Uptime
-	modelhelper.UpdateWorker(r)
+	modelhelper.UpdateIDWorker(r)
 	return nil
 }

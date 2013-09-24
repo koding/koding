@@ -1,6 +1,13 @@
 @import "./client/Framework/themes/default/kdfn"
 
+@keyframes progressbar-spinner
+  0%
+    margin-left       -50%
+  100%
+    margin-left       101%
+
 .progressbar-container
+  overflow            hidden
   size                100%, 13px
   border              1px solid #cfcfcf
   border-bottom-color #dbdbdb
@@ -34,3 +41,9 @@
     span 
       color           #fff
       text-shadow     0 1px 0 rgba(0,0,0,0.4)
+
+    &.spinner
+      abs()
+      width           50%
+      vendor          animation, progressbar-spinner 2s linear
+      vendor          animation-iteration-count, infinite

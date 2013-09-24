@@ -5,6 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
+mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
+
 socialQueueName = "koding-social-#{version}"
 
 authExchange    = "auth-#{version}"
@@ -30,13 +32,13 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : yes
+    enabled     : no
     port        : 1337
   neo4j         :
     read        : "http://kgraph.sj.koding.com"
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
+  mongo         : mongo
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
@@ -120,6 +122,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      precompiledApi: yes
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"

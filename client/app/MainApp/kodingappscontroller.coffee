@@ -201,7 +201,7 @@ class KodingAppsController extends KDController
     @updateAvailableApps = []
 
     @fetchApps (err, apps) =>
-      for appName, app of apps
+      for own appName, app of apps
         if @isAppUpdateAvailable app.name, app.version
           @updateAvailableApps.push publishedApps[app.name]
       callback? null, @updateAvailableApps
@@ -222,10 +222,10 @@ class KodingAppsController extends KDController
         callback err
 
   putDefaultShortcutsBack:(callback)->
-    if @appStorage.getValue 'shortcuts'
-      return  @utils.defer -> callback null
+    # if @appStorage.getValue 'shortcuts'
+    #   return  @utils.defer -> callback null
 
-    @appStorage.reset()
+    # @appStorage.reset()
     @appStorage.setValue 'shortcuts', defaultShortcuts, (err)->
       callback? err
 
@@ -267,7 +267,7 @@ class KodingAppsController extends KDController
 
   getPublishedApps: (callback) ->
     # return unless KD.isLoggedIn()
-    appNames = (appName for appName, manifest of @getManifests()) or []
+    appNames = (appName for own appName, manifest of @getManifests()) or []
     query    = "manifest.name": "$in": appNames
     {JApp}   = KD.remote.api
     JApp.fetchAllAppsData query, (err, apps)=>
@@ -281,6 +281,11 @@ class KodingAppsController extends KDController
     if @publishedApps[appName]
       return @utils.versionCompare appVersion, "lt", @publishedApps[appName].manifest.version
 
+  getAppUpdateType: (appName) ->
+    app = @publishedApps[appName]
+    return null unless app
+    return if app.manifest.forceUpdate is yes then "required" else "available"
+
   updateAllApps:->
     @fetchUpdateAvailableApps (err, apps) =>
       return warn err  if err
@@ -290,6 +295,9 @@ class KodingAppsController extends KDController
         stack.push (callback) =>
           @updateUserApp app.manifest, callback
       async.series stack
+
+  # added this to keep backward compatibility
+  refreshApps: (callback) -> @syncAppStorageWithFS yes, callback
 
   updateUserApp:(manifest, callback)->
     appName = manifest.name
@@ -320,17 +328,21 @@ class KodingAppsController extends KDController
   # KITE INTERACTIONS
   # #
 
-  putAppResources:(appInstance)->
+  hasForceUpdate: (appInstance) ->
+    manifest                 = @constructor.manifests[appInstance.getOptions().name]
+    {devMode, name, version} = manifest
+    forceUpdate              = @getAppUpdateType(name) is "required"
+    updateAvailable          = @isAppUpdateAvailable(name, version)
+    hasUpdate                = updateAvailable and not devMode and forceUpdate
+
+    @showUpdateRequiredModal manifest  if hasUpdate
+    return hasUpdate
+
+  putAppResources: (appInstance) ->
     return  unless appInstance
 
     manifest = appInstance.getOptions()
-    {devMode, forceUpdate, name, options, version, thirdParty} = manifest
-
-    return  unless thirdParty
-
-    if @isAppUpdateAvailable(name, version) and not devMode and forceUpdate
-      @showUpdateRequiredModal manifest
-      return callback()
+    return  unless manifest.thirdParty
 
     appView = appInstance.getView()
     appView.addSubView loader = new KDLoaderView
@@ -788,7 +800,7 @@ class KodingAppsController extends KDController
   createExtensionToAppMap: ->
     @extensionToApp = map = {}
 
-    for key, app of @getManifests()
+    for own key, app of @getManifests()
       fileTypes = app.fileTypes
       continue  unless fileTypes
       for type in fileTypes
@@ -804,7 +816,7 @@ class KodingAppsController extends KDController
     @appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
     @appConfigStorage.fetchStorage (storage) =>
       settings = @appConfigStorage.getValue "settings"
-      for extension, appName of settings
+      for own extension, appName of settings
         @appManager.defaultApps[extension] = appName
 
   updateDefaultAppConfig: (extension, appName) ->
@@ -819,7 +831,6 @@ class KodingAppsController extends KDController
     raw =
       devMode       : yes
       experimental  : no
-      authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
       hiddenHandle  : no
@@ -861,10 +872,18 @@ class KodingAppsController extends KDController
       icon        : 'icn-ace.png'
       description : 'Code Editor'
       author      : 'Mozilla'
+      route       : '/Develop/Ace'
     Terminal      :
       name        : 'Terminal'
       type        : 'koding-app'
       icon        : 'icn-terminal.png'
       description : 'Koding Terminal'
       author      : 'Koding'
-      path        : 'WebTerm'
+      route       : '/Develop/Terminal'
+    Teamwork      :
+      name        : 'Teamwork'
+      type        : 'koding-app'
+      icon        : 'teamwork/icon.256.png'
+      description : 'Koding\'s official collaboration app'
+      author      : 'Koding'
+      route       : '/Develop/Teamwork'

@@ -88,6 +88,7 @@ var (
 		"go/templates/proxy/securepage.html",
 		"go/templates/proxy/notfound.html",
 		"go/templates/proxy/notactiveVM.html",
+		"go/templates/proxy/notOnVM.html",
 		"go/templates/proxy/quotaExceeded.html",
 		"website/maintenance.html",
 	))
@@ -131,7 +132,7 @@ func configureProxy() {
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
 	reverseProxy := &Proxy{
-		EnableFirewall: true,
+		EnableFirewall: false,
 	}
 
 	startHTTPS(reverseProxy) // non-blocking
@@ -235,6 +236,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		if err == resolver.ErrGone {
 			return templateHandler("notfound.html", req.Host, 410)
 		}
+
 		logs.Info(fmt.Sprintf("resolver error %s", err))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
@@ -260,8 +262,9 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	if _, ok := getClient(userIP); !ok {
-		go logDomainRequests(req.Host)
-		go logProxyStat(proxyName, userCountry)
+		// these are not used for any purpose, disable them to avoid load on mongodb
+		// go logDomainRequests(req.Host)
+		// go logProxyStat(proxyName, userCountry)
 		go registerClient(userIP, target.Url.String())
 	}
 
@@ -276,6 +279,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
+	case "vmOff":
+		return templateHandler("notOnVM.html", req.Host, 404)
 	}
 
 	if isWebsocket(req) {

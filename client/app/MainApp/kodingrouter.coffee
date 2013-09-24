@@ -12,7 +12,8 @@ class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
 
-    @openRoutes = {}
+    @defaultRoute or= location.pathname + location.search
+    @openRoutes     = {}
     @openRoutesById = {}
     KD.getSingleton('contentDisplayController')
       .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
@@ -81,12 +82,12 @@ class KodingRouter extends KDRouter
         appManager  = KD.getSingleton "appManager"
         handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
 
-        appManager.once "AppCreated", handleQuery  unless appManager.get app
+        appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
 
         appManager.open app, (appInstance)=>
           appInstance.setOption "initialRoute", @getCurrentPath()
 
-        handleQuery()  if appManager.get app
+        handleQuery()  if appWasOpen
 
   handleNotFound:(route)->
 
@@ -364,7 +365,8 @@ class KodingRouter extends KDRouter
             open.call this, routeInfo, state
 
           else
-            KD.remote.cacheable routeInfo.params.name, (err, [model], name)=>
+            KD.remote.cacheable routeInfo.params.name, (err, models, name)=>
+              model = models.first  if models
               open.call this, routeInfo, model
 
     routes

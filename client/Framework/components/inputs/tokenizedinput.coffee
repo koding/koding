@@ -25,7 +25,7 @@ class KDTokenizedInput extends JView
     @registeredTokens = {}
     @_oldMatches      = []
 
-    for rule of o.match
+    for own rule of o.match
       @registeredTokens[rule] = []
 
     @input.on "keydown", @keyDownOnInput.bind @
@@ -44,7 +44,7 @@ class KDTokenizedInput extends JView
     # log "Caret Pos:", input.getCaretPosition()
 
     if matchRules
-      for rule, ruleSet of matchRules
+      for own rule, ruleSet of matchRules
         val = val.slice(0, input.getCaretPosition())
         matches = val.match ruleSet.regex
         if matches
@@ -113,7 +113,7 @@ class KDTokenizedInput extends JView
     inner  = inner[...cp] + caret + inner[cp...]
 
     $layer.scrollTop $input.scrollTop()
-    for rule, tokens of @registeredTokens
+    for own rule, tokens of @registeredTokens
       for dataSet in tokens
         replacedTextHash[dataSet.replacedText] = dataSet
         replacedTextHash[dataSet.replacedText].rule = rule
@@ -121,7 +121,7 @@ class KDTokenizedInput extends JView
 
     $layer.html inner
 
-    for replacedText, dataSet of replacedTextHash
+    for own replacedText, dataSet of replacedTextHash
       if @input.getValue().indexOf(replacedText) is -1
         @getOptions().match[dataSet.rule].removed? dataSet.data
         for tokenSet,i in @registeredTokens[dataSet.rule]
@@ -140,7 +140,7 @@ class KDTokenizedInput extends JView
       path = match.replace('{{#(', '').replace(')}}','')
       hash[match] = JsPath.getAt data, path
 
-    for mustache, value of hash
+    for own mustache, value of hash
       tmpl = tmpl.replace mustache, value
 
     return tmpl

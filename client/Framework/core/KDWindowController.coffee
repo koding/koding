@@ -111,25 +111,8 @@ class KDWindowController extends KDController
         if href and not /^#/.test href
           KD.getSingleton('router').handleRoute href
 
-    window.addEventListener 'beforeunload', @bound "beforeUnload"
-
-    # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
-    @utils.wait 15000, =>
-      KD.remote.api.JSystemStatus.on 'forceReload', =>
-        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-        location.reload()
-
-    # async clientId change checking procedures causes
-    # race conditions between window reloading and post-login callbacks
-    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
-      if cookie? and cookie isnt $.cookie 'clientId'
-        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-        @emit "clientIdChanged"
-
-        # window location path is set to last route to ensure visitor is not
-        # redirected to another page
-        @utils.defer -> window.location.pathname = KD.getSingleton("router").visitedRoutes.first or "/"
-      cookie = $.cookie 'clientId'
+    unless location.hostname is 'localhost'
+      window.addEventListener 'beforeunload', @bound "beforeUnload"
 
     document.addEventListener getVisibilityEventName(), (event)=>
       @focusChange event, @isFocused()
@@ -160,7 +143,7 @@ class KDWindowController extends KDController
     # all the listeners make their checks if it is safe or not to reload the page
     # they either return true or false if any of them returns false we intercept reload
 
-    for key, listeners of @unloadListeners
+    for own key, listeners of @unloadListeners
       for listener in listeners
         if listener() is off
           message = unless key is "window" then " on #{key}" else ""
@@ -185,7 +168,7 @@ class KDWindowController extends KDController
   superizeCombos = (combos)->
 
     safeCombos = {}
-    for combo, cb of combos
+    for own combo, cb of combos
       if /\bsuper(\+|\s)/.test combo
         combo = combo.replace /super/g, superKey
       safeCombos[combo] = cb
@@ -201,7 +184,7 @@ class KDWindowController extends KDController
 
     for e in @keyEventsToBeListened
       if "object" is typeof o[e]
-        for combo, cb of o[e]
+        for own combo, cb of o[e]
           combos[combo] = cb
 
     return if Object.keys(combos).length > 0 then combos else no
@@ -211,7 +194,7 @@ class KDWindowController extends KDController
     if combos = @viewHasKeyCombos view
       view.setClass "mousetrap"
       @currentCombos = superizeCombos combos
-      for combo, cb of @currentCombos
+      for own combo, cb of @currentCombos
         Mousetrap.bind combo, cb, 'keydown'
 
   unregisterKeyCombos:->
@@ -292,7 +275,7 @@ class KDWindowController extends KDController
   notifyWindowResizeListeners:(event, throttle = no, duration = 17)->
     event or= type : "resize"
     fireResizeHandlers = =>
-      for key, instance of @windowResizeListeners when instance._windowDidResize
+      for own key, instance of @windowResizeListeners when instance._windowDidResize
         instance._windowDidResize event
     if throttle
       KD.utils.killWait @resizeNotifiersTimer
