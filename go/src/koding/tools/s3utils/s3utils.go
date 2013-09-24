@@ -5,6 +5,7 @@ import (
 	"launchpad.net/goamz/s3"
 )
 
+// TODO: read from config
 var s3store = s3.New(
 	aws.Auth{
 		AccessKey: "AKIAJI6CLCXQ73BBQ2SQ",
