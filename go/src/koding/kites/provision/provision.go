@@ -37,11 +37,13 @@ func main() {
 	}
 
 	methods := map[string]interface{}{
-		"vm.start":        Provision.Start,
-		"vm.shutdown":     Provision.Shutdown,
-		"vm.stop":         Provision.Stop,
-		"vm.reinitialize": Provision.Reinitialize,
-		"vm.info":         Provision.Info,
+		"vm.start":          Provision.Start,
+		"vm.shutdown":       Provision.Shutdown,
+		"vm.stop":           Provision.Stop,
+		"vm.reinitialize":   Provision.Reinitialize,
+		"vm.info":           Provision.Info,
+		"vm.resizeDisk":     Provision.ResizeDisk,
+		"vm.createSnapshot": Provision.CreateSnapshot,
 	}
 
 	k := kite.New(o, new(Provision), methods)
@@ -133,6 +135,53 @@ func (Provision) Reinitialize(r *protocol.KiteDnodeRequest, result *bool) error 
 	*result = true
 	return nil
 }
+
+func (Provision) ResizeDisk(r *protocol.KiteDnodeRequest, result *bool) error {
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
+	}
+
+	if !vos.Permissions.Sudo {
+		return fmt.Errorf("permission denied: '%s' '%s'", r.Username, r.Hostname)
+	}
+
+	if err := vos.VM.ResizeRBD(); err != nil {
+		return err
+	}
+
+	*result = true
+	return nil
+}
+
+func (Provision) CreateSnapshot(r *protocol.KiteDnodeRequest, result *bool) error {
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
+	}
+
+	if !vos.Permissions.Sudo {
+		return fmt.Errorf("permission denied: '%s' '%s'", r.Username, r.Hostname)
+	}
+
+	if err := vos.VM.ResizeRBD(); err != nil {
+		return err
+	}
+
+	snippetId := bson.NewObjectId().Hex()
+	if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
+		return err
+	}
+
+	*result = true
+	return nil
+}
+
+/***********************************************
+
+Helper functions
+
+***********************************************/
 
 func getUser(username string) (*virt.User, error) {
 	if username == "" {
