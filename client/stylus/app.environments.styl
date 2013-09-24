@@ -724,18 +724,12 @@ div.environments-container
   background      rgba(203, 203, 203, 0.2)
   noTextSelection()
 
-  &:hover
-    .kdheaderview
-      .new-item-plus
-        opacity   1
-
   .kdheaderview
     padding       14px 0
     text-indent   14px
     border        none
 
     .new-item-plus
-      opacity             0
       size                20px, 20px
       margin              5px 20px 0 0
       rounded             100%
@@ -743,7 +737,7 @@ div.environments-container
       background-color    #555
       background-position -120px -440px
       cursor              pointer
-      vendor              transition, background-color .2s ease-out\, opacity .2s ease-in
+      vendor              transition, background-color .2s ease-in
       fr()
 
       &:hover

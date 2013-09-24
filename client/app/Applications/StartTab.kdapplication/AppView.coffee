@@ -19,8 +19,24 @@ class StartTabMainView extends JView
       cssClass : 'app-item-container'
       delegate : this
 
-    @serversWrapper = new KDView
-      cssClass : 'file-container'
+    # Server Container
+    @serverContainer = new EnvironmentsMainView
+    @serverContainerToggle = new KDToggleButton
+      style           : "kdwhitebtn"
+      cssClass        : "server-container-handler"
+      defaultState    : 'Show environments'
+      states          : [
+        title         : "Show environments"
+        callback      : (cb)=>
+          @serverContainer.setHeight 500
+          @utils.wait 220, => @serverContainer.scene.updateScene()
+          cb()
+      ,
+        title         : "Hide environments"
+        callback      : (cb)=>
+          @serverContainer.setHeight 2
+          cb()
+      ]
 
   # Application Specific Operations
 
@@ -157,12 +173,16 @@ class StartTabMainView extends JView
     @loader.show()
     @$('h1.loaded, h2.loaded').addClass "hidden"
     @$('h2.loader').removeClass "hidden"
+    @serverContainerToggle.unsetClass 'in'
+    @serverContainer.unsetClass 'in'
 
   hideLoader:->
 
     @loader.hide()
     @$('h2.loader').addClass "hidden"
     @$('h1.loaded, h2.loaded').removeClass "hidden"
+    @serverContainerToggle.setClass 'in'
+    @serverContainer.setClass 'in'
 
   viewAppended:->
 
@@ -178,13 +198,8 @@ class StartTabMainView extends JView
         <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
         <h2 class="loader">{{> @loader}} Loading applications...</h1>
       </header>
+      {{> @serverContainerToggle}}
+      {{> @serverContainer}}
       {{> @appItemContainer}}
-    </div>
-    <div class='start-tab-split-options expanded'>
-      <h3>Start with a workspace</h3>
-    </div>
-    <div class='start-tab-recent-container'>
-      <h3>Your servers:</h3>
-      {{> @serversWrapper}}
     </div>
     """
