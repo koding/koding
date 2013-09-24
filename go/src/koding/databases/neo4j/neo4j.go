@@ -20,8 +20,8 @@ var (
 	INDEX_PATH       = "/db/data/index/node"
 	NODE_URL         = "/db/data/node"
 	MAX_RETRIES      = 5
-	TIMEOUT          = 3
-	DEADLINE         = 30
+	TIMEOUT          = 20
+	DEADLINE         = 40
 	CYPHER_PATH      = "db/data/cypher"
 	CYPHER_URL       = fmt.Sprintf("%v/%v", BASE_URL, CYPHER_PATH)
 )
