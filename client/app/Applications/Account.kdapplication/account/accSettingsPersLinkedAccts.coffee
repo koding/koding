@@ -4,7 +4,9 @@ class AccountLinkedAccountsListController extends KDListViewController
 
     data = items : [
       { title : "GitHub", type    : "github" }
-      { title : "oDesk",  type    : "odesk" }
+      # temporarily disabled; when ready to integrate simply
+      # uncomment this line, server side is already implemeneted: SA
+      # { title : "oDesk",  type    : "odesk" }
       { title : "Facebook",  type : "facebook" }
     ]
 
