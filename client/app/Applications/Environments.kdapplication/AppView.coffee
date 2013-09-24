@@ -1,26 +1,60 @@
 class EnvironmentsMainView extends JView
 
+  constructor:->
+    super cssClass : 'environment-content'
+
   viewAppended:->
 
+    # Main Header
     @addSubView new HeaderViewSection type : "big", title : "Environments"
-    @addSubView scene = new EnvironmentScene
 
-    domainsContainer  = new EnvironmentDomainContainer
-    scene.addContainer domainsContainer
+    # Action Area for Domains
+    @addSubView @actionArea = new KDView cssClass : 'action-area'
 
-    machinesContainer = new EnvironmentMachineContainer
-    scene.addContainer machinesContainer, x: 300
+    # Main scene for DIA
+    @addSubView @scene = new EnvironmentScene
 
-    scene.whenItemsLoadedFor [domainsContainer, machinesContainer], =>
-      log "All Loaded", domainsContainer, machinesContainer
-      for _, machine of machinesContainer.dias
-        log "Looking for machine...", machine
-        for _, domain of domainsContainer.dias
-          log "Looking for domain...", domain
-          if domain.data.aliases and machine.data.title in domain.data.aliases
-            scene.connect \
-              {dia : domain , joint : 'right', container: domainsContainer}, \
-              {dia : machine, joint : 'left',  container: machinesContainer}
+    @domainsContainer  = new EnvironmentDomainContainer
+    @scene.addContainer @domainsContainer
+
+    @machinesContainer = new EnvironmentMachineContainer
+    @scene.addContainer @machinesContainer, x: 300
+
+    @scene.whenItemsLoadedFor \
+      [@domainsContainer, @machinesContainer], @bound 'updateConnections'
+
+    @actionArea.addSubView creationForm = new DomainCreationForm
+
+    creationForm.on 'DomainCreationCancelled', =>
+      @actionArea.unsetClass 'in'
+      # @buttonsBar.unsetClass 'out'
+
+    creationForm.on 'DomainSaved', (domain)=>
+      @domainsListViewController.update()
+
+    @on 'DomainNameShouldFocus', ->
+      form         = creationForm.forms["Domain Address"]
+      {domainName} = form.inputs
+      domainName.setFocus()
+
+    creationForm.on 'CloseClicked', =>
+      @actionArea.unsetClass 'in'
+      # @buttonsBar.unsetClass 'out'
+
+    @domainsContainer.on 'PlusButtonClicked', =>
+      @actionArea.setClass 'in'
+      @emit 'DomainNameShouldFocus'
+
+    @machinesContainer.on 'PlusButtonClicked', =>
+      KD.getSingleton('vmController').createNewVM()
+
+  updateConnections:->
+    for _, machine of @machinesContainer.dias
+      for _, domain of @domainsContainer.dias
+        if domain.data.aliases and machine.data.title in domain.data.aliases
+          @scene.connect \
+            {dia : domain , joint : 'right', container: @domainsContainer}, \
+            {dia : machine, joint : 'left',  container: @machinesContainer}
 
 
 #  - DO NOT TOUCH BELOW

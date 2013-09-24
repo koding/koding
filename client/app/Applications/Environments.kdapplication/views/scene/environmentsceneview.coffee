@@ -6,6 +6,7 @@ class EnvironmentScene extends KDDiaScene
       lineWidth : 1
 
   whenItemsLoadedFor:do->
+    # poor man's when/promise implementation ~ GG
     (containers, callback)->
       counter = containers.length
       containers.forEach (container)->
