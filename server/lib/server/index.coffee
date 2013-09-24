@@ -12,8 +12,6 @@ Object.defineProperty global, 'KONFIG',
   kites
   uploads
   basicAuth
-  neo4j
-  github
 }       = KONFIG
 webPort = argv.p ? webserver.port
 koding  = require './bongo'

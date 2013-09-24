@@ -77,9 +77,14 @@ module.exports = (req, res) ->
 
       saveOauthAndRenderPopup originalResp, res, clientId
 
+  path = "/login/oauth/access_token?"
+  path += "client_id=#{github.clientId}&"
+  path += "client_secret=#{github.clientSecret}&"
+  path += "code=#{code}"
+
   options =
     host   : "github.com"
-    path   : "/login/oauth/access_token?client_id=#{github.clientId}&client_secret=#{github.clientSecret}&code=#{code}"
+    path   : path
     method : "POST"
     headers : headers
   r = http.request options, authorizeUser

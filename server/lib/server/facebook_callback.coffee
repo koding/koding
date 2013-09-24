@@ -4,8 +4,6 @@
 }          = require './helpers'
 {facebook} = KONFIG
 http       = require "https"
-koding     = require './bongo'
-{JSession} = koding.models
 {decode}   = require "querystring"
 
 module.exports = (req, res) ->
