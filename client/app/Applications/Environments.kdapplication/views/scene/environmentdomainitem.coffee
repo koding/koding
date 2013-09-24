@@ -2,7 +2,7 @@ class EnvironmentDomainItem extends EnvironmentItem
 
   constructor:(options={}, data)->
 
-    options.joints             = ['left', 'right']
+    options.joints             = ['right']
     options.cssClass           = 'domain'
     options.kind               = 'Domain'
 
