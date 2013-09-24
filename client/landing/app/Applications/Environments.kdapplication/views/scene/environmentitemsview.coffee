@@ -23,35 +23,6 @@ class EnvironmentItem extends KDDiaObject
     KD.utils.stopDOMEvent event
     kind = @getOption 'kind'
 
-    ctxMenuContent = {}
-    ctxMenuContent['Properties']            =
-      callback       : ->
-    ctxMenuContent['Focus On This ' + kind] =
-      callback       : -> @destroy()
-    ctxMenuContent['Unfocus']               =
-      callback       : ->
-    ctxMenuContent['Edit Bindings']         =
-      separator      : yes
-      callback       : ->
-    ctxMenuContent['Color Tag']             =
-      separator      : yes
-      children       :
-        customView   : new ColorSelection
-          parentItem : @
-    ctxMenuContent['Rename']                =
-      callback       : ->
-    ctxMenuContent['Duplicate']             =
-      callback       : ->
-    ctxMenuContent['Combine Into Group']    =
-      callback       : ->
-    ctxMenuContent['Delete']                =
-      separator      : yes
-      callback       : @confirmDestroy
-    ctxMenuContent['Create New ' + kind]    =
-      callback       : ->
-    ctxMenuContent['Create Empty Group']    =
-      callback       : ->
-
     @ctxMenu = new JContextMenu
       menuWidth   : 200
       delegate    : @
@@ -62,7 +33,32 @@ class EnvironmentItem extends KDDiaObject
         margin    : 19
       lazyLoad    : yes
     ,
-      ctxMenuContent
+      'Properties'            :
+        callback              : ->
+      'Focus On This'         :
+        callback              : -> @destroy()
+      'Unfocus'               :
+        callback              : ->
+      'Edit Bindings'         :
+        separator             : yes
+        callback              : ->
+      'Color Tag'             :
+        separator             : yes
+        children              :
+          customView          : new ColorSelection
+      'Rename'                :
+        callback              : ->
+      'Duplicate'             :
+        callback              : ->
+      'Combine Into Group'    :
+        callback              : ->
+      'Delete'                :
+        separator             : yes
+        callback              : @confirmDestroy
+      'Create New'            :
+        callback              : ->
+      'Create Empty Group'    :
+        callback              : ->
 
   setColorTag : (color) -> @getElement().style.borderLeftColor = color
 
@@ -99,32 +95,3 @@ class EnvironmentItem extends KDDiaObject
         {{#(description)}}
       </div>
     """
-
-class ColorSelection extends KDCustomHTMLView
-  constructor:(options={})->
-    options.cssClass = 'environments-cs-container'
-    options.colors   = [
-      '#a2a2a2'
-      '#ffa800'
-      '#e13986'
-      '#39bce1'
-      '#0018ff'
-      '#e24d45'
-      '#34b700'
-      '#a861ff' ]
-    super options
-
-  createColors : ->
-    for color in @getOption "colors"
-      parentItem = @getOption "parentItem"
-
-      @addSubView new KDCustomHTMLView
-        cssClass    : "environments-cs-color"
-        color       : color
-        attributes  :
-          style     : "background-color : #{color}"
-        click : ->
-          parentItem.setColorTag @getOption "color"
-
-  viewAppended : ->
-    @createColors()

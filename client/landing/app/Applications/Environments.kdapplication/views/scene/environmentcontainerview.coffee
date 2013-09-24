@@ -7,9 +7,14 @@ class EnvironmentContainer extends KDDiaContainer
     title = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
 
+    @newItemPlus = new KDCustomHTMLView
+      cssClass   : 'new-item-plus'
+      click      : -> @emit 'newItemPlusClicked'
+
   viewAppended:->
     super
     @addSubView @header
+    @header.addSubView @newItemPlus
 
   addDia:(diaObj, pos)->
     pos = x: 20, y: 60 + @diaCount() * 50
