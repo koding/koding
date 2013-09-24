@@ -11,3 +11,7 @@ class EnvironmentDomainItem extends EnvironmentItem
       EnvironmentMachineItem : ['left']
 
     super options, data
+
+  confirmDestroy:->
+    @deletionModal = new DomainDeletionModal {}, @getData().domain
+    @deletionModal.on "domainRemoved", @bound 'destroy'

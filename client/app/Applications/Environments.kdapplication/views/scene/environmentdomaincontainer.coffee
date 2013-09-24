@@ -20,5 +20,6 @@ class EnvironmentDomainContainer extends EnvironmentContainer
           description : $.timeago domain.createdAt
           activated   : yes
           aliases     : domain.hostnameAlias
+          domain      : domain
         addedCount++
         @emit "DataLoaded"  if addedCount is domains.length
