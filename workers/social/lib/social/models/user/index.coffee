@@ -128,23 +128,22 @@ module.exports = class JUser extends jraphical.Module
       sshKeys       : [Object]
       foreignAuth            :
         github               :
-          token              : String
           foreignId          : String
           username           : String
+          token              : String
           firstName          : String
           lastName           : String
           email              : String
         odesk                :
-          accessToken        : String
-          accessTokenSecret  : String
           foreignId          : String
+          token              : String
+          accessTokenSecret  : String
           requestToken       : String
           requestTokenSecret : String
         facebook             :
-          access_token       : String
-          username           : String
           foreignId          : String
-          provider           : String
+          username           : String
+          token              : String
     relationships       :
       ownAccount        :
         targetType      : JAccount
