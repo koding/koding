@@ -30,3 +30,6 @@ class KDDiaContainer extends JView
   addItem:(data, options={})->
     itemClass = @getOption 'itemClass'
     @addDia new itemClass options, data
+
+  removeAllItems:->
+    dia.destroy?() for _, dia of @dias
