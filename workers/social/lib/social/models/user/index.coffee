@@ -66,7 +66,9 @@ module.exports = class JUser extends jraphical.Module
     indexes         :
       username      : 'unique'
       email         : 'unique'
-      'foreignAuth.github.foreignId' : 1
+      'foreignAuth.github.foreignId'   : 1
+      'foreignAuth.odesk.foreignId'    : 1
+      'foreignAuth.facebook.foreignId' : 1
 
     sharedEvents    :
       static        : [
@@ -195,7 +197,6 @@ module.exports = class JUser extends jraphical.Module
             'profile.experience'  : ''
             'profile.experiencePoints': 0
             'profile.lastStatusUpdate': ''
-            'foreignAuth.github'  : no
             type                  : 'deleted'
             ircNickame            : ''
             skillTags             : []
@@ -454,9 +455,9 @@ module.exports = class JUser extends jraphical.Module
     callback null, {account, replacementToken}
 
   @fetchUserByProvider = (provider, session, callback)->
-    {foreignAuth, foreignAuthType} = session
-    query                          = {}
-    query["foreignAuth.#{foreignAuthType}.foreignId"] = foreignAuth[foreignAuthType].foreignId
+    {foreignAuth}                              = session
+    query                                      = {}
+    query["foreignAuth.#{provider}.foreignId"] = foreignAuth[provider].foreignId
 
     JUser.one query, callback
 
