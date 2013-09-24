@@ -70,13 +70,12 @@ class AccountAppController extends AppController
       """
 
     # SET UP SPLIT VIEW AND TOGGLERS
-    @split = split = new SplitView
+    mainView.addSubView @split = split = new SplitView
       domId     : "account-split-view"
-      sizes     : [188,null]
-      views     : [navView,wrapperView]
-      minimums  : [null,null]
+      sizes     : [188, null]
+      views     : [navView, wrapperView]
+      minimums  : [null, null]
       resizable : yes
-    mainView.addSubView split
 
     [panel0, panel1] = split.panels
 
@@ -180,6 +179,11 @@ class AccountAppController extends AppController
       items : [
         { title : "SSH keys",             listHeader: "Your SSH Keys",              listType: "keys",           id : 5,       parentId : null }
         { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
+      ]
+    danger  :
+      title : "Danger"
+      items : [
+        { title : "Delete Account",       listHeader: "Danger Zone",                listType: "delete",         id : 5,       parentId : null }
       ]
       # kites :
       #   title : "Kites"

@@ -4,7 +4,7 @@ class KDTabPaneView extends KDView
     options.hiddenHandle ?= no      # a Boolean
     options.name        or= ""      # a String
     defaultCssClass       = "kdtabpaneview kdhiddentab #{KD.utils.slugify(options.name.toLowerCase())} clearfix"
-    options.cssClass      = KD.utils.curryCssClass defaultCssClass, options.cssClass
+    options.cssClass      = KD.utils.curry defaultCssClass, options.cssClass
 
     super options, data
 

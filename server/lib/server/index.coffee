@@ -6,13 +6,13 @@ Object.defineProperty global, 'KONFIG',
 
 {
   webserver
-  mongo
   mq
   projectRoot
   kites
   uploads
   basicAuth
 }       = KONFIG
+
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
 
@@ -294,7 +294,8 @@ app.get "/-/oauth/odesk/callback",    require "./odesk_callback"
 app.get "/-/oauth/github/callback",   require "./github_callback"
 app.get "/-/oauth/facebook/callback", require "./facebook_callback"
 
-app.get '/:name/:section?*', (req, res, next)->
+
+app.all '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
@@ -314,7 +315,7 @@ app.get '/:name/:section?*', (req, res, next)->
           if err
             subPage = JGroup.render[prefix].subPage {account, name, section}
             return serve subPage, res
-          else unless models? then res.send 404, error_404()
+          else unless models? then next()
           else
             subPage = JGroup.render[prefix].subPage {account, name, section, models}
             return serve subPage, res

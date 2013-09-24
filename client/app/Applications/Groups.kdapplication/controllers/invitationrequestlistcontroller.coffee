@@ -4,7 +4,7 @@ class InvitationRequestListController extends KDListViewController
     options.itemClass           ?= GroupsInvitationListItemView
     options.viewOptions         ?= {}
     options.viewOptions.cssClass =
-      @utils.curryCssClass 'invitation-request-list', options.viewOptions.cssClass
+      @utils.curry 'invitation-request-list', options.viewOptions.cssClass
 
     options.noItemFoundWidget   ?= new KDCustomHTMLView
       cssClass : 'lazy-loader'

@@ -12,13 +12,13 @@ class ClassroomCoursesView extends JView
   createCourses: ->
     {enrolled, related, imported} = @getData()
 
-    for courseName, courseManifest of enrolled
+    for own courseName, courseManifest of enrolled
       @createThumbView @enrolledContainer, "enrolled", courseManifest
 
-    for courseName, courseManifest of imported
+    for own courseName, courseManifest of imported
       @createThumbView @enrolledContainer, "imported", courseManifest
 
-    for courseName, courseManifest of related
+    for own courseName, courseManifest of related
       @createThumbView @relatedContainer, "related", courseManifest
 
   createThumbView: (container, type, data) ->

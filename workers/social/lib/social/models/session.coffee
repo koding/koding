@@ -78,21 +78,6 @@ module.exports = class JSession extends Model
           else
             callback null, session, account
 
-    # JGuest.obtain null, clientId, (err, guest) =>
-    #   if err
-    #     @emit 'error', err
-    #   else
-    #     {guestId} = guest
-    #     session = new JSession {
-    #       clientId
-    #       guestId
-    #     }
-    #     session.save (err)->
-    #       if err
-    #         callback err
-    #       else
-    #         callback null, session, guest
-
   @fetchSession =(clientId, callback)->
     selector = {clientId}
     @one selector, (err, session)=>

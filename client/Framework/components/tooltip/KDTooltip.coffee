@@ -19,7 +19,7 @@ class KDTooltip extends KDView
 
     options.bind    or= "mouseenter mouseleave"
     options.sticky   ?= no
-    options.cssClass  = KD.utils.curryCssClass "kdtooltip", options.cssClass
+    options.cssClass  = KD.utils.curry "kdtooltip", options.cssClass
 
     super options, data
 

@@ -47,7 +47,7 @@ class CollaborativePanel extends Panel
 
     if options.pane then return 1
     else
-      for key, value of options.layout.views
+      for own key, value of options.layout.views
         if value.type is "split"
           length += value.views.length
         else length++

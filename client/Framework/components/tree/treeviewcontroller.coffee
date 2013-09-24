@@ -77,7 +77,7 @@ class JTreeViewController extends KDViewController
   logTreeStructure:->
 
     o = @getOptions()
-    for index, node of @indexedNodes
+    for own index, node of @indexedNodes
       log index, @getNodeId(node), @getNodePId(node), node.depth
 
   getNodeId:(nodeData)->
@@ -204,7 +204,8 @@ class JTreeViewController extends KDViewController
       list = @createList(parentId).getListView()
       @addSubList @nodes[parentId], parentId
 
-    list.addItem nodeData
+    node = list.addItem nodeData
+    @emit "NodeWasAdded", node
 
     # Enable this to make indexedNodes work correctly with indexes ~ GG
     #
@@ -214,6 +215,7 @@ class JTreeViewController extends KDViewController
     #   KD.timeEnd "Starting to guess"
 
     @addIndexedNode nodeData
+    return node
 
   addNodes:(nodes)->
     @addNode node for node in nodes
@@ -241,7 +243,7 @@ class JTreeViewController extends KDViewController
 
   removeAllNodes:->
 
-    for id, listController of @listControllers
+    for own id, listController of @listControllers
       listController.itemsOrdered.forEach @bound 'removeNodeView'
       listController?.getView().destroy()
       delete @listControllers[id]
@@ -519,8 +521,8 @@ class JTreeViewController extends KDViewController
     @utils.wait 101, =>
       @getView().$('.drop-target').removeClass "drop-target"
       @getView().$('.items-hovering').removeClass "items-hovering"
-      listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
-      nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
+      listController.getListView().unsetClass "drop-target" for own path, listController of @listControllers
+      nodeView.unsetClass "items-hovering drop-target" for own path, nodeView of @nodes
 
   ###
   HANDLING MOUSE EVENTS

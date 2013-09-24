@@ -13,7 +13,7 @@ class KDButtonGroupView extends KDView
 
   createButtons:(allButtonOptions)->
 
-    for buttonTitle, buttonOptions of allButtonOptions
+    for own buttonTitle, buttonOptions of allButtonOptions
       buttonClass = buttonOptions.buttonClass or KDButtonView
       buttonOptions.title = buttonTitle
       buttonOptions.style = ""
@@ -22,7 +22,7 @@ class KDButtonGroupView extends KDView
         @buttonReceivedClick @buttons[buttonTitle], event
 
   buttonReceivedClick:(button, event)->
-    for title, otherButton of @buttons
+    for own title, otherButton of @buttons
       otherButton.unsetClass "toggle"
     button.setClass "toggle"
 
