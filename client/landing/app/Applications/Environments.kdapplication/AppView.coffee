@@ -1,52 +1,26 @@
 class EnvironmentsMainView extends JView
 
-  constructor:(options = {}, data)->
-    super options, data
-
-    @header = new HeaderViewSection type : "big", title : "Environments"
-
   viewAppended:->
 
+    @addSubView new HeaderViewSection type : "big", title : "Environments"
     @addSubView scene = new EnvironmentScene
 
-    rulesContainer    = new EnvironmentContainer
-      title           : "Rules"
-      itemClass       : EnvironmentRuleItem
-    scene.addContainer rulesContainer
-    domainsContainer  = new EnvironmentContainer
-      title           : "Domains"
-      itemClass       : EnvironmentDomainItem
-    scene.addContainer domainsContainer, x: 300
-    machinesContainer = new EnvironmentContainer
-      title           : "Machines"
-      itemClass       : EnvironmentMachineItem
-    scene.addContainer machinesContainer, x: 580
-    rulesContainer.addItem
-      title       : 'Internal Access'
-      description : 'Deny: All, Allow: 127.0.0.1'
-      activated   : yes
-    rulesContainer.addItem
-      title       : 'No China'
-      description : 'Deny: All, Allow: Loc: [China]'
-      notes       : 'We need this for bla bla bla...'
-    domainsContainer.addItem
-      title       : 'gokmen.kd.io'
-      description : 'Main domain'
-      activated   : yes
-    domainsContainer.addItem
-      title       : 'git.gokmen.kd.io'
-      description : 'Koding GIT repository'
-      notes       : 'I keep all the source in here.'
-    domainsContainer.addItem
-      title       : 'svn.gokmen.kd.io'
-      description : 'Koding SVN repository'
-    machinesContainer.addItem
-      title : 'vm-0.gokmen.koding.kd.io'
-      usage : 20
-    machinesContainer.addItem
-      title     : 'vm-1.gokmen.koding.kd.io'
-      usage     : 45
-      activated : yes
+    domainsContainer  = new EnvironmentDomainContainer
+    scene.addContainer domainsContainer
+
+    machinesContainer = new EnvironmentMachineContainer
+    scene.addContainer machinesContainer, x: 300
+
+    scene.whenItemsLoadedFor [domainsContainer, machinesContainer], =>
+      log "All Loaded", domainsContainer, machinesContainer
+      for _, machine of machinesContainer.dias
+        log "Looking for machine...", machine
+        for _, domain of domainsContainer.dias
+          log "Looking for domain...", domain
+          if domain.data.aliases and machine.data.title in domain.data.aliases
+            scene.connect \
+              {dia : domain , joint : 'right', container: domainsContainer}, \
+              {dia : machine, joint : 'left',  container: machinesContainer}
 
 
 #  - DO NOT TOUCH BELOW
