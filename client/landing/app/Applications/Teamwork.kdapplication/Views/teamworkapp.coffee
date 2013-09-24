@@ -27,6 +27,7 @@ class TeamworkApp extends KDObject
         layout            :
           direction       : "vertical"
           sizes           : [ "25%", null ]
+          splitName       : "BaseSplit"
           views           : [
             {
               type        : "finder"
@@ -36,7 +37,8 @@ class TeamworkApp extends KDObject
               type        : "split"
               options     :
                 direction : "horizontal"
-                sizes     : [ "50%", null ]
+                sizes     : [ "100%", null ]
+                splitName : "InnerSplit"
               views       : [
                 {
                   type    : "tabbedEditor"
