@@ -712,8 +712,24 @@ div.environments-container
   noTextSelection()
 
   .kdheaderview
-    padding       14px
+    padding       14px 0
+    text-indent   14px
     border        none
+
+    .new-item-plus
+      display             block
+      size                20px, 20px
+      margin              5px 20px 0 0
+      rounded             100%
+      sprite()
+      background-color    #555
+      background-position -120px -440px
+      cursor              pointer
+      vendor              transition, all .2s ease-out
+      fr()
+
+      &:hover
+        background-position -120px -480px
 
 div.environments-item
   cursor          default
@@ -813,3 +829,8 @@ div.environments-joint
   .kdmodal-content
     div
       padding          20px
+
+
+
+
+
