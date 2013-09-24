@@ -4,14 +4,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
-	"os/exec"
-	"strings"
-	"time"
+	"koding/virt"
 )
 
-type VM struct {
+type Provision struct {
 	ProgramName string
 }
 
@@ -31,27 +30,49 @@ func main() {
 	}
 
 	methods := map[string]interface{}{
-		"vm.start":        VM.Start,
-		"vm.shutdown":     VM.Shutdown,
-		"vm.stop":         VM.Stop,
-		"vm.reinitialize": VM.Reinitialize,
-		"vm.info":         VM.Info,
+		"vm.start":        Provision.Start,
+		"vm.shutdown":     Provision.Shutdown,
+		"vm.stop":         Provision.Stop,
+		"vm.reinitialize": Provision.Reinitialize,
+		"vm.info":         Provision.Info,
 	}
 
-	k := kite.New(o, new(VM), methods)
+	k := kite.New(o, new(Provision), methods)
 	k.Start()
 }
 
-func (VM) Start(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		Name string
+func getVos(username, hostname string) (*virt.VOS, error) {
+	if username == "" || hostname == "" {
+		return nil, errors.New("username or hostname is empty")
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Name == "" {
-		return errors.New("{ path: [string] }")
+	u, err := modelhelper.GetUser(username)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := start(params.Name); err != nil {
+	user := virt.User(*u)
+
+	v, err := modelhelper.GetVM(hostname)
+	if err != nil {
+		return nil, err
+	}
+
+	vm := virt.VM(v)
+	return vm.OS(&user)
+}
+
+func (Provision) Start(r *protocol.KiteDnodeRequest, result *bool) error {
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
+	}
+
+	if !vos.Permissions.Sudo {
+		return fmt.Errorf("permission denied: '%s' '%s'", r.Username, r.Hostname)
+	}
+
+	if err := vos.VM.Start(); err != nil {
 		return err
 	}
 
@@ -59,16 +80,17 @@ func (VM) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (VM) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		Name string
+func (Provision) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Name == "" {
-		return errors.New("{ path: [string] }")
+	if !vos.Permissions.Sudo {
+		return fmt.Errorf("permission denied: '%s' '%s'", r.Username, r.Hostname)
 	}
 
-	if err := stop(params.Name); err != nil {
+	if err := vos.VM.Stop(); err != nil {
 		return err
 	}
 
@@ -76,16 +98,17 @@ func (VM) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (VM) Shutdown(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		Name string
+func (Provision) Shutdown(r *protocol.KiteDnodeRequest, result *bool) error {
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Name == "" {
-		return errors.New("{ path: [string] }")
+	if !vos.Permissions.Sudo {
+		return fmt.Errorf("permission denied: '%s' '%s'", r.Username, r.Hostname)
 	}
 
-	if err := shutdown(params.Name); err != nil {
+	if err := vos.VM.Shutdown(); err != nil {
 		return err
 	}
 
@@ -93,15 +116,7 @@ func (VM) Shutdown(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (VM) Info(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		Name string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.Name == "" {
-		return errors.New("{ path: [string] }")
-	}
-
+func (Provision) Info(r *protocol.KiteDnodeRequest, result *bool) error {
 	//TODO: implement this
 	// info := channel.KiteData.(*VMInfo)
 	// info.State = getState(name)
@@ -110,18 +125,30 @@ func (VM) Info(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (VM) Reinitialize(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		Name string
+func (Provision) Reinitialize(r *protocol.KiteDnodeRequest, result *bool) error {
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
 	}
 
-	if r.Args.Unmarshal(&params) != nil || params.Name == "" {
-		return errors.New("{ path: [string] }")
+	if !vos.Permissions.Sudo {
+		return fmt.Errorf("permission denied: '%s' '%s'", r.Username, r.Hostname)
+	}
+
+	logWarning := func(msg string, args ...interface{}) {
+		fmt.Printf(msg, args)
+	}
+
+	vos.VM.Prepare(true, logWarning)
+	if err := vos.VM.Start(); err != nil {
+		return err
 	}
 
 	*result = true
 	return nil
 }
+
+/*
 
 func start(name string) error {
 	if name == "" {
@@ -170,3 +197,4 @@ func waitForState(name, state string, timeout time.Duration) error {
 	}
 	return nil
 }
+*/
