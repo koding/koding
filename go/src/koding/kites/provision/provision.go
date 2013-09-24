@@ -1,13 +1,20 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 	"flag"
 	"fmt"
+	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
+	"koding/tools/config"
+	"koding/tools/utils"
 	"koding/virt"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+	"net"
 )
 
 type Provision struct {
@@ -39,27 +46,6 @@ func main() {
 
 	k := kite.New(o, new(Provision), methods)
 	k.Start()
-}
-
-func getVos(username, hostname string) (*virt.VOS, error) {
-	if username == "" || hostname == "" {
-		return nil, errors.New("username or hostname is empty")
-	}
-
-	u, err := modelhelper.GetUser(username)
-	if err != nil {
-		return nil, err
-	}
-
-	user := virt.User(*u)
-
-	v, err := modelhelper.GetVM(hostname)
-	if err != nil {
-		return nil, err
-	}
-
-	vm := virt.VM(v)
-	return vm.OS(&user)
 }
 
 func (Provision) Start(r *protocol.KiteDnodeRequest, result *bool) error {
@@ -148,53 +134,125 @@ func (Provision) Reinitialize(r *protocol.KiteDnodeRequest, result *bool) error 
 	return nil
 }
 
-/*
-
-func start(name string) error {
-	if name == "" {
-		return errors.New("empty lxc name is passed")
+func getUser(username string) (*virt.User, error) {
+	if username == "" {
+		return nil, errors.New("username or hostname is empty")
 	}
 
-	if out, err := exec.Command("/usr/bin/lxc-start", "--name", name, "--daemon").CombinedOutput(); err != nil {
-		return fmt.Errorf("[%s] lxc-start failed.", time.Now().Format(time.Stamp), err, out)
-	}
-
-	return waitForState(name, "RUNNING", time.Second)
-}
-
-func stop(name string) error {
-	if out, err := exec.Command("/usr/bin/lxc-stop", "--name", name).CombinedOutput(); err != nil {
-		return fmt.Errorf("[%s] lxc-stop failed.", time.Now().Format(time.Stamp), err, out)
-	}
-	return waitForState(name, "STOPPED", time.Second)
-}
-
-func shutdown(name string) error {
-	if out, err := exec.Command("/usr/bin/lxc-shutdown", "--name", name).CombinedOutput(); err != nil {
-		if getState(name) != "STOPPED" {
-			return fmt.Errorf("[%s] lxc-shutdown failed.", time.Now().Format(time.Stamp), err, out)
-		}
-	}
-	waitForState(name, "STOPPED", 5*time.Second) // may time out, then vm is force stopped
-	return stop(name)
-}
-
-func getState(name string) string {
-	out, err := exec.Command("/usr/bin/lxc-info", "--name", name, "--state").CombinedOutput()
+	u, err := modelhelper.GetUser(username)
 	if err != nil {
-		return ""
+		return nil, err
 	}
-	return strings.TrimSpace(string(out)[6:])
+
+	user := virt.User(*u)
+
+	if user.Uid < virt.UserIdOffset {
+		return nil, fmt.Errorf("User %s with too low uid: %s\n", user.Name, user.Uid)
+	}
+
+	return &user, nil
 }
 
-func waitForState(name, state string, timeout time.Duration) error {
-	tryUntil := time.Now().Add(timeout)
-	for getState(name) != state {
-		if time.Now().After(tryUntil) {
-			return errors.New("Timeout while waiting for VM state.")
-		}
-		time.Sleep(time.Second / 10)
+func getVm(hostnameAlias string) (*virt.VM, error) {
+	v, err := modelhelper.GetVM(hostnameAlias)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	vm := virt.VM(v)
+	vm.ApplyDefaults()
+
+	var firstContainerIP net.IP
+	var containerSubnet *net.IPNet
+
+	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+		return nil, err
+	}
+
+	if vm.IP == nil {
+		ipInt := nextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
+		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
+
+		query := func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
+		}
+
+		if err := mongodb.Run("jVMs", query); err != nil {
+			return nil, err
+		}
+
+		vm.IP = ip
+	}
+
+	if !containerSubnet.Contains(vm.IP) {
+		return nil, fmt.Errorf("VM with IP that is not in the container subnet: %s", vm.IP.String())
+	}
+
+	if vm.LdapPassword == "" {
+		ldapPassword := utils.RandomString()
+
+		query := func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
+		}
+
+		if err := mongodb.Run("jVMs", query); err != nil {
+			return nil, err
+		}
+
+		vm.LdapPassword = ldapPassword
+	}
+
+	return &vm, nil
 }
-*/
+
+func getVos(username, hostname string) (*virt.VOS, error) {
+	user, err := getUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	// hostname is used for matching 'hostnameAlias' in jVMs model
+	vm, err := getVm(hostname)
+	if err != nil {
+		return nil, err
+	}
+
+	if p := vm.GetPermissions(user); p == nil {
+		return nil, fmt.Errorf("user '%s' with uid '%s' doesn't have permission", user.Name, user.Uid)
+	}
+
+	return vm.OS(user)
+}
+
+type Counter struct {
+	Name  string `bson:"_id"`
+	Value int    `bson:"seq"`
+}
+
+func nextCounterValue(counterName string, initialValue int) int {
+	var counter Counter
+
+	if err := mongodb.Run("counters", func(c *mgo.Collection) error {
+		_, err := c.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &counter)
+		return err
+	}); err != nil {
+		if err == mgo.ErrNotFound {
+			mongodb.Run("counters", func(c *mgo.Collection) error {
+				c.Insert(Counter{Name: counterName, Value: initialValue})
+				return nil // ignore error and try to do atomic update again
+			})
+
+			if err := mongodb.Run("counters", func(c *mgo.Collection) error {
+				_, err := c.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &counter)
+				return err
+			}); err != nil {
+				panic(err)
+			}
+			return counter.Value
+		}
+		panic(err)
+	}
+
+	return counter.Value
+
+}
