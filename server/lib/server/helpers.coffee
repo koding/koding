@@ -94,10 +94,10 @@ isLoggedIn = (req, res, callback)->
         then callback err, no, account
         else callback null, yes, account
 
-saveOauthToSession = (oauthInfo, clientId, callback)->
-  {JSession} = koding.models
-  query      = {}
-  query["foreignAuth.#{oauthInfo.provider}"] = oauthInfo
+saveOauthToSession = (oauthInfo, clientId, provider, callback)->
+  {JSession}                       = koding.models
+  query                            = {"foreignAuthType" : provider}
+  query["foreignAuth.#{provider}"] = oauthInfo
 
   JSession.update {clientId}, $set:query, callback
 

@@ -124,9 +124,25 @@ module.exports = class JUser extends jraphical.Module
           # enum      : ['invalid status',['online','offline','away','busy']]
 
       sshKeys       : [Object]
-      foreignAuth   :
-        github      : Object
-        odesk       : Object
+      foreignAuth            :
+        github               :
+          token              : String
+          foreignId          : String
+          username           : String
+          firstName          : String
+          lastName           : String
+          email              : String
+        odesk                :
+          accessToken        : String
+          accessTokenSecret  : String
+          foreignId          : String
+          requestToken       : String
+          requestTokenSecret : String
+        facebook             :
+          access_token       : String
+          username           : String
+          foreignId          : String
+          provider           : String
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -438,8 +454,10 @@ module.exports = class JUser extends jraphical.Module
     callback null, {account, replacementToken}
 
   @fetchUserByProvider = (provider, session, callback)->
-    query = {}
-    query["foreignAuth.#{provider}.foreignId"] = session.foreignAuth[provider].foreignId
+    {foreignAuth, foreignAuthType} = session
+    query                          = {}
+    query["foreignAuth.#{foreignAuthType}.foreignId"] = foreignAuth[foreignAuthType].foreignId
+
     JUser.one query, callback
 
   @authenticateWithOauth = secure (client, resp, callback)->
@@ -789,13 +807,12 @@ Your password has been changed!  If you didn't request this change, please conta
         callback err
       else
         if session.foreignAuth
-          foreignAuth                      = session.foreignAuth
-          provider                         = Object.keys(foreignAuth)[0]
-          query                            = {}
-          query["foreignAuth.#{provider}"] = foreignAuth[provider]
+          {foreignAuth, foreignAuthType}          = session
+          query                                   = {}
+          query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
 
           @update {username}, $set: query, ->
-            session.update $unset: foreignAuth: "", callback
+            session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
         else
           callback()
 

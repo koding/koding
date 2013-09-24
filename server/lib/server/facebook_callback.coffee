@@ -48,7 +48,7 @@ module.exports = (req, res) ->
       facebookResp["foreignId"] = id
       facebookResp["provider"]  = "facebook"
 
-      saveOauthToSession facebookResp, clientId, (err)->
+      saveOauthToSession facebookResp, clientId, "facebook", (err)->
         if err
           console.log "facebook err, saving to session", err
           renderOauthPopup res, {error:err, provider:"facebook"}

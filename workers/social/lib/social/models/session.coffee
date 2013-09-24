@@ -31,19 +31,10 @@ module.exports = class JSession extends Model
         type        : Date
         get         : -> new Date
       foreignAuth   :
-        github      :
-          token     : String
-          foreignId : String
-          username  : String
-          firstName : String
-          lastName  : String
-          email     : String
-        odesk                :
-          accessToken        : String
-          accessTokenSecret  : String
-          foreignId          : String
-          requestToken       : String
-          requestTokenSecret : String
+        github      : Object
+        odesk       : Object
+        facebook    : Object
+      foreignAuthType : String
     sharedEvents    :
       instance      : [
         { name: 'updateInstance' }

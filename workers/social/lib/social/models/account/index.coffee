@@ -68,9 +68,6 @@ module.exports = class JAccount extends jraphical.Module
       static      : sharedStaticMethods()
       instance    : sharedInstanceMethods()
     schema                  :
-      foreignAuth           :
-        github              : Boolean
-        odesk               : Boolean
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :

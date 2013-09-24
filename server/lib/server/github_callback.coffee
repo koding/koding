@@ -7,7 +7,7 @@
 http     = require "https"
 
 saveOauthAndRenderPopup = (resp, res, clientId)->
-  saveOauthToSession resp, clientId, ->
+  saveOauthToSession resp, clientId, "github", ->
     renderOauthPopup res, {error:null, provider:"github"}
 
 module.exports = (req, res) ->
@@ -49,11 +49,10 @@ module.exports = (req, res) ->
         [firstName, restOfNames...] = name.split ' '
         lastName = restOfNames.join ' '
 
-      resp = {provider, firstName, lastName, email}
+      resp = {firstName, lastName, email}
       resp["foreignId"] = String(id)
       resp["token"]     = access_token
       resp["username"]  = login
-      resp["provider"]  = "github"
 
       # Some users don't have email in public profile, so we make 2nd call
       # to get them.

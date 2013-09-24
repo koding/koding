@@ -45,7 +45,7 @@ module.exports = (req, res) ->
           odesk.foreignId         = data.auth_user.uid
           odesk.provider          = "odesk"
 
-          saveOauthToSession odesk, clientId, (err)->
+          saveOauthToSession odesk, clientId, "odesk", (err)->
             if err
               console.log "odesk err, saving to session", err
               renderOauthPopup res, {error:err, provider:"odesk"}
