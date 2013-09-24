@@ -92,6 +92,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
         'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
+        'getOdeskAuthorizeUrl'
       ]
     schema                  :
       foreignAuth           :
@@ -383,7 +384,7 @@ module.exports = class JAccount extends jraphical.Module
   @fetchCachedUserCount: (callback)->
     if (Date.now() - @lastUserCountFetchTime)/1000 < 60
       return callback null, @cachedUserCount
-    JAccount.count type:'registered', (err, count)=> 
+    JAccount.count type:'registered', (err, count)=>
       return callback err if err
       @lastUserCountFetchTime = Date.now()
       @cachedUserCount = count
