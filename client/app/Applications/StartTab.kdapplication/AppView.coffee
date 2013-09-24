@@ -2,131 +2,40 @@ class StartTabMainView extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass or= 'start-tab'
+    options.cssClass = 'start-tab'
 
     super options, data
 
-    @listenWindowResize()
+    @appIcons   = {}
+    appStorages = KD.getSingleton('appStorageController')
+    @appStorage = appStorages.storage 'Finder', '1.1'
+    @_connectAppsController()
 
-    @appIcons = {}
-    mainView  = KD.getSingleton('mainView')
-
-    @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
-    @appsController = KD.getSingleton("kodingAppsController")
-
-    @appsController.on "AppsRefreshed", (apps)=>
-      @decorateApps apps
-
-    @appsController.on "AppsDataChanged", @bound "updateAppIcons"
-    @appsController.on "InvalidateApp", @bound "removeAppIcon"
-    @appsController.on "UpdateAppData", @bound "createAppIcon"
-
-    @finderController = KD.getSingleton "finderController"
-    @finderController.on 'recentfiles.updated', =>
-      @updateRecentFileViews()
+    # Main view elements
 
     @loader = new KDLoaderView size : width : 16
 
-    @on 'refreshAppsMenuItemClicked', =>
-      @appsController.syncAppStorageWithFS yes
-
-    @on 'makeANewAppMenuItemClicked', =>
-      @appsController.makeNewApp()
-
     @appItemContainer = new StartTabAppItemContainer
       cssClass : 'app-item-container'
-      delegate : @
+      delegate : this
 
-    @recentFilesWrapper = new KDView
+    @serversWrapper = new KDView
       cssClass : 'file-container'
 
-    @downloadFilesLink = new KDCustomHTMLView
-    userJoinDate       = new Date(KD.whoami().meta.createdAt).getTime()
-    oldKodingDownDate  = 1374267600000
+  # Application Specific Operations
 
-    if userJoinDate < oldKodingDownDate
-      @appStorage.fetchStorage (err, storage) =>
-        return if @appStorage.getValue "HideOldKodingDownloadLink"
+  _connectAppsController:->
+    @appsController = KD.getSingleton("kodingAppsController")
 
-        @downloadFilesLink.addSubView text = new KDCustomHTMLView
-          cssClass     : "download-files-link"
-          partial      : "Click here to get download link for your old Koding files"
-          click        : ->
-            KD.whoami().fetchOldKodingDownloadLink (err, url) ->
-              modal          = new KDModalView
-                cssClass     : "modal-with-text old-file-download-modal"
-                overlay      : yes
-                title        : "Your old Koding files"
-                content      : """
-                  <p>
-                    You can use the following link to download your files. Note that these files won't be available after Sep 1, 2013. You have to download before then.
-                    <a href="#{url}" class="download-link" target="_blank">#{url}</a>
-                  </p>
-                """
-                buttons      :
-                  Close      :
-                    title    : "Close"
-                    cssClass : "modal-cancel"
-                    callback : -> modal.destroy()
+    @appsController.on "AppsRefreshed",   (apps)=> @decorateApps apps
+    @appsController.on "AppsDataChanged", @bound "updateAppIcons"
+    @appsController.on "InvalidateApp",   @bound "removeAppIcon"
+    @appsController.on "UpdateAppData",   @bound "createAppIcon"
 
-        text.addSubView new KDCustomHTMLView
-          cssClass : "close-download-notification"
-          tagName  : "span"
-          tooltip  :
-            title  : "Don't show this again."
-          click    : (e) =>
-            e.stopPropagation()
-            @downloadFilesLink.destroy()
-            @appStorage.setValue "HideOldKodingDownloadLink", yes
-
-  showLoader:->
-
-    @loader.show()
-    @$('h1.loaded, h2.loaded').addClass "hidden"
-    @$('h2.loader').removeClass "hidden"
-
-  hideLoader:->
-
-    @loader.hide()
-    @$('h2.loader').addClass "hidden"
-    @$('h1.loaded, h2.loaded').removeClass "hidden"
-
-  viewAppended:->
-
-    super
-
-    @addRealApps()
-    @addSplitOptions()
-    @addRecentFiles()
-
-    if KD.isGuest()
-      unless $.cookie "guestForFirstTime"
-        @utils.wait 5*60*1000, =>
-          @showGuestNotification()
-          $.cookie "guestForFirstTime", yes
-      else
-        @showGuestNotification()
-
-  _windowDidResize:->
-
-  pistachio:->
-    """
-    <div class='app-list-wrapper'>
-      <header>
-        <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
-        <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
-        <h2 class="loader">{{> @loader}} Loading applications...</h1>
-      </header>
-      {{> @appItemContainer}}
-    </div>
-    <div class='start-tab-split-options expanded'>
-      <h3>Start with a workspace</h3>
-    </div>
-    <div class='start-tab-recent-container'>
-      <h3>Recent files:</h3>
-      {{> @recentFilesWrapper}}
-    </div>
-    """
+    @on 'refreshAppsMenuItemClicked', =>
+      @appsController.syncAppStorageWithFS yes
+    @on 'makeANewAppMenuItemClicked', =>
+      @appsController.makeNewApp()
 
   addRealApps:->
 
@@ -207,88 +116,18 @@ class StartTabMainView extends JView
     # To make sure its always the last icon
     @createGetMoreAppsButton()
 
-  addSplitOptions:->
-    for splitOption in getSplitOptions()
-      option = new KDCustomHTMLView
-        tagName   : 'a'
-        cssClass  : 'start-tab-split-option'
-        partial   : splitOption.partial
-        click     : -> KD.getSingleton("appManager").notify()
-      @addSubView option, '.start-tab-split-options'
+  # Guest Notifications if necessary
+  #
+  # We need to inform Guest users to register a new account in 20 min.
 
-  addRecentFiles:->
-
-    @recentFileViews = {}
-
-    @appStorage.fetchValue 'recentFiles', (recentFilePaths)=>
-      recentFilePaths or= []
-      @updateRecentFileViews()
-      @finderController.on "NoSuchFile", (file)=>
-        recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
-        @appStorage.setValue 'recentFiles', recentFilePaths
-
-  updateRecentFileViews:(recentFilePaths)->
-
-    @recentFileViews or= {}
-    recentFilePaths   ?= @appStorage.getValue('recentFiles') or []
-
-    for own path, view of @recentFileViews
-      @recentFileViews[path].destroy()
-      delete @recentFileViews[path]
-
-    if recentFilePaths.length
-      recentFilePaths.forEach (filePath)=>
-        @recentFileViews[filePath] = new StartTabRecentFileItemView {}, filePath
-        @recentFilesWrapper.addSubView @recentFileViews[filePath]
+  startGuestTimer:->
+    return  unless KD.isGuest()
+    unless $.cookie "guestForFirstTime"
+      @utils.wait 5*60*1000, =>
+        @showGuestNotification()
+        $.cookie "guestForFirstTime", yes
     else
-      @recentFilesWrapper.hide()
-
-  createSplitView:(type)->
-
-  getSplitOptions = ->
-    [
-      {
-        partial               : '<span class="fl w50"></span><span class="fr w50"></span>'
-        splitType             : 'vertical'
-        splittingFromStartTab : yes
-        splits                : [1,1]
-      },
-      {
-        partial               : '<span class="fl h50 w50"></span><span class="fr h50 w50"></span><span class="h50 full-b"></span>'
-        splitType             : 'horizontal'
-        secondSplitType       : 'vertical'
-        splittingFromStartTab : yes
-        splits                : [2,1]
-      },
-      {
-        partial               : '<span class="h50 full-t"></span><span class="fl w50 h50"></span><span class="fr w50 h50"></span>'
-        splitType             : 'horizontal'
-        secondSplitType       : 'vertical'
-        splittingFromStartTab : yes
-        splits                : [1,2]
-      },
-      {
-        partial               : '<span class="fl w50 h50"></span><span class="fr w50 full-r"></span><span class="fl w50 h50"></span>'
-        splitType             : 'vertical'
-        secondSplitType       : 'horizontal'
-        splittingFromStartTab : yes
-        splits                : [2,1]
-      },
-      {
-        partial               : '<span class="fl w50 full-l"></span><span class="fr w50 h50"></span><span class="fr w50 h50"></span>'
-        splitType             : 'vertical'
-        secondSplitType       : 'horizontal'
-        splittingFromStartTab : yes
-        splits                : [1,2]
-      },
-      {
-        partial               : '<span class="fl w50 h50"></span><span class="fr w50 h50"></span><span class="fl w50 h50"></span><span class="fr w50 h50"></span>'
-        splitType             : 'vertical'
-        secondSplitType       : 'horizontal'
-        splittingFromStartTab : yes
-        splits                : [2,2]
-      },
-    ]
+      @showGuestNotification()
 
   showGuestNotification: (guestTimeout = 20)->
     return  unless KD.isGuest()
@@ -310,3 +149,42 @@ class StartTabMainView extends JView
           KD.getSingleton("vmController").emit 'VMListChanged'
           $.cookie "clientId", erase: yes
           $.cookie "guestForFirstTime", erase: yes
+
+  # Common parts
+
+  showLoader:->
+
+    @loader.show()
+    @$('h1.loaded, h2.loaded').addClass "hidden"
+    @$('h2.loader').removeClass "hidden"
+
+  hideLoader:->
+
+    @loader.hide()
+    @$('h2.loader').addClass "hidden"
+    @$('h1.loaded, h2.loaded').removeClass "hidden"
+
+  viewAppended:->
+
+    super
+    @addRealApps()
+    @startGuestTimer()
+
+  pistachio:->
+    """
+    <div class='app-list-wrapper'>
+      <header>
+        <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
+        <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
+        <h2 class="loader">{{> @loader}} Loading applications...</h1>
+      </header>
+      {{> @appItemContainer}}
+    </div>
+    <div class='start-tab-split-options expanded'>
+      <h3>Start with a workspace</h3>
+    </div>
+    <div class='start-tab-recent-container'>
+      <h3>Your servers:</h3>
+      {{> @serversWrapper}}
+    </div>
+    """
