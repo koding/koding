@@ -12,6 +12,8 @@ class EnvironmentDomainContainer extends EnvironmentContainer
         @emit "DataLoaded"
         return warn "Failed to fetch domains", err
       addedCount = 0
+      @removeAllItems()
+
       domains.forEach (domain)=>
         @addItem
           title       : domain.domain
