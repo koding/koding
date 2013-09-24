@@ -6,12 +6,12 @@ class FSWatcher extends KDObject
     @watchers[path] = stop: stopWatching
 
   @stopAllWatchers:->
-    (watcher.stop() for path, watcher of @watchers)
+    (watcher.stop() for own path, watcher of @watchers)
     @watchers = {}
 
   # /parentPath/also/stops/childrenPaths
   @stopWatching:(pathToStop)->
-    for path, watcher of @watchers  when (path.indexOf pathToStop) is 0
+    for own path, watcher of @watchers  when (path.indexOf pathToStop) is 0
       watcher.stop()
       delete @watchers[path]
 

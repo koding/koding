@@ -37,7 +37,7 @@ class FSHelper
       when "added"
         treeController.addNode file
       when "removed"
-        for npath, node of treeController.nodes
+        for own npath, node of treeController.nodes
           if npath is file.path
             treeController.removeNodeView node
             break
@@ -114,11 +114,11 @@ class FSHelper
     delete @registry[path]
 
   @unregisterVmFiles = (vmName)->
-    for path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
+    for own path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
       @unregister path
 
   @updateInstance = (fileData)->
-    for prop, value of fileData
+    for own prop, value of fileData
       @registry[fileData.path][prop] = value
 
   @setFileListeners = (file)->
@@ -215,5 +215,27 @@ class FSHelper
         method    : 's3.delete'
         withArgs  : {name}
       , callback
+
+  @getPathHierarchy = (fullPath)->
+    {path, vmName} = KD.getPathInfo fullPath
+    path = path.replace /^~/, "/home/#{KD.nick()}"
+    nodes = path.split("/").filter (node)-> return !!node
+    queue = for node in nodes
+      subPath = nodes.join "/"
+      nodes.pop()
+      "[#{vmName}]/#{subPath}"
+    queue.reverse() # reverse the queue to open files to back
+
+  @chunkify = (data, chunkSize)->
+    chunks = []
+    while data
+      if data.length < chunkSize
+        chunks.push data
+        break
+      else
+        chunks.push data.substr 0, chunkSize
+        # shrink
+        data = data.substr chunkSize
+    return chunks
 
 KD.classes.FSHelper = FSHelper

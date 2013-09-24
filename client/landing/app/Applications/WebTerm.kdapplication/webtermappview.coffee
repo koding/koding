@@ -91,18 +91,20 @@ class WebTermAppView extends JView
 
   chromeAppMode: ->
     windowController = KD.getSingleton("windowController")
+    mainController   = KD.getSingleton("mainController")
     windowController.clearUnloadListeners "window"
 
     # talking with chrome app
     if window.parent?.postMessage
-      windowController.on "clientIdChanged", =>
-        window.parent.postMessage "clientIdChanged", "*"
+      {parent} = window
+      mainController.on "clientIdChanged", ->
+        parent.postMessage "clientIdChanged", "*"
 
-      window.parent.postMessage "fullScreenTerminalReady", "*"
-      window.parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
+      parent.postMessage "fullScreenTerminalReady", "*"
+      parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
 
       @on "KDObjectWillBeDestroyed", ->
-        window.parent.postMessage "fullScreenWillBeDestroyed", "*"
+        parent.postMessage "fullScreenWillBeDestroyed", "*"
 
     @addSubView new ChromeTerminalBanner
 
@@ -113,6 +115,8 @@ class WebTermAppView extends JView
   viewAppended: ->
     super
     @addNewTab()
+    @utils.defer =>
+      @_windowDidResize()
 
   addNewTab: ->
     webTermView = new WebTermView

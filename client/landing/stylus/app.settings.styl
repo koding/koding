@@ -1,7 +1,7 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
-// @import "nib/vendor"
+
 
 
 @css {
@@ -13,6 +13,19 @@ app.settings.styl
 
 /* Account Settings PAGE */
 positiveGreen = rgba(58,200,2,1)
+
+.delete-account-view
+  padding                 10px 20px
+  color                   #888
+  borderBox()
+  button.delete-account.clean-red
+    left                  0
+    vendor                transition, left .1s ease-in\, \
+                                      width .1s ease-in
+    &.escape
+      left                -160px
+    &:hover
+      border-color        #b51700 #b51700 #333 #b51700
 
 .kdview.content-area-pane.account
   bg(color, #393630)
@@ -738,7 +751,6 @@ button.kdbutton.account-header-second-button
   .personal-emailNotifications .kdformview
     width           25%
 .personal-referralSystem
-  margin            18px
   a
     color           #888
     clear           both
