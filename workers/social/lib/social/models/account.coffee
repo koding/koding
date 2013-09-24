@@ -382,7 +382,7 @@ module.exports = class JAccount extends jraphical.Module
   @fetchCachedUserCount: (callback)->
     if (Date.now() - @lastUserCountFetchTime)/1000 < 60
       return callback null, @cachedUserCount
-    JAccount.count type:'registered', (err, count)=> 
+    JAccount.count type:'registered', (err, count)=>
       return callback err if err
       @lastUserCountFetchTime = Date.now()
       @cachedUserCount = count
@@ -735,9 +735,9 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "neelance", "halk",
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "neelance",
                   "fatihacet", "sent-hil", "kiwigeraint", "cihangirsavas",
-                  "fkadev", "bahadir", "arslan" ]
+                  "fkadev", "arslan" ]
 
 
   userIsExempt: (callback)->
