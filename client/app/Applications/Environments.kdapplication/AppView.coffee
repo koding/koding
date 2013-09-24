@@ -15,8 +15,8 @@ class EnvironmentsMainView extends JView
     @actionArea.addSubView @domainCreateForm = new DomainCreationForm
 
     # Domain Creation form connections
-    @domainCreateForm.on 'DomainCreationCancelled', => @actionArea.unsetClass 'in'
-    @domainCreateForm.on 'CloseClicked', => @actionArea.unsetClass 'in'
+    @domainCreateForm.on 'DomainCreationCancelled', => @scene.unsetClass 'out'
+    @domainCreateForm.on 'CloseClicked',            => @scene.unsetClass 'out'
 
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
@@ -40,7 +40,7 @@ class EnvironmentsMainView extends JView
 
     # Plus button on domainsContainer opens up the action area
     @domainsContainer.on 'PlusButtonClicked', =>
-      @actionArea.setClass 'in'
+      @scene.setClass 'out'
       @domainCreateForm.emit 'DomainNameShouldFocus'
       # @domainsContainer.loadItems()
 

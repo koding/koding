@@ -81,6 +81,9 @@ app.environments.styl
       > *
         margin-right    10px
 
+  h1.kdheaderview
+    z-index               2
+
   h4.kdheaderview
     display               inline-block
     font-size             16px
@@ -163,12 +166,10 @@ app.environments.styl
           bg            position, -60px -500px
 
   .action-area
-    border-left         1px solid #e8e8e8
-    shadow              inset 0 -1px #e8e8e8
-    height              0%
-    vendor              transition, .3s height ease
-    bg                  color, #fbfbfb
+    bg                  color, #e8e8e8
+    z-index             0
     borderBox()
+    abs()
     &.in
       height            100%
     .kdtabpaneview
@@ -183,6 +184,17 @@ app.environments.styl
         line-height     24px!important
         &.modal-cancel
           margin        2px 10px 0 0
+
+  .kddia-scene
+    left                0
+    border-radius       0
+    vendor              transition, left .3s ease
+    bg                  color, white
+    // kalc                height, 100% \- 77px
+    &.out
+      left              500px
+      border-left       1px solid #ccc
+      box-shadow        0 0 10px 1px #ccc
 
   .record-form-view
     padding             0
