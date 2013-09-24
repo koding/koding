@@ -11,40 +11,40 @@ class EnvironmentsMainView extends JView
     # Action Area for Domains
     @addSubView @actionArea = new KDView cssClass : 'action-area'
 
+    # Domain Creation form in actionArea
+    @actionArea.addSubView @domainCreateForm = new DomainCreationForm
+
+    # Domain Creation form connections
+    @domainCreateForm.on 'DomainCreationCancelled', => @actionArea.unsetClass 'in'
+    @domainCreateForm.on 'CloseClicked', => @actionArea.unsetClass 'in'
+
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
 
+    # Domains Container
     @domainsContainer  = new EnvironmentDomainContainer
     @scene.addContainer @domainsContainer
 
+    # VMs / Machines Container
     @machinesContainer = new EnvironmentMachineContainer
     @scene.addContainer @machinesContainer, x: 300
 
+    # After Domains and Machines container load finished
+    # Call updateConnections to draw lines between corresponding objects
     @scene.whenItemsLoadedFor \
       [@domainsContainer, @machinesContainer], @bound 'updateConnections'
 
-    @actionArea.addSubView creationForm = new DomainCreationForm
+    @domainCreateForm.on 'DomainSaved', =>
+      @domainsContainer.once "DataLoaded", @bound 'updateConnections'
+      @domainsContainer.loadItems()
 
-    creationForm.on 'DomainCreationCancelled', =>
-      @actionArea.unsetClass 'in'
-      # @buttonsBar.unsetClass 'out'
-
-    creationForm.on 'DomainSaved', (domain)=>
-      @domainsListViewController.update()
-
-    @on 'DomainNameShouldFocus', ->
-      form         = creationForm.forms["Domain Address"]
-      {domainName} = form.inputs
-      domainName.setFocus()
-
-    creationForm.on 'CloseClicked', =>
-      @actionArea.unsetClass 'in'
-      # @buttonsBar.unsetClass 'out'
-
+    # Plus button on domainsContainer opens up the action area
     @domainsContainer.on 'PlusButtonClicked', =>
       @actionArea.setClass 'in'
-      @emit 'DomainNameShouldFocus'
+      @domainCreateForm.emit 'DomainNameShouldFocus'
+      # @domainsContainer.loadItems()
 
+    # Plus button on machinesContainer uses the vmController
     @machinesContainer.on 'PlusButtonClicked', =>
       KD.getSingleton('vmController').createNewVM()
 
