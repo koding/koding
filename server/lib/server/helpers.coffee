@@ -1,5 +1,4 @@
 koding = require './bongo'
-jade   = require "jade"
 
 error_messages =
   404: "Page not found."
@@ -103,12 +102,8 @@ saveOauthToSession = (oauthInfo, clientId, callback)->
   JSession.update {clientId}, $set:query, callback
 
 renderOauthPopup = (res, locals)->
-  {projectRoot}    = KONFIG
-  popupPath        = "#{projectRoot}/website/jade/oauth_login.jade"
-
-  template         = require("fs").readFileSync popupPath, "utf8"
-  jadeFn           = jade.compile(template)
-  renderedTemplate = jadeFn locals
+  templateFn       = require "./templates/oauth_popup.coffee"
+  renderedTemplate = templateFn locals
 
   serve renderedTemplate, res
 
