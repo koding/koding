@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/os/ldapserver"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 	"koding/tools/config"
@@ -23,24 +24,26 @@ import (
 	"time"
 )
 
-type Provision struct {
-	ProgramName string
-}
+type Provision struct{}
 
 var (
-	infos       = make(map[bson.ObjectId]*VMInfo)
-	infosMutex  sync.Mutex
-	port        = flag.String("port", "4000", "port to bind itself")
-	ip          = flag.String("ip", "0.0.0.0", "ip to bind itself")
-	templateDir = config.Current.ProjectRoot + "/go/templates"
+	region           = "vagrant"
+	firstContainerIP net.IP
+	containerSubnet  *net.IPNet
+	infos            = make(map[bson.ObjectId]*VMInfo)
+	infosMutex       sync.Mutex
+	port             = flag.String("port", "4003", "port to bind itself")
+	ip               = flag.String("ip", "", "ip to bind itself")
+	templateDir      = config.Current.ProjectRoot + "/go/templates"
 )
 
 func main() {
 	flag.Parse()
 	o := &protocol.Options{
 		LocalIP:  *ip,
+		PublicIP: "localhost",
 		Username: "fatih",
-		Kitename: "provision",
+		Kitename: "os-local",
 		Version:  "1",
 		Port:     *port,
 	}
@@ -57,14 +60,32 @@ func main() {
 		"exec":              Provision.Exec,
 	}
 
+	go ldapserver.Listen()
+	go initializeVMS()
+
 	k := kite.New(o, new(Provision), methods)
+	fmt.Println("kite started", templateDir)
 	k.Start()
 }
 
 func initializeVMS() {
+	var err error
+	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	virt.VMPool = config.Current.VmPool
+	if err := virt.LoadTemplates(templateDir); err != nil {
+		fmt.Print("could not load the templates", templateDir)
+		os.Exit(1)
+		return
+	}
+
+	fmt.Println("initializing VM's")
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
-		fmt.Println("Exiting: dir /var/lib/lxc/ does not exist")
+		fmt.Println("exit: dir /var/lib/lxc/ does not exist")
 		os.Exit(1)
 		return
 	}
@@ -76,12 +97,14 @@ func initializeVMS() {
 				return c.FindId(vmId).One(&vm)
 			}
 
-			if err := mongodb.Run("jVMs", query); err != nil {
+			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite == "" {
 				if err := virt.UnprepareVM(vmId); err != nil {
 					fmt.Println("unprepareVM error:", err)
 				}
 				continue
 			}
+
+			fmt.Println("VM HOSTKITE", vm.HostKite)
 			vm.ApplyDefaults()
 			info := newInfo(&vm)
 			infos[vm.Id] = info
@@ -144,18 +167,22 @@ func (Provision) Shutdown(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (Provision) Info(r *protocol.KiteDnodeRequest, result *bool) error {
+func (Provision) Info(r *protocol.KiteDnodeRequest, result *VMInfo) error {
 	vos, err := getVos(r.Username, r.Hostname)
 	if err != nil {
 		return err
 	}
 
 	infosMutex.Lock()
-	info := infos[vos.VM.Id]
-	info.State = vos.VM.GetState()
-	infosMutex.Unlock()
+	defer infosMutex.Unlock()
+	info, ok := infos[vos.VM.Id]
+	if !ok {
+		return fmt.Errorf("info not available currently", r.Hostname)
+	}
 
-	*result = true
+	info.State = vos.VM.GetState()
+
+	*result = *info
 	return nil
 }
 
@@ -251,7 +278,7 @@ func (Provision) Exec(r *protocol.KiteDnodeRequest, result *[]byte) error {
 
 	var line string
 	if r.Args.Unmarshal(&line) != nil {
-		return errors.New("[string]")
+		return errors.New("excepted [string]")
 	}
 
 	out, err := vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
@@ -306,7 +333,18 @@ func createDirs(user *virt.User, vm *virt.VM) error {
 		fmt.Printf(msg, args)
 	}
 
-	if !isPrepared {
+	infosMutex.Lock()
+	info, found := infos[vm.Id]
+	if !found {
+		info = newInfo(vm)
+		infos[vm.Id] = info
+	}
+
+	info.useCounter += 1
+	info.timeout.Stop()
+	infosMutex.Unlock()
+
+	if !isPrepared || info.currentHostname != vm.HostnameAlias {
 		vm.Prepare(false, logWarning)
 		if err := vm.Start(); err != nil {
 			return err
@@ -364,7 +402,6 @@ func getVM(hostnameAlias string) (*virt.VM, error) {
 	}
 
 	vm := virt.VM(v)
-
 	return &vm, nil
 }
 
@@ -375,21 +412,13 @@ func validateAndSetup(user *virt.User, vm *virt.VM) error {
 		return fmt.Errorf("User %s with too low uid: %s\n", user.Name, user.Uid)
 	}
 
-	if vm.Region != config.Region {
+	if vm.Region != region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
 		return fmt.Errorf("VM '%s' is on wrong region. Excepted: '%s' Got: '%s'", vm.HostnameAlias, vm.Region, config.Region)
 	}
 
 	if vm.HostKite == "(maintenance)" {
 		return fmt.Errorf("VM '%s' is under maintenance", vm.HostnameAlias)
-	}
-
-	var firstContainerIP net.IP
-	var containerSubnet *net.IPNet
-	var err error
-
-	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
-		return err
 	}
 
 	if vm.IP == nil {
@@ -492,6 +521,7 @@ func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
 			}
 		}
 
+		ldapserver.ClearCache()
 		return
 	}
 

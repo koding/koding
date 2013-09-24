@@ -42,7 +42,6 @@ func main() {
 	o := &protocol.Options{Username: "fatih", Kitename: "terminal-local", Version: "1", Port: *port}
 
 	methods := map[string]interface{}{
-		"vm.info":         Terminal.Info,
 		"webterm.connect": Terminal.Connect,
 	}
 
