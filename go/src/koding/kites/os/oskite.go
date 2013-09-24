@@ -50,6 +50,12 @@ func (err *UnderMaintenanceError) Error() string {
 	return "VM is under maintenance."
 }
 
+type AccessDeniedError struct{}
+
+func (err *AccessDeniedError) Error() string {
+	return "Vm is banned"
+}
+
 var infos = make(map[bson.ObjectId]*VMInfo)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
@@ -160,7 +166,7 @@ func main() {
 			}
 		}
 
-		if vm.HostKite == "" || vm.HostKite == "(maintenance)" {
+		if vm.HostKite == "" || vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
 			return k.ServiceUniqueName
 		}
 		if vm.HostKite == deadService {
@@ -403,6 +409,12 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if vm.HostKite == "(maintenance)" {
 			return nil, &UnderMaintenanceError{}
 		}
+
+		if vm.HostKite == "(banned)" {
+			log.Warn("vm '%s' is banned", vm.HostnameAlias)
+			return nil, &AccessDeniedError{}
+		}
+
 		if vm.HostKite != k.ServiceUniqueName {
 			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
 				return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}})
