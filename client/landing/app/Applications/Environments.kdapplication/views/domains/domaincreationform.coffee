@@ -140,11 +140,13 @@ class DomainCreationForm extends KDTabViewWithForms
                       required        : "Please select a parent domain."
             suggestionBox             :
               type                    : "hidden"
+
     form = @forms["Domain Address"]
     {createButton} = form.buttons
 
     form.on "FormValidationFailed", createButton.bound 'hideLoader'
-    @on "DomainCreationCancelled", createButton.bound 'hideLoader'
+    @on "DomainCreationCancelled",  createButton.bound 'hideLoader'
+    @on "DomainNameShouldFocus", => form.inputs.domainName.setFocus()
 
   viewAppended:->
     KD.whoami().fetchDomains (err, userDomains)=>
@@ -187,7 +189,7 @@ class DomainCreationForm extends KDTabViewWithForms
           when "regthroughus", "regthroughothers"
             checkButton.show()
             registerButton.hide()
-            @showSuggestions false, price, suggestions 
+            @showSuggestions false, price, suggestions
           when "unknown"
             checkButton.show()
             registerButton.hide()
