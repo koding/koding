@@ -34,6 +34,11 @@ class KDDiaScene extends JView
 
     @containers.push container
 
+    padding = (container.getOption 'draggable')?.containment?.padding
+    if padding
+      pos.x = Math.max padding, pos.x ? 0
+      pos.y = Math.max padding, pos.y ? 0
+
     container.setX pos.x  if pos.x?
     container.setY pos.y  if pos.y?
 
