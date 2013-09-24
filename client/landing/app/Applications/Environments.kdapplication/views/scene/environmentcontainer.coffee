@@ -6,7 +6,7 @@ class EnvironmentContainer extends KDDiaContainer
       # axis             : 'y'
       containment      :
         view           : 'parent'
-        padding        : 20
+        padding        : 40
 
     super options, data
 

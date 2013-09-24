@@ -5,8 +5,8 @@ class EnvironmentsMainView extends JView
 
   viewAppended:->
 
-    # Main Header
-    @addSubView new HeaderViewSection type : "big", title : "Environments"
+    # # Main Header
+    # @addSubView @header = new HeaderViewSection type : "big", title : "Environments"
 
     # Action Area for Domains
     @addSubView @actionArea = new KDView cssClass : 'action-area'
@@ -23,11 +23,11 @@ class EnvironmentsMainView extends JView
 
     # Domains Container
     @domainsContainer  = new EnvironmentDomainContainer
-    @scene.addContainer @domainsContainer
+    @scene.addContainer @domainsContainer, x: 40
 
     # VMs / Machines Container
     @machinesContainer = new EnvironmentMachineContainer
-    @scene.addContainer @machinesContainer, x: 300
+    @scene.addContainer @machinesContainer, x: 340
 
     # After Domains and Machines container load finished
     # Call updateConnections to draw lines between corresponding objects
