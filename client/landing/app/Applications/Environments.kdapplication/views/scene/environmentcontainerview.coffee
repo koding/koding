@@ -20,6 +20,7 @@ class EnvironmentContainer extends KDDiaContainer
   viewAppended:->
     super
     @addSubView @header
+    @header.addSubView @newItemPlus
     @loadItems()
 
   addDia:(diaObj, pos)->
