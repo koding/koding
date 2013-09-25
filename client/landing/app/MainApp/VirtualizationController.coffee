@@ -84,8 +84,8 @@ class VirtualizationController extends KDController
             modal = new VmDangerModalView
               name     : vmInfo.hostnameAlias
               title    : "Destroy '#{hostnameAlias}'"
-              action   : 'Destroy my VM'
-              callback : (callback) =>
+              action   : "Destroy my VM"
+              callback : =>
                 deleteVM vm, callback
                 new KDNotificationView title:'Successfully destroyed!'
                 modal.destroy()
