@@ -19,6 +19,7 @@ import (
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -59,8 +60,7 @@ func main() {
 		"vm.createSnapshot": Provision.CreateSnapshot,
 		"spawn":             Provision.Spawn,
 		"exec":              Provision.Exec,
-
-		// "vm.deploy":   Provision.Deploy,   // Deploy/copy binary into vm
+		"vm.copy":           Provision.Copy, // Deploy/copy binary into vm
 		// "vm.createVM": Provision.CreateVM, // Create a new VM
 	}
 
@@ -68,11 +68,12 @@ func main() {
 	go initializeVMS()
 
 	k := kite.New(o, new(Provision), methods)
-	fmt.Println("kite started", templateDir)
+	fmt.Println("kite started")
 	k.Start()
 }
 
 func initializeVMS() {
+	fmt.Println("initializing VM's")
 	var err error
 	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
 		fmt.Println(err)
@@ -86,7 +87,6 @@ func initializeVMS() {
 		return
 	}
 
-	fmt.Println("initializing VM's")
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
 		fmt.Println("exit: dir /var/lib/lxc/ does not exist")
@@ -253,14 +253,14 @@ func (Provision) CreateSnapshot(r *protocol.KiteDnodeRequest, result *bool) erro
 }
 
 func (Provision) Spawn(r *protocol.KiteDnodeRequest, result *[]byte) error {
-	vos, err := getVos(r.Username, r.Hostname)
-	if err != nil {
-		return err
-	}
-
 	var command []string
 	if r.Args.Unmarshal(&command) != nil {
 		return errors.New("[array of strings]")
+	}
+
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
 	}
 
 	out, err := vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
@@ -273,14 +273,14 @@ func (Provision) Spawn(r *protocol.KiteDnodeRequest, result *[]byte) error {
 }
 
 func (Provision) Exec(r *protocol.KiteDnodeRequest, result *[]byte) error {
-	vos, err := getVos(r.Username, r.Hostname)
-	if err != nil {
-		return err
-	}
-
 	var line string
 	if r.Args.Unmarshal(&line) != nil {
 		return errors.New("excepted [string]")
+	}
+
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
 	}
 
 	out, err := vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
@@ -289,6 +289,36 @@ func (Provision) Exec(r *protocol.KiteDnodeRequest, result *[]byte) error {
 	}
 
 	*result = out
+	return nil
+}
+
+func (Provision) Copy(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		HostPath  string
+		GuestPath string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.HostPath == "" || params.GuestPath == "" {
+		return errors.New("{ hostPath: [string], guestPath: [string]}")
+	}
+
+	fmt.Println("Copy called", params)
+
+	vos, err := getVos(r.Username, r.Hostname)
+	if err != nil {
+		return err
+	}
+
+	if !vos.Permissions.Sudo {
+		return fmt.Errorf("permission denied: '%s' '%s'", r.Username, r.Hostname)
+	}
+
+	err = copyIntoVos(params.HostPath, params.GuestPath, vos)
+	if err != nil {
+		return err
+	}
+
+	*result = true
 	return nil
 }
 
@@ -450,9 +480,17 @@ func prepareVM(vm *virt.VM) error {
 	return nil
 }
 
+func userWebDir(name string) string {
+	return userHomeDir(name) + "/Web"
+}
+
+func userHomeDir(name string) string {
+	return "/home/" + name
+}
+
 func createHomeDirs(user *virt.User, vm *virt.VM) error {
 	vmWebDir := "/home/" + vm.WebHome + "/Web"
-	userWebDir := "/home/" + user.Name + "/Web"
+	userWebDir := userWebDir(user.Name)
 
 	rootVos, err := vm.OS(&virt.RootUser)
 	if err != nil {
@@ -563,8 +601,8 @@ func createVmWebDir(vm *virt.VM, vmWebDir string, rootVos, vmWebVos *virt.VOS) {
 		}
 		return
 	}
-	// symlink successfully created
 
+	// symlink successfully created
 	if _, err := rootVos.Stat(vmWebDir); err == nil {
 		return
 	}
@@ -600,6 +638,7 @@ func createUserWebDir(user *virt.User, vmWebDir, userWebDir string, rootVos, use
 	}
 	if err := rootVos.Symlink(userWebDir, vmWebDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
 		panic(err)
+
 	}
 }
 
@@ -615,29 +654,35 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 		return err
 	}
 
-	if fi.Name() == "empty-directory" {
-		// ignored file
-	} else if fi.IsDir() {
+	if fi.IsDir() {
+		fmt.Println("src is a dir:", src, path.Base(src))
 		if err := vos.Mkdir(dst, fi.Mode()); err != nil && !os.IsExist(err) {
 			return err
 		}
+
+		fmt.Println("creating dir for dst:", dst)
 
 		entries, err := sf.Readdirnames(0)
 		if err != nil {
 			return err
 		}
+		fmt.Println("entries for src is:", entries)
+
 		for _, entry := range entries {
 			if err := copyIntoVos(src+"/"+entry, dst+"/"+entry, vos); err != nil {
 				return err
 			}
 		}
+
 	} else {
+		fmt.Println("src is a file:", src)
 		df, err := vos.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
 		if err != nil {
 			return err
 		}
 		defer df.Close()
 
+		fmt.Printf("copying from '%s' to '%s'", sf.Name(), df.Name())
 		if _, err := io.Copy(df, sf); err != nil {
 			return err
 		}
