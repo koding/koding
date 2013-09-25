@@ -58,6 +58,9 @@ func main() {
 		"vm.createSnapshot": Provision.CreateSnapshot,
 		"spawn":             Provision.Spawn,
 		"exec":              Provision.Exec,
+
+		// "vm.deploy":   Provision.Deploy,   // Deploy/copy binary into vm
+		// "vm.createVM": Provision.CreateVM, // Create a new VM
 	}
 
 	go ldapserver.Listen()
@@ -405,6 +408,32 @@ func getVM(hostnameAlias string) (*virt.VM, error) {
 	return &vm, nil
 }
 
+func createVMIP() net.IP {
+	ipInt := nextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
+	ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
+	return ip
+}
+
+func updateVMIP(ip net.IP, id bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
+	}
+
+	return mongodb.Run("jVMs", query)
+}
+
+func createLdapPassword() string {
+	return utils.RandomString()
+}
+
+func updateLdapPassword(ldapPassword string, id bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
+	}
+
+	return mongodb.Run("jVMs", query)
+}
+
 func validateAndSetup(user *virt.User, vm *virt.VM) error {
 	vm.ApplyDefaults()
 
@@ -422,36 +451,23 @@ func validateAndSetup(user *virt.User, vm *virt.VM) error {
 	}
 
 	if vm.IP == nil {
-		ipInt := nextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
-		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-
-		query := func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
-		}
-
-		if err := mongodb.Run("jVMs", query); err != nil {
+		vm.IP = createVMIP()
+		err := updateVMIP(vm.IP, vm.Id)
+		if err != nil {
 			return err
 		}
-
-		vm.IP = ip
 	}
 
 	if !containerSubnet.Contains(vm.IP) {
-		return fmt.Errorf("VM with IP that is not in the container subnet: %s", vm.IP.String())
+		return fmt.Errorf("VM with IP is not in the container subnet: %s", vm.IP.String())
 	}
 
 	if vm.LdapPassword == "" {
-		ldapPassword := utils.RandomString()
-
-		query := func(c *mgo.Collection) error {
-			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
-		}
-
-		if err := mongodb.Run("jVMs", query); err != nil {
+		vm.LdapPassword = createLdapPassword()
+		err := updateLdapPassword(vm.LdapPassword, vm.Id)
+		if err != nil {
 			return err
 		}
-
-		vm.LdapPassword = ldapPassword
 	}
 
 	if p := vm.GetPermissions(user); p == nil {
