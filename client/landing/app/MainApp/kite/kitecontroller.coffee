@@ -30,8 +30,11 @@ class KiteController extends KDController
 
   # NEWKITE
   createKite:(kiteName, correlationName, kiteKey)->
-    if kiteName is 'os-local' then kite = new NewKite {kiteName, correlationName, kiteKey }
-    else kite = new Kite { kiteName, correlationName, kiteKey }
+    switch kiteName
+      when 'os-local', 'fs-local', 'terminal-local'
+        kite = new NewKite {kiteName, correlationName, kiteKey }
+      else
+        kite = new Kite { kiteName, correlationName, kiteKey }
     # kite = new Kite { kiteName, correlationName, kiteKey }
     kite.on 'destroy', => @destroyKite kite
     return kite
