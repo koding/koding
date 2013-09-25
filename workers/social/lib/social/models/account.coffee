@@ -15,13 +15,13 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
-  JAppStorage = require './appstorage'
-  JTag = require './tag'
-  CActivity = require './activity'
-  Graph     = require "./graph/graph"
-  @getFlagRole = 'content'
-  JName = require './name'
+  JAppStorage  = require './appstorage'
+  JTag         = require './tag'
+  CActivity    = require './activity'
+  Graph        = require "./graph/graph"
+  JName        = require './name'
 
+  @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
