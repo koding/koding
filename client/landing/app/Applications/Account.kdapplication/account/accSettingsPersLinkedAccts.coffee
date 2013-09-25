@@ -3,8 +3,11 @@ class AccountLinkedAccountsListController extends KDListViewController
   constructor:(options = {}, data)->
 
     data = items : [
-      { title : "GitHub", type : "github" }
-      { title : "oDesk",  type : "odesk" }
+      { title : "GitHub", type    : "github" }
+      # temporarily disabled; when ready to integrate simply
+      # uncomment this line, server side is already implemeneted: SA
+      # { title : "oDesk",  type    : "odesk" }
+      { title : "Facebook",  type : "facebook" }
     ]
 
     super options, data
@@ -54,7 +57,7 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
   link:->
     {type} = @getData()
-    KD.utils["open#{type.capitalize()}PopUp"]()
+    KD.singletons.oauthController.openPopup type
 
   unlink:->
     {title, type} = @getData()
