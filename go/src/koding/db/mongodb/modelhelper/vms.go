@@ -8,6 +8,12 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+func NewVM() *models.VM {
+	return &models.VM{
+		Id: bson.NewObjectId(),
+	}
+}
+
 func GetVM(hostname string) (models.VM, error) {
 	vm := models.VM{}
 	query := func(c *mgo.Collection) error {

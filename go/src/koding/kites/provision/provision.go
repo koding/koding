@@ -19,7 +19,9 @@ import (
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
+	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -60,8 +62,8 @@ func main() {
 		"vm.createSnapshot": Provision.CreateSnapshot,
 		"spawn":             Provision.Spawn,
 		"exec":              Provision.Exec,
-		"vm.copy":           Provision.Copy, // Deploy/copy binary into vm
-		// "vm.createVM": Provision.CreateVM, // Create a new VM
+		"vm.copy":           Provision.Copy,   // Deploy/copy binary into vm
+		"vm.create":         Provision.Create, // Create a new VM
 	}
 
 	go ldapserver.Listen()
@@ -322,6 +324,27 @@ func (Provision) Copy(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
+func (Provision) Create(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		Reinitialize bool
+		VmName       string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.VmName == "" {
+		return errors.New("{ vmName: [string]}")
+	}
+
+	fmt.Println("Create called", params)
+
+	err := createVM(params.VmName, params.Reinitialize)
+	if err != nil {
+		return err
+	}
+
+	*result = true
+	return nil
+}
+
 /***********************************************
 
 Helper functions
@@ -339,9 +362,18 @@ func getVos(username, hostnameAlias string) (*virt.VOS, error) {
 		return nil, err
 	}
 
-	err = validateAndSetup(user, vm)
+	err = validateUser(user)
 	if err != nil {
 		return nil, err
+	}
+
+	err = validateVM(vm)
+	if err != nil {
+		return nil, err
+	}
+
+	if p := vm.GetPermissions(user); p == nil {
+		return nil, fmt.Errorf("user '%s' with uid '%s' doesn't have permission", user.Name, user.Uid)
 	}
 
 	err = prepareVM(vm)
@@ -381,12 +413,8 @@ func getVM(hostnameAlias string) (*virt.VM, error) {
 	return &vm, nil
 }
 
-func validateAndSetup(user *virt.User, vm *virt.VM) error {
+func validateVM(vm *virt.VM) error {
 	vm.ApplyDefaults()
-
-	if user.Uid < virt.UserIdOffset {
-		return fmt.Errorf("User %s with too low uid: %s\n", user.Name, user.Uid)
-	}
 
 	if vm.Region != region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
@@ -417,8 +445,12 @@ func validateAndSetup(user *virt.User, vm *virt.VM) error {
 		}
 	}
 
-	if p := vm.GetPermissions(user); p == nil {
-		return fmt.Errorf("user '%s' with uid '%s' doesn't have permission", user.Name, user.Uid)
+	return nil
+}
+
+func validateUser(user *virt.User) error {
+	if user.Uid < virt.UserIdOffset {
+		return fmt.Errorf("User %s with too low uid: %s\n", user.Name, user.Uid)
 	}
 
 	return nil
@@ -689,6 +721,92 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 	}
 
 	return nil
+}
+
+func createVM(vmName string, reinitialize bool) error {
+	v := modelhelper.NewVM()
+	vm := virt.VM(*v)
+
+	err := validateVM(&vm)
+	if err != nil {
+		return err
+	}
+
+	vm.ContainerName = vmName
+	vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
+	if err != nil {
+		vm.VMRoot = "/var/lib/lxc/vmroot/"
+	}
+	if vm.VMRoot[0] != '/' {
+		vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
+	}
+
+	// write LXC files
+	virt.PrepareDir(vm.File(""), 0)
+	vm.GenerateFile(vm.File("config"), "config", 0, false)
+	vm.GenerateFile(vm.File("fstab"), "fstab", 0, false)
+	vm.GenerateFile(vm.File("ip-address"), "ip-address", 0, false)
+
+	// map rbd image to block device
+	if err := vm.MountRBD(vm.OverlayFile("")); err != nil {
+		return fmt.Errorf("mount rbd failed:", err)
+	}
+
+	// remove all except /home on reinitialize
+	if reinitialize {
+		entries, err := ioutil.ReadDir(vm.OverlayFile("/"))
+		if err != nil {
+			return fmt.Errorf("readdir failed", err)
+		}
+		for _, entry := range entries {
+			if entry.Name() != "home" {
+				os.RemoveAll(vm.OverlayFile("/" + entry.Name()))
+			}
+		}
+	}
+
+	// prepare overlay
+	virt.PrepareDir(vm.OverlayFile("/"), virt.RootIdOffset)           // for chown
+	virt.PrepareDir(vm.OverlayFile("/lost+found"), virt.RootIdOffset) // for chown
+	virt.PrepareDir(vm.OverlayFile("/etc"), virt.RootIdOffset)
+	vm.GenerateFile(vm.OverlayFile("/etc/hostname"), "hostname", virt.RootIdOffset, false)
+	vm.GenerateFile(vm.OverlayFile("/etc/hosts"), "hosts", virt.RootIdOffset, false)
+	vm.GenerateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", virt.RootIdOffset, false)
+	vm.MergePasswdFile(logWarning)
+	vm.MergeGroupFile(logWarning)
+	vm.MergeDpkgDatabase()
+
+	// mount overlay
+	virt.PrepareDir(vm.File("rootfs"), virt.RootIdOffset)
+	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), vm.LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
+		return commandError("mount overlay failed.", err, out)
+	}
+
+	// mount devpts
+	virt.PrepareDir(vm.PtsDir(), virt.RootIdOffset)
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(virt.RootIdOffset+5)+",mode=0620,ptmxmode=0666", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
+		return commandError("mount devpts failed.", err, out)
+	}
+
+	virt.Chown(vm.PtsDir(), virt.RootIdOffset, virt.RootIdOffset)
+	virt.Chown(vm.PtsDir()+"/ptmx", virt.RootIdOffset, virt.RootIdOffset)
+
+	// add ebtables entry to restrict IP and MAC
+	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
+		return commandError("ebtables rule addition failed.", err, out)
+	}
+
+	// add a static route so it is redistributed by BGP
+	if out, err := exec.Command("/sbin/route", "add", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		return commandError("adding route failed.", err, out)
+	}
+
+	return nil
+}
+
+func commandError(message string, err error, out []byte) error {
+	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
 }
 
 /***********************************************

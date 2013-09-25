@@ -7,9 +7,11 @@ import (
 
 type VM struct {
 	Id            bson.ObjectId `bson:"_id"`
+	ContainerName string        `bson:"containerName"`
 	HostnameAlias string        `bson:"hostnameAlias"`
 	WebHome       string        `bson:"webHome"`
 	Users         []Permissions `bson:"users"`
+	Groups        []Permissions `bson:"groups"`
 	LdapPassword  string        `bson:"ldapPassword"`
 	NumCPUs       int           `bson:"numCPUs"`
 	MaxMemoryInMB int           `bson:"maxMemoryInMB"`

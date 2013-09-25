@@ -62,6 +62,9 @@ func VMName(vmId bson.ObjectId) string {
 }
 
 func (vm *VM) String() string {
+	if vm.ContainerName != "" {
+		return vm.ContainerName
+	}
 	return VMName(vm.Id)
 }
 
@@ -128,10 +131,10 @@ func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})
 	}
 
 	// write LXC files
-	prepareDir(vm.File(""), 0)
-	vm.generateFile(vm.File("config"), "config", 0, false)
-	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
-	vm.generateFile(vm.File("ip-address"), "ip-address", 0, false)
+	PrepareDir(vm.File(""), 0)
+	vm.GenerateFile(vm.File("config"), "config", 0, false)
+	vm.GenerateFile(vm.File("fstab"), "fstab", 0, false)
+	vm.GenerateFile(vm.File("ip-address"), "ip-address", 0, false)
 
 	// map rbd image to block device
 	if err := vm.MountRBD(vm.OverlayFile("")); err != nil {
@@ -152,30 +155,30 @@ func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})
 	}
 
 	// prepare overlay
-	prepareDir(vm.OverlayFile("/"), RootIdOffset)           // for chown
-	prepareDir(vm.OverlayFile("/lost+found"), RootIdOffset) // for chown
-	prepareDir(vm.OverlayFile("/etc"), RootIdOffset)
-	vm.generateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
-	vm.generateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
-	vm.generateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
+	PrepareDir(vm.OverlayFile("/"), RootIdOffset)           // for chown
+	PrepareDir(vm.OverlayFile("/lost+found"), RootIdOffset) // for chown
+	PrepareDir(vm.OverlayFile("/etc"), RootIdOffset)
+	vm.GenerateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
+	vm.GenerateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
+	vm.GenerateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
 	vm.MergePasswdFile(logWarning)
 	vm.MergeGroupFile(logWarning)
 	vm.MergeDpkgDatabase()
 
 	// mount overlay
-	prepareDir(vm.File("rootfs"), RootIdOffset)
+	PrepareDir(vm.File("rootfs"), RootIdOffset)
 	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), vm.LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
 		panic(commandError("mount overlay failed.", err, out))
 	}
 
 	// mount devpts
-	prepareDir(vm.PtsDir(), RootIdOffset)
+	PrepareDir(vm.PtsDir(), RootIdOffset)
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
 		panic(commandError("mount devpts failed.", err, out))
 	}
-	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
-	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
+	Chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
+	Chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
 
 	// add ebtables entry to restrict IP and MAC
 	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
@@ -409,15 +412,15 @@ func commandError(message string, err error, out []byte) error {
 }
 
 // may panic
-func prepareDir(p string, id int) {
+func PrepareDir(p string, id int) {
 	if err := os.Mkdir(p, 0755); err != nil && !os.IsExist(err) {
 		panic(err)
 	}
-	chown(p, id, id)
+	Chown(p, id, id)
 }
 
 // may panic
-func (vm *VM) generateFile(p, template string, id int, executable bool) {
+func (vm *VM) GenerateFile(p, template string, id int, executable bool) {
 	var mode os.FileMode = 0644
 	if executable {
 		mode = 0755
@@ -441,7 +444,7 @@ func (vm *VM) generateFile(p, template string, id int, executable bool) {
 }
 
 // may panic
-func chown(p string, uid, gid int) {
+func Chown(p string, uid, gid int) {
 	if err := os.Chown(p, uid, gid); err != nil {
 		panic(err)
 	}
