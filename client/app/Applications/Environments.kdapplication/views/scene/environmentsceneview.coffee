@@ -13,3 +13,23 @@ class EnvironmentScene extends KDDiaScene
         container.once "DataLoaded", ->
           if counter is 1 then do callback
           counter--
+
+  viewAppended:->
+    super
+
+    @addSubView slider = new KDSliderBarView
+      cssClass   : 'zoom-slider'
+      minValue   : 30
+      maxValue   : 100
+      interval   : 10
+      width      : 120
+      snap       : no
+      snapOnDrag : no
+      drawBar    : yes
+      showLabels : no
+      handles    : [100]
+    slider.on 'ValueChanged', (value)=>
+      do _.throttle =>
+        scale = (Math.floor value) / 100
+        @setScale scale  unless scale is @_currentScale
+        @_currentScale = scale
