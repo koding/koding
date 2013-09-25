@@ -20,10 +20,23 @@ class VirtualizationController extends KDController
 
     @fetchVmName options, (err, vmName) =>
       return callback err  if err?
+
+      if /^fs\./.test options.method
+        options.kiteName = "fs-local"
+
+      if /^vm\./.test options.method
+        options.kiteName = "os-local"
+
+      if /^webterm\./.test options.method
+        options.kiteName = "terminal-local"
+
+      if options.method in ['exec', 'spawn']
+        options.kiteName = "os-local"
+
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
         # NEWKITE
-        options.kiteName = "os-local"
+        options.kiteName or= "os-#{region}"
         @kc.run options, (rest...) ->
           # log rest...
           callback rest...

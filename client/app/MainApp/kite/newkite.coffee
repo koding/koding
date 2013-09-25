@@ -140,6 +140,7 @@ class NewKite extends KDEventEmitter
   tell:(options, callback) ->
     @ready =>
       # token is needed to initiate a valid session
+      # TODO: invalidate token when something goes wrong, or if we got a new token from kontrol
       options.token = @token
       options.username  = "#{KD.nick()}"
       @handleRequest options.method, [options, callback]
