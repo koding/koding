@@ -46,11 +46,13 @@ class NewKite extends KDEventEmitter
     xhr.send JSON.stringify requestData
     xhr.onload = =>
        if xhr.status is 200
-         data = JSON.parse xhr.responseText
-         @token = data[0].token
-         console.log {@token}
-         @addr = data[0].addr
-         @connectDirectly()
+          data = JSON.parse xhr.responseText
+          @token = data[0].token
+          console.log {@token}
+          @addr = data[0].addr
+          @connectDirectly()
+        else
+          log "kontrol request error", xhr.responseText
 
   disconnect:(reconnect=true)->
     @autoReconnect = !!reconnect  if reconnect?
@@ -72,14 +74,23 @@ class NewKite extends KDEventEmitter
     try
       args = JSON.parse evt.data
       {method} = args
-      # console.log "received", {args}
-      callback = @localStore.get method
+      callback = switch method
+        when 'ping'             then @bound 'handlePing'
+        else (@localStore.get method) ? ->
+
+      # callback = @localStore.get method
       callback.apply this, @unscrub args
     catch e
       console.log "error: ", e, evt.data
 
   onError: (evt) ->
     # console.log "#{@kiteName}: error #{evt.data}"
+
+  handlePing: ->
+    @send JSON.stringify
+      method      : 'pong'
+      arguments   : []
+      callbacks   : {}
 
   initBackoff:(options)->
     backoff = options.backoff ? {}
@@ -127,7 +138,7 @@ class NewKite extends KDEventEmitter
       callback scrubbed
 
   tell:(options, callback) ->
-    @ready => 
+    @ready =>
       # token is needed to initiate a valid session
       options.token = @token
       options.username  = "#{KD.nick()}"
