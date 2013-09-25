@@ -14,7 +14,7 @@ Broker = require 'broker'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
-{mq, email, social, client:{runtimeOptions:{precompiledApi}}} = KONFIG
+{mq, email, social, client:{runtimeOptions:{precompiledApi}}, mongoReplSet} = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"  if 'string' is typeof KONFIG.mongo
 
@@ -73,7 +73,7 @@ koding = new Bongo {
   precompiledApi
   verbose     : social.verbose
   root        : __dirname
-  mongo       : mongo
+  mongo       : mongoReplSet or mongo
   models      : './models'
   resourceName: social.queueName
   mq          : broker

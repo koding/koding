@@ -7,11 +7,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 mongo = 'dev:k9lc4G1k32nyD72@kmongodb1.sj.koding.com:27017'
 
-mongoReplSet = [
-  'dev:k9lc4G1k32nyD72@kmongodb1.sj.koding.com:27017'
-  'dev:k9lc4G1k32nyD72@kmongodb2.sj.koding.com:27017'
-  'dev:k9lc4G1k32nyD72@kmongodb3.sj.koding.com:27017'
-]
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@kmongodb1.sj.koding.com:27017,dev:k9lc4G1k32nyD72@kmongodb2.sj.koding.com:27017,dev:k9lc4G1k32nyD72@kmongodb3.sj.koding.com:27017?readPreference=nearest&maxPoolSize=100'
 
 socialQueueName = "koding-social-#{version}"
 
