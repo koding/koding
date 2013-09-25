@@ -126,6 +126,8 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
+  console.log 'CAKEFILE STARTING SOCIAL WORKERS'
+
   for i in [1..social.numberOfWorkers]
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
