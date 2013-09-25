@@ -46,11 +46,12 @@ class KDSliderBarHandleView extends KDCustomHTMLView
     @setX "#{@getPosition()}"
     @parent.drawBar() if @parent.getOption('drawBar')
     @parent.setLimits()
-      
+    @parent.emit "ValueChanged", value
+
   getSnappedValue:(value)->
     {interval}  = @parent.getOptions()
     {value}     = value or @getOptions()
-    
+
     if interval
       mod = value % interval
       mid = interval / 2
