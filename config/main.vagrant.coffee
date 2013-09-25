@@ -33,6 +33,7 @@ module.exports =
     enabled     : yes
     port        : 3526
   mongo         : mongo
+  mongoReplSet  : null
   neo4j         :
     read        : "http://localhost"
     write       : "http://localhost"
