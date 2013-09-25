@@ -5,7 +5,9 @@ deepFreeze = require 'koding-deep-freeze'
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
-mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
+mongo = 'dev:k9lc4G1k32nyD72@kmongodb1.sj.koding.com:27017'
+
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@kmongodb1.sj.koding.com:27017,dev:k9lc4G1k32nyD72@kmongodb2.sj.koding.com:27017,dev:k9lc4G1k32nyD72@kmongodb3.sj.koding.com:27017?readPreference=nearest&maxPoolSize=100'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -39,6 +41,7 @@ module.exports =
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
   mongo         : mongo
+  mongoReplSet  : mongoReplSet
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
@@ -221,3 +224,10 @@ module.exports =
   github        :
     clientId    : "5891e574253e65ddb7ea"
     clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"
+  odesk          :
+    key          : "9ed4e3e791c61a1282c703a42f6e10b7"
+    secret       : "1df959f971cb437c"
+  facebook       :
+    clientId     : "434245153353814"
+    clientSecret : "84b024e0d627d5e80ede59150a2b251e"
+    redirectUri  : "https://koding.com/-/oauth/facebook/callback"

@@ -59,6 +59,7 @@ config =
       enabled     : 1
       port        : 1
     mongo         : 1
+    mongoReplSet  : 1
     neo4j         :
       read        : 1
       write       : 1
@@ -236,4 +237,11 @@ config =
     github          :
       clientId      : 1
       clientSecret  : 1
+    odesk           :
+      key           : 1
+      secret        : 1
+    facebook        :
+      clientId      : 1
+      clientSecret  : 1
+      redirectUri   : 1
 module.exports = config
