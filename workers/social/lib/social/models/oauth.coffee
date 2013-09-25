@@ -1,8 +1,7 @@
-jraphical = require 'jraphical'
+bongo    = require 'bongo'
+{secure} = bongo
 
-module.exports = class OAuth extends jraphical.Module
-  {secure} = require 'bongo'
-
+module.exports = class OAuth extends bongo.Base
   @share()
 
   @set
