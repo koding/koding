@@ -14,18 +14,18 @@ koding = new Bongo
   resourceName: 'bongo-api-builder'
   mq          : broker
   fetchClient : (sessionToken, context, callback) ->
-    # console.log {'fetchClient', sessionToken, context, callback}
+    { JUser, JAccount } = koding.models
     [callback, context] = [context, callback] unless callback
     context             ?= group: 'koding'
     callback            ?= ->
-    koding.models.JUser.authenticateClient sessionToken, context, (err, account) ->
-      unless account instanceof koding.models.JAccount
-        console.log "this is not a proper account".red, { account }
-        koding.emit 'error', message: 'this is not a proper account'
+    JUser.authenticateClient sessionToken, context, (err, account) ->
       if err
         koding.emit 'error', err
-      else
+      else if account instanceof JAccount
         callback {sessionToken, context, connection:delegate:account}
+      else
+        console.log "this is not a proper account".red, { account }
+        koding.emit 'error', message: 'this is not a proper account'
 
 koding.describeApi (api)->
   source = "var REMOTE_API = #{ JSON.stringify api };"
