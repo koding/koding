@@ -126,5 +126,5 @@ koding.connect ->
 
 console.log "Koding Social Worker #{process.pid} has started."
 
-require './followfeed' # side effects
+# require './followfeed' # side effects
 
