@@ -24,7 +24,7 @@ class StartTabMainView extends JView
     @serverContainerToggle = new KDToggleButton
       style           : "kdwhitebtn"
       cssClass        : "server-container-handler"
-      defaultState    : 'Show environments'
+      defaultState    : "Show environments"
       states          : [
         title         : "Show environments"
         callback      : (cb)=>
@@ -189,6 +189,9 @@ class StartTabMainView extends JView
     super
     @addRealApps()
     @startGuestTimer()
+
+    @utils.wait 220, =>
+      @serverContainer.scene.updateScene()
 
   pistachio:->
     """
