@@ -28,8 +28,7 @@ class EnvironmentScene extends KDDiaScene
       drawBar    : yes
       showLabels : no
       handles    : [100]
+
     slider.on 'ValueChanged', (value)=>
       do _.throttle =>
-        scale = (Math.floor value) / 100
-        @setScale scale  unless scale is @_currentScale
-        @_currentScale = scale
+        @setScale (Math.floor value) / 100
