@@ -78,15 +78,18 @@ koding = new Bongo {
   resourceName: social.queueName
   mq          : broker
   fetchClient :(sessionToken, context, callback)->
-    # console.log {'fetchClient', sessionToken, context, callback}
+    { JUser, JAccount } = koding.models
     [callback, context] = [context, callback] unless callback
     context             ?= group: 'koding'
     callback            ?= ->
-    koding.models.JUser.authenticateClient sessionToken, context, (err, account)->
+    JUser.authenticateClient sessionToken, context, (err, account)->
       if err
         koding.emit 'error', err
-      else
+      else if account instanceof JAccount
         callback {sessionToken, context, connection:delegate:account}
+      else
+        console.log "this is not a proper account".red, { account }
+        koding.emit 'error', message: 'this is not a proper account'
 }
 
 koding.on 'authenticateUser', (client, callback)->
@@ -126,5 +129,5 @@ koding.connect ->
 
 console.log "Koding Social Worker #{process.pid} has started."
 
-require './followfeed' # side effects
+# require './followfeed' # side effects
 

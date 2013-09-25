@@ -65,7 +65,9 @@ module.exports = class JUser extends jraphical.Module
     indexes         :
       username      : 'unique'
       email         : 'unique'
-      'foreignAuth.github.foreignId' : 1
+      'foreignAuth.github.foreignId'   : 1
+      'foreignAuth.odesk.foreignId'    : 1
+      'foreignAuth.facebook.foreignId' : 1
 
     sharedEvents    :
       static        : [
@@ -123,9 +125,24 @@ module.exports = class JUser extends jraphical.Module
           # enum      : ['invalid status',['online','offline','away','busy']]
 
       sshKeys       : [Object]
-      foreignAuth   :
-        github      : Object
-        odesk       : Object
+      foreignAuth            :
+        github               :
+          foreignId          : String
+          username           : String
+          token              : String
+          firstName          : String
+          lastName           : String
+          email              : String
+        odesk                :
+          foreignId          : String
+          token              : String
+          accessTokenSecret  : String
+          requestToken       : String
+          requestTokenSecret : String
+        facebook             :
+          foreignId          : String
+          username           : String
+          token              : String
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -179,7 +196,6 @@ module.exports = class JUser extends jraphical.Module
             'profile.experience'  : ''
             'profile.experiencePoints': 0
             'profile.lastStatusUpdate': ''
-            'foreignAuth.github'  : no
             type                  : 'deleted'
             ircNickame            : ''
             skillTags             : []
@@ -436,8 +452,10 @@ module.exports = class JUser extends jraphical.Module
     callback null, {account, replacementToken}
 
   @fetchUserByProvider = (provider, session, callback)->
-    query = {}
-    query["foreignAuth.#{provider}.foreignId"] = session.foreignAuth[provider].foreignId
+    {foreignAuth}                              = session
+    query                                      = {}
+    query["foreignAuth.#{provider}.foreignId"] = foreignAuth[provider].foreignId
+
     JUser.one query, callback
 
   @authenticateWithOauth = secure (client, resp, callback)->
@@ -787,7 +805,12 @@ Your password has been changed!  If you didn't request this change, please conta
         callback err
       else
         if session.foreignAuth
-          @update {username}, $set: foreignAuth: session.foreignAuth, callback
+          {foreignAuth, foreignAuthType}          = session
+          query                                   = {}
+          query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
+
+          @update {username}, $set: query, ->
+            session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
         else
           callback()
 

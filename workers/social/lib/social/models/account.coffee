@@ -76,8 +76,8 @@ module.exports = class JAccount extends jraphical.Module
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
-        'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
-        'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
+        'fetchFollowedTopics', 'setEmailPreferences'
+        'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
         'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
         'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
@@ -95,9 +95,6 @@ module.exports = class JAccount extends jraphical.Module
         'getOdeskAuthorizeUrl'
       ]
     schema                  :
-      foreignAuth           :
-        github              : Boolean
-        odesk               : Boolean
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
@@ -656,30 +653,6 @@ module.exports = class JAccount extends jraphical.Module
             activity.mark client, 'glanced', -> queue.fin()
           dash queue, callback
 
-  fetchNonces: secure (client, callback)->
-    {delegate} = client.connection
-    unless @equals delegate
-      callback new KodingError 'Access denied'
-    else
-      client.connection.remote.fetchClientId (clientId)->
-        JSession.one {clientId}, (err, session)->
-          if err
-            callback err
-          else
-            nonces = (hat() for i in [0...10])
-            session.update $addToSet: nonces: $each: nonces, (err)->
-              if err
-                callback err
-              else
-                callback null, nonces
-
-  fetchKiteChannelId: secure (client, kiteName, callback)->
-    {delegate} = client.connection
-    unless delegate instanceof JAccount
-      callback new KodingError 'Access denied'
-    else
-      callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
-
   fetchLikedContents: secure ({connection}, options, selector, callback)->
 
     {delegate} = connection
@@ -737,9 +710,9 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "neelance", "halk",
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "neelance",
                   "fatihacet", "sent-hil", "kiwigeraint", "cihangirsavas",
-                  "fkadev", "bahadir", "arslan" ]
+                  "fkadev", "arslan" ]
 
 
   userIsExempt: (callback)->
@@ -1247,21 +1220,11 @@ module.exports = class JAccount extends jraphical.Module
   unlinkOauth: (provider, callback)->
     @fetchUser (err, user)->
       return callback err  if err
-      user.update $unset: foreignAuth: "", callback
+
+      query                            = {}
+      query["foreignAuth.#{provider}"] = ""
+      user.update $unset: query, callback
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
-
-  getOdeskAuthorizeUrl: (callback)->
-    Odesk         = require 'node-odesk'
-    config        = KONFIG.odesk
-    {key, secret} = config
-    o = new Odesk key, secret
-    o.OAuth.getAuthorizeUrl (err, url, requestToken, requestTokenSecret) =>
-      return callback err  if err
-      @fetchUser (err, user)->
-        return callback err  if err
-        odesk = {requestToken, requestTokenSecret}
-        user.update $set: {"foreignAuth.odesk" : odesk}, (err)->
-          callback err, url

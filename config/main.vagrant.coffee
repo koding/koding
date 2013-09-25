@@ -241,3 +241,7 @@ module.exports =
   odesk          :
     key          : "639ec9419bc6500a64a2d5c3c29c2cf8"
     secret       : "549b7635e1e4385e"
+  facebook       :
+    clientId     : "475071279247628"
+    clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
+    redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
