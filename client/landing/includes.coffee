@@ -162,6 +162,7 @@ module.exports = [
   "app/MainApp/notificationcontroller.coffee",
   "app/MainApp/linkcontroller.coffee",
   "app/MainApp/paymentcontroller.coffee",
+  "app/MainApp/oauthcontroller.coffee",
 
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
@@ -726,6 +727,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPersReferralSystem.coffee",
+  "app/Applications/Account.kdapplication/account/deleteaccountview.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD

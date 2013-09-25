@@ -2,10 +2,13 @@ class AccountLinkedAccountsListController extends KDListViewController
 
   constructor:(options = {}, data)->
 
-    data =
-      items : [
-        { title : "GitHub",   type : "github",    linked : no, account : ""}
-      ]
+    data = items : [
+      { title : "GitHub", type    : "github" }
+      # temporarily disabled; when ready to integrate simply
+      # uncomment this line, server side is already implemeneted: SA
+      # { title : "oDesk",  type    : "odesk" }
+      { title : "Facebook",  type : "facebook" }
+    ]
 
     super options, data
 
@@ -19,81 +22,75 @@ class AccountLinkedAccountsList extends KDListView
 
     super options,data
 
-    #@on "UnlinkAccount", (event)=>
-    #  for itemData,k in @data.items
-    #    if itemData.type is event.accountType
-    #      # FIXME: this needs to be done in controller with real stuff
-    #      delete itemData.account
-    #      itemData.linked = no
-    #      @items[k].data = @data.items[k] = itemData
-    #      @items[k].$().html ""
-    #      @items[k].viewAppended()
-
-
 class AccountLinkedAccountsListItem extends KDListItemView
+
+  notify = (message)-> new KDNotificationView title : message
 
   constructor:(options = {}, data)->
 
     options.tagName or= "li"
+    options.type    or= "oauth"
 
     super options, data
 
-    @provider = null
+    @linked  = no
+    provider = @getData().type
 
     mainController = KD.getSingleton "mainController"
-    mainController.on "ForeignAuthSuccess", (provider)=>
-      @provider = provider
-      @viewAppendedHelper()
-
-  getProvider:-> @provider
+    mainController.on "ForeignAuthSuccess.#{provider}", =>
+      @linked = yes
+      @render()
 
   click:(event)->
-    if $(event.target).is "a.delete-icon"
-      {type} = @getData()
-      @getDelegate().emit "UnlinkAccount", accountType : @getData().type
+    KD.utils.stopDOMEvent event
+    if $(event.target).is "a.delete-icon" then @unlink()
+    else if $(event.target).is "a.link"   then @link()
 
-      notify = (message)->
-        new KDNotificationView
-          title : message
+  render:->
+    super
+    @setLinkedState()
 
-      KD.whoami().unlinkOauth type, (err)=>
-        if err then KD.showError err
-        else
-          notify "Your '#{type}' account is now unlinked."
-          @provider = null
-          @viewAppendedHelper()
-    else
-      KD.utils.openGithubPopUp()  unless @getProvider()
+  setLinkedState:->
+    if @linked
+    then @setClass "linked"
+    else @unsetClass "linked"
 
-  viewAppendedHelper:->
-    @setTemplate @pistachio()
-    @template.update()
+  link:->
+    {type} = @getData()
+    KD.singletons.oauthController.openPopup type
+
+  unlink:->
+    {title, type} = @getData()
+
+    KD.whoami().unlinkOauth type, (err)=>
+      return KD.showError err  if err
+      notify "Your #{title} account is now unlinked."
+      @linked = no
+      @render()
 
   viewAppended:->
+    JView::viewAppended.call this
+    {type} = @getData()
+    @setClass type
     KD.remote.api.JUser.fetchUser (err, user)=>
-      @provider = user.foreignAuth?.github
-      @viewAppendedHelper()
+      @linked = user.foreignAuth?[type]?
+      @render()
 
   getLinkedString:->
-    if @getProvider() then "Linked" else "Not linked."
+    if @linked then "Linked" else "Not linked."
 
-  getLinkedClass:->
-    if @getProvider() then "yes" else "no"
-
-  getAccountString:->
-    if @getProvider() then "" else "Link now."
+  getLinkingString:->
+    if @linked then "" else "Link now."
 
   pistachio:->
     """
-    <div class='linked-account-title'>
-      <span class='icon github'></span>
-      <cite>Github</cite>
-      <a href='#' class='delete-icon #{@getLinkedClass()}'></a>
+    <div class='title'>
+      <span class='icon'></span>{cite{ #(title)}}
+      <a href='#' class='delete-icon'></a>
     </div>
-
-    <div class='linked-status #{@getLinkedClass()}'>
+    <div class='status'>
       <span class='icon-check'></span>
-      <span>#{@getLinkedString()}</span>
-      <a href="#" title="Not available on Private Beta">#{@getAccountString()}</a>
+      {span{ @getLinkedString #(provider)}}
+      {a.link[href=#]{ @getLinkingString #(provider)}}
     </div>
     """
