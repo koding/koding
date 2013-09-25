@@ -209,8 +209,15 @@ func (k *Kite) Run() {
 							if !ok {
 								return
 							}
-							log.Debug("Read", channel.RoutingKey, message)
-							d.ProcessMessage(message)
+							func() {
+								defer func() {
+									if err := recover(); err != nil {
+										log.LogError(err, 1, channel.Username, channel.CorrelationName, message)
+									}
+								}()
+								log.Debug("Read", channel.RoutingKey, message)
+								d.ProcessMessage(message)
+							}()
 							pingAlreadySent = false
 						case <-time.After(5 * time.Minute):
 							if pingAlreadySent {

@@ -151,9 +151,9 @@ var (
 		"go/templates/overview/index.html",
 		"go/templates/overview/login.html",
 	))
-	admins = goset.New("sinan", "devrim", "gokmen", "chris", "neelance", "halk",
+	admins = goset.New("sinan", "devrim", "gokmen", "chris", "neelance",
 		"sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-		"bahadir", "arslan")
+		"arslan")
 )
 
 const uptimeLayout = "03:04:00"
