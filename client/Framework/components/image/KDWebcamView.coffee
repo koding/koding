@@ -44,6 +44,11 @@ class KDWebcamView extends JView
         @emit "save"
 
   attachEvents: ->
+
+    {snapTitle} = @getOptions()
+
+    @on "KDObjectWillBeDestroyed", => @unsetVideoStream()
+
     @on "viewAppended", =>
       @context = @picture.getElement().getContext "2d"
       @getUserMedia()
@@ -62,7 +67,7 @@ class KDWebcamView extends JView
       @retake.show()
       @save.show()
       @takePicture()
-      @button.setTitle options.snapTitle
+      @button.setTitle snapTitle
 
   resetView: ->
     @button.show()
@@ -100,6 +105,12 @@ class KDWebcamView extends JView
     @picture.setDomAttributes size
     @setSize size
 
+  unsetVideoStream: ->
+    video = @video.getElement()
+    video.pause()
+    KDWebcamView.setVideoStreamVendor video, ""
+    @localMediaStream?.stop()
+
   setVideoStream: (stream)->
     video = @video.getElement()
     KDWebcamView.setVideoStreamVendor video, stream
@@ -131,6 +142,7 @@ class KDWebcamView extends JView
 
     if navigator.getUserMedia
       navigator.getUserMedia video: yes, (stream)=>
+        @localMediaStream = stream
         @setVideoStream (window.URL and window.URL.createObjectURL stream) or stream
       , _onError
     else _onError notSupported: yes
