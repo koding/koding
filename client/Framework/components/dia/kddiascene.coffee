@@ -23,7 +23,7 @@ class KDDiaScene extends JView
   diaAdded:(container, diaObj)->
     diaObj.on "JointRequestsLine",   @bound "handleLineRequest"
     diaObj.on "DragInAction",        => @highlightLines diaObj
-    diaObj.on "RemoveMyConnections", => @disconnect diaObj
+    diaObj.on "RemoveMyConnections", => @disconnectAllConnections diaObj
 
   addContainer:(container, pos = {})->
     @addSubView container
@@ -83,7 +83,6 @@ class KDDiaScene extends JView
 
     return  unless targetId
 
-    log "Connect #{sourceId} to #{targetId}"
     source = @getDia sourceId
     target = @getDia targetId
     target.joint = @guessJoint target, source  unless target.joint
@@ -122,30 +121,30 @@ class KDDiaScene extends JView
             joint = conn.dia.joints[conn.joint]
             if joint not in @activeJoints
               joint.showDeleteButton()
-              joint.on 'DeleteRequested', @bound 'disconnectHelper'
+              joint.on 'DeleteRequested', @bound 'disconnect'
               @activeJoints.push joint
 
   handleLineRequest:(joint)->
     @_trackJoint = joint
 
-  # Needs refactoring ~ GG
-  disconnectHelper:(dia, joint)->
-    return  if @activeDias.length isnt 1
-
+  findTargetConnection:(dia, joint)->
     isEqual = (connection)=>
       (dia is connection.dia) and (joint is connection.joint)
-
     activeDia = @activeDias.first
-    connectionsToDelete = []
     for conn in @connections
       if ((isEqual conn.source) or (isEqual conn.target)) and \
          ((conn.source.dia is activeDia) or (conn.target.dia is activeDia))
-        connectionsToDelete.push conn
+        return conn
 
-    @connections = (c for c in @connections when c not in connectionsToDelete)
+  # Needs refactoring ~ GG
+  disconnect:(dia, joint)->
+    return  if @activeDias.length isnt 1
+
+    connectionsToDelete = @findTargetConnection dia, joint
+    @connections = (c for c in @connections when c isnt connectionsToDelete)
     @highlightLines @activeDias
 
-  disconnect:(dia)->
+  disconnectAllConnections:(dia)->
 
     newConnections = []
     for connection in @connections
@@ -156,18 +155,11 @@ class KDDiaScene extends JView
 
     @highlightLines()
 
-  connect:(source, target)->
-    return  unless source and target
-    return  if source.dia?.id is target.dia?.id
+  allowedToConnect = (source, target)->
 
-    if not @allowedToConnect source, target
-      return warn """Connection from #{source.dia.constructor.name}
-                     to #{target.dia.constructor.name} is not allowed!"""
+    return no  unless source and target
+    return no  if source.dia?.id is target.dia?.id
 
-    @connections.push {source, target}
-    @highlightLines target.dia
-
-  allowedToConnect:(source, target)->
     for i in [0..1]
       if source.dia.allowedConnections? and \
          Object.keys(source.dia.allowedConnections).length > 0
@@ -176,7 +168,15 @@ class KDDiaScene extends JView
         return no  unless restrictions
         return no  if source.joint in restrictions
       [source, target] = [target, source]
+
     return yes
+
+  connect:(source, target)->
+    return if not allowedToConnect source, target
+    log "Connecting #{source.dia.id} to #{target.dia.id}"
+    @emit "ConnectionCreated", source, target
+    @connections.push {source, target}
+    @highlightLines target.dia
 
   updateScene:->
 
