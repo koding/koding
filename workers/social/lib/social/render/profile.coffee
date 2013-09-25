@@ -112,7 +112,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                       <h3 class="profilename"><span class="data" data-paths="profile.firstName">#{encoder.XSSEncode firstName}</span> <span class="data" data-paths="profile.lastName">#{encoder.XSSEncode lastName}</span></h3>
                       <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags">#{if locationTags then encoder.XSSEncode locationTags[0] else 'Earth'}</span></div></h4>
                       <h5>
-                        <a class="user-home-link" href="http://#{encoder.XSSEncode nickname}.koding.com" target="_blank">#{encoder.XSSEncode nickname}.koding.com</a>
+                        <a class="user-home-link" href="http://#{encoder.XSSEncode nickname}.kd.io" target="_blank">#{encoder.XSSEncode nickname}.kd.io</a>
                         <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
                       </h5>
                       <div class="profilestats">

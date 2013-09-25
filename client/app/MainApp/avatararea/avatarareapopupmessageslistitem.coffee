@@ -8,7 +8,8 @@ class PopupMessageListItem extends KDListItemView
 
     @initializeReadState()
 
-    group = data.participants.map (participant)->
+    group   = {} unless data.participants
+    group or= data.participants.map (participant)->
       constructorName : participant.sourceName
       id              : participant.sourceId
 

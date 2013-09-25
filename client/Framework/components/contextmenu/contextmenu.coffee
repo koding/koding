@@ -2,7 +2,7 @@ class JContextMenu extends KDView
 
   constructor:(options = {},data)->
 
-    options.cssClass        = @utils.curryCssClass "jcontextmenu", options.cssClass
+    options.cssClass        = @utils.curry "jcontextmenu", options.cssClass
     options.menuWidth     or= 172
     options.offset        or= {}
     options.offset.left   or= 0
