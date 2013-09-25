@@ -35,6 +35,7 @@ var (
 	port             = flag.String("port", "4003", "port to bind itself")
 	ip               = flag.String("ip", "", "ip to bind itself")
 	templateDir      = config.Current.ProjectRoot + "/go/templates"
+	logWarning       = func(msg string, args ...interface{}) { fmt.Printf(msg, args) }
 )
 
 func main() {
@@ -92,6 +93,8 @@ func initializeVMS() {
 		os.Exit(1)
 		return
 	}
+
+	// if there is any vms in the lxc dir, read them and create a new info for them.
 	for _, dir := range dirs {
 		if strings.HasPrefix(dir.Name(), "vm-") {
 			vmId := bson.ObjectIdHex(dir.Name()[3:])
@@ -197,10 +200,6 @@ func (Provision) Reinitialize(r *protocol.KiteDnodeRequest, result *bool) error 
 
 	if !vos.Permissions.Sudo {
 		return fmt.Errorf("permission denied: '%s' '%s'", r.Username, r.Hostname)
-	}
-
-	logWarning := func(msg string, args ...interface{}) {
-		fmt.Printf(msg, args)
 	}
 
 	vos.VM.Prepare(true, logWarning)
@@ -315,73 +314,17 @@ func getVos(username, hostnameAlias string) (*virt.VOS, error) {
 		return nil, err
 	}
 
-	err = createDirs(user, vm)
+	err = prepareVM(vm)
+	if err != nil {
+		return nil, err
+	}
+
+	err = createHomeDirs(user, vm)
 	if err != nil {
 		return nil, err
 	}
 
 	return vm.OS(user)
-}
-
-func createDirs(user *virt.User, vm *virt.VM) error {
-	isPrepared := true
-	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-		isPrepared = false
-	}
-
-	logWarning := func(msg string, args ...interface{}) {
-		fmt.Printf(msg, args)
-	}
-
-	infosMutex.Lock()
-	info, found := infos[vm.Id]
-	if !found {
-		info = newInfo(vm)
-		infos[vm.Id] = info
-	}
-
-	info.useCounter += 1
-	info.timeout.Stop()
-	infosMutex.Unlock()
-
-	if !isPrepared || info.currentHostname != vm.HostnameAlias {
-		vm.Prepare(false, logWarning)
-		if err := vm.Start(); err != nil {
-			return err
-		}
-	}
-
-	vmWebDir := "/home/" + vm.WebHome + "/Web"
-	userWebDir := "/home/" + user.Name + "/Web"
-
-	rootVos, err := vm.OS(&virt.RootUser)
-	if err != nil {
-		return err
-	}
-
-	userVos, err := vm.OS(user)
-	if err != nil {
-		return err
-	}
-
-	vmWebVos := rootVos
-	if vmWebDir == userWebDir {
-		vmWebVos = userVos
-	}
-
-	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
-	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
-
-	createUserHome(user, rootVos, userVos)
-	createVmWebDir(vm, vmWebDir, rootVos, vmWebVos)
-	if vmWebDir != userWebDir {
-		createUserWebDir(user, vmWebDir, userWebDir, rootVos, userVos)
-	}
-
-	return nil
 }
 
 func getUser(username string) (*virt.User, error) {
@@ -406,32 +349,6 @@ func getVM(hostnameAlias string) (*virt.VM, error) {
 
 	vm := virt.VM(v)
 	return &vm, nil
-}
-
-func createVMIP() net.IP {
-	ipInt := nextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
-	ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-	return ip
-}
-
-func updateVMIP(ip net.IP, id bson.ObjectId) error {
-	query := func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
-	}
-
-	return mongodb.Run("jVMs", query)
-}
-
-func createLdapPassword() string {
-	return utils.RandomString()
-}
-
-func updateLdapPassword(ldapPassword string, id bson.ObjectId) error {
-	query := func(c *mgo.Collection) error {
-		return c.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
-	}
-
-	return mongodb.Run("jVMs", query)
 }
 
 func validateAndSetup(user *virt.User, vm *virt.VM) error {
@@ -472,6 +389,93 @@ func validateAndSetup(user *virt.User, vm *virt.VM) error {
 
 	if p := vm.GetPermissions(user); p == nil {
 		return fmt.Errorf("user '%s' with uid '%s' doesn't have permission", user.Name, user.Uid)
+	}
+
+	return nil
+}
+
+func createVMIP() net.IP {
+	ipInt := nextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
+	ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
+	return ip
+}
+
+func updateVMIP(ip net.IP, id bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
+	}
+
+	return mongodb.Run("jVMs", query)
+}
+
+func createLdapPassword() string {
+	return utils.RandomString()
+}
+
+func updateLdapPassword(ldapPassword string, id bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
+	}
+
+	return mongodb.Run("jVMs", query)
+}
+
+func prepareVM(vm *virt.VM) error {
+	isPrepared := true
+	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+		isPrepared = false
+	}
+
+	infosMutex.Lock()
+	info, found := infos[vm.Id]
+	if !found {
+		info = newInfo(vm)
+		infos[vm.Id] = info
+	}
+
+	info.useCounter += 1
+	info.timeout.Stop()
+	infosMutex.Unlock()
+
+	if !isPrepared || info.currentHostname != vm.HostnameAlias {
+		vm.Prepare(false, logWarning)
+		if err := vm.Start(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func createHomeDirs(user *virt.User, vm *virt.VM) error {
+	vmWebDir := "/home/" + vm.WebHome + "/Web"
+	userWebDir := "/home/" + user.Name + "/Web"
+
+	rootVos, err := vm.OS(&virt.RootUser)
+	if err != nil {
+		return err
+	}
+
+	userVos, err := vm.OS(user)
+	if err != nil {
+		return err
+	}
+
+	vmWebVos := rootVos
+	if vmWebDir == userWebDir {
+		vmWebVos = userVos
+	}
+
+	rootVos.Chmod("/", 0755)     // make sure that executable flag is set
+	rootVos.Chmod("/home", 0755) // make sure that executable flag is set
+
+	createUserHome(user, rootVos, userVos)
+	createVmWebDir(vm, vmWebDir, rootVos, vmWebVos)
+	if vmWebDir != userWebDir {
+		createUserWebDir(user, vmWebDir, userWebDir, rootVos, userVos)
 	}
 
 	return nil
