@@ -36,6 +36,8 @@ class EnvironmentContainer extends KDDiaContainer
 
   diaCount:-> Object.keys(@dias).length
 
-  updateHeight:-> @setHeight 80 + @diaCount() * 50
+  updateHeight:->
+    @setHeight 80 + @diaCount() * 50
+    @emit 'UpdateScene'
 
   loadItems:-> yes
