@@ -94,8 +94,6 @@ module.exports = class JAccount extends jraphical.Module
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
       ]
     schema                  :
-      foreignAuth           :
-        github              : Boolean
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
@@ -1221,9 +1219,11 @@ module.exports = class JAccount extends jraphical.Module
   unlinkOauth: (provider, callback)->
     @fetchUser (err, user)->
       return callback err  if err
-      user.update $unset: foreignAuth: "", callback
+
+      query                            = {}
+      query["foreignAuth.#{provider}"] = ""
+      user.update $unset: query, callback
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
-
