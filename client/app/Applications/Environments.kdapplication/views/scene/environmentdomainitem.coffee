@@ -5,7 +5,7 @@ class EnvironmentDomainItem extends EnvironmentItem
     options.joints             = ['right']
     options.cssClass           = 'domain'
     options.kind               = 'Domain'
-
+    options.showStatusIndicator= no
     options.allowedConnections =
       EnvironmentRuleItem    : ['right']
       EnvironmentMachineItem : ['left']
