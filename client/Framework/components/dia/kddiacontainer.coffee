@@ -8,6 +8,8 @@ class KDDiaContainer extends JView
 
     options.itemClass ?= KDDiaObject
     super options, data
+
+    @scale = 1
     @dias = {}
 
   mouseDown:->
@@ -33,3 +35,11 @@ class KDDiaContainer extends JView
 
   removeAllItems:->
     dia.destroy?() for _, dia of @dias
+
+  setScale:(scale=1)->
+    return  if scale is @scale
+    props = ['webkitTransform', 'MozTransform', 'transform']
+    css   = {}
+    css[prop] = "scale(#{scale})"  for prop in props
+    @setStyle css
+    @scale = scale

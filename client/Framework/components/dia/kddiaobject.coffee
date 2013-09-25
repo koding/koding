@@ -36,6 +36,9 @@ class KDDiaObject extends JView
     bounds = @getBounds()
     joint  = null
 
+    bounds.w = bounds.w * @parent.scale
+    bounds.h = bounds.h * @parent.scale
+
     if e.pageX >= bounds.x + bounds.w  # means right joint
       joint = @joints['right']
     if e.pageX <= bounds.x             # means left joint

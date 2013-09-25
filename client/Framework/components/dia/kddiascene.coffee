@@ -30,6 +30,7 @@ class KDDiaScene extends JView
 
     container.on "NewDiaObjectAdded", @bound "diaAdded"
     container.on "DragInAction",      @bound "updateScene"
+    container.on "UpdateScene",       @bound "updateScene"
     container.on "HighlightDia",      @bound "highlightLines"
 
     @containers.push container
@@ -231,6 +232,10 @@ class KDDiaScene extends JView
       cssClass   : "fakeCanvas"
       attributes : @getSceneSize()
     @fakeContext = @fakeCanvas.getElement().getContext "2d"
+
+  setScale:(scale = 1)->
+    container.setScale scale  for container in @containers
+    @updateScene()
 
   cleanup:(canvas)->
     canvas.setDomAttributes @getSceneSize()
