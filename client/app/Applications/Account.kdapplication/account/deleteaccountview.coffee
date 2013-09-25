@@ -14,7 +14,7 @@ class DeleteAccountView extends JView
         times = 0
         ->
           if times is 0
-            @setTitle "Are you sure!"
+            @setTitle "Are you sure?!"
           if times is 1
             @setTitle "OK, go ahead :)"
           if times > 1
