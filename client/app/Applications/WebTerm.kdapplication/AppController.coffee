@@ -32,7 +32,8 @@ class WebTermController extends AppController
             cb  info?.state is 'RUNNING', {vmName, info}
           , ->
             cb yes
-            KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
+            unless KD.isGuest()
+              KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
           , 2500
       failure     : (options, cb)->
         KD.getSingleton("vmController").askToTurnOn
