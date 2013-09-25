@@ -279,4 +279,4 @@ class WebTermView extends KDView
       mainView.toggleFullscreen()
       event.preventDefault()
 
-  initBackoff: KDBroker.Broker.prototype.initBackoff
+  initBackoff: KDBroker.Broker::initBackoff

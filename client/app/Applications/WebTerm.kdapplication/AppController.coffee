@@ -42,15 +42,13 @@ class WebTermController extends AppController
         , cb
 
   constructor:(options = {}, data)->
-    params          = options.params or {}
-    vmName          = params.vmName  or KD.getSingleton("vmController").defaultVmName
-    options.view    = new WebTermAppView
-      vmName        : vmName
-      joinUser      : params.joinUser
-      session       : params.session
-    options.appInfo =
-      title         : "Terminal on #{vmName}"
-      cssClass      : "webterm"
+    params              = options.params or {}
+    {joinUser, session} = params
+    vmName              = params.vmName  or KD.getSingleton("vmController").defaultVmName
+    options.view        = new WebTermAppView { vmName, joinUser, session }
+    options.appInfo     =
+      title             : "Terminal on #{vmName}"
+      cssClass          : "webterm"
 
     super options, data
 

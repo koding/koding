@@ -237,8 +237,8 @@ module.exports = class AuthWorker extends EventEmitter
     @bongo.respondToClient routingKey,
       method    : 'error'
       arguments : [{
-        message: "Service unavailable! #{routingKey}"
-        code:503
+        message : "Service unavailable! #{routingKey}"
+        code    :503
         serviceGenericName
       }]
       callbacks : {}
