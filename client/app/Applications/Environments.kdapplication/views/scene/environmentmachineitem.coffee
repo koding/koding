@@ -10,7 +10,7 @@ class EnvironmentMachineItem extends EnvironmentItem
 
   confirmDestroy : ->
     vmController = KD.getSingleton 'vmController'
-    vmController.remove @getData().title
+    vmController.remove @getData().title, @bound "destroy"
 
   viewAppended:->
     super

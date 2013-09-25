@@ -5,8 +5,18 @@ class EnvironmentMachineContainer extends EnvironmentContainer
     options.title     = 'Machines'
     super options, data
 
-  loadItems:->
+    vmController = KD.getSingleton('vmController')
+    vmController.on 'VMListChanged', =>
+      @utils.defer => @refreshItems()
 
+  refreshItems:->
+    log "refreshItems"
+    for key, dia of @dias
+      dia.destroy()
+    @loadItems()
+
+
+  loadItems:->
     vmc = KD.getSingleton 'vmController'
     vmc.fetchVMs (err, vms)=>
       if err
