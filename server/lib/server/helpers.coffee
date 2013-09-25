@@ -1,4 +1,4 @@
-koding     = require './bongo'
+koding = require './bongo'
 
 error_messages =
   404: "Page not found."
@@ -78,11 +78,6 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
       req.account = account
       callback(err, account)
 
-renderLoginTemplate = (resp, res)->
-  saveOauthToSession resp, -> # FIXME: this seems like spaghetti code to me — C.T.
-    {loginTemplate} = require './staticpages'
-    serve loginTemplate, res
-
 serve = (content, res)->
   res.header 'Content-type', 'text/html'
   res.send content
@@ -99,22 +94,18 @@ isLoggedIn = (req, res, callback)->
         then callback err, no, account
         else callback null, yes, account
 
-saveOauthToSession = (resp, callback)->
-  {JSession} = koding.models
-  { provider, access_token, id, login
-    email, firstName, lastName, clientId } = resp
+saveOauthToSession = (oauthInfo, clientId, provider, callback)->
+  {JSession}                       = koding.models
+  query                            = {"foreignAuthType" : provider}
+  query["foreignAuth.#{provider}"] = oauthInfo
 
-  foreignAuth = {}
-  foreignAuth[provider] = {
-    token     : access_token
-    foreignId : String(id)
-    username  : login
-    email
-    firstName
-    lastName
-  }
+  JSession.update {clientId}, $set:query, callback
 
-  JSession.update { clientId }, $set:{ foreignAuth }, callback
+renderOauthPopup = (res, locals)->
+  templateFn       = require "./templates/oauth_popup.coffee"
+  renderedTemplate = templateFn locals
+
+  serve renderedTemplate, res
 
 getAlias = do->
   caseSensitiveAliases = ['auth']
@@ -140,10 +131,10 @@ module.exports = {
   findUsernameFromKey
   findUsernameFromSession
   fetchJAccountByKiteUserNameAndKey
-  renderLoginTemplate
   serve
   isLoggedIn
-  saveOauthToSession
   getAlias
   addReferralCode
+  saveOauthToSession
+  renderOauthPopup
 }
