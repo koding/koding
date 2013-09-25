@@ -5,19 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"github.com/howeyc/fsnotify"
-	"io"
-	"io/ioutil"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 	"koding/tools/dnode"
+	"koding/tools/fsutils"
 	"log"
 	"os"
 	"path"
-	"path/filepath"
-	"regexp"
-	"strconv"
 	"sync"
-	"time"
 )
 
 type Os struct{}
@@ -34,7 +29,7 @@ var (
 
 func main() {
 	flag.Parse()
-	o := &protocol.Options{LocalIP: *ip, Username: "fatih", Kitename: "fs-local", Version: "1", Port: *port}
+	o := &protocol.Options{LocalIP: *ip, Username: "huseyin", Kitename: "fs-local", Version: "1", Port: *port}
 
 	methods := map[string]interface{}{
 		"fs.createDirectory":       Os.CreateDirectory,
@@ -74,14 +69,14 @@ func (Os) ReadDirectory(r *protocol.KiteDnodeRequest, result *map[string]interfa
 		newPaths <- params.Path
 
 		var event string
-		var fileEntry *FileEntry
+		var fileEntry *fsutils.FileEntry
 		changer := func(ev *fsnotify.FileEvent) {
 			if ev.IsCreate() {
 				event = "added"
-				fileEntry, _ = GetInfo(ev.Name)
+				fileEntry, _ = fsutils.GetInfo(ev.Name)
 			} else if ev.IsDelete() {
 				event = "removed"
-				fileEntry = &FileEntry{Name: path.Base(ev.Name), FullPath: ev.Name}
+				fileEntry = fsutils.NewFileEntry(path.Base(ev.Name), ev.Name)
 			}
 
 			params.OnChange(map[string]interface{}{
@@ -100,7 +95,7 @@ func (Os) ReadDirectory(r *protocol.KiteDnodeRequest, result *map[string]interfa
 		}
 	}
 
-	files, err := ReadDirectory(params.Path)
+	files, err := fsutils.ReadDirectory(params.Path)
 	if err != nil {
 		return err
 	}
@@ -119,7 +114,7 @@ func (Os) Glob(r *protocol.KiteDnodeRequest, result *[]string) error {
 		return errors.New("{ pattern: [string] }")
 	}
 
-	files, err := Glob(params.Pattern)
+	files, err := fsutils.Glob(params.Pattern)
 	if err != nil {
 		return err
 	}
@@ -136,7 +131,7 @@ func (Os) ReadFile(r *protocol.KiteDnodeRequest, result *map[string]interface{})
 		return errors.New("{ path: [string] }")
 	}
 
-	buf, err := ReadFile(params.Path)
+	buf, err := fsutils.ReadFile(params.Path)
 	if err != nil {
 		return err
 	}
@@ -157,7 +152,7 @@ func (Os) WriteFile(r *protocol.KiteDnodeRequest, result *string) error {
 		return errors.New("{ path: [string], content: [base64], doNotOverwrite: [bool], append: [bool] }")
 	}
 
-	err := WriteFile(params.Path, params.Content, params.DoNotOverwrite, params.Append)
+	err := fsutils.WriteFile(params.Path, params.Content, params.DoNotOverwrite, params.Append)
 	if err != nil {
 		return err
 	}
@@ -175,7 +170,7 @@ func (Os) EnsureNonexistentPath(r *protocol.KiteDnodeRequest, result *string) er
 		return errors.New("{ path: [string] }")
 	}
 
-	name, err := EnsureNonexistentPath(params.Path)
+	name, err := fsutils.EnsureNonexistentPath(params.Path)
 	if err != nil {
 		return err
 	}
@@ -184,7 +179,7 @@ func (Os) EnsureNonexistentPath(r *protocol.KiteDnodeRequest, result *string) er
 	return nil
 }
 
-func (Os) GetInfo(r *protocol.KiteDnodeRequest, result *FileEntry) error {
+func (Os) GetInfo(r *protocol.KiteDnodeRequest, result *fsutils.FileEntry) error {
 	var params struct {
 		Path string
 	}
@@ -192,7 +187,7 @@ func (Os) GetInfo(r *protocol.KiteDnodeRequest, result *FileEntry) error {
 		return errors.New("{ path: [string] }")
 	}
 
-	fileEntry, err := GetInfo(params.Path)
+	fileEntry, err := fsutils.GetInfo(params.Path)
 	if err != nil {
 		return err
 	}
@@ -211,7 +206,7 @@ func (Os) SetPermissions(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ path: [string], mode: [integer], recursive: [bool] }")
 	}
 
-	err := SetPermissions(params.Path, params.Mode, params.Recursive)
+	err := fsutils.SetPermissions(params.Path, params.Mode, params.Recursive)
 	if err != nil {
 		return err
 	}
@@ -231,7 +226,7 @@ func (Os) Remove(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ path: [string], recursive: [bool] }")
 	}
 
-	err := Remove(params.Path)
+	err := fsutils.Remove(params.Path)
 	if err != nil {
 		return err
 	}
@@ -250,7 +245,7 @@ func (Os) Rename(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ oldPath: [string], newPath: [string] }")
 	}
 
-	err := Rename(params.OldPath, params.NewPath)
+	err := fsutils.Rename(params.OldPath, params.NewPath)
 	if err != nil {
 		return err
 	}
@@ -268,222 +263,12 @@ func (Os) CreateDirectory(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ path: [string], recursive: [bool] }")
 	}
 
-	err := CreateDirectory(params.Path, params.Recursive)
+	err := fsutils.CreateDirectory(params.Path, params.Recursive)
 	if err != nil {
 		return err
 	}
 	*result = true
 	return nil
-}
-
-/****************************************
-*
-* Move the functions below to a seperate package
-*
-*****************************************/
-func ReadDirectory(p string) ([]FileEntry, error) {
-	files, err := ioutil.ReadDir(p)
-	if err != nil {
-		return nil, err
-	}
-
-	ls := make([]FileEntry, len(files))
-	for i, info := range files {
-		ls[i] = makeFileEntry(path.Join(p, info.Name()), info)
-	}
-
-	return ls, nil
-}
-
-func Glob(glob string) ([]string, error) {
-	files, err := filepath.Glob(glob)
-	if err != nil {
-		return nil, err
-	}
-
-	return files, nil
-}
-
-func ReadFile(path string) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	fi, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	if fi.Size() > 10*1024*1024 {
-		return nil, fmt.Errorf("File larger than 10MiB.")
-	}
-
-	buf := make([]byte, fi.Size())
-	if _, err := io.ReadFull(file, buf); err != nil {
-		return nil, err
-	}
-
-	return buf, nil
-}
-
-func WriteFile(filename string, data []byte, DoNotOverwrite, Append bool) error {
-	flags := os.O_RDWR | os.O_CREATE
-	if DoNotOverwrite {
-		flags |= os.O_EXCL
-	}
-
-	if !Append {
-		flags |= os.O_TRUNC
-	} else {
-		flags |= os.O_APPEND
-	}
-
-	file, err := os.OpenFile(filename, flags, 0666)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-var suffixRegexp = regexp.MustCompile(`.((_\d+)?)(\.\w*)?$`)
-
-func EnsureNonexistentPath(name string) (string, error) {
-	index := 1
-	for {
-		_, err := os.Stat(name)
-		if err != nil {
-			if os.IsNotExist(err) {
-				break
-			}
-			return "", err
-		}
-
-		loc := suffixRegexp.FindStringSubmatchIndex(name)
-		name = name[:loc[2]] + "_" + strconv.Itoa(index) + name[loc[3]:]
-		index++
-	}
-
-	return name, nil
-}
-
-func GetInfo(path string) (*FileEntry, error) {
-	fi, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, errors.New("file does not exist")
-		}
-		return nil, err
-	}
-
-	fileEntry := makeFileEntry(path, fi)
-
-	return &fileEntry, nil
-}
-
-func makeFileEntry(fullPath string, fi os.FileInfo) FileEntry {
-	entry := FileEntry{
-		Name:     fi.Name(),
-		FullPath: fullPath,
-		IsDir:    fi.IsDir(),
-		Size:     fi.Size(),
-		Mode:     fi.Mode(),
-		Time:     fi.ModTime(),
-	}
-
-	if fi.Mode()&os.ModeSymlink != 0 {
-		symlinkInfo, err := os.Stat(path.Dir(fullPath) + "/" + fi.Name())
-		if err != nil {
-			entry.IsBroken = true
-			return entry
-		}
-		entry.IsDir = symlinkInfo.IsDir()
-		entry.Size = symlinkInfo.Size()
-		entry.Mode = symlinkInfo.Mode()
-		entry.Time = symlinkInfo.ModTime()
-	}
-
-	return entry
-}
-
-type FileEntry struct {
-	Name     string      `json:"name"`
-	FullPath string      `json:"fullPath"`
-	IsDir    bool        `json:"isDir"`
-	Size     int64       `json:"size"`
-	Mode     os.FileMode `json:"mode"`
-	Time     time.Time   `json:"time"`
-	IsBroken bool        `json:"isBroken"`
-	Readable bool        `json:"readable"`
-	Writable bool        `json:"writable"`
-}
-
-func SetPermissions(name string, mode os.FileMode, recursive bool) error {
-	var doChange func(name string) error
-
-	doChange = func(name string) error {
-		if err := os.Chmod(name, mode); err != nil {
-			return err
-		}
-
-		if !recursive {
-			return nil
-		}
-
-		fi, err := os.Stat(name)
-		if err != nil {
-			return err
-		}
-
-		if !fi.IsDir() {
-			return nil
-		}
-
-		dir, err := os.Open(name)
-		if err != nil {
-			return err
-		}
-		defer dir.Close()
-
-		entries, err := dir.Readdirnames(0)
-		if err != nil {
-			return err
-		}
-		var firstErr error
-		for _, entry := range entries {
-			err := doChange(name + "/" + entry)
-			if err != nil && firstErr == nil {
-				firstErr = err
-			}
-		}
-		return firstErr
-	}
-
-	return doChange(name)
-}
-
-func Remove(path string) error {
-	return os.Remove(path)
-}
-
-func Rename(oldname, newname string) error {
-	return os.Rename(oldname, newname)
-}
-
-func CreateDirectory(name string, recursive bool) error {
-	if recursive {
-		return os.MkdirAll(name, 0755)
-	}
-
-	return os.Mkdir(name, 0755)
 }
 
 func startWatcher() {
