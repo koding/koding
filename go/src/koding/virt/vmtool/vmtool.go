@@ -80,6 +80,7 @@ var actions = map[string]func(){
 					Id: bson.NewObjectId(),
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
+				vm.ApplyDefaults()
 				vm.Prepare(false, func(text string, data ...interface{}) { fmt.Println(text) })
 				done <- i
 			}(i)
