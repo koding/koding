@@ -193,6 +193,7 @@ module.exports =
   haproxy         :
     webPort       : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
       apiHost     : "127.0.0.1"
       apiPort     : 8888

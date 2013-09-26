@@ -34,7 +34,7 @@ func CreateAmqpConnection() *amqp.Connection {
 		Port:     config.Current.Mq.Port,
 		Username: config.Current.Mq.ComponentUser,
 		Password: config.Current.Mq.Password,
-		Vhost:    config.Current.Mq.Vhost,
+		Vhost:    config.Current.Kontrold.Vhost,
 	}
 
 	conn, err := amqp.Dial(amqpURI.String())

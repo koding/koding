@@ -202,6 +202,7 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     kontrold        :
+      vhost         : 1
       overview      :
         apiHost     : 1
         apiPort     : 1
