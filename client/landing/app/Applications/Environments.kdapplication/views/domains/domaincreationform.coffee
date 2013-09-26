@@ -95,6 +95,7 @@ class DomainCreationForm extends KDCustomHTMLView
           return notifyUser "An error occured. Please try again later."
         else
           @showSuccess domain
+          @updateDomains()
 
   createDomain:(params, callback) ->
     console.log params
@@ -116,11 +117,17 @@ class DomainCreationForm extends KDCustomHTMLView
 
     @emit 'DomainSaved', domain
 
+    @successNote?.destroy()
+    delete @successNote?
+
     @addSubView @successNote = new KDCustomHTMLView
       tagName : 'p'
       cssClass: 'success'
-      partial : "<b>Thank you!</b><br>Your subdomain <strong>#{domainName.getValue()}</strong> has been added to our database. You can dismiss this panel and point your new domain to one of your VMs on the settings screen."
+      partial : "Your subdomain <strong>#{domainName.getValue()}</strong> has been added. You can dismiss this panel and point your new domain to one of your VMs on the right."
       click   : => @reset()
+
+    KD.utils.wait 7000, =>
+      @successNote.destroy()
 
   notifyUser = (msg) ->
     new KDNotificationView
@@ -131,23 +138,27 @@ class DomainCreationForm extends KDCustomHTMLView
   reset:->
     form            = @form
     {domainName}    = form.inputs
-    {createButton} = form.buttons
+    {createButton}  = form.buttons
 
-    @successNote.destroy()
-    delete @successNote
-    domainName.setValue ''
+    @successNote?.destroy()
+    delete @successNote?
+    domainName.setValue ""
     @emit 'CloseClicked'
 
-
-  viewAppended:->
+  updateDomains: ->
     KD.whoami().fetchDomains (err, userDomains)=>
       warn err  if err
       domainList = []
       for domain in userDomains
         if not domain.regYears > 0
           domainList.push {title:".#{domain.domain}", value:domain.domain}
-      {domains} = @form.inputs
+      {domains, domainName} = @form.inputs
+      domainName.setValue ""
+      domains.removeSelectOptions()
       domains.setSelectOptions domainList
+
+  viewAppended:->
+    @updateDomains()
 
 # class DomainCreationForm extends KDTabViewWithForms
 
