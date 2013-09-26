@@ -8,9 +8,11 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func NewVM() *models.VM {
-	return &models.VM{
-		Id: bson.NewObjectId(),
+func NewVM() models.VM {
+	return models.VM{
+		Id:         bson.NewObjectId(),
+		SnapshotVM: bson.NewObjectId(),
+		IP:         nil,
 	}
 }
 
@@ -26,4 +28,16 @@ func GetVM(hostname string) (models.VM, error) {
 	}
 
 	return vm, nil
+}
+
+func AddVM(vm *models.VM) error {
+	query := func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"hostnameAlias": vm.HostnameAlias}, &vm)
+		if err != nil {
+			return fmt.Errorf("AddVM error: %s", err)
+		}
+		return nil
+	}
+
+	return mongodb.Run("jVMs", query)
 }

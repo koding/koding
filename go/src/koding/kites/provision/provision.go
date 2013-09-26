@@ -467,7 +467,10 @@ func updateVMIP(ip net.IP, id bson.ObjectId) error {
 		return c.Update(bson.M{"_id": id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
 	}
 
-	return mongodb.Run("jVMs", query)
+	if err := mongodb.Run("jVMs", query); err != nil {
+		return fmt.Errorf("updateVMIP failed: %s", err)
+	}
+	return nil
 }
 
 func createLdapPassword() string {
@@ -479,7 +482,11 @@ func updateLdapPassword(ldapPassword string, id bson.ObjectId) error {
 		return c.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
 	}
 
-	return mongodb.Run("jVMs", query)
+	if err := mongodb.Run("jVMs", query); err != nil {
+		return fmt.Errorf("updateLdapPassword failed: %s", err)
+	}
+
+	return nil
 }
 
 func prepareVM(vm *virt.VM) error {
@@ -686,7 +693,10 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 		return err
 	}
 
-	if fi.IsDir() {
+	// TODO: There are some folders called "empty-diretory", look at them.
+	if fi.Name() == "empty-directory" {
+		// ignored file
+	} else if fi.IsDir() {
 		fmt.Println("src is a dir:", src, path.Base(src))
 		if err := vos.Mkdir(dst, fi.Mode()); err != nil && !os.IsExist(err) {
 			return err
@@ -724,15 +734,31 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 }
 
 func createVM(vmName string, reinitialize bool) error {
-	v := modelhelper.NewVM()
-	vm := virt.VM(*v)
+	v, err := modelhelper.GetVM(vmName)
+	if err != nil {
+		fmt.Println("no VM, creatin a new one")
+		v = modelhelper.NewVM()
+	}
 
-	err := validateVM(&vm)
+	v.ContainerName = vmName
+	v.HostnameAlias = vmName
+	v.Region = "vagrant" // backward compability
+	v.WebHome = vmName
+	v.IP = createVMIP()
+	v.LdapPassword = createLdapPassword()
+
+	err = modelhelper.AddVM(&v)
 	if err != nil {
 		return err
 	}
 
-	vm.ContainerName = vmName
+	vm := virt.VM(v)
+
+	err = validateVM(&vm)
+	if err != nil {
+		return err
+	}
+
 	vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
 	if err != nil {
 		vm.VMRoot = "/var/lib/lxc/vmroot/"
@@ -778,7 +804,6 @@ func createVM(vmName string, reinitialize bool) error {
 
 	// mount overlay
 	virt.PrepareDir(vm.File("rootfs"), virt.RootIdOffset)
-	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), vm.LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
 		return commandError("mount overlay failed.", err, out)
 	}
