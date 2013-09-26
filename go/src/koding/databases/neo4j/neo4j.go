@@ -89,14 +89,13 @@ func sendRequest(requestType, url, data string, attempt int) string {
 		panic(fmt.Sprintf("req to %v timed out after %v retries", url, attempt))
 	}
 
-	sTimer.Success()
-
 	body, _ := ioutil.ReadAll(res.Body)
 
 	defer res.Body.Close()
 
-	return string(body)
+	sTimer.Success()
 
+	return string(body)
 }
 
 // connect source and target with relation property
@@ -111,9 +110,11 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 	if err != nil {
 		fmt.Println("Problem with relation response", relRes)
 		sTimer.Failed()
-	} else {
-		sTimer.Success()
+
+		return relNode
 	}
+
+	sTimer.Success()
 
 	return relNode
 }
@@ -128,11 +129,13 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
-		fmt.Println("Problem with relation response", relRes)
 		sTimer.Failed()
-	} else {
-		sTimer.Success()
+		fmt.Println("Problem with relation response", relRes)
+
+		return relNode
 	}
+
+	sTimer.Success()
 
 	return relNode
 }
@@ -161,6 +164,8 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 // deletes a relation between two node using relationship info
 func DeleteRelationship(sourceId, targetId, relationship string) bool {
+	sTimer := statsd.StartTimer("DeleteRelationship")
+
 	//get source node information
 	sourceInfo := GetNode(sourceId)
 
@@ -212,7 +217,10 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	}
 
 	if !foundNode {
+		sTimer.Failed()
 		fmt.Println("not found!", relationships[0]["self"])
+	} else {
+		sTimer.Success()
 	}
 
 	return true
@@ -264,16 +272,19 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 }
 
 func DeleteNode(id string) bool {
+	sTimer := statsd.StartTimer("DeleteNode")
 
 	node := GetNode(id)
 
 	if len(node) < 1 {
+		sTimer.Failed()
 		return false
 	}
 
 	//if self is not there!
 	selfUrl, ok := node[0]["self"]
 	if !ok {
+		sTimer.Failed()
 		return false
 	}
 
@@ -289,9 +300,12 @@ func DeleteNode(id string) bool {
 	var result map[string][]interface{}
 	err := json.Unmarshal([]byte(response), &result)
 	if err != nil {
+		sTimer.Failed()
 		fmt.Println("Deleting node Marshalling error:", err)
 		return false
 	}
+
+	sTimer.Success()
 
 	return true
 }
@@ -314,13 +328,18 @@ func generatePostJsonData(id, name string) string {
 
 //here, mapping of decoded json
 func jsonArrayDecode(data string) ([]map[string]interface{}, error) {
+	sTimer := statsd.StartTimer("jsonArrayDecode")
+
 	var source []map[string]interface{}
 
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
+		sTimer.Failed()
 		fmt.Println("Marshalling error:", err)
 		return nil, err
 	}
+
+	sTimer.Success()
 
 	return source, nil
 }
