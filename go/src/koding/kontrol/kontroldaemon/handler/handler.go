@@ -50,20 +50,6 @@ func Startup() {
 // runHelperFunctions contains several indepenendent helper functions that do
 // certain tasks.
 func runHelperFunctions() {
-	// // cleanup death workers from the the DB at certain intervals
-	// ticker := time.NewTicker(time.Minute * 20)
-	// go func() {
-	// 	for _ = range ticker.C {
-	// 		log.Println("cleanup death workers")
-	// 		iter := kontrolDB.Collection.Find(bson.M{"status": int(workerconfig.Dead)}).Iter()
-	// 		result := workerconfig.Worker{}
-	// 		for iter.Next(&result) {
-	// 			log.Printf("removing death worker '%s - %s - %d'", result.Name, result.Hostname, result.Version)
-	// 			kontrolDB.DeleteWorker(result.Uuid)
-	// 		}
-	// 	}
-	// }()
-
 	// HeartBeat checker for workers
 	tickerWorker := time.NewTicker(workerconfig.HEARTBEAT_INTERVAL)
 	go func() {
@@ -92,6 +78,11 @@ func runHelperFunctions() {
 				worker.Monitor.Uptime = 0
 				modelhelper.UpdateIDWorker(worker)
 			}
+
+			if err := iter.Close(); err != nil {
+				return err
+			}
+
 			return nil
 		}
 
@@ -100,31 +91,52 @@ func runHelperFunctions() {
 		}
 	}()
 
-	// cleanup death deployments at intervals
-	tickerDeployment := time.NewTicker(time.Hour * 24)
+	// Cleanup dead deployments at intervals. This goroutine will lookup at
+	// each information if a deployment has running workers. If workers for a
+	// certain deployment is not running anymore, then it will remove the
+	// deployment information and all workers associated with that deployment
+	// build.
+	tickerDeployment := time.NewTicker(time.Minute * 5)
 	go func() {
 		for _ = range tickerDeployment.C {
-			log.Println("starting to remove unused deployments")
+			log.Println("cleaner started to remove unused deployments and dead workers")
 			infos := modelhelper.GetClients()
 			for _, info := range infos {
 				version, _ := strconv.Atoi(info.BuildNumber)
 
+				// look if any workers are running for a certain version
 				foundWorker := false
 				query := func(c *mgo.Collection) error {
-					iter := c.Find(bson.M{"version": version}).Iter()
+					iter := c.Find(bson.M{"version": version, "status": int(models.Started)}).Iter()
 					worker := models.Worker{}
 					for iter.Next(&worker) {
 						foundWorker = true
 					}
+
+					if err := iter.Close(); err != nil {
+						return err
+					}
+
 					return nil
 				}
 
 				mongodb.Run("jKontrolWorkers", query)
 
-				// remove deployment if no workers are available
+				// ... if not remove deployment information and dead workers of that version
 				if !foundWorker {
-					log.Printf("removing deployment with build number %s\n", info.BuildNumber)
+					log.Printf("removing deployment info for build number %s\n", info.BuildNumber)
 					err := modelhelper.DeleteClient(info.BuildNumber)
+					if err != nil {
+						log.Println(err)
+					}
+
+					log.Printf("removing dead workers for build number %s\n", info.BuildNumber)
+					query := func(c *mgo.Collection) error {
+						_, err := c.RemoveAll(bson.M{"version": version, "status": int(models.Dead)})
+						return err
+					}
+
+					err = mongodb.Run("jKontrolWorkers", query)
 					if err != nil {
 						log.Println(err)
 					}

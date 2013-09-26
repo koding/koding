@@ -72,13 +72,6 @@ type Config struct {
 			PortSSL int
 			FTPIP   string
 		}
-		RabbitMq struct {
-			Host     string
-			Port     string
-			Login    string
-			Password string
-			Vhost    string
-		}
 	}
 	FollowFeed struct {
 		Host          string
