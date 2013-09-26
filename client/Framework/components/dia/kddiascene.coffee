@@ -9,8 +9,9 @@ class KDDiaScene extends JView
     options.lineWidth         ?= 2
     options.lineColor        or= "#ccc"
     options.lineColorActive  or= "orange"
-    options.lineColorHelper  or= "green"
     options.lineDashes        ?= []
+    options.fakeLineColor    or= "green"
+    options.fakeLineDashes    ?= [3]
     options.curveDistance     ?= 50
 
     super
@@ -56,7 +57,10 @@ class KDDiaScene extends JView
 
     @fakeContext.lineCap     = @getOption "lineCap"
     @fakeContext.lineWidth   = @getOption "lineWidth"
-    @fakeContext.strokeStyle = @getOption "lineColorHelper"
+    @fakeContext.strokeStyle = @_trackJoint.parent.getOption('colorTag') or \
+                               @getOption "fakeLineColor"
+    lineDashes = @getOption "fakeLineDashes"
+    @fakeContext.setLineDash lineDashes  if lineDashes.length > 0
 
     @fakeContext.stroke()
 
@@ -182,22 +186,30 @@ class KDDiaScene extends JView
 
     @cleanup @realCanvas
 
+    activeColor  = @getOption 'lineColorActive'
+    lineDashes   = @getOption 'lineDashes'
+    defaultColor = @getOption 'lineColor'
+
     for connection in @connections
 
       @realContext.beginPath()
 
       {source, target} = connection
 
-      if (source.dia in @activeDias) or (target.dia in @activeDias)
-        @realContext.strokeStyle = @getOption 'lineColorActive'
+      if source.dia in @activeDias
+        lineColor = (source.dia.getOption 'colorTag')   or activeColor
+        lineDashes  = (source.dia.getOption 'lineDashes') or lineDashes
+      else if target.dia in @activeDias
+        lineColor = (target.dia.getOption 'colorTag')   or activeColor
+        lineDashes  = (target.dia.getOption 'lineDashes') or lineDashes
       else
-        @realContext.strokeStyle = @getOption 'lineColor'
+        lineColor = defaultColor
 
       sJoint = source.dia.getJointPos source.joint
       tJoint = target.dia.getJointPos target.joint
 
-      ld = @getOption 'lineDashes'
-      @realContext.setLineDash ld  if ld.length > 0
+      @realContext.strokeStyle = lineColor
+      @realContext.setLineDash lineDashes  if lineDashes.length > 0
 
       @realContext.moveTo sJoint.x, sJoint.y
 

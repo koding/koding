@@ -949,7 +949,7 @@ module.exports = class JAccount extends jraphical.Module
         log.info 'creating new storage for application', appId, version
         newStorage = new JAppStorage {appId, version}
         newStorage.save (err) =>
-          if err then callback error
+          if err then callback err
           else
             # manually add the relationship so that we can
             # query the edge instead of the target C.T.
