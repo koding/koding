@@ -49,11 +49,6 @@ func main() {
 	k.Start()
 }
 
-func (Terminal) Info(r *protocol.KiteDnodeRequest, result *bool) error {
-	*result = true
-	return nil
-}
-
 func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) error {
 	var params struct {
 		Remote       WebtermRemote
