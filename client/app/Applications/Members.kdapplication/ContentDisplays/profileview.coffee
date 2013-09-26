@@ -147,11 +147,11 @@ class ProfileView extends JView
 
     if KD.isMine @memberData
       avatarOptions.tooltip =
-        title       : "<p class='centertext'>click to edit</p>"
+        offset      : top: 0, left: -3
+        title       : "<p class='centertext'>Click avatar to edit</p>"
         placement   : "below"
         arrow       :
-          placement : "bottom"
-          margin    : 300
+          placement : "top"
 
     @avatar = new AvatarStaticView avatarOptions, @memberData
 
