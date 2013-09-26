@@ -8,32 +8,34 @@ class KDSliderBarHandleView extends KDCustomHTMLView
 
     super options
 
+    @value = @getOption 'value'
+
   attachEvents:->
     {maxValue, minValue, width} = @parent.getOptions()
-    value                       = @getOption "value"
+    currentValue = @value
 
     @on "DragStarted", ->
-      value = @getOption "value"
+      currentValue = @value
+
     @on "DragInAction", ->
-      relPos             = @dragState.position.relative.x
-      valueChange        = ((maxValue - minValue) * relPos) / width
-      @setValue value + valueChange
+      relPos      = @dragState.position.relative.x
+      valueChange = ((maxValue - minValue) * relPos) / width
+      @setValue currentValue + valueChange
       @snap() if @parent.getOption "snapOnDrag"
+
     @on "DragFinished", ->
       @snap() if @parent.getOption "snap"
-      if value isnt @getOption "value"
+      if currentValue isnt @value
         @emit        "ValueChange"
-        @parent.emit "ValueChange", @
+        @parent.emit "ValueChange", this
 
   getPosition:->
     {maxValue, minValue} = @parent.getOptions()
-    {value}              = @getOptions()
     sliderWidth          = @parent.getWidth()
 
-    percentage = ((value - minValue) * 100) / (maxValue - minValue)
+    percentage = ((@value - minValue) * 100) / (maxValue - minValue)
     position   = (sliderWidth / 100) * percentage
     return "#{position}px"
-
 
   setValue:(value)->
     {leftLimit, rightLimit} = @getOptions()
@@ -41,16 +43,16 @@ class KDSliderBarHandleView extends KDCustomHTMLView
     value = Math.min value, rightLimit if typeof rightLimit is "number"
     value = Math.max value, leftLimit  if typeof leftLimit  is "number"
 
-    @options.value = value
+    @value = value
 
     @setX "#{@getPosition()}"
     @parent.drawBar() if @parent.getOption('drawBar')
     @parent.setLimits()
-    @parent.emit "ValueChanged", value
+    @parent.emit "ValueChanged", @value
 
   getSnappedValue:(value)->
-    {interval}  = @parent.getOptions()
-    {value}     = value or @getOptions()
+    {interval} = @parent.getOptions()
+    value    or= @value
 
     if interval
       mod = value % interval
