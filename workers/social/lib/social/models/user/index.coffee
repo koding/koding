@@ -139,6 +139,7 @@ module.exports = class JUser extends jraphical.Module
           accessTokenSecret  : String
           requestToken       : String
           requestTokenSecret : String
+          profileUrl         : String
         facebook             :
           foreignId          : String
           username           : String
