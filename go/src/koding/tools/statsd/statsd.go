@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	LOG      = config.Current.Statsd.Use
+	use      = config.Current.Statsd.Use
 	ip       = config.Current.Statsd.Ip
 	port     = config.Current.Statsd.Port
 	STATSD   = client.New(ip, port)
@@ -30,7 +30,7 @@ var (
 )
 
 func init() {
-	if LOG {
+	if use {
 		fmt.Printf("Logging to statsd on %v:%v\n", ip, port)
 	}
 }
@@ -42,13 +42,13 @@ func SetAppName(name string) {
 }
 
 func Increment(name string) {
-	if LOG {
+	if use {
 		STATSD.Increment(name)
 	}
 }
 
 func Decrement(name string) {
-	if LOG {
+	if use {
 		STATSD.Decrement(name)
 	}
 }
@@ -88,7 +88,7 @@ func (s *StatdsTimer) End(status string) {
 	duration := int64(s.EndTime.Sub(s.StartTime) / time.Millisecond)
 	name := buildName(s.Name, status)
 
-	if LOG {
+	if use {
 		STATSD.Timing(name, duration)
 	}
 }
