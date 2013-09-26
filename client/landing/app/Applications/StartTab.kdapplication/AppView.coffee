@@ -35,6 +35,8 @@ class StartTabMainView extends JView
         title         : "Hide environments"
         callback      : (cb)=>
           @serverContainer.setHeight 2
+          @serverContainer.scene.unsetClass 'out'
+          @serverContainer.scene.setClass 'in'
           cb()
       ]
 
