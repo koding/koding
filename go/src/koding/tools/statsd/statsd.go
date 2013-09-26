@@ -8,7 +8,7 @@ import (
 
 // TODO: get from config
 var (
-	STATSD   = client.New("172.168.2.7", 8125)
+	STATSD   = client.New("68.68.97.111", 8125)
 	APP_NAME string
 )
 
