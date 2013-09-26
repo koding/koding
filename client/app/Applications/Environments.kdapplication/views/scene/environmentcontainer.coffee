@@ -34,6 +34,7 @@ class EnvironmentContainer extends KDDiaContainer
     super diaObj, pos
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
+    diaObj.on "KDObjectWillBeDestroyed", => @emit "itemRemoved"
     @updateHeight()
 
   updatePositions:->
