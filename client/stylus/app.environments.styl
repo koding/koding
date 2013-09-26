@@ -756,6 +756,7 @@ div.environments-container
         background-color      #fff
 
 div.environments-item
+
   cursor          default
   width           200px
   height          40px
@@ -793,7 +794,9 @@ div.environments-item
     shadow        0 0 6px rgba(125,190,241,.7)
 
   h3
+    margin-top    -2px
     font-size     12px
+    margin-bottom  2px
 
   div.details
     padding       8px
@@ -803,9 +806,22 @@ div.environments-item
       margin-top  -2px
       abs()
 
-  div.progressbar-container
-    height          4px
-    margin-top      4px
+  &.machine
+    height            50px
+
+    div.progressbar-container
+      height          4px
+      margin-top      3px
+      width           100px
+      &:first-of-type
+        margin-top    7px
+
+    .vm-toggle-menu
+      width           70px
+      position        relative
+      left            113px
+      bottom          18px
+      height          10px
 
 div.environments-joint
   size              4px, 4px
@@ -837,6 +853,9 @@ div.environments-joint
 
 .environments-cs-container
   width              182px
+  padding-top        3px
+  padding-left       7px
+
   .environments-cs-color
     size             17px, 17px
     float            left

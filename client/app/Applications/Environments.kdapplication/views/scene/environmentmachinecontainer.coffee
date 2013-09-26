@@ -1,8 +1,11 @@
 class EnvironmentMachineContainer extends EnvironmentContainer
 
   constructor:(options={}, data)->
-    options.itemClass = EnvironmentMachineItem
-    options.title     = 'Machines'
+
+    options.itemClass  = EnvironmentMachineItem
+    options.title      = 'Machines'
+    options.itemHeight = 50
+
     super options, data
 
     vmController = KD.getSingleton('vmController')
@@ -15,7 +18,6 @@ class EnvironmentMachineContainer extends EnvironmentContainer
       dia.destroy()
     @loadItems()
 
-
   loadItems:->
     vmc = KD.getSingleton 'vmController'
     vmc.fetchVMs (err, vms)=>
@@ -26,7 +28,8 @@ class EnvironmentMachineContainer extends EnvironmentContainer
       vms.forEach (vm)=>
         @addItem
           title     : vm
-          usage     : KD.utils.getRandomNumber 100
+          cpuUsage  : KD.utils.getRandomNumber 100
+          memUsage  : KD.utils.getRandomNumber 100
           activated : yes
         addedCount++
         @emit "DataLoaded"  if addedCount is vms.length

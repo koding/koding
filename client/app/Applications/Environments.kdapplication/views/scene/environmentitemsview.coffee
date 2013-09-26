@@ -2,54 +2,60 @@ class EnvironmentItem extends KDDiaObject
 
   constructor:(options={}, data)->
 
-    options.cssClass = KD.utils.curry "environments-item", options.cssClass
+    options.cssClass       = KD.utils.curry "environments-item", \
+                             options.cssClass
+    options.bind           = KD.utils.curry "contextmenu", options.bind
     options.jointItemClass = EnvironmentItemJoint
-    options.draggable = no
-    options.showStatusIndicator ?= yes
-    options.bind = KD.utils.curry "contextmenu", options.bind
-    options.colorTag ?= "#a2a2a2"
-    data.activated   ?= yes
+    options.draggable      = no
+    options.colorTag       ?= "#a2a2a2"
 
     super options, data
 
-  addStatusIndicator : ->
-    @addSubView @statusIndicator = new KDCustomHTMLView
-      cssClass    : "status-indicator"
-      click       : => @toggleStatus()
+  contextMenuItems:->
 
-  toggleStatus : ->
-    @toggleClass "passivated"
-    @data.activated = !@data.activated
+    colorSelection = new ColorSelection
+      selectedColor : @getOption 'colorTag'
+    colorSelection.on "ColorChanged", @bound 'setColorTag'
 
-  contextMenu : (event) ->
+    items =
+      'Delete'    :
+        separator : yes
+        action    : 'delete'
+      'Unfocus'   :
+        separator : yes
+        action    : 'unfocus'
+      customView  : colorSelection
+
+    return items
+
+  contextMenu:(event)->
+
     KD.utils.stopDOMEvent event
 
-    if @contextMenuItems()
-      @ctxMenu = new JContextMenu
-        menuWidth   : 200
-        delegate    : @
-        x           : event.pageX + 15
-        y           : event.pageY - 23
-        arrow       :
-          placement : "left"
-          margin    : 19
-        lazyLoad    : yes
-      ,
-        @contextMenuItems()
+    menuItems = @contextMenuItems()
+    return  unless menuItems
 
-      @ctxMenu.on 'ContextMenuItemReceivedClick', (item) =>
-        {action}  = item.getData()
-        @ctxMenu.destroy()
-        @["cm#{action}"]?()
+    ctxMenu = new JContextMenu
+      menuWidth   : 200
+      delegate    : @
+      x           : event.pageX + 15
+      y           : event.pageY - 23
+      arrow       :
+        placement : "left"
+        margin    : 19
+      lazyLoad    : yes
+    ,
+      menuItems
 
-      @colorSelection?.on "ColorChanged", (color) => @setColorTag color
-
+    ctxMenu.on 'ContextMenuItemReceivedClick', (item) =>
+      {action} = item.getData()
+      ctxMenu.destroy()  if @["cm#{action}"]?
+      @["cm#{action}"]?()
 
   # - Context Menu Actions - #
 
   cmdelete : -> @confirmDestroy?()
   cmunfocus: -> @parent.emit 'UnhighlightDias'
-
 
   setColorTag : (color) ->
     @getElement().style.borderLeftColor = color
@@ -57,12 +63,6 @@ class EnvironmentItem extends KDDiaObject
 
   viewAppended : ->
     super
-    @setClass 'activated'  if @getData().activated?
-    if not @getData().activated
-      KD.utils.defer =>
-        @setClass 'passivated'
-    @addStatusIndicator() if @getOption "showStatusIndicator"
-
     @setColorTag @getOption('colorTag')
 
   pistachio:->
