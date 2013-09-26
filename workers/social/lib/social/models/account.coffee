@@ -1217,12 +1217,17 @@ module.exports = class JAccount extends jraphical.Module
       email.save ->
 
   unlinkOauth: (provider, callback)->
-    @fetchUser (err, user)->
-      return callback err  if err
+    {delegate} = client.connection
+    isMine    = this.equals delegate
+    if isMine
+      @fetchUser (err, user)->
+        return callback err  if err
 
-      query                            = {}
-      query["foreignAuth.#{provider}"] = ""
-      user.update $unset: query, callback
+        query                            = {}
+        query["foreignAuth.#{provider}"] = ""
+        user.update $unset: query, callback
+    else
+      callback new KodingError 'Access denied'
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
