@@ -1,13 +1,17 @@
 class EnvironmentContainer extends KDDiaContainer
 
   constructor:(options={}, data)->
+
     options.cssClass   = 'environments-container'
     options.draggable  = yes
 
     super options, data
 
-    title = @getOption 'title'
+    title   = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
+
+    @itemHeight = options.itemHeight ? 40
+
     @on "DataLoaded", => @_dataLoaded = yes
 
     @newItemPlus = new KDCustomHTMLView
@@ -21,7 +25,7 @@ class EnvironmentContainer extends KDDiaContainer
     @loadItems()
 
   addDia:(diaObj, pos)->
-    pos = x: 20, y: 60 + @diaCount() * 50
+    pos = x: 20, y: 60 + @diaCount() * (@itemHeight + 10)
     super diaObj, pos
     @updateHeight()
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
