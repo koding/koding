@@ -23,9 +23,10 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     vmName = @getData().title
     vmStateSwitch = new NVMToggleButtonView {}, {vmName}
-
+    vmMountSwitch = new NMountToggleButtonView {}, {vmName}
     items =
-      customView1 : vmStateSwitch
+      customView1        : vmStateSwitch
+      customView2        : vmMountSwitch
       'Re-initialize VM' :
         disabled         : KD.isGuest()
         callback         : ->
@@ -43,7 +44,7 @@ class EnvironmentMachineItem extends EnvironmentItem
       'Unfocus'          :
         separator        : yes
         action           : 'unfocus'
-      customView2        : colorSelection
+      customView3        : colorSelection
 
     return items
 
