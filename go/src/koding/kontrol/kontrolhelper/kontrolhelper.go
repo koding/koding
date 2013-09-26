@@ -28,24 +28,23 @@ func NewProducer(name string) *Producer {
 }
 
 func CreateAmqpConnection() *amqp.Connection {
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
-
-	if port == "" {
-		port = "5672" // default RABBITMQ_NODE_PORT
+	amqpURI := amqp.URI{
+		Scheme:   "amqp",
+		Host:     config.Current.Mq.Host,
+		Port:     config.Current.Mq.Port,
+		Username: config.Current.Mq.ComponentUser,
+		Password: config.Current.Mq.Password,
+		Vhost:    config.Current.Mq.Vhost,
 	}
 
-	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
-	conn, err := amqp.Dial(url)
+	conn, err := amqp.Dial(amqpURI.String())
 	if err != nil {
 		log.Fatalln("AMQP dial: ", err)
 	}
 
 	go func() {
 		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
-			log.Fatalf("AMQP connection: %s" + err.Error())
+			log.Fatalf("AMQP connection: %s", err.Error())
 		}
 	}()
 
@@ -59,7 +58,7 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	}
 	go func() {
 		for err := range channel.NotifyClose(make(chan *amqp.Error)) {
-			log.Fatalf("AMQP channel: %s" + err.Error())
+			log.Fatalf("AMQP channel: %s", err.Error())
 		}
 	}()
 	return channel

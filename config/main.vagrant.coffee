@@ -40,7 +40,7 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
-  runKontrol    : no
+  runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
   runPersistence: yes
@@ -204,12 +204,6 @@ module.exports =
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-    rabbitmq      :
-      host        : 'localhost'
-      port        : '5672'
-      login       : 'guest'
-      password    : 'guest'
-      vhost       : '/'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"

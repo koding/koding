@@ -213,12 +213,6 @@ config =
         port        : 1
         portssl     : 1
         ftpip       : 1
-      rabbitmq      :
-        host        : 1
-        port        : 1
-        login       : 1
-        password    : 1
-        vhost       : 1
     recurly         :
       apiKey        : 1
     embedly         :
