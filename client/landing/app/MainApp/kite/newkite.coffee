@@ -6,14 +6,14 @@ class NewKite extends KDEventEmitter
 
   constructor: (options)->
     super
-    { @kiteName, @correlationName, @kiteKey } = options
+    { @addr, @kiteName, @correlationName, @kiteKey } = options
     @localStore   = new Store
     @remoteStore  = new Store
     @tokenStore = {}
     @autoReconnect = true
     @readyState = NOTREADY
     @kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
-    @addr = ""
+    @addr or= ""
     @token = ""
     @initBackoff options  if @autoReconnect
     @connect()
