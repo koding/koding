@@ -7,12 +7,16 @@ class EnvironmentContainer extends KDDiaContainer
 
     super options, data
 
+    sc = KD.getSingleton 'appStorageController'
+    @appStorage = sc.storage 'EnvironmentsScene', '1.0'
+
     title   = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
 
     @itemHeight = options.itemHeight ? 40
 
     @on "DataLoaded", => @_dataLoaded = yes
+    @on "DragFinished", @bound 'savePosition'
 
     @newItemPlus = new KDCustomHTMLView
       cssClass   : 'new-item-plus'
@@ -22,15 +26,18 @@ class EnvironmentContainer extends KDDiaContainer
     super
     @addSubView @header
     @header.addSubView @newItemPlus
+    @appStorage.ready @bound 'loadPosition'
     @loadItems()
 
   addDia:(diaObj, pos)->
     pos = x: 20, y: 60 + @diaCount() * (@itemHeight + 10)
     super diaObj, pos
-    @updateHeight()
+
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
+    @updateHeight()
 
   updatePositions:->
+
     index = 0
     for _, dia of @dias
       dia.setX 20
@@ -41,7 +48,23 @@ class EnvironmentContainer extends KDDiaContainer
   diaCount:-> Object.keys(@dias).length
 
   updateHeight:->
+
     @setHeight 80 + @diaCount() * 50
     @emit 'UpdateScene'
+
+  savePosition:->
+
+    name      = @constructor.name
+    bounds    = x: @getRelativeX(), y: @getRelativeY()
+    positions = (@appStorage.getValue 'containerPositions') or {}
+    positions[name] = bounds
+    @appStorage.setValue 'containerPositions', positions
+
+  loadPosition:->
+
+    name     = @constructor.name
+    position = ((@appStorage.getValue 'containerPositions') or {})[name]
+    return  unless position
+    @setX position.x; @setY position.y
 
   loadItems:-> yes
