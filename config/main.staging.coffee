@@ -37,6 +37,7 @@ module.exports =
     write       : "http://172.16.6.12"
     port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@172.16.6.13:27017/koding'
+  mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : no
@@ -185,6 +186,7 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
       apiHost     : "172.16.6.16"
       apiPort     : 80
@@ -196,12 +198,6 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-    rabbitmq      :
-      host        : '172.16.6.14'
-      port        : '5672'
-      login       : 'guest'
-      password    : 'djfjfhgh4455__5'
-      vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :

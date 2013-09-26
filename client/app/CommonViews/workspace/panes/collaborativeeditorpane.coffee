@@ -89,6 +89,8 @@ class CollaborativeEditorPane extends CollaborativePane
       html             : "xml"
       json             : "javascript"
       js               : "javascript"
+      go               : "go"
+      txt              : "text"
 
     if corrections[fileExtension]
       modeName = corrections[fileExtension]

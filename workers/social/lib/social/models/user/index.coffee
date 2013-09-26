@@ -716,22 +716,23 @@ Your password has been changed!  If you didn't request this change, please conta
         callback null, res
 
   fetchContextualAccount:(context, rest..., callback)->
-    Relationship.one {
-      as          : 'owner'
-      sourceId    : @getId()
-      targetName  : 'JAccount'
-      'data.context': context
-    }, (err, account)=>
-      if err
-        callback err
-      else if account?
-        callback null, account
-      else
-        @fetchOwnAccount rest..., callback
+    # Relationship.one {
+    #   as          : 'owner'
+    #   sourceId    : @getId()
+    #   targetName  : 'JAccount'
+    #   'data.context': context
+    # }, (err, account)=>
+    #   if err
+    #     callback err
+    #   else if account?
+    #     callback null, account
+    #   else
+    #     @fetchOwnAccount rest..., callback
 
   fetchAccount:(context, rest...)->
-    if context is 'koding' then @fetchOwnAccount rest...
-    else @fetchContextualAccount context, rest...
+    @fetchOwnAccount rest...
+    # if context is 'koding' then @fetchOwnAccount rest...
+    # else @fetchContextualAccount context, rest...
 
   changePassword:(newPassword, callback)->
     salt = createSalt()

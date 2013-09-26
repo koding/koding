@@ -6,11 +6,15 @@ class KDTimeAgoView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.tagName = 'time'
+    options.tagName = "time"
 
     super options, data
 
     KDTimeAgoView.on "OneMinutePassed", => @updatePartial $.timeago @getData()
+
+  setData: ->
+    super
+    @updatePartial $.timeago @getData()  if @parent
 
   viewAppended: ->
     @setPartial $.timeago @getData()
