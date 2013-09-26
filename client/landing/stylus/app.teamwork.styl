@@ -1,157 +1,190 @@
-.teamwork .inner-header .title {
-  text-indent: 40px;
-  background: url(/images/teamwork/icon.128.png) 3px -2px no-repeat;
-  background-size: 38px 38px;
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib/gradients"
+
+
+
+@css {
+/*
+COMMONS stylesheet
+app.teamwork.styl
+*/
 }
-.teamwork-loader {
-  width: 204px;
-  height: 324px;
-  left: 50%;
-  position: relative;
-  margin: -162px 0 0 -102px;
-  top: 50%;
-}
-.teamwork .finder-pane.file-container .no-vm-found-widget {
-  display: none;
-}
-.teamwork-modal-header {
-  height: 33px;
-  background: #eee;
-  border-bottom: 1px solid #dcdcdc;
-}
-.teamwork-modal-header .header {
-  width: 299px;
-  float: left;
-  border-right: 1px solid #dcdcdc;
-  height: 33px;
-  line-height: 33px;
-  text-indent: 20px;
-}
-.teamwork-modal-header .header .text {
-  font-size: 14px;
-  font-family: "Open Sans";
-  color: #474747;
-}
-.teamwork-modal-header .header.full-width {
-  width: 100%;
-  border-top: 1px solid #dcdcdc;
-}
-.teamwork-modal-content {
-  width: 259px;
-  float: left;
-  border-right: 1px solid #dcdcdc;
-  padding: 20px;
-  box-shadow: inset 0 0 0 1px #FFF;
-  position: relative;
-}
-.teamwork-modal-content.full-width {
-  width: 100%;
-  padding: 0;
-}
-.teamwork-modal-content .export-file-tree {
-  position: absolute;
-  top: -193px;
-  left: 20px;
-  width: 248px;
-  height: 0;
-  background: #eee;
-  transition: height .1s ease-in-out;
-  box-shadow: 0 0 5px rgba(0, 0, 0, .3);
-}
-.teamwork-modal-content .export-file-tree.active {
-  border: 1px solid #bbb;
-  padding: 5px;
-  height: 358px;
-}
-.teamwork-modal-content .share-section .title {
-  font-size: 12px;
-  margin-bottom: 5px;
-  color: #8d8d8d;
-  line-height: 12px;
-}
-.teamwork-modal-content p {
-  line-height: 14px;
-  margin-top: 10px;
-  color: #bbb;
-  cursor: default;
-}
-.teamwork-modal-content p:hover {
-  color: #444;
-}
-.teamwork-modal-content .share-section p {
-  font-size: 11px;
-  color: #8d8d8d;
-  line-height: 14px;
-}
-.teamwork-modal-content .teamwork-modal-input {
-  width: 238px;
-  height: 38px !important;
-  font-size: 10px;
-  color: #888;
-  border-color: #dcdcdc;
-  text-shadow: 0 1px 0 #FFF;
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(237,237,237,1)), color-stop(100%,rgba(250,250,250,1))) !important;
-  text-indent: 5px;
-  border: 1px solid #888 !important;
-}
-.teamwork-modal-content .teamwork-modal-input.session-key {
-  background: none !important;
-  border: none;
-  font-size: 20px;
-  font-weight: 600;
-  color: #f18025;
-  text-indent: 0;
-  padding-left: 0;
-  border: 1px solid #eee;
-  text-align: center;
-}
-.teamwork-tools-modal .kdmodal-content {
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f3f3f3), color-stop(30%,#fff)) 0px 35px;
-}
-.teamwork-modal-content .cancel {
-  line-height: 40px;
-  color: #8d8d8d;
-  cursor: pointer;
-}
-.teamwork-modal-content .kdbutton {
-  height: 38px;
-  width: 260px;
-  line-height: 28px;
-  color: #8d8d8d;
-  font-size: 12px;
-  font-weight: normal;
-  text-shadow: 0 1px 0 #fff !important;
-  text-align: left;
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f5f5f5), color-stop(100%,#e3e3e3)) !important;
-  box-shadow: inset 0 0 0 1px #fff;
-}
-.teamwork-modal-content .kdbutton:hover {
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f5f5f5), color-stop(100%,#e3e3e3)) !important;
-  opacity: 0.82;
-}
-.teamwork-modal-content .kdbutton:active {
-  box-shadow: inset 0 0 5px 0px #aaa , 0 1px 0 0 #eee !important;
-}
-.teamwork-modal-content .kdbutton:first-child {
-  margin-right: 30px;
-}
-.teamwork-modal-contents {
-  overflow: hidden;
-}
-.teamwork-modal-content.full-width p {
-  margin-bottom: 10px;
-}
-.teamwork-modal-content .exporter {
-  width: 247px;
-}
+
+.teamwork
+  .inner-header
+    .title
+      text-indent               40px
+      background                url(/images/teamwork/icon.128.png) 3px -2px no-repeat
+      background-size           38px 38px
+  .finder-pane
+    &.file-container
+      .no-vm-found-widget
+        display                 none
+
+.teamwork-loader
+  size                          204px, 324px
+  left                          50%
+  position                      relative
+  margin                        -162px 0 0 -102px
+  top                           50%
+
+.teamwork-modal-header
+  height                        33px
+  bg                            color, #eee
+  border-bottom                 1px solid #dcdcdc
+  .header
+    size                        299px, 33px
+    border-right                1px solid #dcdcdc
+    line-height                 33px
+    text-indent                 20px
+    fl()
+    .text
+      font-size                 14px
+      font-family               "Open Sans"
+      color                     #474747
+    &.full-width
+      width                     100%
+      border-top                1px solid #dcdcdc
+
+.teamwork-modal-content
+  width                         259px
+  fl()
+  border-right                  1px solid #dcdcdc
+  padding                       20px
+  shadow                        inset 0 0 0 1px #FFF
+  position                      relative
+  &.full-width
+    width                       100%
+    padding                     0
+    p
+      margin-bottom             10px
+  .export-file-tree
+    abs()
+    top                         -193px
+    left                        20px
+    size                        248px, 0
+    background                  #eee
+    vendor                      transition, height .1s ease-in-out
+    shadow                      0 0 5px rgba(0, 0, 0, .3)
+    &.active
+      border                    1px solid #bbb
+      padding                   5px
+      height                    358px
+  .share-section
+    .title
+      font-size                 12px
+      margin-bottom             5px
+      color                     #8d8d8d
+      line-height               12px
+    p
+      font-size                 11px
+      color                     #8d8d8d
+      line-height               14px
+  p
+    line-height                 14px
+    margin-top                  10px
+    color                       #bbb
+    cursor                      default
+    &:hover
+      color                     #444
+  .teamwork-modal-input
+    width                       238px
+    height                      38px !important
+    font-size                   10px
+    color                       #888
+    border-color                #dcdcdc
+    text-shadow                 0 1px 0 #FFF
+    gradient                    rgba(237,237,237,1), rgba(250,250,250,1), !important
+    text-indent                 5px
+    border                      1px solid #888 !important
+    &.session-key
+      background                none !important
+      border                    none
+      font-size                 20px
+      font-weight               600
+      color                     #f18025
+      text-indent               0
+      padding-left              0
+      border                    1px solid #eee
+      text-align                center
+  .cancel
+    line-height                 40px
+    color                       #8d8d8d
+    pointer()
+  .kdbutton
+    size                        260px, 38px
+    line-height                 28px
+    color                       #8d8d8d
+    font-size                   12px
+    font-weight                 normal
+    text-shadow                 0 1px 0 #fff !important
+    text-align                  left
+    gradient                    #f5f5f5, #e3e3e3, !important
+    box-shadow                  inset 0 0 0 1px #fff
+    &:hover
+      gradient                  #f5f5f5, #e3e3e3, !important
+      opacity                   0.82
+    &:active
+      box-shadow                inset 0 0 5px 0px #aaa , 0 1px 0 0 #eee !important
+    &:first-child
+      margin-right              30px
+  .exporter
+    width                       247px
+
+.teamwork-tools-modal
+  .kdmodal-content
+    gradient                    #f3f3f3, #fff
+
+.teamwork-modal-contents
+  overflow                      hidden
+
 .teamwork-export-dialog .kdformview .kdlabel:first-child,
 .teamwork-export-dialog .kdformview .kdinput,
-.teamwork .inner-header .help {
-  display: none !important;
-}
-.teamwork-url-share-input {
-  font-size: 16px;
-  border: none !important;
-  width: 390px;
-  margin: 10px;
-}
+.teamwork .inner-header .help
+  display                       none !important
+
+.teamwork-url-share-input
+  font-size                     16px
+  border                        none !important
+  width                         390px
+  margin                        10px
+
+.teamwork
+  .terminal-handle
+    size                        41px, 10px
+    gradient                    #f39a37, #ed6a20
+    abs()
+    bottom                      0
+    left                        50%
+    margin-left                 -20px
+    rounded                     4px 4px 0 0
+    text-align                  center
+    line-height                 20px
+    pointer()
+    span
+      size                      0, 0
+      border                    4px solid transparent
+      border-bottom-color       #f2f2f2
+      position                  relative
+      left                      7px
+      vendor                    transition, all .2s ease
+      vendor                    transform-origin-y, 75%
+      fl()
+      &.m
+        margin                  0 1px
+
+.teamwork .terminal-visible
+  .terminal-handle
+    border-radius               4px
+    span
+      vendor                    transform, rotateZ(180deg)
+      top                       -1px
+  .panel-1 .kdsplitview-resizer
+    margin-top                  0
+
+
+.teamwork .panel-1 .kdsplitview-resizer
+  cursor                        default
+  background                    none !important
+  margin-top                    -5px
