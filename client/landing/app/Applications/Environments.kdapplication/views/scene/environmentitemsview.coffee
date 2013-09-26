@@ -57,13 +57,40 @@ class EnvironmentItem extends KDDiaObject
   cmdelete : -> @confirmDestroy?()
   cmunfocus: -> @parent.emit 'UnhighlightDias'
 
-  setColorTag : (color) ->
+  setColorTag : (color, save = yes) ->
+
     @getElement().style.borderLeftColor = color
     @options.colorTag                   = color
+    @saveColorTag color  if save
+    @parent.emit 'UpdateScene'
 
-  viewAppended : ->
+  saveColorTag:(color)->
+
+    return unless @parent.appStorage
+
+    colorTags = (@parent.appStorage.getValue 'colorTags') or {}
+    name      = @constructor.name
+    title     = pipedVmName @getData().title
+    colorTags["#{name}-#{title}"] = color
+
+    @parent.appStorage.setValue 'colorTags', colorTags
+
+  loadColorTag:->
+
+    colorTags = (@parent.appStorage.getValue 'colorTags') or {}
+    name      = @constructor.name
+    title     = pipedVmName @getData().title
+    color     = colorTags["#{name}-#{title}"]
+
+    @setColorTag color  if color
+
+  pipedVmName = (vmName)-> vmName.replace /\./g, '|'
+
+  viewAppended:->
     super
-    @setColorTag @getOption('colorTag')
+
+    @setColorTag @getOption('colorTag'), no
+    @parent.appStorage?.ready @bound 'loadColorTag'
 
   pistachio:->
     """
