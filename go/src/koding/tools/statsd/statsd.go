@@ -66,7 +66,7 @@ func (s *StatdsTimer) Failed() {
 //    koding.<app name>.<event name>.<status>
 // Ex:
 //    koding.myWorker.work.success
-//    koding.myWorker.work.failure
+//    koding.myWorker.work.failed
 //
 // Success() and Failure() are helper methods that adds respective
 // status to event name automatically.
