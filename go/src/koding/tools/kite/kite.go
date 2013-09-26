@@ -81,14 +81,16 @@ func (k *Kite) Run() {
 	controlChannel := amqputil.CreateChannel(consumeConn)
 	defer controlChannel.Close()
 
-	controlStream := amqputil.DeclareBindConsumeQueue(controlChannel, "fanout", k.ServiceUniqueName, "", true)
+	controlStream := amqputil.DeclareBindConsumeQueue(controlChannel, "fanout", "control", "", true)
 	controlRouting(controlStream) // blocking
 }
 
 func controlRouting(stream <-chan amqp.Delivery) {
 	for msg := range stream {
 		switch msg.RoutingKey {
-		case "control.suspend":
+		// those are temporary here
+		// and should not be here
+		case "control.suspendVM":
 			var control Control
 			err := json.Unmarshal(msg.Body, &control)
 			if err != nil || control.HostnameAlias == "" {
