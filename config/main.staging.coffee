@@ -224,5 +224,6 @@ module.exports =
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
   statsd         :
+    log          : true
     ip           : "68.68.97.111"
     port         : 8125

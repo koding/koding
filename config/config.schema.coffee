@@ -240,6 +240,7 @@ config =
       clientSecret  : 1
       redirectUri   : 1
     statsd          :
+      use           : 1
       ip            : 1
       port          : 1
 module.exports = config

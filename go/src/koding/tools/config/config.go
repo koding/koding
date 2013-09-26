@@ -82,6 +82,7 @@ type Config struct {
 		Vhost         string
 	}
 	Statsd struct {
+		Use  bool
 		Ip   string
 		Port int
 	}

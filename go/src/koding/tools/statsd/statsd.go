@@ -22,9 +22,18 @@ import (
 )
 
 var (
-	STATSD   = client.New(config.Current.Statsd.Ip, config.Current.Statsd.Port)
+	LOG      = config.Current.Statsd.Use
+	ip       = config.Current.Statsd.Ip
+	port     = config.Current.Statsd.Port
+	STATSD   = client.New(ip, port)
 	APP_NAME string
 )
+
+func init() {
+	if LOG {
+		fmt.Printf("Logging to statsd on %v:%v\n", ip, port)
+	}
+}
 
 // App name is used as a namespace, usually set to the name of
 // the worker that uses this package.
@@ -33,11 +42,15 @@ func SetAppName(name string) {
 }
 
 func Increment(name string) {
-	STATSD.Increment(name)
+	if LOG {
+		STATSD.Increment(name)
+	}
 }
 
 func Decrement(name string) {
-	STATSD.Decrement(name)
+	if LOG {
+		STATSD.Decrement(name)
+	}
 }
 
 type StatdsTimer struct {
@@ -75,7 +88,9 @@ func (s *StatdsTimer) End(status string) {
 	duration := int64(s.EndTime.Sub(s.StartTime) / time.Millisecond)
 	name := buildName(s.Name, status)
 
-	STATSD.Timing(name, duration)
+	if LOG {
+		STATSD.Timing(name, duration)
+	}
 }
 
 func buildName(eventName, status string) string {
