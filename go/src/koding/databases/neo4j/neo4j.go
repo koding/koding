@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/tools/config"
+	"koding/tools/statsd"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"net/http"
@@ -25,6 +26,10 @@ var (
 	CYPHER_PATH      = "db/data/cypher"
 	CYPHER_URL       = fmt.Sprintf("%v/%v", BASE_URL, CYPHER_PATH)
 )
+
+func init() {
+	statsd.SetAppName("neo4j")
+}
 
 type Relationship struct {
 	Id         bson.ObjectId `bson:"_id,omitempty"`
@@ -52,6 +57,7 @@ func dialTimeout(timeout time.Duration, deadline time.Duration) func(network, ad
 // Gets URL and string data to be sent and makes POST request
 // reads response body and returns as string
 func sendRequest(requestType, url, data string, attempt int) string {
+	sTimer := statsd.StartTimer("sendRequest")
 
 	// Set the timeout & deadline
 	timeOut := time.Duration(TIMEOUT) * time.Second
@@ -74,6 +80,7 @@ func sendRequest(requestType, url, data string, attempt int) string {
 	req.Header.Set("Content-Type", "application/json")
 	res, err := client.Do(req)
 	if err != nil && attempt <= MAX_RETRIES {
+		sTimer.Failed()
 		fmt.Print(err)
 		attempt++
 		sendRequest(requestType, url, data, attempt)
@@ -81,6 +88,8 @@ func sendRequest(requestType, url, data string, attempt int) string {
 	if err != nil && attempt > MAX_RETRIES {
 		panic(fmt.Sprintf("req to %v timed out after %v retries", url, attempt))
 	}
+
+	sTimer.Success()
 
 	body, _ := ioutil.ReadAll(res.Body)
 
@@ -93,6 +102,7 @@ func sendRequest(requestType, url, data string, attempt int) string {
 // connect source and target with relation property
 // response will be object
 func CreateRelationship(relation, source, target string) map[string]interface{} {
+	sTimer := statsd.StartTimer("CreateRelationship")
 
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s" }`, target, relation)
 	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData, 1)
@@ -100,6 +110,9 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
 		fmt.Println("Problem with relation response", relRes)
+		sTimer.Failed()
+	} else {
+		sTimer.Success()
 	}
 
 	return relNode
@@ -108,6 +121,7 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 // connect source and target with relation property
 // response will be object
 func CreateRelationshipWithData(relation, source, target, data string) map[string]interface{} {
+	sTimer := statsd.StartTimer("CreateRelationshipWithData")
 
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s", "data" : %s }`, target, relation, data)
 	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData, 1)
@@ -115,6 +129,9 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
 		fmt.Println("Problem with relation response", relRes)
+		sTimer.Failed()
+	} else {
+		sTimer.Success()
 	}
 
 	return relNode
@@ -123,6 +140,7 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 // creates a unique node with given id and node name
 // response will be Object
 func CreateUniqueNode(id string, name string) map[string]interface{} {
+	sTimer := statsd.StartTimer("CreateUniqueNode")
 
 	url := BASE_URL + UNIQUE_NODE_PATH
 
@@ -133,6 +151,9 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 	node, err := jsonDecode(response)
 	if err != nil {
 		fmt.Println("Problem with unique node creation response", response)
+		sTimer.Failed()
+	} else {
+		sTimer.Success()
 	}
 
 	return node
@@ -140,7 +161,6 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 // deletes a relation between two node using relationship info
 func DeleteRelationship(sourceId, targetId, relationship string) bool {
-
 	//get source node information
 	sourceInfo := GetNode(sourceId)
 
