@@ -3,12 +3,12 @@ package statsd
 import (
 	"fmt"
 	client "github.com/etsy/statsd"
+	"koding/tools/config"
 	"time"
 )
 
-// TODO: get from config
 var (
-	STATSD   = client.New("68.68.97.111", 8125)
+	STATSD   = client.New(config.Current.Statsd.Ip, config.Current.Statsd.Port)
 	APP_NAME string
 )
 

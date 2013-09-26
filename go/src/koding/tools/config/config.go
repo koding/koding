@@ -81,6 +81,10 @@ type Config struct {
 		Password      string
 		Vhost         string
 	}
+	Statsd struct {
+		Ip   string
+		Port int
+	}
 }
 
 var FileProfile string

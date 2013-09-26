@@ -239,4 +239,7 @@ config =
       clientId      : 1
       clientSecret  : 1
       redirectUri   : 1
+    statsd          :
+      ip            : 1
+      port          : 1
 module.exports = config

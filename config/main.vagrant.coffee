@@ -241,3 +241,6 @@ module.exports =
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
+  statsd         :
+    ip           : "localhost"
+    port         : 8125
