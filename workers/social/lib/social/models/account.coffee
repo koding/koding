@@ -327,7 +327,7 @@ module.exports = class JAccount extends jraphical.Module
 
   setBackgroundImage: secure (client, type, value, callback=->)->
     {delegate}    = client.connection
-    isMine        = this.equals delegate
+    isMine        = @equals delegate
     if isMine
       if type is 'customImage'
         operation =
@@ -346,14 +346,14 @@ module.exports = class JAccount extends jraphical.Module
       @update operation, callback
 
   setAbout: secure (client, text, callback)->
-    {delegate}    = client.connection
-    isMine        = this.equals delegate
+    {delegate} = client.connection
+    isMine      = @equals delegate
     if isMine
       @fetchAbout (err, about)=>
         console.log err if err
         unless about
           JMarkdownDoc = require './markdowndoc'
-          about = new JMarkdownDoc content: text
+          about        = new JMarkdownDoc content: text
 
           daisy queue = [
             ->
@@ -394,12 +394,12 @@ module.exports = class JAccount extends jraphical.Module
       isLoggedIn      : account.type is 'unregistered'
 
   setHandle: secure (client, data, callback)->
-    {delegate}    = client.connection
+    {delegate}      = client.connection
     {service,value} = data
-    selector = "profile.handles."+service
-    isMine        = this.equals delegate
+    selector        = "profile.handles."+service
+    isMine          = @equals delegate
     if isMine and service in ['twitter','github']
-      value = null if value is ''
+      value     = null if value is ''
       operation = $set: {}
       operation.$set[selector] = value
       @update operation, callback
@@ -407,9 +407,9 @@ module.exports = class JAccount extends jraphical.Module
       callback? new KodingError 'Access denied'
 
   setStaticPageTitle: secure (client, title, callback)->
-    {delegate}    = client.connection
-    selector      = "profile.staticPage.title"
-    isMine        = this.equals delegate
+    {delegate}  = client.connection
+    selector    = "profile.staticPage.title"
+    isMine      = @equals delegate
     if isMine
       operation = $set: {}
       operation.$set[selector] = title
@@ -418,9 +418,9 @@ module.exports = class JAccount extends jraphical.Module
       callback? new KodingError 'Access denied'
 
   setStaticPageAbout: secure (client, about, callback)->
-    {delegate}    = client.connection
-    selector      = "profile.staticPage.about"
-    isMine        = this.equals delegate
+    {delegate} = client.connection
+    selector   = "profile.staticPage.about"
+    isMine     = @equals delegate
     if isMine
       operation = $set: {}
       operation.$set[selector] = about
@@ -430,8 +430,8 @@ module.exports = class JAccount extends jraphical.Module
 
 
   addStaticPageType: secure (client, type, callback)->
-    {delegate}    = client.connection
-    isMine        = this.equals delegate
+    {delegate} = client.connection
+    isMine     = @equals delegate
     if isMine
       @update {$addToSet: 'profile.staticPage.showTypes': type}, callback
     else
@@ -439,15 +439,15 @@ module.exports = class JAccount extends jraphical.Module
 
   # addStaticBackground: secure (client, url, callback)->
   #   {delegate}    = client.connection
-  #   isMine        = this.equals delegate
+  #   isMine        = @equals delegate
   #   if isMine
   #     @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
   #   else
   #     callback? new KodingError 'Access denied'
 
   removeStaticPageType: secure (client, type, callback)->
-    {delegate}    = client.connection
-    isMine        = this.equals delegate
+    {delegate} = client.connection
+    isMine     = @equals delegate
     if isMine
       @update {$pullAll: 'profile.staticPage.showTypes': [type]}, callback
     else
@@ -455,8 +455,8 @@ module.exports = class JAccount extends jraphical.Module
 
 
   setStaticPageVisibility: secure (client, visible=yes, callback)->
-    {delegate}    = client.connection
-    isMine        = this.equals delegate
+    {delegate} = client.connection
+    isMine     = @equals delegate
     if isMine
       @update ($set: 'profile.staticPage.show': visible), callback
     else
@@ -467,7 +467,7 @@ module.exports = class JAccount extends jraphical.Module
     JGroup        = require './group'
     {groupBy}     = require 'underscore'
     {delegate}    = client.connection
-    isMine        = this.equals delegate
+    isMine        = @equals delegate
     edgeSelector  =
       sourceName  : 'JGroup'
       targetId    : @getId()
@@ -497,7 +497,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchGroupRoles: secure (client, slug, callback)->
     {delegate} = client.connection
-    JGroup = require './group'
+    JGroup     = require './group'
     JGroup.fetchIdBySlug slug, (err, groupId)->
       if err then callback err
       else
@@ -522,9 +522,9 @@ module.exports = class JAccount extends jraphical.Module
 
   @reserveNames =(options, callback)->
     [callback, options] = [options, callback]  unless callback
-    options ?= {}
+    options       ?= {}
     options.limit ?= 100
-    options.skip ?= 0
+    options.skip  ?= 0
     @someData {}, {'profile.nickname':1}, options, (err, cursor)=>
       if err then callback err
       else
@@ -1216,9 +1216,9 @@ module.exports = class JAccount extends jraphical.Module
         force   : yes
       email.save ->
 
-  unlinkOauth: (provider, callback)->
+  unlinkOauth: secure (client, provider, callback)->
     {delegate} = client.connection
-    isMine    = this.equals delegate
+    isMine     = @equals delegate
     if isMine
       @fetchUser (err, user)->
         return callback err  if err
