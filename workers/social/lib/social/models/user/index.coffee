@@ -139,6 +139,7 @@ module.exports = class JUser extends jraphical.Module
           accessTokenSecret  : String
           requestToken       : String
           requestTokenSecret : String
+          profileUrl         : String
         facebook             :
           foreignId          : String
           username           : String
@@ -452,7 +453,10 @@ module.exports = class JUser extends jraphical.Module
     callback null, {account, replacementToken}
 
   @fetchUserByProvider = (provider, session, callback)->
-    {foreignAuth}                              = session
+    {foreignAuth} = session
+    unless foreignAuth
+      return callback createKodingError "No foreignAuth:#{provider} info in session"
+
     query                                      = {}
     query["foreignAuth.#{provider}.foreignId"] = foreignAuth[provider].foreignId
 
@@ -802,18 +806,19 @@ Your password has been changed!  If you didn't request this change, please conta
 
   @copyOauthFromSessionToUser: (username, clientId, callback)->
     JSession.one {clientId: clientId}, (err, session) =>
-      if err
-        callback err
+      if err then callback err
       else
-        if session.foreignAuth
-          {foreignAuth, foreignAuthType}          = session
-          query                                   = {}
+        {foreignAuth, foreignAuthType} = session
+        if foreignAuth and foreignAuthType
+          query = {}
           query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
 
-          @update {username}, $set: query, ->
-            session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
+          @update {username}, $set: query, (err)->
+            if err then callback err
+            else
+              session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
         else
-          callback()
+          callback createKodingError "No foreignAuth:#{foreignAuthType} info in session"
 
   @setSSHKeys: secure (client, sshKeys, callback)->
     @fetchUser client, (err,user)->
