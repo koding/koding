@@ -1,3 +1,17 @@
+// A tiny wrapper around the offical etsy statd package.
+//
+// Example:
+//    statsd.SetAppName("myWorker")
+//
+//    // from inside a function
+//    sTimer := statsd.StartTimer("sendRequest")
+//    err := doWork()
+//    if err != nil {
+//      s.Timer.Failed()
+//      return err
+//    }
+//
+//    sTimer.Success()
 package statsd
 
 import (
@@ -12,6 +26,8 @@ var (
 	APP_NAME string
 )
 
+// App name is used as a namespace, usually set to the name of
+// the worker that uses this package.
 func SetAppName(name string) {
 	APP_NAME = name
 }
@@ -44,6 +60,16 @@ func (s *StatdsTimer) Failed() {
 	s.End("failed")
 }
 
+// Sends timer of event and also increments event by 1.
+//
+// Events name follow the pattern:
+//    koding.<app name>.<event name>.<status>
+// Ex:
+//    koding.myWorker.work.success
+//    koding.myWorker.work.failure
+//
+// Success() and Failure() are helper methods that adds respective
+// status to event name automatically.
 func (s *StatdsTimer) End(status string) {
 	s.EndTime = time.Now()
 	duration := int64(s.EndTime.Sub(s.StartTime) / time.Millisecond)
