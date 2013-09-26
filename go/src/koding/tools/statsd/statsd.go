@@ -60,7 +60,7 @@ func (s *StatdsTimer) Failed() {
 	s.End("failed")
 }
 
-// Sends timer of event and also increments event by 1.
+// Sends duration it took for event to complete.
 //
 // Events name follow the pattern:
 //    koding.<app name>.<event name>.<status>
@@ -74,9 +74,8 @@ func (s *StatdsTimer) End(status string) {
 	s.EndTime = time.Now()
 	duration := int64(s.EndTime.Sub(s.StartTime) / time.Millisecond)
 	name := buildName(s.Name, status)
-	STATSD.Timing(name, duration)
 
-	Increment(name)
+	STATSD.Timing(name, duration)
 }
 
 func buildName(eventName, status string) string {
