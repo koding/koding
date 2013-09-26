@@ -48,8 +48,9 @@ func (s *StatdsTimer) End(status string) {
 	s.EndTime = time.Now()
 	duration := int64(s.EndTime.Sub(s.StartTime) / time.Millisecond)
 	name := buildName(s.Name, status)
-
 	STATSD.Timing(name, duration)
+
+	Increment(name)
 }
 
 func buildName(eventName, status string) string {
