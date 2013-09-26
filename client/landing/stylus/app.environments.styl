@@ -175,15 +175,15 @@ app.environments.styl
     .kdtabpaneview
       padding-bottom    64px
       borderBox()
-    .button-field
-      bg                color, transparent
-      width             100%
-      .kdbutton
-        font-weight     400
-        font-size       16px
-        line-height     24px!important
-        &.modal-cancel
-          margin        2px 10px 0 0
+    // .button-field
+    //   bg                color, transparent
+    //   width             100%
+    //   .kdbutton
+    //     font-weight     400
+    //     font-size       16px
+    //     line-height     24px!important
+    //     &.modal-cancel
+    //       margin        2px 10px 0 0
 
   .kddia-scene
     left                0
@@ -713,6 +713,109 @@ app.environments.styl
       margin-bottom  3px
       font-size      12px
       color          #ff9600
+
+
+/*--- Add a domain -----*/
+
+div.environments-add-domain-form
+  width                 500px
+  height                600px
+  padding               30px
+  borderBox()
+
+  h4.kdheaderview
+    display             block
+    height              30px
+    line-height         30px
+    border-bottom       1px solid #d9d9d9
+    shadow              0 1px 0 #f5f5f5
+
+    button.small-gray
+      margin            3px 0 0 0
+      fr()
+
+  form.main-form
+    padding             0
+    margin              0
+
+    .formline
+      padding           0
+      margin            0
+
+    fieldset.domain-option-group
+      padding           20px 0
+      .kd-radio-holder
+        width           140px
+        padding         0
+        margin          0
+        font-size       11px
+        color           #8c8c8c
+        height          32px
+        line-height     32px
+        rounded         3px
+        background      #f7f7f7
+        text-align      center
+        shadow          0 1px 2px rgba(0, 0, 0, .2) \,\
+                        inset 0 -3px 0 #e8e8e8
+        text-shadow     0 1px 0 #fff
+        border-bottom
+        fl()
+
+        &~.kd-radio-holder
+          margin-left       10px
+
+        &.disabled
+          opacity           .5
+          cursor            default
+          *
+            cursor          default
+
+        &.active
+          shadow            0 1px 2px rgba(0, 0, 0, .2) \,\
+                            inset 0 -3px 0 #ffa800
+          position          relative
+
+        &.active:after
+          content         ""
+          display         block
+          border          5px solid transparent
+          border-top      7px solid #ffa800
+          left            64px
+          top             32px
+          abs()
+
+        input[type=radio]
+          display         none
+
+    label.subdomain-name
+      display             block
+      float               none
+      color               #8c8c8c
+      text-shadow         0 1px 0 #fff
+      font-size           11px
+
+    input.subdomain-input
+      height              35px
+      shadow              0 1px 0 #fff
+      margin-bottom       1px
+      padding             0 140px 0 10px
+      borderBox()
+
+    .kdselectbox.main-domain-select
+      top                25px
+      right              5px
+      abs()
+
+  .formline.button-field
+    bg                   color, transparent
+
+    .kdbutton.add-domain
+      fr()
+      margin-top         10px
+      font-size          14px
+      font-weight        normal
+      width              140px
+
 
 /*--- Scene -----*/
 
