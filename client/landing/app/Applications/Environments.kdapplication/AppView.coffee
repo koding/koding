@@ -24,6 +24,7 @@ class EnvironmentsMainView extends JView
     # Domains Container
     domainsContainer = new EnvironmentDomainContainer
     @scene.addContainer domainsContainer
+    domainsContainer.on "itemRemoved", domainCreateForm.bound "updateDomains"
 
     # VMs / Machines Container
     machinesContainer = new EnvironmentMachineContainer
