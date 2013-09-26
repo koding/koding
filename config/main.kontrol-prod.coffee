@@ -5,7 +5,7 @@ deepFreeze = require 'koding-deep-freeze'
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
-mongo = 'dev:k9lc4G1k32nyD72@kmongodb1.sj.koding.com:27017/koding'
+mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 
 mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0&maxPoolSize=100'
 
