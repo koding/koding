@@ -12,8 +12,6 @@ class EnvironmentMachineItem extends EnvironmentItem
     vmName = @getData().title
     @cpuUsage = new KDProgressBarView
     @memUsage = new KDProgressBarView
-    @mountToggle = new NMountToggleButtonView
-      defaultLabel : "", {vmName}
 
   contextMenuItems : ->
 
@@ -63,6 +61,6 @@ class EnvironmentMachineItem extends EnvironmentItem
         {h3{#(title)}}
         {{> @cpuUsage}}
         {{> @memUsage}}
-        {{> @mountToggle}}
+        <span class='chevron'></span>
       </div>
     """

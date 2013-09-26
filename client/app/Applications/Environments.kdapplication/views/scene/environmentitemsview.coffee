@@ -38,11 +38,8 @@ class EnvironmentItem extends KDDiaObject
     ctxMenu = new JContextMenu
       menuWidth   : 200
       delegate    : @
-      x           : event.pageX + 15
-      y           : event.pageY - 23
-      arrow       :
-        placement : "left"
-        margin    : 19
+      x           : event.pageX
+      y           : event.pageY
       lazyLoad    : yes
     ,
       menuItems
@@ -86,6 +83,15 @@ class EnvironmentItem extends KDDiaObject
 
   pipedVmName = (vmName)-> vmName.replace /\./g, '|'
 
+
+  click:(event)->
+
+    if $(event.target).is ".chevron"
+      @contextMenu event
+      return no
+
+    super
+
   viewAppended:->
     super
 
@@ -97,5 +103,6 @@ class EnvironmentItem extends KDDiaObject
       <div class='details'>
         {h3{#(title)}}
         {{#(description)}}
+        <span class='chevron'></span>
       </div>
     """

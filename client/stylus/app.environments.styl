@@ -874,10 +874,21 @@ div.environments-item
   noTextSelection()
   borderBox()
 
+  span.chevron
+    display       none
+    size          14px, 14px
+    bottom        2px
+    right         2px
+    bg            position, -182px -363px
+    sprite()
+
   &:hover
-    gradient     rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
+    gradient      rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
+    span.chevron
+      display     block
 
   .status-indicator
+
     size          8px, 8px
     background    #ff9600
     border        1px solid #ff9600
@@ -914,6 +925,9 @@ div.environments-item
 
   &.machine
     height            50px
+
+    span.chevron
+      display         block
 
     div.progressbar-container
       height          4px
