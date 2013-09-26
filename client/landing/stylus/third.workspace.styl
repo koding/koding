@@ -27,7 +27,11 @@ third.workspace.styl
   .inner-header
     font-size           16px
     font-weight         bold
-    background          #EEE
+    color               #4C4C4C
+    border-bottom       3px solid #c7c7c7
+    text-shadow         1px 1px 1px #fff
+    gradient            #F3F3F3, #DBDBDB
+    borderBox()
     .cupid-green
       height            24px
       line-height       7px
@@ -264,7 +268,7 @@ third.workspace.styl
   right                 0px
   vendor                transition, height .2s ease-in
   &.active
-    height              320px
+    height              317px
   .dock
     font-size           14px
     font-weight         600
@@ -273,9 +277,12 @@ third.workspace.styl
     line-height         24px
     text-indent         5px
     border-radius       3px 0 0 0
-    background          linear-gradient(top, #ffa615 0%,#c56121 84.7%)
+    gradient            #F39A37, #ED6A20
+    border-bottom       1px solid #9E4A19
     pointer()
     text-shadow         1px 0px 1px rgba(0,0,0,0.3)
+    span
+      margin-left       5px
   .toggle
     font-size           18px
     right               9px
@@ -294,23 +301,60 @@ third.workspace.styl
     background          #FFF
     &.active
       display           block
+  .input-container
+    background          #E2E2E2
+    padding             5px
+    border-top          1px solid #8F8F8F
   .messages
-    height              257px
-    margin              5px
+    size                auto, 257px
+    padding             5px
     overflow-y          auto
-    width               auto
+    border-top          1px solid #FFF
+    gradient            #EBEBEB, #FFF
+    borderBox()
   .kdinput
-    margin              5px
     width               230px
+    border-color        #8F8F8F !important
   .chat-item
     height              auto
-    margin-bottom       3px
+    margin-bottom       10px
+    &.mine
+      .items-container
+        background      #FFF5EE
+        border-color    #F1B480
+      .username
+        background      #FFD8BD !important
+        border-bottom   1px solid #F1B480 !important
+      .avatarview
+        float           right
     .avatarview
       float             left
       margin-right      6px
-    .username
-      font-weight       600
-      margin-bottom     3px
+      border-radius     3px
     .items-container
-      width             190px
+      width             185px
       font-size         12px
+      border            1px solid #BDBDBD
+      border-radius     3px
+      background        #ECECEC
+      div
+        margin          1px 5px
+        height          15px
+        line-height     15px
+      .username
+        background      #DDD
+        border-bottom   1px solid #BDBDBD
+        font-weight     600
+        margin-bottom   3px
+        padding         2px 5px
+        margin          0 -5px
+        text-indent     5px
+      .time-ago
+        right           2px
+        top             2px
+        color           #7E7E7E
+        font-size       9px
+        font-weight     normal
+        font-style      italic
+        text-align      right
+        abs()
