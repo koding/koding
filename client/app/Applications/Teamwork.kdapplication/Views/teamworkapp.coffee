@@ -3,6 +3,7 @@ class TeamworkApp extends KDObject
   constructor: (options = {}, data) ->
 
     super options, data
+    instanceName = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
 
     @teamwork             = new TeamworkWorkspace
       name                : "Teamwork"
@@ -10,7 +11,7 @@ class TeamworkApp extends KDObject
       joinModalTitle      : "Join a coding session"
       joinModalContent    : "<p>Paste the session key that you received and start coding together.</p>"
       shareSessionKeyInfo : "<p>This is your session key, you can share this key with your friends to work together.</p>"
-      firebaseInstance    : "teamwork-local"
+      firebaseInstance    : instanceName
       sessionKey          : @getOptions().sessionKey
       enableChat          : yes
       panels              : [
@@ -26,6 +27,7 @@ class TeamworkApp extends KDObject
         layout            :
           direction       : "vertical"
           sizes           : [ "25%", null ]
+          splitName       : "BaseSplit"
           views           : [
             {
               type        : "finder"
@@ -35,7 +37,8 @@ class TeamworkApp extends KDObject
               type        : "split"
               options     :
                 direction : "horizontal"
-                sizes     : [ "50%", null ]
+                sizes     : [ "100%", null ]
+                splitName : "InnerSplit"
               views       : [
                 {
                   type    : "tabbedEditor"
