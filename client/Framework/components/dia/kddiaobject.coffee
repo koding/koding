@@ -29,7 +29,7 @@ class KDDiaObject extends JView
     @emit "DiaObjectClicked"
     @_mouseDown = yes
     @wc.once 'ReceivedMouseUpElsewhere', => @_mouseDown = no
-    @utils.stopDOMEvent e
+    @utils.stopDOMEvent e  unless @getOption 'draggable'
 
   mouseLeave:(e)->
     return  unless @_mouseDown

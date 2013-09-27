@@ -7,9 +7,6 @@ class EnvironmentContainer extends KDDiaContainer
 
     super options, data
 
-    sc = KD.getSingleton 'appStorageController'
-    @appStorage = sc.storage 'EnvironmentsScene', '1.0'
-
     title   = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
 
@@ -26,6 +23,7 @@ class EnvironmentContainer extends KDDiaContainer
     super
     @addSubView @header
     @header.addSubView @newItemPlus
+    {@appStorage} = @parent
     @appStorage.ready @bound 'loadPosition'
     @loadItems()
 
