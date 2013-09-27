@@ -404,11 +404,8 @@ class KDView extends KDObject
     super
 
   destroySubViews: ->
-    # (subView.destroy() for subView in @getSubViews())
-
-    for subView in @getSubViews().slice()
-      if subView instanceof KDView
-        subView?.destroy?()
+    view.destroy?() for view in @getSubViews().slice()
+    return
 
   addSubView:(subView,selector,shouldPrepend)->
     throw new Error 'no subview was specified' unless subView?
