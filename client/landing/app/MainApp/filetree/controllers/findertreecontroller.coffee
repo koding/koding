@@ -128,6 +128,10 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
 
+    if folder.depth > 10
+      @notify "Folder is nested deeply, making it top folder"
+      @makeTopFolder nodeView
+
     failCallback = (err)=>
       unless silence
         KD.logToExternal "Couldn't fetch files"
@@ -219,6 +223,7 @@ class NFinderTreeController extends JTreeViewController
         node.getData().remove (err, response)=>
           if err then @notify null, null, err
           else
+            node.emit "ItemBeingDeleted"
             cb err, node
 
     async.parallel stack, (error, result) =>
@@ -786,7 +791,7 @@ class NFinderTreeController extends JTreeViewController
 
   refreshTopNode:->
     {nickname} = KD.whoami().profile
-    @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"
+    @refreshFolder @nodes["/home/#{nickname}"], => @emit "fs.retry.success"
 
   showOpenWithModal: (nodeView) ->
     KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>

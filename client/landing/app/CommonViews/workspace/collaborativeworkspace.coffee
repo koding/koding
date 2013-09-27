@@ -94,7 +94,7 @@ class CollaborativeWorkspace extends Workspace
       return  unless val
 
       usernames = []
-      usernames.push username for username, status of val.users unless @users[username]
+      usernames.push username for own username, status of val.users unless @users[username]
 
       KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
         @users[user.profile.nickname] = user for user in jAccounts
@@ -112,7 +112,7 @@ class CollaborativeWorkspace extends Workspace
     @activePanel = newPanel
 
     callback()
-    @emit "PanelCreated"
+    @emit "PanelCreated", newPanel
 
   createSessionKey: ->
     nick = KD.nick()
@@ -158,7 +158,7 @@ class CollaborativeWorkspace extends Workspace
   joinSession: (sessionKey) ->
     {parent}           = @
     options            = @getOptions()
-    options.sessionKey = sessionKey
+    options.sessionKey = sessionKey.trim()
     @destroy()
 
     @forceDisconnect()

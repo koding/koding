@@ -41,6 +41,7 @@ class MainController extends KDController
     KD.registerSingleton "linkController",            new LinkController
     KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton "localStorageController",    new LocalStorageController
+    KD.registerSingleton "oauthController",           new OAuthController
     # KD.registerSingleton "fatih", new Fatih
 
     appManager.create 'Groups', (groupsController)->
@@ -61,12 +62,12 @@ class MainController extends KDController
     @userAccount             = account
     connectedState.connected = yes
 
-    KD.whoami().fetchMyPermissionsAndRoles (err, permissions, roles)=>
+    account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
       KD.config.roles       = roles
       KD.config.permissions = permissions
 
-      @ready @emit.bind @, "AccountChanged", account, firstLoad
+      @ready @emit.bind this, "AccountChanged", account, firstLoad
 
       @createMainViewController()  unless @mainViewController
 
