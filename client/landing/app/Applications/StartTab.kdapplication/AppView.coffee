@@ -29,7 +29,7 @@ class StartTabMainView extends JView
         title         : "Show environments"
         callback      : (cb)=>
           @serverContainer.setHeight 500
-          @utils.wait 220, => @serverContainer.scene.updateScene()
+          @utils.wait 260, => @serverContainer.scene.updateScene()
           cb()
       ,
         title         : "Hide environments"
