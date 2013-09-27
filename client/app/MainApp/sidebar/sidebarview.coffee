@@ -100,75 +100,75 @@ class Sidebar extends JView
     KD.registerSingleton "finderController", @finderController
     @finderController.on 'ShowEnvironments', => @finderBottomControlPin.click()
 
-    # Finder Bottom Controls
-    @finderBottomControlsController = new KDListViewController
-      view        : new FinderBottomControls
-      wrapper     : no
-      scrollView  : no
-    , bottomControlsItems
+    # # Finder Bottom Controls
+    # @finderBottomControlsController = new KDListViewController
+    #   view        : new FinderBottomControls
+    #   wrapper     : no
+    #   scrollView  : no
+    # , bottomControlsItems
 
-    @finderBottomControls = @finderBottomControlsController.getView()
+    # @finderBottomControls = @finderBottomControlsController.getView()
 
-    @finderBottomControlPin = new KDToggleButton
-      cssClass     : "finder-bottom-pin"
-      iconOnly     : yes
-      defaultState : "hide"
-      states       : [
-        title      : "show"
-        iconClass  : "up"
-        callback   : (callback)=>
-          @showBottomControls()
-          callback?()
-      ,
-        title      : "hide"
-        iconClass  : "down"
-        callback   : (callback)=>
-          @hideBottomControls()
-          callback?()
-      ]
+    # @finderBottomControlPin = new KDToggleButton
+    #   cssClass     : "finder-bottom-pin"
+    #   iconOnly     : yes
+    #   defaultState : "hide"
+    #   states       : [
+    #     title      : "show"
+    #     iconClass  : "up"
+    #     callback   : (callback)=>
+    #       @showBottomControls()
+    #       callback?()
+    #   ,
+    #     title      : "hide"
+    #     iconClass  : "down"
+    #     callback   : (callback)=>
+    #       @hideBottomControls()
+    #       callback?()
+    #   ]
 
-    @finderController.on 'EnvironmentsTabRequested', =>
-      @finderBottomControlPin.setState 'hide'
-      @showBottomControls()
+    # @finderController.on 'EnvironmentsTabRequested', =>
+    #   @finderBottomControlPin.setState 'hide'
+    #   @showBottomControls()
 
-    # FIXME ~ GG find a better place for this.
-    @finderController.on 'EnvironmentsTabHide', @bound 'hideBottomControls'
-    @finderController.on 'EnvironmentsTabShow', @bound 'showBottomControls'
+    # # FIXME ~ GG find a better place for this.
+    # @finderController.on 'EnvironmentsTabHide', @bound 'hideBottomControls'
+    # @finderController.on 'EnvironmentsTabShow', @bound 'showBottomControls'
 
-    @resourcesController = new ResourcesController
-    @resourcesWidget = @resourcesController.getView()
+    # @resourcesController = new ResourcesController
+    # @resourcesWidget = @resourcesController.getView()
 
-    @createNewVMButton = new KDButtonView
-      title     : "Create New VM"
-      icon      : yes
-      iconClass : "plus-orange"
-      cssClass  : "clean-gray create-vm"
-      callback  : ->
-        KD.getSingleton('vmController').createNewVM()
+    # @createNewVMButton = new KDButtonView
+    #   title     : "Create New VM"
+    #   icon      : yes
+    #   iconClass : "plus-orange"
+    #   cssClass  : "clean-gray create-vm"
+    #   callback  : ->
+    #     KD.getSingleton('vmController').createNewVM()
 
-    @environmentButton = new KDButtonView
-      title     : "Environments"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "cog"
-      cssClass  : "clean-gray open-environment"
-      testPath  : "environments-open"
-      callback  :->
-        if KD.whoami().type is 'unregistered'
-          new KDNotificationView title: "This feature requires registration"
-        else
-          KD.getSingleton("appManager").open "Environments"
+    # @environmentButton = new KDButtonView
+    #   title     : "Environments"
+    #   icon      : yes
+    #   iconOnly  : yes
+    #   iconClass : "cog"
+    #   cssClass  : "clean-gray open-environment"
+    #   testPath  : "environments-open"
+    #   callback  :->
+    #     if KD.whoami().type is 'unregistered'
+    #       new KDNotificationView title: "This feature requires registration"
+    #     else
+    #       KD.getSingleton("appManager").open "Environments"
 
-    @environmentsRefreshButton = new KDButtonView
-      title     : "Refresh"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "refresh"
-      cssClass  : "clean-gray refresh-environment"
-      callback  : =>
-        @resourcesController.reset()
+    # @environmentsRefreshButton = new KDButtonView
+    #   title     : "Refresh"
+    #   icon      : yes
+    #   iconOnly  : yes
+    #   iconClass : "refresh"
+    #   cssClass  : "clean-gray refresh-environment"
+    #   callback  : =>
+    #     @resourcesController.reset()
 
-    @environmentsRefreshButton.hide()  unless KD.checkFlag "super-admin"
+    # @environmentsRefreshButton.hide()  unless KD.checkFlag "super-admin"
 
     @listenWindowResize()
 
@@ -243,16 +243,6 @@ class Sidebar extends JView
       <div id='finder-holder'>
         {{> @finder}}
       </div>
-      <div id='finder-bottom-controls'>
-        {{> @finderBottomControls}}
-        {{> @finderBottomControlPin}}
-        {{> @resourcesWidget}}
-        <div class='button-wrapper'>
-          {{> @createNewVMButton}}
-          {{> @environmentButton}}
-          {{> @environmentsRefreshButton}}
-        </div>
-      </div>
     </div>
     """
   _mouseenterTimeout = null
@@ -316,7 +306,7 @@ class Sidebar extends JView
   _windowDidResize:->
     $fbc = @$('#finder-bottom-controls')
     h = @_resizeResourcesList()
-    @$("#finder-holder").height @getHeight() - h - 50
+    @$("#finder-holder").height @getHeight() - h - 26
 
   bottomControlsItems =
     id : "finder-bottom-controls"

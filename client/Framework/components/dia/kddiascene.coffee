@@ -11,7 +11,7 @@ class KDDiaScene extends JView
     options.lineColorActive  or= "orange"
     options.lineDashes        ?= []
     options.fakeLineColor    or= "green"
-    options.fakeLineDashes    ?= [3]
+    options.fakeLineDashes    ?= []
     options.curveDistance     ?= 50
 
     super
