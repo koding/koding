@@ -15,12 +15,14 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
-  JAppStorage = require './appstorage'
-  JTag = require './tag'
-  CActivity = require './activity'
-  Graph     = require "./graph/graph"
+  JStorage     = require './storage'
+  JAppStorage  = require './appstorage'
+  JTag         = require './tag'
+  CActivity    = require './activity'
+  Graph        = require "./graph/graph"
+  JName        = require './name'
+
   @getFlagRole = 'content'
-  JName = require './name'
 
   @lastUserCountFetchTime = 0
 
@@ -75,7 +77,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
+        'fetchAppStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'setEmailPreferences'
         'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
@@ -92,7 +94,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
         'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
-        'getOdeskAuthorizeUrl'
+        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store'
       ]
     schema                  :
       skillTags             : [String]
@@ -175,6 +177,10 @@ module.exports = class JAccount extends jraphical.Module
       appStorage    :
         as          : 'appStorage'
         targetType  : "JAppStorage"
+
+      storage       :
+        as          : 'storage'
+        targetType  : 'JStorage'
 
       tag:
         as          : 'skill'
@@ -936,10 +942,40 @@ module.exports = class JAccount extends jraphical.Module
   setClientId:(@clientId)->
 
   getFullName:->
-    {profile} = @data
-    profile.firstName+' '+profile.lastName
+    {firstName, lastName} = @data.profile
+    return "#{firstName} #{lastName}"
 
-  fetchStorage: secure (client, options, callback)->
+  fetchStorage$: secure (client, name, callback)->
+
+    unless @equals client.connection.delegate
+      return callback new KodingError "Attempt to access unauthorized storage"
+
+    @fetchStorage { 'data.name' : name }, callback
+
+  store: secure (client, {name, content}, callback)->
+
+    unless @equals client.connection.delegate
+      return callback new KodingError "Attempt to access unauthorized storage"
+
+    @fetchStorage { 'data.name' : name }, (err, storage)=>
+      if err
+        return callback new KodingError "Attempt to access storage failed"
+      else if storage
+        storage.update $set: {content}, (err) -> callback err, storage
+      else
+        storage = new JStorage {name, content}
+        storage.save (err)=>
+          return callback err  if err
+          rel = new Relationship
+            targetId    : storage.getId()
+            targetName  : 'JStorage'
+            sourceId    : @getId()
+            sourceName  : 'JAccount'
+            as          : 'storage'
+            data        : {name}
+          rel.save (err)-> callback err, storage
+
+  fetchAppStorage$: secure (client, options, callback)->
     unless @equals client.connection.delegate
       return callback "Attempt to access unauthorized application storage"
 
@@ -950,7 +986,7 @@ module.exports = class JAccount extends jraphical.Module
         log.info 'creating new storage for application', appId, version
         newStorage = new JAppStorage {appId, version}
         newStorage.save (err) =>
-          if err then callback error
+          if err then callback err
           else
             # manually add the relationship so that we can
             # query the edge instead of the target C.T.
