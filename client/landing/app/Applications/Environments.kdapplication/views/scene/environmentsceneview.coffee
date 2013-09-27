@@ -11,7 +11,11 @@ class EnvironmentScene extends KDDiaScene
     super
       cssClass  : 'environments-scene'
       lineWidth : 1
+
     @boxes = {}
+
+    sc = KD.getSingleton 'appStorageController'
+    @appStorage = sc.storage 'EnvironmentsScene', '1.0'
 
   disconnect:(dia, joint)->
 
@@ -66,6 +70,10 @@ class EnvironmentScene extends KDDiaScene
                    {dia : machine, joint : 'left' }, yes
 
   askForApprove:(items, action, callback)->
+    return unless KD.isLoggedIn()
+      new KDNotificationView
+        title : "You need to login to change domain settings."
+
     modal = new EnvironmentApprovalModal {action}, items
     modal.once 'Approved', => callback modal
 
@@ -101,7 +109,7 @@ class EnvironmentScene extends KDDiaScene
     @addSubView slider = new KDSliderBarView
       cssClass   : 'zoom-slider'
       minValue   : 0.3
-      maxValue   : 1.4
+      maxValue   : 1.0
       interval   : 0.1
       width      : 120
       snap       : no
@@ -128,8 +136,14 @@ class EnvironmentScene extends KDDiaScene
       click      : -> handle.setValue handle.value+0.1
 
     slider.on 'ValueIsChanging', (value)=>
-      do _.throttle =>
-        @setScale value
+      do _.throttle => @setScale value
+
+    slider.on 'ValueChanged', (handle)=>
+      @appStorage.setValue 'zoomLevel', handle.value
+
+    @appStorage.ready =>
+      zoomLevel = @appStorage.getValue 'zoomLevel'
+      slider.setValue zoomLevel  if zoomLevel
 
 class EnvironmentApprovalModal extends KDModalView
 
