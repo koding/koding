@@ -83,13 +83,10 @@ class EnvironmentItem extends KDDiaObject
 
   pipedVmName = (vmName)-> vmName.replace /\./g, '|'
 
-
   click:(event)->
-
     if $(event.target).is ".chevron"
       @contextMenu event
       return no
-
     super
 
   viewAppended:->
