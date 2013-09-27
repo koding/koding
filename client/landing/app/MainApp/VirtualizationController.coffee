@@ -253,7 +253,7 @@ class VirtualizationController extends KDController
   fetchDiskUsage:(vmName, callback = noop)->
     command = """df | grep aufs | awk '{print $2, $3}'"""
     @run { vmName, withArgs:command }, (err, res)->
-      if err or not res then [max, current] = [100, 10]
+      if err or not res then [max, current] = [0, 0]
       else [max, current] = res.trim().split " "
       warn err  if err
       callback
@@ -262,7 +262,7 @@ class VirtualizationController extends KDController
 
   fetchRamUsage:(vmName, callback = noop)->
     @info vmName, (err, vm, info)->
-      if err or info.state isnt "RUNNING" then [max, current] = [100, 3]
+      if err or info.state isnt "RUNNING" then [max, current] = [0, 0]
       else [max, current] = [info.totalMemoryLimit, info.memoryUsage]
       warn err  if err
       callback {max, current}
