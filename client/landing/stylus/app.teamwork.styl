@@ -150,41 +150,9 @@ app.teamwork.styl
   width                         390px
   margin                        10px
 
-.teamwork
-  .terminal-handle
-    size                        41px, 10px
-    gradient                    #f39a37, #ed6a20
-    abs()
-    bottom                      0
-    left                        50%
-    margin-left                 -20px
-    rounded                     4px 4px 0 0
-    text-align                  center
-    line-height                 20px
-    pointer()
-    span
-      size                      0, 0
-      border                    4px solid transparent
-      border-bottom-color       #f2f2f2
-      position                  relative
-      left                      7px
-      vendor                    transition, all .2s ease
-      vendor                    transform-origin-y, 75%
-      fl()
-      &.m
-        margin                  0 1px
-
-.teamwork .terminal-visible
-  .terminal-handle
-    border-radius               4px
-    span
-      vendor                    transform, rotateZ(180deg)
-      top                       -1px
-  .panel-1 .kdsplitview-resizer
-    margin-top                  0
-
-
-.teamwork .panel-1 .kdsplitview-resizer
-  cursor                        default
-  background                    none !important
-  margin-top                    -5px
+.teamwork .panel-1
+  bg                            color, #202020
+  .kdsplitview-resizer
+    cursor                      default
+    background                  none !important
+    margin-top                  -5px
