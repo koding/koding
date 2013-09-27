@@ -23,11 +23,11 @@ class ReviewView extends KDView
 
     @commentController        = new ReviewListViewController view: @reviewList
     @addSubView @commentForm  = new NewReviewForm delegate : @reviewList
+    @addSubView @commentController.getView()
     @addSubView showMore      = new CommentViewHeader
       delegate        : @reviewList
       itemTypeString  : 'review'
     , data
-    @addSubView @commentController.getView()
 
     @reviewList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
     @reviewList.on "ReviewIsDeleted", -> showMore.ownCommentDeleted()
