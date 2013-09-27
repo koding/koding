@@ -250,6 +250,21 @@ class VirtualizationController extends KDController
     return (rest...)=>
       @info vm, callback? rest...
 
+  fetchDiskUsage:(vmName, callback)->
+    command = """df | grep aufs | awk '{print $2, $3}'"""
+    @run { vmName, withArgs:command }, (err, res)->
+      if err or not res then [max, current] = [100, 10]
+      else [max, current] = res.trim().split " "
+      warn err  if err
+      callback? {max:parseInt(max,10), current:parseInt(current,10)}
+
+  fetchRamUsage:(vmName, callback)->
+    @info vmName, (err, vm, info)->
+      if err or info.state isnt "RUNNING" then [max, current] = [100, 3]
+      else [max, current] = [info.totalMemoryLimit, info.memoryUsage]
+      warn err  if err
+      callback? {max, current}
+
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
