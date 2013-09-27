@@ -1,22 +1,5 @@
 class ProfileView extends JView
 
-  externalProfiles =
-    github     :
-      nicename : 'GitHub'
-    oDesk      :
-      nicename : 'oDesk'
-    facebook   :
-      nicename : 'Facebook'
-    twitter    :
-      nicename : 'Twitter'
-      disabled : yes
-    linkedin   :
-      nicename : 'linkedIn'
-      disabled : yes
-    bitbucket  :
-      nicename : 'BitBucket'
-      disabled : yes
-
   constructor: (options = {}, data) ->
 
     super options, data
@@ -182,29 +165,50 @@ class ProfileView extends JView
         partial      : if KD.checkFlag 'exempt', @memberData then 'Unmark Troll' else 'Mark as Troll'
         cssClass     : "troll-switch"
         click        : =>
+          mc = KD.getSingleton('mainController')
           if KD.checkFlag 'exempt', @memberData
-            KD.getSingleton('mainController').unmarkUserAsTroll @memberData
-          else
-            KD.getSingleton('mainController').markUserAsTroll @memberData
+          then mc.unmarkUserAsTroll @memberData
+          else mc.markUserAsTroll   @memberData
     else
       @trollSwitch = new KDCustomHTMLView
 
+
   viewAppended:->
+
     super
+
     @createExternalProfiles()
+    @createBadges()
+
 
   createExternalProfiles:->
-    # @githubView   = new ExternalProfileView type : "github"
-    # @oDeskView    = new ExternalProfileView type : "oDesk"
-    # @twitterView  = new ExternalProfileView type : "twitter"
-    # @facebookView = new ExternalProfileView type : "facebook"
-    # @linkedInView = new ExternalProfileView type : "linkedIn"
+
+    appManager         = KD.getSingleton 'appManager'
+    {externalProfiles} = MembersAppController
+
     for own provider, options of externalProfiles
       @["#{provider}View"]?.destroy()
       @["#{provider}View"] = view = new ExternalProfileView
         type     : provider
-        cssClass : if options.disabled then 'disabled' else ''
+        niceName : options.niceName
       @addSubView view, '.external-profiles'
+
+    appManager.tell 'Members', 'fetchExternalProfiles', (err, storages)=>
+
+      return  if err
+
+      for storage in storages.reverse()
+
+        provider = storage.name.replace /^ext\|profile\|/, ''
+        continue  unless providerView = @["#{provider}View"]
+
+        providerView.setClass 'linked'
+        providerView.$().detach()
+        providerView.$().prependTo @$('.external-profiles')
+
+
+  createBadges:->
+
 
   setEditingMode: (state) ->
     @editingMode = state
@@ -347,6 +351,7 @@ class ProfileView extends JView
       <div class="profileinfo">
         <div class="action-wrapper">{{> @editLink}}{{> @cancelButton}}{{> @saveButton}}</div>
         <h3 class="profilename">{{> @firstName}}{{> @lastName}}</h3>
+        <div class="external-profiles"></div>
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
           {{> @userHomeLink}}
@@ -358,8 +363,8 @@ class ProfileView extends JView
           <div class="liks">{{> @likes}}</div>
           <div class='contact'>{{> @sendMessageLink}}</div>
         </div>
+        <div class="badges"></div>
         <div class="profilebio">{{> @bio }}</div>
-        <div class="external-profiles"></div>
         <div class="personal-skilltags">{{> @skillTagView}}</div>
       </div>
     </section>
