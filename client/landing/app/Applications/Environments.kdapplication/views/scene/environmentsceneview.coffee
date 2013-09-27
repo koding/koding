@@ -100,19 +100,36 @@ class EnvironmentScene extends KDDiaScene
 
     @addSubView slider = new KDSliderBarView
       cssClass   : 'zoom-slider'
-      minValue   : 30
-      maxValue   : 100
-      interval   : 10
+      minValue   : 0.3
+      maxValue   : 1.4
+      interval   : 0.1
       width      : 120
       snap       : no
       snapOnDrag : no
       drawBar    : yes
       showLabels : no
-      handles    : [100]
+      handles    : [1]
+
+    handle   = slider.handles[0]
+
+    @addSubView zoomControls = new KDCustomHTMLView
+      cssClass   : "zoom-controls"
+
+    zoomControls.addSubView zoomOut = new KDCustomHTMLView
+      tagName    : "a"
+      cssClass   : "zoom-control zoomout"
+      partial    : "-"
+      click      : -> handle.setValue handle.value-0.1
+
+    zoomControls.addSubView zoomIn = new KDCustomHTMLView
+      tagName    : "a"
+      cssClass   : "zoom-control zoomin"
+      partial    : "+"
+      click      : -> handle.setValue handle.value+0.1
 
     slider.on 'ValueIsChanging', (value)=>
       do _.throttle =>
-        @setScale (Math.floor value) / 100
+        @setScale value
 
 class EnvironmentApprovalModal extends KDModalView
 

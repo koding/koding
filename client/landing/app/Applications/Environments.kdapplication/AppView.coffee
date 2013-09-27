@@ -44,10 +44,9 @@ class EnvironmentsMainView extends JView
       @scene.setClass 'out'
       domainCreateForm.emit 'DomainNameShouldFocus'
       @utils.defer =>
-        @scene.on 'click', ->
+        @scene.once 'click', ->
           @unsetClass 'out'
           @setClass 'in'
-          @off 'click'
 
       # domainsContainer.loadItems()
 
