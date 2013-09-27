@@ -19,7 +19,7 @@ class DomainCreationForm extends KDCustomHTMLView
     @header.addSubView new KDButtonView
       cssClass    : "small-gray"
       title       : "Cancel"
-      callback    : => @emit 'DomainCreationCancelled'
+      callback    : => @emit 'CloseClicked'
 
     # -- Form -- #
     domainOptions = [
