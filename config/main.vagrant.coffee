@@ -83,6 +83,14 @@ module.exports =
     watch                : yes
     cronSchedule         : '* * * * * *'
     usageLimitInMinutes  : 60
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
+    usageLimitInMinutes  : 60
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
