@@ -986,11 +986,16 @@ div.environments-item
     height            50px
 
     div.progressbar-container
-      height          4px
-      margin-top      3px
-      width           100px
-      &:first-of-type
-        margin-top    7px
+      top             25px
+      height          15px
+      width           80px
+      abs()
+      span.light-label
+        display       none
+      span.dark-label
+        margin-top    2px
+      &:last-of-type
+        left          94px
 
     .vm-toggle-menu
       width           70px

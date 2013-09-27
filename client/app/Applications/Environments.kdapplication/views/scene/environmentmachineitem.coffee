@@ -10,8 +10,8 @@ class EnvironmentMachineItem extends EnvironmentItem
     super options, data
 
     vmName = @getData().title
-    @cpuUsage = new KDProgressBarView
     @memUsage = new KDProgressBarView
+    @diskUsage = new KDProgressBarView
 
   contextMenuItems : ->
 
@@ -46,21 +46,44 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     return items
 
-  confirmDestroy : ->
-    vmController = KD.getSingleton 'vmController'
-    vmController.remove @getData().title, @bound "destroy"
+  confirmDestroy:->
+    (KD.getSingleton 'vmController').remove @getData().title, @bound "destroy"
 
   viewAppended:->
     super
-    @cpuUsage.updateBar @getData().cpuUsage, '%', ''
-    @memUsage.updateBar @getData().memUsage, '%', ''
+    @updateUsageInfo()
+
+  updateUsageInfo:->
+    @usageFetcher 'fetchRamUsage', @memUsage, 'RAM'
+    @usageFetcher 'fetchDiskUsage', @diskUsage, 'DISK'
+
+  usageFetcher: (method, widget, label)->
+    vm  = @getData().title
+    vmc = KD.getSingleton 'vmController'
+    vmc[method] vm, (usage)->
+      ratio = ((usage.current * 100) / usage.max).toFixed(2)
+      widget.updateBar ratio, '%', label
+
+      if usage.max is 0
+        title =  "Failed to fetch #{label} info"
+      else
+        for key, item of usage
+          usage[key] = KD.utils.formatBytesToHumanReadable item
+
+      widget.setTooltip
+        title     : title or "#{usage.current} of #{usage.max}"
+        placement : "bottom"
+        delayIn   : 300
+        offset    :
+          top     : 2
+          left    : -8
 
   pistachio:->
     """
       <div class='details'>
         {h3{#(title)}}
-        {{> @cpuUsage}}
         {{> @memUsage}}
+        {{> @diskUsage}}
         <span class='chevron'></span>
       </div>
     """
