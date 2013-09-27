@@ -499,6 +499,7 @@ func prepareVM(vm *virt.VM) error {
 	}
 
 	infosMutex.Lock()
+	defer infosMutex.Unlock()
 	info, found := infos[vm.Id]
 	if !found {
 		info = newInfo(vm)
@@ -507,9 +508,9 @@ func prepareVM(vm *virt.VM) error {
 
 	info.useCounter += 1
 	info.timeout.Stop()
-	infosMutex.Unlock()
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
+		// protect vm.Prepare with a mutex(), fsck.ext4 is not concurrent ready
 		vm.Prepare(false, logWarning)
 		if err := vm.Start(); err != nil {
 			return err
