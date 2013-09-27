@@ -110,7 +110,7 @@ class EnvironmentScene extends KDDiaScene
       showLabels : no
       handles    : [100]
 
-    slider.on 'ValueChanged', (value)=>
+    slider.on 'ValueIsChanging', (value)=>
       do _.throttle =>
         @setScale (Math.floor value) / 100
 
