@@ -30,7 +30,7 @@ class WorkspaceLayout extends KDSplitComboView
     splitView.on "ResizeDidStop", => @emitResizedEventToPanes()
 
     splitView.on "viewAppended", =>
-      splitView.resizers[0].on "DragInAction", =>
+      splitView.resizers.first?.on "DragInAction", =>
         @emitResizedEventToPanes()
 
     return splitView
