@@ -19,6 +19,7 @@ class EnvironmentItem extends KDDiaObject
 
     items =
       'Delete'    :
+        disabled  : KD.isGuest()
         separator : yes
         action    : 'delete'
       'Unfocus'   :

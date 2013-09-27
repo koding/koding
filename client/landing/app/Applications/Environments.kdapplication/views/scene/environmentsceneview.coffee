@@ -70,6 +70,10 @@ class EnvironmentScene extends KDDiaScene
                    {dia : machine, joint : 'left' }, yes
 
   askForApprove:(items, action, callback)->
+    return unless KD.isLoggedIn()
+      new KDNotificationView
+        title : "You need to login to change domain settings."
+
     modal = new EnvironmentApprovalModal {action}, items
     modal.once 'Approved', => callback modal
 
