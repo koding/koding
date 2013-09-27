@@ -333,56 +333,6 @@ module.exports = class JAccount extends jraphical.Module
       else JPermissionSet.wrapPermission permission
     JPermissionSet.checkPermission client, advanced, target, callback
 
-  setBackgroundImage: secure (client, type, value, callback=->)->
-    {delegate}    = client.connection
-    isMine        = @equals delegate
-    if isMine
-      if type is 'customImage'
-        operation =
-          $set: {}
-          $addToSet : {}
-        operation.$addToSet['profile.staticPage.customize.background.customImages'] = value
-      else
-        operation = $set : {}
-
-      operation.$set["profile.staticPage.customize.background.customType"] = type
-
-      if type in ['defaultImage','defaultColor','customColor','customImage']
-        operation.$set["profile.staticPage.customize.background.customValue"] = value
-
-
-      @update operation, callback
-
-  setAbout: secure (client, text, callback)->
-    {delegate} = client.connection
-    isMine      = @equals delegate
-    if isMine
-      @fetchAbout (err, about)=>
-        console.log err if err
-        unless about
-          JMarkdownDoc = require './markdowndoc'
-          about        = new JMarkdownDoc content: text
-
-          daisy queue = [
-            ->
-              about.save (err)->
-                console.log err
-                if err then callback err
-                else queue.next()
-            =>
-              @addAbout about, (err)->
-                console.log err
-                if err then callback err
-                else queue.next()
-            ->
-              callback null, about
-          ]
-
-        else
-          about.update $set:{ content: text }, (err)=>
-            if err then callback err
-            else callback null, about
-
   @renderHomepage: require '../render/profile.coffee'
 
   @fetchCachedUserCount: (callback)->
@@ -413,63 +363,6 @@ module.exports = class JAccount extends jraphical.Module
       @update operation, callback
     else
       callback? new KodingError 'Access denied'
-
-  setStaticPageTitle: secure (client, title, callback)->
-    {delegate}  = client.connection
-    selector    = "profile.staticPage.title"
-    isMine      = @equals delegate
-    if isMine
-      operation = $set: {}
-      operation.$set[selector] = title
-      @update operation, callback
-    else
-      callback? new KodingError 'Access denied'
-
-  setStaticPageAbout: secure (client, about, callback)->
-    {delegate} = client.connection
-    selector   = "profile.staticPage.about"
-    isMine     = @equals delegate
-    if isMine
-      operation = $set: {}
-      operation.$set[selector] = about
-      @update operation, callback
-    else
-      callback? new KodingError 'Access denied'
-
-
-  addStaticPageType: secure (client, type, callback)->
-    {delegate} = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @update {$addToSet: 'profile.staticPage.showTypes': type}, callback
-    else
-      callback? new KodingError 'Access denied'
-
-  # addStaticBackground: secure (client, url, callback)->
-  #   {delegate}    = client.connection
-  #   isMine        = @equals delegate
-  #   if isMine
-  #     @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
-  #   else
-  #     callback? new KodingError 'Access denied'
-
-  removeStaticPageType: secure (client, type, callback)->
-    {delegate} = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @update {$pullAll: 'profile.staticPage.showTypes': [type]}, callback
-    else
-      callback? new KodingError 'Access denied'
-
-
-  setStaticPageVisibility: secure (client, visible=yes, callback)->
-    {delegate} = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @update ($set: 'profile.staticPage.show': visible), callback
-    else
-      callback? new KodingError 'Access denied'
-
 
   fetchGroups: secure (client, callback)->
     JGroup        = require './group'
@@ -946,19 +839,15 @@ module.exports = class JAccount extends jraphical.Module
     {firstName, lastName} = @data.profile
     return "#{firstName} #{lastName}"
 
-  fetchStorage$: secure (client, name, callback)->
-
-    unless @equals client.connection.delegate
-      return callback new KodingError "Attempt to access unauthorized storage"
+  fetchStorage$: (name, callback)->
 
     @fetchStorage { 'data.name' : name }, callback
 
-  fetchStorages$: secure (client, query, callback)->
+  fetchStorages$: (whitelist=[], callback)->
 
-    unless @equals client.connection.delegate
-      return callback new KodingError "Attempt to access unauthorized storage"
+    options = if whitelist.length then { 'data.name' : $in : whitelist } else {}
 
-    @fetchStorages query, callback
+    @fetchStorages options, callback
 
   store: secure (client, {name, content}, callback)->
     unless @equals client.connection.delegate

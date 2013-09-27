@@ -300,9 +300,8 @@ class MembersAppController extends AppController
 
     KD.remote.api.JAccount.byRelevance selector, options, callback
 
-  fetchExternalProfiles:(callback)->
-    account = KD.whoami()
-    account.fetchStorages
-      'data.name' :
-        '$in'     : Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
-      , callback
+
+  fetchExternalProfiles:(account, callback)->
+
+    whitelist = Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
+    account.fetchStorages  whitelist, callback

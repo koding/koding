@@ -152,6 +152,10 @@ app.profile.styl
 .content-display.member
   .profilearea
     // overflow              visible
+    &.own-profile
+      .external-profiles
+        .external-profile
+          visible()
     .external-profiles
       display             inline-block
       vertical-align      top
@@ -161,8 +165,10 @@ app.profile.styl
         margin            0 2px 0 0
         sprite()
         fl()
+        hidden()
         &.linked
           background-position-y     -860px !important
+          visible()
         &.facebook
           bg              position, 0 -890px
         &.twitter
