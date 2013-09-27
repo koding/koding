@@ -398,38 +398,11 @@ class NFinderTreeController extends JTreeViewController
       callback?()
 
   cloneRepo: (nodeView) ->
-    folder     = nodeView.getData()
-    modal      = new ModalViewWithTerminal
-      title    : "Clone Remote Repository"
-      cssClass : "modal-with-text clone-repo-modal"
-      content  : "<p>Enter the URL of remote Git repository to clone.</p>"
-      overlay  : yes
-      width    : 500
-      terminal :
-        hidden : yes
-        vmName : folder.vmName
-        height : 300
-
-    modal.addSubView repoPath = new KDHitEnterInputView
-      type         : "text"
-      placeholder  : "Paste a repo url to clone"
-      validationNotifications: yes
-      validate     :
-        rules      :
-          required : yes
-        messages   :
-          required : "Please enter a repo url..."
-      callback     : ->
-        command    = "cd #{FSHelper.plainPath folder.path} ; git clone #{repoPath.getValue()}; echo $?|kdevent;"
-        modal.setClass "running"
-        modal.run command
-        modal.once "terminal.event", (data) ->
-          if data is "0"
-            modal.destroy()
-            new KDNotificationView
-              title    : "Repo cloned successfully."
-              type     : "mini"
-              cssClass : "success"
+    folder   = nodeView.getData()
+    modal    = new CloneRepoModal
+      vmName : folder.vmName
+      path   : folder.path
+    modal.on "RepoClonedSuccessfully", => @notify "Repo cloned successfully.", "success"
 
   publishApp:(nodeView)->
 
