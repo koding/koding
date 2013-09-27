@@ -69,4 +69,15 @@ class EnvironmentContainer extends KDDiaContainer
     return  unless position
     @setX position.x; @setY position.y
 
+  resetPosition:->
+
+    @setX @_initialPosition.x
+    @setY @_initialPosition.y
+
+    name      = @constructor.name
+    positions = (@appStorage.getValue 'containerPositions') or {}
+
+    delete positions[name]
+    @appStorage.setValue 'containerPositions', positions
+
   loadItems:-> yes

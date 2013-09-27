@@ -866,8 +866,27 @@ div.environments-scene
         border-color    #bbb
         color           #bbb
 
+  .reset-view
+    opacity             .6
+    border              none
+    background          white
+    left                10px
+    bottom              10px
+    font-size           11px
+    color               #666
+    z-index             6
+    abs()
 
+    &:hover
+      opacity           1
 
+    span.icon
+      sprite()
+      background-position -120px -580px
+      size              12px, 12px
+      position          relative
+    span.button-title
+      line-height       19px
 
 div.environments-container
 

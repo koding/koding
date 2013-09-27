@@ -80,6 +80,7 @@ class KDSliderBarView extends KDCustomHTMLView
   setValue:(value, handle)->
     handle ?= @handles.first
     handle.setValue value
+    @emit "ValueChanged", handle
 
   setLimits:->
     {maxValue, minValue, interval}      = @getOptions()

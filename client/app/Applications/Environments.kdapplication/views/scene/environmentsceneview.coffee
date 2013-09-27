@@ -92,6 +92,7 @@ class EnvironmentScene extends KDDiaScene
 
     {name} = container.constructor
     label  = containerMap[name] or name
+    container._initialPosition = pos
     @boxes[label] = container
 
   parseItems = (source, target)->
@@ -106,7 +107,7 @@ class EnvironmentScene extends KDDiaScene
   viewAppended:->
     super
 
-    @addSubView slider = new KDSliderBarView
+    @addSubView @slider = new KDSliderBarView
       cssClass   : 'zoom-slider'
       minValue   : 0.3
       maxValue   : 1.0
@@ -118,7 +119,7 @@ class EnvironmentScene extends KDDiaScene
       showLabels : no
       handles    : [1]
 
-    handle   = slider.handles[0]
+    handle   = @slider.handles.first
 
     @addSubView zoomControls = new KDCustomHTMLView
       cssClass   : "zoom-controls"
@@ -135,15 +136,25 @@ class EnvironmentScene extends KDDiaScene
       partial    : "+"
       click      : -> handle.setValue handle.value+0.1
 
-    slider.on 'ValueIsChanging', (value)=>
+    @slider.on 'ValueIsChanging', (value)=>
       do _.throttle => @setScale value
 
-    slider.on 'ValueChanged', (handle)=>
+    @slider.on 'ValueChanged', (handle)=>
       @appStorage.setValue 'zoomLevel', handle.value
+
+    @addSubView resetView = new KDButtonView
+      cssClass   : "reset-view"
+      title      : "Reset layout"
+      icon       : yes
+      callback   : @bound 'resetLayout'
 
     @appStorage.ready =>
       zoomLevel = @appStorage.getValue 'zoomLevel'
-      slider.setValue zoomLevel  if zoomLevel
+      @slider.setValue zoomLevel  if zoomLevel
+
+  resetLayout:->
+    box.resetPosition()  for _, box of @boxes
+    @slider.setValue 1
 
 class EnvironmentApprovalModal extends KDModalView
 
