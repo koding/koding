@@ -254,8 +254,10 @@ class VirtualizationController extends KDController
     KD.remote.api.JVM.fetchDefaultVm callback
 
   createDefaultVM: (callback)->
+
     @hasDefaultVM (err, state)->
       return warn 'Default VM already exists.'  if state
+
       notify = new KDNotificationView
         title         : "Creating your VM..."
         overlay       :
@@ -264,6 +266,7 @@ class VirtualizationController extends KDController
         loader        :
           color       : "#ffffff"
         duration      : 120000
+
       KD.remote.cacheable KD.defaultSlug, (err, group)->
         if err or not group?.length
           return warn err
@@ -279,7 +282,9 @@ class VirtualizationController extends KDController
               KD.getSingleton('finderController').mountVm defaultVmName
               notify.destroy()
               callback?()
-          else warn err
+          else
+            notify?.destroy()
+            KD.showError err
 
   createNewVM: (callback)->
     @hasDefaultVM (err, state)=>

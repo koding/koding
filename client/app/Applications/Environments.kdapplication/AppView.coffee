@@ -41,6 +41,9 @@ class EnvironmentsMainView extends JView
 
     # Plus button on domainsContainer opens up the action area
     domainsContainer.on 'PlusButtonClicked', =>
+      return unless KD.isLoggedIn()
+        new KDNotificationView title: "You need to login to add a new domain."
+
       @scene.setClass 'out'
       domainCreateForm.emit 'DomainNameShouldFocus'
       @utils.defer =>
@@ -52,6 +55,10 @@ class EnvironmentsMainView extends JView
 
     # Plus button on machinesContainer uses the vmController
     machinesContainer.on 'PlusButtonClicked', =>
+      return unless KD.isLoggedIn()
+        new KDNotificationView
+          title: "You need to login to create a new machine."
+
       KD.getSingleton('vmController').createNewVM()
 
 #  - DO NOT TOUCH BELOW
