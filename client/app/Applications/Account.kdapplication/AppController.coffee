@@ -12,7 +12,7 @@ class AccountAppController extends AppController
       type       : "account"
       loggedIn   : yes
 
-  constructor:(options={},data)->
+  constructor:(options={}, data)->
 
     options.view = new KDView cssClass : "content-page"
 
