@@ -829,13 +829,45 @@ div.environments-scene
   background-color  white
 
   .zoom-slider
-    right         20px
-    bottom        10px
-    height        2px
+    right               50px
+    bottom              0
+    height              2px
     abs()
 
     .handle
-      height      5px
+      height            10px
+      top               -4px
+
+  .zoom-controls
+    size                177px, 13px
+    right               24px
+    bottom              15px
+    abs()
+
+    a.zoom-control
+      display           block
+      size              15px, 15px
+      line-height       9px
+      font-weight       bold
+      color             #ddd
+      font-size         14px
+      text-align        center
+      border            2px solid #ddd
+      text-decoration   none
+      rounded           100%
+      borderBox()
+      fl()
+
+      &.zoomin
+        line-height     11px
+        fr()
+
+      &:hover
+        border-color    #bbb
+        color           #bbb
+
+
+
 
 div.environments-container
 
