@@ -127,7 +127,7 @@ class EnvironmentScene extends KDDiaScene
       partial    : "+"
       click      : -> handle.setValue handle.value+0.1
 
-    slider.on 'ValueChanged', (value)=>
+    slider.on 'ValueIsChanging', (value)=>
       do _.throttle =>
         @setScale value
 

@@ -1,6 +1,7 @@
 class KDDiaObject extends JView
 
   constructor:(options, data)->
+
     options.cssClass  = KD.utils.curry 'kddia-object', options.cssClass
 
     unless options.draggable?
