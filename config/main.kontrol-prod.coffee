@@ -7,7 +7,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0&maxPoolSize=100'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -226,3 +226,7 @@ module.exports =
     clientId     : "434245153353814"
     clientSecret : "84b024e0d627d5e80ede59150a2b251e"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  statsd         :
+    use          : true
+    ip           : "172.168.2.7"
+    port         : 8125

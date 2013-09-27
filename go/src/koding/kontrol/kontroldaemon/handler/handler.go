@@ -96,7 +96,7 @@ func runHelperFunctions() {
 	// certain deployment is not running anymore, then it will remove the
 	// deployment information and all workers associated with that deployment
 	// build.
-	tickerDeployment := time.NewTicker(time.Minute * 5)
+	tickerDeployment := time.NewTicker(time.Hour * 1)
 	go func() {
 		for _ = range tickerDeployment.C {
 			log.Println("cleaner started to remove unused deployments and dead workers")
