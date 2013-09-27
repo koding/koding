@@ -13,7 +13,6 @@ class EnvironmentMachineContainer extends EnvironmentContainer
       @utils.defer => @refreshItems()
 
   refreshItems:->
-    log "refreshItems"
     for key, dia of @dias
       dia.destroy()
     @loadItems()
