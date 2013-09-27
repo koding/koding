@@ -11,6 +11,11 @@ class ExternalProfileView extends JView
     # appManager.tell 'Account', 'fetchProviders', (providers)->
 
   viewAppended:->
+    super
+    # @setPartial @getOption 'type'
 
-    @setPartial @getOption 'type'
+  pistachio:->
 
+    """
+    <span class="icon"></span>
+    """
