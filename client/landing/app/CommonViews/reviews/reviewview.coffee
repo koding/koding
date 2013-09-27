@@ -18,6 +18,7 @@ class ReviewView extends KDView
       type          : "comments"
       itemClass     : ReviewListItemView
       delegate      : @
+      lastToFirst   : yes
     , data
 
     @commentController        = new ReviewListViewController view: @reviewList
@@ -32,7 +33,7 @@ class ReviewView extends KDView
     @reviewList.on "ReviewIsDeleted", -> showMore.ownCommentDeleted()
 
     data.fetchRelativeReviews limit:3, after:'meta.createdAt', (err, reviews)=>
-      for review in reviews
+      for review in reviews.reverse()
         @reviewList.addItem review
 
     @reviewList.emit "BackgroundActivityFinished"

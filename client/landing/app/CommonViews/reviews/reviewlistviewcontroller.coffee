@@ -78,7 +78,7 @@ class ReviewListViewController extends KDListViewController
         @removeAllItems()
         @_removedBefore = yes
 
-      @instantiateListItems reivews, yes
+      @instantiateListItems reivews.reverse(), yes
 
       listView = @getListView()
       listView.emit "BackgroundActivityFinished"
