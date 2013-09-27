@@ -33,6 +33,7 @@ module.exports =
     enabled     : yes
     port        : 3526
   mongo         : mongo
+  mongoReplSet  : null
   neo4j         :
     read        : "http://localhost"
     write       : "http://localhost"
@@ -192,6 +193,7 @@ module.exports =
   haproxy         :
     webPort       : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
       apiHost     : "127.0.0.1"
       apiPort     : 8888
@@ -203,12 +205,6 @@ module.exports =
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-    rabbitmq      :
-      host        : 'localhost'
-      port        : '5672'
-      login       : 'guest'
-      password    : 'guest'
-      vhost       : '/'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"
@@ -245,3 +241,7 @@ module.exports =
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
+  statsd         :
+    use          : false
+    ip           : "localhost"
+    port         : 8125

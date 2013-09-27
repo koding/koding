@@ -120,7 +120,8 @@ class MainView extends KDView
 
     @header.getElement().innerHTML = ''
 
-    @header.addSubView @logo = new KDCustomHTMLView
+    @header.addSubView wrapper = new KDView
+    wrapper.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type is 'group' then 'group' else ''
@@ -130,7 +131,7 @@ class MainView extends KDView
         homeRoute = if KD.isLoggedIn() then "/Activity" else "/Home"
         KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
 
-    @header.addSubView loginLink = new CustomLinkView
+    wrapper.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
       title       : 'Already a user? Sign in.'
       icon        :
