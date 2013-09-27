@@ -135,7 +135,7 @@ module.exports =
       mainUri   : "http://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
-        sockJS   : "http://stage-broker-#{version}.in.koding.com/subscribe"
+        sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -223,3 +223,7 @@ module.exports =
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  statsd         :
+    log          : true
+    ip           : "172.168.2.7"
+    port         : 8125
