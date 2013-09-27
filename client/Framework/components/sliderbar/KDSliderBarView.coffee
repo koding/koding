@@ -11,6 +11,7 @@
 #   handles    : [100, 60]
 
 class KDSliderBarView extends KDCustomHTMLView
+
   constructor:(options = {}, data = {})->
 
     options.cssClass    = KD.utils.curry "sliderbar-container", options.cssClass
@@ -75,6 +76,10 @@ class KDSliderBarView extends KDCustomHTMLView
     else @_createLabel value for value in [minValue..maxValue] by interval
 
   getValues:-> handle.getOptions().value for handle in @handles
+
+  setValue:(value, handle)->
+    handle ?= @handles.first
+    handle.setValue value
 
   setLimits:->
     {maxValue, minValue, interval}      = @getOptions()
