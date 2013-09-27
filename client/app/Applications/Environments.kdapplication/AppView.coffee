@@ -29,12 +29,12 @@ class EnvironmentsMainView extends JView
 
     # After Domains and Machines container load finished
     # Call updateConnections to draw lines between corresponding objects
-    @scene.whenItemsLoadedFor \
-      [domainsContainer, machinesContainer], @scene.bound 'updateConnections'
+    @scene.whenItemsLoadedFor [domainsContainer, machinesContainer], =>
+      @scene.updateConnections()
+      domainsContainer.on  "DataLoaded", @scene.bound 'updateConnections'
+      machinesContainer.on "DataLoaded", @scene.bound 'updateConnections'
 
-    domainCreateForm.on 'DomainSaved', =>
-      domainsContainer.once "DataLoaded", @scene.bound 'updateConnections'
-      domainsContainer.loadItems()
+    domainCreateForm.on 'DomainSaved', domainsContainer.bound 'loadItems'
 
     # Plus button on domainsContainer opens up the action area
     domainsContainer.on 'PlusButtonClicked', =>
