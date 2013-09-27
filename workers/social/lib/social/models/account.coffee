@@ -946,19 +946,15 @@ module.exports = class JAccount extends jraphical.Module
     {firstName, lastName} = @data.profile
     return "#{firstName} #{lastName}"
 
-  fetchStorage$: secure (client, name, callback)->
-
-    unless @equals client.connection.delegate
-      return callback new KodingError "Attempt to access unauthorized storage"
+  fetchStorage$: (name, callback)->
 
     @fetchStorage { 'data.name' : name }, callback
 
-  fetchStorages$: secure (client, query, callback)->
+  fetchStorages$: (whitelist=[], callback)->
 
-    unless @equals client.connection.delegate
-      return callback new KodingError "Attempt to access unauthorized storage"
+    options = if whitelist.length then { 'data.name' : $in : whitelist } else {}
 
-    @fetchStorages query, callback
+    @fetchStorages options, callback
 
   store: secure (client, {name, content}, callback)->
 

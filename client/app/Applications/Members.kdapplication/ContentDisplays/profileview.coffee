@@ -193,9 +193,9 @@ class ProfileView extends JView
         niceName : options.niceName
       @addSubView view, '.external-profiles'
 
-    appManager.tell 'Members', 'fetchExternalProfiles', (err, storages)=>
+    appManager.tell 'Members', 'fetchExternalProfiles', @memberData, (err, storages)=>
 
-      return  if err
+      return warn err  if err
 
       for storage in storages.reverse()
 
