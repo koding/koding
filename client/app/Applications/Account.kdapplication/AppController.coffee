@@ -108,6 +108,8 @@ class AccountAppController extends AppController
     lastWrapper = @wrapperController.sectionLists[@wrapperController.sectionLists.length-1]
     lastWrapper.setHeight @navController.getView().getHeight()
 
+  fetchProviders:->
+
   showReferrerTooltip:(options)->
 
     {linkView, top, left, arrowMargin} = options

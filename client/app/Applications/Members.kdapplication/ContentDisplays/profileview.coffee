@@ -1,5 +1,24 @@
 class ProfileView extends JView
+
+  externalProfiles =
+    github     :
+      nicename : 'GitHub'
+    oDesk      :
+      nicename : 'oDesk'
+    facebook   :
+      nicename : 'Facebook'
+    twitter    :
+      nicename : 'Twitter'
+      disabled : yes
+    linkedin   :
+      nicename : 'linkedIn'
+      disabled : yes
+    bitbucket  :
+      nicename : 'BitBucket'
+      disabled : yes
+
   constructor: (options = {}, data) ->
+
     super options, data
 
     @memberData = @getData()
@@ -8,27 +27,28 @@ class ProfileView extends JView
       if not KD.checkFlag 'super-admin'
         return KD.getSingleton('router').handleRoute "/Activity"
 
-    @editButton = new KDCustomHTMLView
-    if KD.isMine @memberData
-      @editButton   = new KDButtonView
-        testPath    : "profile-edit-button"
-        cssClass    : "edit"
-        style       : "clean-gray"
-        title       : "Edit your profile"
-        callback    : @bound 'onEdit'
+    @editLink = if KD.isMine @memberData
+    then new CustomLinkView
+      title       : "Edit your profile"
+      icon        :
+        cssClass  : "edit"
+        placement : "right"
+      testPath    : "profile-edit-button"
+      cssClass    : "edit"
+      click       : @bound 'edit'
+    else new KDCustomHTMLView
 
     @saveButton     = new KDButtonView
       testPath      : "profile-save-button"
       cssClass      : "save hidden"
       style         : "cupid-green"
       title         : "Save"
-      callback      : @bound 'onSave'
+      callback      : @bound 'save'
 
-    @cancelButton   = new KDButtonView
-      cssClass      : "cancel hidden"
-      style         : "clean-red"
+    @cancelButton   = new CustomLinkView
       title         : "Cancel"
-      callback      : @bound 'onCancel'
+      cssClass      : "cancel hidden"
+      click         : @bound 'cancel'
 
     @firstName      = new KDContentEditableView
       testPath      : "profile-first-name"
@@ -70,7 +90,7 @@ class ProfileView extends JView
       testPath      : "profile-bio"
       pistachio     : "{{ @utils.applyTextExpansions #(profile.about), yes}}"
       cssClass      : "bio"
-      placeholder   : if KD.isMine @memberData then @bioPlaceholder else ""
+      placeholder   : if KD.isMine @memberData then "You haven't entered anything in your bio yet. Why not add something now?" else ""
       textExpansion : yes
       delegate      : this
       click         : (event) => KD.utils.showMoreClickHandler event
@@ -88,10 +108,9 @@ class ProfileView extends JView
     for input in [@firstName, @lastName, @location, @bio]
       input.on "click", => if not @editingMode and KD.isMine @memberData then @setEditingMode on
 
-    if KD.isMine @memberData or @memberData.skillTags.length > 0
-      @skillTagView = new SkillTagFormView {}, @memberData
-    else
-      @skillTagView = new KDCustomHTMLView
+    @skillTagView = if KD.isMine @memberData or @memberData.skillTags.length > 0
+    then new SkillTagFormView {}, @memberData
+    else new KDCustomHTMLView
 
     @skillTagView.on "AutoCompleteNeedsTagData", (event) =>
       {callback, inputValue, blacklist} = event
@@ -170,24 +189,42 @@ class ProfileView extends JView
     else
       @trollSwitch = new KDCustomHTMLView
 
+  viewAppended:->
+    super
+    @createExternalProfiles()
+
+  createExternalProfiles:->
+    # @githubView   = new ExternalProfileView type : "github"
+    # @oDeskView    = new ExternalProfileView type : "oDesk"
+    # @twitterView  = new ExternalProfileView type : "twitter"
+    # @facebookView = new ExternalProfileView type : "facebook"
+    # @linkedInView = new ExternalProfileView type : "linkedIn"
+    for own provider, options of externalProfiles
+      @["#{provider}View"]?.destroy()
+      @["#{provider}View"] = view = new ExternalProfileView
+        type     : provider
+        cssClass : if options.disabled then 'disabled' else ''
+      @addSubView view, '.external-profiles'
+
   setEditingMode: (state) ->
     @editingMode = state
     @emit "EditingModeToggled", state
 
     if state
-      @editButton.hide()
+      @editLink.hide()
       @saveButton.show()
-      @cancelButton.show()    
+      @cancelButton.show()
     else
-      @editButton.show()
+      @editLink.show()
       @saveButton.hide()
       @cancelButton.hide()
 
-  onEdit: ->
+  edit:(event)->
+    KD.utils.stopDOMEvent event  if event
     @setEditingMode on
     @firstName.focus()
 
-  onSave: ->
+  save: ->
     for input in [@firstName, @lastName]
       unless input.validate() then return
 
@@ -215,7 +252,8 @@ class ProfileView extends JView
       @utils.defer =>
         @memberData.emit "update"
 
-  onCancel: =>
+  cancel:(event)->
+    KD.utils.stopDOMEvent event  if event
     @setEditingMode off
     @memberData.emit "update"
 
@@ -307,7 +345,7 @@ class ProfileView extends JView
 
     <section>
       <div class="profileinfo">
-        {{> @editButton}} {{> @saveButton}} {{> @cancelButton}}
+        <div class="action-wrapper">{{> @editLink}}{{> @cancelButton}}{{> @saveButton}}</div>
         <h3 class="profilename">{{> @firstName}}{{> @lastName}}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
@@ -321,9 +359,8 @@ class ProfileView extends JView
           <div class='contact'>{{> @sendMessageLink}}</div>
         </div>
         <div class="profilebio">{{> @bio }}</div>
+        <div class="external-profiles"></div>
         <div class="personal-skilltags">{{> @skillTagView}}</div>
       </div>
     </section>
     """
-
-  bioPlaceholder: "You haven't entered anything in your bio yet. Why not add something now?"
