@@ -961,10 +961,12 @@ module.exports = class JAccount extends jraphical.Module
     @fetchStorages query, callback
 
   store: secure (client, {name, content}, callback)->
-
     unless @equals client.connection.delegate
       return callback new KodingError "Attempt to access unauthorized storage"
 
+    @_store {name, content}, callback
+
+  _store: ({name, content}, callback)->
     @fetchStorage { 'data.name' : name }, (err, storage)=>
       if err
         return callback new KodingError "Attempt to access storage failed"
