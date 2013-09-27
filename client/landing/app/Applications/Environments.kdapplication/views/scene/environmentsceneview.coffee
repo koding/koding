@@ -29,14 +29,14 @@ class EnvironmentScene extends KDDiaScene
     return unless domain
 
     @askForApprove items, 'delete', (modal)=>
-      if machine? # Remove a domain from a machine
-        jDomain = domain.dia.data.domain # JDomain
-        vmName  = machine.dia.data.title # JVM.hostnameAlias
-        jDomain.unbindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
-          removeConnection()
+      return unless machine? # Remove a domain from a machine
+      jDomain = domain.dia.data.domain # JDomain
+      vmName  = machine.dia.data.title # JVM.hostnameAlias
+      jDomain.unbindVM hostnameAlias: vmName, (err)=>
+        modal.destroy()
+        return KD.showError err  if err
+        jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
+        removeConnection()
 
   connect:(source, target, internal = no)->
 
