@@ -52,7 +52,7 @@ class CollaborativeWorkspaceUserList extends JView
       userList  = {}
       userNames = []
 
-      for userName, status of val.users
+      for own userName, status of val.users
         userList[userName] = status
         userNames.push userName
 

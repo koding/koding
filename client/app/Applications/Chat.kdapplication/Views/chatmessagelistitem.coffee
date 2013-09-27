@@ -2,7 +2,7 @@ class ChatMessageListItem extends KDListItemView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = KD.utils.curryCssClass "message", data.cssClass
+    options.cssClass = KD.utils.curry "message", data.cssClass
     options.tagName  = "li"
     data.message     = Encoder.XSSEncode data.message
     super options, data

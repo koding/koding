@@ -5,14 +5,16 @@ Broker   = require 'broker'
 {extend} = require 'underscore'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-{mongo, mq, projectRoot, webserver} = KONFIG
+{mq, projectRoot, webserver, mongoReplSet} = KONFIG
+
+mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"
 
 mqOptions = extend {}, mq
 mqOptions.login = webserver.login  if webserver?.login?
 mqOptions.productName = 'koding-webserver'
 
 module.exports = new Bongo {
-  mongo
+  mongo: mongoReplSet or mongo
   root: projectRoot
   models: 'workers/social/lib/social/models'
   mq: new Broker mqOptions

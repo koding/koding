@@ -35,7 +35,7 @@ class GroupPermissionsView extends JView
             @permissions.emit 'RoleViewRefreshed'
             @permissions.on 'RoleWasAdded', (newPermissions,role,copy)=>
               copiedPermissions = []
-              for permission of newPermissions
+              for own permission of newPermissions
                 if newPermissions[permission].role is copy
                   copiedPermissions.push
                     module      : newPermissions[permission].module

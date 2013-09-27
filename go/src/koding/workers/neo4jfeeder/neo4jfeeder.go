@@ -6,6 +6,7 @@ import (
 	"github.com/streadway/amqp"
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
+	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo/bson"
 	"strings"
@@ -29,6 +30,7 @@ type Message struct {
 }
 
 func main() {
+	statsd.SetAppName("neo4jFeeder")
 	startConsuming()
 }
 
@@ -149,12 +151,16 @@ func checkIfEligible(sourceName, targetName string) bool {
 }
 
 func createNode(data map[string]interface{}) {
-
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	sourceName := fmt.Sprintf("%s", data["sourceName"])
 
 	targetId := fmt.Sprintf("%s", data["targetId"])
 	targetName := fmt.Sprintf("%s", data["targetName"])
+
+	if sourceId == "" || sourceName == "" || targetId == "" || targetName == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
 
 	if !checkIfEligible(sourceName, targetName) {
 		return
@@ -164,9 +170,13 @@ func createNode(data map[string]interface{}) {
 		return
 	}
 
+	sTimer := statsd.StartTimer("createNode")
+
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
+		sTimer.Failed()
 		fmt.Println("sourceContent", err)
+
 		return
 	}
 	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
@@ -174,7 +184,9 @@ func createNode(data map[string]interface{}) {
 
 	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
+		sTimer.Failed()
 		fmt.Println("targetContent", err)
+
 		return
 	}
 	targetNode := neo4j.CreateUniqueNode(targetId, targetName)
@@ -184,19 +196,25 @@ func createNode(data map[string]interface{}) {
 	target := fmt.Sprintf("%s", targetNode["self"])
 
 	if _, ok := data["as"]; !ok {
+		sTimer.Failed()
 		fmt.Println("as value is not set on this relationship. Discarding this record", data)
+
 		return
 	}
 	as := fmt.Sprintf("%s", data["as"])
 
 	if _, ok := data["_id"]; !ok {
+		sTimer.Failed()
 		fmt.Println("id value is not set on this relationship. Discarding this record", data)
+
 		return
 	}
 
 	createdAt := getCreatedAtDate(data)
 	relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format(TIME_FORMAT), createdAt.Unix())
 	neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
+
+	sTimer.Success()
 }
 
 func getCreatedAtDate(data map[string]interface{}) time.Time {
@@ -219,21 +237,32 @@ func getCreatedAtDate(data map[string]interface{}) time.Time {
 }
 
 func deleteNode(data map[string]interface{}) {
+	sTimer := statsd.StartTimer("deleteNode")
 
 	if _, ok := data["_id"]; !ok {
+		sTimer.Failed()
 		return
 	}
 	id := fmt.Sprintf("%s", data["_id"])
 	neo4j.DeleteNode(id)
+
+	sTimer.Success()
 }
 
 func deleteRelationship(data map[string]interface{}) {
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	targetId := fmt.Sprintf("%s", data["targetId"])
 
+	if sourceId == "" || targetId == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
+
 	if checkForGuestGroup(sourceId, targetId) {
 		return
 	}
+
+	sTimer := statsd.StartTimer("deleteRelationship")
 
 	as := fmt.Sprintf("%s", data["as"])
 
@@ -246,10 +275,11 @@ func deleteRelationship(data map[string]interface{}) {
 	//} else {
 	//	fmt.Println("Relationship couldnt be deleted")
 	//}
+
+	sTimer.Success()
 }
 
 func updateNode(data map[string]interface{}) {
-
 	if _, ok := data["bongo_"]; !ok {
 		return
 	}
@@ -263,6 +293,11 @@ func updateNode(data map[string]interface{}) {
 	sourceId := fmt.Sprintf("%s", obj["_id"])
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
 
+	if sourceId == "" || sourceName == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
+
 	if !checkIfEligible(sourceName, "") {
 		return
 	}
@@ -271,14 +306,20 @@ func updateNode(data map[string]interface{}) {
 		return
 	}
 
+	sTimer := statsd.StartTimer("updateNode")
+
 	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
+		sTimer.Failed()
 		fmt.Println("sourceContent", err)
+
 		return
 	}
 
 	neo4j.CreateUniqueNode(sourceId, sourceName)
 	neo4j.UpdateNode(sourceId, sourceContent)
+
+	sTimer.Success()
 }
 
 func checkForGuestGroup(sourceId, targetId string) bool {

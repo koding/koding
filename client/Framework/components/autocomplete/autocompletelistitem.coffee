@@ -2,7 +2,7 @@ class KDAutoCompleteListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = KD.utils.curryCssClass "kdautocompletelistitem", options.cssClass
+    options.cssClass = KD.utils.curry "kdautocompletelistitem", options.cssClass
     options.bind     = "mouseenter mouseleave"
 
     super options,data
