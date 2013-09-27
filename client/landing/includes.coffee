@@ -636,6 +636,9 @@ module.exports = [
 
   "app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee",
 
+  # MEMBERS CONTROLLERS
+  "app/Applications/Members.kdapplication/memberslistcontroller.coffee",
+
   # MEMBERS VIEWS
   "app/Applications/Members.kdapplication/AppView.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee",
