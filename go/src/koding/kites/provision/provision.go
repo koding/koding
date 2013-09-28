@@ -68,6 +68,7 @@ func main() {
 
 	go ldapserver.Listen()
 	go initializeVMS()
+	go limiterLoop()
 
 	k := kite.New(o, new(Provision), methods)
 	fmt.Println("kite started")
@@ -373,7 +374,7 @@ func getVos(username, hostnameAlias string) (*virt.VOS, error) {
 	}
 
 	if p := vm.GetPermissions(user); p == nil {
-		return nil, fmt.Errorf("user '%s' with uid '%s' doesn't have permission", user.Name, user.Uid)
+		return nil, fmt.Errorf("user '%s' with uid '%d' doesn't have permission", user.Name, user.Uid)
 	}
 
 	err = prepareVM(vm)
