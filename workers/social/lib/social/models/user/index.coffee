@@ -487,7 +487,7 @@ module.exports = class JUser extends jraphical.Module
             else
               @fetchUser client, (err, user)=>
                 {username} = user
-                @copyOauthFromSessionToUser user.username, sessionToken, kallback
+                @persistOauthInfo user.username, sessionToken, kallback
           else
             if user
               afterLogin client.connection, user, sessionToken, session, kallback
@@ -592,7 +592,7 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err?
           queue.next()
       =>
-        @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
+        @persistOauthInfo oldUsername, client.sessionToken, (err)=>
           return callback err  if err
           queue.next()
       =>
@@ -804,21 +804,41 @@ Your password has been changed!  If you didn't request this change, please conta
         blockedUntil : blockedUntil
     , callback
 
-  @copyOauthFromSessionToUser: (username, clientId, callback)->
-    JSession.one {clientId: clientId}, (err, session) =>
-      if err then callback err
-      else
-        {foreignAuth, foreignAuthType} = session
-        if foreignAuth and foreignAuthType
-          query = {}
-          query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
+  @persistOauthInfo: (username, clientId, callback)->
+    @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
+      return callback err  if err
+      @saveOauthToUser foreignAuthInfo, username, (err)=>
+        return callback err  if err
+        @clearOauthFromSession session, (err)=>
+          return callback err  if err
+          @copyPublicOauthToAccount username, foreignAuthInfo, callback
 
-          @update {username}, $set: query, (err)->
-            if err then callback err
-            else
-              session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
-        else
-          callback createKodingError "No foreignAuth:#{foreignAuthType} info in session"
+  @extractOauthFromSession: (clientId, callback)->
+    JSession.one {clientId: clientId}, (err, session)->
+      return callback err  if err
+
+      {foreignAuth, foreignAuthType} = session
+      if foreignAuth and foreignAuthType
+        callback null, {foreignAuth, foreignAuthType}, session
+      else
+        callback createKodingError "No foreignAuth:#{foreignAuthType} info in session"
+
+  @saveOauthToUser: ({foreignAuth, foreignAuthType}, username, callback)->
+    query = {}
+    query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
+
+    @update {username}, $set: query, callback
+
+  @clearOauthFromSession: (session, callback)->
+    session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
+
+  @copyPublicOauthToAccount: (username, {foreignAuth, foreignAuthType}, callback)->
+    JAccount.one {"profile.nickname":username}, (err, account)->
+      return callback err  if err
+
+      name    = "ext|profile|#{foreignAuthType}"
+      content = foreignAuth[foreignAuthType].profile
+      account._store {name, content}, callback
 
   @setSSHKeys: secure (client, sshKeys, callback)->
     @fetchUser client, (err,user)->
