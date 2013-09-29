@@ -100,6 +100,7 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 	}
 
 	cmd := exec.Command(command.name, command.args...)
+	cmd.Env = []string{"TERM=xterm-256color"}
 	cmd.Stdin = server.pty.Slave
 	// cmd.Stdout = server.pty.Slave
 	// cmd.Stderr = server.pty.Slave
