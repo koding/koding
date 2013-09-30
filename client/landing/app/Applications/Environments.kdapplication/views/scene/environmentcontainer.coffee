@@ -41,7 +41,7 @@ class EnvironmentContainer extends KDDiaContainer
   updatePositions:->
 
     index = 0
-    for _, dia of @dias
+    for _key, dia of @dias
       dia.setX 20
       dia.setY 60 + index * 50
       index++
