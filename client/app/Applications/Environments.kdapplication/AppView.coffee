@@ -28,19 +28,24 @@ class EnvironmentsMainView extends JView
     machinesContainer = new EnvironmentMachineContainer
     @scene.addContainer machinesContainer
 
-    # After Domains and Machines container load finished
-    # Call updateConnections to draw lines between corresponding objects
-    @scene.whenItemsLoadedFor [domainsContainer, machinesContainer], =>
-      @scene.updateConnections()
-      domainsContainer.on  "DataLoaded", @scene.bound 'updateConnections'
-      machinesContainer.on "DataLoaded", @scene.bound 'updateConnections'
+    @_containers = [domainsContainer, machinesContainer]
+    for container in @_containers
+      container.on 'DataLoaded', @scene.bound 'updateConnections'
+
+    @refreshContainers()
 
     domainCreateForm.on 'DomainSaved', domainsContainer.bound 'loadItems'
+    KD.getSingleton("vmController").on 'VMListChanged', \
+                                        @bound 'refreshContainers'
 
     # Plus button on domainsContainer opens up the action area
     domainsContainer.on 'PlusButtonClicked', =>
       return unless KD.isLoggedIn()
         new KDNotificationView title: "You need to login to add a new domain."
+
+      return if machinesContainer.diaCount() is 0
+        new KDNotificationView
+          title: "You need to have at least one VM to manage domains."
 
       @scene.setClass 'out'
       domainCreateForm.emit 'DomainNameShouldFocus'
@@ -54,3 +59,9 @@ class EnvironmentsMainView extends JView
           title: "You need to login to create a new machine."
 
       KD.getSingleton('vmController').createNewVM()
+
+  refreshContainers:->
+    # After Domains and Machines container load finished
+    # Call updateConnections to draw lines between corresponding objects
+    @scene.whenItemsLoadedFor @_containers, =>
+      @scene.updateConnections()
