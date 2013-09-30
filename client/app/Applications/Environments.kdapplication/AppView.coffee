@@ -53,4 +53,12 @@ class EnvironmentsMainView extends JView
         new KDNotificationView
           title: "You need to login to create a new machine."
 
-      KD.getSingleton('vmController').createNewVM()
+      vmController = KD.getSingleton 'vmController'
+
+      vmController.on "VMPlansFetchStart", =>
+        machinesContainer.showLoader()
+
+      vmController.on "VMPlansFetchEnd", =>
+        machinesContainer.hideLoader()
+
+      vmController.createNewVM()
