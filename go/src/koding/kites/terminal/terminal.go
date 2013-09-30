@@ -11,7 +11,6 @@ import (
 	"koding/newkite/protocol"
 	"koding/tools/dnode"
 	"koding/tools/pty"
-	"log"
 	"os/exec"
 	"os/user"
 	"syscall"
