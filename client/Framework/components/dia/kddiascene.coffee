@@ -5,34 +5,41 @@ class KDDiaScene extends JView
     options.cssClass = KD.utils.curry "kddia-scene", options.cssClass
     options.bind     = KD.utils.curry "mousemove",   options.bind
 
-    options.lineCap         or= "round"
-    options.lineWidth        ?= 2
-    options.lineColor       or= "#ccc"
-    options.lineColorActive or= "orange"
-    options.lineColorHelper or= "green"
-    options.lineDashes       ?= []
-    options.curveDistance    ?= 50
+    options.lineCap          or= "round"
+    options.lineWidth         ?= 2
+    options.lineColor        or= "#ccc"
+    options.lineColorActive  or= "orange"
+    options.lineDashes        ?= []
+    options.fakeLineColor    or= "green"
+    options.fakeLineDashes    ?= []
+    options.curveDistance     ?= 50
 
     super
 
-    @containers   = []
-    @connections  = []
-    @activeDias   = []
-    @activeJoints = []
+    @containers    = []
+    @connections   = []
+    @activeDias    = []
+    @activeJoints  = []
 
   diaAdded:(container, diaObj)->
     diaObj.on "JointRequestsLine",   @bound "handleLineRequest"
     diaObj.on "DragInAction",        => @highlightLines diaObj
-    diaObj.on "RemoveMyConnections", => @disconnect diaObj
+    diaObj.on "RemoveMyConnections", => @disconnectAllConnections diaObj
 
   addContainer:(container, pos = {})->
     @addSubView container
 
     container.on "NewDiaObjectAdded", @bound "diaAdded"
     container.on "DragInAction",      @bound "updateScene"
+    container.on "UpdateScene",       @bound "updateScene"
     container.on "HighlightDia",      @bound "highlightLines"
 
     @containers.push container
+
+    padding = (container.getOption 'draggable')?.containment?.padding
+    if padding
+      pos.x = Math.max padding, pos.x ? 0
+      pos.y = Math.max padding, pos.y ? 0
 
     container.setX pos.x  if pos.x?
     container.setY pos.y  if pos.y?
@@ -50,7 +57,10 @@ class KDDiaScene extends JView
 
     @fakeContext.lineCap     = @getOption "lineCap"
     @fakeContext.lineWidth   = @getOption "lineWidth"
-    @fakeContext.strokeStyle = @getOption "lineColorHelper"
+    @fakeContext.strokeStyle = @_trackJoint.parent.getOption('colorTag') or \
+                               @getOption "fakeLineColor"
+    lineDashes = @getOption "fakeLineDashes"
+    @fakeContext.setLineDash lineDashes  if lineDashes.length > 0
 
     @fakeContext.stroke()
 
@@ -77,7 +87,6 @@ class KDDiaScene extends JView
 
     return  unless targetId
 
-    log "Connect #{sourceId} to #{targetId}"
     source = @getDia sourceId
     target = @getDia targetId
     target.joint = @guessJoint target, source  unless target.joint
@@ -116,30 +125,30 @@ class KDDiaScene extends JView
             joint = conn.dia.joints[conn.joint]
             if joint not in @activeJoints
               joint.showDeleteButton()
-              joint.on 'DeleteRequested', @bound 'disconnectHelper'
+              joint.on 'DeleteRequested', @bound 'disconnect'
               @activeJoints.push joint
 
   handleLineRequest:(joint)->
     @_trackJoint = joint
 
-  # Needs refactoring ~ GG
-  disconnectHelper:(dia, joint)->
-    return  if @activeDias.length isnt 1
-
+  findTargetConnection:(dia, joint)->
     isEqual = (connection)=>
       (dia is connection.dia) and (joint is connection.joint)
-
     activeDia = @activeDias.first
-    connectionsToDelete = []
     for conn in @connections
       if ((isEqual conn.source) or (isEqual conn.target)) and \
          ((conn.source.dia is activeDia) or (conn.target.dia is activeDia))
-        connectionsToDelete.push conn
+        return conn
 
-    @connections = (c for c in @connections when c not in connectionsToDelete)
+  # Needs refactoring ~ GG
+  disconnect:(dia, joint)->
+    return  if @activeDias.length isnt 1
+
+    connectionsToDelete = @findTargetConnection dia, joint
+    @connections = (c for c in @connections when c isnt connectionsToDelete)
     @highlightLines @activeDias
 
-  disconnect:(dia)->
+  disconnectAllConnections:(dia)->
 
     newConnections = []
     for connection in @connections
@@ -150,18 +159,11 @@ class KDDiaScene extends JView
 
     @highlightLines()
 
-  connect:(source, target)->
-    return  unless source and target
-    return  if source.dia?.id is target.dia?.id
+  allowedToConnect = (source, target)->
 
-    if not @allowedToConnect source, target
-      return warn """Connection from #{source.dia.constructor.name}
-                     to #{target.dia.constructor.name} is not allowed!"""
+    return no  unless source and target
+    return no  if source.dia?.id is target.dia?.id
 
-    @connections.push {source, target}
-    @highlightLines target.dia
-
-  allowedToConnect:(source, target)->
     for i in [0..1]
       if source.dia.allowedConnections? and \
          Object.keys(source.dia.allowedConnections).length > 0
@@ -170,11 +172,23 @@ class KDDiaScene extends JView
         return no  unless restrictions
         return no  if source.joint in restrictions
       [source, target] = [target, source]
+
     return yes
+
+  connect:(source, target)->
+    return if not allowedToConnect source, target
+    log "Connecting #{source.dia.id} to #{target.dia.id}"
+    @emit "ConnectionCreated", source, target
+    @connections.push {source, target}
+    @highlightLines target.dia
 
   updateScene:->
 
     @cleanup @realCanvas
+
+    activeColor  = @getOption 'lineColorActive'
+    lineDashes   = @getOption 'lineDashes'
+    defaultColor = @getOption 'lineColor'
 
     for connection in @connections
 
@@ -182,16 +196,20 @@ class KDDiaScene extends JView
 
       {source, target} = connection
 
-      if (source.dia in @activeDias) or (target.dia in @activeDias)
-        @realContext.strokeStyle = @getOption 'lineColorActive'
+      if source.dia in @activeDias
+        lineColor = (source.dia.getOption 'colorTag')   or activeColor
+        lineDashes  = (source.dia.getOption 'lineDashes') or lineDashes
+      else if target.dia in @activeDias
+        lineColor = (target.dia.getOption 'colorTag')   or activeColor
+        lineDashes  = (target.dia.getOption 'lineDashes') or lineDashes
       else
-        @realContext.strokeStyle = @getOption 'lineColor'
+        lineColor = defaultColor
 
       sJoint = source.dia.getJointPos source.joint
       tJoint = target.dia.getJointPos target.joint
 
-      ld = @getOption 'lineDashes'
-      @realContext.setLineDash ld  if ld.length > 0
+      @realContext.strokeStyle = lineColor
+      @realContext.setLineDash lineDashes  if lineDashes.length > 0
 
       @realContext.moveTo sJoint.x, sJoint.y
 
@@ -227,17 +245,16 @@ class KDDiaScene extends JView
       attributes : @getSceneSize()
     @fakeContext = @fakeCanvas.getElement().getContext "2d"
 
-  cleanup:(canvas)->
-    canvas.setDomAttributes width: canvas.getWidth()
-
-  updateCanvasSize:->
-    @realCanvas.setDomAttributes @getSceneSize()
-    @fakeCanvas.setDomAttributes @getSceneSize()
+  setScale:(scale = 1)->
+    container.setScale scale  for container in @containers
     @updateScene()
+
+  cleanup:(canvas)->
+    canvas.setDomAttributes @getSceneSize()
 
   parentDidResize:->
     super
-    do _.throttle => @updateCanvasSize()
+    do _.throttle => @updateScene()
 
   getSceneSize:-> width: @getWidth(), height: @getHeight()
 
