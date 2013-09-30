@@ -86,7 +86,7 @@ class GroupsListItemView extends KDListItemView
       cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
       partial   : "<span class='icon'/>"
       tooltip   :
-        title   : "Restricted access"
+        title   : "It's a private group."
 
     @memberCount = new CustomLinkView
       title       : "#{group.counts?.members or 'No'} Members"
