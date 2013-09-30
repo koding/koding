@@ -1,11 +1,5 @@
-splitDomain = (domainName) ->
-  splitted =  domainName.split "."
-  return {
-    first: splitted[0],
-    extension: if splitted.length > 1 then splitted[1..].join "." else ""
-  }
-
 class DomainCreationForm extends KDCustomHTMLView
+
   constructor:(options = {})->
     options.cssClass = "environments-add-domain-form"
 
@@ -16,6 +10,7 @@ class DomainCreationForm extends KDCustomHTMLView
     # -- Header -- #
     @addSubView @header = new KDHeaderView
       title       : "Add a domain"
+
     @header.addSubView new KDButtonView
       cssClass    : "small-gray"
       title       : "Cancel"
@@ -27,6 +22,7 @@ class DomainCreationForm extends KDCustomHTMLView
       { title : "Register New Domain", value : "new", disabled : yes }
       { title : "Use An Existing Domain", value : "existing", disabled : yes }
     ]
+
     @addSubView @form = new KDFormViewWithFields
       cssClass              : "main-form"
       fields                :
@@ -62,6 +58,7 @@ class DomainCreationForm extends KDCustomHTMLView
           callback          : (event) => @registerDomain event
 
   registerDomain : (event) ->
+
     KD.utils.stopDOMEvent event
 
     form           = @form
@@ -92,25 +89,29 @@ class DomainCreationForm extends KDCustomHTMLView
           warn err
           if err.message?.indexOf("duplicate key error") isnt -1
             return notifyUser "The domain #{domainName} already exists."
+          else if err.name is "INVALIDDOMAIN"
+            return notifyUser "#{domainName} is an invalid subdomain."
           return notifyUser "An error occured. Please try again later."
         else
           @showSuccess domain
           @updateDomains()
 
   createDomain:(params, callback) ->
-    console.log params
+    # log params
+
     KD.remote.api.JDomain.createDomain
-        domain         : params.domainName
-        regYears       : params.regYears
-        proxy          : { mode: 'vm' }
-        hostnameAlias  : []
-        domainType     : params.domainType
-        loadBalancer   :
-          mode         : ""
-      , (err, domain)=>
-        callback err, domain
+      domain         : params.domainName
+      regYears       : params.regYears
+      proxy          : { mode: 'vm' }
+      hostnameAlias  : []
+      domainType     : params.domainType
+      loadBalancer   :
+        mode         : ""
+    , (err, domain)=>
+      callback err, domain
 
   showSuccess:(domain) ->
+
     form = @form
     {domainName}   = form.inputs
     {createButton} = form.buttons
@@ -159,6 +160,14 @@ class DomainCreationForm extends KDCustomHTMLView
 
   viewAppended:->
     @updateDomains()
+    KD.getSingleton("vmController").on 'VMListChanged', @bound 'updateDomains'
+
+# splitDomain = (domainName) ->
+#   splitted =  domainName.split "."
+#   return {
+#     first: splitted[0],
+#     extension: if splitted.length > 1 then splitted[1..].join "." else ""
+#   }
 
 # class DomainCreationForm extends KDTabViewWithForms
 
