@@ -38,7 +38,7 @@ class SidebarController extends KDViewController
       # get registered users vms
       # allready to go (don't for guests right now):
       finderController.reset()
-      resourcesController.reset()
+      # resourcesController.reset()
 
   resetAdminNavItems:->
     # return unless KD.isLoggedIn()

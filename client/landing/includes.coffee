@@ -428,7 +428,8 @@ module.exports = [
   "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
-  "app/Applications/Environments.kdapplication/AppController.coffee",
+  # Disable Environments App
+  # "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Apps.kdapplication/AppController.coffee",
   "app/Applications/Inbox.kdapplication/AppController.coffee",
   "app/Applications/Demos.kdapplication/AppController.coffee",
@@ -555,6 +556,18 @@ module.exports = [
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
   # VMs
+
+  "app/Applications/Environments.kdapplication/views/scene/colortagselectorview.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentcontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentdomaincontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentmachinecontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentitemjointview.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentitemsview.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentruleitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentdomainitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentmachineitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentsceneview.coffee",
+
   "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
   "app/Applications/Environments.kdapplication/views/domainsmainview.coffee",
   "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
@@ -564,7 +577,6 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
   "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
-  "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallFilterListItemView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
@@ -572,6 +584,7 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/DNSManagerView.coffee",
   "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
   "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
+
   "app/Applications/Environments.kdapplication/AppView.coffee",
   # "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
