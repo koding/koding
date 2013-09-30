@@ -243,15 +243,15 @@ module.exports = [
   "app/CommonViews/dropboxdownloaditemview.coffee",
 
   # FATIH
-  "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
-  "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
-  "app/CommonViews/fatih/plugins/fatihfilelistitem.coffee",
-  "app/CommonViews/fatih/plugins/fatihfilefinderplugin.coffee",
-  "app/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee",
-  "app/CommonViews/fatih/plugins/fatihopenappplugin.coffee",
-  "app/CommonViews/fatih/plugins/fatihusersearchplugin.coffee",
-  "app/CommonViews/fatih/fatihprefpane.coffee",
-  "app/CommonViews/fatih/fatih.coffee",
+  # "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
+  # "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
+  # "app/CommonViews/fatih/plugins/fatihfilelistitem.coffee",
+  # "app/CommonViews/fatih/plugins/fatihfilefinderplugin.coffee",
+  # "app/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee",
+  # "app/CommonViews/fatih/plugins/fatihopenappplugin.coffee",
+  # "app/CommonViews/fatih/plugins/fatihusersearchplugin.coffee",
+  # "app/CommonViews/fatih/fatihprefpane.coffee",
+  # "app/CommonViews/fatih/fatih.coffee",
 
   # INTRODUCTION TOOLTIP
   "app/CommonViews/introductiontooltip/introductiontooltip.coffee",
@@ -259,6 +259,7 @@ module.exports = [
 
   "app/CommonViews/ModalViewWithTerminal.coffee",
   "app/CommonViews/DNDUploader.coffee",
+  "app/CommonViews/clonerepomodal.coffee",
 
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
