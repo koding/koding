@@ -821,7 +821,7 @@ Your password has been changed!  If you didn't request this change, please conta
       if foreignAuth and foreignAuthType
         callback null, {foreignAuth, foreignAuthType}, session
       else
-        callback createKodingError "No foreignAuth:#{foreignAuthType} info in session"
+        callback() # WARNING: don't assume it's an error if there's no foreignAuth
 
   @saveOauthToUser: ({foreignAuth, foreignAuthType}, username, callback)->
     query = {}

@@ -28,8 +28,6 @@ class EnvironmentContainer extends KDDiaContainer
     {@appStorage} = @parent
     @appStorage.ready @bound 'loadPosition'
 
-    @loadItems()
-
   addDia:(diaObj, pos)->
     pos = x: 20, y: 60 + @diaCount() * (@itemHeight + 10)
     super diaObj, pos

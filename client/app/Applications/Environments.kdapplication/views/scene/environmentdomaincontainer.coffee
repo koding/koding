@@ -8,9 +8,9 @@ class EnvironmentDomainContainer extends EnvironmentContainer
   loadItems:->
 
     KD.whoami().fetchDomains (err, domains)=>
-      if err
+      if err or domains.length is 0
         @emit "DataLoaded"
-        return warn "Failed to fetch domains", err
+        return warn "Failed to fetch domains", err  if err
       addedCount = 0
       @removeAllItems()
 
