@@ -397,21 +397,12 @@ class NFinderTreeController extends JTreeViewController
       folder.emit "fs.job.finished"
       callback?()
 
-
-  cloneRepo:(nodeView)->
-
-    folder = nodeView.getData()
-
-    @notify "not yet there!", "error"
-
-    # folder.emit "fs.job.started"
-    # KD.getSingleton('kodingAppsController').cloneApp folder.path, =>
-    #   folder.emit "fs.job.finished"
-    #   @refreshFolder @nodes[folder.parentPath], =>
-    #     @utils.wait 500, =>
-    #       @selectNode @nodes[folder.path]
-    #       @refreshFolder @nodes[folder.path]
-    #   @notify "App cloned!", "success"
+  cloneRepo: (nodeView) ->
+    folder   = nodeView.getData()
+    modal    = new CloneRepoModal
+      vmName : folder.vmName
+      path   : folder.path
+    modal.on "RepoClonedSuccessfully", => @notify "Repo cloned successfully.", "success"
 
   publishApp:(nodeView)->
 
@@ -664,6 +655,12 @@ class NFinderTreeController extends JTreeViewController
 
     return if nodeView in @selectedNodes
     return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
+
+    @selectedNodes = @selectedNodes.filter (node)->
+      targetPath = nodeView.getData?().path
+      sourcePath = node.getData?().parentPath
+
+      return targetPath isnt sourcePath
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView
