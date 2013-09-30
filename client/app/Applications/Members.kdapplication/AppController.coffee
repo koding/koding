@@ -43,6 +43,7 @@ class MembersAppController extends AppController
       limitPerPage          : 10
       help                  :
         subtitle            : "Learn About Members"
+        bookIndex           : 11
         tooltip             :
           title             : "<p class=\"bigtwipsy\">These people are all members of koding.com. Learn more about them and their interests, activity and coding prowess here.</p>"
           placement         : "above"
@@ -113,6 +114,7 @@ class MembersAppController extends AppController
         # filterFunc selector, options, callback
       help                  :
         subtitle            : "Learn About Members"
+        bookIndex           : 11
         tooltip             :
           title             : "<p class=\"bigtwipsy\">These people are all members of koding.com. Learn more about them and their interests, activity and coding prowess here.</p>"
           placement         : "above"

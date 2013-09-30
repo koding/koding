@@ -62,7 +62,7 @@ app.starttab.styl
 
 .app-list-wrapper > header
   height                  auto
-  margin-bottom           20px
+  margin-bottom           10px
   padding-top             50px
   text-align              center
   h1
@@ -76,6 +76,7 @@ app.starttab.styl
     padding-top           5px
 
 .app-item-container
+  margin-top              20px
   appThumbStyl()
 
 .tipsy .app-tip, .kdtooltip.just-text .app-tip
@@ -92,6 +93,30 @@ app.starttab.styl
     border-top            1px solid rgba(255,255,255,.3)
     margin-top            4px
     padding-top           2px
+
+.server-container-handler
+  top                       14px
+  z-index                   3
+  font-weight               bold
+  border                    1px solid #ccc
+  position                  relative
+  opacity                   0
+  vendor                    transition, opacity 1s ease-in
+  &.in
+    opacity                 1
+
+.environment-content
+  left                      0
+  border-top                1px solid #ccc
+  border-bottom             1px solid #ccc
+  height                    2px
+  width                     100%
+  margin                    0 auto
+  text-align                left
+  vendor                    transition, opacity 1.5s ease-in \, height .3s ease-in-out
+  opacity                   0
+  &.in
+    opacity                 1
 
 .start-tab-recent-container
   abs()

@@ -286,6 +286,15 @@ class KDView extends KDObject
   _helpSetClass = (el, addOrRemove, cssClass)->
     el.classList[addOrRemove] cl for cl in cssClass.split(' ') when cl isnt ''
 
+  setCss:(property, value)->
+    el = @$()
+    el.css property, value
+
+  setStyle:(properties)->
+    el = @$()
+    for own property, value of properties
+      el.css property, value
+
   setClass:(cssClass)->
     return unless cssClass
     _helpSetClass @getElement(), "add", cssClass
@@ -695,8 +704,11 @@ class KDView extends KDObject
         if 'string' is typeof view
           dragState.containment.viewBounds = @[view].getBounds()
         dragState.containment.viewBounds or= @parent.getBounds()
+        if 'number' is typeof options.containment.padding
+        then padding = options.containment.padding
+        else padding = 0
         dragState.containment.padding = \
-          options.containment.padding or top: 0, right: 0, bottom: 0, left: 0
+            top: padding, right: padding, bottom: padding, left: padding
 
       # TODO: should move these lines
       dragState.handle      = options.handle
