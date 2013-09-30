@@ -47,18 +47,18 @@ class EnvironmentsMainView extends JView
       @utils.defer =>
         @scene.once 'click', -> domainCreateForm.emit 'CloseClicked'
 
+    vmController = KD.getSingleton 'vmController'
+
+    vmController.on "VMPlansFetchStart", =>
+      machinesContainer.showLoader()
+
+    vmController.on "VMPlansFetchEnd", =>
+      machinesContainer.hideLoader()
+
     # Plus button on machinesContainer uses the vmController
     machinesContainer.on 'PlusButtonClicked', =>
       return unless KD.isLoggedIn()
         new KDNotificationView
           title: "You need to login to create a new machine."
-
-      vmController = KD.getSingleton 'vmController'
-
-      vmController.on "VMPlansFetchStart", =>
-        machinesContainer.showLoader()
-
-      vmController.on "VMPlansFetchEnd", =>
-        machinesContainer.hideLoader()
 
       vmController.createNewVM()
