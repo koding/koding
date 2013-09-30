@@ -113,16 +113,21 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 	// cmd.Stdout = server.pty.Slave
 	// cmd.Stderr = server.pty.Slave
 
-	// Open in background
-	// cmd.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
+	// Open in background, this is needed otherwise the process will be killed
+	// if you hit close on the client side.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
 
 	err = cmd.Start()
 	if err != nil {
-		log.Println("could not start", err)
+		fmt.Println("could not start", err)
 	}
 
 	go func() {
-		cmd.Wait()
+		err := cmd.Wait()
+		if err != nil {
+			fmt.Println("cmd.wait err", err)
+		}
+
 		server.pty.Slave.Close()
 		server.pty.Master.Close()
 		server.remote.SessionEnded()
