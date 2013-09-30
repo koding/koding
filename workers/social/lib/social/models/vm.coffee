@@ -554,11 +554,22 @@ module.exports = class JVM extends Module
 
       JVM.some selector, {}, (err, vms)->
         return console.error err  if err
-        queue = []
-        for vm in vms
-          alias = JVM.parseAlias vm.hostnameAlias
-          if alias.type and alias.type isnt "group"
-            queue.push -> vm.suspend -> queue.fin()
+        queue = vms.map (vm)->->
+          # shutdown all vms that user has
+          vm.suspend -> queue.fin()
+        if queue.length > 0
+          dash queue, (err)->
+            console.error err if err
+
+    JUser.on "UserUnblocked", (user)->
+      selector =
+        'users.id'    : user.getId()
+        'users.owner' : yes
+
+      JVM.some selector, {}, (err, vms)->
+        return console.error err  if err
+        queue = vms.map (vm)->->
+          vm.update { $set: { hostKite: '' } }, -> queue.fin()
         if queue.length > 0
           dash queue, (err)->
             console.error err if err
