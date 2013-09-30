@@ -75,7 +75,7 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 	server := &WebtermServer{
 		Session: params.Session,
 		remote:  params.Remote,
-		pty:     pty.New("/dev"),
+		pty:     pty.New("/dev/pts"),
 	}
 
 	server.SetSize(float64(params.SizeX), float64(params.SizeY))

@@ -22,7 +22,7 @@ type PTY struct {
 const sys_IOCPARM_MASK = 0x1fff
 
 func New(ptsPath string) *PTY {
-	pty, err := os.OpenFile(ptsPath+"/ptmx", os.O_RDWR, 0)
+	pty, err := os.OpenFile("/dev/ptmx", os.O_RDWR, 0)
 	if err != nil {
 		fmt.Println("open pty", err)
 	}
