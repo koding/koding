@@ -13,13 +13,13 @@ class AppStorage extends KDObject
 
     unless @_storage
       KD.whoami().fetchStorage {appId, version}, (error, storage) =>
-        unless error
-          callback? @_storage = storage or {appId, version, bucket:{}}
+        if not error and storage
+          @_storage = storage
+          callback? @_storage
           @emit "storageFetched"
           @emit "ready"
         else
           callback? null
-
     else
       callback? @_storage
       KD.utils.defer =>

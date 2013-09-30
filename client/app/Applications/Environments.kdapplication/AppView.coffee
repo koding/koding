@@ -1,96 +1,56 @@
 class EnvironmentsMainView extends JView
 
-  tabData = [
-    name        : 'Domains'
-    viewOptions :
-      viewClass : DomainsMainView
-  ,
-    name        : 'VMS'
-    viewOptions :
-      viewClass : VMsMainView
-  ,
-    name        : 'Kites'
-    viewOptions :
-      viewClass : KDView
-  ]
+  constructor:->
+    super cssClass : 'environment-content'
 
-  navData =
-    title : "Settings"
-    items : ({title:item.name, hiddenHandle:'hidden'} for item in tabData)
+  viewAppended:->
 
-  constructor:(options = {}, data = {})->
-    super options, data
+    # Action Area for Domains
+    @addSubView actionArea = new KDView cssClass : 'action-area'
 
-    @header = new HeaderViewSection type : "big", title : "Environments"
+    # Domain Creation form in actionArea
+    actionArea.addSubView domainCreateForm = new DomainCreationForm
 
-    # * see the note below *
-    @nav = new KDView
-      tagName  : "ul"
-      cssClass : "kdlistview kdlistview-default"
+    # Domain Creation form connections
+    domainCreateForm.on 'CloseClicked', =>
+      @scene.unsetClass 'out'
+      @scene.off "click"
 
-    @utils.defer => @nav.unsetClass "kdtabhandlecontainer"
+    # Main scene for DIA
+    @addSubView @scene = new EnvironmentScene
 
-    @tabs   = new KDTabView
-      cssClass           : 'environment-content'
-      tabHandleContainer : @nav
-      tabHandleClass     : EnvironmentsTabHandleView
-    , data
+    # Domains Container
+    domainsContainer = new EnvironmentDomainContainer
+    @scene.addContainer domainsContainer
+    domainsContainer.on "itemRemoved", domainCreateForm.bound "updateDomains"
 
-    @listenWindowResize()
+    # VMs / Machines Container
+    machinesContainer = new EnvironmentMachineContainer
+    @scene.addContainer machinesContainer
 
-    @once 'viewAppended', =>
-      @createTabs()
-      @_windowDidResize()
+    # After Domains and Machines container load finished
+    # Call updateConnections to draw lines between corresponding objects
+    @scene.whenItemsLoadedFor [domainsContainer, machinesContainer], =>
+      @scene.updateConnections()
+      domainsContainer.on  "DataLoaded", @scene.bound 'updateConnections'
+      machinesContainer.on "DataLoaded", @scene.bound 'updateConnections'
 
-  createTabs:->
-    for {name, viewOptions}, i in tabData
-      @tabs.addPane (new KDTabPaneView {name, viewOptions}), i is 0
+    domainCreateForm.on 'DomainSaved', domainsContainer.bound 'loadItems'
 
-  _windowDidResize:->
-    contentHeight = @getHeight() - @header.getHeight()
-    @$('>section, >aside').height contentHeight
+    # Plus button on domainsContainer opens up the action area
+    domainsContainer.on 'PlusButtonClicked', =>
+      return unless KD.isLoggedIn()
+        new KDNotificationView title: "You need to login to add a new domain."
 
-  pistachio:->
-    """
-      {{> @header}}
-      <aside class='fl'>
-        <div class="kdview common-inner-nav">
-          <div class="kdview listview-wrapper list">
-            <h4 class="kdview kdheaderview list-group-title"><span>MANAGE</span></h4>
-            {{> @nav}}
-          </div>
-        </div>
-      </aside>
-      <section class='right-overflow'>
-        {{> @tabs}}
-      </section>
-    """
+      @scene.setClass 'out'
+      domainCreateForm.emit 'DomainNameShouldFocus'
+      @utils.defer =>
+        @scene.once 'click', -> domainCreateForm.emit 'CloseClicked'
 
-# take this to its own file - SY
+    # Plus button on machinesContainer uses the vmController
+    machinesContainer.on 'PlusButtonClicked', =>
+      return unless KD.isLoggedIn()
+        new KDNotificationView
+          title: "You need to login to create a new machine."
 
-class EnvironmentsTabHandleView extends KDTabHandleView
-
-  constructor:(options={}, data)->
-    # * see the note below *
-    options.tagName  = 'li'
-    options.closable = no
-    options.cssClass = 'kdview kdlistitemview kdlistitemview-default'
-
-    super options, data
-
-    @unsetClass 'kdtabhandle'
-
-  click: do->
-    notification = null
-    ->
-      unless @getOptions().title is "Domains"
-        notification?.destroy()
-        notification = new KDNotificationView title : 'Coming soon...'
-        return no
-
-
-  partial:-> "<a href='#'>#{@getOptions().title or 'Default Title'}</a>"
-
-# * quick hack: don't copy/paste from here :)
-#   faking a listitem to be able to use same styles
-#   very narrow usage this is acceptable under the circumstances. SY
+      KD.getSingleton('vmController').createNewVM()

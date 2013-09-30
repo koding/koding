@@ -21,8 +21,10 @@ class KDProgressBarView extends KDCustomHTMLView
       cssClass    : "bar spinner hidden"
     @addSubView @darkLabel = new KDCustomHTMLView
       tagName     : "span"
+      cssClass    : 'dark-label'
     @bar.addSubView @lightLabel = new KDCustomHTMLView
       tagName     : "span"
+      cssClass    : 'light-label'
 
   updateBar:(value, unit, label)->
     {determinate} = @getOptions()
