@@ -818,7 +818,7 @@ Your password has been changed!  If you didn't request this change, please conta
             else
               session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
         else
-          callback createKodingError "No foreignAuth:#{foreignAuthType} info in session"
+          callback() # WARNING: don't assume it's an error if there's no foreignAuth
 
   @setSSHKeys: secure (client, sshKeys, callback)->
     @fetchUser client, (err,user)->

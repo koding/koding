@@ -116,15 +116,13 @@ module.exports = class JDomain extends jraphical.Module
   @isDomainEligible: (params, callback)->
     {delegate, domain} = params
 
-    # return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
-    # return callback new KodingError("Invalid domain: {#domain}.")  unless /\.kd\.io$/.test domain
+    unless /\.kd\.io$/.test domain
+      return callback new KodingError("Invalid domain: {#domain}.", "INVALIDDOMAIN")
 
-    # match = domain.match /(.*)\.([\w\-]+)\.kd\.io$/
-    # match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
+    match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
 
-    match = []
-
-    return callback new KodingError("Invalid domain: #{domain}.")  unless match
+    unless match
+      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
 
     [rest..., prefix, slug] = match
 
