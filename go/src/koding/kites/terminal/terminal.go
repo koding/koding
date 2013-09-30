@@ -6,12 +6,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"flag"
+	"fmt"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 	"koding/tools/dnode"
 	"koding/tools/pty"
 	"log"
 	"os/exec"
+	"os/user"
 	"syscall"
 	"time"
 	"unicode/utf8"
@@ -85,7 +87,7 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 	}
 
 	command.name = "/usr/bin/screen"
-	command.args = []string{"-e^Bb", "-S", "koding." + params.Session}
+	command.args = []string{"-e^Bb", "-s", "/bin/bash", "-S", "koding." + params.Session}
 	// tmux version, attach to an existing one, if not available it creates one
 	// command.name = "/usr/local/bin/tmux"
 	// command.args = []string{"tmux", "attach", "-t", "koding." + params.Session, "||", "tmux", "new-session", "-s", "koding." + params.Session}
@@ -100,7 +102,13 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 	}
 
 	cmd := exec.Command(command.name, command.args...)
-	cmd.Env = []string{"TERM=xterm-256color"}
+
+	user, err := user.Current()
+	if err != nil {
+		return fmt.Errorf("Could not get home dir: %s", err)
+	}
+
+	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
 	cmd.Stdin = server.pty.Slave
 	// cmd.Stdout = server.pty.Slave
 	// cmd.Stderr = server.pty.Slave
@@ -108,7 +116,7 @@ func (Terminal) Connect(r *protocol.KiteDnodeRequest, result *WebtermServer) err
 	// Open in background
 	// cmd.SysProcAttr = &syscall.SysProcAttr{Setctty: true, Setsid: true}
 
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		log.Println("could not start", err)
 	}
