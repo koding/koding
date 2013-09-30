@@ -51,13 +51,11 @@ class AdminModal extends KDModalViewWithForms
                 callback      : =>
                   accounts = @userController.getSelectedItemData()
                   if accounts.length > 0
-                    console.log accounts[0]
                     activityController = KD.getSingleton('activityController')
                     activityController.emit "ActivityItemBlockUserClicked", accounts[0].profile.nickname
-                    console.log "hede"
                   else
-                    console.log accounts
-
+                    new KDNotificationView {title: "Please select an account!"}
+                    
               Impersonate     :
                 label         : "Switch to User "
                 itemClass     : KDButtonView
