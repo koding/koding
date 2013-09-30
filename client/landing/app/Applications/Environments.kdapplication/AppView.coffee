@@ -44,7 +44,8 @@ class EnvironmentsMainView extends JView
 
       @scene.setClass 'out'
       domainCreateForm.emit 'DomainNameShouldFocus'
-      @utils.defer => @scene.once 'click', -> domainCreateForm.emit 'CloseClicked'
+      @utils.defer =>
+        @scene.once 'click', -> domainCreateForm.emit 'CloseClicked'
 
     # Plus button on machinesContainer uses the vmController
     machinesContainer.on 'PlusButtonClicked', =>
