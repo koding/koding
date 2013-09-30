@@ -46,10 +46,11 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 }
 
 func DeclareBindConsumeQueue(channel *amqp.Channel, kind, exchange, key string, autoDelete bool) <-chan amqp.Delivery {
+	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	if err := channel.ExchangeDeclare(exchange, kind, false, autoDelete, false, false, nil); err != nil {
 		panic(err)
 	}
-
+	// name, durable, autoDelete, exclusive, noWait, args Table
 	if _, err := channel.QueueDeclare("", false, true, false, false, nil); err != nil {
 		panic(err)
 	}

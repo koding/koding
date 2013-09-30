@@ -263,7 +263,7 @@ module.exports = class JUser extends jraphical.Module
           """
         callback createKodingError message
       else
-        user.update {$set: status: 'unconfirmed'}, callback
+        user.unblock callback
     else
       callback null
 
@@ -797,12 +797,25 @@ Your password has been changed!  If you didn't request this change, please conta
 
   block:(blockedUntil, callback)->
     unless blockedUntil then return callback createKodingError "Blocking date is not defined"
-
     @update
       $set:
         status: 'blocked',
         blockedUntil : blockedUntil
-    , callback
+    , (err) =>
+        return callback err if err
+        JUser.emit "UserBlocked", @
+        return callback err
+
+  unblock:(callback)->
+    @update
+      $set            :
+        status        : 'unconfirmed',
+        blockedUntil  : new Date()
+    , (err) =>
+      return callback err if err
+
+      JUser.emit "UserUnblocked", @
+      return callback err
 
   @copyOauthFromSessionToUser: (username, clientId, callback)->
     JSession.one {clientId: clientId}, (err, session) =>
