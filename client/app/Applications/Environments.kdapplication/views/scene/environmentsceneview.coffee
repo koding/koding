@@ -63,8 +63,8 @@ class EnvironmentScene extends KDDiaScene
           createConnection()
 
   updateConnections:->
-    for _, machine of @boxes.machines.dias
-      for _, domain of @boxes.domains.dias
+    for _mkey, machine of @boxes.machines.dias
+      for _dkey, domain of @boxes.domains.dias
         if domain.data.aliases and machine.data.title in domain.data.aliases
           @connect {dia : domain , joint : 'right'}, \
                    {dia : machine, joint : 'left' }, yes
@@ -153,7 +153,7 @@ class EnvironmentScene extends KDDiaScene
       @slider.setValue zoomLevel  if zoomLevel
 
   resetLayout:->
-    box.resetPosition()  for _, box of @boxes
+    box.resetPosition()  for _key, box of @boxes
     @slider.setValue 1
 
 class EnvironmentApprovalModal extends KDModalView

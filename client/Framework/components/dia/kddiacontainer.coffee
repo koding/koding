@@ -34,7 +34,7 @@ class KDDiaContainer extends JView
     @addDia new itemClass options, data
 
   removeAllItems:->
-    dia.destroy?() for _, dia of @dias
+    dia.destroy?() for _key, dia of @dias
 
   setScale:(scale=1)->
     return  if scale is @scale
