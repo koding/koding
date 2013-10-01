@@ -95,7 +95,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
         'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
-        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store'
+        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore'
       ]
     schema                  :
       skillTags             : [String]
@@ -853,6 +853,19 @@ module.exports = class JAccount extends jraphical.Module
       return callback new KodingError "Attempt to access unauthorized storage"
 
     @_store {name, content}, callback
+
+  unstore: secure (client, name, callback)->
+
+    unless @equals client.connection.delegate
+      return callback new KodingError "Attempt to remove unauthorized storage"
+
+    @fetchStorage { 'data.name' : name }, (err, storage)=>
+      console.log err, storage
+      return callback err  if err
+      unless storage
+        return callback new KodingError "No such storage"
+
+      storage.remove callback
 
   _store: ({name, content}, callback)->
     @fetchStorage { 'data.name' : name }, (err, storage)=>
