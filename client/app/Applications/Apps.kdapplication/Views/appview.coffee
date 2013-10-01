@@ -195,7 +195,7 @@ class AppView extends KDView
       tagName     : "img"
       bind        : "error"
       error       : =>
-        @thumb.$().attr "src", "/images/default.app.thumb.png"
+        @thumb.setAttribute "src", "/images/default.app.thumb.png"
       attributes  :
         src       : thumb
 

@@ -15,6 +15,7 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
+  JStorage     = require './storage'
   JAppStorage  = require './appstorage'
   JTag         = require './tag'
   CActivity    = require './activity'
@@ -75,7 +76,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
+        'fetchAppStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'setEmailPreferences'
         'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
@@ -92,6 +93,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
         'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
+        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore'
       ]
     schema                  :
       skillTags             : [String]
@@ -174,6 +176,10 @@ module.exports = class JAccount extends jraphical.Module
       appStorage    :
         as          : 'appStorage'
         targetType  : "JAppStorage"
+
+      storage       :
+        as          : 'storage'
+        targetType  : 'JStorage'
 
       tag:
         as          : 'skill'
@@ -325,56 +331,6 @@ module.exports = class JAccount extends jraphical.Module
       else JPermissionSet.wrapPermission permission
     JPermissionSet.checkPermission client, advanced, target, callback
 
-  setBackgroundImage: secure (client, type, value, callback=->)->
-    {delegate}    = client.connection
-    isMine        = @equals delegate
-    if isMine
-      if type is 'customImage'
-        operation =
-          $set: {}
-          $addToSet : {}
-        operation.$addToSet['profile.staticPage.customize.background.customImages'] = value
-      else
-        operation = $set : {}
-
-      operation.$set["profile.staticPage.customize.background.customType"] = type
-
-      if type in ['defaultImage','defaultColor','customColor','customImage']
-        operation.$set["profile.staticPage.customize.background.customValue"] = value
-
-
-      @update operation, callback
-
-  setAbout: secure (client, text, callback)->
-    {delegate} = client.connection
-    isMine      = @equals delegate
-    if isMine
-      @fetchAbout (err, about)=>
-        console.log err if err
-        unless about
-          JMarkdownDoc = require './markdowndoc'
-          about        = new JMarkdownDoc content: text
-
-          daisy queue = [
-            ->
-              about.save (err)->
-                console.log err
-                if err then callback err
-                else queue.next()
-            =>
-              @addAbout about, (err)->
-                console.log err
-                if err then callback err
-                else queue.next()
-            ->
-              callback null, about
-          ]
-
-        else
-          about.update $set:{ content: text }, (err)=>
-            if err then callback err
-            else callback null, about
-
   @renderHomepage: require '../render/profile.coffee'
 
   @fetchCachedUserCount: (callback)->
@@ -405,63 +361,6 @@ module.exports = class JAccount extends jraphical.Module
       @update operation, callback
     else
       callback? new KodingError 'Access denied'
-
-  setStaticPageTitle: secure (client, title, callback)->
-    {delegate}  = client.connection
-    selector    = "profile.staticPage.title"
-    isMine      = @equals delegate
-    if isMine
-      operation = $set: {}
-      operation.$set[selector] = title
-      @update operation, callback
-    else
-      callback? new KodingError 'Access denied'
-
-  setStaticPageAbout: secure (client, about, callback)->
-    {delegate} = client.connection
-    selector   = "profile.staticPage.about"
-    isMine     = @equals delegate
-    if isMine
-      operation = $set: {}
-      operation.$set[selector] = about
-      @update operation, callback
-    else
-      callback? new KodingError 'Access denied'
-
-
-  addStaticPageType: secure (client, type, callback)->
-    {delegate} = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @update {$addToSet: 'profile.staticPage.showTypes': type}, callback
-    else
-      callback? new KodingError 'Access denied'
-
-  # addStaticBackground: secure (client, url, callback)->
-  #   {delegate}    = client.connection
-  #   isMine        = @equals delegate
-  #   if isMine
-  #     @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
-  #   else
-  #     callback? new KodingError 'Access denied'
-
-  removeStaticPageType: secure (client, type, callback)->
-    {delegate} = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @update {$pullAll: 'profile.staticPage.showTypes': [type]}, callback
-    else
-      callback? new KodingError 'Access denied'
-
-
-  setStaticPageVisibility: secure (client, visible=yes, callback)->
-    {delegate} = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @update ($set: 'profile.staticPage.show': visible), callback
-    else
-      callback? new KodingError 'Access denied'
-
 
   fetchGroups: secure (client, options = {}, callback)->
     JGroup        = require './group'
@@ -935,10 +834,58 @@ module.exports = class JAccount extends jraphical.Module
   setClientId:(@clientId)->
 
   getFullName:->
-    {profile} = @data
-    profile.firstName+' '+profile.lastName
+    {firstName, lastName} = @data.profile
+    return "#{firstName} #{lastName}"
 
-  fetchStorage: secure (client, options, callback)->
+  fetchStorage$: (name, callback)->
+
+    @fetchStorage { 'data.name' : name }, callback
+
+  fetchStorages$: (whitelist=[], callback)->
+
+    options = if whitelist.length then { 'data.name' : $in : whitelist } else {}
+
+    @fetchStorages options, callback
+
+  store: secure (client, {name, content}, callback)->
+    unless @equals client.connection.delegate
+      return callback new KodingError "Attempt to access unauthorized storage"
+
+    @_store {name, content}, callback
+
+  unstore: secure (client, name, callback)->
+
+    unless @equals client.connection.delegate
+      return callback new KodingError "Attempt to remove unauthorized storage"
+
+    @fetchStorage { 'data.name' : name }, (err, storage)=>
+      console.log err, storage
+      return callback err  if err
+      unless storage
+        return callback new KodingError "No such storage"
+
+      storage.remove callback
+
+  _store: ({name, content}, callback)->
+    @fetchStorage { 'data.name' : name }, (err, storage)=>
+      if err
+        return callback new KodingError "Attempt to access storage failed"
+      else if storage
+        storage.update $set: {content}, (err) -> callback err, storage
+      else
+        storage = new JStorage {name, content}
+        storage.save (err)=>
+          return callback err  if err
+          rel = new Relationship
+            targetId    : storage.getId()
+            targetName  : 'JStorage'
+            sourceId    : @getId()
+            sourceName  : 'JAccount'
+            as          : 'storage'
+            data        : {name}
+          rel.save (err)-> callback err, storage
+
+  fetchAppStorage$: secure (client, options, callback)->
     unless @equals client.connection.delegate
       return callback "Attempt to access unauthorized application storage"
 
