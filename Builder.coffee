@@ -141,7 +141,7 @@ module.exports = class Builder
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
-            spawn.apply null, ["say", ["coffee script error"]]
+            spawn.apply null, ["say", ["coffeescript error"]]
             file.cacheTime = sourceTime # avoid repeated error
             return
         else

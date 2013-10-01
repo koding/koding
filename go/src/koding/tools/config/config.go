@@ -58,6 +58,7 @@ type Config struct {
 		Host string
 	}
 	Kontrold struct {
+		Vhost    string
 		Overview struct {
 			ApiPort    int
 			ApiHost    string
@@ -72,13 +73,6 @@ type Config struct {
 			PortSSL int
 			FTPIP   string
 		}
-		RabbitMq struct {
-			Host     string
-			Port     string
-			Login    string
-			Password string
-			Vhost    string
-		}
 	}
 	FollowFeed struct {
 		Host          string
@@ -86,6 +80,11 @@ type Config struct {
 		ComponentUser string
 		Password      string
 		Vhost         string
+	}
+	Statsd struct {
+		Use  bool
+		Ip   string
+		Port int
 	}
 }
 

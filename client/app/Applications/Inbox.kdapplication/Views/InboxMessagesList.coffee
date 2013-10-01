@@ -19,7 +19,8 @@ class InboxMessagesListItem extends KDListItemView
 
     data = @getData()
 
-    group = data.participants.map (participant)->
+    group   = {} unless data.participants
+    group or= data.participants.map (participant)->
       constructorName : participant.sourceName
       id              : participant.sourceId
     .filter (participant, i, arr)=>

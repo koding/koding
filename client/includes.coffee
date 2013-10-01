@@ -74,6 +74,12 @@ module.exports = [
   "Framework/components/contextmenu/contextmenutreeview.coffee",
   "Framework/components/contextmenu/contextmenuitem.coffee",
 
+  # dias
+  "Framework/components/dia/kddiajoint.coffee",
+  "Framework/components/dia/kddiaobject.coffee",
+  "Framework/components/dia/kddiacontainer.coffee",
+  "Framework/components/dia/kddiascene.coffee",
+
   # inputs
   "Framework/components/inputs/KDInputValidator.coffee",
   "Framework/components/inputs/KDLabelView.coffee",
@@ -155,6 +161,8 @@ module.exports = [
   "app/MainApp/activitycontroller.coffee",
   "app/MainApp/notificationcontroller.coffee",
   "app/MainApp/linkcontroller.coffee",
+  "app/MainApp/paymentcontroller.coffee",
+  "app/MainApp/oauthcontroller.coffee",
 
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
@@ -236,15 +244,15 @@ module.exports = [
   "app/CommonViews/dropboxdownloaditemview.coffee",
 
   # FATIH
-  "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
-  "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
-  "app/CommonViews/fatih/plugins/fatihfilelistitem.coffee",
-  "app/CommonViews/fatih/plugins/fatihfilefinderplugin.coffee",
-  "app/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee",
-  "app/CommonViews/fatih/plugins/fatihopenappplugin.coffee",
-  "app/CommonViews/fatih/plugins/fatihusersearchplugin.coffee",
-  "app/CommonViews/fatih/fatihprefpane.coffee",
-  "app/CommonViews/fatih/fatih.coffee",
+  # "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
+  # "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
+  # "app/CommonViews/fatih/plugins/fatihfilelistitem.coffee",
+  # "app/CommonViews/fatih/plugins/fatihfilefinderplugin.coffee",
+  # "app/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee",
+  # "app/CommonViews/fatih/plugins/fatihopenappplugin.coffee",
+  # "app/CommonViews/fatih/plugins/fatihusersearchplugin.coffee",
+  # "app/CommonViews/fatih/fatihprefpane.coffee",
+  # "app/CommonViews/fatih/fatih.coffee",
 
   # INTRODUCTION TOOLTIP
   "app/CommonViews/introductiontooltip/introductiontooltip.coffee",
@@ -252,6 +260,7 @@ module.exports = [
 
   "app/CommonViews/ModalViewWithTerminal.coffee",
   "app/CommonViews/DNDUploader.coffee",
+  "app/CommonViews/clonerepomodal.coffee",
 
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
@@ -427,7 +436,8 @@ module.exports = [
   "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
-  "app/Applications/Environments.kdapplication/AppController.coffee",
+  # Disable Environments App
+  # "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Apps.kdapplication/AppController.coffee",
   "app/Applications/Inbox.kdapplication/AppController.coffee",
   "app/Applications/Demos.kdapplication/AppController.coffee",
@@ -554,29 +564,41 @@ module.exports = [
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
   # VMs
-  "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
-  "app/Applications/Environments.kdapplication/views/domainsmainview.coffee",
-  "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
-  "app/Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
-  "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
+
+  "app/Applications/Environments.kdapplication/views/scene/colortagselectorview.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentcontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentdomaincontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentmachinecontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentitemjointview.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentitemsview.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentruleitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentdomainitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentmachineitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentsceneview.coffee",
+
+  # "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
+  # "app/Applications/Environments.kdapplication/views/domainsmainview.coffee",
+  # "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
+  # "app/Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
+  # "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaincreationform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
-  "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
-  "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
-  "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
-  "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
-  "app/Applications/Environments.kdapplication/views/FirewallFilterListItemView.coffee",
-  "app/Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
-  "app/Applications/Environments.kdapplication/views/FirewallFilterFormView.coffee",
-  "app/Applications/Environments.kdapplication/views/DNSManagerView.coffee",
-  "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
-  "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
+  # "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
+  # "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
+  # "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
+  # "app/Applications/Environments.kdapplication/views/FirewallFilterListItemView.coffee",
+  # "app/Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
+  # "app/Applications/Environments.kdapplication/views/FirewallFilterFormView.coffee",
+  # "app/Applications/Environments.kdapplication/views/DNSManagerView.coffee",
+  # "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
+  # "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
+
   "app/Applications/Environments.kdapplication/AppView.coffee",
   # "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
-  "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
-  "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
-  "app/Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"
-  "app/Applications/Environments.kdapplication/Controllers/DNSRecordListController.coffee"
+  # "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
+  # "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
+  # "app/Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"
+  # "app/Applications/Environments.kdapplication/Controllers/DNSRecordListController.coffee"
 
   # GROUPS
 
@@ -638,9 +660,13 @@ module.exports = [
 
   "app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee",
 
+  # MEMBERS CONTROLLERS
+  "app/Applications/Members.kdapplication/memberslistcontroller.coffee",
+
   # MEMBERS VIEWS
   "app/Applications/Members.kdapplication/AppView.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee",
+  "app/Applications/Members.kdapplication/ContentDisplays/externalprofileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee",
   "app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee",
   "app/Applications/Members.kdapplication/newmemberactivitylistitem.coffee",
@@ -700,22 +726,29 @@ module.exports = [
 
   # "app/Applications/GroupsFake.kdapplication/AppController.coffee",
 
-  # ACCOUNT SETTINGS
-  "app/Applications/Account.kdapplication/account/accountListViewController.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsPersUsername.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsPersLinkedAccts.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsPersEmailNotifications.coffee",
-  # "app/Applications/Account.kdapplication/account/accSettingsDevDatabases.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsDevEditors.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsDevMounts.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsDevRepos.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsDevSshKeys.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsDevKodingKeys.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsPersReferralSystem.coffee",
+  # ACCOUNT CONTROLLERS
+  "app/Applications/Account.kdapplication/controllers/accountnavigationcontroller.coffee",
+  "app/Applications/Account.kdapplication/controllers/accountcontentwrappercontroller.coffee",
+  "app/Applications/Account.kdapplication/controllers/accountsidebarcontroller.coffee",
+  "app/Applications/Account.kdapplication/controllers/accountlistcontroller.coffee",
 
-  "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
-  "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
+  # ACCOUNT VIEWS
+  "app/Applications/Account.kdapplication/views/password.coffee",
+  "app/Applications/Account.kdapplication/views/username.coffee",
+  "app/Applications/Account.kdapplication/views/linkedaccts.coffee",
+  "app/Applications/Account.kdapplication/views/emailnotifications.coffee",
+  # "app/Applications/Account.kdapplication/views/devdatabases.coffee",
+  "app/Applications/Account.kdapplication/views/editors.coffee",
+  "app/Applications/Account.kdapplication/views/mounts.coffee",
+  "app/Applications/Account.kdapplication/views/repos.coffee",
+  "app/Applications/Account.kdapplication/views/sshkeys.coffee",
+  "app/Applications/Account.kdapplication/views/kodingkeys.coffee",
+
+  "app/Applications/Account.kdapplication/views/paymenthistory.coffee",
+  "app/Applications/Account.kdapplication/views/paymentmethods.coffee",
+  "app/Applications/Account.kdapplication/views/subscriptions.coffee",
+  "app/Applications/Account.kdapplication/views/referralsystem.coffee",
+  "app/Applications/Account.kdapplication/views/deleteaccountview.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
@@ -846,6 +879,7 @@ module.exports = [
   "Framework/themes/default/kd.sliderbar.styl",
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
+  "Framework/themes/default/kd.dia.styl",
 
   "stylus/app.styl",
   "stylus/app.bottom.styl",

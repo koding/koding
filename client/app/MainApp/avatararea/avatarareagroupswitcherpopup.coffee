@@ -104,7 +104,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     return  unless KD.isLoggedIn()
 
-    KD.whoami().fetchGroups (err, groups)=>
+    KD.whoami().fetchGroups null, (err, groups)=>
       if err then warn err
       else if groups?
 

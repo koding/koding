@@ -401,16 +401,16 @@ module.exports = class JGroup extends Module
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
 
-    @some {
+    @some
       title      : seed
       _id        :
         $nin     : blacklist
       visibility : 'visible'
-    },{
+    ,
       skip
       limit
       sort       : 'title' : 1
-    }, callback
+    , callback
 
   # currently groups in a group show global groups, so it does not
   # make sense to allow this method based on current group's permissions
