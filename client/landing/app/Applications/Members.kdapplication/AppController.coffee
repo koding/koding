@@ -12,16 +12,19 @@ class MembersAppController extends AppController
   @externalProfiles = externalProfiles =
     github          :
       nicename      : 'GitHub'
+      urlLocation   : 'html_url'
     odesk           :
       nicename      : 'oDesk'
+      urlLocation   : 'info.profile_url'
     facebook        :
       nicename      : 'Facebook'
-    twitter         :
-      nicename      : 'Twitter'
-    linkedin        :
-      nicename      : 'linkedIn'
-    bitbucket       :
-      nicename      : 'BitBucket'
+      urlLocation   : 'link'
+    # twitter         :
+    #   nicename      : 'Twitter'
+    # linkedin        :
+    #   nicename      : 'linkedIn'
+    # bitbucket       :
+    #   nicename      : 'BitBucket'
 
   constructor:(options = {}, data)->
 

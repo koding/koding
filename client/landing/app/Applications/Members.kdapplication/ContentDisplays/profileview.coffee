@@ -4,7 +4,8 @@ class ProfileView extends JView
 
     super options, data
 
-    @memberData = @getData()
+    @memberData    = @getData()
+    mainController = KD.getSingleton "mainController"
 
     if KD.checkFlag 'exempt', @memberData
       if not KD.checkFlag 'super-admin'
@@ -165,13 +166,11 @@ class ProfileView extends JView
         partial      : if KD.checkFlag 'exempt', @memberData then 'Unmark Troll' else 'Mark as Troll'
         cssClass     : "troll-switch"
         click        : =>
-          mc = KD.getSingleton('mainController')
           if KD.checkFlag 'exempt', @memberData
-          then mc.unmarkUserAsTroll @memberData
-          else mc.markUserAsTroll   @memberData
+          then mainController.unmarkUserAsTroll @memberData
+          else mainController.markUserAsTroll   @memberData
     else
       @trollSwitch = new KDCustomHTMLView
-
 
   viewAppended:->
 
@@ -189,22 +188,11 @@ class ProfileView extends JView
     for own provider, options of externalProfiles
       @["#{provider}View"]?.destroy()
       @["#{provider}View"] = view = new ExternalProfileView
-        type     : provider
-        niceName : options.niceName
+        type        : provider
+        nicename    : options.nicename
+        urlLocation : options.urlLocation
+
       @addSubView view, '.external-profiles'
-
-    appManager.tell 'Members', 'fetchExternalProfiles', @memberData, (err, storages)=>
-
-      return warn err  if err
-
-      for storage in storages.reverse()
-
-        provider = storage.name.replace /^ext\|profile\|/, ''
-        continue  unless providerView = @["#{provider}View"]
-
-        providerView.setClass 'linked'
-        providerView.$().detach()
-        providerView.$().prependTo @$('.external-profiles')
 
 
   createBadges:->

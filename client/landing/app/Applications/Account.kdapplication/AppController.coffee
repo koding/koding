@@ -12,6 +12,41 @@ class AccountAppController extends AppController
       type       : "account"
       loggedIn   : yes
 
+  items =
+    personal :
+      title : "Personal"
+      items : [
+        { title : "Login & Email",        listHeader: "Email & username",           listType: "username",       id : 10,      parentId : null }
+        { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
+        { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
+        { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
+        { title : "Referrals",            listHeader: "Referrals ",                 listType: "referralSystem", id : 40,      parentId : null }
+      ]
+    billing :
+      title : "Billing"
+      items : [
+        { title : "Payment methods",      listHeader: "Your Payment Methods",       listType: "methods",        id : 10,      parentId : null }
+        { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
+        { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
+      ]
+    develop :
+      title : "Develop"
+      items : [
+        { title : "SSH keys",             listHeader: "Your SSH Keys",              listType: "keys",           id : 5,       parentId : null }
+        { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
+      ]
+    danger  :
+      title : "Danger"
+      items : [
+        { title : "Delete Account",       listHeader: "Danger Zone",                listType: "delete",         id : 5,       parentId : null }
+      ]
+      # kites :
+      #   title : "Kites"
+      #   items : [
+      #     { title : "My Kites",             listHeader: "Your own Kites",             listType: "myKiteList",     id : 10,      parentId : null }
+      #     { title : "All Kites",            listHeader: "Your 3rd Party Kites",       listType: "kiteList",       id : 20,      parentId : null }
+      #   ]
+
   constructor:(options={}, data)->
 
     options.view = new KDView cssClass : "content-page"
@@ -21,7 +56,6 @@ class AccountAppController extends AppController
     @itemsOrdered = []
 
   loadView:(mainView)->
-    items = @items
 
     # SET UP VIEWS
     @navController = new AccountSideBarController
@@ -158,39 +192,3 @@ class AccountAppController extends AppController
 
   indexOfItem:(item)->
     @itemsOrdered.indexOf item
-
-  items :
-    personal :
-      title : "Personal"
-      items : [
-        { title : "Login & Email",        listHeader: "Email & username",           listType: "username",       id : 10,      parentId : null }
-        { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
-        { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
-        { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
-        { title : "Referrals",            listHeader: "Referrals ",                 listType: "referralSystem", id : 40,      parentId : null }
-      ]
-    billing :
-      title : "Billing"
-      items : [
-        { title : "Payment methods",      listHeader: "Your Payment Methods",       listType: "methods",        id : 10,      parentId : null }
-        { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
-        { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
-      ]
-    develop :
-      title : "Develop"
-      items : [
-        { title : "SSH keys",             listHeader: "Your SSH Keys",              listType: "keys",           id : 5,       parentId : null }
-        { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
-      ]
-    danger  :
-      title : "Danger"
-      items : [
-        { title : "Delete Account",       listHeader: "Danger Zone",                listType: "delete",         id : 5,       parentId : null }
-      ]
-      # kites :
-      #   title : "Kites"
-      #   items : [
-      #     { title : "My Kites",             listHeader: "Your own Kites",             listType: "myKiteList",     id : 10,      parentId : null }
-      #     { title : "All Kites",            listHeader: "Your 3rd Party Kites",       listType: "kiteList",       id : 20,      parentId : null }
-      #   ]
-
