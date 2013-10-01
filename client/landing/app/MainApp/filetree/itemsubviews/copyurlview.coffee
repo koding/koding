@@ -15,6 +15,8 @@ class NCopyUrlView extends JView
     @inputUrl       = new KDInputView
       label         : @inputUrlLabel
       cssClass      : 'public-url-input'
+      attributes    :
+        readonly    : yes
 
     KD.getSingleton('vmController').fetchVMDomains hostname, (err, domains)=>
       if domains?.length > 0 and not err
@@ -30,7 +32,19 @@ class NCopyUrlView extends JView
           subdomain = ''
 
         @publicPath = "#{subdomain}#{domains.first}/#{pathrest}"
-        @inputUrl.setValue "http://#{@publicPath}"
+        URI = "http://#{@publicPath}"
+        @inputUrl.setValue URI
+        @focusAndSelectAll()
+
+        unless @newPageLink
+          @addSubView @newPageLink = new CustomLinkView
+            cssClass    : "icon-link"
+            title       : ""
+            href        : URI
+            target      : URI
+            icon        :
+              cssClass  : 'new-page'
+              placement : 'right'
 
   focusAndSelectAll:->
     @inputUrl.setFocus()
