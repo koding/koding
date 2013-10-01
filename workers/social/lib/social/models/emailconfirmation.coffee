@@ -52,9 +52,9 @@ module.exports = class JEmailConfirmation extends jraphical.Module
 
         if confirmations and confirmations.length > 0
           createdAt = confirmations.first.createdAt
-          # if it is resent in one day(if lt 1), do not send again
-          if ((Date.now() - createdAt) / 1000 / 60 / 24) < 1
-            return callback new KodingError "You can receive confirmation mail one a day"
+          # if it is resent in 10 min, do not send again
+          if ((Date.now() - createdAt.getTime()) / 1000 / 60 ) < 10
+            return callback new KodingError "You can receive one confirmation mail in 10 minutes"
 
         JUser = require './user'
         JUser.one {username}, (err, user)=>
