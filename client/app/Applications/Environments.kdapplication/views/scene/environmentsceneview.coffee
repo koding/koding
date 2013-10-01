@@ -85,7 +85,7 @@ class EnvironmentScene extends KDDiaScene
         container.once "DataLoaded", ->
           if counter is 1 then do callback
           counter--
-        container.loadItems()
+        container.refreshItems()
 
   addContainer:(container, pos)->
     pos ?= x: 40 + @containers.length * 300, y: 40

@@ -35,8 +35,6 @@ class EnvironmentContainer extends KDDiaContainer
     {@appStorage} = @parent
     @appStorage.ready @bound 'loadPosition'
 
-    @loadItems()
-
   showLoader: ->
     @newItemPlus.hide()
     @loader.show()
@@ -94,5 +92,10 @@ class EnvironmentContainer extends KDDiaContainer
 
     delete positions[name]
     @appStorage.setValue 'containerPositions', positions
+
+  refreshItems:->
+    for key, dia of @dias
+      dia.destroy()
+    @loadItems()
 
   loadItems:-> yes

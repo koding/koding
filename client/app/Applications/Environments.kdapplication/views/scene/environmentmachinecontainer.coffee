@@ -12,11 +12,6 @@ class EnvironmentMachineContainer extends EnvironmentContainer
     vmController.on 'VMListChanged', =>
       @utils.defer => @refreshItems()
 
-  refreshItems:->
-    for key, dia of @dias
-      dia.destroy()
-    @loadItems()
-
   loadItems:->
     vmc = KD.getSingleton 'vmController'
     vmc.fetchVMs (err, vms)=>
