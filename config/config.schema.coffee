@@ -59,6 +59,7 @@ config =
       enabled     : 1
       port        : 1
     mongo         : 1
+    mongoReplSet  : 1
     neo4j         :
       read        : 1
       write       : 1
@@ -209,6 +210,7 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     kontrold        :
+      vhost         : 1
       overview      :
         apiHost     : 1
         apiPort     : 1
@@ -220,12 +222,6 @@ config =
         port        : 1
         portssl     : 1
         ftpip       : 1
-      rabbitmq      :
-        host        : 1
-        port        : 1
-        login       : 1
-        password    : 1
-        vhost       : 1
     recurly         :
       apiKey        : 1
     embedly         :
@@ -244,4 +240,15 @@ config =
     github          :
       clientId      : 1
       clientSecret  : 1
+    odesk           :
+      key           : 1
+      secret        : 1
+    facebook        :
+      clientId      : 1
+      clientSecret  : 1
+      redirectUri   : 1
+    statsd          :
+      use           : 1
+      ip            : 1
+      port          : 1
 module.exports = config

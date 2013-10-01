@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/db/mongodb"
 	"koding/tools/utils"
 	"koding/virt"
 	"labix.org/v2/mgo"
@@ -68,7 +67,7 @@ var actions = map[string]func(){
 	},
 
 	"create-test-vms": func() {
-		startIP := net.IPv4(172, 16, 0, 2)
+		startIP := net.IPv4(10, 128, 2, 7)
 		if len(os.Args) >= 4 {
 			startIP = net.ParseIP(os.Args[3])
 		}
@@ -81,6 +80,7 @@ var actions = map[string]func(){
 					Id: bson.NewObjectId(),
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
+				vm.ApplyDefaults()
 				vm.Prepare(false, func(text string, data ...interface{}) { fmt.Println(text) })
 				done <- i
 			}(i)
@@ -131,13 +131,13 @@ var actions = map[string]func(){
 	},
 
 	"rbd-orphans": func() {
-		iter := new(mgo.Iter)
-		query := func(c *mgo.Collection) error {
-			iter = c.Find(bson.M{}).Select(bson.M{"_id": 1}).Iter()
-			return nil
+		session, err := mgo.Dial(os.Args[2])
+		if err != nil {
+			panic(err)
 		}
-		mongodb.Run("jVMs", query)
-
+		session.SetSafe(&mgo.Safe{})
+		database := session.DB("")
+		iter := database.C("jVMs").Find(bson.M{}).Select(bson.M{"_id": 1}).Iter()
 		var vm struct {
 			Id bson.ObjectId `bson:"_id"`
 		}

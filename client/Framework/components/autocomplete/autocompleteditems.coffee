@@ -1,7 +1,7 @@
 class KDAutoCompletedItem extends KDView
 
   constructor:(options = {}, data)->
-    options.cssClass = @utils.curryCssClass "kdautocompletedlistitem", options.cssClass
+    options.cssClass = @utils.curry "kdautocompletedlistitem", options.cssClass
     super
 
   click:(event)->
@@ -23,7 +23,7 @@ class KDAutocompleteUnselecteableItem extends KDListItemView
 
 class KDAutoCompleteNothingFoundItem extends KDAutocompleteUnselecteableItem
   constructor:(options = {}, data)->
-    options.cssClass = @utils.curryCssClass "kdautocompletelistitem no-result", options.cssClass
+    options.cssClass = @utils.curry "kdautocompletelistitem no-result", options.cssClass
     super
 
   partial: (data) ->
@@ -32,7 +32,7 @@ class KDAutoCompleteNothingFoundItem extends KDAutocompleteUnselecteableItem
 class KDAutoCompleteFetchingItem extends KDAutocompleteUnselecteableItem
 
   constructor:(options = {}, data)->
-    options.cssClass = @utils.curryCssClass "kdautocompletelistitem fetching", options.cssClass
+    options.cssClass = @utils.curry "kdautocompletelistitem fetching", options.cssClass
     super
 
   partial:-> "Fetching in process..."

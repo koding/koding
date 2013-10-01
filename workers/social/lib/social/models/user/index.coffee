@@ -65,7 +65,9 @@ module.exports = class JUser extends jraphical.Module
     indexes         :
       username      : 'unique'
       email         : 'unique'
-      'foreignAuth.github.foreignId' : 1
+      'foreignAuth.github.foreignId'   : 1
+      'foreignAuth.odesk.foreignId'    : 1
+      'foreignAuth.facebook.foreignId' : 1
 
     sharedEvents    :
       static        : [
@@ -123,8 +125,25 @@ module.exports = class JUser extends jraphical.Module
           # enum      : ['invalid status',['online','offline','away','busy']]
 
       sshKeys       : [Object]
-      foreignAuth   :
-        github      : Object
+      foreignAuth            :
+        github               :
+          foreignId          : String
+          username           : String
+          token              : String
+          firstName          : String
+          lastName           : String
+          email              : String
+        odesk                :
+          foreignId          : String
+          token              : String
+          accessTokenSecret  : String
+          requestToken       : String
+          requestTokenSecret : String
+          profileUrl         : String
+        facebook             :
+          foreignId          : String
+          username           : String
+          token              : String
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -144,7 +163,8 @@ module.exports = class JUser extends jraphical.Module
     {delegate} = client.connection
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
-    unless confirmUsername is delegate.profile.nickname
+    unless confirmUsername is delegate.profile.nickname or
+           delegate.can 'administer accounts'
       return callback createKodingError "You must confirm this action!"
 
     @createGuestUsername (err, username) =>
@@ -165,7 +185,7 @@ module.exports = class JUser extends jraphical.Module
           foreignAuth     : {}
         }
         modifier = { $set: userValues, $unset: { oldUsername: 1 }}
-        user.update modifier, (err, callback) =>
+        user.update modifier, (err, docs) =>
           return callback err  if err?
           accountValues = {
             'profile.nickname'    : username
@@ -177,7 +197,6 @@ module.exports = class JUser extends jraphical.Module
             'profile.experience'  : ''
             'profile.experiencePoints': 0
             'profile.lastStatusUpdate': ''
-            'foreignAuth.github'  : no
             type                  : 'deleted'
             ircNickame            : ''
             skillTags             : []
@@ -438,8 +457,13 @@ module.exports = class JUser extends jraphical.Module
     callback null, {account, replacementToken}
 
   @fetchUserByProvider = (provider, session, callback)->
-    query = {}
-    query["foreignAuth.#{provider}.foreignId"] = session.foreignAuth[provider].foreignId
+    {foreignAuth} = session
+    unless foreignAuth
+      return callback createKodingError "No foreignAuth:#{provider} info in session"
+
+    query                                      = {}
+    query["foreignAuth.#{provider}.foreignId"] = foreignAuth[provider].foreignId
+
     JUser.one query, callback
 
   @authenticateWithOauth = secure (client, resp, callback)->
@@ -700,22 +724,23 @@ Your password has been changed!  If you didn't request this change, please conta
         callback null, res
 
   fetchContextualAccount:(context, rest..., callback)->
-    Relationship.one {
-      as          : 'owner'
-      sourceId    : @getId()
-      targetName  : 'JAccount'
-      'data.context': context
-    }, (err, account)=>
-      if err
-        callback err
-      else if account?
-        callback null, account
-      else
-        @fetchOwnAccount rest..., callback
+    # Relationship.one {
+    #   as          : 'owner'
+    #   sourceId    : @getId()
+    #   targetName  : 'JAccount'
+    #   'data.context': context
+    # }, (err, account)=>
+    #   if err
+    #     callback err
+    #   else if account?
+    #     callback null, account
+    #   else
+    #     @fetchOwnAccount rest..., callback
 
   fetchAccount:(context, rest...)->
-    if context is 'koding' then @fetchOwnAccount rest...
-    else @fetchContextualAccount context, rest...
+    @fetchOwnAccount rest...
+    # if context is 'koding' then @fetchOwnAccount rest...
+    # else @fetchContextualAccount context, rest...
 
   changePassword:(newPassword, callback)->
     salt = createSalt()
@@ -784,13 +809,19 @@ Your password has been changed!  If you didn't request this change, please conta
 
   @copyOauthFromSessionToUser: (username, clientId, callback)->
     JSession.one {clientId: clientId}, (err, session) =>
-      if err
-        callback err
+      if err then callback err
       else
-        if session.foreignAuth
-          @update {username}, $set: foreignAuth: session.foreignAuth, callback
+        {foreignAuth, foreignAuthType} = session
+        if foreignAuth and foreignAuthType
+          query = {}
+          query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
+
+          @update {username}, $set: query, (err)->
+            if err then callback err
+            else
+              session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
         else
-          callback()
+          callback() # WARNING: don't assume it's an error if there's no foreignAuth
 
   @setSSHKeys: secure (client, sshKeys, callback)->
     @fetchUser client, (err,user)->

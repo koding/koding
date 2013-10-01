@@ -7,7 +7,7 @@ JCache = require '../cache.coffee'
 
 module.exports = class Graph
   constructor:({config, facets})->
-    @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
+    @db = new neo4j.GraphDatabase "#{config.read}:#{config.port}"
     @facets = facets
 
   @reviveFromData: (data, className)->
@@ -27,9 +27,9 @@ module.exports = class Graph
       for i in wantedOrder
         obj = objects[i.idx]
         if obj
-          ret.push(obj)
+          ret.push obj
         else
-          console.log("id in neo4j but not in mongo, maybe a sync problem ??? " + i.idx)
+          console.log "id in neo4j but not in mongo, maybe a sync problem ??? #{i.idx}"
       callback null, ret
 
     ret = {}

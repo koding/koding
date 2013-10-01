@@ -19,7 +19,7 @@ class KDFormView extends KDView
   constructor:(options = {}, data)->
 
     options.tagName      = "form"
-    options.cssClass     = KD.utils.curryCssClass "kdformview", options.cssClass
+    options.cssClass     = KD.utils.curry "kdformview", options.cssClass
     options.callback   or= noop     # a Function
     options.customData or= {}       # an Object of key/value pairs
     options.bind       or= "submit" # a String of space separated event names
@@ -63,7 +63,7 @@ class KDFormView extends KDView
     for inputData in @getDomElement().serializeArray()
       data[inputData.name] = inputData.value
     data
-  
+
   # this should be removed, this overrides KDObject::getData() and serialize is not enough for data collection - SY
   getData: ->
     formData = $.extend {},@getCustomData()

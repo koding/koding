@@ -11,7 +11,7 @@ class AceView extends JView
 
   constructor:(options = {}, file)->
 
-    options.advancedSettings ?= yes
+    options.advancedSettings ?= no
 
     super options, file
 
