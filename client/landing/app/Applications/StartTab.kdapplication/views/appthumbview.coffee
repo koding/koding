@@ -43,7 +43,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     @img.off 'error'
     @img.on  'error', ->
-      @$().attr "src", "/images/default.app.thumb.png"
+      @setAttribute "src", "/images/default.app.thumb.png"
 
     @loader = new KDLoaderView
       size          :
@@ -298,7 +298,7 @@ class AppShortcutButton extends StartTabAppThumbView
 
     super options, data
 
-    @img.$().attr "src", "/images/#{data.icon}"
+    @img.setAttribute "src", "/images/#{data.icon}"
 
     @compile = new KDView
     @delete  = new KDView  if data.type is 'koding-app'
