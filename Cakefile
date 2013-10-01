@@ -466,7 +466,6 @@ run =({configFile})->
     invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanerWorker'   if config.guestCleanerWorker.enabled
-    invoke 'sitemapGeneratorWorker'  if config.sitemapWorker.enabled
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes

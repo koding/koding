@@ -1,11 +1,12 @@
 {EventEmitter} = require 'events'
 
 jraphical = require 'jraphical'
-{Base, race, dash} = require "bongo"
+{Base, race, dash, daisy} = require "bongo"
 {CronJob} = require 'cron'
 _ = require "underscore"
 
-NPERPAGE = 2
+NAMEPERPAGE = 2
+GROUPPERPAGE = 20
 module.exports = class SitemapGeneratorWorker extends EventEmitter
   constructor: (@bongo, @options = {}) ->
 
@@ -22,57 +23,71 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     sitemap += sitemapFooter
 
   generateSitemapName: (skip)->
-    return  skip + "_" + (skip + NPERPAGE)
+    return  skip + "_" + (skip + NAMEPERPAGE)
 
   saveSitemap: (name, content)->
     {JSitemap} = @bongo.models
     JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)-> 
       console.log err if err
-
+  generateMainSitemap: (sitemapNames)=>
+    name = "main"
+    content = @generateSitemapString sitemapNames
+    @saveSitemap name, content
   generate:=>
     {JName, JGroup, JSitemap} = @bongo.models
 
     sitemapNames = []
-    JGroup.all { privacy:'public'}, (err, jGroups)=>
-      publicGroups = []
 
-      # We behave koding is a public group, even though
-      # its privacy is marked as "private" in the model.
-      publicGroups.push 'koding'
 
-      for group in jGroups
-        publicGroups.push group.slug
+    groupSelector = {
+      privacy:'public'
+    }
 
-      selector = {
-        'slugs.group': { $in: publicGroups }
-      }
+    JGroup.count groupSelector, (err, groupCount)=>
+      numberOfGroupPages = Math.ceil(groupCount / GROUPPERPAGE)
+      for groupPageNumber in [1..numberOfGroupPages]
+        groupSkip = (groupPageNumber - 1) * GROUPPERPAGE
+        groupOptions = {
+          limit : GROUPPERPAGE,
+          skip  : groupSkip
+        }
+        JGroup.some groupSelector, groupOptions, (err, jGroups)=>
+          publicGroups = []
 
-      JName.count selector, (err, count)=>
-        numberOfPages = Math.ceil(count / NPERPAGE)
+          # We behave 'koding' as a public group, even though
+          # its privacy is marked as "private" in the model.
+          publicGroups.push 'koding'
 
-        queue = [1..numberOfPages].map (pageNumber)=>=>
-          skip = (pageNumber - 1) * NPERPAGE
-          option = {
-            limit : NPERPAGE,
-            skip  : skip
+          for group in jGroups
+            publicGroups.push group.slug
+
+
+          selector = {
+            'slugs.group': { $in: publicGroups }
           }
-          JName.some selector, option, (err, names)=>
 
-            urls = (name.name for name in names) 
+          JName.count selector, (err, count)=>
+            numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
 
-            sitemapName =  @generateSitemapName skip
-            content = @generateSitemapString urls
-            @saveSitemap sitemapName, content
+            queue = [1..numberOfNamePages].map (pageNumber)=>=>
+                skip = (pageNumber - 1) * NAMEPERPAGE
+                option = {
+                  limit : NAMEPERPAGE,
+                  skip  : skip
+                }
+                JName.some selector, option, (err, names)=>
+                  urls = (name.name for name in names) 
 
-            sitemapNames.push sitemapName + ".xml"
-            queue.fin()
+                  sitemapName =  @generateSitemapName skip
+                  content = @generateSitemapString urls
+                  @saveSitemap sitemapName, content
 
-        dash queue, (err)=>
-          console.log err if err
-          # This is root node of all sitemaps, its name is "main"
-          name = "main"
-          content = @generateSitemapString sitemapNames
-          @saveSitemap name, content
+                  sitemapNames.push sitemapName + ".xml"
+                  queue.next()
+            queue.push => @generateMainSitemap sitemapNames
+
+            daisy queue
+
 
   init:->
     sitemapGeneratorCron = new CronJob @options.sitemapWorker.cronSchedule, @generate
