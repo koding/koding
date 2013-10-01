@@ -599,11 +599,13 @@ class VirtualizationController extends KDController
   # there may be a better place for these who methods below - SY
 
   fetchVMPlans:(callback)->
+    @emit "VMPlansFetchStart"
     KD.remote.api.JRecurlyPlan.getPlans "group", "vm", (err, plans)=>
       if err then warn err
       else if plans
         plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
 
+      @emit "VMPlansFetchEnd"
       callback err, plans
 
   sanitizeVMPlansForInputs:(plans)->

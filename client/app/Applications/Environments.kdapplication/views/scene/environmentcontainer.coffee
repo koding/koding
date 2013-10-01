@@ -19,14 +19,31 @@ class EnvironmentContainer extends KDDiaContainer
       cssClass   : 'new-item-plus'
       click      : => @emit 'PlusButtonClicked'
 
+    @loader = new KDLoaderView
+      cssClass   : 'new-item-loader hidden'
+      size       :
+        height   : 20
+        width    : 20
+
   viewAppended:->
     super
 
     @addSubView @header
     @header.addSubView @newItemPlus
+    @header.addSubView @loader
 
     {@appStorage} = @parent
     @appStorage.ready @bound 'loadPosition'
+
+    @loadItems()
+
+  showLoader: ->
+    @newItemPlus.hide()
+    @loader.show()
+
+  hideLoader: ->
+    @newItemPlus.show()
+    @loader.hide()
 
   addDia:(diaObj, pos)->
     pos = x: 20, y: 60 + @diaCount() * (@itemHeight + 10)
