@@ -20,7 +20,8 @@ class FSHelper
 
     sortedFiles = []
     for p in [yes, no]
-      z = (x for x in files when x.isDir is p).sort (x,y)-> x.name > y.name
+      z = (x for x in files when x.isDir is p).sort (x,y)->
+        x.name.toLowerCase() > y.name.toLowerCase()
       sortedFiles.push x for x in z
 
     nickname = KD.nick()
@@ -215,5 +216,27 @@ class FSHelper
         method    : 's3.delete'
         withArgs  : {name}
       , callback
+
+  @getPathHierarchy = (fullPath)->
+    {path, vmName} = KD.getPathInfo fullPath
+    path = path.replace /^~/, "/home/#{KD.nick()}"
+    nodes = path.split("/").filter (node)-> return !!node
+    queue = for node in nodes
+      subPath = nodes.join "/"
+      nodes.pop()
+      "[#{vmName}]/#{subPath}"
+    queue.reverse() # reverse the queue to open files to back
+
+  @chunkify = (data, chunkSize)->
+    chunks = []
+    while data
+      if data.length < chunkSize
+        chunks.push data
+        break
+      else
+        chunks.push data.substr 0, chunkSize
+        # shrink
+        data = data.substr chunkSize
+    return chunks
 
 KD.classes.FSHelper = FSHelper

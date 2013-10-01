@@ -178,7 +178,7 @@ class GroupsAppController extends AppController
           title             : "My groups"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchGroups (err, items)=>
+            KD.whoami().fetchGroups options, (err, items)=>
               ids = []
               for item in items
                 item.followee = true
