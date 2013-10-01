@@ -315,7 +315,7 @@ class KodingRouter extends KDRouter
           else
             new KDNotificationView
               title: "Thanks for confirming your email address!"
-            @clear()
+          @clear()
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
