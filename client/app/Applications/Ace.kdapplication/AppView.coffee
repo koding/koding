@@ -86,6 +86,29 @@ class AceView extends JView
       @getActiveTabHandle().unsetClass "modified"
       delete @getDelegate().quitOptions
 
+    @ace.on "FileIsReadOnly", =>
+      @getActiveTabHandle().setClass "readonly"
+      @ace.setReadOnly yes
+      modal             = new KDModalView
+        title           : "This file is readonly"
+        content         : """
+        <div class="modalformline">
+          <p>
+            The file <code>#{@getData().name}</code> is a readonly file.
+          </p>
+        </div>
+        """
+        buttons         :
+          "Edit Anyway" :
+            cssClass    : "modal-clean-red"
+            callback    : =>
+              @ace.setReadOnly no
+              modal.destroy()
+          "Cancel"      :
+            cssClass    : "modal-cancel"
+            callback    : ->
+              modal.destroy()
+
   getActiveTabHandle: ->
     return  @getDelegate().tabView.getActivePane().tabHandle
 
