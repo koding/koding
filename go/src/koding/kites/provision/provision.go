@@ -97,7 +97,8 @@ func initializeVMS() {
 		return
 	}
 
-	// if there is any vms in the lxc dir, read them and create a new info for them.
+	// remove and unprepare any vm in the lxc dir that doesn't have any
+	// associated document which in mongodb.
 	for _, dir := range dirs {
 		if strings.HasPrefix(dir.Name(), "vm-") {
 			vmId := bson.ObjectIdHex(dir.Name()[3:])
@@ -511,6 +512,8 @@ func prepareVM(vm *virt.VM) error {
 	info.timeout.Stop()
 
 	if !isPrepared || info.currentHostname != vm.HostnameAlias {
+		setupVagrantIPTable(vm)
+
 		// protect vm.Prepare with a mutex(), fsck.ext4 is not concurrent ready
 		vm.Prepare(false, logWarning)
 		if err := vm.Start(); err != nil {
@@ -769,6 +772,8 @@ func createVM(vmName string, reinitialize bool) error {
 		vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
 	}
 
+	setupVagrantIPTable(&vm)
+
 	// write LXC files
 	virt.PrepareDir(vm.File(""), 0)
 	vm.GenerateFile(vm.File("config"), "config", 0, false)
@@ -913,4 +918,72 @@ func (info *VMInfo) unprepareVM() {
 		delete(infos, info.vm.Id)
 	}
 	infosMutex.Unlock()
+}
+
+// some convenient wrappers around iptables. Needed to expose lxc's outside Vagrant
+
+type iptables struct {
+	cmd  string
+	args []string
+}
+
+func newIPTables() *iptables {
+	return &iptables{
+		cmd: "/sbin/iptables",
+	}
+}
+
+func (i *iptables) append(hostPort, guestPort, guestIP string) error {
+	args := []string{"-t", "nat", "--append", "PREROUTING", "-p", "tcp", "--dport", hostPort,
+		"-j", "DNAT", "--to-destination", guestIP + ":" + guestPort}
+	if out, err := exec.Command(i.cmd, args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("append iptables err '%s', out: '%s'", err, string(out))
+	}
+	return nil
+}
+
+func (i *iptables) delete(hostPort, guestPort, guestIP string) error {
+	args := []string{"-t", "nat", "--delete", "PREROUTING", "-p", "tcp", "--dport", hostPort,
+		"-j", "DNAT", "--to-destination", guestIP + ":" + guestPort}
+	if out, err := exec.Command(i.cmd, args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("delete iptables err '%s', out: '%s'", err, string(out))
+	}
+	return nil
+}
+
+func (i *iptables) check(hostPort, guestPort, guestIP string) error {
+	args := []string{"-t", "nat", "--check", "PREROUTING", "-p", "tcp", "--dport", hostPort,
+		"-j", "DNAT", "--to-destination", guestIP + ":" + guestPort}
+	if out, err := exec.Command(i.cmd, args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("delete iptables err '%s', out: '%s'", err, string(out))
+	}
+
+	return nil
+}
+
+func (i *iptables) flush() error {
+	args := []string{"-t", "nat", "--flush", "PREROUTING"}
+	if out, err := exec.Command(i.cmd, args...).CombinedOutput(); err != nil {
+		return fmt.Errorf("delete iptables err '%s', out: '%s'", err, string(out))
+	}
+
+	return nil
+}
+
+func setupVagrantIPTable(vm *virt.VM) {
+	// These functions should be in vm.Prepare()
+	ip := newIPTables()
+	ip.flush() //remove all for now
+
+	// Terminal kite, port 4001
+	err := ip.check("4001", "4001", vm.IP.String())
+	if err != nil { // means it doesn't exist
+		ip.append("4001", "4001", vm.IP.String())
+	}
+
+	// Fs Kite, port 4002
+	err = ip.check("4002", "4002", vm.IP.String())
+	if err != nil { // means it doesn't exist
+		ip.append("4002", "4002", vm.IP.String())
+	}
 }

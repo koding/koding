@@ -18,8 +18,8 @@ import (
 type Os struct{}
 
 var (
-	port = flag.String("port", "4000", "port to bind itself")
-	ip   = flag.String("ip", "0.0.0.0", "ip to bind itself")
+	port = flag.String("port", "4002", "port to bind itself")
+	ip   = flag.String("ip", "", "ip to bind itself")
 
 	// watcher variables
 	once               sync.Once
@@ -29,7 +29,14 @@ var (
 
 func main() {
 	flag.Parse()
-	o := &protocol.Options{LocalIP: *ip, Username: "huseyin", Kitename: "fs-local", Version: "1", Port: *port}
+	o := &protocol.Options{
+		PublicIP: "localhost",
+		LocalIP:  *ip,
+		Username: "fatih",
+		Kitename: "fs-local",
+		Version:  "1",
+		Port:     *port,
+	}
 
 	methods := map[string]interface{}{
 		"fs.createDirectory":       Os.CreateDirectory,
