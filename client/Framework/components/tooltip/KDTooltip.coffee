@@ -72,24 +72,33 @@ class KDTooltip extends KDView
     else
       @setView view
 
+
   addListeners:->
 
     intentTimer = null
     {events}    = @getOptions()
 
-    @parentView.bindEvent name for name in events
-
-    @parentView.on 'mouseenter',  =>
+    _show = =>
       return if intentTimer
       intentTimer = KD.utils.wait 77, =>
         intentTimer = null
         @show()
 
-    @parentView.on 'mouseleave',  =>
+    _hide = =>
       return intentTimer = KD.utils.killWait intentTimer if intentTimer
       KD.utils.wait 77, @bound "hide"
 
+    @parentView.bindEvent name for name in events
+
+    @parentView.on 'mouseenter',  _show
+
+    @parentView.on 'mouseleave',  _hide
+
     @on 'ReceivedClickElsewhere', @bound "hide"
+
+    @once 'KDObjectWillBeDestroyed', =>
+      @parentView.off 'mouseenter',  _show
+      @parentView.off 'mouseleave',  _hide
 
   setView: (childView) ->
     return unless childView

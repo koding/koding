@@ -21,12 +21,12 @@ class PreviewerView extends KDView
     path  = unless /^https?:\/\//.test path then "http://#{path}" else path
 
     @path = path
-    @iframe.$().attr 'src', path
+    @iframe.setAttribute 'src', path
     @viewerHeader.setPath initialPath
     @emit "ready"
 
   refreshIFrame:->
-    @iframe.$().attr 'src', "#{@path}"
+    @iframe.setAttribute 'src', "#{@path}"
 
   isDocumentClean:->
     @clean

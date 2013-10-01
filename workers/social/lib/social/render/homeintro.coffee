@@ -16,7 +16,12 @@ module.exports = (loggedIn = no)->
         <form>
           <div class="formline gh"><button type="button" class="kdbutton register gh-gray with-icon" id="kd-134"><span class="icon octocat"></span><span class="button-title">Sign up with GitHub</span></button></div>
           <div class="formline or">or</div>
-          <div class="formline signup"><button type="button" class="kdbutton register orange" id="kd-135"><span class="icon hidden"></span><span class="button-title">Sign up with email</span></button></div>
+          <div class="formline signup">
+            <button onclick="location.href='#!/Register'" type="button" class="kdbutton register orange" id="kd-135">
+              <span class="icon hidden"></span>
+              <span class="button-title">Sign up with email</span>
+            </button>
+          </div>
           <div class="formline or">or check what Koding is:</div>
           <ul class="large">
             <li><a class="" href="#"><i></i><img src="/images/video/twomins.jpg"></a></li>
