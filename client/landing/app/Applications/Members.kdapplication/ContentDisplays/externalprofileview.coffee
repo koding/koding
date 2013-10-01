@@ -53,7 +53,7 @@ class ExternalProfileView extends JView
 
   click:(event)->
 
-    return log 'send him to external profile' if @linked
+    return  if @linked
 
     {provider} = @getOptions()
     if KD.isMine @parent.getData()
