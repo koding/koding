@@ -55,7 +55,7 @@ class AdminModal extends KDModalViewWithForms
                     activityController.emit "ActivityItemBlockUserClicked", accounts[0].profile.nickname
                   else
                     new KDNotificationView {title: "Please select an account!"}
-                    
+
               Impersonate     :
                 label         : "Switch to User "
                 itemClass     : KDButtonView

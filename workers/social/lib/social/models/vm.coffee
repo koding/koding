@@ -569,7 +569,7 @@ module.exports = class JVM extends Module
       JVM.some selector, {}, (err, vms)->
         return console.error err  if err
         queue = vms.map (vm)->->
-          vm.update { $set: { hostKite: '' } }, -> queue.fin()
+          vm.update { $set: { hostKite: null } }, -> queue.fin()
         if queue.length > 0
           dash queue, (err)->
             console.error err if err
