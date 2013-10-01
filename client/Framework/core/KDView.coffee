@@ -139,7 +139,7 @@ class KDView extends KDObject
     @setDomElement options.cssClass
     @setDataId()
     @setDomId options.domId               if options.domId
-    @setDomAttributes options.attributes  if options.attributes
+    @setAttributes options.attributes     if options.attributes
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
     @updatePartial options.partial        if options.partial
@@ -192,8 +192,14 @@ class KDView extends KDObject
   setDataId:->
     @domElement.data "data-id",@getId()
 
-  setDomAttributes:(attributes)->
-    @getElement().setAttribute attr, val for own attr, val of attributes
+  getAttribute:(attr)->
+    @getElement().getAttribute attr
+
+  setAttribute:(attr, val)->
+    @getElement().setAttribute attr, val
+
+  setAttributes:(attributes)->
+    @setAttribute attr, val for own attr, val of attributes
 
   isInDom:do ->
     findUltimateAncestor =(el)->
