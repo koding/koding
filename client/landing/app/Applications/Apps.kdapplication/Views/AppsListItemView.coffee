@@ -19,7 +19,7 @@ class AppsListItemView extends KDListItemView
         src       : thumb
     @thumbnail.off 'error'
     @thumbnail.on  'error', ->
-      @$().attr "src", "/images/default.app.listthumb.png"
+      @setAttribute "src", "/images/default.app.listthumb.png"
 
   click:(event)->
     event.stopPropagation()

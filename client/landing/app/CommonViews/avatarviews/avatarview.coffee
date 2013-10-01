@@ -55,7 +55,7 @@ class AvatarView extends LinkView
     flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags
 
-    @setDomAttributes href: "/#{profile.nickname}"
+    @setAttribute "href", "/#{profile.nickname}"
 
   viewAppended:->
     super
