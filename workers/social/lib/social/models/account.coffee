@@ -88,7 +88,7 @@ module.exports = class JAccount extends jraphical.Module
         'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
         'fetchMyGroupInvitationStatus', 'fetchMyPermissions',
         'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
-        'fetchMyFollowersFromGraph', 'blockUser',
+        'fetchMyFollowersFromGraph', 'blockUser', 'unblockUser',
         'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
         'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
@@ -662,19 +662,39 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  blockUser: secure (client, targetId, toDate, callback)->
+  fetchUserByAccountIdOrNickname:(accountIdOrNickname, callback)->
+
+    kallback= (err, account)->
+      return callback err if err
+      JUser = require './user'
+      JUser.one {username: account.profile.nickname}, (err, user)->
+        callback err, {user, account}
+
+
+    JAccount.one { 'profile.nickname' : accountIdOrNickname }, (err, account)->
+      return kallback err, account if account
+      JAccount.one  { _id : accountIdOrNickname }, (err, account)->
+        return kallback err, account if account
+        callback new KodingError 'Account not found'
+
+
+  blockUser: secure (client, accountIdOrNickname, toDate, callback)->
     {delegate} = client.connection
-    if delegate.can('flag', this) and targetId? and toDate?
-      JAccount.one _id : targetId, (err, account)=>
-        if err then return callback err
+    if delegate.can('flag', this) and accountIdOrNickname? and toDate?
+      @fetchUserByAccountIdOrNickname accountIdOrNickname, (err, {user, account})->
+        return callback err if err
+        blockedDate = new Date(Date.now() + toDate)
+        account.sendNotification 'UserBlocked', { blockedDate }
+        user.block blockedDate, callback
+    else
+      callback new KodingError 'Access denied'
 
-        JUser = require './user'
-        JUser.one {username: account.profile.nickname}, (err, user)=>
-
-          if err then return callback err
-          blockedDate = new Date(Date.now() + toDate)
-          account.sendNotification 'UserBlocked', { blockedDate }
-          user.block blockedDate, callback
+  unblockUser: secure (client, accountIdOrNickname, callback)->
+    {delegate} = client.connection
+    if delegate.can('flag', this) and accountIdOrNickname?
+      @fetchUserByAccountIdOrNickname accountIdOrNickname, (err, {user})->
+        return callback err if err
+        user.unblock callback
     else
       callback new KodingError 'Access denied'
 
