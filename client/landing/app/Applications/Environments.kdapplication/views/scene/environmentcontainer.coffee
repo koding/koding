@@ -20,16 +20,29 @@ class EnvironmentContainer extends KDDiaContainer
       partial    : "<i></i><span>Add new</span>"
       click      : => @emit 'PlusButtonClicked'
 
+    @loader = new KDLoaderView
+      cssClass   : 'new-item-loader hidden'
+      size       :
+        height   : 20
+        width    : 20
+
   viewAppended:->
     super
 
     @addSubView @header
     @header.addSubView @newItemPlus
+    @header.addSubView @loader
 
     {@appStorage} = @parent
     @appStorage.ready @bound 'loadPosition'
 
-    @loadItems()
+  showLoader: ->
+    @newItemPlus.hide()
+    @loader.show()
+
+  hideLoader: ->
+    @newItemPlus.show()
+    @loader.hide()
 
   addDia:(diaObj, pos)->
     pos = x: 20, y: 60 + @diaCount() * (@itemHeight + 10)
@@ -80,5 +93,10 @@ class EnvironmentContainer extends KDDiaContainer
 
     delete positions[name]
     @appStorage.setValue 'containerPositions', positions
+
+  refreshItems:->
+    for key, dia of @dias
+      dia.destroy()
+    @loadItems()
 
   loadItems:-> yes

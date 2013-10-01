@@ -12,17 +12,12 @@ class EnvironmentMachineContainer extends EnvironmentContainer
     vmController.on 'VMListChanged', =>
       @utils.defer => @refreshItems()
 
-  refreshItems:->
-    for key, dia of @dias
-      dia.destroy()
-    @loadItems()
-
   loadItems:->
     vmc = KD.getSingleton 'vmController'
     vmc.fetchVMs (err, vms)=>
-      if err
+      if err or vms.length is 0
         @emit "DataLoaded"
-        return warn "Failed to fetch VMs", err
+        return warn "Failed to fetch VMs", err  if err
       addedCount = 0
       vms.forEach (vm)=>
         @addItem
