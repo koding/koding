@@ -879,9 +879,7 @@ div.environments-container
       background-color    #555
       border              1px solid #555
       cursor              pointer
-      vendor              transition, background-color .2s ease-in \,\
-                                      border           .2s ease-in  \,\
-                                      width            .2s ease-in
+      vendor              transition, width            .2s ease
       position            relative
       overflow            hidden
       fr()
@@ -905,19 +903,15 @@ div.environments-container
         white-space             nowrap
         margin                  0
         font-weight             600
-        color                   #777
+        color                   #fff
         vendor                  transition, left     .2s .2s ease \,\
-                                            opacity  .2s .2s ease
+                                            opacity  .1s .2s ease
         opacity                 0
         abs()
 
       &:hover
-        background-color      #fff
-        border-color          #ff9200
         width                 73px
 
-        i
-          background-position -120px -480px
         span
           left                5px
           opacity             1
