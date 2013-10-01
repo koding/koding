@@ -5,8 +5,8 @@ jraphical = require 'jraphical'
 {CronJob} = require 'cron'
 _ = require "underscore"
 
-NAMEPERPAGE = 2
-GROUPPERPAGE = 20
+NAMEPERPAGE = 50000
+GROUPPERPAGE = 5
 module.exports = class SitemapGeneratorWorker extends EventEmitter
   constructor: (@bongo, @options = {}) ->
 
