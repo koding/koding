@@ -2,7 +2,7 @@ class AccountLinkedAccountsListController extends KDListViewController
 
   constructor:(options = {}, data)->
 
-    data = items : (title : nicename, type : provider for own provider, {nicename} of MembersAppController.externalProfiles)
+    data = items : ({title : nicename, provider} for own provider, {nicename} of MembersAppController.externalProfiles)
 
     super options, data
 
@@ -29,8 +29,8 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
     super options, data
 
-    @linked  = no
-    provider = @getData().type
+    @linked    = no
+    {provider} = @getData()
 
     mainController = KD.getSingleton "mainController"
     mainController.on "ForeignAuthSuccess.#{provider}", =>
@@ -61,17 +61,17 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
   link:->
 
-    {type} = @getData()
-    KD.singletons.oauthController.openPopup type
+    {provider} = @getData()
+    KD.singletons.oauthController.openPopup provider
 
 
   unlink:->
 
-    {title, type} = @getData()
-    account       = KD.whoami()
-    account.unlinkOauth type, (err)=>
+    {title, provider} = @getData()
+    account           = KD.whoami()
+    account.unlinkOauth provider, (err)=>
       return KD.showError err  if err
-      account.unstore "ext|profile|#{type}", (err, storage)->
+      account.unstore "ext|profile|#{provider}", (err, storage)->
         return warn err  if err
 
       notify "Your #{title} account is now unlinked."
@@ -82,10 +82,10 @@ class AccountLinkedAccountsListItem extends KDListItemView
   viewAppended:->
 
     JView::viewAppended.call this
-    {type} = @getData()
-    @setClass type
+    {provider} = @getData()
+    @setClass provider
     KD.remote.api.JUser.fetchUser (err, user)=>
-      @linked = user.foreignAuth?[type]?
+      @linked = user.foreignAuth?[provider]?
       @render()
 
 
