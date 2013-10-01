@@ -309,16 +309,13 @@ class KodingRouter extends KDRouter
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
-          location.replace '#'
           if err
             error err
-            new KDNotificationView
-              title: err.message
-              duration : 3000
+            KD.showError err
           else
             new KDNotificationView
               title: "Thanks for confirming your email address!"
-          @clear()
+            @clear()
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
