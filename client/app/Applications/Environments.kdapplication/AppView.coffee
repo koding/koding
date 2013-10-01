@@ -9,10 +9,10 @@ class EnvironmentsMainView extends JView
     @addSubView actionArea = new KDView cssClass : 'action-area'
 
     # Domain Creation form in actionArea
-    actionArea.addSubView domainCreateForm = new DomainCreationForm
+    actionArea.addSubView @domainCreateForm = new DomainCreationForm
 
     # Domain Creation form connections
-    domainCreateForm.on 'CloseClicked', =>
+    @domainCreateForm.on 'CloseClicked', =>
       @scene.unsetClass 'out'
       @scene.off "click"
 
@@ -22,7 +22,7 @@ class EnvironmentsMainView extends JView
     # Domains Container
     domainsContainer = new EnvironmentDomainContainer
     @scene.addContainer domainsContainer
-    domainsContainer.on "itemRemoved", domainCreateForm.bound "updateDomains"
+    domainsContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
 
     # VMs / Machines Container
     machinesContainer = new EnvironmentMachineContainer
@@ -35,7 +35,7 @@ class EnvironmentsMainView extends JView
       domainsContainer.on  "DataLoaded", @scene.bound 'updateConnections'
       machinesContainer.on "DataLoaded", @scene.bound 'updateConnections'
 
-    domainCreateForm.on 'DomainSaved', domainsContainer.bound 'loadItems'
+    @domainCreateForm.on 'DomainSaved', domainsContainer.bound 'loadItems'
 
     # Plus button on domainsContainer opens up the action area
     domainsContainer.on 'PlusButtonClicked', =>
@@ -43,9 +43,9 @@ class EnvironmentsMainView extends JView
         new KDNotificationView title: "You need to login to add a new domain."
 
       @scene.setClass 'out'
-      domainCreateForm.emit 'DomainNameShouldFocus'
+      @domainCreateForm.emit 'DomainNameShouldFocus'
       @utils.defer =>
-        @scene.once 'click', -> domainCreateForm.emit 'CloseClicked'
+        @scene.once 'click', => @domainCreateForm.emit 'CloseClicked'
 
     # Plus button on machinesContainer uses the vmController
     machinesContainer.on 'PlusButtonClicked', =>
