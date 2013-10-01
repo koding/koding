@@ -38,13 +38,20 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
     sitemapNames = []
 
-
     groupSelector = {
       privacy:'public'
     }
 
     JGroup.count groupSelector, (err, groupCount)=>
       numberOfGroupPages = Math.ceil(groupCount / GROUPPERPAGE)
+
+      publicGroups = []
+
+      # We behave 'koding' as a public group, even though
+      # its privacy is marked as "private" in the model.
+      # We add 'koding' group to publicGroups selector for the first cycle.
+      publicGroups.push 'koding'
+
       for groupPageNumber in [1..numberOfGroupPages]
         groupSkip = (groupPageNumber - 1) * GROUPPERPAGE
         groupOptions = {
@@ -52,11 +59,6 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
           skip  : groupSkip
         }
         JGroup.some groupSelector, groupOptions, (err, jGroups)=>
-          publicGroups = []
-
-          # We behave 'koding' as a public group, even though
-          # its privacy is marked as "private" in the model.
-          publicGroups.push 'koding'
 
           for group in jGroups
             publicGroups.push group.slug
@@ -66,24 +68,27 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
             'slugs.group': { $in: publicGroups }
           }
 
+          # Empty the group, it'll be filled in next cycle.
+          publicGroups = []
+
           JName.count selector, (err, count)=>
             numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
 
             queue = [1..numberOfNamePages].map (pageNumber)=>=>
-                skip = (pageNumber - 1) * NAMEPERPAGE
-                option = {
-                  limit : NAMEPERPAGE,
-                  skip  : skip
-                }
-                JName.some selector, option, (err, names)=>
-                  urls = (name.name for name in names) 
+              skip = (pageNumber - 1) * NAMEPERPAGE
+              option = {
+                limit : NAMEPERPAGE,
+                skip  : skip
+              }
+              JName.some selector, option, (err, names)=>
+                urls = (name.name for name in names) 
 
-                  sitemapName =  @generateSitemapName skip
-                  content = @generateSitemapString urls
-                  @saveSitemap sitemapName, content
+                sitemapName =  @generateSitemapName skip
+                content = @generateSitemapString urls
+                @saveSitemap sitemapName, content
 
-                  sitemapNames.push sitemapName + ".xml"
-                  queue.next()
+                sitemapNames.push sitemapName + ".xml"
+                queue.next()
             queue.push => @generateMainSitemap sitemapNames
 
             daisy queue
