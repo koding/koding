@@ -294,34 +294,43 @@ module.exports = class JUser extends jraphical.Module
           else unless user.getAt('password') is hashPassword password, user.getAt('salt')
             JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError 'Access denied!'
-          else if user.status is 'unconfirmed'
-            error = createKodingError "You must confirm your email address to continue using Koding.com"
-            error.code = 403
-            return callback error
           else
-            JLog.log { type: "login", username: username, success: yes }, ->
-              afterLogin connection, user, clientId, session, callback
+            afterLogin connection, user, clientId, session, callback
+
+  checkUserStatus = (user, callback)->
+    if user.status is 'unconfirmed'
+      error = createKodingError "You must confirm your email address to continue using Koding.com"
+      error.code = 403
+      return callback error
+    return callback null
+
+
+  checkLoginConstraints = (user, account, callback)->
+    checkBlockedStatus user, (err)->
+      return callback err  if err
+      checkUserStatus user, callback
 
   afterLogin = (connection, user, clientId, session, callback)->
-    checkBlockedStatus user, (err)->
+    user.fetchOwnAccount (err, account)->
       if err then return callback err
-      replacementToken = createId()
-      session.update {
-        $set            :
-          username      : user.username
-          lastLoginDate : new Date
-          clientId      : replacementToken
-        $unset:
-          guestId       : 1
-      }, (err)->
-          if err then return callback err
-          user.fetchOwnAccount (err, account)->
+      checkLoginConstraints user, account, (err)->
+        if err then return callback err
+        replacementToken = createId()
+        session.update {
+          $set            :
+            username      : user.username
+            lastLoginDate : new Date
+            clientId      : replacementToken
+          $unset:
+            guestId       : 1
+        }, (err)->
             if err then return callback err
             connection.delegate = account
             JAccount.emit "AccountAuthenticated", account
             # This should be called after login and this
             # is not correct place to do it, FIXME GG
             # p.s. we could do that in workers
+            JLog.log { type: "login", username: account.username, success: yes }, ->
             account.updateCounts()
             callback null, {account, replacementToken}
 
@@ -480,28 +489,26 @@ module.exports = class JUser extends jraphical.Module
           replacementToken
         }
       @fetchUserByProvider provider, session, (err, user) =>
-        if err
-          callback createKodingError err.message
-        else
-          if isUserLoggedIn
-            if user
-              callback createKodingError """
-                Account is already linked with another user.
-              """
-            else
-              @fetchUser client, (err, user)=>
-                {username} = user
-                @copyOauthFromSessionToUser user.username, sessionToken, kallback
+        return callback createKodingError err.message if err
+        if isUserLoggedIn
+          if user
+            callback createKodingError """
+              Account is already linked with another user.
+            """
           else
-            if user
-              afterLogin client.connection, user, sessionToken, session, kallback
-            else
-              info = session.foreignAuth[provider]
-              {username, email, firstName, lastName} = info
-              callback null, {
-                isNewUser : true,
-                userInfo  : {username, email, firstName, lastName}
-              }
+            @fetchUser client, (err, user)=>
+              {username} = user
+              @copyOauthFromSessionToUser user.username, sessionToken, kallback
+        else
+          if user
+            afterLogin client.connection, user, sessionToken, session, kallback
+          else
+            info = session.foreignAuth[provider]
+            {username, email, firstName, lastName} = info
+            callback null, {
+              isNewUser : true,
+              userInfo  : {username, email, firstName, lastName}
+            }
 
   @validateAll = (userFormData, callback) =>
 
@@ -797,6 +804,7 @@ Your password has been changed!  If you didn't request this change, please conta
     @update {$set: status: 'confirmed'}, (err, res)=>
       return callback err if err
       JUser.emit "EmailConfirmed", @
+      return callback null
 
   block:(blockedUntil, callback)->
     unless blockedUntil then return callback createKodingError "Blocking date is not defined"
