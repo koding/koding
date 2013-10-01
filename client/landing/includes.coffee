@@ -161,7 +161,6 @@ module.exports = [
   "app/MainApp/activitycontroller.coffee",
   "app/MainApp/notificationcontroller.coffee",
   "app/MainApp/linkcontroller.coffee",
-  "app/MainApp/paymentcontroller.coffee",
   "app/MainApp/oauthcontroller.coffee",
 
   # COMMON VIEWS
