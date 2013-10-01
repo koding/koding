@@ -212,11 +212,11 @@ __bookPages = [
   ,
     cssClass  : "develop more-3"
     content   : """
-                <p>Dont’ forget about your settings in the bottom corner.
+                <p>Don't forget about your settings in the top corner.
                 Here you can change the syntax, font, margins, and a whole
                 lot of other features.</p>
                 """
-    embed     : BookDevelopButton
+    # embed     : BookDevelopButton
     routeURL  : ""
     section   : 10
     parent    : 5

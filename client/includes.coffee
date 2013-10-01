@@ -568,29 +568,29 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/scene/environmentmachineitem.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentsceneview.coffee",
 
-  "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
-  "app/Applications/Environments.kdapplication/views/domainsmainview.coffee",
-  "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
-  "app/Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
-  "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
+  # "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
+  # "app/Applications/Environments.kdapplication/views/domainsmainview.coffee",
+  # "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
+  # "app/Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
+  # "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaincreationform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
-  "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
-  "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
-  "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
-  "app/Applications/Environments.kdapplication/views/FirewallFilterListItemView.coffee",
-  "app/Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
-  "app/Applications/Environments.kdapplication/views/FirewallFilterFormView.coffee",
-  "app/Applications/Environments.kdapplication/views/DNSManagerView.coffee",
-  "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
-  "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
+  # "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
+  # "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
+  # "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
+  # "app/Applications/Environments.kdapplication/views/FirewallFilterListItemView.coffee",
+  # "app/Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
+  # "app/Applications/Environments.kdapplication/views/FirewallFilterFormView.coffee",
+  # "app/Applications/Environments.kdapplication/views/DNSManagerView.coffee",
+  # "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
+  # "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
 
   "app/Applications/Environments.kdapplication/AppView.coffee",
   # "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
-  "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
-  "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
-  "app/Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"
-  "app/Applications/Environments.kdapplication/Controllers/DNSRecordListController.coffee"
+  # "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
+  # "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
+  # "app/Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"
+  # "app/Applications/Environments.kdapplication/Controllers/DNSRecordListController.coffee"
 
   # GROUPS
 
