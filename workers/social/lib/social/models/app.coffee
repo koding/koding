@@ -461,8 +461,9 @@ module.exports = class JApp extends jraphical.Module
                               @follow client, emitActivity: no, (err)->
                               @addParticipant delegate, 'reviewer', (err)-> #TODO: what should we do with this error?
 
-  fetchRelativeReviews:({limit, before, after}, callback)->
-    limit ?= 10
+  fetchRelativeReviews:({offset, limit, before, after}, callback)->
+    limit  ?= 10
+    offset ?= 0
     if before? and after?
       callback new KodingError "Don't use before and after together."
     selector = timestamp:
@@ -471,4 +472,6 @@ module.exports = class JApp extends jraphical.Module
     options = {sort: timestamp: -1}
     if limit > 0
       options.limit = limit
+    if offset > 0
+      options.skip = offset
     @fetchReviews selector, options, callback

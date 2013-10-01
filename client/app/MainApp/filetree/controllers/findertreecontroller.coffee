@@ -656,6 +656,12 @@ class NFinderTreeController extends JTreeViewController
     return if nodeView in @selectedNodes
     return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
 
+    @selectedNodes = @selectedNodes.filter (node)->
+      targetPath = nodeView.getData?().path
+      sourcePath = node.getData?().parentPath
+
+      return targetPath isnt sourcePath
+
     if event.altKey
       @copyFiles @selectedNodes, nodeView
     else
