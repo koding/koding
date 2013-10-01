@@ -52,11 +52,9 @@ class KDTabHandleView extends KDView
     @setAttribute "title", title
     # @getDomElement().find("span.close-tab").css "color", @getDelegate().getDomElement().css "background-color"
 
-  isHidden: ->
-    @getOptions().hidden
+  isHidden:-> @getOptions().hidden
 
-  getWidth: ->
-    @$().outerWidth(no) or 0
+  getWidth:-> @$().outerWidth(no) or 0
 
   cloneElement: (x) ->
     return if @$cloned
