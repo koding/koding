@@ -10,16 +10,21 @@ GROUPPERPAGE = 5
 module.exports = class SitemapGeneratorWorker extends EventEmitter
   constructor: (@bongo, @options = {}) ->
 
-  generateSitemapString: (urls)->
-     # sitemap.XML beginning and ending parts
+  generateSitemapString: (urls, isMain=false)->
+
+    # sitemap.XML beginning and ending parts
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>
       <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
       xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" 
       xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
     sitemapFooter = '</urlset>'
 
+    # while generating main sitemap, we don't need hashbang in the url.
     for url in urls
-      sitemap += "<url><loc>#{@options.uri.address}/#{url}</loc></url>"
+      if isMain
+        sitemap += "<url><loc>#{@options.uri.address}/#{url}</loc></url>"
+      else
+        sitemap += "<url><loc>#{@options.uri.address}/#!#{url}</loc></url>"
     sitemap += sitemapFooter
 
   generateSitemapName: (skip)->
@@ -29,10 +34,12 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     {JSitemap} = @bongo.models
     JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)-> 
       console.log err if err
+
   generateMainSitemap: (sitemapNames)=>
     name = "main"
-    content = @generateSitemapString sitemapNames
+    content = @generateSitemapString sitemapNames, true
     @saveSitemap name, content
+
   generate:=>
     {JName, JGroup, JSitemap} = @bongo.models
 
