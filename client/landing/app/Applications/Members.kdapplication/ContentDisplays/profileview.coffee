@@ -188,7 +188,7 @@ class ProfileView extends JView
     for own provider, options of externalProfiles
       @["#{provider}View"]?.destroy()
       @["#{provider}View"] = view = new ExternalProfileView
-        type        : provider
+        provider    : provider
         nicename    : options.nicename
         urlLocation : options.urlLocation
 
