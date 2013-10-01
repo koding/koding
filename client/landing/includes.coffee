@@ -716,24 +716,29 @@ module.exports = [
 
   # "app/Applications/GroupsFake.kdapplication/AppController.coffee",
 
-  # ACCOUNT SETTINGS
-  "app/Applications/Account.kdapplication/account/accountListViewController.coffee",
-  "app/Applications/Account.kdapplication/account/password.coffee",
-  "app/Applications/Account.kdapplication/account/username.coffee",
-  "app/Applications/Account.kdapplication/account/linkedaccts.coffee",
-  "app/Applications/Account.kdapplication/account/emailnotifications.coffee",
-  # "app/Applications/Account.kdapplication/account/devdatabases.coffee",
-  "app/Applications/Account.kdapplication/account/editors.coffee",
-  "app/Applications/Account.kdapplication/account/mounts.coffee",
-  "app/Applications/Account.kdapplication/account/repos.coffee",
-  "app/Applications/Account.kdapplication/account/sshkeys.coffee",
-  "app/Applications/Account.kdapplication/account/kodingkeys.coffee",
+  # ACCOUNT CONTROLLERS
+  "app/Applications/Account.kdapplication/controllers/accountnavigationcontroller.coffee",
+  "app/Applications/Account.kdapplication/controllers/accountcontentwrappercontroller.coffee",
+  "app/Applications/Account.kdapplication/controllers/accountsidebarcontroller.coffee",
+  "app/Applications/Account.kdapplication/controllers/accountlistcontroller.coffee",
 
-  "app/Applications/Account.kdapplication/account/paymenthistory.coffee",
-  "app/Applications/Account.kdapplication/account/paymentmethods.coffee",
-  "app/Applications/Account.kdapplication/account/subscriptions.coffee",
-  "app/Applications/Account.kdapplication/account/referralsystem.coffee",
-  "app/Applications/Account.kdapplication/account/deleteaccountview.coffee",
+  # ACCOUNT VIEWS
+  "app/Applications/Account.kdapplication/views/password.coffee",
+  "app/Applications/Account.kdapplication/views/username.coffee",
+  "app/Applications/Account.kdapplication/views/linkedaccts.coffee",
+  "app/Applications/Account.kdapplication/views/emailnotifications.coffee",
+  # "app/Applications/Account.kdapplication/views/devdatabases.coffee",
+  "app/Applications/Account.kdapplication/views/editors.coffee",
+  "app/Applications/Account.kdapplication/views/mounts.coffee",
+  "app/Applications/Account.kdapplication/views/repos.coffee",
+  "app/Applications/Account.kdapplication/views/sshkeys.coffee",
+  "app/Applications/Account.kdapplication/views/kodingkeys.coffee",
+
+  "app/Applications/Account.kdapplication/views/paymenthistory.coffee",
+  "app/Applications/Account.kdapplication/views/paymentmethods.coffee",
+  "app/Applications/Account.kdapplication/views/subscriptions.coffee",
+  "app/Applications/Account.kdapplication/views/referralsystem.coffee",
+  "app/Applications/Account.kdapplication/views/deleteaccountview.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD

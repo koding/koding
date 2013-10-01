@@ -2,11 +2,7 @@ class AccountLinkedAccountsListController extends KDListViewController
 
   constructor:(options = {}, data)->
 
-    data = items : [
-      { title : "GitHub",    type : "github"   }
-      { title : "oDesk",     type : "odesk"    }
-      { title : "Facebook",  type : "facebook" }
-    ]
+    data = items : (title : nicename, type : provider for own provider, {nicename} of MembersAppController.externalProfiles)
 
     super options, data
 
@@ -20,9 +16,11 @@ class AccountLinkedAccountsList extends KDListView
 
     super options,data
 
+
 class AccountLinkedAccountsListItem extends KDListItemView
 
   notify = (message)-> new KDNotificationView title : message
+
 
   constructor:(options = {}, data)->
 
@@ -39,34 +37,50 @@ class AccountLinkedAccountsListItem extends KDListItemView
       @linked = yes
       @render()
 
+
   click:(event)->
+
     KD.utils.stopDOMEvent event
     if $(event.target).is "a.delete-icon" then @unlink()
     else if $(event.target).is "a.link"   then @link()
 
+
   render:->
+
     super
+
     @setLinkedState()
 
+
   setLinkedState:->
+
     if @linked
     then @setClass "linked"
     else @unsetClass "linked"
 
+
   link:->
+
     {type} = @getData()
     KD.singletons.oauthController.openPopup type
 
-  unlink:->
-    {title, type} = @getData()
 
-    KD.whoami().unlinkOauth type, (err)=>
+  unlink:->
+
+    {title, type} = @getData()
+    account       = KD.whoami()
+    account.unlinkOauth type, (err)=>
       return KD.showError err  if err
+      account.unstore "ext|profile|#{type}", (err, storage)->
+        return warn err  if err
+
       notify "Your #{title} account is now unlinked."
       @linked = no
       @render()
 
+
   viewAppended:->
+
     JView::viewAppended.call this
     {type} = @getData()
     @setClass type
@@ -74,13 +88,15 @@ class AccountLinkedAccountsListItem extends KDListItemView
       @linked = user.foreignAuth?[type]?
       @render()
 
-  getLinkedString:->
-    if @linked then "Linked" else "Not linked."
 
-  getLinkingString:->
-    if @linked then "" else "Link now."
+  getLinkedString:-> if @linked then "Linked" else "Not linked."
+
+
+  getLinkingString:-> if @linked then "" else "Link now."
+
 
   pistachio:->
+
     """
     <div class='title'>
       <span class='icon'></span>{cite{ #(title)}}
