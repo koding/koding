@@ -45,10 +45,9 @@ class ExternalProfileView extends JView
         href   : JsPath.getAt @getData().content, @getOption('urlLocation')
         target : '_blank'
 
-
-    @setTooltip if KD.isMine account
-    then title : "Go to my #{nicename} profile"
-    else title : "Go to #{firstName}'s #{nicename} profile"
+      @setTooltip if KD.isMine(account)
+      then title : "Go to my #{nicename} profile"
+      else title : "Go to #{firstName}'s #{nicename} profile"
 
 
   click:(event)->
