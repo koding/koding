@@ -298,7 +298,7 @@ module.exports = class JUser extends jraphical.Module
             afterLogin connection, user, clientId, session, callback
 
   checkUserStatus = (user, callback)->
-    if user.status is 'unconfirmed'
+    if user.status is 'unconfirmed' and KONFIG.emailConfirmationCheckerWorker.enabled
       error = createKodingError "You must confirm your email address to continue using Koding.com"
       error.code = 403
       return callback error
