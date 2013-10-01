@@ -218,7 +218,9 @@ module.exports = class JUser extends jraphical.Module
       if err
         callback createKodingError err
       else unless session?
-        JUser.createTemporaryUser callback
+        JUser.createTemporaryUser (err, resp)->
+          return callback err  if err
+          callback null, resp.account
       else
         {username} = session
         if username?
