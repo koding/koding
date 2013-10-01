@@ -26,12 +26,15 @@ class ExternalProfileView extends JView
   setLinkedState:->
 
     return  unless @parent
-    account    = @parent.getData()
-    {provider} = @getOptions()
+    account     = @parent.getData()
+    {firstName} = account.profile
+
+    {provider, nicename} = @getOptions()
 
     account.fetchStorage "ext|profile|#{provider}", (err, storage)=>
       return warn err  if err
       return           unless storage
+
       @setData storage
 
       @$().detach()
@@ -42,13 +45,10 @@ class ExternalProfileView extends JView
         href   : JsPath.getAt @getData().content, @getOption('urlLocation')
         target : '_blank'
 
-    account     = @parent.getData()
-    {firstName} = account.profile
-    provider    = @getOption 'nicename'
 
     @setTooltip if KD.isMine account
-    then title : "Go to my #{provider} profile"
-    else title : "Go to #{firstName}'s #{provider} profile"
+    then title : "Go to my #{nicename} profile"
+    else title : "Go to #{firstName}'s #{nicename} profile"
 
 
   click:(event)->
