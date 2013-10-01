@@ -39,8 +39,7 @@ class DomainCreationForm extends KDCustomHTMLView
         domainName          :
           name              : "subdomainInput"
           cssClass          : "subdomain-input"
-          placeholder       : "#{KD.utils.slugify firstName}'s-subdomain"
-          label             : "Subdomain Name:"
+          placeholder       : "Type your subdomain"
           validate          :
             rules           :
               required      : yes
