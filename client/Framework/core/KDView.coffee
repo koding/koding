@@ -899,7 +899,9 @@ class KDView extends KDObject
     o.delegate  or= this
     o.events    or= ['mouseenter','mouseleave','mousemove']
 
-    @tooltip ?= new KDTooltip o, {}
+    @tooltip?.destroy()
+    delete @tooltip
+    @tooltip = new KDTooltip o, {}
 
   getTooltip:-> @tooltip
 
