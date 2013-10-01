@@ -28,7 +28,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     sitemap += sitemapFooter
 
   generateSitemapName: (skip)->
-    return  skip + "_" + (skip + NAMEPERPAGE)
+    return  "sitemap_" + skip + "_" + (skip + NAMEPERPAGE)
 
   saveSitemap: (name, content)->
     {JSitemap} = @bongo.models
@@ -36,7 +36,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
       console.log err if err
 
   generateMainSitemap: (sitemapNames)=>
-    name = "main"
+    name = "sitemap.xml"
     content = @generateSitemapString sitemapNames, true
     @saveSitemap name, content
 
