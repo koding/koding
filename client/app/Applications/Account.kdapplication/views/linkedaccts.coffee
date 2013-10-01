@@ -19,7 +19,7 @@ class AccountLinkedAccountsList extends KDListView
 
 class AccountLinkedAccountsListItem extends KDListItemView
 
-  notify = (message)-> new KDNotificationView title : message
+  notify = (message)-> new KDNotificationView title : message, type : 'mini', duration : 3000
 
 
   constructor:(options = {}, data)->
