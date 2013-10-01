@@ -22,8 +22,6 @@ module.exports = class JAccount extends jraphical.Module
   Graph        = require "./graph/graph"
   JName        = require './name'
 
-  @getFlagRole = 'content'
-
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
 
@@ -364,7 +362,7 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback? new KodingError 'Access denied'
 
-  fetchGroups: secure (client, callback)->
+  fetchGroups: secure (client, options = {}, callback)->
     JGroup        = require './group'
     {groupBy}     = require 'underscore'
     {delegate}    = client.connection
@@ -377,9 +375,10 @@ module.exports = class JAccount extends jraphical.Module
       sourceId    : 1
       as          : 1
     edgeOptions   =
-      sort        : { timestamp: -1 }
-      limit       : 10
-    Relationship.someData edgeSelector, edgeFields, edgeOptions, (err, cursor)->
+      sort        : options.sort  or { timestamp: -1 }
+      limit       : options.limit or 20
+      skip        : options.skip  or 0
+    Relationship.someData edgeSelector, edgeFields, options, (err, cursor)->
       if err then callback err
       else
         cursor.toArray (err, docs)->

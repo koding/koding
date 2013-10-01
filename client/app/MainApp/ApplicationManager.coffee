@@ -148,6 +148,11 @@ class ApplicationManager extends KDObject
 
       callback?()
 
+  promptOpenFileWith:(file)->
+    finderController = KD.getSingleton "finderController"
+    {treeController} = finderController
+    view = new KDView {}, file
+    treeController.showOpenWithModal view
 
   openFile:(file)->
 
@@ -158,7 +163,9 @@ class ApplicationManager extends KDObject
     return @openFileWithApplication defaultApp, file  if defaultApp
 
     switch type
-      when 'code','text','unknown'
+      when 'unknown'
+        @promptOpenFileWith file
+      when 'code','text'
         log "open with a text editor"
         @open @defaultApps.text, (appController)-> appController.openFile file
       when 'image'
