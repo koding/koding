@@ -128,6 +128,10 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
 
+    if folder.depth > 10
+      @notify "Folder is nested deeply, making it top folder"
+      @makeTopFolder nodeView
+
     failCallback = (err)=>
       unless silence
         KD.logToExternal "Couldn't fetch files"
@@ -219,6 +223,7 @@ class NFinderTreeController extends JTreeViewController
         node.getData().remove (err, response)=>
           if err then @notify null, null, err
           else
+            node.emit "ItemBeingDeleted"
             cb err, node
 
     async.parallel stack, (error, result) =>
@@ -392,21 +397,12 @@ class NFinderTreeController extends JTreeViewController
       folder.emit "fs.job.finished"
       callback?()
 
-
-  cloneRepo:(nodeView)->
-
-    folder = nodeView.getData()
-
-    @notify "not yet there!", "error"
-
-    # folder.emit "fs.job.started"
-    # KD.getSingleton('kodingAppsController').cloneApp folder.path, =>
-    #   folder.emit "fs.job.finished"
-    #   @refreshFolder @nodes[folder.parentPath], =>
-    #     @utils.wait 500, =>
-    #       @selectNode @nodes[folder.path]
-    #       @refreshFolder @nodes[folder.path]
-    #   @notify "App cloned!", "success"
+  cloneRepo: (nodeView) ->
+    folder   = nodeView.getData()
+    modal    = new CloneRepoModal
+      vmName : folder.vmName
+      path   : folder.path
+    modal.on "RepoClonedSuccessfully", => @notify "Repo cloned successfully.", "success"
 
   publishApp:(nodeView)->
 
@@ -660,6 +656,12 @@ class NFinderTreeController extends JTreeViewController
     return if nodeView in @selectedNodes
     return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
 
+    @selectedNodes = @selectedNodes.filter (node)->
+      targetPath = nodeView.getData?().path
+      sourcePath = node.getData?().parentPath
+
+      return targetPath isnt sourcePath
+
     if event.altKey
       @copyFiles @selectedNodes, nodeView
     else
@@ -768,7 +770,7 @@ class NFinderTreeController extends JTreeViewController
 
   refreshTopNode:->
     {nickname} = KD.whoami().profile
-    @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"
+    @refreshFolder @nodes["/home/#{nickname}"], => @emit "fs.retry.success"
 
   showOpenWithModal: (nodeView) ->
     KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>

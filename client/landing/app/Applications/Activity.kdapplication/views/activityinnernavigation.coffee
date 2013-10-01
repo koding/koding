@@ -24,6 +24,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
     @addSubView helpBox = new HelpBox
       subtitle    : "About Your Activity Feed"
+      bookIndex   : 10
       tooltip     :
         title     : "<p class=\"bigtwipsy\">The Activity feed displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community. </p>"
         placement : "above"

@@ -158,7 +158,7 @@ class CollaborativeWorkspace extends Workspace
   joinSession: (sessionKey) ->
     {parent}           = @
     options            = @getOptions()
-    options.sessionKey = sessionKey
+    options.sessionKey = sessionKey.trim()
     @destroy()
 
     @forceDisconnect()
