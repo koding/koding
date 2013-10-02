@@ -22,9 +22,16 @@ class Panel extends JView
     @createLayout()
 
   createHeader: (title = "") ->
-    @header     = new KDView
-      cssClass  : "inner-header"
-      partial   : """<span class="title">#{title}</span>"""
+    @header        = new KDView cssClass : "inner-header"
+    @headerTitle   = new KDCustomHTMLView
+      tagName      : "span"
+      cssClass     : "title"
+      partial      : title
+
+    @header.addSubView @headerTitle
+
+    {headerStyling} = @getOptions()
+    @applyHeaderStyling headerStyling if headerStyling
 
   createHeaderButtons: ->
     # TODO: fatihacet - DRY
@@ -115,6 +122,18 @@ class Panel extends JView
           title    : "Close"
           cssClass : "modal-cancel"
           callback : -> modal.destroy()
+
+  applyHeaderStyling: (options) ->
+    {bgColor, bgGradient, bgImage, textColor, textShadowColor, borderColor} = options
+
+    @header.setCss      "color"             , textColor                        if textColor
+    @header.setCss      "textShadowColor"   , "1px 1px 1px #{textShadowColor}" if textShadowColor
+    @header.setCss      "borderBottomColor" , "#{borderColor}"                 if borderColor
+    @header.setCss      "background"        , "#{bgColor}"                     if bgColor
+    @headerTitle.setCss "backgroundImage"   , "url(#{bgImage})"                if bgImage
+
+    if bgGradient
+      KD.utils.applyGradient @header, bgGradient.first, bgGradient.last
 
   viewAppended: ->
     super
