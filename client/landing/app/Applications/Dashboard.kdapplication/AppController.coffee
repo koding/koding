@@ -107,11 +107,14 @@ class DashboardAppController extends AppController
 
   showBillingInfoModal: (type, group, callback) ->
     @fetchBillingInfo group, (err, billing) =>
-      billing = {}  if err or not billing?
-
       paymentController = KD.getSingleton "paymentController"
-      paymentController.showBillingInfoModal type, billing, callback
+      
+      if billingInfo?
+        paymentController.showBillingInfoModal type, billing, callback
 
+      else
+        console.log "we need to decide whether to use the user's billing info"
+        
   fetchBillingInfo: (group, callback = (->)) ->
     group.fetchBillingInfo (err, billing) -> callback err, billing
 
