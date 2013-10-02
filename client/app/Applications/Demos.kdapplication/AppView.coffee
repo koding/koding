@@ -30,6 +30,8 @@ class Slider extends JView
   constructor:(options={}, data)->
 
     options.cssClass = KD.utils.curry 'kd-slide', options.cssClass
+    options.scale    = 0.8
+
     super options, data
 
     @pages     = []
@@ -87,9 +89,9 @@ class Slider extends JView
 
     pref = {}
     pref[key] = "#{direction}%"
-
+    scale = @getOption 'scale'
     props = ['webkitTransform', 'MozTransform', 'transform']
-    pref[prop] = "scale(.8)"  for prop in props
+    pref[prop] = "scale(#{scale})"  for prop in props
 
     if coord is X_COORD
       currentPage = pages[current][@_coordsY[current]]
@@ -115,7 +117,7 @@ class DemosMainView extends KDScrollView
     KD.getSingleton("mainView").enableFullscreen()
 
     @addSubView @slider = new Slider
-      # direction : Slider.directions.topToBottom
+      directions : Slider.directions.topToBottom
 
     @slider.addPage page1 = new Page
       content  : 'Page 1'
