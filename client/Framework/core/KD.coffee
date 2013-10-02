@@ -223,8 +223,6 @@ catch e
 
   getInstanceForTesting:(key)-> @instancesToBeTested[key]
 
-
-
 KD.enableLogs() if not KD.config?.suppressLogs
 
 prettyPrint = noop
