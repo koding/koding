@@ -13,8 +13,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
       invited     :
         type      : Boolean
         default   : false
-      originType  : String
-      originId    : ObjectId
+      username    : String
       createdAt   :
         type      : Date
         default   : -> new Date
@@ -22,20 +21,30 @@ module.exports = class JReferrableEmail extends jraphical.Module
         type      : Date
         get       : -> new Date
     sharedMethods :
-      static      : ["create", "getUninvitedEmails"]
+      static      : ["create", "getUninvitedEmails", "deleteEmailsForAccount"]
 
-  @create: secure (client, email, callback)->
-    JAccount.one {"profile.nickname": client.context.user}, (err, account)=>
-      return err  if err
-      r = new JReferrableEmail {
-        email
-        originId   : client.connection.delegate.getId()
-        originType : "JAccount"
-      }
-      r.save (err)-> callback
+  @create: (clientId, email, callback)->
+    JSession = require "./session"
+    JSession.fetchSession clientId, (err, session)->
+      return callback err  if err
+
+      {username} = session.data
+      JAccount.one {"profile.nickname": username}, (err, account)=>
+        return callback err  if err
+        r = new JReferrableEmail {
+          email
+          username
+        }
+        r.save callback
 
   @getUninvitedEmails: secure (client, callback)->
     query =
       originId : client.connection.delegate.getId()
       invited  : false
     JReferrableEmail.some query, {}, callback
+
+  @deleteEmailsForAccount: secure (client, callback)->
+    @delete client.context.user, callback
+
+  @delete: (username, callback)->
+    JReferrableEmail.remove {username}, callback

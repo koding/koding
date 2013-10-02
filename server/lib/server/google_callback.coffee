@@ -1,14 +1,17 @@
 {
   renderOauthPopup
   saveOauthToSession
-}             = require './helpers'
-{google}      = KONFIG
-http          = require "https"
-{parseString} = require 'xml2js'
-querystring   = require 'querystring'
-{flatten}     = require "underscore"
+}                  = require './helpers'
+{google}           = KONFIG
+http               = require "https"
+{parseString}      = require 'xml2js'
+querystring        = require 'querystring'
+{flatten}          = require "underscore"
+koding             = require './bongo'
+{JReferrableEmail} = koding.models
 
 module.exports = (req, res) ->
+
   access_token  = null
   refresh_token = null
   {code}        = req.query
@@ -54,6 +57,8 @@ module.exports = (req, res) ->
             method : "GET"
           r = http.request options, fetchUserContacts
           r.end()
+      else
+        renderOauthPopup res, {error:"Error getting id", provider:"google"}
 
   # Get user contacts with access token
   fetchUserContacts = (contactsResp)->
@@ -67,13 +72,10 @@ module.exports = (req, res) ->
 
         emails = for i in result.feed.entry
           for e in i["gd:email"]
-            e["$"].address
+            email = e["$"].address
+            JReferrableEmail.create clientId, email, (err)->
 
-        emails = flatten emails
-
-        JReferrableEmails.create {}
-
-        # TODO: save contacts to db
+        renderOauthPopup res, {error:null, provider:"google"}
 
   authorizeUser = (authUserResp)->
     rawResp = ""
@@ -86,7 +88,6 @@ module.exports = (req, res) ->
         renderOauthPopup res, {error:"Error getting access token", provider:"google"}
 
       {access_token, refresh_token} = tokenInfo
-      console.log access_token
       if access_token
         options =
           host   : "www.googleapis.com"
