@@ -29,7 +29,6 @@ module.exports = class OAuth extends bongo.Base
 
         url  = "https://accounts.google.com/o/oauth2/auth?"
         url += "scope=https://www.google.com/m8/feeds/ "
-        url += "https://www.googleapis.com/auth/userinfo.email "
         url += "https://www.googleapis.com/auth/userinfo.profile&"
         url += "redirect_uri=http://localhost:3020/-/oauth/google/callback&"
         url += "response_type=code&"

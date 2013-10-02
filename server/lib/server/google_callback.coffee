@@ -35,7 +35,7 @@ module.exports = (req, res) ->
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
       try
-        {id, email} = JSON.parse rawResp
+        {id} = JSON.parse rawResp
       catch e
         renderOauthPopup res, {error:"Error getting id", provider:"google"}
 
@@ -51,9 +51,13 @@ module.exports = (req, res) ->
             renderOauthPopup res, {error:"Error saving oauth info", provider:"google"}
             return
 
+          path  = "/m8/feeds/contacts/default/full?"
+          path += "access_token=#{access_token}&"
+          path += "updated-min=2010-01-01T00:00:00" # just a random date to get latest contacts
+
           options =
             host   : "www.google.com"
-            path   : "/m8/feeds/contacts/#{email}/full?access_token=#{access_token}"
+            path   : path
             method : "GET"
           r = http.request options, fetchUserContacts
           r.end()
@@ -70,7 +74,7 @@ module.exports = (req, res) ->
           renderOauthPopup res, {error:"Error parsing contacts info", provider:"google"}
           return
 
-        emails = for i in result.feed.entry
+        for i in result.feed.entry
           for e in i["gd:email"]
             email = e["$"].address
             JReferrableEmail.create clientId, email, (err)->
