@@ -250,7 +250,7 @@ class KDDiaScene extends JView
     @updateScene()
 
   cleanup:(canvas)->
-    canvas.setDomAttributes @getSceneSize()
+    canvas.setAttributes @getSceneSize()
 
   parentDidResize:->
     super
