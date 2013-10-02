@@ -28,19 +28,28 @@ class Slider extends JView
 
   [X_COORD, Y_COORD] = [1, 2]
 
+  @directions        =
+    leftToRight      : ['left', 'top']
+    topToBottom      : ['top', 'left']
+
   constructor:(options={}, data)->
-    options.cssClass = 'slider'
+
+    options.cssClass   = 'slider'
     super options, data
 
     @pages     = []
     @_coordsY  = []
     @_currentX = 0
 
+    [@_pd, @_spd] = options.directions ? @constructor.directions.leftToRight
+
   addPage:(page)->
     @addSubView page
 
     stack = 100 * (@pages.length)
-    page.setStyle left : "#{stack}%"
+    pref  = {}
+    pref[@_pd] = "#{stack}%"
+    page.setStyle pref
     @pages.push [page]
     @_coordsY.push 0
 
@@ -49,16 +58,19 @@ class Slider extends JView
 
     lastAddedPage = @pages.last
     stack = 100 * lastAddedPage.length
-    page.setStyle top : "#{stack}%"
+    pref  = {}
+    pref[@_spd] = "#{stack}%"
+    page.setStyle pref
     lastAddedPage.push page
 
   nextPage:->
     @jump @_currentX + 1, X_COORD
   previousPage:->
     @jump @_currentX - 1, X_COORD
-  downPage:->
+
+  nextSubPage:->
     @jump @_coordsY[@_currentX] + 1, Y_COORD
-  upPage:->
+  previousSubPage:->
     @jump @_coordsY[@_currentX] - 1, Y_COORD
 
   jump:(pageIndex, coord)->
@@ -66,11 +78,11 @@ class Slider extends JView
     if coord is X_COORD
       pages   = @pages
       current = @_currentX
-      key     = 'left'
+      key     = @_pd
     else
       pages   = @pages[@_currentX]
       current = @_coordsY[@_currentX]
-      key     = 'top'
+      key     = @_spd
 
     return if pages.length <= 1
 
@@ -108,6 +120,7 @@ class DemosMainView extends KDScrollView
     KD.getSingleton("mainView").enableFullscreen()
 
     @addSubView @slider = new Slider
+      # direction : Slider.directions.topToBottom
 
     @slider.addPage page1 = new Page
       content  : 'Page 1'
@@ -157,22 +170,22 @@ class DemosMainView extends KDScrollView
       left     : '10px'
       bottom   : '10px'
 
-    @addSubView downButton = new KDButtonView
+    @addSubView previousSubPageButton = new KDButtonView
       cssClass : 'Down'
-      title    : 'Down Page'
-      callback : => @slider.downPage()
+      title    : 'Previous SubPage'
+      callback : => @slider.previousSubPage()
 
-    downButton.setStyle
-      position : 'absolute'
-      right    : '200px'
-      bottom   : '10px'
-
-    @addSubView upButton = new KDButtonView
-      cssClass : 'up'
-      title    : 'Up Page'
-      callback : => @slider.upPage()
-
-    upButton.setStyle
+    previousSubPageButton.setStyle
       position : 'absolute'
       left     : '200px'
+      bottom   : '10px'
+
+    @addSubView nextSubPageButton = new KDButtonView
+      cssClass : 'up'
+      title    : 'Next SubPage'
+      callback : => @slider.nextSubPage()
+
+    nextSubPageButton.setStyle
+      position : 'absolute'
+      right    : '200px'
       bottom   : '10px'
