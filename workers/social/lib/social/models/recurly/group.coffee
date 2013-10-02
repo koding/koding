@@ -35,18 +35,7 @@ module.exports = class JRecurlyGroup extends JRecurly
     recurly.getAccount (groupCodeOf group), callback
 
   @getBilling = (group, callback) ->
-    recurlyId = groupCodeOf group
-    JRecurlyBillingMethod = require '../recurly/billingmethod'
-
-    recurly.getBilling recurlyId, (err, billing) ->
-      return callback err  if err?
-
-      JRecurlyBillingMethod.one { recurlyId }, (err, mixin) ->
-        return callback err  if err?
-
-        billing = _.extend billing, mixin  if mixin?
-
-        callback null, billing
+    recurly.getBilling (groupCodeOf group), callback
 
   @getTransactions = (group, callback)->
     recurly.getTransactions (groupCodeOf group), callback
