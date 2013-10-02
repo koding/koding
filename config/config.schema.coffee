@@ -242,6 +242,7 @@ config =
     google          :
       client_id     : 1
       client_secret : 1
+      redirect_uri  : 1
     statsd          :
       use           : 1
       ip            : 1

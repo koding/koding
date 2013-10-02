@@ -22,9 +22,6 @@ module.exports = (req, res) ->
     redirect_uri
   }            = google
 
-  # TODO: put this in config
-  redirect_uri = "http://localhost:3020/-/oauth/google/callback"
-
   unless code
     renderOauthPopup res, {error:"No code in query", provider:"google"}
     return
