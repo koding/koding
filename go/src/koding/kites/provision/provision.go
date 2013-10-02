@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	uuid "github.com/nu7hatch/gouuid"
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb"
@@ -85,7 +86,7 @@ func initializeVMS() {
 
 	virt.VMPool = config.Current.VmPool
 	if err := virt.LoadTemplates(templateDir); err != nil {
-		fmt.Print("could not load the templates", templateDir)
+		fmt.Printf("could not load template dir '%s', err '%s'", templateDir, err)
 		os.Exit(1)
 		return
 	}
@@ -121,6 +122,7 @@ func initializeVMS() {
 			info.startTimeout()
 		}
 	}
+
 }
 
 func (Provision) Start(r *protocol.KiteDnodeRequest, result *bool) error {
@@ -560,6 +562,16 @@ func createHomeDirs(user *virt.User, vm *virt.VM) error {
 		createUserWebDir(user, vmWebDir, userWebDir, rootVos, userVos)
 	}
 
+	err = prepareToken(user, userVos)
+	if err != nil {
+		return err
+	}
+
+	err = prepareKites(user, rootVos)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -636,6 +648,61 @@ func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
 	if err := copyIntoVos(templateDir+"/user", "/home/"+user.Name, userVos); err != nil {
 		panic(err)
 	}
+}
+
+func prepareToken(user *virt.User, vos *virt.VOS) error {
+	homeDir := userHomeDir(user.Name)
+	id, _ := uuid.NewV4()
+	key := id.String()
+
+	kodingKey := modelhelper.NewKodingKeys()
+	kodingKey.Key = key
+	kodingKey.Owner = user.ObjectId.Hex()
+
+	err := modelhelper.AddKodingKeys(kodingKey)
+	if err != nil {
+		return fmt.Errorf("prepareToken adding keys '%s'", err)
+	}
+
+	if err := vos.Mkdir(homeDir+"/.kd", 0755); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("creating .kd dir '%s'", err)
+	}
+
+	tokenFile, err := vos.OpenFile(homeDir+"/.kd/token", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("creating token '%s'", err)
+	}
+	defer tokenFile.Close()
+
+	return virt.Templates.ExecuteTemplate(tokenFile, "token", key)
+}
+
+func prepareKites(user *virt.User, vos *virt.VOS) error {
+	terminalConf := "terminal-kite.conf"
+	terminalFile, err := vos.OpenFile("/etc/init/"+terminalConf, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("opening terminal kite file '%s'", err)
+	}
+	defer terminalFile.Close()
+
+	err = virt.Templates.ExecuteTemplate(terminalFile, terminalConf, user)
+	if err != nil {
+		return fmt.Errorf("creatin terminal kite upstart template '%s'", err)
+	}
+
+	fsConf := "fs-kite.conf"
+	fsFile, err := vos.OpenFile("/etc/init/"+fsConf, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("opening fs kite file '%s'", err)
+	}
+	defer fsFile.Close()
+
+	err = virt.Templates.ExecuteTemplate(fsFile, fsConf, user)
+	if err != nil {
+		return fmt.Errorf("creating fs kite upstart template '%s'", err)
+	}
+
+	return nil
 }
 
 func createVmWebDir(vm *virt.VM, vmWebDir string, rootVos, vmWebVos *virt.VOS) {
@@ -727,6 +794,7 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 		if err != nil {
 			return err
 		}
+
 		defer df.Close()
 
 		fmt.Printf("copying from '%s' to '%s'", sf.Name(), df.Name())
