@@ -17,7 +17,6 @@ module.exports = class JRecurly extends Base
       ]
 
   @setAccount = secure (client, data, callback)->
-    console.log { arguments }
     {delegate} = client.connection
     JSession   = require '../session'
     JSession.one {clientId: client.sessionToken}, (err, session) =>
@@ -88,6 +87,7 @@ module.exports = class JRecurly extends Base
       all[obj[keyField]] = obj  for obj in objs
 
       constructor.all selector, (err, cachedObjs)->
+
         return callback err  if err
 
         cached = {}
@@ -95,7 +95,11 @@ module.exports = class JRecurly extends Base
 
         keys    = all: Object.keys(all), cached: Object.keys(cached)
         stack   = []
-        stackCb = (err)-> if err then callback err else stack.fin()
+        stackCb = (err) -> if err then callback err else stack.fin()
+
+        stack.push ->
+          keys.all.forEach (k)->
+            forEach k, cached[k], all[k], stackCb
 
         # remove obsolete plans in mongo
         difference(keys.cached, keys.all).forEach (k)->
@@ -105,9 +109,6 @@ module.exports = class JRecurly extends Base
         difference(keys.all, keys.cached).forEach (k)->
           cached[k] = new constructor
           cached[k][keyField] = all[k][keyField]
-
-        keys.all.forEach (k)->
-          forEach k, cached[k], all[k], stackCb
 
         dash stack, ->
           console.log "Updated #{message}!"
