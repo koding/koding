@@ -8,33 +8,47 @@ module.exports = class JRecurly extends Base
 
   JUser = require '../user'
 
+  prefixedId = (prefix) -> (ob) ->
+    toString  : -> "#{prefix}#{ob.getId()}"
+    prefix    : prefix
+    target    : ob
+
+  @userCodeOf  = prefixedId 'user_'
+  @groupCodeOf = prefixedId 'group_'
+
+  { userCodeOf } = this
+
   @share()
 
   @set
     sharedMethods  :
       static       : [
-        'getBalance', 'setAccount', 'getAccount', 'getTransactions', 'getCountryData'
+        'getBalance', 'setBillingInfo', 'getAccount', 'getTransactions', 'getCountryData'
       ]
 
-  @setAccount = secure (client, data, callback)->
+  @setBillingInfo = secure (client, data, callback) ->
     {delegate} = client.connection
     JSession   = require '../session'
+
     JSession.one {clientId: client.sessionToken}, (err, session) =>
       {username, firstName, lastName} = delegate.profile
       extend data, {username, firstName, lastName}
       data.ipAddress = session?.clientIPAddress or '0.0.0.0'
 
-      JUser.fetchUser client, (err, user)->
+      JUser.fetchUser client, (err, user) ->
+        userId = userCodeOf delegate
         data.email = user.email
-        recurly.setAccount "user_#{delegate.getId()}", data, (err, res)->
+        recurly.setAccount userId, data, (err, res) ->
           return callback err  if err?
-          recurly.setBilling "user_#{delegate.getId()}", data, callback
+
+          recurly.setBilling userId, data, (err, res) ->
+            console.log { err, res, callback }
 
   @getAccount = secure ({connection:{delegate}}, callback)->
-    recurly.getAccount "user_#{delegate.getId()}", callback
+    recurly.getAccount (userCodeOf delegate), callback
 
   @getTransactions = secure ({connection:{delegate}}, callback)->
-    recurly.getTransactions "user_#{delegate.getId()}", callback
+    recurly.getTransactions (userCodeOf delegate), callback
 
   @fetchAccount = secure (client, callback)->
     {delegate} = client.connection
@@ -59,7 +73,7 @@ module.exports = class JRecurly extends Base
 
   @getBalance = secure (client, callback)->
     {delegate} = client.connection
-    @getBalance_ "user_#{delegate.getId()}", callback
+    @getBalance_ (userCodeOf delegate), callback
 
   @invalidateCacheAndLoad: (constructor, selector, options, callback)->
     cb = -> constructor.all selector, callback
@@ -68,7 +82,7 @@ module.exports = class JRecurly extends Base
     constructor.one selector, sort:lastUpdate:1, (err, obj)=>
       return constructor.updateCache selector, cb  if err or not obj
       obj.lastUpdate ?= 0
-      now = (new Date()).getTime()
+      now = Date.now()
       if now - obj.lastUpdate > 1000 * options.forceInterval
         constructor.updateCache selector, cb
       else

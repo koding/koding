@@ -4,6 +4,8 @@ JRecurly    = require './index'
 
 module.exports = class JRecurlyGroup extends JRecurly
 
+  { groupCodeOf } = this
+
   @setAccount = (client, group, data, callback)->
 
     group.fetchOwner (err, owner) ->
@@ -23,17 +25,17 @@ module.exports = class JRecurlyGroup extends JRecurly
           lastName
         }
 
-        accountCode = "group_#{group.getId()}"
+        groupCode = groupCodeOf group
 
-        recurly.setAccount accountCode, data, (err, res)->
+        recurly.setAccount groupCode, data, (err, res)->
           return callback err  if err
-          recurly.setBilling accountCode, data, callback
+          recurly.setBilling groupCode, data, callback
 
   @getAccount = (group, callback) ->
-    recurly.getAccount "group_#{group.getId()}", callback
+    recurly.getAccount (groupCodeOf group), callback
 
   @getBilling = (group, callback) ->
-    recurlyId = "group_#{group.getId()}"
+    recurlyId = groupCodeOf group
     JRecurlyBillingMethod = require '../recurly/billingmethod'
 
     recurly.getBilling recurlyId, (err, billing) ->
@@ -47,7 +49,7 @@ module.exports = class JRecurlyGroup extends JRecurly
         callback null, billing
 
   @getTransactions = (group, callback)->
-    recurly.getTransactions "group_#{group.getId()}", callback
+    recurly.getTransactions (groupCodeOf group), callback
 
   @addPlan = (group, data, callback)->
     data.feeMonthly = data.price
@@ -74,4 +76,4 @@ module.exports = class JRecurlyGroup extends JRecurly
           lastName  : group.title
 
   @getBalance = (group, callback)->
-    @getBalance_ "group_#{group.getId()}", callback
+    @getBalance_ (groupCodeOf group), callback

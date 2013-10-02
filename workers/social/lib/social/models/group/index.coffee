@@ -1278,7 +1278,7 @@ module.exports = class JGroup extends Module
     success: (client, data, callback)-> 
       # TODO: Give credits to existing users
       JRecurlyGroup = require '../recurly/group'
-      JRecurlyGroup.setAccount client, this, data, callback
+      JRecurlyGroup.setBillingInfo client, this, data, callback
 
   fetchBillingInfo: permit 'manage payment methods',
     success: (client, callback)->
