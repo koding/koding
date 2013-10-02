@@ -189,4 +189,6 @@ module.exports = [
   # "Framework/themes/default/kd.dia.styl",
   # "Framework/themes/default/kd.slide.styl",
 
+  "Framework/init.coffee",
+
 ]
