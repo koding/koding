@@ -255,10 +255,15 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-  @renderGroupHomeLoggedIn   : require '../../render/grouphomeloggedin'
-  @renderGroupHomeLoggedOut  : require '../../render/grouphomeloggedout'
-  @renderKodingHomeLoggedIn  : require '../../render/kodinghomeloggedin'
-  @renderKodingHomeLoggedOut : require '../../render/kodinghomeloggedout'
+  @render        :
+    loggedIn     :
+      kodingHome : require '../../render/loggedin/kodinghome'
+      groupHome  : require '../../render/loggedin/grouphome'
+      subPage    : require '../../render/loggedin/subpage'
+    loggedOut    :
+      groupHome  : require '../../render/loggedout/grouphome'
+      kodingHome : require '../../render/loggedout/kodinghome'
+      subPage    : require '../../render/loggedout/subpage'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -394,16 +399,16 @@ module.exports = class JGroup extends Module
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
 
-    @some {
+    @some
       title      : seed
       _id        :
         $nin     : blacklist
       visibility : 'visible'
-    },{
+    ,
       skip
       limit
       sort       : 'title' : 1
-    }, callback
+    , callback
 
   # currently groups in a group show global groups, so it does not
   # make sense to allow this method based on current group's permissions
@@ -688,10 +693,8 @@ module.exports = class JGroup extends Module
             content : readme?.html ? readme?.content
             @customize
           }
-          if account.type is 'unregistered'
-            callback null, JGroup.renderGroupHomeLoggedOut options
-          else
-            callback null, JGroup.renderGroupHomeLoggedIn options
+          prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+          callback null, JGroup.render[prefix].groupHome options
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback

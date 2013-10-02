@@ -46,7 +46,7 @@ class HomeLoginBar extends JView
 
     @login        = new CustomLinkView
       tagName     : "a"
-      title       : "Already a user? Sign In"
+      title       : "Already a user? Sign In."
       icon        : {}
       cssClass    : "login"
       attributes  :

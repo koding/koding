@@ -3,7 +3,7 @@ class AdminModal extends KDModalViewWithForms
   constructor : (options = {}, data) ->
 
     options =
-      title                   : "Admin Panel"
+      title                   : "Admin panel"
       content                 : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       overlay                 : yes
       width                   : 600
@@ -44,8 +44,20 @@ class AdminModal extends KDModalViewWithForms
               Flags           :
                 label         : "Flags"
                 placeholder   : "no flags assigned"
+              BlockUser       :
+                label         : "Block User"
+                itemClass     : KDButtonView
+                title         : "Block"
+                callback      : =>
+                  accounts = @userController.getSelectedItemData()
+                  if accounts.length > 0
+                    activityController = KD.getSingleton('activityController')
+                    activityController.emit "ActivityItemBlockUserClicked", accounts[0].profile.nickname
+                  else
+                    new KDNotificationView {title: "Please select an account!"}
+
               Impersonate     :
-                label         : "Switch to User"
+                label         : "Switch to User "
                 itemClass     : KDButtonView
                 title         : "Impersonate"
                 callback      : =>
@@ -238,12 +250,14 @@ class AdminModal extends KDModalViewWithForms
     fields.Impersonate.hide()
     buttons.Update.hide()
     fields.Flags.hide()
+    fields.Block.hide()
     inputs.Flags.setValue ''
 
   showConnectedFields:->
     {fields, inputs, buttons} = @modalTabs.forms["User Details"]
     fields.Impersonate.show()
     fields.Flags.show()
+    fields.Block.show()
     buttons.Update.show()
 
   initIntroductionTab: ->

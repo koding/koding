@@ -1,4 +1,4 @@
-class ActivityTutorialWidget extends KDFormView
+class ActivityTutorialWidget extends ActivityWidgetFormView
 
   constructor :(options,data)->
 
@@ -15,9 +15,6 @@ class ActivityTutorialWidget extends KDFormView
 
     @labelContent = new KDLabelView
       title : "Content:"
-
-    @labelAddTags = new KDLabelView
-      title : "Add Tags:"
 
     @inputDiscussionTitle = new KDInputView
       name          : "title"
@@ -98,28 +95,6 @@ class ActivityTutorialWidget extends KDFormView
       tooltip  :
         title  : "This is a public wall, here you can share your tutorials with the Koding community."
 
-    @selectedItemWrapper = new KDCustomHTMLView
-      tagName  : "div"
-      cssClass : "tags-selected-item-wrapper clearfix"
-
-    @tagController = new TagAutoCompleteController
-      name                : "meta.tags"
-      type                : "tags"
-      itemClass           : TagAutoCompleteItemView
-      selectedItemClass   : TagAutoCompletedItemView
-      itemDataPath        : 'title'
-      outputWrapper       : @selectedItemWrapper
-      selectedItemsLimit  : 5
-      listWrapperCssClass : "tags"
-      form                : @
-      dataSource          : (args, callback)=>
-        {inputValue} = args
-        updateWidget = @getDelegate()
-        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
-
-    @tagAutoComplete = @tagController.getView()
-
   sanitizeUrls:(text)->
     text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
       test = /^([a-zA-Z]+\:\/\/)/.test url
@@ -144,6 +119,7 @@ class ActivityTutorialWidget extends KDFormView
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
     @inputContent.setValue ''
+    @inputContent.resize()
     @inputTutorialEmbedShowLink.setValue off
     @embedBox.resetEmbedAndHide()
 

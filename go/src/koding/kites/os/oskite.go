@@ -5,9 +5,9 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"koding/db/mongodb"
 	"koding/kites/os/ldapserver"
 	"koding/tools/config"
-	"koding/tools/db"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/lifecycle"
@@ -16,6 +16,8 @@ import (
 	"koding/virt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"launchpad.net/goamz/aws"
+	"launchpad.net/goamz/s3"
 	"net"
 	"os"
 	"os/signal"
@@ -48,6 +50,12 @@ func (err *UnderMaintenanceError) Error() string {
 	return "VM is under maintenance."
 }
 
+type AccessDeniedError struct{}
+
+func (err *AccessDeniedError) Error() string {
+	return "Vm is banned"
+}
+
 var infos = make(map[bson.ObjectId]*VMInfo)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
@@ -55,6 +63,16 @@ var firstContainerIP net.IP
 var containerSubnet *net.IPNet
 var shuttingDown = false
 var requestWaitGroup sync.WaitGroup
+
+var s3store = s3.New(
+	aws.Auth{
+		AccessKey: "AKIAJI6CLCXQ73BBQ2SQ",
+		SecretKey: "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",
+	},
+	aws.USEast,
+)
+var uploadsBucket = s3store.Bucket("koding-uploads")
+var appsBucket = s3store.Bucket("koding-apps")
 
 func main() {
 	lifecycle.Startup("kite.os", true)
@@ -88,7 +106,11 @@ func main() {
 		if strings.HasPrefix(dir.Name(), "vm-") {
 			vmId := bson.ObjectIdHex(dir.Name()[3:])
 			var vm virt.VM
-			if err := db.VMs.FindId(vmId).One(&vm); err != nil || vm.HostKite != k.ServiceUniqueName {
+			query := func(c *mgo.Collection) error {
+				return c.FindId(vmId).One(&vm)
+			}
+
+			if err := mongodb.Run("jVMs", query); err != nil || vm.HostKite != k.ServiceUniqueName {
 				if err := virt.UnprepareVM(vmId); err != nil {
 					log.Warn(err.Error())
 				}
@@ -113,7 +135,16 @@ func main() {
 				log.Info("Unpreparing " + info.vm.String() + "...")
 				info.unprepareVM()
 			}
-			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": k.ServiceUniqueName}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
+			query := func(c *mgo.Collection) error {
+				_, err := c.UpdateAll(
+					bson.M{"hostKite": k.ServiceUniqueName},
+					bson.M{"$set": bson.M{"hostKite": nil}},
+				) // ensure that really all are set to nil
+				return err
+			}
+
+			err := mongodb.Run("jVMs", query)
+			if err != nil {
 				log.LogError(err, 0)
 			}
 		}
@@ -123,15 +154,19 @@ func main() {
 	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
-			db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
+			mongodb.Run("jVMs", func(c *mgo.Collection) error {
+				return c.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
+			})
 		}
 		if vm == nil {
-			if err := db.VMs.Find(bson.M{"hostnameAlias": correlationName}).One(&vm); err != nil {
+			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+				return c.Find(bson.M{"hostnameAlias": correlationName}).One(&vm)
+			}); err != nil {
 				return k.ServiceUniqueName
 			}
 		}
 
-		if vm.HostKite == "" || vm.HostKite == "(maintenance)" {
+		if vm.HostKite == "" || vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
 			return k.ServiceUniqueName
 		}
 		if vm.HostKite == deadService {
@@ -183,7 +218,7 @@ func main() {
 	})
 
 	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		info := infos[vos.VM.Id]
+		info := channel.KiteData.(*VMInfo)
 		info.State = vos.VM.GetState()
 		return info, nil
 	})
@@ -195,26 +230,18 @@ func main() {
 		return true, vos.VM.ResizeRBD()
 	})
 
-	// registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-	// 	if !vos.Permissions.Sudo {
-	// 		return nil, &kite.PermissionError{}
-	// 	}
+	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
+			return nil, &kite.PermissionError{}
+		}
 
-	// 	snippet := virt.VM{
-	// 		Id:         bson.NewObjectId(),
-	// 		SnapshotOf: vos.VM.Id,
-	// 	}
+		snippetId := bson.NewObjectId().Hex()
+		if err := vos.VM.CreateConsistentSnapshot(snippetId); err != nil {
+			return nil, err
+		}
 
-	// 	if err := vos.VM.CreateConsistentSnapshot(snippet.Id.Hex()); err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	if err := db.VMs.Insert(snippet); err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	return snippet.Id.Hex(), nil
-	// })
+		return snippetId, nil
+	})
 
 	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var command []string
@@ -232,11 +259,63 @@ func main() {
 		return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
 
+	registerVmMethod(k, "s3.store", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		var params struct {
+			Name    string
+			Content []byte
+		}
+		if args.Unmarshal(&params) != nil || params.Name == "" || len(params.Content) == 0 || strings.Contains(params.Name, "/") {
+			return nil, &kite.ArgumentError{Expected: "{ name: [string], content: [base64 string] }"}
+		}
+
+		if len(params.Content) > 2*1024*1024 {
+			return nil, errors.New("Content size larger than maximum of 2MB.")
+		}
+
+		result, err := uploadsBucket.List(UserAccountId(vos.User).Hex()+"/", "", "", 100)
+		if err != nil {
+			return nil, err
+		}
+		if len(result.Contents) >= 100 {
+			return nil, errors.New("Maximum of 100 stored files reached.")
+		}
+
+		if err := uploadsBucket.Put(UserAccountId(vos.User).Hex()+"/"+params.Name, params.Content, "", s3.Private); err != nil {
+			return nil, err
+		}
+		return true, nil
+	})
+
+	registerVmMethod(k, "s3.delete", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		var params struct {
+			Name string
+		}
+		if args.Unmarshal(&params) != nil || params.Name == "" || strings.Contains(params.Name, "/") {
+			return nil, &kite.ArgumentError{Expected: "{ name: [string] }"}
+		}
+		if err := uploadsBucket.Del(UserAccountId(vos.User).Hex() + "/" + params.Name); err != nil {
+			return nil, err
+		}
+		return true, nil
+	})
+
 	registerFileSystemMethods(k)
 	registerWebtermMethods(k)
 	registerAppMethods(k)
 
 	k.Run()
+}
+
+func UserAccountId(user *virt.User) bson.ObjectId {
+	var account struct {
+		Id bson.ObjectId `bson:"_id"`
+	}
+	if err := mongodb.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": user.Name}).One(&account)
+	}); err != nil {
+		panic(err)
+	}
+	return account.Id
 }
 
 type VMNotFoundError struct {
@@ -259,7 +338,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 
 		var user virt.User
-		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
+		if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+			return c.Find(bson.M{"username": channel.Username}).One(&user)
+		}); err != nil {
 			if err != mgo.ErrNotFound {
 				panic(err)
 			}
@@ -283,7 +364,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if info != nil {
 			query = bson.M{"_id": info.vm.Id}
 		}
-		if err := db.VMs.Find(query).One(&vm); err != nil {
+		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Find(query).One(&vm)
+		}); err != nil {
 			return nil, &VMNotFoundError{Name: channel.CorrelationName}
 		}
 		vm.ApplyDefaults()
@@ -301,7 +384,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				if vm.GetState() != "RUNNING" {
 					return nil, errors.New("VM not running.")
 				}
-				if err := db.Users.Find(bson.M{"username": params.JoinUser}).One(&user); err != nil {
+				if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+					return c.Find(bson.M{"username": params.JoinUser}).One(&user)
+				}); err != nil {
 					panic(err)
 				}
 				if user.Uid < virt.UserIdOffset {
@@ -324,8 +409,16 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if vm.HostKite == "(maintenance)" {
 			return nil, &UnderMaintenanceError{}
 		}
+
+		if vm.HostKite == "(banned)" {
+			log.Warn("vm '%s' is banned", vm.HostnameAlias)
+			return nil, &AccessDeniedError{}
+		}
+
 		if vm.HostKite != k.ServiceUniqueName {
-			if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
+			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+				return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}})
+			}); err != nil {
 				time.Sleep(time.Second) // to avoid rapid cycle channel loop
 				return nil, &kite.WrongChannelError{}
 			}
@@ -350,9 +443,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				defer info.mutex.Unlock()
 
 				info.useCounter -= 1
-				if info.useCounter == 0 {
-					info.startTimeout()
-				}
+				info.startTimeout()
 			})
 
 			infosMutex.Unlock()
@@ -371,9 +462,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}()
 
 		if vm.IP == nil {
-			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
+			ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-			if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+				return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
+			}); err != nil {
 				panic(err)
 			}
 			vm.IP = ip
@@ -384,7 +477,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		if vm.LdapPassword == "" {
 			ldapPassword := utils.RandomString()
-			if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
+			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
+			}); err != nil {
 				panic(err)
 			}
 			vm.LdapPassword = ldapPassword
@@ -574,7 +669,9 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 func getUsers(vm *virt.VM) []virt.User {
 	users := make([]virt.User, len(vm.Users))
 	for i, entry := range vm.Users {
-		if err := db.Users.FindId(entry.Id).One(&users[i]); err != nil {
+		if err := mongodb.Run("jUsers", func(c *mgo.Collection) error {
+			return c.FindId(entry.Id).One(&users[i])
+		}); err != nil {
 			panic(err)
 		}
 		if users[i].Uid == 0 {
@@ -599,8 +696,11 @@ func newInfo(vm *virt.VM) *VMInfo {
 }
 
 func (info *VMInfo) startTimeout() {
+	if info.useCounter != 0 || info.vm.AlwaysOn {
+		return
+	}
 	info.timeout = time.AfterFunc(5*time.Minute, func() {
-		if info.useCounter != 0 {
+		if info.useCounter != 0 || info.vm.AlwaysOn {
 			return
 		}
 		if info.vm.GetState() == "RUNNING" {
@@ -611,7 +711,7 @@ func (info *VMInfo) startTimeout() {
 		info.timeout = time.AfterFunc(5*time.Minute, func() {
 			info.mutex.Lock()
 			defer info.mutex.Unlock()
-			if info.useCounter != 0 {
+			if info.useCounter != 0 || info.vm.AlwaysOn {
 				return
 			}
 			info.unprepareVM()
@@ -624,7 +724,9 @@ func (info *VMInfo) unprepareVM() {
 		log.Warn(err.Error())
 	}
 
-	if err := db.VMs.Update(bson.M{"_id": info.vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil && err != mgo.ErrNotFound {
+	if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		return c.Update(bson.M{"_id": info.vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}})
+	}); err != nil {
 		log.LogError(err, 0)
 	}
 
@@ -633,4 +735,37 @@ func (info *VMInfo) unprepareVM() {
 		delete(infos, info.vm.Id)
 	}
 	infosMutex.Unlock()
+}
+
+type Counter struct {
+	Name  string `bson:"_id"`
+	Value int    `bson:"seq"`
+}
+
+func NextCounterValue(counterName string, initialValue int) int {
+	var counter Counter
+
+	if err := mongodb.Run("counters", func(c *mgo.Collection) error {
+		_, err := c.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &counter)
+		return err
+	}); err != nil {
+		if err == mgo.ErrNotFound {
+			mongodb.Run("counters", func(c *mgo.Collection) error {
+				c.Insert(Counter{Name: counterName, Value: initialValue})
+				return nil // ignore error and try to do atomic update again
+			})
+
+			if err := mongodb.Run("counters", func(c *mgo.Collection) error {
+				_, err := c.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &counter)
+				return err
+			}); err != nil {
+				panic(err)
+			}
+			return counter.Value
+		}
+		panic(err)
+	}
+
+	return counter.Value
+
 }

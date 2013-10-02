@@ -6,7 +6,8 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"koding/kontrol/kontrolproxy/models"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"strconv"
 )
@@ -19,8 +20,7 @@ type RulePostMessage struct {
 }
 
 func GetRestrictions(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/restrictions")
-	res := proxyDB.GetRestrictions()
+	res := modelhelper.GetRestrictions()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -33,9 +33,8 @@ func GetRestrictions(writer http.ResponseWriter, req *http.Request) {
 func GetRestrictionByDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("GET\t/restrictions/%s\n", domain)
 
-	res, err := proxyDB.GetRestrictionByDomain(domain)
+	res, err := modelhelper.GetRestrictionByDomain(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -52,9 +51,8 @@ func GetRestrictionByDomain(writer http.ResponseWriter, req *http.Request) {
 func DeleteRestriction(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("DELETE\t/restrictions/%s\n", domain)
 
-	err := proxyDB.DeleteRestriction(domain)
+	err := modelhelper.DeleteRestriction(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -69,7 +67,6 @@ func CreateRuleByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
 	name := vars["name"]
-	fmt.Printf("POST\t/restrictions/%s/%s\n", domain, name)
 
 	var msg RulePostMessage
 	var ruleEnabled bool
@@ -124,13 +121,13 @@ func CreateRuleByName(writer http.ResponseWriter, req *http.Request) {
 	var rule models.Rule
 	switch req.Method {
 	case "POST":
-		rule, err = proxyDB.AddOrUpdateRule(ruleEnabled, domain, ruleAction, name, ruleIndex, "add")
+		rule, err = modelhelper.AddOrUpdateRule(ruleEnabled, domain, ruleAction, name, ruleIndex, "add")
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 			return
 		}
 	case "PUT":
-		rule, err = proxyDB.AddOrUpdateRule(ruleEnabled, domain, ruleAction, name, ruleIndex, "update")
+		rule, err = modelhelper.AddOrUpdateRule(ruleEnabled, domain, ruleAction, name, ruleIndex, "update")
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 			return
@@ -151,8 +148,7 @@ func DeleteRuleByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
 	name := vars["name"]
-	fmt.Printf("DELETE\t/restrictions/%s/%s\n", domain, name)
-	err := proxyDB.DeleteRuleByName(domain, name)
+	err := modelhelper.DeleteRuleByName(domain, name)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

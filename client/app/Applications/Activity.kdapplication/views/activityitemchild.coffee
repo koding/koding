@@ -145,7 +145,7 @@ class ActivityItemChild extends KDView
 
       menu['Block User'] =
         callback : ->
-          activityController.emit "ActivityItemBlockUserClicked", data
+          activityController.emit "ActivityItemBlockUserClicked", data.originId
 
       return menu
 

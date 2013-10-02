@@ -11,6 +11,12 @@ class HelpBox extends JView
 
     super options, data
 
+  click: ->
+    {bookIndex} = @getOptions()
+    if bookIndex
+      mainController = KD.getSingleton "mainController"
+      mainController.emit "ShowInstructionsBook", bookIndex
+
   pistachio:->
 
     """

@@ -1,4 +1,3 @@
-
 class AppStorage extends KDObject
 
   constructor: (appId, version)->
@@ -7,21 +6,21 @@ class AppStorage extends KDObject
     @reset()
     super
 
-  fetchStorage: (callback = noop)->
+  fetchStorage: (callback)->
 
     [appId, version] = [@_applicationID, @_applicationVersion]
 
     unless @_storage
-      KD.whoami().fetchStorage {appId, version}, (error, storage) =>
-        unless error
-          callback @_storage = storage or {appId, version, bucket:{}}
+      KD.whoami().fetchAppStorage {appId, version}, (error, storage) =>
+        if not error and storage
+          @_storage = storage
+          callback? @_storage
           @emit "storageFetched"
           @emit "ready"
         else
-          callback null
-
+          callback? null
     else
-      callback @_storage
+      callback? @_storage
       KD.utils.defer =>
         @emit "storageFetched"
         @emit "ready"
@@ -48,7 +47,7 @@ class AppStorage extends KDObject
     @fetchStorage (storage)=>
       storage.update {
         $set: pack
-      }, callback
+      }, -> callback?()
 
   unsetKey: (key, callback, group = 'bucket')->
 
@@ -77,13 +76,10 @@ class AppStorageController extends KDController
     super
     @appStorages = {}
 
-  storage:(appName, version)->
-
-    if @appStorages[appName]?
-      storage = @appStorages[appName]
-    else
-      storage = @appStorages[appName] = new AppStorage appName, version
-
+  storage:(appName, version = "1.0")->
+    key = "#{appName}-#{version}"
+    @appStorages[key] or= new AppStorage appName, version
+    storage = @appStorages[key]
     storage.fetchStorage()
     return storage
 

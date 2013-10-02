@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/tools/config"
+	"koding/tools/statsd"
 	"labix.org/v2/mgo/bson"
-	"log"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -18,7 +20,16 @@ var (
 	UNIQUE_NODE_PATH = "/db/data/index/node/koding?unique"
 	INDEX_PATH       = "/db/data/index/node"
 	NODE_URL         = "/db/data/node"
+	MAX_RETRIES      = 5
+	TIMEOUT          = 20
+	DEADLINE         = 40
+	CYPHER_PATH      = "db/data/cypher"
+	CYPHER_URL       = fmt.Sprintf("%v/%v", BASE_URL, CYPHER_PATH)
 )
+
+func init() {
+	statsd.SetAppName("neo4j")
+}
 
 type Relationship struct {
 	Id         bson.ObjectId `bson:"_id,omitempty"`
@@ -26,13 +37,39 @@ type Relationship struct {
 	TargetName string        `bson:"targetName"`
 	SourceId   bson.ObjectId `bson:"sourceId,omitempty"`
 	SourceName string        `bson:"sourceName"`
-	As         string
+	As         string        `bson:"as"`
+	Timestamp  time.Time     `bson:"timestamp"`
 	Data       bson.Binary
+}
+
+// Setup the dial timeout
+func dialTimeout(timeout time.Duration, deadline time.Duration) func(network, addr string) (c net.Conn, err error) {
+	return func(netw, addr string) (net.Conn, error) {
+		conn, err := net.DialTimeout(netw, addr, timeout)
+		if err != nil {
+			return nil, err
+		}
+		conn.SetDeadline(time.Now().Add(deadline))
+		return conn, nil
+	}
 }
 
 // Gets URL and string data to be sent and makes POST request
 // reads response body and returns as string
-func sendRequest(requestType, url, data string) string {
+func sendRequest(requestType, url, data string, attempt int) string {
+	sTimer := statsd.StartTimer("sendRequest")
+
+	// Set the timeout & deadline
+	timeOut := time.Duration(TIMEOUT) * time.Second
+	deadLine := time.Duration(DEADLINE) * time.Second
+
+	transport := http.Transport{
+		Dial: dialTimeout(timeOut, deadLine),
+	}
+
+	client := http.Client{
+		Transport: &transport,
+	}
 
 	//convert string into bytestream
 	dataByte := strings.NewReader(data)
@@ -41,31 +78,43 @@ func sendRequest(requestType, url, data string) string {
 	// read response body
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Fatal(err)
+	res, err := client.Do(req)
+	if err != nil && attempt <= MAX_RETRIES {
+		sTimer.Failed()
+		fmt.Print(err)
+		attempt++
+		sendRequest(requestType, url, data, attempt)
+	}
+	if err != nil && attempt > MAX_RETRIES {
+		panic(fmt.Sprintf("req to %v timed out after %v retries", url, attempt))
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
 
 	defer res.Body.Close()
 
-	return string(body)
+	sTimer.Success()
 
+	return string(body)
 }
 
 // connect source and target with relation property
 // response will be object
 func CreateRelationship(relation, source, target string) map[string]interface{} {
+	sTimer := statsd.StartTimer("CreateRelationship")
 
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s" }`, target, relation)
-	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData)
+	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData, 1)
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
-		log.Println("Problem with relation response", relRes)
+		fmt.Println("Problem with relation response", relRes)
+		sTimer.Failed()
+
+		return relNode
 	}
+
+	sTimer.Success()
 
 	return relNode
 }
@@ -73,14 +122,20 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 // connect source and target with relation property
 // response will be object
 func CreateRelationshipWithData(relation, source, target, data string) map[string]interface{} {
+	sTimer := statsd.StartTimer("CreateRelationshipWithData")
 
 	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s", "data" : %s }`, target, relation, data)
-	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData)
+	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData, 1)
 
 	relNode, err := jsonDecode(relRes)
 	if err != nil {
-		log.Println("Problem with relation response", relRes)
+		sTimer.Failed()
+		fmt.Println("Problem with relation response", relRes)
+
+		return relNode
 	}
+
+	sTimer.Success()
 
 	return relNode
 }
@@ -88,16 +143,20 @@ func CreateRelationshipWithData(relation, source, target, data string) map[strin
 // creates a unique node with given id and node name
 // response will be Object
 func CreateUniqueNode(id string, name string) map[string]interface{} {
+	sTimer := statsd.StartTimer("CreateUniqueNode")
 
 	url := BASE_URL + UNIQUE_NODE_PATH
 
 	postData := generatePostJsonData(id, name)
 
-	response := sendRequest("POST", url, postData)
+	response := sendRequest("POST", url, postData, 1)
 
 	node, err := jsonDecode(response)
 	if err != nil {
-		log.Println("Problem with unique node creation response", response)
+		fmt.Println("Problem with unique node creation response", response)
+		sTimer.Failed()
+	} else {
+		sTimer.Success()
 	}
 
 	return node
@@ -105,6 +164,7 @@ func CreateUniqueNode(id string, name string) map[string]interface{} {
 
 // deletes a relation between two node using relationship info
 func DeleteRelationship(sourceId, targetId, relationship string) bool {
+	sTimer := statsd.StartTimer("DeleteRelationship")
 
 	//get source node information
 	sourceInfo := GetNode(sourceId)
@@ -128,11 +188,11 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	relationshipsURL := fmt.Sprintf("%s", sourceInfo[0]["self"]) + "/relationships/all/" + relationship
 
 	//this request returns objects in an array
-	response := sendRequest("GET", relationshipsURL, "")
+	response := sendRequest("GET", relationshipsURL, "", 1)
 	//so use json array decoder
 	relationships, err := jsonArrayDecode(response)
 	if err != nil {
-		log.Println("Problem with unique node creation response", response)
+		fmt.Println("Problem with unique node creation response", response)
 		return false
 	}
 
@@ -149,8 +209,7 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	for _, relation := range relationships {
 		if relation["end"] == targetInfo[0]["self"] {
 			toBeDeletedRelationURL := fmt.Sprintf("%s", relation["self"])
-			deletionResponse := sendRequest("DELETE", toBeDeletedRelationURL, "")
-			log.Println(deletionResponse)
+			sendRequest("DELETE", toBeDeletedRelationURL, "", 1)
 			foundNode = true
 
 			break
@@ -158,7 +217,10 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	}
 
 	if !foundNode {
-		log.Println("not found!", relationships[0]["self"])
+		sTimer.Failed()
+		fmt.Println("not found!", relationships[0]["self"])
+	} else {
+		sTimer.Success()
 	}
 
 	return true
@@ -170,11 +232,11 @@ func GetNode(id string) []map[string]interface{} {
 
 	url := BASE_URL + INDEX_NODE_PATH + "/id/" + id
 
-	response := sendRequest("GET", url, "")
+	response := sendRequest("GET", url, "", 1)
 
 	nodeData, err := jsonArrayDecode(response)
 	if err != nil {
-		log.Println("Problem with response", response)
+		fmt.Println("Problem with response", response)
 	}
 
 	return nodeData
@@ -198,12 +260,11 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 	// create  url to get relationship information of source node
 	propertiesURL := fmt.Sprintf("%s", node[0]["self"]) + "/properties"
 
-	response := sendRequest("PUT", propertiesURL, propertiesJSON)
+	response := sendRequest("PUT", propertiesURL, propertiesJSON, 1)
 	if response != "" {
-		log.Println(response)
 		res, err := jsonDecode(response)
 		if err != nil {
-			log.Println("Problem with response", err, res)
+			fmt.Println("Problem with response", err, res)
 		}
 	}
 
@@ -211,38 +272,40 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 }
 
 func DeleteNode(id string) bool {
+	sTimer := statsd.StartTimer("DeleteNode")
 
 	node := GetNode(id)
 
 	if len(node) < 1 {
+		sTimer.Failed()
 		return false
 	}
 
 	//if self is not there!
-	if _, ok := node[0]["self"]; !ok {
+	selfUrl, ok := node[0]["self"]
+	if !ok {
+		sTimer.Failed()
 		return false
 	}
 
-	nodeURL := fmt.Sprintf("%s", node[0]["self"])
+	splitStrings := strings.Split(selfUrl.(string), "/")
+	nodeId := splitStrings[len(splitStrings)-1]
 
-	relationshipsURL := nodeURL + "/relationships/all"
+	query := fmt.Sprintf(`
+    {"query" : "START n=node(%v) MATCH n-[r?]-items DELETE r, n"}
+  `, nodeId)
 
-	response := sendRequest("GET", relationshipsURL, "")
+	response := sendRequest("POST", CYPHER_URL, query, 1)
 
-	relations, err := jsonArrayDecode(response)
+	var result map[string][]interface{}
+	err := json.Unmarshal([]byte(response), &result)
 	if err != nil {
-		log.Println("Problem with response", response)
+		sTimer.Failed()
+		fmt.Println("Deleting node Marshalling error:", err)
 		return false
 	}
 
-	for _, relation := range relations {
-		if _, ok := relation["self"]; ok {
-			relationshipURL := fmt.Sprintf("%s", relation["self"])
-			sendRequest("DELETE", relationshipURL, "")
-		}
-	}
-
-	sendRequest("DELETE", nodeURL, "")
+	sTimer.Success()
 
 	return true
 }
@@ -253,9 +316,9 @@ func CreateUniqueIndex(name string) {
 	//create unique index
 	url := BASE_URL + INDEX_PATH
 
-	bd := sendRequest("POST", url, `{"name":"`+name+`"}`)
+	bd := sendRequest("POST", url, `{"name":"`+name+`"}`, 1)
 
-	log.Println("Created unique index for data", bd)
+	fmt.Println("Created unique index for data", bd)
 }
 
 // This is a custom json string generator as http request body to neo4j
@@ -265,13 +328,18 @@ func generatePostJsonData(id, name string) string {
 
 //here, mapping of decoded json
 func jsonArrayDecode(data string) ([]map[string]interface{}, error) {
+	sTimer := statsd.StartTimer("jsonArrayDecode")
+
 	var source []map[string]interface{}
 
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		log.Println("Marshalling error:", err)
+		sTimer.Failed()
+		fmt.Println("Marshalling error:", err)
 		return nil, err
 	}
+
+	sTimer.Success()
 
 	return source, nil
 }
@@ -282,7 +350,7 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		log.Println("Marshalling error:", err)
+		fmt.Println("Marshalling error:", err)
 		return nil, err
 	}
 

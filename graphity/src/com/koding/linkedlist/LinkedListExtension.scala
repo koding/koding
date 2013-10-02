@@ -26,6 +26,18 @@ class LinkedListExtension(@Context db: GraphDatabaseService) {
     }
   }
 
+  @DELETE
+  @Path("/list")
+  def destroyList(@QueryParam("entry") entryUrl: String) {
+    val tx = db.beginTx
+    try {
+      LinkedList.destroy(getNodeFromUrl(entryUrl))
+      tx.success
+    } finally {
+      tx.finish
+    }
+  }
+
   @POST
   @Path("/entry")
   def addEntry(@FormParam("previous") previousUrl: String, @FormParam("next") nextUrl: String, @FormParam("entry") entryUrl: String) {
@@ -80,10 +92,11 @@ class LinkedListExtension(@Context db: GraphDatabaseService) {
 
   @GET
   @Path("/entry/all")
-  def getAllPreviousEntries(@QueryParam("entry") entryUrl: String) = {
+  def getAllEntries(@QueryParam("entry") entryUrl: String) = {
     val tx = db.beginTx
     try {
-      val response = Response.ok(LinkedList.getAll(getNodeFromUrl(entryUrl)).tail.reverseMap(e => {
+      val tail = LinkedList.getTail(getNodeFromUrl(entryUrl))
+      val response = Response.ok(LinkedList.getAll(tail).tail.reverseMap(e => {
         "\"" + getUrlFromNode(e) + "\""
       }).mkString("[", ", ", "]")).build
 

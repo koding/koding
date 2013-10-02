@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
+	"koding/db/models"
+	"koding/db/mongodb"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -33,15 +35,14 @@ type ApiWorker struct {
 
 type Workers []ApiWorker
 
-var StatusCode = map[workerconfig.WorkerStatus]string{
-	workerconfig.Started: "started",
-	workerconfig.Waiting: "waiting",
-	workerconfig.Killed:  "dead",
-	workerconfig.Dead:    "dead",
+var StatusCode = map[models.WorkerStatus]string{
+	models.Started: "started",
+	models.Waiting: "waiting",
+	models.Killed:  "dead",
+	models.Dead:    "dead",
 }
 
 func GetWorkers(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET /workers")
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
 
 	var latestVersion bool
@@ -97,7 +98,6 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 func GetWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	fmt.Printf("GET /workers/%s\n", uuid)
 
 	query := bson.M{"uuid": uuid}
 	matchedWorkers := queryResult(query, false, nil)
@@ -112,7 +112,6 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid, action := vars["uuid"], vars["action"]
-	fmt.Printf("%s /workers/%s\n", strings.ToUpper(action), uuid)
 
 	buildSendCmd(action, uuid)
 	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
@@ -122,7 +121,6 @@ func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	fmt.Printf("DELETE /workers/%s\n", uuid)
 
 	buildSendCmd("delete", uuid)
 	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
@@ -131,7 +129,7 @@ func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 
 func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers {
 	workers := make(Workers, 0)
-	worker := workerconfig.Worker{}
+	worker := models.Worker{}
 
 	queryFunc := func(c *mgo.Collection) error {
 		// sorting is no-op when sortFields is empty
@@ -156,7 +154,7 @@ func queryResult(query bson.M, latestVersion bool, sortFields []string) Workers 
 		return nil
 	}
 
-	kontrolConfig.RunCollection("jKontrolWorkers", queryFunc)
+	mongodb.Run("jKontrolWorkers", queryFunc)
 
 	// finding the largest number of a field in mongo is kinda problematic.
 	// therefore we are doing it on our side

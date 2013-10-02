@@ -3,10 +3,12 @@ package kite
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
+	"koding/db/mongodb/modelhelper"
 	"koding/tools/amqputil"
 	"koding/tools/dnode"
 	"koding/tools/lifecycle"
 	"koding/tools/log"
+	"koding/virt"
 	"os"
 	"strconv"
 	"strings"
@@ -34,6 +36,12 @@ type Channel struct {
 	onDisconnect    []func()
 }
 
+// Control is used by controlChannel to shutdown shutdown VM's associated with
+// their hostnameAlias.
+type Control struct {
+	HostnameAlias string
+}
+
 func New(name string, onePerHost bool) *Kite {
 	hostname, _ := os.Hostname()
 	serviceUniqueName := "kite-" + name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
@@ -53,18 +61,6 @@ func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.
 }
 
 func (k *Kite) Run() {
-	changeClientsGauge := lifecycle.CreateClientsGauge()
-	log.RunGaugesLoop()
-
-	routeMap := make(map[string](chan<- []byte))
-	defer func() {
-		for _, route := range routeMap {
-			close(route)
-		}
-	}()
-
-	timeoutChannel := make(chan string)
-
 	consumeConn := amqputil.CreateConnection("kite-" + k.Name)
 	defer consumeConn.Close()
 
@@ -79,6 +75,57 @@ func (k *Kite) Run() {
 	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, k.ServiceUniqueName, k.LoadBalancer != nil)
 
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", k.ServiceUniqueName, "", true)
+	go k.startRouting(stream, publishChannel)
+
+	// listen to an external control channel
+	controlChannel := amqputil.CreateChannel(consumeConn)
+	defer controlChannel.Close()
+
+	controlStream := amqputil.DeclareBindConsumeQueue(controlChannel, "fanout", "control", "", true)
+	controlRouting(controlStream) // blocking
+}
+
+func controlRouting(stream <-chan amqp.Delivery) {
+	for msg := range stream {
+		switch msg.RoutingKey {
+		// those are temporary here
+		// and should not be here
+		case "control.suspendVM":
+			var control Control
+			err := json.Unmarshal(msg.Body, &control)
+			if err != nil || control.HostnameAlias == "" {
+				log.Err("Invalid control message.", string(msg.Body))
+				continue
+			}
+
+			v, err := modelhelper.GetVM(control.HostnameAlias)
+			if err != nil {
+				log.Err("vm not found '%s'", control.HostnameAlias)
+				continue
+			}
+
+			vm := virt.VM(v)
+			if err := vm.Stop(); err != nil {
+				log.Err("could not stop vm '%s'", control.HostnameAlias)
+				continue
+			}
+		}
+	}
+}
+
+func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Channel) {
+	changeClientsGauge := lifecycle.CreateClientsGauge()
+	log.RunGaugesLoop()
+
+	timeoutChannel := make(chan string)
+
+	routeMap := make(map[string](chan<- []byte))
+	defer func() {
+		for _, route := range routeMap {
+			close(route)
+		}
+	}()
+
 	for {
 		select {
 		case message, ok := <-stream:
@@ -209,8 +256,15 @@ func (k *Kite) Run() {
 							if !ok {
 								return
 							}
-							log.Debug("Read", channel.RoutingKey, message)
-							d.ProcessMessage(message)
+							func() {
+								defer func() {
+									if err := recover(); err != nil {
+										log.LogError(err, 1, channel.Username, channel.CorrelationName, message)
+									}
+								}()
+								log.Debug("Read", channel.RoutingKey, message)
+								d.ProcessMessage(message)
+							}()
 							pingAlreadySent = false
 						case <-time.After(5 * time.Minute):
 							if pingAlreadySent {
@@ -281,6 +335,7 @@ func (k *Kite) Run() {
 			}
 		}
 	}
+
 }
 
 func (channel *Channel) OnDisconnect(f func()) {

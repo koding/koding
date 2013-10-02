@@ -3,8 +3,6 @@ class KDSelectBox extends KDInputView
   constructor:(options = {})->
 
     options.type = "select"
-
-
     super options
 
   setDomElement:(cssClass)->
@@ -34,9 +32,11 @@ class KDSelectBox extends KDInputView
     @_$select.val value
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
     @inputDefaultValue = value
+
   getDefaultValue:-> @inputDefaultValue
 
   getValue:-> @_$select.val()
+
   setValue:(value)->
     @_$select.val value
     @change()
@@ -52,7 +52,7 @@ class KDSelectBox extends KDInputView
   setSelectOptions:(options)->
     firstOption = null
     unless options.length
-      for optGroup, subOptions of options
+      for own optGroup, subOptions of options
         $optGroup = $ "<optgroup label='#{optGroup}'/>"
         @_$select.append $optGroup
         for option in subOptions

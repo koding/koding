@@ -36,6 +36,7 @@ class KDView extends KDObject
     mouseleave    : "mouseLeave"
     mousemove     : "mouseMove"
     mousewheel    : "mouseWheel"
+    mouseover     : "mouseOver"
     contextmenu   : "contextMenu"
     dragstart     : "dragStart"
     dragenter     : "dragEnter"
@@ -112,7 +113,7 @@ class KDView extends KDObject
       if Array.isArray subViews
         fireViewAppended child for child in subViews
       else if subViews? and 'object' is typeof subViews
-        fireViewAppended child for key, child of subViews
+        fireViewAppended child for own key, child of subViews
 
       if @getOptions().introId
         mainController = KD.getSingleton "mainController"
@@ -138,10 +139,10 @@ class KDView extends KDObject
     @setDomElement options.cssClass
     @setDataId()
     @setDomId options.domId               if options.domId
-    @setDomAttributes options.attributes  if options.attributes
+    @setAttributes options.attributes     if options.attributes
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
-    @updatePartial options.partial           if options.partial
+    @updatePartial options.partial        if options.partial
 
     @addEventHandlers options
 
@@ -191,8 +192,14 @@ class KDView extends KDObject
   setDataId:->
     @domElement.data "data-id",@getId()
 
-  setDomAttributes:(attributes)->
-    @getElement().setAttribute attr, val for attr, val of attributes
+  getAttribute:(attr)->
+    @getElement().getAttribute attr
+
+  setAttribute:(attr, val)->
+    @getElement().setAttribute attr, val
+
+  setAttributes:(attributes)->
+    @setAttribute attr, val for own attr, val of attributes
 
   isInDom:do ->
     findUltimateAncestor =(el)->
@@ -284,6 +291,15 @@ class KDView extends KDObject
 
   _helpSetClass = (el, addOrRemove, cssClass)->
     el.classList[addOrRemove] cl for cl in cssClass.split(' ') when cl isnt ''
+
+  setCss:(property, value)->
+    el = @$()
+    el.css property, value
+
+  setStyle:(properties)->
+    el = @$()
+    for own property, value of properties
+      el.css property, value
 
   setClass:(cssClass)->
     return unless cssClass
@@ -403,11 +419,8 @@ class KDView extends KDObject
     super
 
   destroySubViews: ->
-    # (subView.destroy() for subView in @getSubViews())
-
-    for subView in @getSubViews().slice()
-      if subView instanceof KDView
-        subView?.destroy?()
+    view.destroy?() for view in @getSubViews().slice()
+    return
 
   addSubView:(subView,selector,shouldPrepend)->
     throw new Error 'no subview was specified' unless subView?
@@ -549,7 +562,7 @@ class KDView extends KDObject
       'webkitTransition': 'webkitTransitionEnd'
 
     transitionEvent = 'transitionend'
-    for key, val of transitions when key of el.style
+    for own key, val of transitions when key of el.style
       transitionEvent = val
       break
 
@@ -601,11 +614,13 @@ class KDView extends KDObject
 
   mouseUp:(event)->    yes
 
-  paste:(event)->      yes
+  mouseOver:(event)->  yes
 
   mouseDown:(event)->
     (KD.getSingleton "windowController").setKeyView null
     yes
+
+  paste:(event)->      yes
 
   # HTML5 DND
   dragEnter:(e)->
@@ -632,7 +647,7 @@ class KDView extends KDObject
   submit:(event)-> no #propagations leads to window refresh
 
   addEventHandlers:(options)->
-    for eventName, cb of options
+    for own eventName, cb of options
       if eventNames.test(eventName) and "function" is typeof cb
         @on eventName, cb
 
@@ -687,10 +702,21 @@ class KDView extends KDObject
       @dragIsAllowed = yes
       @setEmptyDragState()
 
-      dragState             = @dragState
+      dragState = @dragState
+
+      if options.containment
+        dragState.containment = {}
+        {view} = options.containment
+        if 'string' is typeof view
+          dragState.containment.viewBounds = @[view].getBounds()
+        dragState.containment.viewBounds or= @parent.getBounds()
+        if 'number' is typeof options.containment.padding
+        then padding = options.containment.padding
+        else padding = 0
+        dragState.containment.padding = \
+            top: padding, right: padding, bottom: padding, left: padding
 
       # TODO: should move these lines
-      dragState.containment = options.containment
       dragState.handle      = options.handle
       dragState.axis        = options.axis
 
@@ -713,7 +739,7 @@ class KDView extends KDObject
 
   drag:(event, delta)->
 
-    {directionX, directionY, axis} = @dragState
+    {directionX, directionY, axis, containment} = @dragState
 
     {x, y}       = delta
     dragPos      = @dragState.position
@@ -747,14 +773,23 @@ class KDView extends KDObject
     dragGlobDir.x = if x > 0 then 'right'  else 'left'
     dragGlobDir.y = if y > 0 then 'bottom' else 'top'
 
-    el = @$()
     if @dragIsAllowed
+      el = @$()
       dragMeta   = @dragState.meta
       targetPosX = if dragMeta.right  and not dragMeta.left then 'right'  else 'left'
       targetPosY = if dragMeta.bottom and not dragMeta.top  then 'bottom' else 'top'
 
       newX = if targetPosX is 'left' then dragMeta.left + dragRelPos.x else dragMeta.right  - dragRelPos.x
       newY = if targetPosY is 'top'  then dragMeta.top  + dragRelPos.y else dragMeta.bottom - dragRelPos.y
+
+      if containment
+        m  = w: @getWidth(), h: @getHeight()  # My sizes
+        p  = containment.viewBounds           # Containment's sizes
+        cp = containment.padding              # Containment paddings
+        if newX <= cp.left then newX = cp.left
+        if newY <= cp.top  then newY = cp.top
+        if newX + m.w >= p.w - cp.right  then newX = p.w - m.w - cp.right
+        if newY + m.h >= p.h - cp.bottom then newY = p.h - m.h - cp.bottom
 
       el.css targetPosX, newX unless axis is 'y'
       el.css targetPosY, newY unless axis is 'x'
@@ -864,7 +899,9 @@ class KDView extends KDObject
     o.delegate  or= this
     o.events    or= ['mouseenter','mouseleave','mousemove']
 
-    @tooltip ?= new KDTooltip o, {}
+    @tooltip?.destroy()
+    delete @tooltip
+    @tooltip = new KDTooltip o, {}
 
   getTooltip:-> @tooltip
 

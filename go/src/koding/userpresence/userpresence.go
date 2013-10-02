@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"koding/databases/mongo"
+	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"strings"
@@ -152,22 +153,31 @@ func createFollowFeedChannel(component string) (*amqp.Channel, error) {
 
 func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 	log.Println(username)
-	users := mongo.GetCollection("jUsers")
-	accounts := mongo.GetCollection("jAccounts")
 
 	user, account := make(bson.M), make(bson.M)
 
-	if err := users.Find(bson.M{"username": username}).One(&user); err != nil {
+	userQuery := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": username}).One(&user)
+	}
+	if err := mongodb.Run("jUsers", userQuery); err != nil {
 		return err
 	}
-	if err := accounts.Find(bson.M{"profile.nickname": username}).One(&account); err != nil {
+
+	accountQuery := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": username}).One(&account)
+	}
+	if err := mongodb.Run("jAccounts", accountQuery); err != nil {
 		return err
 	}
-	// update the user's actual status
-	users.Update(
-		bson.M{"_id": user["_id"]},
-		bson.M{"$set": bson.M{"onlineStatus.actual": status}},
-	)
+
+	userUpdateQuery := func(c *mgo.Collection) error {
+		c.Update(
+			bson.M{"_id": user["_id"]},
+			bson.M{"$set": bson.M{"onlineStatus.actual": status}},
+		)
+		return nil
+	}
+	mongodb.Run("jUsers", userUpdateQuery)
 
 	onlineStatus := make(bson.M)
 
@@ -184,11 +194,14 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 	}
 
 	update := bson.M{"$set": bson.M{"onlineStatus": publicStatus}}
-	// update the user's public status
-	accounts.Update(
-		bson.M{"_id": account["_id"]},
-		update,
-	)
+	accountUpdateQuery := func(c *mgo.Collection) error {
+		c.Update(
+			bson.M{"_id": account["_id"]},
+			update,
+		)
+		return nil
+	}
+	mongodb.Run("jAccounts", accountUpdateQuery)
 
 	if err := broadcastStatusChange(channel, account, &update); err != nil {
 		return err
@@ -312,7 +325,6 @@ func startControlling(mainAmqpConn *amqp.Connection) {
 	); err != nil {
 		panic(err)
 	}
-
 	deliveries, err := controlChannel.Consume(
 		"",    // use the anonymous queue from above
 		"",    // ctag

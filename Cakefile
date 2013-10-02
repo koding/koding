@@ -126,6 +126,8 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
+  console.log 'CAKEFILE STARTING SOCIAL WORKERS'
+
   for i in [1..social.numberOfWorkers]
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
@@ -442,7 +444,6 @@ run =({configFile})->
     invoke 'proxy'          if config.runProxy
     invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
-    invoke 'guestCleanup'   if config.guests
     invoke 'guestCleanerWorker'   if config.guestCleanerWorker.enabled
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
     invoke 'socialWorker'
@@ -501,12 +502,6 @@ task 'buildAll',"build chris's modules", ->
           b next+1
   b 0
 
-
-task 'resetGuests', "Run ./workers/guestcleanup/guestinit", (options)->
-  configFile = normalizeConfigPath options.configFile
-  {resetGuests} = require './workers/guestcleanup/guestinit'
-  resetGuests configFile
-
 task 'runExternals', "runs externals kite which imports info about github, will be used to show suggested tags, users to follow etc.", (options)->
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -536,7 +531,7 @@ task 'test-all', 'Runs functional test suite', (options)->
     console.error "please install pip with \n brew install python --framework"
     return
 
-  cmd = "sudo #{pip} install --src=/tmp/.koding-qa -e 'git+ssh://git@git.in.koding.com/qa.git@master#egg=testengine'"
+  cmd = "sudo #{pip} install --src=/tmp/.koding-qa -e 'git+ssh://git@git.sj.koding.com/qa.git@master#egg=testengine'"
   exec cmd, (err, stdout, stderr)->
     if err
       log.error """ 

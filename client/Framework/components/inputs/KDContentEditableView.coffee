@@ -1,6 +1,6 @@
 class KDContentEditableView extends KDView
   constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curryCssClass "kdcontenteditableview", options.cssClass
+    options.cssClass = KD.utils.curry "kdcontenteditableview", options.cssClass
     options.bind = "click input keydown"
     super options, data
     options.placeholder ?= ""
@@ -104,7 +104,7 @@ class KDContentEditableView extends KDView
 
   validate: (event) ->
     valid = yes
-    for name, rule of @getOptions().validate?.rules or {}
+    for own name, rule of @getOptions().validate?.rules or {}
       validator = KDInputValidator["rule#{name.capitalize()}"]
       if validator and message = validator @, event
         valid = no

@@ -7,14 +7,13 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/resolver"
 	"net/http"
 )
 
 func GetDomains(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/domains")
-	domains := proxyDB.GetDomains()
+	domains := modelhelper.GetDomains()
 	data, err := json.MarshalIndent(domains, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
@@ -27,9 +26,8 @@ func GetDomains(writer http.ResponseWriter, req *http.Request) {
 func GetDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domainname := vars["domain"]
-	fmt.Printf("GET\t/domains/%s\n", domainname)
 
-	domain, err := proxyDB.GetDomain(domainname)
+	domain, err := modelhelper.GetDomain(domainname)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -52,7 +50,6 @@ func GetDomain(writer http.ResponseWriter, req *http.Request) {
 func ResolveDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domainname := vars["domain"]
-	fmt.Printf("GET\t/domains/%s/resolv\n", domainname)
 
 	target, err := resolver.GetTarget(domainname)
 	if err != nil {
@@ -72,7 +69,6 @@ func ResolveDomain(writer http.ResponseWriter, req *http.Request) {
 func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domainname := vars["domain"]
-	fmt.Printf("POST\t/domains/%s\n", domainname)
 
 	p, err := unmarshalAndValidate(req)
 	if err != nil {
@@ -80,7 +76,7 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	domain := proxyconfig.NewDomain(
+	domain := modelhelper.NewDomain(
 		domainname,
 		p.Mode,
 		p.Username,
@@ -92,13 +88,13 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 
 	switch req.Method {
 	case "POST":
-		err = proxyDB.AddDomain(domain)
+		err = modelhelper.AddDomain(domain)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 			return
 		}
 	case "PUT":
-		err = proxyDB.UpdateDomain(domain)
+		err = modelhelper.UpdateDomain(domain)
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 			return
@@ -124,8 +120,7 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 func DeleteDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("DELETE\t/domains/%s\n", domain)
-	err := proxyDB.DeleteDomain(domain)
+	err := modelhelper.DeleteDomain(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

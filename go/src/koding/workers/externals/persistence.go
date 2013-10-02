@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	mgo "koding/databases/mongo"
+	"koding/db/mongodb"
+	"koding/workers/neo4jfeeder/mongohelper"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
 )
@@ -26,7 +28,7 @@ type DocumentDB interface {
 type Mongo struct{}
 
 func (n *Mongo) GetUser(userId string) (strToInf, bool) {
-	user, err := mgo.Fetch(userId, "jAccount")
+	user, err := mongohelper.Fetch(userId, "jAccount")
 	if user == nil || err != nil {
 		log.Println(err)
 		return nil, false
@@ -38,15 +40,17 @@ func (n *Mongo) GetUser(userId string) (strToInf, bool) {
 func (n *Mongo) GetTagByName(title, name string) (strToInf, bool) {
 	query := func() map[string]interface{} {
 		var tag map[string]interface{}
-
-		tagsC := mgo.GetCollection("jTags")
-		query := bson.M{"title": bson.RegEx{Pattern: "^" + title, Options: "i"}}
-		tagsC.Find(query).Limit(1).One(&tag)
+		mongodb.Run("jTags", func(c *mgo.Collection) error {
+			return c.Find(
+				bson.M{"title": bson.RegEx{
+					Pattern: "^" + title, Options: "i"},
+				}).Limit(1).One(&tag)
+		})
 
 		return tag
 	}
 
-	tagContent, err := mgo.FetchOneContentBy(query)
+	tagContent, err := mongohelper.FetchOneContentBy(query)
 	if err != nil {
 		return tagContent, false
 	}
@@ -58,15 +62,15 @@ func (n *Mongo) GetUserByProviderId(id, provider string) (strToInf, bool) {
 	query := func() map[string]interface{} {
 		var user map[string]interface{}
 
-		userC := mgo.GetCollection("jUsers")
-		field := fmt.Sprintf("foreignAuth.%v.foreignId", provider)
-		query := bson.M{field: id}
-		userC.Find(query).Limit(1).One(&user)
+		mongodb.Run("jUsers", func(c *mgo.Collection) error {
+			field := fmt.Sprintf("foreignAuth.%v.foreignId", provider)
+			return c.Find(bson.M{field: id}).Limit(1).One(&user)
+		})
 
 		return user
 	}
 
-	userContent, err := mgo.FetchOneContentBy(query)
+	userContent, err := mongohelper.FetchOneContentBy(query)
 	if err != nil {
 		return userContent, false
 	}

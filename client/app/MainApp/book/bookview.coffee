@@ -124,7 +124,7 @@ class BookView extends JView
     return page
 
   changePageFromRoute:(route)->
-    @fillPage index for index, page of __bookPages when page.routeURL is route
+    @fillPage index for own index, page of __bookPages when page.routeURL is route
 
   openFileWithPage:(file)->
     user = KD.nick()
@@ -267,7 +267,7 @@ class BookView extends JView
       "Hi all - this looks interesting..."
       "Just got started Koding, I'm excited!"
       "This is pretty nifty."
-      "I liked it here :)"
+      "I like it here :)"
       "Looking forward to try Koding"
       "Just joined the Koding community"
       "Checking out Koding."
@@ -567,15 +567,26 @@ class BookView extends JView
 
   openAceMenu:->
     @pointer.once 'transitionend', =>
-      @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').click()
+      @clickAnimation()
+      @mainView.appSettingsMenuButton.$().click()
+      {advancedSettings} = @mainView.appSettingsMenuButton.contextMenu.treeController.nodes
+
+      offsetTo = advancedSettings?.$().offset()
+      # navigate settings icon
+      @utils.wait 1000, =>
+        @pointer.once 'transitionend', =>
+          advancedSettings.setClass "selected"
+          advancedSettings.$().click()
+          @clickAnimation()
+          @utils.wait 1000, =>
+            @unsetClass 'aside'
+            @destroyPointer()
+        @pointer.$().offset offsetTo
 
     # find ace settings menu icon
-    offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').eq(1).offset()
+    offsetTo = @mainView.appSettingsMenuButton.$().offset()
     # navigate settings icon
     @pointer.$().offset offsetTo
-    @utils.wait 3500, =>
-      @unsetClass 'aside'
-      @destroyPointer()
 
   destroyPointer:()->
     @unsetClass('aside')

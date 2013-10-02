@@ -53,7 +53,8 @@ __utils =
 
   trimIllegalChars :(word)->
 
-  curryCssClass:(obligatoryClass, optionalClass)-> obligatoryClass + if optionalClass then ' ' + optionalClass else ''
+  curry:(obligatory, optional)->
+    obligatory + if optional then ' ' + optional else ''
 
   parseQuery:do->
     params  = /([^&=]+)=?([^&]*)/g    # for chunking the key-val pairs
@@ -170,9 +171,8 @@ __utils =
     text.replace /(^|\s)(www\.[A-Za-z0-9-_]+.[A-Za-z0-9-_:%&\?\/.=]+)/g, (_, whitespace, www) ->
       "#{whitespace}<a href='http://#{www}' target='_blank'>#{www}</a>"
 
-  expandUsernames: (text,sensitiveTo=no) ->
-    # sensitiveTo is a string containing parent elements whose children
-    # should not receive name expansion
+  expandUsernames: (text, excludeSelector) ->
+    # excludeSelector is a jQuery selector
 
     # as a JQuery selector, e.g. "pre"
     # means that all @s in <pre> tags will not be expanded
@@ -180,21 +180,25 @@ __utils =
     return null unless text
 
     # default case for regular text
-    if not sensitiveTo
+    if not excludeSelector
       text.replace /\B\@([\w\-]+)/gim, (u) ->
         username = u.replace "@", ""
         u.link "/#{username}"
     # context-sensitive expansion
     else
       result = ""
-      $(text).each (i,element)->
-        if ($(element).parents(sensitiveTo).length is 0) and not ($(element).is sensitiveTo)
-          if $(element).html()?
-            replacedText =  $(element).html().replace /\B\@([\w\-]+)/gim, (u) ->
+      $(text).each (i, element) ->
+        $element = $(element)
+        elementCheck = $element.not excludeSelector
+        parentCheck = $element.parents(excludeSelector).length is 0
+        childrenCheck = $element.find(excludeSelector).length is 0
+        if elementCheck and parentCheck and childrenCheck
+          if $element.html()?
+            replacedText =  $element.html().replace /\B\@([\w\-]+)/gim, (u) ->
               username = u.replace "@", ""
               u.link "/#{username}"
-            $(element).html replacedText
-        result += $(element).get(0).outerHTML or "" # in case there is a text-only element
+            $element.html replacedText
+        result += $element.get(0).outerHTML or "" # in case there is a text-only element
       result
 
   expandTags: (text) ->
@@ -333,7 +337,7 @@ __utils =
     if "function" is typeof duration
       fn = duration
       duration = 0
-    setTimeout fn, duration
+    return setTimeout fn, duration
 
   killWait:(id)->
     clearTimeout id if id
@@ -682,6 +686,13 @@ __utils =
         i += 3
     string
 
+  applyGradient: (view, color1, color2) ->
+    rules = [
+      "-moz-linear-gradient(100% 100% 90deg, #{color2}, #{color1})"
+      "-webkit-gradient(linear, 0% 0%, 0% 100%, from(#{color1}), to(#{color2}))"
+    ]
+    view.setCss "backgroundImage", rule for rule in rules
+
   # Return true x% of time based on argument.
   #
   # Example:
@@ -770,19 +781,60 @@ __utils =
 
     return "#{bytes.toFixed 2} #{units[unitIndex]}"
 
-  openGithubPopUp:->
-    {clientId} = KD.config.github
-    url        = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
-    name       = "Login"
-    size       = "height=643,width=1143"
-    newWindow  = window.open url, name, size
-    newWindow.focus()
+  compileCoffeeOnClient: (coffeeCode, callback = noop) ->
+    require ["//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"], (coffeeCompiler) ->
+      callback coffeeCompiler.eval coffeeCode
 
-  useForeignAuth: (provider)->
-    mainController = KD.getSingleton "mainController"
+  showSaveDialog: (container, callback = noop, options = {}) ->
+    container.addSubView dialog = new KDDialogView
+      cssClass      : KD.utils.curry "save-as-dialog", options.cssClass
+      duration      : 200
+      topOffset     : 0
+      overlay       : yes
+      height        : "auto"
+      buttons       :
+        Save        :
+          style     : "modal-clean-gray"
+          callback  : => callback input, finderController, dialog
+        Cancel      :
+          style     : "modal-cancel"
+          callback  : =>
+            finderController.stopAllWatchers()
+            delete finderController
+            finderController.destroy()
+            dialog.destroy()
 
-    if provider then mainController.emit "ForeignAuthCompleted", provider
-    else mainController.emit "ForeignAuthFailed"
+    dialog.addSubView wrapper = new KDView
+      cssClass : "kddialog-wrapper"
+
+    wrapper.addSubView form = new KDFormView
+
+    form.addSubView label = new KDLabelView
+      title : options.inputLabelTitle or "Filename:"
+
+    form.addSubView input = new KDInputView
+      label        : label
+      defaultValue : options.inputDefaultValue or ""
+
+    form.addSubView labelFinder = new KDLabelView
+      title : options.finderLabel or "Select a folder:"
+
+    dialog.show()
+    input.setFocus()
+
+    finderController    = new NFinderController
+      nodeIdPath        : "path"
+      nodeParentIdPath  : "parentPath"
+      foldersOnly       : yes
+      contextMenu       : no
+      loadFilesOnInit   : yes
+
+    finder = finderController.getView()
+    finderController.reset()
+
+    form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog save-file-container", null
+    finderWrapper.addSubView finder
+    finderWrapper.setHeight 200
 
   # deprecated ends
 
