@@ -45,7 +45,8 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
     JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
-  @getPlanWithCode = (code, callback)-> JRecurlyPlan.one {code}, callback
+  @getPlanWithCode = (code, callback)->
+    JRecurlyPlan.one { code }, callback
 
   getToken: secure (client, data, callback)->
     JRecurlyToken.createToken client, planCode: @code, callback
@@ -97,9 +98,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   getSubscriptions: (callback)->
     JRecurlySubscription.all
       planCode: @code
-      $or      : [
-        {status: 'active'}
-        {status: 'canceled'}
+      $or: [
+        { status: 'active' }
+        { status: 'canceled' }
       ]
     , callback
 
@@ -112,19 +113,36 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         callback err, unless err then group.slug
 
   @updateCache = (selector, callback)->
-    JRecurly.updateCache
+    # TODO: what on earth is the point of this? C
+    JRecurly.updateCache(
       constructor   : this
       method        : 'getPlans'
       keyField      : 'code'
       message       : 'product cache'
       forEach       : (k, cached, plan, stackCb)->
         return stackCb()  unless k.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/
+
         {title, desc, feeMonthly, feeInitial, feeInterval} = plan
+
         [prefix, category, item, version] = k.split '_'
+
         version++
 
-        cached.product = {prefix, category, item, version}
-        cached.lastUpdate = (new Date()).getTime()
-        cached.setData extend cached.getData(), {title, desc, feeMonthly, feeInitial, feeInterval}
+        cached.set {
+          title
+          desc
+          feeMonthly
+          feeInitial
+          feeInterval
+          lastUpdate: Date.now()
+          product: {
+            prefix
+            category
+            item
+            version
+          }
+        }
+
         cached.save stackCb
-    , callback
+
+    , callback)
