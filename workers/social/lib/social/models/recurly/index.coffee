@@ -27,6 +27,7 @@ module.exports = class JRecurly extends Base
       ]
 
   @setBillingInfo = secure (client, data, callback) ->
+
     {delegate} = client.connection
     JSession   = require '../session'
 

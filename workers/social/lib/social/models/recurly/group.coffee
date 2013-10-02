@@ -6,7 +6,7 @@ module.exports = class JRecurlyGroup extends JRecurly
 
   { groupCodeOf } = this
 
-  @setAccount = (client, group, data, callback)->
+  @setBillingInfo = (client, group, data, callback)->
 
     group.fetchOwner (err, owner) ->
       return callback err  if err
@@ -17,15 +17,15 @@ module.exports = class JRecurlyGroup extends JRecurly
 
         {firstName, lastName} = owner
 
+        groupCode = groupCodeOf group
+
         extend data, {
-          accountCode
+          accountCode: groupCode
           email
           username
           firstName
           lastName
         }
-
-        groupCode = groupCodeOf group
 
         recurly.setAccount groupCode, data, (err, res)->
           return callback err  if err
