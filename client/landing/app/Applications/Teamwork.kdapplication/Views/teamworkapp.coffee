@@ -3,8 +3,8 @@ class TeamworkApp extends KDObject
   constructor: (options = {}, data) ->
 
     super options, data
-    instanceName = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
 
+    instanceName          = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
     @teamwork             = new TeamworkWorkspace
       name                : "Teamwork"
       version             : "0.1"
@@ -105,10 +105,10 @@ class TeamworkApp extends KDObject
             if res is yes
               modal.destroy()
               modal          = new KDModalView
-                title        : "Folder Exist"
+                title        : "Folder Exists"
                 cssClass     : "modal-with-text"
                 overlay      : yes
-                content      : "<p>This folder is alrady exist. Do you want to overwrite it?</p>"
+                content      : "<p>This folder is alrady exists. Do you want to overwrite it?</p>"
                 buttons      :
                   Confirm    :
                     title    : "Overwrite"
