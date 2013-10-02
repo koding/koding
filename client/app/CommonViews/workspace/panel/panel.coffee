@@ -127,7 +127,7 @@ class Panel extends JView
     {bgColor, bgGradient, bgImage, textColor, textShadowColor, borderColor} = options
 
     @header.setCss      "color"             , textColor                        if textColor
-    @header.setCss      "textShadowColor"   , "1px 1px 1px #{textShadowColor}" if textShadowColor
+    @header.setCss      "textShadowColor"   , "0 1px 0 #{textShadowColor}" if textShadowColor
     @header.setCss      "borderBottomColor" , "#{borderColor}"                 if borderColor
     @header.setCss      "background"        , "#{bgColor}"                     if bgColor
     @headerTitle.setCss "backgroundImage"   , "url(#{bgImage})"                if bgImage
