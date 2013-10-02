@@ -76,6 +76,24 @@ class AccountEditUsername extends KDView
       testPath     : "account-email-edit"
       click        : => emailSwappable.swapViews()
 
+    verifyEmail = new KDView
+    if user.status is "unconfirmed"
+      verifyEmail = new KDCustomHTMLView
+        tagName      : "a"
+        partial      : "Verify Email"
+        cssClass     : "action-link verify-email"
+        testPath     : "account-email-edit"
+        click        : =>
+          KD.remote.api.JEmailConfirmation.resetToken KD.whoami().profile.nickname, (err)=>
+            message = if err then err.message else "Email confirmation mail is sent"
+            new KDNotificationView
+              title    : message
+              duration : 3500
+            verifyEmail.hide()
+
+
+    nonEmailInputs.addSubView verifyEmail
+
     # SET EMAIL SWAPPABLE
     emailForm.addSubView emailSwappable = new AccountsSwappable
       views    : [emailInputs,nonEmailInputs]
