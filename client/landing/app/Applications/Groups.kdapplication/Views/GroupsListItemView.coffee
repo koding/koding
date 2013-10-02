@@ -8,11 +8,6 @@ class GroupsListItemView extends KDListItemView
     group = @getData()
     {title, slug, body, visibility} = group
 
-    # temp fix
-    # to hide hidden groups from groups page
-    # ths should be taken to backend ASAP
-    @hide()  if visibility is 'hidden'
-
     slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}"
 
     @titleLink = new KDCustomHTMLView
@@ -86,7 +81,7 @@ class GroupsListItemView extends KDListItemView
       cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
       partial   : "<span class='icon'/>"
       tooltip   :
-        title   : "Restricted access"
+        title   : "It's a private group."
 
     @memberCount = new CustomLinkView
       title       : "#{group.counts?.members or 'No'} Members"

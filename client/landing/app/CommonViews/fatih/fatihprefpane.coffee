@@ -60,7 +60,7 @@ class FatihPrefPane extends JView
     container     = @defaultPluginsPane
     @switches    = []
 
-    for plugin of fatihPlugins
+    for own plugin of fatihPlugins
       onOffSwitch = new KDOnOffSwitch
         keyword      : plugin
         defaultValue : prefs[plugin]
@@ -78,7 +78,7 @@ class FatihPrefPane extends JView
     container     = @aliasesPane
     @inputs       = []
 
-    for plugin of fatihPlugins
+    for own plugin of fatihPlugins
       input = new KDInputView
         keyword      : plugin
         defaultValue : prefs[plugin]

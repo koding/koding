@@ -7,36 +7,40 @@ class AceSettingsView extends JView
     button = @getDelegate()
 
     @useSoftTabs    = new KDOnOffSwitch
-      callback      : (state) => button.emit "ace.changeSetting", "useSoftTabs", state
+      callback      : (state) -> button.emit "ace.changeSetting", "useSoftTabs", state
     @showGutter     = new KDOnOffSwitch
-      callback      : (state) => button.emit "ace.changeSetting", "showGutter", state
+      callback      : (state) -> button.emit "ace.changeSetting", "showGutter", state
     @useWordWrap    = new KDOnOffSwitch
-      callback      : (state) => button.emit "ace.changeSetting", "useWordWrap", state
+      callback      : (state) -> button.emit "ace.changeSetting", "useWordWrap", state
     @showPrintMargin= new KDOnOffSwitch
-      callback      : (state) => button.emit "ace.changeSetting", "showPrintMargin", state
+      callback      : (state) -> button.emit "ace.changeSetting", "showPrintMargin", state
     @highlightActiveLine = new KDOnOffSwitch
-      callback      : (state) => button.emit "ace.changeSetting", "highlightActiveLine", state
+      callback      : (state) -> button.emit "ace.changeSetting", "highlightActiveLine", state
     @highlightWord  = new KDOnOffSwitch
-      callback      : (state) => button.emit "ace.changeSetting", "highlightSelectedWord", state
+      callback      : (state) -> button.emit "ace.changeSetting", "highlightSelectedWord", state
     @showInvisibles = new KDOnOffSwitch
-      callback      : (state) => button.emit "ace.changeSetting", "showInvisibles", state
+      callback      : (state) -> button.emit "ace.changeSetting", "showInvisibles", state
+    @scrollPastEnd  = new KDOnOffSwitch
+      callback      : (state) -> button.emit "ace.changeSetting", "scrollPastEnd", state
 
+    @keyboardHandler= new KDSelectBox
+      selectOptions : __aceSettings.keyboardHandlers
+      callback      : (value) -> button.emit "ace.changeSetting", "keyboardHandler", value
     @softWrap       = new KDSelectBox
       selectOptions : __aceSettings.softWrapOptions
-      callback      : (value) => button.emit "ace.changeSetting", "softWrap", value
-
+      callback      : (value) -> button.emit "ace.changeSetting", "softWrap", value
     @syntax         = new KDSelectBox
       selectOptions : __aceSettings.getSyntaxOptions()
-      callback      : (value) => button.emit "ace.changeSetting", "syntax", value
+      callback      : (value) -> button.emit "ace.changeSetting", "syntax", value
     @fontSize       = new KDSelectBox
       selectOptions : __aceSettings.fontSizes
-      callback      : (value) => button.emit "ace.changeSetting", "fontSize", value
+      callback      : (value) -> button.emit "ace.changeSetting", "fontSize", value
     @theme          = new KDSelectBox
       selectOptions : __aceSettings.themes
-      callback      : (value) => button.emit "ace.changeSetting", "theme", value
+      callback      : (value) -> button.emit "ace.changeSetting", "theme", value
     @tabSize        = new KDSelectBox
       selectOptions : __aceSettings.tabSizes
-      callback      : (value) => button.emit "ace.changeSetting", "tabSize", value
+      callback      : (value) -> button.emit "ace.changeSetting", "tabSize", value
 
     @shortcuts      = new KDCustomHTMLView
       tagName       : "a"
@@ -48,7 +52,7 @@ class AceSettingsView extends JView
 
   setDefaultValues:(settings)->
 
-    @[key]?.setDefaultValue value for key,value of settings
+    @[key]?.setDefaultValue value for own key, value of settings
 
   viewAppended:->
 
@@ -76,9 +80,11 @@ class AceSettingsView extends JView
     <p class='hidden'>Highlight selected word  {{> @highlightWord}}</p>
 
     <p>Show invisibles          {{> @showInvisibles}}</p>
+    <p>Use scroll past end      {{> @scrollPastEnd}}</p>
     <hr>
     <p>Soft wrap                {{> @softWrap}}</p>
     <p>Syntax                   {{> @syntax}}</p>
+    <p>Key binding              {{> @keyboardHandler}}</p>
     <p>Font                     {{> @fontSize}}</p>
     <p>Theme                    {{> @theme}}</p>
     <p>Tab size                 {{> @tabSize}}</p>
