@@ -27,7 +27,7 @@ module.exports = class JRecurlyGroup extends JRecurly
           lastName
         }
 
-        recurly.setAccount groupCode, data, (err, res)->
+        recurly.setAccount groupCode, data, (err, res) ->
           return callback err  if err
           recurly.setBilling groupCode, data, callback
 

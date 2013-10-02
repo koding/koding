@@ -1275,7 +1275,7 @@ module.exports = class JGroup extends Module
     success: (client, rest...) -> @fetchBundle rest...
 
   setBillingInfo: permit 'manage payment methods',
-    success: (client, data, callback)-> 
+    success: (client, data, callback) ->
       # TODO: Give credits to existing users
       JRecurlyGroup = require '../recurly/group'
       JRecurlyGroup.setBillingInfo client, this, data, callback
