@@ -91,20 +91,46 @@ class ActivityUpdateWidget extends KDView
       "Code Snip"     :
         type          : "codesnip"
         callback      : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
-      # "Code Share"    :
-      #   type          : "codeshare"
-      #   disabled      : no
-      #   callback      : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
       "Discussion"    :
         type          : "discussion"
         disabled      : no
         callback      : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
-      # "Link"          :
-      #   disabled      : no
-      #   type          : "link"
-      #   callback      : (treeItem, event)=> @changeTab "link", treeItem.getData().title
       "Tutorial"      :
         type          : "tutorial"
         disabled      : no
         callback      : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
     callback          : =>
+
+
+
+
+class ActivityWidgetFormView extends KDFormView
+
+  constructor :(options, data)->
+
+    super
+
+    @labelAddTags = new KDLabelView
+      title           : "Add Tags:"
+
+    @selectedItemWrapper = new KDCustomHTMLView
+      tagName         : "div"
+      cssClass        : "tags-selected-item-wrapper clearfix"
+
+    @tagController = new TagAutoCompleteController
+      name                : "meta.tags"
+      type                : "tags"
+      itemClass           : TagAutoCompleteItemView
+      selectedItemClass   : TagAutoCompletedItemView
+      outputWrapper       : @selectedItemWrapper
+      selectedItemsLimit  : 5
+      listWrapperCssClass : "tags"
+      itemDataPath        : 'title'
+      form                : @
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        updateWidget = @getDelegate()
+        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
+        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+
+    @tagAutoComplete = @tagController.getView()
