@@ -32,7 +32,7 @@ module.exports = class FetchAllActivityParallel
       @globalMethods = [@fetchSingles]
 
   get:(callback)->
-    holder = []
+    holder = []    
     boundMethods = holder.push method.bind this for method in @globalMethods
     async.parallel holder, (err, results)=>
       callback @decorateAll(err, results)

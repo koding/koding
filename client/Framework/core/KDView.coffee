@@ -36,6 +36,7 @@ class KDView extends KDObject
     mouseleave    : "mouseLeave"
     mousemove     : "mouseMove"
     mousewheel    : "mouseWheel"
+    mouseover     : "mouseOver"
     contextmenu   : "contextMenu"
     dragstart     : "dragStart"
     dragenter     : "dragEnter"
@@ -80,7 +81,6 @@ class KDView extends KDObject
     o.prefix      or= ""        # a String
     o.suffix      or= ""        # a String
     o.tooltip     or= null      # an Object of kdtooltip options
-    o.preserveValue or= null
 
     # TO BE IMPLEMENTED
     o.resizable   or= null      # TBDL
@@ -93,12 +93,12 @@ class KDView extends KDObject
 
     @setClass 'kddraggable' if o.draggable
 
-    @on 'childAppended', @childAppended.bind @
+    @on 'childAppended', @childAppended.bind this
 
     @on 'viewAppended', =>
       @setViewReady()
       @viewAppended()
-      @childAppended @
+      @childAppended this
       @parentIsInDom = yes
       subViews = @getSubViews()
       # temp fix for KDTreeView
@@ -113,11 +113,11 @@ class KDView extends KDObject
       if Array.isArray subViews
         fireViewAppended child for child in subViews
       else if subViews? and 'object' is typeof subViews
-        fireViewAppended child for key, child of subViews
+        fireViewAppended child for own key, child of subViews
 
       if @getOptions().introId
         mainController = KD.getSingleton "mainController"
-        mainController.introductionTooltipController.emit "ShowIntroductionTooltip", @
+        mainController.introductionTooltipController.emit "ShowIntroductionTooltip", this
 
     # development only
     if location.hostname is "localhost"
@@ -128,7 +128,7 @@ class KDView extends KDObject
           event.preventDefault?()
           return false
         else if event.altKey and (event.metaKey or event.ctrlKey)
-          log @
+          log this
           return false
 
   setInstanceVariables:(options)->
@@ -139,13 +139,10 @@ class KDView extends KDObject
     @setDomElement options.cssClass
     @setDataId()
     @setDomId options.domId               if options.domId
-    @setDomAttributes options.attributes  if options.attributes
+    @setAttributes options.attributes     if options.attributes
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
-    @updatePartial options.partial           if options.partial
-    if options.preserveValue
-      log 'preserving', options.preserveValue
-      @setPreserveValue options.preserveValue
+    @updatePartial options.partial        if options.partial
 
     @addEventHandlers options
 
@@ -195,8 +192,14 @@ class KDView extends KDObject
   setDataId:->
     @domElement.data "data-id",@getId()
 
-  setDomAttributes:(attributes)->
-    @domElement.attr attributes
+  getAttribute:(attr)->
+    @getElement().getAttribute attr
+
+  setAttribute:(attr, val)->
+    @getElement().setAttribute attr, val
+
+  setAttributes:(attributes)->
+    @setAttribute attr, val for own attr, val of attributes
 
   isInDom:do ->
     findUltimateAncestor =(el)->
@@ -234,37 +237,37 @@ class KDView extends KDObject
     @$(selector).append child.$()
     if @parentIsInDom
       child.emit 'viewAppended', child
-    @
+    this
 
   appendTo:(parent, selector)->
     @$().appendTo parent.$(selector)
     if @parentIsInDom
-      @emit 'viewAppended', @
-    @
+      @emit 'viewAppended', this
+    this
 
   appendToSelector:(selector)->
     $(selector).append @$()
-    @emit 'viewAppended', @
+    @emit 'viewAppended', this
 
   prepend:(child, selector)->
     @$(selector).prepend child.$()
     if @parentIsInDom
       child.emit 'viewAppended', child
-    @
+    this
 
   prependTo:(parent, selector)->
     @$().prependTo parent.$(selector)
     if @parentIsInDom
-      @emit 'viewAppended', @
-    @
+      @emit 'viewAppended', this
+    this
 
   prependToSelector:(selector)->
     $(selector).prepend @$()
-    @emit 'viewAppended', @
+    @emit 'viewAppended', this
 
   setPartial:(partial,selector)->
     @$(selector).append partial
-    @
+    this
 
   updatePartial: (partial, selector) ->
     @$(selector).html partial
@@ -288,6 +291,15 @@ class KDView extends KDObject
 
   _helpSetClass = (el, addOrRemove, cssClass)->
     el.classList[addOrRemove] cl for cl in cssClass.split(' ') when cl isnt ''
+
+  setCss:(property, value)->
+    el = @$()
+    el.css property, value
+
+  setStyle:(properties)->
+    el = @$()
+    for own property, value of properties
+      el.css property, value
 
   setClass:(cssClass)->
     return unless cssClass
@@ -407,11 +419,8 @@ class KDView extends KDObject
     super
 
   destroySubViews: ->
-    # (subView.destroy() for subView in @getSubViews())
-
-    for subView in @getSubViews().slice()
-      if subView instanceof KDView
-        subView?.destroy?()
+    view.destroy?() for view in @getSubViews().slice()
+    return
 
   addSubView:(subView,selector,shouldPrepend)->
     throw new Error 'no subview was specified' unless subView?
@@ -426,7 +435,7 @@ class KDView extends KDObject
     #     subView.parent.subViews.splice index, 1
 
     @subViews.push subView
-    subView.setParent @
+    subView.setParent this
     subView.parentIsInDom = @parentIsInDom
 
     unless subView.lazy
@@ -503,7 +512,7 @@ class KDView extends KDObject
   # if threshold is greater than 1 it is treated as pixel value
   setLazyLoader:(threshold=.75)->
     @getOptions().bind += ' scroll' unless /\bscroll\b/.test @getOptions().bind
-    view = @
+    view = this
     @on 'scroll', do ->
       lastRatio = 0
       (event)->
@@ -553,7 +562,7 @@ class KDView extends KDObject
       'webkitTransition': 'webkitTransitionEnd'
 
     transitionEvent = 'transitionend'
-    for key, val of transitions when key of el.style
+    for own key, val of transitions when key of el.style
       transitionEvent = val
       break
 
@@ -605,11 +614,13 @@ class KDView extends KDObject
 
   mouseUp:(event)->    yes
 
-  paste:(event)->      yes
+  mouseOver:(event)->  yes
 
   mouseDown:(event)->
     (KD.getSingleton "windowController").setKeyView null
     yes
+
+  paste:(event)->      yes
 
   # HTML5 DND
   dragEnter:(e)->
@@ -636,7 +647,7 @@ class KDView extends KDObject
   submit:(event)-> no #propagations leads to window refresh
 
   addEventHandlers:(options)->
-    for eventName, cb of options
+    for own eventName, cb of options
       if eventNames.test(eventName) and "function" is typeof cb
         @on eventName, cb
 
@@ -680,7 +691,7 @@ class KDView extends KDObject
     options = {} if options is yes
 
     @setEmptyDragState()
-    handle = if options.handle instanceof KDView then options.handle else @
+    handle = if options.handle instanceof KDView then options.handle else this
 
     @on "DragFinished", (e) => @beingDragged = no
 
@@ -691,15 +702,26 @@ class KDView extends KDObject
       @dragIsAllowed = yes
       @setEmptyDragState()
 
-      dragState             = @dragState
+      dragState = @dragState
+
+      if options.containment
+        dragState.containment = {}
+        {view} = options.containment
+        if 'string' is typeof view
+          dragState.containment.viewBounds = @[view].getBounds()
+        dragState.containment.viewBounds or= @parent.getBounds()
+        if 'number' is typeof options.containment.padding
+        then padding = options.containment.padding
+        else padding = 0
+        dragState.containment.padding = \
+            top: padding, right: padding, bottom: padding, left: padding
 
       # TODO: should move these lines
-      dragState.containment = options.containment
       dragState.handle      = options.handle
       dragState.axis        = options.axis
 
       dragMeta              = dragState.meta
-      dragEl                = @$()[0]
+      dragEl                = @getElement()
       dragMeta.top          = parseInt(dragEl.style.top,    10) or 0
       dragMeta.right        = parseInt(dragEl.style.right,  10) or 0
       dragMeta.bottom       = parseInt(dragEl.style.bottom, 10) or 0
@@ -709,7 +731,7 @@ class KDView extends KDObject
       dragPos.initial.x     = event.pageX
       dragPos.initial.y     = event.pageY
 
-      KD.getSingleton('windowController').setDragView @
+      KD.getSingleton('windowController').setDragView this
       @emit "DragStarted", event, @dragState
       event.stopPropagation()
       event.preventDefault()
@@ -717,7 +739,7 @@ class KDView extends KDObject
 
   drag:(event, delta)->
 
-    {directionX, directionY, axis} = @dragState
+    {directionX, directionY, axis, containment} = @dragState
 
     {x, y}       = delta
     dragPos      = @dragState.position
@@ -751,14 +773,23 @@ class KDView extends KDObject
     dragGlobDir.x = if x > 0 then 'right'  else 'left'
     dragGlobDir.y = if y > 0 then 'bottom' else 'top'
 
-    el = @$()
     if @dragIsAllowed
+      el = @$()
       dragMeta   = @dragState.meta
       targetPosX = if dragMeta.right  and not dragMeta.left then 'right'  else 'left'
       targetPosY = if dragMeta.bottom and not dragMeta.top  then 'bottom' else 'top'
 
       newX = if targetPosX is 'left' then dragMeta.left + dragRelPos.x else dragMeta.right  - dragRelPos.x
       newY = if targetPosY is 'top'  then dragMeta.top  + dragRelPos.y else dragMeta.bottom - dragRelPos.y
+
+      if containment
+        m  = w: @getWidth(), h: @getHeight()  # My sizes
+        p  = containment.viewBounds           # Containment's sizes
+        cp = containment.padding              # Containment paddings
+        if newX <= cp.left then newX = cp.left
+        if newY <= cp.top  then newY = cp.top
+        if newX + m.w >= p.w - cp.right  then newX = p.w - m.w - cp.right
+        if newY + m.h >= p.h - cp.bottom then newY = p.h - m.h - cp.bottom
 
       el.css targetPosX, newX unless axis is 'y'
       el.css targetPosY, newY unless axis is 'x'
@@ -814,12 +845,12 @@ class KDView extends KDObject
       @utils.defer =>
         @$overlay.addClass "in"
       @utils.wait 300, =>
-        @emit "OverlayAdded", @
+        @emit "OverlayAdded", this
     else
-      @emit "OverlayAdded", @
+      @emit "OverlayAdded", this
 
     if isRemovable
-      @$overlay.on "click.overlay", @removeOverlay.bind @
+      @$overlay.on "click.overlay", @removeOverlay.bind this
 
   removeOverlay:->
 
@@ -831,7 +862,7 @@ class KDView extends KDObject
       @$overlay.remove()
       delete @__zIndex
       delete @$overlay
-      @emit "OverlayRemoved", @
+      @emit "OverlayRemoved", this
 
     if @$overlay.hasClass "animated"
       @$overlay.removeClass "in"
@@ -865,11 +896,12 @@ class KDView extends KDObject
     o.fallback  or= o.title
     o.view      or= null
     o.sticky     ?= no
-    o.delegate  or= @
+    o.delegate  or= this
     o.events    or= ['mouseenter','mouseleave','mousemove']
-    o.viewCssClass or= null
 
-    @tooltip ?= new KDTooltip o, {}
+    @tooltip?.destroy()
+    delete @tooltip
+    @tooltip = new KDTooltip o, {}
 
   getTooltip:-> @tooltip
 
@@ -878,9 +910,9 @@ class KDView extends KDObject
   listenWindowResize:(state=yes)->
 
     if state
-      KD.getSingleton('windowController').registerWindowResizeListener @
+      KD.getSingleton('windowController').registerWindowResizeListener this
     else
-      KD.getSingleton('windowController').unregisterWindowResizeListener @
+      KD.getSingleton('windowController').unregisterWindowResizeListener this
 
   notifyResizeListeners:->
 
@@ -888,41 +920,4 @@ class KDView extends KDObject
 
   setKeyView:->
 
-    KD.getSingleton("windowController").setKeyView @
-
-  # setPreserveValue:(preserveValue={})->
-  #   storedValue = KD.getSingleton('localStorageController').getValueById preserveValue.name
-
-  #   if "string" is typeof preserveValue.saveEvents
-  #     preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
-  #   if "string" is typeof preserveValue.clearEvents
-  #     preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
-
-  #   for preserveEvent in preserveValue.saveEvents
-  #     @on preserveEvent, (event)=>
-  #       value = @getOptions().preserveValue.getValue?() ? @getValue?()
-  #       @savePreserveValue preserveValue.name, value
-
-  #   for preserveEvent in preserveValue.clearEvents
-  #     @on preserveEvent, (event)=>
-  #       @clearPreserveValue()
-
-  #   if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
-  #     @on displayEvent, (event)=>
-  #       @applyPreserveValue storedvalue if storedValue
-
-  #   if storedValue
-  #     @utils.defer => @applyPreserveValue storedValue
-
-  # applyPreserveValue:(value)->
-  #   if @getOptions().preserveValue.setValue
-  #     @getOptions().preserveValue.setValue value
-  #   else @setValue? value
-
-  # savePreserveValue:(id,value)->
-  #   KD.getSingleton('localStorageController').setValueById id, value
-
-  # clearPreserveValue:->
-  #   if @getOptions().preserveValue
-  #     KD.getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
-
+    KD.getSingleton("windowController").setKeyView this

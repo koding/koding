@@ -338,7 +338,6 @@ module.exports = class CActivity extends jraphical.Capsule
   @fetchPublicActivityFeed = secure (client, options, callback)->
     @getCurrentGroup client, (err, group) =>
       if err then return callback err
-
       to = options.to
       to = if to then parseInt(to, 10) else (new Date).getTime()
       to = Math.floor(to/1000)  # unix vs js timestamp diff.

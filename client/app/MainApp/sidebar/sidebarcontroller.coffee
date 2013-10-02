@@ -38,7 +38,7 @@ class SidebarController extends KDViewController
       # get registered users vms
       # allready to go (don't for guests right now):
       finderController.reset()
-      resourcesController.reset()
+      # resourcesController.reset()
 
   resetAdminNavItems:->
     # return unless KD.isLoggedIn()
@@ -46,7 +46,7 @@ class SidebarController extends KDViewController
     KD.whoami().fetchRole? (err, role)=>
       if role is "super-admin"
         @getView().navController.addItem
-          title    : "Admin Panel"
+          title    : "Admin panel"
           type     : "admin"
           loggedIn : yes
           callback : -> new AdminModal

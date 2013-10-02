@@ -32,12 +32,17 @@ class Ace extends KDView
             @setContents contents
             @lastSavedContents = contents
           @editor.on "change", =>
-            if @isContentChanged() then @emit "FileContentChanged" else @emit "FileContentSynced"
+            if @isCurrentContentChanged() then @emit "FileContentChanged" else @emit "FileContentSynced"
           @editor.gotoLine 0
           @focus()
           @show()
           # log to external
           KD.track "User Opened Ace", KD.getSingleton("groupsController").getCurrentGroup()
+
+      require ["ace/keyboard/vim"], (vimMode) =>
+        @vimKeyboardHandler = vimMode.handler
+
+      @emacsKeyboardHandler = "ace/keyboard/emacs"
 
   prepareEditor:->
 
@@ -54,48 +59,46 @@ class Ace extends KDView
       @setSoftWrap            @appStorage.getValue('softWrap')            or 'off' ,no
       @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
       @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
+      @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? "default"
+      @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
+
+    require ["ace/ext/language_tools"], =>
+      @editor.setOptions
+        enableBasicAutocompletion: yes
+        enableSnippets: yes
+
+  saveStarted:->
+    @lastContentsSentForSave = @getContents()
+
+  saveFinished:(err, res)->
+    unless err
+      @notify "Successfully saved!", "success"
+      @lastSavedContents = @lastContentsSentForSave
+      @emit "FileContentSynced"
+      # unless @askedForSave
+        # log "this file has changed, put a modal and block editing @fatihacet!"
+        # fatihacet - this case works buggy.
+      @askedForSave = no
+    else if err?.message?.indexOf? "permission denied" > -1
+      @notify "You don't have enough permission to save!", "error"
+
+  saveAsFinished:->
+    @emit "FileContentSynced"
+    @emit "FileHasBeenSavedAs", @getData()
 
   setEditorListeners:->
 
     @editor.getSession().selection.on 'changeCursor', (cursor)=>
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
 
-    file = @getData()
-
-    file.on "fs.save.finished", (err,res)=>
-      unless err
-        @notify "Successfully saved!", "success"
-        @lastSavedContents = @lastContentsSentForSave
-        @emit "FileContentSynced"
-        # unless @askedForSave
-          # log "this file has changed, put a modal and block editing @fatihacet!"
-          # fatihacet - this case works buggy.
-        @askedForSave = no
-      else if err?.message?.indexOf? "permission denied" > -1
-        @notify "You don't have enough permission to save!", "error"
-
-    file.on "fs.save.started", =>
-      @lastContentsSentForSave = @getContents()
-
-    file.on "fs.saveAs.finished", =>
-      @emit "FileContentSynced"
-      @emit "FileHasBeenSavedAs", file
-
     if @getOptions().enableShortcuts
       @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
-
       @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
-
       @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
-
       @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
-
       @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
-
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
-
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
-
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
 
   showFindReplaceView: (openReplaceView) ->
@@ -116,8 +119,8 @@ class Ace extends KDView
         mac   : macKey
       exec    : => callback?()
 
-  isContentChanged: ->
-    return @getContents() isnt @lastSavedContents
+  isContentChanged: -> @contentChanged
+  isCurrentContentChanged:-> @getContents() isnt @lastSavedContents
 
   ###
   FS REQUESTS
@@ -182,6 +185,12 @@ class Ace extends KDView
     else
       if @getUseWordWrap() then "free" else "off"
 
+  getKeyboardHandler: ->
+    @appStorage.getValue('keyboardHandler') ? "default"
+
+  getScrollPastEnd: ->
+    @appStorage.getValue('scrollPastEnd') ? yes
+
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -194,6 +203,8 @@ class Ace extends KDView
     fontSize            : @getFontSize()
     tabSize             : @getTabSize()
     softWrap            : @getSoftWrap()
+    keyboardHandler     : @getKeyboardHandler()
+    scrollPastEnd       : @getScrollPastEnd()
 
   ###
   SETTERS
@@ -208,7 +219,7 @@ class Ace extends KDView
 
     unless mode
       ext  = FSItem.getFileExtension file.path
-      for name, [language, extensions] of __aceSettings.syntaxAssociations
+      for own name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
       mode or= "text"
@@ -256,6 +267,19 @@ class Ace extends KDView
     @editor.setShowInvisibles value
     return  unless save
     @appStorage.setValue 'showInvisibles', value
+
+  setKeyboardHandler: (value = "default") ->
+    handlers =
+      default : null
+      vim     : @vimKeyboardHandler
+      emacs   : @emacsKeyboardHandler
+
+    @editor.setKeyboardHandler handlers[value]
+    @appStorage.setValue "keyboardHandler", value
+
+  setScrollPastEnd: (value = yes) ->
+    @editor.setOption "scrollPastEnd", value
+    @appStorage.setValue "scrollPastEnd", value
 
   setFontSize:(value, save = yes)->
 

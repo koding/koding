@@ -54,11 +54,11 @@ class MainTabView extends KDTabView
       @appManager.showInstance appInstance
 
   showHandleContainer:->
-    @tabHandleContainer.$().css top : -25
+    @tabHandleContainer.setClass 'in'
     @handlesHidden = no
 
   hideHandleContainer:->
-    @tabHandleContainer.$().css top : 0
+    @tabHandleContainer.unsetClass 'in'
     @handlesHidden = yes
 
   showPane:(pane)->
@@ -98,7 +98,7 @@ class MainTabView extends KDTabView
   createTabPane:(options = {}, mainView)->
 
     o = {}
-    o.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
+    o.cssClass = @utils.curry "content-area-pane", options.cssClass
     o.class  or= KDView
 
     # adding a domId is a temporary hack

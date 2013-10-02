@@ -85,7 +85,7 @@ class ContentDisplayControllerMember extends KDViewController
       delegate   : @getView()
 
     if KD.isMine member
-      options.cssClass = KD.utils.curryCssClass "own-profile", options.cssClass
+      options.cssClass = KD.utils.curry "own-profile", options.cssClass
     else
       options.bind = "mouseenter" unless KD.isMine member
 

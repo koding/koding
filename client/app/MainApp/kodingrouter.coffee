@@ -12,7 +12,8 @@ class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
 
-    @openRoutes = {}
+    @defaultRoute or= location.pathname + location.search
+    @openRoutes     = {}
     @openRoutesById = {}
     KD.getSingleton('contentDisplayController')
       .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
@@ -78,10 +79,15 @@ class KodingRouter extends KDRouter
         app = 'Activity' if app is 'Home' and KD.isLoggedIn()
 
         @setPageTitle nicenames[app] ? app
-        appManager = KD.getSingleton "appManager"
+        appManager  = KD.getSingleton "appManager"
+        handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
+
+        appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
+
         appManager.open app, (appInstance)=>
           appInstance.setOption "initialRoute", @getCurrentPath()
-        appManager.tell app, 'handleQuery', query
+
+        handleQuery()  if appWasOpen
 
   handleNotFound:(route)->
 
@@ -122,12 +128,25 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-    KD.getSingleton("appManager").tell section, method, options ? models,
-      (contentDisplay)=>
+
+    callback = =>
+      KD.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
         routeWithoutParams = route.split('?')[0]
         @openRoutes[routeWithoutParams] = contentDisplay
         @openRoutesById[contentDisplay.id] = routeWithoutParams
         contentDisplay.emit 'handleQuery', query
+
+    groupsController = KD.getSingleton('groupsController')
+    currentGroup = groupsController.getCurrentGroup()
+
+    # change group if necessary
+    unless currentGroup
+      groupName = if section is "Groups" then name else "koding"
+      groupsController.changeGroup groupName, (err) =>
+        KD.showError err if err
+        callback()
+    else
+      callback()
 
   loadContent:(name, section, slug, route, query, passOptions)->
     routeWithoutParams = route.split('?')[0]
@@ -405,7 +424,8 @@ class KodingRouter extends KDRouter
             open.call this, routeInfo, state
 
           else
-            KD.remote.cacheable routeInfo.params.name, (err, [model], name)=>
+            KD.remote.cacheable routeInfo.params.name, (err, models, name)=>
+              model = models.first  if models
               open.call this, routeInfo, model
 
     routes

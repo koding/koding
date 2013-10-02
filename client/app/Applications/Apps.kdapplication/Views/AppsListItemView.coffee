@@ -15,10 +15,11 @@ class AppsListItemView extends KDListItemView
     @thumbnail = new KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
-      error       : =>
-        @thumbnail.$().attr "src", "/images/default.app.listthumb.png"
       attributes  :
         src       : thumb
+    @thumbnail.off 'error'
+    @thumbnail.on  'error', ->
+      @setAttribute "src", "/images/default.app.listthumb.png"
 
   click:(event)->
     event.stopPropagation()

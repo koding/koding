@@ -19,7 +19,7 @@ class AvatarView extends LinkView
 
       options.tooltip or= {}
       options.tooltip.view         or= if options.detailed then @detailedAvatar else null
-      options.tooltip.viewCssClass or= 'avatar-tooltip'
+      options.tooltip.cssClass     or= 'avatar-tooltip'
       options.tooltip.animate       ?= yes
       options.tooltip.placement    or= 'top'
       options.tooltip.direction    or= 'right'
@@ -61,7 +61,7 @@ class AvatarView extends LinkView
 
     @$('cite').addClass flags
 
-    @setDomAttributes href: "/#{profile.nickname}"
+    @setAttribute "href", "/#{profile.nickname}"
 
   viewAppended:->
     super

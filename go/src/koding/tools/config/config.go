@@ -15,6 +15,7 @@ type Config struct {
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
+	VmPool          string
 	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
@@ -57,6 +58,7 @@ type Config struct {
 		Host string
 	}
 	Kontrold struct {
+		Vhost    string
 		Overview struct {
 			ApiPort    int
 			ApiHost    string
@@ -70,14 +72,6 @@ type Config struct {
 			Port    int
 			PortSSL int
 			FTPIP   string
-			SSLIPS  string
-		}
-		RabbitMq struct {
-			Host     string
-			Port     string
-			Login    string
-			Password string
-			Vhost    string
 		}
 	}
 	FollowFeed struct {
@@ -86,6 +80,11 @@ type Config struct {
 		ComponentUser string
 		Password      string
 		Vhost         string
+	}
+	Statsd struct {
+		Use  bool
+		Ip   string
+		Port int
 	}
 }
 
@@ -98,6 +97,9 @@ var Uuid string
 var Host string
 var BrokerDomain string
 var Region string
+var VMProxies bool // used to enable ports for users
+var Skip int
+var Count int
 
 func init() {
 	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
@@ -109,6 +111,10 @@ func init() {
 	flag.StringVar(&BrokerDomain, "a", "", "Send kontrol a custom domain istead of os.Hostname")
 	flag.StringVar(&BrokerDomain, "domain", "", "Alias for -a")
 	flag.StringVar(&Region, "r", "", "Region")
+	flag.IntVar(&Skip, "s", 0, "Define how far to skip ahead")
+	flag.IntVar(&Count, "l", 1000, "Count for items to process")
+
+	flag.BoolVar(&VMProxies, "v", false, "Enable ports for VM users (1024-10000)")
 
 	flag.Parse()
 	if flag.NArg() != 0 {
@@ -125,7 +131,6 @@ func init() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-
 	var configCommand *exec.Cmd
 	if FileProfile != "" {
 		Profile = FileProfile

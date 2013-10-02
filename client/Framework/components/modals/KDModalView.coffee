@@ -97,7 +97,7 @@ class KDModalView extends KDView
     @buttons[defaultFocusTitle].setFocus()  unless focused
 
   destroyButtons:->
-    button.destroy()  for own _, button of @buttons
+    button.destroy()  for own _key, button of @buttons
 
   click:(e)->
     @destroy() if $(e.target).is(".closeModal")
@@ -202,3 +202,15 @@ class KDModalView extends KDView
       uber()
 
     @emit 'KDModalViewDestroyed', @
+
+  ### STACK HELPERS ###
+
+  @createStack: (options)->
+    @stack or= new KDModalViewStack options
+
+  @addToStack: (modal)->
+    @stack.addModal modal
+
+  @destroyStack: ->
+    @stack.destroy()
+    delete @stack

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -34,262 +34,427 @@ define(function(require, exports, module) {
 var event = require("../lib/event");
 var useragent = require("../lib/useragent");
 var dom = require("../lib/dom");
+var lang = require("../lib/lang");
+var BROKEN_SETDATA = useragent.isChrome < 18;
 
 var TextInput = function(parentNode, host) {
     var text = dom.createElement("textarea");
     text.className = "ace_text-input";
     /*/ debug
-    text.style.opacity = 1
-    text.style.background = "rgba(0, 250, 0, 0.3)"
-    text.style.outline = "rgba(0, 250, 0, 0.8) solid 1px"
-    text.style.outlineOffset = "3px"
+    text.style.cssText = "opacity:1;background:rgba(0, 250, 0, 0.3);outline:rgba(0, 250, 0, 0.8) solid 1px;outline-offset:3px;width:5em;z-pindex:500";
     /**/
     if (useragent.isTouchPad)
         text.setAttribute("x-palm-disable-auto-cap", true);
 
     text.wrap = "off";
+    text.autocorrect = "off";
+    text.autocapitalize = "off";
     text.spellcheck = false;
 
-    text.style.top = "-2em";
+    text.style.bottom = "2000em";
     parentNode.insertBefore(text, parentNode.firstChild);
 
-    var PLACEHOLDER = useragent.isIE ? "\x01" : "\x00";
-    reset(true);
-    if (isFocused())
-        host.onFocus();
+    var PLACEHOLDER = "\x01\x01";
 
-    var inCompostion = false;
+    var cut = false;
     var copied = false;
     var pasted = false;
+    var inComposition = false;
     var tempStyle = '';
+    var isSelectionEmpty = true;
 
-    function reset(full) {
-        try {
-            if (full) {
-                text.value = PLACEHOLDER;
-                text.selectionStart = 0;
-                text.selectionEnd = 1;
-            } else 
-                text.select();
-        } catch (e) {}
-    }
+    // FOCUS
+    // ie9 throws error if document.activeElement is accessed too soon
+    try { var isFocused = document.activeElement === text; } catch(e) {}
+    
+    event.addListener(text, "blur", function() {
+        host.onBlur();
+        isFocused = false;
+    });
+    event.addListener(text, "focus", function() {
+        isFocused = true;
+        host.onFocus();
+        resetSelection();
+    });
+    this.focus = function() { text.focus(); };
+    this.blur = function() { text.blur(); };
+    this.isFocused = function() {
+        return isFocused;
+    };
 
-    function sendText(valueToSend) {
-        if (!copied) {
-            var value = valueToSend || text.value;
-            if (value) {
-                if (value.length > 1) {
-                    if (value.charAt(0) == PLACEHOLDER)
-                        value = value.substr(1);
-                    else if (value.charAt(value.length - 1) == PLACEHOLDER)
-                        value = value.slice(0, -1);
-                }
+    // modifying selection of blured textarea can focus it (chrome mac/linux)
+    var syncSelection = lang.delayedCall(function() {
+        isFocused && resetSelection(isSelectionEmpty);
+    });
+    var syncValue = lang.delayedCall(function() {
+         if (!inComposition) {
+            text.value = PLACEHOLDER;
+            isFocused && resetSelection();
+         }
+    });
 
-                if (value && value != PLACEHOLDER) {
-                    if (pasted)
-                        host.onPaste(value);
-                    else
-                        host.onTextInput(value);
-                }
-            }
+    function resetSelection(isEmpty) {
+        if (inComposition)
+            return;
+        if (inputHandler) {
+            selectionStart = 0;
+            selectionEnd = isEmpty ? 0 : text.value.length - 1;
+        } else {
+            var selectionStart = isEmpty ? 2 : 1;
+            var selectionEnd = 2;
         }
-
-        copied = false;
-        pasted = false;
-
-        // Safari doesn't fire copy events if no text is selected
-        reset(true);
+        // on firefox this throws if textarea is hidden
+        try {
+            text.setSelectionRange(selectionStart, selectionEnd);
+        } catch(e){}
     }
 
-    var onTextInput = function(e) {
-        if (!inCompostion)
-            sendText(e.data);
-        setTimeout(function () {
-            if (!inCompostion)
-                reset(true);
-        }, 0);
+    function resetValue() {
+        if (inComposition)
+            return;
+        text.value = PLACEHOLDER;
+        //http://code.google.com/p/chromium/issues/detail?id=76516
+        if (useragent.isWebKit)
+            syncValue.schedule();
+    }
+
+    useragent.isWebKit || host.addEventListener('changeSelection', function() {
+        if (host.selection.isEmpty() != isSelectionEmpty) {
+            isSelectionEmpty = !isSelectionEmpty;
+            syncSelection.schedule();
+        }
+    });
+
+    resetValue();
+    if (isFocused)
+        host.onFocus();
+
+
+    var isAllSelected = function(text) {
+        return text.selectionStart === 0 && text.selectionEnd === text.value.length;
+    };
+    // IE8 does not support setSelectionRange
+    if (!text.setSelectionRange && text.createTextRange) {
+        text.setSelectionRange = function(selectionStart, selectionEnd) {
+            var range = this.createTextRange();
+            range.collapse(true);
+            range.moveStart('character', selectionStart);
+            range.moveEnd('character', selectionEnd);
+            range.select();
+        };
+        isAllSelected = function(text) {
+            try {
+                var range = text.ownerDocument.selection.createRange();
+            }catch(e) {}
+            if (!range || range.parentElement() != text) return false;
+                return range.text == text.value;
+        }
+    }
+    if (useragent.isOldIE) {
+        var inPropertyChange = false;
+        var onPropertyChange = function(e){
+            if (inPropertyChange)
+                return;
+            var data = text.value;
+            if (inComposition || !data || data == PLACEHOLDER)
+                return;
+            // can happen either after delete or during insert operation
+            if (e && data == PLACEHOLDER[0])
+                return syncProperty.schedule();
+
+            sendText(data);
+            // ie8 calls propertychange handlers synchronously!
+            inPropertyChange = true;
+            resetValue();
+            inPropertyChange = false;
+        };
+        var syncProperty = lang.delayedCall(onPropertyChange);
+        event.addListener(text, "propertychange", onPropertyChange);
+
+        var keytable = { 13:1, 27:1 };
+        event.addListener(text, "keyup", function (e) {
+            if (inComposition && (!text.value || keytable[e.keyCode]))
+                setTimeout(onCompositionEnd, 0);
+            if ((text.value.charCodeAt(0)||0) < 129) {
+                return syncProperty.call();
+            }
+            inComposition ? onCompositionUpdate() : onCompositionStart();
+        });
+        // when user presses backspace after focusing the editor 
+        // propertychange isn't called for the next character
+        event.addListener(text, "keydown", function (e) {
+            syncProperty.schedule(50);
+        });
+    }
+
+    var onSelect = function(e) {
+        if (cut) {
+            cut = false;
+        } else if (copied) {
+            copied = false;
+        } else if (isAllSelected(text)) {
+            host.selectAll();
+            resetSelection();
+        } else if (inputHandler) {
+            resetSelection(host.selection.isEmpty());
+        }
     };
 
-    var onPropertyChange = function(e) {
-        setTimeout(function() {
-            if (!inCompostion)
-                if(text.value != "") {
-                    sendText();
-                }
-        }, 0);
+    var inputHandler = null;
+    this.setInputHandler = function(cb) {inputHandler = cb};
+    this.getInputHandler = function() {return inputHandler};
+    var afterContextMenu = false;
+    
+    var sendText = function(data) {
+        if (inputHandler) {
+            data = inputHandler(data);
+            inputHandler = null;
+        }
+        if (pasted) {
+            resetSelection();
+            if (data)
+                host.onPaste(data);
+            pasted = false;
+        } else if (data == PLACEHOLDER.charAt(0)) {
+            if (afterContextMenu)
+                host.execCommand("del", {source: "ace"});
+        } else {
+            if (data.substring(0, 2) == PLACEHOLDER)
+                data = data.substr(2);
+            else if (data.charAt(0) == PLACEHOLDER.charAt(0))
+                data = data.substr(1);
+            else if (data.charAt(data.length - 1) == PLACEHOLDER.charAt(0))
+                data = data.slice(0, -1);
+            // can happen if undo in textarea isn't stopped
+            if (data.charAt(data.length - 1) == PLACEHOLDER.charAt(0))
+                data = data.slice(0, -1);
+            
+            if (data)
+                host.onTextInput(data);
+        }
+        if (afterContextMenu)
+            afterContextMenu = false;
     };
-
-    var onCompositionStart = function(e) {
-        inCompostion = true;
-        host.onCompositionStart();
-        setTimeout(onCompositionUpdate, 0);
-    };
-
-    var onCompositionUpdate = function() {
-        if (!inCompostion) return;
-        host.onCompositionUpdate(text.value);
-    };
-
-    var onCompositionEnd = function(e) {
-        inCompostion = false;
-        host.onCompositionEnd();
-    };
-
-    var onCopy = function(e) {
-        copied = true;
-        var copyText = host.getCopyText();
-        if(copyText)
-            text.value = copyText;
-        else
-            e.preventDefault();
-        reset();
-        setTimeout(function () {
-            sendText();
-        }, 0);
+    var onInput = function(e) {
+        // console.log("onInput", inComposition)
+        if (inComposition)
+            return;
+        var data = text.value;
+        sendText(data);
+        resetValue();
     };
 
     var onCut = function(e) {
-        copied = true;
-        var copyText = host.getCopyText();
-        if(copyText) {
-            text.value = copyText;
-            host.onCut();
-        } else
-            e.preventDefault();
-        reset();
-        setTimeout(function () {
-            sendText();
-        }, 0);
+        var data = host.getCopyText();
+        if (!data) {
+            event.preventDefault(e);
+            return;
+        }
+
+        var clipboardData = e.clipboardData || window.clipboardData;
+
+        if (clipboardData && !BROKEN_SETDATA) {
+            // Safari 5 has clipboardData object, but does not handle setData()
+            var supported = clipboardData.setData("Text", data);
+            if (supported) {
+                host.onCut();
+                event.preventDefault(e);
+            }
+        }
+
+        if (!supported) {
+            cut = true;
+            text.value = data;
+            text.select();
+            setTimeout(function(){
+                cut = false;
+                resetValue();
+                resetSelection();
+                host.onCut();
+            });
+        }
+    };
+
+    var onCopy = function(e) {
+        var data = host.getCopyText();
+        if (!data) {
+            event.preventDefault(e);
+            return;
+        }
+
+        var clipboardData = e.clipboardData || window.clipboardData;
+        if (clipboardData && !BROKEN_SETDATA) {
+            // Safari 5 has clipboardData object, but does not handle setData()
+            var supported = clipboardData.setData("Text", data);
+            if (supported) {
+                host.onCopy();
+                event.preventDefault(e);
+            }
+        }
+        if (!supported) {
+            copied = true;
+            text.value = data;
+            text.select();
+            setTimeout(function(){
+                copied = false;
+                resetValue();
+                resetSelection();
+                host.onCopy();
+            });
+        }
+    };
+
+    var onPaste = function(e) {
+        var clipboardData = e.clipboardData || window.clipboardData;
+
+        if (clipboardData) {
+            var data = clipboardData.getData("Text");
+            if (data)
+                host.onPaste(data);
+            if (useragent.isIE)
+                setTimeout(resetSelection);
+            event.preventDefault(e);
+        }
+        else {
+            text.value = "";
+            pasted = true;
+        }
     };
 
     event.addCommandKeyListener(text, host.onCommandKey.bind(host));
-    event.addListener(text, "input", onTextInput);
-    
-    if (useragent.isOldIE) {
-        var keytable = { 13:1, 27:1 };
-        event.addListener(text, "keyup", function (e) {
-            if (inCompostion && (!text.value || keytable[e.keyCode]))
-                setTimeout(onCompositionEnd, 0);
-            if ((text.value.charCodeAt(0)|0) < 129) {
-                return;
-            }
-            inCompostion ? onCompositionUpdate() : onCompositionStart();
-        });
-        
-        event.addListener(text, "propertychange", function() {
-            if (text.value != PLACEHOLDER)
-                setTimeout(sendText, 0);
-        });
-    }
 
-    event.addListener(text, "paste", function(e) {
-        // Mark that the next input text comes from past.
-        pasted = true;
-        // Some browsers support the event.clipboardData API. Use this to get
-        // the pasted content which increases speed if pasting a lot of lines.
-        if (e.clipboardData && e.clipboardData.getData) {
-            sendText(e.clipboardData.getData("text/plain"));
-            e.preventDefault();
-        } 
-        else {
-            // If a browser doesn't support any of the things above, use the regular
-            // method to detect the pasted input.
-            onPropertyChange();
-        }
-    });
+    event.addListener(text, "select", onSelect);
 
-    if ("onbeforecopy" in text && typeof clipboardData !== "undefined") {
-        event.addListener(text, "beforecopy", function(e) {
-            if (tempStyle)
-                return; // without this text is copied when contextmenu is shown
-            var copyText = host.getCopyText();
-            if (copyText)
-                clipboardData.setData("Text", copyText);
-            else
-                e.preventDefault();
-        });
-        event.addListener(parentNode, "keydown", function(e) {
-            if (e.ctrlKey && e.keyCode == 88) {
-                var copyText = host.getCopyText();
-                if (copyText) {
-                    clipboardData.setData("Text", copyText);
-                    host.onCut();
-                }
-                event.preventDefault(e);
-            }
-        });
-        event.addListener(text, "cut", onCut); // for ie9 context menu
-    }
-    else if (useragent.isOpera && !("KeyboardEvent" in window)) {
+    event.addListener(text, "input", onInput);
+
+    event.addListener(text, "cut", onCut);
+    event.addListener(text, "copy", onCopy);
+    event.addListener(text, "paste", onPaste);
+
+
+    // Opera has no clipboard events
+    if (!('oncut' in text) || !('oncopy' in text) || !('onpaste' in text)){
         event.addListener(parentNode, "keydown", function(e) {
             if ((useragent.isMac && !e.metaKey) || !e.ctrlKey)
-                return;
+            return;
 
-            if ((e.keyCode == 88 || e.keyCode == 67)) {
-                var copyText = host.getCopyText();
-                if (copyText) {
-                    text.value = copyText;
-                    text.select();
-                    if (e.keyCode == 88)
-                        host.onCut();
-                }
+            switch (e.keyCode) {
+                case 67:
+                    onCopy(e);
+                    break;
+                case 86:
+                    onPaste(e);
+                    break;
+                case 88:
+                    onCut(e);
+                    break;
             }
         });
     }
-    else {
-        event.addListener(text, "copy", onCopy);
-        event.addListener(text, "cut", onCut);
-    }
+
+
+    // COMPOSITION
+    var onCompositionStart = function(e) {
+        if (inComposition) return;
+        // console.log("onCompositionStart", inComposition)
+        inComposition = {};
+        host.onCompositionStart();
+        setTimeout(onCompositionUpdate, 0);
+        host.on("mousedown", onCompositionEnd);
+        if (!host.selection.isEmpty()) {
+            host.insert("");
+            host.session.markUndoGroup();
+            host.selection.clearSelection();
+        }
+        host.session.markUndoGroup();
+    };
+
+    var onCompositionUpdate = function() {
+        // console.log("onCompositionUpdate", inComposition && JSON.stringify(text.value))
+        if (!inComposition) return;
+        host.onCompositionUpdate(text.value);
+        if (inComposition.lastValue)
+            host.undo();
+        inComposition.lastValue = text.value.replace(/\x01/g, "")
+        if (inComposition.lastValue) {
+            var r = host.selection.getRange();
+            host.insert(inComposition.lastValue);
+            host.session.markUndoGroup();
+            inComposition.range = host.selection.getRange();
+            host.selection.setRange(r);
+            host.selection.clearSelection();
+        }
+    };
+
+    var onCompositionEnd = function(e) {
+        // console.log("onCompositionEnd", inComposition &&inComposition.lastValue)
+        var c = inComposition;
+        inComposition = false;
+        var timer = setTimeout(function() {
+            var str = text.value.replace(/\x01/g, "");
+            // console.log(str, c.lastValue)
+            if (inComposition)
+                return
+            else if (str == c.lastValue)
+                resetValue();
+            else if (!c.lastValue && str) {
+                resetValue();
+                sendText(str);
+            }
+        });
+        inputHandler = function compositionInputHandler(str) {
+            // console.log("onCompositionEnd", str, c.lastValue)
+            clearTimeout(timer);
+            str = str.replace(/\x01/g, "");
+            if (str == c.lastValue)
+                return "";
+            if (c.lastValue)
+                host.undo();
+            return str;
+        }        
+        host.onCompositionEnd();
+        host.removeListener("mousedown", onCompositionEnd);
+        if (e.type == "compositionend" && c.range) {
+            host.selection.setRange(c.range);
+        }
+    };
+    
+    
+
+    var syncComposition = lang.delayedCall(onCompositionUpdate, 50);
 
     event.addListener(text, "compositionstart", onCompositionStart);
-    if (useragent.isGecko) {
-        event.addListener(text, "text", onCompositionUpdate);
-    }
-    if (useragent.isWebKit) {
-        event.addListener(text, "keyup", onCompositionUpdate);
-    }
+    event.addListener(text, useragent.isGecko ? "text" : "keyup", function(){syncComposition.schedule()});
     event.addListener(text, "compositionend", onCompositionEnd);
-
-    event.addListener(text, "blur", function() {
-        host.onBlur();
-    });
-
-    event.addListener(text, "focus", function() {
-        host.onFocus();
-        reset();
-    });
-
-    this.focus = function() {
-        reset();
-        text.focus();
-    };
-
-    this.blur = function() {
-        text.blur();
-    };
-
-    function isFocused() {
-        return document.activeElement === text;
-    }
-    this.isFocused = isFocused;
 
     this.getElement = function() {
         return text;
     };
 
+    this.setReadOnly = function(readOnly) {
+       text.readOnly = readOnly;
+    };
+
     this.onContextMenu = function(e) {
+        afterContextMenu = true;
         if (!tempStyle)
             tempStyle = text.style.cssText;
 
-        text.style.cssText =
-            "position:fixed; z-index:100000;" + 
-            (useragent.isIE ? "background:rgba(0, 0, 0, 0.03); opacity:0.1;" : "") + //"background:rgba(250, 0, 0, 0.3); opacity:1;" +
-            "left:" + (e.clientX - 2) + "px; top:" + (e.clientY - 2) + "px;";
+        text.style.cssText = "z-index:100000;" + (useragent.isIE ? "opacity:0.1;" : "");
+        //debug*/ text.style.cssText += "background:rgba(250, 0, 0, 0.3); opacity:1;";
 
-        if (host.selection.isEmpty())
-            text.value = "";
-        else
-            reset(true);
+        resetSelection(host.selection.isEmpty());
+        host._emit("nativecontextmenu", {target: host, domEvent: e});
+        var rect = host.container.getBoundingClientRect();
+        var style = dom.computedStyle(host.container);
+        var top = rect.top + (parseInt(style.borderTopWidth) || 0);
+        var left = rect.left + (parseInt(rect.borderLeftWidth) || 0);
+        var maxTop = rect.bottom - top - text.clientHeight;
+        var move = function(e) {
+            text.style.left = e.clientX - left - 2 + "px";
+            text.style.top = Math.min(e.clientY - top - 2, maxTop) + "px";
+        }; 
+        move(e);
 
         if (e.type != "mousedown")
             return;
@@ -299,33 +464,30 @@ var TextInput = function(parentNode, host) {
 
         // on windows context menu is opened after mouseup
         if (useragent.isWin)
-            event.capture(host.container, function(e) {
-                text.style.left = e.clientX - 2 + "px";
-                text.style.top = e.clientY - 2 + "px";
-            }, onContextMenuClose);
+            event.capture(host.container, move, onContextMenuClose);
     };
 
+    this.onContextMenuClose = onContextMenuClose;
     function onContextMenuClose() {
         setTimeout(function () {
             if (tempStyle) {
                 text.style.cssText = tempStyle;
                 tempStyle = '';
             }
-            sendText();
             if (host.renderer.$keepTextAreaAtCursor == null) {
                 host.renderer.$keepTextAreaAtCursor = true;
                 host.renderer.$moveTextAreaToCursor();
             }
         }, 0);
-    };
-    this.onContextMenuClose = onContextMenuClose;
+    }
 
     // firefox fires contextmenu event after opening it
-    if (!useragent.isGecko)
+    if (!useragent.isGecko || useragent.isMac) {
         event.addListener(text, "contextmenu", function(e) {
             host.textInput.onContextMenu(e);
-            onContextMenuClose()
+            onContextMenuClose();
         });
+    }
 };
 
 exports.TextInput = TextInput;

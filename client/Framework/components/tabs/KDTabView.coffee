@@ -12,7 +12,7 @@ class KDTabView extends KDScrollView
     options.tabHandleContainer   ?= null
     options.tabHandleClass      or= KDTabHandleView
     options.paneData            or= []
-    options.cssClass              = KD.utils.curryCssClass "kdtabview", options.cssClass
+    options.cssClass              = KD.utils.curry "kdtabview", options.cssClass
     @handles                      = []
     @panes                        = []
     @selectedIndex                = []
@@ -264,7 +264,7 @@ class KDTabView extends KDScrollView
   setPaneTitle:(pane,title)->
     handle = @getHandleByPane pane
     handle.getDomElement().find("b").text title
-    handle.setDomAttributes title: title
+    handle.setAttribute "title", title
 
   getHandleByPane: (pane) ->
     index  = @getPaneIndex pane

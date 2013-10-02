@@ -91,18 +91,19 @@ class WebTermAppView extends JView
 
   chromeAppMode: ->
     windowController = KD.getSingleton("windowController")
-    windowController.clearUnloadListeners "window"
+    mainController   = KD.getSingleton("mainController")
 
     # talking with chrome app
     if window.parent?.postMessage
-      windowController.on "clientIdChanged", =>
-        window.parent.postMessage "clientIdChanged", "*"
+      {parent} = window
+      mainController.on "clientIdChanged", ->
+        parent.postMessage "clientIdChanged", "*"
 
-      window.parent.postMessage "fullScreenTerminalReady", "*"
-      window.parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
+      parent.postMessage "fullScreenTerminalReady", "*"
+      parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
 
       @on "KDObjectWillBeDestroyed", ->
-        window.parent.postMessage "fullScreenWillBeDestroyed", "*"
+        parent.postMessage "fullScreenWillBeDestroyed", "*"
 
     @addSubView new ChromeTerminalBanner
 
@@ -113,6 +114,8 @@ class WebTermAppView extends JView
   viewAppended: ->
     super
     @addNewTab()
+    @utils.defer =>
+      @_windowDidResize()
 
   addNewTab: ->
     webTermView = new WebTermView
@@ -139,6 +142,8 @@ class ChromeTerminalBanner extends JView
 
     super options, data
 
+    @descriptionHidden = yes
+
     @mainView = KD.getSingleton "mainView"
     @router   = KD.getSingleton "router"
     @finder   = KD.getSingleton "finderController"
@@ -146,42 +151,38 @@ class ChromeTerminalBanner extends JView
     @mainView.on "fullscreen", (state)=>
       unless state then @hide() else @show()
 
-    @register   = new KDCustomHTMLView
-      tagName : "a"
+    @register   = new CustomLinkView
       cssClass: "action"
-      partial : "Register"
+      title   : "Register"
       click   : => @revealKoding "/Register"
 
-    @login      = new KDCustomHTMLView
-      tagName : "a"
+    @login      = new CustomLinkView
       cssClass: "action"
-      partial : "Login"
+      title   : "Login"
       click   : => @revealKoding "/Login"
 
-    @whatIsThis = new KDCustomHTMLView
-      tagName  : "a"
+    @whatIsThis = new CustomLinkView
       cssClass : "action"
-      partial  : "What is This?"
+      title    : "What is This?"
       click    : =>
-        @hidden = not @hidden
-        if @hidden
+        if @descriptionHidden
           @description.show()
         else
           @description.hide()
+        @descriptionHidden = not @descriptionHidden
 
     @description = new KDCustomHTMLView
-      tagName: "p"
-      partial: """
+      tagName : "p"
+      cssClass: "hidden"
+      partial : """
       This is a complete virtual environment provided by Koding. <br>
       Koding is a social development environment. <br>
       Visit and see it in action at <a href="http://koding.com" target="_blank">http://koding.com</a>
       """
-    @description.hide()
 
-    @revealer = new KDCustomHTMLView
-      tagName  : "a"
+    @revealer = new CustomLinkView
       cssClass : "action"
-      partial  : "Reveal Koding"
+      title    : "Reveal Koding"
       click    : => @revealKoding()
 
   revealKoding: (route)->

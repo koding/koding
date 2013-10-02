@@ -1,5 +1,7 @@
-neo4j = require "neo4j"
-{Base} = require 'bongo'
+_ = require 'underscore'
+neo4j = require "neo4j-koding"
+{race} = require 'sinkrow'
+{Base, ObjectId, race} = require 'bongo'
 
 module.exports = class Graph
   @getDb:=>
@@ -13,7 +15,7 @@ module.exports = class Graph
   @getExemptUsersClauseIfNeeded: (requestOptions, callback)->
     if not requestOptions.withExempt
       {delegate} = requestOptions.client.connection
-      JAccount = require '../account/index'
+      JAccount = require '../account'
       JAccount.getExemptUserIds (err, ids)=>
         if err
           return callback err, null

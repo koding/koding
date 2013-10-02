@@ -178,7 +178,7 @@ class GroupsAppController extends AppController
           title             : "My groups"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchGroups (err, items)=>
+            KD.whoami().fetchGroups options, (err, items)=>
               ids = []
               for item in items
                 item.followee = true
@@ -237,7 +237,7 @@ class GroupsAppController extends AppController
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
       owner : (view)-> view.markOwnGroup()
-    for as, callback of fetchRoles
+    for own as, callback of fetchRoles
       do (as, callback)->
         KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
           return error err if err

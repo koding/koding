@@ -20,6 +20,7 @@ module.exports =
     address     : "https://koding.com"
   userSitesDomain: 'staging.kd.io'
   containerSubnet: "10.128.2.0/9"
+  vmPool        : "vms-staging"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -32,10 +33,11 @@ module.exports =
     enabled     : yes
     port        : 1337
   neo4j         :
-    read        : "http://neo4j-dev.in.koding.com"
-    write       : "http://neo4j-dev.in.koding.com"
+    read        : "http://172.16.6.12"
+    write       : "http://172.16.6.12"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@mongodb-staging.in.koding.com:27017/koding'
+  mongo         : 'dev:k9lc4G1k32nyD72@172.16.6.13:27017/koding'
+  mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : no
@@ -118,6 +120,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      precompiledApi: yes
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
@@ -132,21 +135,21 @@ module.exports =
       mainUri   : "http://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
-        sockJS   : "http://stage-broker-#{version}.in.koding.com/subscribe"
+        sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
-      # Is this correct?
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
-      sourceUri : "http://webserver-staging-#{version}a.in.koding.com:1337"
+      uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
   mq            :
-    host        : 'rabbitmq-staging.in.koding.com'
+    host        : '172.16.6.14'
     port        : 5672
-    apiAddress  : "rabbitmq-staging.in.koding.com"
+    apiAddress  : "172.16.6.14"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'djfjfhgh4455__5'
     heartbeat   : 20
     vhost       : 'new'
   broker        :
@@ -183,8 +186,9 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
-      apiHost     : "kontrol-staging.in.koding.com"
+      apiHost     : "172.16.6.16"
       apiPort     : 80
       port        : 8080
       switchHost  : "y.koding.com"
@@ -194,29 +198,32 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
-    rabbitmq      :
-      host        : 'kontrol-staging.in.koding.com'
-      port        : '5672'
-      login       : 'guest'
-      password    : 's486auEkPzvUjYfeFTMQ'
-      vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :
     apiKey      : embedlyApiKey
-  opsview	:
-    push	: yes
-    host	: 'opsview.in.koding.com'
+  opsview :
+    push  : yes
+    host  : 'opsview.in.koding.com'
     bin   : '/usr/local/nagios/bin/send_nsca'
     conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
-    host        : 'rabbitmq-staging.in.koding.com'
+    host        : '172.16.6.14'
     port        : 5672
     componentUser: 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'djfjfhgh4455__5'
     vhost       : 'followfeed'
   github        :
     clientId    : "5891e574253e65ddb7ea"
     clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"
-
+  odesk          :
+    key          : "639ec9419bc6500a64a2d5c3c29c2cf8"
+    secret       : "549b7635e1e4385e"
+  facebook       :
+    clientId     : "475071279247628"
+    clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
+    redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  statsd         :
+    use          : true
+    ip           : "172.168.2.7"
+    port         : 8125

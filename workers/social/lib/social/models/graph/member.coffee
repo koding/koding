@@ -13,9 +13,9 @@ module.exports = class Member extends Graph
       when "counts.following"
         orderByQuery = "ORDER BY members.`counts.following` DESC"
       when "meta.modifiedAt"
-        orderByQuery = "ORDER BY members.`meta.modifiedAt` DESC"
+        orderByQuery = "ORDER BY members.`meta.modifiedAt` ASC"
       else
-        orderByQuery = "ORDER BY members.`meta.modifiedAt` DESC"
+        orderByQuery = "ORDER BY members.`meta.modifiedAt` ASC"
 
     return orderByQuery
 
@@ -32,23 +32,37 @@ module.exports = class Member extends Graph
 
   # fetch members that are in given group who follows current user
   @fetchFollowingMembers: (options, callback)=>
-    options = @generateOptions options
+    console.log "options"
+    console.log options
+    queryOptions = @generateOptions options
     orderByQuery = @getOrderByQuery options
+    console.log orderByQuery
     query = QueryRegistry.member.following orderByQuery
-    @queryMembers query, options, callback
+    @queryMembers query, queryOptions, callback
 
   # fetch member's following count
   @fetchFollowingMemberCount: (options, callback)=>
-    options = @generateOptions options
+    console.log "options1"
+    console.log options
+    queryOptions = @generateOptions options
+    console.log "options2"
+    console.log queryOptions
     query = QueryRegistry.member.following
-    @queryMembers query, options, callback
+    console.log query
+    @queryMembers query, queryOptions, callback
 
   # fetch members that are in given group who are followed by current user
   @fetchFollowerMembers: (options, callback)=>
-    options = @generateOptions options
+    console.log "options3"
+    console.log options
+    queryOptions = @generateOptions options
+    console.log "options4"
+    console.log queryOptions
     orderByQuery = @getOrderByQuery options
     query = QueryRegistry.member.follower orderByQuery
-    @queryMembers query, options, callback
+    console.log "query"
+    console.log query
+    @queryMembers query, queryOptions, callback
 
 
   @searchMembers: (options, callback)->
@@ -82,8 +96,12 @@ module.exports = class Member extends Graph
     # console.log "undefined request parameter" unless groupId and to
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       queryOptions = @generateOptions options
+      console.log "queryOptions"
+      console.log queryOptions
       orderByQuery = @getOrderByQuery options
       query = QueryRegistry.member.list exemptClause, orderByQuery
+      console.log "orderByQuery"
+      console.log orderByQuery
       @queryMembers query, queryOptions, callback
 
   @queryMembers: (query, options = {}, callback)=>

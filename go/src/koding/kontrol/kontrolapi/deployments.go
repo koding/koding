@@ -6,8 +6,9 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"koding/kontrol/kontroldaemon/clientconfig"
-	"labix.org/v2/mgo/bson"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+
 	"net/http"
 	"sort"
 	"strconv"
@@ -20,8 +21,7 @@ type DeployPostMessage struct {
 }
 
 func GetClients(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET /deployments")
-	clients := clientDB.GetClients()
+	clients := modelhelper.GetClients()
 
 	data, err := json.MarshalIndent(clients, "", "  ")
 	if err != nil {
@@ -35,16 +35,9 @@ func GetClients(writer http.ResponseWriter, req *http.Request) {
 func GetClient(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	build := vars["build"]
-	fmt.Printf("GET /deployments/%s\n", build)
-
-	client := clientconfig.ServerInfo{}
-	clients := make([]clientconfig.ServerInfo, 0)
 
 	if build == "latest" {
-		iter := clientDB.Collection.Find(nil).Iter()
-		for iter.Next(&client) {
-			clients = append(clients, client)
-		}
+		clients := modelhelper.GetClients()
 
 		if len(clients) == 0 {
 			io.WriteString(writer, "[]") // return empty slice
@@ -74,23 +67,23 @@ func GetClient(writer http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	query := bson.M{"buildnumber": build}
-	iter := clientDB.Collection.Find(query).Iter()
-	for iter.Next(&client) {
-		data, err := json.MarshalIndent(client, "", "  ")
-		if err != nil {
-			io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
-			return
-		}
-
-		writer.Write([]byte(data))
+	client, err := modelhelper.GetClient(build)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
+
+	data, err := json.MarshalIndent(client, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
 
 }
 
 func CreateClient(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("POST /deployments")
 	var msg DeployPostMessage
 	var build string
 	var git string
@@ -128,16 +121,16 @@ func CreateClient(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	client := clientconfig.ServerInfo{
+	client := models.ServerInfo{
 		BuildNumber: build,
 		GitBranch:   git,
 		ConfigUsed:  config,
 		Config:      nil,
-		Hostname:    clientconfig.Hostname{},
-		IP:          clientconfig.IP{},
+		Hostname:    models.Hostname{},
+		IP:          models.IP{},
 	}
 
-	clientDB.AddClient(client)
+	modelhelper.AddClient(client)
 
 	url := fmt.Sprintf("deploy info posted build: %s, git branch: %s and config used: %s", build, git, config)
 	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
@@ -148,9 +141,8 @@ func CreateClient(writer http.ResponseWriter, req *http.Request) {
 func DeleteClient(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	build := vars["build"]
-	fmt.Printf("DELETE\t/deployments/%s\n", build)
 
-	err := clientDB.DeleteClient(build)
+	err := modelhelper.DeleteClient(build)
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
