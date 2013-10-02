@@ -12,7 +12,7 @@ class BillingFormModal extends PaymentFormModal
         nextElementFlat   :
           vatNumber       :
             placeholder   : 'VAT Number (optional)'
-            defaultValue  : data.vatNumber 
+            defaultValue  : data.vatNumber
 
       address             :
         label             : 'Address & ZIP'
@@ -22,15 +22,19 @@ class BillingFormModal extends PaymentFormModal
           zip             :
             placeholder   : 'ZIP (optional)'
             defaultValue  : data.zip
-
+            keyup         : @bound 'handleZipCode'
       city                :
-        label             : 'City & Country'
+        label             : 'City & State'
         placeholder       : 'City (optional)'
         defaultValue      : data.city
         nextElementFlat   :
-          country         :
-            itemClass     : KDSelectBox
-            defaultValue  : data.country or 'US'
+          state           :
+            itemClass     : KDInputView
+            defaultValue  : data.state
+      country             :
+        label             : 'Country'
+        itemClass         : KDSelectBox
+        defaultValue      : data.country or 'US'
 
       phone               :
         label             : 'Phone'
@@ -45,6 +49,21 @@ class BillingFormModal extends PaymentFormModal
       showLoader  : yes
 
     @billingForm.fields.country.addSubView @countryLoader
+
+  handleZipCode:->
+
+    { JLocation } = KD.remote.api
+
+    { city, state, country, zip } = @billingForm.inputs
+
+    JLocation.byZip zip.getValue(), (err, location) =>
+      @setLocation location  if location
+
+  setLocation: (location) ->
+    ['city', 'state', 'country'].forEach (inputName) =>
+      input = @billingForm.inputs[inputName]
+      value = location[inputName]
+      input.setValue value  if input? # TODO: `and not input.isDirty()` or something like that C.T.
 
   setCountryData: ({ countries, countryOfIp }) ->
     { country } = @billingForm.inputs
