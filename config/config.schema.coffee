@@ -239,6 +239,9 @@ config =
       clientId      : 1
       clientSecret  : 1
       redirectUri   : 1
+    google          :
+      client_id     : 1
+      client_secret : 1
     statsd          :
       use           : 1
       ip            : 1
