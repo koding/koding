@@ -1,22 +1,33 @@
-recurly  = require 'koding-payment'
-JRecurly = require './index'
+recurly     = require 'koding-payment'
+JRecurly    = require './index'
+{ extend }  = require 'underscore'
 
 module.exports = class JRecurlyGroup extends JRecurly
 
   @setAccount = (client, group, data, callback)->
-    console.log { client, group, data }
-    JSession = require '../session'
-    JSession.one {clientId: client.sessionToken}, (err, session) =>
-    JRecurlyPlan.fetchGroupAccount group, (err, groupAccount) =>
-      return callback err  if err
-      {email, username, firstName, lastName} = groupAccount
-      
-      accountCode = "group_#{group.getId()}"
-      extend data, {accountCode, email, username, firstName, lastName}
 
-      recurly.setAccount accountCode, data, (err, res)->
+    group.fetchOwner (err, owner) ->
+      return callback err  if err
+      owner.fetchUser (err, ownerUser) ->
         return callback err  if err
-        recurly.setBilling accountCode, data, callback
+
+        {email, username} = ownerUser
+
+        {firstName, lastName} = owner
+
+        extend data, {
+          accountCode
+          email
+          username
+          firstName
+          lastName
+        }
+
+        accountCode = "group_#{group.getId()}"
+
+        recurly.setAccount accountCode, data, (err, res)->
+          return callback err  if err
+          recurly.setBilling accountCode, data, callback
 
   @getAccount = (group, callback) ->
     recurly.getAccount "group_#{group.getId()}", callback
