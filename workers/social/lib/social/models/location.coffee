@@ -1,16 +1,17 @@
-{Model} = require 'bongo'
+{Model, secure} = require 'bongo'
 
-module.exports = class JZipcode extends Model
+module.exports = class JLocation extends Model
 
   @share()
 
   @set
     sharedMethods:
-      static: [ 'importAll', 'byCode', 'one' ]
-    schema  :
-      zip   : String
-      city  : String
-      state : String
+      static  : [ 'importAll', 'byZip', 'one' ]
+    schema    :
+      zip     : String
+      city    : String
+      state   : String
+      country : String
 
   @importAll = secure (client, callback) ->
 
@@ -26,4 +27,4 @@ module.exports = class JZipcode extends Model
       .on 'error', (err)  -> callback err
       .on 'end',          -> callback null
 
-  @byCode = (zip, callback) -> @one { zip }, callback
+  @byZip = (zip, callback) -> @one { zip }, callback
