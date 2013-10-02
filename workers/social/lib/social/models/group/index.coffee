@@ -1376,7 +1376,7 @@ module.exports = class JGroup extends Module
     @fetchBundle (err, bundle)=>
       return callback err, bundle  if err or bundle
 
-      if @slug == 'koding'
+      if @slug is 'koding'
         @createBundle
           overagePolicy: 'not allowed'
           paymentPlan  : ''
