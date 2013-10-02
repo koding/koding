@@ -6,14 +6,6 @@ class CollaborativeEditorPane extends CollaborativePane
 
     super options, data
 
-    log "i am a CollaborativeEditorPane and my session key is #{options.sessionKey}"
-
-    @panel      = @getDelegate()
-    @workspace  = @panel.getDelegate()
-    @sessionKey = @getOptions().sessionKey or @createSessionKey()
-    @amIHost    = @workspace.amIHost()
-    @container  = new KDView
-
     @container.on "viewAppended", =>
       @createEditor()
       @ref        = @workspace.firepadRef.child @sessionKey
@@ -24,9 +16,12 @@ class CollaborativeEditorPane extends CollaborativePane
         return @openFile file, content  if file
         if @firepad.isHistoryEmpty()
           @firepad.setText "" # fix for a firepad bug
+          @codeMirrorEditor.scrollTo 0, 0
 
       @ref.on "value", (snapshot) =>
-        return @save()  if snapshot.val().WaitingSaveRequest is yes
+        value = snapshot.val()
+        return unless value
+        return @save()  if value.WaitingSaveRequest is yes
 
       @ref.onDisconnect().remove()  if @amIHost
 
@@ -35,6 +30,8 @@ class CollaborativeEditorPane extends CollaborativePane
     isLocalFile = file.path.indexOf("localfile") is 0
     content     = "" if @amIHost and isLocalFile
     @firepad.setText content  if @amIHost
+    @codeMirrorEditor.scrollTo 0, 0
+    @emit "OpenedAFile", file, content
 
   save: ->
     file        = @getData()
@@ -43,7 +40,6 @@ class CollaborativeEditorPane extends CollaborativePane
     if @amIHost
       return warn "no file instance handle save as" unless isValidFile
 
-      log "host is saving a file"
       @ref.child("WaitingSaveRequest").set no
       file.save @firepad.getText(), (err, res) =>
         new KDNotificationView
@@ -52,8 +48,12 @@ class CollaborativeEditorPane extends CollaborativePane
           title    : "File has been saved"
           duration : 4000
     else
-      log "client wants to save a file"
       @ref.child("WaitingSaveRequest").set yes
+
+    @getOptions().saveCallback? @panel, @workspace, file, @firepad.getText()
+
+  getValue: ->
+    return @codeMirrorEditor.getValue()
 
   createEditor: ->
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
@@ -66,13 +66,15 @@ class CollaborativeEditorPane extends CollaborativePane
     @setEditorMode()
 
   setEditorTheme: ->
-    unless document.getElementById "codemirror-ambiance-style"
-      link       = document.createElement "link"
-      link.rel   = "stylesheet"
-      link.type  = "text/css"
-      link.href  = "#{cdnRoot}/theme/ambiance.css"
-      document.head.appendChild link
-      @codeMirrorEditor.setOption "theme", "ambiance"
+    if document.getElementById "codemirror-ambiance-style"
+      return  @codeMirrorEditor.setOption "theme", "ambiance"
+    link       = document.createElement "link"
+    link.rel   = "stylesheet"
+    link.type  = "text/css"
+    link.href  = "#{cdnRoot}/theme/ambiance.css"
+    link.id    = "codemirror-ambiance-style"
+    document.head.appendChild link
+    @codeMirrorEditor.setOption "theme", "ambiance"
 
   setEditorMode: ->
     {file} = @getOptions()
@@ -87,6 +89,8 @@ class CollaborativeEditorPane extends CollaborativePane
       html             : "xml"
       json             : "javascript"
       js               : "javascript"
+      go               : "go"
+      txt              : "text"
 
     if corrections[fileExtension]
       modeName = corrections[fileExtension]
@@ -96,9 +100,3 @@ class CollaborativeEditorPane extends CollaborativePane
     if modeName
       @codeMirrorEditor.setOption "mode", modeName
       CodeMirror.autoLoadMode @codeMirrorEditor, modeName
-
-  pistachio: ->
-    """
-      {{> @header}}
-      {{> @container}}
-    """

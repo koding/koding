@@ -128,6 +128,10 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
 
+    if folder.depth > 10
+      @notify "Folder is nested deeply, making it top folder"
+      @makeTopFolder nodeView
+
     failCallback = (err)=>
       unless silence
         KD.logToExternal "Couldn't fetch files"
@@ -219,6 +223,7 @@ class NFinderTreeController extends JTreeViewController
         node.getData().remove (err, response)=>
           if err then @notify null, null, err
           else
+            node.emit "ItemBeingDeleted"
             cb err, node
 
     async.parallel stack, (error, result) =>
@@ -392,21 +397,12 @@ class NFinderTreeController extends JTreeViewController
       folder.emit "fs.job.finished"
       callback?()
 
-
-  cloneRepo:(nodeView)->
-
-    folder = nodeView.getData()
-
-    @notify "not yet there!", "error"
-
-    # folder.emit "fs.job.started"
-    # KD.getSingleton('kodingAppsController').cloneApp folder.path, =>
-    #   folder.emit "fs.job.finished"
-    #   @refreshFolder @nodes[folder.parentPath], =>
-    #     @utils.wait 500, =>
-    #       @selectNode @nodes[folder.path]
-    #       @refreshFolder @nodes[folder.path]
-    #   @notify "App cloned!", "success"
+  cloneRepo: (nodeView) ->
+    folder   = nodeView.getData()
+    modal    = new CloneRepoModal
+      vmName : folder.vmName
+      path   : folder.path
+    modal.on "RepoClonedSuccessfully", => @notify "Repo cloned successfully.", "success"
 
   publishApp:(nodeView)->
 
@@ -501,7 +497,7 @@ class NFinderTreeController extends JTreeViewController
   cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
   cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
   cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> @appManager.notify()
+  cmUpload:        (nodeView, contextMenuItem)-> @uploadFile nodeView
   cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
@@ -603,6 +599,26 @@ class NFinderTreeController extends JTreeViewController
     @showDragOverFeedback nodeView, event
     super
 
+  dragStart: (nodeView, event)->
+    super
+
+    @internalDragging = yes
+
+    {name, vmName, path} = nodeView.data
+
+    warningText = """
+    You should move #{name} file to Web folder to download using drag and drop. -- Koding
+    """
+
+    type        = "application/octet-stream"
+    url         = KD.getPublicURLOfPath path
+    unless url
+      url       = "data:#{type};base64,#{btoa warningText}"
+      name     += ".txt"
+    dndDownload = "#{type}:#{name}:#{url}"
+
+    event.originalEvent.dataTransfer.setData 'DownloadURL', dndDownload
+
   lastEnteredNode = null
   dragEnter: (nodeView, event)->
 
@@ -632,6 +648,7 @@ class NFinderTreeController extends JTreeViewController
 
     # log "clear after drag"
     @clearAllDragFeedback()
+    @internalDragging = no
     super
 
   drop: (nodeView, event)->
@@ -639,11 +656,18 @@ class NFinderTreeController extends JTreeViewController
     return if nodeView in @selectedNodes
     return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
 
+    @selectedNodes = @selectedNodes.filter (node)->
+      targetPath = nodeView.getData?().path
+      sourcePath = node.getData?().parentPath
+
+      return targetPath isnt sourcePath
+
     if event.altKey
       @copyFiles @selectedNodes, nodeView
     else
       @moveFiles @selectedNodes, nodeView
 
+    @internalDragging = no
     super
 
   ###
@@ -746,7 +770,7 @@ class NFinderTreeController extends JTreeViewController
 
   refreshTopNode:->
     {nickname} = KD.whoami().profile
-    @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"
+    @refreshFolder @nodes["/home/#{nickname}"], => @emit "fs.retry.success"
 
   showOpenWithModal: (nodeView) ->
     KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
@@ -795,3 +819,8 @@ class NFinderTreeController extends JTreeViewController
         for file in files
           fileItemView = modal.addSubView new DropboxDownloadItemView { nodeView }, file
           fileItemViews.push fileItemView
+
+  uploadFile: (nodeView)->
+    finderController = KD.getSingleton "finderController"
+    {path} = nodeView.data
+    finderController.uploadTo path  if path

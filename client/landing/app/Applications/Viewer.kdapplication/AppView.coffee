@@ -1,7 +1,9 @@
 class PreviewerView extends KDView
 
   constructor:(options = {},data)->
+
     options.cssClass = 'previewer-body'
+
     super options, data
 
   openPath:(path)->
@@ -19,19 +21,20 @@ class PreviewerView extends KDView
     path  = unless /^https?:\/\//.test path then "http://#{path}" else path
 
     @path = path
-    @iframe.$().attr 'src', path
+    @iframe.setAttribute 'src', path
     @viewerHeader.setPath initialPath
+    @emit "ready"
 
   refreshIFrame:->
-    @iframe.$().attr 'src', "#{@path}"
+    @iframe.setAttribute 'src', "#{@path}"
 
   isDocumentClean:->
     @clean
 
   viewAppended:->
-    @addSubView @viewerHeader = new ViewerTopBar {}, @path
-    @addSubView @iframe = new KDCustomHTMLView
-      tagName : 'iframe'
+    @addSubView @viewerHeader = new ViewerTopBar     { delegate: this }, @path
+    @addSubView @iframe       = new KDCustomHTMLView { tagName : "iframe" }
 
-    {path} = @getOption 'params'
+    {params} = @getOptions()
+    path     = params?.path
     if path then @utils.defer => @openPath path

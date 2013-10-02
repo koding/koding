@@ -1,8 +1,9 @@
 class Sidebar extends JView
 
-  constructor:->
+  constructor: (options={}, data)->
 
-    super
+    options.bind = "dragleave"
+    super options, data
 
     account           = KD.whoami()
     {profile}         = account
@@ -39,11 +40,15 @@ class Sidebar extends JView
       items     : []
 
     navAdditions = [
-      { type  : 'separator',      order : 65 }
-      { title : 'Invite Friends', order : 66,  type : 'account',   role : 'member' }
-      { title : 'Logout',         order : 100, path : '/Logout',   type : 'account', loggedIn : yes }
-      { title : 'Login',          order : 101, path : '/Login',    type : 'account', loggedIn : no  }
-      { title : 'Register',       order : 102, path : '/Register', type : 'account', loggedIn : no  }
+      { type  : 'separator',            order : 65 }
+      # { title : 'Invite Friends', order : 66,  type : 'account',   role : 'member' }
+      { title : 'Up to 16GB free!',     order : 66,  type : 'account promote', promote: yes,   role : 'member' }
+      { title : 'Docs / Jobs',          order : 67,  type : 'account docs', docs : yes }
+      { type  : 'separator',            order : 99 }
+      { title : 'Logout',               order : 100, path : '/Logout',   type : 'account', loggedIn : yes }
+      { title : 'Login',                order : 101, path : '/Login',    type : 'account', loggedIn : no  }
+      { title : 'Register',             order : 102, path : '/Register', type : 'account', loggedIn : no  }
+
     ]
 
     KD.registerNavItem navItem for navItem in navAdditions
@@ -71,90 +76,101 @@ class Sidebar extends JView
     @finderController = new NFinderController
       useStorage        : yes
       addOrphansToRoot  : no
+      delegate          : this
+
+    @dndUploadHolder = new KDView domId: "finder-dnduploader", cssClass: "hidden"
+    @dndUploadHolder.addSubView @dnduploader = new DNDUploader hoverDetect: no
+
+    _onDrag = =>
+      unless @finderController.treeController.internalDragging
+        @dndUploadHolder.show()
+        @dnduploader.unsetClass "hover"
+
+    @dnduploader.on "dragleave", => @dndUploadHolder.hide()
+    @dnduploader.on "drop",      => @dndUploadHolder.hide()
+    @dnduploader.on "cancel",    =>
+      @dnduploader.setPath()
+      @dndUploadHolder.hide()
+
+    @finderController.treeController.on "dragEnter", _onDrag
+    @finderController.treeController.on "dragOver",  _onDrag
 
     @finder = @finderController.getView()
+
     KD.registerSingleton "finderController", @finderController
     @finderController.on 'ShowEnvironments', => @finderBottomControlPin.click()
 
-    # Finder Bottom Controls
-    @finderBottomControlsController = new KDListViewController
-      view        : new FinderBottomControls
-      wrapper     : no
-      scrollView  : no
-    , bottomControlsItems
+    # # Finder Bottom Controls
+    # @finderBottomControlsController = new KDListViewController
+    #   view        : new FinderBottomControls
+    #   wrapper     : no
+    #   scrollView  : no
+    # , bottomControlsItems
 
-    @finderBottomControls = @finderBottomControlsController.getView()
+    # @finderBottomControls = @finderBottomControlsController.getView()
 
-    @finderBottomControlPin = new KDToggleButton
-      cssClass     : "finder-bottom-pin"
-      iconOnly     : yes
-      defaultState : "hide"
-      states       : [
-        title      : "show"
-        iconClass  : "up"
-        callback   : (callback)=>
-          @showBottomControls()
-          callback?()
-      ,
-        title      : "hide"
-        iconClass  : "down"
-        callback   : (callback)=>
-          @hideBottomControls()
-          callback?()
-      ]
+    # @finderBottomControlPin = new KDToggleButton
+    #   cssClass     : "finder-bottom-pin"
+    #   iconOnly     : yes
+    #   defaultState : "hide"
+    #   states       : [
+    #     title      : "show"
+    #     iconClass  : "up"
+    #     callback   : (callback)=>
+    #       @showBottomControls()
+    #       callback?()
+    #   ,
+    #     title      : "hide"
+    #     iconClass  : "down"
+    #     callback   : (callback)=>
+    #       @hideBottomControls()
+    #       callback?()
+    #   ]
 
-    @finderController.on 'EnvironmentsTabRequested', =>
-      @finderBottomControlPin.setState 'hide'
-      @showBottomControls()
+    # @finderController.on 'EnvironmentsTabRequested', =>
+    #   @finderBottomControlPin.setState 'hide'
+    #   @showBottomControls()
 
-    # FIXME ~ GG find a better place for this.
-    @finderController.on 'EnvironmentsTabHide', @bound 'hideBottomControls'
-    @finderController.on 'EnvironmentsTabShow', @bound 'showBottomControls'
+    # # FIXME ~ GG find a better place for this.
+    # @finderController.on 'EnvironmentsTabHide', @bound 'hideBottomControls'
+    # @finderController.on 'EnvironmentsTabShow', @bound 'showBottomControls'
 
-    @resourcesController = new ResourcesController
-    @resourcesWidget = @resourcesController.getView()
+    # @resourcesController = new ResourcesController
+    # @resourcesWidget = @resourcesController.getView()
 
-    @createNewVMButton = new KDButtonView
-      title     : "Create New VM"
-      icon      : yes
-      iconClass : "plus-orange"
-      cssClass  : "clean-gray create-vm"
-      callback  : ->
-        KD.getSingleton('vmController').createNewVM()
+    # @createNewVMButton = new KDButtonView
+    #   title     : "Create New VM"
+    #   icon      : yes
+    #   iconClass : "plus-orange"
+    #   cssClass  : "clean-gray create-vm"
+    #   callback  : ->
+    #     KD.getSingleton('vmController').createNewVM()
 
-    @environmentButton = new KDButtonView
-      title     : "Environments"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "cog"
-      cssClass  : "clean-gray open-environment"
-      testPath  : "environments-open"
-      callback  :->
-        if KD.whoami().type is 'unregistered'
-          new KDNotificationView title: "This feature requires registration"
-        else
-          KD.getSingleton("appManager").open "Environments"
+    # @environmentButton = new KDButtonView
+    #   title     : "Environments"
+    #   icon      : yes
+    #   iconOnly  : yes
+    #   iconClass : "cog"
+    #   cssClass  : "clean-gray open-environment"
+    #   testPath  : "environments-open"
+    #   callback  :->
+    #     if KD.whoami().type is 'unregistered'
+    #       new KDNotificationView title: "This feature requires registration"
+    #     else
+    #       KD.getSingleton("appManager").open "Environments"
 
-    @environmentsRefreshButton = new KDButtonView
-      title     : "Refresh"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "refresh"
-      cssClass  : "clean-gray refresh-environment"
-      callback  : =>
-        @resourcesController.reset()
+    # @environmentsRefreshButton = new KDButtonView
+    #   title     : "Refresh"
+    #   icon      : yes
+    #   iconOnly  : yes
+    #   iconClass : "refresh"
+    #   cssClass  : "clean-gray refresh-environment"
+    #   callback  : =>
+    #     @resourcesController.reset()
 
-    @environmentsRefreshButton.hide()  unless KD.checkFlag "super-admin"
+    # @environmentsRefreshButton.hide()  unless KD.checkFlag "super-admin"
 
     @listenWindowResize()
-
-  resetAdminNavController:->
-    @utils.wait 1000, =>
-      @adminNavController.removeAllItems()
-      # if KD.isLoggedIn()
-      KD.whoami().fetchRole? (err, role)=>
-        if role is "super-admin"
-          @adminNavController.instantiateListItems adminNavItems.items
 
   setListeners:->
 
@@ -197,6 +213,10 @@ class Sidebar extends JView
 
     @utils.wait 300, => @emit "NavigationPanelWillCollapse"
 
+  dragLeave: ->
+    super
+    @dndUploadHolder.hide()
+
   viewAppended:->
     super
     @setListeners()
@@ -217,18 +237,11 @@ class Sidebar extends JView
       <div id='finder-header-holder'>
         {{> @finderHeader}}
       </div>
+
+      {{> @dndUploadHolder}}
+
       <div id='finder-holder'>
         {{> @finder}}
-      </div>
-      <div id='finder-bottom-controls'>
-        {{> @finderBottomControls}}
-        {{> @finderBottomControlPin}}
-        {{> @resourcesWidget}}
-        <div class='button-wrapper'>
-          {{> @createNewVMButton}}
-          {{> @environmentButton}}
-          {{> @environmentsRefreshButton}}
-        </div>
       </div>
     </div>
     """
@@ -293,7 +306,7 @@ class Sidebar extends JView
   _windowDidResize:->
     $fbc = @$('#finder-bottom-controls')
     h = @_resizeResourcesList()
-    @$("#finder-holder").height @getHeight() - h - 50
+    @$("#finder-holder").height @getHeight() - h - 26
 
   bottomControlsItems =
     id : "finder-bottom-controls"
@@ -301,17 +314,6 @@ class Sidebar extends JView
       {
         title   : "your servers",   icon : "resources",
         action  : "showEnvironments"
-      }
-    ]
-
-  adminNavItems =
-    id    : "admin-navigation"
-    title : "admin-navigation"
-    items : [
-      {
-        title    : "Admin Panel",
-        loggedIn : yes,
-        callback : -> new AdminModal
       }
     ]
 
