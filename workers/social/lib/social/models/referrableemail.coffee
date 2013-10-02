@@ -21,7 +21,8 @@ module.exports = class JReferrableEmail extends jraphical.Module
         type      : Date
         get       : -> new Date
     sharedMethods :
-      static      : ["create", "getUninvitedEmails", "deleteEmailsForAccount"]
+      static      : ["getUninvitedEmails", "deleteEmailsForAccount"]
+      instance    : ["invite"]
 
   @create: (clientId, email, callback)->
     JSession = require "./session"
@@ -39,7 +40,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
 
   @getUninvitedEmails: secure (client, callback)->
     query =
-      originId : client.connection.delegate.getId()
+      username : client.context.user
       invited  : false
     JReferrableEmail.some query, {}, callback
 
@@ -48,3 +49,17 @@ module.exports = class JReferrableEmail extends jraphical.Module
 
   @delete: (username, callback)->
     JReferrableEmail.remove {username}, callback
+
+  invite: (callback)->
+    JMail     = require './email'
+    shareUrl  = "https://koding.com/?r=#{@username}"
+    email     = new JMail
+      from    : 'hello@koding.com'
+      email   : @email
+      replyto : 'hello@koding.com'
+      subject : "#{@username} has invited you to Koding!"
+      content : "Click here: #{shareUrl}"
+    console.log email
+    email.save (err)=>
+      return callback err  if err
+      @update $set: invited: true, callback
