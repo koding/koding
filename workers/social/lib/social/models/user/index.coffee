@@ -79,7 +79,7 @@ module.exports = class JUser extends jraphical.Module
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
-        'login','logout','register','usernameAvailable','emailAvailable',
+        'login','logout','usernameAvailable','emailAvailable',
         'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
         'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
         'authenticateWithOauth','unregister'
