@@ -739,8 +739,6 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/emailnotifications.coffee",
   # "app/Applications/Account.kdapplication/views/devdatabases.coffee",
   "app/Applications/Account.kdapplication/views/editors.coffee",
-  "app/Applications/Account.kdapplication/views/mounts.coffee",
-  "app/Applications/Account.kdapplication/views/repos.coffee",
   "app/Applications/Account.kdapplication/views/sshkeys.coffee",
   "app/Applications/Account.kdapplication/views/kodingkeys.coffee",
 
