@@ -29,10 +29,6 @@ class AccountListWrapper extends KDView
     develop                          :
       editorsController              : AccountEditorListController
       editors                        : AccountEditorList
-      mountsController               : AccountMountListController
-      mounts                         : AccountMountList
-      reposController                : AccountRepoListController
-      repos                          : AccountRepoList
       keysController                 : AccountSshKeyListController
       keys                           : AccountSshKeyList
       kodingKeysController           : AccountKodingKeyListController
