@@ -126,7 +126,9 @@ class LoginView extends KDScrollView
             if isUserLoggedIn
               mainController.emit "ForeignAuthSuccess.#{provider}"
               new KDNotificationView
-                title : "Thanks for linking your #{provider.capitalize()} account!"
+                title : "Your #{provider.capitalize()} account has been linked."
+                type  : "mini"
+
             else
               @afterLoginCallback err, {account, replacementToken}
 

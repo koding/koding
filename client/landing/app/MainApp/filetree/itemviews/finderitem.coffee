@@ -24,8 +24,7 @@ class NFinderItem extends JTreeItemView
     @childView.$().css "margin-left", (data.depth)*10
 
     if data.name? and data.name.length > 20 - data.depth
-      @childView.setDomAttributes
-        title : FSHelper.plainPath data.name
+      @childView.setAttribute "title", FSHelper.plainPath data.name
 
     @on "ItemBeingDeleted", =>
       data.removeLocalFileInfo()

@@ -17,6 +17,7 @@ class EnvironmentContainer extends KDDiaContainer
 
     @newItemPlus = new KDCustomHTMLView
       cssClass   : 'new-item-plus'
+      partial    : "<i></i><span>Add new</span>"
       click      : => @emit 'PlusButtonClicked'
 
     @loader = new KDLoaderView
@@ -34,8 +35,6 @@ class EnvironmentContainer extends KDDiaContainer
 
     {@appStorage} = @parent
     @appStorage.ready @bound 'loadPosition'
-
-    @loadItems()
 
   showLoader: ->
     @newItemPlus.hide()
@@ -94,5 +93,10 @@ class EnvironmentContainer extends KDDiaContainer
 
     delete positions[name]
     @appStorage.setValue 'containerPositions', positions
+
+  refreshItems:->
+    for key, dia of @dias
+      dia.destroy()
+    @loadItems()
 
   loadItems:-> yes
