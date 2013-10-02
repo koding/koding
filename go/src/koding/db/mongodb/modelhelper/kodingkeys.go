@@ -17,7 +17,7 @@ func NewKodingKeys() *models.KodingKeys {
 
 // GetKodingKeys returns a *models.KodingKeys that matches both username
 // and key fields from the jKodingKeys collection.
-func GetKodingKeys(username, key string) (*models.KodingKeys, error) {
+func GetKodingKeys(username, hostname string) (*models.KodingKeys, error) {
 	kodingkeys := new(models.KodingKeys)
 	user, err := GetUser(username)
 	if err != nil {
@@ -26,8 +26,8 @@ func GetKodingKeys(username, key string) (*models.KodingKeys, error) {
 
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{
-			"key":   key,
-			"owner": user.ObjectId,
+			"hostname": hostname,
+			"owner":    user.ObjectId.Hex(),
 		}).One(kodingkeys)
 	}
 
@@ -43,7 +43,7 @@ func GetKodingKeys(username, key string) (*models.KodingKeys, error) {
 // Upsert matchin is based on model.KodingKeys.Key.
 func AddKodingKeys(k *models.KodingKeys) error {
 	query := func(c *mgo.Collection) error {
-		_, err := c.Upsert(bson.M{"key": k.Key}, k)
+		_, err := c.Upsert(bson.M{"hostname": k.Hostname}, k)
 		if err != nil {
 			fmt.Println("AddKodingKeys error", err)
 			return fmt.Errorf("could not add key '%s', err :'%s'", k.Key, err)

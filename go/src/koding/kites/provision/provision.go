@@ -8,6 +8,7 @@ import (
 	uuid "github.com/nu7hatch/gouuid"
 	"io"
 	"io/ioutil"
+	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/os/ldapserver"
@@ -380,12 +381,12 @@ func getVos(username, hostnameAlias string) (*virt.VOS, error) {
 		return nil, fmt.Errorf("user '%s' with uid '%d' doesn't have permission", user.Name, user.Uid)
 	}
 
-	err = prepareVM(vm)
+	err = prepareVM(user, vm)
 	if err != nil {
 		return nil, err
 	}
 
-	err = createHomeDirs(user, vm)
+	err = prepareHomeDirs(user, vm)
 	if err != nil {
 		return nil, err
 	}
@@ -493,7 +494,7 @@ func updateLdapPassword(ldapPassword string, id bson.ObjectId) error {
 	return nil
 }
 
-func prepareVM(vm *virt.VM) error {
+func prepareVM(user *virt.User, vm *virt.VM) error {
 	isPrepared := true
 	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
 		if !os.IsNotExist(err) {
@@ -526,15 +527,7 @@ func prepareVM(vm *virt.VM) error {
 	return nil
 }
 
-func userWebDir(name string) string {
-	return userHomeDir(name) + "/Web"
-}
-
-func userHomeDir(name string) string {
-	return "/home/" + name
-}
-
-func createHomeDirs(user *virt.User, vm *virt.VM) error {
+func prepareHomeDirs(user *virt.User, vm *virt.VM) error {
 	vmWebDir := "/home/" + vm.WebHome + "/Web"
 	userWebDir := userWebDir(user.Name)
 
@@ -562,7 +555,7 @@ func createHomeDirs(user *virt.User, vm *virt.VM) error {
 		createUserWebDir(user, vmWebDir, userWebDir, rootVos, userVos)
 	}
 
-	err = prepareToken(user, userVos)
+	err = preparePublicKey(userVos)
 	if err != nil {
 		return err
 	}
@@ -573,6 +566,14 @@ func createHomeDirs(user *virt.User, vm *virt.VM) error {
 	}
 
 	return nil
+}
+
+func userWebDir(name string) string {
+	return userHomeDir(name) + "/Web"
+}
+
+func userHomeDir(name string) string {
+	return "/home/" + name
 }
 
 type Counter struct {
@@ -650,31 +651,38 @@ func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
 	}
 }
 
-func prepareToken(user *virt.User, vos *virt.VOS) error {
-	homeDir := userHomeDir(user.Name)
-	id, _ := uuid.NewV4()
-	key := id.String()
+func preparePublicKey(vos *virt.VOS) error {
+	homeDir := userHomeDir(vos.User.Name)
 
-	kodingKey := modelhelper.NewKodingKeys()
-	kodingKey.Key = key
-	kodingKey.Owner = user.ObjectId.Hex()
-
-	err := modelhelper.AddKodingKeys(kodingKey)
+	var err error
+	kodingKey := new(models.KodingKeys)
+	kodingKey, err = modelhelper.GetKodingKeys(vos.User.Name, vos.VM.HostnameAlias)
 	if err != nil {
-		return fmt.Errorf("prepareToken adding keys '%s'", err)
+		fmt.Println("GETKODINGKEYS ERR", err)
+		// create a new key
+		id, _ := uuid.NewV4()
+		kodingKey = modelhelper.NewKodingKeys()
+		kodingKey.Key = id.String()
+		kodingKey.Owner = vos.User.ObjectId.Hex()
+		kodingKey.Hostname = vos.VM.HostnameAlias
+
+		err := modelhelper.AddKodingKeys(kodingKey)
+		if err != nil {
+			return fmt.Errorf("preparePublicKey adding keys '%s'", err)
+		}
 	}
 
 	if err := vos.Mkdir(homeDir+"/.kd", 0755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating .kd dir '%s'", err)
 	}
 
-	tokenFile, err := vos.OpenFile(homeDir+"/.kd/token", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	publicFile, err := vos.OpenFile(homeDir+"/.kd/koding.key.pub", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		return fmt.Errorf("creating token '%s'", err)
+		return fmt.Errorf("creating public key '%s'", err)
 	}
-	defer tokenFile.Close()
+	defer publicFile.Close()
 
-	return virt.Templates.ExecuteTemplate(tokenFile, "token", key)
+	return virt.Templates.ExecuteTemplate(publicFile, "publickey", kodingKey.Key)
 }
 
 func prepareKites(user *virt.User, vos *virt.VOS) error {
@@ -739,8 +747,8 @@ func createUserWebDir(user *virt.User, vmWebDir, userWebDir string, rootVos, use
 	if _, err := rootVos.Stat(userWebDir); err == nil {
 		return
 	}
-	// userWebDir directory does not yet exist
 
+	// userWebDir directory does not yet exist
 	if err := userVos.MkdirAll(userWebDir, 0755); err != nil {
 		panic(err)
 	}
