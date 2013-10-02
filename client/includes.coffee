@@ -856,6 +856,7 @@ module.exports = [
   "Framework/themes/default/kd.form.styl",
   "Framework/themes/default/kd.tooltip.styl",
   "Framework/themes/default/kd.dia.styl",
+  "Framework/themes/default/kd.slide.styl",
 
   "stylus/app.styl",
   "stylus/app.bottom.styl",

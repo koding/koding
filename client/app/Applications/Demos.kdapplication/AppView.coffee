@@ -1,13 +1,8 @@
 class Page extends JView
 
   constructor:(options={}, data)->
-    options.cssClass = KD.utils.curry 'page', options.cssClass
+    options.cssClass = KD.utils.curry 'kd-page', options.cssClass
     super options, data
-
-    @setStyle
-      position   : 'absolute'
-      transition : \
-        'left .6s ease-in, top .6s ease-in, -webkit-transform .3s ease-out'
 
   viewAppended:->
     super
@@ -34,7 +29,7 @@ class Slider extends JView
 
   constructor:(options={}, data)->
 
-    options.cssClass   = 'slider'
+    options.cssClass = KD.utils.curry 'kd-slide', options.cssClass
     super options, data
 
     @pages     = []
@@ -109,7 +104,7 @@ class Slider extends JView
     pref[key] = 0
     newPage.setCss     pref
 
-    @utils.wait 600, ->
+    @utils.wait 800, ->
       pref[prop] = "scale(1)"  for prop in props
       newPage.setCss pref
 
