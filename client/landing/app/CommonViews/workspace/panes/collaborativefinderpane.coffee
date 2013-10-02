@@ -14,7 +14,7 @@ class CollaborativeFinderPane extends CollaborativePane
       nodeParentIdPath    : "parentPath"
       contextMenu         : yes
       loadFilesOnInit     : yes
-      useStorage          : yes
+      useStorage          : no
       treeControllerClass : CollaborativeFinderTreeController
 
     @finderController.treeController.workspace = @workspace

@@ -20,7 +20,8 @@ class FSHelper
 
     sortedFiles = []
     for p in [yes, no]
-      z = (x for x in files when x.isDir is p).sort (x,y)-> x.name > y.name
+      z = (x for x in files when x.isDir is p).sort (x,y)->
+        x.name.toLowerCase() > y.name.toLowerCase()
       sortedFiles.push x for x in z
 
     nickname = KD.nick()
