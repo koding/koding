@@ -14,7 +14,7 @@ class BillingFormModal extends PaymentFormModal
             placeholder   : 'VAT Number (optional)'
             defaultValue  : data.vatNumber
 
-      address             :
+      address1            :
         label             : 'Address & ZIP'
         placeholder       : 'Address (optional)'
         defaultValue      : data.address1
