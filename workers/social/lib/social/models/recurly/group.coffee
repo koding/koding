@@ -15,7 +15,7 @@ module.exports = class JRecurlyGroup extends JRecurly
 
         {email, username} = ownerUser
 
-        {firstName, lastName} = owner
+        {firstName, lastName} = owner.profile
 
         groupCode = groupCodeOf group
 
