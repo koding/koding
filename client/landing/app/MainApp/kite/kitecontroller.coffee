@@ -31,8 +31,12 @@ class KiteController extends KDController
   # NEWKITE
   createKite:(kiteName, correlationName, kiteKey)->
     switch kiteName
-      when 'os-local', 'fs-local', 'terminal-local'
-        kite = new NewKite {kiteName, correlationName, kiteKey }
+      when 'os-local'
+        kite = new NewKite {addr: "localhost:4003", kiteName, correlationName, kiteKey }
+      when 'fatih/fs'
+        kite = new NewKite {kiteName: "fatih/fs", correlationName, kiteKey }
+      when 'fatih/terminal'
+        kite = new NewKite {kiteName: "fatih/terminal", correlationName, kiteKey }
       else
         kite = new Kite { kiteName, correlationName, kiteKey }
     # kite = new Kite { kiteName, correlationName, kiteKey }

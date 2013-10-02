@@ -59,7 +59,7 @@ class NewKite extends KDEventEmitter
     @ws.close()
 
   onOpen:->
-    console.log "I'm connected. Yayyy!"
+    console.log "I'm connected to #{@kiteName} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
     @emit 'ready'
