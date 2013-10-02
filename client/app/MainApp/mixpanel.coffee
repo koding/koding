@@ -98,12 +98,14 @@ class KDMixpanel
   registerUser:->
     if KD.isLoggedIn()
       user = KD.whoami()
-      mixpanel.identify user.profile.firstName
-      mixpanel.people.set
-        "$username"   : user.profile.firstName
-        "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
-        "$joinDate"   : user.meta.createdAt
-      mixpanel.name_tag "#{user.profile.nickname}.kd.io"
+      email = user.fetchEmail (err, email)->
+        mixpanel.identify user.profile.firstName
+        mixpanel.people.set
+          "$username"   : user.profile.firstName
+          "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
+          "$joinDate"   : user.meta.createdAt
+          "$email"      : email
+        mixpanel.name_tag "#{user.profile.nickname}.kd.io"
 
   setOnce:(property, value, callback )->
     mixpanel.people.set_once property, value, callback
