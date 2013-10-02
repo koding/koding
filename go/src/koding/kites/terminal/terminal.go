@@ -40,7 +40,13 @@ var port = flag.String("port", "", "port to bind itself")
 
 func main() {
 	flag.Parse()
-	o := &protocol.Options{Username: "fatih", Kitename: "terminal-local", Version: "1", Port: *port}
+	o := &protocol.Options{
+		PublicIP: "localhost",
+		Username: "fatih",
+		Kitename: "terminal",
+		Version:  "1",
+		Port:     *port,
+	}
 
 	methods := map[string]interface{}{
 		"webterm.connect": Terminal.Connect,

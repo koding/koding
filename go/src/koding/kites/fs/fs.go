@@ -33,7 +33,7 @@ func main() {
 		PublicIP: "localhost",
 		LocalIP:  *ip,
 		Username: "fatih",
-		Kitename: "fs-local",
+		Kitename: "fs",
 		Version:  "1",
 		Port:     *port,
 	}
