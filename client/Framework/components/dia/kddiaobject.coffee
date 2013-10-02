@@ -1,6 +1,7 @@
 class KDDiaObject extends JView
 
   constructor:(options, data)->
+
     options.cssClass  = KD.utils.curry 'kddia-object', options.cssClass
 
     unless options.draggable?
@@ -28,13 +29,16 @@ class KDDiaObject extends JView
     @emit "DiaObjectClicked"
     @_mouseDown = yes
     @wc.once 'ReceivedMouseUpElsewhere', => @_mouseDown = no
-    @utils.stopDOMEvent e
+    @utils.stopDOMEvent e  unless @getOption 'draggable'
 
   mouseLeave:(e)->
     return  unless @_mouseDown
 
     bounds = @getBounds()
     joint  = null
+
+    bounds.w = bounds.w * @parent.scale
+    bounds.h = bounds.h * @parent.scale
 
     if e.pageX >= bounds.x + bounds.w  # means right joint
       joint = @joints['right']

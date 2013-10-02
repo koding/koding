@@ -37,7 +37,7 @@ class TeamworkApp extends KDObject
               type        : "split"
               options     :
                 direction : "horizontal"
-                sizes     : [ "100%", null ]
+                sizes     : [ "50%", null ]
                 splitName : "InnerSplit"
               views       : [
                 {

@@ -168,7 +168,7 @@ class TeamworkTools extends JView
           <div class="join">
             <span class="icon"></span>
             {{> @joinInput}}
-            <p>If you have received a code from a friend of you, copy and paste it here, hit enter. You will be coding together on your friend's environment.</p>
+            <p>If you have received a code from a friend of yours, copy and paste it here and hit enter. You will be coding together on your friend's environment.</p>
           </div>
         </div>
       </div>

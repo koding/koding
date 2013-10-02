@@ -1,8 +1,5 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
-@import "nib/gradients"
-
-
 
 @css {
 /*
@@ -358,3 +355,38 @@ third.workspace.styl
         font-style      italic
         text-align      right
         abs()
+
+.workspace-collapse-toggle
+  div
+    gradient            #f39a37, #ed6a20
+    abs()
+    rounded             4px 4px 0 0
+    text-align          center
+    pointer()
+
+  .horizontal
+    size                41px, 10px
+    bottom              0
+    left                50%
+    margin-left         -20px
+    span
+      size              0, 0
+      border            4px solid transparent
+      border-bottom-color #f2f2f2
+      position          relative
+      left              7px
+      vendor            transform-origin-y, 75%
+      fl()
+      &.m
+        margin          0 1px
+
+.workspace
+  .toggle-active
+    .workspace-collapse-toggle.active
+      div
+        border-radius   0 0 4px 4px
+      span
+        vendor          transform, rotateZ(180deg)
+        top             -1px
+    .panel-1 .kdsplitview-resizer
+      margin-top        5px

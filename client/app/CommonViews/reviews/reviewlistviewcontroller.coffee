@@ -35,7 +35,8 @@ class ReviewListViewController extends KDListViewController
       view.on 'CommentIsDeleted', ->
         listView.emit "CommentIsDeleted"
 
-    listView.on "AllCommentsLinkWasClicked", (reivewHeader)=>
+    @offset = 3
+    listView.on "AllCommentsLinkWasClicked", (@reviewHeader)=>
 
       return if @_hasBackgrounActivity
 
@@ -47,7 +48,9 @@ class ReviewListViewController extends KDListViewController
       listView.emit "BackgroundActivityStarted"
       @_hasBackgrounActivity = yes
       @_removedBefore = no
-      @fetchRelativeReviews -1, meta.createdAt
+      loadComments = 10
+      @fetchRelativeReviews @offset, loadComments, meta.createdAt
+      @offset += loadComments
 
     listView.on "ReviewSubmitted", (review)->
       model = listView.getData()
@@ -66,24 +69,35 @@ class ReviewListViewController extends KDListViewController
     message = @getListView().getData()
     message.restReviews skipCount, (err, reivews)=>
       listView.emit "BackgroundActivityFinished"
-      listView.emit "AllCommentsWereAdded"
+      # listView.emit "AllCommentsWereAdded"
       callback err, reivews
 
-  fetchRelativeReviews:(_limit = 10, _after)->
+  fetchRelativeReviews:(_offset = 0, _limit = 10, _after)->
     listView = @getListView()
     message = @getListView().getData()
-    message.fetchRelativeReviews limit:_limit, after:_after, (err, reivews)=>
+    listView.setOption 'lastToFirst', no
+    message.fetchRelativeReviews offset: _offset, limit:_limit, after:_after, (err, reivews)=>
 
       if not @_removedBefore
-        @removeAllItems()
+        # @removeAllItems()
         @_removedBefore = yes
 
       @instantiateListItems reivews, yes
 
       listView = @getListView()
       listView.emit "BackgroundActivityFinished"
-      listView.emit "AllCommentsWereAdded"
+
+      {allItemsLink} = @reviewHeader
+      {repliesCount} = allItemsLink.getData()
+      allItemsLink.setData
+        repliesCount: repliesCount-_limit
+      allItemsLink.render()
+
+      if _offset + _limit >= @reviewHeader.oldCount
+        listView.emit "AllCommentsWereAdded"
+
       @_hasBackgrounActivity = no
+      listView.setOption 'lastToFirst', yes
 
   replaceAllReviews:(reivews)->
     @removeAllItems()

@@ -1,4 +1,4 @@
-class ActivityCodeSnippetWidget extends KDFormView
+class ActivityCodeSnippetWidget extends ActivityWidgetFormView
 
   constructor:->
 
@@ -39,9 +39,6 @@ class ActivityCodeSnippetWidget extends KDFormView
 
     @aceWrapper = new KDView
 
-    @labelAddTags = new KDLabelView
-      title : "Add Tags:"
-
     @cancelBtn = new KDButtonView
       title    : "Cancel"
       style    : "modal-cancel"
@@ -58,28 +55,6 @@ class ActivityCodeSnippetWidget extends KDFormView
       subtitle    : "About Code Sharing"
       tooltip     :
         title     : "Easily share your code with other members of the Koding community. Once you share, user can easily open or save your code to their own environment."
-
-    @selectedItemWrapper = new KDCustomHTMLView
-      tagName  : "div"
-      cssClass : "tags-selected-item-wrapper clearfix"
-
-    @tagController = new TagAutoCompleteController
-      name                : "meta.tags"
-      type                : "tags"
-      itemClass           : TagAutoCompleteItemView
-      selectedItemClass   : TagAutoCompletedItemView
-      itemDataPath        : 'title'
-      outputWrapper       : @selectedItemWrapper
-      selectedItemsLimit  : 5
-      listWrapperCssClass : "tags"
-      form                : @
-      dataSource          : (args, callback)=>
-        {inputValue} = args
-        updateWidget = @getDelegate()
-        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
-
-    @tagAutoComplete = @tagController.getView()
 
     @loader = new KDLoaderView
       size          :

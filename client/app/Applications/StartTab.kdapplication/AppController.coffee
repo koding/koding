@@ -4,7 +4,7 @@ class StartTabAppController extends AppController
     name         : "StartTab"
     route        : "/:name?/Develop"
     behavior     : "application"
-    multiple     : yes
+    multiple     : no
     navItem      :
       title      : "Develop"
       path       : "/Develop"
@@ -16,7 +16,7 @@ class StartTabAppController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view    = new StartTabMainView
+    options.view = new StartTabMainView
       testPath : "apps-installed"
 
     options.appInfo =

@@ -11,6 +11,7 @@
 #   handles    : [100, 60]
 
 class KDSliderBarView extends KDCustomHTMLView
+
   constructor:(options = {}, data = {})->
 
     options.cssClass    = KD.utils.curry "sliderbar-container", options.cssClass
@@ -29,8 +30,10 @@ class KDSliderBarView extends KDCustomHTMLView
     @labels             = []
 
   createHandles:->
+
     for value in @getOption "handles"
       @handles.push @addSubView handle = new KDSliderBarHandleView {value}
+
     sortRef = (a,b) ->
       return -1 if a.options.value < b.options.value
       return  1 if a.options.value > b.options.value
@@ -40,6 +43,7 @@ class KDSliderBarView extends KDCustomHTMLView
     @setClass "labeled"
 
   drawBar:->
+
     positions = []
     positions.push handle.getRelativeX() for handle in @handles
 
@@ -73,6 +77,11 @@ class KDSliderBarView extends KDCustomHTMLView
 
   getValues:-> handle.getOptions().value for handle in @handles
 
+  setValue:(value, handle)->
+    handle ?= @handles.first
+    handle.setValue value
+    @emit "ValueChanged", handle
+
   setLimits:->
     {maxValue, minValue, interval}      = @getOptions()
 
@@ -82,8 +91,8 @@ class KDSliderBarView extends KDCustomHTMLView
     else
       for handle, i in @handles
         options            = handle.getOptions()
-        options.leftLimit  = @handles[i-1]?.options.value + interval or minValue
-        options.rightLimit = @handles[i+1]?.options.value - interval or maxValue
+        options.leftLimit  = @handles[i-1]?.value + interval or minValue
+        options.rightLimit = @handles[i+1]?.value - interval or maxValue
 
   attachEvents:->
     @on "click", (event) ->
@@ -91,12 +100,12 @@ class KDSliderBarView extends KDCustomHTMLView
       sliderWidth          = @getWidth()
       clickedPos           = event.pageX - @getBounds().x
       clickedValue         = ((maxValue - minValue) * clickedPos) / sliderWidth + minValue
-      snappedValue         = @handles.first.getSnappedValue value: clickedValue
+      snappedValue         = @handles.first.getSnappedValue clickedValue
       closestHandle        = null
       mindiff              = null
 
       for handle in @handles
-        {value}            = handle.getOptions()
+        {value}            = handle
         diff               = Math.abs(clickedValue - value)
         if (diff < mindiff) or not mindiff
           mindiff          = diff
