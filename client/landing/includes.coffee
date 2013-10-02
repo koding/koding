@@ -517,14 +517,15 @@ module.exports = [
   "app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee",
   "app/Applications/Activity.kdapplication/widgets/widgetview.coffee",
   "app/Applications/Activity.kdapplication/widgets/widgetbutton.coffee",
+  "app/Applications/Activity.kdapplication/widgets/activitywidgetformview.coffee",
   "app/Applications/Activity.kdapplication/widgets/statuswidget.coffee",
-  "app/Applications/Activity.kdapplication/widgets/questionwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee",
-  "app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee",
-  "app/Applications/Activity.kdapplication/widgets/linkwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/blogpostwidget.coffee",
+  # "app/Applications/Activity.kdapplication/widgets/questionwidget.coffee",
+  # "app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee",
+  # "app/Applications/Activity.kdapplication/widgets/linkwidget.coffee",
 
   # Activity content displays
   "app/Applications/Activity.kdapplication/ContentDisplays/activitycontentdisplay.coffee",
