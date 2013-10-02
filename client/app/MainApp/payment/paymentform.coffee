@@ -6,7 +6,7 @@ class PaymentFormModal extends KDModalViewWithForms
     options.height   or= 'auto'
     options.cssClass or= 'payments-modal'
     options.overlay   ?= yes
-    
+
     thisYear = (new Date).getFullYear()
 
     fields =
@@ -55,7 +55,7 @@ class PaymentFormModal extends KDModalViewWithForms
 
     { callback } = options
     delete options.callback
-    
+
     options.tabs     or=
       navigable                 : yes
       goToNextFormOnSubmit      : no
@@ -113,18 +113,19 @@ class PaymentFormModal extends KDModalViewWithForms
     Discover:         start with 6011 or 65. All have 16 digits.
     ###
 
-    type = if /^4/.test(value)                then 'Visa'
-    else if /^5[1-5]/.test(value)             then 'MasterCard'
-    else if /^3[47]/.test(value)              then 'Amex'
-    else if /^6(?:011|5[0-9]{2})/.test(value) then 'Discover'
-    else no
+    type = switch
+      when /^4/.test(value)                   then 'Visa'
+      when /^5[1-5]/.test(value)              then 'MasterCard'
+      when /^3[47]/.test(value)               then 'Amex'
+      when /^6(?:011|5[0-9]{2})/.test(value)  then 'Discover'
+      else no
 
     cardType = type.toLowerCase?()
     $icon    = @icon.$()
     unless $icon.hasClass cardType
       $icon.removeClass 'visa mastercard discover amex'
       $icon.addClass cardType  if type
-  
+
   required:(msg)->
     rules    : required  : yes
     messages : required  : msg
