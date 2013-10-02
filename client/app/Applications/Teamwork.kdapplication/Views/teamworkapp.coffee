@@ -132,7 +132,19 @@ class TeamworkApp extends KDObject
       modal.destroy()
       vmController.run "rm -rf #{path}"
       notification.destroy()
-      @setVMRoot "#{root}/#{folderName}"
+      folderPath = "#{root}/#{folderName}"
+      readMeFile = "#{folderPath}/README.md"
+      @setVMRoot folderPath
+      FSHelper.exists readMeFile, vmController.defaultVmName, (err, res) =>
+        if res
+          file  = FSHelper.createFileFromPath readMeFile
+          file.fetchContents (err, readMeContent) =>
+            modal = new KDModalView
+              title    : "README"
+              cssClass : "has-markdown teamwork-markdown"
+              overlay  : yes
+              width    : 630
+              content  : KD.utils.applyMarkdown readMeContent
 
   setVMRoot: (path) ->
     vmController       = KD.getSingleton "vmController"
