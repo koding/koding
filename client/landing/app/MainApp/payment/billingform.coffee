@@ -30,7 +30,7 @@ class BillingFormModal extends PaymentFormModal
         nextElementFlat   :
           country         :
             itemClass     : KDSelectBox
-            defaultValue  : data.country or defaultCountry
+            defaultValue  : data.country or 'US'
 
       phone               :
         label             : 'Phone'
