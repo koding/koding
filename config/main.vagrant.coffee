@@ -117,7 +117,11 @@ module.exports =
                        { title  : "Koding MainApp",                    \
                          files  : "includes.coffee",                   \
                          script : "js/kdapp.#{version}.js",            \
-                         style  : "css/kdapp.#{version}.css"} ]
+                         style  : "css/kdapp.#{version}.css"},         \
+                       { title  : "Koding TestApp",                    \
+                         files  : "testapp/includes.coffee",           \
+                         script : "js/testapp.js",                     \
+                         style  : "css/testapp.css"} ]
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
