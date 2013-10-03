@@ -140,9 +140,6 @@ class NewKite extends KDEventEmitter
       callback scrubbed
 
   tell:(options, callback) ->
-    if not @addr
-      @getKiteAddr()
-
     @ready =>
       # token is needed to initiate a valid session
       # TODO: invalidate token when something goes wrong, or if we got a new token from kontrol
