@@ -16,6 +16,6 @@ class RegisterOptions extends KDView
       tagName  : "li"
       cssClass : "github active"
       partial  : "github"
-      click    : -> KD.singletons.oauthController.openPopup "github"
+      click    : -> KD.getSingleton("oauthController").openPopup "github"
       tooltip  :
         title  : "<p class='login-tip'>Register with GitHub</p>"
