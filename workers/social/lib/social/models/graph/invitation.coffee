@@ -98,7 +98,6 @@ module.exports = class Invitation extends Graph
     options.query          = "AND groupOwnedNodes.type = 'admin'"
 
     query = @getFetchOrCountInvitationsQuery method, options
-    console.log query
     @fetch query, {}, callback
 
   @fetchOrCountInvitationCodes:(method, options, callback)->
