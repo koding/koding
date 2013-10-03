@@ -158,7 +158,7 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : "stage-broker-#{version}.in.koding.com"
+    webHostname : "stage-broker-#{version}.sj.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
