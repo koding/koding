@@ -1367,7 +1367,6 @@ module.exports = class JGroup extends Module
 
       options.groupId = @getId()
       {Invitation} = require "../graph"
-#      graph = new Graph({config:KONFIG['neo4j']})
       Invitation["fetchOrCount#{type}s"] method, options, callback
 
   fetchInvitationsFromGraph: permit 'send invitations',

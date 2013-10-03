@@ -339,14 +339,12 @@ module.exports = class CActivity extends jraphical.Capsule
     @getCurrentGroup client, (err, group) =>
       if err then return callback err
       to = options.to
-      to = if to then parseInt(to, 10) else (new Date).getTime()
+      to = if to then parseInt(to, 10) else Date.now()
       to = Math.floor(to/1000)  # unix vs js timestamp diff.
 
-      neo4jConfig = KONFIG.neo4j
       requestOptions =
         client    : client
         startDate : to
-        neo4j     : neo4jConfig
         withExempt: options.withExempt
         group     :
           groupName : group.slug

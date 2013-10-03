@@ -585,7 +585,7 @@ module.exports = class JAccount extends jraphical.Module
   # Update broken counts for user
   updateCounts:->
 
-    #Â Like count
+    # Like count
     Relationship.count
       as         : 'like'
       targetId   : @getId()
@@ -593,7 +593,7 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.likes': count), ->
 
-    #Â Member Following count
+    # Member Following count
     Relationship.count
       as         : 'follower'
       targetId   : @getId()
@@ -719,7 +719,7 @@ module.exports = class JAccount extends jraphical.Module
   can:(action, target)->
     switch action
       when 'delete'
-        # Users can delete their stuff but super-admins can delete all of them à² _à²
+        # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
            'administer url aliases', 'administer accounts', \
