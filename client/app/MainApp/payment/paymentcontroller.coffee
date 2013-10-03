@@ -21,7 +21,7 @@ class PaymentController extends KDController
     if type in ['group', 'expensed']
       getGroup().fetchBillingInfo callback
     else
-      KD.remote.api.JRecurlyPlan.getUserAccount callback
+      KD.remote.api.JRecurlyPlan.getAccount callback
 
   getSubscription: do->
     findActiveSubscription = (subs, planCode, callback)->
