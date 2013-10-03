@@ -21,14 +21,14 @@ class VirtualizationController extends KDController
     @fetchVmName options, (err, vmName) =>
       return callback err  if err?
 
-      if /^fs\./.test options.method
-        options.kiteName = "fs-local"
-
       if /^vm\./.test options.method
         options.kiteName = "os-local"
 
+      if /^fs\./.test options.method
+        options.kiteName = "fs"
+
       if /^webterm\./.test options.method
-        options.kiteName = "terminal-local"
+        options.kiteName = "terminal"
 
       if options.method in ['exec', 'spawn']
         options.kiteName = "os-local"
@@ -126,6 +126,8 @@ class VirtualizationController extends KDController
       callback? err, vm, info
 
   fetchRegion: (vmName, callback)->
+    unless vmName
+      return @utils.defer -> callback "local"
     if region = @vmRegions[vmName]
       return @utils.defer -> callback region
 

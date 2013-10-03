@@ -652,13 +652,10 @@ func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
 }
 
 func preparePublicKey(vos *virt.VOS) error {
-	homeDir := userHomeDir(vos.User.Name)
-
 	var err error
 	kodingKey := new(models.KodingKeys)
-	kodingKey, err = modelhelper.GetKodingKeys(vos.User.Name, vos.VM.HostnameAlias)
+	kodingKey, err = modelhelper.GetKodingKeysByUsername(vos.User.Name, vos.VM.HostnameAlias)
 	if err != nil {
-		fmt.Println("GETKODINGKEYS ERR", err)
 		// create a new key
 		id, _ := uuid.NewV4()
 		kodingKey = modelhelper.NewKodingKeys()
@@ -672,6 +669,7 @@ func preparePublicKey(vos *virt.VOS) error {
 		}
 	}
 
+	homeDir := userHomeDir(vos.User.Name)
 	if err := vos.Mkdir(homeDir+"/.kd", 0755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating .kd dir '%s'", err)
 	}

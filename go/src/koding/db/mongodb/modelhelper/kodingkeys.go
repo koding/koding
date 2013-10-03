@@ -17,8 +17,8 @@ func NewKodingKeys() *models.KodingKeys {
 
 // GetKodingKeys returns a *models.KodingKeys that matches both username
 // and key fields from the jKodingKeys collection.
-func GetKodingKeys(username, hostname string) (*models.KodingKeys, error) {
-	kodingkeys := new(models.KodingKeys)
+func GetKodingKeysByUsername(username, hostname string) (*models.KodingKeys, error) {
+	kodingKeys := new(models.KodingKeys)
 	user, err := GetUser(username)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch user '%s', err: '%s'", username, err)
@@ -28,7 +28,7 @@ func GetKodingKeys(username, hostname string) (*models.KodingKeys, error) {
 		return c.Find(bson.M{
 			"hostname": hostname,
 			"owner":    user.ObjectId.Hex(),
-		}).One(kodingkeys)
+		}).One(kodingKeys)
 	}
 
 	err = mongodb.Run("jKodingKeys", query)
@@ -36,7 +36,21 @@ func GetKodingKeys(username, hostname string) (*models.KodingKeys, error) {
 		return nil, err
 	}
 
-	return kodingkeys, nil
+	return kodingKeys, nil
+}
+
+func GetKodingKeysByKey(key string) (*models.KodingKeys, error) {
+	kodingKeys := new(models.KodingKeys)
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"key": key}).One(kodingKeys)
+	}
+
+	err := mongodb.Run("jKodingKeys", query)
+	if err != nil {
+		return nil, err
+	}
+
+	return kodingKeys, nil
 }
 
 // AddKodingKeys upserts a model.KodingKeys document into the jKodingKeys collection.

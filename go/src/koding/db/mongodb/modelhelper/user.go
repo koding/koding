@@ -43,3 +43,13 @@ func GetUser(username string) (*models.User, error) {
 
 	return user, nil
 }
+
+func GetUserById(id string) (*models.User, error) {
+	user := new(models.User)
+	err := mongodb.One("jUsers", id, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}

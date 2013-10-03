@@ -19,7 +19,6 @@ type Os struct{}
 
 var (
 	port = flag.String("port", "4002", "port to bind itself")
-	ip   = flag.String("ip", "", "ip to bind itself")
 
 	// watcher variables
 	once               sync.Once
@@ -31,8 +30,6 @@ func main() {
 	flag.Parse()
 	o := &protocol.Options{
 		PublicIP: "localhost",
-		LocalIP:  *ip,
-		Username: "fatih",
 		Kitename: "fs",
 		Version:  "1",
 		Port:     *port,

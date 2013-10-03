@@ -42,7 +42,6 @@ func main() {
 	flag.Parse()
 	o := &protocol.Options{
 		PublicIP: "localhost",
-		Username: "fatih",
 		Kitename: "terminal",
 		Version:  "1",
 		Port:     *port,
