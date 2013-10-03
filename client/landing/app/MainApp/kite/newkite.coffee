@@ -53,6 +53,8 @@ class NewKite extends KDEventEmitter
           @connectDirectly()
         else
           log "kontrol request error", xhr.responseText
+          # Make a request again if we could not get the addres, use backoff for that
+          KD.utils.defer => @setBackoffTimeout @bound "getKiteAddr"
 
   disconnect:(reconnect=true)->
     @autoReconnect = !!reconnect  if reconnect?
