@@ -99,9 +99,9 @@ class KDMixpanel
     if KD.isLoggedIn()
       user = KD.whoami()
       email = user.fetchEmail (err, email)->
-        mixpanel.identify user.profile.firstName
+        mixpanel.identify user.profile.nickname
         mixpanel.people.set
-          "$username"   : user.profile.firstName
+          "$username"   : user.profile.nickname
           "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
           "$joinDate"   : user.meta.createdAt
           "$email"      : email
