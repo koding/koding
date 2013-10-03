@@ -134,6 +134,19 @@ class HomeAppView extends JView
       <span class="pricing-contact"><a href="#">Contact us</a> for Education and Business pricing</span>
     </section>
     <footer class="home-footer">
+      <section>
+        <div class="fl">
+          <span>© 2013 Koding, Inc.</span>
+          <a href="/tos.html" target="_blank">Terms</a>
+          <a href="/privacy.html" target="_blank">Privacy</a>
+        </div>
+        <div class="fr">
+          <a href="#">Status</a>
+          <a href="#">Api</a>
+          <a href="http://blog.koding.com" target='_blank'>Blog</a>
+          <a href="#">About</a>
+        </div>
+      </section>
     </footer>
     """
 

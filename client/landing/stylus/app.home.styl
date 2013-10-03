@@ -1051,8 +1051,34 @@ div.featured-app-details
         color               #6b6b6b
 
   footer.home-footer
-    size                    100%, 740px
+    size                    auto, 20px
     bg                      color, #282828
     position                relative
     text-align              center
     color                   #595959
+    padding                 35px 40px
+    borderBox()
+    > section
+      margin                0 auto
+      // padding               0 40px
+      max-width             1280px
+      size                  auto, 20px
+      > div
+        line-height         20px
+        &:first-child
+          a
+          span
+            margin-right    10px
+        &:last-child
+          a
+          span
+            margin-left    10px
+
+      a
+      span
+        color               white
+        text-decoration     none
+        font-size           14px
+        font-weight         300
+      a:hover
+        text-decoration   underline
