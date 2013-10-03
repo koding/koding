@@ -142,12 +142,6 @@ class NFinderController extends KDViewController
       type   : "vm"
       vmName : vmName
 
-    # NEWKITE
-    @vms.push FSHelper.createFile
-      name   : "/Users/fatih/Code"
-      path   : "/Users/fatih/Code"
-      type   : "folder"
-
     @noVMFoundWidget.hide()
     @treeController.addNode @vms.last
 
