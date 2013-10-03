@@ -28,24 +28,19 @@ class DNDUploader extends KDView
       filePath   = "[#{fsFile.vmName}]#{fsFile.path}"
       parentPath = "[#{fsFile.vmName}]#{fsFile.parentPath}"
 
-      bindAbort = ->
-        nodeView.showProgressView 1
+      bindAbort = (nodeView)->
         nodeView.once "abortProgress", => fsFile.abort yes
 
-      fsFile._isBeingUploaded = yes
       nodeView = @finder.treeController.nodes[filePath]
       if nodeView
-      then bindAbort()
+      then bindAbort nodeView
       else
         @finder.treeController.on "NodeWasAdded", (nodeView)->
-          if nodeView.getData().path is filePath and fsFile._isBeingUploaded
-            bindAbort()
+          if nodeView.getData().path is filePath
+            bindAbort nodeView
 
         fsFile.save "", =>
           @finder.expandFolders FSHelper.getPathHierarchy parentPath
-
-    @on "uploadEnd", (fsFile)->
-      fsFile._isBeingUploaded = no
 
   viewAppended: ->
     super
@@ -62,16 +57,11 @@ class DNDUploader extends KDView
         <small>#{if uploadToVM then defaultPath else ''}</small>
       </div>
     """
+    @_uploaded = {}
 
   drop: (event)->
     super
     {files, items}  = event.originalEvent.dataTransfer
-    # folders are not allowed
-    if items.length
-      for item in items
-        itemEntry = item.webkitGetAsEntry?()
-        if itemEntry.isDirectory
-          return @notify "Folder uploads not available for now.", "error"
 
     if files.length >= 20
       @notify """
@@ -82,8 +72,26 @@ class DNDUploader extends KDView
       You can archive your files and try again.
       """
 
-    if files.length
+    if items?.item?(0)?.webkitGetAsEntry
+      for item in items
+        entry = item.webkitGetAsEntry()
+        if entry.isDirectory
+          @readDirectory entry.filesystem.root, (files)=>
+            @uploadFiles files, event
+          , =>
+            @uploadFiles files, event
+        else if entry.isFile
+          entry.file (file)=>
+            @uploadFiles [file], event
+    else
+      @uploadFiles files, event
+
+  uploadFiles: (files, event)->
+    @_uploaded or= {}
+    if files?.length
+
       lastFile = files.last
+
       for file, index in files
         sizeInMb = file.size/1024/1024
         if sizeInMb > 100 && @getOptions().uploadToVM
@@ -91,11 +99,20 @@ class DNDUploader extends KDView
           continue
         reader = new FileReader
         reader.onloadend = do (file=files[index])=> (readEvent)=>
+
+          fileName = file.fileName or file.name
+
+          if file.relativePath
+            return if @_uploaded[file.relativePath + fileName]
+            @_uploaded[file.relativePath + fileName] = yes
+
           if @getOptions().uploadToVM
-            fsFile = @upload file.name, readEvent.target.result
+            fsFile = @upload fileName, readEvent.target.result, file.relativePath
+
           @emit "dropFile",
             origin  : "external"
-            filename: file.name
+            filename: fileName
+            path    : file.relativePath or no
             instance: fsFile
             content : readEvent.target.result
             isLast  : file is lastFile
@@ -122,6 +139,27 @@ class DNDUploader extends KDView
 
           @reset() if item is lastItem
 
+  readDirectory: (dirEntry, callback, error)->
+
+    callback.files  or= []
+    callback.i = 0
+
+    dirReader = dirEntry.createReader()
+    relative  = dirEntry.fullPath.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+
+    dirReader.readEntries (entries)=>
+      for entry in entries
+        callback.i++
+        if entry.isFile
+          entry.file (file)->
+            file.relativePath = relative + file.name
+            callback.files.push file
+        else
+          @readDirectory entry, callback, error
+      if entries.length is callback.i
+        callback callback.files
+    , error
+
   setPath: (@path=@options.defaultPath)->
     {uploadToVM, title} = @getOptions()
     @updatePartial """
@@ -144,6 +182,7 @@ class DNDUploader extends KDView
   saveFile: (fsFile, data)->
     @emit "uploadStart", fsFile
     fsFile.saveBinary data, (err, res, progress)=>
+      progress = res unless progress
       return if err
       if res.finished
         @emit "uploadEnd", fsFile
@@ -152,10 +191,18 @@ class DNDUploader extends KDView
       else
         @emit "uploadFile", fsFile, progress.percent
 
-  upload: (fileName, contents)->
+  upload: (fileName, contents, relativePath)->
+
+    folder = if relativePath and relativePath isnt fileName
+    then "#{@path}/#{relativePath.replace /\/[^\/]*$/, ''}"
+    else @path
+
     modalStack   = KDModalView.createStack lastToFirst: yes
-    fsFolderItem = FSHelper.createFileFromPath @path, 'folder'
-    fsFileItem   = FSHelper.createFileFromPath "#{@path}/#{fileName}"
+    fsFolderItem = FSHelper.createFileFromPath folder, 'folder'
+    fsFileItem   = FSHelper.createFileFromPath "#{folder}/#{fileName}"
+
+    return if fsFolderItem.path.match /\/(\.git|__MACOSX)\/?/
+    return if fsFileItem.path.match   /\/\.DS_Store/
 
     upload = =>
       fsFileItem.exists (err, exists)=>
@@ -188,7 +235,7 @@ class DNDUploader extends KDView
 
     fsFolderItem.exists (err, exists)=>
       unless exists
-      then fsFolderItem.save -> upload()
+      then FSHelper.createRecursiveFolder fsFolderItem, -> upload()
       else upload()
 
     return fsFileItem
