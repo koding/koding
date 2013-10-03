@@ -20,7 +20,7 @@ class ExternalProfileView extends JView
 
     super
 
-    @setTooltip title : "Click to bind your #{@getOption 'nicename'} account"
+    @setTooltip title : "Click to link your #{@getOption 'nicename'} account"
     @setLinkedState()
 
   setLinkedState:->
