@@ -56,19 +56,15 @@ class AccountPaymentMethodsList extends KDListView
     super options,data
 
   showModal: (controller) ->
-    KD.remote.api.JRecurlyPlan.getAccount (err, data)=>
-      if err or not data
-        data = {}
+    paymentController = KD.getSingleton 'paymentController'
+    paymentController.fetchBillingInfo 'user', (err, initialBillingInfo) ->
+      
+      modal = paymentController.createBillingInfoModal 'user', initialBillingInfo
+      
+      modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) ->
+        paymentController.updateBillingInfo updatedBillingInfo
 
-      paymentController = KD.getSingleton "paymentController"
-      modal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess) ->
-        KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
-          if err
-            onError err
-          else
-            controller.emit 'reload'
-            onSuccess result
-
+      
       form = modal.modalTabs.forms["Billing Info"]
 
       # Credit card icon

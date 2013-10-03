@@ -23,7 +23,7 @@ module.exports = class JRecurly extends Base
   @set
     sharedMethods  :
       static       : [
-        'getBalance', 'setBillingInfo', 'getAccount', 'getTransactions', 'getCountryData'
+        'getBalance', 'setBillingInfo', 'getAccount', 'getTransactions', 'fetchCountryDataByIp'
       ]
 
   @setBillingInfo = secure (client, data, callback) ->
@@ -134,7 +134,7 @@ module.exports = class JRecurly extends Base
     else
       recurly[method] cb
 
-  @getCountryData:(ip, callback)->
+  @fetchCountryDataByIp:(ip, callback)->
     countries = require './countries.json'
     {sortBy}  = require 'underscore'
 
