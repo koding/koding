@@ -79,7 +79,7 @@ module.exports = class JUser extends jraphical.Module
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
-        'login','logout','register','usernameAvailable','emailAvailable',
+        'login','logout','usernameAvailable','emailAvailable',
         'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
         'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
         'authenticateWithOauth','unregister'
@@ -822,6 +822,7 @@ Your password has been changed!  If you didn't request this change, please conta
   @persistOauthInfo: (username, clientId, callback)->
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
       return callback err  if err
+      return callback()    unless foreignAuthInfo
       @saveOauthToUser foreignAuthInfo, username, (err)=>
         return callback err  if err
         @clearOauthFromSession session, (err)=>
