@@ -22,6 +22,8 @@ class AccountListWrapper extends KDView
       referralSystemController       : AccountReferralSystemListController
       referralSystem                 : AccountReferralSystemList
     billing                          :
+      methodsController              : AccountPaymentMethodsListController
+      methods                        : AccountPaymentMethodsList
       historyController              : AccountPaymentHistoryListController
       history                        : AccountPaymentHistoryList
       subscriptionsController        : AccountSubscriptionsListController
