@@ -319,11 +319,7 @@ module.exports = class CActivity extends jraphical.Capsule
         targetId: delegate.getId()
         as: 'like'
       , {}, (err, likedRels)=>
-        likedIds = []
-        for likedRel in likedRels
-          likedIds.push likedRel.sourceId
-
-        callback err, likedIds
+        callback err, (likedRel.sourceId for likedRel in likedRels)
 
   notifyCache = (event, contents)->
     routingKey = contents.group or 'koding'
