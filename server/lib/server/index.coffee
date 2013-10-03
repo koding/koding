@@ -238,12 +238,11 @@ app.get "/sitemap:sitemapName", (req, res)->
     sitemapName = "sitemap.xml"
   else 
     sitemapName = "sitemap" + sitemapName
-  console.log sitemapName
   JSitemap.one "name" : sitemapName, (err, sitemap)->
     if err or not sitemap
       res.send 404
-      res.end
     else
+      res.setHeader 'Content-Type', 'text/xml'
       res.send sitemap.content
     res.end
 

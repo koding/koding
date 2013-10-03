@@ -7,6 +7,7 @@ _ = require "underscore"
 
 NAMEPERPAGE = 50000
 GROUPPERPAGE = 5
+
 module.exports = class SitemapGeneratorWorker extends EventEmitter
   constructor: (@bongo, @options = {}) ->
 
@@ -24,7 +25,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
       if isMain
         sitemap += "<url><loc>#{@options.uri.address}/#{url}</loc></url>"
       else
-        sitemap += "<url><loc>#{@options.uri.address}/#!#{url}</loc></url>"
+        sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
     sitemap += sitemapFooter
 
   generateSitemapName: (skip)->
@@ -35,19 +36,19 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)-> 
       console.log err if err
 
-  generateMainSitemap: (sitemapNames)=>
-    name = "sitemap.xml"
-    content = @generateSitemapString sitemapNames, true
-    @saveSitemap name, content
-
   generate:=>
     {JName, JGroup, JSitemap} = @bongo.models
 
-    sitemapNames = []
 
     groupSelector = {
       privacy:'public'
     }
+
+    generateMainSitemap = (sitemapNames)=> 
+      name = "sitemap.xml"
+      content = @generateSitemapString sitemapNames, true
+      @saveSitemap name, content
+
 
     JGroup.count groupSelector, (err, groupCount)=>
       numberOfGroupPages = Math.ceil(groupCount / GROUPPERPAGE)
@@ -59,7 +60,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
       # We add 'koding' group to publicGroups selector for the first cycle.
       publicGroups.push 'koding'
 
-      for groupPageNumber in [1..numberOfGroupPages]
+      groupQueue = [1..numberOfGroupPages].map (groupPageNumber)=>=>
         groupSkip = (groupPageNumber - 1) * GROUPPERPAGE
         groupOptions = {
           limit : GROUPPERPAGE,
@@ -80,7 +81,6 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
           JName.count selector, (err, count)=>
             numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
-
             queue = [1..numberOfNamePages].map (pageNumber)=>=>
               skip = (pageNumber - 1) * NAMEPERPAGE
               option = {
@@ -89,16 +89,19 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
               }
               JName.some selector, option, (err, names)=>
                 urls = (name.name for name in names) 
-
                 sitemapName =  @generateSitemapName skip
                 content = @generateSitemapString urls
                 @saveSitemap sitemapName, content
 
-                sitemapNames.push sitemapName + ".xml"
+                groupQueue.sitemapNames or= []
+                groupQueue.sitemapNames.push sitemapName + ".xml"
                 queue.next()
-            queue.push => @generateMainSitemap sitemapNames
-
+            queue.push => groupQueue.next()
             daisy queue
+            
+
+      groupQueue.push => generateMainSitemap(groupQueue.sitemapNames)
+      daisy groupQueue
 
 
   init:->
