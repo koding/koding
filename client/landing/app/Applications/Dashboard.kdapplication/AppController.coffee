@@ -106,17 +106,36 @@ class DashboardAppController extends AppController
   productViewAdded: (pane, view) ->
 
   showBillingInfoModal: (type, group, callback) ->
-    @fetchBillingInfo group, (err, billing) =>
-      paymentController = KD.getSingleton "paymentController"
+    modal = @createBillingInfoModal type, group
+
+    modal.on 'PaymentInfoSubmitted', (formData) ->
+      switch type
+        when 'group'
+          getGroup().setBillingInfo formData, -> debugger
+        when 'user'
+          debugger
+
+    modal.on 'CountryDataPopulated', -> callback null, modal
+
+  createBillingInfoModal: (type, group) ->
+
+    paymentController = KD.getSingleton "paymentController"
+    
+    modal = paymentController.createBillingInfoModal type, {}
+    
+    @fetchBillingInfo group, (err, billingInfo) =>
       
       if billingInfo?
-        paymentController.showBillingInfoModal type, billing, callback
+        modal.setBillingInfo billingInfo
 
       else
         console.log "we need to decide whether to use the user's billing info"
+    
+    return modal
         
   fetchBillingInfo: (group, callback = (->)) ->
-    group.fetchBillingInfo (err, billing) -> callback err, billing
+    group.fetchBillingInfo callback
+
 
   # vocabularyViewAdded:(pane, view)->
   #   group = view.getData()

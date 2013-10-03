@@ -4,48 +4,56 @@ class PaymentController extends KDController
     KD.getSingleton('groupsController').getCurrentGroup()
 
   getBalance: (type, callback)->
-    if type is 'user'
-      KD.remote.api.JRecurlyPlan.getUserBalance callback
-    else
-      KD.remote.api.JRecurlyPlan.getGroupBalance callback
+    
+    { JRecurlyPlan } = KD.remote.api
 
-  updateCreditCard: (type, callback=->)->
-    @updateCreditCardModal {}, (newData)=>
+    if type is 'user'
+      JRecurlyPlan.getUserBalance callback
+    else
+      JRecurlyPlan.getGroupBalance callback
+
+  updateCreditCard: (type, callback = (->)) ->
+
+    { JRecurlyPlan } = KD.remote.api
+
+    @updateCreditCardModal {}, (newData) =>
       @modal.buttons.Save.hideLoader()
       if type in ['group', 'expensed']
         getGroup().setBillingInfo newData, callback
       else
-        KD.remote.api.JRecurlyPlan.setUserAccount newData, callback
+        JRecurlyPlan.setUserAccount newData, callback
 
-  fetchBillingInfo: (type, callback)->
+  fetchBillingInfo: (type, callback) ->
+    
+    { JRecurlyPlan } = KD.remote.api
+
     if type in ['group', 'expensed']
       getGroup().fetchBillingInfo callback
     else
-      KD.remote.api.JRecurlyPlan.getAccount callback
+      JRecurlyPlan.getAccount callback
 
-  getSubscription: do->
-    findActiveSubscription = (subs, planCode, callback)->
-      subs.reverse().forEach (sub)->
+  getSubscription: do ->
+    findActiveSubscription = (subs, planCode, callback) ->
+      subs.reverse().forEach (sub) ->
         if sub.planCode is planCode and sub.status in ['canceled', 'active']
           return callback sub
 
       callback 'none'
 
-    (type, planCode, callback)->
+    getSubscription = (type, planCode, callback) ->
+      { JRecurlySubscription } = KD.remote.api
+
       if type is 'group'
-        getGroup().checkPayment (err, subs)=>
+        getGroup().checkPayment (err, subs) =>
           findActiveSubscription subs, planCode, callback
       else
-        KD.remote.api.JRecurlySubscription.getUserSubscriptions (err, subs)->
+        JRecurlySubscription.getUserSubscriptions (err, subs) ->
           findActiveSubscription subs, planCode, callback
 
-  confirmPayment:(type, plan, callback=->)->
-    getGroup().canCreateVM
-      type     : type
-      planCode : plan.code
-    , (err, status)=>
-      @getSubscription type, plan.code, (subscription)=>
-        cb = (needBilling, balance, amount)=>
+  confirmPayment: (type, plan, callback = (->)) ->
+    getGroup().canCreateVM { type, planCode: plan.code }, (err, status) =>
+      @getSubscription type, plan.code, (subscription) =>
+        cb = (needBilling, balance, amount) =>
           @createPaymentConfirmationModal {
             needBilling, balance, amount, type, group, plan, subscription
           }, callback
@@ -53,30 +61,29 @@ class PaymentController extends KDController
         if status
           cb no, 0, 0
         else
-          @fetchBillingInfo type, group, (err, billing)=>
+          @fetchBillingInfo type, group, (err, billing) =>
             needBilling = err or not billing?.cardNumber?
 
-            @getBalance type, group, (err, balance)=>
+            @getBalance type, group, (err, balance) =>
               balance = 0  if err
               cb needBilling, balance, plan.feeMonthly
 
-  makePayment: (type, plan, amount)->
+  makePayment: (type, plan, amount) ->
     vmController = KD.getSingleton('vmController')
 
     if amount is 0
       vmController.createGroupVM type, plan.code
+    else if type in ['group', 'expensed']
+      paymentInfo = { plan: plan.code, multiple: yes }
+      getGroup().makePayment paymentInfo, (err, result)->
+        return KD.showError err  if err
+        vmController.createGroupVM type, plan.code
     else
-      if type in ['group', 'expensed']
-        paymentInfo = { plan: plan.code, multiple: yes }
-        getGroup().makePayment paymentInfo, (err, result)->
-          return KD.showError err  if err
-          vmController.createGroupVM type, plan.code
-      else
-        plan.subscribe multiple: yes, (err, result)->
-          return KD.showError err  if err
-          vmController.createGroupVM type, plan.code
+      plan.subscribe multiple: yes, (err, result)->
+        return KD.showError err  if err
+        vmController.createGroupVM type, plan.code
 
-  deleteVM: (vmInfo, callback)->
+  deleteVM: (vmInfo, callback) ->
     type  =
       if (vmInfo.planOwner.indexOf 'user_') > -1 then 'user'
       else if vmInfo.type is 'expensed'          then 'expensed'
@@ -87,8 +94,8 @@ class PaymentController extends KDController
 
   # views
 
-  updateCreditCardModal:(data, callback) ->
-    @modal = new PaymentFormModal {callback}
+  updateCreditCardModal: (data, callback) ->
+    @modal = new PaymentFormModal { callback }
 
     form = @modal.modalTabs.forms['Billing Info']
     form.inputs[k]?.setValue v  for k, v of data
@@ -96,23 +103,43 @@ class PaymentController extends KDController
     @modal.on 'KDObjectWillBeDestroyed', => delete @modal
     return @modal
 
-  showBillingInfoModal:(type, billingInfo, callback)->
+  fetchBillingInfo: (type, callback) ->
+    
+    { JRecurlyPlan } = KD.remote.api
+
+    switch type
+      when 'group'
+        debugger
+      when 'user'
+        JRecurlyPlan.getAccount callback
+
+  updateBillingInfo: (billingInfo, callback) ->
+    
+    { JRecurlyPlan } = KD.remote.api
+
+    JRecurlyPlan.setUserAccount newData, (err, result)->
+      debugger
+
+
+  createBillingInfoModal:(type, billingInfo) ->
+
     modal = new BillingFormModal { type }, billingInfo
-    modal.on 'PaymentInfoSubmitted', (formData) ->
-      getGroup().setBillingInfo formData, -> debugger
-    @loadCountryData (err, countries, countryOfIp) =>
+
+    @fetchCountryData (err, countries, countryOfIp) =>
       modal.setCountryData { countries, countryOfIp }
-      callback null
 
-    return this
+    return modal
 
-  loadCountryData:(callback)->
+  fetchCountryData:(callback)->
+
+    { JRecurly } = KD.remote.api
+
     if @countries or @countryOfIp
-      return @utils.defer =>
-        callback null, @countries, @countryOfIp
+      return @utils.defer => callback null, @countries, @countryOfIp
 
     ip = $.cookie 'clientIPAddress'
-    KD.remote.api.JRecurly.getCountryData ip, (err, @countries, @countryOfIp)=>
+    
+    JRecurly.fetchCountryDataByIp ip, (err, @countries, @countryOfIp) =>
       callback err, @countries, @countryOfIp
 
   createPaymentConfirmationModal: (options, callback)->
@@ -120,4 +147,4 @@ class PaymentController extends KDController
     return new PaymentConfirmationModal options
 
   createDeleteConfirmationModal: (type, callback, subscription)->
-    return new PaymentDeleteConfirmationModal {subscription, type, callback}
+    return new PaymentDeleteConfirmationModal { subscription, type, callback }

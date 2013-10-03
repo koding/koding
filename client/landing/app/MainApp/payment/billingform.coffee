@@ -77,5 +77,6 @@ class BillingFormModal extends PaymentFormModal
     )
 
     @countryLoader.hide()
+    @emit 'CountryDataPopulated'
 
   handleFormData:->
