@@ -20,10 +20,10 @@ class HomeAppView extends JView
                   <i></i> Koding for <span>You</span>
                 </h3>
                 <p>
-                  Donec ullamcorper nulla non metus auctor fringilla. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper.
+                  You have great ideas, you want to meet brilliant minds and bring those ideas to life. You want to start simple and maybe become 10 people team commanding 100s of servers.
                 </p>
                 <p>
-                  Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas faucibus mollis interdum.
+                  You want to learn Python, Java, C, Go, Nodejs, HTML, CSS or Javascript or any other. Community will help you along the way.
                 </p>
               </div>
             """
@@ -38,10 +38,10 @@ class HomeAppView extends JView
                   <i></i> Koding for <span>Developers</span>
                 </h3>
                 <p>
-                  Donec ullamcorper nulla non metus auctor fringilla. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper.
+                  Have an amazing VM that is better than your laptop, connected to internet 100x faster, shareable with anyone. Clone git repos, test your code without breaking your setup.
                 </p>
                 <p>
-                  Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas faucibus mollis interdum.
+                  For free. Koding is your new localhost, in the clouds.
                 </p>
               </div>
             """
@@ -56,10 +56,10 @@ class HomeAppView extends JView
                   <i></i> Koding for <span>Education</span>
                 </h3>
                 <p>
-                  Donec ullamcorper nulla non metus auctor fringilla. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper.
+                  Have a group where your students enjoy the resources you provide to them. Have it private, invite-only, let them share, collaborate and submit their assignments together.10 students, or 10,000. Just 1 or 100s of computers.
                 </p>
                 <p>
-                  Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas faucibus mollis interdum.
+                  Koding is your new classroom.
                 </p>
               </div>
             """
@@ -74,10 +74,10 @@ class HomeAppView extends JView
                   <i></i> Koding for <span>Business</span>
                 </h3>
                 <p>
-                  Donec ullamcorper nulla non metus auctor fringilla. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper.
+                  When you hire someone, let them be in your environment in 5 minutes, collaborating with others, contributing code without sharing ssh keys, passwords. Stop cc'ing your team, stop looking for emails.
                 </p>
                 <p>
-                  Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas faucibus mollis interdum.
+                  Koding is your new workspace.
                 </p>
               </div>
             """
@@ -122,16 +122,16 @@ class HomeAppView extends JView
         </a>
         <a href="#" class="paid">
           <span>Each additional VM</span>
-          $3 / Month
+          $5 / Month
         </a>
       </div>
       <div class="pricing-details">
-        <span><strong>Always on*</strong> $4 / Month</span>
-        <span><strong>Extra RAM</strong> $3 / GB / Month</span><br>
-        <span><strong>Extra Disk Space</strong> $2 / GB / Month</span>
-        <span><strong>FireWall / Network Rules</strong> $2 / GB / Month</span>
+        <span><strong>Always on*</strong> $25 / Month</span>
+        <span><strong>Extra RAM</strong> $10 / GB / Month</span><br>
+        <span><strong>Extra Disk Space</strong> $1 / GB / Month</span>
+        <span><strong>Firewall / Backend Builder</strong> $5 / Per VM / Month</span>
       </div>
-      <span class="pricing-contact"><a href="#">Contact us</a> for Education and Business pricing</span>
+      <span class="pricing-contact"><a href="mailto:hello@koding.com?Subject=Please%20tell%20me..." target="_top">Contact us</a> for Education and Business pricing</span>
     </section>
     <footer class="home-footer">
       <section>
