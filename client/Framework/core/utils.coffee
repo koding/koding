@@ -686,6 +686,13 @@ __utils =
         i += 3
     string
 
+  applyGradient: (view, color1, color2) ->
+    rules = [
+      "-moz-linear-gradient(100% 100% 90deg, #{color2}, #{color1})"
+      "-webkit-gradient(linear, 0% 0%, 0% 100%, from(#{color1}), to(#{color2}))"
+    ]
+    view.setCss "backgroundImage", rule for rule in rules
+
   # Return true x% of time based on argument.
   #
   # Example:
@@ -777,20 +784,6 @@ __utils =
   compileCoffeeOnClient: (coffeeCode, callback = noop) ->
     require ["//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"], (coffeeCompiler) ->
       callback coffeeCompiler.eval coffeeCode
-
-  openGithubPopUp:->
-    {clientId} = KD.config.github
-    url        = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
-    name       = "Login"
-    size       = "height=643,width=1143"
-    newWindow  = window.open url, name, size
-    newWindow.focus()
-
-  useForeignAuth: (provider)->
-    mainController = KD.getSingleton "mainController"
-
-    if provider then mainController.emit "ForeignAuthCompleted", provider
-    else mainController.emit "ForeignAuthFailed"
 
   showSaveDialog: (container, callback = noop, options = {}) ->
     container.addSubView dialog = new KDDialogView

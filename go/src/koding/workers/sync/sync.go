@@ -257,16 +257,17 @@ func checkRelationshipExists(sourceId, targetId, relType string, flipped bool) b
 }
 
 func deleteDuplicateRel(relIds []string) {
+	neo4jConnection := neo4j.Connect(GRAPH_URL)
+	batch := neo4jConnection.NewBatch()
+
 	for _, id := range relIds {
 		rel := neo4j.Relationship{Id: id}
+		batch.Delete(&rel)
+	}
 
-		neo4jConnection := neo4j.Connect(GRAPH_URL)
-		batch := neo4jConnection.NewBatch().Delete(&rel)
-
-		_, err := batch.Execute()
-		if err != nil {
-			log.Println("err deleting rel", err)
-		}
+	_, err := batch.Execute()
+	if err != nil {
+		log.Println("err deleting rel", err)
 	}
 }
 

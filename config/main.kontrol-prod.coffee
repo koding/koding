@@ -7,6 +7,8 @@ projectRoot = nodePath.join __dirname, '..'
 
 mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0'
+
 socialQueueName = "koding-social-#{version}"
 
 authExchange    = "auth-#{version}"
@@ -39,6 +41,7 @@ module.exports =
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
   mongo         : mongo
+  mongoReplSet  : mongoReplSet
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
@@ -186,6 +189,7 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
       apiHost     : "172.16.3.11"
       apiPort     : 80
@@ -197,12 +201,6 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-    rabbitmq      :
-      host        : '172.16.3.4'
-      port        : '5672'
-      login       : 'guest'
-      password    : 's486auEkPzvUjYfeFTMQ'
-      vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :
@@ -221,3 +219,14 @@ module.exports =
   github        :
     clientId    : "5891e574253e65ddb7ea"
     clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"
+  odesk          :
+    key          : "9ed4e3e791c61a1282c703a42f6e10b7"
+    secret       : "1df959f971cb437c"
+  facebook       :
+    clientId     : "434245153353814"
+    clientSecret : "84b024e0d627d5e80ede59150a2b251e"
+    redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  statsd         :
+    use          : true
+    ip           : "172.168.2.7"
+    port         : 8125

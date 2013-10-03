@@ -139,7 +139,7 @@ class KDView extends KDObject
     @setDomElement options.cssClass
     @setDataId()
     @setDomId options.domId               if options.domId
-    @setDomAttributes options.attributes  if options.attributes
+    @setAttributes options.attributes     if options.attributes
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
     @updatePartial options.partial        if options.partial
@@ -192,8 +192,14 @@ class KDView extends KDObject
   setDataId:->
     @domElement.data "data-id",@getId()
 
-  setDomAttributes:(attributes)->
-    @getElement().setAttribute attr, val for own attr, val of attributes
+  getAttribute:(attr)->
+    @getElement().getAttribute attr
+
+  setAttribute:(attr, val)->
+    @getElement().setAttribute attr, val
+
+  setAttributes:(attributes)->
+    @setAttribute attr, val for own attr, val of attributes
 
   isInDom:do ->
     findUltimateAncestor =(el)->
@@ -285,6 +291,15 @@ class KDView extends KDObject
 
   _helpSetClass = (el, addOrRemove, cssClass)->
     el.classList[addOrRemove] cl for cl in cssClass.split(' ') when cl isnt ''
+
+  setCss:(property, value)->
+    el = @$()
+    el.css property, value
+
+  setStyle:(properties)->
+    el = @$()
+    for own property, value of properties
+      el.css property, value
 
   setClass:(cssClass)->
     return unless cssClass
@@ -404,11 +419,8 @@ class KDView extends KDObject
     super
 
   destroySubViews: ->
-    # (subView.destroy() for subView in @getSubViews())
-
-    for subView in @getSubViews().slice()
-      if subView instanceof KDView
-        subView?.destroy?()
+    view.destroy?() for view in @getSubViews().slice()
+    return
 
   addSubView:(subView,selector,shouldPrepend)->
     throw new Error 'no subview was specified' unless subView?
@@ -698,8 +710,11 @@ class KDView extends KDObject
         if 'string' is typeof view
           dragState.containment.viewBounds = @[view].getBounds()
         dragState.containment.viewBounds or= @parent.getBounds()
+        if 'number' is typeof options.containment.padding
+        then padding = options.containment.padding
+        else padding = 0
         dragState.containment.padding = \
-          options.containment.padding or top: 0, right: 0, bottom: 0, left: 0
+            top: padding, right: padding, bottom: padding, left: padding
 
       # TODO: should move these lines
       dragState.handle      = options.handle
@@ -884,7 +899,9 @@ class KDView extends KDObject
     o.delegate  or= this
     o.events    or= ['mouseenter','mouseleave','mousemove']
 
-    @tooltip ?= new KDTooltip o, {}
+    @tooltip?.destroy()
+    delete @tooltip
+    @tooltip = new KDTooltip o, {}
 
   getTooltip:-> @tooltip
 

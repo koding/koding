@@ -41,10 +41,10 @@ shadow()
   vendor(box-shadow,arguments)
 
 gradient()
-  background-image -moz-linear-gradient(100% 100% 90deg, arguments[1], arguments[0])
-  background-image -webkit-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1]))
-  background-image -khtml-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1]))
-  background-image -o-linear-gradient(arguments[0], arguments[1]);
+  background-image -moz-linear-gradient(100% 100% 90deg, arguments[1], arguments[0]) arguments[2]
+  background-image -webkit-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
+  background-image -khtml-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
+  background-image -o-linear-gradient(arguments[0], arguments[1]) arguments[2];
 
 gradient1()
   background-image -moz-linear-gradient(270deg, arguments[2] arguments[3], arguments[0] arguments[1])
@@ -146,3 +146,8 @@ kalc()
   {arguments[0]}  -webkit-calc(arguments[1]) arguments[2]
   {arguments[0]} calc(arguments[1]) arguments[2]
   // selamin     aleykumpx
+
+flex()
+  display         -webkit-box
+  display         -moz-box
+  display         flex

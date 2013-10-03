@@ -14,7 +14,7 @@ class KDSplitResizer extends KDView
 
     @on "DragFinished", @dragFinished
     @on "DragInAction", @dragInAction
-    @on "DragStarted", @dragStarted
+    @on "DragStarted",  @dragStarted
 
   _setOffset:(offset)->
     offset = 0 if offset < 0

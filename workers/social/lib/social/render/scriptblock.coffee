@@ -16,7 +16,7 @@ module.exports = ->
   <script src="/js/require.js"></script>
 
   <script>
-    require.config({baseUrl: "/js", waitSeconds:15});
+    require.config({baseUrl: "/js", waitSeconds:30});
     require(["order!/js/highlightjs/highlight.pack.js","order!/js/kd.#{KONFIG.version}.js"]);
   </script>
 

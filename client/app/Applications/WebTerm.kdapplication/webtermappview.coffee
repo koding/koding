@@ -92,7 +92,6 @@ class WebTermAppView extends JView
   chromeAppMode: ->
     windowController = KD.getSingleton("windowController")
     mainController   = KD.getSingleton("mainController")
-    windowController.clearUnloadListeners "window"
 
     # talking with chrome app
     if window.parent?.postMessage
