@@ -7,18 +7,26 @@ class HomeIntroView extends JView
 
     super options, data
 
+    router = KD.getSingleton 'router'
+
     @slogan     = new KDCustomHTMLView
       partial   : "A new way for developers to work"
       cssClass  : "slogan"
+
     @subSlogan     = new KDCustomHTMLView
       partial   : "Software development has finally evolved,<br> It's now social, in the browser and free!"
       cssClass  : "sub-slogan"
+
     @emailSignupButton  = new KDButtonView
       cssClass  : "email"
       partial   : "<i></i>Sign up <span>with email</span>"
+      callback  : -> router.handleRoute '/Register'
+
     @gitHubSignupButton = new KDButtonView
       cssClass  : "github"
       partial   : "<i></i>Sign up <span>with gitHub</span>"
+      callback  : -> KD.getSingleton("oauthController").openPopup "github"
+
 
 
   show:-> @unsetClass 'out'
