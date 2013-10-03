@@ -17,6 +17,7 @@ class EnvironmentContainer extends KDDiaContainer
 
     @newItemPlus = new KDCustomHTMLView
       cssClass   : 'new-item-plus'
+      partial    : "<i></i><span>Add new</span>"
       click      : => @emit 'PlusButtonClicked'
 
     @loader = new KDLoaderView

@@ -699,6 +699,9 @@ div.environments-add-domain-form
     border-bottom       1px solid #d9d9d9
     shadow              0 1px 0 #f5f5f5
 
+    span
+      margin            0 11px
+
     button.small-gray
       margin            3px 0 0 0
       fr()
@@ -765,7 +768,9 @@ div.environments-add-domain-form
 
     input.subdomain-input
       height              35px
+      line-height         35px
       shadow              0 1px 0 #fff
+      margin-top          19px
       margin-bottom       1px
       padding             0 140px 0 10px
       borderBox()
@@ -875,17 +880,46 @@ div.environments-container
     .new-item-plus
       size                20px, 20px
       margin              5px 20px 0 0
-      rounded             100%
-      sprite()
+      rounded             12px
       background-color    #555
-      background-position -120px -440px
+      border              1px solid #555
       cursor              pointer
-      vendor              transition, background-color .2s ease-in
+      vendor              transition, width .2s .2s ease
+      position            relative
+      overflow            hidden
       fr()
 
+      i
+        display                 block
+        size                    20px, 20px
+        sprite()
+        background-position     -120px -440px
+        left                    0px
+        top                     0px
+        abs()
+
+      span
+        left                    25px
+        top                     0
+        height                  20px
+        line-height             20px
+        font-size               11px
+        text-align              left
+        white-space             nowrap
+        margin                  0
+        font-weight             600
+        color                   #fff
+        vendor                  transition, left     .2s .4s ease \,\
+                                            opacity  .1s .4s ease
+        opacity                 0
+        abs()
+
       &:hover
-        background-position   -120px -480px
-        background-color      #fff
+        width                 73px
+
+        span
+          left                5px
+          opacity             1
 
     .new-item-loader
       abs         19px, 10px
