@@ -94,7 +94,8 @@ class AceView extends JView
         content         : """
         <div class="modalformline">
           <p>
-            The file <code>#{@getData().name}</code> is a readonly file.
+            The file <code>#{@getData().name}</code> is set to readonly,
+            you won't be able to save your changes.
           </p>
         </div>
         """
