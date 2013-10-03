@@ -187,7 +187,7 @@ class NFinderController extends KDViewController
     vmRoots = (@appStorage.getValue 'vmRoots') or {}
     pipedVm = @_pipedVmName vmName
     vmRoots[pipedVm] = path
-    @appStorage.setValue 'vmRoots', vmRoots
+    @appStorage.setValue 'vmRoots', vmRoots  if @getOptions().useStorage
 
     @mountVm "#{vmName}:#{path}"
 
