@@ -158,7 +158,7 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : "stage-broker-#{version}.in.koding.com"
+    webHostname : "stage-broker-#{version}.sj.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -224,6 +224,6 @@ module.exports =
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
   statsd         :
-    log          : true
+    use          : true
     ip           : "172.168.2.7"
     port         : 8125

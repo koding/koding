@@ -13,19 +13,17 @@ class DeleteAccountView extends JView
       mouseenter : do ->
         times = 0
         ->
-          if times is 0
-            @setTitle "Are you sure?!"
-          if times is 1
-            @setTitle "OK, go ahead :)"
-          if times > 1
-            KD.utils.wait 5000, =>
-              times = 0
-              @setTitle "Delete Account"
-            return
+          switch times
+            when 0 then @setTitle "Are you sure?!"
+            when 1 then @setTitle "OK, go ahead :)"
+            else
+              KD.utils.wait 5000, =>
+                times = 0
+                @setTitle "Delete Account"
+              return
           @toggleClass 'escape'
           times++
-      callback   : ->
-        new DeleteModalView
+      callback   : -> new DeleteModalView
 
   pistachio:->
     """

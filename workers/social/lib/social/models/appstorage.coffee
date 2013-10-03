@@ -1,6 +1,6 @@
-jraphical = require 'jraphical'
+JStorage = require './storage'
 
-module.exports = class JAppStorage extends jraphical.Module
+module.exports = class JAppStorage extends JStorage
 
   {secure} = require 'bongo'
 

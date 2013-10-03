@@ -41,13 +41,6 @@ class OpinionFormView extends KDFormView
         messages   :
           required : "Please provide an opinion..."
 
-    @labelAddTags = new KDLabelView
-      title : "Add Tags:"
-
-    @selectedItemWrapper = new KDCustomHTMLView
-      tagName  : "div"
-      cssClass : "tags-selected-item-wrapper clearfix"
-
     @heartBox = new HelpBox
       subtitle : "About Answers and Opinions"
       tooltip  :
