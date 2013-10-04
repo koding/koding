@@ -128,6 +128,12 @@ class TeamworkApp extends KDObject
             else
               @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url
 
+  showMarkdownModal: (rawContent) ->
+    @teamwork.markdownContent = KD.utils.applyMarkdown rawContent  if rawContent
+    modal                     = new TeamworkMarkdownModal
+      content                 : @teamwork.markdownContent
+      targetEl                : @teamwork.getActivePanel().headerHint
+
   handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url) ->
     vmController.run "rm -rf #{root}/#{folderName} ; mv #{path}/#{folderName} #{root}", (err, res) =>
       return warn err if err
@@ -140,13 +146,7 @@ class TeamworkApp extends KDObject
       FSHelper.exists readMeFile, vmController.defaultVmName, (err, res) =>
         return unless res
         file  = FSHelper.createFileFromPath readMeFile
-        file.fetchContents (err, readMeContent) =>
-          modal = new KDModalView
-            title    : "README"
-            cssClass : "has-markdown teamwork-markdown"
-            overlay  : yes
-            width    : 630
-            content  : KD.utils.applyMarkdown readMeContent
+        file.fetchContents (err, readMeContent) => @showMarkdownModal readMeContent
 
   setVMRoot: (path) ->
     vmController       = KD.getSingleton "vmController"
