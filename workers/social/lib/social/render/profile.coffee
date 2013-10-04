@@ -2,6 +2,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
 
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
+  getGraphMeta    = require './graphmeta'
   encoder         = require 'htmlencode'
 
   {profile, counts, skilltags} = renderedAccount
@@ -20,10 +21,11 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
   """
 
   <!DOCTYPE html>
-  <html>
+  <html prefix="og: http://ogp.me/ns#">
   <head>
     <title>#{encoder.XSSEncode title}</title>
     #{getStyles()}
+    #{getGraphMeta()}
   </head>
   <body>
 
