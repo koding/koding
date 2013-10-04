@@ -183,6 +183,13 @@ __bookPages = [
     howToSteps: ['showNewVMMenu']
     menuItem  : "Develop"
   ,
+    cssclass  : "develop more-1"
+    content   : """
+                <h2>3 how can i upload my files?</h2>
+                <p>filetree is a place that you can manage your files, upload files, edit and preview files.</p>
+                """
+    version   : 1.1
+  ,
     cssClass  : "develop more-1"
     content   : """<p>It's easy to change your homepage! Currently: <a href= "#"> http://{{#(profile.nickname)}}.kd.io </a>
                   <ol>

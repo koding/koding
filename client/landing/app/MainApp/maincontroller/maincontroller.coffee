@@ -142,11 +142,8 @@ class MainController extends KDController
       @emit "ShowInstructionsBook", 9
       $.cookie 'newRegister', erase: yes
     else
-      BookView.getNewPages (pages)=>
-        if pages.length > 0
-          BookView.navigateNewPages = yes
-          @emit "ShowInstructionsBook", pages[0].index
-
+      BookView::getNewPages (pages)=>
+        @emit "ShowInstructionsBook", pages.first.index if pages.length
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
