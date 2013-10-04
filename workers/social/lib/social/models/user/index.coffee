@@ -79,7 +79,7 @@ module.exports = class JUser extends jraphical.Module
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
-        'login','logout','register','usernameAvailable','emailAvailable',
+        'login','logout','usernameAvailable','emailAvailable',
         'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
         'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
         'authenticateWithOauth','unregister'
@@ -326,15 +326,17 @@ module.exports = class JUser extends jraphical.Module
           $unset:
             guestId       : 1
         }, (err)->
-            if err then return callback err
-            connection.delegate = account
-            JAccount.emit "AccountAuthenticated", account
-            # This should be called after login and this
-            # is not correct place to do it, FIXME GG
-            # p.s. we could do that in workers
-            JLog.log { type: "login", username: account.username, success: yes }, ->
-            account.updateCounts()
-            callback null, {account, replacementToken}
+            return callback err  if err
+            user.update { $set: lastLoginDate: new Date }, (err) ->
+              return callback err  if err
+              connection.delegate = account
+              JAccount.emit "AccountAuthenticated", account
+              # This should be called after login and this
+              # is not correct place to do it, FIXME GG
+              # p.s. we could do that in workers
+              JLog.log { type: "login", username: account.username, success: yes }, ->
+              account.updateCounts()
+              callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
@@ -832,6 +834,7 @@ Your password has been changed!  If you didn't request this change, please conta
   @persistOauthInfo: (username, clientId, callback)->
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
       return callback err  if err
+      return callback()    unless foreignAuthInfo
       @saveOauthToUser foreignAuthInfo, username, (err)=>
         return callback err  if err
         @clearOauthFromSession session, (err)=>

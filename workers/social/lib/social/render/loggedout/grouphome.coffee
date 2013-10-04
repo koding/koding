@@ -2,16 +2,18 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
 
   getStyles       = require './../styleblock'
   getScripts      = require './../scriptblock'
+  getGraphMeta    = require './../graphmeta'
   getSidebar      = require './sidebar'
   encoder         = require 'htmlencode'
 
   """
 
   <!DOCTYPE html>
-  <html>
+  <html prefix="og: http://ogp.me/ns#">
   <head>
     <title>#{encoder.XSSEncode title}</title>
     #{getStyles()}
+    #{getGraphMeta()}
   </head>
   <body class="group">
 

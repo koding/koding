@@ -3,15 +3,17 @@ module.exports = ->
   getHomeIntro = require './../homeintro'
   getStyles    = require './../styleblock'
   getScripts   = require './../scriptblock'
+  getGraphMeta = require './../graphmeta'
   getSidebar   = require './sidebar'
 
   """
 
   <!doctype html>
-  <html lang="en">
+  <html lang="en" prefix="og: http://ogp.me/ns#">
   <head>
     <title>Koding</title>
     #{getStyles()}
+    #{getGraphMeta()}
   </head>
   <body class='koding'>
 

@@ -3,8 +3,8 @@ class TeamworkApp extends KDObject
   constructor: (options = {}, data) ->
 
     super options, data
-    instanceName = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
 
+    instanceName          = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
     @teamwork             = new TeamworkWorkspace
       name                : "Teamwork"
       version             : "0.1"
@@ -105,10 +105,10 @@ class TeamworkApp extends KDObject
             if res is yes
               modal.destroy()
               modal          = new KDModalView
-                title        : "Folder Exist"
+                title        : "Folder Exists"
                 cssClass     : "modal-with-text"
                 overlay      : yes
-                content      : "<p>This folder is alrady exist. Do you want to overwrite it?</p>"
+                content      : "<p>There is already a folder with the same name. Do you want to overwrite it?</p>"
                 buttons      :
                   Confirm    :
                     title    : "Overwrite"
@@ -132,7 +132,19 @@ class TeamworkApp extends KDObject
       modal.destroy()
       vmController.run "rm -rf #{path}"
       notification.destroy()
-      @setVMRoot "#{root}/#{folderName}"
+      folderPath = "#{root}/#{folderName}"
+      readMeFile = "#{folderPath}/README.md"
+      @setVMRoot folderPath
+      FSHelper.exists readMeFile, vmController.defaultVmName, (err, res) =>
+        return unless res
+        file  = FSHelper.createFileFromPath readMeFile
+        file.fetchContents (err, readMeContent) =>
+          modal = new KDModalView
+            title    : "README"
+            cssClass : "has-markdown teamwork-markdown"
+            overlay  : yes
+            width    : 630
+            content  : KD.utils.applyMarkdown readMeContent
 
   setVMRoot: (path) ->
     vmController       = KD.getSingleton "vmController"
