@@ -44,7 +44,7 @@ func New(filepath ...string) *Slog {
 	return &Slog{
 		out: io.MultiWriter(writers...),
 		prefix: func() string {
-			return fmt.Sprintf("[%s] ", time.Now().Format(time.Stamp))
+			return fmt.Sprintf("[%s] ", time.Now().Format(time.StampMilli))
 		},
 	}
 }
