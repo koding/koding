@@ -24,7 +24,7 @@ module.exports = class JLocation extends Model
       mongo           : @getClient()
 
     importer
-      .on 'error', (err)  -> callback err
-      .on 'end',          -> callback null
+      .once 'error', (err) -> callback err
+      .once 'end',         -> callback null
 
   @byZip = (zip, callback) -> @one { zip }, callback
