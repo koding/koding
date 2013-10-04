@@ -114,13 +114,6 @@ __bookPages = [
                 """
     version   : 1.1
   ,
-    cssclass  : "develop more-1"
-    content   : """
-                <h2>2 how can i upload my files?</h2>
-                <p>filetree is a place that you can manage your files, upload files, edit and preview files.</p>
-                """
-    version   : 1.1
-  ,
     cssClass  : "develop more-1"
     content   : """<h2> Your default applications: </h2>
                    <p><strong>Ace</strong> is your perfect text editor on cloud! Use it to edit documents in your file tree! </p>
@@ -182,13 +175,6 @@ __bookPages = [
     showHow   : yes
     howToSteps: ['showNewVMMenu']
     menuItem  : "Develop"
-  ,
-    cssclass  : "develop more-1"
-    content   : """
-                <h2>3 how can i upload my files?</h2>
-                <p>filetree is a place that you can manage your files, upload files, edit and preview files.</p>
-                """
-    version   : 1.1
   ,
     cssClass  : "develop more-1"
     content   : """<p>It's easy to change your homepage! Currently: <a href= "#"> http://{{#(profile.nickname)}}.kd.io </a>
