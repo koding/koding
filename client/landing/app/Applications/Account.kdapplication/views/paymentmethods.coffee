@@ -16,23 +16,25 @@ class AccountPaymentMethodsListController extends AccountListViewController
   loadItems: ->
     @removeAllItems()
     @showLazyLoader no
-
     KD.remote.api.JRecurlyPlan.getAccount (err, res) =>
       accounts = []
       if err
         @instantiateListItems []
         @hideLazyLoader()
       unless err
-        if res.cardNumber
+        if res.billing
+          { cardFirstName, cardLastName, cardNumber, cardType, cardMonth,
+            cardYear, address1, address2, city, state, zip } = res.billing
+
           accounts.push
-            title        : "#{res.cardFirstName} #{res.cardLastName}"
-            type         : res.cardType
-            cardNumber   : res.cardNumber
-            cardExpiry   : res.cardMonth + '/' + res.cardYear
-            cardAddress  : res.address1 + ' ' + res.address2
-            cardCity     : res.city
-            cardState    : res.state
-            cardZip      : res.zip
+            title        : "#{cardFirstName} #{cardLastName}"
+            type         : cardType
+            cardNumber   : cardNumber
+            cardExpiry   : [ cardMonth, cardYear ].join '/'
+            cardAddress  : [ address1, address2 ].filter(Boolean).join ' '
+            cardCity     : city
+            cardState    : state
+            cardZip      : zip
         @instantiateListItems accounts
         @hideLazyLoader()
 
@@ -67,15 +69,6 @@ class AccountPaymentMethodsList extends KDListView
       
       form = modal.modalTabs.forms["Billing Info"]
 
-      # Credit card icon
-      form.fields['cardNumber'].addSubView icon = new KDCustomHTMLView tagName : "span", cssClass : "icon"
-
-      form.inputs['cardNumber'].on "CreditCardTypeIdentified", (type)=>
-        cardType = type.toLowerCase()
-        $icon = icon.$()
-        unless $icon.hasClass cardType
-          $icon.removeClass "visa mastercard discover amex"
-          $icon.addClass cardType
 
 class AccountPaymentMethodsListItem extends KDListItemView
   constructor:(options,data)->
