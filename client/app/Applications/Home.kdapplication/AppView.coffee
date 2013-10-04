@@ -82,6 +82,36 @@ class HomeAppView extends JView
               </div>
             """
 
+    @priceBoxes = new KDCustomHTMLView
+      cssClass      : "price-boxes"
+      bind          : "mouseleave"
+      mouseleave    : =>
+        @additionalVmBox.setClass "mouseleave"
+        KD.utils.wait 500, => @additionalVmBox.unsetClass "mouseleave"
+
+    @priceBoxes.addSubView @freeVmBox = new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "free"
+      partial   : "<span>Your first VM</span>Free"
+
+    @priceBoxes.addSubView @additionalVmBox = new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "paid"
+      partial   : "<span>Each additional VM</span>$5 / Month"
+
+    @statusLink = new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "Status"
+      tooltip   :
+        title   : "Coming soon"
+
+    @apiLink = new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "Api"
+      tooltip   :
+        title   : "Coming soon"
+
+
   _windowDidResize:->
     @unsetClass "extra-wide wide medium narrow extra-narrow"
     w = @getWidth()
@@ -115,16 +145,7 @@ class HomeAppView extends JView
     <section class="pricing-section" id="pricing-section">
       <h3>Simple Pricing</h3>
       <h4>Try it and see if it's really as cool as we say</h4>
-      <div class="price-boxes">
-        <a href="#" class="free">
-          <span>Your first VM</span>
-          Free
-        </a>
-        <a href="#" class="paid">
-          <span>Each additional VM</span>
-          $5 / Month
-        </a>
-      </div>
+      {{> @priceBoxes}}
       <div class="pricing-details">
         <span><strong>Always on*</strong> $25 / Month</span>
         <span><strong>Extra RAM</strong> $10 / GB / Month</span><br>
@@ -141,8 +162,8 @@ class HomeAppView extends JView
           <a href="/privacy.html" target="_blank">Privacy</a>
         </div>
         <div class="fr">
-          <a href="#">Status</a>
-          <a href="#">Api</a>
+          {{> @statusLink}}
+          {{> @apiLink}}
           <a href="http://blog.koding.com" target='_blank'>Blog</a>
           <a href="#">About</a>
         </div>
