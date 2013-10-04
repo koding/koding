@@ -18,17 +18,10 @@ class TeamworkMarkdownModal extends KDModalView
 
   destroy: ->
     @setClass "scale"
+
     {targetEl} = @getOptions()
     targetEl.setClass "opacity"
 
-    top     = targetEl.getY()
-    left    = targetEl.getX()
-    width   = @getWidth()
-    height  = @getHeight()
-
-    newTop  = top  + 12 - (height / 2) # 11 is scaled width
-    newLeft = left - (width / 2)
-
     @setStyle
-      left   : newLeft
-      top    : newTop
+      left   : targetEl.getX() - (@getWidth()  / 2)
+      top    : targetEl.getY() - (@getHeight() / 2) + 12 # 12 is scaled width
