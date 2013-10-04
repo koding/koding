@@ -28,8 +28,8 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
         sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
     sitemap += sitemapFooter
 
-  generateSitemapName: (skip)->
-    return  "sitemap_" + skip + "_" + (skip + NAMEPERPAGE)
+  generateSitemapName: (groupPageNumber, skip)->
+    return  "sitemap_" + groupPageNumber + "_" + skip + "_" + (skip + NAMEPERPAGE) + ".xml"
 
   saveSitemap: (name, content)->
     {JSitemap} = @bongo.models
@@ -39,7 +39,6 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
   generate:=>
     {JName, JGroup, JSitemap} = @bongo.models
 
-
     groupSelector = {
       privacy:'public'
     }
@@ -48,7 +47,6 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
       name = "sitemap.xml"
       content = @generateSitemapString sitemapNames, true
       @saveSitemap name, content
-
 
     JGroup.count groupSelector, (err, groupCount)=>
       numberOfGroupPages = Math.ceil(groupCount / GROUPPERPAGE)
@@ -71,7 +69,6 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
           for group in jGroups
             publicGroups.push group.slug
 
-
           selector = {
             'slugs.group': { $in: publicGroups }
           }
@@ -89,12 +86,12 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
               }
               JName.some selector, option, (err, names)=>
                 urls = (name.name for name in names) 
-                sitemapName =  @generateSitemapName skip
+                sitemapName =  @generateSitemapName groupPageNumber, skip
                 content = @generateSitemapString urls
                 @saveSitemap sitemapName, content
 
                 groupQueue.sitemapNames or= []
-                groupQueue.sitemapNames.push sitemapName + ".xml"
+                groupQueue.sitemapNames.push sitemapName
                 queue.next()
             queue.push => groupQueue.next()
             daisy queue
