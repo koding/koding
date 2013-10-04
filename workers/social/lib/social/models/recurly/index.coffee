@@ -42,8 +42,7 @@ module.exports = class JRecurly extends Base
         recurly.setAccount userId, data, (err, res) ->
           return callback err  if err?
 
-          recurly.setBilling userId, data, (err, res) ->
-            console.log { err, res, callback }
+          recurly.setBilling userId, data, callback
 
   @getAccount = secure ({connection:{delegate}}, callback)->
     recurly.getAccount (userCodeOf delegate), callback
