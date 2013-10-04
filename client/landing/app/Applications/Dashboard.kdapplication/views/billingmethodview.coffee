@@ -21,7 +21,7 @@ class BillingMethodView extends JView
   getCardInfoPartial: (billingInfo) ->
     if billingInfo
       { cardFirstName, cardLastName, cardNumber, cardMonth, cardYear
-      cardType, address1, address2, city, state, zip } = billingInfo
+        cardType, address1, address2, city, state, zip } = billingInfo
       """
       <p>#{cardFirstName} #{cardLastName}</p>
       <p>#{cardNumber} - #{cardMonth}/#{cardYear} (#{cardType})</p>
