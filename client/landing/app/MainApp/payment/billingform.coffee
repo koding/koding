@@ -29,6 +29,7 @@ class BillingFormModal extends PaymentFormModal
         defaultValue      : data.city
         nextElementFlat   :
           state           :
+            placeholder   : 'State (optional)'
             itemClass     : KDInputView
             defaultValue  : data.state
       country             :
