@@ -78,8 +78,8 @@ class BookView extends JView
     @once "OverlayAdded", => @$overlay.css zIndex : 999
 
     @once "OverlayWillBeRemoved", =>
-      if @navigateNewPages
-        @navigateNewPages = no
+      if BookView.navigateNewPages
+        BookView.navigateNewPages = no
         BookView.lastIndex = 0
         @getStorage().setValue "lastReadVersion", @getVersion()
 
@@ -139,7 +139,7 @@ class BookView extends JView
     KD.getSingleton("appManager").openFile(FSHelper.createFileFromPath(fileName))
 
   fillPrevPage:->
-    if @navigateNewPages
+    if BookView.navigateNewPages
       @getNewPages (pages)=>
         prev = pages.prev()
         @fillPage prev if prev?
@@ -149,7 +149,7 @@ class BookView extends JView
     @fillPage @currentIndex - 1
 
   fillNextPage:->
-    if @navigateNewPages
+    if BookView.navigateNewPages
       @getNewPages (pages)=>
         next = pages.next()
         @fillPage next if next?
@@ -654,7 +654,6 @@ class BookView extends JView
           --@newPagePointer
           unreadPages[@newPagePointer].index
 
-        @navigateNewPages = !!unreadPages.length
         @unreadPages = unreadPages
         callback unreadPages
       else
