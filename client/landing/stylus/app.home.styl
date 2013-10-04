@@ -719,6 +719,7 @@ div.featured-app-details
   #content-panel
     min-height      100%
     height          auto!important
+    width           100% !important
 
 #home-intro
 #header-sign-in
@@ -970,6 +971,8 @@ div.featured-app-details
     .price-boxes
       size                  454px, 227px
       margin                65px auto
+      position              relative
+      vendor                perspective, 600px
       a
         size                227px, 227px
         display             block
@@ -981,6 +984,7 @@ div.featured-app-details
         font-size           29px
         text-decoration     none
         font-weight         100
+        vendor              transform, scale(.9)
         -webkit-transition  -webkit-transform .3s ease \,\
                             color             .3s ease  \,\
                             background        .3s ease
@@ -991,26 +995,24 @@ div.featured-app-details
                             color             .3s ease  \,\
                             background        .3s ease
 
+        z-index             4
+        left                207px
+        abs()
+
         span
           display           block
           padding           25px 30px 15px
           font-weight       600
 
+        &.mouseleave
+          vendor              animation, priceHover .5s 1 forwards reverse
+
       a:nth-child(1)
         background          #9cefd1
         color               #595959
-        vendor              transform, scale(1.1)
+        vendor              transform, scale(1)
         z-index             5
-
-        &:after
-          content           ""
-          display           block
-          width             7px
-          height            187px
-          background        #87d0b6
-          left              100%
-          top               20px
-          abs()
+        left                0
 
         span
           padding-top       45px
@@ -1020,23 +1022,11 @@ div.featured-app-details
       a:nth-child(1)
         background          #8bd6bb
         color               #fff
-        vendor              transform, scale(1)
+        vendor              transform, scale(.9)
         z-index             4
-      a:nth-child(2)
-        background          #9cefd1
-        color               #595959
-        vendor              transform, scale(1.1)
-        z-index             5
 
-        &:after
-          content           ""
-          display           block
-          width             7px
-          height            187px
-          background        #87d0b6
-          right             100%
-          top               20px
-          abs()
+      a:nth-child(2)
+        vendor              animation, priceHover .5s 1 forwards ease
 
     .pricing-details
       span
@@ -1089,3 +1079,20 @@ div.featured-app-details
         font-weight         300
       a:hover
         text-decoration   underline
+
+@keyframes priceHover
+  0%
+    vendor              transform, scale(0.9) rotateY(0) translateX(0)
+    vendor              animation-timing-function, ease-out
+  50%
+    vendor              transform, scale(0.85) rotateY(-30deg) rotateX(20deg) translateX(50px)
+    vendor              animation-timing-function, ease-out
+  70%
+    vendor              transform, scale(1) rotateY(-10deg) translateX(-20px)
+    vendor              animation-timing-function, ease-in
+  100%
+    vendor              transform, scale(1)
+    background          #9cefd1
+    color               #595959
+    z-index             5
+
