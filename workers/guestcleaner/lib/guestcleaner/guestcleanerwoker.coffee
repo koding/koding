@@ -52,7 +52,7 @@ module.exports = class GuestCleanerWorker
       status : {$ne : 'tobedeleted'}
     }
 
-    options = {limit:2}
+    options = {limit:25}
 
     JAccount.some selector, options, (err, accounts)=>
       if err then return console.error err

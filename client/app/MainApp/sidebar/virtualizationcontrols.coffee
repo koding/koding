@@ -56,7 +56,7 @@ class StatusLED extends JView
 
   constructor:(options={})->
 
-    options.cssClass = @utils.curryCssClass "led-wrapper", options.cssClass
+    options.cssClass = @utils.curry "led-wrapper", options.cssClass
     super options
 
     @label = new KDCustomHTMLView

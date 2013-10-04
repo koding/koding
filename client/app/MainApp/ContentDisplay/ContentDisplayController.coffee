@@ -1,32 +1,48 @@
 class ContentDisplayController extends KDController
 
   constructor:(options)->
+
     super
+
     @displays = {}
     @attachListeners()
     @revivedContentDisplay = no
 
+
   attachListeners:->
+
     @on "ContentDisplayWantsToBeShown",  (view)=> @showContentDisplay view
     @on "ContentDisplayWantsToBeHidden", (view)=> @hideContentDisplay view
     @on "ContentDisplaysShouldBeHidden",       => @hideAllContentDisplays()
     KD.getSingleton("appManager").on "ApplicationShowedAView",    => @hideAllContentDisplays()
 
+
   showContentDisplay:(view)->
-    contentPanel = KD.getSingleton "contentPanel"
-    wrapper = new ContentDisplay
-      domId : "content-display-wrapper" if not @revivedContentDisplay
+
+    contentPanel       = KD.getSingleton "contentPanel"
+    mainView           = KD.getSingleton "mainView"
+    mainViewController = KD.getSingleton "mainViewController"
+    wrapper            = new ContentDisplay
+      domId : "content-display-wrapper"  if not @revivedContentDisplay
+
     wrapper.bindTransitionEnd()
     @displays[view.id] = view
     wrapper.addSubView view
     contentPanel.addSubView wrapper
     @slideWrapperIn wrapper
     @revivedContentDisplay = yes
+    mainView.sidebar.navController.deselectAllItems()
+
+    # KD.utils.defer -> mainViewController.setViewState()
+
     return wrapper
+
 
   hideContentDisplay:(view)-> KD.getSingleton('router').back()
 
+
   hideAllContentDisplays:(exceptFor)->
+
     displayIds =\
       if exceptFor?
         (id for own id,display of @displays when exceptFor isnt display)
@@ -41,15 +57,21 @@ class ContentDisplayController extends KDController
 
     @slideWrapperOut @displays[lastId]
 
+
   slideWrapperIn:(wrapper)->
+
     wrapper.setClass 'in'
 
+
   slideWrapperOut:(view)->
+
     wrapper = view.parent
     wrapper.once 'transitionend', => @destroyView view
     wrapper.unsetClass 'in'
 
+
   destroyView:(view)->
+
     wrapper = view.parent
     @emit 'ContentDisplayIsDestroyed', view
     delete @displays[view.id]

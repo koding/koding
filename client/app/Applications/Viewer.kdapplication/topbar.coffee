@@ -16,7 +16,7 @@ class ViewerTopBar extends JView
     @pageLocation     = new KDHitEnterInputView
       type            : "text"
       keyup           : =>
-        @addressBarIcon.setDomAttributes href : @pageLocation.getValue()
+        @addressBarIcon.setAttribute "href", @pageLocation.getValue()
       callback        : =>
         newLocation   = @pageLocation.getValue()
         @parent.openPath newLocation
@@ -33,7 +33,7 @@ class ViewerTopBar extends JView
         @getDelegate().emit "ViewerRefreshed"
 
   setPath:(path)->
-    @addressBarIcon.$().attr "href", path
+    @addressBarIcon.setAttribute "href", path
     @pageLocation.unsetClass "validation-error"
     @pageLocation.setValue path
 
