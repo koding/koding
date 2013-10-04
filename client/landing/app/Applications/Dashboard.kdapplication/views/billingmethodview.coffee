@@ -7,38 +7,32 @@ class BillingMethodView extends JView
 
     @loader = new KDLoaderView
       size        : { width: 14 }
-      showLoader  : yes
       cssClass    : 'fr'
 
     @billingMethodInfo = new KDCustomHTMLView
       tagName   : 'a'
       cssClass  : 'billing-link'
-      click     : =>
-        @loader.show()
-        appManager.tell(
-          'Dashboard' , 'showBillingInfoModal'
-          'group'     , group
-          => @loader.hide()
-        )
-
-    appManager.tell 'Dashboard', 'fetchBillingInfo', group, (err, billing) =>
-      cardInfo =
-        unless err
-          """
-          <p>#{billing.cardFirstName} #{billing.cardLastName}</p>
-          <p>#{billing.cardNumber} - #{billing.cardMonth}/#{billing.cardYear} (#{billing.cardType})</p>
-          <p>#{billing.address1} #{billing.address2}</p>
-          <p>#{billing.city} #{billing.state} #{billing.zip}</p>
-          """
-        else "Enter billing information"
-
-      @setBillingInfo cardInfo
+      click     : => @emit 'BillingEditRequested'
 
     @billingMethodInfo.hide()
 
+    @setBillingInfo data
+
+  getCardInfoPartial: (billingInfo) ->
+    if billingInfo
+      { cardFirstName, cardLastName, cardNumber, cardMonth, cardYear
+      cardType, address1, address2, city, state, zip } = billingInfo
+      """
+      <p>#{cardFirstName} #{cardLastName}</p>
+      <p>#{cardNumber} - #{cardMonth}/#{cardYear} (#{cardType})</p>
+      <p>#{address1} #{address2}</p>
+      <p>#{city} #{state} #{zip}</p>
+      """
+    else "Enter billing information"
+
   setBillingInfo: (billingInfo) ->
     @loader.hide()
-    @billingMethodInfo.updatePartial billingInfo
+    @billingMethodInfo.updatePartial @getCardInfoPartial billingInfo
     @billingMethodInfo.show()
 
   pistachio: ->
