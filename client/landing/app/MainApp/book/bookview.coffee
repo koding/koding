@@ -639,11 +639,7 @@ class BookView extends JView
     return callback @unreadPages if @unreadPages
 
     @getStorage().fetchValue "lastReadVersion", (lastReadVersion=0)=>
-
-      version = @getVersion()
-
-      if version > lastReadVersion
-
+      if @getVersion() > lastReadVersion
         unreadPages = @getNewerPages lastReadVersion
 
         @newPagePointer ?= 0
