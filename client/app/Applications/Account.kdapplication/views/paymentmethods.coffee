@@ -47,7 +47,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
       iconOnly  : yes
       iconClass : "plus"
       callback  : =>
-        @getListView().showModal @
+        @getListView().showModal this
 
 class AccountPaymentMethodsList extends KDListView
   constructor:(options,data)->
@@ -59,14 +59,15 @@ class AccountPaymentMethodsList extends KDListView
 
   showModal: (controller) ->
     paymentController = KD.getSingleton 'paymentController'
+    modal = paymentController.createBillingInfoModal 'user', {}
     paymentController.fetchBillingInfo 'user', (err, initialBillingInfo) ->
-      
-      modal = paymentController.createBillingInfoModal 'user', initialBillingInfo
-      
+
+      modal.setBillingInfo initialBillingInfo.billing
+
       modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) ->
         paymentController.updateBillingInfo updatedBillingInfo
 
-      
+
       form = modal.modalTabs.forms["Billing Info"]
 
 

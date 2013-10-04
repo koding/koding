@@ -30,7 +30,7 @@ class BillingFormModal extends PaymentFormModal
         nextElementFlat   :
           state           :
             placeholder   : 'State (optional)'
-            itemClass     : KDInputView
+            itemClass     : KDSelectBox
             defaultValue  : data.state
       country             :
         label             : 'Country'
@@ -49,6 +49,8 @@ class BillingFormModal extends PaymentFormModal
       size        : { width: 14 }
       showLoader  : yes
 
+    @billingForm.addCustomData 'actualState', data.state
+
     @billingForm.fields.country.addSubView @countryLoader
 
   handleZipCode:->
@@ -57,14 +59,42 @@ class BillingFormModal extends PaymentFormModal
 
     { city, state, country, zip } = @billingForm.inputs
 
-    JLocation.byZip zip.getValue(), (err, location) =>
+    locationSelector =
+      zip           : zip.getValue()
+      countryCode   : country.getValue()
+
+    JLocation.one locationSelector, (err, location) =>
       @setLocation location  if location
 
+  handleCountryCode: ->
+    { JLocation } = KD.remote.api
+
+    { country, state } = @billingForm.inputs
+
+    { actualState, country: countryCode } = @billingForm.getData()
+
+    if @countryCode isnt countryCode
+      @countryCode = countryCode
+
+      JLocation.fetchStatesByCountryCode countryCode, (err, states) ->
+        state.setSelectOptions _.values states
+        state.setValue actualState
+
   setLocation: (location) ->
-    ['city', 'state', 'country'].forEach (inputName) =>
-      input = @billingForm.inputs[inputName]
-      value = location[inputName]
-      input.setValue value  if input? # TODO: `and not input.isDirty()` or something like that C.T.
+      ['city', 'stateCode', 'countryCode'].forEach (field) =>
+        value = location[field]
+        inputName = switch field
+          when 'city' then 'city'
+
+          when 'stateCode'
+            @billingForm.addCustomData 'actualState', value
+            'state'
+
+          when 'countryCode' then 'country'
+
+        input = @billingForm.inputs[inputName]
+
+        input.setValue value  if input? # TODO: `and not input.isDirty()` or something like that C.T.
 
   setCountryData: ({ countries, countryOfIp }) ->
     { country } = @billingForm.inputs
@@ -78,6 +108,7 @@ class BillingFormModal extends PaymentFormModal
     )
 
     @countryLoader.hide()
+    @handleCountryCode()
     @emit 'CountryDataPopulated'
 
   handleFormData:->
