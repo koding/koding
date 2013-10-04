@@ -105,7 +105,7 @@ func SetOutput(out io.Writer) {
 // if used, it will store the stdout to an external file too.
 func SetOutputFile(path string) error {
 	if path == "" {
-		errors.New("slog: arg for SetOutputFile sould be not empty")
+		return errors.New("slog: arg for SetOutputFile sould be not empty")
 	}
 
 	writers := make([]io.Writer, 0)
