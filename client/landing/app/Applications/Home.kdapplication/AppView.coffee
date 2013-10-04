@@ -20,7 +20,7 @@ class HomeAppView extends JView
                   <i></i> Koding for <span>You</span>
                 </h3>
                 <p>
-                  You have great ideas, you want to meet brilliant minds and bring those ideas to life. You want to start simple and maybe become 10 people team commanding 100s of servers.
+                  You have great ideas.  You want to meet brilliant minds, and bring those ideas to life.  You want to start simple.  Maybe soon you'll have a 10 person team, commanding 100s of servers.
                 </p>
                 <p>
                   You want to learn Python, Java, C, Go, Nodejs, HTML, CSS or Javascript or any other. Community will help you along the way.
@@ -38,10 +38,10 @@ class HomeAppView extends JView
                   <i></i> Koding for <span>Developers</span>
                 </h3>
                 <p>
-                  Have an amazing VM that is better than your laptop, connected to internet 100x faster, shareable with anyone. Clone git repos, test your code without breaking your setup.
+                  You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
                 </p>
                 <p>
-                  For free. Koding is your new localhost, in the clouds.
+                  It's free. Koding is your new localhost, in the cloud.
                 </p>
               </div>
             """
