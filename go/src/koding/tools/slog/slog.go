@@ -94,6 +94,21 @@ func Prefix() string {
 	return stdlog.prefix()
 }
 
+// DisablePrefix disables the prefix generator. That means it will reset the current
+// prefix generation function.
+func DisablePrefix() {
+	stdlog.mu.Lock()
+	defer stdlog.mu.Unlock()
+	stdlog.prefix = func() string { return "" }
+}
+
+// SetName adds an additional prefix to the beginning of each line. Useful to
+// add an application name. This will modify the the default Prefix() function.
+func SetName(name string) {
+	fn := stdlog.prefix() // copy the function to prevent recursion
+	stdlog.prefix = func() string { return fmt.Sprintf("%s %s", name, fn) }
+}
+
 // SetOutput replaces the standard destination for the standard logger.
 func SetOutput(out io.Writer) {
 	stdlog.mu.Lock()
@@ -177,6 +192,19 @@ func (s *Slog) Prefix() string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.prefix()
+}
+
+func (s *Slog) DisablePrefix() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.prefix = func() string { return "" }
+}
+
+// SetName adds an additional prefix to the beginning of each line. Useful to
+// add an application name. This will modify the the default Prefix() function.
+func (s *Slog) SetName(name string) {
+	fn := s.prefix() // copy the function to prevent recursion
+	s.prefix = func() string { return fmt.Sprintf("%s %s", name, fn) }
 }
 
 // SetOutput replaces the standard destination.
