@@ -30,7 +30,7 @@ module.exports = ->
       #{getHomeIntro()}
       <section class="kdview" id="main-panel-wrapper">
         #{getSidebar()}
-        <div class="kdview transition no-shadow full" id="content-panel" style="left: 0px; width: 1280px;">
+        <div class="kdview transition no-shadow full" id="content-panel">
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
           <div id="maintabpane-home" class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview home active">
             <div id="content-page-home" class="kdview content-page home kdscrollview extra-wide"><section class="slider-section" id="slider-section">
@@ -78,7 +78,7 @@ module.exports = ->
   <p>
     Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas faucibus mollis interdum.
   </p>
-</div></div><nav class="slider-nav"><a class="custom-link-view active" href="#"><span class="title" data-paths="title" id="el-94">You</span></a><a class="custom-link-view" href="#"><span class="title" data-paths="title" id="el-95">Developers</span></a><a class="custom-link-view" href="#"><span class="title" data-paths="title" id="el-96">Education</span></a><a class="custom-link-view" href="#"><span class="title" data-paths="title" id="el-97">Business</span></a></nav></div>
+</div></div><nav class="slider-nav"><a class="custom-link-view active" href="#"><span class="title" data-paths="title">You</span></a><a class="custom-link-view" href="#"><span class="title" data-paths="title">Developers</span></a><a class="custom-link-view" href="#"><span class="title" data-paths="title">Education</span></a><a class="custom-link-view" href="#"><span class="title" data-paths="title">Business</span></a></nav></div>
 </section>
 <section class="pricing-section" id="pricing-section">
   <h3>Simple Pricing</h3>
@@ -105,7 +105,7 @@ module.exports = ->
 </footer></div>
           </div>
         </div>
-      <div id="main-tab-handle-holder" class="kdview kdtabhandlecontainer" style="width: 1280px;"><div class="kdtabhandle add-editor-menu visible-tab-handle plus first last"><span class="icon"></span><b class="">Click here to start</b></div><div title="Home" class="kdtabhandle  hidden kddraggable active" style="max-width: 128px;"><span class="close-tab"></span><b>Home</b></div></div><button type="button" class="kdbutton app-settings-menu icon-only hidden" id="kd-127"><span class="icon"></span></button></div>
+      <div id="main-tab-handle-holder" class="kdview kdtabhandlecontainer"><div class="kdtabhandle add-editor-menu visible-tab-handle plus first last"><span class="icon"></span><b class="">Click here to start</b></div><div title="Home" class="kdtabhandle  hidden kddraggable active" style="max-width: 128px;"><span class="close-tab"></span><b>Home</b></div></div><button type="button" class="kdbutton app-settings-menu icon-only hidden"><span class="icon"></span></button></div>
       </section>
     </div>
 
