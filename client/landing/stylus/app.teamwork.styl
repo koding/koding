@@ -26,6 +26,9 @@ app.teamwork.styl
   margin                        -162px 0 0 -102px
   top                           50%
 
+.powered-by-firepad
+  display                       none
+
 .teamwork-modal-header
   height                        33px
   bg                            color, #eee
@@ -138,8 +141,13 @@ app.teamwork.styl
 
 .teamwork-export-dialog .kdformview .kdlabel:first-child,
 .teamwork-export-dialog .kdformview .kdinput,
-.teamwork .inner-header .help
   display                       none !important
+
+.teamwork .inner-header .help
+  display                       none
+  &.opacity
+    opacity                     .0001
+    display                     block
 
 .teamwork-url-share-input
   font-size                     16px
@@ -148,6 +156,12 @@ app.teamwork.styl
   margin                        10px
 
 .teamwork-markdown.has-markdown
+  &.scale
+    vendor                      transform, scale(0.03)
+    -webkit-transition          -webkit-transform 0.3s ease, top 0.3s ease, left 0.3s ease
+    -moz-transition             -moz-transform    0.3s ease, top 0.3s ease, left 0.3s ease
+    transition                  transform         0.3s ease, top 0.3s ease, left 0.3s ease
+
   .kdmodal-content
     padding                     10px
     font-size                   14px !important
