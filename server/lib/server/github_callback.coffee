@@ -44,7 +44,8 @@ module.exports = (req, res) ->
     rawResp = ""
     userInfoResp.on "data", (chunk) -> rawResp += chunk
     userInfoResp.on "end", ->
-      {login, id, email, name} = JSON.parse rawResp
+      userInfo                 = JSON.parse rawResp
+      {login, id, email, name} = userInfo
       if name
         [firstName, restOfNames...] = name.split ' '
         lastName = restOfNames.join ' '
@@ -53,6 +54,7 @@ module.exports = (req, res) ->
       resp["foreignId"] = String(id)
       resp["token"]     = access_token
       resp["username"]  = login
+      resp["profile"]   = userInfo
 
       # Some users don't have email in public profile, so we make 2nd call
       # to get them.

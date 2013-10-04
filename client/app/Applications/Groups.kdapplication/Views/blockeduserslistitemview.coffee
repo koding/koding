@@ -25,7 +25,7 @@ class GroupsBlockedUserListItemView extends KDListItemView
     @unblockButton   = new KDButtonView
       title          : "Unblock"
       callback       : =>
-        @blockUser @getData().getId(), '1S', (err, res)=>
+        KD.whoami().unblockUser @getData().getId(), (err)=>
           if err
             warn err
           else

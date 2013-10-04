@@ -686,6 +686,13 @@ __utils =
         i += 3
     string
 
+  applyGradient: (view, color1, color2) ->
+    rules = [
+      "-moz-linear-gradient(100% 100% 90deg, #{color2}, #{color1})"
+      "-webkit-gradient(linear, 0% 0%, 0% 100%, from(#{color1}), to(#{color2}))"
+    ]
+    view.setCss "backgroundImage", rule for rule in rules
+
   # Return true x% of time based on argument.
   #
   # Example:
