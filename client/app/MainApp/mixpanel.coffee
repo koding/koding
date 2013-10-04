@@ -5,12 +5,13 @@ class KDMixpanel
     eventData = rest[1]
     $user   = KD.nick()
 
+    # TODO: are we even sending "Login" events to mixpanel?
     if eventName is "Login" or (eventName is "Groups" and eventData is "ChangeGroup")
       # identify user on mixpanel
-      @registerUser()
+      #@registerUser()
     else if eventName is "Connected to backend"
       @track eventName, KD.nick()
-      @registerUser()
+      #@registerUser()
     else if eventName is "New User Signed Up"
       @track eventName, KD.whoami().profile
     else if eventName is "User Opened Ace"
@@ -97,7 +98,7 @@ class KDMixpanel
   #identifies user on mixpanel, by default username on koding, should be unique
   registerUser:->
     if KD.isLoggedIn()
-      user = KD.whoami()
+      user  = KD.whoami()
       email = user.fetchEmail (err, email)->
         mixpanel.identify user.profile.nickname
         mixpanel.people.set
@@ -109,3 +110,25 @@ class KDMixpanel
 
   setOnce:(property, value, callback )->
     mixpanel.people.set_once property, value, callback
+
+# TODO: check if KD.config.logToExternal is true
+if mixpanel? then do ->
+  KD.getSingleton('mainController').on "AccountChanged", (account) ->
+    if KD.isLoggedIn()
+      user       = KD.whoami()
+      {nickname} = user.profile
+      email      = user.fetchEmail (err, email)->
+        {firstName, lastName} = user.profile
+        {createdAt}           = user.meta
+
+        console.log "registering user to mixpanel",
+          nickname, email, firstName, lastName, createdAt
+
+        # register user to mixpanel
+        mixpanel.identify nickname
+        mixpanel.people.set
+          "$username"   : nickname
+          "name"        : "#{firstName} #{lastName}"
+          "$joinDate"   : createdAt
+          "$email"      : email
+        mixpanel.name_tag "#{nickname}.kd.io"
