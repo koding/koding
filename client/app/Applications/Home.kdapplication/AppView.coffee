@@ -15,7 +15,7 @@ class HomeAppView extends JView
           pistachio :
             """
               <div class="wrapper">
-                <figure></figure>
+                <figure><img src="/images/homeslide/you.jpg"></figure>
                 <h3>
                   <i></i> Koding for <span>You</span>
                 </h3>
@@ -33,7 +33,7 @@ class HomeAppView extends JView
           pistachio :
             """
               <div class="wrapper">
-                <figure></figure>
+                <figure><img src="/images/homeslide/developers.jpg"></figure>
                 <h3>
                   <i></i> Koding for <span>Developers</span>
                 </h3>
@@ -51,7 +51,7 @@ class HomeAppView extends JView
           pistachio :
             """
               <div class="wrapper">
-                <figure></figure>
+                <figure><img src="/images/homeslide/education.jpg"></figure>
                 <h3>
                   <i></i> Koding for <span>Education</span>
                 </h3>
@@ -69,7 +69,7 @@ class HomeAppView extends JView
           pistachio :
             """
               <div class="wrapper">
-                <figure></figure>
+                <figure><img src="/images/homeslide/business.jpg"></figure>
                 <h3>
                   <i></i> Koding for <span>Business</span>
                 </h3>
@@ -87,7 +87,10 @@ class HomeAppView extends JView
       bind          : "mouseleave"
       mouseleave    : =>
         @additionalVmBox.setClass "mouseleave"
-        KD.utils.wait 500, => @additionalVmBox.unsetClass "mouseleave"
+        @freeVmBox.setClass       "mouseleave"
+        KD.utils.wait 500, =>
+          @additionalVmBox.unsetClass "mouseleave"
+          @freeVmBox.unsetClass "mouseleave"
 
     @priceBoxes.addSubView @freeVmBox = new KDCustomHTMLView
       tagName   : "a"
