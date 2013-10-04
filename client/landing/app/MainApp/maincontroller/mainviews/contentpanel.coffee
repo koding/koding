@@ -66,7 +66,8 @@ class ContentPanel extends KDView
   adjustForFullWidth:->
 
     @setX 0
-    @setWidth @windowController.winWidth - @chatMargin
+    @getElement().style.width = "100%"
+    # @setWidth @windowController.winWidth - @chatMargin
     @setClass 'full'
     @state = 'full'
 
