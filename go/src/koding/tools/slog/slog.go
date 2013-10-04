@@ -17,10 +17,14 @@ import (
 // io.Writer. By default it uses os.Stdout, but it can be changed  or others
 // may be included during creation.
 type Slog struct {
-	mu      sync.Mutex    // protects the following fields
-	disable bool          // global switch to disable log completely
-	prefix  func() string // function return is written at beginning of each line
-	out     io.Writer     // destination for ouput
+	mu         sync.Mutex    // protects the following fields
+	disable    bool          // global switch to disable log completely
+	prefixFunc func() string // if set function return is used instead of prefix
+	prefix     struct {
+		name       string // is written at beginning of each line
+		timeLayout string // is written after prefix.name, used for time.Format()
+	}
+	out io.Writer // destination for ouput
 }
 
 var stdlog = New()
@@ -41,12 +45,11 @@ func New(filepath ...string) *Slog {
 
 	writers = append(writers, os.Stdout)
 
-	return &Slog{
+	s := &Slog{
 		out: io.MultiWriter(writers...),
-		prefix: func() string {
-			return fmt.Sprintf("[%s] ", time.Now().Format(time.StampMilli))
-		},
 	}
+	s.prefix.timeLayout = time.StampMilli
+	return s
 }
 
 // Print calls Output to print to the standard logger. Arguments are handled in
@@ -79,34 +82,41 @@ func Println(v ...interface{}) (int, error) {
 	return fmt.Fprintln(stdlog.output(), v...)
 }
 
-// SetPrefix sets the output prefix according to the return value of the passed
+// SetPrefixFunc sets the output prefix according to the return value of the passed
 // function for the standard logger.
-func SetPrefix(fn func() string) {
+func SetPrefixFunc(fn func() string) {
 	stdlog.mu.Lock()
 	defer stdlog.mu.Unlock()
-	stdlog.prefix = fn
+	stdlog.prefixFunc = fn
 }
 
 // Prefix returns the output prefix for the standard logger.
 func Prefix() string {
 	stdlog.mu.Lock()
 	defer stdlog.mu.Unlock()
-	return stdlog.prefix()
+	return stdlog.prefixOutput()
 }
 
-// DisablePrefix disables the prefix generator. That means it will reset the current
-// prefix generation function.
+// DisablePrefix disables the prefix generator for the standard logger. That
+// means it will reset the current prefix generation function.
 func DisablePrefix() {
 	stdlog.mu.Lock()
 	defer stdlog.mu.Unlock()
-	stdlog.prefix = func() string { return "" }
+	stdlog.prefixFunc = func() string { return "" }
 }
 
-// SetName adds an additional prefix to the beginning of each line. Useful to
-// add an application name. This will modify the the default Prefix() function.
+// SetName adds an additional prefix to the beginning of each line for the
+// standard logger. Useful to add an application name. This will modify the the
+// default Prefix() function.
 func SetName(name string) {
-	fn := stdlog.prefix() // copy the function to prevent recursion
-	stdlog.prefix = func() string { return fmt.Sprintf("%s %s", name, fn) }
+	stdlog.prefix.name = name
+}
+
+// SetTimeStamp changes the timestamp that is generated in the prefix generator
+// function for the standard logger. It's passed to time.Format(). Example
+// layouts are: time.RFC3339, time.Kitchen, time.UnixDate ...
+func SetTimeStamp(layout string) {
+	stdlog.prefix.timeLayout = layout
 }
 
 // SetOutput replaces the standard destination for the standard logger.
@@ -179,32 +189,40 @@ func (s *Slog) Println(v ...interface{}) (int, error) {
 	return fmt.Fprintln(s.output(), v...)
 }
 
-// SetPrefix sets the output prefix according to the return value of the passed
+// SetPrefixFunc sets the output prefix according to the return value of the passed
 // function.
-func (s *Slog) SetPrefix(fn func() string) {
+func (s *Slog) SetPrefixFunc(fn func() string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.prefix = fn
+	s.prefixFunc = fn
 }
 
 // Prefix returns the output prefix.
 func (s *Slog) Prefix() string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.prefix()
+	return s.prefixOutput()
 }
 
+// DisablePrefix disables the prefix generator. That means it will reset the current
+// prefix generation function.
 func (s *Slog) DisablePrefix() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.prefix = func() string { return "" }
+	s.prefixFunc = func() string { return "" }
 }
 
 // SetName adds an additional prefix to the beginning of each line. Useful to
 // add an application name. This will modify the the default Prefix() function.
 func (s *Slog) SetName(name string) {
-	fn := s.prefix() // copy the function to prevent recursion
-	s.prefix = func() string { return fmt.Sprintf("%s %s", name, fn) }
+	s.prefix.name = name
+}
+
+// SetTimeStamp changes the timestamp that is generated in the prefix generator
+// function. It's passed to time.Format(). Example layouts are: time.RFC3339,
+// time.Kitchen, time.UnixDate ...
+func (s *Slog) SetTimeStamp(layout string) {
+	s.prefix.timeLayout = layout
 }
 
 // SetOutput replaces the standard destination.
@@ -225,6 +243,17 @@ func (s *Slog) DisableLog() {
 func (s *Slog) output() io.Writer {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.out.Write([]byte(s.prefix()))
+	s.out.Write([]byte(s.prefixOutput()))
 	return s.out
+}
+
+func (s *Slog) prefixOutput() string {
+	if s.prefixFunc != nil {
+		return s.prefixFunc()
+	}
+
+	if s.prefix.name == "" {
+		return fmt.Sprintf("[%s] ", time.Now().Format(s.prefix.timeLayout))
+	}
+	return fmt.Sprintf("[%s %s] ", s.prefix.name, time.Now().Format(s.prefix.timeLayout))
 }
