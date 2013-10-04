@@ -23,14 +23,6 @@ class PaymentController extends KDController
       else
         JRecurlyPlan.setUserAccount newData, callback
 
-  fetchBillingInfo: (type, callback) ->
-    
-    { JRecurlyPlan } = KD.remote.api
-
-    if type in ['group', 'expensed']
-      getGroup().fetchBillingInfo callback
-    else
-      JRecurlyPlan.getAccount callback
 
   getSubscription: do ->
     findActiveSubscription = (subs, planCode, callback) ->
@@ -108,16 +100,16 @@ class PaymentController extends KDController
     { JRecurlyPlan } = KD.remote.api
 
     switch type
-      when 'group'
-        debugger
+      when 'group', 'expensed'
+        getGroup().fetchBillingInfo callback
       when 'user'
         JRecurlyPlan.getAccount callback
 
   updateBillingInfo: (billingInfo, callback) ->
     
-    { JRecurlyPlan } = KD.remote.api
+    { JRecurly } = KD.remote.api
 
-    JRecurlyPlan.setUserAccount newData, (err, result)->
+    JRecurly.setBillingInfo billingInfo, (err, result)->
       debugger
 
 
