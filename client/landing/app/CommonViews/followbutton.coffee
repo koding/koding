@@ -81,6 +81,4 @@ class MemberFollowToggleButton extends FollowButton
     # KD.track "Members", name, @getData().profile.nickname  if userEvent
     # This gives: ~ GG
     # Warning: Unknown mixpanel event set ["Members", "Follow", "gokmen"]
-
-    KD.mixpanel "Follow member"
     super
