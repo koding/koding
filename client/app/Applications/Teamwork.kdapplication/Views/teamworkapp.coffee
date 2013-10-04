@@ -14,6 +14,8 @@ class TeamworkApp extends KDObject
       firebaseInstance    : instanceName
       sessionKey          : @getOptions().sessionKey
       enableChat          : yes
+      PanelClass          : TeamworkPanel
+      delegate            : this
       panels              : [
         title             : "Teamwork"
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
