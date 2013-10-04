@@ -7,8 +7,8 @@ module.exports = (loggedIn = no)->
       <div class="slogan">A new way for developers to work</div>
       <div class="sub-slogan">Software development has finally evolved,<br> It's now social, in the browser and free!</div>
       <div class="buttons">
-        <button type="button" class="kdbutton email" id="kd-121"><i></i>Sign up <span>with email</span></button>
-        <button type="button" class="kdbutton github" id="kd-122"><i></i>Sign up <span>with gitHub</span></button>
+        <button type="button" class="kdbutton email"><i></i>Sign up <span>with email</span></button>
+        <button type="button" class="kdbutton github"><i></i>Sign up <span>with gitHub</span></button>
       </div>
   </section></div>
   """
