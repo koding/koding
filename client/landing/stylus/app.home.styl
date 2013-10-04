@@ -908,9 +908,17 @@ div.featured-app-details
 
         figure
           size            641px, 467px
-          bg              image, url("../images/homeslide/you.png")
+          bg              image, url("../images/homeslide/browser.png")
+          bg              repeat, no-repeat
+          bg              position, center center
           margin-left     100px
+          position        relative
           fr()
+
+          img
+            left         1px
+            top          68px
+            abs()
 
         .wrapper
           width             100%
@@ -1014,19 +1022,21 @@ div.featured-app-details
         z-index             5
         left                0
 
+        &.mouseleave
+          vendor              animation, freeHover .5s 1 forwards reverse
+
         span
           padding-top       45px
           padding-bottom    25px
 
     .price-boxes:hover
+      a
+        cursor              default
       a:nth-child(1)
-        background          #8bd6bb
-        color               #fff
-        vendor              transform, scale(.9)
-        z-index             4
+        vendor              animation, freeHover .5s 1 forwards
 
       a:nth-child(2)
-        vendor              animation, priceHover .5s 1 forwards ease
+        vendor              animation, priceHover .5s 1 forwards
 
     .pricing-details
       span
@@ -1081,18 +1091,41 @@ div.featured-app-details
         text-decoration   underline
 
 @keyframes priceHover
-  0%
-    vendor              transform, scale(0.9) rotateY(0) translateX(0)
-    vendor              animation-timing-function, ease-out
   50%
-    vendor              transform, scale(0.85) rotateY(-30deg) rotateX(20deg) translateX(50px)
-    vendor              animation-timing-function, ease-out
-  70%
-    vendor              transform, scale(1) rotateY(-10deg) translateX(-20px)
-    vendor              animation-timing-function, ease-in
+    vendor              transform, scale(0.9) rotateY(-25deg) translateX(10px)
+    vendor              animation-timing-function, ease-in-out
+
   100%
+    vendor              animation-timing-function, ease-in-out
     vendor              transform, scale(1)
     background          #9cefd1
     color               #595959
     z-index             5
+
+@keyframes freeHover
+  50%
+    vendor              transform, scale(1) rotateY(25deg) translateX(-10px)
+    vendor              animation-timing-function, ease-in-out
+
+  100%
+    vendor              animation-timing-function, ease-in-out
+    vendor              transform, scale(0.9)
+    background          #8bd6bb
+    color               #fff
+    z-index             4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
