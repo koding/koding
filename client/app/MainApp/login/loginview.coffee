@@ -139,6 +139,8 @@ class LoginView extends KDScrollView
             else
               @afterLoginCallback err, {account, replacementToken}
 
+          KD.mixpanel "Authenticated oauth", {provider}
+
   viewAppended:->
 
     @setY -KD.getSingleton('windowController').winHeight
@@ -335,7 +337,7 @@ class LoginView extends KDScrollView
 
       @hide()
 
-      KD.mixpanel "LoggedIn"
+      KD.mixpanel "Logged in"
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
@@ -396,6 +398,8 @@ class LoginView extends KDScrollView
     unless @hidden then do cb
     else @once "transitionend", cb
 
+    KD.mixpanel "Cancelled Login/Register"
+
   show:(callback)->
 
     @utils.killWait @hideTimer
@@ -443,6 +447,8 @@ class LoginView extends KDScrollView
             else
               @registerForm.disabledNotice.hide()
               @registerForm.$('.main-part').removeClass 'hidden'
+
+          KD.mixpanel "Opened register form"
         when "home"
           parent.notification?.destroy()
           if @headBannerMsg?

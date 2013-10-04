@@ -97,7 +97,7 @@ class TopicsAppController extends AppController
       controller.loadFeed() if loadFeed
       @emit 'ready'
 
-      KD.mixpanel "Load topic list"
+      KD.mixpanel "Loaded topic list"
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
 
