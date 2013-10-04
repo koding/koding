@@ -100,7 +100,7 @@ class HomeFeaturedAppsListItemView extends KDListItemView
       tagName     : "img"
       bind        : "error"
       error       : =>
-        @thumbnail.$().attr "src", "/images/default.app.listthumb.png"
+        @thumbnail.setAttribute "src", "/images/default.app.listthumb.png"
       attributes  :
         src       : thumb
 
@@ -173,7 +173,7 @@ class HomeFeaturedAppsDetailsView extends JView
       tagName     : "img"
       bind        : "error"
       error       : =>
-        @thumbnail.$().attr "src", "/images/default.app.listthumb.png"
+        @thumbnail.setAttribute "src", "/images/default.app.listthumb.png"
       attributes  :
         src       : thumb
 

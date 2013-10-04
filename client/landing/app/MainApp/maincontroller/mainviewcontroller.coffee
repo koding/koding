@@ -43,7 +43,7 @@ class MainViewController extends KDViewController
 
     isEntryPointSet = null
 
-    (options)->
+    (options = {})->
 
       {behavior, name} = options
       isEntryPointSet  = yes if name isnt "Home"
