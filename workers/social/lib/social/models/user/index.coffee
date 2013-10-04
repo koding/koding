@@ -79,7 +79,7 @@ module.exports = class JUser extends jraphical.Module
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
-        'login','logout','register','usernameAvailable','emailAvailable',
+        'login','logout','usernameAvailable','emailAvailable',
         'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
         'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
         'authenticateWithOauth','unregister'
@@ -218,9 +218,9 @@ module.exports = class JUser extends jraphical.Module
       if err
         callback createKodingError err
       else unless session?
-        JUser.createTemporaryUser (err, resp)->
-          return callback err  if err
-          callback null, resp.account
+        JSession.createSession (err, session, account)->
+          return callback err  if err?
+          callback null, account
       else
         {username} = session
         if username?
@@ -265,7 +265,7 @@ module.exports = class JUser extends jraphical.Module
           """
         callback createKodingError message
       else
-        user.update {$set: status: 'unconfirmed'}, callback
+        user.unblock callback
     else
       callback null
 
@@ -302,26 +302,29 @@ module.exports = class JUser extends jraphical.Module
 
   afterLogin = (connection, user, clientId, session, callback)->
     checkBlockedStatus user, (err)->
-      if err then return callback err
+      return callback err  if err
       replacementToken = createId()
       session.update {
         $set            :
           username      : user.username
-          lastLoginDate : new Date
           clientId      : replacementToken
         $unset:
           guestId       : 1
       }, (err)->
-          if err then return callback err
-          user.fetchOwnAccount (err, account)->
-            if err then return callback err
-            connection.delegate = account
-            JAccount.emit "AccountAuthenticated", account
-            # This should be called after login and this
-            # is not correct place to do it, FIXME GG
-            # p.s. we could do that in workers
-            account.updateCounts()
-            callback null, {account, replacementToken}
+          return callback err  if err
+          user.update { $set: lastLoginDate: new Date }, (err) ->
+            return callback err  if err
+            
+            user.fetchOwnAccount (err, account)->
+              return callback err  if err
+
+              connection.delegate = account
+              JAccount.emit "AccountAuthenticated", account
+              # This should be called after login and this
+              # is not correct place to do it, FIXME GG
+              # p.s. we could do that in workers
+              account.updateCounts()
+              callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
@@ -489,7 +492,7 @@ module.exports = class JUser extends jraphical.Module
             else
               @fetchUser client, (err, user)=>
                 {username} = user
-                @copyOauthFromSessionToUser user.username, sessionToken, kallback
+                @persistOauthInfo user.username, sessionToken, kallback
           else
             if user
               afterLogin client.connection, user, sessionToken, session, kallback
@@ -594,7 +597,7 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err?
           queue.next()
       =>
-        @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
+        @persistOauthInfo oldUsername, client.sessionToken, (err)=>
           return callback err  if err
           queue.next()
       =>
@@ -799,28 +802,62 @@ Your password has been changed!  If you didn't request this change, please conta
 
   block:(blockedUntil, callback)->
     unless blockedUntil then return callback createKodingError "Blocking date is not defined"
-
     @update
       $set:
         status: 'blocked',
         blockedUntil : blockedUntil
-    , callback
+    , (err) =>
+        return callback err if err
+        JUser.emit "UserBlocked", @
+        return callback err
 
-  @copyOauthFromSessionToUser: (username, clientId, callback)->
-    JSession.one {clientId: clientId}, (err, session) =>
-      if err then callback err
+  unblock:(callback)->
+    @update
+      $set            :
+        status        : 'unconfirmed',
+        blockedUntil  : new Date()
+    , (err) =>
+      return callback err if err
+
+      JUser.emit "UserUnblocked", @
+      return callback err
+
+  @persistOauthInfo: (username, clientId, callback)->
+    @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
+      return callback err  if err
+      return callback()    unless foreignAuthInfo
+      @saveOauthToUser foreignAuthInfo, username, (err)=>
+        return callback err  if err
+        @clearOauthFromSession session, (err)=>
+          return callback err  if err
+          @copyPublicOauthToAccount username, foreignAuthInfo, callback
+
+  @extractOauthFromSession: (clientId, callback)->
+    JSession.one {clientId: clientId}, (err, session)->
+      return callback err  if err
+
+      {foreignAuth, foreignAuthType} = session
+      if foreignAuth and foreignAuthType
+        callback null, {foreignAuth, foreignAuthType}, session
       else
-        {foreignAuth, foreignAuthType} = session
-        if foreignAuth and foreignAuthType
-          query = {}
-          query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
+        callback() # WARNING: don't assume it's an error if there's no foreignAuth
 
-          @update {username}, $set: query, (err)->
-            if err then callback err
-            else
-              session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
-        else
-          callback() # WARNING: don't assume it's an error if there's no foreignAuth
+  @saveOauthToUser: ({foreignAuth, foreignAuthType}, username, callback)->
+    query = {}
+    query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
+
+    @update {username}, $set: query, callback
+
+  @clearOauthFromSession: (session, callback)->
+    session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
+
+  @copyPublicOauthToAccount: (username, {foreignAuth, foreignAuthType}, callback)->
+    JAccount.one {"profile.nickname":username}, (err, account)->
+      return callback err  if err
+
+      name    = "ext|profile|#{foreignAuthType}"
+      content = foreignAuth[foreignAuthType].profile
+      account._store {name, content}, callback
 
   @setSSHKeys: secure (client, sshKeys, callback)->
     @fetchUser client, (err,user)->

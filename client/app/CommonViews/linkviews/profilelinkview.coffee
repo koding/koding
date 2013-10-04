@@ -30,7 +30,7 @@ class ProfileLinkView extends LinkView
   render:->
 
     nickname = @getData().profile?.nickname
-    @$().attr "href", "/#{nickname}"  if nickname
+    @setAttribute "href", "/#{nickname}"  if nickname
     super
 
   pistachio:->
