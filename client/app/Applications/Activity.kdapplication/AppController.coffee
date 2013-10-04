@@ -89,6 +89,8 @@ class ActivityAppController extends AppController
     # so fix the teasersLoaded logic.
     return  if @isLoading
     @clearPopulateActivityBindings()
+
+    KD.mixpanel "Scrolled down feed"
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->

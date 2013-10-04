@@ -110,6 +110,8 @@ class MembersAppController extends AppController
         if @_searchValue and filter is 'everything'
           @setCurrentViewHeader count
 
+      KD.mixpanel "Load member list"
+
   createFeedForContentDisplay:(view, account, followersOrFollowing, callback)->
 
     @appManager.tell 'Feeder', 'createContentFeedController', {
