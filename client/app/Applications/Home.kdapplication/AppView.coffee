@@ -56,7 +56,7 @@ class HomeAppView extends JView
                   <i></i> Koding for <span>Education</span>
                 </h3>
                 <p>
-                  Have a group where your students enjoy the resources you provide to them. Have it private, invite-only, let them share, collaborate and submit their assignments together.10 students, or 10,000. Just 1 or 100s of computers.
+                  Create a group where your students enjoy the resources you provide to them. Make it private or invite-only.  Let them share, collaborate and submit their assignments together.  It doesn't matter if you have ten students, or ten thousand.  Scale from just one to hundreds of computers.
                 </p>
                 <p>
                   Koding is your new classroom.
@@ -74,7 +74,7 @@ class HomeAppView extends JView
                   <i></i> Koding for <span>Business</span>
                 </h3>
                 <p>
-                  When you hire someone, let them be in your environment in 5 minutes, collaborating with others, contributing code without sharing ssh keys, passwords. Stop cc'ing your team, stop looking for emails.
+                  When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
                 </p>
                 <p>
                   Koding is your new workspace.
