@@ -34,7 +34,7 @@ class DashboardAppController extends AppController
         viewOptions  :
           viewClass  : GroupsMemberPermissionsView
           lazy       : yes
-          callback   : @membersViewAdded
+          callback   : @bound 'membersViewAdded'
       ,
         name         : 'Invitations'
         viewOptions  :
@@ -51,19 +51,19 @@ class DashboardAppController extends AppController
         viewOptions  :
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
-          callback   : @policyViewAdded
+          callback   : @bound 'policyViewAdded'
       ,
         name         : 'Payment'
         viewOptions  :
           viewClass  : GroupPaymentSettingsView
           lazy       : yes
-          callback   : @paymentViewAdded
+          callback   : @bound 'paymentViewAdded'
       ,
         name         : 'Products'
         viewOptions  :
           viewClass  : GroupProductSettingsView
           lazy       : yes
-          callback   : @productViewAdded
+          callback   : @bound 'productViewAdded'
       ,
         name         : 'Blocked Users'
         hiddenHandle : @getData().privacy is 'public'
@@ -102,40 +102,68 @@ class DashboardAppController extends AppController
   policyViewAdded: (pane, view) ->
 
   paymentViewAdded: (pane, view) ->
+    paymentController = KD.getSingleton 'paymentController'
+    paymentController.fetchBillingInfo 'group', (err, billingInfo) =>
+      view.setBillingInfo billingInfo
+
+    @paymentView = view
+
+    { loader }  = view.settingsForm.inputs.billing
+    
+    view.on 'BillingEditRequested', =>
+      loader.show()
+      @showBillingInfoModal ->
+        loader.hide()
 
   productViewAdded: (pane, view) ->
 
-  showBillingInfoModal: (type, group, callback) ->
-    modal = @createBillingInfoModal type, group
 
-    modal.on 'PaymentInfoSubmitted', (formData) ->
-      switch type
-        when 'group'
-          getGroup().setBillingInfo formData, -> debugger
-        when 'user'
-          debugger
+  showBillingInfoModal: (callback) ->
+    modal = @createBillingInfoModal()
+
+    modal.on 'PaymentInfoSubmitted', (formData) =>
+      @getData().setBillingInfo formData, (err) =>
+        console.error err  if err
+
+        @paymentView?.setBillingInfo formData
+
+        modal.destroy()
 
     modal.on 'CountryDataPopulated', -> callback null, modal
 
-  createBillingInfoModal: (type, group) ->
+  createBillingInfoModal: ->
 
     paymentController = KD.getSingleton "paymentController"
     
-    modal = paymentController.createBillingInfoModal type, {}
+    billingInfoModal = paymentController.createBillingInfoModal 'group', {}
     
-    @fetchBillingInfo group, (err, billingInfo) =>
-      
-      if billingInfo?
-        modal.setBillingInfo billingInfo
+    paymentController.fetchBillingInfo 'group', (err, groupBillingInfo) ->
+
+      if groupBillingInfo
+        billingInfoModal.setBillingInfo groupBillingInfo
 
       else
-        console.log "we need to decide whether to use the user's billing info"
-    
-    return modal
-        
-  fetchBillingInfo: (group, callback = (->)) ->
-    group.fetchBillingInfo callback
+        paymentController.fetchBillingInfo 'user', (err, personalBillingInfo) ->
 
+          if personalBillingInfo
+            { billing } = personalBillingInfo
+
+            useExistingModal = new KDModalView
+              title: 'Would you like to link an existing payment method?'
+              buttons         :
+                "Use another payment method":
+                  style       : 'modal-cancel'
+                  callback    : -> useExistingModal.destroy()
+
+            billingMethodView = new BillingMethodView {}, billing
+            useExistingModal.addSubView billingMethodView
+
+            billingMethodView.on 'BillingEditRequested', ->
+              billingInfoModal.setBillingInfo personalBillingInfo.billing
+              useExistingModal.destroy()
+
+    
+    return billingInfoModal
 
   # vocabularyViewAdded:(pane, view)->
   #   group = view.getData()
