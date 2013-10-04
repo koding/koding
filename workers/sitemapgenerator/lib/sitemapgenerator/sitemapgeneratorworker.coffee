@@ -3,7 +3,6 @@
 jraphical = require 'jraphical'
 {Base, race, dash, daisy} = require "bongo"
 {CronJob} = require 'cron'
-_ = require "underscore"
 
 NAMEPERPAGE = 50000
 GROUPPERPAGE = 5
