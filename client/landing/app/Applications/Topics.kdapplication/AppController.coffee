@@ -97,6 +97,8 @@ class TopicsAppController extends AppController
       controller.loadFeed() if loadFeed
       @emit 'ready'
 
+      KD.mixpanel "Load topic list"
+
   loadView:(mainView, firstRun = yes, loadFeed = no)->
 
     if firstRun
@@ -118,7 +120,8 @@ class TopicsAppController extends AppController
 
   openTopic:(topic)->
     {entryPoint} = KD.config
-    KD.track "Topic", "Open", topic
+    # TODO: not handled
+    #KD.track "Topic", "Open", topic
     KD.getSingleton('router').handleRoute "/Topics/#{topic.slug}", {state:topic, entryPoint}
 
   updateTopic:(topicItem)->

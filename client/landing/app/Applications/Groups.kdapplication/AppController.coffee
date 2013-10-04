@@ -94,7 +94,8 @@ class GroupsAppController extends AppController
             callback null, groupName, group
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
-            KD.track "Groups", "ChangeGroup", groupName
+            # TODO: not handled
+            #KD.track "Groups", "ChangeGroup", groupName
 
   getUserArea:->
     @userArea ? group:
@@ -312,7 +313,8 @@ class GroupsAppController extends AppController
     tabs.removePane invitePane if invitePane
 
   showErrorModal:(group, err)->
-    KD.track "Groups", "GroupOpeningError", err.accessCode if err
+    # TODO: mixpanel not used to track errors
+    #KD.track "Groups", "GroupOpeningError", err.accessCode if err
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
       KD.getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
@@ -366,17 +368,18 @@ class GroupsAppController extends AppController
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>
-      KD.track "Groups", "AcceptInvitation", group.slug
       mainController = KD.getSingleton "mainController"
       mainController.once "AccountChanged", callback.bind this, err, res
       mainController.accountChanged KD.whoami()
 
   ignoreInvitation:(group, callback)->
-    KD.track "Groups", "IgnoreInvitation", group.slug
+    # TODO: not actionable metric
+    #KD.track "Groups", "IgnoreInvitation", group.slug
     KD.whoami().ignoreInvitation group, callback
 
   cancelGroupRequest:(group, callback)->
-    KD.track "Groups", "CancelInvitation", group.slug
+    # TODO: not actionable metric
+    #KD.track "Groups", "CancelInvitation", group.slug
     KD.whoami().cancelRequest group, callback
 
   openPrivateGroup:(group)->

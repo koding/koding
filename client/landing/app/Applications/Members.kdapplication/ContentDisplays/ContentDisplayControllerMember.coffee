@@ -73,7 +73,8 @@ class ContentDisplayControllerMember extends KDViewController
     @addActivityView member
 
   addProfileView:(member)->
-    KD.track "Members", "OwnProfileView", member.profile.nickname
+    # TODO: This isn't actionable metric
+    #KD.track "Members", "OwnProfileView", member.profile.nickname
 
     options      =
       cssClass   : "profilearea clearfix"

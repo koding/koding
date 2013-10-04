@@ -5,6 +5,12 @@ do->
     logToGoogle rest...
     KD.kdMixpanel.createEvent rest...
 
+  # Access control wrapper around mixpanel object.
+  #
+  # eventName should be in form of '<verb> <noun>' with an
+  # implicit 'User' in front.
+  #
+  # Ex: 'Followed user'
   KD.mixpanel = (eventName, options)->
     mixpanel.track eventName, options
 
