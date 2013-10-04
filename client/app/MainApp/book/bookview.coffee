@@ -2,16 +2,6 @@ class BookView extends JView
 
   @lastIndex = 0
   cached = []
-  storage = null
-  @navigateNewPages = no
-
-  do ->
-    for page, index in __bookPages
-      page.index = index
-      page.version or= 0
-
-    # biggest version of the pages is the book's version
-    BookView.version = Math.max (_.pluck __bookPages, 'version')...
 
   cachePage = (index)->
     return if not __bookPages[index] or cached[index]
@@ -86,12 +76,14 @@ class BookView extends JView
     @pagerWrapper.addSubView @pageNav
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
-    @once "OverlayWillBeRemoved", =>
-      if BookView.navigateNewPages
-        BookView.navigateNewPages = no
-        BookView.lastIndex = 0
-        BookView.getStorage().setValue "lastReadVersion", BookView.version
 
+    @once "OverlayWillBeRemoved", =>
+      if @navigateNewPages
+        @navigateNewPages = no
+        BookView.lastIndex = 0
+        @getStorage().setValue "lastReadVersion", @getVersion()
+
+    @once "OverlayWillBeRemoved", =>
       if @pointer then @destroyPointer()
       @unsetClass "in"
       @utils.wait 1000, =>
@@ -147,18 +139,20 @@ class BookView extends JView
     KD.getSingleton("appManager").openFile(FSHelper.createFileFromPath(fileName))
 
   fillPrevPage:->
-    if BookView.navigateNewPages
-      BookView.getNewPages (pages)=>
-        @fillPage pages.first.index
+    if @navigateNewPages
+      @getNewPages (pages)=>
+        prev = pages.prev()
+        @fillPage prev if prev?
       return
 
     return if @currentIndex - 1 < 0
     @fillPage @currentIndex - 1
 
   fillNextPage:->
-    if BookView.navigateNewPages
-      BookView.getNewPages (pages)=>
-        @fillPage pages.last.index
+    if @navigateNewPages
+      @getNewPages (pages)=>
+        next = pages.next()
+        @fillPage next if next?
       return
 
     return if __bookPages.length is @currentIndex + 1
@@ -624,17 +618,48 @@ class BookView extends JView
     @utils.wait 1000, =>
       @pointer.unsetClass 'clickPulse'
 
-  @getStorage: -> storage or= new AppStorage "KodingBook", 1.0
+  indexPages: ->
+    for page, index in __bookPages
+      page.index = index
+      page.version or= 0
 
-  @getNewPages: (callback)->
-    BookView.getStorage().fetchValue "lastReadVersion", (lastReadVersion)=>
-      lastReadVersion or= 0
-      if BookView.version > lastReadVersion
-        unreadPages = __bookPages.filter (page)=>
-          # page is unread if page version is bigger than last read one.
-          KD.utils.versionCompare page.version, ">", lastReadVersion
+  getStorage: ->
+    @storage or= new AppStorage "KodingBook", 1.0
 
-        BookView.navigateNewPages = !!unreadPages.length
+  getVersion: ->
+    @indexPages()
+    Math.max (_.pluck __bookPages, 'version')...
+
+  getNewerPages: (version)->
+    __bookPages.filter (page)=>
+      # page is unread if page version is bigger than last read one.
+      KD.utils.versionCompare page.version, ">", version
+
+  getNewPages: (callback)->
+    return callback @unreadPages if @unreadPages
+
+    @getStorage().fetchValue "lastReadVersion", (lastReadVersion=0)=>
+
+      version = @getVersion()
+
+      if version > lastReadVersion
+
+        unreadPages = @getNewerPages lastReadVersion
+
+        @newPagePointer ?= 0
+
+        unreadPages.next = =>
+          return if @newPagePointer + 1 is unreadPages.length
+          @newPagePointer++
+          unreadPages[@newPagePointer].index
+
+        unreadPages.prev = =>
+          return if @newPagePointer is 0
+          --@newPagePointer
+          unreadPages[@newPagePointer].index
+
+        @navigateNewPages = !!unreadPages.length
+        @unreadPages = unreadPages
         callback unreadPages
       else
         callback []
