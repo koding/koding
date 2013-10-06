@@ -82,6 +82,36 @@ func Println(v ...interface{}) (int, error) {
 	return fmt.Fprintln(stdlog.output(), v...)
 }
 
+// Fatal is equivalent to Print() followed by a call to os.Exit(1).
+func Fatal(v ...interface{}) {
+	if stdlog.disable {
+		return
+	}
+
+	Printn(v...)
+	os.Exit(1)
+}
+
+// Fatalf is equivalent to Printf() followed by a call to os.Exit(1).
+func Fatalf(format string, v ...interface{}) {
+	if stdlog.disable {
+		return
+	}
+
+	Printf(format, v...)
+	os.Exit(1)
+}
+
+// Fatalln is equivalent to Println() followed by a call to os.Exit(1).
+func Fatalln(v ...interface{}) {
+	if stdlog.disable {
+		return
+	}
+
+	Println(v...)
+	os.Exit(1)
+}
+
 // SetPrefixFunc sets the output prefix according to the return value of the passed
 // function for the standard logger.
 func SetPrefixFunc(fn func() string) {
@@ -187,6 +217,36 @@ func (s *Slog) Println(v ...interface{}) (int, error) {
 	}
 
 	return fmt.Fprintln(s.output(), v...)
+}
+
+// Fatal is equivalent to s.Print() followed by a call to os.Exit(1).
+func (s *Slog) Fatal(v ...interface{}) {
+	if s.disable {
+		return
+	}
+
+	s.Printn(v...)
+	os.Exit(1)
+}
+
+// Fatalf is equivalent to s.Printf() followed by a call to os.Exit(1).
+func (s *Slog) Fatalf(format string, v ...interface{}) {
+	if s.disable {
+		return
+	}
+
+	s.Printf(format, v...)
+	os.Exit(1)
+}
+
+// Fatalln is equivalent to s.Println() followed by a call to os.Exit(1).
+func (s *Slog) Fatalln(v ...interface{}) {
+	if s.disable {
+		return
+	}
+
+	s.Println(v...)
+	os.Exit(1)
 }
 
 // SetPrefixFunc sets the output prefix according to the return value of the passed
