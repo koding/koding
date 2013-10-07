@@ -52,15 +52,13 @@ class EnvironmentScene extends KDDiaScene
         return new KDNotificationView
           title : "A domain name can only be bound to one VM."
 
-    @askForApprove items, 'create', (modal)=>
-      if machine? # Assign a domain to a machine
-        jDomain = domain.dia.data.domain # JDomain
-        vmName  = machine.dia.data.title # JVM.hostnameAlias
-        jDomain.bindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.push vmName
-          createConnection()
+    if machine? # Assign a domain to a machine
+      jDomain = domain.dia.data.domain # JDomain
+      vmName  = machine.dia.data.title # JVM.hostnameAlias
+      jDomain.bindVM hostnameAlias: vmName, (err)=>
+        return KD.showError err  if err
+        jDomain.hostnameAlias.push vmName
+        createConnection()
 
   updateConnections:->
     for _mkey, machine of @boxes.machines.dias
