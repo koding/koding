@@ -54,18 +54,18 @@ func main() {
 		Port:     *port,
 	}
 
-	methods := map[string]interface{}{
-		"vm.start":          Provision.Start,
-		"vm.shutdown":       Provision.Shutdown,
-		"vm.stop":           Provision.Stop,
-		"vm.reinitialize":   Provision.Reinitialize,
-		"vm.info":           Provision.Info,
-		"vm.resizeDisk":     Provision.ResizeDisk,
-		"vm.createSnapshot": Provision.CreateSnapshot,
-		"spawn":             Provision.Spawn,
-		"exec":              Provision.Exec,
-		"vm.copy":           Provision.Copy,   // Deploy/copy binary into vm
-		"vm.create":         Provision.Create, // Create a new VM
+	methods := map[string]string{
+		"vm.start":          "Start",
+		"vm.shutdown":       "Shutdown",
+		"vm.stop":           "Stop",
+		"vm.reinitialize":   "Reinitialize",
+		"vm.info":           "Info",
+		"vm.resizeDisk":     "ResizeDisk",
+		"vm.createSnapshot": "CreateSnapshot",
+		"spawn":             "Spawn",
+		"exec":              "Exec",
+		"vm.copy":           "Copy",
+		"vm.create":         "Create",
 	}
 
 	go ldapserver.Listen()

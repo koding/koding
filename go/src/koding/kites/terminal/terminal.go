@@ -47,8 +47,8 @@ func main() {
 		Port:     *port,
 	}
 
-	methods := map[string]interface{}{
-		"webterm.connect": Terminal.Connect,
+	methods := map[string]string{
+		"webterm.connect": "Connect",
 	}
 
 	k := kite.New(o, new(Terminal), methods)

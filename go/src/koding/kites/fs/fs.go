@@ -35,17 +35,17 @@ func main() {
 		Port:     *port,
 	}
 
-	methods := map[string]interface{}{
-		"fs.createDirectory":       Os.CreateDirectory,
-		"fs.ensureNonexistentPath": Os.EnsureNonexistentPath,
-		"fs.getInfo":               Os.GetInfo,
-		"fs.glob":                  Os.Glob,
-		"fs.readDirectory":         Os.ReadDirectory,
-		"fs.readFile":              Os.ReadFile,
-		"fs.remove":                Os.Remove,
-		"fs.rename ":               Os.Rename,
-		"fs.setPermissions":        Os.SetPermissions,
-		"fs.writeFile":             Os.WriteFile,
+	methods := map[string]string{
+		"fs.createDirectory":       "ReadDirectory",
+		"fs.ensureNonexistentPath": "EnsureNonexistentPath",
+		"fs.getInfo":               "GetInfo",
+		"fs.glob":                  "Glob",
+		"fs.readDirectory":         "ReadDirectory",
+		"fs.readFile":              "ReadFile",
+		"fs.remove":                "Remove",
+		"fs.rename ":               "Rename",
+		"fs.setPermissions":        "SetPermissions",
+		"fs.writeFile":             "WriteFile",
 	}
 
 	k := kite.New(o, new(Os), methods)
@@ -53,6 +53,7 @@ func main() {
 }
 
 func (Os) ReadDirectory(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
+
 	var params struct {
 		Path                string
 		OnChange            dnode.Callback
