@@ -22,10 +22,11 @@ class BillingMethodView extends JView
     if billingInfo
       { cardFirstName, cardLastName, cardNumber, cardMonth, cardYear
         cardType, address1, address2, city, state, zip } = billingInfo
+      address = [address1, address2].filter(Boolean).join ' '
       """
       <p>#{cardFirstName} #{cardLastName}</p>
       <p>#{cardNumber} - #{cardMonth}/#{cardYear} (#{cardType})</p>
-      <p>#{address1} #{address2}</p>
+      <p>#{address}</p>
       <p>#{city} #{state} #{zip}</p>
       """
     else "Enter billing information"
