@@ -28,7 +28,7 @@ var (
 
 func main() {
 	flag.Parse()
-	o := &protocol.Options{
+	options := &protocol.Options{
 		PublicIP: "localhost",
 		Kitename: "fs",
 		Version:  "1",
@@ -48,7 +48,8 @@ func main() {
 		"fs.writeFile":             "WriteFile",
 	}
 
-	k := kite.New(o, new(Os), methods)
+	k := kite.New(options)
+	k.AddMethods(new(Os), methods)
 	k.Start()
 }
 

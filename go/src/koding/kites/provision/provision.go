@@ -45,7 +45,7 @@ var (
 
 func main() {
 	flag.Parse()
-	o := &protocol.Options{
+	options := &protocol.Options{
 		LocalIP:  *ip,
 		PublicIP: "localhost",
 		Username: "fatih",
@@ -72,7 +72,9 @@ func main() {
 	go initializeVMS()
 	go limiterLoop()
 
-	k := kite.New(o, new(Provision), methods)
+	k := kite.New(options)
+	k.AddMethods(new(Provision), methods)
+
 	fmt.Println("kite started")
 	k.Start()
 }

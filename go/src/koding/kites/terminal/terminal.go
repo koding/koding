@@ -40,7 +40,7 @@ var port = flag.String("port", "", "port to bind itself")
 
 func main() {
 	flag.Parse()
-	o := &protocol.Options{
+	options := &protocol.Options{
 		PublicIP: "localhost",
 		Kitename: "terminal",
 		Version:  "1",
@@ -51,7 +51,8 @@ func main() {
 		"webterm.connect": "Connect",
 	}
 
-	k := kite.New(o, new(Terminal), methods)
+	k := kite.New(options)
+	k.AddMethods(new(Terminal), methods)
 	k.Start()
 }
 
