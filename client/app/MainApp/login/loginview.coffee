@@ -454,18 +454,18 @@ class LoginView extends KDScrollView
       return "/#{route}"
 
   showError = (err)->
-    if err.message.length > 50
+
+    if err.message is "CONFIRMATION_WAITING"
+      {firstName, nickname}  = err.data
+      KD.getSingleton('mainController').displayConfirmEmailModal(firstName, nickname)
+
+    else if err.message.length > 50
       new KDModalView
         title        : "Something is wrong!"
         width        : 500
         overlay      : yes
         cssClass     : "new-kdmodal"
-        content      :
-          """
-            <div class='modalformline'>
-              #{err.message}
-            </div>
-          """
+        content      : "<div class='modalformline'>" + err.message + "</div>"
     else
       new KDNotificationView
         title   : err.message
