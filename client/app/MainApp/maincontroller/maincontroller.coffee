@@ -16,7 +16,7 @@ class MainController extends KDController
 
   constructor:(options = {}, data)->
 
-    options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
+    options.failWait  = 10000            # duration in miliseconds to show a connection failed modal
 
     super options, data
 
