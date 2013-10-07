@@ -13,7 +13,7 @@ class AccountPaymentHistoryListController extends AccountListViewController
     @showLazyLoader no
 
     transactions = []
-    KD.remote.api.JRecurly.getTransactions (err, trans=[])=>
+    KD.remote.api.JPayment.getTransactions (err, trans=[])=>
       warn err  if err
 
       for t in trans when t.amount + t.tax > 0

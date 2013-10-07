@@ -55,7 +55,7 @@ class PaymentWidget extends KDView
       callback err or not account or not account.cardNumber
 
   checkSubscription:(callback)->
-    KD.remote.api.JRecurlySubscription.checkUserSubscription @planCode, (err, subs)=>
+    KD.remote.api.JPaymentSubscription.checkUserSubscription @planCode, (err, subs)=>
       subscribed = no
       subs.forEach (sub)=>
         if sub.status in ['canceled', 'active']
@@ -76,7 +76,7 @@ class PaymentWidget extends KDView
     @loader.show()
 
   subscribe:(callback)->
-    KD.remote.api.JRecurlyPlan.getPlanWithCode @planCode, (err, plan)=>
+    KD.remote.api.JPaymentPlan.getPlanWithCode @planCode, (err, plan)=>
       if not err and plan
         plan.subscribe {}, callback
 
@@ -85,7 +85,7 @@ class PaymentWidget extends KDView
     paymentController.setBillingInfo 'user', callback
 
   confirmSubscription:(callback)->
-    KD.remote.api.JRecurlyPlan.getPlanWithCode @planCode, (err,plan)=>
+    KD.remote.api.JPaymentPlan.getPlanWithCode @planCode, (err,plan)=>
 
       title     = plan.title
       price     = plan.feeMonthly / 100

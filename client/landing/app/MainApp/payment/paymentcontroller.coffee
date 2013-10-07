@@ -5,23 +5,23 @@ class PaymentController extends KDController
 
   getBalance: (type, callback)->
     
-    { JRecurlyPlan } = KD.remote.api
+    { JPaymentPlan } = KD.remote.api
 
     if type is 'user'
-      JRecurlyPlan.getUserBalance callback
+      JPaymentPlan.getUserBalance callback
     else
-      JRecurlyPlan.getGroupBalance callback
+      JPaymentPlan.getGroupBalance callback
 
   updateCreditCard: (type, callback = (->)) ->
 
-    { JRecurlyPlan } = KD.remote.api
+    { JPaymentPlan } = KD.remote.api
 
     @updateCreditCardModal {}, (newData) =>
       @modal.buttons.Save.hideLoader()
       if type in ['group', 'expensed']
         getGroup().setBillingInfo newData, callback
       else
-        JRecurlyPlan.setUserAccount newData, callback
+        JPaymentPlan.setUserAccount newData, callback
 
 
   getSubscription: do ->
@@ -33,13 +33,13 @@ class PaymentController extends KDController
       callback 'none'
 
     getSubscription = (type, planCode, callback) ->
-      { JRecurlySubscription } = KD.remote.api
+      { JPaymentSubscription } = KD.remote.api
 
       if type is 'group'
         getGroup().checkPayment (err, subs) =>
           findActiveSubscription subs, planCode, callback
       else
-        JRecurlySubscription.getUserSubscriptions (err, subs) ->
+        JPaymentSubscription.getUserSubscriptions (err, subs) ->
           findActiveSubscription subs, planCode, callback
 
   confirmPayment: (type, plan, callback = (->)) ->
@@ -97,19 +97,19 @@ class PaymentController extends KDController
 
   fetchBillingInfo: (type, callback) ->
     
-    { JRecurlyPlan } = KD.remote.api
+    { JPaymentPlan } = KD.remote.api
 
     switch type
       when 'group', 'expensed'
         getGroup().fetchBillingInfo callback
       when 'user'
-        JRecurlyPlan.fetchAccountDetails callback
+        JPaymentPlan.fetchAccountDetails callback
 
   updateBillingInfo: (billingInfo, callback) ->
     
-    { JRecurly } = KD.remote.api
+    { JPayment } = KD.remote.api
 
-    JRecurly.setBillingInfo billingInfo, (err, result)->
+    JPayment.setBillingInfo billingInfo, (err, result)->
       debugger
 
 
@@ -124,14 +124,14 @@ class PaymentController extends KDController
 
   fetchCountryData:(callback)->
 
-    { JRecurly } = KD.remote.api
+    { JPayment } = KD.remote.api
 
     if @countries or @countryOfIp
       return @utils.defer => callback null, @countries, @countryOfIp
 
     ip = $.cookie 'clientIPAddress'
     
-    JRecurly.fetchCountryDataByIp ip, (err, @countries, @countryOfIp) =>
+    JPayment.fetchCountryDataByIp ip, (err, @countries, @countryOfIp) =>
       callback err, @countries, @countryOfIp
 
   createPaymentConfirmationModal: (options, callback)->

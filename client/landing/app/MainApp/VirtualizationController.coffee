@@ -633,7 +633,7 @@ class VirtualizationController extends KDController
 
   fetchVMPlans:(callback)->
     @emit "VMPlansFetchStart"
-    KD.remote.api.JRecurlyPlan.getPlans "group", "vm", (err, plans)=>
+    KD.remote.api.JPaymentPlan.getPlans "group", "vm", (err, plans)=>
       if err then warn err
       else if plans
         plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
