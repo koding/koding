@@ -4,7 +4,7 @@ module.exports = ({account})->
 
   """
   <!doctype html>
-  <html lang="en">
+  <html lang="en" itemscope="" itemtype="http://schema.org/WebPage">
   <head>
     <title>Koding</title>
     #{getStyles()}
@@ -34,6 +34,7 @@ putSplash = (account)->
           <h3 class='splash-name'>
             [ <span itemprop="givenName">#{firstName}</span> - <span itemprop="familyName">#{lastName}</span> ]
           </h3>
+          <br />
           <h4 class='splash-name' itemprop="interactionCount">#{numberOfLikes} likes.</h4>
        </figure>
     """

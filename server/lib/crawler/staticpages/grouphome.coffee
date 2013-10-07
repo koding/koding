@@ -8,7 +8,7 @@ module.exports = ({group})->
   """
 
   <!DOCTYPE html>
-  <html>
+  <html itemscope="" itemtype="http://schema.org/WebPage">
   <head>
     <title>#{encoder.XSSEncode title}</title>
     #{getStyles()}

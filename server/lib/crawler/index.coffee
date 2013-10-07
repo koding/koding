@@ -8,7 +8,9 @@ profile = require './staticpages/profile'
 module.exports =
   crawl: (bongo, req, res, slug)->
     {JName} = bongo.models
-    [name, section] = slug.split("/")
+
+    # Are all slugs start with a '/'? 
+    [slash, name, section] = slug.split("/")
     return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
     [firstLetter] = name
 
