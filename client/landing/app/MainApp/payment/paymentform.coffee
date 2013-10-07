@@ -133,6 +133,7 @@ class PaymentFormModal extends KDModalViewWithForms
       else                                         'Unknown'
 
   updateCardTypeDisplay: (cardType = @getCardType()) ->
+    @billingForm.addCustomData 'cardType', cardType
     cardType = cardType.toLowerCase()
     $icon    = @icon.$()
     unless $icon.hasClass cardType
