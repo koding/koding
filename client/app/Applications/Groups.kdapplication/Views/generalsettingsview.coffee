@@ -8,25 +8,20 @@ class GroupGeneralSettingsView extends JView
 
     formOptions =
       callback:(formData)=>
-        {readme}   = formData
         saveButton = @settingsForm.buttons.Save
         appManager = KD.getSingleton('appManager')
-        delete formData.readme
+
         # fix me:  make this a single call
         group.modify formData, (err)=>
           if err
             saveButton.hideLoader()
             return new KDNotificationView { title: err.message, duration: 1000 }
 
-          group.setReadme readme, (err)=>
-            saveButton.hideLoader()
-            return new KDNotificationView { title: err.message, duration: 1000 }  if err
+          new KDNotificationView
+            title: 'Group was updated!'
+            duration: 1000
 
-            new KDNotificationView
-              title: 'Group was updated!'
-              duration: 1000
-
-            delegate.emit "groupSettingsUpdated", group
+          delegate.emit "groupSettingsUpdated", group
 
       buttons:
         Save                :
@@ -64,12 +59,6 @@ class GroupGeneralSettingsView extends JView
           defaultValue      : Encoder.htmlDecode group.body ? ""
           placeholder       : 'Please enter a description here.'
           autogrow          : yes
-        Readme              :
-          label             : "Readme"
-          name              : "readme"
-          itemClass         : GroupReadmeView
-          defaultValue      : Encoder.htmlDecode group.readme ? ""
-          data              : group
         "Privacy settings"  :
           itemClass         : KDSelectBox
           label             : "Privacy"
@@ -93,7 +82,6 @@ class GroupGeneralSettingsView extends JView
 
     @settingsForm = new KDFormViewWithFields formOptions, group
 
-    
     unless KD.config.roles? and 'owner' in KD.config.roles
       @settingsForm.buttons.Remove.hide()
 
