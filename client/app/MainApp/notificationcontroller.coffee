@@ -37,30 +37,27 @@ class NotificationController extends KDObject
 
     @on 'GuestTimePeriodHasEnded', ()->
       # todo add a notification to user
+      deleteUserCookie()
+
+    deleteUserCookie = ->
       $.cookie 'clientId', erase: yes
 
-    @on 'EmailShouldBeConfirmed', ()->
-      modal = new KDModalView
-        title         : "Email Confirmation needed."
-        overlay       : yes
-        content       :
-          """
-          <div class="modalformline">
-          You should confirm your email address to continue.
-          </div>
-          """
-        buttons       :
-          "Ok"        :
-            style     : "modal-clean-gray"
-            callback  : (event) ->
-              modal.destroy()
+    displayEmailConfirmedNotification = (modal)->
+      modal.off "KDObjectWillBeDestroyed"
+      new KDNotificationView
+        title   : "Thanks for confirming your e-mail address"
+        duration: 5000
+      modal.destroy()
 
-      modal.on "KDObjectWillBeDestroyed", ->
-        $.cookie 'clientId', erase: yes
+    @once 'EmailShouldBeConfirmed', ()->
+      {firstName, nickname} = KD.whoami().profile
+      modal = KD.getSingleton("mainController").displayConfirmEmailModal(firstName, nickname)
+      @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
+      modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
     @on 'UsernameChanged', ({username, oldUsername}) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
-      $.cookie 'clientId', erase: yes
+      deleteUserCookie()
 
       new KDModalView
         title         : "Your username was changed"
