@@ -46,3 +46,6 @@ website/index.html
 website/js/kd*.js
 website/js/kd*.js.map
 kontrolUUID-*
+website/css/testapp.css
+website/js/testapp.js
+website/js/testapp.js.map
