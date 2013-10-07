@@ -11,7 +11,7 @@ module.exports = class EmailConfirmationChecker
 
     lessThanFilterDate = new Date(Date.now() - (1000 * 60 * usageLimitInMinutes))
     #greater than filter date is only 5 min before than the actual usage limit
-    greaterThanFilterDate = new Date(Date.now() - (100000 * 60 * (usageLimitInMinutes + 5) ))
+    greaterThanFilterDate = new Date(Date.now() - (1000 * 60 * (usageLimitInMinutes + 5) ))
 
     userSelector = {
       "status": 'unconfirmed'
@@ -36,8 +36,9 @@ module.exports = class EmailConfirmationChecker
         return  unless account
         account.sendNotification "EmailShouldBeConfirmed", account
         console.log "#{username} did not confirmed password, will be logged out"
-        JSession.remove {"username": username}, (err)=>
-          return  console.error err  if err
+        # We decided not to remove sessions
+        # JSession.remove {"username": username}, (err)=>
+        #   return  console.error err  if err
 
   init: ->
     guestCleanerCron = new CronJob @options.cronSchedule, @logoutUnregisteredUsers
