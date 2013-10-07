@@ -123,7 +123,13 @@ class MainController extends KDController
 
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
-        @utils.defer -> window.location.pathname = KD.getSingleton("router").visitedRoutes.first or "/"
+        @utils.defer ->
+          firstRoute = KD.getSingleton("router").visitedRoutes.first
+
+          if firstRoute and /^\/Verify/.test firstRoute
+            firstRoute = "/"
+
+          window.location.pathname = firstRoute or "/"
       cookie = $.cookie 'clientId'
 
 
