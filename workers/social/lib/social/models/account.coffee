@@ -91,7 +91,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchMyFollowersFromGraph', 'blockUser', 'unblockUser',
         'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
-        'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
+        'unlinkOauth', 'changeUsername',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
         'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore'
       ]
@@ -229,13 +229,6 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
 
-  fetchOldKodingDownloadLink : secure (client,callback)->
-    crypto = require 'crypto'
-    {delegate}    = client.connection
-    user      = delegate.profile.nickname
-    userhash  = crypto.createHash('md5').update("#{user}+salty\n").digest("hex")
-    link      = "http://old.koding.s3.amazonaws.com/koding.old/#{user}-#{userhash}.tgz"
-    callback null,link
 
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection
