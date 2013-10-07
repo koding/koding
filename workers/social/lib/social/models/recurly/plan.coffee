@@ -20,7 +20,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     indexes:
       code         : 'unique'
     sharedMethods  :
-      static       : ['getPlans', 'getPlanWithCode', 'getAccount']
+      static       : ['getPlans', 'getPlanWithCode', 'fetchAccountDetails']
       instance     : ['getToken', 'getType', 'subscribe', 'getSubscriptions']
     schema         :
       code         : String
@@ -36,8 +36,8 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         version    : Number
       lastUpdate   : Number
 
-  @getAccount = secure ({connection:{delegate}}, callback)->
-    recurly.getAccount (JRecurly.userCodeOf delegate), callback
+  @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
+    recurly.fetchAccountDetailsByAccountCode (JRecurly.userCodeOf delegate), callback
 
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter

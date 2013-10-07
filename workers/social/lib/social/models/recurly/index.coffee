@@ -23,7 +23,7 @@ module.exports = class JRecurly extends Base
   @set
     sharedMethods  :
       static       : [
-        'getBalance', 'setBillingInfo', 'getAccount', 'getTransactions', 'fetchCountryDataByIp'
+        'getBalance', 'setBillingInfo', 'fetchAccountDetails', 'getTransactions', 'fetchCountryDataByIp'
       ]
 
   @setBillingInfo = secure (client, data, callback) ->
@@ -39,13 +39,13 @@ module.exports = class JRecurly extends Base
       JUser.fetchUser client, (err, user) ->
         userId = userCodeOf delegate
         data.email = user.email
-        recurly.setAccount userId, data, (err, res) ->
+        recurly.setAccountDetailsByAccountCode userId, data, (err, res) ->
           return callback err  if err?
 
-          recurly.setBilling userId, data, callback
+          recurly.setBillingByAccountCode userId, data, callback
 
-  @getAccount = secure ({connection:{delegate}}, callback)->
-    recurly.getAccount (userCodeOf delegate), callback
+  @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
+    recurly.fetchAccountDetailsByAccountCode (userCodeOf delegate), callback
 
   @getTransactions = secure ({connection:{delegate}}, callback)->
     recurly.getTransactions (userCodeOf delegate), callback

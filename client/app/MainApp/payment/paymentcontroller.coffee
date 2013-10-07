@@ -103,7 +103,7 @@ class PaymentController extends KDController
       when 'group', 'expensed'
         getGroup().fetchBillingInfo callback
       when 'user'
-        JRecurlyPlan.getAccount callback
+        JRecurlyPlan.fetchAccountDetails callback
 
   updateBillingInfo: (billingInfo, callback) ->
     

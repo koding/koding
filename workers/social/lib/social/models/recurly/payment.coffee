@@ -96,7 +96,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       return callback err  if err
       {nickname, firstName, lastName} = account.profile
       data = {email: user.email, nickname, firstName, lastName}
-      recurly.setAccount "user_#{account.getId()}", data, callback
+      recurly.setAccountDetailsByAccountCode "user_#{account.getId()}", data, callback
 
   # Create group account on Recurly
   @createGroupAccount = (group, callback)->
@@ -109,7 +109,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
           firstName : 'Group'
           lastName  : group.title
           email     : user.email
-        recurly.setAccount "group_#{group.getId()}", data, callback
+        recurly.setAccountDetailsByAccountCode "group_#{group.getId()}", data, callback
 
   # Tell if user can buy an item and expense it to group.
   @canChargeGroup = (group, account, data, callback)->
