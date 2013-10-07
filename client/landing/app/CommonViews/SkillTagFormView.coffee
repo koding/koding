@@ -6,36 +6,29 @@ class SkillTagFormView extends KDFormView
     @memberData = data
     @memberData.skillTags or= []
 
-    @setListeners()
-
   showForm: ->
-    @windowController = KD.getSingleton 'windowController'
-    @windowController.addLayer @
-    unless @hasClass 'active'
-      @setClass 'active'
-      @focusFirstElement()
+    return if @hasClass 'active'
+    @setClass 'active'
+    @focusFirstElement()
 
-  setListeners: ->
-    @on 'ReceivedClickElsewhere', => @unsetClass 'active'
 
   viewAppended: ->
+
     super
+
+    @parent.on "EditingModeToggled", (state)=>
+      if state then @showForm() else @unsetClass 'active'
+
     @addSubView tagWrapper = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "form-actions-holder clearfix"
-      bind        : "mouseenter mouseleave"
-      mouseenter  : =>
-        unless @hasClass "active"
-          @label.updatePartial "<a href='#'>Click to edit...</a>"
-          @tip.hide()
-      mouseleave  : =>
-        @label.updatePartial "SKILLS"
-        @tip.show() if @memberData.skillTags.length is 0
 
     tagWrapper.addSubView @label = new KDLabelView
       cssClass    : "skilltagslabel"
       title       : "SKILLS"
-      click       : @bound 'showForm'
+      for         : "skillTagsInput"
+      click       : =>
+        @parent.setEditingMode on
 
     tagWrapper.addSubView @tip = new KDCustomHTMLView
       tagName     : "span"
@@ -56,6 +49,9 @@ class SkillTagFormView extends KDFormView
       outputWrapper       : tagWrapper
       selectedItemsLimit  : 10
       form                : this
+      view                : new KDAutoComplete
+        placeholder       : 'Add a skill...'
+        name              : 'skillTagsInput'
       dataSource          : ({inputValue}, callback) =>
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         @emit "AutoCompleteNeedsTagData", {inputValue,blacklist,callback}
