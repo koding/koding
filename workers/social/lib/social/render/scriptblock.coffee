@@ -22,7 +22,6 @@ module.exports = ->
     require.config({baseUrl: "/js", waitSeconds:30});
     require(["order!/js/highlightjs/highlight.pack.js",
              "order!/js/kd.#{KONFIG.version}.js",
-             "order!/js/testapp.js",
              "order!/js/kdapp.#{KONFIG.version}.js"]);
   </script>
 
