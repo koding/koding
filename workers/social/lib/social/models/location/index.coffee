@@ -23,12 +23,14 @@ module.exports = class JLocation extends Model
       if err
       then callback err
       else callback null, states
-        .filter(Boolean)
+        .filter( (state) ->
+          !!state?.state
+        )
         .map( (state) ->
           state     : state.state
           stateCode : state.stateCode
         )
-        .reduce( (memo, value)->
+        .reduce( (memo, value) ->
           memo[value.stateCode] =
             title: value.state
             value: value.stateCode
