@@ -299,10 +299,13 @@ module.exports = class JUser extends jraphical.Module
           else
             afterLogin connection, user, clientId, session, callback
 
-  checkUserStatus = (user, callback)->
+  checkUserStatus = (user, account, callback)->
     if user.status is 'unconfirmed' and KONFIG.emailConfirmationCheckerWorker.enabled
-      error = createKodingError "You must confirm your email address to continue using Koding.com"
+      error = createKodingError "CONFIRMATION_WAITING"
       error.code = 403
+      error.data or= {}
+      error.data.name = account.profile.firstName or account.profile.nickname
+      error.data.nickname = account.profile.nickname
       return callback error
     return callback null
 
@@ -310,7 +313,7 @@ module.exports = class JUser extends jraphical.Module
   checkLoginConstraints = (user, account, callback)->
     checkBlockedStatus user, (err)->
       return callback err  if err
-      checkUserStatus user, callback
+      checkUserStatus user, account, callback
 
   afterLogin = (connection, user, clientId, session, callback)->
     user.fetchOwnAccount (err, account)->
