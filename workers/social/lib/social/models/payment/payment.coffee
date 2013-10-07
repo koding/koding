@@ -1,15 +1,15 @@
 jraphical = require 'jraphical'
 recurly   = require 'koding-payment'
 
-module.exports = class JRecurlyPayment extends jraphical.Module
+module.exports = class JPaymentPayment extends jraphical.Module
 
   {secure, daisy}      = require 'bongo'
 
   KodingError          = require '../../error'
   JUser                = require '../user'
   JGroup               = require '../group'
-  JRecurlyPlan         = require './index'
-  JRecurlySubscription = require './subscription'
+  JPaymentPlan         = require './index'
+  JPaymentSubscription = require './subscription'
   {Relationship}       = require 'jraphical'
 
   @share()
@@ -39,7 +39,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       buyer = "group_#{group.getId()}"  if data.chargeTo is 'group'
 
       charge = (subscription)->
-        pay = new JRecurlyPayment {
+        pay = new JPaymentPayment {
           buyer
           user
           subscription
@@ -80,7 +80,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
 
   # Get plan
   @getPlan = (code, callback)->
-    JRecurlyPlan.getPlanWithCode code, (err, plan)->
+    JPaymentPlan.getPlanWithCode code, (err, plan)->
       if err then return callback new KodingError 'Unable to access product information. Please try again later.'
       callback null, plan
 
@@ -171,7 +171,7 @@ module.exports = class JRecurlyPayment extends jraphical.Module
   @getExpenses = (pattern, callback)->
     error = (err)-> new KodingError "Unable to query user balance: #{err}"
 
-    JRecurlyPayment.some pattern, {subscription: 1}, (err, items)->
+    JPaymentPayment.some pattern, {subscription: 1}, (err, items)->
       return callback error err  if err
       recurly.getSubscriptions "group_#{group.getId()}", (err, subs)->
         return callback error err  if err

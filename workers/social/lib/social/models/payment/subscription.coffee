@@ -4,11 +4,11 @@ payment   = require 'koding-payment'
 forceRefresh  = yes
 forceInterval = 60 * 3
 
-module.exports = class JRecurlySubscription extends jraphical.Module
+module.exports = class JPaymentSubscription extends jraphical.Module
 
   {secure} = require 'bongo'
   JUser    = require '../user'
-  JRecurly = require './index'
+  JPayment = require './index'
 
   @share()
 
@@ -41,8 +41,8 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       return callback null, [] unless subs
 
       code = $in: (sub.planCode  for sub in subs)
-      JRecurlyPlan = require './plan'
-      JRecurlyPlan.some {code}, {}, (err, plans)->
+      JPaymentPlan = require './plan'
+      JPaymentPlan.some {code}, {}, (err, plans)->
         return callback err  if err
         planMap = {}
         planMap[plan.code] = plan         for plan in plans
@@ -67,10 +67,10 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     @getAllSubscriptions {userCode}, callback
 
   @getAllSubscriptions = (selector, callback)->
-    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
+    JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @updateCache = (selector, callback)->
-    JRecurly.updateCache
+    JPayment.updateCache
       constructor   : this
       selector      : {userCode: selector.userCode}
       method        : 'getSubscriptions'
@@ -87,8 +87,8 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     , callback
 
   refund: (percent, callback)->
-    JRecurlyPlan = require './plan'
-    JRecurlyPlan.getPlanWithCode @planCode, (err, plan)=>
+    JPaymentPlan = require './plan'
+    JPaymentPlan.getPlanWithCode @planCode, (err, plan)=>
       return callback err  if err
       payment.addUserCharge @userCode,
         amount: (-1 * plan.feeMonthly * percent / 100)

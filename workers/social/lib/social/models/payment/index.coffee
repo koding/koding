@@ -1,7 +1,7 @@
 {Base}  = require 'bongo'
 recurly = require 'koding-payment'
 
-module.exports = class JRecurly extends Base
+module.exports = class JPayment extends Base
 
   {secure, dash} = require 'bongo'
   {difference, extend} = require 'underscore'
@@ -119,7 +119,7 @@ module.exports = class JRecurly extends Base
         difference(keys.cached, keys.all).forEach (k)->
           stack.push -> cached[k].remove stackCb
 
-        # create new JRecurlyPlan models for new plans from Recurly
+        # create new JPaymentPlan models for new plans from Recurly
         difference(keys.all, keys.cached).forEach (k)->
           cached[k] = new constructor
           cached[k][keyField] = all[k][keyField]

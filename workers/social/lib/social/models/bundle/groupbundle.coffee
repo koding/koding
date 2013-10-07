@@ -6,8 +6,8 @@ module.exports = class JGroupBundle extends JBundle
 
   {permit} = require '../group/permissionset'
 
-  JRecurlyPlan         = require '../recurly'
-  JRecurlySubscription = require '../recurly/subscription'
+  JPaymentPlan         = require '../payment'
+  JPaymentSubscription = require '../payment/subscription'
   JVM                  = require '../vm'
   async                = require 'async'
 
@@ -55,7 +55,7 @@ module.exports = class JGroupBundle extends JBundle
     else if type in ['group', 'expensed']
       planOwner = "group_#{group._id}"
 
-    JRecurlySubscription.getAllSubscriptions planOwner,
+    JPaymentSubscription.getAllSubscriptions planOwner,
       userCode: planOwner
       planCode: planCode
       $or: [

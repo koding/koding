@@ -1,8 +1,8 @@
 recurly     = require 'koding-payment'
-JRecurly    = require './index'
+JPayment    = require './index'
 { extend }  = require 'underscore'
 
-module.exports = class JRecurlyGroup extends JRecurly
+module.exports = class JPaymentGroup extends JPayment
 
   { groupCodeOf } = this
 

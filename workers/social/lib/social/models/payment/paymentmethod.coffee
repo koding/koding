@@ -1,6 +1,6 @@
 {Module} = require 'jraphical'
 
-module.exports = class JRecurlyPaymentMethod extends Module
+module.exports = class JPaymentPaymentMethod extends Module
 
   @share()
 

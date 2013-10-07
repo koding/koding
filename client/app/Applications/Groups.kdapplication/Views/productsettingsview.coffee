@@ -81,7 +81,7 @@ class GroupProductListController extends KDListViewController
     @customItem?.destroy()
     @showLazyLoader no
 
-    KD.remote.api.JRecurlyPlan.getPlans 'groupplan', @group._id, (err,plans)=>
+    KD.remote.api.JPaymentPlan.getPlans 'groupplan', @group._id, (err,plans)=>
       if err or plans.length is 0
         @hideLazyLoader()
         @addCustomItem "This group has no products."
@@ -104,13 +104,13 @@ class GroupProductListItem extends KDListItemView
     {code} = @getData()
 
     codeCheck  = """
-                 KD.remote.api.JRecurlySubscription.checkUserSubscription '#{code}', (err, subscriptions)->
+                 KD.remote.api.JPaymentSubscription.checkUserSubscription '#{code}', (err, subscriptions)->
                    if not err and subscriptions.length > 0
                      console.log "User is subscribed to the plan."
                  """
 
     codeGet    = """
-                 KD.remote.api.JRecurlyPlan.getPlanWithCode '#{code}', (err, plan)->
+                 KD.remote.api.JPaymentPlan.getPlanWithCode '#{code}', (err, plan)->
                    if not err and plan
                     plan.getSubscriptions (err, subs)->
                       console.log "Subscribers:", subs

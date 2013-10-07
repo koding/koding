@@ -221,11 +221,11 @@ module.exports = class JDomain extends jraphical.Module
               callback "Domain registration failed"
 
   @makeTransaction: (client, data, callback)->
-    JRecurlyCharge = require './recurly/charge'
+    JPaymentCharge = require './payment/charge'
 
     amount = 10 * 10 * data.years
 
-    JRecurlyCharge.charge client,
+    JPaymentCharge.charge client,
       code   : 'domain_abc'
       amount : amount
       desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"

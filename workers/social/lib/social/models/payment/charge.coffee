@@ -4,11 +4,11 @@ recurly   = require 'koding-payment'
 forceRefresh  = yes
 forceInterval = 60 * 3
 
-module.exports = class JRecurlyCharge extends jraphical.Module
+module.exports = class JPaymentCharge extends jraphical.Module
 
   {secure}      = require 'bongo'
-  JRecurly      = require './token'
-  JRecurlyToken = require './token'
+  JPayment      = require './token'
+  JPaymentToken = require './token'
   JUser         = require '../user'
 
   @share()
@@ -33,10 +33,10 @@ module.exports = class JRecurlyCharge extends jraphical.Module
     {delegate} = client.connection
     selector = userCode : "user_#{delegate._id}"
 
-    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
+    JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @updateCache = (selector, callback)->
-    JRecurly.updateCache
+    JPayment.updateCache
       constructor   : this
       selector      : {userCode: selector.userCode}
       method        : 'getTransactions'
@@ -53,7 +53,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
 
   @getToken = secure (client, data, callback)->
     {delegate} = client.connection
-    JRecurlyToken.createToken client,
+    JPaymentToken.createToken client,
       planCode: "charge_#{data.code}_#{data.amount}"
     , callback
 
@@ -61,7 +61,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
     {delegate} = client.connection
     userCode = "user_#{delegate._id}"
 
-    JRecurlyToken.checkToken client,
+    JPaymentToken.checkToken client,
       planCode: "charge_#{data.code}_#{data.amount}"
       pin: data.pin
     , (err)=>
@@ -72,7 +72,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
         return callback err  if err
         {uuid, amount, status} = charge
 
-        pay = new JRecurlyCharge {uuid, userCode, amount, status}
+        pay = new JPaymentCharge {uuid, userCode, amount, status}
         pay.save (err)->
           console.log 'transaction created', arguments
           callback err, unless err then pay

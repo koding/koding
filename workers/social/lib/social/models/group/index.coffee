@@ -1277,13 +1277,13 @@ module.exports = class JGroup extends Module
   setBillingInfo: permit 'manage payment methods',
     success: (client, data, callback) ->
       # TODO: Give credits to existing users
-      JRecurlyGroup = require '../recurly/group'
-      JRecurlyGroup.setBillingInfo client, this, data, callback
+      JPaymentGroup = require '../payment/group'
+      JPaymentGroup.setBillingInfo client, this, data, callback
 
   fetchBillingInfo: permit 'manage payment methods',
     success: (client, callback)->
-      JRecurlyGroup = require '../recurly/group'
-      JRecurlyGroup.getBilling this, callback
+      JPaymentGroup = require '../payment/group'
+      JPaymentGroup.getBilling this, callback
 
   checkUserBalance: secure (client, data, callback)->
     @fetchBundle (err, bundle)=>
@@ -1300,7 +1300,7 @@ module.exports = class JGroup extends Module
     JUser = require '../user'
     JUser.fetchUser client, (err, user)=>
       return callback err  if err
-      # TODO: Get VM price from JRecurlyPlan
+      # TODO: Get VM price from JPaymentPlan
       JVM.some
         planOwner : "group_#{@_id}"
         vmType    : 'expensed'
@@ -1311,7 +1311,7 @@ module.exports = class JGroup extends Module
     JUser = require '../user'
     JUser.fetchUser client, (err, user)=>
       return callback err  if err
-      # TODO: Get VM price from JRecurlyPlan
+      # TODO: Get VM price from JPaymentPlan
       JVM.some
         planOwner: "group_#{@_id}"
         vmType   : 'expensed'
@@ -1319,8 +1319,8 @@ module.exports = class JGroup extends Module
       , {planCode: 1}, callback
 
   makeExpense: secure (client, data, callback)->
-    JRecurlyPlan = require '../recurly/plan'
-    JRecurlyPlan.one code: data.plan, (err, plan)=>
+    JPaymentPlan = require '../payment/plan'
+    JPaymentPlan.one code: data.plan, (err, plan)=>
       return callback err  if err
       @checkUserBalance client, data, (err, limit, balance)=>
         return callback err  if err
@@ -1336,28 +1336,28 @@ module.exports = class JGroup extends Module
 
   chargeGroup: secure (client, data, callback)->
     data.plan   ?= @payment.plan
-    JRecurlyPlan = require '../recurly/plan'
-    JRecurlyPlan.one code: data.plan, (err, plan)=>
+    JPaymentPlan = require '../payment/plan'
+    JPaymentPlan.one code: data.plan, (err, plan)=>
       return callback err  if err
       plan.subscribeGroup this, data, callback
 
   addProduct: permit 'manage products',
     success: (client, data, callback)->
-      JRecurlyGroup = require '../recurly/group'
-      JRecurlyGroup.addPlan this, data, callback
+      JPaymentGroup = require '../payment/group'
+      JPaymentGroup.addPlan this, data, callback
 
   deleteProduct: permit 'manage products',
     success: (client, data, callback)->
-      JRecurlyGroup = require '../recurly/group'
-      JRecurlyGroup.deletePlan this, data, callback
+      JPaymentGroup = require '../payment/group'
+      JPaymentGroup.deletePlan this, data, callback
 
   checkPayment: (callback)->
-    JRecurlySubscription = require '../recurly/subscription'
-    JRecurlySubscription.getGroupSubscriptions this, callback
+    JPaymentSubscription = require '../payment/subscription'
+    JPaymentSubscription.getGroupSubscriptions this, callback
 
   getTransactions: (callback)->
-    JRecurlyGroup = require '../recurly/group'
-    JRecurlyGroup.getTransactions this, callback
+    JPaymentGroup = require '../payment/group'
+    JPaymentGroup.getTransactions this, callback
 
   vmUsage: secure ({connection:{delegate}}, callback)->
     @fetchBundle (err, bundle)=>

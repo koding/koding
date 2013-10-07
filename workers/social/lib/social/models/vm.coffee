@@ -11,7 +11,7 @@ module.exports = class JVM extends Module
 
   KodingError = require '../error'
 
-  JRecurlySubscription = require './recurly/subscription'
+  JPaymentSubscription = require './payment/subscription'
   JPermissionSet       = require './group/permissionset'
   @share()
 
@@ -441,7 +441,7 @@ module.exports = class JVM extends Module
     if vm.planCode is 'free'
       vm.remove callback
     else
-      JRecurlySubscription.getAllSubscriptions vm.planOwner,
+      JPaymentSubscription.getAllSubscriptions vm.planOwner,
         userCode : vm.planOwner
         planCode : vm.planCode
         $or      : [

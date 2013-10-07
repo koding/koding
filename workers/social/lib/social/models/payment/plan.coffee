@@ -4,15 +4,15 @@ recurly   = require 'koding-payment'
 forceRefresh  = yes
 forceInterval = 60
 
-module.exports = class JRecurlyPlan extends jraphical.Module
+module.exports = class JPaymentPlan extends jraphical.Module
 
   {secure, dash}       = require 'bongo'
   {difference, extend} = require 'underscore'
 
   JUser                = require '../user'
-  JRecurly             = require './index'
-  JRecurlyToken        = require './token'
-  JRecurlySubscription = require './subscription'
+  JPayment             = require './index'
+  JPaymentToken        = require './token'
+  JPaymentSubscription = require './subscription'
 
   @share()
 
@@ -37,7 +37,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       lastUpdate   : Number
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
-    recurly.fetchAccountDetailsByAccountCode (JRecurly.userCodeOf delegate), callback
+    recurly.fetchAccountDetailsByAccountCode (JPayment.userCodeOf delegate), callback
 
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
@@ -46,18 +46,18 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     selector['product.category'] = category  if category
     selector['product.item']     = item      if item
 
-    JRecurly.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
+    JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @getPlanWithCode = (code, callback)->
-    JRecurlyPlan.one { code }, callback
+    JPaymentPlan.one { code }, callback
 
   getToken: secure (client, data, callback)->
-    JRecurlyToken.createToken client, planCode: @code, callback
+    JPaymentToken.createToken client, planCode: @code, callback
 
   doSubscribe = (code, data, callback)->
     data.multiple ?= no
 
-    JRecurlySubscription.getAllSubscriptions {
+    JPaymentSubscription.getAllSubscriptions {
       userCode
       planCode  : @code
       $or       : [
@@ -82,7 +82,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         recurly.createSubscription userCode, plan: @code, (err, result)->
           return callback err  if err
           {planCode: plan, uuid, quantity, status, datetime, expires, renew, amount} = result
-          sub = new JRecurlySubscription {
+          sub = new JPaymentSubscription {
             userCode, planCode, uuid, quantity, status, datetime, expires, renew, amount
           }
           sub.save (err)-> callback err, sub
@@ -94,12 +94,12 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     doSubscribe "group_#{group._id}", data, callback
 
   getSubscription: secure ({connection:{delegate}}, callback)->
-    JRecurlySubscription.one {userCode: "user_#{delegate._id}", planCode: @code}, callback
+    JPaymentSubscription.one {userCode: "user_#{delegate._id}", planCode: @code}, callback
 
   getType:-> if @feeInterval is 1 then 'recurring' else 'single'
 
   getSubscriptions: (callback)->
-    JRecurlySubscription.all
+    JPaymentSubscription.all
       planCode: @code
       $or: [
         { status: 'active' }
@@ -117,7 +117,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
   @updateCache = (selector, callback)->
     # TODO: what on earth is the point of this? C
-    JRecurly.updateCache(
+    JPayment.updateCache(
       constructor   : this
       method        : 'getPlans'
       keyField      : 'code'

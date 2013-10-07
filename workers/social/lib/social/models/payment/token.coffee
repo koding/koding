@@ -1,6 +1,6 @@
 {Module} = require 'jraphical'
 
-module.exports = class JRecurlyToken extends Module
+module.exports = class JPaymentToken extends Module
 
   {secure}    = require 'bongo'
   crypto      = require 'crypto'
@@ -26,7 +26,7 @@ module.exports = class JRecurlyToken extends Module
     # CAUTION: we do not ask for nor validate token for now
     return callback yes
 
-    JRecurlyToken.one
+    JPaymentToken.one
       userCode: delegate.profile.nickname
       planCode: data.planCode
     , (err, token)->
@@ -46,7 +46,7 @@ module.exports = class JRecurlyToken extends Module
   @createToken = secure (client, data, callback)->
     {delegate} = client.connection
 
-    JRecurlyToken.one
+    JPaymentToken.one
       userCode: delegate.profile.nickname
       planCode: data.planCode
     , (err, token)=>
@@ -54,7 +54,7 @@ module.exports = class JRecurlyToken extends Module
 
       # Create entry if necessary
       if err or not token
-        token = new JRecurlyToken
+        token = new JPaymentToken
           userCode: delegate.profile.nickname
           planCode: data.planCode
 
