@@ -117,18 +117,6 @@ module.exports =
     watchDuration : 300
     includesPath: 'client'
     websitePath : 'website'
-    staticProjects : [ { title  : "KD Framework",                      \
-                         files  : "frameworkincludes.coffee",          \
-                         script : "js/kd.#{version}.js",               \
-                         style  : "css/kd.#{version}.css"},            \
-                       { title  : "Koding MainApp",                    \
-                         files  : "includes.coffee",                   \
-                         script : "js/kdapp.#{version}.js",            \
-                         style  : "css/kdapp.#{version}.css"},         \
-                       { title  : "Koding TestApp",                    \
-                         files  : "testapp/includes.coffee",           \
-                         script : "js/testapp.js",                     \
-                         style  : "css/testapp.css"} ]
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no

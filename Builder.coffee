@@ -35,10 +35,12 @@ module.exports = class Builder
 
     @projectsToBuild = {}
 
-    for project in @config.client.staticProjects
+    projects = require './projects'
 
-      @projectsToBuild[project.title] =
-        title     : project.title
+    for own title, project of projects
+
+      @projectsToBuild[title] =
+        title     : title
         includes  : project.files
         changed   : no
         fileTime  : 0
@@ -289,7 +291,7 @@ module.exports = class Builder
     for file in project.files.styles
       code += file.content+"\n"
     fs.writeFileSync @config.client.websitePath + "/" + project.outputs.style, code
-    log.info "#{project.title} styles compiled, output written to : #{project.outputs.style}"
+    log.info "#{project.title} styles compiled,  output written to : #{project.outputs.style}"
 
   getEnvForRollbar: ->
     return if @config.client.version is "0.0.1" then "development" else "production"

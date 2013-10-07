@@ -141,7 +141,6 @@ config =
       watchDuration : 1
       includesPath  : 1
       websitePath   : 1
-      staticProjects: [{ title : 1, files : 1, script : 1, style : 1}]
       indexMaster   : 1
       index         : 1
       useStaticFileServer: 1
