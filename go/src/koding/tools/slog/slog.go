@@ -55,61 +55,52 @@ func New(filepath ...string) *Slog {
 // Print calls Output to print to the standard logger. Arguments are handled in
 // the manner of fmt.Print.
 func Printn(v ...interface{}) (int, error) {
-	if stdlog.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprint(stdlog.output(), v...)
+	return stdlog.checkDisable(func() (int, error) {
+		return fmt.Fprint(stdlog.output(), v...)
+	})
 }
 
 // Printf calls Output to print to the standard logger. Arguments are handled in
 // the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) (int, error) {
-	if stdlog.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprintf(stdlog.output(), format, v...)
+	return stdlog.checkDisable(func() (int, error) {
+		return fmt.Fprintf(stdlog.output(), format, v...)
+	})
 }
 
 // Println calls Output to print to the standard logger. Arguments are handled in
 // the manner of fmt.Println.
 func Println(v ...interface{}) (int, error) {
-	if stdlog.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprintln(stdlog.output(), v...)
+	return stdlog.checkDisable(func() (int, error) {
+		return fmt.Fprintln(stdlog.output(), v...)
+	})
 }
 
 // Fatal is equivalent to Print() followed by a call to os.Exit(1).
 func Fatal(v ...interface{}) {
-	if stdlog.disable {
-		return
-	}
-
-	Printn(v...)
-	os.Exit(1)
+	stdlog.checkDisable(func() (int, error) {
+		Printn(v...)
+		os.Exit(1)
+		return 0, nil
+	})
 }
 
 // Fatalf is equivalent to Printf() followed by a call to os.Exit(1).
 func Fatalf(format string, v ...interface{}) {
-	if stdlog.disable {
-		return
-	}
-
-	Printf(format, v...)
-	os.Exit(1)
+	stdlog.checkDisable(func() (int, error) {
+		Printf(format, v...)
+		os.Exit(1)
+		return 0, nil
+	})
 }
 
 // Fatalln is equivalent to Println() followed by a call to os.Exit(1).
 func Fatalln(v ...interface{}) {
-	if stdlog.disable {
-		return
-	}
-
-	Println(v...)
-	os.Exit(1)
+	stdlog.checkDisable(func() (int, error) {
+		Println(v...)
+		os.Exit(1)
+		return 0, nil
+	})
 }
 
 // SetPrefixFunc sets the output prefix according to the return value of the passed
@@ -190,21 +181,17 @@ func DisableLog() {
 // standard output. Spaces are added between operands when neither is a string. It
 // returns the number of bytes written and any write error encountered.
 func (s *Slog) Printn(v ...interface{}) (int, error) {
-	if s.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprint(s.output(), v...)
+	return s.checkDisable(func() (int, error) {
+		return fmt.Fprint(s.output(), v...)
+	})
 }
 
 // Printf formats according to a format specifier and writes to standard output.
 // It returns the number of bytes written and any write error encountered.
 func (s *Slog) Printf(format string, v ...interface{}) (int, error) {
-	if s.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprintf(s.output(), format, v...)
+	return s.checkDisable(func() (int, error) {
+		return fmt.Fprintf(s.output(), format, v...)
+	})
 }
 
 // Println formats using the default formats for its operands and writes to
@@ -212,41 +199,36 @@ func (s *Slog) Printf(format string, v ...interface{}) (int, error) {
 // appended. It returns the number of bytes written and any write error
 // encountered.
 func (s *Slog) Println(v ...interface{}) (int, error) {
-	if s.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprintln(s.output(), v...)
+	return s.checkDisable(func() (int, error) {
+		return fmt.Fprintln(s.output(), v...)
+	})
 }
 
 // Fatal is equivalent to s.Print() followed by a call to os.Exit(1).
 func (s *Slog) Fatal(v ...interface{}) {
-	if s.disable {
-		return
-	}
-
-	s.Printn(v...)
-	os.Exit(1)
+	s.checkDisable(func() (int, error) {
+		s.Printn(v...)
+		os.Exit(1)
+		return 0, nil
+	})
 }
 
 // Fatalf is equivalent to s.Printf() followed by a call to os.Exit(1).
 func (s *Slog) Fatalf(format string, v ...interface{}) {
-	if s.disable {
-		return
-	}
-
-	s.Printf(format, v...)
-	os.Exit(1)
+	s.checkDisable(func() (int, error) {
+		s.Printf(format, v...)
+		os.Exit(1)
+		return 0, nil
+	})
 }
 
 // Fatalln is equivalent to s.Println() followed by a call to os.Exit(1).
 func (s *Slog) Fatalln(v ...interface{}) {
-	if s.disable {
-		return
-	}
-
-	s.Println(v...)
-	os.Exit(1)
+	s.checkDisable(func() (int, error) {
+		s.Println(v...)
+		os.Exit(1)
+		return 0, nil
+	})
 }
 
 // SetPrefixFunc sets the output prefix according to the return value of the passed
@@ -300,6 +282,8 @@ func (s *Slog) DisableLog() {
 	s.disable = true
 }
 
+// output writes to the io.Writers we specified before and returns the writer
+// back.
 func (s *Slog) output() io.Writer {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -307,6 +291,8 @@ func (s *Slog) output() io.Writer {
 	return s.out
 }
 
+// prefixOutput either writes in for of [prefixName prefixTimestamp] or invokes
+// the custom prefixFunc() instead of the default if any created.
 func (s *Slog) prefixOutput() string {
 	if s.prefixFunc != nil {
 		return s.prefixFunc()
@@ -316,4 +302,14 @@ func (s *Slog) prefixOutput() string {
 		return fmt.Sprintf("[%s] ", time.Now().Format(s.prefix.timeLayout))
 	}
 	return fmt.Sprintf("[%s %s] ", s.prefix.name, time.Now().Format(s.prefix.timeLayout))
+}
+
+// Check if our globale disable switch is activaed. If enabled don't execute
+// our print function.
+func (s *Slog) checkDisable(fn func() (int, error)) (int, error) {
+	if s.disable {
+		return 0, nil
+	}
+
+	return fn()
 }
