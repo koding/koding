@@ -22,7 +22,7 @@ type keychain struct {
 	keys []interface{}
 }
 
-func KillCmd(pid int) error {
+func KillPid(pid int) error {
 	p, err := os.FindProcess(pid)
 	if err != nil {
 		return err
@@ -86,10 +86,6 @@ func SignalPid(pid int, call syscall.Signal) error {
 
 func StopPid(pid int) error {
 	return SignalPid(pid, syscall.SIGSTOP)
-}
-
-func KillPid(pid int) error {
-	return SignalPid(pid, syscall.SIGKILL)
 }
 
 func CheckPid(pid int) error {
