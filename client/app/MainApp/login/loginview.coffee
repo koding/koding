@@ -301,7 +301,12 @@ class LoginView extends KDScrollView
       mainView.show()
       mainView.$().css "opacity", 1
 
-      KD.getSingleton('router').handleRoute KD.singletons.router.visitedRoutes.first or '/Activity', {replaceState: yes, entryPoint}
+      firstRoute = KD.getSingleton("router").visitedRoutes.first
+
+      if firstRoute and /^\/Verify/.test firstRoute
+        firstRoute = "/"
+
+      KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView
           cssClass  : "login"
