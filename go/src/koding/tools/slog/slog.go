@@ -58,7 +58,7 @@ func New(prefixName, prefixTimeStamp string, filepath ...string) *Slog {
 
 // Print calls Output to print to the standard logger. Arguments are handled in
 // the manner of fmt.Print.
-func Printn(v ...interface{}) (int, error) {
+func Print(v ...interface{}) (int, error) {
 	return stdlog.checkDisable(func() (int, error) {
 		return fmt.Fprint(stdlog.output(), v...)
 	})
@@ -83,7 +83,7 @@ func Println(v ...interface{}) (int, error) {
 // Fatal is equivalent to Print() followed by a call to os.Exit(1).
 func Fatal(v ...interface{}) {
 	stdlog.checkDisable(func() (int, error) {
-		Printn(v...)
+		Print(v...)
 		os.Exit(1)
 		return 0, nil
 	})
@@ -185,7 +185,7 @@ func DisableLog() {
 // Print formats using the default formats for its operands and writes to
 // standard output. Spaces are added between operands when neither is a string. It
 // returns the number of bytes written and any write error encountered.
-func (s *Slog) Printn(v ...interface{}) (int, error) {
+func (s *Slog) Print(v ...interface{}) (int, error) {
 	return s.checkDisable(func() (int, error) {
 		return fmt.Fprint(s.output(), v...)
 	})
@@ -212,7 +212,7 @@ func (s *Slog) Println(v ...interface{}) (int, error) {
 // Fatal is equivalent to s.Print() followed by a call to os.Exit(1).
 func (s *Slog) Fatal(v ...interface{}) {
 	s.checkDisable(func() (int, error) {
-		s.Printn(v...)
+		s.Print(v...)
 		os.Exit(1)
 		return 0, nil
 	})
