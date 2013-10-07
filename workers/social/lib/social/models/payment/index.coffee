@@ -55,7 +55,12 @@ module.exports = class JPayment extends Base
     delegate.fetchUser (err, user)->
       return callback err  if err?
       {username, firstName, lastName} = delegate.profile
-      callback null, {email: user.email, username, firstName, lastName}
+      callback null, {
+        email: user.email
+        username
+        firstName
+        lastName
+      }
 
   @getBalance_ = (account, callback)->
     recurly.getTransactions account, (err, adjs)->
