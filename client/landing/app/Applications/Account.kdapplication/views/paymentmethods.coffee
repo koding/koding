@@ -16,7 +16,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
   loadItems: ->
     @removeAllItems()
     @showLazyLoader no
-    KD.remote.api.JRecurlyPlan.getAccount (err, res) =>
+    KD.remote.api.JRecurlyPlan.fetchAccountDetails (err, res) =>
       accounts = []
       if err
         @instantiateListItems []
