@@ -12,6 +12,9 @@ type Domain struct {
 	// Domain is the domain in host form without any scheme (i.e: new.koding.com)
 	Domain string `bson:"domain"`
 
+	// DomainType
+	DomainType string `bson:"domainType"`
+
 	// HostnameAlias is used for proxy to route the domain to their VM defined
 	// by the HostnameAlias.
 	HostnameAlias []string `bson:"hostnameAlias"`

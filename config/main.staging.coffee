@@ -90,8 +90,15 @@ module.exports =
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
-    cronSchedule         : '* * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
@@ -135,7 +142,7 @@ module.exports =
       mainUri   : "http://koding.com"
       broker    :
         servicesEndpoint: "/-/services/broker"
-        sockJS   : "http://stage-broker-#{version}.in.koding.com/subscribe"
+        sockJS   : "http://stage-broker-#{version}.sj.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
@@ -158,7 +165,7 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : "stage-broker-#{version}.in.koding.com"
+    webHostname : "stage-broker-#{version}.sj.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
@@ -186,6 +193,7 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
       apiHost     : "172.16.6.16"
       apiPort     : 80
@@ -197,12 +205,6 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-    rabbitmq      :
-      host        : '172.16.6.14'
-      port        : '5672'
-      login       : 'guest'
-      password    : 'djfjfhgh4455__5'
-      vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :
@@ -228,3 +230,7 @@ module.exports =
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  statsd         :
+    use          : true
+    ip           : "172.168.2.7"
+    port         : 8125

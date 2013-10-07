@@ -5,9 +5,9 @@ deepFreeze = require 'koding-deep-freeze'
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
-mongo = 'dev:k9lc4G1k32nyD72@kmongodb1.sj.koding.com:27017'
+mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@kmongodb1.sj.koding.com:27017,dev:k9lc4G1k32nyD72@kmongodb2.sj.koding.com:27017,dev:k9lc4G1k32nyD72@kmongodb3.sj.koding.com:27017?readPreference=nearest&maxPoolSize=100'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -94,9 +94,16 @@ module.exports =
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
-    cronSchedule         : '* * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
     watch                : no
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
@@ -189,6 +196,7 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
       apiHost     : "172.16.3.11"
       apiPort     : 80
@@ -200,12 +208,6 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-    rabbitmq      :
-      host        : '172.16.3.4'
-      port        : '5672'
-      login       : 'guest'
-      password    : 's486auEkPzvUjYfeFTMQ'
-      vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :
@@ -231,3 +233,7 @@ module.exports =
     clientId     : "434245153353814"
     clientSecret : "84b024e0d627d5e80ede59150a2b251e"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  statsd         :
+    use          : true
+    ip           : "172.168.2.7"
+    port         : 8125

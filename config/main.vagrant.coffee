@@ -81,8 +81,15 @@ module.exports =
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
-    cronSchedule         : '* * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
@@ -193,6 +200,7 @@ module.exports =
   haproxy         :
     webPort       : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
       apiHost     : "127.0.0.1"
       apiPort     : 8888
@@ -204,12 +212,6 @@ module.exports =
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-    rabbitmq      :
-      host        : 'localhost'
-      port        : '5672'
-      login       : 'guest'
-      password    : 'guest'
-      vhost       : '/'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"
@@ -246,3 +248,7 @@ module.exports =
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
+  statsd         :
+    use          : false
+    ip           : "localhost"
+    port         : 8125

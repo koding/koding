@@ -134,7 +134,6 @@ class NFinderContextMenuController extends KDController
       'Upload file...'            :
         action                    : 'upload'
       'Clone a repo here'         :
-        disabled                  : yes
         action                    : "cloneRepo"
       Download                    :
         disabled                  : yes

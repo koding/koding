@@ -30,7 +30,7 @@ class ActivityController extends KDObject
   blockUser:(accountId, duration, callback)->
     KD.whoami().blockUser accountId, duration, callback
 
-  openBlockUserModal:(data)->
+  openBlockUserModal:(nicknameOrAccountId)->
     @modal = modal = new KDModalViewWithForms
       title                   : "Block User For a Time Period"
       content                 : """
@@ -49,7 +49,7 @@ class ActivityController extends KDObject
           BlockUser           :
             callback          : =>
               blockingTime = calculateBlockingTime modal.modalTabs.forms.BlockUser.inputs.duration.getValue()
-              @blockUser data.originId, blockingTime, (err, res)->
+              @blockUser nicknameOrAccountId, blockingTime, (err, res)->
                 if err
                   warn err
                   modal.modalTabs.forms.BlockUser.buttons.blockUser.hideLoader()

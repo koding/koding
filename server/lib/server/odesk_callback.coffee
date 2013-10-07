@@ -43,6 +43,8 @@ module.exports = (req, res) ->
           odesk.token             = accessToken
           odesk.accessTokenSecret = accessTokenSecret
           odesk.foreignId         = data.auth_user.uid
+          odesk.profileUrl        = data.info.profile_url
+          odesk.profile           = data
 
           saveOauthToSession odesk, clientId, "odesk", (err)->
             if err

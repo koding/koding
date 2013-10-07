@@ -55,7 +55,7 @@ class LocalStorageController extends KDController
     @localStorages = {}
 
   storage:(appName, version = "1.0")->
-    key = "#{appName}-{version}"
+    key = "#{appName}-#{version}"
     return @localStorages[key] or= new LocalStorage appName, version
 
 # Let people can use AppStorage

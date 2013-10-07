@@ -113,6 +113,13 @@ config =
       watch               : 1
       cronSchedule        : 1
       usageLimitInMinutes : 1
+    sitemapWorker         :
+      enabled             : 1
+      login               : 1
+      queueName           : 1
+      numberOfWorkers     : 1
+      watch               : 1
+      cronSchedule        : 1
     social        :
       login       : 1
       numberOfWorkers: 1
@@ -202,6 +209,7 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     kontrold        :
+      vhost         : 1
       overview      :
         apiHost     : 1
         apiPort     : 1
@@ -213,12 +221,6 @@ config =
         port        : 1
         portssl     : 1
         ftpip       : 1
-      rabbitmq      :
-        host        : 1
-        port        : 1
-        login       : 1
-        password    : 1
-        vhost       : 1
     recurly         :
       apiKey        : 1
     embedly         :
@@ -244,4 +246,8 @@ config =
       clientId      : 1
       clientSecret  : 1
       redirectUri   : 1
+    statsd          :
+      use           : 1
+      ip            : 1
+      port          : 1
 module.exports = config
