@@ -53,7 +53,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
         if confirmations and confirmations.length > 0
           createdAt = confirmations.first.createdAt
           # if it is resent in 10 min, do not send again
-          if ((Date.now() - createdAt.getTime()) / 1000 / 60 ) < 10
+          if ((Date.now() - createdAt) / 1000 / 60 ) < 10
             return callback new KodingError "You can receive one confirmation mail in 10 minutes"
 
         JUser = require './user'
@@ -78,7 +78,12 @@ module.exports = class JEmailConfirmation extends jraphical.Module
         JUser = require './user'
         JUser.one email: confirmation.getAt('email'), (err, user)->
           return callback err if err
-          user.confirmEmail callback
+          user.confirmEmail (err)->
+            return callback err if err
+            user.fetchOwnAccount (err, account)->
+              return callback err if err
+              account.sendNotification 'EmailConfirmed', account
+              return callback null
 
   @createAndSendEmail = (user, callback)->
     return callback new KodingError "User is not defined" unless user
