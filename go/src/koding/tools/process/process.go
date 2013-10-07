@@ -71,17 +71,25 @@ func RunCmd(cmdString string, args ...string) ([]byte, error) {
 	return out, nil
 }
 
-func StopPid(pid int) error {
+func SignalPid(pid int, call syscall.Signal) error {
 	process, err := os.FindProcess(pid)
 	if err != nil {
 		log.Printf("failed to find process: %s\n", err)
 	}
 
-	err = process.Signal(syscall.SIGSTOP)
+	err = process.Signal(call)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func StopPid(pid int) error {
+	return SignalPid(pid, syscall.SIGSTOP)
+}
+
+func KillPid(pid int) error {
+	return SignalPid(pid, syscall.SIGKILL)
 }
 
 func CheckPid(pid int) error {
