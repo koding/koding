@@ -290,12 +290,12 @@ class KodingRouter extends KDRouter
             mainController.loginScreen.headBannerShowRecovery recoveryToken
           @clear()
 
-      '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})=>
-        inviteToken = decodeURIComponent inviteToken
+      '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
+        inviteCode = decodeURIComponent inviteCode
         if KD.isLoggedIn()
-          @handleRoute '/Redeem', entryPoint: KD.config.entryPoint
-          mainController.loginScreen.redeemForm.inviteCode.input.setValue inviteToken
-        else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)=>
+          mainController.loginScreen.doRedeem {inviteCode}
+          @handleRoute '/', entryPoint: KD.config.entryPoint
+        else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
             if err then error err
             new KDNotificationView
