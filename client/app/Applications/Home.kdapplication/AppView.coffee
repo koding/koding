@@ -187,7 +187,7 @@ class HomeSlider extends KDCustomHTMLView
 
     for page in @pages
       @navContainer.addSubView item = new SliderLink
-        title       : page.getOption "navTitle"
+        partial     : page.getOption "navTitle"
         slider      : page.parent
       @navItems.push item
       @goToPage @navItems.first
@@ -221,8 +221,10 @@ class HomeSlider extends KDCustomHTMLView
     @createNav()
     @goToPage @navItems.first
 
-class SliderLink extends CustomLinkView
-  constructor:(options)->
+class SliderLink extends KDCustomHTMLView
+  constructor:(options = {})->
+    options.tagName  = "a"
+    options.cssClass = "slider-navlink"
     super
 
   click:->
