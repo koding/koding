@@ -10,10 +10,9 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
+	"koding/tools/slog"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"log"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -26,25 +25,21 @@ type IncomingMessage struct {
 
 var producer *kontrolhelper.Producer
 
-func init() {
-	log.SetPrefix(fmt.Sprintf("kontrold [%5d] ", os.Getpid()))
-}
-
 func Startup() {
 	var err error
 	producer, err = kontrolhelper.CreateProducer("worker")
 	if err != nil {
-		log.Println(err)
+		slog.Println(err)
 	}
 
 	err = producer.Channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
 	if err != nil {
-		log.Printf("clientExchange exchange.declare: %s", err)
+		slog.Printf("clientExchange exchange.declare: %s\n", err)
 	}
 
 	runHelperFunctions()
 
-	log.Println("kontrold handler is initialized")
+	slog.Println("handler is initialized")
 }
 
 // runHelperFunctions contains several indepenendent helper functions that do
@@ -65,7 +60,7 @@ func runHelperFunctions() {
 					continue // still alive, pick up the next one
 				}
 
-				log.Printf("[%s (%d)] no activity at '%s' - '%s' (pid: %d). marking them as dead\n",
+				slog.Printf("[%s (%d)] no activity at '%s' - '%s' (pid: %d). marking them as dead\n",
 					worker.Name,
 					worker.Version,
 					worker.Hostname,
@@ -99,7 +94,7 @@ func runHelperFunctions() {
 	tickerDeployment := time.NewTicker(time.Hour * 1)
 	go func() {
 		for _ = range tickerDeployment.C {
-			log.Println("cleaner started to remove unused deployments and dead workers")
+			slog.Println("cleaner started to remove unused deployments and dead workers")
 			infos := modelhelper.GetClients()
 			for _, info := range infos {
 				version, _ := strconv.Atoi(info.BuildNumber)
@@ -124,13 +119,13 @@ func runHelperFunctions() {
 
 				// ... if not remove deployment information and dead workers of that version
 				if !foundWorker {
-					log.Printf("removing deployment info for build number %s\n", info.BuildNumber)
+					slog.Printf("removing deployment info for build number %s\n", info.BuildNumber)
 					err := modelhelper.DeleteClient(info.BuildNumber)
 					if err != nil {
-						log.Println(err)
+						slog.Println(err)
 					}
 
-					log.Printf("removing dead workers for build number %s\n", info.BuildNumber)
+					slog.Printf("removing dead workers for build number %s\n", info.BuildNumber)
 					query := func(c *mgo.Collection) error {
 						_, err := c.RemoveAll(bson.M{"version": version, "status": int(models.Dead)})
 						return err
@@ -138,7 +133,7 @@ func runHelperFunctions() {
 
 					err = mongodb.Run("jKontrolWorkers", query)
 					if err != nil {
-						log.Println(err)
+						slog.Println(err)
 					}
 				}
 			}
@@ -151,7 +146,7 @@ func ClientMessage(data amqp.Delivery) {
 		var info models.ServerInfo
 		err := json.Unmarshal(data.Body, &info)
 		if err != nil {
-			log.Print("bad json client msg: ", err)
+			slog.Print("bad json client msg: ", err)
 		}
 
 		modelhelper.AddClient(info)
@@ -162,21 +157,21 @@ func WorkerMessage(data []byte) {
 	var msg IncomingMessage
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
-		log.Print("bad json incoming msg: ", err)
+		slog.Print("bad json incoming msg: ", err)
 	}
 
 	if msg.Monitor != nil {
 		err := SaveMonitorData(msg.Monitor)
 		if err != nil {
-			log.Println(err)
+			slog.Println(err)
 		}
 	} else if msg.Worker != nil {
 		err = DoWorkerCommand(msg.Worker.Message.Command, *msg.Worker)
 		if err != nil {
-			log.Println(err)
+			slog.Println(err)
 		}
 	} else {
-		log.Println("incoming message is in wrong format")
+		slog.Println("incoming message is in wrong format")
 	}
 }
 
@@ -184,12 +179,12 @@ func ApiMessage(data []byte) {
 	var req workerconfig.ApiRequest
 	err := json.Unmarshal(data, &req)
 	if err != nil {
-		log.Print("bad json incoming msg: ", err)
+		slog.Print("bad json incoming msg: ", err)
 	}
 
 	err = DoApiRequest(req.Command, req.Uuid)
 	if err != nil {
-		log.Println(err)
+		slog.Println(err)
 	}
 }
 
@@ -244,7 +239,7 @@ func DoWorkerCommand(command string, worker models.Worker) error {
 			return err
 		}
 	case "update":
-		log.Printf("[%s (%d)] update request from: '%s' - '%s'",
+		slog.Printf("[%s (%d)] update request from: '%s' - '%s'\n",
 			worker.Name,
 			worker.Version,
 			worker.Hostname,
@@ -268,7 +263,7 @@ func DoApiRequest(command, uuid string) error {
 		errors.New("empty uuid is not allowed.")
 	}
 
-	log.Printf("[%s] received: %s", uuid, command)
+	slog.Printf("[%s] received: %s\n", uuid, command)
 	switch command {
 	case "delete":
 		err := workerconfig.Delete(uuid)
@@ -278,13 +273,13 @@ func DoApiRequest(command, uuid string) error {
 	case "kill":
 		res, err := workerconfig.Kill(uuid, "normal")
 		if err != nil {
-			log.Println(err)
+			slog.Println(err)
 		}
 		go deliver(res)
 	case "start":
 		res, err := workerconfig.Start(uuid)
 		if err != nil {
-			log.Println(err)
+			slog.Println(err)
 		}
 		go deliver(res)
 	default:
@@ -315,7 +310,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 		// as the same) on other host's. Basically 'force' mode makes the
 		// worker exclusive on all machines and no other worker with the same
 		// name can run anymore.
-		log.Printf("[%s (%d)] killing all other workers except hostname '%s'\n",
+		slog.Printf("[%s (%d)] killing all other workers except hostname '%s'\n",
 			worker.Name, worker.Version, worker.Hostname)
 
 		result := models.Worker{}
@@ -328,13 +323,13 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 			for iter.Next(&result) {
 				res, err := workerconfig.Kill(result.Uuid, "force")
 				if err != nil {
-					log.Println(err)
+					slog.Println(err)
 				}
 				go deliver(res)
 
 				err = workerconfig.Delete(result.Uuid)
 				if err != nil {
-					log.Println(err)
+					slog.Println(err)
 				}
 			}
 
@@ -344,14 +339,14 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 
 		mongodb.Run("jKontrolWorkers", query)
 
-		startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'",
+		startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n",
 			worker.Name,
 			worker.Version,
 			option,
 			worker.Hostname,
 			worker.Uuid,
 		)
-		log.Println(startLog)
+		slog.Println(startLog)
 
 		worker.Status = models.Started
 		worker.ObjectId = bson.NewObjectId()
@@ -416,8 +411,8 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 		})
 
 		if err == nil {
-			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'", worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
-			log.Println(startLog)
+			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n", worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
+			slog.Println(startLog)
 			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
 			return response, nil
 		}
@@ -437,7 +432,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 			worker.Hostname,
 			worker.Uuid,
 		)
-		log.Println(startLog)
+		slog.Println(startLog)
 
 		worker.ObjectId = bson.NewObjectId()
 		worker.Status = models.Started
@@ -463,7 +458,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 func deliver(res workerconfig.WorkerResponse) {
 	data, err := json.Marshal(res)
 	if err != nil {
-		log.Printf("could not marshall worker: %s", err)
+		slog.Printf("could not marshall worker: %s", err)
 	}
 
 	msg := amqp.Publishing{
@@ -476,14 +471,13 @@ func deliver(res workerconfig.WorkerResponse) {
 	}
 
 	if res.Uuid == "" {
-		log.Printf("can't send to worker. appId is missing")
+		slog.Printf("can't send to worker. appId is missing")
 	}
 	workerOut := "output.worker." + res.Uuid
 	err = producer.Channel.Publish("workerExchange", workerOut, false, false, msg)
 	if err != nil {
-		log.Printf("error while publishing message: %s", err)
+		slog.Printf("error while publishing message: %s", err)
 	}
-	// log.Println("SENDING WORKER data ", string(data))
 }
 
 // convert foo-1, foo-*, etc to foo
