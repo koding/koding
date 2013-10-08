@@ -19,6 +19,7 @@ log =
   warn  : console.log
 
 module.exports = class Builder
+
   buildClient: (options) ->
     @config = require('koding-config-manager').load("main.#{options.configFile}")
 
@@ -81,8 +82,10 @@ module.exports = class Builder
 
       if initial or project.changed or scriptsChanged
         @buildJS   options, project
-      if initial or project.changed or stylesChanged
-        @buildCSS  options, project
+
+      if project.outputs.style
+        if initial or project.changed or stylesChanged
+          @buildCSS  options, project
 
     # @buildHTML options if initial or includesChanged or scriptsChanged
 
@@ -110,8 +113,7 @@ module.exports = class Builder
 
     for own _key, project of @projectsToBuild
 
-      includesFile = "#{@config.client.includesPath}/#{project.includes}"
-      time = Date.parse(fs.statSync(includesFile).mtime)
+      time = Date.parse(fs.statSync(project.includes).mtime)
       if project.fileTime == time
         project.changed = no
         continue
@@ -120,14 +122,14 @@ module.exports = class Builder
       project.changed  = yes
       project.files    = scripts:[], styles:[]
       changed |= project.changed
-      for includePath in CoffeeScript.eval(fs.readFileSync(includesFile, "utf-8"))
+      for includePath in CoffeeScript.eval(fs.readFileSync(project.includes, "utf-8"))
 
         cachePath = ".build/" + includePath.replace(/\//g,"_")
 
         file =
           sourceMapPath : cachePath + ".map"
           includePath   : includePath
-          sourcePath    : @config.client.includesPath + "/" + includePath
+          sourcePath    : path.dirname(project.includes) + "/" + includePath
           cachePath     : cachePath
           cacheTime     : if fs.existsSync(cachePath) then Date.parse(fs.statSync(cachePath).mtime) else 0
           extension     : path.extname(includePath)
@@ -215,8 +217,11 @@ module.exports = class Builder
           fs.writeFileSync file.sourceMapPath, sourceMapJSON, "utf8"
           file.sourceMap = new SourceMap.SourceMapConsumer(sourceMapJSON)._generatedMappings
       when ".styl"
-        Stylus(source).set('compress',true).use(nib()).render (err, css)=> # callback is synchronous
-          log.error "error with styl file at #{file.includePath}" if err
+
+        rootPath = path.dirname(file.sourcePath)
+        stylus = Stylus(source).set('compress',true).set('paths', [rootPath]).use(nib())
+        stylus.render (err, css)=> # callback is synchronous
+          log.error "error with styl file at #{file.includePath}:\n #{err}" if err
           file.content = css
       when ".css"
         file.content = source
