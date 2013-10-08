@@ -146,7 +146,7 @@ func ClientMessage(data amqp.Delivery) {
 		var info models.ServerInfo
 		err := json.Unmarshal(data.Body, &info)
 		if err != nil {
-			slog.Printf("bad json client msg: %s\n", err)
+			slog.Printf("bad json client msg: %s err: %s\n", string(data.Body), err)
 		}
 
 		modelhelper.AddClient(info)
@@ -157,7 +157,7 @@ func WorkerMessage(data []byte) {
 	var msg IncomingMessage
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
-		slog.Printf("bad json incoming msg: %s\n", err)
+		slog.Printf("bad json incoming msg: %s err: %s\n", string(data), err)
 	}
 
 	if msg.Monitor != nil {
@@ -179,7 +179,7 @@ func ApiMessage(data []byte) {
 	var req workerconfig.ApiRequest
 	err := json.Unmarshal(data, &req)
 	if err != nil {
-		slog.Printf("bad json incoming msg: %s\n", err)
+		slog.Printf("bad json api msg: %s err: %s\n", string(data), err)
 	}
 
 	err = DoApiRequest(req.Command, req.Uuid)
