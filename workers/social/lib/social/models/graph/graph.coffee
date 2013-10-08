@@ -3,8 +3,6 @@ neo4j = require "neo4j-koding"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
-JCache = require '../cache.coffee'
-
 module.exports = class Graph
   constructor:({config, facets})->
     @db = new neo4j.GraphDatabase "#{config.read}:#{config.port}"
@@ -222,13 +220,8 @@ module.exports = class Graph
               tempRes.push objected
               collectRelations objected
 
-      JCache.get query, (err, results)=>
-        if err or not results
-          @db.query query, {startDate}, (err, results)=>
-            JCache.add query, results
-            returnResults(err, results)
-        else
-          returnResults(err, results)
+      @db.query query, {startDate}, (err, results)=>
+        returnResults(err, results)
 
   fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
