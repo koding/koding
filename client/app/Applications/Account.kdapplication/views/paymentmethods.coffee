@@ -13,16 +13,18 @@ class AccountPaymentMethodsListController extends AccountListViewController
 
     list.on 'ItemWasAdded', (item) =>
       item.on 'PaymentMethodEditRequested', @bound 'editPaymentMethod'
-      item.on 'PaymentMethodRemoveRequested', @bound 'removePaymentMethod'
+      item.on 'PaymentMethodRemoveRequested', (data) =>
+        @removePaymentMethod data, item
 
     list.on 'reload', (data) => @loadItems()
 
-  editPaymentMethod: ({ recurlyId }) ->
+  editPaymentMethod: ({ accountCode }) ->
     @showModal()
 
-  removePaymentMethod: ({ recurlyId }) ->
+  removePaymentMethod: ({ accountCode }, item) ->
     paymentController = KD.getSingleton 'paymentController'
-    paymentController.removePaymentMethod recurlyId
+    paymentController.removePaymentMethod accountCode, =>
+      debugger
 
   loadItems: ->
     @removeAllItems()

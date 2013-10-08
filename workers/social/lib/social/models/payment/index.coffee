@@ -32,7 +32,7 @@ module.exports = class JPayment extends Base
       ]
 
   @removePaymentMethod: secure (client, accountCode, callback) ->
-    console.log 'need to remove this payment method', accountCode
+    (require './paymentmethod').removePaymentMethod client, accountCode, callback
 
   @setBillingInfo = secure (client, data, callback) ->
     (require './paymentmethod').updatePaymentMethodByAccountCode client, data.recurlyId, data, callback
