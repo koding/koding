@@ -5,7 +5,7 @@ KODING_VERSION    = "0.0.1"
 module.exports =
 
   KDFramework  :
-    files      : "client/KDFramework/includes.coffee"
+    files      : "client/Framework/includes.coffee"
     style      : "css/kd.#{FRAMEWORK_VERSION}.css"
     script     : "js/kd.#{FRAMEWORK_VERSION}.js"
 

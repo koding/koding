@@ -41,11 +41,11 @@ sftp-config.json
 sftp-config.json
 v8.log
 website/css/kd*.css
+website/js/kd*.js
+website/js/*.js.map
+website/js/testapp.js
+website/css/testapp.css
+website/js/bongo.*.js
 website/default.html
 website/index.html
-website/js/kd*.js
-website/js/kd*.js.map
 kontrolUUID-*
-website/css/testapp.css
-website/js/testapp.js
-website/js/testapp.js.map
