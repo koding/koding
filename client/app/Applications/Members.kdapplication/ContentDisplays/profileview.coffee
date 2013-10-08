@@ -1,3 +1,101 @@
+class AvatarChangeView extends JView
+
+  constructor: (options={}, data)->
+    options.cssClass = "avatar-change-menu"
+    super options, data
+
+    @photo = new KDButtonView
+      cssClass: "clean-gray avatar-button"
+      title: "Take Photo"
+      callback: =>
+        @setTitle "Take Photo"
+        @slideView "photoview", =>
+          @utils.wait 1000, =>
+            @avatar.hide()
+            @avatarHolder.setClass "webcam"
+          @webcamView?.destroy()
+          @avatarHolder.addSubView @webcamView = new KDWebcamView
+            hideControls: yes
+            countdown: 3
+            snapTitle: "Take Avatar Picture"
+            size:
+              width : 400
+              height: 400
+          @webcamView.on "snap", (data)-> [_, newAvatar] = data.split ','
+          @webcamView.on "save", =>
+
+    @upload = new KDButtonView
+      cssClass: "clean-gray avatar-button"
+      title: "Upload Image"
+
+    @gravatar = new KDButtonView
+      cssClass: "clean-gray avatar-button"
+      title: "Use Gravatar"
+
+    @avatarHolder = new KDCustomHTMLView
+      cssClass: "avatar-holder"
+      tagName : "div"
+
+    @title = new KDCustomHTMLView
+      tagName: "strong"
+
+    @avatarHolder.addSubView @avatar = new AvatarStaticView
+      size     :
+        width  : 400
+        height : 400
+    , @getData()
+
+    @cancel = new KDButtonView
+      cssClass: "clean-gray cancel avatar-button"
+      title: "Cancel"
+      callback: =>
+        @slideView "", =>
+          @utils.wait 1000, =>
+            @webcamView?.destroy()
+            @avatar.show()
+
+    @take = new KDButtonView
+      cssClass: "clean-gray take avatar-button"
+      title: "Take"
+      callback: => @webcamView.takePicture()
+
+    @on "viewAppended", => @slideDownAvatar()
+
+  setTitle: (title)-> @title.updatePartial title
+
+  slideDownAvatar: ->
+    @avatarHolder.setClass "opened"
+
+  slideUpAvatar: ->
+    @avatarHolder.unsetClass "opened"
+
+  slideView: (viewname, callback)->
+    @unsetClass "photoview"
+    @setClass viewname
+    if callback
+      @slideUpAvatar()
+      callback?()
+      @utils.wait 1000, =>
+        @slideDownAvatar()
+
+  pistachio: ->
+    """
+    <section class="wrapper">
+      <article>
+        {{> @photo}}
+        {{> @upload}}
+        {{> @gravatar}}
+      </article>
+      <article>
+        {{> @title}}
+        {{> @take}}
+        {{> @cancel}}
+      </article>
+    </section>
+    {{> @avatarHolder}}
+    """
+
+
 class ProfileView extends JView
 
   constructor: (options = {}, data) ->
@@ -100,7 +198,6 @@ class ProfileView extends JView
       {callback, inputValue, blacklist} = event
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
-    newAvatar      = ''
     avatarOptions  =
       size         :
         width      : 90
@@ -110,43 +207,31 @@ class ProfileView extends JView
           top      : @avatar.getBounds().y - 8
           left     : @avatar.getBounds().x - 8
 
-        modalOptions =
-          width    : 400
-          fx       : yes
-          overlay  : yes
-          draggable: yes
-          position : pos
-
         if KD.isMine @memberData
+          {isVideoSupported, isDNDSupported} = @detectFeatures()
 
-          isVideoSupported = KDWebcamView.getUserMediaVendor()
-          isDNDSupported   = do ->
-            tester = document.createElement('div')
-            "draggable" of tester or\
-            ("ondragstart" of tester and "ondrop" of tester)
+          @avatarMenu?.destroy()
+          @avatarMenu = new JContextMenu
+            menuWidth: 412
+            cssClass : "avatar-menu"
+            delegate : @avatar
+            x        : @avatar.getX() + 96
+            y        : @avatar.getY() - 7
+          , customView: new AvatarChangeView {}, @memberData
 
-          modalOptions.buttons =
-            gravatar:
-              title   : "Use Gravatar"
-              cssClass: "modal-clean-gray #{if @memberData.profile.avatar is '' then 'hidden' else ''}"
-              callback: @bound "avatarSetGravatar"
+        else
+          @modal = new KDModalView
+            width    : 400
+            fx       : yes
+            overlay  : yes
+            draggable: yes
+            position : pos
 
-            upload:
-              title   : "Upload Image"
-              cssClass: "modal-clean-gray #{unless isDNDSupported then 'hidden' else ''}"
-              callback: @bound "avatarUploadImage"
-
-            webcam:
-              title   : "Take Photo"
-              cssClass: "modal-clean-gray #{unless isVideoSupported then 'hidden' else ''}"
-              callback: @bound "avatarCapturePhoto"
-
-        @modal = new KDModalView modalOptions
-        @modal.addSubView @bigAvatar = new AvatarStaticView
-          size     :
-            width  : 400
-            height : 400
-        , @memberData
+          @modal.addSubView @bigAvatar = new AvatarStaticView
+            size     :
+              width  : 400
+              height : 400
+          , @memberData
 
     if KD.isMine @memberData
       avatarOptions.tooltip =
@@ -209,6 +294,14 @@ class ProfileView extends JView
 
     @createExternalProfiles()
     @createBadges()
+
+  detectFeatures: ->
+    isVideoSupported = KDWebcamView.getUserMediaVendor()
+    isDNDSupported   = do ->
+      tester = document.createElement('div')
+      "draggable" of tester or\
+      ("ondragstart" of tester and "ondrop" of tester)
+    return {isVideoSupported, isDNDSupported}
 
   uploadAvatar: (newAvatar, callback)->
     loader = new KDNotificationView

@@ -4,6 +4,7 @@ class KDWebcamView extends JView
 
     options.cssClass    or= "kdwebcamview"
     options.screenFlash  ?= yes
+    options.hideControls ?= no
 
     options.snapTitle   or= "Snap Photo"
     options.resnapTitle or= "Resnap"
@@ -23,18 +24,18 @@ class KDWebcamView extends JView
     @picture = new KDCustomHTMLView
       tagName   : "canvas"
 
-    @button = new KDButtonView
+    @button = if options.hideControls then new KDView else new KDButtonView
       title     : options.snapTitle
       cssClass  : "snap-button hidden"
       callback  : @bound 'countDown'
 
-    @retake = new KDButtonView
+    @retake = if options.hideControls then new KDView else new KDButtonView
       title     : options.resnapTitle
       cssClass  : "snap-button retake hidden"
       callback  : => @resetView()
 
 
-    @save = new KDButtonView
+    @save = if options.hideControls then new KDView else new KDButtonView
       title     : options.saveTitle
       cssClass  : "snap-button save hidden"
       callback  : =>
@@ -102,7 +103,7 @@ class KDWebcamView extends JView
       width : video.clientWidth
       height: video.clientHeight
 
-    @picture.setDomAttributes size
+    @picture.setAttributes size
     @setSize size
 
   unsetVideoStream: ->
