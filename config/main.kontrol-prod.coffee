@@ -97,6 +97,13 @@ module.exports =
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
     watch                : no
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
     numberOfWorkers: 2
   social        :

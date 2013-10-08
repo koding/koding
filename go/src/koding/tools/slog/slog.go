@@ -1,5 +1,4 @@
 // Slog is an abbrevation for simplelog. It uses by default stdout as the output
-// destination and has features like defining multiple output destinations
 // (like stdout and file at the same time), prefix pretending with a function call
 // and global switch to turn off/on logs.
 package slog
@@ -27,11 +26,14 @@ type Slog struct {
 	out io.Writer // destination for ouput
 }
 
-var stdlog = New()
+var stdlog = New("", time.StampMilli)
 
-// New creates a new slog. The filepath sets the files that will be used
-// as an extra output destination. By default slog outputs to stdout.
-func New(filepath ...string) *Slog {
+// New creates a new slog. prefixName is written at the beginning of each line.
+// prefixTimeStamp comes after prefixName and is used to define the time
+// layout. This should usually in form of : time.RFC3339, time.Kitchen,
+// time.UnixDate etc. The filepath sets the files that will be used as an extra
+// output destination. By default slog outputs to stdout.
+func New(prefixName, prefixTimeStamp string, filepath ...string) *Slog {
 	writers := make([]io.Writer, 0)
 	for _, path := range filepath {
 		logFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0640)
@@ -48,42 +50,65 @@ func New(filepath ...string) *Slog {
 	s := &Slog{
 		out: io.MultiWriter(writers...),
 	}
-	s.prefix.timeLayout = time.StampMilli
+
+	s.prefix.name = prefixName
+	s.prefix.timeLayout = prefixTimeStamp
 	return s
 }
 
 // Print calls Output to print to the standard logger. Arguments are handled in
 // the manner of fmt.Print.
-func Printn(v ...interface{}) (int, error) {
-	if stdlog.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprint(stdlog.output(), v...)
+func Print(v ...interface{}) (int, error) {
+	return stdlog.checkDisable(func() (int, error) {
+		return fmt.Fprint(stdlog.output(), v...)
+	})
 }
 
 // Printf calls Output to print to the standard logger. Arguments are handled in
 // the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) (int, error) {
-	if stdlog.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprintf(stdlog.output(), format, v...)
+	return stdlog.checkDisable(func() (int, error) {
+		return fmt.Fprintf(stdlog.output(), format, v...)
+	})
 }
 
 // Println calls Output to print to the standard logger. Arguments are handled in
 // the manner of fmt.Println.
 func Println(v ...interface{}) (int, error) {
-	if stdlog.disable {
-		return 0, nil
-	}
+	return stdlog.checkDisable(func() (int, error) {
+		return fmt.Fprintln(stdlog.output(), v...)
+	})
+}
 
-	return fmt.Fprintln(stdlog.output(), v...)
+// Fatal is equivalent to Print() followed by a call to os.Exit(1).
+func Fatal(v ...interface{}) {
+	stdlog.checkDisable(func() (int, error) {
+		Print(v...)
+		os.Exit(1)
+		return 0, nil
+	})
+}
+
+// Fatalf is equivalent to Printf() followed by a call to os.Exit(1).
+func Fatalf(format string, v ...interface{}) {
+	stdlog.checkDisable(func() (int, error) {
+		Printf(format, v...)
+		os.Exit(1)
+		return 0, nil
+	})
+}
+
+// Fatalln is equivalent to Println() followed by a call to os.Exit(1).
+func Fatalln(v ...interface{}) {
+	stdlog.checkDisable(func() (int, error) {
+		Println(v...)
+		os.Exit(1)
+		return 0, nil
+	})
 }
 
 // SetPrefixFunc sets the output prefix according to the return value of the passed
-// function for the standard logger.
+// function for the standard logger. This replaces PrefixName and PrefixTimeStamp.
 func SetPrefixFunc(fn func() string) {
 	stdlog.mu.Lock()
 	defer stdlog.mu.Unlock()
@@ -105,17 +130,18 @@ func DisablePrefix() {
 	stdlog.prefixFunc = func() string { return "" }
 }
 
-// SetName adds an additional prefix to the beginning of each line for the
-// standard logger. Useful to add an application name. This will modify the the
-// default Prefix() function.
-func SetName(name string) {
+// SetPrefixName adds an additional prefix to the beginning of each line for the
+// standard logger. Useful to add an application name. By default no PrefixName
+// is defined
+func SetPrefixName(name string) {
 	stdlog.prefix.name = name
 }
 
-// SetTimeStamp changes the timestamp that is generated in the prefix generator
-// function for the standard logger. It's passed to time.Format(). Example
-// layouts are: time.RFC3339, time.Kitchen, time.UnixDate ...
-func SetTimeStamp(layout string) {
+// SetPrefixTimeStamp changes the timestamp that is appended after the
+// PrefixName for the standard logger. It's passed to time.Format() and is
+// excepting layouts in form of : time.RFC3339, time.Kitchen, time.UnixDate ...
+// The standard logger is using the layout time.StampMilli by default.
+func SetPrefixTimeStamp(layout string) {
 	stdlog.prefix.timeLayout = layout
 }
 
@@ -159,22 +185,18 @@ func DisableLog() {
 // Print formats using the default formats for its operands and writes to
 // standard output. Spaces are added between operands when neither is a string. It
 // returns the number of bytes written and any write error encountered.
-func (s *Slog) Printn(v ...interface{}) (int, error) {
-	if s.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprint(s.output(), v...)
+func (s *Slog) Print(v ...interface{}) (int, error) {
+	return s.checkDisable(func() (int, error) {
+		return fmt.Fprint(s.output(), v...)
+	})
 }
 
 // Printf formats according to a format specifier and writes to standard output.
 // It returns the number of bytes written and any write error encountered.
 func (s *Slog) Printf(format string, v ...interface{}) (int, error) {
-	if s.disable {
-		return 0, nil
-	}
-
-	return fmt.Fprintf(s.output(), format, v...)
+	return s.checkDisable(func() (int, error) {
+		return fmt.Fprintf(s.output(), format, v...)
+	})
 }
 
 // Println formats using the default formats for its operands and writes to
@@ -182,15 +204,40 @@ func (s *Slog) Printf(format string, v ...interface{}) (int, error) {
 // appended. It returns the number of bytes written and any write error
 // encountered.
 func (s *Slog) Println(v ...interface{}) (int, error) {
-	if s.disable {
-		return 0, nil
-	}
+	return s.checkDisable(func() (int, error) {
+		return fmt.Fprintln(s.output(), v...)
+	})
+}
 
-	return fmt.Fprintln(s.output(), v...)
+// Fatal is equivalent to s.Print() followed by a call to os.Exit(1).
+func (s *Slog) Fatal(v ...interface{}) {
+	s.checkDisable(func() (int, error) {
+		s.Print(v...)
+		os.Exit(1)
+		return 0, nil
+	})
+}
+
+// Fatalf is equivalent to s.Printf() followed by a call to os.Exit(1).
+func (s *Slog) Fatalf(format string, v ...interface{}) {
+	s.checkDisable(func() (int, error) {
+		s.Printf(format, v...)
+		os.Exit(1)
+		return 0, nil
+	})
+}
+
+// Fatalln is equivalent to s.Println() followed by a call to os.Exit(1).
+func (s *Slog) Fatalln(v ...interface{}) {
+	s.checkDisable(func() (int, error) {
+		s.Println(v...)
+		os.Exit(1)
+		return 0, nil
+	})
 }
 
 // SetPrefixFunc sets the output prefix according to the return value of the passed
-// function.
+// function.  This replaces PrefixName and PrefixTimeStamp.
 func (s *Slog) SetPrefixFunc(fn func() string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -212,16 +259,17 @@ func (s *Slog) DisablePrefix() {
 	s.prefixFunc = func() string { return "" }
 }
 
-// SetName adds an additional prefix to the beginning of each line. Useful to
-// add an application name. This will modify the the default Prefix() function.
-func (s *Slog) SetName(name string) {
+// SetPrefixName adds an additional prefix to the beginning of each line.
+// Useful to add an application name. By default no PrefixName is defined.
+func (s *Slog) SetPrefixName(name string) {
 	s.prefix.name = name
 }
 
-// SetTimeStamp changes the timestamp that is generated in the prefix generator
-// function. It's passed to time.Format(). Example layouts are: time.RFC3339,
-// time.Kitchen, time.UnixDate ...
-func (s *Slog) SetTimeStamp(layout string) {
+// SetPrefixTimeStamp changes the timestamp that is appended after the
+// PrefixName. It's passed to time.Format() and is excepting layouts in form of:
+// time.RFC3339, time.Kitchen, time.UnixDate etc. By default time.StampMilli is
+// used.
+func (s *Slog) SetPrefixTimeStamp(layout string) {
 	s.prefix.timeLayout = layout
 }
 
@@ -240,6 +288,8 @@ func (s *Slog) DisableLog() {
 	s.disable = true
 }
 
+// output writes to the io.Writers we specified before and returns the writer
+// back.
 func (s *Slog) output() io.Writer {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -247,6 +297,8 @@ func (s *Slog) output() io.Writer {
 	return s.out
 }
 
+// prefixOutput either writes in for of [prefixName prefixTimestamp] or invokes
+// the custom prefixFunc() if any created.
 func (s *Slog) prefixOutput() string {
 	if s.prefixFunc != nil {
 		return s.prefixFunc()
@@ -256,4 +308,14 @@ func (s *Slog) prefixOutput() string {
 		return fmt.Sprintf("[%s] ", time.Now().Format(s.prefix.timeLayout))
 	}
 	return fmt.Sprintf("[%s %s] ", s.prefix.name, time.Now().Format(s.prefix.timeLayout))
+}
+
+// Check if our globale disable switch is activated. If enabled don't execute
+// our print function.
+func (s *Slog) checkDisable(fn func() (int, error)) (int, error) {
+	if s.disable {
+		return 0, nil
+	}
+
+	return fn()
 }

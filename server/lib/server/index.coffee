@@ -229,6 +229,23 @@ app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
 
+app.get "/sitemap:sitemapName", (req, res)->
+  {JSitemap}       = koding.models
+
+  # may be written with a better understanding of express.js routing mechanism.
+  sitemapName = req.params.sitemapName
+  if sitemapName is ".xml"
+    sitemapName = "sitemap.xml"
+  else 
+    sitemapName = "sitemap" + sitemapName
+  JSitemap.one "name" : sitemapName, (err, sitemap)->
+    if err or not sitemap
+      res.send 404
+    else
+      res.setHeader 'Content-Type', 'text/xml'
+      res.send sitemap.content
+    res.end
+
 if uploads?.enableStreamingUploads
 
   s3 = require('./s3') uploads.s3, findUsernameFromSession

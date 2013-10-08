@@ -3,8 +3,6 @@ neo4j = require "neo4j-koding"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
-JCache = require '../cache.coffee'
-
 module.exports = class Graph
   constructor:({config, facets})->
     @db = new neo4j.GraphDatabase "#{config.read}:#{config.port}"
@@ -98,7 +96,7 @@ module.exports = class Graph
     @db.query query, {}, (err, results)=>
       if err
         console.log ">>> err", query, err
-        callback err
+        return callback err
       else if results.length is 0 then callback null, []
       else
         collectRelations = @attachReplies(options, callback)
@@ -172,7 +170,7 @@ module.exports = class Graph
     query = """
       START koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->members<-[:author]-content
-      WHERE content.`meta.createdAtEpoch` < #{startDate}
+      WHERE content.`meta.createdAtEpoch` < {startDate}
       """
 
     facets = @facets
@@ -222,19 +220,14 @@ module.exports = class Graph
               tempRes.push objected
               collectRelations objected
 
-      JCache.get query, (err, results)=>
-        if err or not results
-          @db.query query, {}, (err, results)=>
-            JCache.add query, results
-            returnResults(err, results)
-        else
-          returnResults(err, results)
+      @db.query query, {startDate}, (err, results)=>
+        returnResults(err, results)
 
   fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
       if err
         console.log ">>> err fetchRelateds error", query, err
-        callback err
+        return callback err
       resultData = []
       results.reverse()
       for result in results
@@ -279,16 +272,16 @@ module.exports = class Graph
       START kd=node:koding("id:#{groupId}")
       MATCH kd-[:member]->users<-[r:user]-apps
       WHERE apps.name="JApp"
-      and r.createdAtEpoch < #{startDate}
+      and r.createdAtEpoch < {startDate}
       return users, apps, r
       order by r.createdAtEpoch DESC
       limit 20
       """
 
-    @db.query query, {}, (err, results)=>
+    @db.query query, {startDate}, (err, results)=>
       if err
         console.log ">>> err fetchNewInstalledApps", query, err
-        callback err
+        return callback err
       @generateInstalledApps [], results, callback
 
   generateInstalledApps:(resultData, results, callback)->
@@ -353,16 +346,16 @@ module.exports = class Graph
     query = """
       start  koding=node:koding("id:#{groupId}")
       MATCH  koding-[r:member]->members
-      where  r.createdAtEpoch < #{startDate}
+      where  r.createdAtEpoch < {startDate}
       return members
       order by r.createdAtEpoch DESC
       limit 20
       """
 
-    @db.query query, {}, (err, results) ->
+    @db.query query, {startDate}, (err, results) ->
       if err
         console.log ">>> err fetchNewMembers", query, err
-        callback err, null
+        return callback err, null
       resultData = []
       for result in results
         data = result.members.data
@@ -378,12 +371,12 @@ module.exports = class Graph
       start koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->followees<-[r:follower]-follower
       where follower<-[:member]-koding
-      and r.createdAtEpoch < #{startDate}
+      and r.createdAtEpoch < {startDate}
       return r,followees, follower
       order by r.createdAtEpoch DESC
       limit 20
     """
-    @fetchFollows query, callback
+    @fetchFollows query, startDate, callback
 
   fetchTagFollows:(group, startDate, callback)->
     #followers
@@ -393,23 +386,21 @@ module.exports = class Graph
       MATCH koding-[:member]->followees<-[r:follower]-follower
       where follower.name="JTag"
       and follower.group="#{groupName}"
-      and r.createdAtEpoch < #{startDate}
+      and r.createdAtEpoch < {startDate}
       return r,followees, follower
       order by r.createdAtEpoch DESC
       limit 20
       """
-    @fetchFollows query, callback
+    @fetchFollows query, startDate, callback
 
-  fetchFollows:(query, callback)->
-    @db.query query, {}, (err, results)=>
+  fetchFollows:(query, startDate, callback)->
+    @db.query query, {startDate}, (err, results)=>
       if err
         console.log ">>> err fetchFollows", query, err
-        callback err
+        return callback err
       @generateFollows [], results, callback
 
-
   generateFollows:(resultData, results, callback)->
-
     if results? and results.length < 1 then return callback null, resultData
     result = results.shift()
     data = {}
@@ -454,7 +445,7 @@ module.exports = class Graph
     @db.query query, options, (err, results) ->
       if err
         console.log ">>> err", query, err
-        callback err
+        return callback err
       count = if results and results[0]['count'] then results[0]['count'] else 0
       callback null, count
 
@@ -586,18 +577,18 @@ module.exports = class Graph
 
   queryMembers:(query, options={}, callback)->
     @db.query query, options, (err, results) ->
-        if err
-          console.log ">>> err queryMembers", query, err
-          callback err
-        resultData = []
-        for result in results
-          data = result.members.data
-          id = data.id
-          name = data.name
-          obj =  {id : id, name : name }
-          resultData.push obj
+      if err
+        console.log ">>> err queryMembers", query, err
+        return callback err
+      resultData = []
+      for result in results
+        data = result.members.data
+        id = data.id
+        name = data.name
+        obj =  {id : id, name : name }
+        resultData.push obj
 
-        callback err, resultData
+      callback err, resultData
 
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
 
@@ -629,7 +620,7 @@ module.exports = class Graph
     @db.query query, {}, (err, results)=>
       if err
         console.log ">>> err fetchItems", query, err
-        callback err
+        return callback err
       else
         tempRes = []
         collectContents = race (i, id, fin)=>
