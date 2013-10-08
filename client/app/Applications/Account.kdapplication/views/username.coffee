@@ -80,7 +80,7 @@ class AccountEditUsername extends KDView
     if user.status is "unconfirmed"
       verifyEmail = new KDCustomHTMLView
         tagName      : "a"
-        partial      : "Verify Email"
+        partial      : "You didn't verify your email yet - Verify now"
         cssClass     : "action-link verify-email"
         testPath     : "account-email-edit"
         click        : =>
