@@ -4,7 +4,7 @@ class PaymentController extends KDController
     KD.getSingleton('groupsController').getCurrentGroup()
 
   getBalance: (type, callback)->
-    
+
     { JPaymentPlan } = KD.remote.api
 
     if type is 'user'
@@ -23,6 +23,10 @@ class PaymentController extends KDController
       else
         JPaymentPlan.setUserAccount newData, callback
 
+
+  removePaymentMethod: (accountCode) ->
+    { JPayment } = KD.remote.api
+    JPayment.removePaymentMethod accountCode
 
   getSubscription: do ->
     findActiveSubscription = (subs, planCode, callback) ->
@@ -96,7 +100,7 @@ class PaymentController extends KDController
     return @modal
 
   fetchBillingInfo: (type, callback) ->
-    
+
     { JPaymentPlan } = KD.remote.api
 
     switch type
@@ -106,11 +110,10 @@ class PaymentController extends KDController
         JPaymentPlan.fetchAccountDetails callback
 
   updateBillingInfo: (billingInfo, callback) ->
-    
+
     { JPayment } = KD.remote.api
 
     JPayment.setBillingInfo billingInfo, (err, result)->
-      debugger
 
 
   createBillingInfoModal:(type, billingInfo) ->
@@ -130,7 +133,7 @@ class PaymentController extends KDController
       return @utils.defer => callback null, @countries, @countryOfIp
 
     ip = $.cookie 'clientIPAddress'
-    
+
     JPayment.fetchCountryDataByIp ip, (err, @countries, @countryOfIp) =>
       callback err, @countries, @countryOfIp
 
