@@ -10,33 +10,27 @@ class AccountPaymentMethodsListController extends AccountListViewController
       @loadItems()
 
     list = @getListView()
-    list.on 'reload', (data)=>
-      @loadItems()
+
+    list.on 'ItemWasAdded', (item) =>
+      item.on 'PaymentMethodEditRequested', @bound 'editPaymentMethod'
+      item.on 'PaymentMethodRemoveRequested', @bound 'removePaymentMethod'
+
+    list.on 'reload', (data) => @loadItems()
+
+  editPaymentMethod: ({ recurlyId }) ->
+    @showModal()
+
+  removePaymentMethod: ({ recurlyId }) ->
+    paymentController = KD.getSingleton 'paymentController'
+    paymentController.removePaymentMethod recurlyId
 
   loadItems: ->
     @removeAllItems()
     @showLazyLoader no
-    KD.remote.api.JPaymentPlan.fetchAccountDetails (err, res) =>
-      accounts = []
-      if err
-        @instantiateListItems []
-        @hideLazyLoader()
-      unless err
-        if res.billing
-          { cardFirstName, cardLastName, cardNumber, cardType, cardMonth,
-            cardYear, address1, address2, city, state, zip } = res.billing
 
-          accounts.push
-            title        : "#{cardFirstName} #{cardLastName}"
-            type         : cardType
-            cardNumber   : cardNumber
-            cardExpiry   : [ cardMonth, cardYear ].join '/'
-            cardAddress  : [ address1, address2 ].filter(Boolean).join ' '
-            cardCity     : city
-            cardState    : state
-            cardZip      : zip
-        @instantiateListItems accounts
-        @hideLazyLoader()
+    KD.whoami().fetchPaymentMethods (err, paymentMethods) =>
+      @instantiateListItems paymentMethods
+      @hideLazyLoader()
 
   loadView:->
     super
@@ -46,8 +40,18 @@ class AccountPaymentMethodsListController extends AccountListViewController
       icon      : yes
       iconOnly  : yes
       iconClass : "plus"
-      callback  : =>
-        @getListView().showModal this
+      callback  : => @showModal()
+
+  showModal: ->
+    paymentController = KD.getSingleton 'paymentController'
+    modal = paymentController.createBillingInfoModal 'user', {}
+    paymentController.fetchBillingInfo 'user', (err, initialBillingInfo) ->
+
+      modal.setBillingInfo initialBillingInfo.billing  if initialBillingInfo?
+
+      modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) ->
+        paymentController.updateBillingInfo updatedBillingInfo
+
 
 class AccountPaymentMethodsList extends KDListView
   constructor:(options,data)->
@@ -57,36 +61,28 @@ class AccountPaymentMethodsList extends KDListView
     ,options
     super options,data
 
-  showModal: (controller) ->
-    paymentController = KD.getSingleton 'paymentController'
-    modal = paymentController.createBillingInfoModal 'user', {}
-    paymentController.fetchBillingInfo 'user', (err, initialBillingInfo) ->
-
-      modal.setBillingInfo initialBillingInfo.billing
-
-      modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) ->
-        paymentController.updateBillingInfo updatedBillingInfo
-
-
-      form = modal.modalTabs.forms["Billing Info"]
-
-
 class AccountPaymentMethodsListItem extends KDListItemView
-  constructor:(options,data)->
+  constructor:(options, data)->
     options.tagName = "li"
+    options.cssClass = 'credit-card-list-item'
     super options,data
 
-  viewAppended:->
-    @setPartial @partial @data
+    data = @getData()
 
-  partial:(data)->
+    @billingMethod = new BillingMethodView {}, @getData().billing
+
+    @editLink = new CustomLinkView
+      title: 'edit'
+      click: => @emit 'PaymentMethodEditRequested', data
+
+    @removeLink = new CustomLinkView
+      title: 'remove'
+      click: => @emit 'PaymentMethodRemoveRequested', data
+
+  viewAppended: JView::viewAppended
+
+  pistachio:->
     """
-      <div class="credit-card-info">
-        <p class="lightText"><strong>#{data.title} - #{data.type}</strong></p>
-        <p class="lightText"><strong>#{data.cardNumber}</strong> - <strong>#{data.cardExpiry}</strong></p>
-        <p class="darkText">
-          #{data.cardAddress}<br>
-          #{data.cardCity}, #{data.cardState} #{data.cardZip}
-        </p>
-      </div>
+    {{> @billingMethod}}
+    <div class="controls">{{> @editLink}} | {{> @removeLink }}</div>
     """
