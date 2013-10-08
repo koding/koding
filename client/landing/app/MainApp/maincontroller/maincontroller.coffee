@@ -57,7 +57,8 @@ class MainController extends KDController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       @showInstructionsBookIfNeeded()
       @emit 'AppIsReady'
-      console.timeEnd "KDA"
+
+      console.timeEnd "Koding.com loaded"
 
   accountChanged:(account, firstLoad = no)->
     @userAccount             = account
