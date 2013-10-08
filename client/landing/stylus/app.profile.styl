@@ -309,3 +309,62 @@ app.profile.styl
         input.kdinput
         .button-container
           display         block
+
+.avatar-menu
+  overflow                visible
+
+  .kdlistview
+    background-color      #fff !important
+
+  .kdlistitemview
+    overflow              visible
+  .avatar-change-menu
+    overflow              visible
+    .wrapper
+      overflow            hidden
+      height              24px
+    .avatar-button
+      border-radius       15px
+      width               126px
+      margin              0 4px
+
+      &.cancel
+      &.take
+        width             80px
+        float             right
+
+    .avatar-holder
+      box-shadow          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
+                          0 7px 20px -7px rgba(0,0,0,0.8)
+      vendor              transition-delay,    300ms
+      vendor              transition-property, height
+      vendor              transition-duration, 700ms
+      overflow            hidden
+      border-radius       0 0 5px 5px
+      background-color    #ededed
+      abs                 30px, 0, 0, 5px
+      size                400px, 0px
+      &.opened
+        height            400px
+        &.webcam
+          height          300px
+
+      .avatarview
+        box-shadow        inset 0px 7px 20px -10px rgba(0,0,0,0.5),
+                          0 7px 20px -7px rgba(0,0,0,0.8)
+
+    article
+
+      strong
+        font-size         14px
+        font-weight       bold
+        margin-left       10px
+        line-height       24px
+
+      &:first-of-type
+        vendor            transition-duration, 100ms
+
+    &.photoview
+      article:first-of-type
+        margin-top        -24px
+        opacity           0
