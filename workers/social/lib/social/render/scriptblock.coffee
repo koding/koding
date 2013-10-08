@@ -1,8 +1,9 @@
 module.exports = ->
   """
   <script>
-    console.time("KDF");
-    console.time("KDA");
+
+    console.time("Framework loaded");
+    console.time("Koding.com loaded");
 
     var _rollbarParams = {
       "server.environment": "production",
