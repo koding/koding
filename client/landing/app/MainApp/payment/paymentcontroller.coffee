@@ -24,9 +24,9 @@ class PaymentController extends KDController
         JPaymentPlan.setUserAccount newData, callback
 
 
-  removePaymentMethod: (accountCode) ->
+  removePaymentMethod: (accountCode, callback) ->
     { JPayment } = KD.remote.api
-    JPayment.removePaymentMethod accountCode
+    JPayment.removePaymentMethod accountCode, callback
 
   getSubscription: do ->
     findActiveSubscription = (subs, planCode, callback) ->
