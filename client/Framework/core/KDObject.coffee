@@ -20,7 +20,13 @@ class KDObject extends KDEventEmitter
     @on 'error', error
     @once 'ready', => @readyState = READY
 
-  bound: Bongo.bound
+  bound: (method)->
+    throw new Error "@bound: unknown method! #{method}"  unless @[method]?
+    boundMethod = "__bound__#{method}"
+    boundMethod of this or Object.defineProperty(
+      this, boundMethod, value: @[method].bind this
+    )
+    return @[boundMethod]
 
   lazyBound: (method, rest...)-> @[method].bind this, rest...
 
