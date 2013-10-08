@@ -15,12 +15,14 @@ class PaymentFormModal extends KDModalViewWithForms
         placeholder       : 'First Name'
         defaultValue      : KD.whoami().profile.firstName
         validate          : @required 'First name is required!'
+        keyup             : @bound 'updateDescription'
         nextElementFlat   :
           cardLastName    :
             placeholder   : 'Last Name'
             defaultValue  : KD.whoami().profile.lastName
             validate      : @required 'Last name is required!'
-
+      cardDescription     :
+        label             : 'Description'
       cardNumber          :
         label             : 'Credit Card'
         placeholder       : 'Credit Card Number'
@@ -79,6 +81,18 @@ class PaymentFormModal extends KDModalViewWithForms
     @billingForm.fields.cardNumber.addSubView @icon = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'icon'
+
+    @updateDescription()
+
+  updateDescription:->
+    { inputs } = @billingForm
+    formData = @billingForm.getData()
+    cardFirstName = inputs.cardFirstName.getValue()
+    cardType = switch formData.cardType
+      when 'Unknown', undefined then 'credit card'
+      else formData.cardType
+    cardOwner = if cardFirstName then "#{ cardFirstName }'s " else ''
+    inputs.cardDescription.setPlaceHolder "#{ cardOwner }#{ cardType }"
 
   setBillingInfo: (billingInfo) ->
     for own key, value of billingInfo
@@ -139,6 +153,7 @@ class PaymentFormModal extends KDModalViewWithForms
     unless $icon.hasClass cardType
       $icon.removeClass 'visa mastercard discover amex unknown'
       $icon.addClass cardType  if cardType
+    @updateDescription()
 
   required:(msg)->
     rules    : required  : yes
