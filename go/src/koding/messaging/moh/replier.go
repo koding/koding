@@ -9,14 +9,16 @@ type Replier struct {
 	CloseableServer
 }
 
+// NewReplier starts a new HTTP server on addr and returns a pointer to the Replier.
+// All request will be replied by the handler function h.
 func NewReplier(addr string, h Handler) (*Replier, error) {
 	s, err := NewClosableServer(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	s.mux.HandleFunc("/", makeHttpHandler(h))
-	go s.serve()
+	s.Mux.HandleFunc("/", makeHttpHandler(h))
+	go s.Serve()
 	return &Replier{*s}, nil
 }
 

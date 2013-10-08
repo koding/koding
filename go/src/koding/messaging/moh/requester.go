@@ -11,10 +11,13 @@ type Requester struct {
 	c    http.Client
 }
 
+// NewRequester returns a pointer to a new Requester struct.
+// addr argument must be the address of a Replier.
 func NewRequester(addr string) *Requester {
 	return &Requester{addr: addr}
 }
 
+// Requester sends a message to a Replier over HTTP.
 func (req *Requester) Request(message []byte) ([]byte, error) {
 	resp, err := req.c.Post("http://"+addr+"/",
 		"application/octet-strem",

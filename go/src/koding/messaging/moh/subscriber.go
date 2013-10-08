@@ -11,6 +11,9 @@ type Subscriber struct {
 	h  Handler
 }
 
+// NewSubscriber opens a websocket connection to a Publisher and
+// returns a pointer to newly created Subscriber.
+// After creating a Subscriber you should subscribe to messages with Subscribe function.
 func NewSubscriber(addr string, h Handler) (*Subscriber, error) {
 	url := "ws://" + addr + "/"
 	origin := "http://localhost/" // dont know if this is required
@@ -27,6 +30,7 @@ func NewSubscriber(addr string, h Handler) (*Subscriber, error) {
 	return sub, err
 }
 
+// Subscribe registers the Subscriber to receive messages matching with the key.
 func (sub *Subscriber) Subscribe(key string) error {
 	return websocket.Message.Send(sub.ws, key)
 }

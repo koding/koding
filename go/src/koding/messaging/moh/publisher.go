@@ -37,9 +37,9 @@ func NewPublisher(addr string) (*Publisher, error) {
 		unregister:      make(chan *connection),
 	}
 
-	p.mux.Handle("/", p.makeWsHandler())
+	p.Mux.Handle("/", p.makeWsHandler())
 
-	go s.serve()
+	go s.Serve() // Starts HTTP server
 	go p.registrar()
 
 	return p, nil
