@@ -4,11 +4,12 @@ import (
 	"github.com/streadway/amqp"
 	"koding/kontrol/kontroldaemon/handler"
 	"koding/kontrol/kontrolhelper"
-	"log"
+	"koding/tools/slog"
 )
 
 func init() {
-	log.SetPrefix("kontrol-daemon ")
+	slog.SetPrefixName("kontrold")
+	slog.Println(slog.SetOutputFile("/var/log/koding/kontroldaemon.log"))
 }
 
 func main() {
@@ -41,10 +42,10 @@ func startRouting() {
 
 	err := channel.Qos(len(bindings), 0, false)
 	if err != nil {
-		log.Fatalf("basic.qos: %s", err)
+		slog.Fatalf("basic.qos: %s", err)
 	}
 
-	log.Println("kontrold started")
+	slog.Println("started")
 	for {
 		select {
 		case d := <-streams["api"]:
