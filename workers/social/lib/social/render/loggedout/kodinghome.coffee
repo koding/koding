@@ -166,8 +166,7 @@ module.exports = ->
 </footer></div>
         </div>
       </div>
-    <div id="main-tab-handle-holder" class="kdview kdtabhandlecontainer"><div class="kdtabhandle add-editor-menu visible-tab-handle plus first last"><span class="icon"></span><b class="">Click here to start</b></div><div title="Home" class="kdtabhandle  hidden kddraggable active"><span class="close-tab"></span><b>Home</b></div><div class="kdtabhandle add-editor-menu visible-tab-handle plus first last"><span class="icon"></span><b class="">Click here to start</b></div><div title="Home" class="kdtabhandle  hidden kddraggable active"><span class="close-tab"></span><b>Home</b></div></div><button type="button" class="kdbutton app-settings-menu icon-only hidden"
-      ><span class="icon"></span></button><button type="button" class="kdbutton app-settings-menu icon-only hidden"><span class="icon"></span></button></div>
+    <div id="main-tab-handle-holder" class="kdview kdtabhandlecontainer"></div>
     </section>
     </div>
 
