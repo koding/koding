@@ -23,26 +23,19 @@ module.exports = class JPayment extends Base
   @set
     sharedMethods  :
       static       : [
-        'getBalance', 'setBillingInfo', 'fetchAccountDetails', 'getTransactions', 'fetchCountryDataByIp'
+        'getBalance'
+        'setBillingInfo'
+        'fetchAccountDetails'
+        'getTransactions'
+        'fetchCountryDataByIp'
+        'removePaymentMethod'
       ]
 
+  @removePaymentMethod: secure (client, accountCode, callback) ->
+    console.log 'need to remove this payment method', accountCode
+
   @setBillingInfo = secure (client, data, callback) ->
-
-    {delegate} = client.connection
-    JSession   = require '../session'
-
-    JSession.one {clientId: client.sessionToken}, (err, session) =>
-      {username, firstName, lastName} = delegate.profile
-      extend data, {username, firstName, lastName}
-      data.ipAddress = session?.clientIPAddress or '0.0.0.0'
-
-      JUser.fetchUser client, (err, user) ->
-        userId = userCodeOf delegate
-        data.email = user.email
-        recurly.setAccountDetailsByAccountCode userId, data, (err, res) ->
-          return callback err  if err?
-
-          recurly.setBillingByAccountCode userId, data, callback
+    (require './paymentmethod').updatePaymentMethodByAccountCode client, data.recurlyId, data, callback
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
     recurly.fetchAccountDetailsByAccountCode (userCodeOf delegate), callback
