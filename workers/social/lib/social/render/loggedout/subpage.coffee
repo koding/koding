@@ -19,7 +19,14 @@ module.exports = ({account, name, section, models})->
     <![endif]-->
 
     <div id='main-loading' class="kdview main-loading">
-      <figure class='pulsing'><ul><li/><li/><li/><li/><li/><li/></ul></figure>
+        <figure class="threed-logo">
+          <span class="line"><i></i></span>
+          <span class="line"><i></i></span>
+          <span class="line"><i></i></span>
+          <span class="line"><i></i></span>
+          <span class="line"><i></i></span>
+          <span class="line"><i></i></span>
+        </figure>
       #{putSplash(name, section, model)}
     </div>
     <div class="kdview#{if isLoggedIn then '' else ' home'}" id="kdmaincontainer">
