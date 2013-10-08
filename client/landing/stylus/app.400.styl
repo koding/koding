@@ -1,7 +1,7 @@
 @import "./client/Framework/themes/default/kdfn"
 @import "./client/stylus/appfn"
 
-@media only screen and (max-width: 480px)
+@media only screen and (max-width: 520px)
   #kdmaincontainer.home > header
     bg                      position, 50% -211px
     .custom-link-view
@@ -13,8 +13,8 @@
   // html, body
 
   div#home-intro
-    height                 650px
-      min-width            400px
+    height                  680px !important
+    min-width               400px
     section
       .slogan
         font-size          30px !important
@@ -26,33 +26,6 @@
     .github.kdbutton
       margin               10px 0 !important
       width                90% !important
-
-  #home-counter-bar
-    text-align      left
-    padding         10px 15%
-
-  figure.counter
-    width           100%
-    margin-right    0
-    h6.title
-      height        22px
-      line-height   22px
-      margin        0
-      font-size     10px
-    > div
-      clear         right
-      fr()
-    i
-      font-size     1.3em
-  .home-links
-    height          50px
-    margin-top      -50px
-    text-align      center
-    > ul
-      > li
-        padding     5px 0 0 5px
-        &:last-child
-          padding   5px 5px 0 5px
 
     .custom-link-view.button
       padding         0 7px 0 5px
