@@ -83,7 +83,10 @@ module.exports = class JPaymentPaymentMethod extends Module
           recurly.setAccountDetailsByAccountCode @accountCode, accountData, (err, rAccountData) =>
             return callback err  if err
 
-            recurly.setBillingByAccountCode @accountCode, formData, callback
+            recurly.setBillingByAccountCode @accountCode, formData, (err) =>
+              return callback err  if err
+
+              @fetchAssociatedPaymentData callback
 
   fetchAssociatedPaymentData: (callback) ->
     recurly.fetchBillingByAccountCode @accountCode, (err, billing) =>

@@ -73,7 +73,7 @@ module.exports = class JPrivateMessage extends JPost
       , callback
       deliver recipient, pm for recipient in recipients
 
-    secure (client, data, callback)->
+    secure (client, data, callback = (->)) ->
       {delegate} = client.connection
 
       JAccount = require '../account'

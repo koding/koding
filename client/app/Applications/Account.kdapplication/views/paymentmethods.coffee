@@ -14,7 +14,26 @@ class AccountPaymentMethodsListController extends AccountListViewController
     list.on 'ItemWasAdded', (item) =>
       item.on 'PaymentMethodEditRequested', @bound 'editPaymentMethod'
       item.on 'PaymentMethodRemoveRequested', (data) =>
-        @removePaymentMethod data, item
+        modal = new KDModalView
+          title: 'Are you sure?'
+          content:
+            """
+            <div class='modalformline'>
+              <p>
+                Are you sure that you want to remove this payment method?
+              </p>
+            </div>
+            """
+          buttons:
+            Yes:
+              style: "modal-clean-red"
+              callback: =>
+                modal.destroy()
+                @removePaymentMethod data, item
+            cancel:
+              style: "modal-cancel"
+              callback: ->
+                modal.destroy()
 
     list.on 'reload', (data) => @loadItems()
 
@@ -24,7 +43,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
   removePaymentMethod: ({ accountCode }, item) ->
     paymentController = KD.getSingleton 'paymentController'
     paymentController.removePaymentMethod accountCode, =>
-      debugger
+      @removeItem item
 
   loadItems: ->
     @removeAllItems()
@@ -47,12 +66,15 @@ class AccountPaymentMethodsListController extends AccountListViewController
   showModal: ->
     paymentController = KD.getSingleton 'paymentController'
     modal = paymentController.createBillingInfoModal 'user', {}
-    paymentController.fetchBillingInfo 'user', (err, initialBillingInfo) ->
+    paymentController.fetchBillingInfo 'user', (err, initialBillingInfo) =>
 
       modal.setBillingInfo initialBillingInfo.billing  if initialBillingInfo?
 
-      modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) ->
-        paymentController.updateBillingInfo updatedBillingInfo
+      modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) =>
+        paymentController.updateBillingInfo updatedBillingInfo, (err, res)->
+          console.log arguments
+        # @addItem updatedBillingInfo
+
 
 
 class AccountPaymentMethodsList extends KDListView
