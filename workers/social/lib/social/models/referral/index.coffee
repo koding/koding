@@ -148,24 +148,8 @@ module.exports = class JReferral extends jraphical.Message
       totalStep--
 
   @fetchReferredAccounts = secure (client, query, options, callback)->
-    @fetchOwnReferralsIds client, query, options, (err, allReferalIds) ->
-      return callback err if err
-
-      referredSelector = {
-        sourceName  : 'JAccount',
-        targetId    : { $in: allReferalIds },
-        targetName  : 'JReferral',
-        as          : 'referred'
-      }
-
-      # no need to add limit here, because in fetchOwnReferralsIds method there is limit,
-      # this is a subset of it, so this will be lte than ownReferralsIds
-      Relationship.some referredSelector, {}, (err, relationships)=>
-        return callback err if err
-
-        accSelector = { _id: $in: relationships.map (rel) -> rel.sourceId }
-        JAccount.some accSelector, {}, callback
-
+    username = client.connection.delegate.profile.nickname
+    JAccount.some { referrerUsername : username }, options, callback
 
   @redeem = secure (client, data, callback)->
     {vmName, size, type} = data
