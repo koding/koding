@@ -158,7 +158,7 @@ module.exports = ->
     </div>
     <div class="fr">
       <a href="#">Status</a>
-      <a href="#">Api</a>
+      <a href="#">API</a>
       <a href="http://blog.koding.com" target="_blank">Blog</a>
       <a href="#">About</a>
     </div>
