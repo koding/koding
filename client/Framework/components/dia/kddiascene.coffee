@@ -16,10 +16,11 @@ class KDDiaScene extends JView
 
     super
 
-    @containers    = []
-    @connections   = []
-    @activeDias    = []
-    @activeJoints  = []
+    @containers      = []
+    @connections     = []
+    @activeDias      = []
+    @activeJoints    = []
+    @fakeConnections = []
 
   diaAdded:(container, diaObj)->
     diaObj.on "JointRequestsLine",   @bound "handleLineRequest"
@@ -182,56 +183,68 @@ class KDDiaScene extends JView
     @connections.push {source, target}
     @highlightLines target.dia
 
+  resetScene:->
+    @fakeConnections = []
+    @updateScene()
+
   updateScene:->
 
     @cleanup @realCanvas
+    @drawConnectionLine connection for connection in @connections
+    @drawConnectionLine connection for connection in @fakeConnections
 
+  drawConnectionLine:({source, target, options})->
+
+    return unless source or target
+
+    options    or= {}
     activeColor  = @getOption 'lineColorActive'
     lineDashes   = @getOption 'lineDashes'
-    defaultColor = @getOption 'lineColor'
+    lineColor    = @getOption 'lineColor'
 
-    for connection in @connections
+    @realContext.beginPath()
 
-      @realContext.beginPath()
+    activeDia = if source.dia in @activeDias then source \
+                else if target.dia in @activeDias then target
 
-      {source, target} = connection
+    if activeDia
+      lineColor  = options.lineColor  or \
+                   (activeDia.dia.getOption 'colorTag') or activeColor
+      lineDashes = options.lineDashes or \
+                   (activeDia.dia.getOption 'lineDashes') or lineDashes
 
-      if source.dia in @activeDias
-        lineColor = (source.dia.getOption 'colorTag')   or activeColor
-        lineDashes  = (source.dia.getOption 'lineDashes') or lineDashes
-      else if target.dia in @activeDias
-        lineColor = (target.dia.getOption 'colorTag')   or activeColor
-        lineDashes  = (target.dia.getOption 'lineDashes') or lineDashes
-      else
-        lineColor = defaultColor
+    sJoint = source.dia.getJointPos source.joint
+    tJoint = target.dia.getJointPos target.joint
 
-      sJoint = source.dia.getJointPos source.joint
-      tJoint = target.dia.getJointPos target.joint
+    @realContext.strokeStyle = lineColor
+    @realContext.setLineDash lineDashes  if lineDashes.length > 0
 
-      @realContext.strokeStyle = lineColor
-      @realContext.setLineDash lineDashes  if lineDashes.length > 0
+    @realContext.moveTo sJoint.x, sJoint.y
 
-      @realContext.moveTo sJoint.x, sJoint.y
+    cd = @getOption 'curveDistance'
+    [sx, sy, tx, ty] = [0, 0, 0, 0]
+    if source.joint in ["top", "bottom"]
+      sy = if source.joint is "top" then -cd else cd
+    else if source.joint in ["left", "right"]
+      sx = if source.joint is "left" then -cd else cd
+    if target.joint in ["top", "bottom"]
+      ty = if target.joint is "top" then -cd else cd
+    else if target.joint in ["left", "right"]
+      tx = if target.joint is "left" then -cd else cd
 
-      cd = @getOption 'curveDistance'
-      [sx, sy, tx, ty] = [0, 0, 0, 0]
-      if source.joint in ["top", "bottom"]
-        sy = if source.joint is "top" then -cd else cd
-      else if source.joint in ["left", "right"]
-        sx = if source.joint is "left" then -cd else cd
-      if target.joint in ["top", "bottom"]
-        ty = if target.joint is "top" then -cd else cd
-      else if target.joint in ["left", "right"]
-        tx = if target.joint is "left" then -cd else cd
+    @realContext.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \
+                               tJoint.x + tx, tJoint.y + ty, \
+                               tJoint.x, tJoint.y)
 
-      @realContext.bezierCurveTo(sJoint.x + sx, sJoint.y + sy, \
-                                 tJoint.x + tx, tJoint.y + ty, \
-                                 tJoint.x, tJoint.y)
+    @realContext.lineWidth = @getOption 'lineWidth'
+    @realContext.stroke()
 
-      @realContext.lineWidth = @getOption 'lineWidth'
-      @realContext.stroke()
+  addFakeConnection:(connection)->
+    @drawConnectionLine connection
+    @fakeConnections.push connection
 
   createCanvas:->
+
     @realCanvas?.destroy()
     @fakeCanvas?.destroy()
 
@@ -239,6 +252,11 @@ class KDDiaScene extends JView
       tagName    : "canvas"
       attributes : @getSceneSize()
     @realContext = @realCanvas.getElement().getContext "2d"
+
+    # Fallback function for Firefox and Safari
+    # which does not support lineDashes correctly ~ GG
+    @realContext.setLineDash = noop  unless @realContext.setLineDash?
+
     @addSubView @fakeCanvas = new KDCustomHTMLView
       tagName    : "canvas"
       cssClass   : "fakeCanvas"
