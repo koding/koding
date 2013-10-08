@@ -94,6 +94,7 @@ module.exports = class JAccount extends jraphical.Module
         'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
         'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore'
+        'fetchPaymentMethods'
       ]
     schema                  :
       skillTags             : [String]
@@ -222,6 +223,10 @@ module.exports = class JAccount extends jraphical.Module
       invitationRequest :
         as          : 'owner'
         targetType  : 'JInvitationRequest'
+
+      paymentMethod :
+        as          : 'payment method'
+        targetType  : 'JPaymentPaymentMethod'
 
   constructor:->
     super
@@ -1055,7 +1060,7 @@ module.exports = class JAccount extends jraphical.Module
         """
 
       options['resultsKey'] = 'followers'
-      Graph          = require "./graph/graph"
+      Graph = require "./graph/graph"
       graph = new Graph(config:KONFIG['neo4j'])
       graph.fetchFromNeo4j(query, options, callback)
 
@@ -1199,3 +1204,19 @@ module.exports = class JAccount extends jraphical.Module
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
+
+  fetchPaymentMethods$: secure (client, callback) ->
+    {delegate} = client.connection
+    if delegate is this or delegate.can 'administer accounts'
+      @fetchPaymentMethods (err, paymentMethods) ->
+        return callback err  if err
+
+        paymentData = []
+
+        queue = paymentMethods.map (paymentMethod, i) -> ->
+          paymentMethod.fetchAssociatedPaymentData (err, associatedData) ->
+            return callback err  if err
+            paymentData[i] = associatedData
+            queue.fin()
+
+        dash queue, -> callback null, paymentData
