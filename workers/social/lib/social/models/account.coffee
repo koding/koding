@@ -93,7 +93,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
         'unlinkOauth', 'changeUsername',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
-        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore'
+        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore', 'isEmailVerified'
       ]
     schema                  :
       skillTags             : [String]
@@ -618,6 +618,11 @@ module.exports = class JAccount extends jraphical.Module
         if err
           return callback err, null
         callback null, (i._id for i in data)
+
+  isEmailVerified: (callback)->
+    @fetchUser (err, user)->
+      return callback err if err
+      callback null, (user.status is "confirmed")
 
   markUserAsExempt: secure (client, exempt, callback)->
     {delegate} = client.connection
