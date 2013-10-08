@@ -26,10 +26,10 @@ class EnvironmentScene extends KDDiaScene
 
     items = parseItems source, target
     {domain, machine} = items
-    return unless domain
+    return unless domain or machine
 
-    @askForApprove items, 'delete', (modal)=>
-      return unless machine? # Remove a domain from a machine
+    modal = @createApproveModal items, 'delete'
+    modal.once 'Approved', =>
       jDomain = domain.dia.getData().domain # JDomain
       vmName  = machine.dia.getData().title # JVM.hostnameAlias
       jDomain.unbindVM hostnameAlias: vmName, (err)=>
@@ -45,17 +45,27 @@ class EnvironmentScene extends KDDiaScene
 
     items = parseItems source, target
     {domain, machine} = items
-    return unless domain
+    return unless domain or machine
 
-    if machine?
-      if domain.dia.getData().domain.hostnameAlias.length > 0
-        return new KDNotificationView
-          title : "A domain name can only be bound to one VM."
+    if domain.dia.getData().domain.hostnameAlias.length > 0
+      return new KDNotificationView
+        title : "A domain name can only be bound to one VM."
 
-    if machine? # Assign a domain to a machine
+    @addFakeConnection {
+      source, target,
+      options : {
+        lineColor  : "#cdcdcd"
+        lineDashes : [5]
+      }
+    }
+
+    modal = @createApproveModal items, 'create'
+    modal.once "KDObjectWillBeDestroyed", @bound 'resetScene'
+    modal.once 'Approved', =>
       jDomain = domain.dia.getData().domain # JDomain
       vmName  = machine.dia.getData().title # JVM.hostnameAlias
       jDomain.bindVM hostnameAlias: vmName, (err)=>
+        modal.destroy()
         return KD.showError err  if err
         jDomain.hostnameAlias.push vmName
         createConnection()
@@ -67,13 +77,11 @@ class EnvironmentScene extends KDDiaScene
           @connect {dia : domain , joint : 'right'}, \
                    {dia : machine, joint : 'left' }, yes
 
-  askForApprove:(items, action, callback)->
+  createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
       new KDNotificationView
         title : "You need to login to change domain settings."
-
-    modal = new EnvironmentApprovalModal {action}, items
-    modal.once 'Approved', => callback modal
+    return new EnvironmentApprovalModal {action}, items
 
   whenItemsLoadedFor:do->
     # poor man's when/promise implementation ~ GG
