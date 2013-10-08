@@ -1971,9 +1971,8 @@ span.main-nav-icon
         vendor         backface-visibility, hidden
         vendor         transform, translateZ(-60px) rotateX(180deg)
 
-
     &:nth-child(1)
-      vendor           animation, lines .6s 0 1 forwards ease-out
+      vendor           animation, lines .6s .01s 1 forwards ease-out /* .01s = hack for firefox :@ */
     &:nth-child(2)
       vendor           animation, lines .6s .4s 1 forwards ease-out
     &:nth-child(3)
@@ -1998,7 +1997,6 @@ span.main-nav-icon
   100%
     opacity            1
     -webkit-transform  rotateY(0deg)
-
 @-webkit-keyframes logo
   0%
     -webkit-transform  rotateX(35deg) rotateY(30deg)
@@ -2010,24 +2008,41 @@ span.main-nav-icon
     -webkit-transform  rotateX(15deg) rotateY(10deg)
   100%
     -webkit-transform  rotateX(0deg) rotateY(0deg)
+@-webkit-keyframes logotwo
+  0%
+    -webkit-transform  rotateX(0deg) rotateY(0deg) translateY(0) scale(1)
+  100%
+    -webkit-transform  translateY(-60px) scale(0.8)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@-moz-keyframes lines
+  0%
+    opacity            0
+    -moz-transform     rotateY(100deg)
+  50%
+    opacity            1
+    -moz-transform     rotateY(-100deg)
+  80%
+    opacity            1
+    -moz-transform     rotateY(-10deg)
+  100%
+    opacity            1
+    -moz-transform     rotateY(0deg)
+@-moz-keyframes logo
+  0%
+    -moz-transform     rotateX(35deg) rotateY(30deg)
+  50%
+    -moz-transform     rotateX(55deg) rotateY(40deg)
+  80%
+    -moz-transform     rotateX(-30deg) rotateY(-25deg)
+  93%
+    -moz-transform     rotateX(15deg) rotateY(10deg)
+  100%
+    -moz-transform     rotateX(0deg) rotateY(0deg)
+@-moz-keyframes logotwo
+  0%
+    -moz-transform     rotateX(0deg) rotateY(0deg) translateY(0) scale(1)
+  100%
+    -moz-transform     translateY(-60px) scale(0.8)
 
 
 
