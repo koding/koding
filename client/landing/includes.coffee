@@ -1,4 +1,9 @@
 module.exports = [
+
+  # Libs
+  "libs/async.js",
+  "libs/md5-min.js",
+
   # --- Application ---
   "app/MainApp/KD.extend.coffee" # our extensions to KD global
   "app/MainApp/kodingrouter.coffee",
@@ -235,32 +240,6 @@ module.exports = [
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
 
-  # got rid of static controllers
-
-  # "app/MainApp/lazy/lazydomcontroller.coffee",
-  # "app/MainApp/lazy/staticprofilecontroller.coffee",
-  # "app/MainApp/lazy/staticprofileconfigviews.coffee",
-  # "app/MainApp/lazy/staticprofileaboutview.coffee",
-  # "app/MainApp/lazy/staticuserbuttonbar.coffee",
-  # "app/MainApp/lazy/staticgroupcontroller.coffee",
-  # "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
-
-  # these are libraries, but adding it here so they are minified properly
-  # minifying jquery breaks the code.
-
-
-  "libs/jquery-timeago.js",
-  "libs/date.format.js",
-  "libs/jquery.getcss.js",
-  "libs/mousetrap.js",
-  "libs/md5-min.js",
-  "libs/async.js",
-  "libs/jquery.mousewheel.js",
-  "libs/inflector.js",
-  "libs/canvas-loader.js",
-  "libs/marked.js",
-  "app/Helpers/jspath.coffee",
-
   # --- Applications ---
   "app/MainApp/channels/kitechannel.coffee",
   "app/MainApp/ApplicationManager.coffee",
@@ -311,10 +290,6 @@ module.exports = [
   "app/Applications/Ace.kdapplication/acesettings.coffee",
   "app/Applications/Ace.kdapplication/acefindandreplaceview.coffee",
 
-  # termlib shell
-  #  'app/Applications/Shell.kdapplication/AppRequirements.coffee',
-  #  'app/Applications/Shell.kdapplication/termlib/src/termlib.js',
-
   # viewer
   'app/Applications/Viewer.kdapplication/topbar.coffee',
   'app/Applications/Viewer.kdapplication/AppController.coffee',
@@ -335,8 +310,10 @@ module.exports = [
 
   # --- ApplicationPageViews ---
   "app/Applications/Activity.kdapplication/activitylistcontroller.coffee",
+
   # ACTIVITY VIEWS
   "app/Applications/Activity.kdapplication/AppView.coffee",
+
   # Activity commons
   "app/Applications/Activity.kdapplication/views/activityactions.coffee",
   "app/Applications/Activity.kdapplication/views/activityinnernavigation.coffee",
@@ -378,12 +355,14 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/link.coffee",
+
   # Activity content displays commons
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayAuthorAvatar.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayMeta.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayTags.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayComments.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayScoreBoard.coffee",
+
   # Activity List Items
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItem.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemStatusUpdate.coffee",
@@ -557,12 +536,8 @@ module.exports = [
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
   "app/Applications/Home.kdapplication/Views/counterview.coffee",
 
-  #ABOUT VIEWS
-
   # DEMO VIEWS
   "app/Applications/Demos.kdapplication/AppView.coffee",
-
-  # "app/Applications/GroupsFake.kdapplication/AppController.coffee",
 
   # ACCOUNT CONTROLLERS
   "app/Applications/Account.kdapplication/controllers/accountnavigationcontroller.coffee",
@@ -581,7 +556,6 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/repos.coffee",
   "app/Applications/Account.kdapplication/views/sshkeys.coffee",
   "app/Applications/Account.kdapplication/views/kodingkeys.coffee",
-
   "app/Applications/Account.kdapplication/views/paymenthistory.coffee",
   "app/Applications/Account.kdapplication/views/paymentmethods.coffee",
   "app/Applications/Account.kdapplication/views/subscriptions.coffee",
@@ -590,7 +564,6 @@ module.exports = [
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
-
   "app/Applications/Dashboard.kdapplication/AppController.coffee",
   "app/Applications/Dashboard.kdapplication/AppView.coffee",
 
@@ -607,7 +580,6 @@ module.exports = [
 
   # Virtualization CONTROLLER
   "app/MainApp/VirtualizationController.coffee",
-
 
   # WORKSPACE
   "app/CommonViews/workspace/panes/pane.coffee",
@@ -693,6 +665,12 @@ module.exports = [
   "app/MainApp/mixpanel.coffee",
   "app/MainApp/analytic.coffee",
 
+  # STYLES
+
+  "css/highlight-styles/sunburst.css",
+
+  "stylus/kdfn.styl",
+  "stylus/appfn.styl",
   "stylus/app.styl",
   "stylus/app.bottom.styl",
   "stylus/app.splitlayout.styl",
@@ -733,6 +711,13 @@ module.exports = [
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",
 
+  # WebTerm Themes
+  "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
+  "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
+  "app/Applications/WebTerm.kdapplication/themes/black-on-white.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
+
   # mediaqueries should stay at the bottom
   "stylus/app.1200.styl",
   "stylus/app.1024.styl",
@@ -740,10 +725,4 @@ module.exports = [
   "stylus/app.480.styl",
   "stylus/app.400.styl",
 
-  "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
-  "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
-  "app/Applications/WebTerm.kdapplication/themes/black-on-white.styl",
-  "app/Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
-  "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
-  # "includes/footer.inc.js"
 ]

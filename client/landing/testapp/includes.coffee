@@ -1,4 +1,4 @@
 module.exports = [
-  "testapp/main.coffee",
-  "testapp/main.css"
+  "main.coffee",
+  "main.css"
 ]
