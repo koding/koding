@@ -8,13 +8,13 @@ import (
 
 type Subscriber struct {
 	ws *websocket.Conn
-	h  Handler
+	h  MessageHandler
 }
 
 // NewSubscriber opens a websocket connection to a Publisher and
 // returns a pointer to newly created Subscriber.
 // After creating a Subscriber you should subscribe to messages with Subscribe function.
-func NewSubscriber(addr string, h Handler) (*Subscriber, error) {
+func NewSubscriber(addr string, h MessageHandler) (*Subscriber, error) {
 	url := "ws://" + addr + "/"
 	origin := "http://localhost/" // dont know if this is required
 	ws, err := websocket.Dial(url, "", origin)

@@ -3,4 +3,4 @@
 // Subscriber and Publisher talk via Websocket protocol asynchronously.
 package moh
 
-type Handler func([]byte) []byte
+type MessageHandler func([]byte) []byte

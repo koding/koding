@@ -11,7 +11,7 @@ type Replier struct {
 
 // NewReplier starts a new HTTP server on addr and returns a pointer to the Replier.
 // All request will be replied by the handler function h.
-func NewReplier(addr string, h Handler) (*Replier, error) {
+func NewReplier(addr string, h MessageHandler) (*Replier, error) {
 	s, err := NewClosableServer(addr)
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func NewReplier(addr string, h Handler) (*Replier, error) {
 	return &Replier{*s}, nil
 }
 
-func makeHttpHandler(h Handler) http.HandlerFunc {
+func makeHttpHandler(h MessageHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)

@@ -93,7 +93,7 @@ func TestBroadcast(t *testing.T) {
 
 // Since the echoHandler is called asynchronously from subscriber
 // we need to put a message to the channel to understand if it's called.
-func withChan(h Handler, ch chan bool) Handler {
+func withChan(h MessageHandler, ch chan bool) MessageHandler {
 	return func(message []byte) []byte {
 		reply := h(message)
 		ch <- true
