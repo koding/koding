@@ -13,8 +13,8 @@ type Publisher struct {
 	connections map[*connection]bool
 
 	// Registered filters
-	filters       map[string]([]*connection)
-	filters_mutex sync.Mutex
+	filters      map[string]([]*connection)
+	filtersMutex sync.Mutex
 
 	// Register requests from the connections
 	register chan *connection
@@ -46,8 +46,8 @@ func NewPublisher(addr string) (*Publisher, error) {
 }
 
 func (p *Publisher) Publish(key string, message []byte) {
-	p.filters_mutex.Lock()
-	defer p.filters_mutex.Unlock()
+	p.filtersMutex.Lock()
+	defer p.filtersMutex.Unlock()
 
 	connections, ok := p.filters[key]
 	if !ok {
@@ -90,7 +90,7 @@ func (p *Publisher) makeWsHandler() websocket.Handler {
 		p.register <- &c
 		defer func() { p.unregister <- &c }()
 		go c.writer()
-		c.reader(&p.filters, &p.filters_mutex)
+		c.reader(&p.filters, &p.filtersMutex)
 	}
 }
 
