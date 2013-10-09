@@ -27,14 +27,16 @@ func makeHttpHandler(handler MessageHandler) http.HandlerFunc {
 		defer r.Body.Close()
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			panic(err)
+			http.Error(w, "Cannot read request body", 500)
+			return
 		}
 
 		reply := handler(body)
 
 		_, err = w.Write(reply)
 		if err != nil {
-			panic(err)
+			http.Error(w, "Cannot write reply", 500)
+			return
 		}
 	}
 }
