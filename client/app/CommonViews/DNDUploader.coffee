@@ -76,14 +76,18 @@ class DNDUploader extends KDView
       for item in items
         entry = item.webkitGetAsEntry()
         if entry.isDirectory
-          @readDirectory entry.filesystem.root, (files)=>
-            @uploadFiles files, event
+          @walkDirectory entry.filesystem.root, (file)=>
+            # upload walked file
+            @uploadFiles [file], event
           , =>
+            # fallback for file upload, upload the other files stack
             @uploadFiles files, event
         else if entry.isFile
           entry.file (file)=>
+            # upload file entry
             @uploadFiles [file], event
     else
+      # fallback to upload files for folder upload browsers
       @uploadFiles files, event
 
   uploadFiles: (files, event)->
@@ -139,25 +143,18 @@ class DNDUploader extends KDView
 
           @reset() if item is lastItem
 
-  readDirectory: (dirEntry, callback, error)->
-
-    callback.files  or= []
-    i = 0
+  walkDirectory: (dirEntry, callback, error)->
 
     dirReader = dirEntry.createReader()
     relative  = FSHelper.convertToRelative dirEntry.fullPath
 
     dirReader.readEntries (entries)=>
       for entry in entries
-        i++
         if entry.isFile
           entry.file (file)->
             file.relativePath = relative + file.name
-            callback.files.push file
-        else
-          @readDirectory entry, callback, error
-      if entries.length is i
-        callback callback.files
+            callback file
+        else @walkDirectory entry, callback, error
     , error
 
   setPath: (@path=@options.defaultPath)->
@@ -201,8 +198,8 @@ class DNDUploader extends KDView
     fsFolderItem = FSHelper.createFileFromPath folder, 'folder'
     fsFileItem   = FSHelper.createFileFromPath "#{folder}/#{fileName}"
 
-    return if FSHelper.isDummyPath fsFolderItem.path
-    return if FSHelper.isDummyPath fsFileItem.path, yes
+    return if FSHelper.isUnwanted fsFolderItem.path
+    return if FSHelper.isUnwanted fsFileItem.path, yes
 
     upload = =>
       fsFileItem.exists (err, exists)=>
