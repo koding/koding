@@ -19,7 +19,7 @@ func NewReplier(addr string, h MessageHandler) (*Replier, error) {
 
 	s.Mux.HandleFunc("/", makeHttpHandler(h))
 	go s.Serve()
-	return &Replier{*s}, nil
+	return &Replier{CloseableServer: *s}, nil
 }
 
 func makeHttpHandler(h MessageHandler) http.HandlerFunc {
