@@ -1,17 +1,12 @@
 class BillingFormModal extends KDModalViewWithForms
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data = {}) ->
 
     options.title    or= 'Billing information'
     options.width    or= 520
     options.height   or= 'auto'
     options.cssClass or= 'payments-modal'
     options.overlay   ?= yes
-
-    { callback } = options
-    delete options.callback
-
-    callback ?= (formData) => @emit 'PaymentInfoSubmitted', formData
 
     thisYear = (new Date).getFullYear()
 
@@ -109,7 +104,8 @@ class BillingFormModal extends KDModalViewWithForms
       forms                     :
         'Billing Info'          :
           fields                : fields
-          callback              : callback
+          callback              : (formData) =>
+            @emit 'PaymentInfoSubmitted', formData
           buttons               :
             Save                :
               title             : 'Save'
@@ -131,8 +127,6 @@ class BillingFormModal extends KDModalViewWithForms
     @billingForm.fields.cardNumber.addSubView @icon = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'icon'
-
-    @billingForm.addCustomData 'actualState', data.state
 
     @billingForm.fields.country.addSubView @countryLoader
 
@@ -211,7 +205,10 @@ class BillingFormModal extends KDModalViewWithForms
   setBillingInfo: (billingInfo) ->
     for own key, value of billingInfo
       switch key
-        when 'cardType' then @updateCardTypeDisplay value
+        when 'state'
+          @billingForm.addCustomData 'actualState', value
+        when 'cardType'
+          @updateCardTypeDisplay value
         when 'cardNumber', 'cardCV'
           @billingForm.inputs[key]?.setPlaceHolder value
         when 'address2' then # ignore
