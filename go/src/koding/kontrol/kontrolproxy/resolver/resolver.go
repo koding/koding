@@ -70,7 +70,6 @@ var indexesMu sync.Mutex // protect indexes
 func GetMemTarget(host string) (*Target, error) {
 	var err error
 	target := new(Target)
-	target.FetchedSource = "Cache"
 
 	targetsMu.Lock()
 	defer targetsMu.Unlock()
@@ -84,6 +83,8 @@ func GetMemTarget(host string) (*Target, error) {
 		target.FetchedSource = "MongoDB"
 
 		targets[host] = target
+	} else {
+		target.FetchedSource = "Cache"
 	}
 
 	return target, nil
