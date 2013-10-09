@@ -13,9 +13,9 @@ module.exports = class Member extends Graph
       when "counts.following"
         orderByQuery = "ORDER BY members.`counts.following` DESC"
       when "meta.modifiedAt"
-        orderByQuery = "ORDER BY members.`meta.modifiedAt` ASC"
+        orderByQuery = "ORDER BY members.`meta.modifiedAt` DESC"
       else
-        orderByQuery = "ORDER BY members.`meta.modifiedAt` ASC"
+        orderByQuery = "ORDER BY members.`meta.modifiedAt` DESC"
 
     return orderByQuery
 

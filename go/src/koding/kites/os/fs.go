@@ -12,6 +12,7 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -24,6 +25,8 @@ func init() {
 }
 
 func registerFileSystemMethods(k *kite.Kite) {
+	syscall.Umask(0)
+
 	registerVmMethod(k, "fs.readDirectory", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path                string
@@ -153,7 +156,11 @@ func registerFileSystemMethods(k *kite.Kite) {
 		if !params.Append {
 			flags |= os.O_TRUNC
 		}
-		file, err := vos.OpenFile(params.Path, flags, 0666)
+		dirInfo, err := vos.Stat(path.Dir(params.Path))
+		if err != nil {
+			return nil, err
+		}
+		file, err := vos.OpenFile(params.Path, flags, dirInfo.Mode().Perm()&0666)
 		if err != nil {
 			return nil, err
 		}
@@ -323,7 +330,11 @@ func registerFileSystemMethods(k *kite.Kite) {
 			return true, nil
 		}
 
-		if err := vos.Mkdir(params.Path, 0755); err != nil {
+		dirInfo, err := vos.Stat(path.Dir(params.Path))
+		if err != nil {
+			return nil, err
+		}
+		if err := vos.Mkdir(params.Path, dirInfo.Mode().Perm()); err != nil {
 			return nil, err
 		}
 		return true, nil
