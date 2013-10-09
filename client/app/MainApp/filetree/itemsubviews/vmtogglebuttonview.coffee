@@ -18,8 +18,8 @@ class NVMToggleButtonView extends JView
 
     if err or not info
 
-      @notify?.destroy()
-      @notify = new KDNotificationView
+      @notification?.destroy()
+      @notification = new KDNotificationView
         type    : "mini"
         cssClass: "error"
         duration: 5000

@@ -142,21 +142,21 @@ class DNDUploader extends KDView
   readDirectory: (dirEntry, callback, error)->
 
     callback.files  or= []
-    callback.i = 0
+    i = 0
 
     dirReader = dirEntry.createReader()
-    relative  = dirEntry.fullPath.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+    relative  = FSHelper.convertToRelative dirEntry.fullPath
 
     dirReader.readEntries (entries)=>
       for entry in entries
-        callback.i++
+        i++
         if entry.isFile
           entry.file (file)->
             file.relativePath = relative + file.name
             callback.files.push file
         else
           @readDirectory entry, callback, error
-      if entries.length is callback.i
+      if entries.length is i
         callback callback.files
     , error
 
@@ -182,7 +182,7 @@ class DNDUploader extends KDView
   saveFile: (fsFile, data)->
     @emit "uploadStart", fsFile
     fsFile.saveBinary data, (err, res, progress)=>
-      progress = res unless progress
+      progress or= res
       return if err
       if res.finished
         @emit "uploadEnd", fsFile
@@ -201,8 +201,8 @@ class DNDUploader extends KDView
     fsFolderItem = FSHelper.createFileFromPath folder, 'folder'
     fsFileItem   = FSHelper.createFileFromPath "#{folder}/#{fileName}"
 
-    return if fsFolderItem.path.match /\/(\.git|__MACOSX)\/?/
-    return if fsFileItem.path.match   /\/\.DS_Store/
+    return if FSHelper.isDummyPath fsFolderItem.path
+    return if FSHelper.isDummyPath fsFileItem.path, yes
 
     upload = =>
       fsFileItem.exists (err, exists)=>
