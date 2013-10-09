@@ -14,11 +14,11 @@ type Publisher struct {
 	filters Filters
 
 	// subscribe, disconnect events from connections
-	events chan PublisherEvent
+	events chan publisherEvent
 }
 
 // Subscription requests from connections to be sent to Publisher.subscribe channel
-type PublisherEvent struct {
+type publisherEvent struct {
 	conn      *connection
 	eventType int // values are defined as constants on global scope
 	key       string
@@ -28,7 +28,7 @@ type PublisherEvent struct {
 // Hoping that it is unique enough to not collide with another key.
 const all = "4658f005d49885355f4e771ed9dace10cca9563e"
 
-// Values for PublisherEvent.eventType filed
+// Values for publisherEvent.eventType filed
 const (
 	subscribe = iota
 	disconnect
@@ -44,7 +44,7 @@ func NewPublisher(addr string) (*Publisher, error) {
 	p := &Publisher{
 		MessagingServer: *s,
 		filters:         make(Filters),
-		events:          make(chan PublisherEvent),
+		events:          make(chan publisherEvent),
 	}
 
 	p.Mux.Handle("/", p.makeWsHandler())
@@ -81,8 +81,8 @@ func (p *Publisher) makeWsHandler() websocket.Handler {
 			send: make(chan []byte, 256),
 			keys: make([]string, 0),
 		}
-		p.events <- PublisherEvent{conn: &c, eventType: subscribe, key: all}
-		defer func() { p.events <- PublisherEvent{conn: &c, eventType: disconnect} }()
+		p.events <- publisherEvent{conn: &c, eventType: subscribe, key: all}
+		defer func() { p.events <- publisherEvent{conn: &c, eventType: disconnect} }()
 		go c.writer()
 		c.reader(p.events)
 	}
@@ -113,7 +113,7 @@ type connection struct {
 }
 
 // reader reads the subscription requests from websocket and saves it in a map for accessing later.
-func (c *connection) reader(ch chan PublisherEvent) {
+func (c *connection) reader(ch chan publisherEvent) {
 	for {
 		var key string
 		err := websocket.Message.Receive(c.ws, &key)
@@ -122,7 +122,7 @@ func (c *connection) reader(ch chan PublisherEvent) {
 			break
 		}
 		log.Println("reader: Received a message from websocket")
-		ch <- PublisherEvent{conn: c, eventType: subscribe, key: key}
+		ch <- publisherEvent{conn: c, eventType: subscribe, key: key}
 	}
 	c.ws.Close()
 }
