@@ -12,7 +12,9 @@ class BillingMethodView extends JView
     @billingMethodInfo = new KDCustomHTMLView
       tagName   : 'a'
       cssClass  : 'billing-link'
-      click     : => @emit 'BillingEditRequested'
+      click     : (e) =>
+        e.preventDefault()
+        @emit 'BillingEditRequested'
 
     @billingMethodInfo.hide()
 
@@ -25,11 +27,11 @@ class BillingMethodView extends JView
       address = [address1, address2].filter(Boolean).join ' '
       description ?= "#{cardFirstName}'s #{cardType}"
       """
-      <p class="description #{cardType.toLowerCase()}">#{description}</p>
-      <p>#{cardFirstName} #{cardLastName}</p>
-      <p>#{cardNumber} - #{cardMonth}/#{cardYear} (#{cardType})</p>
-      <p>#{address}</p>
-      <p>#{city} #{state} #{zip}</p>
+      <span class="description #{cardType.toLowerCase()}">#{description}</span>
+      <span>#{cardFirstName} #{cardLastName}</span>
+      <span>#{cardNumber} - #{cardMonth}/#{cardYear} (#{cardType})</span>
+      <span>#{address}</span>
+      <span>#{city} #{state} #{zip}</span>
       """
     else "Enter billing information"
 
