@@ -58,7 +58,7 @@ func (p *Publisher) Publish(key string, message []byte) {
 	log.Println("Sending message to send channel")
 	for _, c := range connections {
 		select {
-		case (*c).send <- message:
+		case c.send <- message:
 			log.Println("Message sent to send channel")
 		default:
 			// TODO remove from filters
