@@ -504,8 +504,8 @@ module.exports = class JUser extends jraphical.Module
             """
           else
             @fetchUser client, (err, user)=>
-              {username} = user
               @persistOauthInfo user.username, sessionToken, kallback
+        else
           if user
             afterLogin client.connection, user, sessionToken, session, kallback
           else
