@@ -12,17 +12,6 @@ class PaymentController extends KDController
     else
       JPaymentPlan.getGroupBalance callback
 
-  updateCreditCard: (type, callback = (->)) ->
-
-    { JPaymentPlan } = KD.remote.api
-
-    @updateCreditCardModal {}, (newData) =>
-      @modal.buttons.Save.hideLoader()
-      if type in ['group', 'expensed']
-        getGroup().setBillingInfo newData, callback
-      else
-        JPaymentPlan.setUserAccount newData, callback
-
 
   removePaymentMethod: (accountCode, callback) ->
     { JPayment } = KD.remote.api
@@ -90,15 +79,6 @@ class PaymentController extends KDController
 
   # views
 
-  updateCreditCardModal: (data, callback) ->
-    @modal = new PaymentFormModal { callback }
-
-    form = @modal.modalTabs.forms['Billing Info']
-    form.inputs[k]?.setValue v  for k, v of data
-
-    @modal.on 'KDObjectWillBeDestroyed', => delete @modal
-    return @modal
-
   fetchBillingInfo: (type, callback) ->
 
     { JPaymentPlan } = KD.remote.api
@@ -113,7 +93,7 @@ class PaymentController extends KDController
 
     { JPayment } = KD.remote.api
 
-    JPayment.setBillingInfo billingInfo, (err, result)->
+    JPayment.setBillingInfo billingInfo, callback
 
 
   createBillingInfoModal:(type, billingInfo) ->
