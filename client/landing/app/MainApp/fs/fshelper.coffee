@@ -200,9 +200,9 @@ class FSHelper
   @convertToRelative = (path)->
     path.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
 
-  @isDummyPath = (path, isFile=no)->
+  @isUnwanted = (path, isFile=no)->
 
-    dummyFilePatterns = /\.DS_Store/
+    dummyFilePatterns = /\.DS_Store|Thumbs.db/
     dummyFolderPatterns = /\.git|__MACOSX/
     if isFile
     then dummyFilePatterns.test path
