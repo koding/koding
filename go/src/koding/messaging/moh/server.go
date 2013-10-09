@@ -34,3 +34,7 @@ func (s *MessagingServer) Serve() {
 func (s *MessagingServer) Close() error {
 	return s.listener.Close()
 }
+
+func (s *MessagingServer) Addr() net.Addr {
+	return s.listener.Addr()
+}
