@@ -24,7 +24,7 @@ type publisherEvent struct {
 	key       string
 }
 
-// This is the magic subscription key for broadcasting events.
+// This is the magic subscription key for broadcast events.
 // Hoping that it is unique enough to not collide with another key.
 const all = "4658f005d49885355f4e771ed9dace10cca9563e"
 
@@ -35,6 +35,8 @@ const (
 	// unsubscribe event is not implemented yet
 )
 
+// NewPublisher creates a new Publisher and returns a pointer to it.
+// The publisher will listen on addr and accept websocket connections from Subscribers.
 func NewPublisher(addr string) (*Publisher, error) {
 	s, err := NewMessagingServer(addr)
 	if err != nil {
@@ -55,6 +57,7 @@ func NewPublisher(addr string) (*Publisher, error) {
 	return p, nil
 }
 
+// Publish sends a message to registered Subscribers with the key.
 func (p *Publisher) Publish(key string, message []byte) {
 	log.Println("Sending message to send channel")
 	for c, _ := range p.filters[key] {
@@ -62,14 +65,15 @@ func (p *Publisher) Publish(key string, message []byte) {
 		case c.send <- message:
 			log.Println("Message sent to send channel")
 		default:
-			// Buffer is full, drop the websocket client and let it synchronize by re-connecting
+			// Buffer is full, writer() is not fast enough to send all published messages .
+			// Drop the websocket client and let it synchronize by re-connecting.
 			log.Println("Websocket buffer is full. Dropping socket")
 			go c.ws.Close()
 		}
 	}
 }
 
-// Broadcast is an easy
+// Broadcast sends a message to all of the connected Subscribers.
 func (p *Publisher) Broadcast(message []byte) {
 	p.Publish(all, message)
 }
@@ -88,7 +92,8 @@ func (p *Publisher) makeWsHandler() websocket.Handler {
 	}
 }
 
-// registrar selects over register and unregister channels and updates connections map.
+// registrar receives publiserEvents from the channel and updates filters.
+// Adds or removes the connections from filters as if necessary.
 // Synchronizes the modifier operations on Publisher.filters field.
 func (p *Publisher) registrar() {
 	for event := range p.events {
@@ -102,6 +107,7 @@ func (p *Publisher) registrar() {
 	}
 }
 
+// connection represents a connected Subscriber in Publisher.
 type connection struct {
 	ws *websocket.Conn
 
