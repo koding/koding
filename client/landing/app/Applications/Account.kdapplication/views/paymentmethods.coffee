@@ -25,7 +25,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
             </div>
             """
           buttons:
-            Yes:
+            Remove:
               style: "modal-clean-red"
               callback: =>
                 modal.destroy()
@@ -34,6 +34,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
               style: "modal-cancel"
               callback: ->
                 modal.destroy()
+        modal.addSubView new BillingMethodView {}, data.billing
 
     list.on 'reload', (data) => @loadItems()
 
@@ -71,9 +72,12 @@ class AccountPaymentMethodsListController extends AccountListViewController
       modal.setBillingInfo initialBillingInfo.billing  if initialBillingInfo?
 
       modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) =>
-        paymentController.updateBillingInfo updatedBillingInfo, (err, res)->
-          console.log arguments
-        # @addItem updatedBillingInfo
+        paymentController.updateBillingInfo updatedBillingInfo, (err, res) =>
+          if err
+            new KDNotificationView title: err.message
+          else
+            modal.destroy()
+            @loadItems()
 
 
 
