@@ -2,7 +2,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
   constructor:(options,data)->
 
     options.noItemFoundText = "You have no payment method."
-    super options,data
+    super options, data
 
     @loadItems()
 
@@ -73,7 +73,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
     modal.setBillingInfo initialBillingInfo.billing  if initialBillingInfo?
 
     modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) =>
-      paymentController.updateBillingInfo updatedBillingInfo, (err, res) =>
+      paymentController.updateBillingInfo initialBillingInfo?.accountCode, updatedBillingInfo, (err, res) =>
         if err
           new KDNotificationView title: err.message
         else

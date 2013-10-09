@@ -34,8 +34,9 @@ module.exports = class JPayment extends Base
   @removePaymentMethod: secure (client, accountCode, callback) ->
     (require './method').removePaymentMethod client, accountCode, callback
 
-  @setBillingInfo = secure (client, data, callback) ->
-    (require './method').updatePaymentMethodByAccountCode client, data.recurlyId, data, callback
+  @setBillingInfo = secure (client, accountCode, data, callback) ->
+    [data, callback, accountCode] = [accountCode, data, callback]  unless callback
+    (require './method').updatePaymentMethodByAccountCode client, accountCode, data, callback
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
     recurly.fetchAccountDetailsByAccountCode (userCodeOf delegate), callback
