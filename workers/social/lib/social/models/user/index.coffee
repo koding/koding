@@ -302,26 +302,29 @@ module.exports = class JUser extends jraphical.Module
 
   afterLogin = (connection, user, clientId, session, callback)->
     checkBlockedStatus user, (err)->
-      if err then return callback err
+      return callback err  if err
       replacementToken = createId()
       session.update {
         $set            :
           username      : user.username
-          lastLoginDate : new Date
           clientId      : replacementToken
         $unset:
           guestId       : 1
       }, (err)->
-          if err then return callback err
-          user.fetchOwnAccount (err, account)->
-            if err then return callback err
-            connection.delegate = account
-            JAccount.emit "AccountAuthenticated", account
-            # This should be called after login and this
-            # is not correct place to do it, FIXME GG
-            # p.s. we could do that in workers
-            account.updateCounts()
-            callback null, {account, replacementToken}
+          return callback err  if err
+          user.update { $set: lastLoginDate: new Date }, (err) ->
+            return callback err  if err
+            
+            user.fetchOwnAccount (err, account)->
+              return callback err  if err
+
+              connection.delegate = account
+              JAccount.emit "AccountAuthenticated", account
+              # This should be called after login and this
+              # is not correct place to do it, FIXME GG
+              # p.s. we could do that in workers
+              account.updateCounts()
+              callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
     if 'string' is typeof client

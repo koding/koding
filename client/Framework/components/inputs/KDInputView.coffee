@@ -332,13 +332,13 @@ class KDInputView extends KDView
           fontSize      : $input.css 'fontSize'
           lineHeight    : $input.css 'lineHeight'
           whiteSpace    : "pre"
+          wordWrap      : "break-word"
 
     @on "blur", =>
       @_clone.detach()
       @$()[0].style.height = "none" # hack to set to initial
 
-    @on "keydown", @bound "resize"
-    @on "keyup", (event) => @resize() if @getValue().length is 0
+    @on "keyup", (event) => @resize()
 
   resize: ->
     return  unless @_clone
