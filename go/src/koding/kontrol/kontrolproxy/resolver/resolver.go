@@ -173,7 +173,7 @@ func internalTarget(host, port string, domain *models.Domain) (*Target, error) {
 	// we only opened ports between those, therefore other ports are not used
 	portInt, _ := strconv.Atoi(port)
 	if portInt >= 1024 && portInt <= 10000 {
-		return nil, fmt.Errorf("port range is not allowed for internal usages")
+		return nil, errors.New("port range is not allowed for internal usages")
 	}
 
 	username := domain.Proxy.Username
@@ -229,7 +229,7 @@ func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
 	var hostname string
 
 	if len(domain.HostnameAlias) == 0 {
-		return nil, fmt.Errorf("domain for hostname %s is not active")
+		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
 	}
 
 	switch domain.LoadBalancer.Mode {
