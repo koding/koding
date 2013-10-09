@@ -297,7 +297,6 @@ module.exports = [
 
   # PAYMENT
   "app/MainApp/payment/paymentcontroller.coffee",
-  "app/MainApp/payment/paymentform.coffee",
   "app/MainApp/payment/billingform.coffee",
   "app/MainApp/payment/paymentconfirmationmodal.coffee",
   "app/MainApp/payment/paymentdeleteconfirmationmodal.coffee",
