@@ -76,13 +76,13 @@ func (p *Publisher) Broadcast(message []byte) {
 
 func (p *Publisher) makeWsHandler() websocket.Handler {
 	return func(ws *websocket.Conn) {
-		c := connection{
+		c := &connection{
 			ws:   ws,
 			send: make(chan []byte, 256),
 			keys: make([]string, 0),
 		}
-		p.events <- publisherEvent{conn: &c, eventType: subscribe, key: all}
-		defer func() { p.events <- publisherEvent{conn: &c, eventType: disconnect} }()
+		p.events <- publisherEvent{conn: c, eventType: subscribe, key: all}
+		defer func() { p.events <- publisherEvent{conn: c, eventType: disconnect} }()
 		go c.writer()
 		c.reader(p.events)
 	}
