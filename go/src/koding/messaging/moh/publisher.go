@@ -7,7 +7,7 @@ import (
 )
 
 type Publisher struct {
-	CloseableServer
+	MessagingServer
 
 	// Registered connections
 	connections map[*connection]bool
@@ -30,7 +30,7 @@ func NewPublisher(addr string) (*Publisher, error) {
 	}
 
 	p := &Publisher{
-		CloseableServer: *s,
+		MessagingServer: *s,
 		connections:     make(map[*connection]bool),
 		filters:         make(map[string]([]*connection)),
 		register:        make(chan *connection),

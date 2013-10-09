@@ -6,7 +6,7 @@ import (
 )
 
 type Replier struct {
-	CloseableServer
+	MessagingServer
 }
 
 // NewReplier starts a new HTTP server on addr and returns a pointer to the Replier.
@@ -19,7 +19,7 @@ func NewReplier(addr string, handler MessageHandler) (*Replier, error) {
 
 	s.Mux.HandleFunc("/", makeHttpHandler(handler))
 	go s.Serve()
-	return &Replier{CloseableServer: *s}, nil
+	return &Replier{MessagingServer: *s}, nil
 }
 
 func makeHttpHandler(handler MessageHandler) http.HandlerFunc {
