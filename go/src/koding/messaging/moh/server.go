@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 )
 
 type MessagingServer struct {
@@ -27,8 +28,13 @@ func NewMessagingServer(addr string) (*MessagingServer, error) {
 }
 
 func (s *MessagingServer) Serve() {
-	http.Serve(s.listener, s.Mux)
-	log.Println("Serving has finished")
+	err := http.Serve(s.listener, s.Mux)
+	if strings.Contains(err.Error(), "use of closed network connection") {
+		// The server is closed by Close() method
+		log.Println("Serving has finished")
+	} else {
+		log.Fatalln("Cannot start server on ", s.Addr())
+	}
 }
 
 func (s *MessagingServer) Close() error {
