@@ -1195,7 +1195,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchUser (err, user)->
         return callback err  if err
 
-        query                            = {}
+        query = {}
         query["foreignAuth.#{provider}"] = ""
         user.update $unset: query, callback
     else
