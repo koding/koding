@@ -24,7 +24,7 @@ type Publisher struct {
 }
 
 func NewPublisher(addr string) (*Publisher, error) {
-	s, err := NewClosableServer(addr)
+	s, err := NewMessagingServer(addr)
 	if err != nil {
 		return nil, err
 	}

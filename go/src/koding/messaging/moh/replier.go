@@ -12,7 +12,7 @@ type Replier struct {
 // NewReplier starts a new HTTP server on addr and returns a pointer to the Replier.
 // All request will be replied by the handler function.
 func NewReplier(addr string, handler MessageHandler) (*Replier, error) {
-	s, err := NewClosableServer(addr)
+	s, err := NewMessagingServer(addr)
 	if err != nil {
 		return nil, err
 	}
