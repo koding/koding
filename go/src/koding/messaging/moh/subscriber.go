@@ -7,14 +7,14 @@ import (
 )
 
 type Subscriber struct {
-	ws *websocket.Conn
-	h  MessageHandler
+	ws      *websocket.Conn
+	handler MessageHandler
 }
 
 // NewSubscriber opens a websocket connection to a Publisher and
 // returns a pointer to newly created Subscriber.
 // After creating a Subscriber you should subscribe to messages with Subscribe function.
-func NewSubscriber(addr string, h MessageHandler) (*Subscriber, error) {
+func NewSubscriber(addr string, handler MessageHandler) (*Subscriber, error) {
 	url := "ws://" + addr + "/"
 	origin := "http://localhost/" // dont know if this is required
 	ws, err := websocket.Dial(url, "", origin)
@@ -23,8 +23,8 @@ func NewSubscriber(addr string, h MessageHandler) (*Subscriber, error) {
 	}
 
 	sub := &Subscriber{
-		ws: ws,
-		h:  h,
+		ws:      ws,
+		handler: handler,
 	}
 	go sub.consumer()
 	return sub, err
@@ -46,6 +46,6 @@ func (s *Subscriber) consumer() {
 			continue
 		}
 		log.Println("Received data:", message)
-		s.h(message)
+		s.handler(message)
 	}
 }
