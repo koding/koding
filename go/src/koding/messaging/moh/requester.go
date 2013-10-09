@@ -3,6 +3,7 @@ package moh
 import (
 	"bytes"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -26,6 +27,7 @@ func (r *Requester) Request(message []byte) ([]byte, error) {
 
 	request.Header.Set("Content-Type", "application/octet-strem")
 	request.Header.Set("Connection", "Keep-Alive")
+	log.Println("Doing POST to: %s", r.addr)
 	resp, err := r.c.Do(request)
 	if err != nil {
 		return nil, err

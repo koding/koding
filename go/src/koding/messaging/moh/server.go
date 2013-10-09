@@ -28,6 +28,7 @@ func NewMessagingServer(addr string) (*MessagingServer, error) {
 }
 
 func (s *MessagingServer) Serve() {
+	log.Println("Serving on: %s", s.Addr())
 	err := http.Serve(s.listener, s.Mux)
 	if strings.Contains(err.Error(), "use of closed network connection") {
 		// The server is closed by Close() method
