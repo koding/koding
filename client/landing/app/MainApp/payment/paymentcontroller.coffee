@@ -89,11 +89,11 @@ class PaymentController extends KDController
       when 'user'
         JPaymentPlan.fetchAccountDetails callback
 
-  updateBillingInfo: (billingInfo, callback) ->
+  updateBillingInfo: (accountCode, billingInfo, callback) ->
 
     { JPayment } = KD.remote.api
 
-    JPayment.setBillingInfo billingInfo, callback
+    JPayment.setBillingInfo accountCode, billingInfo, callback
 
 
   createBillingInfoModal: (billingInfo) ->
