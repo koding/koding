@@ -18,8 +18,8 @@ func NewRequester(addr string) *Requester {
 }
 
 // Requester sends a message to a Replier over HTTP.
-func (req *Requester) Request(message []byte) ([]byte, error) {
-	resp, err := req.c.Post("http://"+req.addr+"/",
+func (r *Requester) Request(message []byte) ([]byte, error) {
+	resp, err := r.c.Post("http://"+r.addr+"/",
 		"application/octet-strem",
 		bytes.NewReader(message))
 	if err != nil {

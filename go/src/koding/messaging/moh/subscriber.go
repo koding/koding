@@ -31,21 +31,21 @@ func NewSubscriber(addr string, h MessageHandler) (*Subscriber, error) {
 }
 
 // Subscribe registers the Subscriber to receive messages matching with the key.
-func (sub *Subscriber) Subscribe(key string) error {
-	return websocket.Message.Send(sub.ws, key)
+func (s *Subscriber) Subscribe(key string) error {
+	return websocket.Message.Send(s.ws, key)
 }
 
-func (sub *Subscriber) consumer() {
+func (s *Subscriber) consumer() {
 	for {
 		var message []byte
 		log.Println("Reading from websocket")
-		err := websocket.Message.Receive(sub.ws, &message)
+		err := websocket.Message.Receive(s.ws, &message)
 		if err != nil {
 			log.Println("Cannot read message from websocket")
 			time.Sleep(100 * time.Millisecond)
 			continue
 		}
 		log.Println("Received data:", message)
-		sub.h(message)
+		s.h(message)
 	}
 }

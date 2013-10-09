@@ -45,11 +45,11 @@ func NewPublisher(addr string) (*Publisher, error) {
 	return p, nil
 }
 
-func (pub *Publisher) Publish(key string, message []byte) {
-	pub.filters_mutex.Lock()
-	defer pub.filters_mutex.Unlock()
+func (p *Publisher) Publish(key string, message []byte) {
+	p.filters_mutex.Lock()
+	defer p.filters_mutex.Unlock()
 
-	connections, ok := pub.filters[key]
+	connections, ok := p.filters[key]
 	if !ok {
 		log.Println("No matching filters")
 		return
@@ -69,39 +69,39 @@ func (pub *Publisher) Publish(key string, message []byte) {
 	}
 }
 
-func (pub *Publisher) Broadcast(message []byte) {
-	for c := range pub.connections {
+func (p *Publisher) Broadcast(message []byte) {
+	for c := range p.connections {
 		select {
 		case c.send <- message:
 		default:
-			delete(pub.connections, c)
+			delete(p.connections, c)
 			close(c.send)
 			go c.ws.Close()
 		}
 	}
 }
 
-func (pub *Publisher) makeWsHandler() websocket.Handler {
+func (p *Publisher) makeWsHandler() websocket.Handler {
 	return func(ws *websocket.Conn) {
 		c := connection{
 			ws:   ws,
 			send: make(chan []byte, 256),
 		}
-		pub.register <- &c
-		defer func() { pub.unregister <- &c }()
+		p.register <- &c
+		defer func() { p.unregister <- &c }()
 		go c.writer()
-		c.reader(&pub.filters, &pub.filters_mutex)
+		c.reader(&p.filters, &p.filters_mutex)
 	}
 }
 
 // registrar selects over register and unregister channels and updates connections map.
-func (pub *Publisher) registrar() {
+func (p *Publisher) registrar() {
 	for {
 		select {
-		case c := <-pub.register:
-			pub.connections[c] = true
-		case c := <-pub.unregister:
-			delete(pub.connections, c)
+		case c := <-p.register:
+			p.connections[c] = true
+		case c := <-p.unregister:
+			delete(p.connections, c)
 			close(c.send)
 		}
 	}
