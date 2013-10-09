@@ -610,7 +610,7 @@ func switchVersion(newVersion string) error {
 
 	domain.Proxy.Key = newVersion
 
-	err = modelhelper.UpdateDomain(&domain)
+	err = modelhelper.UpdateDomain(domain)
 	if err != nil {
 		log.Printf("could not update %+v\n", domain)
 		return err
