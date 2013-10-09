@@ -12,7 +12,6 @@ class MainView extends KDView
 
     @bindPulsingRemove()
     @bindTransitionEnd()
-    # @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -102,13 +101,6 @@ class MainView extends KDView
       cssClass : "transition"
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
-
-  # addServerStack:->
-  #   @addSubView @serverStack = new KDView
-  #     domId : "server-rack"
-  #     click : ->
-  #       $('body').removeClass 'server-stack'
-  #       $('.kdoverlay').remove()
 
   addHeader:->
 
