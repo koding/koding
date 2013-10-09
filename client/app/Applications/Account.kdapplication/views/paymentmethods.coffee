@@ -38,8 +38,9 @@ class AccountPaymentMethodsListController extends AccountListViewController
 
     list.on 'reload', (data) => @loadItems()
 
-  editPaymentMethod: ({ accountCode }) ->
-    @showModal()
+  editPaymentMethod: (data) ->
+    paymentController = KD.getSingleton 'paymentController'
+    @showModal data
 
   removePaymentMethod: ({ accountCode }, item) ->
     paymentController = KD.getSingleton 'paymentController'
@@ -64,20 +65,20 @@ class AccountPaymentMethodsListController extends AccountListViewController
       iconClass : "plus"
       callback  : => @showModal()
 
-  showModal: ->
+  showModal: (initialBillingInfo) ->
     paymentController = KD.getSingleton 'paymentController'
-    modal = paymentController.createBillingInfoModal 'user', {}
-    paymentController.fetchBillingInfo 'user', (err, initialBillingInfo) =>
 
-      modal.setBillingInfo initialBillingInfo.billing  if initialBillingInfo?
+    modal = paymentController.createBillingInfoModal()
 
-      modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) =>
-        paymentController.updateBillingInfo updatedBillingInfo, (err, res) =>
-          if err
-            new KDNotificationView title: err.message
-          else
-            modal.destroy()
-            @loadItems()
+    modal.setBillingInfo initialBillingInfo.billing  if initialBillingInfo?
+
+    modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) =>
+      paymentController.updateBillingInfo updatedBillingInfo, (err, res) =>
+        if err
+          new KDNotificationView title: err.message
+        else
+          modal.destroy()
+          @loadItems()
 
 
 
@@ -99,13 +100,20 @@ class AccountPaymentMethodsListItem extends KDListItemView
 
     @billingMethod = new BillingMethodView {}, @getData().billing
 
+    @billingMethod.on 'BillingEditRequested', =>
+      @emit 'PaymentMethodEditRequested', data
+
     @editLink = new CustomLinkView
       title: 'edit'
-      click: => @emit 'PaymentMethodEditRequested', data
+      click: (e) =>
+        e.preventDefault()
+        @emit 'PaymentMethodEditRequested', data
 
     @removeLink = new CustomLinkView
       title: 'remove'
-      click: => @emit 'PaymentMethodRemoveRequested', data
+      click: (e) =>
+        e.preventDefault()
+        @emit 'PaymentMethodRemoveRequested', data
 
   viewAppended: JView::viewAppended
 
