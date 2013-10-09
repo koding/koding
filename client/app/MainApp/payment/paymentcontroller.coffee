@@ -96,9 +96,9 @@ class PaymentController extends KDController
     JPayment.setBillingInfo billingInfo, callback
 
 
-  createBillingInfoModal:(type, billingInfo) ->
+  createBillingInfoModal: (billingInfo) ->
 
-    modal = new BillingFormModal { type }, billingInfo
+    modal = new BillingFormModal
 
     @fetchCountryData (err, countries, countryOfIp) =>
       modal.setCountryData { countries, countryOfIp }
