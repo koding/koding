@@ -153,7 +153,7 @@ var (
 	))
 	admins = goset.New("sinan", "devrim", "gokmen", "chris", "neelance",
 		"sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-		"arslan")
+		"arslan", "ybrs")
 )
 
 const uptimeLayout = "03:04:00"
