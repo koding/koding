@@ -110,7 +110,7 @@ class HomeAppView extends JView
 
     @apiLink = new KDCustomHTMLView
       tagName   : "a"
-      partial   : "Api"
+      partial   : "API"
       tooltip   :
         title   : "Coming soon"
 
