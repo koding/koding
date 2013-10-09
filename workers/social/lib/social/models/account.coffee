@@ -226,7 +226,7 @@ module.exports = class JAccount extends jraphical.Module
 
       paymentMethod :
         as          : 'payment method'
-        targetType  : 'JPaymentPaymentMethod'
+        targetType  : 'JPaymentMethod'
 
   constructor:->
     super

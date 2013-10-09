@@ -1,6 +1,6 @@
 {Module, Relationship} = require 'jraphical'
 
-module.exports = class JPaymentPaymentMethod extends Module
+module.exports = class JPaymentMethod extends Module
 
   {secure} = require 'bongo'
   {extend} = require 'underscore'
