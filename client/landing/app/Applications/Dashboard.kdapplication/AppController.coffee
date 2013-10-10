@@ -15,7 +15,8 @@ class DashboardAppController extends AppController
 
     options.view = new DashboardAppView
       testPath   : "groups-dashboard"
-    data or= KD.getSingleton("groupsController").getCurrentGroup()
+
+    data or= (KD.getSingleton "groupsController").getCurrentGroup()
 
     super options, data
 
@@ -103,13 +104,18 @@ class DashboardAppController extends AppController
 
   paymentViewAdded: (pane, view) ->
     paymentController = KD.getSingleton 'paymentController'
-    paymentController.fetchBillingInfo 'group', (err, billingInfo) =>
-      view.setBillingInfo billingInfo
+
+    group = @getData()
+
+    group.fetchPaymentMethod (err, paymentMethod) ->
+      console.log { err, paymentMethod }
+    # paymentController.fetchBillingInfo 'group', (err, billingInfo) =>
+      view.setBillingInfo paymentMethod
 
     @paymentView = view
 
     { loader }  = view.settingsForm.inputs.billing
-    
+
     view.on 'BillingEditRequested', =>
       loader.show()
       @showBillingInfoModal ->
@@ -134,9 +140,9 @@ class DashboardAppController extends AppController
   createBillingInfoModal: ->
 
     paymentController = KD.getSingleton "paymentController"
-    
+
     billingInfoModal = paymentController.createBillingInfoModal 'group', {}
-    
+
     paymentController.fetchBillingInfo 'group', (err, groupBillingInfo) ->
 
       if groupBillingInfo
@@ -162,7 +168,7 @@ class DashboardAppController extends AppController
               billingInfoModal.setBillingInfo personalBillingInfo.billing
               useExistingModal.destroy()
 
-    
+
     return billingInfoModal
 
   # vocabularyViewAdded:(pane, view)->
