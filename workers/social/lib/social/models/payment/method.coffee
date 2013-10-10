@@ -46,7 +46,9 @@ module.exports = class JPaymentMethod extends Module
       return callback err  if err
 
       paymentMethod.associatePaymentData client, data, (err) ->
-        return callback err  if err
+        if err
+          paymentMethod.remove()
+          return callback err
         callback null, paymentMethod
 
   @create = secure (client, formData, callback) ->
@@ -55,8 +57,9 @@ module.exports = class JPaymentMethod extends Module
     @createPaymentMethod client, formData, (err, paymentMethod) ->
       return callback err  if err
 
-      delegate.addPaymentMethod paymentMethod, (err)->
+      delegate.addPaymentMethod paymentMethod, (err) ->
         return callback err  if err
+
         callback null, paymentMethod
 
   associatePaymentData: secure (client, formData, callback) ->
