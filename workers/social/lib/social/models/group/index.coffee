@@ -92,7 +92,7 @@ module.exports = class JGroup extends Module
         'checkUserBalance', 'makeExpense', 'getUserExpenses', 'getAllExpenses', 'getTransactions',
         'fetchBundle', 'updateBundle', 'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage',
-        'saveInviteMessage', 'redeemInvitation'
+        'saveInviteMessage', 'redeemInvitation', 'fetchPaymentMethod'
       ]
     schema          :
       title         :
@@ -180,6 +180,9 @@ module.exports = class JGroup extends Module
       vm            :
         targetType  : 'JVM'
         as          : 'owner'
+      paymentMethod :
+        targetType  : 'JPaymentMethod'
+        as          : 'linked payment method'
 
   constructor:->
     super
@@ -1423,8 +1426,8 @@ module.exports = class JGroup extends Module
 
         require(
           if type is 'InvitationRequest'
-          then model = '../invitationrequest'
-          else model = '../invitation'
+          then '../invitationrequest'
+          else '../invitation'
         ).some _id: $in: ids, {}, callback
 
   countInvitationsFromGraph: permit 'send invitations',
@@ -1461,3 +1464,11 @@ module.exports = class JGroup extends Module
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'
     @each selector, options, callback
+
+  linkPaymentMethod: permit 'grant permissions',
+    success: (client, callback) ->
+
+
+  fetchPaymentMethod$: permit 'grant permissions',
+    success: (client, callback) ->
+      @fetchPaymentMethod callback
