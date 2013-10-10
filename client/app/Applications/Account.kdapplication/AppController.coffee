@@ -144,37 +144,52 @@ class AccountAppController extends AppController
 
   fetchProviders:->
 
-  showReferrerTooltip:(options)->
+  showReferrerModal:->
+    referrerCode      = KD.whoami().profile.nickname
+    shareUrl          = "#{location.origin}/?r=#{referrerCode}"
+    JReferrableEmail  = KD.remote.api.JReferrableEmail
 
-    {linkView, top, left, arrowMargin} = options
+    referrerModal = new KDModalViewWithForms
+      title                   : "Get free space up to 16GB"
+      overlay                 : yes
+      tabs                    :
+        navigable             : no
+        goToNextFormOnSubmit  : no
+        hideHandleContainer   : yes
+        forms                 :
+          "share"             :
+            customView        : KDCustomHTMLView
+            partial           : "If anyone registers with your referral code, you will get \
+                                250MB free disk space for your VM. Up to <strong>16GB</strong>"
+          "invite"            :
+            customView        : KDCustomHTMLView
 
-    referrerCode  = KD.whoami().profile.nickname
-    shareUrl      = "#{location.origin}/?r=#{referrerCode}"
+    tabs         = referrerModal.modalTabs
+    shareTab     = tabs.forms["share"]
+    inviteTab    = tabs.forms["invite"]
 
-    contextMenu   = new JContextMenu
-      cssClass    : "activity-share-popup"
-      type        : "activity-share"
-      delegate    : linkView
-      x           : linkView.getX() - left
-      y           : linkView.getY() - top
-      arrow       :
-        placement : "bottom"
-        margin    : arrowMargin
-      lazyLoad    : yes
-    , customView  : new SharePopup {
-        url       : shareUrl
-        shortenURL: false
-        twitter   :
-          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
-        linkedin  :
-          title   : "Join me @koding!"
-          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
-      }
+    # Sharetab #
 
-    new KDOverlayView
-      parent      : KD.getSingleton("mainView").mainTabView.activePane
-      transparent : yes
+    shareTab.addSubView urlInput = new KDInputView
+      defaultValue            : shareUrl
+      cssClass                : "share-url-input"
+      disabled                : yes
 
+    shareTab.addSubView showGmailContacts = new KDButtonView
+      title                   : "Invite friends from Gmail"
+      callback                : ->
+        tabs.showPaneByName     "invite"
+        referrerModal.setTitle  "Invite your Gmail contacts"
+
+    # inviteTab #
+    inviteTab.addSubView gmailContactsList = new KDListView
+
+    JReferrableEmail.getUninvitedEmails (err, contacts) ->
+      for contact in contacts
+        {email, invited} = contact
+        gmailContactsList.addItemView new gmailContactsListItem
+          email   : email
+          invited : invited
 
   toggleSidebar:(options)->
     {show} = options
@@ -192,3 +207,38 @@ class AccountAppController extends AppController
 
   indexOfItem:(item)->
     @itemsOrdered.indexOf item
+
+class gmailContactsListItem extends KDListItemView
+  constructor:(options={})->
+    options.cssClass = "gmail-contact-item"
+    options.invited ?= no
+    super options
+
+    @isSelected = no
+
+  partial:->
+    """
+      #{@getOption "email"}
+    """
+
+  click:->
+    @isSelected = !@isSelected
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
