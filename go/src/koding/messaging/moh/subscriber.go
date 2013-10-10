@@ -34,12 +34,7 @@ func NewSubscriber(urlStr string, handler MessageHandler) (*Subscriber, error) {
 		handler: handler,
 	}
 
-	err = sub.connect()
-	if err != nil {
-		return nil, err
-	}
-
-	go sub.consumer()
+	go sub.connector()
 	return sub, err
 }
 

@@ -42,6 +42,7 @@ func TestPublishSubscibe(t *testing.T) {
 		t.Error(err)
 	}
 
+	time.Sleep(100 * time.Millisecond)
 	log.Println("Subscribing key")
 	sub.Subscribe("asdf")
 
