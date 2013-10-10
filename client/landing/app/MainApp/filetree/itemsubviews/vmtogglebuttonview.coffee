@@ -17,6 +17,14 @@ class NVMToggleButtonView extends JView
     return unless vm is @getData().vmName
 
     if err or not info
+
+      @notification?.destroy()
+      @notification = new KDNotificationView
+        type    : "mini"
+        cssClass: "error"
+        duration: 5000
+        title   : "I cannot turn this machine on, please give it a few seconds."
+
       @toggle.setDefaultValue no
       KD.utils.notifyAndEmailVMTurnOnFailureToSysAdmin vm, err.message
       return warn err
