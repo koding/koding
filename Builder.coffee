@@ -64,6 +64,7 @@ module.exports = class Builder
           script    : project.script
           style     : project.style
         type        : ptype
+        sourceMapRoot : project.sourceMapRoot ? ''
 
     {projects, bundles} = require './projects'
 
@@ -191,12 +192,13 @@ module.exports = class Builder
         changed |= project.changed
         for includePath in CoffeeScript.eval(fs.readFileSync(project.includes, "utf-8"))
 
-          cachePath = ".build/" + includePath.replace(/\//g,"_")
+          cachePath = ".build/#{includePath.replace /\//g, "_" }"
 
           file =
             sourceMapPath : cachePath + ".map"
+            sourceMapRoot : project.sourceMapRoot
             includePath   : includePath
-            sourcePath    : path.dirname(project.includes) + "/" + includePath
+            sourcePath    : "#{path.dirname(project.includes)}/#{includePath}"
             cachePath     : cachePath
             cacheTime     : if fs.existsSync(cachePath) then Date.parse(fs.statSync(cachePath).mtime) else 0
             extension     : path.extname(includePath)
@@ -248,6 +250,7 @@ module.exports = class Builder
               r = /^class (\w+)/gm
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
+
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
             spawn.apply null, ["say", ["coffeescript error"]]
@@ -315,7 +318,7 @@ module.exports = class Builder
       version     : 3
       file        : project.outputs.script
       sourceRoot  : @config.client.runtimeOptions.sourceUri
-      sources     : file.includePath for file in project.files.scripts
+      sources     : "#{file.sourceMapRoot}#{file.includePath}" for file in project.files.scripts
       names       : []
       mappings    : ""
 

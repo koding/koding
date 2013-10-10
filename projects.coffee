@@ -8,10 +8,12 @@ projects      =
     files     : "client/Framework/includes.coffee"
     style     : "css/kd.#{FRAMEWORK_VERSION}.css"
     script    : "js/kd.#{FRAMEWORK_VERSION}.js"
+    sourceMapRoot : "Framework/"
 
   KDBackend   :
     files     : "client/Bongo/includes.coffee"
     script    : "js/bongo.#{FRAMEWORK_VERSION}.js"
+    sourceMapRoot : "Bongo/"
 
   KDMainApp   :
     files     : "client/includes.coffee"
