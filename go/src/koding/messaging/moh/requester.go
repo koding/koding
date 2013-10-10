@@ -16,7 +16,7 @@ type Requester struct {
 }
 
 // NewRequester returns a pointer to a new Requester struct.
-// addr argument must be the address of a Replier.
+// urlStr argument must be the path of a Replier.
 func NewRequester(urlStr string) (*Requester, error) {
 	parsed, err := url.Parse(urlStr)
 	if err != nil {

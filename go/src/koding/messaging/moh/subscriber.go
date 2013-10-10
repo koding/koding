@@ -9,7 +9,7 @@ import (
 
 // Subscriber is a websocket client that is used to connect to a Publisher and consume published messages.
 type Subscriber struct {
-	// Address of the server to be connected
+	// Path of the server to be connected
 	url *url.URL
 
 	// Connection to the Publisher.
