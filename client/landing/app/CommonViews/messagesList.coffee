@@ -44,6 +44,7 @@ class MessagesListController extends KDListViewController
         'CReplieeBucketActivity'
         'CFolloweeBucketActivity'
         'CLikeeBucketActivity'
+        'CNewMemberBucketActivity'
       ]
     }, {
       limit: 8
@@ -74,6 +75,7 @@ class NotificationListItem extends KDListItemView
     CReplieeBucketActivity  : "comment"
     CFolloweeBucketActivity : "follow"
     CLikeeBucketActivity    : "like"
+    CNewMemberBucket        : "new member"
 
   actionPhraseMap = ->
     comment : "commented on"
