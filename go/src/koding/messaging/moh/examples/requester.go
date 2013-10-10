@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	req := moh.NewRequester("localhost:18500")
+	req, _ := moh.NewRequester("http://localhost:18500")
 	bio := bufio.NewReader(os.Stdin)
 
 	for {
