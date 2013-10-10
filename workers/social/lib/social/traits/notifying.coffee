@@ -21,6 +21,7 @@ module.exports = class Notifying
     actor = contents[contents.actorType]
     {origin} = contents
 
+    console.log arguments
     createActivity = =>
       if contents.relationship?
         relationship = new Relationship contents.relationship
@@ -55,5 +56,6 @@ module.exports = class Notifying
   notifyGroupWhen:(events...)->
     JGroup = require '../models/group'
     @setNotifiers events, (event, contents)->
+      console.log event
       {group} = contents
       JGroup.broadcast group, event, contents

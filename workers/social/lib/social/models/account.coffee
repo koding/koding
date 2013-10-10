@@ -225,8 +225,8 @@ module.exports = class JAccount extends jraphical.Module
 
   constructor:->
     super
-    @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
-    @notifyGroupWhen 'FollowHappened'
+    @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened', 'GroupJoined'
+    @notifyGroupWhen 'FollowHappened', 'GroupJoined'
 
   fetchOldKodingDownloadLink : secure (client,callback)->
     crypto = require 'crypto'
@@ -821,6 +821,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
 
   fetchActivityTeasers : secure ({connection}, selector, options, callback)->
+    # log 'options', options 
     unless @equals connection.delegate
       callback new KodingError 'Access denied'
     else

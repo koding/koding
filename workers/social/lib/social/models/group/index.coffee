@@ -195,6 +195,14 @@ module.exports = class JGroup extends Module
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
+      unless @slug is 'guests'
+        @sendNotificationToAdmins 'GroupLeft',
+          actionType : 'groupLeft'
+          actorType  : 'member'
+          subject    : ObjectRef(this).data
+          member     : ObjectRef(member).data
+        @broadcast 'MemberLeftGroup',
+          member : ObjectRef(member).data
 
     @on 'MemberRolesChanged', (member)->
       @constructor.emit 'MemberRolesChanged', { group: this, member }
@@ -436,6 +444,7 @@ module.exports = class JGroup extends Module
   cycleChannel:(callback)-> @constructor.cycleChannel @slug, callback
 
   @broadcast =(groupSlug, event, message)->
+    console.log('yoksa burda mi')
     if message?
       event = ".#{event}"
     else
@@ -460,7 +469,9 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
+    #if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
+    console.log('burda mi')
+    if groupSlug isnt "koding"
       @one {slug : groupSlug }, (err, group)=>
         console.error err  if err
         unless group
@@ -1246,9 +1257,31 @@ module.exports = class JGroup extends Module
       ]
 
   sendNotificationToAdmins: (event, contents)->
+    console.log arguments
+
+    actor = contents[contents.actorType]
+    {origin} = contents
+
+    console.log arguments
+    createActivity = =>
+      if contents.relationship?
+        relationship = new Relationship contents.relationship
+        CBucket.addActivities relationship, origin, actor, (err)->
+          console.err err if err
+
     @fetchAdmins (err, admins)=>
+      relationship = new Relationship {
+        as         : 'member', 
+        sourceName : contents.subject.constructorName, 
+        sourceId   : contents.subject.id,
+        targetName : contents.member.constructorName, 
+        targetId   : contents.member.id, 
+      }
+
       unless err
         for admin in admins
+            CBucket.addActivities relationship, contents.member, contents.subject, (err)->
+            console.err err if err
           admin.sendNotification event, contents
 
   updateBundle: (formData, callback = (->)) ->
