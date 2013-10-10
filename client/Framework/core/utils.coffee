@@ -617,6 +617,30 @@ __utils =
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
+    KD.remote.api.JBlogPost.create {body, group}, (err,reply)=>
+      unless err
+        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
+      else
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+
+    KD.remote.api.JCodeSnip.create {body, group}, (err,reply)=>
+      unless err
+        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
+      else
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+
+    KD.remote.api.JDiscussion.create {body, group}, (err,reply)=>
+      unless err
+        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
+      else
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+
+    KD.remote.api.JTutorial.create {body, group}, (err,reply)=>
+      unless err
+        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
+      else
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+
   startRollbar: ->
     @replaceFromTempStorage "_rollbar"
 
