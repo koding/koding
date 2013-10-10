@@ -15,10 +15,10 @@ var data = []byte(message)
 func TestRequestReply(t *testing.T) {
 	log.Println("Creating new Replier")
 	rep, _ := NewReplier(addr, echoHandler)
+	defer rep.Close()
 
 	log.Println("Creating new Requester")
-	req := NewRequester(addr)
-	defer rep.Close()
+	req, _ := NewRequester("http://" + addr)
 
 	log.Println("Making a request")
 	reply, _ := req.Request(data)
