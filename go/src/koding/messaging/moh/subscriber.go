@@ -3,13 +3,14 @@ package moh
 import (
 	"code.google.com/p/go.net/websocket"
 	"log"
+	"net/url"
 	"time"
 )
 
 // Subscriber is a websocket client that is used to connect to a Publisher and consume published messages.
 type Subscriber struct {
 	// Address of the server to be connected
-	addr string
+	url *url.URL
 
 	// Connection to the Publisher.
 	// Will be non-nil when the subscriber is connected.
@@ -22,12 +23,18 @@ type Subscriber struct {
 // NewSubscriber opens a websocket connection to a Publisher and
 // returns a pointer to newly created Subscriber.
 // After creating a Subscriber you should subscribe to messages with Subscribe function.
-func NewSubscriber(addr string, handler MessageHandler) (*Subscriber, error) {
+func NewSubscriber(urlStr string, handler MessageHandler) (*Subscriber, error) {
+	parsed, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+
 	sub := &Subscriber{
-		addr:    addr,
+		url:     parsed,
 		handler: handler,
 	}
-	err := sub.connect()
+
+	err = sub.connect()
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +60,7 @@ func (s *Subscriber) Subscribe(key string) error {
 }
 
 func (s *Subscriber) connect() error {
-	url := "ws://" + s.addr + "/"
+	url := s.url.String()
 	origin := "http://localhost/" // dont know if this is required
 	log.Println("Connecting to url:", url)
 	ws, err := websocket.Dial(url, "", origin)

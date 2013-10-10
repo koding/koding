@@ -13,7 +13,7 @@ func echo(message []byte) []byte {
 }
 
 func main() {
-	_, err := moh.NewSubscriber("localhost:18500", echo)
+	_, err := moh.NewSubscriber("ws://localhost:18500", echo)
 	if err != nil {
 		fmt.Println(err)
 		return

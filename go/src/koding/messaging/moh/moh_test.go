@@ -37,7 +37,7 @@ func TestPublishSubscibe(t *testing.T) {
 
 	ch := make(chan bool, 1)
 	log.Println("Creating new Subscriber")
-	sub, err := NewSubscriber(addr, withChan(echoHandler, ch))
+	sub, err := NewSubscriber("ws://"+addr, withChan(echoHandler, ch))
 	if err != nil {
 		t.Error(err)
 	}
@@ -71,7 +71,7 @@ func TestBroadcast(t *testing.T) {
 
 	ch := make(chan bool, 1)
 	log.Println("Creating new Subscriber")
-	_, err = NewSubscriber(addr, withChan(echoHandler, ch))
+	_, err = NewSubscriber("ws://"+addr, withChan(echoHandler, ch))
 	if err != nil {
 		t.Error(err)
 	}
