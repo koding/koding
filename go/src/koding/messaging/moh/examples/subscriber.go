@@ -13,6 +13,10 @@ func echo(message []byte) []byte {
 }
 
 func main() {
-	moh.NewSubscriber("localhost:18500", echo)
+	_, err := moh.NewSubscriber("localhost:18500", echo)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	select {}
 }
