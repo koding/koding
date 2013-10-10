@@ -106,9 +106,6 @@ header a {
 .perl .hellobox {
 	background:#000 url('../img/hellodesert.jpg') no-repeat center top;
 }
-
-
-
 .wrap {
 	width: 660px;
 	margin: 0 auto;
@@ -282,6 +279,35 @@ a, a:link {
   color: #ff9400;
 }
 
+/* 404 page */
+body#not-found-page {
+	background: url('../img/noisy-bg.png');
+	text-align: center;
+}
+#not-found-page header {
+	background: #22201b;
+}
+#not-found-page h2 {
+	font-size: 60px;
+	color: #5a5a5a;
+	text-shadow: none;
+	font-weight: 600;
+	margin: 100px 0 20px 0;
+	line-height: normal;
+}
+#not-found-page a.return-home {
+	display: block;
+	color : #9a9a9a;
+	margin: 0 0 100px 0;
+}
+#not-found-page a.return-home p {
+	font-size: 25px;
+	font-weight: 100;
+	color: #9a9a9a;
+	margin: 0;
+}
+
+
 /* ==|== media queries ====================================================== PLACEHOLDER Media Queries for Responsive Design. These override the primary ('mobile first') styles Modify as content requires. ========================================================================== */
 @media only screen and (min-width:480px) {
 	/* Style adjustments for viewports 480px and over go here */
@@ -336,3 +362,4 @@ a, a:link {
 	@media only screen and (min-width: 768px) {
 		/* Style adjustments for viewports 768px and over go here */
 	}
+
