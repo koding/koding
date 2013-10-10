@@ -42,7 +42,6 @@ func TestPublishSubscibe(t *testing.T) {
 		t.Error(err)
 	}
 
-	time.Sleep(100 * time.Millisecond)
 	log.Println("Subscribing key")
 	sub.Subscribe("asdf")
 
@@ -63,6 +62,7 @@ func TestPublishSubscibe(t *testing.T) {
 
 	// Lets test Unsubscribe method
 	sub.Unsubscribe("asdf")
+	// Allow the unsubscribe message to be processed on the server
 	time.Sleep(100 * time.Millisecond)
 
 	log.Println("Publishing another message, this should not be delivered")

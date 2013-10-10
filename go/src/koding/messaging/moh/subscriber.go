@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"log"
 	"net/url"
+	"sync"
 	"time"
 )
 
@@ -18,6 +19,12 @@ type Subscriber struct {
 
 	// Consumed messages will be handled with this function.
 	handler MessageHandler
+
+	// Subscription keys are also saved here so we can re-send "subscribe" commands when re-connect.
+	keys map[string]bool
+
+	// For controlling access over keys
+	keysMutex sync.Mutex
 }
 
 // NewSubscriber opens a websocket connection to a Publisher and
@@ -32,6 +39,7 @@ func NewSubscriber(urlStr string, handler MessageHandler) (*Subscriber, error) {
 	sub := &Subscriber{
 		url:     parsed,
 		handler: handler,
+		keys:    make(map[string]bool),
 	}
 
 	go sub.connector()
@@ -46,21 +54,48 @@ type subscriberCommand struct {
 type args map[string]interface{}
 
 // Subscribe registers the Subscriber to receive messages matching with the key.
-func (s *Subscriber) Subscribe(key string) error {
+func (s *Subscriber) Subscribe(key string) {
+	// Put it into keys first
+	s.keysMutex.Lock()
+	s.keys[key] = true
+	s.keysMutex.Unlock()
+
+	// Do not send the command if it is not connected
+	ws := s.ws
+	if ws == nil {
+		return
+	}
+
+	// Then send to the server
 	cmd := subscriberCommand{
 		Name: "subscribe",
 		Args: args{"key": key},
 	}
-	return websocket.JSON.Send(s.ws, cmd)
+
+	// We do not check for the error here because
+	// if it fails the command will be sent by sendSubscriptionCommands() after re-connecting.
+	websocket.JSON.Send(ws, cmd)
 }
 
 // Unsubscribe stops the Subscriber from receiving messages matching with the key.
-func (s *Subscriber) Unsubscribe(key string) error {
+func (s *Subscriber) Unsubscribe(key string) {
+	// Remove from the keys first
+	s.keysMutex.Lock()
+	delete(s.keys, key)
+	s.keysMutex.Unlock()
+
+	// Do not send the command if it is not connected
+	ws := s.ws
+	if ws == nil {
+		return
+	}
+
+	// Then send to the server
 	cmd := subscriberCommand{
 		Name: "unsubscribe",
 		Args: args{"key": key},
 	}
-	return websocket.JSON.Send(s.ws, cmd)
+	websocket.JSON.Send(ws, cmd)
 }
 
 func (s *Subscriber) connect() error {
@@ -93,9 +128,32 @@ func (s *Subscriber) connector() {
 			time.Sleep(100 * time.Millisecond)
 			continue
 		}
+
+		err = s.sendSubscriptionCommands()
+		if err != nil {
+			log.Println("Error while sending subscription commands: %s", err)
+		}
+
 		go s.consumer()
 		return
 	}
+}
+
+// sendSubscriptionCommands is called after connecting the server to subscribe saved keys.
+func (s *Subscriber) sendSubscriptionCommands() error {
+	s.keysMutex.Lock()
+	defer s.keysMutex.Unlock()
+	for key := range s.keys {
+		cmd := subscriberCommand{
+			Name: "subscribe",
+			Args: args{"key": key},
+		}
+		err := websocket.JSON.Send(s.ws, cmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // consumer reads the messages from websocket until the connection is dropped.
@@ -110,6 +168,7 @@ func (s *Subscriber) consumer() {
 			s.ws.Close()
 			// Connected() checks this pointer.
 			// Set it to nil to indicate that we are disconnected.
+			// Also allow it be garbage collected.
 			s.ws = nil
 			go s.connector()
 			return
