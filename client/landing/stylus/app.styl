@@ -1801,8 +1801,7 @@ span.main-nav-icon
   top                  50%;
   size                 200px, 260px
   margin               -130px 0 0 -100px
-  -webkit-transform    rotateX(35deg) rotateY(30deg)
-  vendor               animation, rotateInLogo 1.5s 1.4s 1 forwards ease \, logoHearthBeat 1.5s 3s infinite forwards ease;
+  // -moz-animation       logoHeartBeat 2s infinite ease
   abs()
 
   &
@@ -1810,12 +1809,10 @@ span.main-nav-icon
     vendor             transform-style, preserve-3d
 
   .line
-    opacity            0
     display            block
     position           relative
     size               200px, 20px
     bg                 color, #fff
-    vendor             transform-origin, 0 50%
 
     &~.line
       margin-top       20px
@@ -1828,64 +1825,15 @@ span.main-nav-icon
     &:nth-child(6)
       width            122px
 
-    &:after
-      abs()
-      top              0
-      left             0
-      content          ""
-      display          block
-      size             20px, 100%
-      bg               color, #e3e3e3
-      vendor           backface-visibility, hidden
-      vendor           transform, rotateY(-90deg) translateZ(10px) translateX(-10px)
-      shadow           1px 1px 0 0 #eee
-
-    &:before
-      abs()
-      top              0
-      right            0
-      content          ""
-      display          block
-      size             20px, 100%
-      bg               color, #e3e3e3
-      vendor           backface-visibility, hidden
-      vendor           transform, rotateY(90deg) translateZ(10px) translateX(10px)
-      shadow           -1px -1px 0 0 #eee
-
-    &:nth-child(1):after
-      abs()
-      top              0
-      left             0
-      content          ""
-      display          block
-      size             20px, 100%
-      bg               color, #de7e00
-      vendor           backface-visibility, hidden
-      vendor           transform, rotateY(-90deg) translateZ(10px) translateX(-10px)
-      shadow           1px 1px 0 0 #ff9200
-
-    &:nth-child(1):before
-      abs()
-      top              0
-      right            0
-      content          ""
-      display          block
-      size             20px, 100%
-      bg               color, #de7e00
-      vendor           backface-visibility, hidden
-      vendor           transform, rotateY(90deg) translateZ(10px) translateX(10px)
-      shadow           1px 1px 0 0 #ff9200
-
     i
       abs()
       top              0
       left             0
       display          block
       size             100%, 20px
-      bg               color, #ddd
+      bg               color, #eee
       vendor           backface-visibility, hidden
       vendor           transform, rotateX(90deg) translateZ(10px) translateY(-10px)
-      shadow           0 1px 0 0 #eee
 
       &:after
         abs()
@@ -1894,14 +1842,12 @@ span.main-nav-icon
         content        ""
         display        block
         size           100%, 100%
-        bg             color, #d2d2d2
+        bg             color, #ccc
         vendor         backface-visibility, hidden
         vendor         transform, translateZ(-20px) rotateX(180deg)
-        shadow         0 -1px 0 0 #eee
 
     &:nth-child(1) i
       bg               color, #c97200
-      shadow           0 1px 0 0 #ff9200
 
       &:after
         abs()
@@ -1913,60 +1859,27 @@ span.main-nav-icon
         bg             color, #b86800
         vendor         backface-visibility, hidden
         vendor         transform, translateZ(-60px) rotateX(180deg)
-        shadow         0 -1px 0 0 #ff9200
 
     &:nth-child(1)
-      vendor                         animation, bringInLines .6s .01s 1 forwards ease-out /* .01s = hack for firefox :@ */
+      vendor           animation, lineRotate 2.5s 0.01s infinite forwards ease-out /* .01s = hack for firefox :@ */
     &:nth-child(2)
-      vendor                         animation, bringInLines .6s .4s 1 forwards ease-out
+      vendor           animation, lineRotate 2.5s .5s infinite forwards ease-out
     &:nth-child(3)
-      vendor                         animation, bringInLines .6s .6s 1 forwards ease-out
+      vendor           animation, lineRotate 2.5s 1s infinite forwards ease-out
     &:nth-child(4)
-      vendor                         animation, bringInLines .6s .8s 1 forwards ease-out
+      vendor           animation, lineRotate 2.5s 1.5s infinite forwards ease-out
     &:nth-child(5)
-      vendor                         animation, bringInLines .6s 1s 1 forwards ease-out
+      vendor           animation, lineRotate 2.5s 2s infinite forwards ease-out
     &:nth-child(6)
-      vendor                         animation, bringInLines .6s 1.2s 1 forwards ease-out
-    &
-      -moz-animation-iteration-count infinite !important
-      -moz-animation-duration        2s !important
+      vendor           animation, lineRotate 2.5s 2.5s infinite forwards ease-out
 
-@-webkit-keyframes bringInLines
-  0%
-    opacity            0
-    -webkit-transform  rotateY(100deg)
-  50%
-    opacity            1
-    -webkit-transform  rotateY(-100deg)
-  80%
-    opacity            1
-    -webkit-transform  rotateY(-10deg)
-  100%
-    opacity            1
-    -webkit-transform  rotateY(0deg)
-@-webkit-keyframes rotateInLogo
-  0%
-    -webkit-transform  rotateX(35deg) rotateY(30deg)
-  50%
-    -webkit-transform  rotateX(55deg) rotateY(40deg)
-  80%
-    -webkit-transform  rotateX(-30deg) rotateY(-25deg)
-  93%
-    -webkit-transform  rotateX(15deg) rotateY(10deg)
-  100%
-    -webkit-transform  rotateX(0deg) rotateY(0deg)
-@-webkit-keyframes logoHearthBeat
-  0%
-    -webkit-transform     rotateX(0deg) rotateY(0deg) translateY(0) scale(1)
-  30%
-    -webkit-transform     scale(0.9)
-  100%
-    -webkit-transform     rotateX(0deg) rotateY(0deg) translateY(0) scale(1)
 
-@-moz-keyframes bringInLines
-  0%
-    opacity               0.5
-  60%
-    opacity               1
-  100%
-    opacity               0.5
+@-webkit-keyframes lineRotate
+  20%
+    -webkit-transform translateZ(-60px) rotateX(40deg)
+    opacity           .5
+
+@-moz-keyframes lineRotate
+  20%
+    -moz-transform translateZ(-60px) rotateX(40deg)
+    opacity           .5
