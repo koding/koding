@@ -55,7 +55,9 @@ class BookView extends JView
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "Home"
-      click     : (pubInst, event)=> @fillPage 0
+      click     : (pubInst, event)=>
+        BookView.navigateNewPages = no
+        @fillPage 0
 
     @pageNav.addSubView new KDCustomHTMLView
       tagName   : "a"
@@ -635,12 +637,15 @@ class BookView extends JView
       # page is unread if page version is bigger than last read one.
       KD.utils.versionCompare page.version, ">", version
 
-  getNewPages: (callback)->
+  getNewPages: (callback, showSplashPage=no)->
     return callback @unreadPages if @unreadPages
 
     @getStorage().fetchValue "lastReadVersion", (lastReadVersion=0)=>
       if @getVersion() > lastReadVersion
         unreadPages = @getNewerPages lastReadVersion
+
+        if unreadPages.length is 0
+          return callback []
 
         @newPagePointer ?= 0
 
