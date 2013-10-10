@@ -6,9 +6,16 @@ import (
 	"time"
 )
 
+// Subscriber is a websocket client that is used to connect to a Publisher and consume published messages.
 type Subscriber struct {
-	addr    string
-	ws      *websocket.Conn
+	// Address of the server to be connected
+	addr string
+
+	// Connection to the Publisher.
+	// Will be non-nil when the subscriber is connected.
+	ws *websocket.Conn
+
+	// Consumed messages will be handled with this function.
 	handler MessageHandler
 }
 

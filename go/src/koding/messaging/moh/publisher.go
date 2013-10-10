@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+// Publisher is the counterpart for Subscriber.
+// It is a HTTP server accepting websocket connections.
 type Publisher struct {
 	MessagingServer
 
@@ -60,7 +62,7 @@ func NewPublisher(addr string) (*Publisher, error) {
 // Publish sends a message to registered Subscribers with the key.
 func (p *Publisher) Publish(key string, message []byte) {
 	log.Println("Sending message to send channel")
-	for c, _ := range p.filters[key] {
+	for c := range p.filters[key] {
 		select {
 		case c.send <- message:
 			log.Println("Message sent to send channel")

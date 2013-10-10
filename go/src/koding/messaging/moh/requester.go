@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+// Requester is a HTTP client that is used to make requests to Replier.
+// Sends "keep-alive" header for persistent connections.
 type Requester struct {
 	addr   string
 	client http.Client
@@ -18,7 +20,7 @@ func NewRequester(addr string) *Requester {
 	return &Requester{addr: addr}
 }
 
-// Requester sends a message to a Replier over HTTP.
+// Request sends a message to a Replier over HTTP.
 func (r *Requester) Request(message []byte) ([]byte, error) {
 	request, err := http.NewRequest("POST", "http://"+r.addr+"/", bytes.NewReader(message))
 	if err != nil {
