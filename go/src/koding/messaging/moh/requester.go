@@ -8,8 +8,8 @@ import (
 )
 
 type Requester struct {
-	addr string
-	c    http.Client
+	addr   string
+	client http.Client
 }
 
 // NewRequester returns a pointer to a new Requester struct.
@@ -28,7 +28,7 @@ func (r *Requester) Request(message []byte) ([]byte, error) {
 	request.Header.Set("Content-Type", "application/octet-strem")
 	request.Header.Set("Connection", "Keep-Alive")
 	log.Println("Doing POST to: %s", r.addr)
-	resp, err := r.c.Do(request)
+	resp, err := r.client.Do(request)
 	if err != nil {
 		return nil, err
 	}
