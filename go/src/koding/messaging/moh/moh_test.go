@@ -59,6 +59,20 @@ func TestPublishSubscibe(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Error("Handler is not called")
 	}
+
+	// Lets test Unsubscribe method
+	sub.Unsubscribe("asdf")
+	time.Sleep(100 * time.Millisecond)
+
+	log.Println("Publishing another message, this should not be delivered")
+	pub.Publish("asdf", data)
+
+	log.Println("Waiting for a message")
+	select {
+	case <-ch:
+		t.Error("Handler is called")
+	case <-time.After(100 * time.Millisecond):
+	}
 }
 
 func TestBroadcast(t *testing.T) {

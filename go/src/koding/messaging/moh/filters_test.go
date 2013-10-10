@@ -7,12 +7,12 @@ import (
 
 func TestFilters(t *testing.T) {
 	filters := make(Filters)
-	conn := &connection{}
+	conn := &connection{keys: make(map[string]bool)}
 
 	log.Println(filters)
 	log.Println(conn.keys)
 
-	filters.Add("a", conn)
+	filters.Add(conn, "a")
 	log.Println(filters)
 	log.Println(conn.keys)
 
@@ -28,11 +28,11 @@ func TestFilters(t *testing.T) {
 	if len(conn.keys) != 1 {
 		t.Error()
 	}
-	if conn.keys[0] != "a" {
+	if _, ok := conn.keys["a"]; !ok {
 		t.Error()
 	}
 
-	filters.Remove(conn)
+	filters.Remove(conn, "a")
 	log.Println(filters)
 	log.Println(conn.keys)
 

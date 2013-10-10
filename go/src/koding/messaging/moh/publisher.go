@@ -34,7 +34,7 @@ const all = "4658f005d49885355f4e771ed9dace10cca9563e"
 const (
 	subscribe = iota
 	disconnect
-	// unsubscribe event is not implemented yet
+	unsubscribe
 )
 
 // NewPublisher creates a new Publisher and returns a pointer to it.
@@ -85,7 +85,7 @@ func (p *Publisher) makeWsHandler() websocket.Handler {
 		c := &connection{
 			ws:   ws,
 			send: make(chan []byte, 256),
-			keys: make([]string, 0),
+			keys: make(map[string]bool),
 		}
 		p.events <- publisherEvent{conn: c, eventType: subscribe, key: all}
 		defer func() { p.events <- publisherEvent{conn: c, eventType: disconnect} }()
@@ -101,10 +101,12 @@ func (p *Publisher) registrar() {
 	for event := range p.events {
 		switch event.eventType {
 		case subscribe:
-			p.filters.Add(event.key, event.conn)
+			p.filters.Add(event.conn, event.key)
+		case unsubscribe:
+			p.filters.Remove(event.conn, event.key)
 		case disconnect:
 			close(event.conn.send)
-			p.filters.Remove(event.conn)
+			p.filters.RemoveAll(event.conn)
 		}
 	}
 }
@@ -117,7 +119,7 @@ type connection struct {
 	send chan []byte
 
 	// Subscription keys
-	keys []string
+	keys map[string]bool
 }
 
 // reader reads the subscription requests from websocket and saves it in a map for accessing later.
@@ -130,8 +132,16 @@ func (c *connection) reader(ch chan publisherEvent) {
 			break
 		}
 		log.Println("reader: Received a message from websocket")
-		key := cmd.Args["key"].(string)
-		ch <- publisherEvent{conn: c, eventType: subscribe, key: key}
+		if cmd.Name == "subscribe" {
+			key := cmd.Args["key"].(string)
+			ch <- publisherEvent{conn: c, eventType: subscribe, key: key}
+		} else if cmd.Name == "unsubscribe" {
+			key := cmd.Args["key"].(string)
+			ch <- publisherEvent{conn: c, eventType: unsubscribe, key: key}
+		} else {
+			log.Println("Unknown command, dropping client")
+			break
+		}
 	}
 	c.ws.Close()
 }

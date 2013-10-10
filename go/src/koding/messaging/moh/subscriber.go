@@ -59,6 +59,15 @@ func (s *Subscriber) Subscribe(key string) error {
 	return websocket.JSON.Send(s.ws, cmd)
 }
 
+// Unsubscribe stops the Subscriber from receiving messages matching with the key.
+func (s *Subscriber) Unsubscribe(key string) error {
+	cmd := subscriberCommand{
+		Name: "unsubscribe",
+		Args: args{"key": key},
+	}
+	return websocket.JSON.Send(s.ws, cmd)
+}
+
 func (s *Subscriber) connect() error {
 	url := s.url.String()
 	origin := "http://localhost/" // dont know if this is required
