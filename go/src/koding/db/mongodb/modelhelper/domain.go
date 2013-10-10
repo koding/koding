@@ -107,8 +107,8 @@ func DeleteDomain(domainname string) error {
 
 // GetDomain return a single document that match the given "domainname"
 // argument.
-func GetDomain(domainname string) (models.Domain, error) {
-	domain := models.Domain{}
+func GetDomain(domainname string) (*models.Domain, error) {
+	domain := new(models.Domain)
 
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"domain": domainname}).One(&domain)
