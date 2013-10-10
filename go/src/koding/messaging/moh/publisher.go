@@ -123,13 +123,14 @@ type connection struct {
 // reader reads the subscription requests from websocket and saves it in a map for accessing later.
 func (c *connection) reader(ch chan publisherEvent) {
 	for {
-		var key string
-		err := websocket.Message.Receive(c.ws, &key)
+		var cmd subscriberCommand
+		err := websocket.JSON.Receive(c.ws, &cmd)
 		if err != nil {
 			log.Println("reader: Cannot receive message from websocket")
 			break
 		}
 		log.Println("reader: Received a message from websocket")
+		key := cmd.Args["key"].(string)
 		ch <- publisherEvent{conn: c, eventType: subscribe, key: key}
 	}
 	c.ws.Close()

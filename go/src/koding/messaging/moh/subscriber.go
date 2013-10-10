@@ -36,9 +36,20 @@ func NewSubscriber(addr string, handler MessageHandler) (*Subscriber, error) {
 	return sub, err
 }
 
+type subscriberCommand struct {
+	Name string `json:"name"`
+	Args args   `json:"args"`
+}
+
+type args map[string]interface{}
+
 // Subscribe registers the Subscriber to receive messages matching with the key.
 func (s *Subscriber) Subscribe(key string) error {
-	return websocket.Message.Send(s.ws, key)
+	cmd := subscriberCommand{
+		Name: "subscribe",
+		Args: args{"key": key},
+	}
+	return websocket.JSON.Send(s.ws, cmd)
 }
 
 func (s *Subscriber) connect() error {
