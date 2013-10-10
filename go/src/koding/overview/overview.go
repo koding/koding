@@ -153,7 +153,7 @@ var (
 	))
 	admins = goset.New("sinan", "devrim", "gokmen", "chris", "neelance",
 		"sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-		"arslan")
+		"arslan", "ybrs")
 )
 
 const uptimeLayout = "03:04:00"
@@ -610,7 +610,7 @@ func switchVersion(newVersion string) error {
 
 	domain.Proxy.Key = newVersion
 
-	err = modelhelper.UpdateDomain(&domain)
+	err = modelhelper.UpdateDomain(domain)
 	if err != nil {
 		log.Printf("could not update %+v\n", domain)
 		return err
