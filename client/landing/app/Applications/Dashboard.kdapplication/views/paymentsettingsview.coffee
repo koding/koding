@@ -35,12 +35,12 @@ class GroupPaymentSettingsView extends JView
             diameter        : 12
       fields                :
         billing             :
-          label             : "Billing Method"
+          label             : "Billing method"
           itemClass         : BillingMethodView
         history             :
-          label             : "Payment History"
+          label             : "Payment history"
           tagName           : "a"
-          partial           : "Show Payment History"
+          partial           : "Show payment history"
           itemClass         : KDCustomHTMLView
           cssClass          : "billing-link"
           click             : =>
@@ -48,7 +48,7 @@ class GroupPaymentSettingsView extends JView
         subscriptions       :
           label             : "Subscriptions"
           tagName           : "a"
-          partial           : "Show Subscriptions"
+          partial           : "Show subscriptions"
           itemClass         : KDCustomHTMLView
           cssClass          : "billing-link"
           click             : =>
@@ -56,7 +56,7 @@ class GroupPaymentSettingsView extends JView
         expensedVMs         :
           label             : "User VMs"
           tagName           : "a"
-          partial           : "Show User VMs"
+          partial           : "Show user VMs"
           itemClass         : KDCustomHTMLView
           cssClass          : "billing-link"
           click             : =>
@@ -105,7 +105,7 @@ class GroupPaymentSettingsView extends JView
             else
               @settingsForm.fields.approval.hide()
         approval            :
-          label             : "Need Approval"
+          label             : "Need approval?"
           itemClass         : KDOnOffSwitch
           name              : "require-approval"
           cssClass          : "no-title"
