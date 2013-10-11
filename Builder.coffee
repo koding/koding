@@ -19,6 +19,10 @@ log =
   warn  : console.log
 
 formatByte = (bytes) ->
+  minus = ''
+  if bytes < 0
+    minus  = '-'
+    bytes *= -1
   thresh    = 1024
   units     = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
   unitIndex = -1
@@ -28,7 +32,7 @@ formatByte = (bytes) ->
     ++unitIndex
     break unless bytes >= thresh
 
-  return "#{bytes.toFixed 2} #{units[unitIndex]}"
+  return "#{minus}#{bytes.toFixed 2} #{units[unitIndex]}"
 
 module.exports = class Builder
 
@@ -48,6 +52,7 @@ module.exports = class Builder
   buildAndWatchClient: (options) ->
 
     @projectsToBuild = {}
+    @fileSizes = {}
 
     addProject = (title, project, ptype)=>
 
@@ -86,7 +91,6 @@ module.exports = class Builder
     includesChanged = @readIncludesFile()
 
     if initial
-      log.info ""
       total = 0
       for own _key, project of @projectsToBuild when project.type isnt 'bundle'
         total+= project.files.scripts.length + project.files.styles.length
@@ -364,18 +368,30 @@ module.exports = class Builder
     filepath = @config.client.websitePath + "/" + project.outputs.script
     fs.writeFileSync filepath, js
     fs.writeFileSync filepath + ".map", JSON.stringify(sourceMap)
-    {size} = fs.statSync filepath
-    process.stdout.write "#{project.outputs.script} ( includes #{project.files.scripts.length} scripts, #{formatByte size} ) \n"
+
+    @showFileInfo filepath, project, 'scripts' # project.outputs.script, project.files.scripts.length, scripts
 
   buildCSS: (options, project)->
-    process.stdout.write " - Updating stylesheets for #{project.type} #{project.title} ... "
+    process.stdout.write "\n - Updating styles for #{project.type} #{project.title} ... "
     code = ""
     for file in project.files.styles
       code += file.content+"\n"
     filepath = @config.client.websitePath + "/" + project.outputs.style
     fs.writeFileSync filepath, code
-    {size} = fs.statSync filepath
-    process.stdout.write "#{project.outputs.style} ( includes #{project.files.styles.length} styles, #{formatByte size} ) \n"
+
+    @showFileInfo filepath, project, 'styles' # project.outputs.style, project.files.styles.length, styles
 
   getEnvForRollbar: ->
     return if @config.client.version is "0.0.1" then "development" else "production"
+
+  showFileInfo:(filepath, project, ptype )->
+
+    {size} = fs.statSync filepath
+
+    oldSize = @fileSizes[filepath]
+    oldSize = if oldSize then "it was #{formatByte oldSize} and the diff is #{formatByte size - oldSize} " else ''
+
+    # console.log project, ptype
+    process.stdout.write "#{filepath}\n - Includes #{project.files[ptype].length} #{ptype}, filesize is #{formatByte size} #{oldSize} \n"
+    @fileSizes[filepath] = size
+
