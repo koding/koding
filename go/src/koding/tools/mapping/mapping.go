@@ -29,7 +29,6 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 		//get type of current value
 		typeOfKey := reflect.TypeOf(v).String()
 		//every v, will be a string at the end
-
 		switch typeOfKey {
 
 		//if we have an complex type, resolve it

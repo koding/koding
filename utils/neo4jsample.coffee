@@ -112,22 +112,75 @@ query = """
     """
 
 currentUserId = "51a3e4b1db49f04a74000003"
+
+console.time("hede")
+
+objectify =
+
+
+options =
+  limitCount: 10,
+  skipCount: 0,
+  groupId: "5196fcb2bc9bdb0000000027",
+  currentUserId: 'undefined',
+  orderByQuery: 'members.`meta.modifiedAt`',
+  to: undefined
+
+options =
+
+{ sort: { likesCount: -1 },
+  limit: 8,
+  skip: 0,
+  originId: '5196fcb0bc9bdb0000000012',
+  facets: [ 'Everything' ],
+  to: 1375472260788,
+  withExempt: false,
+  client:
+  { sessionToken: '9d0de90b6a354cfda582bc340cf4c4c6',
+    context: {},
+    connection: { delegate: [Object] },
+    groupName: 'koding' },
+  group: { groupName: 'koding', groupId: 5196fcb2bc9bdb0000000027 },
+userId: '5196fcb0bc9bdb0000000012',
+limitCount: 3 }
+
+
 query = """
-    start  group=node:koding("id:#{groupId}")
-    MATCH  group-[r:member]->members<-[:follower]-follower
-    where follower.id = "#{currentUserId}"
-    return members, r
-    order by r.createdAtEpoch, members.`counts.followers` DESC
-    skip #{skip}
-    limit #{limit}
+        START member=node:koding(id={userId})
+        MATCH member<-[:author]-content
+        WHERE content.`meta.createdAtEpoch` < {to}
+
+        RETURN DISTINCT content
+        ORDER BY coalesce(content.`meta.likes`?, 0) DESC
+        LIMIT {limitCount}
     """
     # return members, count(members) as count, r
 console.log query
 
-db.query query, {}, (err, results) ->
-  if err then throw err;
+
+db.query query, options, (err, results)->
+  console.log err, results
   for result in results
     console.log result.members.data
+
+# START group=node:koding("id:5196fcb2bc9bdb0000000027"), user=node:koding("id:51a3e4b1db49f04a74000003")
+# MATCH group-[r:member]->members
+# WHERE members-[:follower]->user
+# RETURN members
+# ORDER BY members.`meta.modifiedAt` DESC
+# SKIP 0
+# LIMIT 20
+
+
+
+# START group=node:koding("id:5196fcb2bc9bdb0000000027")
+# MATCH group-[r:member]->members-[:follower]->currentUser
+# WHERE currentUser.id = "51a3e4b1db49f04a74000003"
+# RETURN members
+# ORDER BY members.`meta.modifiedAt` DESC
+# SKIP 0
+# LIMIT 20
+
 
   # koding = results.map (res) ->
   #   res['koding']
