@@ -297,7 +297,7 @@ __bookPages = [
                 <p>Best of all, you get referral rewards for sharing Koding with others. So what do you say, share Koding today!</p>
                 """
     section   : -1
-    version   : 1.1
+    # version   : 1.1 # enable later
   ,
     title     : "Enjoy!"
     content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
