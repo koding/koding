@@ -8,6 +8,7 @@ class GroupsAppController extends AppController
       title      : "Groups"
       path       : "/Groups"
       order      : 40
+      topLevel   : yes
 
   @privateGroupOpenHandler =(event)->
     event.preventDefault()
