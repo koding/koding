@@ -53,6 +53,7 @@ module.exports = class Builder
 
     @projectsToBuild = {}
     @fileSizes = {}
+    @blackList = []
 
     addProject = (title, project, ptype)=>
 
@@ -223,7 +224,15 @@ module.exports = class Builder
 
   compileFile: (file)->
 
-    sourceTime = Date.parse fs.statSync(file.sourcePath).mtime
+    return false  if file.sourcePath in @blackList
+
+    try
+      sourceTime = Date.parse fs.statSync(file.sourcePath).mtime
+    catch e
+      log.info "Failed to read file #{file.sourcePath}"
+      file.content = ''
+      @blackList.push file.sourcePath
+      return true
 
     if sourceTime <= file.cacheTime
       if not file.content?
