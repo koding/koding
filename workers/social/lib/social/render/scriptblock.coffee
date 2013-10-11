@@ -1,6 +1,10 @@
 module.exports = ->
   """
   <script>
+
+    console.time("Framework loaded");
+    console.time("Koding.com loaded");
+
     var _rollbarParams = {
       "server.environment": "production",
       "client.javascript.source_map_enabled": true,
@@ -17,7 +21,9 @@ module.exports = ->
 
   <script>
     require.config({baseUrl: "/js", waitSeconds:30});
-    require(["order!/js/highlightjs/highlight.pack.js","order!/js/kd.#{KONFIG.version}.js"]);
+    require(["order!/js/highlightjs/highlight.pack.js",
+             "order!/js/kd.#{KONFIG.version}.js",
+             "order!/js/koding.#{KONFIG.version}.js"]);
   </script>
 
   <script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==
