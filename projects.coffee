@@ -1,6 +1,13 @@
 
-FRAMEWORK_VERSION = "0.0.1"
-KODING_VERSION    = "0.0.1"
+# Fetch version info from VERSION file
+fs          = require 'fs'
+nodePath    = require 'path'
+versionFile = nodePath.join(__dirname, 'VERSION')
+if fs.existsSync versionFile
+  version = (fs.readFileSync versionFile, 'utf-8').trim()
+
+FRAMEWORK_VERSION = version ? "0.0.1"
+KODING_VERSION    = version ? "0.0.1"
 
 projects      =
 
