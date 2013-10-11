@@ -24,14 +24,15 @@ class BillingMethodView extends JView
     if billingInfo
       { description, cardFirstName, cardLastName, cardNumber, cardMonth
         cardYear, cardType, address1, address2, city, state, zip } = billingInfo
-      address = [address1, address2].filter(Boolean).join ' '
+      address = [address1, address2].filter(Boolean).join '<br>'
       description ?= "#{cardFirstName}'s #{cardType}"
+      postal = [city, state, zip].filter(Boolean).join ' '
       """
       <span class="description #{cardType.toLowerCase()}">#{description}</span>
       <span>#{cardFirstName} #{cardLastName}</span>
       <span>#{cardNumber} - #{cardMonth}/#{cardYear} (#{cardType})</span>
-      <span>#{address}</span>
-      <span>#{city} #{state} #{zip}</span>
+      #{if address then "<span>#{address}</span>" else ''}
+      #{if postal then "<span>#{postal}</span>" else ''}
       """
     else "Enter billing information"
 

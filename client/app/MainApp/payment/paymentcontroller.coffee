@@ -99,9 +99,9 @@ class PaymentController extends KDController
   createBillingInfoModal: (billingInfo) ->
 
     modal = new BillingFormModal
-
-    @fetchCountryData (err, countries, countryOfIp) =>
-      modal.setCountryData { countries, countryOfIp }
+#
+#    @fetchCountryData (err, countries, countryOfIp) =>
+#      modal.setCountryData { countries, countryOfIp }
 
     return modal
 

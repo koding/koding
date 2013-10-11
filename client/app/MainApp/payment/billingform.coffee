@@ -59,44 +59,44 @@ class BillingFormModal extends KDModalViewWithForms
             selectOptions : (__utils.getYearOptions thisYear, thisYear + 25)
             defaultValue  : thisYear
 
-      company             :
-        label             : 'Company & VAT'
-        placeholder       : 'Company (optional)'
-        defaultValue      : data.company
-        nextElementFlat   :
-          vatNumber       :
-            placeholder   : 'VAT Number (optional)'
-            defaultValue  : data.vatNumber
+      # company             :
+      #   label             : 'Company & VAT'
+      #   placeholder       : 'Company (optional)'
+      #   defaultValue      : data.company
+      #   nextElementFlat   :
+      #     vatNumber       :
+      #       placeholder   : 'VAT Number (optional)'
+      #       defaultValue  : data.vatNumber
 
-      address1            :
-        label             : 'Address & ZIP'
-        placeholder       : 'Address (optional)'
-        defaultValue      : data.address1
-        nextElementFlat   :
-          zip             :
-            placeholder   : 'ZIP (optional)'
-            defaultValue  : data.zip
-            keyup         : @bound 'handleZipCode'
+      # address1            :
+      #   label             : 'Address & ZIP'
+      #   placeholder       : 'Address (optional)'
+      #   defaultValue      : data.address1
+      #   nextElementFlat   :
+      #     zip             :
+      #       placeholder   : 'ZIP (optional)'
+      #       defaultValue  : data.zip
+      #       keyup         : @bound 'handleZipCode'
 
-      city                :
-        label             : 'City & State'
-        placeholder       : 'City (optional)'
-        defaultValue      : data.city
-        nextElementFlat   :
-          state           :
-            placeholder   : 'State (optional)'
-            itemClass     : KDSelectBox
-            defaultValue  : data.state
+      # city                :
+      #   label             : 'City & State'
+      #   placeholder       : 'City (optional)'
+      #   defaultValue      : data.city
+      #   nextElementFlat   :
+      #     state           :
+      #       placeholder   : 'State (optional)'
+      #       itemClass     : KDSelectBox
+      #       defaultValue  : data.state
 
-      country             :
-        label             : 'Country'
-        itemClass         : KDSelectBox
-        defaultValue      : data.country or 'US'
+      # country             :
+      #   label             : 'Country'
+      #   itemClass         : KDSelectBox
+      #   defaultValue      : data.country or 'US'
 
-      phone               :
-        label             : 'Phone'
-        placeholder       : '(optional)'
-        defaultValue      : data.phone
+      # phone               :
+      #   label             : 'Phone'
+      #   placeholder       : '(optional)'
+      #   defaultValue      : data.phone
 
     options.tabs     or=
       navigable                 : yes
@@ -116,9 +116,9 @@ class BillingFormModal extends KDModalViewWithForms
     super options, data
 
     # set up a loader to compensate for latency while we load the country list
-    @countryLoader = new KDLoaderView
-      size        : { width: 14 }
-      showLoader  : yes
+    # @countryLoader = new KDLoaderView
+    #   size        : { width: 14 }
+    #   showLoader  : yes
 
     @billingForm = @modalTabs.forms['Billing Info']
     @billingForm.inputs.cardNumber.on 'keyup', @bound 'handleCardKeyup'
@@ -128,7 +128,7 @@ class BillingFormModal extends KDModalViewWithForms
       tagName  : 'span'
       cssClass : 'icon'
 
-    @billingForm.fields.country.addSubView @countryLoader
+    # @billingForm.fields.country.addSubView @countryLoader
 
     @updateDescription()
 
