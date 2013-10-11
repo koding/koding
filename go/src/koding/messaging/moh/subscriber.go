@@ -18,7 +18,7 @@ type Subscriber struct {
 	ws *websocket.Conn
 
 	// Consumed messages will be handled with this function.
-	handler MessageHandler
+	handler func([]byte)
 
 	// Subscription keys are also saved here so we can re-send "subscribe" commands when re-connect.
 	keys map[string]bool
@@ -30,7 +30,7 @@ type Subscriber struct {
 // NewSubscriber opens a websocket connection to a Publisher and
 // returns a pointer to newly created Subscriber.
 // After creating a Subscriber you should subscribe to messages with Subscribe function.
-func NewSubscriber(urlStr string, handler MessageHandler) (*Subscriber, error) {
+func NewSubscriber(urlStr string, handler func([]byte)) (*Subscriber, error) {
 	parsed, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err

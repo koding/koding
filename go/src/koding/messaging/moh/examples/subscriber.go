@@ -7,9 +7,8 @@ import (
 	"koding/messaging/moh"
 )
 
-func echo(message []byte) []byte {
+func echo(message []byte) {
 	fmt.Println(string(message))
-	return nil
 }
 
 func main() {
