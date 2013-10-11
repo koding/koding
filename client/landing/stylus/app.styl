@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "./client/stylus/app.fonts"
 @import "nib/gradients"
@@ -1616,69 +1616,6 @@ span.main-nav-icon
       width          300px
       margin         8px
 
-
-// #finder-panel
-// #content-panel
-// #kdmaincontainer
-//   -webkit-transition            all .8s ease
-
-// body
-
-//   #server-rack
-//     background-image              url('/images/racks.png')
-//     height                        835px
-//     position                      absolute
-//     width                         180px
-//     top                           190px
-//     left                          230px
-//     background-repeat             no-repeat
-//     -webkit-transition            opacity .8s ease
-//     display                       hidden
-//     opacity                       0
-//     z-index                       0
-
-//   #kdmaincontainer
-//     header
-//       -webkit-transition            opacity .8s ease
-//       opacity                       1
-
-//     section
-//       -webkit-perspective           700px
-//       -webkit-perspective-origin-x  260px
-//       -webkit-perspective-origin-y  400px
-
-//     #sidebar-panel
-//       -webkit-transform-origin      0 0
-//       -webkit-transform             rotate3d(0, 0, 0, 0deg)
-//       -webkit-transition            all .8s ease
-
-//     #content-panel
-//       -webkit-transform-origin      32% 0px
-//       -webkit-transition            all .8s ease
-//       -webkit-transform             rotate3d(0, 0, 0, 0deg)
-
-//   &.server-stack
-//     #kdmaincontainer
-//       #server-rack
-//         opacity                       1
-//         display                       block
-//         z-index                       999999
-
-//       header
-//         -webkit-transition            opacity .8s ease
-
-//       #sidebar-panel
-//         -webkit-transform-origin      0 0
-//         -webkit-transform             rotate3d(0, 1, 0, 20deg)
-//         -webkit-transition            all .8s ease
-//         left                          -56px
-
-//       #content-panel
-//         -webkit-transform-origin      32% 0px
-//         -webkit-transition            all .8s ease
-//         -webkit-transform             rotate3d(0, 1, 0, -20deg)
-//         left                          460px
-
 .invite-recovery-notification-bar
   position              fixed
   z-index               10000
@@ -1839,3 +1776,96 @@ span.main-nav-icon
     a
       color             #ff9200
 
+/*3d loading*/
+/* logo */
+#main-loading
+  vendor               perspective, 600px
+  vendor               transform-style, preserve-3d
+
+.threed-logo
+  left                 50%
+  top                  50%;
+  size                 200px, 260px
+  margin               -130px 0 0 -100px
+  // -moz-animation       logoHeartBeat 2s infinite ease
+  abs()
+
+  &
+  & *
+    vendor             transform-style, preserve-3d
+
+  .line
+    display            block
+    position           relative
+    size               200px, 20px
+    bg                 color, #fff
+
+    &~.line
+      margin-top       20px
+
+    &:nth-child(1)
+      height           60px
+      bg               color, #ff9200
+    &:nth-child(3)
+      width            142px
+    &:nth-child(6)
+      width            122px
+
+    i
+      abs()
+      top              0
+      left             0
+      display          block
+      size             100%, 20px
+      bg               color, #eee
+      vendor           backface-visibility, hidden
+      vendor           transform, rotateX(90deg) translateZ(10px) translateY(-10px)
+
+      &:after
+        abs()
+        top            0
+        left           0
+        content        ""
+        display        block
+        size           100%, 100%
+        bg             color, #ccc
+        vendor         backface-visibility, hidden
+        vendor         transform, translateZ(-20px) rotateX(180deg)
+
+    &:nth-child(1) i
+      bg               color, #c97200
+
+      &:after
+        abs()
+        top            0
+        left           0
+        content        ""
+        display        block
+        size           100%, 100%
+        bg             color, #b86800
+        vendor         backface-visibility, hidden
+        vendor         transform, translateZ(-60px) rotateX(180deg)
+
+    &:nth-child(1)
+      vendor           animation, lineRotate 2.5s 0.01s infinite forwards ease-out /* .01s = hack for firefox :@ */
+    &:nth-child(2)
+      vendor           animation, lineRotate 2.5s .5s infinite forwards ease-out
+    &:nth-child(3)
+      vendor           animation, lineRotate 2.5s 1s infinite forwards ease-out
+    &:nth-child(4)
+      vendor           animation, lineRotate 2.5s 1.5s infinite forwards ease-out
+    &:nth-child(5)
+      vendor           animation, lineRotate 2.5s 2s infinite forwards ease-out
+    &:nth-child(6)
+      vendor           animation, lineRotate 2.5s 2.5s infinite forwards ease-out
+
+
+@-webkit-keyframes lineRotate
+  20%
+    -webkit-transform translateZ(-60px) rotateX(40deg)
+    opacity           .5
+
+@-moz-keyframes lineRotate
+  20%
+    -moz-transform translateZ(-60px) rotateX(40deg)
+    opacity           .5
