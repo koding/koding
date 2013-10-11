@@ -5,6 +5,7 @@ module.exports = [
   "libs/md5-min.js",
 
   # --- Application ---
+  "app/MainApp/utils.coffee"
   "app/MainApp/KD.extend.coffee" # our extensions to KD global
   "app/MainApp/kodingrouter.coffee",
   "app/MainApp/mq.config.coffee",
