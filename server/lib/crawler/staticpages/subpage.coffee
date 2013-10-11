@@ -1,5 +1,6 @@
-module.exports = ({account, name, section, models})->
-
+# account and models will be removed.
+module.exports = ({activityContent, account, name, section, models})->
+  {Relationship} = require 'jraphical'
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
   model      = models.first if models and Array.isArray 
@@ -12,45 +13,52 @@ module.exports = ({account, name, section, models})->
     #{getStyles()}
     #{getGraphMeta()}
   </head>
-    <body class='koding'>
+    <body class='koding' itemscope itemtype="http://schema.org/WebPage">
       <div id='main-loading' class="kdview main-loading" itemscope itemtype="http://schema.org/BlogPosting">
-        #{putContent(name, section, model, account)}
+        #{putContent(activityContent, name, section, model)}
       </div>
       <div class="kdview home" id="kdmaincontainer">
       </div>
     </body>
   </html>
   """
+createCommentNode = (comment)->
+  if comment
+    return "<li><span itemprop=\"commentText\">#{comment.body}</span> at <span itemprop=\"commentTime\">#{comment.createdAt}</span> \
+      by <span itemprop=\"name\">#{comment.name}</span></li>"
+  else return ""
 
-putContent = (name, section, model, account)->
-  name = if model?.title then model.title else section
-  body = if model?.body  then model.body  else ""
+putContent = (activityContent, name, section, model)->
 
-  accountName = ""
-  if account?.data?.profile?.nickname
-    accountName = 
-      """ by <span itemprop="author">#{account.data.profile.nickname}</span>"""
+  name = activityContent.name
+  body = activityContent.body
 
-  avatarImg = ""
-  if account?.data?.profile?.hash
-    imgURL = "https://gravatar.com/avatar/#{account.data.profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
-    avatarImg = 
-      """
-        <span class="avatarview" style="width: 90px; height: 90px; background-image: url(#{imgURL});"></span>
-      """
+  # Ugly spaghetti HTML exceeding 80 characters.
+  accountName = " by <span itemprop='author'>#{activityContent.fullName}</span>"
+  imgURL = "https://gravatar.com/avatar/#{activityContent.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
+  avatarImg = "<span class=\"avatarview\" style=\"width: 90px; height: 90px; background-image: url(#{imgURL});\"></span>"
+  createdAt = "Created at: <span itemprop=\"dateCreated\">#{activityContent.createdAt}</span>"
+  commentsCount = "<span>#{activityContent.numberOfComments}</span> comments"
+  likesCount = "<span>#{activityContent.numberOfLikes}</span> likes."
 
-  createdAt = ""
-  if model?.data?.meta?.createdAt
-    createdAt = 
-      """Created at: <span itemprop="dateCreated">#{model.data.meta.createdAt}</span>"""
+  userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserLikes:#{activityContent.numberOfLikes}\"/>"
+  userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{activityContent.numberOfComments}\"/>"
+  
+  comments = (createCommentNode(comment) \
+    for comment in activityContent.comments when comment.body)
+
+  commentsContent = "<h4>Comments:</h4>"
+  commentsContent += "<ol style='text-align:left' itemscope itemtype=\"http://schema.org/UserComments\">"
+  commentsContent += comments.join("")
+  commentsContent += "</ol>"
 
   tags = ""
-  if model?.data?.meta?.tags
-    tags = """<span>tags: #{model.data.meta.tags}</span>"""
+  if activityContent?.tags
+    tags = """<span>tags: #{activityContent.tags}</span>"""
 
-  title  = if model?.bongo_?.constructorName
+  title  = if activityContent?.type
     # console.log model.bongo_.constructorName
-    switch model.bongo_.constructorName
+    switch activityContent.type
       when "JStatusUpdate"  then "status update"
       when "JCodeSnip"      then "code snippet"
       when "JDiscussion"    then "discussion"
@@ -69,7 +77,11 @@ putContent = (name, section, model, account)->
          <h3>
            #{avatarImg} [ #{body} ] #{accountName}
          </h3>
-         #{createdAt}
-         #{tags}
+         #{userInteractionMeta}
+         #{createdAt}<br />
+         #{tags}<br />
+         #{commentsCount}, 
+         #{likesCount}<br />
+         #{commentsContent}
        </figure>
     """
