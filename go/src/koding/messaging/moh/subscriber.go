@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const reconnectInterval = 100 * time.Millisecond
+
 // Subscriber is a websocket client that is used to connect to a Publisher and consume published messages.
 type Subscriber struct {
 	// Path of the server to be connected
@@ -125,7 +127,7 @@ func (s *Subscriber) connector() {
 	for {
 		err := s.connect()
 		if err != nil {
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(reconnectInterval)
 			continue
 		}
 
