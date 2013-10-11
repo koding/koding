@@ -101,7 +101,10 @@ module.exports = class Activity extends Graph
   # this is used for activities on profile page
   @fetchUsersActivityFeed: (requestOptions, callback)->
     @getCurrentGroup requestOptions.client, (err, currentGroup)=>
-      if err then return callback errw
+      if err
+        console.log "fetchUsersActivityFeed err:", err
+        return callback err
+
       requestOptions.group = {groupName: currentGroup.slug, groupId: currentGroup._id}
 
       facetQuery = @generateFacets requestOptions
