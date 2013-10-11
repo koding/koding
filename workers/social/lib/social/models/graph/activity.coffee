@@ -122,7 +122,7 @@ module.exports = class Activity extends Graph
         # we have maximum call stack size error from bongo,
         # while sending the result back to client
         # this is a bandaid for it
-        limitCount : 5 #requestOptions.limit
+        limitCount : 3 #requestOptions.limit
         skipCount  : requestOptions.skip
 
       query = QueryRegistry.activity.profilePage {facetQuery, orderBy}
