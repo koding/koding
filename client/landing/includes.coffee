@@ -661,7 +661,6 @@ module.exports = [
   "css/highlight-styles/sunburst.css",
 
   "stylus/kdfn.styl",
-  "stylus/appfn.styl",
   "stylus/app.styl",
   "stylus/app.bottom.styl",
   "stylus/app.splitlayout.styl",
