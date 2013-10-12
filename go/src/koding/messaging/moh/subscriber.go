@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const reconnectInterval = 100 * time.Millisecond
+const reconnectInterval = 700 * time.Millisecond
 
 // Subscriber is a websocket client that is used to connect to a Publisher and
 // consume published messages.
@@ -29,6 +29,9 @@ type Subscriber struct {
 
 	// For controlling access over keys
 	keysMutex sync.Mutex
+
+	// errCount defines the number o reconnection errors
+	errCount int
 }
 
 // NewSubscriber opens a websocket connection to a Publisher and returns a
@@ -105,12 +108,14 @@ func (s *Subscriber) Unsubscribe(key string) {
 func (s *Subscriber) connect() error {
 	url := s.url.String()
 	origin := "http://localhost/" // dont know if this is required
+
 	log.Println("Connecting to url:", url)
 	ws, err := websocket.Dial(url, "", origin)
 	if err != nil {
 		log.Println("Cannot connect")
 		return err
 	}
+
 	log.Println("Connection is successfull")
 	s.ws = ws
 	return nil
@@ -123,19 +128,26 @@ func (s *Subscriber) Connected() bool {
 	return s.ws != nil
 }
 
-// connector tries to connect to the server forever.
-// When the connection is established it runs a consumer() goroutine and returns.
+// connector tries to connect to the server forever. When the connection is
+// established it runs a consumer() goroutine and returns.
 func (s *Subscriber) connector() {
 	for {
 		err := s.connect()
 		if err != nil {
-			time.Sleep(reconnectInterval)
+			s.errCount++
+
+			// for now we don't return an error, but in the future an error
+			// will mean that it has reached it maximum number of reconnect
+			// attempts, which then we will return.
+			s.sleep()
 			continue
 		}
 
+		s.errCount = 0
+
 		err = s.sendSubscriptionCommands()
 		if err != nil {
-			log.Println("Error while sending subscription commands: %s", err)
+			log.Printf("Error while sending subscription commands: %s\n", err)
 		}
 
 		go s.consumer()
@@ -143,20 +155,27 @@ func (s *Subscriber) connector() {
 	}
 }
 
+func (s *Subscriber) sleep() {
+	time.Sleep(reconnectInterval * time.Duration(s.errCount))
+}
+
 // sendSubscriptionCommands is called after connecting the server to subscribe saved keys.
 func (s *Subscriber) sendSubscriptionCommands() error {
 	s.keysMutex.Lock()
 	defer s.keysMutex.Unlock()
+
 	for key := range s.keys {
 		cmd := subscriberCommand{
 			Name: "subscribe",
 			Args: args{"key": key},
 		}
+
 		err := websocket.JSON.Send(s.ws, cmd)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -176,6 +195,7 @@ func (s *Subscriber) consumer() {
 			go s.connector()
 			return
 		}
+
 		// log.Println("Received data:", string(message))
 		s.handler(message)
 	}
