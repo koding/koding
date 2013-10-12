@@ -36,9 +36,7 @@ module.exports = [
 
   "app/CommonViews/avatarviews/avatarview.coffee",
   "app/CommonViews/avatarviews/avatarstaticview.coffee",
-  "app/CommonViews/avatarviews/avatarswapview.coffee",
   "app/CommonViews/avatarviews/autocompleteavatarview.coffee",
-
 
   "app/MainApp/navigation/navigationcontroller.coffee",
 
