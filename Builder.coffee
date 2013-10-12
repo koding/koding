@@ -377,7 +377,7 @@ module.exports = class Builder
 
     js += "//@ sourceMappingURL=/#{project.outputs.script}.map"
 
-    filepath = @config.client.websitePath + "/" + project.outputs.script
+    filepath = project.outputs.script
     fs.writeFileSync filepath, js
     fs.writeFileSync filepath + ".map", JSON.stringify(sourceMap)
 
@@ -388,7 +388,7 @@ module.exports = class Builder
     code = ""
     for file in project.files.styles
       code += file.content+"\n"
-    filepath = @config.client.websitePath + "/" + project.outputs.style
+    filepath = project.outputs.style
     fs.writeFileSync filepath, code
 
     @showFileInfo filepath, project, 'styles' # project.outputs.style, project.files.styles.length, styles
