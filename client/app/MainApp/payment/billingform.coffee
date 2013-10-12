@@ -30,6 +30,11 @@ class BillingFormModal extends KDModalViewWithForms
       cardNumber          :
         label             : 'Credit Card'
         placeholder       : 'Credit Card Number'
+        blur              : ->
+          @oldValue = @getValue()
+          @setValue @oldValue.replace /\s|-/g, ''
+        focus             : ->
+          @setValue @oldValue  if @oldValue
         validate          :
           event           : 'blur'
           rules           :
