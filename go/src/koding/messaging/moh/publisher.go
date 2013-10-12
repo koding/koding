@@ -134,7 +134,7 @@ func (c *connection) reader(ch chan publisherEvent) {
 			break
 		}
 
-		log.Printf("reader: Received a command from websocket: %+v\n", cmd)
+		// log.Printf("reader: Received a command from websocket: %+v\n", cmd)
 		if cmd.Name == "subscribe" {
 			key := cmd.Args["key"].(string)
 			ch <- publisherEvent{conn: c, eventType: subscribe, key: key}
