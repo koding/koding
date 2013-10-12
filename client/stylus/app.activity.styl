@@ -492,74 +492,6 @@ h1.kdheaderview.notification-header
         rounded         3px
         noTextDeco()
 
-.activity-share-popup
-  min-width             233px
-
-  clear                 both
-  .kdlistview-activity-share
-    width               281px
-    padding             5px
-    right               55px
-    overflow            visible
-    padding             5px
-    border              1px solid rgba(0,0,0,0.275)
-    z-index             9001
-    border-color        rgba(0,0,0,0.1) rgba(0,0,0,0.15) rgba(0,0,0,0.2)
-    rounded             5px
-    bg                  color, white
-    shadow              0 10px 20px 5px rgba(0,0,0,0.1)
-    borderBox()
-    rel()
-  .share-popup
-    .share-input
-      size              160px, 30px
-      padding-top       5px
-      padding-bottom    4px
-      line-height       21px
-      font-size         13px
-      margin-right      7px
-      padding-right     20px
-      display           inline-block
-      borderBox()
-
-    .icon-link
-      width             21px
-      height            21px
-      display           inline-block
-      vertical-align    top
-      margin-top        6px
-
-    .icon-link
-      .icon
-        display         block
-        width           19px
-        height          19px
-        opacity         .7
-        sprite()
-      &:hover
-        .icon
-          opacity       1
-
-    .share-twitter
-      .icon
-        bg              position, -300px -360px
-    .share-linkedin
-      .icon
-        bg              position, -300px -340px
-    .share-facebook
-      .icon
-        bg              position, -320px -360px
-
-    .custom-link-view
-      // margin-right      4px
-      .icon.new-page
-        opacity         .4
-        bg              position, -180px -280px
-      &:hover
-        .icon.new-page
-          opacity       1
-          bg            position, -180px -260px
-
 button.kdbutton.dark
   span.icon
     sprite()
@@ -2804,4 +2736,196 @@ div.kdtooltip
         float                     left
         width                     363px
         margin-top                15px
+
+
+.referrer-modal
+  .kdtabpaneview.share
+    form
+      display                     block
+      padding                     20px
+      font-size                   14px
+      color                       #656565
+
+      .left-column
+        fl()
+        width                     245px
+      .right-column
+        fr()
+        width                     245px
+        padding-left              20px
+        border-left               1px solid #e6e6e6
+
+      p
+        margin                    0 0 20px
+        line-height               20px
+        font-weight               500
+
+      label.share-url-label
+        display                   block
+        height                    46px
+        line-height               46px
+        text-align                center
+        font-weight               300
+        background                #ebebeb
+        rounded                   3px 3px 0 0
+        margin                    0 0 -1px
+      input.share-url-input
+        width                     245px
+        height                    46px
+        line-height               46px
+        rounded                   3px
+        padding                   0 15px
+        margin                    0
+        color                     rgba(0,0,0,.5)
+        border                    1px solid #c7c7c7
+        borderBox()
+
+      .share-link-icons
+        height                    30px
+        line-height               30px
+        margin-top                25px
+        button.share-icon
+          border                  none
+          size                    30px, 30px
+          padding                 0
+          margin                  0 0 0 8px
+          background              none
+          .icon
+            size                  30px, 30px
+            padding               0
+            margin                0
+            sprite()
+          &.twitter
+            .icon
+              bg                  position, -662px -116px
+          &.facebook
+            .icon
+              bg                  position, -695px -116px
+          &.linkedin
+            .icon
+              bg                  position, -729px -116px
+
+      button.invite-button
+        size                      245px, 50px
+        line-height               50px
+        rounded                   3px
+        background                #5d5d5d
+        border                    none
+        padding                   0
+        span.icon
+          size                    25px, 25px
+          margin                  12px
+          padding                 0
+          sprite()
+        span.button-title
+          height                  50px
+          font-size               14px
+          color                   #eee
+          padding                 0
+          font-weight             300
+          padding                 0 0 0 15px
+          border-left             1px solid #545454
+          fl()
+        &~.invite-button
+          margin-top              10px
+        &[disabled=disabled]
+          background              #d9d9d9
+          span.button-title
+            color                 #8d8d8d
+            border-color          #c5c5c5
+        &.gmail
+          .icon
+            bg                    position, -573px -117px
+        &.facebook
+          .icon
+            bg                    position, -603px -118px
+        &.twitter
+          .icon
+            bg                    position, -633px -118px
+
+  .kdtabpaneview.invite
+    .kdlistview-gmail
+      .kdlistitemview-gmail
+        width                     190px
+        background                #fff
+        border                    1px solid #ebebeb
+        border-left               none
+        border-top                none
+        clear                     none
+        vendor                    transition, background 300ms ease
+        cursor                    pointer
+        borderBox()
+        fl()
+        &:hover:after
+          content                 "Send Invite?"
+          size                    100%, 100%
+          line-height             65px
+          font-size               14px
+          background              rgba(242,242,242,.95)
+          color                   #737373
+          text-align              center
+          left                    0
+          top                     0
+          opacity                 0
+          vendor                  animation, inviteConfirmAnimation .1s 1 forwards ease-out
+          abs()
+        &.invite-sent:after
+          content                 "Invite sent"
+          size                    100%, 100%
+          line-height             65px
+          font-size               14px
+          background              #a8e071
+          color                   #fff
+          text-align              center
+          right                   100%
+          top                     0
+          vendor                  animation, inviteSentAnimation .2s 1 forwards ease-out
+          abs()
+
+        .avatar
+          size                    35px, 35px
+          margin                  16px 10px 16px 16px
+          rounded                 100%
+          background              #ccc
+          fl()
+
+        .contact-info
+          fl()
+          width                   128px
+          padding                 17px 0 0 0
+          overflow                hidden
+          borderBox()
+          span
+            width                 100%
+            display               block
+            font-size             11px
+            color                 #959595
+            white-space           nowrap
+            overflow              hidden
+            text-overflow         ellipsis
+
+          .fullname
+            font-size             16px
+            color                 #393939
+            margin-bottom         3px
+
+@-webkit-keyframes inviteSentAnimation
+  to
+    right                         0
+@-webkit-keyframes inviteConfirmAnimation
+  to
+    opacity                       1
+@-moz-keyframes inviteSentAnimation
+  to
+    right                         0
+@-moz-keyframes inviteConfirmAnimation
+  to
+    opacity                       1
+
+
+
+
+
+
+
 

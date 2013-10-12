@@ -145,51 +145,126 @@ class AccountAppController extends AppController
   fetchProviders:->
 
   showReferrerModal:->
-    referrerCode      = KD.whoami().profile.nickname
-    shareUrl          = "#{location.origin}/?r=#{referrerCode}"
-    JReferrableEmail  = KD.remote.api.JReferrableEmail
+    mainController = KD.getSingleton 'mainController'
+
+    account             = KD.whoami()
+    referrerCode        = account.profile.nickname
+    shareUrl            = "#{location.origin}/?r=#{referrerCode}"
+
 
     referrerModal = new KDModalViewWithForms
       title                   : "Get free space up to 16GB"
+      cssClass                : "referrer-modal"
       overlay                 : yes
+      width                   : 570
       tabs                    :
-        navigable             : no
+        navigable             : yes
         goToNextFormOnSubmit  : no
-        hideHandleContainer   : yes
+        hideHandleContainer   : no
         forms                 :
           "share"             :
             customView        : KDCustomHTMLView
-            partial           : "If anyone registers with your referral code, you will get \
-                                250MB free disk space for your VM. Up to <strong>16GB</strong>"
+            cssClass          : "clearfix"
+            partial           : "<p class='description'>If anyone registers with your referral code, you will get \
+                                250MB free disk space for your VM. Up to <strong>16GB</strong></p>"
           "invite"            :
             customView        : KDCustomHTMLView
 
-    tabs         = referrerModal.modalTabs
-    shareTab     = tabs.forms["share"]
-    inviteTab    = tabs.forms["invite"]
+    tabs                      = referrerModal.modalTabs
+    shareTab                  = tabs.forms["share"]
+    inviteTab                 = tabs.forms["invite"]
 
-    # Sharetab #
+    shareTab.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
+    shareTab.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
 
-    shareTab.addSubView urlInput = new KDInputView
+    leftColumn.addSubView urlLabel  = new KDLabelView
+      cssClass                : "share-url-label"
+      title                   : "Here is your invite code"
+
+    leftColumn.addSubView urlInput  = new KDInputView
       defaultValue            : shareUrl
       cssClass                : "share-url-input"
       disabled                : yes
 
-    shareTab.addSubView showGmailContacts = new KDButtonView
-      title                   : "Invite friends from Gmail"
-      callback                : ->
-        tabs.showPaneByName     "invite"
-        referrerModal.setTitle  "Invite your Gmail contacts"
+    leftColumn.addSubView shareLinkIcons = new KDCustomHTMLView
+      cssClass                : "share-link-icons"
+      partial                 : "<span>Share your code on</span>"
 
-    # inviteTab #
-    inviteTab.addSubView gmailContactsList = new KDListView
+    shareLinkIcons.addSubView twitterIcon = new KDButtonView
+      icon                    : yes
+      iconOnly                : yes
+      cssClass                : "share-icon twitter"
+
+    shareLinkIcons.addSubView facebookIcon = new KDButtonView
+      icon                    : yes
+      iconOnly                : yes
+      cssClass                : "share-icon facebook"
+
+    shareLinkIcons.addSubView linkedinIcon = new KDButtonView
+      icon                    : yes
+      iconOnly                : yes
+      cssClass                : "share-icon linkedin"
+
+    rightColumn.addSubView showGmailContacts = new KDButtonView
+      title                   : "Invite Gmail Contacs"
+      style                   : "invite-button gmail"
+      icon                    : yes
+      callback                : =>
+        @_checkGoogleLinkStatus {inviteTab, tabs, referrerModal, account}
+
+    rightColumn.addSubView showFacebookContacts = new KDButtonView
+      title                   : "Invite Facebook Friends"
+      style                   : "invite-button facebook"
+      disabled                : yes
+      icon                    : yes
+
+    rightColumn.addSubView showTwitterContacts = new KDButtonView
+      title                   : "Invite Twitter Friends"
+      style                   : "invite-button twitter"
+      disabled                : yes
+      icon                    : yes
+
+  _checkGoogleLinkStatus:(data)->
+    {inviteTab, tabs, referrerModal, account} = data
+    mainController = KD.getSingleton "mainController"
+
+    mainController.on "ForeignAuthSuccess.google", =>
+      @_showGmailContactsList data
+
+    account.fetchStorage "ext|profile|google",(err, googleAccount) =>
+      return if err
+
+      if googleAccount
+        @_showGmailContactsList {inviteTab, tabs, referrerModal}
+      else
+        KD.singletons.oauthController.openPopup "google"
+
+  _showGmailContactsList:->
+    {inviteTab, tabs, referrerModal} = arguments[0]
+    JReferrableEmail                 = KD.remote.api.JReferrableEmail
+
+    tabs.showPaneByName     "invite"
+    referrerModal.setTitle  "Invite your Gmail contacts"
+
+    listController        = new KDListViewController
+      startWithLazyLoader : yes
+      view                : new KDListView
+        itemClass         : GmailContactsListItem
+        type              : "gmail"
+
+    listController.once "AllItemsAddedToList", -> @hideLazyLoader()
+
+    inviteTab.addSubView gmailContactsList = listController.getView()
 
     JReferrableEmail.getUninvitedEmails (err, contacts) ->
-      for contact in contacts
-        {email, invited} = contact
-        gmailContactsList.addItemView new gmailContactsListItem
-          email   : email
-          invited : invited
+      return if err
+      listController.instantiateListItems contacts
+
+    referrerModal.setPositions()
+
+    window.asd = listController
+
+    return listController
 
   toggleSidebar:(options)->
     {show} = options
@@ -208,22 +283,41 @@ class AccountAppController extends AppController
   indexOfItem:(item)->
     @itemsOrdered.indexOf item
 
-class gmailContactsListItem extends KDListItemView
-  constructor:(options={})->
-    options.cssClass = "gmail-contact-item"
-    options.invited ?= no
-    super options
+class GmailContactsListItem extends KDListItemView
+
+  constructor:(options={}, data)->
+    options.type     = "gmail"
+    data.invited    ?= no
+
+    super options, data
 
     @isSelected = no
 
+  viewAppended:->
+    uber = JView::viewAppended.bind @
+    @setClass "already-invited" if @getData().invited
+    uber()
+
   partial:->
-    """
-      #{@getOption "email"}
-    """
 
   click:->
-    @isSelected = !@isSelected
+    JReferrableEmail = @getData()
+    JReferrableEmail.invite (err) =>
+      if err
+        log "we have a problem"
+        log err
+      else
+        @setClass "invite-sent"
+        @data.invited = yes
 
+  pistachio:->
+    """
+      <div class="avatar"></div>
+      <div class="contact-info">
+        <span class="fullname">Burak Can</span>
+        {{ #(email)}}
+      </div>
+    """
 
 
 
