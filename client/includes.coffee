@@ -1,161 +1,14 @@
 module.exports = [
-  # --- Libraries ---
-  "libs/encode.js",
-  "libs/docwritenoop.js",
-  "libs/sha1.encapsulated.coffee",
-  "libs/jquery-1.9.1.js",
-  "libs/underscore-min.1.3.js"
-  "libs/jquery.cookie.js",
 
-  # --- Base class ---
-  "Framework/core/utils.coffee",
-  "Framework/core/KD.coffee",
-  "Framework/core/KDEventEmitter.coffee",
-
-  # --- Framework ---
-  "libs/sockjs-0.3-patched.js",
-  "libs/broker.js",
-  "libs/bongo.js",
-
-  # the bongo api (or an empty file, depending on the config)
-  "../.build/api.js",
-
-  # TODO: reenable closure wrapping:
-  # "includes/header.inc.js",
-  # core
-  "Framework/core/KDObject.coffee",
-  "Framework/core/KDView.coffee",
-  "Framework/core/KDOverlayView.coffee",
-  "Framework/core/JView.coffee",
-  "Framework/core/KDCustomHTMLView.coffee",
-  "Framework/core/KDScrollView.coffee",
-  "Framework/core/KDRouter.coffee",
-
-  "Framework/core/KDController.coffee",
-  "Framework/core/KDWindowController.coffee",
-  "Framework/core/KDViewController.coffee",
-
-  # components
-
-  # image
-  "Framework/components/image/KDImage.coffee",
-
-  # split
-  "Framework/components/split/splitview.coffee",
-  "Framework/components/split/splitresizer.coffee",
-  "Framework/components/split/splitpanel.coffee",
-  "Framework/components/split/splitcomboview.coffee",
-
-  # header
-  "Framework/components/header/KDHeaderView.coffee",
-
-  # loader
-  "Framework/components/loader/KDLoaderView.coffee",
-
-  #list
-  "Framework/components/list/KDListViewController.coffee",
-  "Framework/components/list/KDListView.coffee",
-  "Framework/components/list/KDListItemView.coffee",
-
-  #tree
-  "Framework/components/tree/treeviewcontroller.coffee",
-  "Framework/components/tree/treeview.coffee",
-  "Framework/components/tree/treeitemview.coffee",
-
-  #tabs
-  "Framework/components/tabs/KDTabHandleView.coffee",
-  "Framework/components/tabs/KDTabView.coffee",
-  "Framework/components/tabs/KDTabPaneView.coffee",
-  "Framework/components/tabs/KDTabViewWithForms.coffee",
-
-  # menus
-  "Framework/components/contextmenu/contextmenu.coffee",
-  "Framework/components/contextmenu/contextmenutreeviewcontroller.coffee",
-  "Framework/components/contextmenu/contextmenutreeview.coffee",
-  "Framework/components/contextmenu/contextmenuitem.coffee",
-
-  # dias
-  "Framework/components/dia/kddiajoint.coffee",
-  "Framework/components/dia/kddiaobject.coffee",
-  "Framework/components/dia/kddiacontainer.coffee",
-  "Framework/components/dia/kddiascene.coffee",
-
-  # inputs
-  "Framework/components/inputs/KDInputValidator.coffee",
-  "Framework/components/inputs/KDLabelView.coffee",
-  "Framework/components/inputs/KDInputView.coffee",
-  "Framework/components/inputs/KDInputViewWithPreview.coffee",
-  "Framework/components/inputs/KDHitEnterInputView.coffee",
-  "Framework/components/inputs/KDInputRadioGroup.coffee",
-  "Framework/components/inputs/KDInputCheckboxGroup.coffee",
-  "Framework/components/inputs/KDInputSwitch.coffee",
-  "Framework/components/inputs/KDOnOffSwitch.coffee",
-  "Framework/components/inputs/KDMultipleChoice.coffee",
-  "Framework/components/inputs/KDSelectBox.coffee",
-  "Framework/components/inputs/KDSliderView.coffee",
-  "Framework/components/inputs/KDWmdInput.coffee",
-  "Framework/components/inputs/tokenizedmenu.coffee",
-  "Framework/components/inputs/tokenizedinput.coffee",
-  "Framework/components/inputs/KDContentEditableView.coffee",
-
-  # upload
-  "Framework/components/upload/KDFileUploadView.coffee",
-  "Framework/components/upload/KDImageUploadView.coffee",
-  "Framework/components/upload/kdmultipartuploader.coffee",
-
-  # buttons
-  "Framework/components/buttons/KDButtonView.coffee",
-  "Framework/components/buttons/KDButtonViewWithMenu.coffee",
-  "Framework/components/buttons/KDButtonMenu.coffee",
-  "Framework/components/buttons/KDButtonGroupView.coffee",
-  "Framework/components/buttons/KDToggleButton.coffee",
-
-  # forms
-  "Framework/components/forms/KDFormView.coffee",
-  "Framework/components/forms/KDFormViewWithFields.coffee",
-
-  # modal
-  "Framework/components/modals/KDModalController.coffee",
-  "Framework/components/modals/KDModalView.coffee",
-  "Framework/components/modals/KDModalViewLoad.coffee",
-  "Framework/components/modals/KDBlockingModalView.coffee",
-  "Framework/components/modals/KDModalViewWithForms.coffee",
-  "Framework/components/modals/KDModalViewStack.coffee",
-
-  # notification
-  "Framework/components/notifications/KDNotificationView.coffee",
-
-  # progressbar
-  "Framework/components/progressbar/KDProgressBarView.coffee",
-
-  # sliderbar
-  "Framework/components/sliderbar/KDSliderBarView.coffee",
-  "Framework/components/sliderbar/KDSliderBarHandleView.coffee",
-
-  # dialog
-  "Framework/components/dialog/KDDialogView.coffee",
-
-  #tooltip
-  "Framework/components/tooltip/KDToolTipMenu.coffee",
-  "Framework/components/tooltip/KDTooltip.coffee",
-
-  # autocomplete
-  "Framework/components/autocomplete/autocompletecontroller.coffee",
-  "Framework/components/autocomplete/autocomplete.coffee",
-  "Framework/components/autocomplete/autocompletelist.coffee",
-  "Framework/components/autocomplete/autocompletelistitem.coffee",
-  "Framework/components/autocomplete/multipleinputview.coffee",
-  "Framework/components/autocomplete/autocompletemisc.coffee",
-  "Framework/components/autocomplete/autocompleteditems.coffee",
-
-  #time
-  "Framework/components/time/timeagoview.coffee",
+  # Libs
+  "libs/async.js",
+  "libs/md5-min.js",
 
   # --- Application ---
+  "app/MainApp/utils.coffee"
   "app/MainApp/KD.extend.coffee" # our extensions to KD global
   "app/MainApp/kodingrouter.coffee",
   "app/MainApp/mq.config.coffee",
-  "libs/pistachio.js",
 
   # mainapp controllers
   "app/MainApp/activitycontroller.coffee",
@@ -183,9 +36,7 @@ module.exports = [
 
   "app/CommonViews/avatarviews/avatarview.coffee",
   "app/CommonViews/avatarviews/avatarstaticview.coffee",
-  "app/CommonViews/avatarviews/avatarswapview.coffee",
   "app/CommonViews/avatarviews/autocompleteavatarview.coffee",
-
 
   "app/MainApp/navigation/navigationcontroller.coffee",
 
@@ -388,32 +239,6 @@ module.exports = [
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
 
-  # got rid of static controllers
-
-  # "app/MainApp/lazy/lazydomcontroller.coffee",
-  # "app/MainApp/lazy/staticprofilecontroller.coffee",
-  # "app/MainApp/lazy/staticprofileconfigviews.coffee",
-  # "app/MainApp/lazy/staticprofileaboutview.coffee",
-  # "app/MainApp/lazy/staticuserbuttonbar.coffee",
-  # "app/MainApp/lazy/staticgroupcontroller.coffee",
-  # "app/MainApp/lazy/staticavatarareaiconmenu.coffee",
-
-  # these are libraries, but adding it here so they are minified properly
-  # minifying jquery breaks the code.
-
-
-  "libs/jquery-timeago.js",
-  "libs/date.format.js",
-  "libs/jquery.getcss.js",
-  "libs/mousetrap.js",
-  "libs/md5-min.js",
-  "libs/async.js",
-  "libs/jquery.mousewheel.js",
-  "libs/inflector.js",
-  "libs/canvas-loader.js",
-  "libs/marked.js",
-  "app/Helpers/jspath.coffee",
-
   # --- Applications ---
   "app/MainApp/channels/kitechannel.coffee",
   "app/MainApp/ApplicationManager.coffee",
@@ -464,10 +289,6 @@ module.exports = [
   "app/Applications/Ace.kdapplication/acesettings.coffee",
   "app/Applications/Ace.kdapplication/acefindandreplaceview.coffee",
 
-  # termlib shell
-  #  'app/Applications/Shell.kdapplication/AppRequirements.coffee',
-  #  'app/Applications/Shell.kdapplication/termlib/src/termlib.js',
-
   # viewer
   'app/Applications/Viewer.kdapplication/topbar.coffee',
   'app/Applications/Viewer.kdapplication/AppController.coffee',
@@ -488,8 +309,10 @@ module.exports = [
 
   # --- ApplicationPageViews ---
   "app/Applications/Activity.kdapplication/activitylistcontroller.coffee",
+
   # ACTIVITY VIEWS
   "app/Applications/Activity.kdapplication/AppView.coffee",
+
   # Activity commons
   "app/Applications/Activity.kdapplication/views/activityactions.coffee",
   "app/Applications/Activity.kdapplication/views/activityinnernavigation.coffee",
@@ -531,12 +354,14 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/link.coffee",
+
   # Activity content displays commons
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayAuthorAvatar.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayMeta.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayTags.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayComments.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayScoreBoard.coffee",
+
   # Activity List Items
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItem.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemStatusUpdate.coffee",
@@ -629,11 +454,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
   "app/Applications/Groups.kdapplication/Views/blockedusersview.coffee",
   "app/Applications/Groups.kdapplication/Views/blockeduserslistitemview.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
-  # "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
@@ -642,11 +462,8 @@ module.exports = [
   "app/Applications/Apps.kdapplication/AppView.coffee",
 
   "app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee",
-  "app/Applications/Apps.kdapplication/Views/AppSubmission.coffee",
   "app/Applications/Apps.kdapplication/Views/appinfoview.coffee",
   "app/Applications/Apps.kdapplication/Views/appview.coffee",
-  # "app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee",
-  # "app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee",
   "app/Applications/Apps.kdapplication/Views/appdetailsview.coffee",
 
   "app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee",
@@ -710,12 +527,8 @@ module.exports = [
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
   "app/Applications/Home.kdapplication/Views/counterview.coffee",
 
-  #ABOUT VIEWS
-
   # DEMO VIEWS
   "app/Applications/Demos.kdapplication/AppView.coffee",
-
-  # "app/Applications/GroupsFake.kdapplication/AppController.coffee",
 
   # ACCOUNT CONTROLLERS
   "app/Applications/Account.kdapplication/controllers/accountnavigationcontroller.coffee",
@@ -734,7 +547,6 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/repos.coffee",
   "app/Applications/Account.kdapplication/views/sshkeys.coffee",
   "app/Applications/Account.kdapplication/views/kodingkeys.coffee",
-
   "app/Applications/Account.kdapplication/views/paymenthistory.coffee",
   "app/Applications/Account.kdapplication/views/paymentmethods.coffee",
   "app/Applications/Account.kdapplication/views/subscriptions.coffee",
@@ -743,7 +555,6 @@ module.exports = [
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
-
   "app/Applications/Dashboard.kdapplication/AppController.coffee",
   "app/Applications/Dashboard.kdapplication/AppView.coffee",
 
@@ -760,7 +571,6 @@ module.exports = [
   "app/MainApp/kite/newkite.coffee"
   # Virtualization CONTROLLER
   "app/MainApp/VirtualizationController.coffee",
-
 
   # WORKSPACE
   "app/CommonViews/workspace/panes/pane.coffee",
@@ -846,27 +656,12 @@ module.exports = [
   "app/MainApp/mixpanel.coffee",
   "app/MainApp/analytic.coffee",
 
-  # --- Styles ---
-  "css/style.css",
+  # STYLES
+
   "css/highlight-styles/sunburst.css",
 
-  "Framework/themes/default/kdfn.styl",
+  "stylus/kdfn.styl",
   "stylus/appfn.styl",
-
-  "Framework/themes/default/kd.styl",
-  "Framework/themes/default/kd.input.styl",
-  "Framework/themes/default/kd.treeview.styl",
-  "Framework/themes/default/kd.contextmenu.styl",
-  "Framework/themes/default/kd.dialog.styl",
-  "Framework/themes/default/kd.buttons.styl",
-  "Framework/themes/default/kd.scrollview.styl",
-  "Framework/themes/default/kd.modal.styl",
-  "Framework/themes/default/kd.progressbar.styl",
-  "Framework/themes/default/kd.sliderbar.styl",
-  "Framework/themes/default/kd.form.styl",
-  "Framework/themes/default/kd.tooltip.styl",
-  "Framework/themes/default/kd.dia.styl",
-
   "stylus/app.styl",
   "stylus/app.bottom.styl",
   "stylus/app.splitlayout.styl",
@@ -907,6 +702,13 @@ module.exports = [
   # "stylus/app.predefined.styl",
   # "stylus/app.envsettings.styl",
 
+  # WebTerm Themes
+  "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
+  "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
+  "app/Applications/WebTerm.kdapplication/themes/black-on-white.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
+
   # mediaqueries should stay at the bottom
   "stylus/app.1200.styl",
   "stylus/app.1024.styl",
@@ -914,10 +716,4 @@ module.exports = [
   "stylus/app.480.styl",
   "stylus/app.400.styl",
 
-  "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
-  "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
-  "app/Applications/WebTerm.kdapplication/themes/black-on-white.styl",
-  "app/Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
-  "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
-  # "includes/footer.inc.js"
 ]
