@@ -338,7 +338,7 @@ module.exports = class Builder
       names       : []
       mappings    : ""
 
-    process.stdout.write " - Updating scripts for #{project.type} #{project.title} ... "
+    process.stdout.write "\n - Updating scripts for #{project.type} #{project.title} ... "
     fileLineOffset = 0
     firstInLine = true
 
@@ -384,7 +384,7 @@ module.exports = class Builder
     @showFileInfo filepath, project, 'scripts' # project.outputs.script, project.files.scripts.length, scripts
 
   buildCSS: (options, project)->
-    process.stdout.write "\n - Updating styles for #{project.type} #{project.title} ... "
+    process.stdout.write " - Updating styles for #{project.type} #{project.title} ... "
     code = ""
     for file in project.files.styles
       code += file.content+"\n"
