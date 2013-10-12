@@ -211,6 +211,9 @@ module.exports = class Builder
           if not (path.basename(file.sourcePath) in fs.readdirSync(path.dirname(file.sourcePath)))
             log.error "File name case is wrong: " + includePath
             process.exit 1
+          else
+            if file.sourcePath in @blackList
+              @blackList.splice (@blackList.indexOf file.sourcePath), 1
 
           switch file.extension
             when ".coffee", ".js"
