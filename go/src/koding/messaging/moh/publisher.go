@@ -37,8 +37,9 @@ const (
 	unsubscribe
 )
 
-// NewPublisher creates a new Publisher and returns a pointer to it.
-// The publisher will listen on addr and accept websocket connections from Subscribers.
+// NewPublisher creates a new Publisher and returns a pointer to it.  The
+// publisher will listen on addr and accept websocket connections from
+// Subscribers.
 func NewPublisher(addr string) (*Publisher, error) {
 	s, err := NewMessagingServer(addr)
 	if err != nil {
@@ -61,11 +62,11 @@ func NewPublisher(addr string) (*Publisher, error) {
 
 // Publish sends a message to registered Subscribers with the key.
 func (p *Publisher) Publish(key string, message []byte) {
-	log.Println("Sending message to send channel")
+	// log.Println("Sending message to send channel", string(message))
 	for c := range p.filters[key] {
 		select {
 		case c.send <- message:
-			log.Println("Message sent to send channel")
+			// log.Println("Message sent to send channel")
 		default:
 			// Buffer is full, writer() is not fast enough to send all published messages .
 			// Drop the websocket client and let it synchronize by re-connecting.
@@ -95,8 +96,8 @@ func (p *Publisher) makeWsHandler() websocket.Handler {
 }
 
 // registrar receives publiserEvents from the channel and updates filters.
-// Adds or removes the connections from filters as if necessary.
-// Synchronizes the modifier operations on Publisher.filters field.
+// Adds or removes the connections from filters as if necessary.  Synchronizes
+// the modifier operations on Publisher.filters field.
 func (p *Publisher) registrar() {
 	for event := range p.events {
 		switch event.eventType {
@@ -122,7 +123,8 @@ type connection struct {
 	keys map[string]bool
 }
 
-// reader reads the subscription requests from websocket and saves it in a map for accessing later.
+// reader reads the subscription requests from websocket and saves it in a map
+// for accessing later.
 func (c *connection) reader(ch chan publisherEvent) {
 	for {
 		var cmd subscriberCommand
@@ -131,7 +133,8 @@ func (c *connection) reader(ch chan publisherEvent) {
 			log.Println("reader: Cannot receive message from websocket")
 			break
 		}
-		log.Println("reader: Received a command from websocket: %s", cmd)
+
+		log.Printf("reader: Received a command from websocket: %+v\n", cmd)
 		if cmd.Name == "subscribe" {
 			key := cmd.Args["key"].(string)
 			ch <- publisherEvent{conn: c, eventType: subscribe, key: key}

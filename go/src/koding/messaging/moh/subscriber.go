@@ -10,7 +10,8 @@ import (
 
 const reconnectInterval = 100 * time.Millisecond
 
-// Subscriber is a websocket client that is used to connect to a Publisher and consume published messages.
+// Subscriber is a websocket client that is used to connect to a Publisher and
+// consume published messages.
 type Subscriber struct {
 	// Path of the server to be connected
 	url *url.URL
@@ -22,16 +23,17 @@ type Subscriber struct {
 	// Consumed messages will be handled with this function.
 	handler func([]byte)
 
-	// Subscription keys are also saved here so we can re-send "subscribe" commands when re-connect.
+	// Subscription keys are also saved here so we can re-send "subscribe"
+	// commands when re-connect.
 	keys map[string]bool
 
 	// For controlling access over keys
 	keysMutex sync.Mutex
 }
 
-// NewSubscriber opens a websocket connection to a Publisher and
-// returns a pointer to newly created Subscriber.
-// After creating a Subscriber you should subscribe to messages with Subscribe function.
+// NewSubscriber opens a websocket connection to a Publisher and returns a
+// pointer to newly created Subscriber.  After creating a Subscriber you should
+// subscribe to messages with Subscribe function.
 func NewSubscriber(urlStr string, handler func([]byte)) (*Subscriber, error) {
 	parsed, err := url.Parse(urlStr)
 	if err != nil {
@@ -74,8 +76,8 @@ func (s *Subscriber) Subscribe(key string) {
 		Args: args{"key": key},
 	}
 
-	// We do not check for the error here because
-	// if it fails the command will be sent by sendSubscriptionCommands() after re-connecting.
+	// We do not check for the error here because if it fails the command will
+	// be sent by sendSubscriptionCommands() after re-connecting.
 	websocket.JSON.Send(ws, cmd)
 }
 
@@ -163,7 +165,6 @@ func (s *Subscriber) sendSubscriptionCommands() error {
 func (s *Subscriber) consumer() {
 	for {
 		var message []byte
-		log.Println("Reading from websocket")
 		err := websocket.Message.Receive(s.ws, &message)
 		if err != nil {
 			log.Println("Cannot read message from websocket")
@@ -175,7 +176,7 @@ func (s *Subscriber) consumer() {
 			go s.connector()
 			return
 		}
-		log.Println("Received data:", message)
+		// log.Println("Received data:", string(message))
 		s.handler(message)
 	}
 }

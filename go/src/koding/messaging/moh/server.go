@@ -14,13 +14,14 @@ type MessagingServer struct {
 	Mux      *http.ServeMux
 }
 
-// An error string equivalent to net.errClosing for using with http.Serve() during a graceful exit.
-// It was not exported by "net" package, so I had to put it here.
+// An error string equivalent to net.errClosing for using with http.Serve()
+// during a graceful exit.  It was not exported by "net" package, so I had to
+// put it here.
 const errClosing = "use of closed network connection"
 
-// NewMessagingServer returns a pointer to a new ClosableServer.
-// After creation, handlers can be registered on Mux and the server
-// can be started with Serve() function. Then, you can close it with Close().
+// NewMessagingServer returns a pointer to a new ClosableServer.  After
+// creation, handlers can be registered on Mux and the server can be started
+// with Serve() function. Then, you can close it with Close().
 func NewMessagingServer(addr string) (*MessagingServer, error) {
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -35,7 +36,7 @@ func NewMessagingServer(addr string) (*MessagingServer, error) {
 
 // Serve runs the HTTP server until it is closed by Close() method.
 func (s *MessagingServer) Serve() {
-	log.Println("Serving on: %s", s.Addr())
+	log.Printf("Serving on: %s\n", s.Addr())
 	err := http.Serve(s.listener, s.Mux)
 	if strings.Contains(err.Error(), errClosing) {
 		// The server is closed by Close() method
