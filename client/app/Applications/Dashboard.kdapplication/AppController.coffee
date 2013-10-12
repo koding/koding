@@ -103,14 +103,15 @@ class DashboardAppController extends AppController
   policyViewAdded: (pane, view) ->
 
   paymentViewAdded: (pane, view) ->
+
     paymentController = KD.getSingleton 'paymentController'
 
     group = @getData()
 
     group.fetchPaymentMethod (err, paymentMethod) ->
-      console.log { err, paymentMethod }
-    # paymentController.fetchBillingInfo 'group', (err, billingInfo) =>
-      view.setBillingInfo paymentMethod
+      return new KDNotificationView title: err.message  if err
+
+      view.setBillingInfo paymentMethod  if paymentMethod
 
     @paymentView = view
 
@@ -139,20 +140,28 @@ class DashboardAppController extends AppController
 
   createBillingInfoModal: ->
 
+    console.trace()
+
     paymentController = KD.getSingleton "paymentController"
 
     billingInfoModal = paymentController.createBillingInfoModal 'group', {}
+    billingInfoModal.showLoader()
 
-    paymentController.fetchBillingInfo 'group', (err, groupBillingInfo) ->
+    group = @getData()
 
-      if groupBillingInfo
-        billingInfoModal.setBillingInfo groupBillingInfo
+    group.fetchPaymentMethod (err, groupBillingMethod) ->
+
+      if groupBillingMethod
+        billingInfoModal.hideLoader()
+        billingInfoModal.setBillingInfo groupBillingMethod
 
       else
-        paymentController.fetchBillingInfo 'user', (err, personalBillingInfo) ->
 
-          if personalBillingInfo
-            { billing } = personalBillingInfo
+        KD.whoami().fetchPaymentMethods (err, personalBillingMethods) ->
+
+          billingInfoModal.hideLoader()
+
+          if personalBillingMethods
 
             useExistingModal = new KDModalView
               title: 'Would you like to link an existing payment method?'
@@ -161,12 +170,17 @@ class DashboardAppController extends AppController
                   style       : 'modal-cancel'
                   callback    : -> useExistingModal.destroy()
 
-            billingMethodView = new BillingMethodView {}, billing
-            useExistingModal.addSubView billingMethodView
 
-            billingMethodView.on 'BillingEditRequested', ->
-              billingInfoModal.setBillingInfo personalBillingInfo.billing
-              useExistingModal.destroy()
+            personalBillingMethods.forEach ({ accountCode, billing }) ->
+
+              billingMethodView = new BillingMethodView {}, billing
+              useExistingModal.addSubView billingMethodView
+              destroy = useExistingModal.bound 'destroy'
+              billingInfoModal.on 'KDObjectWillBeDestroyed', destroy
+
+              billingMethodView.on 'BillingEditRequested', ->
+                console.log { accountCode }
+                # group.addPaymentMethod
 
 
     return billingInfoModal
