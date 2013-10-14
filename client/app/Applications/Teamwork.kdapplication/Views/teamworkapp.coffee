@@ -14,7 +14,7 @@ class TeamworkApp extends KDObject
       firebaseInstance    : instanceName
       sessionKey          : @getOptions().sessionKey
       enableChat          : yes
-      PanelClass          : TeamworkPanel
+      panelClass          : TeamworkPanel
       delegate            : this
       panels              : [
         title             : "Teamwork"
