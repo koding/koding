@@ -117,10 +117,7 @@ class MainView extends KDView
 
     wrapper.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
-      title       : 'Already a user? Sign in.'
-      icon        :
-        placement : 'right'
-      cssClass    : 'login'
+      title       : 'Login'
       attributes  :
         href      : '/Login'
       click       : (event)->
