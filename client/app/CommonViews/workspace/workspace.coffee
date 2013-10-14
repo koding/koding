@@ -19,7 +19,7 @@ class Workspace extends JView
 
     @init()
 
-  init: -> @bound "createPanel"
+  init: -> @createPanel()
 
   createPanel: (callback = noop) ->
     panelOptions          = @getOptions().panels[@lastCreatedPanelIndex]
