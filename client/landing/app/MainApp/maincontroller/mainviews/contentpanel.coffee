@@ -4,16 +4,15 @@ class ContentPanel extends KDView
 
     super options, data
 
-    @registerSingleton "contentPanel", @, yes
+    @registerSingleton "contentPanel", this, yes
     @bindTransitionEnd()
     @listenWindowResize()
-    @state = 'full'
-    @chatMargin = 0
+
+    @state              = 'full'
+    @chatMargin         = 0
     @windowController or= KD.getSingleton 'windowController'
-
-    @navOpenedOnce = yes #if KD.isLoggedIn() then yes else no
-
-    mainViewController = KD.getSingleton "mainViewController"
+    @navOpenedOnce      = yes #if KD.isLoggedIn() then yes else no
+    mainViewController  = KD.getSingleton "mainViewController"
     mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
     mainViewController.on "browseRequested", @bound "browseRequested"
 
@@ -25,10 +24,13 @@ class ContentPanel extends KDView
   nameMap =
     Home    : 'adjustForFullWidth'
 
+
   browseRequested:->
+
     @navOpenedOnce = yes
     @adjustForSocial()
     KD.getSingleton("mainView").mainTabView.changeLayout hideTabs : no
+
 
   changeLayout:(options)->
 
@@ -40,36 +42,50 @@ class ContentPanel extends KDView
 
     @adjustLayoutHelper name, type
 
+
   resetToCurrentState:->
+
     switch @state
       when 'develop' then @adjustForDevelop()
       when 'social'  then @adjustForSocial()
       when 'full'    then @adjustForFullWidth()
 
+
   adjustShadow:(hideTabs)->
+
     @[if hideTabs then 'setClass' else 'unsetClass'] "no-shadow"
 
+
   adjustLayoutHelper:(name, type)->
+
     if @navOpenedOnce # KD.isLoggedIn() or
     then @[nameMap[name] or typeMap[type] or typeMap[@state]]?()
     else @adjustForFullWidth()
 
+
   adjustForFullWidth:->
+
     @setX 0
-    @setWidth @windowController.winWidth - @chatMargin
+    @getElement().style.width = "100%"
+    # @setWidth @windowController.winWidth - @chatMargin
     @setClass 'full'
     @state = 'full'
 
+
   adjustForDevelop:->
+
     @setX 260
     @setWidth @windowController.winWidth - 260 - @chatMargin
     @setClass 'develop'
     @state = 'develop'
 
+
   adjustForSocial:->
+
     offset = if @windowController.winWidth < 768 then 50 else 160
     @setWidth @windowController.winWidth - offset - @chatMargin
     @setClass 'social'
     @state = 'social'
+
 
   _windowDidResize: @::adjustLayoutHelper
