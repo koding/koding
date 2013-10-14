@@ -18,8 +18,26 @@ log =
   debug : console.log
   warn  : console.log
 
+formatByte = (bytes) ->
+  minus = ''
+  if bytes < 0
+    minus  = '-'
+    bytes *= -1
+  thresh    = 1024
+  units     = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+  unitIndex = -1
+  return "#{bytes} B"  if bytes < thresh
+  loop
+    bytes /= thresh
+    ++unitIndex
+    break unless bytes >= thresh
+
+  return "#{minus}#{bytes.toFixed 2} #{units[unitIndex]}"
+
 module.exports = class Builder
+
   buildClient: (options) ->
+
     @config = require('koding-config-manager').load("main.#{options.configFile}")
 
     try fs.mkdirSync ".build"
@@ -32,33 +50,105 @@ module.exports = class Builder
       @buildAndWatchClient options
 
   buildAndWatchClient: (options) ->
-    @includesFileTime = 0
+
+    @projectsToBuild = {}
+    @fileSizes = {}
+    @blackList = []
+
+    addProject = (title, project, ptype)=>
+
+      @projectsToBuild[title] =
+        title       : title
+        includes    : project.files
+        subprojects : project.projects
+        changed     : no
+        fileTimes   : {}
+        files       :
+          scripts   : []
+          styles    : []
+        outputs     :
+          script    : project.script
+          style     : project.style
+        type        : ptype
+        sourceMapRoot : project.sourceMapRoot ? ''
+
+    {projects, bundles} = require './projects'
+
+    for own title, project of projects
+      addProject title, project, 'project'
+
+    for own title, bundle of bundles
+      addProject title, bundle, 'bundle'
+
     @compileChanged options, true
 
+  shortenText:(a, l)->
+    l ?= process.stdout.columns - 40
+    return a if a.length < l - 5
+    return a[0..l/2 - 5] + '...' + a[a.length - l/2..a.length]
+
   compileChanged: (options, initial)->
+
     includesChanged = @readIncludesFile()
 
-    bar = new ProgressBar 'Building client... [:bar] :percent :elapseds', {total: @scripts.length + @styles.length, width:50, incomplete:" "} if initial
+    if initial
+      total = 0
+      for own _key, project of @projectsToBuild when project.type isnt 'bundle'
+        total+= project.files.scripts.length + project.files.styles.length
 
-    scriptsChanged = false
-    for file in @scripts
-      scriptsChanged |= @compileFile file
-      bar.tick() if initial
+    changedJS  = []
+    changedCSS = []
 
-    stylesChanged = false
-    for file in @styles
-      stylesChanged |= @compileFile file
-      bar.tick() if initial
+    for own _key, project of @projectsToBuild when project.type isnt 'bundle'
 
-    console.log "" if initial
+      if initial
+        log.info "- Compiling #{project.title} ... "
+        bar = new ProgressBar "[:bar] :percent :elapseds", \
+          {total : project.files.scripts.length + project.files.styles.length, \
+           width : 20, incomplete:" "}
 
-    @buildJS options if initial or includesChanged or scriptsChanged
-    @buildCSS options if initial or includesChanged or stylesChanged
-    @buildHTML options if initial or includesChanged or scriptsChanged
+      scriptsChanged = false
+      stylesChanged  = false
+      folderIndex = 0
+      folders = [project.files.scripts, project.files.styles]
+      for folder in folders
+        for file in folder
+          if folderIndex is 0
+          then scriptsChanged |= @compileFile file
+          else stylesChanged  |= @compileFile file
+          continue unless initial
+          sp = @shortenText file.sourcePath
+          bar.fmt = " [:bar] :percent :elapseds #{sp} "# - #{file.sourcePath}"
+          bar.tick()
+        folderIndex++
+
+      log.info "" if initial
+
+      if initial or project.changed or scriptsChanged
+        @buildJS options, project
+        changedJS.push project.title
+
+      if project.outputs.style
+        if initial or project.changed or stylesChanged
+          @buildCSS options, project
+          changedCSS.push project.title
+
+      log.info "" if initial
+
+    log.info "- Compiling bundles ..." if initial
+    builtBundles = {js:[], css:[]}
+    for own _key, project of @projectsToBuild when project.type is 'bundle'
+      for subproject in project.subprojects
+        if subproject in changedJS and project not in builtBundles.js
+          @buildJS options, project
+          builtBundles.js.push project
+        if subproject in changedCSS and project not in builtBundles.css
+          @buildCSS options, project
+          builtBundles.css.push project
 
     if @config.client.watch is yes
       if initial
-        log.info "Watching for changes..."
+        log.info "\n All done. Watching for changes... \n"
         @livereloads = []
         wss = new WebSocketServer port: 35729, path: "/livereload"
         wss.on 'connection', (ws)=>
@@ -75,40 +165,77 @@ module.exports = class Builder
       , @config.client.watchDuration or 5000
 
   readIncludesFile: ->
-    includesFile = @config.client.includesPath + "/includes.coffee"
-    time = Date.parse(fs.statSync(includesFile).mtime)
-    return false if @includesFileTime == time
-    @includesFileTime = time
 
-    @scripts = []
-    @styles = []
-    for includePath in CoffeeScript.eval(fs.readFileSync(includesFile, "utf-8"))
-      cachePath = ".build/" + includePath.replace(/\//g,"_")
-      file = {
-        includePath: includePath
-        sourcePath: @config.client.includesPath + "/" + includePath
-        cachePath: cachePath
-        sourceMapPath: cachePath + ".map"
-        cacheTime: if fs.existsSync(cachePath) then Date.parse(fs.statSync(cachePath).mtime) else 0
-        extension: path.extname(includePath)
-      }
+    changed = no
 
-      if not (path.basename(file.sourcePath) in fs.readdirSync(path.dirname(file.sourcePath)))
-        log.error "File name case is wrong: " + includePath
-        process.exit 1
+    for own _key, project of @projectsToBuild
 
-      switch file.extension
-        when ".coffee", ".js"
-          @scripts.push file
-        when ".styl", ".css"
-          @styles.push file
-        else
-          throw "Unrecognized file extension."
+      if project.type is 'bundle'
+        _changed = no
 
-    return true
+        project.files = scripts:[], styles:[]
+        for subproject in project.subprojects
+          subproject = @projectsToBuild[subproject]
+          project.files.scripts = \
+            project.files.scripts.concat subproject.files.scripts
+          project.files.styles  = \
+            project.files.styles.concat subproject.files.styles
+          _changed |= subproject.changed
+
+        project.changed = _changed
+
+      else
+
+        time = Date.parse(fs.statSync(project.includes).mtime)
+        if project.fileTime == time
+          project.changed = no
+          continue
+
+        project.fileTime = time
+        project.changed  = yes
+        project.files    = scripts:[], styles:[]
+        changed |= project.changed
+        for includePath in CoffeeScript.eval(fs.readFileSync(project.includes, "utf-8"))
+
+          cachePath = ".build/#{includePath.replace /\//g, "_" }"
+
+          file =
+            sourceMapPath : cachePath + ".map"
+            sourceMapRoot : project.sourceMapRoot
+            includePath   : includePath
+            sourcePath    : "#{path.dirname(project.includes)}/#{includePath}"
+            cachePath     : cachePath
+            cacheTime     : if fs.existsSync(cachePath) then Date.parse(fs.statSync(cachePath).mtime) else 0
+            extension     : path.extname(includePath)
+
+          if not (path.basename(file.sourcePath) in fs.readdirSync(path.dirname(file.sourcePath)))
+            log.error "File name case is wrong: " + includePath
+            process.exit 1
+          else
+            if file.sourcePath in @blackList
+              @blackList.splice (@blackList.indexOf file.sourcePath), 1
+
+          switch file.extension
+            when ".coffee", ".js"
+              project.files.scripts.push file
+            when ".styl", ".css"
+              project.files.styles.push file
+            else
+              throw "Unrecognized file extension."
+
+    return changed
 
   compileFile: (file)->
-    sourceTime = Date.parse fs.statSync(file.sourcePath).mtime
+
+    return false  if file.sourcePath in @blackList
+
+    try
+      sourceTime = Date.parse fs.statSync(file.sourcePath).mtime
+    catch e
+      log.info "Failed to read file #{file.sourcePath}"
+      file.content = ''
+      @blackList.push file.sourcePath
+      return true
 
     if sourceTime <= file.cacheTime
       if not file.content?
@@ -139,6 +266,7 @@ module.exports = class Builder
               r = /^class (\w+)/gm
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
+
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
             spawn.apply null, ["say", ["coffeescript error"]]
@@ -176,8 +304,11 @@ module.exports = class Builder
           fs.writeFileSync file.sourceMapPath, sourceMapJSON, "utf8"
           file.sourceMap = new SourceMap.SourceMapConsumer(sourceMapJSON)._generatedMappings
       when ".styl"
-        Stylus(source).set('compress',true).use(nib()).render (err, css)=> # callback is synchronous
-          log.error "error with styl file at #{file.includePath}" if err
+
+        rootPath = path.dirname(file.sourcePath)
+        stylus = Stylus(source).set('compress',true).set('paths', [rootPath]).use(nib())
+        stylus.render (err, css)=> # callback is synchronous
+          log.error "error with styl file at #{file.includePath}:\n #{err}" if err
           file.content = css
       when ".css"
         file.content = source
@@ -188,7 +319,8 @@ module.exports = class Builder
     file.cacheTime = sourceTime
     return true
 
-  buildJS: (options)->
+  buildJS: (options, project)->
+
     # NOTE: DO NOT WRAP EVERYTHING IN A CLOSURE BY DESIGN
     # Some of our libraries expect that they'll be executed in
     # the global scope.  This can introduce subtle errant
@@ -196,14 +328,17 @@ module.exports = class Builder
     # DON'T DO THIS:
     # js = "(function(){ "
     # serve the JS bare instead:
+
     js = ''
     sourceMap =
-      version: 3
-      file: @config.client.js
-      sourceRoot: @config.client.runtimeOptions.sourceUri
-      sources: file.includePath for file in @scripts
-      names: []
-      mappings: ""
+      version     : 3
+      file        : project.outputs.script
+      sourceRoot  : @config.client.runtimeOptions.sourceUri
+      sources     : "#{file.sourceMapRoot}#{file.includePath}" for file in project.files.scripts
+      names       : []
+      mappings    : ""
+
+    process.stdout.write "\n - Updating scripts for #{project.type} #{project.title} ... "
     fileLineOffset = 0
     firstInLine = true
 
@@ -213,7 +348,7 @@ module.exports = class Builder
     previousOriginalColumn = 0
     previousSource = 0
 
-    for file, scriptIndex in @scripts
+    for file, scriptIndex in project.files.scripts
       js += file.content + "\n"
       for mapping in (file.sourceMap ? [])
         while previousGeneratedLine < fileLineOffset + mapping.generatedLine
@@ -240,33 +375,35 @@ module.exports = class Builder
 
       fileLineOffset += file.content.split("\n").length
 
-    js += "//@ sourceMappingURL=/#{@config.client.js}.map"
+    js += "//@ sourceMappingURL=/#{project.outputs.script}.map"
 
-    fs.writeFileSync @config.client.websitePath + "/" + @config.client.js, js
-    fs.writeFileSync @config.client.websitePath + "/" + @config.client.js + ".map", JSON.stringify(sourceMap)
-    log.info "Build complete: #{@config.client.js}"
+    filepath = project.outputs.script
+    fs.writeFileSync filepath, js
+    fs.writeFileSync filepath + ".map", JSON.stringify(sourceMap)
 
-  buildCSS: (options)->
+    @showFileInfo filepath, project, 'scripts' # project.outputs.script, project.files.scripts.length, scripts
+
+  buildCSS: (options, project)->
+    process.stdout.write " - Updating styles for #{project.type} #{project.title} ... "
     code = ""
-    for file in @styles
+    for file in project.files.styles
       code += file.content+"\n"
-    fs.writeFileSync @config.client.websitePath + "/" + @config.client.css, code
-    log.info "Build complete: #{@config.client.css}"
+    filepath = project.outputs.style
+    fs.writeFileSync filepath, code
 
-  # Deprecated. Look at render-homepage for groups and profileviews
-  buildHTML: (options)->
-    index = fs.readFileSync @config.client.includesPath + "/" + @config.client.indexMaster, 'utf-8'
-    index = index.replace "js/kd.js", "js/kd.#{@config.client.version}.js?" + Date.now()
-    index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
-    index = index.replace "rollbar-env", @getEnvForRollbar()
-    index = index.replace "rollbar-version", @config.client.version
-    index = index.replace '<!--KONFIG-->', @config.getConfigScriptTag(roles:['guest'], permissions:[]) # entryPoint: 'koding'
-    if @config.client.useStaticFileServer is no
-      st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
-      index = index.replace ///#{st}///g,""
-      # log.warn "Static files will be served from NodeJS process. (because -d vpn is used - ONLY DEVS should do this.)"
-    fs.writeFileSync @config.client.websitePath + "/" + @config.client.index, index
-    log.info "Build complete: #{@config.client.index}"
+    @showFileInfo filepath, project, 'styles' # project.outputs.style, project.files.styles.length, styles
 
   getEnvForRollbar: ->
     return if @config.client.version is "0.0.1" then "development" else "production"
+
+  showFileInfo:(filepath, project, ptype )->
+
+    {size} = fs.statSync filepath
+
+    oldSize = @fileSizes[filepath]
+    oldSize = if oldSize then "it was #{formatByte oldSize} and the diff is #{formatByte size - oldSize} " else ''
+
+    # console.log project, ptype
+    process.stdout.write "#{filepath}\n - Includes #{project.files[ptype].length} #{ptype}, filesize is #{formatByte size} #{oldSize} \n"
+    @fileSizes[filepath] = size
+

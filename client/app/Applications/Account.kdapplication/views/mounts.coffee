@@ -279,7 +279,7 @@ class AccountMountList extends KDListView
 
       height =  items.length*75
 
-      for own item in items
+      for item in items
         lines[item] = new KDView cssClass : "modalformline"
         lines[item].addSubView label = _fe()[item].label
         lines[item].addSubView input = _fe()[item].input

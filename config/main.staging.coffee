@@ -90,8 +90,15 @@ module.exports =
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
-    cronSchedule         : '* * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
@@ -112,9 +119,6 @@ module.exports =
     watch         : no
     watchDuration : 300
     includesPath  : 'client'
-    websitePath   : 'website'
-    js            : "js/kd.#{version}.js"
-    css           : "css/kd.#{version}.css"
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
@@ -158,7 +162,7 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     webProtocol : 'http:'
-    webHostname : "stage-broker-#{version}.in.koding.com"
+    webHostname : "stage-broker-#{version}.sj.koding.com"
     webPort     : null
     authExchange: authExchange
     authAllExchange: authAllExchange
