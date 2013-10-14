@@ -1,6 +1,6 @@
 class TeamworkMarkdownModal extends KDModalView
 
-  constructor: (options, data) ->
+  constructor: (options = {}, data) ->
 
     options.title    = "README"
     options.cssClass = "has-markdown teamwork-markdown"
