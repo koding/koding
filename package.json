@@ -63,6 +63,6 @@
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
-    "node": "*"
+    "node": "0.10.20"
   }
 }

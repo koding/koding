@@ -141,6 +141,10 @@ class Ace extends KDView
     unless /localfile:/.test file.path
       @notify "Loading...", null, null, 10000
       file.fetchContents callback
+      {vmName, path} = file
+      FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
+        return if err or not info
+        @emit "FileIsReadOnly"  unless info.writable
     else
       callback null, file.contents or ""
 
@@ -298,6 +302,8 @@ class Ace extends KDView
     @editor.getSession().setUseWrapMode value
     return  unless save
     @appStorage.setValue 'useWordWrap', value
+
+  setReadOnly:(value)-> @editor.setReadOnly value
 
   setSoftWrap:(value, save = yes)->
     softWrapValueMap =

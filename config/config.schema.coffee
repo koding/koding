@@ -140,9 +140,6 @@ config =
       watch         : 1
       watchDuration : 1
       includesPath  : 1
-      websitePath   : 1
-      js            : 1
-      css           : 1
       indexMaster   : 1
       index         : 1
       useStaticFileServer: 1
