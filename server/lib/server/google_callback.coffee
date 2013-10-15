@@ -66,17 +66,21 @@ module.exports = (req, res) ->
     rawResp = ""
     contactsResp.on "data", (chunk) -> rawResp += chunk
     contactsResp.on "end", ->
-      parseString rawResp, (err, result) ->
-        if err
-          renderOauthPopup res, {error:"Error parsing contacts info", provider:"google"}
-          return
+      try
+        parseString rawResp, (err, result) ->
+          if err
+            renderOauthPopup res, {error:"Error parsing contacts info", provider:"google"}
+            return
 
-        for i in result.feed.entry
-          for e in i["gd:email"]
-            email = e["$"].address
-            JReferrableEmail.create clientId, email, (err)->
+          for i in result.feed.entry
+            for e in i["gd:email"]
+              email = e["$"].address
+              JReferrableEmail.create clientId, email, (err)->
+                console.log "error saving JReferrableEmail", err
+      catch e
+        console.log "google callback error parsing emails"
 
-        renderOauthPopup res, {error:null, provider:"google"}
+      renderOauthPopup res, {error:null, provider:"google"}
 
   authorizeUser = (authUserResp)->
     rawResp = ""
