@@ -4,6 +4,8 @@ class AccountPaymentMethodsListController extends AccountListViewController
     options.noItemFoundText = "You have no payment method."
     super options, data
 
+    data = @getData()
+
     @loadItems()
 
     @on "reload", (data)=>
@@ -14,27 +16,15 @@ class AccountPaymentMethodsListController extends AccountListViewController
     list.on 'ItemWasAdded', (item) =>
       item.on 'PaymentMethodEditRequested', @bound 'editPaymentMethod'
       item.on 'PaymentMethodRemoveRequested', (data) =>
-        modal = new KDModalView
-          title: 'Are you sure?'
-          content:
-            """
-            <div class='modalformline'>
-              <p>
-                Are you sure that you want to remove this payment method?
-              </p>
-            </div>
-            """
-          buttons:
-            Remove:
-              style: "modal-clean-red"
-              callback: =>
-                modal.destroy()
-                @removePaymentMethod data, item
-            cancel:
-              style: "modal-cancel"
-              callback: ->
-                modal.destroy()
-        modal.addSubView new BillingMethodView {}, data.billing
+        modal = KDModalView.confirm
+          title       : 'Are you sure?'
+          description : 'Are you sure that you want to remove this payment method?'
+          subView     : new BillingMethodView {}, data
+          ok          :
+            title     : 'Remove'
+            callback  : =>
+              modal.destroy()
+              @removePaymentMethod data, item
 
     list.on 'reload', (data) => @loadItems()
 
@@ -69,8 +59,13 @@ class AccountPaymentMethodsListController extends AccountListViewController
     paymentController = KD.getSingleton 'paymentController'
 
     modal = paymentController.createBillingInfoModal()
+    modal.on 'viewAppended', ->
+      if initialBillingInfo?
+        modal.setState 'editExisting', initialBillingInfo
+      else
+        modal.setState 'createNew'
 
-    modal.setBillingInfo initialBillingInfo.billing  if initialBillingInfo?
+        # modal.setBillingInfo initialBillingInfo.billing
 
     modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) =>
       paymentController.updateBillingInfo initialBillingInfo?.accountCode, updatedBillingInfo, (err, res) =>
@@ -98,7 +93,7 @@ class AccountPaymentMethodsListItem extends KDListItemView
 
     data = @getData()
 
-    @billingMethod = new BillingMethodView {}, @getData().billing
+    @billingMethod = new BillingMethodView {}, @getData()
 
     @billingMethod.on 'BillingEditRequested', =>
       @emit 'PaymentMethodEditRequested', data

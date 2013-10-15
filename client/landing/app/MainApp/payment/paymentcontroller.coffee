@@ -96,7 +96,7 @@ class PaymentController extends KDController
     JPayment.setBillingInfo accountCode, billingInfo, callback
 
 
-  createBillingInfoModal: (billingInfo) ->
+  createBillingInfoModal: ->
 
     modal = new BillingFormModal
 #

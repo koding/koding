@@ -1,4 +1,4 @@
-class BillingFormModal extends KDModalViewWithForms
+class BillingFormModal extends KDModalView
 
   constructor: (options = {}, data = {}) ->
 
@@ -8,6 +8,9 @@ class BillingFormModal extends KDModalViewWithForms
     options.cssClass or= 'payments-modal'
     options.overlay   ?= yes
 
+    super options, data
+
+  createBillingForm:->
     thisYear = (new Date).getFullYear()
 
     fields =
@@ -103,7 +106,9 @@ class BillingFormModal extends KDModalViewWithForms
       #   placeholder       : '(optional)'
       #   defaultValue      : data.phone
 
-    options.tabs     or=
+    # options.tabs     or=
+
+    @modalTabs = new KDTabViewWithForms
       navigable                 : yes
       goToNextFormOnSubmit      : no
       forms                     :
@@ -118,12 +123,38 @@ class BillingFormModal extends KDModalViewWithForms
               type              : 'submit'
               loader            : { color : '#fff', diameter : 12 }
 
-    super options, data
+    @addSubView @modalTabs
 
     # set up a loader to compensate for latency while we load the country list
     # @countryLoader = new KDLoaderView
     #   size        : { width: 14 }
     #   showLoader  : yes
+
+  viewAppended:->
+
+    @mainLoader = new KDLoaderView
+      showLoader  : yes
+      size        : { width: 14 }
+
+    @addSubView @mainLoader
+
+    @useExistingView = new BillingMethodChoiceView
+    @useExistingView.hide()
+
+    @useExistingView.on 'BillingMethodSelected', (accountCode) =>
+      if accountCode
+        @emit 'BillingMethodSelected', accountCode
+      else
+        @useExistingView.hide()
+        @modalTabs.show()
+
+    @addSubView @useExistingView
+
+    @createBillingForm()
+
+    @modalTabs.hide()
+
+    super()
 
     @billingForm = @modalTabs.forms['Billing Info']
     @billingForm.inputs.cardNumber.on 'keyup', @bound 'handleCardKeyup'
@@ -136,6 +167,28 @@ class BillingFormModal extends KDModalViewWithForms
     # @billingForm.fields.country.addSubView @countryLoader
 
     @updateDescription()
+
+  # showLoader:->
+  #   @mainLoader.show()
+
+  # hideLoader:->
+  #   @mainLoader.hide()
+
+  createSelectPersonalView: (paymentMethods) ->
+    @useExistingView.show()
+    paymentMethods.forEach (paymentMethod) =>
+      @useExistingView.addBillingMethod paymentMethod
+
+  setState: (state, data) ->
+    @mainLoader.hide()
+    switch state
+      when 'editExisting'
+        @setBillingInfo data.billing
+        @modalTabs.show()
+      when 'selectPersonal'
+        @createSelectPersonalView data
+      else
+        @modalTabs.show()
 
   handleZipCode:->
 
@@ -191,7 +244,7 @@ class BillingFormModal extends KDModalViewWithForms
       else 'US'
     )
 
-    @countryLoader.hide()
+    # @countryLoader.hide()
     @handleCountryCode()
     @emit 'CountryDataPopulated'
 

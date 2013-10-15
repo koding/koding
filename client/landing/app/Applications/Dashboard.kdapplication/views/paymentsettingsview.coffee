@@ -19,7 +19,7 @@ class GroupPaymentSettingsView extends JView
 
         # TODO: Delete shared VM if it's disabled?
 
-        updateOptions = 
+        updateOptions =
           overagePolicy : overagePolicy
           sharedVM      : formData['shared-vm']
           allocation    : formData.allocation
@@ -36,7 +36,7 @@ class GroupPaymentSettingsView extends JView
       fields                :
         billing             :
           label             : "Billing method"
-          itemClass         : BillingMethodView
+          itemClass         : LinkableBillingMethodView
         history             :
           label             : "Payment history"
           tagName           : "a"
@@ -90,8 +90,8 @@ class GroupPaymentSettingsView extends JView
           itemClass         : KDCustomHTMLView
           cssClass          : "alloc-description"
           partial           : """<section>
-                                <p>You can pay for your members' resources. Each member's 
-                                payment up to a specific amount will be charged from your 
+                                <p>You can pay for your members' resources. Each member's
+                                payment up to a specific amount will be charged from your
                                 balance.</p>
                               </section>"""
         overagePolicy       :
@@ -113,13 +113,14 @@ class GroupPaymentSettingsView extends JView
     @settingsForm = new KDFormViewWithFields formOptions, group
 
     @forwardEvent @settingsForm.inputs.billing, 'BillingEditRequested'
+    @forwardEvent @settingsForm.inputs.billing, 'PaymentMethodUnlinkRequested'
 
     group.fetchBundle (err, bundle)=>
       if err or not bundle
         return
 
       { fields, inputs } = @settingsForm
-        
+
       if bundle.allocation
         inputs.allocation.setValue bundle.allocation
 
@@ -127,7 +128,7 @@ class GroupPaymentSettingsView extends JView
         inputs.sharedVM.setOn()
 
       fields.approval.hide()
-      
+
       if bundle.overagePolicy is "by permission"
         inputs.overagePolicy.setOn()
         inputs.approval.setOn()
