@@ -128,7 +128,7 @@ class DashboardAppController extends AppController
         description : 'Are you sure you want to unlink this payment method?'
         subView     : new BillingMethodView {}, billingInfo
         ok          :
-          title     : 'Remove'
+          title     : 'Unlink'
           callback  : =>
             group.unlinkPaymentMethod billingInfo.accountCode, =>
               modal.destroy()
