@@ -253,9 +253,7 @@ module.exports = [
   "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
-  # Disable Environments App
-  # "app/Applications/Environments.kdapplication/AppController.coffee",
-
+  "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Apps.kdapplication/AppController.coffee",
   "app/Applications/Inbox.kdapplication/AppController.coffee",
   "app/Applications/Demos.kdapplication/AppController.coffee",
@@ -394,6 +392,7 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/scene/environmentdomainitem.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentmachineitem.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentsceneview.coffee",
+  "app/Applications/Environments.kdapplication/views/environmentsmainscene.coffee",
 
   # "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
   # "app/Applications/Environments.kdapplication/views/domainsmainview.coffee",
