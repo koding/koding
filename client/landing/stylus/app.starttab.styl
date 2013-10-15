@@ -109,14 +109,15 @@ app.starttab.styl
   left                      0
   border-top                1px solid #ccc
   border-bottom             1px solid #ccc
-  height                    2px
   width                     100%
   margin                    0 auto
   text-align                left
-  vendor                    transition, opacity 1.5s ease-in \, height .3s ease-in-out
-  opacity                   0
-  &.in
-    opacity                 1
+
+  &.animated
+    vendor                    transition, opacity 1.5s ease-in \, height .3s ease-in-out
+    opacity                   0
+    &.in
+      opacity                 1
 
 .start-tab-recent-container
   abs()

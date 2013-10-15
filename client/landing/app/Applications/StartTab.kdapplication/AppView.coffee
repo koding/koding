@@ -20,7 +20,9 @@ class StartTabMainView extends JView
       delegate : this
 
     # Server Container
-    @serverContainer = new EnvironmentsMainView
+    @serverContainer = new EnvironmentsMainScene cssClass : 'animated'
+    @serverContainer.setHeight 2
+
     @serverContainerToggle = new KDToggleButton
       style           : "kdwhitebtn"
       cssClass        : "server-container-handler"
