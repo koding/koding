@@ -8,25 +8,19 @@ import (
 // Replier is the counterpart of Requester.
 // It is a HTTP server that responds to HTTP requests with it's handler function.
 type Replier struct {
-	MessagingServer
 	Handler func([]byte) []byte
+	*MessagingServer
 }
 
 // NewReplier starts a new HTTP server on addr and returns a pointer to the Replier.
 // All request will be replied by the handler function.
 func NewReplier(addr string, handler func([]byte) []byte) (*Replier, error) {
-	s, err := NewMessagingServer(addr)
-	if err != nil {
-		return nil, err
-	}
-
 	r := &Replier{
-		MessagingServer: *s,
+		MessagingServer: NewMessagingServer(addr),
 		Handler:         handler,
 	}
-
-	s.Mux.Handle("/", r)
-	go s.Serve()
+	r.Handle("/", r)
+	go r.Serve() // Starts HTTP server
 	return r, nil
 }
 

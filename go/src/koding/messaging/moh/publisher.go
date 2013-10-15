@@ -9,8 +9,6 @@ import (
 // Publisher is the counterpart for Subscriber.
 // It is a HTTP server accepting websocket connections.
 type Publisher struct {
-	MessagingServer
-
 	// Registered filters, holds pointers to open connections.
 	// All clients are registered to the "all" key by default for allowing broadcasting.
 	// Modifier operations on this type is made by registrar() function.
@@ -18,6 +16,8 @@ type Publisher struct {
 
 	// subscribe, disconnect events from connections
 	events chan publisherEvent
+
+	*MessagingServer
 }
 
 // Subscription requests from connections to be sent to Publisher.subscribe channel
@@ -42,22 +42,14 @@ const (
 // publisher will listen on addr and accept websocket connections from
 // Subscribers.
 func NewPublisher(addr string) (*Publisher, error) {
-	s, err := NewMessagingServer(addr)
-	if err != nil {
-		return nil, err
-	}
-
 	p := &Publisher{
-		MessagingServer: *s,
+		MessagingServer: NewMessagingServer(addr),
 		filters:         make(Filters),
 		events:          make(chan publisherEvent),
 	}
-
-	p.Mux.Handle("/", p)
-
-	go s.Serve() // Starts HTTP server
+	p.Handle("/", p)
+	go p.Serve() // Starts HTTP server
 	go p.registrar()
-
 	return p, nil
 }
 
