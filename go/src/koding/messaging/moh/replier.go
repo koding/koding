@@ -9,6 +9,7 @@ import (
 // It is a HTTP server that responds to HTTP requests with it's handler function.
 type Replier struct {
 	MessagingServer
+	Handler func([]byte) []byte
 }
 
 // NewReplier starts a new HTTP server on addr and returns a pointer to the Replier.
@@ -19,26 +20,30 @@ func NewReplier(addr string, handler func([]byte) []byte) (*Replier, error) {
 		return nil, err
 	}
 
-	s.Mux.HandleFunc("/", makeHTTPHandler(handler))
+	r := &Replier{
+		MessagingServer: *s,
+		Handler:         handler,
+	}
+
+	s.Mux.Handle("/", r)
 	go s.Serve()
-	return &Replier{MessagingServer: *s}, nil
+	return r, nil
 }
 
-func makeHTTPHandler(handler func([]byte) []byte) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		defer r.Body.Close()
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "Cannot read request body", 500)
-			return
-		}
+// ServeHTTP implements the http.Handler interface for Replier.
+func (rep *Replier) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		http.Error(w, "Cannot read request body", 500)
+		return
+	}
 
-		reply := handler(body)
+	reply := rep.Handler(body)
 
-		_, err = w.Write(reply)
-		if err != nil {
-			http.Error(w, "Cannot write reply", 500)
-			return
-		}
+	_, err = w.Write(reply)
+	if err != nil {
+		http.Error(w, "Cannot write reply", 500)
+		return
 	}
 }
