@@ -2,11 +2,9 @@ class BillingMethodView extends JView
   constructor: (options, data) ->
     super
 
-    appManager  = KD.getSingleton 'appManager'
-    group       = @getData()
-
     @loader = new KDLoaderView
       size        : { width: 14 }
+      showLoader  : !data?
       cssClass    : 'fr'
 
     @billingMethodInfo = new KDCustomHTMLView
@@ -38,7 +36,8 @@ class BillingMethodView extends JView
 
   setBillingInfo: (billingInfo) ->
     @loader.hide()
-    @billingMethodInfo.updatePartial @getCardInfoPartial billingInfo
+    @setData billingInfo  if billingInfo
+    @billingMethodInfo.updatePartial @getCardInfoPartial billingInfo?.billing
     @billingMethodInfo.show()
 
   pistachio: ->

@@ -102,30 +102,40 @@ class DashboardAppController extends AppController
 
   policyViewAdded: (pane, view) ->
 
+  refreshPaymentView: ->
+    group = @getData()
+    group.fetchPaymentMethod (err, paymentMethod) =>
+      return new KDNotificationView title: err.message  if err
+
+      @paymentView.setBillingInfo paymentMethod
+
   paymentViewAdded: (pane, view) ->
 
     paymentController = KD.getSingleton 'paymentController'
 
     group = @getData()
 
-    group.fetchPaymentMethod (err, paymentMethod) ->
-      return new KDNotificationView title: err.message  if err
-
-      view.setBillingInfo paymentMethod  if paymentMethod
+    @refreshPaymentView()
 
     @paymentView = view
 
-    { loader }  = view.settingsForm.inputs.billing
-
-    view.on 'BillingEditRequested', =>
-      loader.show()
-      @showBillingInfoModal ->
-        loader.hide()
+    view.on 'BillingEditRequested', => @showBillingInfoModal()
+    view.on 'PaymentMethodUnlinkRequested', (billingInfo) =>
+      modal = KDModalView.confirm
+        title       : 'Are you sure?'
+        description : 'Are you sure you want to unlink this payment method?'
+        subView     : new BillingMethodView {}, billingInfo
+        ok          :
+          title     : 'Remove'
+          callback  : =>
+            group.unlinkPaymentMethod billingInfo.accountCode, =>
+              modal.destroy()
+              @refreshPaymentView()
 
   productViewAdded: (pane, view) ->
 
 
-  showBillingInfoModal: (callback) ->
+  showBillingInfoModal: ->
     modal = @createBillingInfoModal()
 
     modal.on 'PaymentInfoSubmitted', (formData) =>
@@ -136,51 +146,40 @@ class DashboardAppController extends AppController
 
         modal.destroy()
 
-    modal.on 'CountryDataPopulated', -> callback null, modal
+#    modal.on 'CountryDataPopulated', -> callback null, modal
 
   createBillingInfoModal: ->
 
-    console.trace()
-
     paymentController = KD.getSingleton "paymentController"
 
-    billingInfoModal = paymentController.createBillingInfoModal 'group', {}
-    billingInfoModal.showLoader()
+    billingInfoModal = paymentController.createBillingInfoModal 'group'
 
     group = @getData()
 
-    group.fetchPaymentMethod (err, groupBillingMethod) ->
+    group.fetchPaymentMethod (err, groupBillingMethod) =>
 
       if groupBillingMethod
-        billingInfoModal.hideLoader()
-        billingInfoModal.setBillingInfo groupBillingMethod
+
+        billingInfoModal.setState 'editExisting', groupBillingMethod
 
       else
 
-        KD.whoami().fetchPaymentMethods (err, personalBillingMethods) ->
+        KD.whoami().fetchPaymentMethods (err, personalBillingMethods) =>
 
-          billingInfoModal.hideLoader()
+          if personalBillingMethods.length
 
-          if personalBillingMethods
+            billingInfoModal.setState 'selectPersonal', personalBillingMethods
+            billingInfoModal.on 'BillingMethodSelected', (accountCode) =>
 
-            useExistingModal = new KDModalView
-              title: 'Would you like to link an existing payment method?'
-              buttons         :
-                "Use another payment method":
-                  style       : 'modal-cancel'
-                  callback    : -> useExistingModal.destroy()
+              group.linkPaymentMethod accountCode, (err) =>
+                new KDNotificationView title: err.message  if err
 
+                billingInfoModal.destroy()
+                @refreshPaymentView()
 
-            personalBillingMethods.forEach ({ accountCode, billing }) ->
+          else
 
-              billingMethodView = new BillingMethodView {}, billing
-              useExistingModal.addSubView billingMethodView
-              destroy = useExistingModal.bound 'destroy'
-              billingInfoModal.on 'KDObjectWillBeDestroyed', destroy
-
-              billingMethodView.on 'BillingEditRequested', ->
-                console.log { accountCode }
-                # group.addPaymentMethod
+            billingInfoModal.setState 'createNew'
 
 
     return billingInfoModal

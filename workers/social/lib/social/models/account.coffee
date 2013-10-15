@@ -1177,16 +1177,8 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchPaymentMethods$: secure (client, callback) ->
     {delegate} = client.connection
+    JPaymentMethod = require './payment/method'
     if delegate is this or delegate.can 'administer accounts'
       @fetchPaymentMethods (err, paymentMethods) ->
         return callback err  if err
-
-        paymentData = []
-
-        queue = paymentMethods.map (paymentMethod, i) -> ->
-          paymentMethod.fetchAssociatedPaymentData (err, associatedData) ->
-            return callback err  if err
-            paymentData[i] = associatedData
-            queue.fin()
-
-        dash queue, -> callback null, paymentData
+        JPaymentMethod.decoratePaymentMethods paymentMethods, callback

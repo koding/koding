@@ -91,7 +91,8 @@ module.exports = class JGroup extends Module
         'checkUserBalance', 'makeExpense', 'getUserExpenses', 'getAllExpenses', 'getTransactions',
         'fetchBundle', 'updateBundle', 'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage',
-        'saveInviteMessage', 'redeemInvitation', 'fetchPaymentMethod'
+        'saveInviteMessage', 'redeemInvitation', 'fetchPaymentMethod','linkPaymentMethod'
+        'unlinkPaymentMethod'
       ]
     schema          :
       title         :
@@ -105,10 +106,16 @@ module.exports = class JGroup extends Module
         set         : (value)-> value.toLowerCase()
       privacy       :
         type        : String
-        enum        : ['invalid privacy type', ['public', 'private']]
+        enum        : ['invalid privacy type', [
+          'public'
+          'private'
+        ]]
       visibility    :
         type        : String
-        enum        : ['invalid visibility type', ['visible', 'hidden']]
+        enum        : ['invalid visibility type', [
+          'visible'
+          'hidden'
+        ]]
       parent        : ObjectRef
       counts        :
         members     : Number
@@ -119,7 +126,12 @@ module.exports = class JGroup extends Module
           customType      :
             type          : String
             default       : 'defaultImage'
-            enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+            enum          : ['Invalid type', [
+              'defaultImage'
+              'customImage'
+              'defaultColor'
+              'customColor'
+            ]]
           customValue     :
             type          : String
             default       : '1'
@@ -1363,7 +1375,7 @@ module.exports = class JGroup extends Module
 
   vmUsage: secure ({connection:{delegate}}, callback)->
     @fetchBundle (err, bundle)=>
-      return callback err        if err
+      return callback err  if err
       return callback new KodingError 'unable to fetch group bundle'  unless bundle
 
       bundle.checkUsage delegate, this, callback
@@ -1447,9 +1459,28 @@ module.exports = class JGroup extends Module
     @each selector, options, callback
 
   linkPaymentMethod: permit 'grant permissions',
-    success: (client, callback) ->
+    success: (client, accountCode, callback) ->
+      { delegate } = client.connection
+      JPaymentMethod = require '../payment/method'
+      JPaymentMethod.one { accountCode }, (err, paymentMethod) =>
+        return callback err  if err
+        delegate.hasTarget paymentMethod, 'payment method', (err, hasTarget) =>
+          return callback err  if err
+          return callback { message: 'Access denied!' }  unless hasTarget
+          @addPaymentMethod paymentMethod, callback
 
+  unlinkPaymentMethod: permit 'grant permissions',
+    success: (client, accountCode, callback) ->
+      JPaymentMethod = require '../payment/method'
+      JPaymentMethod.one { accountCode }, (err, paymentMethod) =>
+        return callback err  if err
+        @removePaymentMethod paymentMethod, callback
 
   fetchPaymentMethod$: permit 'grant permissions',
     success: (client, callback) ->
-      @fetchPaymentMethod callback
+      JPaymentMethod = require '../payment/method'
+      @fetchPaymentMethod (err, paymentMethod) ->
+        return callback err  if err
+        JPaymentMethod.decoratePaymentMethods [paymentMethod], (err, paymentMethods) ->
+          return callback err  if err
+          callback null, paymentMethods[0]

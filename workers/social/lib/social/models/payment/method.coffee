@@ -2,7 +2,7 @@
 
 module.exports = class JPaymentMethod extends Module
 
-  {secure} = require 'bongo'
+  {secure, dash} = require 'bongo'
   {extend} = require 'underscore'
   createId = require 'hat'
 
@@ -21,6 +21,18 @@ module.exports = class JPaymentMethod extends Module
     schema        :
       accountCode   : String
       description : String
+
+  @decoratePaymentMethods = (paymentMethods, callback) ->
+    paymentData = []
+
+    queue = paymentMethods.map (paymentMethod, i) -> ->
+      if paymentMethod
+        paymentMethod.fetchAssociatedPaymentData (err, associatedData) ->
+          return callback err  if err
+          paymentData[i] = associatedData
+          queue.fin()
+      else queue.fin()
+    dash queue, -> callback null, paymentData
 
   @removePaymentMethod = secure (client, accountCode, callback) ->
 
