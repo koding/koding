@@ -8,6 +8,7 @@ class GroupsAppController extends AppController
       title      : "Groups"
       path       : "/Groups"
       order      : 40
+      topLevel   : yes
 
   @privateGroupOpenHandler =(event)->
     event.preventDefault()
@@ -76,10 +77,7 @@ class GroupsAppController extends AppController
     oldGroupName        = @currentGroupName
     @currentGroupName   = groupName
 
-    if oldGroupName?
-      location.reload()
-
-    else unless groupName is oldGroupName
+    unless groupName is oldGroupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?
