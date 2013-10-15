@@ -28,6 +28,8 @@ class AccountPaymentMethodsListController extends AccountListViewController
 
     list.on 'reload', (data) => @loadItems()
 
+    KD.getSingleton('paymentController').on 'PaymentDataChanged', => @loadItems()
+
   editPaymentMethod: (data) ->
     paymentController = KD.getSingleton 'paymentController'
     @showModal data
@@ -67,15 +69,11 @@ class AccountPaymentMethodsListController extends AccountListViewController
 
         # modal.setBillingInfo initialBillingInfo.billing
 
-    modal.on 'PaymentInfoSubmitted', (updatedBillingInfo) =>
-      paymentController.updateBillingInfo initialBillingInfo?.accountCode, updatedBillingInfo, (err, res) =>
-        if err
-          new KDNotificationView title: err.message
-        else
-          modal.destroy()
-          @loadItems()
-
-
+    paymentController.observeModalSave modal, (err, updatedBillingInfo) =>
+      if err
+        new KDNotificationView title: err.message
+      else
+        modal.destroy()
 
 class AccountPaymentMethodsList extends KDListView
   constructor:(options,data)->

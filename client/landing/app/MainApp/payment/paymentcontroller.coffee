@@ -13,9 +13,18 @@ class PaymentController extends KDController
       JPaymentPlan.getGroupBalance callback
 
 
+  observeModalSave: (modal, callback) ->
+    modal.on 'PaymentInfoSubmitted', (accountCode, updatedBillingInfo) =>
+      @updateBillingInfo accountCode, updatedBillingInfo, (err, savedBillingInfo) =>
+        return callback err  if err
+        callback null, savedBillingInfo
+        @emit 'PaymentDataChanged'
+
   removePaymentMethod: (accountCode, callback) ->
     { JPayment } = KD.remote.api
-    JPayment.removePaymentMethod accountCode, callback
+    JPayment.removePaymentMethod accountCode, (err) =>
+      return callback err  if err
+      @emit 'PaymentDataChanged'
 
   getSubscription: do ->
     findActiveSubscription = (subs, planCode, callback) ->
