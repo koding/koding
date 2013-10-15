@@ -113,6 +113,19 @@ app.home.styl
         line-height         40px
         text-shadow         0 0 10px black
 
+      .learnmore
+        background          none
+        border              none
+        left                50%
+        bottom              30px
+        color               white
+        text-decoration     none
+        font-variant        small-caps
+        font-size           16px
+        margin-left         -95px
+        cursor              pointer
+        abs()
+
       .buttons
         bottom              150px
         left                50%
@@ -176,17 +189,16 @@ app.home.styl
 
 #content-page-home
   section.slider-section
-    size                    100%, 740px
+    size                    100%, 100%
     bg                      color, #fff
     position                relative
 
     border-bottom           1px solid #eee
 
     .home-slider
-      size                  100%, 100%
+      size                  100%, 2500px
       text-align            center
       overflow              hidden
-      abs()
 
       nav.slider-nav
         width               100%
@@ -209,12 +221,13 @@ app.home.styl
 
       .slider-page
         display             block
-        size                100%, 100%
+        size                100%, 600px
         top                 0
         text-align          left
-        opacity             0
-        vendor              transition, opacity  .4s ease
-        abs()
+        border-bottom       1px solid #eee
+        // opacity             0
+        // vendor              transition, opacity  .4s ease
+        // abs()
 
         figure
           size            641px, 467px
@@ -230,6 +243,12 @@ app.home.styl
             top          68px
             rounded      0 0 4px 4px
             abs()
+
+        &.left-aligned
+          figure
+            fl()
+            margin-left     0
+            margin-right    100px
 
         .wrapper
           width             100%
