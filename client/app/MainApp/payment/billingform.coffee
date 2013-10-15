@@ -115,7 +115,7 @@ class BillingFormModal extends KDModalView
         'Billing Info'          :
           fields                : fields
           callback              : (formData) =>
-            @emit 'PaymentInfoSubmitted', formData
+            @emit 'PaymentInfoSubmitted', @getData()?.accountCode, formData
           buttons               :
             Save                :
               title             : 'Save'
@@ -183,7 +183,7 @@ class BillingFormModal extends KDModalView
     @mainLoader.hide()
     switch state
       when 'editExisting'
-        @setBillingInfo data.billing
+        @setBillingInfo data
         @modalTabs.show()
       when 'selectPersonal'
         @createSelectPersonalView data
@@ -261,7 +261,8 @@ class BillingFormModal extends KDModalView
     inputs.cardDescription.setPlaceHolder "#{ cardOwner }#{ cardType }"
 
   setBillingInfo: (billingInfo) ->
-    for own key, value of billingInfo
+    @setData billingInfo
+    for own key, value of billingInfo.billing
       switch key
         when 'state'
           @billingForm.addCustomData 'actualState', value

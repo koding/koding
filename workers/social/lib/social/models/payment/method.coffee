@@ -72,7 +72,7 @@ module.exports = class JPaymentMethod extends Module
       delegate.addPaymentMethod paymentMethod, (err) ->
         return callback err  if err
 
-        callback null, paymentMethod
+        paymentMethod.fetchAssociatedPaymentData callback
 
   associatePaymentData: secure (client, formData, callback) ->
     JSession = require '../session'

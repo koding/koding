@@ -1458,7 +1458,7 @@ module.exports = class JGroup extends Module
     selector.visibility = 'visible'
     @each selector, options, callback
 
-  linkPaymentMethod: permit 'grant permissions',
+  linkPaymentMethod: permit 'manage payment methods',
     success: (client, accountCode, callback) ->
       { delegate } = client.connection
       JPaymentMethod = require '../payment/method'
@@ -1469,14 +1469,14 @@ module.exports = class JGroup extends Module
           return callback { message: 'Access denied!' }  unless hasTarget
           @addPaymentMethod paymentMethod, callback
 
-  unlinkPaymentMethod: permit 'grant permissions',
+  unlinkPaymentMethod: permit 'manage payment methods',
     success: (client, accountCode, callback) ->
       JPaymentMethod = require '../payment/method'
       JPaymentMethod.one { accountCode }, (err, paymentMethod) =>
         return callback err  if err
         @removePaymentMethod paymentMethod, callback
 
-  fetchPaymentMethod$: permit 'grant permissions',
+  fetchPaymentMethod$: permit 'manage payment methods',
     success: (client, callback) ->
       JPaymentMethod = require '../payment/method'
       @fetchPaymentMethod (err, paymentMethod) ->

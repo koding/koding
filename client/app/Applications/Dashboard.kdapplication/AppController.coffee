@@ -117,6 +117,8 @@ class DashboardAppController extends AppController
 
     @refreshPaymentView()
 
+    paymentController.on 'PaymentDataChanged', => @refreshPaymentView()
+
     @paymentView = view
 
     view.on 'BillingEditRequested', => @showBillingInfoModal()
@@ -138,13 +140,18 @@ class DashboardAppController extends AppController
   showBillingInfoModal: ->
     modal = @createBillingInfoModal()
 
-    modal.on 'PaymentInfoSubmitted', (formData) =>
-      @getData().setBillingInfo formData, (err) =>
-        console.error err  if err
+    paymentController = KD.getSingleton 'paymentController'
 
-        @paymentView?.setBillingInfo formData
-
+    paymentController.observeModalSave modal, (err, { accountCode }) =>
+      if err
+        new KDNotificationView title: err.message
+      else
         modal.destroy()
+        @getData().linkPaymentMethod accountCode, (err) =>
+          if err
+            new KDNotificationView title: err.message
+          @refreshPaymentView()
+
 
 #    modal.on 'CountryDataPopulated', -> callback null, modal
 
