@@ -7,6 +7,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
 
   @set
     schema        :
+      title       : String
       email       :
         type      : String
         email     : yes
@@ -24,7 +25,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
       static      : ["getUninvitedEmails", "deleteEmailsForAccount"]
       instance    : ["invite"]
 
-  @create: (clientId, email, callback)->
+  @create: (clientId, {email, title}, callback)->
     JSession = require "./session"
     JSession.fetchSession clientId, (err, session)->
       return callback err  if err
@@ -34,6 +35,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
         return callback err  if err
         r = new JReferrableEmail {
           email
+          title
           username
         }
         r.save callback

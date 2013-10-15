@@ -73,9 +73,10 @@ module.exports = (req, res) ->
             return
 
           for i in result.feed.entry
+            title = i.title[0]["_"]
             for e in i["gd:email"]
               email = e["$"].address
-              JReferrableEmail.create clientId, email, (err)->
+              JReferrableEmail.create clientId, {email, title}, (err)->
                 console.log "error saving JReferrableEmail", err
       catch e
         console.log "google callback error parsing emails"
