@@ -27,7 +27,9 @@ class HomeIntroView extends JView
       partial   : "<i></i>Sign up <span>with gitHub</span>"
       callback  : -> KD.getSingleton("oauthController").openPopup "github"
 
-
+    @learnMoreLink = new KDCustomHTMLView
+      partial   : '▾ scroll down to learn more ▾'
+      cssClass  : 'learnmore'
 
   show:-> @unsetClass 'out'
 
@@ -55,14 +57,14 @@ class HomeIntroView extends JView
       """
     else
       """
-      <div class="gunduz-varligi"></div>
       <section>
-          {{> @slogan}}
-          {{> @subSlogan}}
-          <div class="buttons">
-            {{> @emailSignupButton}}
-            {{> @gitHubSignupButton}}
-          </div>
+        {{> @slogan}}
+        {{> @subSlogan}}
+        <div class="buttons">
+          {{> @emailSignupButton}}
+          {{> @gitHubSignupButton}}
+        </div>
+        {{> @learnMoreLink}}
       </section>
       """
 

@@ -4,83 +4,6 @@ class HomeAppView extends JView
 
     super options, data
 
-    #Slider
-    @slider       = new HomeSlider
-      cssClass    : "home-slider"
-      pages       :
-        "You"       :
-          cssClass  : "slider-page"
-          domId     : "you-page"
-          pistachio :
-            """
-              <div class="wrapper">
-                <figure><img src="/images/homeslide/you.jpg"></figure>
-                <h3>
-                  <i></i> Koding for <span>You</span>
-                </h3>
-                <p>
-                  You have great ideas.  You want to meet brilliant minds, and bring those ideas to life.  You want to start simple.  Maybe soon you'll have a 10 person team, commanding 100s of servers.
-                </p>
-                <p>
-                  You want to learn Python, Java, C, Go, Nodejs, HTML, CSS or Javascript or any other. Community will help you along the way.
-                </p>
-              </div>
-            """
-        "Developers":
-          cssClass  : "slider-page"
-          domId     : "developers-page"
-          pistachio :
-            """
-              <div class="wrapper">
-                <figure><img src="/images/homeslide/developers.jpg"></figure>
-                <h3>
-                  <i></i> Koding for <span>Developers</span>
-                </h3>
-                <p>
-                  You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
-                </p>
-                <p>
-                  It's free. Koding is your new localhost, in the cloud.
-                </p>
-              </div>
-            """
-        "Education" :
-          cssClass  : "slider-page"
-          domId     : "education-page"
-          pistachio :
-            """
-              <div class="wrapper">
-                <figure><img src="/images/homeslide/education.jpg"></figure>
-                <h3>
-                  <i></i> Koding for <span>Education</span>
-                </h3>
-                <p>
-                  Create a group where your students enjoy the resources you provide to them. Make it private or invite-only.  Let them share, collaborate and submit their assignments together.  It doesn't matter if you have ten students, or ten thousand.  Scale from just one to hundreds of computers.
-                </p>
-                <p>
-                  Koding is your new classroom.
-                </p>
-              </div>
-            """
-        "Business"  :
-          cssClass  : "slider-page"
-          domId     : "business-page"
-          pistachio :
-            """
-              <div class="wrapper">
-                <figure><img src="/images/homeslide/business.jpg"></figure>
-                <h3>
-                  <i></i> Koding for <span>Business</span>
-                </h3>
-                <p>
-                  When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
-                </p>
-                <p>
-                  Koding is your new workspace.
-                </p>
-              </div>
-            """
-
     @simplePricesBoxes = new KDCustomHTMLView
       cssClass      : "price-boxes"
 
@@ -153,7 +76,68 @@ class HomeAppView extends JView
   pistachio:->
     """
     <section class="slider-section" id="slider-section">
-      {{> @slider}}
+      <div class="home-slider">
+        <div class="slider-page">
+          <div class="wrapper">
+            <figure><img src="/images/homeslide/you.jpg"></figure>
+            <h3>
+              <i></i> Koding for <span>You</span>
+            </h3>
+            <p>
+              You have great ideas.  You want to meet brilliant minds, and bring those ideas to life.  You want to start simple.  Maybe soon you'll have a 10 person team, commanding 100s of servers.
+            </p>
+            <p>
+              You want to learn Python, Java, C, Go, Nodejs, HTML, CSS or Javascript or any other. Community will help you along the way.
+            </p>
+          </div>
+        </div>
+
+        <div class="slider-page left-aligned">
+          <div class="wrapper">
+            <figure><img src="/images/homeslide/developers.jpg"></figure>
+            <h3>
+              <i></i> Koding for <span>Developers</span>
+            </h3>
+            <p>
+              You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
+            </p>
+            <p>
+              It's free. Koding is your new localhost, in the cloud.
+            </p>
+          </div>
+        </div>
+
+        <div class="slider-page">
+          <div class="wrapper">
+            <figure><img src="/images/homeslide/education.jpg"></figure>
+            <h3>
+              <i></i> Koding for <span>Education</span>
+            </h3>
+            <p>
+              Create a group where your students enjoy the resources you provide to them. Make it private or invite-only.  Let them share, collaborate and submit their assignments together.  It doesn't matter if you have ten students, or ten thousand.  Scale from just one to hundreds of computers.
+            </p>
+            <p>
+              Koding is your new classroom.
+            </p>
+          </div>
+        </div>
+
+        <div class="slider-page left-aligned">
+          <div class="wrapper">
+            <figure><img src="/images/homeslide/business.jpg"></figure>
+            <h3>
+              <i></i> Koding for <span>Business</span>
+            </h3>
+            <p>
+              When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
+            </p>
+            <p>
+              Koding is your new workspace.
+            </p>
+          </div>
+        </div>
+      </div>
+
     </section>
     <section class="pricing-section" id="pricing-section">
       <h3>Simple Pricing</h3>
