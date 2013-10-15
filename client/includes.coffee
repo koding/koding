@@ -5,6 +5,7 @@ module.exports = [
   "libs/md5-min.js",
 
   # --- Application ---
+  "app/MainApp/utils.coffee"
   "app/MainApp/KD.extend.coffee" # our extensions to KD global
   "app/MainApp/kodingrouter.coffee",
   "app/MainApp/mq.config.coffee",
@@ -35,9 +36,7 @@ module.exports = [
 
   "app/CommonViews/avatarviews/avatarview.coffee",
   "app/CommonViews/avatarviews/avatarstaticview.coffee",
-  "app/CommonViews/avatarviews/avatarswapview.coffee",
   "app/CommonViews/avatarviews/autocompleteavatarview.coffee",
-
 
   "app/MainApp/navigation/navigationcontroller.coffee",
 
@@ -464,11 +463,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
   "app/Applications/Groups.kdapplication/Views/blockedusersview.coffee",
   "app/Applications/Groups.kdapplication/Views/blockeduserslistitemview.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
-  # "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
@@ -477,11 +471,8 @@ module.exports = [
   "app/Applications/Apps.kdapplication/AppView.coffee",
 
   "app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee",
-  "app/Applications/Apps.kdapplication/Views/AppSubmission.coffee",
   "app/Applications/Apps.kdapplication/Views/appinfoview.coffee",
   "app/Applications/Apps.kdapplication/Views/appview.coffee",
-  # "app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee",
-  # "app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee",
   "app/Applications/Apps.kdapplication/Views/appdetailsview.coffee",
 
   "app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee",
@@ -630,6 +621,8 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # TEAMWORK
+  "app/Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/teamworkpanel.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
