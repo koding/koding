@@ -3,6 +3,7 @@ package moh
 import (
 	"code.google.com/p/go.net/websocket"
 	"log"
+	"net/http"
 )
 
 // Publisher is the counterpart for Subscriber.
@@ -52,7 +53,7 @@ func NewPublisher(addr string) (*Publisher, error) {
 		events:          make(chan publisherEvent),
 	}
 
-	p.Mux.Handle("/", p.makeWsHandler())
+	p.Mux.Handle("/", p)
 
 	go s.Serve() // Starts HTTP server
 	go p.registrar()
@@ -81,18 +82,21 @@ func (p *Publisher) Broadcast(message []byte) {
 	p.Publish(all, message)
 }
 
-func (p *Publisher) makeWsHandler() websocket.Handler {
-	return func(ws *websocket.Conn) {
-		c := &connection{
-			ws:   ws,
-			send: make(chan []byte, 256),
-			keys: make(map[string]bool),
-		}
-		p.events <- publisherEvent{conn: c, eventType: subscribe, key: all}
-		defer func() { p.events <- publisherEvent{conn: c, eventType: disconnect} }()
-		go c.writer()
-		c.reader(p.events)
+// ServeHTTP implements the http.Handler interface for a WebSocket.
+func (p *Publisher) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	websocket.Handler(p.websocketHandler).ServeHTTP(w, req)
+}
+
+func (p *Publisher) websocketHandler(ws *websocket.Conn) {
+	c := &connection{
+		ws:   ws,
+		send: make(chan []byte, 256),
+		keys: make(map[string]bool),
 	}
+	p.events <- publisherEvent{conn: c, eventType: subscribe, key: all}
+	defer func() { p.events <- publisherEvent{conn: c, eventType: disconnect} }()
+	go c.writer()
+	c.reader(p.events)
 }
 
 // registrar receives publiserEvents from the channel and updates filters.
