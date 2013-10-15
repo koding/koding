@@ -34,9 +34,9 @@ class MainView extends KDView
         else removePulsing()
 
   putAbout:->
-
-    KDView.appendToDOMBody overlay = new KDView
+    overlay = new KDView
       cssClass : 'about-overlay'
+    overlay.appendToDomBody()
     overlay.bindTransitionEnd()
 
     logo = new KDCustomHTMLView
@@ -53,8 +53,7 @@ class MainView extends KDView
     {winHeight} = KD.getSingleton('windowController')
 
     offset = if winHeight > 400 then (winHeight - 400) / 2 else 0
-
-    KDView.appendToDOMBody about = new AboutView
+    about = new AboutView
       domId   : 'about-text'
       click   : =>
         about.once 'transitionend', ->
@@ -63,7 +62,7 @@ class MainView extends KDView
             overlay.destroy()
           overlay.unsetClass 'in'
         about.unsetClass 'in'
-
+    about.appendToDomBody()
     about.setY offset
     about.bindTransitionEnd()
 

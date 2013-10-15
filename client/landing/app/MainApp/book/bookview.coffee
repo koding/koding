@@ -6,7 +6,7 @@ class BookView extends JView
   cachePage = (index)->
     return if not __bookPages[index] or cached[index]
     page = new BookPage {}, __bookPages[index]
-    KDView.appendToDOMBody page
+    page.appendToDomBody()
     __utils.wait ->
       cached[index] = yes
       page.destroy()
