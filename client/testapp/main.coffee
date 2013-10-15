@@ -45,4 +45,4 @@ class MainView extends JView
 appView = new MainView
   cssClass: "bounce"
 
-KDView.appendToDOMBody appView
+appView.appendToDomBody()
