@@ -4,7 +4,6 @@ class HomeAppView extends JView
 
     super options, data
 
-
     #Slider
     @slider       = new HomeSlider
       cssClass    : "home-slider"
@@ -82,25 +81,36 @@ class HomeAppView extends JView
               </div>
             """
 
-    @priceBoxes = new KDCustomHTMLView
+    @simplePricesBoxes = new KDCustomHTMLView
       cssClass      : "price-boxes"
-      bind          : "mouseleave"
-      mouseleave    : =>
-        @additionalVmBox.setClass "mouseleave"
-        @freeVmBox.setClass       "mouseleave"
-        KD.utils.wait 500, =>
-          @additionalVmBox.unsetClass "mouseleave"
-          @freeVmBox.unsetClass "mouseleave"
 
-    @priceBoxes.addSubView @freeVmBox = new KDCustomHTMLView
+    @simplePricesBoxes.addSubView new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "free"
       partial   : "<span>Your first VM</span>Free"
 
-    @priceBoxes.addSubView @additionalVmBox = new KDCustomHTMLView
+    @simplePricesBoxes.addSubView new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "paid"
-      partial   : "<span>Each additional VM</span>$5 / Month"
+      partial   : "<span>Each additional VM</span>$5"
+
+    @bundlePricesBoxes = new KDCustomHTMLView
+      cssClass      : "price-boxes bundles"
+
+    @bundlePricesBoxes.addSubView new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "paid"
+      partial   : "<span>Teams 20 VMs</span>$100"
+
+    @bundlePricesBoxes.addSubView new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "paid"
+      partial   : "<span>Bussiness 100 VMs</span>$1000"
+
+    @bundlePricesBoxes.addSubView new KDCustomHTMLView
+      tagName   : "a"
+      cssClass  : "paid"
+      partial   : "<span>Education 1000 VMs</span>$10,000"
 
     @statusLink = new KDCustomHTMLView
       tagName   : "a"
@@ -148,7 +158,9 @@ class HomeAppView extends JView
     <section class="pricing-section" id="pricing-section">
       <h3>Simple Pricing</h3>
       <h4>Try it and see if it's really as cool as we say</h4>
-      {{> @priceBoxes}}
+      {{> @simplePricesBoxes}}
+      <div class='bundles-header'>bundles</div>
+      {{> @bundlePricesBoxes}}
       <div class="pricing-details">
         <span><strong>Always on*</strong> $25 / Month</span>
         <span><strong>Extra RAM</strong> $10 / GB / Month</span><br>

@@ -39,7 +39,7 @@ app.home.styl
     background              none
     z-index                 100
     overflow                visible
-    abs()
+    position                fixed
 
     .kdview
       size                  100%, 100px
@@ -51,16 +51,32 @@ app.home.styl
       borderBox()
 
       #koding-logo
-        top                 40px
-        left                40px
-        fl()
+        left                0
+        height              50px
+        line-height         50px
+        display             block
+        background          black
+        width               122px
+        top                 30px
+        position            fixed
+        padding-left        40px
+        border-radius       0 4px 4px 0
+
+        span
+          top               12px
+          left              24px
 
       #header-sign-in
-        height              100px
-        line-height         100px
-        margin              0 40px 0 0
+        height              50px
+        line-height         50px
         display             block
-        fr()
+        background          black
+        width               120px
+        right               0
+        top                 30px
+        position            fixed
+        padding-left        20px
+        border-radius       4px 0 0 4px
 
         span
           font-size           20px !important
@@ -68,21 +84,14 @@ app.home.styl
 
   #home-intro
     display                 block
-    size                    100%, 728px
-    bg                      color, #282828
-
-    >.gunduz-varligi
-      size                  100%, 728px
-      left                  0
-      top                   0
-      bg                    image, url('../images/gunduz-varligi-yildizli.jpg')
-      bg                    position, center -120px
-      vendor                opacity, .7
-      abs()
+    size                    100%, 100%
+    background              url("../images/gunduz-varligi-yildizli.jpg") \
+                            no-repeat center center fixed
+    background-size         cover
 
     >section
       text-align            center
-      size                  100%, 728px
+      size                  100%, 100%
       left                  0
       top                   0
       padding               0 10px
@@ -93,22 +102,27 @@ app.home.styl
         font-size           50px
         color               #fff
         font-weight         normal
-        padding             240px 0 0 0
+        padding             200px 0 0 0
+        text-shadow         0 0 10px black
 
       .sub-slogan
         font-size           30px
         color               #fff
-        margin              30px 0 0 0
+        margin              20px 0 0 0
         font-weight         300
         line-height         40px
+        text-shadow         0 0 10px black
 
       .buttons
-        margin            60px 0 0 0
+        bottom              150px
+        left                50%
+        margin-left         -250px
+        abs()
 
         button.kdbutton
           size              234px, 80px
           rounded           39px
-          background        none
+          background        black
           border            2px solid transparent
           text-align        left
           font-size         16px
@@ -166,15 +180,7 @@ app.home.styl
     bg                      color, #fff
     position                relative
 
-    &:after
-      content               ""
-      display               block
-      size                  100%, 34px
-      bg                    image, url('../images/home_shadow.png')
-      bg                    position, center
-      bottom                0
-      left                  0
-      abs()
+    border-bottom           1px solid #eee
 
     .home-slider
       size                  100%, 100%
@@ -257,7 +263,8 @@ app.home.styl
             margin-top      100px
 
   section.pricing-section
-    size                    100%, 740px
+
+    size                    100%, 900px
     bg                      color, #fff
     position                relative
     text-align              center
@@ -277,27 +284,33 @@ app.home.styl
       font-size             48px
       font-weight           600
       margin                70px 0 10px
+
     >h4
       font-size             22px
       font-weight           100
 
     .price-boxes
-      size                  454px, 227px
-      margin                65px auto
+
+      size                  630px, 180px
+      margin                35px auto
       position              relative
       vendor                perspective, 600px
+
       a
-        size                227px, 227px
+        size                197px, 197px
         display             block
         background          #8bd6bb
         color               #fff
         rounded             3px
         text-align          center
-        float               left
-        font-size           29px
+        font-size           26px
         text-decoration     none
         font-weight         100
-        vendor              transform, scale(.9)
+        margin-left         10px
+        z-index             4
+        fl()
+
+        vendor              transform, scale(.8)
         -webkit-transition  -webkit-transform .3s ease \,\
                             color             .3s ease  \,\
                             background        .3s ease
@@ -308,42 +321,32 @@ app.home.styl
                             color             .3s ease  \,\
                             background        .3s ease
 
-        z-index             4
-        left                207px
-        abs()
-
         span
           display           block
           padding           25px 30px 15px
           font-weight       600
 
-        &.mouseleave
-          vendor              animation, priceHover .5s 1 forwards reverse
+        &:hover
+          vendor            transform, scale(1)
 
       a:nth-child(1)
-        background          #9cefd1
-        color               #595959
-        vendor              transform, scale(1)
-        z-index             5
-        left                0
+        margin-left         110px
 
-        &.mouseleave
-          vendor              animation, freeHover .5s 1 forwards reverse
+      &.bundles
+        a
+          background        rgba(223, 116, 0, 1.0)
+        a:nth-child(1)
+          margin-left       10px
 
-        span
-          padding-top       45px
-          padding-bottom    25px
-
-    .price-boxes:hover
-      a
-        cursor              default
-      a:nth-child(1)
-        vendor              animation, freeHover .5s 1 forwards
-
-      a:nth-child(2)
-        vendor              animation, priceHover .5s 1 forwards
+    .bundles-header
+      color                 #CCC
+      font-size             23px
+      font-variant          small-caps
+      border-bottom         1px solid #eee
+      padding-bottom        10px
 
     .pricing-details
+      clear                 both
       span
         display             inline-block
         font-size           22px
@@ -363,7 +366,7 @@ app.home.styl
         color               #6b6b6b
 
   footer.home-footer
-    size                    auto, 20px
+    size                    auto, 90px
     bg                      color, #282828
     position                relative
     text-align              center

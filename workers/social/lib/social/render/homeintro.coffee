@@ -2,7 +2,7 @@ module.exports = (loggedIn = no)->
   getCounters  = require './counters'
 
   """
-  <div id="home-intro" class="kdview"><div class="gunduz-varligi"></div>
+  <div id="home-intro" class="kdview">
   <section>
       <div class="slogan">A new way for developers to work</div>
       <div class="sub-slogan">Software development has finally evolved,<br> It's now social, in the browser and free!</div>
