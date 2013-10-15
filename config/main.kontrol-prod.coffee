@@ -94,9 +94,16 @@ module.exports =
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
-    cronSchedule         : '* * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
     watch                : no
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
@@ -117,9 +124,6 @@ module.exports =
     watch         : no
     watchDuration : 300
     includesPath  : 'client'
-    websitePath   : 'website'
-    js            : "js/kd.#{version}.js"
-    css           : "css/kd.#{version}.css"
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
@@ -144,7 +148,7 @@ module.exports =
       apiUri    : 'https://www.koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
-      sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
+      sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
   mq            :
     host        : '172.16.3.4'
     port        : 5672

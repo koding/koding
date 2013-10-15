@@ -113,6 +113,13 @@ config =
       watch               : 1
       cronSchedule        : 1
       usageLimitInMinutes : 1
+    sitemapWorker         :
+      enabled             : 1
+      login               : 1
+      queueName           : 1
+      numberOfWorkers     : 1
+      watch               : 1
+      cronSchedule        : 1
     social        :
       login       : 1
       numberOfWorkers: 1
@@ -133,9 +140,6 @@ config =
       watch         : 1
       watchDuration : 1
       includesPath  : 1
-      websitePath   : 1
-      js            : 1
-      css           : 1
       indexMaster   : 1
       index         : 1
       useStaticFileServer: 1
