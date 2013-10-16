@@ -7,13 +7,11 @@ class CollaborativeWorkspace extends Workspace
     @createLoader()
     @fetchUsers()
     @createUserListContainer()
-    @createChat()
+    @createChat()  if @getOptions().enableChat
     @bindRemoteEvents()
 
   createChat: ->
-    return unless @getOptions().enableChat
-    @container.addSubView @chatView = new ChatPane
-      delegate: this
+    @container.addSubView @chatView = new ChatPane delegate: this
     @chatView.hide()
 
   createRemoteInstance: ->
