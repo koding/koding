@@ -3,7 +3,6 @@ package moh
 import (
 	"code.google.com/p/go.net/websocket"
 	"log"
-	"net/http"
 )
 
 // Publisher is the counterpart for Subscriber.
@@ -13,6 +12,8 @@ type Publisher struct {
 	// All clients are registered to the "all" key by default for allowing broadcasting.
 	// Modifier operations on this type is made by registrar() function.
 	filters *Filters
+
+	websocket.Server // implements http.Handler interface
 }
 
 // This is the magic subscription key for broadcast events.
@@ -23,7 +24,12 @@ const all = "4658f005d49885355f4e771ed9dace10cca9563e"
 // publisher will listen on addr and accept websocket connections from
 // Subscribers.
 func NewPublisher() *Publisher {
-	return &Publisher{filters: NewFilters()}
+	p := &Publisher{
+		filters: NewFilters(),
+		Server:  websocket.Server{},
+	}
+	p.Server.Handler = p.handleWebsocketConn
+	return p
 }
 
 // Publish sends a message to registered Subscribers with the key.
@@ -47,12 +53,7 @@ func (p *Publisher) Broadcast(message []byte) {
 	p.Publish(all, message)
 }
 
-// ServeHTTP implements the http.Handler interface for a WebSocket.
-func (p *Publisher) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	websocket.Handler(p.websocketHandler).ServeHTTP(w, req)
-}
-
-func (p *Publisher) websocketHandler(ws *websocket.Conn) {
+func (p *Publisher) handleWebsocketConn(ws *websocket.Conn) {
 	c := &connection{
 		ws:   ws,
 		send: make(chan []byte, 256),
