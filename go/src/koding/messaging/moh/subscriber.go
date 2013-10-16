@@ -21,7 +21,7 @@ type Subscriber struct {
 	ws *websocket.Conn
 
 	// Consumed messages will be handled with this function.
-	handler func([]byte)
+	Handler func([]byte)
 
 	// Subscription keys are also saved here so we can re-send "subscribe"
 	// commands when re-connect.
@@ -45,7 +45,7 @@ func NewSubscriber(urlStr string, handler func([]byte)) *Subscriber {
 
 	sub := &Subscriber{
 		url:     parsed,
-		handler: handler,
+		Handler: handler,
 		keys:    make(map[string]bool),
 	}
 
@@ -197,6 +197,6 @@ func (s *Subscriber) consumer() {
 		}
 
 		// log.Println("Received data:", string(message))
-		s.handler(message)
+		s.Handler(message)
 	}
 }
