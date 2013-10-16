@@ -10,7 +10,6 @@ import (
 // MessagingServer is a base for Replier and Publisher structs.
 // It is a closeable HTTP server. You can shutdown it gracefully with Close().
 type MessagingServer struct {
-	addr     string
 	listener net.Listener
 	*http.ServeMux
 }
@@ -23,18 +22,15 @@ const errClosing = "use of closed network connection"
 // NewMessagingServer returns a pointer to a new MessagingServer.  After
 // creation, handlers can be registered on Mux and the server can be started
 // with Serve() function. Then, you can close it with Close().
-func NewMessagingServer(addr string) *MessagingServer {
-	return &MessagingServer{
-		addr:     addr,
-		ServeMux: http.NewServeMux(),
-	}
+func NewMessagingServer() *MessagingServer {
+	return &MessagingServer{ServeMux: http.NewServeMux()}
 }
 
-// Serve runs the HTTP server until it is closed by Close() method.
-func (s *MessagingServer) Serve() error {
+// ListenAndServe runs the HTTP server until it is closed by Close() method.
+func (s *MessagingServer) ListenAndServe(addr string) error {
 	var err error
 
-	s.listener, err = net.Listen("tcp", s.addr)
+	s.listener, err = net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}

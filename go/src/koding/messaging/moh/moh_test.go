@@ -14,8 +14,12 @@ var data = []byte(message)
 
 func TestRequestReply(t *testing.T) {
 	log.Println("Creating new Replier")
-	rep, _ := NewReplier(addr, echoHandler)
-	defer rep.Close()
+	rep := NewReplier(echoHandler)
+
+	srv := NewMessagingServer()
+	srv.Handle("/", rep)
+	go srv.ListenAndServe(addr)
+	defer srv.Close()
 
 	log.Println("Creating new Requester")
 	req, _ := NewRequester("http://" + addr)
@@ -29,11 +33,12 @@ func TestRequestReply(t *testing.T) {
 
 func TestPublishSubscibe(t *testing.T) {
 	log.Println("Creating new Publisher")
-	pub, err := NewPublisher(addr)
-	if err != nil {
-		t.Error(err)
-	}
-	defer pub.Close()
+	pub := NewPublisher()
+
+	srv := NewMessagingServer()
+	srv.Handle("/", pub)
+	go srv.ListenAndServe(addr)
+	defer srv.Close()
 
 	ch := make(chan bool, 1)
 	log.Println("Creating new Subscriber")
@@ -78,15 +83,16 @@ func TestPublishSubscibe(t *testing.T) {
 
 func TestBroadcast(t *testing.T) {
 	log.Println("Creating new Publisher")
-	pub, err := NewPublisher(addr)
-	if err != nil {
-		t.Error(err)
-	}
-	defer pub.Close()
+	pub := NewPublisher()
+
+	srv := NewMessagingServer()
+	srv.Handle("/", pub)
+	go srv.ListenAndServe(addr)
+	defer srv.Close()
 
 	ch := make(chan bool, 1)
 	log.Println("Creating new Subscriber")
-	_, err = NewSubscriber("ws://"+addr, withChan(echoHandler, ch))
+	_, err := NewSubscriber("ws://"+addr, withChan(echoHandler, ch))
 	if err != nil {
 		t.Error(err)
 	}

@@ -13,8 +13,6 @@ type Publisher struct {
 	// All clients are registered to the "all" key by default for allowing broadcasting.
 	// Modifier operations on this type is made by registrar() function.
 	filters *Filters
-
-	*MessagingServer
 }
 
 // This is the magic subscription key for broadcast events.
@@ -24,14 +22,8 @@ const all = "4658f005d49885355f4e771ed9dace10cca9563e"
 // NewPublisher creates a new Publisher and returns a pointer to it.  The
 // publisher will listen on addr and accept websocket connections from
 // Subscribers.
-func NewPublisher(addr string) (*Publisher, error) {
-	p := &Publisher{
-		MessagingServer: NewMessagingServer(addr),
-		filters:         NewFilters(),
-	}
-	p.Handle("/", p)
-	go p.Serve() // Starts HTTP server
-	return p, nil
+func NewPublisher() *Publisher {
+	return &Publisher{filters: NewFilters()}
 }
 
 // Publish sends a message to registered Subscribers with the key.

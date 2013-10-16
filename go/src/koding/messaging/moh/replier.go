@@ -9,19 +9,12 @@ import (
 // It is a HTTP server that responds to HTTP requests with it's handler function.
 type Replier struct {
 	Handler func([]byte) []byte
-	*MessagingServer
 }
 
 // NewReplier starts a new HTTP server on addr and returns a pointer to the Replier.
 // All request will be replied by the handler function.
-func NewReplier(addr string, handler func([]byte) []byte) (*Replier, error) {
-	r := &Replier{
-		MessagingServer: NewMessagingServer(addr),
-		Handler:         handler,
-	}
-	r.Handle("/", r)
-	go r.Serve() // Starts HTTP server
-	return r, nil
+func NewReplier(handler func([]byte) []byte) *Replier {
+	return &Replier{Handler: handler}
 }
 
 // ServeHTTP implements the http.Handler interface for Replier.
