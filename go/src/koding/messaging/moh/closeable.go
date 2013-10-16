@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-// MessagingServer is a base for Replier and Publisher structs.
+// CloseableServer is a base for Replier and Publisher structs.
 // It is a closeable HTTP server. You can shutdown it gracefully with Close().
-type MessagingServer struct {
+type CloseableServer struct {
 	listener net.Listener
 	*http.ServeMux
 }
@@ -19,15 +19,15 @@ type MessagingServer struct {
 // put it here.
 const errClosing = "use of closed network connection"
 
-// NewMessagingServer returns a pointer to a new MessagingServer.  After
+// NewCloseableServer returns a pointer to a new CloseableServer.  After
 // creation, handlers can be registered on Mux and the server can be started
 // with Serve() function. Then, you can close it with Close().
-func NewMessagingServer() *MessagingServer {
-	return &MessagingServer{ServeMux: http.NewServeMux()}
+func NewCloseableServer() *CloseableServer {
+	return &CloseableServer{ServeMux: http.NewServeMux()}
 }
 
 // ListenAndServe runs the HTTP server until it is closed by Close() method.
-func (s *MessagingServer) ListenAndServe(addr string) error {
+func (s *CloseableServer) ListenAndServe(addr string) error {
 	var err error
 
 	s.listener, err = net.Listen("tcp", addr)
@@ -50,11 +50,11 @@ func (s *MessagingServer) ListenAndServe(addr string) error {
 
 // Close make the server stop accepting new connections.
 // Established connections will remain open until their handler finishes.
-func (s *MessagingServer) Close() error {
+func (s *CloseableServer) Close() error {
 	return s.listener.Close()
 }
 
 // Addr returns the address that the server listens on.
-func (s *MessagingServer) Addr() net.Addr {
+func (s *CloseableServer) Addr() net.Addr {
 	return s.listener.Addr()
 }

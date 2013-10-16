@@ -37,10 +37,10 @@ type Subscriber struct {
 // NewSubscriber opens a websocket connection to a Publisher and returns a
 // pointer to newly created Subscriber.  After creating a Subscriber you should
 // subscribe to messages with Subscribe function.
-func NewSubscriber(urlStr string, handler func([]byte)) (*Subscriber, error) {
+func NewSubscriber(urlStr string, handler func([]byte)) *Subscriber {
 	parsed, err := url.Parse(urlStr)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	sub := &Subscriber{
@@ -50,7 +50,7 @@ func NewSubscriber(urlStr string, handler func([]byte)) (*Subscriber, error) {
 	}
 
 	go sub.connector()
-	return sub, err
+	return sub
 }
 
 type subscriberCommand struct {

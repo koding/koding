@@ -16,12 +16,12 @@ type Requester struct {
 
 // NewRequester returns a pointer to a new Requester struct.
 // urlStr argument must be the path of a Replier.
-func NewRequester(urlStr string) (*Requester, error) {
+func NewRequester(urlStr string) *Requester {
 	parsed, err := url.Parse(urlStr)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return &Requester{url: parsed}, nil
+	return &Requester{url: parsed}
 }
 
 // Request sends a message to a Replier over HTTP.
