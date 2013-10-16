@@ -375,7 +375,8 @@ module.exports = class Builder
 
       fileLineOffset += file.content.split("\n").length
 
-    js += "//@ sourceMappingURL=/#{project.outputs.script}.map"
+    mapUrl = project.outputs.script.replace /^website\//, ''
+    js += "//@ sourceMappingURL=/#{mapUrl}.map"
 
     filepath = project.outputs.script
     fs.writeFileSync filepath, js
