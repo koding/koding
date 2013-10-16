@@ -158,9 +158,9 @@ class AccountAppController extends AppController
       overlay                 : yes
       width                   : 570
       tabs                    :
-        navigable             : yes
+        navigable             : no
         goToNextFormOnSubmit  : no
-        hideHandleContainer   : no
+        hideHandleContainer   : yes
         forms                 :
           "share"             :
             customView        : KDCustomHTMLView
@@ -235,16 +235,24 @@ class AccountAppController extends AppController
       return if err
 
       if googleAccount
+        @_showGmailContactsFilter {inviteTab}
         @_showGmailContactsList {inviteTab, tabs, referrerModal}
       else
         KD.singletons.oauthController.openPopup "google"
+
+  _showGmailContactsFilter:->
+    {inviteTab}                      = arguments[0]
+    inviteTab.addSubView filterInput = new KDInputView
+      cssClass      : "filter-input"
+      placeholder   : "Filter Contacts..."
 
   _showGmailContactsList:->
     {inviteTab, tabs, referrerModal} = arguments[0]
     JReferrableEmail                 = KD.remote.api.JReferrableEmail
 
-    tabs.showPaneByName     "invite"
-    referrerModal.setTitle  "Invite your Gmail contacts"
+    tabs.showPaneByName       "invite"
+    referrerModal.setTitle    "Invite your Gmail contacts"
+    referrerModal.setSubTitle "Select contacts that you want to invite and use the filter to be more specific"
 
     listController        = new KDListViewController
       startWithLazyLoader : yes
@@ -261,8 +269,6 @@ class AccountAppController extends AppController
       listController.instantiateListItems contacts
 
     referrerModal.setPositions()
-
-    window.asd = listController
 
     return listController
 
@@ -311,14 +317,17 @@ class GmailContactsListItem extends KDListItemView
         @data.invited = yes
 
   pistachio:->
+    name = @getData().title || "Gmail Contact"
     """
       <div class="avatar"></div>
       <div class="contact-info">
-        <span class="fullname">Burak Can</span>
+        <span class="full-name">#{name}</span>
         {{ #(email)}}
       </div>
+      <div class="invite-sent-overlay">
+        <i></i>Invite Sent
+      </div>
     """
-
 
 
 

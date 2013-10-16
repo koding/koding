@@ -2844,6 +2844,19 @@ div.kdtooltip
             bg                    position, -633px -118px
 
   .kdtabpaneview.invite
+    .kdinput.filter-input
+      display                     block
+      top                         0
+      left                        0
+      rounded                     0
+      border                      none
+      border-bottom               1px solid #ebebeb
+      height                      45px
+      line-height                 45px
+      width                       100%
+      position                    relative
+      padding-left                45px
+
     .kdlistview-gmail
       .kdlistitemview-gmail
         width                     190px
@@ -2856,7 +2869,7 @@ div.kdtooltip
         cursor                    pointer
         borderBox()
         fl()
-        &:hover:after
+        &:hover:before
           content                 "Send Invite?"
           size                    100%, 100%
           line-height             65px
@@ -2867,20 +2880,33 @@ div.kdtooltip
           left                    0
           top                     0
           opacity                 0
+          z-index                 5
           vendor                  animation, inviteConfirmAnimation .1s 1 forwards ease-out
           abs()
-        &.invite-sent:after
-          content                 "Invite sent"
-          size                    100%, 100%
-          line-height             65px
-          font-size               14px
-          background              #a8e071
-          color                   #fff
-          text-align              center
-          right                   100%
-          top                     0
-          vendor                  animation, inviteSentAnimation .2s 1 forwards ease-out
+
+        .invite-sent-overlay
+          size                  100%, 100%
+          line-height           65px
+          font-size             14px
+          background            #a8e071
+          color                 #fff
+          text-align            center
+          right                 100%
+          top                   0
+          z-index               6
           abs()
+          vendor                transition, right 300ms ease
+          i
+            display             inline-block
+            sprite()
+            bg                  position, -22px -642px
+            size                16px, 16px
+            margin-bottom       -3px
+            margin-right        10px
+
+        &.invite-sent
+          .invite-sent-overlay
+            right               0
 
         .avatar
           size                    35px, 35px
@@ -2903,21 +2929,16 @@ div.kdtooltip
             white-space           nowrap
             overflow              hidden
             text-overflow         ellipsis
+            line-height           14px
 
-          .fullname
+          .full-name
+            line-height           19px
             font-size             16px
             color                 #393939
-            margin-bottom         3px
 
-@-webkit-keyframes inviteSentAnimation
-  to
-    right                         0
 @-webkit-keyframes inviteConfirmAnimation
   to
     opacity                       1
-@-moz-keyframes inviteSentAnimation
-  to
-    right                         0
 @-moz-keyframes inviteConfirmAnimation
   to
     opacity                       1
