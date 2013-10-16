@@ -72,9 +72,10 @@ class CollaborativeWorkspace extends Workspace
 
     @workspaceRef.on "child_removed", (snapshot) =>
       return  if @disconnectedModal
-      # we are protecting root node to write. however when someone call remove method
-      # on root node it triggers disconnect event once which is a really wrong behaviour
-      # we have to be sure client is really disconnected by checking it's value again.
+      # root node is write protected. however when someone try to remove root node
+      # firebase will trigger disconnect event for once, which is a really wrong behaviour.
+      # to be sure it's a real disconnection, trying to get node value again.
+      # if we can't get the node value then it means user really disconnected.
       KD.utils.wait 1500, =>
         @workspaceRef.once "value", (snapshot) =>
           @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
@@ -156,9 +157,10 @@ class CollaborativeWorkspace extends Workspace
     @container.addSubView @loader
 
   joinSession: (sessionKey) ->
-    {parent}           = @
-    options            = @getOptions()
-    options.sessionKey = sessionKey.trim()
+    {parent}               = @
+    options                = @getOptions()
+    options.sessionKey     = sessionKey.trim()
+    options.joinedASession = yes
     @destroy()
 
     @forceDisconnect()
