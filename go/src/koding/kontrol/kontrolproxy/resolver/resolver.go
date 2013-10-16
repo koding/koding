@@ -32,9 +32,9 @@ type Target struct {
 	// internal map. Useful for caching.
 	FetchedAt time.Time
 
-	// UseCache is a switch to enable the cache for that target. By default
-	// it's set to true by resolver.
-	UseCache bool
+	// FetchedSource contains the source information from which the target is
+	// obtained.
+	FetchedSource string
 
 	// CacheTimeout is used to invalidate the target. If no timeout is given,
 	// it caches it forever (works only if UseCache is true).
@@ -50,7 +50,6 @@ func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
 		Url:          url,
 		Mode:         mode,
 		FetchedAt:    time.Now(),
-		UseCache:     true,
 		CacheTimeout: timeout,
 	}
 }
@@ -58,37 +57,37 @@ func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
 var ErrGone = errors.New("target is gone")
 
 // cache lookup table
-var targets = make(map[string]Target)
-var targetsLock sync.RWMutex // protects targets map
+var targets = make(map[string]*Target)
+var targetsMu sync.Mutex // protects targets map
 
 // used for loadbalance modes, like roundrobin or random
 var indexes = make(map[string]int)
-var indexesLock sync.RWMutex // protect indexes
+var indexesMu sync.Mutex // protect indexes
 
 // GetMemTarget is like GetTarget with a difference, that it f first makes a
 // lookup from the in-memory lookup, if not found it returns the result from
 // GetTarget()
-func GetMemTarget(host string) (*Target, string, error) {
+func GetMemTarget(host string) (*Target, error) {
 	var err error
-	var target = &Target{}
-	dataSource := "cache"
+	target := new(Target)
 
-	target, ok := getCacheTarget(host)
+	targetsMu.Lock()
+	defer targetsMu.Unlock()
+
+	target, ok := targets[host]
 	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
-		fmt.Printf("[%s] lookup host '%s' from db\n", time.Now().Format(time.Stamp), host)
-
-		dataSource = "db"
 		target, err = GetTarget(host)
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
+		target.FetchedSource = "MongoDB"
 
-		if target.UseCache {
-			registerCacheTarget(host, target)
-		}
+		targets[host] = target
+	} else {
+		target.FetchedSource = "Cache"
 	}
 
-	return target, dataSource, nil
+	return target, nil
 }
 
 // GetTarget is used to resolve any hostname to their final target destination
@@ -131,35 +130,35 @@ func GetTarget(host string) (*Target, error) {
 
 		return newTarget(target, mode, time.Second*20), nil
 	case "vm":
-		return vmTarget(host, port, &domain)
+		return vmTarget(host, port, domain)
 	case "internal":
-		return internalTarget(host, port, &domain)
+		return internalTarget(host, port, domain)
 	}
 
 	return nil, fmt.Errorf("ERROR: proxy mode is not supported: %s", domain.Proxy.Mode)
 }
 
-func targetDomain(host string) (models.Domain, error) {
-	var domain models.Domain
+func targetDomain(host string) (*models.Domain, error) {
+	domain := new(models.Domain)
 	var err error
 	domain, err = modelhelper.GetDomain(host)
 	if err != nil {
 		if err != mgo.ErrNotFound {
-			return models.Domain{}, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
+			return nil, fmt.Errorf("incoming req host: %s, domain lookup error '%s'\n", host, err.Error())
 		}
 
 		domain, err = fallbackDomain(host)
 		if err != nil {
-			return models.Domain{}, err
+			return nil, err
 		}
 	}
 
 	if domain.Proxy == nil {
-		return models.Domain{}, fmt.Errorf("proxy field is empty for %s", host)
+		return nil, fmt.Errorf("proxy field is empty for %s", host)
 	}
 
 	if domain.Proxy.Mode == "" {
-		return models.Domain{}, fmt.Errorf("proxy mode field is empty for %s", host)
+		return nil, fmt.Errorf("proxy mode field is empty for %s", host)
 	}
 
 	return domain, nil
@@ -174,7 +173,7 @@ func internalTarget(host, port string, domain *models.Domain) (*Target, error) {
 	// we only opened ports between those, therefore other ports are not used
 	portInt, _ := strconv.Atoi(port)
 	if portInt >= 1024 && portInt <= 10000 {
-		return nil, fmt.Errorf("port range is not allowed for internal usages")
+		return nil, errors.New("port range is not allowed for internal usages")
 	}
 
 	username := domain.Proxy.Username
@@ -230,7 +229,7 @@ func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
 	var hostname string
 
 	if len(domain.HostnameAlias) == 0 {
-		return nil, fmt.Errorf("domain for hostname %s is not active")
+		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
 	}
 
 	switch domain.LoadBalancer.Mode {
@@ -280,11 +279,11 @@ func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
 // url's like "server-123.x.koding.com" or "awesomekite-1-arslan.kd.io" you
 // can overide the incoming host  always by adding a new entry for the domain
 // itself into to jDomains collection.
-func fallbackDomain(host string) (models.Domain, error) {
+func fallbackDomain(host string) (*models.Domain, error) {
 	h := strings.SplitN(host, ".", 2) // input: xxxxx.kd.io, output: [xxxxx kd.io]
 
 	if len(h) != 2 {
-		return models.Domain{}, fmt.Errorf("not valid req host", host)
+		return notValidDomainFor(host)
 	}
 
 	var servicename, key, username string
@@ -295,7 +294,7 @@ func fallbackDomain(host string) (models.Domain, error) {
 		// in form of: server-123.x.koding.com, assuming the user is 'koding'
 		fmt.Println("X.KODING.COM", host)
 		if c := strings.Count(h[0], "-"); c != 1 {
-			return models.Domain{}, fmt.Errorf("not valid req host", host)
+			return notValidDomainFor(host)
 		}
 		servicename, key, username = s[0], s[1], "koding"
 	case "kd.io":
@@ -303,19 +302,23 @@ func fallbackDomain(host string) (models.Domain, error) {
 		//           : webserver-917-fatih.kd.io
 		fmt.Println("KD.IO", host)
 		if c := strings.Count(h[0], "-"); c != 2 {
-			return models.Domain{}, fmt.Errorf("not valid req host", host)
+			return notValidDomainFor(host)
 		}
 		servicename, key, username = s[0], s[1], s[2]
 	default:
 		// any other domains are discarded
-		return models.Domain{}, fmt.Errorf("not valid req host", host)
+		return notValidDomainFor(host)
 	}
 
 	if servicename == "" || key == "" || username == "" {
-		return models.Domain{}, fmt.Errorf("not valid req host", host)
+		return notValidDomainFor(host)
 	}
 
-	return *modelhelper.NewDomain(host, "internal", username, servicename, key, "", []string{}), nil
+	return modelhelper.NewDomain(host, "internal", username, servicename, key, "", []string{}), nil
+}
+
+func notValidDomainFor(host string) (*models.Domain, error) {
+	return nil, fmt.Errorf("not valid req host: '%s'", host)
 }
 
 // internalRoundRobin is doing roundrobin between between the servers in the hosts
@@ -339,71 +342,6 @@ func internalRoundRobin(hosts []string, index, iter int) (string, int) {
 	return hostname, n
 }
 
-/***********************************************************
-*
-*  in-memory lookup functions for cache lookups and actions
-*
-************************************************************/
-
-// getCacheTarget is used to get the cached Target for the incoming host. It's
-// concurrent safe.
-func getCacheTarget(host string) (*Target, bool) {
-	targetsLock.RLock()
-	defer targetsLock.RUnlock()
-	target, ok := targets[host]
-	return &target, ok
-}
-
-// registerCacheTarget is used to register target for the incoming host to the
-// cache. It's concurrent safe. It also starts the cacheCleaner immediately
-// after the first registering, which is used for cache invalidation.
-func registerCacheTarget(host string, target *Target) {
-	targetsLock.Lock()
-	defer targetsLock.Unlock()
-	fmt.Printf("adding target '%s' with '%s' ttl\n", host, target.CacheTimeout.String())
-	targets[host] = *target
-}
-
-// deleteCacheTarget is used to remove the incoming host from the cache. It's
-// concurrent safe.
-func deleteCacheTarget(host string) {
-	targetsLock.Lock()
-	defer targetsLock.Unlock()
-	fmt.Printf("removing target '%s' from cache\n", host)
-	delete(targets, host)
-}
-
-// cacheCleaner is used for cache invalidation. It is started whenever you call
-// registerCacheTarget().
-// It basically does this: as long as there are targets in the map, it
-// finds the one it should be deleted next, sleeps until it's time to delete it
-// (one hour - time since target is fetched ) and deletes it.  If there are no
-// targets, the goroutine exits and a new one is created the next time a user
-// is registered. The time.Sleep goes toward zero, thus it will not lock the
-// for iterator forever.
-func cacheCleaner() {
-	targetsLock.RLock()
-	for len(targets) > 0 {
-		var nextTime time.Time
-		var nextTarget string
-		var cacheTimeout time.Duration
-		for ip, c := range targets {
-			if nextTime.IsZero() || c.FetchedAt.Before(nextTime) {
-				nextTime = c.FetchedAt
-				nextTarget = ip
-				cacheTimeout = c.CacheTimeout
-			}
-		}
-
-		targetsLock.RUnlock()
-		// negative duration is no-op, means it will not panic
-		time.Sleep(cacheTimeout - time.Now().Sub(nextTime))
-		deleteCacheTarget(nextTarget)
-		targetsLock.RLock()
-	}
-	targetsLock.RUnlock()
-}
-
 /*******************************************************
 *
 *  loadbalance index functions for roundrobin or random
@@ -413,8 +351,8 @@ func cacheCleaner() {
 // getIndex is used to get the current index for current the loadbalance
 // algorithm/mode. It's concurrent-safe.
 func getIndex(host string) int {
-	indexesLock.RLock()
-	defer indexesLock.RUnlock()
+	indexesMu.Lock()
+	defer indexesMu.Unlock()
 	index, _ := indexes[host]
 	return index
 }
@@ -424,15 +362,15 @@ func getIndex(host string) int {
 // When used roundrobin, the next items index is saved, for random a random
 // number is assigned, and so on. It's concurrent-safe.
 func addOrUpdateIndex(host string, index int) {
-	indexesLock.Lock()
-	defer indexesLock.Unlock()
+	indexesMu.Lock()
+	defer indexesMu.Unlock()
 	indexes[host] = index
 }
 
 // deleteIndex is used to remove the current index from the indexes. It's
 // concurrent-safe.
 func deleteIndex(host string) {
-	indexesLock.Lock()
-	defer indexesLock.Unlock()
+	indexesMu.Lock()
+	defer indexesMu.Unlock()
 	delete(indexes, host)
 }

@@ -1,18 +1,9 @@
 class MainView extends KDView
 
-  removePulsing = ->
-    if el = document.getElementById 'main-loading'
-      el.children[0].classList.add 'out'
-      KD.utils.wait 750, ->
-        el.classList.add 'out'
-        KD.utils.wait 750, ->
-          el.parentElement.removeChild el
-
   viewAppended:->
 
     @bindPulsingRemove()
     @bindTransitionEnd()
-    # @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -102,13 +93,6 @@ class MainView extends KDView
       cssClass : "transition"
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
-
-  # addServerStack:->
-  #   @addSubView @serverStack = new KDView
-  #     domId : "server-rack"
-  #     click : ->
-  #       $('body').removeClass 'server-stack'
-  #       $('.kdoverlay').remove()
 
   addHeader:->
 
@@ -256,3 +240,34 @@ class MainView extends KDView
           title       : systemStatus.title
           content     : systemStatus.content
           type        : systemStatus.type
+
+  removePulsing = ->
+
+    loadingScreen = document.getElementById 'main-loading'
+
+    return unless loadingScreen
+
+    logo = loadingScreen.children[0]
+    logo.classList.add 'out'
+
+    KD.utils.wait 750, ->
+
+      loadingScreen.classList.add 'out'
+
+      KD.utils.wait 750, ->
+
+        loadingScreen.parentElement.removeChild loadingScreen
+
+        return if KD.isLoggedIn()
+
+        cdc      = KD.getSingleton 'contentDisplayController'
+        mainView = KD.getSingleton 'mainView'
+
+        return unless Object.keys(cdc.displays).length
+
+        for own id, display of cdc.displays
+          top      = display.$().offset().top
+          duration = 400
+          KDScrollView::scrollTo.call mainView, {top, duration}
+          break
+
