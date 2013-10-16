@@ -580,6 +580,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
   "app/CommonViews/workspace/workspacelayout.coffee",
+  "app/CommonViews/workspace/views/workspacefloatingpanelauncher.coffee",
   "app/CommonViews/workspace/workspace.coffee",
 
   # COLLABORATIVE WORKSPACE
