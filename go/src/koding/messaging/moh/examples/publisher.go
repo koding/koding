@@ -5,13 +5,15 @@ package main
 import (
 	"bufio"
 	"koding/messaging/moh"
+	"net/http"
 	"os"
 )
 
 func main() {
-	pub, _ := moh.NewPublisher("localhost:18500")
-	bio := bufio.NewReader(os.Stdin)
+	pub := moh.NewPublisher()
+	go http.ListenAndServe("127.0.0.1:18500", pub)
 
+	bio := bufio.NewReader(os.Stdin)
 	for {
 		line, _, _ := bio.ReadLine()
 		pub.Broadcast(line)

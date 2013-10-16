@@ -12,10 +12,9 @@ func echo(message []byte) {
 }
 
 func main() {
-	_, err := moh.NewSubscriber("ws://localhost:18500", echo)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	sub := moh.NewSubscriber("ws://localhost:18500", echo)
+	fmt.Println("Connecting...")
+	<-sub.Connect()
+	fmt.Println("Connected. Waiting for messages...")
 	select {}
 }
