@@ -4,22 +4,24 @@ import (
 	"sync"
 )
 
-// Filters is a type used for managing the message subscription keys of subscribers.
+// Filters is a type used for managing the message subscription keys of
+// subscribers. It encapsulates a map where keys are subscription keys
+// and values are set of websocket connections.
 // Methods also updates the keys field of the connections.
-// Keep in mind that it's methods are not thread-safe.
 type Filters struct {
 	m map[string]map[*connection]bool
 	sync.RWMutex
 }
 
+// NewFilters returns a pointer to new Filters struct.
 func NewFilters() *Filters {
 	return &Filters{m: make(map[string]map[*connection]bool)}
 }
 
+// Get returns connections for the key as a map.
 func (f Filters) Get(key string) map[*connection]bool {
 	f.RLock()
 	defer f.RUnlock()
-
 	return f.m[key]
 }
 
@@ -50,7 +52,7 @@ func (f Filters) Remove(conn *connection, key string) {
 	}
 }
 
-// Remove removes the connection from the map for all of it's keys.
+// RemoveAll removes the connection from the map for all of it's keys.
 func (f Filters) RemoveAll(conn *connection) {
 	for key := range conn.keys {
 		f.Remove(conn, key)
