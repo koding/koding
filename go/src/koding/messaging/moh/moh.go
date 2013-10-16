@@ -22,6 +22,8 @@ type MessagingClient struct {
 
 // NewMessagingClient returns a pointer to new MessagingClient.
 // The client will connect the server from the default paths.
+// Connect() needs to be called explicitly to consume the messages from
+// the server.
 func NewMessagingClient(addr string, consumeFunc func([]byte)) *MessagingClient {
 	replierURL := "http://" + addr + DefaultReplierPath
 	publisherURL := "ws://" + addr + DefaultPublisherPath

@@ -37,6 +37,7 @@ func TestPublishSubscibe(t *testing.T) {
 	log.Println("Creating new Subscriber")
 	ch := make(chan bool, 1)
 	cl := NewMessagingClient(addr, withChan(echoHandler, ch))
+	cl.Connect()
 
 	log.Println("Subscribing key")
 	cl.Subscribe("asdf")
@@ -80,7 +81,8 @@ func TestBroadcast(t *testing.T) {
 
 	log.Println("Creating new Subscriber")
 	ch := make(chan bool, 1)
-	NewMessagingClient(addr, withChan(echoHandler, ch))
+	cl := NewMessagingClient(addr, withChan(echoHandler, ch))
+	cl.Connect()
 
 	// Explained in TestPublishSubscibe
 	time.Sleep(100 * time.Millisecond)
