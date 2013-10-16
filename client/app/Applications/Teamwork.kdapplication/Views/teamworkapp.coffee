@@ -13,7 +13,6 @@ class TeamworkApp extends KDObject
       shareSessionKeyInfo : "<p>This is your session key, you can share this key with your friends to work together.</p>"
       firebaseInstance    : instanceName
       sessionKey          : @getOptions().sessionKey
-      enableChat          : yes
       panelClass          : TeamworkPanel
       delegate            : this
       panels              : [
@@ -26,6 +25,7 @@ class TeamworkApp extends KDObject
             callback      : (panel, workspace) => @showToolsModal panel, workspace
           }
         ]
+        floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
           direction       : "vertical"
           sizes           : [ "25%", null ]
@@ -36,21 +36,8 @@ class TeamworkApp extends KDObject
               name        : "finder"
             }
             {
-              type        : "split"
-              options     :
-                direction : "horizontal"
-                sizes     : [ "50%", null ]
-                splitName : "InnerSplit"
-              views       : [
-                {
-                  type    : "tabbedEditor"
-                  name    : "editor"
-                }
-                {
-                  type    : "terminal"
-                  name    : "terminal"
-                }
-              ]
+              type        : "tabbedEditor"
+              name        : "editor"
             }
           ]
       ]
