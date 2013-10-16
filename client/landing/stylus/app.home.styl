@@ -14,15 +14,22 @@ app.home.styl
 #kdmaincontainer.home
   overflow          auto
 
+  background              url("../images/gunduz-varligi-yildizli.jpg") \
+                          no-repeat center center fixed
+  background-size         cover
+
   #main-panel-wrapper
     min-height      100%
     height          auto!important
+
   #sidebar-panel
     hidden()
+
   #content-panel
     min-height      100%
     height          auto!important
     width           100% !important
+    background      none
 
 #home-intro
 #header-sign-in
@@ -31,6 +38,8 @@ app.home.styl
 #kdmaincontainer.home
   #main-tab-handle-holder
     display                 none
+  #main-tab-view
+    background              none
 
   >header
     size                    100%, 100px
@@ -85,16 +94,12 @@ app.home.styl
   #home-intro
     display                 block
     size                    100%, 100%
-    background              url("../images/gunduz-varligi-yildizli.jpg") \
-                            no-repeat center center fixed
-    background-size         cover
 
     >section
       text-align            center
       size                  100%, 100%
       left                  0
       top                   0
-      padding               0 10px
       borderBox()
       abs()
 
@@ -116,20 +121,18 @@ app.home.styl
       .learnmore
         background          none
         border              none
-        left                50%
         bottom              30px
         color               white
         text-decoration     none
         font-variant        small-caps
         font-size           16px
-        margin-left         -95px
         cursor              pointer
+        width               100%
         abs()
 
       .buttons
         bottom              150px
-        left                50%
-        margin-left         -250px
+        width               100%
         abs()
 
         button.kdbutton
@@ -190,13 +193,10 @@ app.home.styl
 #content-page-home
   section.slider-section
     size                    100%, 100%
-    bg                      color, #fff
     position                relative
 
-    border-bottom           1px solid #eee
-
     .home-slider
-      size                  100%, 2500px
+      size                  100%, 3100px
       text-align            center
       overflow              hidden
 
@@ -222,9 +222,11 @@ app.home.styl
       .slider-page
         display             block
         size                100%, 600px
+        bg                      color, #fff
         top                 0
         text-align          left
-        border-bottom       1px solid #eee
+        border-top          1px solid #eee
+        margin-bottom       200px
 
         figure
           size            641px, 467px
@@ -251,7 +253,7 @@ app.home.styl
           width             100%
           max-width         1280px
           margin            0 auto
-          padding           100px 20px 0
+          padding           60px 20px 0
           borderBox()
 
         h3
