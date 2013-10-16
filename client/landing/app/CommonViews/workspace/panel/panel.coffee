@@ -138,6 +138,8 @@ class Panel extends JView
   viewAppended: ->
     super
     @getDelegate().emit "NewPanelAdded", this
+    if @getOptions().floatingPanes
+      @addSubView new WorkspaceFloatingPaneLauncher delegate: this
 
   pistachio: ->
     """
