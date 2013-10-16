@@ -252,7 +252,6 @@ class AccountAppController extends AppController
 
     tabs.showPaneByName       "invite"
     referrerModal.setTitle    "Invite your Gmail contacts"
-    referrerModal.setSubTitle "Select contacts that you want to invite and use the filter to be more specific"
 
     listController        = new KDListViewController
       startWithLazyLoader : yes
@@ -288,60 +287,3 @@ class AccountAppController extends AppController
 
   indexOfItem:(item)->
     @itemsOrdered.indexOf item
-
-class GmailContactsListItem extends KDListItemView
-
-  constructor:(options={}, data)->
-    options.type     = "gmail"
-    data.invited    ?= no
-
-    super options, data
-
-    @isSelected = no
-
-  viewAppended:->
-    uber = JView::viewAppended.bind @
-    @setClass "already-invited" if @getData().invited
-    uber()
-
-  partial:->
-
-  click:->
-    JReferrableEmail = @getData()
-    JReferrableEmail.invite (err) =>
-      if err
-        log "we have a problem"
-        log err
-      else
-        @setClass "invite-sent"
-        @data.invited = yes
-
-  pistachio:->
-    name = @getData().title || "Gmail Contact"
-    """
-      <div class="avatar"></div>
-      <div class="contact-info">
-        <span class="full-name">#{name}</span>
-        {{ #(email)}}
-      </div>
-      <div class="invite-sent-overlay">
-        <i></i>Invite Sent
-      </div>
-    """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

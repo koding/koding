@@ -552,6 +552,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/subscriptions.coffee",
   "app/Applications/Account.kdapplication/views/referralsystem.coffee",
   "app/Applications/Account.kdapplication/views/deleteaccountview.coffee",
+  "app/Applications/Account.kdapplication/views/gmailcontact.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
