@@ -9,6 +9,7 @@ class MainController extends KDController
     - pageLoaded.as.loggedOut       [account, connectedState, firstLoad]
     - accountChanged.to.loggedIn    [account, connectedState, firstLoad]
     - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
+
   ###
 
   connectedState =
@@ -16,7 +17,7 @@ class MainController extends KDController
 
   constructor:(options = {}, data)->
 
-    options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
+    options.failWait  = 10000            # duration in miliseconds to show a connection failed modal
 
     super options, data
 
@@ -31,7 +32,6 @@ class MainController extends KDController
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
-    KD.registerSingleton "windowController",          new KDWindowController
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton "vmController",              new VirtualizationController
@@ -57,6 +57,8 @@ class MainController extends KDController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       @showInstructionsBookIfNeeded()
       @emit 'AppIsReady'
+
+      console.timeEnd "Koding.com loaded"
 
   accountChanged:(account, firstLoad = no)->
     @userAccount             = account

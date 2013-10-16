@@ -26,12 +26,12 @@ class EnvironmentScene extends KDDiaScene
 
     items = parseItems source, target
     {domain, machine} = items
-    return unless domain
+    return unless domain or machine
 
-    @askForApprove items, 'delete', (modal)=>
-      return unless machine? # Remove a domain from a machine
-      jDomain = domain.dia.data.domain # JDomain
-      vmName  = machine.dia.data.title # JVM.hostnameAlias
+    modal = @createApproveModal items, 'delete'
+    modal.once 'Approved', =>
+      jDomain = domain.dia.getData().domain # JDomain
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
       jDomain.unbindVM hostnameAlias: vmName, (err)=>
         modal.destroy()
         return KD.showError err  if err
@@ -45,37 +45,43 @@ class EnvironmentScene extends KDDiaScene
 
     items = parseItems source, target
     {domain, machine} = items
-    return unless domain
+    return unless domain or machine
 
-    if machine?
-      if domain.dia.data.domain.hostnameAlias.length > 0
-        return new KDNotificationView
-          title : "A domain name can only be bound to one VM."
+    if domain.dia.getData().domain.hostnameAlias.length > 0
+      return new KDNotificationView
+        title : "A domain name can only be bound to one VM."
 
-    @askForApprove items, 'create', (modal)=>
-      if machine? # Assign a domain to a machine
-        jDomain = domain.dia.data.domain # JDomain
-        vmName  = machine.dia.data.title # JVM.hostnameAlias
-        jDomain.bindVM hostnameAlias: vmName, (err)=>
-          modal.destroy()
-          return KD.showError err  if err
-          jDomain.hostnameAlias.push vmName
-          createConnection()
+    @addFakeConnection {
+      source, target,
+      options : {
+        lineColor  : "#cdcdcd"
+        lineDashes : [5]
+      }
+    }
+
+    modal = @createApproveModal items, 'create'
+    modal.once "KDObjectWillBeDestroyed", @bound 'resetScene'
+    modal.once 'Approved', =>
+      jDomain = domain.dia.getData().domain # JDomain
+      vmName  = machine.dia.getData().title # JVM.hostnameAlias
+      jDomain.bindVM hostnameAlias: vmName, (err)=>
+        modal.destroy()
+        return KD.showError err  if err
+        jDomain.hostnameAlias.push vmName
+        createConnection()
 
   updateConnections:->
     for _mkey, machine of @boxes.machines.dias
       for _dkey, domain of @boxes.domains.dias
-        if domain.data.aliases and machine.data.title in domain.data.aliases
+        if domain.getData().aliases and machine.getData().title in domain.getData().aliases
           @connect {dia : domain , joint : 'right'}, \
                    {dia : machine, joint : 'left' }, yes
 
-  askForApprove:(items, action, callback)->
+  createApproveModal:(items, action)->
     return unless KD.isLoggedIn()
       new KDNotificationView
         title : "You need to login to change domain settings."
-
-    modal = new EnvironmentApprovalModal {action}, items
-    modal.once 'Approved', => callback modal
+    return new EnvironmentApprovalModal {action}, items
 
   whenItemsLoadedFor:do->
     # poor man's when/promise implementation ~ GG
@@ -160,13 +166,17 @@ class EnvironmentScene extends KDDiaScene
 class EnvironmentApprovalModal extends KDModalView
 
   getContentFor = ({domain, machine}, action)->
-    content = 'God knows.'
+    content     = 'God knows.'
+
+    domainTitle  = domain.dia.getData().title
+    machineTitle = machine.dia.getData().title
+
     if action is 'create'
-      content = """Do you want to assign <b>#{domain.dia.data.title}</b>
-                   to <b>#{machine.dia.data.title}</b> machine?"""
+      content = """Do you want to assign <b>#{domainTitle}</b>
+                   to <b>#{machineTitle}</b> machine?"""
     else if action is 'delete'
-      content = """Do you want to remove <b>#{domain.dia.data.title}</b>
-                   domain from <b>#{machine.dia.data.title}</b> machine?"""
+      content = """Do you want to remove <b>#{domainTitle}</b>
+                   domain from <b>#{machineTitle}</b> machine?"""
     return "<div class='modalformline'><p>#{content}</p></div>"
 
   constructor:(options={}, data)->
