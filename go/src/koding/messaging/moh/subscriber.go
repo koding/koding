@@ -34,6 +34,13 @@ type Subscriber struct {
 	errCount int
 }
 
+type subscriberCommand struct {
+	Name string `json:"name"`
+	Args args   `json:"args"`
+}
+
+type args map[string]interface{}
+
 // NewSubscriber opens a websocket connection to a Publisher and returns a
 // pointer to newly created Subscriber.  After creating a Subscriber you should
 // subscribe to messages with Subscribe function.
@@ -52,13 +59,6 @@ func NewSubscriber(urlStr string, handler func([]byte)) *Subscriber {
 	go sub.connector()
 	return sub
 }
-
-type subscriberCommand struct {
-	Name string `json:"name"`
-	Args args   `json:"args"`
-}
-
-type args map[string]interface{}
 
 // Subscribe registers the Subscriber to receive messages matching with the key.
 func (s *Subscriber) Subscribe(key string) {
