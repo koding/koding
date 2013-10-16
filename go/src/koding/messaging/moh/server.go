@@ -20,7 +20,7 @@ type MessagingServer struct {
 // put it here.
 const errClosing = "use of closed network connection"
 
-// NewMessagingServer returns a pointer to a new ClosableServer.  After
+// NewMessagingServer returns a pointer to a new MessagingServer.  After
 // creation, handlers can be registered on Mux and the server can be started
 // with Serve() function. Then, you can close it with Close().
 func NewMessagingServer(addr string) *MessagingServer {
