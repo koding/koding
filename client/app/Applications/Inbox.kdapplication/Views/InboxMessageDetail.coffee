@@ -7,7 +7,8 @@ class InboxMessageDetail extends KDView
       id               : data.originId
     }
 
-    group = data.participants.map (participant)->
+    group   = {} unless data.participants
+    group or= data.participants.map (participant)->
       constructorName : participant.sourceName
       id              : participant.sourceId
 
