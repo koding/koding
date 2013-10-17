@@ -342,7 +342,7 @@ class VirtualizationController extends KDController
     vmController        = KD.getSingleton('vmController')
     paymentController   = KD.getSingleton('paymentController')
 
-    vmController.fetchVMPlans (err, plans)=>
+    vmController.fetchVMPlans (err, plans) =>
       { descriptions, hostTypes } = vmController.sanitizeVMPlansForInputs plans
       descPartial = ""
       for d in descriptions
@@ -517,31 +517,30 @@ class VirtualizationController extends KDController
 
   # there may be a better place for these who methods below - SY
 
-  fetchVMPlans:(callback)->
+  fetchVMPlans: (callback) ->
+
+    { JPaymentPlan } = KD.remote.api
+
     @emit "VMPlansFetchStart"
-    KD.remote.api.JPaymentPlan.getPlans "group", "vm", (err, plans)=>
-      if err then warn err
-      else if plans
-        plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
+
+    JPaymentPlan.fetchPlans prefix: 'group', category: 'vm', (err, plans) =>
+      return warn err  if err
+
+      if plans then plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
 
       @emit "VMPlansFetchEnd"
+
       callback err, plans
 
   sanitizeVMPlansForInputs:(plans)->
     # fix this one on radios value cannot have some chars and that's why i keep index as the value
-    descriptions = []
+    descriptions = plans.map (plan) -> plan.description
     hostTypes    = plans.map (plan, i)->
-      descriptions.push item = try
-        JSON.parse plan.desc.replace /&quot;/g, '"'
-      catch e
-        title       : ""
-        description : plan.desc
-        meta        : goodFor : 0
-      plans[i].item = item
-      feeMonthly = (plan.feeMonthly/100).toFixed 0
-      { title : item.title, value : i, feeMonthly }
+      title       : plan.description.title
+      value       : i
+      feeMonthly  : (plan.feeMonthly / 100).toFixed 0
 
-    return {descriptions, hostTypes}
+    { descriptions, hostTypes }
 
   # This is a copy of JVM.parseAlias
   # make sure to update this if change other one ~ GG
