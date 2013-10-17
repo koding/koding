@@ -37,7 +37,7 @@ func TestCloseableServer(t *testing.T) {
 		// Could not start the server
 		t.Error(err)
 	case <-time.After(testWait):
-		// No error in 100ms, server must be started successfully.
+		// No error in 10ms, server must be started successfully.
 		log.Println("No error")
 	}
 
@@ -67,7 +67,7 @@ func TestCloseableServer(t *testing.T) {
 	case err := <-err2:
 		t.Error(err)
 	case <-time.After(testWait):
-		// No error in 100ms, server must be started successfully.
+		// No error in 10ms, server must be started successfully.
 		log.Println("No error")
 	}
 

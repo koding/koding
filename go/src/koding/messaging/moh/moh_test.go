@@ -45,7 +45,7 @@ func TestPublishSubscibe(t *testing.T) {
 	// Wait for the subscribe request to be processed
 	// Normally Subscribe() and Publish() will be called from seperate processes.
 	// However, it the test we have to call them consequently from the same process.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(testWait)
 
 	log.Println("Publishing a message")
 	srv.Publish("asdf", data)
@@ -60,7 +60,7 @@ func TestPublishSubscibe(t *testing.T) {
 	// Lets test Unsubscribe method
 	cl.Unsubscribe("asdf")
 	// Allow the unsubscribe message to be processed on the server
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(testWait)
 
 	log.Println("Publishing another message, this should not be delivered")
 	srv.Publish("asdf", data)
@@ -69,7 +69,7 @@ func TestPublishSubscibe(t *testing.T) {
 	select {
 	case <-ch:
 		t.Error("Handler is called")
-	case <-time.After(100 * time.Millisecond):
+	case <-time.After(testWait):
 	}
 }
 
@@ -85,7 +85,7 @@ func TestBroadcast(t *testing.T) {
 	cl.Connect()
 
 	// Explained in TestPublishSubscibe
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(testWait)
 
 	log.Println("Publishing a message")
 	srv.Broadcast(data)
