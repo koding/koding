@@ -142,8 +142,8 @@ class BookView extends JView
 
   fillPrevPage:->
     if BookView.navigateNewPages
-      @getNewPages (pages)=>
-        prev = pages.prev()
+      @getNewPages =>
+        prev = @prevUnreadPage()
         @fillPage prev if prev?
       return
 
@@ -152,8 +152,8 @@ class BookView extends JView
 
   fillNextPage:->
     if BookView.navigateNewPages
-      @getNewPages (pages)=>
-        next = pages.next()
+      @getNewPages =>
+        next = @nextUnreadPage()
         @fillPage next if next?
       return
 
@@ -637,7 +637,17 @@ class BookView extends JView
       # page is unread if page version is bigger than last read one.
       KD.utils.versionCompare page.version, ">", version
 
-  getNewPages: (callback, showSplashPage=no)->
+  nextUnreadPage: ->
+    return if @newPagePointer + 1 is @unreadPages.length
+    @newPagePointer++
+    @unreadPages[@newPagePointer].index
+
+  prevUnreadPage: ->
+    return if @newPagePointer is 0
+    --@newPagePointer
+    @unreadPages[@newPagePointer].index
+
+  getNewPages: (callback)->
     return callback @unreadPages if @unreadPages
 
     @getStorage().fetchValue "lastReadVersion", (lastReadVersion=0)=>
@@ -648,17 +658,6 @@ class BookView extends JView
           return callback []
 
         @newPagePointer ?= 0
-
-        unreadPages.next = =>
-          return if @newPagePointer + 1 is unreadPages.length
-          @newPagePointer++
-          unreadPages[@newPagePointer].index
-
-        unreadPages.prev = =>
-          return if @newPagePointer is 0
-          --@newPagePointer
-          unreadPages[@newPagePointer].index
-
         @unreadPages = unreadPages
         callback unreadPages
       else
