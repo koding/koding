@@ -17,12 +17,12 @@ class PaymentController extends KDController
     { dash } = Bongo
 
     methods       = null
-    defaultAccountCode = null
+    preferredAccountCode = null
     appStorage    = new AppStorage 'Account', '1.0'
     queue = [
 
       -> appStorage.fetchStorage (err) ->
-        defaultAccountCode = appStorage.getValue 'defaultPaymentMethod'
+        preferredAccountCode = appStorage.getValue 'preferredAccountCode'
         queue.fin err
 
       => KD.whoami().fetchPaymentMethods (err, paymentMethods) ->
@@ -31,7 +31,7 @@ class PaymentController extends KDController
     ]
 
     dash queue, (err) -> callback err, {
-      defaultAccountCode
+      preferredAccountCode
       methods
       appStorage
     }

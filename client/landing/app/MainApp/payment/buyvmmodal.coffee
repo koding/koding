@@ -1,4 +1,5 @@
 class BuyVmModal extends KDModalView
+  
   constructor: (options = {}, data) ->
     do (o = options) ->
       o.title    ?= "Create a new VM"
@@ -139,10 +140,11 @@ class BuyVmModal extends KDModalView
     paymentField = @paymentMethodChoiceForm.fields['Payment method']
 
     paymentController = KD.getSingleton 'paymentController'
-    paymentController.fetchPaymentMethods (err, paymentMethods) =>
-      return KD.showError err  if err
 
-      { defaultAccountCode, methods, appStorage } = paymentMethods
+    paymentController.fetchPaymentMethods (err, paymentMethods) =>
+      return if KD.showError err
+
+      { preferredAccountCode, methods, appStorage } = paymentMethods
 
       switch methods.length
 
@@ -158,7 +160,7 @@ class BuyVmModal extends KDModalView
         else
 
           paymentField.addSubView new KDSelectBox
-            defaultValue  : defaultAccountCode ? methods[0].billing.accountCode
+            defaultValue  : preferredAccountCode ? methods[0].billing.accountCode
             name          : 'accountCode'
             selectOptions : methods.map (method) ->
               title       : KD.utils.getPaymentMethodTitle method
