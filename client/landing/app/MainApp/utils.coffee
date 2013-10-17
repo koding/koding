@@ -1,6 +1,16 @@
 
 __utils.extend
 
+  getPaymentMethodTitle: (billing)->
+    # for convenience, accept either the payment method, or the billing object
+    { billing } = billing  if billing.billing?
+
+    { cardFirstName, cardLastName, cardType, cardNumber } = billing
+
+    """
+    #{ cardFirstName } #{ cardLastName } (#{ cardType } #{ cardNumber })
+    """
+
   proxifyUrl:(url="", options={})->
 
     options.width   or= -1
