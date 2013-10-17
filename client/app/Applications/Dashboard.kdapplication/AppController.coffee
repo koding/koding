@@ -142,7 +142,7 @@ class DashboardAppController extends AppController
 
     paymentController = KD.getSingleton 'paymentController'
 
-    paymentController.observeModalSave modal, (err, { accountCode }) =>
+    paymentController.observePaymentSave modal, (err, { accountCode }) =>
       if err
         new KDNotificationView title: err.message
       else

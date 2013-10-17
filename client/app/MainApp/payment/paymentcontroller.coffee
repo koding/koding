@@ -12,8 +12,31 @@ class PaymentController extends KDController
     else
       JPaymentPlan.getGroupBalance callback
 
+  fetchPaymentMethods: (callback) ->
 
-  observeModalSave: (modal, callback) ->
+    { dash } = Bongo
+
+    methods       = null
+    defaultMethod = null
+    appStorage    = new AppStorage 'Account', '1.0'
+    queue = [
+
+      -> appStorage.fetchStorage (err) ->
+        defaultMethod = appStorage.getValue 'defaultPaymentMethod'
+        queue.fin err
+
+      => KD.whoami().fetchPaymentMethods (err, paymentMethods) ->
+        methods = paymentMethods
+        queue.fin err
+    ]
+
+    dash queue, (err) -> callback err, {
+      defaultMethod
+      methods
+      appStorage
+    }
+
+  observePaymentSave: (modal, callback) ->
     modal.on 'PaymentInfoSubmitted', (accountCode, updatedBillingInfo) =>
       @updateBillingInfo accountCode, updatedBillingInfo, (err, savedBillingInfo) =>
         return callback err  if err
