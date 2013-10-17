@@ -85,16 +85,16 @@ class MainViewController extends KDViewController
     chatPanel.hide()
     mainView.setClass 'home'
     logo.setClass 'large'
-    homeIntro.show()
-
+    # homeIntro.show()
 
   clearHome:->
     mainView = @getView()
     {homeIntro, logo, chatPanel, chatHandler} = mainView
 
+    KD.introView.hide()
     KD.utils.wait 300, ->
       chatHandler.show()
       chatPanel.show()
     mainView.unsetClass 'home'
     logo.unsetClass 'large'
-    homeIntro.hide()
+    # homeIntro.hide()
