@@ -75,7 +75,6 @@ module.exports = class JPayment extends Base
     @getBalance_ (userCodeOf delegate), callback
 
   @invalidateCacheAndLoad: (constructor, selector, options, callback)->
-    console.log 'invalidate cache and load is called'
     cb = -> constructor.all selector, callback
     return cb()  unless options.forceRefresh
 
@@ -100,7 +99,7 @@ module.exports = class JPayment extends Base
       all = {}
       all[obj[keyField]] = obj  for obj in objs
 
-      constructor.all selector, (err, cachedObjs)->
+      constructor.all selector, (err, cachedObjs) ->
 
         return callback err  if err
 
@@ -108,21 +107,20 @@ module.exports = class JPayment extends Base
         cached[cObj[keyField]] = cObj  for cObj in cachedObjs
 
         keys    = all: Object.keys(all), cached: Object.keys(cached)
-        stack   = []
-        stackCb = (err) -> if err then callback err else stack.fin()
+        stackCb = (err) ->
+          if err
+          then callback err
+          else stack.fin()
 
-        stack.push ->
-          keys.all.forEach (k) ->
-            forEach k, cached[k], all[k], stackCb
+        stack =  keys.all.map (k) -> ->
+          forEach k, cached[k], all[k], stackCb
 
         # remove obsolete plans in mongo
         difference(keys.cached, keys.all).forEach (k) ->
-          console.log 'obsolete', { k }
           stack.push -> cached[k].remove stackCb
 
         # create new JPaymentPlan models for new plans from Recurly
         difference(keys.all, keys.cached).forEach (k) ->
-          console.log 'newly', { k }
           cached[k] = new constructor
           cached[k][keyField] = all[k][keyField]
 

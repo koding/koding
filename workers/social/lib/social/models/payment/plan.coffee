@@ -37,10 +37,10 @@ module.exports = class JPaymentPlan extends jraphical.Module
         version    : Number
       lastUpdate   : Number
 
-  @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
+  @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
     recurly.fetchAccountDetailsByAccountCode (JPayment.userCodeOf delegate), callback
 
-  @fetchPlans = secure (client, options, callback)->
+  @fetchPlans = secure (client, options, callback) ->
 
     selector = (Object.keys options)
       .reduce( (acc, key) ->
@@ -50,13 +50,12 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
     JPayment.invalidateCacheAndLoad this, selector, force, callback
 
-  @getPlanWithCode = (code, callback)->
-    @one { code }, callback
+  @getPlanWithCode = (code, callback) -> @one { code }, callback
 
-  getToken: secure (client, data, callback)->
+  getToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @code, callback
 
-  doSubscribe = (code, data, callback)->
+  doSubscribe = (code, data, callback) ->
     data.multiple ?= no
 
     JPaymentSubscription.getAllSubscriptions {
@@ -120,12 +119,12 @@ module.exports = class JPaymentPlan extends jraphical.Module
   @updateCache = (selector, callback)->
     # TODO: what on earth is the point of this? C
     JPayment.updateCache(
-      constructor   : this
-      method        : 'fetchPlans'
-      keyField      : 'code'
-      message       : 'product cache'
-      forEach       : (k, cached, plan, stackCb)->
-        return stackCb()  unless k.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/
+      constructor : this
+      method      : 'fetchPlans'
+      keyField    : 'code'
+      message     : 'product cache'
+      forEach     : (k, cached, plan, fin)->
+        return fin()  unless k.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/
 
         {title, desc, feeMonthly, feeInitial, feeInterval} = plan
 
@@ -150,6 +149,6 @@ module.exports = class JPaymentPlan extends jraphical.Module
           }
         }
 
-        cached.save stackCb
+        cached.save fin
 
     , callback)
