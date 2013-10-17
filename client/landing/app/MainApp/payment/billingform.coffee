@@ -1,16 +1,5 @@
-class BillingFormModal extends KDModalView
-
-  constructor: (options = {}, data = {}) ->
-
-    options.title    or= 'Billing information'
-    options.width    or= 520
-    options.height   or= 'auto'
-    options.cssClass or= 'payments-modal'
-    options.overlay   ?= yes
-
-    super options, data
-
-  createBillingForm:->
+class BillingForm extends KDFormViewWithFields
+  constructor: (options = {}, data) ->
     thisYear = (new Date).getFullYear()
 
     fields =
@@ -108,59 +97,29 @@ class BillingFormModal extends KDModalView
 
     # options.tabs     or=
 
-    @modalTabs = new KDTabViewWithForms
-      navigable                 : yes
-      goToNextFormOnSubmit      : no
-      forms                     :
-        'Billing Info'          :
-          fields                : fields
-          callback              : (formData) =>
-            @emit 'PaymentInfoSubmitted', @getData()?.accountCode, formData
-          buttons               :
-            Save                :
-              title             : 'Save'
-              style             : 'modal-clean-green'
-              type              : 'submit'
-              loader            : { color : '#fff', diameter : 12 }
-
-    @addSubView @modalTabs
-
     # set up a loader to compensate for latency while we load the country list
     # @countryLoader = new KDLoaderView
     #   size        : { width: 14 }
     #   showLoader  : yes
 
+    super
+      fields                : fields
+      callback              : (formData) =>
+        @emit 'PaymentInfoSubmitted', @getData()?.accountCode, formData
+      buttons               :
+        Save                :
+          title             : 'Save'
+          style             : 'modal-clean-green'
+          type              : 'submit'
+          loader            : { color : '#fff', diameter : 12 }
+
   viewAppended:->
-
-    @mainLoader = new KDLoaderView
-      showLoader  : yes
-      size        : { width: 14 }
-
-    @addSubView @mainLoader
-
-    @useExistingView = new BillingMethodChoiceView
-    @useExistingView.hide()
-
-    @useExistingView.on 'BillingMethodSelected', (accountCode) =>
-      if accountCode
-        @emit 'BillingMethodSelected', accountCode
-      else
-        @useExistingView.hide()
-        @modalTabs.show()
-
-    @addSubView @useExistingView
-
-    @createBillingForm()
-
-    @modalTabs.hide()
-
     super()
 
-    @billingForm = @modalTabs.forms['Billing Info']
-    @billingForm.inputs.cardNumber.on 'keyup', @bound 'handleCardKeyup'
-    @billingForm.on 'FormValidationFailed', => @billingForm.buttons.Save.hideLoader()
+    @inputs.cardNumber.on 'keyup', @bound 'handleCardKeyup'
+    @on 'FormValidationFailed', => @buttons.Save.hideLoader()
 
-    @billingForm.fields.cardNumber.addSubView @icon = new KDCustomHTMLView
+    @fields.cardNumber.addSubView @icon = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'icon'
 
@@ -168,139 +127,8 @@ class BillingFormModal extends KDModalView
 
     @updateDescription()
 
-  # showLoader:->
-  #   @mainLoader.show()
-
-  # hideLoader:->
-  #   @mainLoader.hide()
-
-  createSelectPersonalView: (paymentMethods) ->
-    @useExistingView.show()
-    paymentMethods.forEach (paymentMethod) =>
-      @useExistingView.addBillingMethod paymentMethod
-
-  setState: (state, data) ->
-    @mainLoader.hide()
-    switch state
-      when 'editExisting'
-        @setBillingInfo data
-        @modalTabs.show()
-      when 'selectPersonal'
-        @createSelectPersonalView data
-      else
-        @modalTabs.show()
-
-  handleZipCode:->
-
-    { JLocation } = KD.remote.api
-
-    { city, state, country, zip } = @billingForm.inputs
-
-    locationSelector =
-      zip           : zip.getValue()
-      countryCode   : country.getValue()
-
-    JLocation.one locationSelector, (err, location) =>
-      @setLocation location  if location
-
-  handleCountryCode: ->
-    { JLocation } = KD.remote.api
-
-    { country, state } = @billingForm.inputs
-
-    { actualState, country: countryCode } = @billingForm.getData()
-
-    if @countryCode isnt countryCode
-      @countryCode = countryCode
-
-      JLocation.fetchStatesByCountryCode countryCode, (err, states) ->
-        state.setSelectOptions _.values states
-        state.setValue actualState
-
-  setLocation: (location) ->
-      ['city', 'stateCode', 'countryCode'].forEach (field) =>
-        value = location[field]
-        inputName = switch field
-          when 'city' then 'city'
-
-          when 'stateCode'
-            @billingForm.addCustomData 'actualState', value
-            'state'
-
-          when 'countryCode' then 'country'
-
-        input = @billingForm.inputs[inputName]
-
-        input.setValue value  if input? # TODO: `and not input.isDirty()` or something like that C.T.
-
-  setCountryData: ({ countries, countryOfIp }) ->
-    { country } = @billingForm.inputs
-
-    country.setSelectOptions _.values countries
-
-    country.setValue(
-      if countries[countryOfIp]
-      then countryOfIp
-      else 'US'
-    )
-
-    # @countryLoader.hide()
-    @handleCountryCode()
-    @emit 'CountryDataPopulated'
-
-  handleFormData:->
-
-  updateDescription:->
-    { inputs } = @billingForm
-    formData = @billingForm.getData()
-    cardFirstName = inputs.cardFirstName.getValue()
-    cardType = switch formData.cardType
-      when 'Unknown', undefined then 'credit card'
-      else formData.cardType
-    cardOwner = if cardFirstName then "#{ cardFirstName }'s " else ''
-    inputs.cardDescription.setPlaceHolder "#{ cardOwner }#{ cardType }"
-
-  setBillingInfo: (billingInfo) ->
-    @setData billingInfo
-    for own key, value of billingInfo.billing
-      switch key
-        when 'state'
-          @billingForm.addCustomData 'actualState', value
-        when 'cardType'
-          @updateCardTypeDisplay value
-        when 'cardNumber', 'cardCV'
-          @billingForm.inputs[key]?.setPlaceHolder value
-        when 'address2' then # ignore
-        else
-          @billingForm.inputs[key]?.setValue value
-
-  clearValidation:->
-    inputs = KDFormView.findChildInputs this
-    input.clearValidationFeedback()  for input in inputs
-
-  handleCardKeyup: (event) -> @updateCardTypeDisplay()
-
-  handleRecurlyResponse:(callback, err) ->
-    @billingForm.buttons.Save.hideLoader()
-
-    recurlyFieldMap =
-      first_name         : 'cardFirstName'
-      last_name          : 'cardLastName'
-      number             : 'cardNumber'
-      verification_value : 'cardCV'
-
-    for e in err
-      if recurlyFieldMap[e.field]
-        input = @billingForm.inputs[recurlyFieldMap[e.field]]
-        input.giveValidationFeedback yes
-        input.showValidationError "#{input.inputLabel?.getTitle()} #{e.message}"
-      else
-        input = @billingForm.inputs.cardNumber
-        input.showValidationError e.message
-        input.giveValidationFeedback yes  if e.message.indexOf('card') > -1
-
   getCardInputValue:->
-    @billingForm.inputs['cardNumber'].getValue().replace(/-|\s/g,'')
+    @inputs['cardNumber'].getValue().replace /-|\s/g, ''
 
   getCardType: (value = @getCardInputValue())->
     ###
@@ -317,7 +145,7 @@ class BillingFormModal extends KDModalView
       else                                         'Unknown'
 
   updateCardTypeDisplay: (cardType = @getCardType()) ->
-    @billingForm.addCustomData 'cardType', cardType
+    @addCustomData 'cardType', cardType
     cardType = cardType.toLowerCase()
     $icon    = @icon.$()
     unless $icon.hasClass cardType
@@ -325,6 +153,94 @@ class BillingFormModal extends KDModalView
       $icon.addClass cardType  if cardType
     @updateDescription()
 
+  updateDescription: ->
+    { inputs } = this
+    formData = @getData()
+    cardFirstName = inputs.cardFirstName.getValue()
+    cardType = switch formData.cardType
+      when 'Unknown', undefined then 'credit card'
+      else formData.cardType
+    cardOwner = if cardFirstName then "#{ cardFirstName }'s " else ''
+    inputs.cardDescription.setPlaceHolder "#{ cardOwner }#{ cardType }"
+
+  handleCardKeyup: (event) -> @updateCardTypeDisplay()
+
+  setBillingInfo: (billingInfo) ->
+    @setData billingInfo
+    for own key, value of billingInfo.billing
+      switch key
+        when 'state'
+          @addCustomData 'actualState', value
+        when 'cardType'
+          @updateCardTypeDisplay value
+        when 'cardNumber', 'cardCV'
+          @inputs[key]?.setPlaceHolder value
+        when 'address2' then # ignore
+        else
+          @inputs[key]?.setValue value
+
   required:(msg)->
     rules    : required  : yes
     messages : required  : msg
+
+  clearValidation:->
+    inputs = KDFormView.findChildInputs this
+    input.clearValidationFeedback()  for input in inputs
+
+  # handleZipCode:->
+
+  #   { JLocation } = KD.remote.api
+
+  #   { city, state, country, zip } = @inputs
+
+  #   locationSelector =
+  #     zip           : zip.getValue()
+  #     countryCode   : country.getValue()
+
+  #   JLocation.one locationSelector, (err, location) =>
+  #     @setLocation location  if location
+
+  # handleCountryCode: ->
+  #   { JLocation } = KD.remote.api
+
+  #   { country, state } = @inputs
+
+  #   { actualState, country: countryCode } = @getData()
+
+  #   if @countryCode isnt countryCode
+  #     @countryCode = countryCode
+
+  #     JLocation.fetchStatesByCountryCode countryCode, (err, states) ->
+  #       state.setSelectOptions _.values states
+  #       state.setValue actualState
+
+  # setLocation: (location) ->
+  #     ['city', 'stateCode', 'countryCode'].forEach (field) =>
+  #       value = location[field]
+  #       inputName = switch field
+  #         when 'city' then 'city'
+
+  #         when 'stateCode'
+  #           @addCustomData 'actualState', value
+  #           'state'
+
+  #         when 'countryCode' then 'country'
+
+  #       input = @inputs[inputName]
+
+  #       input.setValue value  if input? # TODO: `and not input.isDirty()` or something like that C.T.
+
+  # setCountryData: ({ countries, countryOfIp }) ->
+  #   { country } = @inputs
+
+  #   country.setSelectOptions _.values countries
+
+  #   country.setValue(
+  #     if countries[countryOfIp]
+  #     then countryOfIp
+  #     else 'US'
+  #   )
+
+  #   # @countryLoader.hide()
+  #   @handleCountryCode()
+  #   @emit 'CountryDataPopulated'
