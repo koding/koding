@@ -77,8 +77,8 @@ class MainView extends KDView
 
   createMainPanels:->
 
-    klass = if KD.isLoggedIn() then KDCustomHTMLView else HomeIntroView
-    @addSubView @homeIntro = new klass
+    # klass = if KD.isLoggedIn() then KDCustomHTMLView else HomeIntroView
+    # @addSubView @homeIntro = new klass
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"

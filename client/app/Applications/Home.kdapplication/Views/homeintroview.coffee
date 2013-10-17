@@ -7,29 +7,27 @@ class HomeIntroView extends JView
 
     super options, data
 
-    router = KD.getSingleton 'router'
+    # @slogan     = new KDCustomHTMLView
+    #   partial   : "A new way for developers to work"
+    #   cssClass  : "slogan"
 
-    @slogan     = new KDCustomHTMLView
-      partial   : "A new way for developers to work"
-      cssClass  : "slogan"
+    # @subSlogan     = new KDCustomHTMLView
+    #   partial   : "Software development has finally evolved,<br> It's now social, in the browser and free!"
+    #   cssClass  : "sub-slogan"
 
-    @subSlogan     = new KDCustomHTMLView
-      partial   : "Software development has finally evolved,<br> It's now social, in the browser and free!"
-      cssClass  : "sub-slogan"
+    # @emailSignupButton  = new KDButtonView
+    #   cssClass  : "email"
+    #   partial   : "<i></i>Sign up <span>with email</span>"
+    #   callback  : -> router.handleRoute '/Register'
 
-    @emailSignupButton  = new KDButtonView
-      cssClass  : "email"
-      partial   : "<i></i>Sign up <span>with email</span>"
-      callback  : -> router.handleRoute '/Register'
+    # @gitHubSignupButton = new KDButtonView
+    #   cssClass  : "github"
+    #   partial   : "<i></i>Sign up <span>with gitHub</span>"
+    #   callback  : -> KD.getSingleton("oauthController").openPopup "github"
 
-    @gitHubSignupButton = new KDButtonView
-      cssClass  : "github"
-      partial   : "<i></i>Sign up <span>with gitHub</span>"
-      callback  : -> KD.getSingleton("oauthController").openPopup "github"
-
-    @learnMoreLink = new KDCustomHTMLView
-      partial   : '▾ scroll down to learn more ▾'
-      cssClass  : 'learnmore'
+    # @learnMoreLink = new KDCustomHTMLView
+    #   partial   : '▾ scroll down to learn more ▾'
+    #   cssClass  : 'learnmore'
 
   show:-> @unsetClass 'out'
 
@@ -42,10 +40,6 @@ class HomeIntroView extends JView
     if KD.isLoggedIn()
       """
       <section>
-        <div>
-          {{> @slogan}}
-          {{> @subSlogan}}
-        </div>
         <aside>
           <ul>
             <li>{{> @timedudeThumb}}</li>
@@ -56,19 +50,7 @@ class HomeIntroView extends JView
       {{> @counterBar}}
       """
     else
-      """
-      <section>
-        {{> @slogan}}
-        {{> @subSlogan}}
-        <div class="buttons">
-          {{> @emailSignupButton}}
-          {{> @gitHubSignupButton}}
-        </div>
-        {{> @learnMoreLink}}
-      </section>
-      """
-
-
+      """<section></section>"""
 
     # @form = new KDFormViewWithFields
     #   fields          :
