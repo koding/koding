@@ -7,8 +7,6 @@ class AccountEmailNotifications extends KDView
   putContents:(account, user)->
 
     fields =
-      global           :
-        title          : 'Email notifications'
       daily            :
         title          : 'Send me a daily email about everything below'
       privateMessage   :
@@ -25,6 +23,19 @@ class AccountEmailNotifications extends KDView
         title          : 'Someone requests access to my group'
       groupApproved    :
         title          : 'Group admin approves my access request'
+
+    globalValue = if user.getAt("emailFrequency.global") is on then 'ON' else 'OFF'
+
+    @getDelegate().addSubView global = new KDMultipleChoice
+      cssClass      : "dark in-account-header"
+      defaultValue  : globalValue
+      callback      : (state)=>
+        stateValue = if state is 'ON' then on else off
+
+        account.setEmailPreferences global: stateValue, (err)=>
+          @fallBackToOldState if err
+
+        @emit 'GlobalStateChanged', state
 
     for own flag, field of fields
       @addSubView field.formView = new KDFormView
@@ -51,9 +62,7 @@ class AccountEmailNotifications extends KDView
               new KDNotificationView
                 duration : 2000
                 title    : 'Failed to change state'
-            else
-              if @getData() is 'global'
-                @emit 'StateChanged', state
+
         , flag
 
       fields[flag].formView.addSubView fields[flag].loader = new KDLoaderView
@@ -64,11 +73,11 @@ class AccountEmailNotifications extends KDView
           color       : "#FFFFFF"
 
     toggleFieldStates = (state)->
-      for own flag, field of fields when flag isnt 'global'
-        if state is false
+      for own flag, field of fields
+        if state is 'OFF'
           field.formView.hide()
         else
           field.formView.show()
 
-    toggleFieldStates(fields.global.current)
-    fields.global.switch.on 'StateChanged', toggleFieldStates
+    toggleFieldStates(globalValue)
+    @on 'GlobalStateChanged', toggleFieldStates
