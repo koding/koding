@@ -3,14 +3,20 @@
 // Subscriber and Publisher talk via Websocket protocol asynchronously.
 package moh
 
+import (
+	"net/http"
+)
+
 const (
+	DefaultPath = "/_moh_/"
+
 	// DefaultReplierPath is the default path for Replier that
 	// NewMessagingClient() registers the handler on.
-	DefaultReplierPath = "/_moh_/rep"
+	DefaultReplierPath = DefaultPath + "rep"
 
 	// DefaultPublisherPath is the default path for Publisher that
 	// NewMessagingClient() registers the handler on.
-	DefaultPublisherPath = "/_moh_/pub"
+	DefaultPublisherPath = DefaultPath + "pub"
 )
 
 // MessagingClient is a type that combines the usage of the
@@ -54,4 +60,9 @@ func NewMessagingServer(replyFunc func([]byte) []byte) *MessagingServer {
 	s.Handle(DefaultReplierPath, s.Replier)
 	s.Handle(DefaultPublisherPath, s.Publisher)
 	return s
+}
+
+// ServeHTTP implements http.Handler. Delegates all requests to ServeMux.
+func (s *MessagingServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.ServeMux.ServeHTTP(w, r)
 }
