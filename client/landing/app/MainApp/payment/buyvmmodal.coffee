@@ -137,7 +137,7 @@ class BuyVmModal extends KDModalView
   preparePaymentMethods: (formData) ->
     @setState 'billing choice'
 
-    paymentField = @paymentMethodChoiceForm.fields['Payment method']
+    paymentField = @choiceForm.fields['Payment method']
 
     paymentController = KD.getSingleton 'paymentController'
 
@@ -152,15 +152,16 @@ class BuyVmModal extends KDModalView
 
           @setState 'billing entry'
 
-        when 1
+        when 1 then do ([method] = methods) =>
 
-          paymentField.addSubView new BillingMethodView {}, methods[0]
-          @paymentMethodChoiceForm.addCustomData 'accountCode', methods[0].accountCode
+          paymentField.addSubView new BillingMethodView {}, method
+
+          @choiceForm.addCustomData 'accountCode', method.accountCode
 
         else
 
           paymentField.addSubView new KDSelectBox
-            defaultValue  : preferredAccountCode ? methods[0].billing.accountCode
+            defaultValue  : preferredAccountCode ? methods[0].accountCode
             name          : 'accountCode'
             selectOptions : methods.map (method) ->
               title       : KD.utils.getPaymentMethodTitle method
@@ -174,7 +175,7 @@ class BuyVmModal extends KDModalView
 
   getAggregatedData: -> @aggregatedData
 
-  createPaymentMethodChoiceForm:->
+  createChoiceForm:->
     form = new KDFormViewWithFields
       callback              : (formData) =>
         @addAggregateData formData
@@ -200,29 +201,38 @@ class BuyVmModal extends KDModalView
           callback          : =>
             @setState 'billing entry'
 
-  createPaymentMethodEntryForm: ->
+  createEntryForm: ->
 
     form = new BillingForm
 
     paymentController = KD.getSingleton 'paymentController'
-    paymentController.observePaymentSave form, (err, { accountCode }) =>
+
+    paymentController.observePaymentSave form, (err, billingInfo) =>
+
+      { accountCode } = billingInfo
+
       @addAggregateData { accountCode }
-      @setState 'confirm'
+      @setState 'confirm', billingInfo
 
     form
 
-  hideAllForms: ->
-    @vmTypeForm.hide()
-    @paymentMethodChoiceForm.hide()
-    @paymentMethodEntryForm.hide()
-    @confirmForm.hide()
+  getFormNames: ->
+    [
+      'vmTypeForm'
+      'choiceForm'
+      'entryForm'
+      'confirmForm'
+    ]
+
+  hideForms: (forms = @getFormNames()) ->
+    @[form].hide() for form in forms
 
   setState: (state) ->
-    @hideAllForms()
+    @hideForms()
     switch state
       when 'vm type'          then @vmTypeForm.show()
-      when 'billing choice'   then @paymentMethodChoiceForm.show()
-      when 'billing entry'    then @paymentMethodEntryForm.show()
+      when 'billing choice'   then @choiceForm.show()
+      when 'billing entry'    then @entryForm.show()
       when 'confirm'
         @confirmForm.setData @getAggregatedData()
         @confirmForm.show()
@@ -235,11 +245,11 @@ class BuyVmModal extends KDModalView
     @vmTypeForm = @createVmTypeForm()
     @addSubView @vmTypeForm
 
-    @paymentMethodChoiceForm = @createPaymentMethodChoiceForm()
-    @addSubView @paymentMethodChoiceForm
+    @choiceForm = @createChoiceForm()
+    @addSubView @choiceForm
 
-    @paymentMethodEntryForm = @createPaymentMethodEntryForm()
-    @addSubView @paymentMethodEntryForm
+    @entryForm = @createEntryForm()
+    @addSubView @entryForm
 
     @confirmForm = @createConfirmForm()
     @addSubView @confirmForm
