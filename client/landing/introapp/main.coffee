@@ -11,6 +11,7 @@ class IntroView extends JView
   viewAppended:->
 
     @addSubView @slider = new KDSlideShowView
+      animation : 'rotate'
 
     @slider.addPage page1 = new KDSlidePageView
 
