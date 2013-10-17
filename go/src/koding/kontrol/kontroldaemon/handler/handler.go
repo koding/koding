@@ -362,7 +362,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 			worker.Hostname,
 			worker.Uuid,
 		)
-		slog.Println(startLog)
+		slog.Printf(startLog)
 
 		worker.Status = models.Started
 		worker.ObjectId = bson.NewObjectId()
@@ -430,7 +430,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n",
 				worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
 
-			slog.Println(startLog)
+			slog.Printf(startLog)
 			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
 			return response, nil
 		}
