@@ -1,38 +1,32 @@
 class GmailContactsListItem extends KDListItemView
   constructor: (options = {}, data) ->
-    options.type     = "gmail"
-    data.invited    ?= no
-
+    options.type = "gmail"
     super options, data
 
     @isSelected = no
 
-    @on "InvitationSent", @bound "sentInvitation"
+    @on "InvitationSent", @bound "invitationSent"
 
-  click:->
+  click: ->
     @toggleClass "send-invitation"
     @isSelected        = !@isSelected
 
-  sentInvitation: ->
+  invitationSent: ->
     @setClass "invitation-sent"
     @getData().invited = yes
 
   setAvatar: ->
     hash     = md5.digest @getData().email
-    fallback = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{25}.png"
+    fallback = "#{KD.apiUri}/images/defaultavatar/default.avatar.25.png"
     uri      = "url(//gravatar.com/avatar/#{hash}?size=25&d=#{encodeURIComponent fallback})"
     @$(".avatar").css "background-image", uri
 
-  viewAppended:->
-    uber = JView::viewAppended.bind @
+  viewAppended: ->
+    JView::viewAppended.call this
     @setClass "already-invited" if @getData().invited
-    uber()
-
     @setAvatar()
 
-  partial:->
-
-  pistachio:->
+  pistachio: ->
     """
       <div class="avatar"></div>
       <div class="contact-info">
