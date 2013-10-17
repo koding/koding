@@ -5,6 +5,7 @@ package moh
 
 import (
 	"net/http"
+	"time"
 )
 
 const (
@@ -18,6 +19,9 @@ const (
 	// DefaultPublisherPath is the default path for Publisher that
 	// NewMessagingClient() registers the handler on.
 	DefaultPublisherPath = DefaultPath + "pub"
+
+	// DefaultDialTimeout is a duration to connect to server for Requester.
+	DefaultDialTimeout = 4 * time.Second
 )
 
 // MessagingClient is a type that combines the usage of the

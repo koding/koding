@@ -3,15 +3,18 @@ package moh
 import (
 	"bytes"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 // Requester is a HTTP client that is used to make requests to Replier.
 // Sends "keep-alive" header for persistent connections.
 type Requester struct {
-	url    *url.URL
-	client http.Client
+	url     *url.URL
+	client  http.Client
+	Timeout time.Duration
 }
 
 // NewRequester returns a pointer to a new Requester struct.
@@ -21,7 +24,16 @@ func NewRequester(urlStr string) *Requester {
 	if err != nil {
 		panic(err)
 	}
-	return &Requester{url: parsed}
+	r := &Requester{
+		url:     parsed,
+		Timeout: DefaultDialTimeout,
+	}
+	r.client.Transport = &http.Transport{Dial: r.dialTimeout}
+	return r
+}
+
+func (r *Requester) dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, r.Timeout)
 }
 
 // Request sends a message to a Replier over HTTP.
