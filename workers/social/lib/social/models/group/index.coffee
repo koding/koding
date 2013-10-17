@@ -1268,10 +1268,10 @@ module.exports = class JGroup extends Module
           admin.sendNotification event, contents
 
   updateBundle: permit 'change bundle',
-    success: (client, formData, callback=->)->
-      @fetchBundle (err, bundle)=>
+    success: (client, formData, callback = (->)) ->
+      @fetchBundle (err, bundle) =>
         return callback err  if err
-        {overagePolicy, sharedVM, allocation} = formData
+        { overagePolicy, sharedVM, allocation } = formData
         bundle.update $set: {overagePolicy, sharedVM, allocation}, callback
 
   createBundle: (data, callback)->
@@ -1380,14 +1380,14 @@ module.exports = class JGroup extends Module
 
       bundle.checkUsage delegate, this, callback
 
-  checkVmType = (data, callback)->
+  checkVmType: (data, callback) ->
     unless data.type in ['user', 'group', 'expensed']
       callback new KodingError "No such VM type: #{data.type}"
     else
       callback null
 
-  fetchOrCreateBundle = (callback)->
-    @fetchBundle (err, bundle)=>
+  fetchOrCreateBundle: (callback) ->
+    @fetchBundle (err, bundle) =>
       return callback err, bundle  if err or bundle
 
       if @slug is 'koding'
@@ -1396,23 +1396,23 @@ module.exports = class JGroup extends Module
           paymentPlan  : ''
           allocation   : 0
           sharedVM     : yes
-        , (err, bundle)=>
+        , (err, bundle) =>
           if err then return callback new KodingError 'Unable to create default group bundle'
           callback null, bundle
       else
         callback new KodingError 'Unable to fetch group bundle'
 
   canCreateVM: secure ({connection:{delegate}}, data, callback)->
-    checkVmType data, (err)->
+    @checkVmType data, (err) =>
       return callback err  if err
-      fetchOrCreateBundle (err, bundle)->
+      @fetchOrCreateBundle (err, bundle)->
         return callback err  if err
         bundle.canCreateVM delegate, this, data, callback
 
   createVM: secure ({connection:{delegate}}, data, callback)->
-    checkVmType data, (err)->
+    @checkVmType data, (err) =>
       return callback err  if err
-      fetchOrCreateBundle (err, bundle)->
+      @fetchOrCreateBundle (err, bundle)->
         return callback err  if err
         bundle.createVM delegate, this, data, callback
 

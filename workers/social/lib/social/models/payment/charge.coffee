@@ -38,16 +38,20 @@ module.exports = class JPaymentCharge extends jraphical.Module
   @updateCache = (selector, callback)->
     JPayment.updateCache
       constructor   : this
-      selector      : {userCode: selector.userCode}
+      selector      : selector
       method        : 'getTransactions'
-      methodOptions : selector.userCode
+      methodOptions : selector.accountCode
       keyField      : 'uuid'
       message       : 'user transactions'
       forEach       : (k, cached, transaction, stackCb)->
         {uuid, amount, status} = transaction
 
-        charge.setData extend charge.getData(), {userCode, amount, status}
-        charge.lastUpdate = (new Date()).getTime()
+        charge.setData extend charge.getData(), {
+          accountCode: selector.accountCode
+          amount
+          status
+        }
+        charge.lastUpdate = Date.now()
         charge.save stackCb
     , callback
 

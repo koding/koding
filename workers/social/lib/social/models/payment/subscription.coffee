@@ -63,13 +63,14 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   @getGroupSubscriptions = (group, callback)->
     @getSubscriptions "group_#{group._id}", callback
 
-  @getSubscriptions = (userCode, callback)->
-    @getAllSubscriptions {userCode}, callback
+  @getSubscriptions = (accountCode, callback)->
+    @getAllSubscriptions { accountCode }, callback
 
   @getAllSubscriptions = (selector, callback)->
     JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @updateCache = (selector, callback)->
+    console.trace()
     JPayment.updateCache
       constructor   : this
       selector      : {userCode: selector.userCode}
@@ -82,7 +83,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         cached.setData extend cached.getData(), {
           userCode, plan, quantity, status, datetime, expires, renew, amount
         }
-        cached.lastUpdate = (new Date()).getTime()
+        cached.lastUpdate = Date.now()
         cached.save stackCb
     , callback
 

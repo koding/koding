@@ -50,6 +50,8 @@ module.exports = class JGroupBundle extends JBundle
   canCreateVM: (account, group, data, callback)->
     {type, planCode} = data
 
+    console.log { type, planCode }
+
     if type is 'user'
       planOwner = "user_#{account._id}"
     else if type in ['group', 'expensed']

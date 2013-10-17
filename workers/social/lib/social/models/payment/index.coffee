@@ -75,8 +75,11 @@ module.exports = class JPayment extends Base
     @getBalance_ (userCodeOf delegate), callback
 
   @invalidateCacheAndLoad: (constructor, selector, options, callback)->
+    console.log 'invalidate cache and load is called'
     cb = -> constructor.all selector, callback
     return cb()  unless options.forceRefresh
+
+    console.log { selector }; console.trace()
 
     constructor.one selector, sort:lastUpdate:1, (err, obj)=>
       return constructor.updateCache selector, cb  if err or not obj
@@ -87,52 +90,52 @@ module.exports = class JPayment extends Base
       else
         cb()
 
-  @updateCache = (options, callback)->
-    {constructor, selector, method, methodOptions, keyField, message, forEach} = options
-    selector ?= {}
+   @updateCache = (options, callback)->
+     {constructor, selector, method, methodOptions, keyField, message, forEach} = options
+     selector ?= {}
 
-    console.log "Updating #{message}..."
+     console.log "Updating #{message}..."
 
-    cb = (err, objs)->
-      return callback err  if err
+     cb = (err, objs) ->
+       return callback err  if err
 
-      all = {}
-      all[obj[keyField]] = obj  for obj in objs
+       all = {}
+       all[obj[keyField]] = obj  for obj in objs
 
-      constructor.all selector, (err, cachedObjs)->
+       constructor.all selector, (err, cachedObjs)->
 
-        return callback err  if err
+         return callback err  if err
 
-        cached = {}
-        cached[cObj[keyField]] = cObj  for cObj in cachedObjs
+         cached = {}
+         cached[cObj[keyField]] = cObj  for cObj in cachedObjs
 
-        keys    = all: Object.keys(all), cached: Object.keys(cached)
-        stack   = []
-        stackCb = (err) -> if err then callback err else stack.fin()
+         keys    = all: Object.keys(all), cached: Object.keys(cached)
+         stack   = []
+         stackCb = (err) -> if err then callback err else stack.fin()
 
-        stack.push ->
-          keys.all.forEach (k)->
-            forEach k, cached[k], all[k], stackCb
+         stack.push ->
+           keys.all.forEach (k)->
+             forEach k, cached[k], all[k], stackCb
 
-        # remove obsolete plans in mongo
-        difference(keys.cached, keys.all).forEach (k)->
-          stack.push -> cached[k].remove stackCb
+         # remove obsolete plans in mongo
+         difference(keys.cached, keys.all).forEach (k)->
+           stack.push -> cached[k].remove stackCb
 
-        # create new JPaymentPlan models for new plans from Recurly
-        difference(keys.all, keys.cached).forEach (k)->
-          cached[k] = new constructor
-          cached[k][keyField] = all[k][keyField]
+         # create new JPaymentPlan models for new plans from Recurly
+         difference(keys.all, keys.cached).forEach (k)->
+           cached[k] = new constructor
+           cached[k][keyField] = all[k][keyField]
 
-        dash stack, ->
-          console.log "Updated #{message}!"
-          callback()
+         dash stack, ->
+           console.log "Updated #{message}!"
+           callback()
 
-    if methodOptions
-      recurly[method] methodOptions, cb
-    else
-      recurly[method] cb
+     if methodOptions
+       recurly[method] methodOptions, cb
+     else
+       recurly[method] cb
 
-  @fetchCountryDataByIp:(ip, callback)->
+  @fetchCountryDataByIp = (ip, callback)->
     countries = require './countries.json'
     {sortBy}  = require 'underscore'
 
