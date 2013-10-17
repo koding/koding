@@ -69,7 +69,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
 
         # modal.setBillingInfo initialBillingInfo.billing
 
-    paymentController.observeModalSave modal, (err, updatedBillingInfo) =>
+    paymentController.observePaymentSave modal, (err, updatedBillingInfo) =>
       if err
         new KDNotificationView title: err.message
       else
