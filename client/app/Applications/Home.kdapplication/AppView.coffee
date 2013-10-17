@@ -18,7 +18,7 @@ class HomeAppView extends JView
       partial   : "<span>Each additional VM</span>$5"
 
     @bundlePricesBoxes = new KDCustomHTMLView
-      cssClass      : "price-boxes bundles"
+      cssClass  : "price-boxes bundles"
 
     @bundlePricesBoxes.addSubView new KDCustomHTMLView
       tagName   : "a"
