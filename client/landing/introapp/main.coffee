@@ -74,6 +74,18 @@ class IntroView extends JView
         </p>
       """
 
+    @slider.addSubPage new IntroPage {},
+      slideImage : "developers.jpg"
+      slogan     : "Koding for <span>Developers</span>"
+      subSlogan  : """
+        <p>
+          You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
+        </p>
+        <p>
+          It's free. Koding is your new localhost, in the cloud.
+        </p>
+      """
+
     @slider.addPage new IntroPage {},
       slideImage : "developers.jpg"
       slogan     : "Koding for <span>Developers</span>"
@@ -119,6 +131,9 @@ class IntroView extends JView
       cssClass     : 'bottom-menu'
       callback     : (state)=>
         @slider.jump labels.indexOf state
+
+    @slider.on 'CurrentPageChanged', (current)->
+      multipleChoice.setValue labels[current.x], no
 
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
