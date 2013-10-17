@@ -8,21 +8,21 @@ import (
 )
 
 const (
-	addr     = "127.0.0.1:18500"
-	message  = "cenk"
-	testWait = 10 * time.Millisecond
+	testAddr    = "127.0.0.1:18500"
+	testMessage = "cenk"
+	testWait    = 10 * time.Millisecond
 )
 
-var testData = []byte(message)
+var testData = []byte(testMessage)
 
 func TestRequestReply(t *testing.T) {
 	log.Println("Creating new Replier")
 	srv := NewMessagingServer(echoHandler)
-	go srv.ListenAndServe(addr)
+	go srv.ListenAndServe(testAddr)
 	defer srv.Close()
 
 	log.Println("Creating new Requester")
-	cl := NewMessagingClient(addr, nil)
+	cl := NewMessagingClient(testAddr, nil)
 
 	log.Println("Making a request")
 	reply, _ := cl.Request(testData)
@@ -34,12 +34,12 @@ func TestRequestReply(t *testing.T) {
 func TestPublishSubscibe(t *testing.T) {
 	log.Println("Creating new Publisher")
 	srv := NewMessagingServer(nil)
-	go srv.ListenAndServe(addr)
+	go srv.ListenAndServe(testAddr)
 	defer srv.Close()
 
 	log.Println("Creating new Subscriber")
 	ch := make(chan bool, 1)
-	cl := NewMessagingClient(addr, withChan(echoHandler, ch))
+	cl := NewMessagingClient(testAddr, withChan(echoHandler, ch))
 	cl.Connect()
 
 	log.Println("Subscribing key")
@@ -79,12 +79,12 @@ func TestPublishSubscibe(t *testing.T) {
 func TestBroadcast(t *testing.T) {
 	log.Println("Creating new Publisher")
 	srv := NewMessagingServer(nil)
-	go srv.ListenAndServe(addr)
+	go srv.ListenAndServe(testAddr)
 	defer srv.Close()
 
 	log.Println("Creating new Subscriber")
 	ch := make(chan bool, 1)
-	cl := NewMessagingClient(addr, withChan(echoHandler, ch))
+	cl := NewMessagingClient(testAddr, withChan(echoHandler, ch))
 	cl.Connect()
 
 	// Explained in TestPublishSubscibe

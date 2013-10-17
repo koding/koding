@@ -27,7 +27,7 @@ func TestCloseableServer(t *testing.T) {
 	err2 := make(chan error)
 
 	log.Println("Starting server 1")
-	go testStartServer(s1, addr, err1)
+	go testStartServer(s1, testAddr, err1)
 
 	// Wait for first server to start listening
 	select {
@@ -41,7 +41,7 @@ func TestCloseableServer(t *testing.T) {
 
 	// Try to start second server, this must return an error
 	// since the first server is already started.
-	go testStartServer(s2, addr, err2)
+	go testStartServer(s2, testAddr, err2)
 	select {
 	case err := <-err2:
 		if !strings.Contains(err.Error(), "address already in use") {
@@ -60,7 +60,7 @@ func TestCloseableServer(t *testing.T) {
 
 	// Try to start second server again. It should start successfully since
 	// the first server is closed now.
-	go testStartServer(s2, addr, err2)
+	go testStartServer(s2, testAddr, err2)
 	select {
 	case err := <-err2:
 		t.Error(err)
