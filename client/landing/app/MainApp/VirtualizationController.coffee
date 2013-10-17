@@ -312,16 +312,16 @@ class VirtualizationController extends KDController
     url    = "http://#{vm.hostnameAlias}"
 
     content = """
-                <div class="item">
-                  <span class="title">Name:</span>
-                  <span class="value">#{vmName}</span>
-                </div>
-                <div class="item">
-                  <span class="title">Hostname:</span>
-                  <span class="value">
-                    <a target="_new" href="#{url}">#{url}</a>
-                  </span>
-                </div>
+              <div class="item">
+                <span class="title">Name:</span>
+                <span class="value">#{vmName}</span>
+              </div>
+              <div class="item">
+                <span class="title">Hostname:</span>
+                <span class="value">
+                  <a target="_new" href="#{url}">#{url}</a>
+                </span>
+              </div>
               """
 
     modal           = new KDModalView
@@ -341,25 +341,9 @@ class VirtualizationController extends KDController
 
     vmController        = KD.getSingleton('vmController')
     paymentController   = KD.getSingleton('paymentController')
-    canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
-    canCreatePersonalVM = "member" in KD.config.roles
-
-    group = KD.getSingleton("groupsController").getGroupSlug()
-
-    if canCreateSharedVM
-      content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
-                   <b>#{group}</b>. If you prefer to create a shared VM, all
-                   members in <b>#{group}</b> will be able to use that VM.
-                """
-    else if canCreatePersonalVM
-      content = """You can create a <b>Personal</b> VM in <b>#{group}</b>."""
-    else
-      return new KDNotificationView
-        title : "You are not authorized to create VMs in #{group} group"
 
     vmController.fetchVMPlans (err, plans)=>
-      @paymentPlans = plans
-      {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
+      { descriptions, hostTypes } = vmController.sanitizeVMPlansForInputs plans
       descPartial = ""
       for d in descriptions
         descPartial += """
@@ -370,129 +354,31 @@ class VirtualizationController extends KDController
               <cite>users</cite>
             </p>
             #{d.description}
-          </section>"""
+          </section>
+          """
 
-      modal = new KDModalViewWithForms
-        title                       : "Create a new VM"
-        cssClass                    : "group-creation-modal"
-        height                      : "auto"
-        width                       : 500
-        overlay                     : yes
-        tabs                        :
-          navigable                 : no
-          forms                     :
-            "Create VM"             :
-              callback              : (formData)=>
-                paymentController.confirmPayment formData.type, @paymentPlans[formData.host], ->
-                  modal.destroy()
-                  KD.track "User Clicked Buy VM", KD.nick()
-              buttons               :
-                user                :
-                  title             : "Create a <b>Personal</b> VM"
-                  style             : "modal-clean-gray"
-                  type              : "submit"
-                  loader            :
-                    color           : "#ffffff"
-                    diameter        : 12
-                  callback          : ->
-                    form = modal.modalTabs.forms["Create VM"]
-                    form.inputs.type.setValue "user"
-                expensed            :
-                  title             : "Create a <b>Personal</b> VM, Charge Group"
-                  style             : "modal-clean-gray hidden"
-                  type              : "submit"
-                  loader            :
-                    color           : "#ffffff"
-                    diameter        : 12
-                  callback          : ->
-                    form = modal.modalTabs.forms["Create VM"]
-                    form.inputs.type.setValue "expensed"
-                group               :
-                  title             : "Create a <b>Shared</b> VM"
-                  style             : "modal-clean-gray hidden"
-                  type              : "submit"
-                  loader            :
-                    color           : "#ffffff"
-                    diameter        : 12
-                  callback          : ->
-                    form = modal.modalTabs.forms["Create VM"]
-                    form.inputs.type.setValue "group"
-                cancel              :
-                  style             : "modal-cancel"
-                  callback          : -> modal.destroy()
-              fields                :
-                "intro"             :
-                  itemClass         : KDCustomHTMLView
-                  partial           : "<p>#{content}</p>"
-                selector            :
-                  name              : "host"
-                  itemClass         : HostCreationSelector
-                  cssClass          : "host-type"
-                  radios            : hostTypes
-                  defaultValue      : 0
-                  validate          :
-                    rules           :
-                      required      : yes
-                    messages        :
-                      required      : "Please select a VM type!"
-                  change            : =>
-                    # form = modal.modalTabs.forms["Create VM"]
-                    # {desc, selector} = form.inputs
-                    # descField        = form.fields.desc
-                    # descField.show()
-                    # desc.show()
-                    # index      = (parseInt selector.getValue(), 10) or 0
-                    # monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
-                    # desc.$('section').addClass 'hidden'
-                    # desc.$('section').eq(index).removeClass 'hidden'
-                    # modal.setPositions()
-                desc                :
-                  itemClass         : KDCustomHTMLView
-                  cssClass          : "description-field hidden"
-                  partial           : descPartial
-                type                :
-                  name              : "type"
-                  type              : "hidden"
+      paymentInput = {}
 
-      if canCreateSharedVM
-        modal.modalTabs.forms["Create VM"].buttons.group.show()
+      modal = new BuyVmModal { descriptions, hostTypes, descPartial, plans }
 
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
-      form = modal.modalTabs.forms["Create VM"]
+  showBillingMethodForm: (modal) ->
 
-      # Check user quota and show this button only when necessary
-      groupObj = KD.getSingleton("groupsController").getCurrentGroup()
-      groupObj.checkUserBalance {}, (err, limit=0, balance=0)=>
-        warn err  if err
+    paymentForm1 = modal.modalTabs.forms['Payment method']
+    paymentForm2 = modal.modalTabs.forms['Payment method 2']
 
-        index      = (parseInt form.inputs.selector.getValue(), 10) or 0
-        monthlyFee = @paymentPlans[index].feeMonthly
+    unless modal.billingForm
+      modal.billingForm = new BillingForm
 
-        if limit > 0
-          credits = (limit / 100).toFixed(2)
+      paymentController = KD.getSingleton 'paymentController'
+      paymentController.observePaymentSave modal.billingForm, (err, billingMethod) ->
+        paymentForm1.addCustomData accountCode: billingMethod.accountCode
 
-          creditsMessage = "<p>This group gives you $#{credits} credits.</p>"
-          if balance > 0
-            spent = (balance / 100).toFixed(2)
-            creditsMessage += "<p>You've spent $#{spent}.</p>"
+      paymentForm2.addSubView modal.billingForm
 
-          form.fields.desc.setPartial creditsMessage
-          form.fields.desc.show()
-
-          if limit >= balance + monthlyFee
-            modal.modalTabs.forms["Create VM"].buttons.expensed.show()
-
-      hideLoaders = ->
-        {group, user, expensed} = form.buttons
-        user.hideLoader()
-        expensed.hideLoader()
-        group.hideLoader()
-
-      vmController.on "PaymentModalDestroyed", hideLoaders
-      form.on "FormValidationFailed", hideLoaders
-
+    modal.modalTabs.showNextPane()
 
   askForApprove:(command, callback)->
 
