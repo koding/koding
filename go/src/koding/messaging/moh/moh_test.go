@@ -7,10 +7,13 @@ import (
 	"time"
 )
 
-const addr = "127.0.0.1:18500"
-const message = "cenk"
+const (
+	addr     = "127.0.0.1:18500"
+	message  = "cenk"
+	testWait = 10 * time.Millisecond
+)
 
-var data = []byte(message)
+var testData = []byte(message)
 
 func TestRequestReply(t *testing.T) {
 	log.Println("Creating new Replier")
@@ -22,8 +25,8 @@ func TestRequestReply(t *testing.T) {
 	cl := NewMessagingClient(addr, nil)
 
 	log.Println("Making a request")
-	reply, _ := cl.Request(data)
-	if bytes.Compare(reply, data) != 0 {
+	reply, _ := cl.Request(testData)
+	if bytes.Compare(reply, testData) != 0 {
 		t.Errorf("Invalid response: %s", reply)
 	}
 }
@@ -48,7 +51,7 @@ func TestPublishSubscibe(t *testing.T) {
 	time.Sleep(testWait)
 
 	log.Println("Publishing a message")
-	srv.Publish("asdf", data)
+	srv.Publish("asdf", testData)
 
 	log.Println("Waiting for a message")
 	select {
@@ -63,7 +66,7 @@ func TestPublishSubscibe(t *testing.T) {
 	time.Sleep(testWait)
 
 	log.Println("Publishing another message, this should not be delivered")
-	srv.Publish("asdf", data)
+	srv.Publish("asdf", testData)
 
 	log.Println("Waiting for a message")
 	select {
@@ -88,7 +91,7 @@ func TestBroadcast(t *testing.T) {
 	time.Sleep(testWait)
 
 	log.Println("Publishing a message")
-	srv.Broadcast(data)
+	srv.Broadcast(testData)
 
 	log.Println("Waiting for a message")
 	select {

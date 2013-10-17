@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-const testWait = 10 * time.Millisecond
-
 // testStartServer is a function invoked in a go statement to start the server.
 // It sends the error to err channel since it cannot return it direcly because
 // it is invoked in a go statement.
