@@ -21,6 +21,11 @@ class ReferrerModal extends KDModalViewWithForms
 
     {@share, @invite} = @modalTabs.forms
 
+    @share.addSubView usageWrapper = new KDCustomHTMLView cssClass: "disk-usage-wrapper"
+    KD.getSingleton("vmController").fetchDefaultVmName (name) ->
+      usageWrapper.addSubView new KDLabelView title: "Your current VM disk usage"
+      usageWrapper.addSubView new VMDiskUsageBar null, name
+
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
 
