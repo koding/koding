@@ -81,7 +81,7 @@ class GroupProductListController extends KDListViewController
     @customItem?.destroy()
     @showLazyLoader no
 
-    KD.remote.api.JPaymentPlan.getPlans 'groupplan', @group._id, (err,plans)=>
+    KD.remote.api.JPaymentPlan.fetchPlans 'groupplan', @group._id, (err,plans)=>
       if err or plans.length is 0
         @hideLazyLoader()
         @addCustomItem "This group has no products."

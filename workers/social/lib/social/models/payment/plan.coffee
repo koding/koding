@@ -20,12 +20,12 @@ module.exports = class JPaymentPlan extends jraphical.Module
     indexes:
       code         : 'unique'
     sharedMethods  :
-      static       : ['getPlans', 'getPlanWithCode', 'fetchAccountDetails']
+      static       : ['fetchPlans', 'getPlanWithCode', 'fetchAccountDetails']
       instance     : ['getToken', 'getType', 'subscribe', 'getSubscriptions']
     schema         :
       code         : String
       title        : String
-      desc         : String
+      description  : Object
       feeMonthly   : Number
       feeInitial   : Number
       feeInterval  : Number
@@ -39,7 +39,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
   @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
     recurly.fetchAccountDetailsByAccountCode (JPayment.userCodeOf delegate), callback
 
-  @getPlans = secure (client, filter..., callback)->
+  @fetchPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
     selector = {}
     selector['product.prefix']   = prefix    if prefix
@@ -119,7 +119,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
     # TODO: what on earth is the point of this? C
     JPayment.updateCache(
       constructor   : this
-      method        : 'getPlans'
+      method        : 'fetchPlans'
       keyField      : 'code'
       message       : 'product cache'
       forEach       : (k, cached, plan, stackCb)->
@@ -131,9 +131,11 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
         version++
 
+        description = (try JSON.parse desc)
+
         cached.set {
           title
-          desc
+          description
           feeMonthly
           feeInitial
           feeInterval
