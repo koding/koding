@@ -1,5 +1,5 @@
 class BuyVmModal extends KDModalView
-  
+
   constructor: (options = {}, data) ->
     do (o = options) ->
       o.title    ?= "Create a new VM"
@@ -102,7 +102,7 @@ class BuyVmModal extends KDModalView
           # Check user quota and show this button only when necessary
 
     groupObj = KD.getSingleton("groupsController").getCurrentGroup()
-    groupObj.checkUserBalance {}, (err, limit=0, balance=0)=>
+    groupObj.checkUserBalance {}, (err, limit=0, balance=0) =>
       warn err  if err
 
       index      = (parseInt form.inputs.selector.getValue(), 10) or 0
@@ -157,15 +157,30 @@ class BuyVmModal extends KDModalView
           paymentField.addSubView new BillingMethodView {}, method
 
           @choiceForm.addCustomData 'accountCode', method.accountCode
+          @currentMethod = method
 
         else
 
-          paymentField.addSubView new KDSelectBox
-            defaultValue  : preferredAccountCode ? methods[0].accountCode
+          methodsByAccountCode =
+            methods.reduce( (acc, method) ->
+              acc[method.accountCode] = method
+              acc
+            , {})
+
+          defaultAccountCode = preferredAccountCode ? methods[0].accountCode
+
+          @currentMethod = methodsByAccountCode[defaultAccountCode]
+
+          select = new KDSelectBox
+            defaultValue  : defaultAccountCode
             name          : 'accountCode'
             selectOptions : methods.map (method) ->
               title       : KD.utils.getPaymentMethodTitle method
               value       : method.accountCode
+            callback      : (accountCode) =>
+              @currentMethod = methodsByAccountCode[accountCode]
+
+          paymentField.addSubView select
 
   addAggregateData: (formData) ->
     for own key, val of formData
@@ -212,7 +227,8 @@ class BuyVmModal extends KDModalView
       { accountCode } = billingInfo
 
       @addAggregateData { accountCode }
-      @setState 'confirm', billingInfo
+
+      @setState 'confirm'
 
     form
 
@@ -234,7 +250,9 @@ class BuyVmModal extends KDModalView
       when 'billing choice'   then @choiceForm.show()
       when 'billing entry'    then @entryForm.show()
       when 'confirm'
-        @confirmForm.setData @getAggregatedData()
+        confirmData = @getAggregatedData()
+        confirmData.billingInfo = @currentMethod
+        @confirmForm.setData confirmData
         @confirmForm.show()
 
   createConfirmForm: -> new BuyVmConfirmView
