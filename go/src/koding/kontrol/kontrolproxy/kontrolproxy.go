@@ -272,7 +272,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 	switch target.Mode {
 	case "maintenance":
-		return templateHandler("maintenance.html", nil, 200)
+		return templateHandler("maintenance.html", nil, 503)
 	case "redirect":
 		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
 	case "vm":
