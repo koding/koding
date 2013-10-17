@@ -1,0 +1,101 @@
+@import "../Framework/themes/default/kdfn"
+
+.intro-view
+
+  top                   0
+  abs()
+
+  .buttons
+    text-align          center
+    bottom              150px
+    width               100%
+    abs()
+
+    button.kdbutton
+      size              234px, 80px
+      rounded           39px
+      background        black
+      border            2px solid transparent
+      text-align        left
+      font-size         16px
+      line-height       20px
+      padding           15px 0 0 0
+      vendor            transition, background .3s ease \,\
+                                    color      .3s ease
+      borderBox()
+
+      i
+        display         block
+        float           left
+        size            40px, 40px
+        sprite()
+        margin          3px 15px 29px 18px
+
+      span
+        display         block
+        font-size       24px
+
+      &.email
+        border-color    #df7400
+        color           #df7400
+        i
+          bg            position, -680px -1px
+
+        &:hover
+          bg            color, #df7400
+          color         #5c3108
+          span
+            color       #1c140c
+          i
+            bg            position, -680px -45px
+
+      &.github
+        border-color    #fff
+        color           #a9a7a6
+        margin          0 0 0 40px
+        i
+          bg            position, -630px -1px
+        span
+          color         #fff
+
+        &:hover
+          bg            color, #fff
+          color         #b6b6b6
+          span
+            color       #545454
+          i
+            bg          position, -630px -45px
+
+
+.kd-page
+
+  text-align            center
+  size                  100%, 100%
+  left                  0
+  top                   0
+  borderBox()
+  abs()
+
+  .slogan
+    font-size           50px
+    color               #fff
+    font-weight         normal
+    padding             200px 0 0 0
+    text-shadow         0 0 10px black
+
+  .sub-slogan
+    font-size           30px
+    color               #fff
+    margin              20px 0 0 0
+    font-weight         300
+    line-height         40px
+    text-shadow         0 0 10px black
+
+  .content
+    margin-left   -80px
+    margin-top    -15px
+    color         white
+    font-size     30px
+    top           50%
+    left          50%
+    abs()
