@@ -1,6 +1,6 @@
 class ShareLink extends KDButtonView
   constructor: (options = {}, data) ->
-    options.cssClass   = KD.utils.curry "share-icon", options.provider, options.cssClass
+    options.cssClass   = KD.utils.curry "share-icon #{options.provider}", options.cssClass
     options.partial    = """<span class="icon"></span>"""
     options.iconOnly or= yes
     super options, data
