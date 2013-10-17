@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	// DefaultPath is the common path prefix of Replier and Publisher paths.
 	DefaultPath = "/_moh_/"
 
 	// DefaultReplierPath is the default path for Replier that
