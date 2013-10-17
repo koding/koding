@@ -2784,7 +2784,7 @@ div.kdtooltip
         height                    30px
         line-height               30px
         margin-top                25px
-        button.share-icon
+        .share-icon
           border                  none
           size                    30px, 30px
           padding                 0
@@ -2844,20 +2844,11 @@ div.kdtooltip
             bg                    position, -633px -118px
 
   .kdtabpaneview.invite
-    .kdinput.filter-input
-      display                     block
-      top                         0
-      left                        0
-      rounded                     0
-      border                      none
-      border-bottom               1px solid #ebebeb
-      height                      45px
-      line-height                 45px
-      width                       100%
-      position                    relative
-      padding-left                45px
+    margin-bottom                 10px
 
     .kdlistview-gmail
+      margin-bottom               10px
+
       .kdlistitemview-gmail
         width                     190px
         background                #fff
@@ -2869,8 +2860,9 @@ div.kdtooltip
         cursor                    pointer
         borderBox()
         fl()
+
         &:hover:before
-          content                 "Send Invite?"
+          content                 "Send an Invite?"
           size                    100%, 100%
           line-height             65px
           font-size               14px
@@ -2884,29 +2876,41 @@ div.kdtooltip
           vendor                  animation, inviteConfirmAnimation .1s 1 forwards ease-out
           abs()
 
-        .invite-sent-overlay
-          size                  100%, 100%
-          line-height           57px
-          font-size             14px
-          background            #a8e071
-          color                 #fff
-          text-align            center
-          right                 100%
-          top                   0
-          z-index               6
+        > .checkmark
+          display                 block
+          size                    15px, 15px
           abs()
-          vendor                transition, right 300ms ease
-          i
-            display             inline-block
-            sprite()
-            bg                  position, -22px -642px
-            size                16px, 16px
-            margin-bottom       -3px
-            margin-right        10px
+          top                     5px
+          right                   5px
+          color                   white
+          text-align              center
+          background              #ebebeb
+          border-radius           15px
 
-        &.invite-sent
-          .invite-sent-overlay
-            right               0
+          > span
+            display               inline-block
+            margin-top            2px
+
+        .invitation-sent-overlay
+          size                    100%, 100%
+          line-height             57px
+          font-size               14px
+          background              #a8e071
+          color                   #fff
+          text-align              center
+          right                   100%
+          top                     0
+          z-index                 6
+          abs()
+          vendor                  transition, right 300ms ease
+
+        &.send-invitation
+          > .checkmark
+            background            #a8e071
+
+        &.invitation-sent
+          .invitation-sent-overlay
+            right                 0
 
         .avatar
           size                    25px, 25px
@@ -2935,6 +2939,10 @@ div.kdtooltip
             line-height           19px
             font-size             14px
             color                 #393939
+
+    .kdbutton
+      fr()
+      margin-right                10px
 
 @-webkit-keyframes inviteConfirmAnimation
   to

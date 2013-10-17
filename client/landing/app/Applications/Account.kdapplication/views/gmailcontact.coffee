@@ -1,6 +1,5 @@
 class GmailContactsListItem extends KDListItemView
-
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
     options.type     = "gmail"
     data.invited    ?= no
 
@@ -8,9 +7,21 @@ class GmailContactsListItem extends KDListItemView
 
     @isSelected = no
 
+    @on "InvitationSent", @bound "sentInvitation"
+
+  click:->
+    @toggleClass "send-invitation"
+    @isSelected        = !@isSelected
+
+  sentInvitation: ->
+    @setClass "invitation-sent"
+    @getData().invited = yes
+
   setAvatar: ->
-    hash = md5.digest @getData().email
-    @$(".avatar").css "background-image", "url(//gravatar.com/avatar/#{hash}?size=25)"
+    hash     = md5.digest @getData().email
+    fallback = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{25}.png"
+    uri      = "url(//gravatar.com/avatar/#{hash}?size=25&d=#{encodeURIComponent fallback})"
+    @$(".avatar").css "background-image", uri
 
   viewAppended:->
     uber = JView::viewAppended.bind @
@@ -21,25 +32,15 @@ class GmailContactsListItem extends KDListItemView
 
   partial:->
 
-  click:->
-    contact = @getData()
-    contact.invite (err) =>
-      if err
-        log "we have a problem"
-        log err
-      else
-        @setClass "invite-sent"
-        @data.invited = yes
-
   pistachio:->
-    name = @getData().title || "Gmail Contact"
     """
       <div class="avatar"></div>
       <div class="contact-info">
-        <span class="full-name">#{name}</span>
+        <span class="full-name">#{@getData().title || "Gmail Contact"}</span>
         {{ #(email)}}
       </div>
-      <div class="invite-sent-overlay">
-        <i></i>Invite Sent
+      <div class="checkmark"><span>&#10004;</span></div>
+      <div class="invitation-sent-overlay">
+        <span class="checkmark"></span>Invitation is Sent
       </div>
     """
