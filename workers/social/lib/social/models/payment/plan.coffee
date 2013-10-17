@@ -1,10 +1,11 @@
 jraphical = require 'jraphical'
-recurly   = require 'koding-payment'
-
-forceRefresh  = yes
-forceInterval = 60
-
 module.exports = class JPaymentPlan extends jraphical.Module
+
+  force =
+    forceRefresh  : yes
+    forceInterval : 60
+
+  recurly   = require 'koding-payment'
 
   {secure, dash}       = require 'bongo'
   {difference, extend} = require 'underscore'
@@ -39,17 +40,18 @@ module.exports = class JPaymentPlan extends jraphical.Module
   @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
     recurly.fetchAccountDetailsByAccountCode (JPayment.userCodeOf delegate), callback
 
-  @fetchPlans = secure (client, filter..., callback)->
-    [prefix, category, item] = filter
-    selector = {}
-    selector['product.prefix']   = prefix    if prefix
-    selector['product.category'] = category  if category
-    selector['product.item']     = item      if item
+  @fetchPlans = secure (client, options, callback)->
 
-    JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
+    selector = (Object.keys options)
+      .reduce( (acc, key) ->
+        acc["product.#{key}"] = options[key]
+        acc
+      , {})
+
+    JPayment.invalidateCacheAndLoad this, selector, force, callback
 
   @getPlanWithCode = (code, callback)->
-    JPaymentPlan.one { code }, callback
+    @one { code }, callback
 
   getToken: secure (client, data, callback)->
     JPaymentToken.createToken client, planCode: @code, callback
