@@ -1,11 +1,11 @@
 class BuyVmModal extends KDModalView
   constructor: (options = {}, data) ->
-    o = options
-    o.title    = "Create a new VM"
-    o.cssClass = "group-creation-modal"
-    o.height   = "auto"
-    o.width    = 500
-    o.overlay  = yes
+    do (o = options) ->
+      o.title    ?= "Create a new VM"
+      o.cssClass ?= "group-creation-modal"
+      o.height   ?= "auto"
+      o.width    ?= 500
+      o.overlay  ?= yes
 
     @aggregatedData = {}
 
@@ -142,27 +142,27 @@ class BuyVmModal extends KDModalView
     paymentController.fetchPaymentMethods (err, paymentMethods) =>
       return KD.showError err  if err
 
-      { defaultMethod, methods, appStorage } = paymentMethods
+      { defaultAccountCode, methods, appStorage } = paymentMethods
 
-      if 0 is methods.length
-        @setState 'billing entry'
-        return
+      switch methods.length
 
-      defaultMethod ?= methods[0].billing.accountCode
+        when 0
 
-      if methods.length is 1
+          @setState 'billing entry'
 
-        paymentField.addSubView new BillingMethodView {}, methods[0]
-        @paymentMethodChoiceForm.addCustomData 'accountCode', methods[0].accountCode
+        when 1
 
-      else
+          paymentField.addSubView new BillingMethodView {}, methods[0]
+          @paymentMethodChoiceForm.addCustomData 'accountCode', methods[0].accountCode
 
-        paymentField.addSubView new KDSelectBox
-          defaultValue  : defaultMethod
-          name          : 'accountCode'
-          selectOptions : methods.map (method) ->
-            title       : KD.utils.getPaymentMethodTitle method
-            value       : method.accountCode
+        else
+
+          paymentField.addSubView new KDSelectBox
+            defaultValue  : defaultAccountCode ? methods[0].billing.accountCode
+            name          : 'accountCode'
+            selectOptions : methods.map (method) ->
+              title       : KD.utils.getPaymentMethodTitle method
+              value       : method.accountCode
 
   addAggregateData: (formData) ->
     for own key, val of formData
