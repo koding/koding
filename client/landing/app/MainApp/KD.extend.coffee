@@ -92,7 +92,7 @@ KD.extend
     no
 
   showError:(err, messages)->
-    return  unless err
+    return no  unless err
 
     if 'string' is typeof err
       message = err
@@ -123,6 +123,7 @@ KD.extend
     new KDNotificationView {title, content, duration}
 
     warn "KodingError:", err.message  unless err.name is 'AccessDenied'
+    err?
 
   getPathInfo: (fullPath)->
     return no unless fullPath
