@@ -153,7 +153,8 @@ module.exports = [
   "app/MainApp/payment/billingformmodal.coffee",
   "app/MainApp/payment/paymentconfirmationmodal.coffee",
   "app/MainApp/payment/paymentdeleteconfirmationmodal.coffee",
-  "app/MainApp/payment/buyvmconfirmview.coffee"
+  "app/MainApp/payment/vmproductview.coffee",
+  "app/MainApp/payment/buyvmconfirmview.coffee",
   "app/MainApp/payment/buyvmmodal.coffee",
 
   #maintabs
