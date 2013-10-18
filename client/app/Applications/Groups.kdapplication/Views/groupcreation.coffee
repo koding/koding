@@ -59,13 +59,13 @@ class GroupCreationModal extends KDModalView
     loader.show()
 
     vmController = KD.getSingleton('vmController')
-    vmController.fetchVMPlans (err, plans)=>
+    vmController.fetchVMPlans (err, plans) =>
 
       loader.destroy()
       @buttons.next.show()
 
       @plans = plans
-      {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
+      { descriptions, hostTypes } = vmController.sanitizeVMPlansForInputs plans
 
       @addSubView @typeSelector = new KDFormViewWithFields
         cssClass         : "type-selector"
