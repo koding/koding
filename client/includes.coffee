@@ -20,7 +20,8 @@ module.exports = [
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
   "app/CommonViews/applicationview/applicationtabhandleholder.coffee",
-  "app/CommonViews/sharepopup.coffee"
+  "app/CommonViews/sharepopup.coffee",
+  "app/CommonViews/sharelink.coffee",
   "app/CommonViews/linkviews/linkview.coffee",
   "app/CommonViews/linkviews/customlinkview.coffee",
   "app/CommonViews/linkviews/linkgroup.coffee",
@@ -92,6 +93,8 @@ module.exports = [
 
   "app/CommonViews/markdownmodal.coffee",
   "app/CommonViews/dropboxdownloaditemview.coffee",
+
+  "app/CommonViews/CommonVMUsageBar.coffee",
 
   # FATIH
   # "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
@@ -552,6 +555,8 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/subscriptions.coffee",
   "app/Applications/Account.kdapplication/views/referralsystem.coffee",
   "app/Applications/Account.kdapplication/views/deleteaccountview.coffee",
+  "app/Applications/Account.kdapplication/views/gmailcontact.coffee",
+  "app/Applications/Account.kdapplication/views/referrermodal.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
