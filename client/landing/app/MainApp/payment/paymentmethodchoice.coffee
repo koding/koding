@@ -14,13 +14,13 @@ class PaymentMethodChoiceView extends JView
 
     super()
 
-  addPaymentMethod:(paymentInfo) ->
-    paymentMethodView = new PaymentMethodView {}, paymentInfo
+  addPaymentMethod:(paymentMethod) ->
+    paymentMethodView = new PaymentMethodView {}, paymentMethod
 
     @methods.addSubView paymentMethodView
 
     paymentMethodView.on 'PaymentMethodEditRequested', =>
-      @emit 'PaymentMethodSelected', paymentInfo.paymentMethodId
+      @emit 'PaymentMethodSelected', paymentMethod.paymentMethodId
 
   pistachio:->
     """

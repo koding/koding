@@ -239,7 +239,7 @@ class BuyVmModal extends KDModalView
       when 'billing entry'    then @entryForm.show()
       when 'confirm'
         confirmData = @getAggregatedData()
-        confirmData.paymentInfo = @currentMethod
+        confirmData.paymentMethod = @currentMethod
         confirmData.planInfo = @currentPlan
         @confirmForm.setData confirmData
         @confirmForm.show()
@@ -249,7 +249,7 @@ class BuyVmModal extends KDModalView
   processPayment: (formData) ->
     paymentController = KD.getSingleton 'paymentController'
 
-    { type, planInfo: { code: planCode }, paymentInfo: { paymentMethodId } } = formData
+    { type, planInfo: { code: planCode }, paymentMethod: { paymentMethodId } } = formData
 
     options = { type, planCode, paymentMethodId }
 

@@ -63,8 +63,8 @@ class PaymentFormModal extends KDModalView
 
   handleFormData:->
 
-  setPaymentInfo: (paymentInfo) ->
-    @paymentForm.setPaymentInfo paymentInfo
+  setPaymentInfo: (paymentMethod) ->
+    @paymentForm.setPaymentInfo paymentMethod
 
   handleRecurlyResponse:(callback, err) ->
     @paymentForm.buttons.Save.hideLoader()

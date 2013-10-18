@@ -138,8 +138,8 @@ class GroupPaymentSettingsView extends JView
         inputs.overagePolicy.setOn()
         fields.approval.show()
 
-  setPaymentInfo: (paymentInfo) ->
+  setPaymentInfo: (paymentMethod) ->
     { billing: billingView } = @settingsForm.inputs
-    billingView.setPaymentInfo paymentInfo
+    billingView.setPaymentInfo paymentMethod
 
   pistachio:-> "{{> @settingsForm}}"

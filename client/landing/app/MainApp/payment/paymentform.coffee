@@ -165,9 +165,9 @@ class PaymentForm extends KDFormViewWithFields
 
   handleCardKeyup: (event) -> @updateCardTypeDisplay()
 
-  setPaymentInfo: (paymentInfo) ->
-    @setData paymentInfo
-    for own key, value of paymentInfo.billing
+  setPaymentInfo: (paymentMethod) ->
+    @setData paymentMethod
+    for own key, value of paymentMethod.billing
       switch key
         when 'state'
           @addCustomData 'actualState', value
