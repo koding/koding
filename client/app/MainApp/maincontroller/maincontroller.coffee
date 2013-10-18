@@ -142,16 +142,7 @@ class MainController extends KDController
   showInstructionsBookIfNeeded:->
     if $.cookie 'newRegister'
       @emit "ShowInstructionsBook", 9
-      @once "InstructionsBookClosed", @bound "showReferrerModal"
       $.cookie 'newRegister', erase: yes
-    else
-      @showReferrerModal()
-
-  showReferrerModal: ->
-    return  if KD.whoami().type is "unregistered"
-    storage = KD.getSingleton("appStorageController").storage "MainApp"
-    storage.fetchValue "dontDisplayReferrerModalAgain", (value) ->
-      new ReferrerModal unless value
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
