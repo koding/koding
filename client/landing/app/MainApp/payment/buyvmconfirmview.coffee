@@ -1,10 +1,11 @@
 class BuyVmConfirmView extends KDView
-  constructor:->
-    super
-    console.log this
 
   setData: (data) ->
-    @_data = data
-    console.log data
+    super data
+
     @updatePartial ""
     @addSubView new BillingMethodView {}, data.billingInfo
+    @addSubView new VmProductView {}, data.planInfo
+    @addSubView new KDButtonView
+      title     : 'Confirm'
+      callback  : => @emit 'PaymentConfirmed', @getData()
