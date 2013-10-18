@@ -59,6 +59,7 @@ class IntroView extends JView
 
     @addSubView slider = new KDSlideShowView
       direction : 'topToBottom'
+      # animation : 'rotate'
 
     slider.addPage new EntryPage
 
@@ -100,7 +101,7 @@ class IntroView extends JView
 
     slider.addSubPage new IntroPage {},
       slideImage : "business.jpg"
-      slogan     : "Koding for <span>Bussiness</span>"
+      slogan     : "Koding for <span>Business</span>"
       subSlogan  : """
         <p>
           When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
@@ -128,11 +129,23 @@ class IntroView extends JView
             slider.jump (labels.indexOf state) - 1, 2
 
     slider.on 'CurrentPageChanged', (current)->
+      # Update current page on bottom control
       if current.x in [0, 1] and current.y is 0
         valueToSet = current.x
       else
         valueToSet = current.y + 1
       multipleChoice.setValue labels[valueToSet], no
+
+      if current.x is 1
+        multipleChoice.setClass 'black'
+        @utils.wait 500, ->
+          $('#koding-logo').addClass    'black'
+          $('#header-sign-in').addClass 'black'
+      else
+        $('#koding-logo').removeClass    'black'
+        $('#header-sign-in').removeClass 'black'
+        @utils.wait 500, ->
+          multipleChoice.unsetClass 'black'
 
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
