@@ -3,8 +3,8 @@ class ReferrerModal extends KDModalViewWithForms
     options.cssClass       = "referrer-modal"
     options.width          = 570
     options.overlay        = yes
-    options.title          = "Get free space up to 16GB"
-    options.url          or= "#{location.origin}/?r=#{KD.nick()}"
+    options.title          = "Get free disk space!"
+    options.url          or= "#{location.origin}/R/#{KD.nick()}"
     options.tabs           =
       navigable            : no
       goToNextFormOnSubmit : no
