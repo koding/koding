@@ -135,17 +135,43 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
     assert(getPrevious(tail) === entry1)
   }
 
+//  test("concurrent inserts") {
+//    var threads: List[Thread] = Nil
+//    1 to 1000 foreach { _ =>
+//      val entry = createNode(null)
+//      val t = new Thread(new Runnable {
+//        def run() {
+//          val client = Client.create
+//          val db = client.resource("http://localhost:7474/db/data/")
+//          val linkedlist = client.resource("http://localhost:7474/linkedlist/")
+//
+//          val map = new MultivaluedMapImpl()
+//          map.add("next", tail)
+//          map.add("entry", entry)
+//          if (linkedlist.path("entry").post(classOf[ClientResponse], map).getClientResponseStatus() != ClientResponse.Status.NO_CONTENT) {
+//            throw new IllegalArgumentException
+//          }
+//        }
+//      })
+//      threads ::= t
+//    }
+//    threads.foreach(t => t.start())
+//    threads.foreach(t => t.join())
+//  }
+
   def createNode(name: String) = {
     val json = db.path("node").accept("application/json").post(classOf[String])
     val node = gson.fromJson(json, classOf[Node])
     val parts = node.self.split("/")
     val shortUrl = "/" + parts(parts.size - 2) + "/" + parts(parts.size - 1)
-    println(name + ": " + shortUrl)
+    if (name != null) {
+      println(name + ": " + shortUrl)
+    }
     shortUrl
   }
 
   def createList(head: String, tail: String) {
-    val map = new MultivaluedMapImpl();
+    val map = new MultivaluedMapImpl()
     map.add("head", head)
     map.add("tail", tail)
     linkedlist.path("list").post(classOf[ClientResponse], map)
@@ -156,7 +182,7 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
   }
 
   def addEntryAfter(previous: String, entry: String) {
-    val map = new MultivaluedMapImpl();
+    val map = new MultivaluedMapImpl()
     map.add("previous", previous)
     map.add("entry", entry)
     if (linkedlist.path("entry").post(classOf[ClientResponse], map).getClientResponseStatus() != ClientResponse.Status.NO_CONTENT) {
@@ -165,7 +191,7 @@ class LinkedListTestSuite extends FunSuite with BeforeAndAfter {
   }
 
   def addEntryBefore(next: String, entry: String) {
-    val map = new MultivaluedMapImpl();
+    val map = new MultivaluedMapImpl()
     map.add("next", next)
     map.add("entry", entry)
     if (linkedlist.path("entry").post(classOf[ClientResponse], map).getClientResponseStatus() != ClientResponse.Status.NO_CONTENT) {
