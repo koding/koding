@@ -215,12 +215,8 @@ class BuyVmModal extends KDModalView
 
     paymentController = KD.getSingleton 'paymentController'
 
-    paymentController.observePaymentSave form, (err, billingInfo) =>
-
-      { accountCode } = billingInfo
-
+    paymentController.observePaymentSave form, (err, { accountCode }) =>
       @addAggregateData { accountCode }
-
       @setState 'confirm'
 
     form
@@ -233,8 +229,7 @@ class BuyVmModal extends KDModalView
       'confirmForm'
     ]
 
-  hideForms: (forms = @getFormNames()) ->
-    @[form].hide() for form in forms
+  hideForms: (forms = @getFormNames()) -> @[form].hide() for form in forms
 
   setState: (state) ->
     @hideForms()
@@ -254,7 +249,7 @@ class BuyVmModal extends KDModalView
   processPayment: (formData) ->
     paymentController = KD.getSingleton 'paymentController'
 
-    { type, planInfo: { code: planCode}, billingInfo: { accountCode } } = formData
+    { type, planInfo: { code: planCode }, billingInfo: { accountCode } } = formData
 
     options = { type, planCode, accountCode }
 
