@@ -18,7 +18,7 @@ class PaymentWidget extends KDView
     @buttonBilling = new KDButtonView
       title    : "Billing Info"
       cssClass : "hidden"
-      callback : => @askBillingInfo (status)=>
+      callback : => @askPaymentInfo (status)=>
                       @updateButtons()
 
     @widgetContent = options.content
@@ -51,7 +51,7 @@ class PaymentWidget extends KDView
     paymentController = KD.getSingleton('paymentController')
     group             = KD.getSingleton("groupsController").getCurrentGroup()
 
-    paymentController.fetchBillingInfo 'user', group, (err, account)=>
+    paymentController.fetchPaymentInfo 'user', group, (err, account)=>
       callback err or not account or not account.cardNumber
 
   checkSubscription:(callback)->
@@ -80,9 +80,9 @@ class PaymentWidget extends KDView
       if not err and plan
         plan.subscribe {}, callback
 
-  askBillingInfo:(callback)->
+  askPaymentInfo:(callback)->
     paymentController = KD.getSingleton('paymentController')
-    paymentController.setBillingInfo 'user', callback
+    paymentController.setPaymentInfo 'user', callback
 
   confirmSubscription:(callback)->
     KD.remote.api.JPaymentPlan.getPlanWithCode @planCode, (err,plan)=>
