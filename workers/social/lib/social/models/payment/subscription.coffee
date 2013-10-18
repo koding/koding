@@ -63,8 +63,8 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   @getGroupSubscriptions = (group, callback)->
     @getSubscriptions "group_#{group._id}", callback
 
-  @getSubscriptions = (accountCode, callback)->
-    @getAllSubscriptions { accountCode }, callback
+  @getSubscriptions = (paymentMethodId, callback)->
+    @getAllSubscriptions { paymentMethodId }, callback
 
   @getAllSubscriptions = (selector, callback)->
     JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback

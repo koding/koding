@@ -38,7 +38,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
       lastUpdate   : Number
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
-    recurly.fetchAccountDetailsByAccountCode (JPayment.userCodeOf delegate), callback
+    recurly.fetchAccountDetailsByPaymentMethodId (JPayment.userCodeOf delegate), callback
 
   @fetchPlans = secure (client, options, callback) ->
 

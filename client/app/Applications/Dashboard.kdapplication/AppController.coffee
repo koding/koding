@@ -107,7 +107,7 @@ class DashboardAppController extends AppController
     group.fetchPaymentMethod (err, paymentMethod) =>
       return new KDNotificationView title: err.message  if err
 
-      @paymentView.setBillingInfo paymentMethod
+      @paymentView.setPaymentInfo paymentMethod
 
   paymentViewAdded: (pane, view) ->
 
@@ -121,33 +121,33 @@ class DashboardAppController extends AppController
 
     @paymentView = view
 
-    view.on 'BillingEditRequested', => @showBillingInfoModal()
-    view.on 'PaymentMethodUnlinkRequested', (billingInfo) =>
+    view.on 'PaymentMethodEditRequested', => @showPaymentInfoModal()
+    view.on 'PaymentMethodUnlinkRequested', (paymentInfo) =>
       modal = KDModalView.confirm
         title       : 'Are you sure?'
         description : 'Are you sure you want to unlink this payment method?'
-        subView     : new BillingMethodView {}, billingInfo
+        subView     : new PaymentMethodView {}, paymentInfo
         ok          :
           title     : 'Unlink'
           callback  : =>
-            group.unlinkPaymentMethod billingInfo.accountCode, =>
+            group.unlinkPaymentMethod paymentInfo.paymentMethodId, =>
               modal.destroy()
               @refreshPaymentView()
 
   productViewAdded: (pane, view) ->
 
 
-  showBillingInfoModal: ->
-    modal = @createBillingInfoModal()
+  showPaymentInfoModal: ->
+    modal = @createPaymentInfoModal()
 
     paymentController = KD.getSingleton 'paymentController'
 
-    paymentController.observePaymentSave modal, (err, { accountCode }) =>
+    paymentController.observePaymentSave modal, (err, { paymentMethodId }) =>
       if err
         new KDNotificationView title: err.message
       else
         modal.destroy()
-        @getData().linkPaymentMethod accountCode, (err) =>
+        @getData().linkPaymentMethod paymentMethodId, (err) =>
           if err
             new KDNotificationView title: err.message
           @refreshPaymentView()
@@ -155,41 +155,41 @@ class DashboardAppController extends AppController
 
 #    modal.on 'CountryDataPopulated', -> callback null, modal
 
-  createBillingInfoModal: ->
+  createPaymentInfoModal: ->
 
     paymentController = KD.getSingleton "paymentController"
 
-    billingInfoModal = paymentController.createBillingInfoModal 'group'
+    paymentInfoModal = paymentController.createPaymentInfoModal 'group'
 
     group = @getData()
 
-    group.fetchPaymentMethod (err, groupBillingMethod) =>
+    group.fetchPaymentMethod (err, groupPaymentMethod) =>
 
-      if groupBillingMethod
+      if groupPaymentMethod
 
-        billingInfoModal.setState 'editExisting', groupBillingMethod
+        paymentInfoModal.setState 'editExisting', groupPaymentMethod
 
       else
 
-        KD.whoami().fetchPaymentMethods (err, personalBillingMethods) =>
+        KD.whoami().fetchPaymentMethods (err, personalPaymentMethods) =>
 
-          if personalBillingMethods.length
+          if personalPaymentMethods.length
 
-            billingInfoModal.setState 'selectPersonal', personalBillingMethods
-            billingInfoModal.on 'BillingMethodSelected', (accountCode) =>
+            paymentInfoModal.setState 'selectPersonal', personalPaymentMethods
+            paymentInfoModal.on 'PaymentMethodSelected', (paymentMethodId) =>
 
-              group.linkPaymentMethod accountCode, (err) =>
+              group.linkPaymentMethod paymentMethodId, (err) =>
                 new KDNotificationView title: err.message  if err
 
-                billingInfoModal.destroy()
+                paymentInfoModal.destroy()
                 @refreshPaymentView()
 
           else
 
-            billingInfoModal.setState 'createNew'
+            paymentInfoModal.setState 'createNew'
 
 
-    return billingInfoModal
+    return paymentInfoModal
 
   # vocabularyViewAdded:(pane, view)->
   #   group = view.getData()

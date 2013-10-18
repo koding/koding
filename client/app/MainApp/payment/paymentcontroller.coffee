@@ -17,12 +17,12 @@ class PaymentController extends KDController
     { dash } = Bongo
 
     methods       = null
-    preferredAccountCode = null
+    preferredPaymentMethod = null
     appStorage    = new AppStorage 'Account', '1.0'
     queue = [
 
       -> appStorage.fetchStorage (err) ->
-        preferredAccountCode = appStorage.getValue 'preferredAccountCode'
+        preferredPaymentMethod = appStorage.getValue 'preferredPaymentMethod'
         queue.fin err
 
       => KD.whoami().fetchPaymentMethods (err, paymentMethods) ->
@@ -31,21 +31,21 @@ class PaymentController extends KDController
     ]
 
     dash queue, (err) -> callback err, {
-      preferredAccountCode
+      preferredPaymentMethod
       methods
       appStorage
     }
 
   observePaymentSave: (modal, callback) ->
-    modal.on 'PaymentInfoSubmitted', (accountCode, updatedBillingInfo) =>
-      @updateBillingInfo accountCode, updatedBillingInfo, (err, savedBillingInfo) =>
+    modal.on 'PaymentInfoSubmitted', (paymentMethodId, updatedPaymentInfo) =>
+      @updatePaymentInfo paymentMethodId, updatedPaymentInfo, (err, savedPaymentInfo) =>
         return callback err  if err
-        callback null, savedBillingInfo
+        callback null, savedPaymentInfo
         @emit 'PaymentDataChanged'
 
-  removePaymentMethod: (accountCode, callback) ->
+  removePaymentMethod: (paymentMethodId, callback) ->
     { JPayment } = KD.remote.api
-    JPayment.removePaymentMethod accountCode, (err) =>
+    JPayment.removePaymentMethod paymentMethodId, (err) =>
       return callback err  if err
       @emit 'PaymentDataChanged'
 
@@ -67,7 +67,7 @@ class PaymentController extends KDController
         JPaymentSubscription.getUserSubscriptions (err, subs) ->
           findActiveSubscription subs, planCode, callback
 
-  confirmPayment: ({ type, planCode, accountCode }, callback = (->)) ->
+  confirmPayment: ({ type, planCode, paymentMethodId }, callback = (->)) ->
     getGroup().canCreateVM { type, planCode }, (err, status) =>
       @getSubscription type, planCode, (subscription) =>
         cb = (needBilling, balance, amount) =>
@@ -79,7 +79,7 @@ class PaymentController extends KDController
         if status
           cb no, 0, 0
         else
-          @fetchBillingInfo type, group, (err, billing) =>
+          @fetchPaymentInfo type, group, (err, billing) =>
             needBilling = err or not billing?.cardNumber?
 
             @getBalance type, group, (err, balance) =>
@@ -112,26 +112,26 @@ class PaymentController extends KDController
 
   # views
 
-  fetchBillingInfo: (type, callback) ->
+  fetchPaymentInfo: (type, callback) ->
 
     { JPaymentPlan } = KD.remote.api
 
     switch type
       when 'group', 'expensed'
-        getGroup().fetchBillingInfo callback
+        getGroup().fetchPaymentInfo callback
       when 'user'
         JPaymentPlan.fetchAccountDetails callback
 
-  updateBillingInfo: (accountCode, billingInfo, callback) ->
+  updatePaymentInfo: (paymentMethodId, paymentInfo, callback) ->
 
     { JPayment } = KD.remote.api
 
-    JPayment.setBillingInfo accountCode, billingInfo, callback
+    JPayment.setPaymentInfo paymentMethodId, paymentInfo, callback
 
 
-  createBillingInfoModal: ->
+  createPaymentInfoModal: ->
 
-    modal = new BillingFormModal
+    modal = new PaymentFormModal
 #
 #    @fetchCountryData (err, countries, countryOfIp) =>
 #      modal.setCountryData { countries, countryOfIp }

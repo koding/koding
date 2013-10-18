@@ -36,7 +36,7 @@ class GroupPaymentSettingsView extends JView
       fields                :
         billing             :
           label             : "Billing method"
-          itemClass         : LinkableBillingMethodView
+          itemClass         : LinkablePaymentMethodView
         history             :
           label             : "Payment history"
           tagName           : "a"
@@ -112,7 +112,7 @@ class GroupPaymentSettingsView extends JView
 
     @settingsForm = new KDFormViewWithFields formOptions, group
 
-    @forwardEvent @settingsForm.inputs.billing, 'BillingEditRequested'
+    @forwardEvent @settingsForm.inputs.billing, 'PaymentMethodEditRequested'
     @forwardEvent @settingsForm.inputs.billing, 'PaymentMethodUnlinkRequested'
 
     group.fetchBundle (err, bundle)=>
@@ -138,8 +138,8 @@ class GroupPaymentSettingsView extends JView
         inputs.overagePolicy.setOn()
         fields.approval.show()
 
-  setBillingInfo: (billingInfo) ->
+  setPaymentInfo: (paymentInfo) ->
     { billing: billingView } = @settingsForm.inputs
-    billingView.setBillingInfo billingInfo
+    billingView.setPaymentInfo paymentInfo
 
   pistachio:-> "{{> @settingsForm}}"
