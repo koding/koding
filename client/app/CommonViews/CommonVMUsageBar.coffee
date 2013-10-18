@@ -22,6 +22,8 @@ class CommonVMUsageBar extends KDProgressBarView
         top     : 2
         left    : -8
 
+  fetchUsage: ->
+
   viewAppended: ->
     super
     @fetchUsage @bound "decorateUsage"
