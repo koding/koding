@@ -4,7 +4,7 @@ class ReferrerModal extends KDModalViewWithForms
     options.width          = 570
     options.overlay        = yes
     options.title          = "Get free space up to 16GB"
-    options.url          or= "#{location.origin}/?r=#{KD.nick}"
+    options.url          or= "#{location.origin}/?r=#{KD.nick()}"
     options.tabs           =
       navigable            : no
       goToNextFormOnSubmit : no
@@ -119,13 +119,18 @@ class ReferrerModal extends KDModalViewWithForms
 
     @invite.addSubView new KDButtonView
       title   : "Send invitation(s)"
-      callback: ->
-        listController.getItemsOrdered().forEach (view) ->
+      callback: =>
+        recipients = listController.getItemsOrdered().filter (view) =>
+          return  view.isSelected and not contact.invited
+
+        recipients.forEach (view) ->
           contact = view.getData()
           return if not view.isSelected or contact.invited
           view.getData().invite (err) =>
             return log "invite", err  if err
             view.emit "InvitationSent"
+
+        @track recipients.length
 
     @invite.addSubView new KDButtonView
       title: "Send invitations to all"
@@ -143,12 +148,14 @@ class ReferrerModal extends KDModalViewWithForms
                     loader    :
                       color   : "#444"
                       diameter: 12
-                    callback  : ->
-                      listController.getItemsOrdered().forEach (view) ->
+                    callback  : =>
+                      recipients = listController.getItemsOrdered()
+                      recipients.forEach (view) ->
                         view.getData().invite (err) =>
                           return log err  if err
                           view.emit "InvitationSent"
                       modal.destroy()
+                      @track recipients.length
                   Cancel      :
                     style     : "modal-clean-red"
                     callback  : -> modal.destroy()
@@ -168,6 +175,9 @@ class ReferrerModal extends KDModalViewWithForms
         listController.instantiateListItems contacts
 
     @setPositions()
+
+  track: (count) ->
+    KD.kdMixpanel.track "User Sent Invitation", $user: KD.nick(), count: count
 
   dontShowAgain: ->
     storage = KD.getSingleton("appStorageController").storage "MainApp"
