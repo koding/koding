@@ -124,14 +124,19 @@ class IntroView extends JView
       """
 
     labels = ['Koding', 'You', 'Developers', 'Education', 'Business', 'Pricing']
+    hash   = location.hash.replace /^\#/, ''
+    target = if hash in labels then hash else 'Koding'
+
     @addSubView multipleChoice = new KDMultipleChoice
       title        : ""
       labels       : labels
-      defaultValue : ['Koding']
+      defaultValue : [target]
       multiple     : no
       cssClass     : 'bottom-menu'
       callback     : (state)=>
         slider.jump labels.indexOf state
+        state = '' if state is 'Koding'
+        history.replaceState {}, state, "/##{state}"
 
     slider.on 'CurrentPageChanged', (current)->
 
@@ -147,6 +152,9 @@ class IntroView extends JView
         $('#header-sign-in').removeClass 'black'
         @utils.wait 500, ->
           multipleChoice.unsetClass 'black'
+
+    @utils.wait 300, ->
+      if target isnt 'Koding' then multipleChoice.setValue target
 
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
