@@ -434,10 +434,11 @@ class VirtualizationController extends KDController
             modal.destroy()
             callback no
 
-    modal.once 'KDModalViewDestroyed', -> callback no
+    modal.once 'KDModalViewDestroyed', =>
+      @dialogIsOpen = no
+      callback no
 
     @dialogIsOpen = yes
-    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
   askToTurnOn:(options, callback)->
 
@@ -526,7 +527,7 @@ class VirtualizationController extends KDController
     JPaymentPlan.fetchPlans prefix: 'group', category: 'vm', (err, plans) =>
       return warn err  if err
 
-      if plans then plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
+      if plans then plans.sort (a, b) -> a.feeMonthly - b.feeMonthly
 
       @emit "VMPlansFetchEnd"
 
