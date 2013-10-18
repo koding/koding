@@ -51,7 +51,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
   invite: secure (client, callback)->
     {delegate: profile: {firstName, lastName}} = client.connection
     JMail     = require './email'
-    shareUrl  = "https://koding.com/?r=#{@username}"
+    shareUrl  = "https://koding.com/R/#{@username}"
     email     = new JMail
       from    : 'hello@koding.com'
       email   : @email
