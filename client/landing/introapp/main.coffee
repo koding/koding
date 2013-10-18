@@ -75,7 +75,7 @@ class IntroView extends JView
         </p>
       """
 
-    slider.addSubPage new IntroPage {},
+    slider.addPage new IntroPage {},
       slideImage : "developers.jpg"
       slogan     : "Koding for <span>Developers</span>"
       subSlogan  : """
@@ -87,7 +87,7 @@ class IntroView extends JView
         </p>
       """
 
-    slider.addSubPage new IntroPage {},
+    slider.addPage new IntroPage {},
       slideImage : "education.jpg"
       slogan     : "Koding for <span>Education</span>"
       subSlogan  : """
@@ -99,7 +99,7 @@ class IntroView extends JView
         </p>
       """
 
-    slider.addSubPage new IntroPage {},
+    slider.addPage new IntroPage {},
       slideImage : "business.jpg"
       slogan     : "Koding for <span>Business</span>"
       subSlogan  : """
@@ -111,7 +111,19 @@ class IntroView extends JView
         </p>
       """
 
-    labels = ['Koding', 'You', 'Developers', 'Education', 'Bussiness']
+    slider.addPage new IntroPage {},
+      slideImage : "business.jpg"
+      slogan     : "Pricing"
+      subSlogan  : """
+        <p>
+          When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
+        </p>
+        <p>
+          Koding is your new workspace.
+        </p>
+      """
+
+    labels = ['Koding', 'You', 'Developers', 'Education', 'Business', 'Pricing']
     @addSubView multipleChoice = new KDMultipleChoice
       title        : ""
       labels       : labels
@@ -119,24 +131,13 @@ class IntroView extends JView
       multiple     : no
       cssClass     : 'bottom-menu'
       callback     : (state)=>
-        # TODO Improve this later ~ GG
-        if state is 'Koding' then slider.jump 0
-        else
-          unless slider._currentX is 1
-            slider.jump 1, 1, ->
-              slider.jump (labels.indexOf state) - 1, 2
-          else
-            slider.jump (labels.indexOf state) - 1, 2
+        slider.jump labels.indexOf state
 
     slider.on 'CurrentPageChanged', (current)->
-      # Update current page on bottom control
-      if current.x in [0, 1] and current.y is 0
-        valueToSet = current.x
-      else
-        valueToSet = current.y + 1
-      multipleChoice.setValue labels[valueToSet], no
 
-      if current.x is 1
+      multipleChoice.setValue labels[current.x], no
+
+      if current.x > 0
         multipleChoice.setClass 'black'
         @utils.wait 500, ->
           $('#koding-logo').addClass    'black'
