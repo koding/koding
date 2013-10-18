@@ -67,13 +67,14 @@ class PaymentController extends KDController
         JPaymentSubscription.getUserSubscriptions (err, subs) ->
           findActiveSubscription subs, planCode, callback
 
-  confirmPayment: (type, plan, callback = (->)) ->
-    getGroup().canCreateVM { type, planCode: plan.code }, (err, status) =>
-      @getSubscription type, plan.code, (subscription) =>
+  confirmPayment: ({ type, planCode, accountCode }, callback = (->)) ->
+    getGroup().canCreateVM { type, planCode }, (err, status) =>
+      @getSubscription type, planCode, (subscription) =>
         cb = (needBilling, balance, amount) =>
-          @createPaymentConfirmationModal {
-            needBilling, balance, amount, type, group, plan, subscription
-          }, callback
+          debugger
+          # @createPaymentConfirmationModal {
+          #   needBilling, balance, amount, type, group, plan, subscription
+          # }, callback
 
         if status
           cb no, 0, 0
@@ -149,9 +150,9 @@ class PaymentController extends KDController
     JPayment.fetchCountryDataByIp ip, (err, @countries, @countryOfIp) =>
       callback err, @countries, @countryOfIp
 
-  createPaymentConfirmationModal: (options, callback)->
-    options.callback or= callback
-    return new PaymentConfirmationModal options
+  # createPaymentConfirmationModal: (options, callback)->
+  #   options.callback or= callback
+  #   return new PaymentConfirmationModal options
 
   createDeleteConfirmationModal: (type, callback, subscription)->
     return new PaymentDeleteConfirmationModal { subscription, type, callback }

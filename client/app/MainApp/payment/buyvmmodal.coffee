@@ -251,8 +251,16 @@ class BuyVmModal extends KDModalView
 
   createConfirmForm: -> new BuyVmConfirmView
 
-  processPayment: (data) ->
-    debugger
+  processPayment: (formData) ->
+    paymentController = KD.getSingleton 'paymentController'
+
+    { type, planInfo: { code: planCode}, billingInfo: { accountCode } } = formData
+
+    options = { type, planCode, accountCode }
+
+    paymentController.confirmPayment options, (err) =>
+      @destroy()
+      KD.track "User Clicked Buy VM", KD.nick()
 
   viewAppended: ->
     super
