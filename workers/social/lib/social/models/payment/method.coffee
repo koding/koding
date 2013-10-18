@@ -108,7 +108,7 @@ module.exports = class JPaymentMethod extends Module
       return callback err  if err
       callback null, { @paymentMethodId, @description, billing }
 
-  @updatePaymentMethodByPaymentMethodId = secure (client, paymentMethodId, formData, callback) ->
+  @updatePaymentMethodById = secure (client, paymentMethodId, formData, callback) ->
     if paymentMethodId
       @one { paymentMethodId }, (err, paymentMethod) =>
         return callback err  if err

@@ -36,7 +36,7 @@ module.exports = class JPayment extends Base
 
   @setPaymentInfo = secure (client, paymentMethodId, data, callback) ->
     [data, callback, paymentMethodId] = [paymentMethodId, data, callback]  unless callback
-    (require './method').updatePaymentMethodByPaymentMethodId client, paymentMethodId, data, callback
+    (require './method').updatePaymentMethodById client, paymentMethodId, data, callback
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
     recurly.fetchAccountDetailsByPaymentMethodId (userCodeOf delegate), callback
