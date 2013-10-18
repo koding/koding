@@ -33,11 +33,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
       {username} = session.data
       JAccount.one {"profile.nickname": username}, (err, account)=>
         return callback err  if err
-        r = new JReferrableEmail {
-          email
-          title
-          username
-        }
+        r = new JReferrableEmail {email, title, username}
         r.save callback
 
   @getUninvitedEmails: secure (client, callback)->
@@ -61,7 +57,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
       replyto : 'hello@koding.com'
       subject : "#{@username} has invited you to Koding!"
       content : "Click here: #{shareUrl}"
-    console.log email
+
     email.save (err)=>
       return callback err  if err
       @update $set: invited: true, callback

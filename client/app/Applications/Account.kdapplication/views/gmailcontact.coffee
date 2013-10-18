@@ -35,6 +35,6 @@ class GmailContactsListItem extends KDListItemView
       </div>
       <div class="checkmark"><span>&#10004;</span></div>
       <div class="invitation-sent-overlay">
-        <span class="checkmark"></span>Invitation is Sent
+        <span class="checkmark"></span>Invitation is sent
       </div>
     """

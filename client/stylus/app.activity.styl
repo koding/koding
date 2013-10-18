@@ -2750,7 +2750,7 @@ div.kdtooltip
         text-align                center
         margin-bottom             10px
 
-        .vm-usage-bar.disk
+        .progressbar-container
           display                 inline-block
           width                   100px
           top                     2px
@@ -2778,14 +2778,14 @@ div.kdtooltip
         background                #ebebeb
         rounded                   3px 3px 0 0
         margin                    0 0 -1px
-      input.share-url-input
+      .share-url-input
         width                     245px
         height                    46px
         line-height               46px
         rounded                   3px
         padding                   0 15px
         margin                    0
-        color                     rgba(0,0,0,.5)
+        color                     #ff9200
         border                    1px solid #c7c7c7
         borderBox()
 
@@ -2851,6 +2851,15 @@ div.kdtooltip
         &.twitter
           .icon
             bg                    position, -633px -118px
+
+      .dont-show-again-wrapper
+        abs()
+        bottom                    0
+        right                     5px
+
+        .kdinput
+          margin-right            5px
+          vertical-align          middle
 
   .kdtabpaneview.invite
     margin-bottom                 10px
