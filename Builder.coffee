@@ -19,6 +19,10 @@ log =
   warn  : console.log
 
 formatByte = (bytes) ->
+  minus = ''
+  if bytes < 0
+    minus  = '-'
+    bytes *= -1
   thresh    = 1024
   units     = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
   unitIndex = -1
@@ -28,7 +32,7 @@ formatByte = (bytes) ->
     ++unitIndex
     break unless bytes >= thresh
 
-  return "#{bytes.toFixed 2} #{units[unitIndex]}"
+  return "#{minus}#{bytes.toFixed 2} #{units[unitIndex]}"
 
 module.exports = class Builder
 
@@ -48,6 +52,8 @@ module.exports = class Builder
   buildAndWatchClient: (options) ->
 
     @projectsToBuild = {}
+    @fileSizes = {}
+    @blackList = []
 
     addProject = (title, project, ptype)=>
 
@@ -64,6 +70,7 @@ module.exports = class Builder
           script    : project.script
           style     : project.style
         type        : ptype
+        sourceMapRoot : project.sourceMapRoot ? ''
 
     {projects, bundles} = require './projects'
 
@@ -85,7 +92,6 @@ module.exports = class Builder
     includesChanged = @readIncludesFile()
 
     if initial
-      log.info ""
       total = 0
       for own _key, project of @projectsToBuild when project.type isnt 'bundle'
         total+= project.files.scripts.length + project.files.styles.length
@@ -191,12 +197,13 @@ module.exports = class Builder
         changed |= project.changed
         for includePath in CoffeeScript.eval(fs.readFileSync(project.includes, "utf-8"))
 
-          cachePath = ".build/" + includePath.replace(/\//g,"_")
+          cachePath = ".build/#{includePath.replace /\//g, "_" }"
 
           file =
             sourceMapPath : cachePath + ".map"
+            sourceMapRoot : project.sourceMapRoot
             includePath   : includePath
-            sourcePath    : path.dirname(project.includes) + "/" + includePath
+            sourcePath    : "#{path.dirname(project.includes)}/#{includePath}"
             cachePath     : cachePath
             cacheTime     : if fs.existsSync(cachePath) then Date.parse(fs.statSync(cachePath).mtime) else 0
             extension     : path.extname(includePath)
@@ -204,6 +211,9 @@ module.exports = class Builder
           if not (path.basename(file.sourcePath) in fs.readdirSync(path.dirname(file.sourcePath)))
             log.error "File name case is wrong: " + includePath
             process.exit 1
+          else
+            if file.sourcePath in @blackList
+              @blackList.splice (@blackList.indexOf file.sourcePath), 1
 
           switch file.extension
             when ".coffee", ".js"
@@ -217,7 +227,15 @@ module.exports = class Builder
 
   compileFile: (file)->
 
-    sourceTime = Date.parse fs.statSync(file.sourcePath).mtime
+    return false  if file.sourcePath in @blackList
+
+    try
+      sourceTime = Date.parse fs.statSync(file.sourcePath).mtime
+    catch e
+      log.info "Failed to read file #{file.sourcePath}"
+      file.content = ''
+      @blackList.push file.sourcePath
+      return true
 
     if sourceTime <= file.cacheTime
       if not file.content?
@@ -248,6 +266,7 @@ module.exports = class Builder
               r = /^class (\w+)/gm
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
+
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
             spawn.apply null, ["say", ["coffeescript error"]]
@@ -315,11 +334,11 @@ module.exports = class Builder
       version     : 3
       file        : project.outputs.script
       sourceRoot  : @config.client.runtimeOptions.sourceUri
-      sources     : file.includePath for file in project.files.scripts
+      sources     : "#{file.sourceMapRoot}#{file.includePath}" for file in project.files.scripts
       names       : []
       mappings    : ""
 
-    process.stdout.write " - Updating scripts for #{project.type} #{project.title} ... "
+    process.stdout.write "\n - Updating scripts for #{project.type} #{project.title} ... "
     fileLineOffset = 0
     firstInLine = true
 
@@ -356,23 +375,36 @@ module.exports = class Builder
 
       fileLineOffset += file.content.split("\n").length
 
-    js += "//@ sourceMappingURL=/#{project.outputs.script}.map"
+    mapUrl = project.outputs.script.replace /^website\//, ''
+    js += "//@ sourceMappingURL=/#{mapUrl}.map"
 
-    filepath = @config.client.websitePath + "/" + project.outputs.script
+    filepath = project.outputs.script
     fs.writeFileSync filepath, js
     fs.writeFileSync filepath + ".map", JSON.stringify(sourceMap)
-    {size} = fs.statSync filepath
-    process.stdout.write "#{project.outputs.script} ( includes #{project.files.scripts.length} scripts, #{formatByte size} ) \n"
+
+    @showFileInfo filepath, project, 'scripts' # project.outputs.script, project.files.scripts.length, scripts
 
   buildCSS: (options, project)->
-    process.stdout.write " - Updating stylesheets for #{project.type} #{project.title} ... "
+    process.stdout.write " - Updating styles for #{project.type} #{project.title} ... "
     code = ""
     for file in project.files.styles
       code += file.content+"\n"
-    filepath = @config.client.websitePath + "/" + project.outputs.style
+    filepath = project.outputs.style
     fs.writeFileSync filepath, code
-    {size} = fs.statSync filepath
-    process.stdout.write "#{project.outputs.style} ( includes #{project.files.styles.length} styles, #{formatByte size} ) \n"
+
+    @showFileInfo filepath, project, 'styles' # project.outputs.style, project.files.styles.length, styles
 
   getEnvForRollbar: ->
     return if @config.client.version is "0.0.1" then "development" else "production"
+
+  showFileInfo:(filepath, project, ptype )->
+
+    {size} = fs.statSync filepath
+
+    oldSize = @fileSizes[filepath]
+    oldSize = if oldSize then "it was #{formatByte oldSize} and the diff is #{formatByte size - oldSize} " else ''
+
+    # console.log project, ptype
+    process.stdout.write "#{filepath}\n - Includes #{project.files[ptype].length} #{ptype}, filesize is #{formatByte size} #{oldSize} \n"
+    @fileSizes[filepath] = size
+
