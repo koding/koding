@@ -26,8 +26,9 @@ class ReferrerModal extends KDModalViewWithForms
     vmc = KD.getSingleton "vmController"
     vmc.fetchDefaultVmName (name) ->
       vmc.fetchDiskUsage name, (usage) ->
-        usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
-          of your free <strong>16 GB</strong> disk space."
+        if usage.max
+          usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
+            of your free <strong>16 GB</strong> disk space."
 
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
@@ -91,19 +92,6 @@ class ReferrerModal extends KDModalViewWithForms
     listController.once "AllItemsAddedToList", -> @hideLazyLoader()
 
     @invite.addSubView listController.getView()
-
-    @invite.addSubView new KDButtonView
-      title   : "Send invitation(s)"
-      callback: =>
-        recipients = listController.getItemsOrdered().filter (view) =>
-          return  view.isSelected and not view.getData().invited
-
-        recipients.forEach (view) ->
-          view.getData().invite (err) =>
-            return log "invite", err  if err
-            view.emit "InvitationSent"
-
-        @track recipients.length
 
     @invite.addSubView new KDButtonView
       title: "Send invitations to all"

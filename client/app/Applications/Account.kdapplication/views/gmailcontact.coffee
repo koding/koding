@@ -3,15 +3,16 @@ class GmailContactsListItem extends KDListItemView
     options.type = "gmail"
     super options, data
 
-    @isSelected = no
-
-    @on "InvitationSent", @bound "invitationSent"
+    @on "InvitationSent", @bound "decorateInvitationSent"
 
   click: ->
-    @toggleClass "send-invitation"
-    @isSelected = not @isSelected
+    data = @getData()
+    data.invite (err) =>
+      return log err  if err
+      @decorateInvitationSent()
+      KD.kdMixpanel.track "User Sent Invitation", $user: KD.nick(), count: 1
 
-  invitationSent: ->
+  decorateInvitationSent: ->
     @setClass "invitation-sent"
     @getData().invited = yes
 
@@ -33,7 +34,6 @@ class GmailContactsListItem extends KDListItemView
         <span class="full-name">#{@getData().title || "Gmail Contact"}</span>
         {{ #(email)}}
       </div>
-      <div class="checkmark"><span>&#10004;</span></div>
       <div class="invitation-sent-overlay">
         <span class="checkmark"></span>Invitation is sent
       </div>
