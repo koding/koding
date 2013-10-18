@@ -92,8 +92,8 @@ class PaymentController extends KDController
     if amount is 0
       vmController.createGroupVM type, plan.code
     else if type in ['group', 'expensed']
-      paymentInfo = { plan: plan.code, multiple: yes }
-      getGroup().makePayment paymentInfo, (err, result)->
+      paymentMethod = { plan: plan.code, multiple: yes }
+      getGroup().makePayment paymentMethod, (err, result)->
         return KD.showError err  if err
         vmController.createGroupVM type, plan.code
     else
@@ -122,11 +122,11 @@ class PaymentController extends KDController
       when 'user'
         JPaymentPlan.fetchAccountDetails callback
 
-  updatePaymentInfo: (paymentMethodId, paymentInfo, callback) ->
+  updatePaymentInfo: (paymentMethodId, paymentMethod, callback) ->
 
     { JPayment } = KD.remote.api
 
-    JPayment.setPaymentInfo paymentMethodId, paymentInfo, callback
+    JPayment.setPaymentInfo paymentMethodId, paymentMethod, callback
 
 
   createPaymentInfoModal: ->

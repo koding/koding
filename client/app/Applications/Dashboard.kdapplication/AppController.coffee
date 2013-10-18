@@ -122,15 +122,15 @@ class DashboardAppController extends AppController
     @paymentView = view
 
     view.on 'PaymentMethodEditRequested', => @showPaymentInfoModal()
-    view.on 'PaymentMethodUnlinkRequested', (paymentInfo) =>
+    view.on 'PaymentMethodUnlinkRequested', (paymentMethod) =>
       modal = KDModalView.confirm
         title       : 'Are you sure?'
         description : 'Are you sure you want to unlink this payment method?'
-        subView     : new PaymentMethodView {}, paymentInfo
+        subView     : new PaymentMethodView {}, paymentMethod
         ok          :
           title     : 'Unlink'
           callback  : =>
-            group.unlinkPaymentMethod paymentInfo.paymentMethodId, =>
+            group.unlinkPaymentMethod paymentMethod.paymentMethodId, =>
               modal.destroy()
               @refreshPaymentView()
 
@@ -159,7 +159,7 @@ class DashboardAppController extends AppController
 
     paymentController = KD.getSingleton "paymentController"
 
-    paymentInfoModal = paymentController.createPaymentInfoModal 'group'
+    paymentMethodModal = paymentController.createPaymentInfoModal 'group'
 
     group = @getData()
 
@@ -167,7 +167,7 @@ class DashboardAppController extends AppController
 
       if groupPaymentMethod
 
-        paymentInfoModal.setState 'editExisting', groupPaymentMethod
+        paymentMethodModal.setState 'editExisting', groupPaymentMethod
 
       else
 
@@ -175,21 +175,21 @@ class DashboardAppController extends AppController
 
           if personalPaymentMethods.length
 
-            paymentInfoModal.setState 'selectPersonal', personalPaymentMethods
-            paymentInfoModal.on 'PaymentMethodSelected', (paymentMethodId) =>
+            paymentMethodModal.setState 'selectPersonal', personalPaymentMethods
+            paymentMethodModal.on 'PaymentMethodSelected', (paymentMethodId) =>
 
               group.linkPaymentMethod paymentMethodId, (err) =>
                 new KDNotificationView title: err.message  if err
 
-                paymentInfoModal.destroy()
+                paymentMethodModal.destroy()
                 @refreshPaymentView()
 
           else
 
-            paymentInfoModal.setState 'createNew'
+            paymentMethodModal.setState 'createNew'
 
 
-    return paymentInfoModal
+    return paymentMethodModal
 
   # vocabularyViewAdded:(pane, view)->
   #   group = view.getData()

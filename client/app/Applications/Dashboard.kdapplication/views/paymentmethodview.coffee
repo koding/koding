@@ -18,10 +18,10 @@ class PaymentMethodView extends JView
 
     @setPaymentInfo data
 
-  getCardInfoPartial: (paymentInfo) ->
-    if paymentInfo
+  getCardInfoPartial: (paymentMethod) ->
+    if paymentMethod
       { description, cardFirstName, cardLastName, cardNumber, cardMonth
-        cardYear, cardType, address1, address2, city, state, zip } = paymentInfo
+        cardYear, cardType, address1, address2, city, state, zip } = paymentMethod
       address = [address1, address2].filter(Boolean).join '<br>'
       description ?= "#{cardFirstName}'s #{cardType}"
       postal = [city, state, zip].filter(Boolean).join ' '
@@ -34,10 +34,10 @@ class PaymentMethodView extends JView
       """
     else "Enter billing information"
 
-  setPaymentInfo: (paymentInfo) ->
+  setPaymentInfo: (paymentMethod) ->
     @loader.hide()
-    @setData paymentInfo  if paymentInfo
-    @paymentMethodInfo.updatePartial @getCardInfoPartial paymentInfo?.billing
+    @setData paymentMethod  if paymentMethod
+    @paymentMethodInfo.updatePartial @getCardInfoPartial paymentMethod?.billing
     @paymentMethodInfo.show()
 
   pistachio: ->

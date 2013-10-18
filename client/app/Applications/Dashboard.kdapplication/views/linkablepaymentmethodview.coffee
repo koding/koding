@@ -11,7 +11,7 @@ class LinkablePaymentMethodView extends PaymentMethodView
     @addSubView @unlinkButton
 
 
-  setPaymentInfo: (paymentInfo) ->
-    super paymentInfo
+  setPaymentInfo: (paymentMethod) ->
+    super paymentMethod
 
-    do @unlinkButton?[if paymentInfo?.billing then 'show' else 'hide']
+    do @unlinkButton?[if paymentMethod?.billing then 'show' else 'hide']
