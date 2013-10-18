@@ -1345,7 +1345,7 @@ module.exports = class JGroup extends Module
           callback new KodingError "You don't have enough balance"
 
   makePayment: permit 'make payments',
-   success: (client, data, callback)->
+    success: (client, data, callback)->
       @chargeGroup client, data, callback
 
   chargeGroup: secure (client, data, callback)->
