@@ -4,7 +4,7 @@ class ReferrerModal extends KDModalViewWithForms
     options.width          = 570
     options.overlay        = yes
     options.title          = "Get free space up to 16GB"
-    options.url          or= "#{location.origin}/?r=#{KD.whoami().profile.nickname}"
+    options.url          or= "#{location.origin}/?r=#{KD.nick()}"
     options.tabs           =
       navigable            : no
       goToNextFormOnSubmit : no
@@ -92,12 +92,11 @@ class ReferrerModal extends KDModalViewWithForms
     @on "KDObjectWillBeDestroyed", ->
       @dontShowAgain() if dontShowAgain.getValue()
 
-  checkGoogleLinkStatus: ->
-    mainController = KD.getSingleton "mainController"
-    mainController.on "ForeignAuthSuccess.google", (data) =>
+    KD.getSingleton("mainController").once "ForeignAuthSuccess.google", (data) =>
       @showGmailContactsList data
 
-    KD.whoami().fetchStorage "ext|profile|google",(err, account) =>
+  checkGoogleLinkStatus: ->
+    KD.whoami().fetchStorage "ext|profile|google", (err, account) =>
       return if err
 
       if account then @showGmailContactsList()
@@ -118,17 +117,22 @@ class ReferrerModal extends KDModalViewWithForms
 
     @invite.addSubView listController.getView()
 
-    submit = new KDButtonView
+    @invite.addSubView new KDButtonView
       title   : "Send invitation(s)"
-      callback: ->
-        listController.getItemsOrdered().forEach (view) ->
+      callback: =>
+        recipients = listController.getItemsOrdered().filter (view) =>
+          return  view.isSelected and not contact.invited
+
+        recipients.forEach (view) ->
           contact = view.getData()
           return if not view.isSelected or contact.invited
           view.getData().invite (err) =>
             return log "invite", err  if err
             view.emit "InvitationSent"
 
-    sendToAll = new KDButtonView
+        @track recipients.length
+
+    @invite.addSubView new KDButtonView
       title: "Send invitations to all"
       callback: =>
         modal                 = new KDModalViewWithForms
@@ -144,17 +148,17 @@ class ReferrerModal extends KDModalViewWithForms
                     loader    :
                       color   : "#444"
                       diameter: 12
-                    callback  : ->
-                      listController.getItemsOrdered().forEach (view) ->
+                    callback  : =>
+                      recipients = listController.getItemsOrdered()
+                      recipients.forEach (view) ->
                         view.getData().invite (err) =>
                           return log err  if err
                           view.emit "InvitationSent"
                       modal.destroy()
+                      @track recipients.length
                   Cancel      :
                     style     : "modal-clean-red"
                     callback  : -> modal.destroy()
-
-    @invite.addSubView view for view in [submit, sendToAll]
 
     KD.remote.api.JReferrableEmail.getUninvitedEmails (err, contacts) =>
       if err
@@ -171,6 +175,9 @@ class ReferrerModal extends KDModalViewWithForms
         listController.instantiateListItems contacts
 
     @setPositions()
+
+  track: (count) ->
+    KD.kdMixpanel.track "User Sent Invitation", $user: KD.nick(), count: count
 
   dontShowAgain: ->
     storage = KD.getSingleton("appStorageController").storage "MainApp"
