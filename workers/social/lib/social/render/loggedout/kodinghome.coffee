@@ -173,116 +173,8 @@ module.exports = ->
         <div class="kdview transition no-shadow full" id="content-panel">
           <div class="kdview kdscrollview kdtabview" id="main-tab-view">
             <div id="maintabpane-home" class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview home active">
-              <div id="content-page-home" class="kdview content-page home kdscrollview extra-wide"><section class="slider-section" id="slider-section">
-                <div class="home-slider">
-                  <div id="you-page" class="slider-page active">
-                    <div class="wrapper">
-                      <figure></figure>
-                        <h3>
-                          <i></i> Koding for <span>You</span>
-                        </h3>
-                        <p>
-                          You have great ideas.  You want to meet brilliant minds, and bring those ideas to life.  You want to start simple.  Maybe soon you'll have a 10 person team, commanding 100s of servers.
-                        </p>
-                        <p>
-                          You want to learn Python, Java, C, Go, Nodejs, HTML, CSS or Javascript or any other. Community will help you along the way.
-                        </p>
-                      </div>
-                    </div>
-                    <div id="developers-page" class="slider-page">
-                      <div class="wrapper">
-                        <figure></figure>
-                        <h3>
-                          <i></i> Koding for <span>Developers</span>
-                        </h3>
-                        <p>
-                          You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
-                        </p>
-                        <p>
-                          It's free. Koding is your new localhost, in the cloud.
-                        </p>
-                      </div>
-                    </div>
-                    <div id="education-page" class="slider-page">
-                      <div class="wrapper">
-                        <figure></figure>
-                        <h3>
-                          <i></i> Koding for <span>Education</span>
-                        </h3>
-                        <p>
-                          Have a group where your students enjoy the resources you provide to them. Have it private, invite-only, let them share, collaborate and submit their assignments together.10 students, or 10,000. Just 1 or 100s of computers.
-                        </p>
-                        <p>
-                          Koding is your new classroom.
-                        </p>
-                      </div>
-                    </div>
-                    <div id="business-page" class="slider-page">
-                      <div class="wrapper">
-                        <figure></figure>
-                        <h3>
-                          <i></i> Koding for <span>Business</span>
-                        </h3>
-                        <p>
-                          When you hire someone, let them be in your environment in 5 minutes, collaborating with others, contributing code without sharing ssh keys, passwords. Stop cc'ing your team, stop looking for emails.
-                        </p>
-                        <p>
-                          Koding is your new workspace.
-                        </p>
-                      </div>
-                    </div>
-                    <nav class="slider-nav">
-                      <a class="custom-link-view active" href="#">
-                        <span class="title" data-paths="title">You</span>
-                      </a>
-                      <a class="custom-link-view" href="#">
-                        <span class="title" data-paths="title">Developers</span>
-                      </a>
-                      <a class="custom-link-view" href="#">
-                        <span class="title" data-paths="title">Education</span>
-                      </a>
-                      <a class="custom-link-view" href="#">
-                        <span class="title" data-paths="title">Business</span>
-                      </a>
-                    </nav>
-                  </div>
-                </section>
-                <section class="pricing-section" id="pricing-section">
-                  <h3>Simple Pricing</h3>
-                  <h4>Try it and see if it's really as cool as we say</h4>
-                  <div class="price-boxes">
-                    <a href="#" class="free">
-                      <span>Your first VM</span>
-                      Free
-                    </a>
-                    <a href="#" class="paid">
-                      <span>Each additional VM</span>
-                      $5 / Month
-                    </a>
-                  </div>
-                  <div class="pricing-details">
-                    <span><strong>Always on*</strong> $25 / Month</span>
-                    <span><strong>Extra RAM</strong> $10 / GB / Month</span><br>
-                    <span><strong>Extra Disk Space</strong> $1 / GB / Month</span>
-                    <span><strong>Firewall / Backend Builder</strong> $5 / Per VM / Month</span>
-                  </div>
-                  <span class="pricing-contact"><a href="mailto:hello@koding.com?Subject=Please%20tell%20me..." target="_top">Contact us</a> for Education and Business pricing</span>
-                </section>
-                <footer class="home-footer">
-                  <section>
-                    <div class="fl">
-                      <span>© 2013 Koding, Inc.</span>
-                      <a href="/tos.html" target="_blank">Terms</a>
-                      <a href="/privacy.html" target="_blank">Privacy</a>
-                    </div>
-                    <div class="fr">
-                      <a href="#">Status</a>
-                      <a href="#">API</a>
-                      <a href="http://blog.koding.com" target="_blank">Blog</a>
-                      <a href="#">About</a>
-                    </div>
-                  </section>
-                </footer>
+              <div id="content-page-home" class="kdview content-page home kdscrollview extra-wide">
+
               </div>
             </div>
           </div>
@@ -291,7 +183,7 @@ module.exports = ->
     </div>
 
   #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
-  #{getScripts()}
+  #{getScripts(yes)}
   </body>
   </html>
   """

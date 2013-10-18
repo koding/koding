@@ -77,9 +77,6 @@ class MainView extends KDView
 
   createMainPanels:->
 
-    # klass = if KD.isLoggedIn() then KDCustomHTMLView else HomeIntroView
-    # @addSubView @homeIntro = new klass
-
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
       domId    : "main-panel-wrapper"
@@ -112,7 +109,7 @@ class MainView extends KDView
       partial   : "<span></span>"
       click     : (event)=>
         KD.utils.stopDOMEvent event
-        homeRoute = if KD.isLoggedIn() then "/Activity" else "/Home"
+        homeRoute = if KD.isLoggedIn() then "/Activity" else "/"
         KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
 
     wrapper.addSubView loginLink = new CustomLinkView

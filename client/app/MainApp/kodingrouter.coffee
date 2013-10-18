@@ -61,8 +61,8 @@ class KodingRouter extends KDRouter
     unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
       {entryPoint} = KD.config
-      # if KD.isLoggedIn()
-      @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
+      if KD.isLoggedIn()
+        @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
       # else
       #   @handleRoute @getDefaultRoute(), {entryPoint}
 
@@ -76,7 +76,7 @@ class KodingRouter extends KDRouter
       if err then new KDNotificationView title: err.message
       else
         # temp fix for not showing homepage to loggedin users
-        app = 'Activity' if app is 'Home' and KD.isLoggedIn()
+        # app = 'Activity' if app is 'Home' and KD.isLoggedIn()
 
         @setPageTitle nicenames[app] ? app
         appManager  = KD.getSingleton "appManager"
@@ -244,7 +244,7 @@ class KodingRouter extends KDRouter
 
       '/'      : handleRoot
       ''       : handleRoot
-      # '/About' : createStaticContentHandler 'Home', yes
+      # '/Home'  : handleRoot
       '/About' : createSectionHandler 'Activity'
 
       # verbs
