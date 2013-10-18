@@ -33,7 +33,6 @@ class PaymentFormModal extends KDModalView
     @paymentForm = new PaymentForm
 
     @forwardEvent @paymentForm, 'PaymentInfoSubmitted'
-paymentInfo
     @addSubView @paymentForm
 
     @paymentForm.hide()
