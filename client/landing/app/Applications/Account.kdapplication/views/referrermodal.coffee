@@ -96,11 +96,9 @@ class ReferrerModal extends KDModalViewWithForms
       title   : "Send invitation(s)"
       callback: =>
         recipients = listController.getItemsOrdered().filter (view) =>
-          return  view.isSelected and not contact.invited
+          return  view.isSelected and not view.getData().invited
 
         recipients.forEach (view) ->
-          contact = view.getData()
-          return if not view.isSelected or contact.invited
           view.getData().invite (err) =>
             return log "invite", err  if err
             view.emit "InvitationSent"
