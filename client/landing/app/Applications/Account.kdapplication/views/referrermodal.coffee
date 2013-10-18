@@ -4,6 +4,7 @@ class ReferrerModal extends KDModalViewWithForms
     options.width          = 570
     options.overlay        = yes
     options.title          = "Get free space up to 16GB"
+    options.url          or= "#{location.origin}/?r=#{KD.whoami().profile.nickname}"
     options.tabs           =
       navigable            : no
       goToNextFormOnSubmit : no
@@ -22,9 +23,22 @@ class ReferrerModal extends KDModalViewWithForms
     {@share, @invite} = @modalTabs.forms
 
     @share.addSubView usageWrapper = new KDCustomHTMLView cssClass: "disk-usage-wrapper"
-    KD.getSingleton("vmController").fetchDefaultVmName (name) ->
-      usageWrapper.addSubView new KDLabelView title: "Your current VM disk usage"
-      usageWrapper.addSubView new VMDiskUsageBar null, name
+    vmc = KD.getSingleton "vmController"
+    vmc.fetchDefaultVmName (name) ->
+      vmc.fetchDiskUsage name, (usage) ->
+        current = usage.max
+        max     = 16 * 1024 * 1024 * 1024
+
+        usageWrapper.addSubView new KDLabelView title: "Free space usage"
+        usageWrapper.addSubView usageBar = new KDProgressBarView initial: current / max * 100, name
+
+        usageBar.setTooltip
+          title     : "#{KD.utils.formatBytesToHumanReadable current} of #{KD.utils.formatBytesToHumanReadable max}"
+          placement : "top"
+          delayIn   : 300
+          offset    :
+            top     : 2
+            left    : -8
 
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
@@ -63,6 +77,20 @@ class ReferrerModal extends KDModalViewWithForms
       style                         : "invite-button twitter hidden"
       disabled                      : yes
       icon                          : yes
+
+    rightColumn.addSubView dontShowAgainWrapper = new KDCustomHTMLView
+      cssClass                                  : "dont-show-again-wrapper"
+
+    labelDontShowAgain = new KDLabelView title: "Don't show again"
+
+    dontShowAgainWrapper.addSubView dontShowAgain = new KDInputView
+      type                                         : "checkbox"
+      label                                        : labelDontShowAgain
+
+    dontShowAgainWrapper.addSubView labelDontShowAgain
+
+    @on "KDObjectWillBeDestroyed", ->
+      @dontShowAgain() if dontShowAgain.getValue()
 
   checkGoogleLinkStatus: ->
     mainController = KD.getSingleton "mainController"
@@ -143,3 +171,7 @@ class ReferrerModal extends KDModalViewWithForms
         listController.instantiateListItems contacts
 
     @setPositions()
+
+  dontShowAgain: ->
+    storage = KD.getSingleton("appStorageController").storage "MainApp"
+    storage.setValue "dontDisplayReferrerModalAgain", yes
