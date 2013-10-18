@@ -1,5 +1,8 @@
 @import "../Framework/themes/default/kdfn"
 
+body
+  overflow        scroll
+
 .intro-view
   top                   0
   abs()
@@ -21,9 +24,15 @@
       font-weight           normal
       font-family           'Open Sans'
       padding-left          24px
+      &.active
+        font-weight         bold
 
     a:last-of-type
       border                none
+
+    &.black
+      a.active
+        color               black
 
 .kd-page
 
@@ -32,7 +41,8 @@
   left                  0
   top                   0
   padding               110px
-  background-color       white
+  padding-top           0
+  background-color      white
   borderBox()
   abs()
 
@@ -69,7 +79,7 @@
     abs()
 
   .slider-page
-    display             block
+    display             table
     size                100%, 100%
     // bg                  color, #fff
     top                 0
@@ -85,7 +95,7 @@
       fr()
 
       img
-        top          68px
+        top          66px
         rounded      0 0 4px 4px
         abs()
 
@@ -96,6 +106,8 @@
         margin-right    100px
 
     .wrapper
+      display           table-cell
+      vertical-align    middle
       width             100%
       max-width         1280px
       margin            0 auto
@@ -110,8 +122,7 @@
         color           #ff9e3c
 
     p
-      font-size         22px
-      color             white
+      font-size         18px
       margin            40px 0 0 0
       font-weight       300
 
@@ -191,3 +202,13 @@
             color       #545454
           i
             bg          position, -630px -45px
+
+#koding-logo
+  &.black
+    span
+      bg position, -240px -720px
+
+#header-sign-in
+  &.black
+    span
+      color black !important
