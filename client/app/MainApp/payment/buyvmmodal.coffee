@@ -31,6 +31,8 @@ class BuyVmModal extends KDModalView
       return new KDNotificationView
         title : "You are not authorized to create VMs in #{group} group"
 
+    modal = this
+
     form = new KDFormViewWithFields
       callback              : (formData) =>
         @addAggregateData formData
@@ -81,17 +83,8 @@ class BuyVmModal extends KDModalView
               required      : yes
             messages        :
               required      : "Please select a VM type!"
-          # change            : =>
-            # form = modal.modalTabs.forms["Create VM"]
-            # {desc, selector} = form.inputs
-            # descField        = form.fields.desc
-            # descField.show()
-            # desc.show()
-            # index      = (parseInt selector.getValue(), 10) or 0
-            # monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
-            # desc.$('section').addClass 'hidden'
-            # desc.$('section').eq(index).removeClass 'hidden'
-            # modal.setPositions()
+          change            : ->
+            modal.currentPlan = plans[@getValue()]
         desc                :
           itemClass         : KDCustomHTMLView
           cssClass          : "description-field hidden"
@@ -109,11 +102,11 @@ class BuyVmModal extends KDModalView
       monthlyFee = plans[index].feeMonthly
 
       if limit > 0
-        credits = (limit / 100).toFixed(2)
+        credits = (limit / 100).toFixed 2
 
         creditsMessage = "<p>This group gives you $#{credits} credits.</p>"
         if balance > 0
-          spent = (balance / 100).toFixed(2)
+          spent = (balance / 100).toFixed 2
           creditsMessage += "<p>You've spent $#{spent}.</p>"
 
         form.fields.desc.setPartial creditsMessage
@@ -137,9 +130,9 @@ class BuyVmModal extends KDModalView
   preparePaymentMethods: (formData) ->
     @setState 'billing choice'
 
-    paymentField = @choiceForm.fields['Payment method']
-
     paymentController = KD.getSingleton 'paymentController'
+
+    paymentField = @choiceForm.fields['Payment method']
 
     paymentController.fetchPaymentMethods (err, paymentMethods) =>
       return if KD.showError err
@@ -252,10 +245,14 @@ class BuyVmModal extends KDModalView
       when 'confirm'
         confirmData = @getAggregatedData()
         confirmData.billingInfo = @currentMethod
+        confirmData.planInfo = @currentPlan
         @confirmForm.setData confirmData
         @confirmForm.show()
 
   createConfirmForm: -> new BuyVmConfirmView
+
+  processPayment: (data) ->
+    debugger
 
   viewAppended: ->
     super
@@ -271,5 +268,7 @@ class BuyVmModal extends KDModalView
 
     @confirmForm = @createConfirmForm()
     @addSubView @confirmForm
+
+    @confirmForm.on 'PaymentConfirmed', @bound 'processPayment'
 
     @setState 'vm type'
