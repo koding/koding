@@ -515,17 +515,17 @@ module.exports = [
 
 
   # HOME VIEWS
-  "app/Applications/Home.kdapplication/AppView.coffee",
+  # "app/Applications/Home.kdapplication/AppView.coffee",
   "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
   "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
-  "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
-  "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
-  "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
-  "app/Applications/Home.kdapplication/Views/featuredactivitiescontainer.coffee",
-  "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
-  "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
-  "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
-  "app/Applications/Home.kdapplication/Views/counterview.coffee",
+  # "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
+  # "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
+  # "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
+  # "app/Applications/Home.kdapplication/Views/featuredactivitiescontainer.coffee",
+  # "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
+  # "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
+  # "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
+  # "app/Applications/Home.kdapplication/Views/counterview.coffee",
 
   # DEMO VIEWS
   "app/Applications/Demos.kdapplication/AppView.coffee",
