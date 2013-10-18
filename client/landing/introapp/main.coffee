@@ -57,12 +57,12 @@ class IntroView extends JView
 
   viewAppended:->
 
-    @addSubView @slider = new KDSlideShowView
-      # animation : 'rotate'
+    @addSubView slider = new KDSlideShowView
+      direction : 'topToBottom'
 
-    @slider.addPage new EntryPage
+    slider.addPage new EntryPage
 
-    @slider.addPage new IntroPage {},
+    slider.addPage new IntroPage {},
       slideImage : "you.jpg"
       slogan     : "Koding for <span>You</span>"
       subSlogan  : """
@@ -74,7 +74,7 @@ class IntroView extends JView
         </p>
       """
 
-    @slider.addSubPage new IntroPage {},
+    slider.addSubPage new IntroPage {},
       slideImage : "developers.jpg"
       slogan     : "Koding for <span>Developers</span>"
       subSlogan  : """
@@ -86,19 +86,7 @@ class IntroView extends JView
         </p>
       """
 
-    @slider.addPage new IntroPage {},
-      slideImage : "developers.jpg"
-      slogan     : "Koding for <span>Developers</span>"
-      subSlogan  : """
-        <p>
-          You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
-        </p>
-        <p>
-          It's free. Koding is your new localhost, in the cloud.
-        </p>
-      """
-
-    @slider.addPage new IntroPage {},
+    slider.addSubPage new IntroPage {},
       slideImage : "education.jpg"
       slogan     : "Koding for <span>Education</span>"
       subSlogan  : """
@@ -110,7 +98,7 @@ class IntroView extends JView
         </p>
       """
 
-    @slider.addPage new IntroPage {},
+    slider.addSubPage new IntroPage {},
       slideImage : "business.jpg"
       slogan     : "Koding for <span>Bussiness</span>"
       subSlogan  : """
@@ -130,10 +118,21 @@ class IntroView extends JView
       multiple     : no
       cssClass     : 'bottom-menu'
       callback     : (state)=>
-        @slider.jump labels.indexOf state
+        # TODO Improve this later ~ GG
+        if state is 'Koding' then slider.jump 0
+        else
+          unless slider._currentX is 1
+            slider.jump 1, 1, ->
+              slider.jump (labels.indexOf state) - 1, 2
+          else
+            slider.jump (labels.indexOf state) - 1, 2
 
-    @slider.on 'CurrentPageChanged', (current)->
-      multipleChoice.setValue labels[current.x], no
+    slider.on 'CurrentPageChanged', (current)->
+      if current.x in [0, 1] and current.y is 0
+        valueToSet = current.x
+      else
+        valueToSet = current.y + 1
+      multipleChoice.setValue labels[valueToSet], no
 
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
