@@ -8,8 +8,8 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     super options, data
 
-    @ramUsage  = new VMRamUsageBar  null, data
-    @diskUsage = new VMDiskUsageBar null, data
+    @ramUsage  = new VMRamUsageBar  null, data.title
+    @diskUsage = new VMDiskUsageBar null, data.title
 
   contextMenuItems : ->
     colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'

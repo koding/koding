@@ -145,7 +145,7 @@ class AccountAppController extends AppController
   fetchProviders:->
 
   showReferrerModal:->
-    new ReferrerModal {url: "#{location.origin}/?r=#{KD.whoami().profile.nickname}"}
+    new ReferrerModal
 
   toggleSidebar:(options)->
     {show} = options

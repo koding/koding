@@ -9,7 +9,7 @@ class GmailContactsListItem extends KDListItemView
 
   click: ->
     @toggleClass "send-invitation"
-    @isSelected        = !@isSelected
+    @isSelected = not @isSelected
 
   invitationSent: ->
     @setClass "invitation-sent"
