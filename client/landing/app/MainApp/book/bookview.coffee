@@ -356,7 +356,7 @@ class BookView extends JView
       # make click action
       @clickAnimation()
       # open VM menu
-      $(".server-container-handler").click()
+      @mainView.sidebar.resourcesController.itemsOrdered[0].chevron.$().click()
       # wait 3 sec.
       @utils.wait 2000, =>
         # remove pointer
@@ -367,7 +367,7 @@ class BookView extends JView
     @mainView.once 'transitionend', =>
       # find VM's menu position on footer
       @utils.wait 1000, =>
-        vmMenuOffset = $(".server-container-handler").offset()
+        vmMenuOffset = @mainView.sidebar.resourcesController.itemsOrdered[0].chevron.$().offset()
         # move cursor to VM's menu position
         @pointer.$().offset vmMenuOffset
 
@@ -379,7 +379,7 @@ class BookView extends JView
       # open VM menu
       # wait 3 sec.
       @utils.wait 2000, =>
-        $(".server-container-handler").click()
+        @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().click()
         # remove pointer
         @destroyPointer()
 
@@ -387,7 +387,7 @@ class BookView extends JView
     @mainView.once 'transitionend', =>
       # find VM's menu position on footer
       @utils.wait 200, =>
-        vmMenuOffset = $(".server-container-handler").offset()
+        vmMenuOffset = @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().offset()
         # move cursor to VM's menu position
         @pointer.$().offset vmMenuOffset
 
