@@ -15,8 +15,6 @@ class MainViewController extends KDViewController
     mainController.on "ShowInstructionsBook", (index)=>
       book = mainView.addBook()
       book.fillPage index
-      book.on "OverlayWillBeRemoved", ->
-        mainController.emit "InstructionsBookClosed"
 
     mainController.on "ToggleChatPanel", =>
       mainView.chatPanel.toggle()
