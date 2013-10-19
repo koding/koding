@@ -79,9 +79,6 @@ class ReferrerModal extends KDModalViewWithForms
       else KD.singletons.oauthController.openPopup "google"
 
   showGmailContactsList: ->
-    @setTitle "Invite your Gmail contacts"
-    @modalTabs.showPaneByName "invite"
-
     listController        = new KDListViewController
       startWithLazyLoader : yes
       view                : new KDListView
@@ -110,16 +107,24 @@ class ReferrerModal extends KDModalViewWithForms
             warning.show()
             askConfirmation = yes
           else if askConfirmation is yes
+            warning.hide()
+            sendToAll.hide()
             recipients = listController.getItemsOrdered()
             recipients.forEach (view) ->
               view.getData().invite (err) =>
                 return log err  if err
                 view.emit "InvitationSent"
             @track recipients.length
+            goBack.show()
       mousedown: ->
         sendToAll.setTitle "Yes, send to all"        if askConfirmation is yes
       mouseleave: ->
         sendToAll.setTitle "Send invitations to all" if askConfirmation is yes
+
+    footer.addSubView goBack = new KDButtonView
+      title: "Go back"
+      style: "clean-gray hidden"
+      callback: => @modalTabs.showPaneByName "share"
 
     KD.remote.api.JReferrableEmail.getUninvitedEmails (err, contacts) =>
       if err
@@ -129,10 +134,12 @@ class ReferrerModal extends KDModalViewWithForms
           title   : "An error occurred"
           subtitle: "Please try again later"
       else if contacts.length is 0
-        @destroy()
         new KDNotificationView
           title: "Your all contacts are already invited. Thanks!"
+        @modalTabs.showPaneByName "share"
       else
+        @setTitle "Invite your friends from Gmail"
+        @modalTabs.showPaneByName "invite"
         listController.instantiateListItems contacts
 
     @setPositions()

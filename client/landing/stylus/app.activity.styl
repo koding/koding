@@ -2898,37 +2898,35 @@ div.kdtooltip
           vendor                  animation, inviteConfirmAnimation .1s 1 forwards ease-out
           abs()
 
-        > .checkmark
-          display                 block
-          size                    15px, 15px
-          abs()
-          top                     5px
-          right                   5px
-          color                   white
-          text-align              center
-          background              #ebebeb
-          border-radius           15px
-
-          > span
-            display               inline-block
-            margin-top            2px
-
         .invitation-sent-overlay
           size                    100%, 100%
-          line-height             57px
-          font-size               14px
-          background              #a8e071
-          color                   #fff
-          text-align              center
-          right                   100%
           top                     0
+          right                   100%
+          line-height             12px
+          padding                 16px 0
+          font-size               14px
+          text-align              center
+          color                   #fff
+          background              #a8e071
           z-index                 6
           abs()
           vendor                  transition, right 300ms ease
 
-        &.send-invitation
-          > .checkmark
-            background            #a8e071
+          .checkmark
+            display                 none
+            size                    16px, 16px
+            abs()
+            top                     21px
+            left                    10px
+            sprite()
+            bg                      position, -22px -642px
+            margin-bottom           -3px
+            margin-right            10px
+
+          .email
+            font-size               10px
+            white-space             nowrap
+            text-overflow           ellipsis
 
         &.invitation-sent
           .invitation-sent-overlay

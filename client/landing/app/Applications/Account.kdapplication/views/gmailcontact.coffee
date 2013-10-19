@@ -28,13 +28,16 @@ class GmailContactsListItem extends KDListItemView
     @setAvatar()
 
   pistachio: ->
+    {email, title} = @getData()
     """
       <div class="avatar"></div>
       <div class="contact-info">
-        <span class="full-name">#{@getData().title || "Gmail Contact"}</span>
+        <span class="full-name">#{title || "Gmail Contact"}</span>
         {{ #(email)}}
       </div>
       <div class="invitation-sent-overlay">
-        <span class="checkmark"></span>Invitation is sent
+        <span class="checkmark"></span>
+        <span class="title">Invitation is sent to</span>
+        <span class="email">#{email}</span>
       </div>
     """
