@@ -93,33 +93,33 @@ class ReferrerModal extends KDModalViewWithForms
 
     @invite.addSubView listController.getView()
 
-    @invite.addSubView new KDButtonView
+    @invite.addSubView footer = new KDCustomHTMLView
+      cssClass: "footer"
+
+    footer.addSubView warning = new KDLabelView
+      cssClass: "hidden"
+      title   : "This will send invitation to all contacts listed in here, do you confirm?"
+
+    askConfirmation = no
+    footer.addSubView sendToAll = new KDButtonView
       title: "Send invitations to all"
+      style: "cupid-green"
+      bind : "mouseleave"
       callback: =>
-        modal                 = new KDModalViewWithForms
-          title               : "Send invitations to your all contacts"
-          overlay             : yes
-          tabs                :
-            forms             :
-              Confirm         :
-                buttons       :
-                  Send        :
-                    type      : "submit"
-                    style     : "modal-clean-green"
-                    loader    :
-                      color   : "#444"
-                      diameter: 12
-                    callback  : =>
-                      recipients = listController.getItemsOrdered()
-                      recipients.forEach (view) ->
-                        view.getData().invite (err) =>
-                          return log err  if err
-                          view.emit "InvitationSent"
-                      modal.destroy()
-                      @track recipients.length
-                  Cancel      :
-                    style     : "modal-clean-red"
-                    callback  : -> modal.destroy()
+          if askConfirmation is no
+            warning.show()
+            askConfirmation = yes
+          else if askConfirmation is yes
+            recipients = listController.getItemsOrdered()
+            recipients.forEach (view) ->
+              view.getData().invite (err) =>
+                return log err  if err
+                view.emit "InvitationSent"
+            @track recipients.length
+      mousedown: ->
+        sendToAll.setTitle "Yes, send to all"        if askConfirmation is yes
+      mouseleave: ->
+        sendToAll.setTitle "Send invitations to all" if askConfirmation is yes
 
     KD.remote.api.JReferrableEmail.getUninvitedEmails (err, contacts) =>
       if err
