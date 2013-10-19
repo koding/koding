@@ -54,7 +54,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
     shareUrl  = "https://koding.com/R/#{@username}"
     email     = new JMail
       from    : 'hello@koding.com'
-      email   : @email
+      email   : KD.config.emailWorker.forcedRecipient or @email
       replyto : 'hello@koding.com'
       subject : "#{firstName} #{lastName} has invited you to try Koding!"
       content : """
