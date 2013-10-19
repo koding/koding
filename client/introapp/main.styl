@@ -10,10 +10,25 @@
     span
       color black !important
 
+@keyframes fadeIn
+  100%
+    opacity 1
 
 .intro-view
   top                   0
+  background            url("../images/gunduz-varligi-yildizli.jpg") \
+                        no-repeat center center fixed
+  background-size       cover
+  z-index               99
+  opacity               0
+  vendor                transition, opacity .6s ease-in
   abs()
+
+  &.in
+    opacity 1
+
+  &.out
+    vendor              animation, moveToTop .6s ease both
 
   .bottom-menu
     text-align          center

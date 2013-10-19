@@ -61,11 +61,19 @@ class MainViewController extends KDViewController
 
       @emit "UILayoutNeedsToChange", o
 
-      # group = KD.getSingleton('groupsController').getCurrentGroup()
+      # if options.name is 'Activity'
+      # if KD.introView
 
-      # if group.slug is 'koding'
-      # then @decorateHome()
-      # else @clearHome()
+      $('body').removeClass 'intro'
+      $('#kdmaincontainer').removeClass 'home'
+      KD.introView?.unsetClass 'in'
+      KD.introView?.setClass 'out'
+
+  #     group = KD.getSingleton('groupsController').getCurrentGroup()
+
+  #     if group.slug is 'koding'
+  #     then @decorateHome()
+  #     else @clearHome()
 
   # decorateHome:->
   #   mainView = @getView()
@@ -75,7 +83,7 @@ class MainViewController extends KDViewController
   #   chatPanel.hide()
   #   mainView.setClass 'home'
   #   logo.setClass 'large'
-  #   KD.introView.show()
+  #   KD.introView?.show()
 
   # clearHome:->
   #   mainView = @getView()
@@ -87,4 +95,4 @@ class MainViewController extends KDViewController
   #     chatPanel.show()
   #   mainView.unsetClass 'home'
   #   logo.unsetClass 'large'
-  #   KD.introView.hide()
+  #   KD.introView?.hide()

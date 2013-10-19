@@ -63,8 +63,8 @@ class KodingRouter extends KDRouter
       {entryPoint} = KD.config
       if KD.isLoggedIn()
         @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
-      # else
-      #   @handleRoute @getDefaultRoute(), {entryPoint}
+      else
+        @handleRoute @getDefaultRoute(), {entryPoint}
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -101,7 +101,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
+  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
