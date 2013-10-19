@@ -26,8 +26,9 @@ class ReferrerModal extends KDModalViewWithForms
     vmc = KD.getSingleton "vmController"
     vmc.fetchDefaultVmName (name) ->
       vmc.fetchDiskUsage name, (usage) ->
-        usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
-          of your free <strong>16 GB</strong> disk space."
+        if usage.max
+          usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
+            of your free <strong>16 GB</strong> disk space."
 
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
@@ -78,9 +79,6 @@ class ReferrerModal extends KDModalViewWithForms
       else KD.singletons.oauthController.openPopup "google"
 
   showGmailContactsList: ->
-    @setTitle "Invite your Gmail contacts"
-    @modalTabs.showPaneByName "invite"
-
     listController        = new KDListViewController
       startWithLazyLoader : yes
       view                : new KDListView
@@ -92,46 +90,41 @@ class ReferrerModal extends KDModalViewWithForms
 
     @invite.addSubView listController.getView()
 
-    @invite.addSubView new KDButtonView
-      title   : "Send invitation(s)"
-      callback: =>
-        recipients = listController.getItemsOrdered().filter (view) =>
-          return  view.isSelected and not view.getData().invited
+    @invite.addSubView footer = new KDCustomHTMLView
+      cssClass: "footer"
 
-        recipients.forEach (view) ->
-          view.getData().invite (err) =>
-            return log "invite", err  if err
-            view.emit "InvitationSent"
+    footer.addSubView warning = new KDLabelView
+      cssClass: "hidden"
+      title   : "This will send invitation to all contacts listed in here, do you confirm?"
 
-        @track recipients.length
-
-    @invite.addSubView new KDButtonView
+    askConfirmation = no
+    footer.addSubView sendToAll = new KDButtonView
       title: "Send invitations to all"
+      style: "cupid-green"
+      bind : "mouseleave"
       callback: =>
-        modal                 = new KDModalViewWithForms
-          title               : "Send invitations to your all contacts"
-          overlay             : yes
-          tabs                :
-            forms             :
-              Confirm         :
-                buttons       :
-                  Send        :
-                    type      : "submit"
-                    style     : "modal-clean-green"
-                    loader    :
-                      color   : "#444"
-                      diameter: 12
-                    callback  : =>
-                      recipients = listController.getItemsOrdered()
-                      recipients.forEach (view) ->
-                        view.getData().invite (err) =>
-                          return log err  if err
-                          view.emit "InvitationSent"
-                      modal.destroy()
-                      @track recipients.length
-                  Cancel      :
-                    style     : "modal-clean-red"
-                    callback  : -> modal.destroy()
+          if askConfirmation is no
+            warning.show()
+            askConfirmation = yes
+          else if askConfirmation is yes
+            warning.hide()
+            sendToAll.hide()
+            recipients = listController.getItemsOrdered()
+            recipients.forEach (view) ->
+              view.getData().invite (err) =>
+                return log err  if err
+                view.emit "InvitationSent"
+            @track recipients.length
+            goBack.show()
+      mousedown: ->
+        sendToAll.setTitle "Yes, send to all"        if askConfirmation is yes
+      mouseleave: ->
+        sendToAll.setTitle "Send invitations to all" if askConfirmation is yes
+
+    footer.addSubView goBack = new KDButtonView
+      title: "Go back"
+      style: "clean-gray hidden"
+      callback: => @modalTabs.showPaneByName "share"
 
     KD.remote.api.JReferrableEmail.getUninvitedEmails (err, contacts) =>
       if err
@@ -141,10 +134,12 @@ class ReferrerModal extends KDModalViewWithForms
           title   : "An error occurred"
           subtitle: "Please try again later"
       else if contacts.length is 0
-        @destroy()
         new KDNotificationView
           title: "Your all contacts are already invited. Thanks!"
+        @modalTabs.showPaneByName "share"
       else
+        @setTitle "Invite your friends from Gmail"
+        @modalTabs.showPaneByName "invite"
         listController.instantiateListItems contacts
 
     @setPositions()
