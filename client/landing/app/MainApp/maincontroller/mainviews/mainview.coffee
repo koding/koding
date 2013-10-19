@@ -25,7 +25,8 @@ class MainView extends KDView
       {title, name, appEmitsReady} = options
       routeArr = location.pathname.split('/')
       routeArr.shift()
-      checkedRoute = if routeArr.first is "Develop" then routeArr.last else routeArr.first
+      checkedRoute = if routeArr.first is "Develop" \
+                     then routeArr.last else routeArr.first
 
       if checkedRoute is name or checkedRoute is title
         if appEmitsReady
@@ -89,7 +90,8 @@ class MainView extends KDView
       domId    : "content-panel"
       cssClass : "transition"
 
-    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
+    @contentPanel.on "ViewResized", (rest...)=>
+      @emit "ContentPanelResized", rest...
 
   addHeader:->
 
@@ -150,7 +152,8 @@ class MainView extends KDView
     @mainTabView.on "PaneDidShow", =>
       appManager  = KD.getSingleton "appManager"
       appManifest = appManager.getFrontAppManifest()
-      menu = appManifest?.menu or KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
+      menu = appManifest?.menu or \
+             KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
       if Array.isArray menu
         menu = items: menu
       if menu?.items?.length

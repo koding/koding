@@ -87,6 +87,18 @@ class IntroView extends JView
         </p>
       """
 
+    slider.addSubPage new IntroPage {},
+      slideImage : "developers.jpg"
+      slogan     : "Koding for <span>Sinan</span>"
+      subSlogan  : """
+        <p>
+          You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
+        </p>
+        <p>
+          It's free. Koding is your new localhost, in the cloud.
+        </p>
+      """
+
     slider.addPage new IntroPage {},
       slideImage : "education.jpg"
       slogan     : "Koding for <span>Education</span>"
@@ -158,3 +170,5 @@ class IntroView extends JView
 
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
+
+KD.utils.defer -> KD.introView.setClass 'in'
