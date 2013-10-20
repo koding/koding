@@ -74,6 +74,8 @@ func (s *Subscriber) Connect() chan bool {
 // anything if it is already closed.
 func (s *Subscriber) Close() {
 	s.reconnect = false
+	// Declare a variable for ws because it can be set to nil by consumer().
+	// We don't want to call Close() on a nil pointer.
 	ws := s.ws
 	if ws == nil {
 		return
