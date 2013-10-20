@@ -18,15 +18,15 @@ func NewReplier(handler func([]byte) []byte) *Replier {
 }
 
 // ServeHTTP implements the http.Handler interface for Replier.
-func (rep *Replier) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	defer req.Body.Close()
-	body, err := ioutil.ReadAll(req.Body)
+func (r *Replier) ServeHTTP(w http.ResponseWriter, request *http.Request) {
+	defer request.Body.Close()
+	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		http.Error(w, "Cannot read request body", 500)
 		return
 	}
 
-	reply := rep.Handler(body)
+	reply := r.Handler(body)
 
 	_, err = w.Write(reply)
 	if err != nil {
