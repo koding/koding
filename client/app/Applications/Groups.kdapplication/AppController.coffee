@@ -9,6 +9,9 @@ class GroupsAppController extends AppController
     #   path       : "/Groups"
     #   order      : 40
     #   topLevel   : yes
+    preCondition :
+      condition  : (options, cb)-> cb no
+      failure    : -> KD.getSingleton('router').handleRoute "/Activity"
 
   @privateGroupOpenHandler =(event)->
     event.preventDefault()
