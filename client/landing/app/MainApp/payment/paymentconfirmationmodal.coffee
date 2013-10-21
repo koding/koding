@@ -68,7 +68,7 @@ class PaymentConfirmationModal extends KDModalView
         title     : 'Enter Billing Info'
         cssClass  : 'modal-clean-green hidden'
         callback  : =>
-          @setBillingInfo type, (success)->
+          @setPaymentInfo type, (success)->
             if success
               if subscription.status is 'canceled'
                 @buttons.ReActivate.show()

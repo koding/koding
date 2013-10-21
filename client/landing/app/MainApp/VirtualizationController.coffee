@@ -364,19 +364,19 @@ class VirtualizationController extends KDController
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
-  showBillingMethodForm: (modal) ->
+  showPaymentMethodForm: (modal) ->
 
     paymentForm1 = modal.modalTabs.forms['Payment method']
     paymentForm2 = modal.modalTabs.forms['Payment method 2']
 
-    unless modal.billingForm
-      modal.billingForm = new BillingForm
+    unless modal.paymentForm
+      modal.paymentForm = new PaymentForm
 
       paymentController = KD.getSingleton 'paymentController'
-      paymentController.observePaymentSave modal.billingForm, (err, billingMethod) ->
-        paymentForm1.addCustomData accountCode: billingMethod.accountCode
+      paymentController.observePaymentSave modal.paymentForm, (err, paymentMethod) ->
+        paymentForm1.addCustomData paymentMethodId: paymentMethod.paymentMethodId
 
-      paymentForm2.addSubView modal.billingForm
+      paymentForm2.addSubView modal.paymentForm
 
     modal.modalTabs.showNextPane()
 

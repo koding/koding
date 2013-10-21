@@ -1,4 +1,4 @@
-class BillingForm extends KDFormViewWithFields
+class PaymentForm extends KDFormViewWithFields
   constructor: (options = {}, data) ->
     thisYear = (new Date).getFullYear()
 
@@ -105,7 +105,7 @@ class BillingForm extends KDFormViewWithFields
     super
       fields                : fields
       callback              : (formData) =>
-        @emit 'PaymentInfoSubmitted', @getData()?.accountCode, formData
+        @emit 'PaymentInfoSubmitted', @getData()?.paymentMethodId, formData
       buttons               :
         Save                :
           title             : 'Save'
@@ -123,7 +123,7 @@ class BillingForm extends KDFormViewWithFields
       tagName  : 'span'
       cssClass : 'icon'
 
-    # @billingForm.fields.country.addSubView @countryLoader
+    # @paymentForm.fields.country.addSubView @countryLoader
 
     @updateDescription()
 
@@ -165,9 +165,9 @@ class BillingForm extends KDFormViewWithFields
 
   handleCardKeyup: (event) -> @updateCardTypeDisplay()
 
-  setBillingInfo: (billingInfo) ->
-    @setData billingInfo
-    for own key, value of billingInfo.billing
+  setPaymentInfo: (paymentMethod) ->
+    @setData paymentMethod
+    for own key, value of paymentMethod.billing
       switch key
         when 'state'
           @addCustomData 'actualState', value

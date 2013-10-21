@@ -152,9 +152,9 @@ module.exports = [
 
   # PAYMENT
   "app/MainApp/payment/paymentcontroller.coffee",
-  "app/MainApp/payment/billingmethodchoice.coffee",
-  "app/MainApp/payment/billingform.coffee",
-  "app/MainApp/payment/billingformmodal.coffee",
+  "app/MainApp/payment/paymentmethodchoice.coffee",
+  "app/MainApp/payment/paymentform.coffee",
+  "app/MainApp/payment/paymentformmodal.coffee",
   "app/MainApp/payment/paymentconfirmationmodal.coffee",
   "app/MainApp/payment/paymentdeleteconfirmationmodal.coffee",
   "app/MainApp/payment/vmproductview.coffee",
@@ -577,8 +577,8 @@ module.exports = [
 
   # Group Dashboard Views:
   "app/Applications/Dashboard.kdapplication/Views/paymentmodalview.coffee",
-  "app/Applications/Dashboard.kdapplication/views/billingmethodview.coffee",
-  "app/Applications/Dashboard.kdapplication/views/linkablebillingmethodview.coffee",
+  "app/Applications/Dashboard.kdapplication/views/paymentmethodview.coffee",
+  "app/Applications/Dashboard.kdapplication/views/linkablepaymentmethodview.coffee",
   "app/Applications/Dashboard.kdapplication/views/paymentsettingsview.coffee",
 
 

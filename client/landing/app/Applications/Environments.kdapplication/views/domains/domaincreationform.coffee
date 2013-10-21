@@ -391,10 +391,10 @@ class DomainCreationForm extends KDCustomHTMLView
 #               domain.setDomainCNameToProxyDomain()
 #             registerButton.hideLoader()
 
-#       paymentController.getBillingInfo 'user', group, (err, account)->
+#       paymentController.getPaymentInfo 'user', group, (err, account)->
 #         need = err or not account or not account.cardNumber
 #         if need
-#           paymentController.setBillingInfo 'user', group, (success)->
+#           paymentController.setPaymentInfo 'user', group, (success)->
 #             if success
 #               registerTheDomain()
 #         else

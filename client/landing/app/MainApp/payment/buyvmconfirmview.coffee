@@ -4,7 +4,7 @@ class BuyVmConfirmView extends KDView
     super data
 
     @updatePartial ""
-    @addSubView new BillingMethodView {}, data.billingInfo
+    @addSubView new PaymentMethodView {}, data.paymentMethod
     @addSubView new VmProductView {}, data.planInfo
     @addSubView new KDButtonView
       title     : 'Confirm'

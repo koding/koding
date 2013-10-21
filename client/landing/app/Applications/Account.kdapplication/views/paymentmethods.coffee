@@ -19,7 +19,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
         modal = KDModalView.confirm
           title       : 'Are you sure?'
           description : 'Are you sure that you want to remove this payment method?'
-          subView     : new BillingMethodView {}, data
+          subView     : new PaymentMethodView {}, data
           ok          :
             title     : 'Remove'
             callback  : =>
@@ -34,9 +34,9 @@ class AccountPaymentMethodsListController extends AccountListViewController
     paymentController = KD.getSingleton 'paymentController'
     @showModal data
 
-  removePaymentMethod: ({ accountCode }, item) ->
+  removePaymentMethod: ({ paymentMethodId }, item) ->
     paymentController = KD.getSingleton 'paymentController'
-    paymentController.removePaymentMethod accountCode, =>
+    paymentController.removePaymentMethod paymentMethodId, =>
       @removeItem item
 
   loadItems: ->
@@ -57,19 +57,19 @@ class AccountPaymentMethodsListController extends AccountListViewController
       iconClass : "plus"
       callback  : => @showModal()
 
-  showModal: (initialBillingInfo) ->
+  showModal: (initialPaymentInfo) ->
     paymentController = KD.getSingleton 'paymentController'
 
-    modal = paymentController.createBillingInfoModal()
+    modal = paymentController.createPaymentInfoModal()
     modal.on 'viewAppended', ->
-      if initialBillingInfo?
-        modal.setState 'editExisting', initialBillingInfo
+      if initialPaymentInfo?
+        modal.setState 'editExisting', initialPaymentInfo
       else
         modal.setState 'createNew'
 
-        # modal.setBillingInfo initialBillingInfo.billing
+        # modal.setPaymentInfo initialPaymentInfo.billing
 
-    paymentController.observePaymentSave modal, (err, updatedBillingInfo) =>
+    paymentController.observePaymentSave modal, (err, updatedPaymentInfo) =>
       if err
         new KDNotificationView title: err.message
       else
@@ -91,9 +91,9 @@ class AccountPaymentMethodsListItem extends KDListItemView
 
     data = @getData()
 
-    @billingMethod = new BillingMethodView {}, @getData()
+    @paymentMethod = new PaymentMethodView {}, @getData()
 
-    @billingMethod.on 'BillingEditRequested', =>
+    @paymentMethod.on 'PaymentMethodEditRequested', =>
       @emit 'PaymentMethodEditRequested', data
 
     @editLink = new CustomLinkView
@@ -112,6 +112,6 @@ class AccountPaymentMethodsListItem extends KDListItemView
 
   pistachio:->
     """
-    {{> @billingMethod}}
+    {{> @paymentMethod}}
     <div class="controls">{{> @editLink}} | {{> @removeLink }}</div>
     """
