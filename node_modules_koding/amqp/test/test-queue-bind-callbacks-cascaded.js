@@ -1,4 +1,4 @@
-require('./harness');
+require('./harness').run();
 var testName = __filename.replace(__dirname+'/','').replace('.js','');
 
 connection.addListener('ready', function () {
@@ -22,8 +22,9 @@ connection.addListener('ready', function () {
             setTimeout(function() {
                 assert.ok(callbacksCalled == 2, "Callback was not called");
                 puts("Cascaded queue bind callback succeeded");
-                connection.destroy();},
-                2000);
+                queue.destroy();
+                connection.destroy();
+            },2000);
         });
     });
 });

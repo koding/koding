@@ -3,8 +3,8 @@ class ReferrerModal extends KDModalViewWithForms
     options.cssClass       = "referrer-modal"
     options.width          = 570
     options.overlay        = yes
-    options.title          = "Get free space up to 16GB"
-    options.url          or= "#{location.origin}/?r=#{KD.whoami().profile.nickname}"
+    options.title          = "Get free disk space!"
+    options.url          or= "#{location.origin}/R/#{KD.nick()}"
     options.tabs           =
       navigable            : no
       goToNextFormOnSubmit : no
@@ -13,8 +13,8 @@ class ReferrerModal extends KDModalViewWithForms
         share              :
           customView       : KDCustomHTMLView
           cssClass         : "clearfix"
-          partial          : "<p class='description'>If anyone registers with your referral code, you will get \
-                                      250MB free disk space for your VM. Up to <strong>16GB</strong></p>"
+          partial          : "<p class='description'>For each person registers with your referral code, \
+            you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total."
         invite             :
           customView       : KDCustomHTMLView
 
@@ -26,19 +26,9 @@ class ReferrerModal extends KDModalViewWithForms
     vmc = KD.getSingleton "vmController"
     vmc.fetchDefaultVmName (name) ->
       vmc.fetchDiskUsage name, (usage) ->
-        current = usage.max
-        max     = 16 * 1024 * 1024 * 1024
-
-        usageWrapper.addSubView new KDLabelView title: "Free space usage"
-        usageWrapper.addSubView usageBar = new KDProgressBarView initial: current / max * 100, name
-
-        usageBar.setTooltip
-          title     : "#{KD.utils.formatBytesToHumanReadable current} of #{KD.utils.formatBytesToHumanReadable max}"
-          placement : "top"
-          delayIn   : 300
-          offset    :
-            top     : 2
-            left    : -8
+        if usage.max
+          usageWrapper.addSubView new KDLabelView title: "You've claimed <strong>#{KD.utils.formatBytesToHumanReadable usage.max}</strong>
+            of your free <strong>16 GB</strong> disk space."
 
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
@@ -50,7 +40,8 @@ class ReferrerModal extends KDModalViewWithForms
     leftColumn.addSubView urlInput       = new KDInputView
       defaultValue                       : options.url
       cssClass                           : "share-url-input"
-      disabled                           : yes
+      attributes                         : readonly:"true"
+      click                              :-> @selectAll()
 
     leftColumn.addSubView shareLinkIcons = new KDCustomHTMLView
       cssClass                           : "share-link-icons"
@@ -78,35 +69,17 @@ class ReferrerModal extends KDModalViewWithForms
       disabled                      : yes
       icon                          : yes
 
-    rightColumn.addSubView dontShowAgainWrapper = new KDCustomHTMLView
-      cssClass                                  : "dont-show-again-wrapper"
-
-    labelDontShowAgain = new KDLabelView title: "Don't show again"
-
-    dontShowAgainWrapper.addSubView dontShowAgain = new KDInputView
-      type                                         : "checkbox"
-      label                                        : labelDontShowAgain
-
-    dontShowAgainWrapper.addSubView labelDontShowAgain
-
-    @on "KDObjectWillBeDestroyed", ->
-      @dontShowAgain() if dontShowAgain.getValue()
-
-  checkGoogleLinkStatus: ->
-    mainController = KD.getSingleton "mainController"
-    mainController.on "ForeignAuthSuccess.google", (data) =>
+    KD.getSingleton("mainController").once "ForeignAuthSuccess.google", (data) =>
       @showGmailContactsList data
 
-    KD.whoami().fetchStorage "ext|profile|google",(err, account) =>
+  checkGoogleLinkStatus: ->
+    KD.whoami().fetchStorage "ext|profile|google", (err, account) =>
       return if err
 
       if account then @showGmailContactsList()
       else KD.singletons.oauthController.openPopup "google"
 
   showGmailContactsList: ->
-    @setTitle "Invite your Gmail contacts"
-    @modalTabs.showPaneByName "invite"
-
     listController        = new KDListViewController
       startWithLazyLoader : yes
       view                : new KDListView
@@ -118,43 +91,41 @@ class ReferrerModal extends KDModalViewWithForms
 
     @invite.addSubView listController.getView()
 
-    submit = new KDButtonView
-      title   : "Send invitation(s)"
-      callback: ->
-        listController.getItemsOrdered().forEach (view) ->
-          contact = view.getData()
-          return if not view.isSelected or contact.invited
-          view.getData().invite (err) =>
-            return log "invite", err  if err
-            view.emit "InvitationSent"
+    @invite.addSubView footer = new KDCustomHTMLView
+      cssClass: "footer"
 
-    sendToAll = new KDButtonView
+    footer.addSubView warning = new KDLabelView
+      cssClass: "hidden"
+      title   : "This will send invitation to all contacts listed in here, do you confirm?"
+
+    askConfirmation = no
+    footer.addSubView sendToAll = new KDButtonView
       title: "Send invitations to all"
+      style: "cupid-green"
+      bind : "mouseleave"
       callback: =>
-        modal                 = new KDModalViewWithForms
-          title               : "Send invitations to your all contacts"
-          overlay             : yes
-          tabs                :
-            forms             :
-              Confirm         :
-                buttons       :
-                  Send        :
-                    type      : "submit"
-                    style     : "modal-clean-green"
-                    loader    :
-                      color   : "#444"
-                      diameter: 12
-                    callback  : ->
-                      listController.getItemsOrdered().forEach (view) ->
-                        view.getData().invite (err) =>
-                          return log err  if err
-                          view.emit "InvitationSent"
-                      modal.destroy()
-                  Cancel      :
-                    style     : "modal-clean-red"
-                    callback  : -> modal.destroy()
+          if askConfirmation is no
+            warning.show()
+            askConfirmation = yes
+          else if askConfirmation is yes
+            warning.hide()
+            sendToAll.hide()
+            recipients = listController.getItemsOrdered()
+            recipients.forEach (view) ->
+              view.getData().invite (err) =>
+                return log err  if err
+                view.emit "InvitationSent"
+            @track recipients.length
+            goBack.show()
+      mousedown: ->
+        sendToAll.setTitle "Yes, send to all"        if askConfirmation is yes
+      mouseleave: ->
+        sendToAll.setTitle "Send invitations to all" if askConfirmation is yes
 
-    @invite.addSubView view for view in [submit, sendToAll]
+    footer.addSubView goBack = new KDButtonView
+      title: "Go back"
+      style: "clean-gray hidden"
+      callback: => @modalTabs.showPaneByName "share"
 
     KD.remote.api.JReferrableEmail.getUninvitedEmails (err, contacts) =>
       if err
@@ -164,14 +135,15 @@ class ReferrerModal extends KDModalViewWithForms
           title   : "An error occurred"
           subtitle: "Please try again later"
       else if contacts.length is 0
-        @destroy()
         new KDNotificationView
           title: "Your all contacts are already invited. Thanks!"
+        @modalTabs.showPaneByName "share"
       else
+        @setTitle "Invite your friends from Gmail"
+        @modalTabs.showPaneByName "invite"
         listController.instantiateListItems contacts
 
     @setPositions()
 
-  dontShowAgain: ->
-    storage = KD.getSingleton("appStorageController").storage "MainApp"
-    storage.setValue "dontDisplayReferrerModalAgain", yes
+  track: (count) ->
+    KD.kdMixpanel.track "User Sent Invitation", $user: KD.nick(), count: count

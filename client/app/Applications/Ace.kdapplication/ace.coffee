@@ -100,6 +100,7 @@ class Ace extends KDView
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"
+      @addKeyCombo "settings", "Ctrl-,", noop # ace creates a settings view for this shortcut, overriding it.
 
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()

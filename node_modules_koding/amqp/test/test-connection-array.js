@@ -1,33 +1,33 @@
-testLog = function(name, message) { console.log("Test case: "+name+":", message); };
-assert =  require('assert');
-amqp = require('../amqp');
+var harness = require('./harness');
 
-var options = global.options || {};
-if (process.argv[2]) {
-  var server = process.argv[2].split(':');
-  if (server[0]) options.host = server[0];
-  if (server[1]) options.port = parseInt(server[1]);
+// Test that connection handles an array of hostnames.
+// If given one, without an index (`this.hosti`), it will randomly pick one.
+options.host = [options.host,"nohost"];
+options.reconnect = true;
+
+
+for (var i = 0; i < options.host.length; i++){
+  test();
 }
 
-options.host = [options.host,"nohost"];
+function test() {
+  var conn = harness.createConnection();
 
-var implOpts = {
-  defaultExchangeName: 'amq.topic'
-};
+  var callbackCalled = false;
+  conn.once('ready', function() {
+    callbackCalled = true;
+    conn.destroy();
+  });
 
-var callbackCalled = false;
-    
-var connection;
+  conn.once('close', function() {
+    assert(callbackCalled);
+    callbackCalled = false;
+  });
 
-callbackCalled = false;
-
-connection = amqp.createConnection(options, implOpts);
-
-connection.on('ready', function() {
-    connection.destroy();
-});
-
-
-
-
+  conn.once('error', function(e) {
+    // If we get an error, it should be ENOTFOUND (bad dns);
+    assert(e.code === 'ENOTFOUND');
+    callbackCalled = true;
+  });
+}
 

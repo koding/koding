@@ -18,7 +18,7 @@ class AccountAppController extends AppController
       items : [
         { title : "Login & Email",        listHeader: "Email & username",           listType: "username",       id : 10,      parentId : null }
         { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
-        { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
+        { title : "Email Notifications",  listHeader: "Email Notifications",        listType: "emailNotifications", id : 22,  parentId : null }
         { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
         { title : "Referrals",            listHeader: "Referrals ",                 listType: "referralSystem", id : 40,      parentId : null }
       ]
@@ -145,7 +145,7 @@ class AccountAppController extends AppController
   fetchProviders:->
 
   showReferrerModal:->
-    new ReferrerModal {url: "#{location.origin}/?r=#{KD.whoami().profile.nickname}"}
+    new ReferrerModal
 
   toggleSidebar:(options)->
     {show} = options

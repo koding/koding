@@ -51,23 +51,18 @@ module.exports = class JReferrableEmail extends jraphical.Module
   invite: secure (client, callback)->
     {delegate: profile: {firstName, lastName}} = client.connection
     JMail     = require './email'
-    shareUrl  = "https://koding.com/?r=#{@username}"
+    shareUrl  = "https://koding.com/R/#{@username}"
     email     = new JMail
       from    : 'hello@koding.com'
-      email   : @email
+      email   : KONFIG.emailWorker.forcedRecipient or @email
       replyto : 'hello@koding.com'
-      subject : "#{@username} has invited you to Koding!"
+      subject : "#{firstName} #{lastName} has invited you to try Koding!"
       content : """
-        Hi there,
-
-        #{firstName} #{lastName} wants you to try Koding!
-
         Koding is a new way for developers to work where developers come together and code in the browser – with a real development server to run their code.
-        Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money.
 
         Click here to try: #{shareUrl}
 
-        See you on Koding
+        See you on Koding!
         """
 
     email.save (err)=>

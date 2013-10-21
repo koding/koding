@@ -50,7 +50,7 @@ module.exports = (req, res) ->
 
           path  = "/m8/feeds/contacts/default/full?"
           path += "access_token=#{access_token}&"
-          path += "updated-min=2010-01-01T00:00:00" # just a random date to get latest contacts
+          # path += "updated-min=2010-01-01T00:00:00" # just a random date to get latest contacts
 
           options =
             host   : "www.google.com"
