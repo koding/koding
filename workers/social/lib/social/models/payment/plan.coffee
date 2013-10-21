@@ -112,7 +112,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
       ]
     , callback
 
-  getOwnerGroup: (callback)->
+  fetchOwnerGroup: (callback) ->
     if @product.prefix isnt 'groupplan'
       callback null, 'koding'
     else
