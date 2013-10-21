@@ -49,7 +49,7 @@ class PaymentController extends KDController
       return callback err  if err
       @emit 'PaymentDataChanged'
 
-  getSubscription: do ->
+  fetchSubscription: do ->
     findActiveSubscription = (subs, planCode, callback) ->
       subs.reverse().forEach (sub) ->
         if sub.planCode is planCode and sub.status in ['canceled', 'active']
@@ -57,7 +57,7 @@ class PaymentController extends KDController
 
       callback 'none'
 
-    getSubscription = (type, planCode, callback) ->
+    fetchSubscription = (type, planCode, callback) ->
       { JPaymentSubscription } = KD.remote.api
 
       if type is 'group'
@@ -69,7 +69,7 @@ class PaymentController extends KDController
 
   confirmPayment: ({ type, planCode, accountCode }, callback = (->)) ->
     getGroup().canCreateVM { type, planCode }, (err, status) =>
-      @getSubscription type, planCode, (subscription) =>
+      @fetchSubscription type, planCode, (subscription) =>
         cb = (needBilling, balance, amount) =>
           debugger
           # @createPaymentConfirmationModal {
@@ -107,7 +107,7 @@ class PaymentController extends KDController
       else if vmInfo.type is 'expensed'          then 'expensed'
       else 'group'
 
-    @getSubscription getGroup(), type, vmInfo.planCode,\
+    @fetchSubscription getGroup(), type, vmInfo.planCode,\
       @createDeleteConfirmationModal.bind this, type, callback
 
   # views

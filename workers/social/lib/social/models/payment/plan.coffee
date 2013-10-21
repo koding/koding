@@ -94,8 +94,12 @@ module.exports = class JPaymentPlan extends jraphical.Module
   subscribeGroup: (group, data, callback)->
     doSubscribe "group_#{group._id}", data, callback
 
-  getSubscription: secure ({connection:{delegate}}, callback)->
-    JPaymentSubscription.one {userCode: "user_#{delegate._id}", planCode: @code}, callback
+  fetchSubscription: secure ({ connection:{ delegate }}, callback) ->
+    selector    =
+      userCode  : "user_#{delegate.getId()}"
+      planCode  : @code
+
+    JPaymentSubscription.one selector, callback
 
   getType:-> if @feeInterval is 1 then 'recurring' else 'single'
 
