@@ -33,7 +33,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       lastUpdate   : Number
 
   @getUserSubscriptions = secure ({connection:{delegate}}, callback)->
-    @getSubscriptions "user_#{delegate._id}", callback
+    @fetchSubscriptions "user_#{delegate._id}", callback
 
   @getUserSubscriptionsWithPlan = secure (client, callback)->
     @getUserSubscriptions client, (err, subs)->
@@ -61,9 +61,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     }, callback
 
   @getGroupSubscriptions = (group, callback)->
-    @getSubscriptions "group_#{group._id}", callback
+    @fetchSubscriptions "group_#{group._id}", callback
 
-  @getSubscriptions = (accountCode, callback)->
+  @fetchSubscriptions = (accountCode, callback) ->
     @getAllSubscriptions { accountCode }, callback
 
   @getAllSubscriptions = (selector, callback)->
@@ -74,7 +74,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     JPayment.updateCache
       constructor   : this
       selector      : {userCode: selector.userCode}
-      method        : 'getSubscriptions'
+      method        : 'fetchSubscriptions'
       methodOptions : selector.userCode
       keyField      : 'uuid'
       message       : 'user subscriptions'

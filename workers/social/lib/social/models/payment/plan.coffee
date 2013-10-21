@@ -99,7 +99,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
   getType:-> if @feeInterval is 1 then 'recurring' else 'single'
 
-  getSubscriptions: (callback)->
+  fetchSubscriptions: (callback) ->
     JPaymentSubscription.all
       planCode: @code
       $or: [

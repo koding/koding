@@ -168,12 +168,12 @@ module.exports = class JPaymentPayment extends jraphical.Module
 
   # TODO: Make sure this calculation is enough.
   #       Not tested for expired/canceled subscriptions.
-  @getExpenses = (pattern, callback)->
+  @getExpenses = (pattern, callback) ->
     error = (err)-> new KodingError "Unable to query user balance: #{err}"
 
-    JPaymentPayment.some pattern, {subscription: 1}, (err, items)->
+    JPaymentPayment.some pattern, {subscription: 1}, (err, items) ->
       return callback error err  if err
-      recurly.getSubscriptions "group_#{group.getId()}", (err, subs)->
+      recurly.fetchSubscriptions "group_#{group.getId()}", (err, subs) ->
         return callback error err  if err
         uuids = (item.subscription for item in items)
         expenses = 0
