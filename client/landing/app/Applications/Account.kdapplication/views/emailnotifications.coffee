@@ -26,6 +26,16 @@ class AccountEmailNotifications extends KDView
 
     globalValue = if user.getAt("emailFrequency.global") is on then 'ON' else 'OFF'
 
+    disabledAll = new KDView
+      partial : """
+      <cite>
+        Email notifications are turned off. You won't receive any emails about anything.
+      </cite>
+      """
+      cssClass: "no-item-found #{if globalValue is 'ON' then 'hidden'}"
+
+    @addSubView disabledAll
+
     @getDelegate().addSubView global = new KDMultipleChoice
       cssClass      : "dark in-account-header"
       defaultValue  : globalValue
@@ -79,5 +89,10 @@ class AccountEmailNotifications extends KDView
         else
           field.formView.show()
 
-    toggleFieldStates(globalValue)
-    @on 'GlobalStateChanged', toggleFieldStates
+    toggleFieldStates globalValue
+
+    @on 'GlobalStateChanged', (state)=>
+      toggleFieldStates state
+      if state is 'OFF'
+      then disabledAll.show()
+      else disabledAll.hide()
