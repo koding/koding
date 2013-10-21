@@ -20,8 +20,11 @@ type Subscriber struct {
 	// Will be non-nil when the subscriber is connected.
 	ws *websocket.Conn
 
+	// Are we going to re-connect?
+	reconnect bool
+
 	// Consumed messages will be handled with this function.
-	handler func([]byte)
+	Handler func([]byte)
 
 	// Subscription keys are also saved here so we can re-send "subscribe"
 	// commands when re-connect.
@@ -34,31 +37,51 @@ type Subscriber struct {
 	errCount int
 }
 
-// NewSubscriber opens a websocket connection to a Publisher and returns a
-// pointer to newly created Subscriber.  After creating a Subscriber you should
-// subscribe to messages with Subscribe function.
-func NewSubscriber(urlStr string, handler func([]byte)) (*Subscriber, error) {
-	parsed, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
-
-	sub := &Subscriber{
-		url:     parsed,
-		handler: handler,
-		keys:    make(map[string]bool),
-	}
-
-	go sub.connector()
-	return sub, err
-}
-
 type subscriberCommand struct {
 	Name string `json:"name"`
 	Args args   `json:"args"`
 }
 
 type args map[string]interface{}
+
+// NewSubscriber opens a websocket connection to a Publisher and returns a
+// pointer to newly created Subscriber.  After creating a Subscriber you should
+// subscribe to messages with Subscribe() and call Connect() explicitly.
+func NewSubscriber(urlStr string, handler func([]byte)) *Subscriber {
+	parsed, err := url.Parse(urlStr)
+	if err != nil {
+		panic(err)
+	}
+
+	return &Subscriber{
+		url:     parsed,
+		Handler: handler,
+		keys:    make(map[string]bool),
+	}
+}
+
+// Connect tries connecting to the server. The function returns immediately
+// before the connection happens. If you want to wait for a connection
+// you can wait for a message from the channel returned.
+func (s *Subscriber) Connect() chan bool {
+	s.reconnect = true
+	connected := make(chan bool, 1)
+	go s.connector(connected)
+	return connected
+}
+
+// Close closes the open websocket connection to the server. Does not do
+// anything if it is already closed.
+func (s *Subscriber) Close() {
+	s.reconnect = false
+	// Declare a variable for ws because it can be set to nil by consumer().
+	// We don't want to call Close() on a nil pointer.
+	ws := s.ws
+	if ws == nil {
+		return
+	}
+	ws.Close()
+}
 
 // Subscribe registers the Subscriber to receive messages matching with the key.
 func (s *Subscriber) Subscribe(key string) {
@@ -105,6 +128,13 @@ func (s *Subscriber) Unsubscribe(key string) {
 	websocket.JSON.Send(ws, cmd)
 }
 
+// Connected returns the status of the websocket connection.
+func (s *Subscriber) Connected() bool {
+	// We are checking the pointer here because
+	// it will be set to nil on disconnect by consumer().
+	return s.ws != nil
+}
+
 func (s *Subscriber) connect() error {
 	url := s.url.String()
 	origin := "http://localhost/" // dont know if this is required
@@ -121,17 +151,15 @@ func (s *Subscriber) connect() error {
 	return nil
 }
 
-// Connected returns the status of the websocket connection.
-func (s *Subscriber) Connected() bool {
-	// We are checking the pointer here because
-	// it will be set to nil on disconnect by consumer().
-	return s.ws != nil
-}
-
 // connector tries to connect to the server forever. When the connection is
 // established it runs a consumer() goroutine and returns.
-func (s *Subscriber) connector() {
+func (s *Subscriber) connector(connected chan bool) {
 	for {
+		// Do not try re-connecting if Close() is called.
+		if !s.reconnect {
+			return
+		}
+
 		err := s.connect()
 		if err != nil {
 			s.errCount++
@@ -151,6 +179,7 @@ func (s *Subscriber) connector() {
 		}
 
 		go s.consumer()
+		connected <- true
 		return
 	}
 }
@@ -192,11 +221,11 @@ func (s *Subscriber) consumer() {
 			// Set it to nil to indicate that we are disconnected.
 			// Also allow it be garbage collected.
 			s.ws = nil
-			go s.connector()
+			go s.connector(make(chan bool, 1))
 			return
 		}
 
 		// log.Println("Received data:", string(message))
-		s.handler(message)
+		s.Handler(message)
 	}
 }

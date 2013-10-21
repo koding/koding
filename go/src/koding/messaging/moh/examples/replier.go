@@ -5,14 +5,16 @@ package main
 import (
 	"fmt"
 	"koding/messaging/moh"
+	"net/http"
 )
 
 func echo(message []byte) []byte {
 	fmt.Println(string(message))
-	return message
+	return append([]byte("REPLY: "), message...)
+	// return "REPLY: " + message
 }
 
 func main() {
-	moh.NewReplier("localhost:18500", echo)
-	select {}
+	rep := moh.NewReplier(echo)
+	http.ListenAndServe("127.0.0.1:18500", rep)
 }

@@ -59,10 +59,8 @@ type Dependency interface {
 }
 
 type Kontrol struct {
-	Publisher *moh.Publisher
 	Replier   *moh.Replier
-	PubAddr   string
-	RepAddr   string
+	Publisher *moh.Publisher
 	Hostname  string
 }
 
@@ -73,21 +71,10 @@ var (
 )
 
 func main() {
-	var err error
 	hostname, _ := os.Hostname()
 	k := &Kontrol{Hostname: hostname}
-
-	k.Replier, err = moh.NewReplier("127.0.0.1:5556", k.makeRequestHandler())
-	if err != nil {
-		fmt.Printf("Cannot create replier: %s\n", err)
-		return
-	}
-
-	k.Publisher, err = moh.NewPublisher("127.0.0.1:5557")
-	if err != nil {
-		fmt.Printf("Cannot create publisher: %s\n", err)
-		return
-	}
+	k.Replier = moh.NewReplier(k.makeRequestHandler())
+	k.Publisher = moh.NewPublisher()
 
 	storage = NewMongoDB()
 	dependency = NewDependency()
@@ -116,6 +103,8 @@ func (k *Kontrol) Start() {
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", homeHandler).Methods("GET")
 	rout.HandleFunc("/request", prepareHandler(requestHandler)).Methods("POST")
+	rout.Handle(moh.DefaultReplierPath, k.Replier)
+	rout.Handle(moh.DefaultPublisherPath, k.Publisher)
 	http.Handle("/", rout)
 	slog.Println(http.ListenAndServe(":4000", nil)) // TODO: make port configurable
 }

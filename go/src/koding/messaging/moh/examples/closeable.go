@@ -1,4 +1,4 @@
-// Demonstrates the use of closeable MessagingServer.
+// Demonstrates the use of CloseableServer.
 package main
 
 import (
@@ -8,13 +8,10 @@ import (
 )
 
 func main() {
-	s, err := moh.NewMessagingServer("127.0.0.1:18500")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	s := moh.NewCloseableServer()
 
 	log.Println("Starting server")
-	go s.Serve()
+	go s.ListenAndServe("127.0.0.1:18500")
 
 	<-time.After(1 * time.Second)
 

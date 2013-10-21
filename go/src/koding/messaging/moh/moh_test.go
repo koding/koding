@@ -7,51 +7,51 @@ import (
 	"time"
 )
 
-const addr = "127.0.0.1:18500"
-const message = "cenk"
+const (
+	testAddr    = "127.0.0.1:18500"
+	testMessage = "cenk"
+	testWait    = 10 * time.Millisecond
+)
 
-var data = []byte(message)
+var testData = []byte(testMessage)
 
 func TestRequestReply(t *testing.T) {
 	log.Println("Creating new Replier")
-	rep, _ := NewReplier(addr, echoHandler)
-	defer rep.Close()
+	srv := NewMessagingServer(echoHandler)
+	go srv.ListenAndServe(testAddr)
+	defer srv.Close()
 
 	log.Println("Creating new Requester")
-	req, _ := NewRequester("http://" + addr)
+	cl := NewMessagingClient(testAddr, nil)
 
 	log.Println("Making a request")
-	reply, _ := req.Request(data)
-	if bytes.Compare(reply, data) != 0 {
+	reply, _ := cl.Request(testData)
+	if bytes.Compare(reply, testData) != 0 {
 		t.Errorf("Invalid response: %s", reply)
 	}
 }
 
 func TestPublishSubscibe(t *testing.T) {
 	log.Println("Creating new Publisher")
-	pub, err := NewPublisher(addr)
-	if err != nil {
-		t.Error(err)
-	}
-	defer pub.Close()
+	srv := NewMessagingServer(nil)
+	go srv.ListenAndServe(testAddr)
+	defer srv.Close()
 
-	ch := make(chan bool, 1)
 	log.Println("Creating new Subscriber")
-	sub, err := NewSubscriber("ws://"+addr, withChan(echoHandler, ch))
-	if err != nil {
-		t.Error(err)
-	}
+	ch := make(chan bool, 1)
+	cl := NewMessagingClient(testAddr, withChan(echoHandler, ch))
+	cl.Connect()
 
 	log.Println("Subscribing key")
-	sub.Subscribe("asdf")
+	cl.Subscribe("asdf")
 
 	// Wait for the subscribe request to be processed
 	// Normally Subscribe() and Publish() will be called from seperate processes.
 	// However, it the test we have to call them consequently from the same process.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(testWait)
 
 	log.Println("Publishing a message")
-	pub.Publish("asdf", data)
+	srv.Publish("asdf", testData)
 
 	log.Println("Waiting for a message")
 	select {
@@ -61,41 +61,37 @@ func TestPublishSubscibe(t *testing.T) {
 	}
 
 	// Lets test Unsubscribe method
-	sub.Unsubscribe("asdf")
+	cl.Unsubscribe("asdf")
 	// Allow the unsubscribe message to be processed on the server
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(testWait)
 
 	log.Println("Publishing another message, this should not be delivered")
-	pub.Publish("asdf", data)
+	srv.Publish("asdf", testData)
 
 	log.Println("Waiting for a message")
 	select {
 	case <-ch:
 		t.Error("Handler is called")
-	case <-time.After(100 * time.Millisecond):
+	case <-time.After(testWait):
 	}
 }
 
 func TestBroadcast(t *testing.T) {
 	log.Println("Creating new Publisher")
-	pub, err := NewPublisher(addr)
-	if err != nil {
-		t.Error(err)
-	}
-	defer pub.Close()
+	srv := NewMessagingServer(nil)
+	go srv.ListenAndServe(testAddr)
+	defer srv.Close()
 
-	ch := make(chan bool, 1)
 	log.Println("Creating new Subscriber")
-	_, err = NewSubscriber("ws://"+addr, withChan(echoHandler, ch))
-	if err != nil {
-		t.Error(err)
-	}
+	ch := make(chan bool, 1)
+	cl := NewMessagingClient(testAddr, withChan(echoHandler, ch))
+	cl.Connect()
 
 	// Explained in TestPublishSubscibe
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(testWait)
 
 	log.Println("Publishing a message")
-	pub.Broadcast(data)
+	srv.Broadcast(testData)
 
 	log.Println("Waiting for a message")
 	select {

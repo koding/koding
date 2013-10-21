@@ -6,7 +6,7 @@ import (
 )
 
 func TestFilters(t *testing.T) {
-	filters := make(Filters)
+	filters := NewFilters()
 	conn := &connection{keys: make(map[string]bool)}
 
 	log.Println(filters)
@@ -17,10 +17,10 @@ func TestFilters(t *testing.T) {
 	log.Println(conn.keys)
 
 	// Check maps are updated
-	if len(filters) != 1 {
+	if len(filters.m) != 1 {
 		t.Error()
 	}
-	if len(filters["a"]) != 1 {
+	if len(filters.Get("a")) != 1 {
 		t.Error()
 	}
 
@@ -37,7 +37,7 @@ func TestFilters(t *testing.T) {
 	log.Println(conn.keys)
 
 	// Check map is empty now
-	if len(filters) != 0 {
+	if len(filters.m) != 0 {
 		t.Error()
 	}
 
