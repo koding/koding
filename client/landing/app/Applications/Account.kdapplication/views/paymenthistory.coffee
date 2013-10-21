@@ -9,11 +9,13 @@ class AccountPaymentHistoryListController extends AccountListViewController
     @loadItems()
 
   loadItems:->
+    { JPayment } = KD.remote.api
+
     @removeAllItems()
     @showLazyLoader no
 
     transactions = []
-    KD.remote.api.JPayment.getTransactions (err, trans=[])=>
+    JPayment.fetchTransactions (err, trans=[]) =>
       warn err  if err
 
       for t in trans when t.amount + t.tax > 0
