@@ -64,34 +64,34 @@ module.exports = class JPaymentPayment extends jraphical.Module
           charge subscription.uuid
 
   # Get ready for a transaction (find group, create accounts)
-  @initialize = (client, data, callback)->
+  @initialize = (client, data, callback) ->
     account = client.connection.delegate
     slug    = client.context.group
 
-    JGroup.one {slug}, (err, group)=>
+    JGroup.one {slug}, (err, group) =>
       return callback err  if err
-      @createAccount account, (err)=>
+      @createAccount account, (err) =>
         return callback err  if err
-        @createGroupAccount group, (err)=>
+        @createGroupAccount group, (err) =>
           return callback err  if err
-          @getPlan data.plan, (err, plan)->
+          @fetchPlan data.plan, (err, plan) ->
             return callback err  if err
             callback null, group, account, plan
 
   # Get plan
-  @getPlan = (code, callback)->
+  @fetchPlan = (code, callback) ->
     JPaymentPlan.fetchPlanByCode code, (err, plan) ->
       if err then return callback new KodingError 'Unable to access product information. Please try again later.'
       callback null, plan
 
   # Get price for a product
-  @calculateAmount = (data, callback)->
-    @getPlan data.plan, (err, plan)->
+  @calculateAmount = (data, callback) ->
+    @fetchPlan data.plan, (err, plan) ->
       return callback err  if err
       callback null, plan.feeMonthly * data.quantity
 
   # Create user account on Recurly
-  @createAccount = (account, callback)->
+  @createAccount = (account, callback) ->
     account.fetchUser (err, user) ->
       return callback err  if err
       {nickname, firstName, lastName} = account.profile
@@ -99,10 +99,10 @@ module.exports = class JPaymentPayment extends jraphical.Module
       recurly.setAccountDetailsByAccountCode "user_#{account.getId()}", data, callback
 
   # Create group account on Recurly
-  @createGroupAccount = (group, callback)->
-    group.fetchOwner (err, owner)->
+  @createGroupAccount = (group, callback) ->
+    group.fetchOwner (err, owner) ->
       return callback err  if err
-      owner.fetchUser (err, user)->
+      owner.fetchUser (err, user) ->
         return callback err  if err
         data =
           username  : group.slug
