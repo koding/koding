@@ -18,7 +18,7 @@ class AccountAppController extends AppController
       items : [
         { title : "Login & Email",        listHeader: "Email & username",           listType: "username",       id : 10,      parentId : null }
         { title : "Password & Security",  listHeader: "Password & Security",        listType: "security",       id : 20,      parentId : null }
-        { title : "E-mail Notifications", listHeader: "E-mail Notifications",       listType: "emailNotifications", id : 22,  parentId : null }
+        { title : "Email Notifications",  listHeader: "Email Notifications",        listType: "emailNotifications", id : 22,  parentId : null }
         { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts", id : 30,      parentId : null }
         { title : "Referrals",            listHeader: "Referrals ",                 listType: "referralSystem", id : 40,      parentId : null }
       ]
@@ -144,37 +144,8 @@ class AccountAppController extends AppController
 
   fetchProviders:->
 
-  showReferrerTooltip:(options)->
-
-    {linkView, top, left, arrowMargin} = options
-
-    referrerCode  = KD.whoami().profile.nickname
-    shareUrl      = "#{location.origin}/?r=#{referrerCode}"
-
-    contextMenu   = new JContextMenu
-      cssClass    : "activity-share-popup"
-      type        : "activity-share"
-      delegate    : linkView
-      x           : linkView.getX() - left
-      y           : linkView.getY() - top
-      arrow       :
-        placement : "bottom"
-        margin    : arrowMargin
-      lazyLoad    : yes
-    , customView  : new SharePopup {
-        url       : shareUrl
-        shortenURL: false
-        twitter   :
-          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
-        linkedin  :
-          title   : "Join me @koding!"
-          text    : "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareUrl}"
-      }
-
-    new KDOverlayView
-      parent      : KD.getSingleton("mainView").mainTabView.activePane
-      transparent : yes
-
+  showReferrerModal:->
+    new ReferrerModal
 
   toggleSidebar:(options)->
     {show} = options
