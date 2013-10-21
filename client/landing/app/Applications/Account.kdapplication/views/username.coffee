@@ -85,12 +85,16 @@ class AccountEditUsername extends KDView
         testPath     : "account-email-edit"
         click        : =>
           KD.remote.api.JEmailConfirmation.resetToken KD.whoami().profile.nickname, (err)=>
-            message = if err then err.message else "Email confirmation mail is sent"
+
+            message = "Email confirmation mail is sent"
+            if err
+              message = err.message
+            else
+              verifyEmail.hide()
+
             new KDNotificationView
               title    : message
               duration : 3500
-            verifyEmail.hide()
-
 
     nonEmailInputs.addSubView verifyEmail
 
