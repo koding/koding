@@ -1,7 +1,7 @@
-require('./harness');
+require('./harness').run();
 
 var recvCount = 0;
-var body = new Buffer([1,99,253,255,0,1,5,6])
+var body = new Buffer([1,99,253,255,0,1,5,6]);
 
 connection.addListener('ready', function () {
   puts("connected to " + connection.serverProperties.product);
@@ -36,7 +36,7 @@ connection.addListener('ready', function () {
         // wait one second to receive the message, then quit
         connection.end();
       }, 1000);
-    })
+    });
   });
 });
 
