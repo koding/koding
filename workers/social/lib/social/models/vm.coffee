@@ -441,7 +441,7 @@ module.exports = class JVM extends Module
     if vm.planCode is 'free'
       vm.remove callback
     else
-      JPaymentSubscription.getAllSubscriptions vm.planOwner,
+      JPaymentSubscription.fetchAllSubscriptions vm.planOwner,
         userCode : vm.planOwner
         planCode : vm.planCode
         $or      : [

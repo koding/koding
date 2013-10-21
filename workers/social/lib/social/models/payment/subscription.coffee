@@ -51,7 +51,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         callback null, subs
 
   @checkUserSubscription = secure ({connection:{delegate}}, planCode, callback)->
-    @getAllSubscriptions {
+    @fetchAllSubscriptions {
       planCode
       userCode : "user_#{delegate._id}"
       $or      : [
@@ -64,9 +64,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     @fetchSubscriptions "group_#{group._id}", callback
 
   @fetchSubscriptions = (accountCode, callback) ->
-    @getAllSubscriptions { accountCode }, callback
+    @fetchAllSubscriptions { accountCode }, callback
 
-  @getAllSubscriptions = (selector, callback)->
+  @fetchAllSubscriptions = (selector, callback) ->
     JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @updateCache = (selector, callback)->

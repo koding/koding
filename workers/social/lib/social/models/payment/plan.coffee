@@ -58,7 +58,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
   doSubscribe = (code, data, callback) ->
     data.multiple ?= no
 
-    JPaymentSubscription.getAllSubscriptions {
+    JPaymentSubscription.fetchAllSubscriptions {
       userCode
       planCode  : @code
       $or       : [
