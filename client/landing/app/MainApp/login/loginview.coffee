@@ -271,7 +271,7 @@ class LoginView extends KDScrollView
         KD.track "userSignedUp", account
 
   doLogin:(credentials)->
-    credentials.username = credentials.username.toLowerCase()
+    credentials.username = credentials.username.toLowerCase().trim()
     KD.remote.api.JUser.login credentials, @afterLoginCallback.bind this
 
   runExternal = (token)->
