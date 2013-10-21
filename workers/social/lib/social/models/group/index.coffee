@@ -87,7 +87,7 @@ module.exports = class JGroup extends Module
         'kickMember', 'transferOwnership', 'fetchRolesByClientId',
         'fetchInvitationsFromGraph', 'countInvitationsFromGraph', 'fetchMembersFromGraph'
         'remove', 'bulkApprove', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'fetchBillingInfo',
+        'checkPayment', 'makePayment', 'updatePayment', 'setPaymentInfo', 'fetchPaymentInfo',
         'checkUserBalance', 'makeExpense', 'getUserExpenses', 'getAllExpenses', 'fetchTransactions',
         'fetchBundle', 'updateBundle', 'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage',
@@ -1288,13 +1288,13 @@ module.exports = class JGroup extends Module
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
 
-  setBillingInfo: permit 'manage payment methods',
+  setPaymentInfo: permit 'manage payment methods',
     success: (client, data, callback) ->
       # TODO: Give credits to existing users
       JPaymentGroup = require '../payment/group'
-      JPaymentGroup.setBillingInfo client, this, data, callback
+      JPaymentGroup.setPaymentInfo client, this, data, callback
 
-  fetchBillingInfo: permit 'manage payment methods',
+  fetchPaymentInfo: permit 'manage payment methods',
     success: (client, callback)->
       JPaymentGroup = require '../payment/group'
       JPaymentGroup.getBilling this, callback
@@ -1459,10 +1459,10 @@ module.exports = class JGroup extends Module
     @each selector, options, callback
 
   linkPaymentMethod: permit 'manage payment methods',
-    success: (client, accountCode, callback) ->
+    success: (client, paymentMethodId, callback) ->
       { delegate } = client.connection
       JPaymentMethod = require '../payment/method'
-      JPaymentMethod.one { accountCode }, (err, paymentMethod) =>
+      JPaymentMethod.one { paymentMethodId }, (err, paymentMethod) =>
         return callback err  if err
         delegate.hasTarget paymentMethod, 'payment method', (err, hasTarget) =>
           return callback err  if err
@@ -1470,9 +1470,9 @@ module.exports = class JGroup extends Module
           @addPaymentMethod paymentMethod, callback
 
   unlinkPaymentMethod: permit 'manage payment methods',
-    success: (client, accountCode, callback) ->
+    success: (client, paymentMethodId, callback) ->
       JPaymentMethod = require '../payment/method'
-      JPaymentMethod.one { accountCode }, (err, paymentMethod) =>
+      JPaymentMethod.one { paymentMethodId }, (err, paymentMethod) =>
         return callback err  if err
         @removePaymentMethod paymentMethod, callback
 

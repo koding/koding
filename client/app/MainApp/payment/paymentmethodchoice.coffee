@@ -1,4 +1,4 @@
-class BillingMethodChoiceView extends JView
+class PaymentMethodChoiceView extends JView
 
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry 'billing-method-choice', options.cssClass
@@ -10,17 +10,17 @@ class BillingMethodChoiceView extends JView
 
     @createNewMethodButton = new KDButtonView
       title     : 'Use another billing method'
-      callback  : => @emit 'BillingMethodSelected'
+      callback  : => @emit 'PaymentMethodSelected'
 
     super()
 
-  addBillingMethod:(billingInfo) ->
-    billingMethodView = new BillingMethodView {}, billingInfo
+  addPaymentMethod:(paymentMethod) ->
+    paymentMethodView = new PaymentMethodView {}, paymentMethod
 
-    @methods.addSubView billingMethodView
+    @methods.addSubView paymentMethodView
 
-    billingMethodView.on 'BillingEditRequested', =>
-      @emit 'BillingMethodSelected', billingInfo.accountCode
+    paymentMethodView.on 'PaymentMethodEditRequested', =>
+      @emit 'PaymentMethodSelected', paymentMethod.paymentMethodId
 
   pistachio:->
     """

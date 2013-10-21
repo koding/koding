@@ -6,7 +6,7 @@ module.exports = class JPaymentGroup extends JPayment
 
   { groupCodeOf } = this
 
-  @setBillingInfo = (client, group, data, callback)->
+  @setPaymentInfo = (client, group, data, callback)->
 
     group.fetchOwner (err, owner) ->
       return callback err  if err
@@ -17,25 +17,25 @@ module.exports = class JPaymentGroup extends JPayment
 
         {firstName, lastName} = owner.profile
 
-        groupCode = groupCodeOf group
+        paymentMethodId = groupCodeOf group
 
         extend data, {
-          accountCode: groupCode
+          paymentMethodId
           email
           username
           firstName
           lastName
         }
 
-        recurly.setAccountDetailsByAccountCode groupCode, data, (err, res) ->
+        recurly.setAccountDetailsByPaymentMethodId paymentMethodId, data, (err, res) ->
           return callback err  if err
-          recurly.setBillingByAccountCode groupCode, data, callback
+          recurly.setBillingByPaymentMethodId paymentMethodId, data, callback
 
   @fetchAccountDetails = (group, callback) ->
-    recurly.fetchAccountDetailsByAccountCode (groupCodeOf group), callback
+    recurly.fetchAccountDetailsByPaymentMethodId (groupCodeOf group), callback
 
   @getBilling = (group, callback) ->
-    recurly.fetchBillingByAccountCode (groupCodeOf group), callback
+    recurly.fetchBillingByPaymentMethodId (groupCodeOf group), callback
 
   @fetchTransactions = (group, callback) ->
     recurly.fetchTransactions (groupCodeOf group), callback

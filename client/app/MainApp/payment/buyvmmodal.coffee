@@ -137,7 +137,7 @@ class BuyVmModal extends KDModalView
     paymentController.fetchPaymentMethods (err, paymentMethods) =>
       return if KD.showError err
 
-      { preferredAccountCode, methods, appStorage } = paymentMethods
+      { preferredPaymentMethod, methods, appStorage } = paymentMethods
 
       switch methods.length
 
@@ -147,31 +147,31 @@ class BuyVmModal extends KDModalView
 
         when 1 then do ([method] = methods) =>
 
-          paymentField.addSubView new BillingMethodView {}, method
+          paymentField.addSubView new PaymentMethodView {}, method
 
-          @choiceForm.addCustomData 'accountCode', method.accountCode
+          @choiceForm.addCustomData 'paymentMethodId', method.paymentMethodId
           @currentMethod = method
 
         else
 
-          methodsByAccountCode =
+          methodsByPaymentMethodId =
             methods.reduce( (acc, method) ->
-              acc[method.accountCode] = method
+              acc[method.paymentMethodId] = method
               acc
             , {})
 
-          defaultAccountCode = preferredAccountCode ? methods[0].accountCode
+          defaultPaymentMethod = preferredPaymentMethod ? methods[0].paymentMethodId
 
-          @currentMethod = methodsByAccountCode[defaultAccountCode]
+          @currentMethod = methodsByPaymentMethodId[defaultPaymentMethod]
 
           select = new KDSelectBox
-            defaultValue  : defaultAccountCode
-            name          : 'accountCode'
+            defaultValue  : defaultPaymentMethod
+            name          : 'paymentMethodId'
             selectOptions : methods.map (method) ->
               title       : KD.utils.getPaymentMethodTitle method
-              value       : method.accountCode
-            callback      : (accountCode) =>
-              @currentMethod = methodsByAccountCode[accountCode]
+              value       : method.paymentMethodId
+            callback      : (paymentMethodId) =>
+              @currentMethod = methodsByPaymentMethodId[paymentMethodId]
 
           paymentField.addSubView select
 
@@ -211,16 +211,12 @@ class BuyVmModal extends KDModalView
 
   createEntryForm: ->
 
-    form = new BillingForm
+    form = new PaymentForm
 
     paymentController = KD.getSingleton 'paymentController'
 
-    paymentController.observePaymentSave form, (err, billingInfo) =>
-
-      { accountCode } = billingInfo
-
-      @addAggregateData { accountCode }
-
+    paymentController.observePaymentSave form, (err, { paymentMethodId }) =>
+      @addAggregateData { paymentMethodId }
       @setState 'confirm'
 
     form
@@ -233,8 +229,7 @@ class BuyVmModal extends KDModalView
       'confirmForm'
     ]
 
-  hideForms: (forms = @getFormNames()) ->
-    @[form].hide() for form in forms
+  hideForms: (forms = @getFormNames()) -> @[form].hide() for form in forms
 
   setState: (state) ->
     @hideForms()
@@ -244,7 +239,7 @@ class BuyVmModal extends KDModalView
       when 'billing entry'    then @entryForm.show()
       when 'confirm'
         confirmData = @getAggregatedData()
-        confirmData.billingInfo = @currentMethod
+        confirmData.paymentMethod = @currentMethod
         confirmData.planInfo = @currentPlan
         @confirmForm.setData confirmData
         @confirmForm.show()
@@ -254,9 +249,9 @@ class BuyVmModal extends KDModalView
   processPayment: (formData) ->
     paymentController = KD.getSingleton 'paymentController'
 
-    { type, planInfo: { code: planCode}, billingInfo: { accountCode } } = formData
+    { type, planInfo: { code: planCode }, paymentMethod: { paymentMethodId } } = formData
 
-    options = { type, planCode, accountCode }
+    options = { type, planCode, paymentMethodId }
 
     paymentController.confirmPayment options, (err) =>
       @destroy()

@@ -11,16 +11,16 @@ module.exports = class JPaymentMethod extends Module
   @share()
 
   @set
-    sharedMethods :
-      static      : [
+    sharedMethods:
+      static: [
         'create'
       ]
-      instance    : [
+      instance: [
         'associatePaymentData'
       ]
-    schema        :
-      accountCode   : String
-      description : String
+    schema:
+      paymentMethodId:  String
+      description:      String
 
   @decoratePaymentMethods = (paymentMethods, callback) ->
     paymentData = []
@@ -34,26 +34,26 @@ module.exports = class JPaymentMethod extends Module
       else queue.fin()
     dash queue, -> callback null, paymentData
 
-  @removePaymentMethod = secure (client, accountCode, callback) ->
+  @removePaymentMethod = secure (client, paymentMethodId, callback) ->
 
     { delegate } = client.connection
 
-    @one { accountCode }, (err, paymentMethod) ->
+    @one { paymentMethodId }, (err, paymentMethod) ->
       return callback err  if err
 
       delegate.hasTarget paymentMethod, 'payment method', (err, hasTarget) ->
         return callback err  if err
 
         if hasTarget
-          recurly.deleteAccount accountCode, (err) ->
+          recurly.deleteAccount paymentMethodId, (err) ->
             return callback err  if err
 
             paymentMethod.remove callback
 
 
   @createPaymentMethod = secure (client, data, callback) ->
-    accountCode = createId()
-    paymentMethod = new this { accountCode, description: data.description }
+    paymentMethodId = createId()
+    paymentMethod = new this { paymentMethodId, description: data.description }
     paymentMethod.save (err) ->
       return callback err  if err
 
@@ -95,22 +95,22 @@ module.exports = class JPaymentMethod extends Module
 
           accountData = { ipAddress, username, email, firstName, lastName }
 
-          recurly.setAccountDetailsByAccountCode @accountCode, accountData, (err, rAccountData) =>
+          recurly.setAccountDetailsByPaymentMethodId @paymentMethodId, accountData, (err, rAccountData) =>
             return callback err  if err
 
-            recurly.setBillingByAccountCode @accountCode, formData, (err) =>
+            recurly.setBillingByPaymentMethodId @paymentMethodId, formData, (err) =>
               return callback err  if err
 
               @fetchAssociatedPaymentData callback
 
   fetchAssociatedPaymentData: (callback) ->
-    recurly.fetchBillingByAccountCode @accountCode, (err, billing) =>
+    recurly.fetchBillingByPaymentMethodId @paymentMethodId, (err, billing) =>
       return callback err  if err
-      callback null, { @accountCode, @description, billing }
+      callback null, { @paymentMethodId, @description, billing }
 
-  @updatePaymentMethodByAccountCode = secure (client, accountCode, formData, callback) ->
-    if accountCode
-      @one { accountCode }, (err, paymentMethod) =>
+  @updatePaymentMethodById = secure (client, paymentMethodId, formData, callback) ->
+    if paymentMethodId
+      @one { paymentMethodId }, (err, paymentMethod) =>
         return callback err  if err
         if paymentMethod
         then paymentMethod.associatePaymentData client, formData, callback

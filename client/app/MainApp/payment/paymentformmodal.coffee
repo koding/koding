@@ -1,4 +1,4 @@
-class BillingFormModal extends KDModalView
+class PaymentFormModal extends KDModalView
 
   constructor: (options = {}, data = {}) ->
 
@@ -18,25 +18,24 @@ class BillingFormModal extends KDModalView
 
     @addSubView @mainLoader
 
-    @useExistingView = new BillingMethodChoiceView
+    @useExistingView = new PaymentMethodChoiceView
     @useExistingView.hide()
 
-    @useExistingView.on 'BillingMethodSelected', (accountCode) =>
-      if accountCode
-        @emit 'BillingMethodSelected', accountCode
+    @useExistingView.on 'PaymentMethodSelected', (paymentMethodId) =>
+      if paymentMethodId
+        @emit 'PaymentMethodSelected', paymentMethodId
       else
         @useExistingView.hide()
         @modalTabs.show()
 
     @addSubView @useExistingView
 
-    @billingForm = new BillingForm
+    @paymentForm = new PaymentForm
 
-    @forwardEvent @billingForm, 'PaymentInfoSubmitted'
+    @forwardEvent @paymentForm, 'PaymentInfoSubmitted'
+    @addSubView @paymentForm
 
-    @addSubView @billingForm
-
-    @billingForm.hide()
+    @paymentForm.hide()
 
     super()
 
@@ -49,26 +48,26 @@ class BillingFormModal extends KDModalView
   createSelectPersonalView: (paymentMethods) ->
     @useExistingView.show()
     paymentMethods.forEach (paymentMethod) =>
-      @useExistingView.addBillingMethod paymentMethod
+      @useExistingView.addPaymentMethod paymentMethod
 
   setState: (state, data) ->
     @mainLoader.hide()
     switch state
       when 'editExisting'
-        @billingForm.setBillingInfo data
-        @billingForm.show()
+        @paymentForm.setPaymentInfo data
+        @paymentForm.show()
       when 'selectPersonal'
         @createSelectPersonalView data
       else
-        @billingForm.show()
+        @paymentForm.show()
 
   handleFormData:->
 
-  setBillingInfo: (billingInfo) ->
-    @billingForm.setBillingInfo billingInfo
+  setPaymentInfo: (paymentMethod) ->
+    @paymentForm.setPaymentInfo paymentMethod
 
   handleRecurlyResponse:(callback, err) ->
-    @billingForm.buttons.Save.hideLoader()
+    @paymentForm.buttons.Save.hideLoader()
 
     recurlyFieldMap =
       first_name         : 'cardFirstName'
@@ -78,14 +77,14 @@ class BillingFormModal extends KDModalView
 
     for e in err
       if recurlyFieldMap[e.field]
-        input = @billingForm.inputs[recurlyFieldMap[e.field]]
+        input = @paymentForm.inputs[recurlyFieldMap[e.field]]
         input.giveValidationFeedback yes
         input.showValidationError "#{input.inputLabel?.getTitle()} #{e.message}"
       else
-        input = @billingForm.inputs.cardNumber
+        input = @paymentForm.inputs.cardNumber
         input.showValidationError e.message
         input.giveValidationFeedback yes  if e.message.indexOf('card') > -1
 
   updateCardTypeDisplay: (cardType) ->
     console.trace()
-    @billingForm.updateCardTypeDisplay cardType
+    @paymentForm.updateCardTypeDisplay cardType

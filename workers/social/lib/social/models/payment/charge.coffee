@@ -47,7 +47,7 @@ module.exports = class JPaymentCharge extends jraphical.Module
         {uuid, amount, status} = transaction
 
         charge.setData extend charge.getData(), {
-          accountCode: selector.accountCode
+          paymentMethodId: selector.paymentMethodId
           amount
           status
         }

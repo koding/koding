@@ -1,4 +1,4 @@
-class LinkableBillingMethodView extends BillingMethodView
+class LinkablePaymentMethodView extends PaymentMethodView
   viewAppended:->
     super()
 
@@ -11,7 +11,7 @@ class LinkableBillingMethodView extends BillingMethodView
     @addSubView @unlinkButton
 
 
-  setBillingInfo: (billingInfo) ->
-    super billingInfo
+  setPaymentInfo: (paymentMethod) ->
+    super paymentMethod
 
-    do @unlinkButton?[if billingInfo?.billing then 'show' else 'hide']
+    do @unlinkButton?[if paymentMethod?.billing then 'show' else 'hide']

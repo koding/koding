@@ -24,22 +24,22 @@ module.exports = class JPayment extends Base
     sharedMethods  :
       static       : [
         'getBalance'
-        'setBillingInfo'
+        'setPaymentInfo'
         'fetchAccountDetails'
         'fetchTransactions'
         'fetchCountryDataByIp'
         'removePaymentMethod'
       ]
 
-  @removePaymentMethod: secure (client, accountCode, callback) ->
-    (require './method').removePaymentMethod client, accountCode, callback
+  @removePaymentMethod: secure (client, paymentMethodId, callback) ->
+    (require './method').removePaymentMethod client, paymentMethodId, callback
 
-  @setBillingInfo = secure (client, accountCode, data, callback) ->
-    [data, callback, accountCode] = [accountCode, data, callback]  unless callback
-    (require './method').updatePaymentMethodByAccountCode client, accountCode, data, callback
+  @setPaymentInfo = secure (client, paymentMethodId, data, callback) ->
+    [data, callback, paymentMethodId] = [paymentMethodId, data, callback]  unless callback
+    (require './method').updatePaymentMethodById client, paymentMethodId, data, callback
 
-  @fetchAccountDetails = secure ({ connection:{ delegate }}, callback) ->
-    recurly.fetchAccountDetailsByAccountCode (userCodeOf delegate), callback
+  @fetchAccountDetails = secure ({ connection:{ delegate }}, callback)->
+    recurly.fetchAccountDetailsByPaymentMethodId (userCodeOf delegate), callback
 
   @fetchTransactions = secure ({ connection:{ delegate }}, callback) ->
     recurly.fetchTransactions (userCodeOf delegate), callback

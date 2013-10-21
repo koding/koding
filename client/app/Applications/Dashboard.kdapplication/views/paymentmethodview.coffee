@@ -1,4 +1,4 @@
-class BillingMethodView extends JView
+class PaymentMethodView extends JView
   constructor: (options, data) ->
     super
 
@@ -7,21 +7,21 @@ class BillingMethodView extends JView
       showLoader  : !data?
       cssClass    : 'fr'
 
-    @billingMethodInfo = new KDCustomHTMLView
+    @paymentMethodInfo = new KDCustomHTMLView
       tagName   : 'a'
       cssClass  : 'billing-link'
       click     : (e) =>
         e.preventDefault()
-        @emit 'BillingEditRequested'
+        @emit 'PaymentMethodEditRequested'
 
-    @billingMethodInfo.hide()
+    @paymentMethodInfo.hide()
 
-    @setBillingInfo data
+    @setPaymentInfo data
 
-  getCardInfoPartial: (billingInfo) ->
-    if billingInfo
+  getCardInfoPartial: (paymentMethod) ->
+    if paymentMethod
       { description, cardFirstName, cardLastName, cardNumber, cardMonth
-        cardYear, cardType, address1, address2, city, state, zip } = billingInfo
+        cardYear, cardType, address1, address2, city, state, zip } = paymentMethod
       address = [address1, address2].filter(Boolean).join '<br>'
       description ?= "#{cardFirstName}'s #{cardType}"
       postal = [city, state, zip].filter(Boolean).join ' '
@@ -34,15 +34,15 @@ class BillingMethodView extends JView
       """
     else "Enter billing information"
 
-  setBillingInfo: (billingInfo) ->
+  setPaymentInfo: (paymentMethod) ->
     @loader.hide()
-    @setData billingInfo  if billingInfo
-    @billingMethodInfo.updatePartial @getCardInfoPartial billingInfo?.billing
-    @billingMethodInfo.show()
+    @setData paymentMethod  if paymentMethod
+    @paymentMethodInfo.updatePartial @getCardInfoPartial paymentMethod?.billing
+    @paymentMethodInfo.show()
 
   pistachio: ->
     """
     {{> @loader }}
-    {{> @billingMethodInfo }}
+    {{> @paymentMethodInfo }}
     """
 
