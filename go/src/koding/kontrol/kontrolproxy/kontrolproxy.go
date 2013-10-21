@@ -231,7 +231,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	go hitCounter(req.Host)
 
 	userIP, userCountry := getIPandCountry(req.RemoteAddr)
-	target, source, err := resolver.GetMemTarget(req.Host)
+
+	target, err := resolver.GetMemTarget(req.Host)
 	if err != nil {
 		if err == resolver.ErrGone {
 			return templateHandler("notfound.html", req.Host, 410)
@@ -241,7 +242,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
-	logs.Debug(fmt.Sprintf("mode '%s' [%s,%s] via %s : %s --> %s\n", target.Mode, userIP, userCountry, source, req.Host, target.Url.String()))
+	logs.Debug(fmt.Sprintf("mode '%s' [%s,%s] via %s : %s --> %s\n",
+		target.Mode, userIP, userCountry, target.FetchedSource, req.Host, target.Url.String()))
 
 	if p.EnableFirewall {
 		_, err = validate(userIP, userCountry, req.Host)
@@ -270,7 +272,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 	switch target.Mode {
 	case "maintenance":
-		return templateHandler("maintenance.html", nil, 200)
+		return templateHandler("maintenance.html", nil, 503)
 	case "redirect":
 		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
 	case "vm":

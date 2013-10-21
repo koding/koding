@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
 
@@ -896,7 +896,7 @@ button.cancel-edit-button
     rounded               3px
     bg(color,white)
     .kdmodal-title
-      height              50px
+      // height              50px
       font-size           15px
       color               #474646
       line-height         15px
@@ -1589,6 +1589,9 @@ figure.code-container
     &.modified
       border-bottom     3px solid #FF9200
       height            22px
+    &.readonly
+      font-style        italic
+      color             #bbb
 
     span.close-tab
       bg                color, transparent

@@ -1,1 +1,0 @@
-class KDController extends KDObject

@@ -11,4 +11,5 @@ module.exports = ->
   <link rel="shortcut icon" href="/images/favicon.ico" />
   <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
   <link rel="stylesheet" href="/css/kd.#{KONFIG.version}.css" />
+  <link rel="stylesheet" href="/css/kdapp.#{KONFIG.version}.css" />
   """

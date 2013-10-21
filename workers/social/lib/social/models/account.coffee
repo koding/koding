@@ -15,12 +15,12 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
-  JStorage     = require './storage'
-  JAppStorage  = require './appstorage'
-  JTag         = require './tag'
-  CActivity    = require './activity'
-  Graph        = require "./graph/graph"
-  JName        = require './name'
+  JStorage         = require './storage'
+  JAppStorage      = require './appstorage'
+  JTag             = require './tag'
+  CActivity        = require './activity'
+  Graph            = require "./graph/graph"
+  JName            = require './name'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -579,7 +579,7 @@ module.exports = class JAccount extends jraphical.Module
   # Update broken counts for user
   updateCounts:->
 
-    # Like count
+    # Like count
     Relationship.count
       as         : 'like'
       targetId   : @getId()
@@ -587,7 +587,7 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.likes': count), ->
 
-    # Member Following count
+    # Member Following count
     Relationship.count
       as         : 'follower'
       targetId   : @getId()
@@ -1043,21 +1043,6 @@ module.exports = class JAccount extends jraphical.Module
       return callback err  if err
       invite.update $set:status:'ignored', callback
 
-  fetchFollowersFromNeo4j:(options={}, callback)->
-      # returns accounts that follow this account
-      query =
-        """
-        start  koding=node:koding(id='#{@getId()}')
-        MATCH koding-[:follower]->followers
-        where followers.name="JAccount
-        return followers
-        """
-
-      options['resultsKey'] = 'followers'
-      Graph          = require "./graph/graph"
-      graph = new Graph(config:KONFIG['neo4j'])
-      graph.fetchFromNeo4j(query, options, callback)
-
   @byRelevance$ = permit 'list members',
     success: (client, seed, options, callback)->
       @byRelevance client, seed, options, callback
@@ -1123,37 +1108,22 @@ module.exports = class JAccount extends jraphical.Module
     success: (client, callback) ->
       @fetchUserDomains callback
 
+
+  {Member, OAuth} = require "./graph"
+
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
-    @fetchFollowFromGraph "fetchFollowingMembers", client, options, callback
+    options.client = client
+    Member.fetchFollowingMembers options, (err, results)=>
+      if err then return callback err
+      else return callback null, results
 
   fetchMyFollowersFromGraph: secure (client, options, callback)->
-    @fetchFollowFromGraph "fetchFollowerMembers", client, options, callback
-
-  fetchFollowFromGraph: (followType, client, options, callback)->
-    graph = new Graph({config:KONFIG['neo4j']})
-    userId = client.connection.delegate._id
-    options.currentUserId = userId
-    graph[followType] options, (err, results)=>
-      return callback err if err
-      return callback null, [] if results.length < 1
-
-      tempRes = []
-      collectContents = race (i, res, fin)=>
-        objId = res.id
-        JAccount.one  { _id : objId }, (err, account)=>
-          if err
-            callback err
-            fin()
-          else
-            tempRes[i] =  account
-            fin()
-      , ->
-        callback null, tempRes
-      for res in results
-        collectContents res
+    options.client = client
+    Member.fetchFollowerMembers options, (err, results)=>
+      if err then return callback err
+      else return callback null, results
 
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
-
   fetchRelatedTagsFromGraph: secure (client, options, callback)->
     @delegateToGraph client, "fetchRelatedTagsFromGraph", options, callback
 
@@ -1161,9 +1131,9 @@ module.exports = class JAccount extends jraphical.Module
     @delegateToGraph client, "fetchRelatedUsersFromGraph", options, callback
 
   delegateToGraph:(client, methodName, options, callback)->
-    graph = new Graph({config:KONFIG['neo4j']})
     options.userId = client.connection.delegate._id
-    graph[methodName] options, callback
+    OAuth[methodName] options, callback
+
 
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
 
@@ -1186,14 +1156,25 @@ module.exports = class JAccount extends jraphical.Module
     {delegate} = client.connection
     isMine     = @equals delegate
     if isMine
-      @fetchUser (err, user)->
+      @fetchUser (err, user)=>
         return callback err  if err
 
         query                            = {}
         query["foreignAuth.#{provider}"] = ""
-        user.update $unset: query, callback
+        user.update $unset: query, (err)=>
+          return callback err  if err
+          @oauthDeleteCallback provider, user, callback
     else
       callback new KodingError 'Access denied'
+
+  oauthDeleteCallback: (provider, user, callback)->
+    if provider is "google"
+      user.fetchAccount 'koding', (err, account)->
+        return callback err  if err
+        JReferrableEmail = require "./referrableemail"
+        JReferrableEmail.delete user.username, callback
+    else
+      callback()
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
