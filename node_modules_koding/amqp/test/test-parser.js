@@ -1,14 +1,26 @@
 // Make sure we get the correct results when splitting frames across
 // data packets. See https://github.com/postwait/node-amqp/issues/65
+require('./harness');
+var Connection = require('../amqp').Connection;
+var _ = require('lodash');
+var EventEmitter = require('events').EventEmitter;
+_.extend(Connection.prototype, EventEmitter.prototype);
+
+var errorThrown = false;
 
 function fresh_connection() {
-  var c = new (require('../amqp').Connection)();
+  var c = new Connection();
+  EventEmitter.call(c);
+  c.on('error', function() {
+    errorThrown = true;
+  });
+
   c.write = function() {};
   c.emit('connect');
   return c;
 }
 
-var connection = fresh_connection();
+connection = fresh_connection();
 
 function packets() {
   for (var i in arguments) {
@@ -59,3 +71,5 @@ for (var j = 0; j < consumeX2.length; j++) {
   connection = fresh_connection();
   packets(consumeX2.slice(0, j), consumeX2.slice(j));
 }
+
+assert(!errorThrown);
