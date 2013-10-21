@@ -43,9 +43,14 @@ class AccountEmailNotifications extends KDView
         stateValue = if state is 'ON' then on else off
 
         account.setEmailPreferences global: stateValue, (err)=>
-          @fallBackToOldState if err
+          if err
+            global.oldValue = globalValue
+            global.fallBackToOldState()
+            return new KDNotificationView
+              duration : 2000
+              title    : "Failed to turn #{state.toLowerCase()} the email notifications."
 
-        @emit 'GlobalStateChanged', state
+          @emit 'GlobalStateChanged', state
 
     for own flag, field of fields
       @addSubView field.formView = new KDFormView
