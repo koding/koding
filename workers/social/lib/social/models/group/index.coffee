@@ -1297,7 +1297,7 @@ module.exports = class JGroup extends Module
   fetchPaymentInfo: permit 'manage payment methods',
     success: (client, callback)->
       JPaymentGroup = require '../payment/group'
-      JPaymentGroup.getBilling this, callback
+      JPaymentGroup.fetchPaymentMethod this, callback
 
   checkUserBalance: secure (client, data, callback)->
     @fetchBundle (err, bundle)=>

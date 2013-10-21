@@ -58,14 +58,14 @@ class PaymentConfirmationModal extends KDModalView
         cssClass  : 'modal-clean-gray'
         callback  : @bound 'destroy'
       ReActivate  :
-        title     : 'Re-activate Plan'
+        title     : 'Re-activate plan'
         cssClass  : 'modal-clean-green hidden'
         callback  : =>
           subscription.resume ->
             @buttons.ReActivate.hide()
             @buttons.Yes.show()
       Billing     :
-        title     : 'Enter Billing Info'
+        title     : 'Enter billing info'
         cssClass  : 'modal-clean-green hidden'
         callback  : =>
           @setPaymentInfo type, (success)->
