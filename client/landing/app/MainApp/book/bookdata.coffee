@@ -287,4 +287,5 @@ __bookPages = [
     content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
                    <p>That's it, we hope that you enjoy what we built.</p>"""
     section   : -1
+    embed     : SocialShare
 ]
