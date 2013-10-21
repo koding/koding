@@ -124,9 +124,6 @@ module.exports =
     watch       : yes
     watchDuration : 300
     includesPath: 'client'
-    websitePath : 'website'
-    js          : "js/kd.#{version}.js"
-    css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
@@ -256,6 +253,10 @@ module.exports =
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
+  google         :
+    client_id    : "1058622748167.apps.googleusercontent.com"
+    client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
+    redirect_uri : "http://localhost:3020/-/oauth/google/callback"
   statsd         :
     use          : false
     ip           : "localhost"

@@ -140,6 +140,11 @@ class NotificationController extends KDObject
       # https://app.asana.com/0/1177356931469/7014047104322
       return  if actorAccount.type is 'unregistered'
       fetchSubjectObj (err, subjectObj)=>
+
+        # TODO: Cross group notifications is not working, so hide for now. -- fka
+        # https://app.asana.com/0/3716548652471/7601810287306
+        return if err or not subjectObj
+
         actorName = KD.utils.getFullnameFromAccount actorAccount
         options.title = switch actionType
           when "reply", "opinion"

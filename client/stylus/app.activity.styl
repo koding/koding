@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
 
@@ -491,74 +491,6 @@ h1.kdheaderview.notification-header
         line-height     10px
         rounded         3px
         noTextDeco()
-
-.activity-share-popup
-  min-width             233px
-
-  clear                 both
-  .kdlistview-activity-share
-    width               281px
-    padding             5px
-    right               55px
-    overflow            visible
-    padding             5px
-    border              1px solid rgba(0,0,0,0.275)
-    z-index             9001
-    border-color        rgba(0,0,0,0.1) rgba(0,0,0,0.15) rgba(0,0,0,0.2)
-    rounded             5px
-    bg                  color, white
-    shadow              0 10px 20px 5px rgba(0,0,0,0.1)
-    borderBox()
-    rel()
-  .share-popup
-    .share-input
-      size              160px, 30px
-      padding-top       5px
-      padding-bottom    4px
-      line-height       21px
-      font-size         13px
-      margin-right      7px
-      padding-right     20px
-      display           inline-block
-      borderBox()
-
-    .icon-link
-      width             21px
-      height            21px
-      display           inline-block
-      vertical-align    top
-      margin-top        6px
-
-    .icon-link
-      .icon
-        display         block
-        width           19px
-        height          19px
-        opacity         .7
-        sprite()
-      &:hover
-        .icon
-          opacity       1
-
-    .share-twitter
-      .icon
-        bg              position, -300px -360px
-    .share-linkedin
-      .icon
-        bg              position, -300px -340px
-    .share-facebook
-      .icon
-        bg              position, -320px -360px
-
-    .custom-link-view
-      // margin-right      4px
-      .icon.new-page
-        opacity         .4
-        bg              position, -180px -280px
-      &:hover
-        .icon.new-page
-          opacity       1
-          bg            position, -180px -260px
 
 button.kdbutton.dark
   span.icon
@@ -1065,7 +997,7 @@ button.activity-status-context
   .update .icon
     bg                      position,-140px -320px
   .blogpost .icon
-    bg                      position,-138px -645px
+    bg                      position,-141px -640px
   .discussion .icon
     bg                      position,-140px -340px
   .question .icon
@@ -1083,7 +1015,7 @@ button.activity-status-context
     .update .icon
       bg                    position,-160px -320px
     .blogpost .icon
-      bg                    position,-158px -645px
+      bg                    position,-161px -641px
     .discussion .icon
       bg                    position,-160px -340px
     .question .icon
@@ -2804,4 +2736,252 @@ div.kdtooltip
         float                     left
         width                     363px
         margin-top                15px
+
+
+.referrer-modal
+  .kdmodal-content
+    .kdtabview
+      overflow                  auto
+
+  .kdtabpaneview.share
+    form
+      display                     block
+      padding                     20px
+      font-size                   14px
+      color                       #656565
+
+      .disk-usage-wrapper
+        text-align                center
+        margin-bottom             10px
+
+        .progressbar-container
+          display                 inline-block
+          width                   100px
+          top                     2px
+
+      .left-column
+        fl()
+        width                     245px
+      .right-column
+        fr()
+        width                     245px
+        padding-left              20px
+        border-left               1px solid #e6e6e6
+
+      .description
+        margin-bottom             10px
+        line-height               20px
+        font-weight               500
+
+      label.share-url-label
+        display                   block
+        height                    46px
+        line-height               46px
+        text-align                center
+        font-weight               300
+        background                #ebebeb
+        rounded                   3px 3px 0 0
+        margin                    0 0 -1px
+      .share-url-input
+        width                     245px
+        height                    46px
+        line-height               46px
+        rounded                   3px
+        padding                   0 15px
+        margin                    0
+        color                     #ff9200
+        border                    1px solid #c7c7c7
+        borderBox()
+
+      .share-link-icons
+        height                    30px
+        line-height               30px
+        margin-top                25px
+        .share-icon
+          border                  none
+          size                    30px, 30px
+          padding                 0
+          margin                  0 0 0 8px
+          background              none
+          .icon
+            size                  30px, 30px
+            padding               0
+            margin                0
+            sprite()
+          &.twitter
+            .icon
+              bg                  position, -662px -116px
+          &.facebook
+            .icon
+              bg                  position, -695px -116px
+          &.linkedin
+            .icon
+              bg                  position, -729px -116px
+
+      button.invite-button
+        size                      245px, 50px
+        line-height               50px
+        rounded                   3px
+        background                #5d5d5d
+        border                    none
+        padding                   0
+        span.icon
+          size                    25px, 25px
+          margin                  12px
+          padding                 0
+          sprite()
+        span.button-title
+          height                  50px
+          font-size               14px
+          color                   #eee
+          padding                 0
+          font-weight             300
+          padding                 0 0 0 15px
+          border-left             1px solid #545454
+          fl()
+        &~.invite-button
+          margin-top              10px
+        &[disabled=disabled]
+          background              #d9d9d9
+          span.button-title
+            color                 #8d8d8d
+            border-color          #c5c5c5
+        &.gmail
+          .icon
+            bg                    position, -573px -117px
+        &.facebook
+          .icon
+            bg                    position, -603px -118px
+        &.twitter
+          .icon
+            bg                    position, -633px -118px
+
+      .dont-show-again-wrapper
+        abs()
+        bottom                    0
+        right                     5px
+
+        .kdinput
+          margin-right            5px
+          vertical-align          middle
+
+  .kdtabpaneview.invite
+    margin-bottom                 10px
+
+    .kdlistview-gmail
+      margin-bottom               10px
+
+      .kdlistitemview-gmail
+        width                     190px
+        background                #fff
+        border                    1px solid #ebebeb
+        border-left               none
+        border-top                none
+        clear                     none
+        vendor                    transition, background 300ms ease
+        cursor                    pointer
+        borderBox()
+        fl()
+
+        &:hover:before
+          content                 "Send an Invite?"
+          size                    100%, 100%
+          line-height             58px
+          font-size               14px
+          background              rgba(242,242,242,.95)
+          color                   #737373
+          text-align              center
+          left                    0
+          top                     0
+          opacity                 0
+          z-index                 5
+          vendor                  animation, inviteConfirmAnimation .1s 1 forwards ease-out
+          abs()
+
+        .invitation-sent-overlay
+          size                    100%, 100%
+          top                     0
+          right                   100%
+          line-height             12px
+          padding                 16px 0
+          font-size               14px
+          text-align              center
+          color                   #fff
+          background              #a8e071
+          z-index                 6
+          abs()
+          vendor                  transition, right 300ms ease
+
+          .checkmark
+            display                 none
+            size                    16px, 16px
+            abs()
+            top                     21px
+            left                    10px
+            sprite()
+            bg                      position, -22px -642px
+            margin-bottom           -3px
+            margin-right            10px
+
+          .email
+            font-size               10px
+            white-space             nowrap
+            text-overflow           ellipsis
+
+        &.invitation-sent
+          .invitation-sent-overlay
+            right                 0
+
+        .avatar
+          size                    25px, 25px
+          margin                  16px 10px 16px 16px
+          rounded                 100%
+          background              #ccc
+          fl()
+
+        .contact-info
+          fl()
+          width                   128px
+          padding-top             10px
+          overflow                hidden
+          borderBox()
+          span
+            width                 100%
+            display               block
+            font-size             11px
+            color                 #959595
+            white-space           nowrap
+            overflow              hidden
+            text-overflow         ellipsis
+            line-height           14px
+
+          .full-name
+            line-height           19px
+            font-size             14px
+            color                 #393939
+
+    .footer
+      text-align                  right
+
+      .kdlabel
+        display                     inline-block
+        font-size                   10px
+        line-height                 26px
+
+      .kdbutton
+        margin-right                10px
+
+@-webkit-keyframes inviteConfirmAnimation
+  to
+    opacity                       1
+@-moz-keyframes inviteConfirmAnimation
+  to
+    opacity                       1
+
+
+
+
+
+
+
 
