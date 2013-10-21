@@ -26,7 +26,7 @@ module.exports = class JPayment extends Base
         'getBalance'
         'setBillingInfo'
         'fetchAccountDetails'
-        'getTransactions'
+        'fetchTransactions'
         'fetchCountryDataByIp'
         'removePaymentMethod'
       ]
@@ -38,15 +38,15 @@ module.exports = class JPayment extends Base
     [data, callback, accountCode] = [accountCode, data, callback]  unless callback
     (require './method').updatePaymentMethodByAccountCode client, accountCode, data, callback
 
-  @fetchAccountDetails = secure ({connection:{delegate}}, callback)->
+  @fetchAccountDetails = secure ({ connection:{ delegate }}, callback) ->
     recurly.fetchAccountDetailsByAccountCode (userCodeOf delegate), callback
 
-  @getTransactions = secure ({connection:{delegate}}, callback)->
-    recurly.getTransactions (userCodeOf delegate), callback
+  @fetchTransactions = secure ({ connection:{ delegate }}, callback) ->
+    recurly.fetchTransactions (userCodeOf delegate), callback
 
-  @fetchAccount = secure (client, callback)->
+  @fetchAccount = secure (client, callback) ->
     {delegate} = client.connection
-    delegate.fetchUser (err, user)->
+    delegate.fetchUser (err, user) ->
       return callback err  if err?
       {username, firstName, lastName} = delegate.profile
       callback null, {
@@ -57,7 +57,7 @@ module.exports = class JPayment extends Base
       }
 
   @getBalance_ = (account, callback)->
-    recurly.getTransactions account, (err, adjs)->
+    recurly.fetchTransactions account, (err, adjs)->
       return callback err  if err?
       spent = 0
       adjs.forEach (adj)->

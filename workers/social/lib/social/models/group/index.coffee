@@ -88,7 +88,7 @@ module.exports = class JGroup extends Module
         'fetchInvitationsFromGraph', 'countInvitationsFromGraph', 'fetchMembersFromGraph'
         'remove', 'bulkApprove', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'fetchBillingInfo',
-        'checkUserBalance', 'makeExpense', 'getUserExpenses', 'getAllExpenses', 'getTransactions',
+        'checkUserBalance', 'makeExpense', 'getUserExpenses', 'getAllExpenses', 'fetchTransactions',
         'fetchBundle', 'updateBundle', 'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage',
         'saveInviteMessage', 'redeemInvitation', 'fetchPaymentMethod','linkPaymentMethod'
@@ -1369,9 +1369,9 @@ module.exports = class JGroup extends Module
     JPaymentSubscription = require '../payment/subscription'
     JPaymentSubscription.getGroupSubscriptions this, callback
 
-  getTransactions: (callback)->
+  fetchTransactions: (callback)->
     JPaymentGroup = require '../payment/group'
-    JPaymentGroup.getTransactions this, callback
+    JPaymentGroup.fetchTransactions this, callback
 
   vmUsage: secure ({connection:{delegate}}, callback)->
     @fetchBundle (err, bundle)=>

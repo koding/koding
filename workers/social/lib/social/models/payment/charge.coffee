@@ -39,7 +39,7 @@ module.exports = class JPaymentCharge extends jraphical.Module
     JPayment.updateCache
       constructor   : this
       selector      : selector
-      method        : 'getTransactions'
+      method        : 'fetchTransactions'
       methodOptions : selector.accountCode
       keyField      : 'uuid'
       message       : 'user transactions'
