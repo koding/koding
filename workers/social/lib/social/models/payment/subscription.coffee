@@ -70,12 +70,11 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @updateCache = (selector, callback)->
-    console.trace()
     JPayment.updateCache
       constructor   : this
-      selector      : {userCode: selector.userCode}
+      selector      : { paymentMethodId: selector.paymentMethodId }
       method        : 'fetchSubscriptions'
-      methodOptions : selector.userCode
+      methodOptions : selector.paymentMethodId
       keyField      : 'uuid'
       message       : 'user subscriptions'
       forEach       : (uuid, cached, sub, stackCb)=>

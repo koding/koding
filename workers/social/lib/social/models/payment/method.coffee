@@ -104,7 +104,7 @@ module.exports = class JPaymentMethod extends Module
               @fetchAssociatedPaymentData callback
 
   fetchAssociatedPaymentData: (callback) ->
-    recurly.fetchBillingByPaymentMethodId @paymentMethodId, (err, billing) =>
+    recurly.fetchPaymentMethodById @paymentMethodId, (err, billing) =>
       return callback err  if err
       callback null, { @paymentMethodId, @description, billing }
 

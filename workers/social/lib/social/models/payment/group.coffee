@@ -35,7 +35,7 @@ module.exports = class JPaymentGroup extends JPayment
     recurly.fetchAccountDetailsByPaymentMethodId (groupCodeOf group), callback
 
   @getBilling = (group, callback) ->
-    recurly.fetchBillingByPaymentMethodId (groupCodeOf group), callback
+    recurly.fetchPaymentMethodById (groupCodeOf group), callback
 
   @fetchTransactions = (group, callback) ->
     recurly.fetchTransactions (groupCodeOf group), callback
