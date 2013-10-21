@@ -250,14 +250,14 @@ __bookPages = [
     section   : 6
     parent    : 0
   ,
-    title     : "Groups"
-    cssClass  : "groups-intro "
-    content   : """<p class='centered'>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
-                """
-    routeURL  : "/Groups"
-    section   : 7
-    parent    : 0
-  ,
+  #   title     : "Groups"
+  #   cssClass  : "groups-intro "
+  #   content   : """<p class='centered'>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
+  #               """
+  #   routeURL  : "/Groups"
+  #   section   : 7
+  #   parent    : 0
+  # ,
     title     : "Chat"
     cssClass  : "chats-intro"
     content   : """<p class='centered'>You can chat with your friends or anyone from koding. Just type his/her name and hit enter thats all!</p>
