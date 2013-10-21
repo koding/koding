@@ -40,7 +40,8 @@ class ReferrerModal extends KDModalViewWithForms
     leftColumn.addSubView urlInput       = new KDInputView
       defaultValue                       : options.url
       cssClass                           : "share-url-input"
-      disabled                           : yes
+      attributes                         : readonly:"true"
+      click                              :-> @selectAll()
 
     leftColumn.addSubView shareLinkIcons = new KDCustomHTMLView
       cssClass                           : "share-link-icons"
