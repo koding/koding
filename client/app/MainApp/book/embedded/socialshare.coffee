@@ -6,7 +6,7 @@ class SocialShare extends JView
       tagName       : "iframe"
       attributes    :
         width       : 90
-        height      : 21
+        height      : 20
         frameborder : 0
         scrolling   : "no"
         allowtransparency: "true"
