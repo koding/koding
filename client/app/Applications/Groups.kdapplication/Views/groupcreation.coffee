@@ -36,6 +36,8 @@ class GroupCreationModal extends KDModalView
 
     super options, data
 
+    @destroy()  unless KD.checkFlag "group-admin"
+
     @plans = []
     @buttons.next.hide()
 
