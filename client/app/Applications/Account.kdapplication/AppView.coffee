@@ -59,7 +59,7 @@ class AccountListWrapper extends KDView
     else KDListViewController
 
     controller = new Controller
-      view     : new ListView cssClass : "#{id}-#{type}"
+      view     : new ListView cssClass : "#{id}-#{type}", delegate: this
 
     @addSubView controller.getView()
 

@@ -2,7 +2,7 @@
 // ('data' event) is parsed correctly.
 // https://github.com/postwait/node-amqp/issues/65
 
-require('./harness');
+require('./harness').run();
 
 var recvCount = 0;
 var body = new Buffer(2000000);

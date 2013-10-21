@@ -23,13 +23,7 @@ class NavigationPromoteLink extends JView
   click:(event)->
     KD.utils.stopDOMEvent event
     appManager = KD.getSingleton "appManager"
-    appManager.tell "Account", "showReferrerTooltip",
-      linkView    : this
-      top         : 50
-      left        : -70
-      arrowMargin : -200
-
-    return no
+    appManager.tell "Account", "showReferrerModal"
 
   pistachio: ->
     """

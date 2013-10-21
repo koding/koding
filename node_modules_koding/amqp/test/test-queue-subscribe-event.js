@@ -1,4 +1,4 @@
-require('./harness');
+require('./harness').run();
 
 var basic_qos_emitted = false;
 
