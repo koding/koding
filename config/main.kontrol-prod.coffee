@@ -230,6 +230,10 @@ module.exports =
     clientId     : "434245153353814"
     clientSecret : "84b024e0d627d5e80ede59150a2b251e"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  google         :
+    client_id    : "134407769088.apps.googleusercontent.com"
+    client_secret: "6Is_WwxB19tuY2xkZNbnAU-t"
+    redirect_uri : "https://koding.com/-/oauth/google/callback"
   statsd         :
     use          : true
     ip           : "172.168.2.7"

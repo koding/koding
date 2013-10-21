@@ -1,6 +1,6 @@
 module.exports = ({error, provider})->
+  error = if error? then "\"#{error}\"" else null
   """
-
   <!DOCTYPE html>
   <html lang="en">
   <head>

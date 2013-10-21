@@ -42,8 +42,6 @@ func Startup() {
 	slog.Println("handler is initialized")
 }
 
-var waitCounter = make(map[string]int)
-
 // runHelperFunctions contains several indepenendent helper functions that do
 // certain tasks.
 func runHelperFunctions() {
@@ -54,32 +52,15 @@ func runHelperFunctions() {
 			worker := models.Worker{}
 			iter := c.Find(nil).Iter()
 			for iter.Next(&worker) {
+				if worker.Status == models.Dead {
+					continue // already dead, nothing to do
+				}
+
 				if time.Now().Before(worker.Timestamp.Add(workerconfig.HEARTBEAT_DELAY)) {
-					waitCounter[worker.Uuid] = 0
 					continue // still alive, pick up the next one
 				}
 
-				// It's just another precaution improvement.  We wait three
-				// times until we got a message. If we don't get any message,
-				// then we assume it's dead.
-
-				waitCount, ok := waitCounter[worker.Uuid]
-				if !ok {
-					waitCounter[worker.Uuid]++
-					continue
-				}
-
-				if waitCount != 3 {
-					slog.Printf("[%s (%d)] WARNING. no message received. waitCount is '%d'\n",
-						worker.Name,
-						worker.Version,
-						waitCount,
-					)
-					waitCounter[worker.Uuid]++
-					continue
-				}
-
-				slog.Printf("[%s (%d)] no activity at '%s' - '%s' (pid: %d). removing it from db\n",
+				slog.Printf("[%s (%d)] no activity at '%s' - '%s' (pid: %d). marking them as dead\n",
 					worker.Name,
 					worker.Version,
 					worker.Hostname,
@@ -87,7 +68,10 @@ func runHelperFunctions() {
 					worker.Pid,
 				)
 
-				modelhelper.DeleteWorker(worker.Uuid)
+				worker.Status = models.Dead
+				worker.Monitor.Mem = models.MemData{}
+				worker.Monitor.Uptime = 0
+				modelhelper.UpdateIDWorker(worker)
 			}
 
 			if err := iter.Close(); err != nil {
@@ -362,7 +346,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 			worker.Hostname,
 			worker.Uuid,
 		)
-		slog.Printf(startLog)
+		slog.Println(startLog)
 
 		worker.Status = models.Started
 		worker.ObjectId = bson.NewObjectId()
@@ -388,7 +372,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 				"status": bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
 			}
 
-			reason = "startMode is 'one'. workers with same name is runnning on other machines"
+			reason = "workers with same names: "
 		}
 
 		// version is like one, but it's allow only workers of the same name
@@ -404,7 +388,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 				"status":  bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
 			}
 
-			reason = "startMode is 'version'. worker with a different version is already running."
+			reason = "workers with different versions: "
 		}
 
 		worker.ObjectId = bson.NewObjectId()
@@ -427,17 +411,14 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 		})
 
 		if err == nil {
-			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n",
-				worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
-
-			slog.Printf(startLog)
+			startLog := fmt.Sprintf("[%s (%d) - (%s)] starting at '%s' - '%s'\n", worker.Name, worker.Version, option, worker.Hostname, worker.Uuid)
+			slog.Println(startLog)
 			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
 			return response, nil
 		}
 
-		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s",
-			worker.Name, worker.Version, worker.Hostname, reason)
-
+		reason = reason + fmt.Sprintf("\n version: %d (pid: %d) at %s", result.Version, result.Pid, result.Hostname)
+		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
 		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "noPermission", denyLog)
 		return response, nil // contains start or noPermission
 

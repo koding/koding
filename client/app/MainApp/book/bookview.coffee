@@ -415,7 +415,8 @@ class BookView extends JView
         @startNewConversation()
 
     # find conversations panel icon position.
-    offsetTo = @mainView.chatHandler.$().offset()
+    @setClass "moveUp"
+    offsetTo = @mainView.sidebar.footerMenu.$(".chat").offset()
     # move cursor to conv. panel button position.
     @pointer.$().offset offsetTo
 
@@ -523,31 +524,36 @@ class BookView extends JView
     @pointer.$().offset offsetTo
 
   saveAndOpenPreview:->
+    button = @mainView.appSettingsMenuButton
+    # find right up ace save menu position
+    @pointer.$().offset button.$().offset()
     @pointer.once 'transitionend', =>
       # click animation
       @clickAnimation()
       # open menu
-      @mainView.appSettingsMenuButton.$().click()
+      button.$().click()
       # find save menu item position
+      @pointer.$().offset $(button.contextMenu.$("li")[0]).offset()
       @utils.wait 2000, =>
         # save ace view
-        @mainView.appSettingsMenuButton.data[0].callback()
-        @utils.wait 800, =>
+        button.data.items[0].callback()
+        @utils.wait 2000, =>
           @openPreview()
-
-    # find right up ace save menu position
-    offsetTo = @mainView.appSettingsMenuButton.$().offset()
-    @pointer.$().offset offsetTo
 
   openPreview:->
     new KDNotificationView
       title     : "Let's see what changed!"
       duration  : 3000
 
-    @mainView.appSettingsMenuButton.$().click()
+    button = @mainView.appSettingsMenuButton
+    @pointer.$().offset button.$().offset()
     @utils.wait 2200, =>
-      @mainView.appSettingsMenuButton.data[8].callback()
-      @destroyPointer()
+      button.$().click()
+      @utils.wait 800, =>
+        @pointer.$().offset $(button.contextMenu.$("li")[7]).offset()
+        @utils.wait 2200, =>
+          button.data.items[9].callback()
+          @destroyPointer()
 
   showAceSettings:->
     @pointer.once 'transitionend', =>

@@ -24,6 +24,18 @@ module.exports = class OAuth extends bongo.Base
           else
             @saveOdeskTokens client, url, requestToken, requestTokenSecret, (err)->
               callback err, url
+      when "google"
+        {client_id, redirect_uri} = KONFIG.google
+
+        url  = "https://accounts.google.com/o/oauth2/auth?"
+        url += "scope=https://www.google.com/m8/feeds/ "
+        url += "https://www.googleapis.com/auth/userinfo.profile&"
+        url += "redirect_uri=#{redirect_uri}&"
+        url += "response_type=code&"
+        url += "client_id=#{client_id}&"
+        url += "access_type=offline"
+
+        callback null, url
 
   @getOdeskUrl = (callback)->
     Odesk         = require 'node-odesk'
