@@ -101,7 +101,10 @@ module.exports = class Activity extends Graph
   # this is used for activities on profile page
   @fetchUsersActivityFeed: (requestOptions, callback)->
     @getCurrentGroup requestOptions.client, (err, currentGroup)=>
-      if err then return callback errw
+      if err
+        console.log "fetchUsersActivityFeed err:", err
+        return callback err
+
       requestOptions.group = {groupName: currentGroup.slug, groupId: currentGroup._id}
 
       facetQuery = @generateFacets requestOptions
@@ -119,7 +122,7 @@ module.exports = class Activity extends Graph
         # we have maximum call stack size error from bongo,
         # while sending the result back to client
         # this is a bandaid for it
-        limitCount : 5 #requestOptions.limit
+        limitCount : 3 #requestOptions.limit
         skipCount  : requestOptions.skip
 
       query = QueryRegistry.activity.profilePage {facetQuery, orderBy}

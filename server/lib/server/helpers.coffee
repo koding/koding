@@ -119,7 +119,9 @@ getAlias = do->
 
 # adds referral code into cookie if exists
 addReferralCode = (req, res)->
-  if refCode = req.query.r
+  match = req.path.match(/\/R\/(.*)/)
+  if match and match[1]
+    refCode = match[1]
     console.log "refCode: #{refCode}"
     res.cookie "referrer", refCode, { maxAge: 900000, httpOnly: false }
 
