@@ -19,7 +19,7 @@ func NewFilters() *Filters {
 }
 
 // Get returns connections for the key as a map.
-func (f Filters) Get(key string) map[*connection]bool {
+func (f *Filters) Get(key string) map[*connection]bool {
 	f.RLock()
 	defer f.RUnlock()
 	return f.m[key]
@@ -27,7 +27,7 @@ func (f Filters) Get(key string) map[*connection]bool {
 
 // Add adds the connection to the list for key.
 // Also adds the key to the keys field of the conn.
-func (f Filters) Add(conn *connection, key string) {
+func (f *Filters) Add(conn *connection, key string) {
 	f.Lock()
 	defer f.Unlock()
 
@@ -40,7 +40,7 @@ func (f Filters) Add(conn *connection, key string) {
 }
 
 // Remove removes the connection from a key in filters.
-func (f Filters) Remove(conn *connection, key string) {
+func (f *Filters) Remove(conn *connection, key string) {
 	f.Lock()
 	defer f.Unlock()
 
@@ -53,7 +53,7 @@ func (f Filters) Remove(conn *connection, key string) {
 }
 
 // RemoveAll removes the connection from the map for all of it's keys.
-func (f Filters) RemoveAll(conn *connection) {
+func (f *Filters) RemoveAll(conn *connection) {
 	for key := range conn.keys {
 		f.Remove(conn, key)
 	}
