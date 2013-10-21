@@ -120,55 +120,55 @@ __bookPages = [
     routeURL  : 'Develop'
   ,
 
-    cssClass  : "develop enviroments"
-    content   : """<h2>Control Your Virtual Machine!</h2>
-                   <p>It's easy to control your Virtual Machine(s)! Some basic actions you can perform are listed below:</p>
-                   <ul>
-                     <li>Turn your Virtual Machine on and off</li>
-                     <li>Re-Initialize your Virtual Machine</li>
-                     <li>Delete your Virtual Machine and start with a fresh one</li>
-                     <li>Checkout the Virtual Machine menu for more features</li>
-                   </ul>
-                """
-    section   : 3
-    parent    : 5
-    showHow   : yes
-    howToSteps: ['showVMMenu']
-    menuItem  : "Develop"
+  #   cssClass  : "develop enviroments"
+  #   content   : """<h2>Control Your Virtual Machine!</h2>
+  #                  <p>It's easy to control your Virtual Machine(s)! Some basic actions you can perform are listed below:</p>
+  #                  <ul>
+  #                    <li>Turn your Virtual Machine on and off</li>
+  #                    <li>Re-Initialize your Virtual Machine</li>
+  #                    <li>Delete your Virtual Machine and start with a fresh one</li>
+  #                    <li>Checkout the Virtual Machine menu for more features</li>
+  #                  </ul>
+  #               """
+  #   section   : 3
+  #   parent    : 5
+  #   showHow   : yes
+  #   howToSteps: ['showVMMenu']
+  #   menuItem  : "Develop"
 
-  ,
-    cssClass  : "develop enviroments more"
-    content   : """<h2>Open Virtual Machines in your Terminal</h2>
-                   <p>If you have more than 1 Virtual Machine, you can open that Virtual Machine's
-                   menu by clicking terminal icon on Virtual Machine menu.</p>
-                """
-    section   : 4
-    parent    : 5
-    showHow   : yes
-    howToSteps: ['openVMTerminal']
-    menuItem  : "Develop"
-  ,
-    cssClass  : "develop more-1"
-    content   : """<p>You can view your recently opened files by moving your cursor to the footer area. A new section will slide up displaying your recently opened files!</p>
-                """
-    section   : 5
-    parent    : 5
-    routeURL  : "/Develop"
-    showHow   : yes
-    howToSteps: ['showRecentFiles']
-    menuItem  : "Develop"
-  ,
-    cssClass  : "develop buy more-1"
-    content   : """<h2>Need more Virtual Machines?</h2>
-                   <p>It's easy to buy more Virtual Machines. If you need more space, just buy new one!</p>
-                """
-    section   : 6
-    parent    : 5
-    routeURL  : "/Develop"
-    showHow   : yes
-    howToSteps: ['showNewVMMenu']
-    menuItem  : "Develop"
-  ,
+  # ,
+  #   cssClass  : "develop enviroments more"
+  #   content   : """<h2>Open Virtual Machines in your Terminal</h2>
+  #                  <p>If you have more than 1 Virtual Machine, you can open that Virtual Machine's
+  #                  menu by clicking terminal icon on Virtual Machine menu.</p>
+  #               """
+  #   section   : 4
+  #   parent    : 5
+  #   showHow   : yes
+  #   howToSteps: ['openVMTerminal']
+  #   menuItem  : "Develop"
+  # ,
+  #   cssClass  : "develop more-1"
+  #   content   : """<p>You can view your recently opened files by moving your cursor to the footer area. A new section will slide up displaying your recently opened files!</p>
+  #               """
+  #   section   : 5
+  #   parent    : 5
+  #   routeURL  : "/Develop"
+  #   showHow   : yes
+  #   howToSteps: ['showRecentFiles']
+  #   menuItem  : "Develop"
+  # ,
+  #   cssClass  : "develop buy more-1"
+  #   content   : """<h2>Need more Virtual Machines?</h2>
+  #                  <p>It's easy to buy more Virtual Machines. If you need more space, just buy new one!</p>
+  #               """
+  #   section   : 6
+  #   parent    : 5
+  #   routeURL  : "/Develop"
+  #   showHow   : yes
+  #   howToSteps: ['showNewVMMenu']
+  #   menuItem  : "Develop"
+  # ,
     cssClass  : "develop more-1"
     content   : """<p>It's easy to change your homepage! Currently: <a href= "#"> http://{{#(profile.nickname)}}.kd.io </a>
                   <ol>
@@ -250,14 +250,14 @@ __bookPages = [
     section   : 6
     parent    : 0
   ,
-    title     : "Groups"
-    cssClass  : "groups-intro "
-    content   : """<p class='centered'>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
-                """
-    routeURL  : "/Groups"
-    section   : 7
-    parent    : 0
-  ,
+  #   title     : "Groups"
+  #   cssClass  : "groups-intro "
+  #   content   : """<p class='centered'>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
+  #               """
+  #   routeURL  : "/Groups"
+  #   section   : 7
+  #   parent    : 0
+  # ,
     title     : "Chat"
     cssClass  : "chats-intro"
     content   : """<p class='centered'>You can chat with your friends or anyone from koding. Just type his/her name and hit enter thats all!</p>
@@ -287,4 +287,5 @@ __bookPages = [
     content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
                    <p>That's it, we hope that you enjoy what we built.</p>"""
     section   : -1
+    embed     : SocialShare
 ]
