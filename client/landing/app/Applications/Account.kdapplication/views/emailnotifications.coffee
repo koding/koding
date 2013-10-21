@@ -26,7 +26,7 @@ class AccountEmailNotifications extends KDView
 
     globalValue = if user.getAt("emailFrequency.global") is on then 'ON' else 'OFF'
 
-    disabledAll = new KDView
+    turnedOffHint = new KDView
       partial : """
       <cite>
         Email notifications are turned off. You won't receive any emails about anything.
@@ -34,7 +34,7 @@ class AccountEmailNotifications extends KDView
       """
       cssClass: "no-item-found #{if globalValue is 'ON' then 'hidden'}"
 
-    @addSubView disabledAll
+    @addSubView turnedOffHint
 
     @getDelegate().addSubView global = new KDMultipleChoice
       cssClass      : "dark in-account-header"
@@ -99,5 +99,5 @@ class AccountEmailNotifications extends KDView
     @on 'GlobalStateChanged', (state)=>
       toggleFieldStates state
       if state is 'OFF'
-      then disabledAll.show()
-      else disabledAll.hide()
+      then turnedOffHint.show()
+      else turnedOffHint.hide()
