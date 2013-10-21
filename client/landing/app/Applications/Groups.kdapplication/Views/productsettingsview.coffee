@@ -115,7 +115,7 @@ class GroupProductListItem extends KDListItemView
     codeGet    = """
                  KD.remote.api.JPaymentPlan.getPlanWithCode '#{code}', (err, plan)->
                    if not err and plan
-                    plan.getSubscriptions (err, subs)->
+                    plan.fetchSubscriptions (err, subs)->
                       console.log "Subscribers:", subs
                  """
 
@@ -155,7 +155,7 @@ class GroupProductListItem extends KDListItemView
       title    : "View Buyers"
       callback : =>
         plan = @getData()
-        plan.getSubscriptions (err, subs)->
+        plan.fetchSubscriptions (err, subs)->
           if err
             subs = []
           new KDNotificationView
