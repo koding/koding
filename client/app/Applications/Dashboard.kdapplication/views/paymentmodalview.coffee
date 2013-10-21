@@ -161,7 +161,7 @@ class GroupSubscriptionsistController extends KDListViewController
         subs.forEach (sub)=>
           if sub.status isnt 'expired'
             stack.push (cb)->
-              KD.remote.api.JPaymentPlan.getPlanWithCode sub.planCode, (err, plan)->
+              KD.remote.api.JPaymentPlan.fetchPlanByCode sub.planCode, (err, plan)->
                 return cb err  if err
                 sub.plan = plan
                 cb null, sub

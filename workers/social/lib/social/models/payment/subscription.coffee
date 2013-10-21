@@ -89,7 +89,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
   refund: (percent, callback)->
     JPaymentPlan = require './plan'
-    JPaymentPlan.getPlanWithCode @planCode, (err, plan)=>
+    JPaymentPlan.fetchPlanByCode @planCode, (err, plan) =>
       return callback err  if err
       payment.addUserCharge @userCode,
         amount: (-1 * plan.feeMonthly * percent / 100)

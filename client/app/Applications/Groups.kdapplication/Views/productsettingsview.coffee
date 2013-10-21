@@ -113,7 +113,7 @@ class GroupProductListItem extends KDListItemView
                  """
 
     codeGet    = """
-                 KD.remote.api.JPaymentPlan.getPlanWithCode '#{code}', (err, plan)->
+                 KD.remote.api.JPaymentPlan.fetchPlanByCode '#{code}', (err, plan)->
                    if not err and plan
                     plan.fetchSubscriptions (err, subs)->
                       console.log "Subscribers:", subs

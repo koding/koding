@@ -1,5 +1,5 @@
 class PaymentWidget extends KDView
-  constructor:(options, data)->
+  constructor: (options, data) ->
     super options, data
 
     @planCode = options.planCode
@@ -11,14 +11,13 @@ class PaymentWidget extends KDView
     @buttonSubscribe = new KDButtonView
       title    : "Subscribe"
       cssClass : "hidden"
-      callback : => @confirmSubscription =>
-                      @subscribe (err, sub)=>
-                        @updateButtons()
+      callback : =>
+        @confirmSubscription => @subscribe (err, sub) => @updateButtons()
 
     @buttonBilling = new KDButtonView
       title    : "Billing Info"
       cssClass : "hidden"
-      callback : => @askBillingInfo (status)=>
+      callback : => @askBillingInfo (status) =>
                       @updateButtons()
 
     @widgetContent = options.content
@@ -34,12 +33,12 @@ class PaymentWidget extends KDView
     @buttonSubscribe.hide()
     @widgetContent.hide()
     @loader.show()
-    @checkBilling (needBilling)=>
+    @checkBilling (needBilling) =>
       if needBilling
         @loader.hide()
         @buttonBilling.show()
       else
-        @checkSubscription (status)=>
+        @checkSubscription (status) =>
           @loader.hide()
           if status
             @emit "subscribed"
@@ -51,11 +50,11 @@ class PaymentWidget extends KDView
     paymentController = KD.getSingleton('paymentController')
     group             = KD.getSingleton("groupsController").getCurrentGroup()
 
-    paymentController.fetchBillingInfo 'user', group, (err, account)=>
+    paymentController.fetchBillingInfo 'user', group, (err, account) =>
       callback err or not account or not account.cardNumber
 
   checkSubscription:(callback)->
-    KD.remote.api.JPaymentSubscription.checkUserSubscription @planCode, (err, subs)=>
+    KD.remote.api.JPaymentSubscription.checkUserSubscription @planCode, (err, subs) =>
       subscribed = no
       subs.forEach (sub)=>
         if sub.status in ['canceled', 'active']
@@ -70,22 +69,26 @@ class PaymentWidget extends KDView
     {{> @widgetContent}}
     """
 
-  viewAppended:->
+  viewAppended: ->
     @setTemplate @pistachio()
     @template.update()
     @loader.show()
 
-  subscribe:(callback)->
-    KD.remote.api.JPaymentPlan.getPlanWithCode @planCode, (err, plan)=>
+  fetchPlan: (callback) ->
+    { JPaymentPlan } = KD.remote.api
+    JPaymentPlan.fetchPlanByCode @planCode, callback
+
+  subscribe: (callback) ->
+    @fetchPlan (err, plan) ->
       if not err and plan
         plan.subscribe {}, callback
 
-  askBillingInfo:(callback)->
+  askBillingInfo: (callback) ->
     paymentController = KD.getSingleton('paymentController')
     paymentController.setBillingInfo 'user', callback
 
-  confirmSubscription:(callback)->
-    KD.remote.api.JPaymentPlan.getPlanWithCode @planCode, (err,plan)=>
+  confirmSubscription: (callback) ->
+    @fetchPlan (err, plan) ->
 
       title     = plan.title
       price     = plan.feeMonthly / 100

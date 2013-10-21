@@ -21,7 +21,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
     indexes:
       code         : 'unique'
     sharedMethods  :
-      static       : ['fetchPlans', 'getPlanWithCode', 'fetchAccountDetails']
+      static       : ['fetchPlans', 'fetchPlanByCode', 'fetchAccountDetails']
       instance     : ['getToken', 'getType', 'subscribe', 'getSubscriptions']
     schema         :
       code         : String
@@ -50,7 +50,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
     JPayment.invalidateCacheAndLoad this, selector, force, callback
 
-  @getPlanWithCode = (code, callback) -> @one { code }, callback
+  @fetchPlanByCode = (code, callback) -> @one { code }, callback
 
   getToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @code, callback
