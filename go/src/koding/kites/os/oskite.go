@@ -97,6 +97,7 @@ func main() {
 	}
 	k := kite.New(kiteName, true)
 
+	// handle leftover VMs
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
 		log.LogError(err, 0)
@@ -122,6 +123,24 @@ func main() {
 			info.startTimeout()
 		}
 	}
+
+	// start pinned always-on VMs
+	mongodb.Run("jVMs", func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{"pinnedToHost": k.ServiceUniqueName, "alwaysOn": true}).Iter()
+		for {
+			var vm virt.VM
+			if !iter.Next(&vm) {
+				break
+			}
+			if err := startVM(k, &vm, nil); err != nil {
+				log.LogError(err, 0)
+			}
+		}
+		if err := iter.Close(); err != nil {
+			panic(err)
+		}
+		return nil
+	})
 
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
@@ -167,6 +186,9 @@ func main() {
 		}
 
 		if vm.HostKite == "" || vm.HostKite == "(maintenance)" || vm.HostKite == "(banned)" {
+			if vm.PinnedToHost != "" {
+				return vm.PinnedToHost
+			}
 			return k.ServiceUniqueName
 		}
 		if vm.HostKite == deadService {
@@ -354,14 +376,12 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic("User with too low uid.")
 		}
 
-		info, _ := channel.KiteData.(*VMInfo)
 		var vm *virt.VM
-
 		query := bson.M{"hostnameAlias": channel.CorrelationName}
 		if bson.IsObjectIdHex(channel.CorrelationName) {
 			query = bson.M{"_id": bson.ObjectIdHex(channel.CorrelationName)}
 		}
-		if info != nil {
+		if info, _ := channel.KiteData.(*VMInfo); info != nil {
 			query = bson.M{"_id": info.vm.Id}
 		}
 		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
@@ -370,6 +390,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, &VMNotFoundError{Name: channel.CorrelationName}
 		}
 		vm.ApplyDefaults()
+
+		defer func() {
+			if err := recover(); err != nil {
+				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
+				time.Sleep(time.Second) // penalty for avoiding that the client rapidly sends the request again on error
+				methodError = &kite.InternalKiteError{}
+			}
+		}()
 
 		if method == "webterm.connect" {
 			var params struct {
@@ -401,103 +429,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, &kite.PermissionError{}
 		}
 
-		if vm.Region != config.Region {
-			time.Sleep(time.Second) // to avoid rapid cycle channel loop
-			return nil, &kite.WrongChannelError{}
-		}
-
-		if vm.HostKite == "(maintenance)" {
-			return nil, &UnderMaintenanceError{}
-		}
-
-		if vm.HostKite == "(banned)" {
-			log.Warn("vm '%s' is banned", vm.HostnameAlias)
-			return nil, &AccessDeniedError{}
-		}
-
-		if vm.HostKite != k.ServiceUniqueName {
-			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-				return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}})
-			}); err != nil {
-				time.Sleep(time.Second) // to avoid rapid cycle channel loop
-				return nil, &kite.WrongChannelError{}
-			}
-			vm.HostKite = k.ServiceUniqueName
-		}
-
-		if info == nil {
-			infosMutex.Lock()
-			var found bool
-			info, found = infos[vm.Id]
-			if !found {
-				info = newInfo(vm)
-				infos[vm.Id] = info
-			}
-
-			info.useCounter += 1
-			info.timeout.Stop()
-
-			channel.KiteData = info
-			channel.OnDisconnect(func() {
-				info.mutex.Lock()
-				defer info.mutex.Unlock()
-
-				info.useCounter -= 1
-				info.startTimeout()
-			})
-
-			infosMutex.Unlock()
-		}
-
-		info.vm = vm
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
-
-		defer func() {
-			if err := recover(); err != nil {
-				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
-				time.Sleep(time.Second) // penalty for avoiding that the client rapidly sends the request again on error
-				methodError = &kite.InternalKiteError{}
-			}
-		}()
-
-		if vm.IP == nil {
-			ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
-			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-				return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
-			}); err != nil {
-				panic(err)
-			}
-			vm.IP = ip
-		}
-		if !containerSubnet.Contains(vm.IP) {
-			panic("VM with IP that is not in the container subnet: " + vm.IP.String())
-		}
-
-		if vm.LdapPassword == "" {
-			ldapPassword := utils.RandomString()
-			if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
-				return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
-			}); err != nil {
-				panic(err)
-			}
-			vm.LdapPassword = ldapPassword
-		}
-
-		isPrepared := true
-		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
-			if !os.IsNotExist(err) {
-				panic(err)
-			}
-			isPrepared = false
-		}
-		if !isPrepared || info.currentHostname != vm.HostnameAlias {
-			vm.Prepare(false, log.Warn)
-			if err := vm.Start(); err != nil {
-				log.LogError(err, 0)
-			}
-			info.currentHostname = vm.HostnameAlias
+		if err := startVM(k, vm, channel); err != nil {
+			return nil, err
 		}
 
 		vmWebDir := "/home/" + vm.WebHome + "/Web"
@@ -527,11 +460,110 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if concurrent {
 			requestWaitGroup.Done()
 			defer requestWaitGroup.Add(1)
-			info.mutex.Unlock()
-			defer info.mutex.Lock()
 		}
 		return callback(args, channel, userVos)
 	})
+}
+
+func startVM(k *kite.Kite, vm *virt.VM, channel *kite.Channel) error {
+	if vm.Region != config.Region {
+		time.Sleep(time.Second) // to avoid rapid cycle channel loop
+		return &kite.WrongChannelError{}
+	}
+
+	if vm.HostKite == "(maintenance)" {
+		return &UnderMaintenanceError{}
+	}
+
+	if vm.HostKite == "(banned)" {
+		log.Warn("vm '%s' is banned", vm.HostnameAlias)
+		return &AccessDeniedError{}
+	}
+
+	if vm.HostKite != k.ServiceUniqueName {
+		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}})
+		}); err != nil {
+			time.Sleep(time.Second) // to avoid rapid cycle channel loop
+			return &kite.WrongChannelError{}
+		}
+		vm.HostKite = k.ServiceUniqueName
+	}
+
+	var info *VMInfo
+	if channel != nil {
+		info, _ = channel.KiteData.(*VMInfo)
+	}
+	if info == nil {
+		infosMutex.Lock()
+		var found bool
+		info, found = infos[vm.Id]
+		if !found {
+			info = newInfo(vm)
+			infos[vm.Id] = info
+		}
+
+		if channel != nil {
+			info.useCounter += 1
+			info.timeout.Stop()
+
+			channel.KiteData = info
+			channel.OnDisconnect(func() {
+				info.mutex.Lock()
+				defer info.mutex.Unlock()
+
+				info.useCounter -= 1
+				info.startTimeout()
+			})
+		}
+
+		infosMutex.Unlock()
+	}
+
+	info.vm = vm
+	info.mutex.Lock()
+	defer info.mutex.Unlock()
+
+	if vm.IP == nil {
+		ipInt := NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
+		ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
+		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}})
+		}); err != nil {
+			panic(err)
+		}
+		vm.IP = ip
+	}
+	if !containerSubnet.Contains(vm.IP) {
+		panic("VM with IP that is not in the container subnet: " + vm.IP.String())
+	}
+
+	if vm.LdapPassword == "" {
+		ldapPassword := utils.RandomString()
+		if err := mongodb.Run("jVMs", func(c *mgo.Collection) error {
+			return c.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}})
+		}); err != nil {
+			panic(err)
+		}
+		vm.LdapPassword = ldapPassword
+	}
+
+	isPrepared := true
+	if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+		isPrepared = false
+	}
+	if !isPrepared || info.currentHostname != vm.HostnameAlias {
+		vm.Prepare(false, log.Warn)
+		if err := vm.Start(); err != nil {
+			log.LogError(err, 0)
+		}
+		info.currentHostname = vm.HostnameAlias
+	}
+
+	return nil
 }
 
 func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {

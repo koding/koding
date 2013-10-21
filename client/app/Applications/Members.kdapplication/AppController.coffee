@@ -19,6 +19,8 @@ class MembersAppController extends AppController
     facebook        :
       nicename      : 'Facebook'
       urlLocation   : 'link'
+    google          :
+      nicename      : 'Google'
     # twitter         :
     #   nicename      : 'Twitter'
     # linkedin        :

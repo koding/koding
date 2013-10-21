@@ -4,19 +4,15 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     options.cssClass           = 'machine'
     options.joints             = ['left']
-    options.allowedConnections =
-      EnvironmentDomainItem : ['right']
+    options.allowedConnections = EnvironmentDomainItem : ['right']
 
     super options, data
 
-    vmName = @getData().title
-    @memUsage = new KDProgressBarView
-    @diskUsage = new KDProgressBarView
+    @ramUsage  = new VMRamUsageBar  null, data.title
+    @diskUsage = new VMDiskUsageBar null, data.title
 
   contextMenuItems : ->
-
-    colorSelection = new ColorSelection
-      selectedColor : @getOption 'colorTag'
+    colorSelection = new ColorSelection selectedColor : @getOption 'colorTag'
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
     vmName = @getData().title
@@ -49,40 +45,11 @@ class EnvironmentMachineItem extends EnvironmentItem
   confirmDestroy:->
     (KD.getSingleton 'vmController').remove @getData().title, @bound "destroy"
 
-  viewAppended:->
-    super
-    @updateUsageInfo()
-
-  updateUsageInfo:->
-    @usageFetcher 'fetchRamUsage', @memUsage, 'RAM'
-    @usageFetcher 'fetchDiskUsage', @diskUsage, 'DISK'
-
-  usageFetcher: (method, widget, label)->
-    vm  = @getData().title
-    vmc = KD.getSingleton 'vmController'
-    vmc[method] vm, (usage)->
-      ratio = ((usage.current * 100) / usage.max).toFixed(2)
-      widget.updateBar ratio, '%', label
-
-      if usage.max is 0
-        title =  "Failed to fetch #{label} info"
-      else
-        for key, item of usage
-          usage[key] = KD.utils.formatBytesToHumanReadable item
-
-      widget.setTooltip
-        title     : title or "#{usage.current} of #{usage.max}"
-        placement : "bottom"
-        delayIn   : 300
-        offset    :
-          top     : 2
-          left    : -8
-
   pistachio:->
     """
       <div class='details'>
         {h3{#(title)}}
-        {{> @memUsage}}
+        {{> @ramUsage}}
         {{> @diskUsage}}
         <span class='chevron'></span>
       </div>
