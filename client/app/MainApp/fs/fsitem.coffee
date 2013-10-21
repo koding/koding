@@ -127,8 +127,7 @@ class FSItem extends KDObject
       code    : [
         "php", "pl", "py", "jsp", "asp", "htm","html", "phtml","shtml"
         "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml"
-        "js","json","coffee"
-        "css","styl","sass"
+        "js","json","coffee", "css","styl","sass", "erb"
       ]
       text    : [
         "txt", "doc", "rtf", "csv", "docx", "pdf"
