@@ -1,19 +1,27 @@
-require('./harness');
+require('./harness').run();
 
 var timeout = null;
+var confirmed = 0;
 
 connection.addListener('ready', function () {
-  connection.exchange('node-publish-confirms', {type: 'fanout', confirm: true},
-                      function(exchange) {
-    publish = exchange.publish("", "hello", { mandatory: true });
+  connection.exchange('node-publish-confirms', {type: 'fanout', confirm: true}, function(exchange) {
+    var publish = exchange.publish("", "hello", { mandatory: true });
 
-    publish.addListener('ack', function(){clearTimeout(timeout); connection.end();});
+    publish.addListener('ack', function(){
+      confirmed++;
+      clearTimeout(timeout); 
+      connection.end();
+    });
 
   });
 });
 
 timeout = setTimeout(function() {
-  assert.ok(1, 2);
-}, 5000);
+  process.exit();
+}, 1000);
+
+process.on('exit', function(){
+  assert.equal(confirmed, 1);
+});
 
 

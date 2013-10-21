@@ -1,4 +1,4 @@
-require('./harness');
+require('./harness').run();
 
 var received_count = 0;
 
