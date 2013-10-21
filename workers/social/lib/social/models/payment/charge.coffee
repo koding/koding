@@ -40,7 +40,7 @@ module.exports = class JPaymentCharge extends jraphical.Module
       constructor   : this
       selector      : selector
       method        : 'fetchTransactions'
-      methodOptions : selector.accountCode
+      methodOptions : selector.paymentMethodId
       keyField      : 'uuid'
       message       : 'user transactions'
       forEach       : (k, cached, transaction, stackCb)->
