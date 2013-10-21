@@ -14,7 +14,7 @@ class RegisterOptions extends KDView
 
     optionsHolder.addSubView new KDCustomHTMLView
       tagName  : "li"
-      cssClass : "github active"
+      cssClass : "github active #{'hidden' if KD.runningInFrame()}"
       partial  : "github"
       click    : -> KD.singletons.oauthController.openPopup "github"
       tooltip  :
