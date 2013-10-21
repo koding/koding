@@ -10,7 +10,7 @@ class GroupsAppController extends AppController
     #   order      : 40
     #   topLevel   : yes
     preCondition :
-      condition  : (options, cb)-> cb no
+      condition  : (options, cb)-> cb KD.checkFlag "group-admin"
       failure    : -> KD.getSingleton('router').handleRoute "/Activity"
 
   @privateGroupOpenHandler =(event)->
