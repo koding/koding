@@ -17,8 +17,7 @@ class PaymentWidget extends KDView
     @buttonBilling = new KDButtonView
       title    : "Billing Info"
       cssClass : "hidden"
-      callback : => @askPaymentInfo (status) =>
-                      @updateButtons()
+      callback : => @askPaymentInfo (status) => @updateButtons()
 
     @widgetContent = options.content
     @widgetContent.setClass "hidden"
