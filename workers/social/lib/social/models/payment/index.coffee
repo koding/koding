@@ -56,16 +56,16 @@ module.exports = class JPayment extends Base
         lastName
       }
 
-  @getBalance_ = (account, callback)->
-    recurly.fetchTransactions account, (err, adjs)->
+  @getBalance_ = (account, callback) ->
+    recurly.fetchTransactions account, (err, adjs) ->
       return callback err  if err?
       spent = 0
-      adjs.forEach (adj)->
+      adjs.forEach (adj) ->
         spent += parseInt adj.amount, 10  if adj.status is 'success'
 
-      recurly.getAdjustments account, (err, adjs)->
+      recurly.fetchAdjustments account, (err, adjs) ->
         charged = 0
-        adjs.forEach (adj)->
+        adjs.forEach (adj) ->
           charged += parseInt adj.amount, 10
 
         callback null, spent - charged
