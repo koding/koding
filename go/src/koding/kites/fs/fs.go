@@ -15,7 +15,7 @@ import (
 	"sync"
 )
 
-type Os struct{}
+type Fs struct{}
 
 var (
 	port = flag.String("port", "4002", "port to bind itself")
@@ -49,11 +49,11 @@ func main() {
 	}
 
 	k := kite.New(options)
-	k.AddMethods(new(Os), methods)
+	k.AddMethods(new(Fs), methods)
 	k.Start()
 }
 
-func (Os) ReadDirectory(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
+func (Fs) ReadDirectory(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
 
 	var params struct {
 		Path                string
@@ -111,7 +111,7 @@ func (Os) ReadDirectory(r *protocol.KiteDnodeRequest, result *map[string]interfa
 	return nil
 }
 
-func (Os) Glob(r *protocol.KiteDnodeRequest, result *[]string) error {
+func (Fs) Glob(r *protocol.KiteDnodeRequest, result *[]string) error {
 	var params struct {
 		Pattern string
 	}
@@ -129,7 +129,7 @@ func (Os) Glob(r *protocol.KiteDnodeRequest, result *[]string) error {
 	return nil
 }
 
-func (Os) ReadFile(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
+func (Fs) ReadFile(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
 	var params struct {
 		Path string
 	}
@@ -146,7 +146,7 @@ func (Os) ReadFile(r *protocol.KiteDnodeRequest, result *map[string]interface{})
 	return nil
 }
 
-func (Os) WriteFile(r *protocol.KiteDnodeRequest, result *string) error {
+func (Fs) WriteFile(r *protocol.KiteDnodeRequest, result *string) error {
 	var params struct {
 		Path           string
 		Content        []byte
@@ -167,7 +167,7 @@ func (Os) WriteFile(r *protocol.KiteDnodeRequest, result *string) error {
 	return nil
 }
 
-func (Os) EnsureNonexistentPath(r *protocol.KiteDnodeRequest, result *string) error {
+func (Fs) EnsureNonexistentPath(r *protocol.KiteDnodeRequest, result *string) error {
 	var params struct {
 		Path string
 	}
@@ -185,7 +185,7 @@ func (Os) EnsureNonexistentPath(r *protocol.KiteDnodeRequest, result *string) er
 	return nil
 }
 
-func (Os) GetInfo(r *protocol.KiteDnodeRequest, result *fsutils.FileEntry) error {
+func (Fs) GetInfo(r *protocol.KiteDnodeRequest, result *fsutils.FileEntry) error {
 	var params struct {
 		Path string
 	}
@@ -202,7 +202,7 @@ func (Os) GetInfo(r *protocol.KiteDnodeRequest, result *fsutils.FileEntry) error
 	return nil
 }
 
-func (Os) SetPermissions(r *protocol.KiteDnodeRequest, result *bool) error {
+func (Fs) SetPermissions(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		Path      string
 		Mode      os.FileMode
@@ -222,7 +222,7 @@ func (Os) SetPermissions(r *protocol.KiteDnodeRequest, result *bool) error {
 
 }
 
-func (Os) Remove(r *protocol.KiteDnodeRequest, result *bool) error {
+func (Fs) Remove(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		Path      string
 		Recursive bool
@@ -241,7 +241,7 @@ func (Os) Remove(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (Os) Rename(r *protocol.KiteDnodeRequest, result *bool) error {
+func (Fs) Rename(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		OldPath string
 		NewPath string
@@ -260,7 +260,7 @@ func (Os) Rename(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (Os) CreateDirectory(r *protocol.KiteDnodeRequest, result *bool) error {
+func (Fs) CreateDirectory(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		Path      string
 		Recursive bool
