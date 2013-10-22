@@ -49,13 +49,11 @@ module.exports = class JGroupBundle extends JBundle
 
   canCreateVM: (account, group, data, callback)->
     { type, planCode, paymentMethodId } = data
-
-    console.log { type, planCode, paymentMethodId, arguments }
-
-    if type is 'user'
-      planOwner = "user_#{account._id}"
-    else if type in ['group', 'expensed']
-      planOwner = "group_#{group._id}"
+#
+#    if type is 'user'
+#      planOwner = "user_#{account._id}"
+#    else if type in ['group', 'expensed']
+#      planOwner = "group_#{group._id}"
 
     JPaymentSubscription.fetchAllSubscriptions
       userCode: planOwner
