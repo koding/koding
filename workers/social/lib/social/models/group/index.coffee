@@ -1402,10 +1402,10 @@ module.exports = class JGroup extends Module
       else
         callback new KodingError 'Unable to fetch group bundle'
 
-  canCreateVM: secure ({connection:{delegate}}, data, callback)->
+  canCreateVM: secure ({ connection:{ delegate }}, data, callback)->
     @checkVmType data, (err) =>
       return callback err  if err
-      @fetchOrCreateBundle (err, bundle)->
+      @fetchOrCreateBundle (err, bundle) =>
         return callback err  if err
         bundle.canCreateVM delegate, this, data, callback
 

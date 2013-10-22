@@ -66,10 +66,11 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   @fetchSubscriptions = (paymentMethodId, callback) ->
     @fetchAllSubscriptions { paymentMethodId }, callback
 
-  @fetchAllSubscriptions = (selector, callback) ->
+  @fetchAllSubscriptions = (selector, callback, rest...) ->
     JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @updateCache = (selector, callback)->
+    console.log { selector }
     JPayment.updateCache
       constructor   : this
       selector      : { paymentMethodId: selector.paymentMethodId }
