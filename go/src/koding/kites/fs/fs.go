@@ -32,6 +32,7 @@ func main() {
 		PublicIP: "localhost",
 		Kitename: "fs",
 		Version:  "1",
+		Kind:     "vm",
 		Port:     *port,
 	}
 

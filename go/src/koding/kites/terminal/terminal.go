@@ -36,7 +36,7 @@ type WebtermRemote struct {
 
 type Terminal struct{}
 
-var port = flag.String("port", "", "port to bind itself")
+var port = flag.String("port", "4003", "port to bind itself")
 
 func main() {
 	flag.Parse()
@@ -44,6 +44,7 @@ func main() {
 		PublicIP: "localhost",
 		Kitename: "terminal",
 		Version:  "1",
+		Kind:     "vm",
 		Port:     *port,
 	}
 
