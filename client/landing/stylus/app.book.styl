@@ -31,7 +31,7 @@
     top                     33px
     right                   61px
     z-index                 999
-    size                    685px, auto
+    size                    auto, auto
     text-align              right
     .page-nav
       display               inline-block
@@ -260,6 +260,14 @@ section.page
         margin          70px 30px 0 400px
         p
           padding-left  0
+    &.more-5
+      bg                image, url("../images/book/drag-drop.jpg")
+      bg                position, 40px 70px
+      >article
+        margin          70px 30px 0 400px
+        p
+          padding-left  0
+
   &.terminal
     bg                  image, url("../images/book/13a.png")
     bg                  position, left 80px
@@ -289,6 +297,10 @@ section.page
     bg                  image, url("../images/book/18.png")
     bg                  position, right bottom
 
+  &.share
+    bg                  image, url("../images/book/share.jpg")
+    bg                  position, 90% 100px
+
   &.etiquette
     bg                  image, url("../images/book/19.png")
     bg                  position, right 90%
@@ -305,6 +317,8 @@ section.page
   &.enjoy
     bg                  image, url("../images/book/08.png")
     bg                  position, center 74px
+    .embedded
+      abs               30px, 165px
     >article
       overflow          visible
       p
@@ -348,7 +362,6 @@ section.page
     font-size           32px
     border-bottom       1px solid rgba(0,0,0,.08)
     padding-left        43px
-
 
 
 #kdmaincontainer > .pointer
