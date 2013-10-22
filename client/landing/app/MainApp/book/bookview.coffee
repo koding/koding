@@ -408,24 +408,32 @@ class BookView extends JView
       @pointer.$().offset offsetTo
 
   showNewVMMenu:->
-    @pointer.once 'transitionend', =>
-      # click animation
-      @clickAnimation()
-      # click menu
-      @mainView.sidebar.createNewVMButton.$().click()
-      @utils.wait 500, =>
-        @destroyPointer()
-
-    # move book to up to make button visible
-    if not @hasClass 'moveUp' then @setClass 'moveUp'
-    # if sidebar is closed opens it.
     @mainView.sidebar.animateLeftNavOut()
 
-    @utils.wait 800 , =>
-      # find new VM mwnu button
-      offsetTo = @mainView.sidebar.createNewVMButton.$().offset()
-      # navigate cursor to there
-      @pointer.$().offset offsetTo
+    callback = =>
+      button = KD.getSingleton("appManager").get("StartTab").getView().serverContainer.machinesContainer.newItemPlus.$()
+
+      @pointer.once "transitionend", =>
+        button.click()
+        @clickAnimation()
+        @utils.wait 1000, =>
+          @destroyPointer()
+
+      @pointer.$().offset button.offset()
+
+    toggle = KD.getSingleton("appManager").get("StartTab").getView().serverContainerToggle
+    @pointer.once 'transitionend', =>
+      if toggle.getState().title is "Show environments"
+        @clickAnimation()
+        toggle.$().click()
+        @utils.wait 2000, =>
+          callback()
+      else
+        callback()
+
+    @mainView.once 'transitionend', =>
+      @utils.wait 200, =>
+        @pointer.$().offset toggle.$().offset()
 
   showConversationsPanel:->
     @pointer.once 'transitionend', =>
