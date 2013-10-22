@@ -24,11 +24,12 @@ class VirtualizationController extends KDController
       if /^vm\./.test options.method
         options.kiteName = "os-local"
 
-      if /^fs\./.test options.method
-        options.kiteName = "fs"
+      if vmName is "local-#{KD.whoami().profile.nickname}"
+        if /^fs\./.test options.method
+            options.kiteName = "fs"
 
-      if /^webterm\./.test options.method
-        options.kiteName = "terminal"
+        if /^webterm\./.test options.method
+            options.kiteName = "terminal"
 
       if options.method in ['exec', 'spawn']
         options.kiteName = "os-local"

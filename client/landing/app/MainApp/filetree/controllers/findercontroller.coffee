@@ -131,6 +131,10 @@ class NFinderController extends KDViewController
     pipedVm = @_pipedVmName vmName
     path or= vmRoots[pipedVm] or "/home/#{KD.nick()}"
 
+    if vmName is "local-#{KD.nick()}"
+      # path = "/Users/#{KD.nick()}"
+      path = "/Users/fatih"
+
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
 

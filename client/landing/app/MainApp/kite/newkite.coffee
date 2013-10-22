@@ -26,7 +26,7 @@ class NewKite extends KDEventEmitter
   bound: Bongo.bound
 
   connectDirectly:->
-    console.log "trying to connect to #{@addr}"
+    # console.log "trying to connect to #{@addr}"
     @ws = new WebSocket "ws://#{@addr}/sock"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
@@ -67,7 +67,7 @@ class NewKite extends KDEventEmitter
     @emit 'ready'
 
   onClose: (evt) ->
-    console.log "#{@kiteName}: disconnected, trying to reconnect"
+    # console.log "#{@kiteName}: disconnected, trying to reconnect"
     @readyState = CLOSED
     if @autoReconnect
       KD.utils.defer => @setBackoffTimeout @bound "connect"
