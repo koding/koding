@@ -37,7 +37,7 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"fs.createDirectory":       "ReadDirectory",
+		"fs.createDirectory":       "CreateDirectory",
 		"fs.ensureNonexistentPath": "EnsureNonexistentPath",
 		"fs.getInfo":               "GetInfo",
 		"fs.glob":                  "Glob",

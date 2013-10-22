@@ -19,10 +19,9 @@ class VirtualizationController extends KDController
         withArgs : command
 
     @fetchVmName options, (err, vmName) =>
-      return callback err  if err?
 
-      if /^vm\./.test options.method
-        options.kiteName = "os-local"
+      # if /^vm\./.test options.method
+      #   options.kiteName = "osk"
 
       if vmName is "local-#{KD.whoami().profile.nickname}"
         if /^fs\./.test options.method
@@ -30,6 +29,9 @@ class VirtualizationController extends KDController
 
         if /^webterm\./.test options.method
             options.kiteName = "terminal"
+
+        if /^vm\./.test options.method
+          options.kiteName = "fs"
 
       if options.method in ['exec', 'spawn']
         options.kiteName = "os-local"
