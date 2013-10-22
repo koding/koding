@@ -29,15 +29,15 @@ class EnvironmentsMainScene extends JView
       # rulesContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
 
     # Domains Container
-    domainsContainer = new EnvironmentDomainContainer
-    @scene.addContainer domainsContainer
-    domainsContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
+    @domainsContainer = new EnvironmentDomainContainer
+    @scene.addContainer @domainsContainer
+    @domainsContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
 
     # VMs / Machines Container
-    machinesContainer = new EnvironmentMachineContainer
-    @scene.addContainer machinesContainer
+    @machinesContainer = new EnvironmentMachineContainer
+    @scene.addContainer @machinesContainer
 
-    @_containers = [machinesContainer, domainsContainer]
+    @_containers = [@machinesContainer, @domainsContainer]
 
     if KD.checkFlag 'nostradamus'
       # Rules Container
@@ -50,16 +50,16 @@ class EnvironmentsMainScene extends JView
 
     @refreshContainers()
 
-    @domainCreateForm.on 'DomainSaved', domainsContainer.bound 'loadItems'
+    @domainCreateForm.on 'DomainSaved', @domainsContainer.bound 'loadItems'
     KD.getSingleton("vmController").on 'VMListChanged', \
                                         @bound 'refreshContainers'
 
-    # Plus button on domainsContainer opens up the action area
-    domainsContainer.on 'PlusButtonClicked', =>
+    # Plus button on @domainsContainer opens up the action area
+    @domainsContainer.on 'PlusButtonClicked', =>
       return unless KD.isLoggedIn()
         new KDNotificationView title: "You need to login to add a new domain."
 
-      return if machinesContainer.diaCount() is 0
+      return if @machinesContainer.diaCount() is 0
         new KDNotificationView
           title: "You need to have at least one VM to manage domains."
 
@@ -71,13 +71,13 @@ class EnvironmentsMainScene extends JView
     vmController = KD.getSingleton 'vmController'
 
     vmController.on "VMPlansFetchStart", =>
-      machinesContainer.showLoader()
+      @machinesContainer.showLoader()
 
     vmController.on "VMPlansFetchEnd", =>
-      machinesContainer.hideLoader()
+      @machinesContainer.hideLoader()
 
-    # Plus button on machinesContainer uses the vmController
-    machinesContainer.on 'PlusButtonClicked', =>
+    # Plus button on @machinesContainer uses the vmController
+    @machinesContainer.on 'PlusButtonClicked', =>
       return unless KD.isLoggedIn()
         new KDNotificationView
           title: "You need to login to create a new machine."
