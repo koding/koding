@@ -356,13 +356,12 @@ class GroupsAppController extends AppController
               modal.destroy()
               callback null
 
-  joinGroup:(group)->
+  joinGroup:(group, callback)->
     group.join (err, response)=>
-      return KD.showError err  if err
-      KD.track "Groups", "JoinedGroup", group.slug
-      new KDNotificationView
-        title : "You've successfully joined the group!"
-      KD.getSingleton('mainController').emit 'JoinedGroup'
+      unless err
+        callback err, response
+        KD.track "Groups", "JoinedGroup", group.slug
+        KD.getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>
