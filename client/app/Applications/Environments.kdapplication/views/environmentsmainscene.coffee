@@ -20,6 +20,14 @@ class EnvironmentsMainScene extends JView
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
 
+    @scene.addSubView new KDCustomHTMLView cssClass : 'internet'
+
+    if KD.checkFlag 'nostradamus'
+      # Rules Container
+      rulesContainer = new EnvironmentRuleContainer
+      @scene.addContainer rulesContainer
+      # rulesContainer.on "itemRemoved", @domainCreateForm.bound "updateDomains"
+
     # Domains Container
     domainsContainer = new EnvironmentDomainContainer
     @scene.addContainer domainsContainer
@@ -29,7 +37,14 @@ class EnvironmentsMainScene extends JView
     machinesContainer = new EnvironmentMachineContainer
     @scene.addContainer machinesContainer
 
-    @_containers = [domainsContainer, machinesContainer]
+    @_containers = [machinesContainer, domainsContainer]
+
+    if KD.checkFlag 'nostradamus'
+      # Rules Container
+      extrasContainer = new EnvironmentExtraContainer
+      @scene.addContainer extrasContainer
+      @_containers = @_containers.concat [rulesContainer, extrasContainer]
+
     for container in @_containers
       container.on 'DataLoaded', @scene.bound 'updateConnections'
 
