@@ -182,34 +182,41 @@ class CollaborativeWorkspace extends Workspace
       content = "It seems, host is disconnected from Firebase server. You cannot continue this session."
 
     @disconnectedModal = new KDBlockingModalView
-      title        : title
-      content      : "<p>#{content}</p>"
-      cssClass     : "host-disconnected-modal"
-      overlay      : yes
-      buttons      :
-        Start      :
-          title    : "Start New Session"
-          callback : =>
+      title            : title
+      appendToDomBody  : no
+      content          : "<p>#{content}</p>"
+      cssClass         : "host-disconnected-modal"
+      overlay          : no
+      buttons          :
+        Start          :
+          title        : "Start New Session"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
             @startNewSession()
-        Join       :
-          title    : "Join Another Session"
-          callback : =>
+        Join           :
+          title        : "Join Another Session"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
-            @showSessionModal (modal) ->
-              modal.modalTabs.showPaneByIndex(1)
-        Exit       :
-          title    : "Exit App"
-          cssClass : "modal-cancel"
-          callback : =>
+            @showJoinModal()
+        Exit           :
+          title        : "Exit App"
+          cssClass     : "modal-cancel"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
-            appManager = KD.getSingleton("appManager")
+            appManager = KD.getSingleton "appManager"
             appManager.quit appManager.frontApp
 
-  showJoinModal: (callback = noop) ->
+    @disconnectedModal.on "KDObjectWillBeDestroyed", =>
+      delete @disconnectedModal
+      @disconnectOverlay.destroy()
+
+    @disconnectOverlay = new KDOverlayView
+      parent           : KD.singletons.mainView.mainTabView.activePane
+      isRemovable      : no
+
+    @container.getDomElement().append @disconnectedModal.getDomElement()
+
+  showJoinModal: ->
     options        = @getOptions()
     modal          = new KDModalView
       title        : options.joinModalTitle   or "Join New Session"
@@ -231,8 +238,6 @@ class CollaborativeWorkspace extends Workspace
       type         : "text"
       placeholder  : "Paste new session key and hit enter to join"
       callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
-
-    callback modal
 
   handleJoinASessionFromModal: (sessionKey, modal) ->
     return unless sessionKey
