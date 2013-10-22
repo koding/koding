@@ -357,7 +357,7 @@ app.profile.styl
       size                400px, 0px
       &.opened
         height            400px
-        &.webcam
+        &.wide
           height          300px
           video
           canvas
@@ -365,6 +365,7 @@ app.profile.styl
             abs           0px
 
       .avatarview
+        background-size   auto 400px
         box-shadow        inset 0px 7px 20px -10px rgba(0,0,0,0.5),
                           0 7px 20px -7px rgba(0,0,0,0.8)
 
@@ -378,6 +379,10 @@ app.profile.styl
         font-weight       bold
         margin-left       10px
         line-height       24px
+
+        &.loading
+          padding-left    15px
+          background      url(/images/small-loader.gif) left center no-repeat
 
       &:first-of-type
         vendor            transition-duration, 100ms
@@ -397,9 +402,14 @@ app.profile.styl
         margin-top        -72px
         opacity           0
 
-    &.loading
+    &.uploadview
       article:first-of-type
         margin-top        -96px
+        opacity           0
+
+    &.loading
+      article:first-of-type
+        margin-top        -120px
         opacity           0
 
 
