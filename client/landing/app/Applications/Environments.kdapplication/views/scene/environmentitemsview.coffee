@@ -7,7 +7,7 @@ class EnvironmentItem extends KDDiaObject
     options.bind           = KD.utils.curry "contextmenu", options.bind
     options.jointItemClass = EnvironmentItemJoint
     options.draggable      = no
-    options.colorTag       ?= "#a2a2a2"
+    options.colorTag      ?= "#a2a2a2"
 
     super options, data
 
@@ -18,13 +18,10 @@ class EnvironmentItem extends KDDiaObject
     colorSelection.on "ColorChanged", @bound 'setColorTag'
 
     items =
-      'Delete'    :
+      Delete      :
         disabled  : KD.isGuest()
         separator : yes
         action    : 'delete'
-      'Unfocus'   :
-        separator : yes
-        action    : 'unfocus'
       customView  : colorSelection
 
     return items
@@ -83,7 +80,6 @@ class EnvironmentItem extends KDDiaObject
     @setColorTag color  if color
 
   pipedVmName = (vmName)-> vmName.replace /\./g, '|'
-
 
   click:(event)->
 
