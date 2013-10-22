@@ -101,9 +101,11 @@ app.starttab.styl
   border                    1px solid #ccc
   position                  relative
   opacity                   0
-  vendor                    transition, opacity 1s ease-in
+  vendor                    transition, opacity 1s ease-in \, top .3s ease-in-out
   &.in
     opacity                 1
+  &.on-top
+    top                     -5px
 
 .environment-content
   left                      0
