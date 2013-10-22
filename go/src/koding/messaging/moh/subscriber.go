@@ -18,7 +18,8 @@ type Subscriber struct {
 
 	// Connection to the Publisher.
 	// Will be non-nil when the subscriber is connected.
-	ws *websocket.Conn
+	ws      *websocket.Conn
+	wsMutex sync.Mutex
 
 	// Are we going to re-connect?
 	reconnect bool
@@ -73,14 +74,14 @@ func (s *Subscriber) Connect() chan bool {
 // Close closes the open websocket connection to the server. Does not do
 // anything if it is already closed.
 func (s *Subscriber) Close() {
+	s.wsMutex.Lock()
+	defer s.wsMutex.Unlock()
+
 	s.reconnect = false
-	// Declare a variable for ws because it can be set to nil by consumer().
-	// We don't want to call Close() on a nil pointer.
-	ws := s.ws
-	if ws == nil {
-		return
+
+	if s.ws != nil {
+		s.ws.Close()
 	}
-	ws.Close()
 }
 
 // Subscribe registers the Subscriber to receive messages matching with the key.
@@ -90,9 +91,11 @@ func (s *Subscriber) Subscribe(key string) {
 	s.keys[key] = true
 	s.keysMutex.Unlock()
 
+	s.wsMutex.Lock()
+	defer s.wsMutex.Unlock()
+
 	// Do not send the command if it is not connected
-	ws := s.ws
-	if ws == nil {
+	if s.ws == nil {
 		return
 	}
 
@@ -104,7 +107,7 @@ func (s *Subscriber) Subscribe(key string) {
 
 	// We do not check for the error here because if it fails the command will
 	// be sent by sendSubscriptionCommands() after re-connecting.
-	websocket.JSON.Send(ws, cmd)
+	websocket.JSON.Send(s.ws, cmd)
 }
 
 // Unsubscribe stops the Subscriber from receiving messages matching with the key.
@@ -147,7 +150,9 @@ func (s *Subscriber) connect() error {
 	}
 
 	log.Println("Connection is successfull")
+	s.wsMutex.Lock()
 	s.ws = ws
+	s.wsMutex.Unlock()
 	return nil
 }
 
