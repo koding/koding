@@ -11,15 +11,13 @@ class PermissionsModal extends KDFormViewWithFields
 
     roles = (role.title for role in options.roles when role.title isnt 'owner')
 
+    addRoleDialog = null
     options.buttons or=
       "Add Role"          :
         style             : "modal-clean-gray"
         cssClass          : 'add-role'
-        loader            :
-          color           : "#444444"
-          diameter        : 12
         callback          : =>
-
+          addRoleDialog?.destroy()
           KD.getSingleton('contentPanel').addSubView addRoleDialog = new KDDialogView
             cssClass      : "add-role-dialog"
             duration      : 200
@@ -61,7 +59,6 @@ class PermissionsModal extends KDFormViewWithFields
                 style     : "add-role-cancel modal-cancel"
                 cssClass  : 'add-role-cancel'
                 callback  : =>
-                  @buttons["Add Role"].hideLoader()
                   addRoleDialog.hide()
 
           addRoleDialog.addSubView wrapper = new KDView
@@ -124,10 +121,14 @@ class PermissionsModal extends KDFormViewWithFields
   readableText = (text)->
     dictionary =
       "JTag"        : "Tags"
-      "JGroup"      : 'Groups'
-      "JPost"       :'Posts'
-      "JVocabulary" : 'Vocabularies'
+      "JGroup"      : "Groups"
+      "JPost"       : "Posts"
+      "JVocabulary" : "Vocabularies"
       "JVM"         : "Compute"
+      "CActivity"   : "Activity"
+      "JGroupBundle": "Group Bundles"
+      "JDomain"     : "Domains"
+      "JProxyFilter": "Proxy Filters"
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
   _getCheckboxName =(module, permission, role)->

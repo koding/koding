@@ -45,7 +45,7 @@ class AceAppController extends AppController
     fileTypes     : [
       "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
       "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml", "diff",
-      "js","json", "coffee", "css","styl","sass", "scss", "less", "txt"
+      "js","json", "coffee", "css","styl","sass", "scss", "less", "txt", "erb"
     ]
     # mimeTypes    : "text"
 

@@ -144,7 +144,7 @@ __aceSettings =
     rdoc        : ["RDOC"         , "rdoc"]
     powershell  : ["Powershell"   , "ps1"]
     python      : ["Python"       , "py"]
-    ruby        : ["Ruby"         , "ru|gemspec|rake|rb"]
+    ruby        : ["Ruby"         , "ru|gemspec|rake|rb|erb"]
     scad        : ["OpenSCAD"     , "scad"]
     scala       : ["Scala"        , "scala"]
     scss        : ["SCSS"         , "scss|sass"]

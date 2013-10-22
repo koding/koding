@@ -32,9 +32,6 @@ module.exports = (account)->
               <a class="title"><span class="main-nav-icon members"></span>Members</a>
             </div>
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-              <a class="title"><span class="main-nav-icon groups"></span>Groups</a>
-            </div>
-            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
               <a class="title"><span class="main-nav-icon develop"></span>Develop</a>
             </div>
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">

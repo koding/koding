@@ -15,7 +15,6 @@ class OpinionListItemView extends KDListItemView
     # FIXME
     # this is really lazy loading. opinionsByRange should yield
     # the comments by default. fetchOpinion is not capable of doing that.
-
     if data.repliesCount and not data.replies? # comments are not in data
       data.commentsByRange                   # so we fetch them manually
         from : 0
