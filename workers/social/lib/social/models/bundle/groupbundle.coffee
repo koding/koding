@@ -56,7 +56,7 @@ module.exports = class JGroupBundle extends JBundle
 #      planOwner = "group_#{group._id}"
 
     JPaymentSubscription.fetchAllSubscriptions
-      userCode: planOwner
+      userCode: paymentMethodId
       planCode: planCode
       $or: [
         {status: 'active'}
