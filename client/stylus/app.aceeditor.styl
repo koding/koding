@@ -161,7 +161,6 @@ app.aceeditor.styl
         border-color #cfcfcf !important
 
 .editor-bottom-bar
-  bottom                0
   color                 #282828
   border                1px solid #e2e2e2
   border-top-color      #dadada
@@ -170,6 +169,8 @@ app.aceeditor.styl
   size                  100%,20px
   z-index               1000
   borderBox()
+  &.clearfix
+    bottom              0
 
   .kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
     border-left         1px solid #e2e2e2

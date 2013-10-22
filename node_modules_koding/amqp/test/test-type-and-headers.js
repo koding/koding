@@ -1,4 +1,4 @@
-require('./harness');
+require('./harness').run();
 // test-type-and-headers.js
 var recvCount = 0;
 var body = "the devil is in the type, and also in the headers";

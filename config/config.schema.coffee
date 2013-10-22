@@ -140,7 +140,6 @@ config =
       watch         : 1
       watchDuration : 1
       includesPath  : 1
-      websitePath   : 1
       indexMaster   : 1
       index         : 1
       useStaticFileServer: 1
@@ -244,6 +243,10 @@ config =
       clientId      : 1
       clientSecret  : 1
       redirectUri   : 1
+    google          :
+      client_id     : 1
+      client_secret : 1
+      redirect_uri  : 1
     statsd          :
       use           : 1
       ip            : 1
