@@ -116,8 +116,10 @@ module.exports = class JDomain extends jraphical.Module
   @isDomainEligible: (params, callback)->
     {delegate, domain} = params
 
-    unless /\.kd\.io$/.test domain
-      return callback new KodingError("Invalid domain: {#domain}.", "INVALIDDOMAIN")
+    {nickname} = delegate.profile
+
+    unless ///\.#{nickname}\.kd\.io$///.test domain
+      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
 
     match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
 
@@ -126,7 +128,7 @@ module.exports = class JDomain extends jraphical.Module
 
     [rest..., prefix, slug] = match
 
-    if slug is delegate.profile.nickname
+    if slug is nickname
       callback null, !/^vm[\-]([0-9]+)$/.test prefix
     else
       JGroup.one {slug:'koding'}, (err, group)->
