@@ -4,41 +4,41 @@ JPayment    = require './index'
 
 module.exports = class JPaymentGroup extends JPayment
 
-  { groupCodeOf } = this
+  # { groupCodeOf } = this
 
-  @setPaymentInfo = (client, group, data, callback)->
+  # @setPaymentInfo = (client, group, data, callback)->
+  #   console.trace()
+  #   group.fetchOwner (err, owner) ->
+  #     return callback err  if err
+  #     owner.fetchUser (err, ownerUser) ->
+  #       return callback err  if err
 
-    group.fetchOwner (err, owner) ->
-      return callback err  if err
-      owner.fetchUser (err, ownerUser) ->
-        return callback err  if err
+  #       {email, username} = ownerUser
 
-        {email, username} = ownerUser
+  #       {firstName, lastName} = owner.profile
 
-        {firstName, lastName} = owner.profile
+  #       paymentMethodId = groupCodeOf group
 
-        paymentMethodId = groupCodeOf group
+  #       extend data, {
+  #         paymentMethodId
+  #         email
+  #         username
+  #         firstName
+  #         lastName
+  #       }
 
-        extend data, {
-          paymentMethodId
-          email
-          username
-          firstName
-          lastName
-        }
-
-        recurly.setAccountDetailsByPaymentMethodId paymentMethodId, data, (err, res) ->
-          return callback err  if err
-          recurly.setPaymentMethodById paymentMethodId, data, callback
-
-  @fetchAccountDetails = (group, callback) ->
-    recurly.fetchAccountDetailsByPaymentMethodId (groupCodeOf group), callback
-
-  @fetchPaymentMethod = (group, callback) ->
-    recurly.fetchPaymentMethodById (groupCodeOf group), callback
-
-  @fetchTransactions = (group, callback) ->
-    recurly.fetchTransactions (groupCodeOf group), callback
+  #       recurly.setAccountDetailsByPaymentMethodId paymentMethodId, data, (err, res) ->
+  #         return callback err  if err
+  #         recurly.setPaymentMethodById paymentMethodId, data, callback
+#
+#  @fetchAccountDetails = (group, callback) ->
+#    recurly.fetchAccountDetailsByPaymentMethodId (groupCodeOf group), callback
+#
+#  @fetchPaymentMethod = (group, callback) ->
+#    recurly.fetchPaymentMethodById (groupCodeOf group), callback
+#
+#  @fetchTransactions = (group, callback) ->
+#    recurly.fetchTransactions (groupCodeOf group), callback
 
   @addPlan = (group, data, callback)->
     data.feeMonthly = data.price

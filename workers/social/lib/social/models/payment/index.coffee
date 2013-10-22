@@ -8,16 +8,6 @@ module.exports = class JPayment extends Base
 
   JUser = require '../user'
 
-  prefixedId = (prefix) -> (ob) ->
-    toString  : -> "#{prefix}#{ob.getId()}"
-    prefix    : prefix
-    target    : ob
-
-  @userCodeOf  = prefixedId 'user_'
-  @groupCodeOf = prefixedId 'group_'
-
-  { userCodeOf } = this
-
   @share()
 
   @set
@@ -39,10 +29,12 @@ module.exports = class JPayment extends Base
     (require './method').updatePaymentMethodById client, paymentMethodId, data, callback
 
   @fetchAccountDetails = secure ({ connection:{ delegate }}, callback)->
-    recurly.fetchAccountDetailsByPaymentMethodId (userCodeOf delegate), callback
+    throw Error 'needs to be reimplemented'
+#    recurly.fetchAccountDetailsByPaymentMethodId (userCodeOf delegate), callback
 
   @fetchTransactions = secure ({ connection:{ delegate }}, callback) ->
-    recurly.fetchTransactions (userCodeOf delegate), callback
+    throw Error 'needs to be reimplemented'
+#    recurly.fetchTransactions (userCodeOf delegate), callback 
 
   @fetchAccount = secure (client, callback) ->
     {delegate} = client.connection
@@ -71,8 +63,9 @@ module.exports = class JPayment extends Base
         callback null, spent - charged
 
   @getBalance = secure (client, callback)->
-    {delegate} = client.connection
-    @getBalance_ (userCodeOf delegate), callback
+    throw Error 'needs to be reimplemented'
+#    {delegate} = client.connection
+#    @getBalance_ (userCodeOf delegate), callback
 
   @invalidateCacheAndLoad: (constructor, selector, options, callback)->
     cb = -> constructor.all selector, callback
