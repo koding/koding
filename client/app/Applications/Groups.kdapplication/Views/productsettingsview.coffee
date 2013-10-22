@@ -106,33 +106,37 @@ class GroupProductListItem extends KDListItemView
 
     {code} = @getData()
 
-    codeCheck  = """
-                 KD.remote.api.JPaymentSubscription.checkUserSubscription '#{code}', (err, subscriptions)->
-                   if not err and subscriptions.length > 0
-                     console.log "User is subscribed to the plan."
-                 """
+    codeCheck =
+      """
+      KD.remote.api.JPaymentSubscription.checkUserSubscription '#{code}', (err, subscriptions)->
+        if not err and subscriptions.length > 0
+          console.log "User is subscribed to the plan."
+      """
 
-    codeGet    = """
-                 KD.remote.api.JPaymentPlan.fetchPlanByCode '#{code}', (err, plan)->
-                   if not err and plan
-                    plan.fetchSubscriptions (err, subs)->
-                      console.log "Subscribers:", subs
-                 """
+    codeGet =
+      """
+      KD.remote.api.JPaymentPlan.fetchPlanByCode '#{code}', (err, plan)->
+        if not err and plan
+          plan.fetchSubscriptions (err, subs)->
+            console.log "Subscribers:", subs
+      """
 
-    codeWidget = """@content = new KDButtonView
-                    cssClass   : "clean-gray test-input"
-                    title      : "Subscribed! View Video"
-                    callback   : ->
-                      console.log "Open video..."
+    codeWidget =
+      """
+      @content = new KDButtonView
+        cssClass   : "clean-gray test-input"
+        title      : "Subscribed! View Video"
+        callback   : ->
+          console.log "Open video..."
 
-                    @payment = new PaymentWidget
-                      planCode        : '#{code}'
-                      contentCssClass : 'modal-clean-green'
-                      content         : @content
+      @payment = new PaymentWidget
+        planCode        : '#{code}'
+        contentCssClass : 'modal-clean-green'
+        content         : @content
 
-                    @payment.on "subscribed", ->
-                      console.log "User is subscribed."
-                  """
+      @payment.on "subscribed", ->
+        console.log "User is subscribed."
+      """
 
     @embedButton = new KDButtonView
       title    : "View Embed Code"
