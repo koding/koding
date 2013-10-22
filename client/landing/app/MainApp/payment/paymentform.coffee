@@ -105,7 +105,7 @@ class PaymentForm extends KDFormViewWithFields
     super
       fields                : fields
       callback              : (formData) =>
-        @emit 'PaymentInfoSubmitted', @getData()?.paymentMethodId, formData
+        @emit 'PaymentInfoSubmitted', @paymentMethodId, formData
       buttons               :
         Save                :
           title             : 'Save'
@@ -130,7 +130,7 @@ class PaymentForm extends KDFormViewWithFields
   getCardInputValue:->
     @inputs['cardNumber'].getValue().replace /-|\s/g, ''
 
-  getCardType: (value = @getCardInputValue())->
+  getCardType: (value = @getCardInputValue()) ->
     ###
     Visa:             start with a 4. New cards have 16 digits. Old cards have 13.
     MasterCard:       start with the numbers 51 through 55. All have 16 digits.
@@ -166,7 +166,7 @@ class PaymentForm extends KDFormViewWithFields
   handleCardKeyup: (event) -> @updateCardTypeDisplay()
 
   setPaymentInfo: (paymentMethod) ->
-    @setData paymentMethod
+    @paymentMethodId = paymentMethod.paymentMethodId
     for own key, value of paymentMethod.billing
       switch key
         when 'state'
