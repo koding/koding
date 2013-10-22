@@ -603,18 +603,21 @@ class BookView extends JView
     @pointer.once 'transitionend', =>
       @clickAnimation()
       @mainView.appSettingsMenuButton.$().click()
-      {advancedSettings} = @mainView.appSettingsMenuButton.contextMenu.treeController.nodes
 
-      offsetTo = advancedSettings?.$().offset()
-      # navigate settings icon
-      @utils.wait 1000, =>
+      @utils.wait 200, =>
+        {advancedSettings} = @mainView.appSettingsMenuButton.contextMenu.treeController.nodes
+
+        offsetTo = advancedSettings?.$().offset()
+        # navigate settings icon
         @pointer.once 'transitionend', =>
-          advancedSettings.setClass "selected"
-          advancedSettings.$().click()
-          @clickAnimation()
           @utils.wait 1000, =>
-            @unsetClass 'aside'
-            @destroyPointer()
+            advancedSettings.setClass "selected"
+            advancedSettings.$().click()
+            @clickAnimation()
+            @utils.wait 1000, =>
+              @unsetClass 'aside'
+              @destroyPointer()
+
         @pointer.$().offset offsetTo
 
     # find ace settings menu icon
