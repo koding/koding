@@ -359,44 +359,38 @@ class BookView extends JView
   showVMMenu:->
     @mainView.sidebar.animateLeftNavOut()
 
+    toggle = KD.getSingleton("appManager").get("StartTab").getView().serverContainerToggle
     @pointer.once 'transitionend', =>
-      # make click action
-      @clickAnimation()
-      # open VM menu
-      @mainView.sidebar.resourcesController.itemsOrdered[0].chevron.$().click()
-      # wait 3 sec.
-      @utils.wait 2000, =>
-        # remove pointer
+      if toggle.getState().title is "Show environments"
+        @clickAnimation()
+        toggle.$().click()
+        @utils.wait 2000, =>
+          @destroyPointer()
+      else
         @destroyPointer()
 
-    # TODO !!! should remove that class on pageNext
     @setClass 'moveUp'
     @mainView.once 'transitionend', =>
-      # find VM's menu position on footer
       @utils.wait 1000, =>
-        vmMenuOffset = @mainView.sidebar.resourcesController.itemsOrdered[0].chevron.$().offset()
-        # move cursor to VM's menu position
-        @pointer.$().offset vmMenuOffset
+        @pointer.$().offset toggle.$().offset()
 
   showVMTerminal:->
     @mainView.sidebar.animateLeftNavOut()
+
+    toggle = KD.getSingleton("appManager").get("StartTab").getView().serverContainerToggle
     @pointer.once 'transitionend', =>
-      # make click action
-      @clickAnimation()
-      # open VM menu
-      # wait 3 sec.
-      @utils.wait 2000, =>
-        @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().click()
-        # remove pointer
+      if toggle.getState().title is "Show environments"
+        @clickAnimation()
+        toggle.$().click()
+        @utils.wait 2000, =>
+          @destroyPointer()
+      else
         @destroyPointer()
 
     @setClass 'moveUp'
     @mainView.once 'transitionend', =>
-      # find VM's menu position on footer
       @utils.wait 200, =>
-        vmMenuOffset = @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().offset()
-        # move cursor to VM's menu position
-        @pointer.$().offset vmMenuOffset
+        @pointer.$().offset toggle.$().offset()
 
   showRecentFilesMenu:->
     @pointer.once 'transitionend', =>
