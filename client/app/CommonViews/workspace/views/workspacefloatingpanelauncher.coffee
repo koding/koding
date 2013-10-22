@@ -2,7 +2,7 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "workspace-launcher active"
+    options.cssClass = "workspace-launcher"
     options.partial  = "<span>+</span>"
 
     super options, data
