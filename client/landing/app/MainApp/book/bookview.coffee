@@ -332,11 +332,18 @@ class BookView extends JView
       # click animation
       @clickAnimation()
       @utils.wait 1000, =>
+        chevron = @defaultVm.$ '.chevron'
         # open fileTree menu
-        @defaultVm.$('.chevron').click()
-        $('.jcontextmenu').offset(@defaultVm.$('.chevron').offset())
-        # destroy pointer
-        @destroyPointer()
+        chevron.click()
+        contextMenu = $ '.jcontextmenu'
+        contextMenu.addClass "hidden"
+
+        @utils.wait 500, =>
+          contextMenu.offset chevron.offset()
+          contextMenu.removeClass "hidden"
+
+          # destroy pointer
+          @destroyPointer()
 
     user = KD.nick()
     defaultVMName = KD.singletons.vmController.defaultVmName
