@@ -55,7 +55,9 @@ class BookView extends JView
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "Home"
-      click     : (pubInst, event)=> @fillPage 0
+      click     : (pubInst, event)=>
+        BookView.navigateNewPages = no
+        @fillPage 0
 
     @pageNav.addSubView new KDCustomHTMLView
       tagName   : "a"
@@ -76,6 +78,13 @@ class BookView extends JView
     @pagerWrapper.addSubView @pageNav
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
+
+    @once "OverlayWillBeRemoved", =>
+      if BookView.navigateNewPages
+        BookView.navigateNewPages = no
+        BookView.lastIndex = 0
+        @getStorage().setValue "lastReadVersion", @getVersion()
+
     @once "OverlayWillBeRemoved", =>
       if @pointer then @destroyPointer()
       @unsetClass "in"
@@ -132,10 +141,22 @@ class BookView extends JView
     KD.getSingleton("appManager").openFile(FSHelper.createFileFromPath(fileName))
 
   fillPrevPage:->
+    if BookView.navigateNewPages
+      @getNewPages =>
+        prev = @prevUnreadPage()
+        @fillPage prev if prev?
+      return
+
     return if @currentIndex - 1 < 0
     @fillPage @currentIndex - 1
 
   fillNextPage:->
+    if BookView.navigateNewPages
+      @getNewPages =>
+        next = @nextUnreadPage()
+        @fillPage next if next?
+      return
+
     return if __bookPages.length is @currentIndex + 1
     @fillPage parseInt(@currentIndex,10) + 1
 
@@ -415,7 +436,8 @@ class BookView extends JView
         @startNewConversation()
 
     # find conversations panel icon position.
-    offsetTo = @mainView.chatHandler.$().offset()
+    @setClass "moveUp"
+    offsetTo = @mainView.sidebar.footerMenu.$(".chat").offset()
     # move cursor to conv. panel button position.
     @pointer.$().offset offsetTo
 
@@ -523,31 +545,36 @@ class BookView extends JView
     @pointer.$().offset offsetTo
 
   saveAndOpenPreview:->
+    button = @mainView.appSettingsMenuButton
+    # find right up ace save menu position
+    @pointer.$().offset button.$().offset()
     @pointer.once 'transitionend', =>
       # click animation
       @clickAnimation()
       # open menu
-      @mainView.appSettingsMenuButton.$().click()
+      button.$().click()
       # find save menu item position
+      @pointer.$().offset $(button.contextMenu.$("li")[0]).offset()
       @utils.wait 2000, =>
         # save ace view
-        @mainView.appSettingsMenuButton.data[0].callback()
-        @utils.wait 800, =>
+        button.data.items[0].callback()
+        @utils.wait 2000, =>
           @openPreview()
-
-    # find right up ace save menu position
-    offsetTo = @mainView.appSettingsMenuButton.$().offset()
-    @pointer.$().offset offsetTo
 
   openPreview:->
     new KDNotificationView
       title     : "Let's see what changed!"
       duration  : 3000
 
-    @mainView.appSettingsMenuButton.$().click()
+    button = @mainView.appSettingsMenuButton
+    @pointer.$().offset button.$().offset()
     @utils.wait 2200, =>
-      @mainView.appSettingsMenuButton.data[8].callback()
-      @destroyPointer()
+      button.$().click()
+      @utils.wait 800, =>
+        @pointer.$().offset $(button.contextMenu.$("li")[7]).offset()
+        @utils.wait 2200, =>
+          button.data.items[9].callback()
+          @destroyPointer()
 
   showAceSettings:->
     @pointer.once 'transitionend', =>
@@ -598,3 +625,46 @@ class BookView extends JView
     @pointer.setClass 'clickPulse'
     @utils.wait 1000, =>
       @pointer.unsetClass 'clickPulse'
+
+  indexPages: ->
+    for page, index in __bookPages
+      page.index = index
+      page.version or= 0
+
+  getStorage: ->
+    @storage or= new AppStorage "KodingBook", 1.0
+
+  getVersion: ->
+    @indexPages()
+    Math.max (_.pluck __bookPages, 'version')...
+
+  getNewerPages: (version)->
+    __bookPages.filter (page)=>
+      # page is unread if page version is bigger than last read one.
+      KD.utils.versionCompare page.version, ">", version
+
+  nextUnreadPage: ->
+    return if @newPagePointer + 1 is @unreadPages.length
+    @newPagePointer++
+    @unreadPages[@newPagePointer].index
+
+  prevUnreadPage: ->
+    return if @newPagePointer is 0
+    --@newPagePointer
+    @unreadPages[@newPagePointer].index
+
+  getNewPages: (callback)->
+    return callback @unreadPages if @unreadPages
+
+    @getStorage().fetchValue "lastReadVersion", (lastReadVersion=0)=>
+      if @getVersion() > lastReadVersion
+        unreadPages = @getNewerPages lastReadVersion
+
+        if unreadPages.length is 0
+          return callback []
+
+        @newPagePointer ?= 0
+        @unreadPages = unreadPages
+        callback unreadPages
+      else
+        callback []

@@ -17,6 +17,7 @@ type VM struct {
 	MaxMemoryInMB int           `bson:"maxMemoryInMB"`
 	DiskSizeInMB  int           `bson:"diskSizeInMB"`
 	AlwaysOn      bool          `bson:"alwaysOn"`
+	PinnedToHost  string        `bson:"pinnedToHost"`
 	SnapshotVM    bson.ObjectId `bson:"diskSnapshot"`
 	SnapshotName  string        `bson:"snapshotName"`
 	IP            net.IP        `bson:"ip"`

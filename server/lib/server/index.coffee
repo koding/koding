@@ -273,7 +273,7 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
 app.get "/-/oauth/odesk/callback",    require "./odesk_callback"
 app.get "/-/oauth/github/callback",   require "./github_callback"
 app.get "/-/oauth/facebook/callback", require "./facebook_callback"
-
+app.get "/-/oauth/google/callback",   require "./google_callback"
 
 app.all '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models
