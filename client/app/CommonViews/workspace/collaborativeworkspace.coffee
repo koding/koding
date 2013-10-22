@@ -155,15 +155,14 @@ class CollaborativeWorkspace extends Workspace
     @container.addSubView @loader
 
   joinSession: (sessionKey) ->
-    {parent}               = @
     options                = @getOptions()
     options.sessionKey     = sessionKey.trim()
     options.joinedASession = yes
-    @destroy()
+    @destroySubViews()
 
     @forceDisconnect()
 
-    parent.addSubView new CollaborativeWorkspace options
+    @addSubView new CollaborativeWorkspace options
 
   forceDisconnect: ->
     return  unless @amIHost()
