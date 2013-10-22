@@ -444,9 +444,12 @@ class BookView extends JView
 
     # find conversations panel icon position.
     @setClass "moveUp"
-    offsetTo = @mainView.sidebar.footerMenu.$(".chat").offset()
-    # move cursor to conv. panel button position.
-    @pointer.$().offset offsetTo
+    {sidebar} = @mainView
+    sidebar.animateLeftNavIn()
+    @utils.wait 200, =>
+      offsetTo = sidebar.footerMenu.$(".chat").offset()
+      # move cursor to conv. panel button position.
+      @pointer.$().offset offsetTo
 
   startNewConversation:->
     @pointer.once 'transitionend', =>
