@@ -68,7 +68,7 @@ class PaymentController extends KDController
           findActiveSubscription subs, planCode, callback
 
   confirmPayment: ({ type, planCode, paymentMethodId }, callback = (->)) ->
-    getGroup().canCreateVM { type, planCode }, (err, status) =>
+    getGroup().canCreateVM { type, planCode, paymentMethodId }, (err, status) =>
       @fetchSubscription type, planCode, (subscription) =>
         cb = (needBilling, balance, amount) =>
           debugger
