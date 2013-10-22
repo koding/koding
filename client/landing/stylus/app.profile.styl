@@ -310,6 +310,10 @@ app.profile.styl
         .button-container
           display         block
 
+.avatar-container
+  .kdmodal-content
+    overflow              hidden!important
+
 .avatar-menu
   overflow                visible
 
@@ -333,6 +337,13 @@ app.profile.styl
         width             80px
         float             right
 
+      &.retake
+      &.save
+        width             195px
+
+      &.gravatar-confirm
+        float             right
+
     .avatar-holder
       box-shadow          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
                           0 7px 20px -7px rgba(0,0,0,0.8)
@@ -341,19 +352,26 @@ app.profile.styl
       vendor              transition-duration, 700ms
       overflow            hidden
       border-radius       0 0 5px 5px
-      background-color    #ededed
+      background          #ededed url(/images/photo.png) center center no-repeat
       abs                 30px, 0, 0, 5px
       size                400px, 0px
       &.opened
         height            400px
         &.webcam
           height          300px
+          video
+          canvas
+            width         400px
+            abs           0px
 
       .avatarview
         box-shadow        inset 0px 7px 20px -10px rgba(0,0,0,0.5),
                           0 7px 20px -7px rgba(0,0,0,0.8)
 
     article
+
+      button
+        outline           0
 
       strong
         font-size         14px
@@ -368,3 +386,67 @@ app.profile.styl
       article:first-of-type
         margin-top        -24px
         opacity           0
+
+    &.saveview
+      article:first-of-type
+        margin-top        -48px
+        opacity           0
+
+    &.gravatar-confirm
+      article:first-of-type
+        margin-top        -72px
+        opacity           0
+
+    &.loading
+      article:first-of-type
+        margin-top        -96px
+        opacity           0
+
+
+.kdwebcamview
+  width             auto
+  height            auto
+  display           inline-block
+  background-color  #000
+
+  video
+    abs             0px 0 0 0px
+    z-index         2
+    width           100%
+    vendor          transition-duration, 2s
+    &.invisible
+      opacity       0
+
+  .snap-button
+    abs             0 0px 0px 0
+    z-index         1
+    height          35px
+    background-color #444
+    color           #ff9200
+    rounded         5px
+    margin          10px
+    kalc            width, 100% \- 20px, !important
+    opacity         0.8
+    font-weight     bold
+    border          2px solid #333
+    &:hover
+      opacity       0.9
+
+    &.save
+      kalc            width, 50% \- 15px, !important
+      background-color green
+      color           #fff
+
+    &.retake
+      kalc            width, 50% \- 15px, !important
+      abs             0 0 0px 0px
+
+.kdwebcamview-flash
+  abs               0px 0 0 0px
+  z-index           10002
+  background-color  #ffffff
+  opacity           0.95
+  &.flashed
+    vendor        transition-property, opacity
+    vendor        transition-duration, 500ms
+    opacity       0
