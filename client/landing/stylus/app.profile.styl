@@ -348,14 +348,15 @@ app.profile.styl
       box-shadow          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
                           0 7px 20px -7px rgba(0,0,0,0.8)
       vendor              transition-delay,    300ms
-      vendor              transition-property, height
       vendor              transition-duration, 700ms
       overflow            hidden
       border-radius       0 0 5px 5px
       background          #ededed url(/images/photo.png) center center no-repeat
       abs                 30px, 0, 0, 5px
       size                400px, 0px
+      opacity             0.6
       &.opened
+        opacity           1
         height            400px
         &.wide
           height          300px

@@ -70,6 +70,11 @@ class AvatarChangeView extends JView
         @emit "UseGravatar"
         @slideView()
 
+    @gravatarCancelButton = new KDButtonView
+      cssClass            : "clean-gray cancel avatar-button"
+      title               : "Cancel"
+      callback            : => @slideView ""
+
     @avatarHolder = new KDCustomHTMLView
       cssClass: "avatar-holder"
       tagName : "div"
@@ -84,6 +89,7 @@ class AvatarChangeView extends JView
       @slideView "", =>
         @utils.wait 1000, =>
           @resetView()
+          @unsetWide()
           @avatar.show()
 
     @takePhotoButton = new KDButtonView
@@ -181,7 +187,7 @@ class AvatarChangeView extends JView
       <article>
         <strong>Are you sure?</strong>
         {{> @gravatarConfirmButton}}
-        {{> @getCancelView()}}
+        {{> @gravatarCancelButton}}
       </article>
       <article>
         <strong>Drag and drop your avatar</strong>
