@@ -60,7 +60,13 @@ class AvatarView extends LinkView
 
     @setAvatar avatarURI
 
-    flags = account.globalFlags?.join(" ") ? ""
+    flags = ""
+    if account.globalFlags
+      if Array.isArray account.globalFlags
+        flags = account.globalFlags.join(" ")
+      else
+        flags = (value for own key, value of account.globalFlags).join(" ")
+
     @$('cite').addClass flags
 
     @setAttribute "href", "/#{profile.nickname}"

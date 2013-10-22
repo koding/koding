@@ -70,7 +70,7 @@ class AceFindAndReplaceView extends JView
 
   close: ->
     @hide()
-    @resizeAceEditor 0
+    @resizeEditor 0
     @findInput.setValue    ""
     @replaceInput.setValue ""
     @emit "FindAndReplaceViewClosed"
@@ -78,10 +78,10 @@ class AceFindAndReplaceView extends JView
   setViewHeight: (isReplaceMode) ->
     height = if isReplaceMode then 60 else 32
     @$().css { height }
-    @resizeAceEditor height
+    @resizeEditor height
     @show()
 
-  resizeAceEditor: (height) ->
+  resizeEditor: (height) ->
     {ace} = @getDelegate()
     ace.setHeight ace.getHeight() + @lastHeightTakenFromAce - height
     ace.editor.resize yes
