@@ -125,7 +125,13 @@ class MainController extends KDController
 
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
-        @utils.defer -> window.location.pathname = KD.getSingleton("router").visitedRoutes.first or "/"
+        @utils.defer ->
+          firstRoute = KD.getSingleton("router").visitedRoutes.first
+
+          if firstRoute and /^\/Verify/.test firstRoute
+            firstRoute = "/"
+
+          window.location.pathname = firstRoute or "/"
       cookie = $.cookie 'clientId'
 
 
@@ -188,3 +194,43 @@ class MainController extends KDController
           modal.buttons["Refresh Now"].destroy()
 
           @utils.wait 2500, -> modal?.destroy()
+
+
+  displayConfirmEmailModal:(name, username)->
+    name or= KD.whoami().profile.firstName
+    message =
+      """
+      Dear #{name},
+
+      Thanks for joining Koding.<br/><br/>
+
+      For security reasons, we need to make sure you have activated your account. When you registered, we have sent you a link to confirm your email address, please use that link to be able to continue using Koding.<br/><br/>
+
+      If you didn't receive the email, please click to Resend email button below.<br/><br/>
+      """
+
+    modal = new KDModalView
+      title            : "You must confirm your email address!"
+      width            : 500
+      overlay          : yes
+      cssClass         : "new-kdmodal"
+      content          : "<div class='modalformline'>#{Encoder.htmlDecode message}</div>"
+      buttons          :
+        "Resend email"  :
+          style        : "modal-clean-red"
+          callback     : => @resendHandler(modal, username)
+        Dismiss        :
+          style        : "modal-cancel"
+          callback     : => modal.destroy()
+
+    return modal
+
+  resendHandler : (modal, username)->
+
+    KD.remote.api.JEmailConfirmation.resetToken username, (err)=>
+      modal.buttons["Resend email"].hideLoader()
+      return KD.showError err if err
+      new KDNotificationView
+        title     : "Check your email"
+        content   : "We've sent you a confirmation mail."
+        duration  : 4500

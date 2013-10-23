@@ -91,9 +91,9 @@ module.exports = class JAccount extends jraphical.Module
         'fetchMyFollowersFromGraph', 'blockUser', 'unblockUser',
         'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
-        'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
+        'unlinkOauth', 'changeUsername',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
-        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore'
+        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore', 'isEmailVerified'
       ]
     schema                  :
       skillTags             : [String]
@@ -148,6 +148,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+      referrerUsername      : String
       isExempt              : # is a troll ?
         type                : Boolean
         default             : false
@@ -228,13 +229,6 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened', 'GroupJoined'
     @notifyGroupWhen 'FollowHappened', 'GroupJoined'
 
-  fetchOldKodingDownloadLink : secure (client,callback)->
-    crypto = require 'crypto'
-    {delegate}    = client.connection
-    user      = delegate.profile.nickname
-    userhash  = crypto.createHash('md5').update("#{user}+salty\n").digest("hex")
-    link      = "http://old.koding.s3.amazonaws.com/koding.old/#{user}-#{userhash}.tgz"
-    callback null,link
 
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection
@@ -624,6 +618,11 @@ module.exports = class JAccount extends jraphical.Module
         if err
           return callback err, null
         callback null, (i._id for i in data)
+
+  isEmailVerified: (callback)->
+    @fetchUser (err, user)->
+      return callback err if err
+      callback null, (user.status is "confirmed")
 
   markUserAsExempt: secure (client, exempt, callback)->
     {delegate} = client.connection
