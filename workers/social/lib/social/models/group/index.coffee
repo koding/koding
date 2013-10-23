@@ -443,7 +443,6 @@ module.exports = class JGroup extends Module
   cycleChannel:(callback)-> @constructor.cycleChannel @slug, callback
 
   @broadcast =(groupSlug, event, message)->
-    console.log('yoksa burda mi')
     if message?
       event = ".#{event}"
     else
@@ -468,9 +467,7 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    #if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
-    console.log('burda mi')
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
         console.error err  if err
         unless group
@@ -1256,30 +1253,19 @@ module.exports = class JGroup extends Module
       ]
 
   sendNotificationToAdmins: (event, contents)->
-    console.log arguments
-
-    actor = contents[contents.actorType]
-    {origin} = contents
-
-    console.log arguments
-    createActivity = =>
-      if contents.relationship?
-        relationship = new Relationship contents.relationship
-        CBucket.addActivities relationship, origin, actor, (err)->
-          console.err err if err
-
     @fetchAdmins (err, admins)=>
-      relationship = new Relationship {
-        as         : 'member', 
-        sourceName : contents.subject.constructorName, 
-        sourceId   : contents.subject.id,
-        targetName : contents.member.constructorName, 
-        targetId   : contents.member.id, 
-      }
-
       unless err
+        relationship = new Relationship {
+          as         : 'member',
+          sourceName : contents.subject.constructorName,
+          sourceId   : contents.subject.id,
+          targetName : contents.member.constructorName,
+          targetId   : contents.member.id,
+        }
+
+        CBucket = require '../bucket'
         for admin in admins
-            CBucket.addActivities relationship, contents.member, contents.subject, (err)->
+          CBucket.addActivities relationship, contents.subject, contents.member, admin, (err)->
             console.err err if err
           admin.sendNotification event, contents
 

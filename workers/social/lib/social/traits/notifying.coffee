@@ -21,11 +21,10 @@ module.exports = class Notifying
     actor = contents[contents.actorType]
     {origin} = contents
 
-    console.log arguments
     createActivity = =>
       if contents.relationship?
         relationship = new Relationship contents.relationship
-        CBucket.addActivities relationship, origin, actor, (err)->
+        CBucket.addActivities relationship, origin, actor, null, (err)->
           console.err err if err
 
     sendNotification = =>
@@ -56,6 +55,5 @@ module.exports = class Notifying
   notifyGroupWhen:(events...)->
     JGroup = require '../models/group'
     @setNotifiers events, (event, contents)->
-      console.log event
       {group} = contents
       JGroup.broadcast group, event, contents
