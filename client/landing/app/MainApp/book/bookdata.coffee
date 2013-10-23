@@ -107,6 +107,14 @@ __bookPages = [
     howToSteps: ['showFileTreeFolderAndFileMenu']
     menuItem  : "Develop"
   ,
+    cssClass  : "develop more-5"
+    content   : """
+                <h2>Need to upload files?</h2>
+                <p>To upload your files, simply drag a file from your Desktop onto your FileTree!</p>
+                <p>Your files will be uploaded into your Upload directory. It doesn't get much easier than that!</p>
+                """
+    version   : 1.1
+  ,
     cssClass  : "develop more-1"
     content   : """<h2> Your default applications: </h2>
                    <p><strong>Ace</strong> is your perfect text editor on cloud! Use it to edit documents in your file tree! </p>
@@ -120,34 +128,34 @@ __bookPages = [
     routeURL  : 'Develop'
   ,
 
-  #   cssClass  : "develop enviroments"
-  #   content   : """<h2>Control Your Virtual Machine!</h2>
-  #                  <p>It's easy to control your Virtual Machine(s)! Some basic actions you can perform are listed below:</p>
-  #                  <ul>
-  #                    <li>Turn your Virtual Machine on and off</li>
-  #                    <li>Re-Initialize your Virtual Machine</li>
-  #                    <li>Delete your Virtual Machine and start with a fresh one</li>
-  #                    <li>Checkout the Virtual Machine menu for more features</li>
-  #                  </ul>
-  #               """
-  #   section   : 3
-  #   parent    : 5
-  #   showHow   : yes
-  #   howToSteps: ['showVMMenu']
-  #   menuItem  : "Develop"
+    cssClass  : "develop enviroments"
+    content   : """<h2>Control Your Virtual Machine!</h2>
+                   <p>It's easy to control your Virtual Machine(s)! Some basic actions you can perform are listed below:</p>
+                   <ul>
+                     <li>Turn your Virtual Machine on and off</li>
+                     <li>Re-Initialize your Virtual Machine</li>
+                     <li>Delete your Virtual Machine and start with a fresh one</li>
+                     <li>Checkout the Virtual Machine menu for more features</li>
+                   </ul>
+                """
+    section   : 3
+    parent    : 5
+    showHow   : yes
+    howToSteps: ['showVMMenu']
+    menuItem  : "Develop"
 
-  # ,
-  #   cssClass  : "develop enviroments more"
-  #   content   : """<h2>Open Virtual Machines in your Terminal</h2>
-  #                  <p>If you have more than 1 Virtual Machine, you can open that Virtual Machine's
-  #                  menu by clicking terminal icon on Virtual Machine menu.</p>
-  #               """
-  #   section   : 4
-  #   parent    : 5
-  #   showHow   : yes
-  #   howToSteps: ['openVMTerminal']
-  #   menuItem  : "Develop"
-  # ,
+  ,
+    cssClass  : "develop enviroments more"
+    content   : """<h2>Open Virtual Machines in your Terminal</h2>
+                   <p>If you have more than 1 Virtual Machine, you can open that Virtual Machine's
+                   menu by clicking terminal icon on Virtual Machine menu.</p>
+                """
+    section   : 4
+    parent    : 5
+    showHow   : yes
+    howToSteps: ['openVMTerminal']
+    menuItem  : "Develop"
+  ,
   #   cssClass  : "develop more-1"
   #   content   : """<p>You can view your recently opened files by moving your cursor to the footer area. A new section will slide up displaying your recently opened files!</p>
   #               """
@@ -158,17 +166,17 @@ __bookPages = [
   #   howToSteps: ['showRecentFiles']
   #   menuItem  : "Develop"
   # ,
-  #   cssClass  : "develop buy more-1"
-  #   content   : """<h2>Need more Virtual Machines?</h2>
-  #                  <p>It's easy to buy more Virtual Machines. If you need more space, just buy new one!</p>
-  #               """
-  #   section   : 6
-  #   parent    : 5
-  #   routeURL  : "/Develop"
-  #   showHow   : yes
-  #   howToSteps: ['showNewVMMenu']
-  #   menuItem  : "Develop"
-  # ,
+    cssClass  : "develop buy more-1"
+    content   : """<h2>Need more Virtual Machines?</h2>
+                   <p>It's easy to buy more Virtual Machines. If you need more space, just buy new one!</p>
+                """
+    section   : 6
+    parent    : 5
+    routeURL  : "/Develop"
+    showHow   : yes
+    howToSteps: ['showNewVMMenu']
+    menuItem  : "Develop"
+  ,
     cssClass  : "develop more-1"
     content   : """<p>It's easy to change your homepage! Currently: <a href= "#"> http://{{#(profile.nickname)}}.kd.io </a>
                   <ol>
@@ -250,14 +258,14 @@ __bookPages = [
     section   : 6
     parent    : 0
   ,
-    title     : "Groups"
-    cssClass  : "groups-intro "
-    content   : """<p class='centered'>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
-                """
-    routeURL  : "/Groups"
-    section   : 7
-    parent    : 0
-  ,
+  #   title     : "Groups"
+  #   cssClass  : "groups-intro "
+  #   content   : """<p class='centered'>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
+  #               """
+  #   routeURL  : "/Groups"
+  #   section   : 7
+  #   parent    : 0
+  # ,
     title     : "Chat"
     cssClass  : "chats-intro"
     content   : """<p class='centered'>You can chat with your friends or anyone from koding. Just type his/her name and hit enter thats all!</p>
@@ -282,6 +290,14 @@ __bookPages = [
                    <p>So what does that mean? That means that developers of all skill levels are going to grace your activity feed. Some need help, some will help others, some will guide the entire group, whatever your role is it’s important to remember one important word: help.</p>
                    <p>Help by providing insight and not insult to people asking basic questions. Help by researching your question to see if it has had already been given an answer. And lastly, help us make this service the best it can be!</p>"""
     section   : -1
+  ,
+    title     : "Share!"
+    content   : """
+                <p>The best part about social development is that you can bring your friends along with you! By sharing Koding, you're inviting others to join our ever growing community, and inviting them to be a part of something great.</p>
+                <p>Best of all, you get referral rewards for sharing Koding with others. So what do you say, share Koding today!</p>
+                """
+    section   : -1
+    # version   : 1.1 # enable later
   ,
     title     : "Enjoy!"
     content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>

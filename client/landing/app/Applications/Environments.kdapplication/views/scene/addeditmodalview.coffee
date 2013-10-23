@@ -5,7 +5,7 @@ class AddEditItemModal extends KDModalViewWithForms
     options.width    = 350
 
     options.tabs     =
-      navigabe          : no
+      navigable         : no
       forms             :
         'Add New Rule'  :
           fields        :

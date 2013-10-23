@@ -48,6 +48,8 @@
         &:last-child
           border-top-left-radius           0
           border-bottom-left-radius        0
+        &.disabled
+          color             #ccc
     a
       noTextDeco()
       font-size           11px
@@ -260,6 +262,19 @@ section.page
         margin          70px 30px 0 400px
         p
           padding-left  0
+
+      .embedded
+        .editor-advanced-settings-menu
+          top           66px
+          left          336px
+    &.more-5
+      bg                image, url("../images/book/drag-drop.jpg")
+      bg                position, 40px 70px
+      >article
+        margin          70px 30px 0 400px
+        p
+          padding-left  0
+
   &.terminal
     bg                  image, url("../images/book/13a.png")
     bg                  position, left 80px
@@ -288,6 +303,10 @@ section.page
   &.apps
     bg                  image, url("../images/book/18.png")
     bg                  position, right bottom
+
+  &.share
+    bg                  image, url("../images/book/share.jpg")
+    bg                  position, 90% 100px
 
   &.etiquette
     bg                  image, url("../images/book/19.png")
