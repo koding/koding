@@ -143,12 +143,17 @@ class MainController extends KDController
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
 
-  isUserLoggedIn: -> KD.whoami() instanceof KD.remote.api.JAccount
+  isUserLoggedIn: -> KD.isLoggedIn()
 
   showInstructionsBookIfNeeded:->
     if $.cookie 'newRegister'
       @emit "ShowInstructionsBook", 9
       $.cookie 'newRegister', erase: yes
+    else if @isUserLoggedIn()
+      BookView::getNewPages (pages)=>
+        if pages.length
+          BookView.navigateNewPages = yes
+          @emit "ShowInstructionsBook", pages.first.index
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'

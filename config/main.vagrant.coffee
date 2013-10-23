@@ -235,7 +235,7 @@ module.exports =
   #     b = decipher.final('utf-8')
   #     return b
   recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding-test.recurly.com
+    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :
