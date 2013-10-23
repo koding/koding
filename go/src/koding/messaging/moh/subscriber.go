@@ -9,6 +9,7 @@ import (
 )
 
 const reconnectInterval = 700 * time.Millisecond
+const maxReconnectLimit = 30
 
 // Subscriber is a websocket client that is used to connect to a Publisher and
 // consume published messages.
@@ -167,11 +168,11 @@ func (s *Subscriber) connector(connected chan bool) {
 
 		err := s.connect()
 		if err != nil {
-			s.errCount++
+			// limit and make reconnection time steady after a certain attempt
+			if s.errCount <= maxReconnectLimit {
+				s.errCount++
+			}
 
-			// for now we don't return an error, but in the future an error
-			// will mean that it has reached it maximum number of reconnect
-			// attempts, which then we will return.
 			s.sleep()
 			continue
 		}
