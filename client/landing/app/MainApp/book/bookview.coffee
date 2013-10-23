@@ -356,41 +356,68 @@ class BookView extends JView
       # move cursor to file tree menu
       @pointer.$().offset vmOffset
 
-  showVMMenu:->
-    @mainView.sidebar.animateLeftNavOut()
+  showVMMenu: (callback) ->
+    startTabView = KD.getSingleton("appManager").get("StartTab").getView()
 
-    toggle = KD.getSingleton("appManager").get("StartTab").getView().serverContainerToggle
-    @pointer.once 'transitionend', =>
-      if toggle.getState().title is "Show environments"
-        @clickAnimation()
-        toggle.$().click()
-        @utils.wait 2000, =>
-          @destroyPointer()
-      else
-        @destroyPointer()
+    presentation = =>
+      defaultVMName = KD.getSingleton("vmController").defaultVmName
+      {machinesContainer} = startTabView.serverContainer
+      for own id, dia of machinesContainer.dias
+        if dia.getData().title is defaultVMName
+          chevron = dia.$ ".chevron"
 
-    @setClass 'moveUp'
-    @mainView.once 'transitionend', =>
-      @utils.wait 1000, =>
-        @pointer.$().offset toggle.$().offset()
+          @pointer.once "transitionend", =>
+            @clickAnimation()
+            chevron.click()
+
+            contextMenu = $ '.jcontextmenu'
+            contextMenu.addClass "hidden"
+
+            @utils.wait 500, =>
+              contextMenu.offset chevron.offset()
+              contextMenu.removeClass "hidden"
+              chevron.addClass "hidden"
+
+              if callback then callback()
+              else @destroyPointer()
+
+          chevron.removeClass "hidden"
+          chevron.show()
+          @pointer.$().offset chevron.offset()
+          break
+
+    toggle = startTabView.serverContainerToggle
+
+    if toggle.getState().title is "Hide environments"
+      presentation()
+    else
+      @mainView.sidebar.animateLeftNavOut()
+
+      @pointer.once 'transitionend', =>
+        if toggle.getState().title is "Show environments"
+          @clickAnimation()
+          toggle.$().click()
+          @utils.wait 2000, =>
+            presentation()
+        else
+          presentation()
+
+      @mainView.once 'transitionend', =>
+        @utils.wait 1000, =>
+          @pointer.$().offset toggle.$().offset()
 
   showVMTerminal:->
-    @mainView.sidebar.animateLeftNavOut()
+    @showVMMenu =>
+      openTerminal = $($(".jcontextmenu li")[3])
 
-    toggle = KD.getSingleton("appManager").get("StartTab").getView().serverContainerToggle
-    @pointer.once 'transitionend', =>
-      if toggle.getState().title is "Show environments"
-        @clickAnimation()
-        toggle.$().click()
-        @utils.wait 2000, =>
-          @destroyPointer()
-      else
-        @destroyPointer()
+      @pointer.once "transitionend", =>
+        @utils.wait 1000, =>
+          @clickAnimation()
+          @utils.wait 500, =>
+            openTerminal.click()
+            @destroyPointer()
 
-    @setClass 'moveUp'
-    @mainView.once 'transitionend', =>
-      @utils.wait 200, =>
-        @pointer.$().offset toggle.$().offset()
+      @pointer.$().offset openTerminal.offset()
 
   showRecentFilesMenu:->
     @pointer.once 'transitionend', =>
