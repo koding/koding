@@ -58,18 +58,21 @@ class BookView extends JView
       click     : (pubInst, event)=>
         BookView.navigateNewPages = no
         @fillPage 0
+        @checkBoundaries()
 
-    @pageNav.addSubView new KDCustomHTMLView
+    @pageNav.addSubView @prevButton = new KDCustomHTMLView
       tagName   : "a"
       partial   : "◀"
+      cssClass  : "disabled"
       click     : (pubInst, event)=> @fillPrevPage()
       tooltip   :
         title   : "Press: Left Arrow Key"
         gravity : "sw"
 
-    @pageNav.addSubView new KDCustomHTMLView
+    @pageNav.addSubView @nextButton = new KDCustomHTMLView
       tagName   : "a"
       partial   : "▶"
+      cssClass  : "disabled"
       click     : (pubInst, event)=> @fillNextPage()
       tooltip   :
         title   : "Press: Right Arrow Key"
@@ -98,6 +101,7 @@ class BookView extends JView
 
     @setKeyView()
     cachePage(0)
+    @checkBoundaries()
     KD.track "Read Tutorial Book", KD.nick()
 
   pistachio:->
@@ -140,25 +144,41 @@ class BookView extends JView
     fileName = "/home/#{user}#{file}"
     KD.getSingleton("appManager").openFile(FSHelper.createFileFromPath(fileName))
 
+  toggleButton: (button, isDisabled)->
+    @["#{button}Button"][if isDisabled then "setClass" else "unsetClass"] "disabled"
+
+  checkBoundaries: (pages=__bookPages)->
+    if BookView.navigateNewPages
+      @getNewPages (pages)=>
+        @toggleButton "prev", @newPagePointer is 0
+        @toggleButton "next", @newPagePointer is pages.length - 1
+    else
+      @toggleButton "prev", @currentIndex is 0
+      @toggleButton "next", @currentIndex is pages.length - 1
+
   fillPrevPage:->
     if BookView.navigateNewPages
-      @getNewPages =>
+      @getNewPages (pages)=>
         prev = @prevUnreadPage()
         @fillPage prev if prev?
+        @checkBoundaries pages
       return
 
     return if @currentIndex - 1 < 0
     @fillPage @currentIndex - 1
+    @checkBoundaries()
 
   fillNextPage:->
     if BookView.navigateNewPages
-      @getNewPages =>
+      @getNewPages (pages)=>
         next = @nextUnreadPage()
         @fillPage next if next?
+        @checkBoundaries pages
       return
 
     return if __bookPages.length is @currentIndex + 1
     @fillPage parseInt(@currentIndex,10) + 1
+    @checkBoundaries()
 
   fillPage:(index)->
     cachePage index+1
