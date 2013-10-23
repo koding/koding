@@ -206,7 +206,7 @@ class MainController extends KDController
 
       For security reasons, we need to make sure you have activated your account. When you registered, we have sent you a link to confirm your email address, please use that link to be able to continue using Koding.<br/><br/>
 
-      Didn't receive the email? Resend confirmation email.<br/><br/>
+      If you didn't receive the email, please click to Resend email button below.<br/><br/>
       """
 
     modal = new KDModalView
@@ -216,7 +216,7 @@ class MainController extends KDController
       cssClass         : "new-kdmodal"
       content          : "<div class='modalformline'>#{Encoder.htmlDecode message}</div>"
       buttons          :
-        "Resend Mail"  :
+        "Resend email"  :
           style        : "modal-clean-red"
           callback     : => @resendHandler(modal, username)
         Dismiss        :
@@ -228,7 +228,7 @@ class MainController extends KDController
   resendHandler : (modal, username)->
 
     KD.remote.api.JEmailConfirmation.resetToken username, (err)=>
-      modal.buttons["Resend Mail"].hideLoader()
+      modal.buttons["Resend email"].hideLoader()
       return KD.showError err if err
       new KDNotificationView
         title     : "Check your email"
