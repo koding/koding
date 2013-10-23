@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
 
@@ -295,9 +295,6 @@ button.editor-button
       abs()
       size            17px,17px
       top             0
-
-  .chevron,.chevron-separator
-    hidden()
 
 .kdview.jcontextmenu.kdbuttonmenu
   &.editor-advanced-settings-menu
@@ -877,123 +874,6 @@ button.cancel-edit-button
     size          94px,94px
   &.s140
     size          140px,140px
-
-
-
-//
-// KDModalView Override Styles
-//
-
-.kdmodal
-  padding                 7px 7px 7px 7px
-  border                  1px solid rgba(255,255,255,.3)
-  shadow                  none !important
-  bg(color,rgba(0,0,0,.2))
-  .kdmodal-shadow
-    shadow(0 0 45px 15px rgba(0,0,0,.4))
-  .kdmodal-inner
-    height                auto
-    rounded               3px
-    bg(color,white)
-    .kdmodal-title
-      height              50px
-      font-size           15px
-      color               #474646
-      line-height         15px
-      margin              0
-      padding             0
-      span.title
-        height            100%
-        line-height       50px
-        padding-left      20px
-        max-width         440px
-        text-overflow     ellipsis
-        white-space       nowrap
-        overflow          hidden
-        blockMid()
-
-    .showHelp
-      abs()
-      top                 26px
-      color               #AAA
-      right               45px
-      font-size           11px
-      cursor              pointer
-      &:hover
-        color             #555
-
-    .close-icon
-      right               23px
-      top                 23px
-      z-index             10
-      bg                  position,-80px -220px
-      &:hover
-        bg                position,-80px -240px
-
-    .kdmodal-content
-      margin              0
-      padding             0
-      line-height         1
-      border-bottom       none
-  .kdmodal-buttons
-    height              43px
-    width               auto
-    borderBox()
-    .modal-clean-gray,.modal-clean-red,.modal-clean-green,.modal-cancel
-      margin            10px 10px 7px -2px
-  .kdmodal.with-buttons
-    rel() !important
-    top                 -43px
-  .modalformline
-    border-bottom       1px solid #e5e5e5
-    padding             11px 20px 11px 20px
-    size                auto,auto
-    // borderBox()
-    &:last-child
-      border-bottom     none
-    label
-      min-width         90px
-      blockMid()
-    input,textarea
-      min-width         160px
-      margin-right      15px
-      border            1px solid #c9c9c9
-      // text-shadow       1px 0 0 #d3d3d3
-      color             #282521 !important
-      line-height       14px
-      blockMidTop()
-    .on-off
-      float             right
-      margin-top        0
-    .select
-      margin-right      10px
-    p
-      line-height       22px
-    a
-      text-decoration   none
-      color             linkColor1
-
-    div.kdselectbox
-      span.title
-        line-height     23px
-        height          22px
-    .linkholder
-      padding           0 0 10px 0
-      display           inline-block
-      width             200px
-      a
-        display         block
-        cursor          pointer
-        margin-bottom   5px
-  .help-box
-    top               -34px
-    left              10px
-    width             180px
-
-
-.kddialog-buttons
-  .modal-clean-gray
-    margin              10px 10px 0 0
 
 .application-page
   padding                 5px
@@ -1589,6 +1469,9 @@ figure.code-container
     &.modified
       border-bottom     3px solid #FF9200
       height            22px
+    &.readonly
+      font-style        italic
+      color             #bbb
 
     span.close-tab
       bg                color, transparent

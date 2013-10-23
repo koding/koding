@@ -104,8 +104,8 @@ class CollaborativeWorkspace extends Workspace
     panelOptions             = @getOptions().panels[@lastCreatedPanelIndex]
     panelOptions.delegate    = @
     panelOptions.sessionKeys = @sessionData[@lastCreatedPanelIndex]  if @sessionData
-    PanelClass               = @getOptions().PanelClass or CollaborativePanel
-    newPanel                 = new PanelClass panelOptions
+    panelClass               = @getOptions().panelClass or CollaborativePanel
+    newPanel                 = new panelClass panelOptions
 
     @container.addSubView newPanel
     @panels.push newPanel
