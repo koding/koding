@@ -146,7 +146,7 @@ func makeFileEntry(fullPath string, fi os.FileInfo) FileEntry {
 		Mode:     fi.Mode(),
 		Time:     fi.ModTime(),
 		Readable: isReadable(fi.Mode()),
-		Writable: isReadable(fi.Mode()),
+		Writable: isWritable(fi.Mode()),
 	}
 
 	if fi.Mode()&os.ModeSymlink != 0 {
@@ -164,10 +164,8 @@ func makeFileEntry(fullPath string, fi os.FileInfo) FileEntry {
 	return entry
 }
 
-// check for owner permission
 func isReadable(mode os.FileMode) bool { return mode&0400 != 0 }
 
-// check for owner permission
 func isWritable(mode os.FileMode) bool { return mode&0200 != 0 }
 
 func SetPermissions(name string, mode os.FileMode, recursive bool) error {
