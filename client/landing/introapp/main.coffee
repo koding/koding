@@ -49,7 +49,23 @@ class IntroView extends JView
 
   constructor:(options={}, data)->
     options.cssClass = 'intro-view'
+  # options.bind     = 'scroll mousewheel wheel'
     super options, data
+
+  # FIXME ~ GG
+  #   for e in ['mousewheel', 'wheel']
+  #     @on e, _.throttle @bound 'scroll'
+
+  # scroll:(e)->
+
+  #   oevent = e.originalEvent
+  #   if oevent?
+  #     deltaY = oevent.wheelDeltaY or oevent.deltaY
+  #     deltaX = oevent.wheelDeltaX or oevent.deltaX
+  #     if deltaY >  30 then @slider.previousPage()
+  #     if deltaY < -30 then @slider.nextPage()
+
+  #   KD.utils.stopDOMEvent e
 
   destroyIntro:->
     @setClass 'out'
@@ -57,13 +73,13 @@ class IntroView extends JView
 
   viewAppended:->
 
-    @addSubView slider = new KDSlideShowView
+    @addSubView @slider = new KDSlideShowView
       direction : 'topToBottom'
       # animation : 'rotate'
 
-    slider.addPage new EntryPage
+    @slider.addPage new EntryPage
 
-    slider.addPage new IntroPage {},
+    @slider.addPage new IntroPage {},
       slideImage : "you.jpg"
       slogan     : "Koding for <span>You</span>"
       subSlogan  : """
@@ -75,7 +91,7 @@ class IntroView extends JView
         </p>
       """
 
-    slider.addPage new IntroPage {},
+    @slider.addPage new IntroPage {},
       slideImage : "developers.jpg"
       slogan     : "Koding for <span>Developers</span>"
       subSlogan  : """
@@ -87,7 +103,7 @@ class IntroView extends JView
         </p>
       """
 
-    slider.addSubPage new IntroPage {},
+    @slider.addSubPage new IntroPage {},
       slideImage : "developers.jpg"
       slogan     : "Koding for <span>Sinan</span>"
       subSlogan  : """
@@ -99,7 +115,7 @@ class IntroView extends JView
         </p>
       """
 
-    slider.addPage new IntroPage {},
+    @slider.addPage new IntroPage {},
       slideImage : "education.jpg"
       slogan     : "Koding for <span>Education</span>"
       subSlogan  : """
@@ -111,7 +127,7 @@ class IntroView extends JView
         </p>
       """
 
-    slider.addPage new IntroPage {},
+    @slider.addPage new IntroPage {},
       slideImage : "business.jpg"
       slogan     : "Koding for <span>Business</span>"
       subSlogan  : """
@@ -123,7 +139,7 @@ class IntroView extends JView
         </p>
       """
 
-    slider.addPage new IntroPage {},
+    @slider.addPage new IntroPage {},
       slideImage : "business.jpg"
       slogan     : "Pricing"
       subSlogan  : """
@@ -146,11 +162,11 @@ class IntroView extends JView
       multiple     : no
       cssClass     : 'bottom-menu'
       callback     : (state)=>
-        slider.jump labels.indexOf state
+        @slider.jump labels.indexOf state
         state = '' if state is 'Koding'
         history.replaceState {}, state, "/##{state}"
 
-    slider.on 'CurrentPageChanged', (current)->
+    @slider.on 'CurrentPageChanged', (current)->
 
       multipleChoice.setValue labels[current.x], no
 
