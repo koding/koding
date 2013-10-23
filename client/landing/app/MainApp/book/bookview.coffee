@@ -159,10 +159,9 @@ class BookView extends JView
 
   fillPrevPage:->
     if BookView.navigateNewPages
-      @getNewPages (pages)=>
+      @getNewPages =>
         prev = @prevUnreadPage()
         @fillPage prev if prev?
-        @checkBoundaries pages
       return
 
     return if @currentIndex - 1 < 0
@@ -170,10 +169,9 @@ class BookView extends JView
 
   fillNextPage:->
     if BookView.navigateNewPages
-      @getNewPages (pages)=>
+      @getNewPages =>
         next = @nextUnreadPage()
         @fillPage next if next?
-        @checkBoundaries pages
       return
 
     return if __bookPages.length is @currentIndex + 1
