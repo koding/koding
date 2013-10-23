@@ -12,7 +12,7 @@ class AccountSubscriptionsListController extends AccountListViewController
     @removeAllItems()
     @showLazyLoader no
 
-    KD.remote.api.JPaymentSubscription.getUserSubscriptionsWithPlan (err, subs=[])=>
+    KD.remote.api.JPaymentSubscription.fetchUserSubscriptionsWithPlan (err, subs=[])=>
       warn err  if err
       subscriptions = (sub  for sub in subs when sub.expired isnt 'expired')
       @instantiateListItems subscriptions
