@@ -69,7 +69,7 @@ class GroupPaymentHistoryListController extends KDListViewController
             status     : t.status
             amount     : ((t.amount + t.tax) / 100).toFixed(2)
             currency   : 'USD'
-            createdAt  : t.datetime
+            createdAt  : t.createdAt
             paidVia    : t.card or ""
             cardType   : t.cardType
             cardNumber : t.cardNumber
