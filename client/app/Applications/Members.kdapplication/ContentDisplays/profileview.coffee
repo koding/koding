@@ -317,7 +317,7 @@ class ProfileView extends JView
           @avatarMenu?.destroy()
           @avatarMenu = new JContextMenu
             menuWidth: 412
-            cssClass : "avatar-menu"
+            cssClass : "avatar-menu dark"
             delegate : @avatar
             x        : @avatar.getX() + 96
             y        : @avatar.getY() - 7
