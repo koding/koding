@@ -44,6 +44,10 @@ class Kd < Formula
   def install
     bin.install "kd"
   end
+
+  def test
+    system "#{bin}/kd", "version"
+  end
 end
 """
 
