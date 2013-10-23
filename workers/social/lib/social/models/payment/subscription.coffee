@@ -6,7 +6,7 @@ forceInterval = 60 * 3
 
 module.exports = class JPaymentSubscription extends jraphical.Module
 
-  {secure} = require 'bongo'
+  {secure, dash} = require 'bongo'
   JUser    = require '../user'
   JPayment = require './index'
 
@@ -17,7 +17,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       uuid         : 'unique'
     sharedMethods  :
       static       : [
-        'getUserSubscriptions', 'getUserSubscriptionsWithPlan', 'checkUserSubscription'
+        'fetchUserSubscriptions', 'fetchUserSubscriptionsWithPlan', 'checkUserSubscription'
       ]
       instance     : ['cancel', 'resume', 'calculateRefund']
     schema         :
@@ -26,21 +26,29 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       userCode     : String
       quantity     : Number
       status       : String
-      datetime     : String
-      expires      : String
-      renew        : String
+      activatedAt  : Date
+      expiresAt    : Date
+      renewAt      : Date
       amount       : Number
       lastUpdate   : Number
 
-  @getUserSubscriptions = secure ({connection:{delegate}}, callback)->
-    @fetchSubscriptions "user_#{delegate._id}", callback
+  @fetchUserSubscriptions = secure ({ connection:{ delegate }}, callback) ->
+    delegate.fetchPaymentMethods (err, paymentMethods) =>
+      return callback err  if err
+      subscriptions = {}
+      queue = paymentMethods.map ({ paymentMethodId }) => =>
+        @fetchSubscriptions paymentMethodId, (err, subs) ->
+          return queue.fin err  if err
+          subscriptions[paymentMethodId] = subs  if subs.length
+          queue.fin()
+      dash queue, -> callback null, subscriptions
 
-  @getUserSubscriptionsWithPlan = secure (client, callback)->
-    @getUserSubscriptions client, (err, subs)->
+  @fetchUserSubscriptionsWithPlan = secure (client, callback)->
+    @fetchUserSubscriptions client, (err, subs)->
       return callback err      if err
       return callback null, [] unless subs
 
-      code = $in: (sub.planCode  for sub in subs)
+      code = $in: (sub.planCode for sub in subs)
       JPaymentPlan = require './plan'
       JPaymentPlan.some {code}, {}, (err, plans)->
         return callback err  if err
@@ -70,7 +78,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
 
   @updateCache = (selector, callback)->
-    console.log { selector }
     JPayment.updateCache
       constructor   : this
       selector      : { paymentMethodId: selector.paymentMethodId }
@@ -79,9 +86,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       keyField      : 'uuid'
       message       : 'user subscriptions'
       forEach       : (uuid, cached, sub, stackCb)=>
-        {plan, quantity, status, datetime, expires, renew, amount} = sub
+        {plan, quantity, status, activatedAt, expiresAt, renewAt, amount} = sub
         cached.setData extend cached.getData(), {
-          userCode, plan, quantity, status, datetime, expires, renew, amount
+          userCode, plan, quantity, status, activatedAt, expiresAt, renewAt, amount
         }
         cached.lastUpdate = Date.now()
         cached.save stackCb
@@ -92,7 +99,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     JPaymentPlan.fetchPlanByCode @planCode, (err, plan) =>
       return callback err  if err
       payment.addUserCharge @userCode,
-        amount: (-1 * plan.feeMonthly * percent / 100)
+        amount: -1 * plan.feeMonthly * percent / 100
       , callback
 
   calculateRefund: (callback)->
@@ -103,17 +110,19 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       {uplimit: aDay * 15, percent: 20}
     ]
 
-    dateNow = new Date()
-    dateEnd = new Date(@renew)
-    usage   = (dateEnd.getTime() - dateNow.getTime()) / aDay
+    dateNow = new Date
+    dateEnd = @renewAt
+    usage   = (dateEnd - dateNow) / aDay
 
     refundMap.every (ref)=>
       return callback null, ref.percent  if usage < ref.uplimit
       callback yes, 0
 
   update_ = (subscription, callback)->
-    {status, datetime, expires, plan, quantity, renew, amount} = subscription
-    @setData extend @getData(), {status, datetime, expires, plan, quantity, renew, amount}
+    {status, activatedAt, expiresAt, plan, quantity, renewAt, amount} = subscription
+    @setData extend @getData(), {
+      status, activatedAt, expiresAt, plan, quantity, renewAt, amount
+    }
     @save (err)-> callback err, this
 
   update: (quantity, callback)->
