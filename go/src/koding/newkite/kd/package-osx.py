@@ -3,7 +3,7 @@
 A script for making a new tar package and Homebrew formula.
 Also uploads the generated .tar.gz file to S3 if you provide --upload flag.
 
-usage: package-osx.py [-h] [--upload] version
+usage: package-osx.py [-h] [--upload]
 
 Run it with the same folder as kd.go. It will output 2 files to the same
 directory:
@@ -46,7 +46,7 @@ class Kd < Formula
   end
 
   def test
-    system "#{bin}/kd", "version"
+    system "#{{bin}}/kd", "version"
   end
 end
 """
@@ -55,11 +55,8 @@ end
 def main():
     parser = argparse.ArgumentParser(
         description="Compile kd tool and upload to S3.")
-    parser.add_argument('version')
     parser.add_argument('--upload', action='store_true', help="upload to s3")
     args = parser.parse_args()
-
-    tarname = "kd-%s.tar.gz" % args.version
 
     workdir = tempfile.mkdtemp()
     try:
@@ -75,7 +72,13 @@ def main():
             print "Cannot compile kd tool. Try manually."
             sys.exit(1)
 
+        # Get the version number from compiled binary
+        version = subprocess.check_output([binpath, "version"]).strip()
+        assert len(version.split(".")) == 3
+        print "Version:", version
+
         print "Making tar file..."
+        tarname = "kd-%s.tar.gz" % version
         tarpath = os.path.join(workdir, tarname)
         cwd = os.getcwd()
         os.chdir(workdir)
@@ -106,7 +109,7 @@ def main():
             url = k.generate_url(expires_in=0, query_auth=False)
         else:
             # For testing "brew install" locally
-            url = "http://127.0.0.1:8000/kd-%s.tar.gz" % args.version
+            url = "http://127.0.0.1:8000/kd-%s.tar.gz" % version
 
         print "Generating formula..."
         sha1 = sha1_file(tarpath)
