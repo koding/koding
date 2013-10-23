@@ -149,6 +149,8 @@ KD.extend
 
     return "#{if secure then 'https' else 'http'}://#{subdomain}#{vmName}/#{publicPath}"
 
+  runningInFrame: -> window.top isnt window.self
+
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
