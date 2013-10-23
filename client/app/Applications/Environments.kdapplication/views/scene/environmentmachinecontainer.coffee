@@ -8,13 +8,12 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
     super options, data
 
-    vmController = KD.getSingleton('vmController')
-    vmController.on 'VMListChanged', =>
-      @utils.defer => @refreshItems()
-
   loadItems:->
+    super
+
     vmc = KD.getSingleton 'vmController'
-    vmc.fetchVMs (err, vms)=>
+    cmd = if KD.checkFlag('nostradamus') then 'fetchGroupVMs' else 'fetchVMs'
+    vmc[cmd] (err, vms)=>
       if err or vms.length is 0
         @emit "DataLoaded"
         return warn "Failed to fetch VMs", err  if err
