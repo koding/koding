@@ -80,6 +80,8 @@ class BookView extends JView
 
     @pagerWrapper.addSubView @pageNav
 
+    @on "PageFill", -> @checkBoundaries()
+
     @once "OverlayAdded", => @$overlay.css zIndex : 999
 
     @once "OverlayWillBeRemoved", =>
@@ -101,7 +103,6 @@ class BookView extends JView
 
     @setKeyView()
     cachePage(0)
-    @checkBoundaries()
     KD.track "Read Tutorial Book", KD.nick()
 
   pistachio:->
@@ -149,9 +150,9 @@ class BookView extends JView
 
   checkBoundaries: (pages=__bookPages)->
     if BookView.navigateNewPages
-      @getNewPages (pages)=>
+      @getNewPages (newPages)=>
         @toggleButton "prev", @newPagePointer is 0
-        @toggleButton "next", @newPagePointer is pages.length - 1
+        @toggleButton "next", @newPagePointer is newPages.length - 1
     else
       @toggleButton "prev", @currentIndex is 0
       @toggleButton "next", @currentIndex is pages.length - 1
@@ -166,7 +167,6 @@ class BookView extends JView
 
     return if @currentIndex - 1 < 0
     @fillPage @currentIndex - 1
-    @checkBoundaries()
 
   fillNextPage:->
     if BookView.navigateNewPages
@@ -178,7 +178,6 @@ class BookView extends JView
 
     return if __bookPages.length is @currentIndex + 1
     @fillPage parseInt(@currentIndex,10) + 1
-    @checkBoundaries()
 
   fillPage:(index)->
     cachePage index+1
@@ -198,6 +197,8 @@ class BookView extends JView
       @right.unsetClass "out"
       @utils.wait 400, =>
         @setClass "in"
+
+    @emit "PageFill", index
 
     # destroy @pointer
     if @pointer then @destroyPointer()
