@@ -44,7 +44,7 @@ class MessagesListController extends KDListViewController
         'CReplieeBucketActivity'
         'CFolloweeBucketActivity'
         'CLikeeBucketActivity'
-        'CNewMemberBucketActivity'
+        'CGroupJoineeBucketActivity'
       ]
     }, {
       limit: 8
@@ -70,12 +70,13 @@ class NotificationListItem extends KDListItemView
     JDiscussion     : "your discussion."
     JOpinion        : "your opinion."
     JReview         : "your review."
+    JGroup          : "your group"
 
   bucketNameMap = ->
-    CReplieeBucketActivity  : "comment"
-    CFolloweeBucketActivity : "follow"
-    CLikeeBucketActivity    : "like"
-    CNewMemberBucket        : "new member"
+    CReplieeBucketActivity     : "comment"
+    CFolloweeBucketActivity    : "follow"
+    CLikeeBucketActivity       : "like"
+    CGroupJoineeBucketActivity : "member"
 
   actionPhraseMap = ->
     comment : "commented on"
@@ -84,6 +85,7 @@ class NotificationListItem extends KDListItemView
     follow  : ""
     share   : "shared"
     commit  : "committed"
+    member  : "joined"
 
   constructor:(options = {}, data)->
 
