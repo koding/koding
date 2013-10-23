@@ -9,53 +9,71 @@ class AvatarChangeView extends JView
     return {isVideoSupported, isDNDSupported}
 
   constructor: (options={}, data)->
+
     options.cssClass = "avatar-change-menu"
     super options, data
 
     {isVideoSupported, isDNDSupported} = @detectFeatures()
 
-    newAvatar = null
-    @photo = new KDButtonView
-      cssClass  : "clean-gray avatar-button"
-      title     : "Take Photo"
-      disabled  : !isVideoSupported
-      callback  : =>
+    @avatarData = null
+
+    @photoButton = new KDButtonView
+      cssClass            : "clean-gray avatar-button"
+      title               : "Take Photo"
+      disabled            : !isVideoSupported
+      callback            : =>
         @slideView "photoview", =>
           @utils.wait 1000, =>
             @avatar.hide()
-            @avatarHolder.setClass "webcam"
-          @webcamView?.destroy()
+            @setWide()
+          @resetView()
           @avatarHolder.addSubView @webcamView = new KDWebcamView
-            hideControls: yes
-            countdown   : 3
-            snapTitle   : "Take Avatar Picture"
-            size        :
-              width     : 400
-          @webcamView.on "snap", (data)-> newAvatar = data
-          @webcamView.on "save", =>
+            hideControls  : yes
+            countdown     : 3
+            snapTitle     : "Take Avatar Picture"
+            size          :
+              width       : 400
+          @webcamView.on "snap", (data)=> @avatarData = data
 
-    @upload = new KDButtonView
-      cssClass  : "clean-gray avatar-button"
-      disabled  : !isDNDSupported
-      title     : "Upload Image"
 
-    @gravatar = new KDButtonView
-      cssClass  : "clean-gray avatar-button"
-      title     : "Use Gravatar"
-      callback  : =>
+    @uploadButton = new KDButtonView
+      cssClass            : "clean-gray avatar-button"
+      disabled            : !isDNDSupported
+      title               : "Upload Image"
+      callback            : =>
+        @slideView "uploadview", =>
+          @utils.wait 1000, =>
+            @avatar.hide()
+            @resetView()
+            @unsetWide()
+            @avatarHolder.addSubView @uploaderView = new DNDUploader
+              title       : "Drop your avatar here!"
+              uploadToVM  : no
+              size: height: 380
+
+            @uploaderView.on "dropFile", ({origin, content})=>
+              if origin is "external"
+                @avatarData = "data:image/png;base64,#{btoa content}"
+                @setAvatar()
+
+    @gravatarButton = new KDButtonView
+      cssClass            : "clean-gray avatar-button"
+      title               : "Use Gravatar"
+      callback            : =>
+        @unsetWide()
         @slideView "gravatar-confirm"
 
-    @gravatarConfirm = new KDButtonView
-      cssClass  : "clean-gray gravatar-confirm avatar-button"
-      title     : "Yes, use Gravatar"
-      callback  : =>
+    @gravatarConfirmButton = new KDButtonView
+      cssClass            : "clean-gray gravatar-confirm avatar-button"
+      title               : "Yes, use Gravatar"
+      callback            : =>
         @emit "UseGravatar"
         @slideView()
 
-    @gravatarCancel = new KDButtonView
-      cssClass  : "clean-gray cancel avatar-button"
-      title     : "Cancel"
-      callback  : => @slideView()
+    @gravatarCancelButton = new KDButtonView
+      cssClass            : "clean-gray cancel avatar-button"
+      title               : "Cancel"
+      callback            : => @slideView ""
 
     @avatarHolder = new KDCustomHTMLView
       cssClass: "avatar-holder"
@@ -67,55 +85,81 @@ class AvatarChangeView extends JView
         height : 400
     , @getData()
 
-    @cancel = new KDButtonView
-      cssClass: "clean-gray cancel avatar-button"
-      title: "Cancel"
-      callback: =>
-        @slideView "", =>
-          @utils.wait 1000, =>
-            @webcamView?.destroy()
-            @avatarHolder.unsetClass "webcam"
-            @avatar.show()
+    @cancelPhotoButton = @getCancelView =>
+      @slideView "", =>
+        @utils.wait 1000, =>
+          @resetView()
+          @unsetWide()
+          @avatar.show()
 
-    @take = new KDButtonView
+    @takePhotoButton = new KDButtonView
       cssClass: "clean-gray take avatar-button"
       title: "Take"
       callback: =>
         @webcamView.takePicture()
         @slideView "saveview"
 
-    @retake = new KDButtonView
+    @retakePhotoButton = new KDButtonView
       cssClass: "clean-gray retake avatar-button"
       title: "Retake"
       callback: =>
         @slideView "photoview"
         @webcamView.reset()
 
-    @save = new KDButtonView
-      cssClass: "clean-gray save avatar-button"
-      title: "Save"
-      callback: =>
-        @slideView "", =>
-          @avatar.setAvatar "url(#{newAvatar})"
-          @webcamView?.destroy()
-          @avatar.setSize
-            width : 400
-            height: 300
-          @avatar.show()
-          @emit "UsePhoto", newAvatar
+    @savePhotoButton = @getSaveView =>
+      @resetView()
+      @unsetWide()
 
-    @on "LoadingEnd",   => @slideView ""
+    @on "LoadingEnd",   =>
+      @slideView ""
+      @unsetWide()
     @on "LoadingStart", => @slideView "loading"
     @on "viewAppended", => @slideDownAvatar()
 
-  slideDownAvatar: ->
-    @avatarHolder.setClass "opened"
+  resetView: ->
+    @webcamView?.destroy()
+    @uploaderView?.destroy()
 
-  slideUpAvatar: ->
-    @avatarHolder.unsetClass "opened"
+  setWide: ->
+    @avatarHolder.setClass "wide"
+    @avatar.setSize
+      width : 400
+      height: 300
+
+  unsetWide: ->
+    @avatarHolder.unsetClass "wide"
+    @avatar.setSize
+      width : 400
+      height: 400
+
+  setAvatar: (callback)->
+    @avatar.setAvatar "url(#{@avatarData})"
+    @avatar.setSize width: 400, height: 400
+    callback?()
+    @avatar.show()
+    @emit "UsePhoto", @avatarData
+
+  getSaveView: (callback)->
+    return new KDButtonView
+      cssClass: "clean-gray save avatar-button"
+      title: "Save"
+      callback: => @setAvatar callback
+
+  getCancelView: (callback)->
+    new KDButtonView
+      cssClass  : "clean-gray cancel avatar-button"
+      title     : "Cancel"
+      callback  : => callback?() or @slideView "", =>
+        @utils.wait 1000, =>
+          @resetView()
+          @unsetWide()
+          @avatar.show()
+
+  slideDownAvatar: -> @avatarHolder.setClass "opened"
+  slideUpAvatar: -> @avatarHolder.unsetClass "opened"
 
   slideView: (viewname="", callback)->
-    @unsetClass "photoview saveview gravatar-confirm loading"
+    @unsetClass "photoview saveview uploadview gravatar-confirm dndview loading"
     @setClass viewname
     if callback
       @slideUpAvatar()
@@ -127,26 +171,30 @@ class AvatarChangeView extends JView
     """
     <section class="wrapper">
       <article>
-        {{> @photo}}
-        {{> @upload}}
-        {{> @gravatar}}
+        {{> @photoButton}}
+        {{> @uploadButton}}
+        {{> @gravatarButton}}
       </article>
       <article>
         <strong>Take Photo</strong>
-        {{> @take}}
-        {{> @cancel}}
+        {{> @takePhotoButton}}
+        {{> @cancelPhotoButton}}
       </article>
       <article>
-        {{> @retake}}
-        {{> @save}}
+        {{> @retakePhotoButton}}
+        {{> @savePhotoButton}}
       </article>
       <article>
         <strong>Are you sure?</strong>
-        {{> @gravatarConfirm}}
-        {{> @gravatarCancel}}
+        {{> @gravatarConfirmButton}}
+        {{> @gravatarCancelButton}}
       </article>
       <article>
-        <strong>Uploading avatar, please wait...</strong>
+        <strong>Drag and drop your avatar</strong>
+        {{> @getCancelView()}}
+      </article>
+      <article>
+        <strong class="loading">Uploading avatar, please wait...</strong>
       </article>
     </section>
     {{> @avatarHolder}}
@@ -269,13 +317,15 @@ class ProfileView extends JView
           @avatarMenu?.destroy()
           @avatarMenu = new JContextMenu
             menuWidth: 412
-            cssClass : "avatar-menu"
+            cssClass : "avatar-menu dark"
             delegate : @avatar
             x        : @avatar.getX() + 96
             y        : @avatar.getY() - 7
           , customView: @avatarChange = new AvatarChangeView {}, @memberData
 
-          @avatarChange.on "UseGravatar", => @avatarSetGravatar()
+          @avatarChange.on "UseGravatar", =>
+            @avatarSetGravatar()
+
           @avatarChange.on "UsePhoto", (dataURI)=>
             [_, avatarBase64] = dataURI.split ","
             @avatar.setAvatar "url(#{dataURI})"
@@ -284,6 +334,7 @@ class ProfileView extends JView
             @avatarChange.emit "LoadingStart"
             @uploadAvatar avatarBase64, =>
               @avatarChange.emit "LoadingEnd"
+
 
         else
           @modal = new KDModalView
@@ -362,8 +413,8 @@ class ProfileView extends JView
     @createExternalProfiles()
     @createBadges()
 
-  uploadAvatar: (newAvatar, callback)->
-    FSHelper.s3.upload "avatar.png", newAvatar, (err, url)=>
+  uploadAvatar: (avatarData, callback)->
+    FSHelper.s3.upload "avatar.png", avatarData, (err, url)=>
       resized = KD.utils.proxifyUrl url,
         crop: true, width: 400, height: 400
 
@@ -371,42 +422,6 @@ class ProfileView extends JView
 
   avatarSetGravatar: (callback)->
     @memberData.modify "profile.avatar": "", callback
-
-  avatarUploadImage: ->
-    @bigAvatar.hide()
-    @modal.addSubView uploader = new DNDUploader
-      title       : "Drop your avatar here!"
-      uploadToVM  : no
-      size: height: 380
-
-    uploader.showCancel()
-
-    uploader.on "cancel", =>
-      uploader.destroy()
-      @bigAvatar.show()
-      @modal.buttons.upload.enable()
-
-    uploader.on "dropFile", ({origin, content})=>
-      if origin is "external"
-        newAvatar = btoa content
-        @uploadAvatar newAvatar, ->
-          uploader.emit "cancel"
-
-    @modal.buttons.upload.disable()
-
-  avatarCapturePhoto: ->
-    newAvatar = ''
-    @bigAvatar.hide()
-    @modal.addSubView capture = new KDWebcamView
-      snapTitle: "Take Avatar Picture"
-      size:
-        width : 400
-        height: 400
-    capture.on "snap", (data)-> [_, newAvatar] = data.split ','
-    capture.on "save", =>
-      @uploadAvatar newAvatar, =>
-        @bigAvatar.show()
-        capture.hide()
 
   createExternalProfiles:->
 

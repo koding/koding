@@ -317,6 +317,48 @@ app.profile.styl
 .avatar-menu
   overflow                visible
 
+  &.dark
+
+    color                 #9e9e9e
+    strong
+      color               #9e9e9e
+      text-shadow         0 1px 0 #000
+
+      &.loading
+        padding-left      20px!important
+        background        url(/images/small-loader-dark.gif) left center no-repeat !important
+
+
+    .kdlistview-contextmenu
+      border              1px solid #454545
+    .kdlistview
+      gradient            #676767, #5f5f5f
+
+    .kdbutton
+      height              24px
+      gradient            #454545, #1f1f1e
+      color               #9e9e9e
+      text-shadow         0 1px 0 #000
+      border-top-color    #292929
+      border-left-color   #313131
+      border-right-color  #313131
+      border-bottom-color #1f1f1e
+
+      &.cancel
+        text-shadow       none
+        border-radius     5px
+        width             60px!important
+        border            1px solid #4b4b4b
+        gradient          #757575, #585858
+        font-weight       normal
+
+      &:active
+        vendor box-shadow, inset 0 0 5px 2px #000, 0 1px 0 0 #313131;
+
+      &:focus
+        border            none
+        outline           none
+
   .kdlistview
     background-color      #fff !important
 
@@ -348,16 +390,17 @@ app.profile.styl
       box-shadow          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
                           0 7px 20px -7px rgba(0,0,0,0.8)
       vendor              transition-delay,    300ms
-      vendor              transition-property, height
       vendor              transition-duration, 700ms
       overflow            hidden
       border-radius       0 0 5px 5px
       background          #ededed url(/images/photo.png) center center no-repeat
       abs                 30px, 0, 0, 5px
       size                400px, 0px
+      opacity             0.6
       &.opened
+        opacity           1
         height            400px
-        &.webcam
+        &.wide
           height          300px
           video
           canvas
@@ -365,11 +408,13 @@ app.profile.styl
             abs           0px
 
       .avatarview
+        background-size   auto 400px
         box-shadow        inset 0px 7px 20px -10px rgba(0,0,0,0.5),
                           0 7px 20px -7px rgba(0,0,0,0.8)
 
     article
 
+      margin-bottom       6px
       button
         outline           0
 
@@ -379,27 +424,36 @@ app.profile.styl
         margin-left       10px
         line-height       24px
 
+        &.loading
+          padding-left    15px
+          background      url(/images/small-loader.gif) left center no-repeat
+
       &:first-of-type
         vendor            transition-duration, 100ms
 
     &.photoview
       article:first-of-type
-        margin-top        -24px
+        margin-top        -30px
         opacity           0
 
     &.saveview
       article:first-of-type
-        margin-top        -48px
+        margin-top        -60px
         opacity           0
 
     &.gravatar-confirm
       article:first-of-type
-        margin-top        -72px
+        margin-top        -90px
+        opacity           0
+
+    &.uploadview
+      article:first-of-type
+        margin-top        -120px
         opacity           0
 
     &.loading
       article:first-of-type
-        margin-top        -96px
+        margin-top        -150px
         opacity           0
 
 
