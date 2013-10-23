@@ -18,6 +18,7 @@ func init() {
 	registerAnalytic(numberOfUsersWhoPostedContentToday)
 	registerAnalytic(numberOfUsersWhoAreOnline)
 	registerAnalytic(numberOfUsersWhoLoggedInToday)
+	registerAnalytic(numberOfGuestAccounts)
 }
 
 func numberOfAccounts() (string, int) {
@@ -178,6 +179,23 @@ func numberOfUsersWhoLoggedInToday() (string, int) {
 	}
 
 	mongodb.Run("jUsers", query)
+
+	return identifier, count
+}
+
+func numberOfGuestAccounts() (string, int) {
+	var identifier string = "number_of_guest_accounts"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		var filter = bson.M{"type": "unregistered"}
+
+		count, err = c.Find(filter).Count()
+
+		return err
+	}
+
+	mongodb.Run("jAccounts", query)
 
 	return identifier, count
 }
