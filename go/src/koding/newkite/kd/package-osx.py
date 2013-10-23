@@ -21,6 +21,7 @@ import hashlib
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 
@@ -68,7 +69,7 @@ def main():
             subprocess.check_call(cmd.split())
         except:
             print "Cannot compile kd tool. Try manually."
-            return
+            sys.exit(1)
 
         print "Making tar file..."
         tarpath = os.path.join(workdir, tarname)
@@ -90,6 +91,12 @@ def main():
             b = c.get_bucket('kd-tool')
             k = Key(b)
             k.key = tarname
+            if k.exists():
+                print "This version is already uploaded. " \
+                      "Please do not overwrite the uploaded version, " \
+                      "increment the version number and upload it again."
+                sys.exit(1)
+
             k.set_contents_from_filename(tarpath)
             k.make_public()
             url = k.generate_url(expires_in=0, query_auth=False)
