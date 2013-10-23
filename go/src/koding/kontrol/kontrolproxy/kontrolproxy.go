@@ -238,7 +238,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			return templateHandler("notfound.html", req.Host, 410)
 		}
 
-		logs.Info(fmt.Sprintf("resolver error %s", err))
+		logs.Info(fmt.Sprintf("resolver error (%s - %s): %s", userIP, userCountry, err))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
