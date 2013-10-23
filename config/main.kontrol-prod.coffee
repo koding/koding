@@ -156,7 +156,7 @@ module.exports =
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'Xah8ibeekelah'
     heartbeat   : 20
     vhost       : 'new'
   broker        :
@@ -218,7 +218,7 @@ module.exports =
     host        : '172.16.3.4'
     port        : 5672
     componentUser: 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'Xah8ibeekelah'
     vhost       : 'followfeed'
   github        :
     clientId    : "5891e574253e65ddb7ea"

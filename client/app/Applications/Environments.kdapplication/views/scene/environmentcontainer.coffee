@@ -3,7 +3,7 @@ class EnvironmentContainer extends KDDiaContainer
   constructor:(options={}, data)->
 
     options.cssClass   = 'environments-container'
-    options.draggable  = yes
+    # options.draggable  = yes
 
     super options, data
 
@@ -13,7 +13,7 @@ class EnvironmentContainer extends KDDiaContainer
     @itemHeight = options.itemHeight ? 40
 
     @on "DataLoaded", => @_dataLoaded = yes
-    @on "DragFinished", @bound 'savePosition'
+    # @on "DragFinished", @bound 'savePosition'
 
     @newItemPlus = new KDCustomHTMLView
       cssClass   : 'new-item-plus'
@@ -34,7 +34,7 @@ class EnvironmentContainer extends KDDiaContainer
     @header.addSubView @loader
 
     {@appStorage} = @parent
-    @appStorage.ready @bound 'loadPosition'
+    # @appStorage.ready @bound 'loadPosition'
 
   showLoader: ->
     @newItemPlus.hide()
@@ -50,7 +50,7 @@ class EnvironmentContainer extends KDDiaContainer
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
     diaObj.on "KDObjectWillBeDestroyed", => @emit "itemRemoved"
-    @updateHeight()
+    # @updateHeight()
 
   updatePositions:->
 
@@ -59,44 +59,40 @@ class EnvironmentContainer extends KDDiaContainer
       dia.setX 20
       dia.setY 60 + index * 50
       index++
-    @updateHeight()
+    # @updateHeight()
 
   diaCount:-> Object.keys(@dias).length
 
-  updateHeight:->
+  # updateHeight:->
 
-    @setHeight 80 + @diaCount() * 50
-    @emit 'UpdateScene'
+  #   @setHeight 80 + @diaCount() * 50
+  #   @emit 'UpdateScene'
 
-  savePosition:->
+  # savePosition:->
 
-    name      = @constructor.name
-    bounds    = x: @getRelativeX(), y: @getRelativeY()
-    positions = (@appStorage.getValue 'containerPositions') or {}
-    positions[name] = bounds
-    @appStorage.setValue 'containerPositions', positions
+  #   name      = @constructor.name
+  #   bounds    = x: @getRelativeX(), y: @getRelativeY()
+  #   positions = (@appStorage.getValue 'containerPositions') or {}
+  #   positions[name] = bounds
+  #   @appStorage.setValue 'containerPositions', positions
 
-  loadPosition:->
+  # loadPosition:->
 
-    name     = @constructor.name
-    position = ((@appStorage.getValue 'containerPositions') or {})[name]
-    return  unless position
-    @setX position.x; @setY position.y
+  #   name     = @constructor.name
+  #   position = ((@appStorage.getValue 'containerPositions') or {})[name]
+  #   return  unless position
+  #   @setX position.x; @setY position.y
 
-  resetPosition:->
+  # resetPosition:->
 
-    @setX @_initialPosition.x
-    @setY @_initialPosition.y
+  #   @setX @_initialPosition.x
+  #   @setY @_initialPosition.y
 
-    name      = @constructor.name
-    positions = (@appStorage.getValue 'containerPositions') or {}
+  #   name      = @constructor.name
+  #   positions = (@appStorage.getValue 'containerPositions') or {}
 
-    delete positions[name]
-    @appStorage.setValue 'containerPositions', positions
+  #   delete positions[name]
+  #   @appStorage.setValue 'containerPositions', positions
 
-  refreshItems:->
-    for key, dia of @dias
-      dia.destroy()
-    @loadItems()
-
-  loadItems:-> yes
+  loadItems:->
+    @removeAllItems()
