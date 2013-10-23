@@ -1186,10 +1186,13 @@ module.exports = class JAccount extends jraphical.Module
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
 
+  fetchDecoratedPaymentMethods: (callback) ->
+    JPaymentMethod = require './payment/method'
+    @fetchPaymentMethods (err, paymentMethods) ->
+      return callback err  if err
+      JPaymentMethod.decoratePaymentMethods paymentMethods, callback
+
   fetchPaymentMethods$: secure (client, callback) ->
     {delegate} = client.connection
-    JPaymentMethod = require './payment/method'
     if delegate is this or delegate.can 'administer accounts'
-      @fetchPaymentMethods (err, paymentMethods) ->
-        return callback err  if err
-        JPaymentMethod.decoratePaymentMethods paymentMethods, callback
+      @fetchDecoratedPaymentMethods callback
