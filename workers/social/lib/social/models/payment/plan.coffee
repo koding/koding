@@ -38,10 +38,11 @@ module.exports = class JPaymentPlan extends jraphical.Module
       lastUpdate   : Number
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
-    throw Error 'needs to be reimplemented'
+    console.error 'needs to be reimplemented'
 #    recurly.fetchAccountDetailsByPaymentMethodId (JPayment.userCodeOf delegate), callback
 
   @fetchPlans = secure (client, options, callback) ->
+    console.log 'FETCH PLANS'
 
     selector = (Object.keys options)
       .reduce( (acc, key) ->
@@ -56,44 +57,49 @@ module.exports = class JPaymentPlan extends jraphical.Module
   getToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @code, callback
 
-  doSubscribe = (code, data, callback) ->
+  subscribe: (paymentMethodId, data, callback) ->
     data.multiple ?= no
 
     JPaymentSubscription.fetchAllSubscriptions {
-      userCode
+      paymentMethodId
       planCode  : @code
       $or       : [
         {status : 'active'}
         {status : 'canceled'}
       ]
-    }, (err, [sub])=>
+    }, (err, [sub]) =>
       return callback err  if err
 
       if sub
         return callback 'Already subscribed.'  unless data.multiple
 
-        sub.quantity ?= 1
-        recurly.updateSubscription userCode,
-          quantity : ++subs.quantity
+        quantity = (sub.quantity ? 1) + 1
+
+        recurly.updateSubscription paymentMethodId,
+          quantity : quantity
           plan     : @code
-          uuid     : subs.uuid
-        , (err)=>
+          uuid     : sub.uuid
+        , (err) =>
           return callback err  if err
-          sub.save (err)-> callback err, sub
+          sub.update $set: { quantity }, (err)->
+            if err
+            then callback err
+            else callback null, sub
       else
-        recurly.createSubscription userCode, plan: @code, (err, result)->
+        recurly.createSubscription paymentMethodId, plan: @code, (err, result) ->
           return callback err  if err
-          {planCode: plan, uuid, quantity, status, datetime, expires, renew, amount} = result
-          sub = new JPaymentSubscription {
-            userCode, planCode, uuid, quantity, status, datetime, expires, renew, amount
-          }
-          sub.save (err)-> callback err, sub
+          console.log { err, result }
+          # { planCode, uuid, quantity, status, datetime, expires, renew, amount } = result
+          # sub = new JPaymentSubscription {
+          #   userCode, planCode, uuid, quantity, status, datetime, expires, renew, amount
+          # }
+          # sub.save (err)-> callback err, sub
 
-  subscribe: secure ({connection:{delegate}}, data, callback)->
-    doSubscribe "user_#{delegate._id}", data, callback
+  subscribe$: secure ({connection:{delegate}}, paymentMethodId, data, callback) ->
+    @subscribe paymentMethodId, data, callback
 
-  subscribeGroup: (group, data, callback)->
-    doSubscribe "group_#{group._id}", data, callback
+  # subscribeGroup: (group, data, callback)->
+  #   doSubscribe "group_#{group._id}", data, callback
 
   fetchSubscription: secure ({ connection:{ delegate }}, callback) ->
     selector    =
