@@ -252,10 +252,8 @@ class BuyVmModal extends KDModalView
     { type, planInfo: { code: planCode }, paymentMethod: { paymentMethodId } } = formData
 
     options = { type, planCode, paymentMethodId }
-
-    paymentController.confirmPayment options, (err) =>
-      @destroy()
-      KD.track "User Clicked Buy VM", KD.nick()
+    
+    paymentController.makePayment paymentMethodId, planCode, 1
 
   viewAppended: ->
     super
