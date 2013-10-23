@@ -49,14 +49,9 @@ module.exports = class JGroupBundle extends JBundle
 
   canCreateVM: (account, group, data, callback)->
     { type, planCode, paymentMethodId } = data
-#
-#    if type is 'user'
-#      planOwner = "user_#{account._id}"
-#    else if type in ['group', 'expensed']
-#      planOwner = "group_#{group._id}"
 
     JPaymentSubscription.fetchAllSubscriptions
-      userCode: paymentMethodId
+      paymentMethodId: paymentMethodId
       planCode: planCode
       $or: [
         {status: 'active'}
@@ -71,7 +66,7 @@ module.exports = class JGroupBundle extends JBundle
 
       createdVMs = 0
       JVM.someData
-        planOwner: planOwner
+        planOwner: paymentMethodId
         planCode : planCode
       ,
         name     : 1
