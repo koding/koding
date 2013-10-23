@@ -58,24 +58,29 @@ class BookView extends JView
       click     : (pubInst, event)=>
         BookView.navigateNewPages = no
         @fillPage 0
+        @checkBoundaries()
 
-    @pageNav.addSubView new KDCustomHTMLView
+    @pageNav.addSubView @prevButton = new KDCustomHTMLView
       tagName   : "a"
       partial   : "◀"
+      cssClass  : "disabled"
       click     : (pubInst, event)=> @fillPrevPage()
       tooltip   :
         title   : "Press: Left Arrow Key"
         gravity : "sw"
 
-    @pageNav.addSubView new KDCustomHTMLView
+    @pageNav.addSubView @nextButton = new KDCustomHTMLView
       tagName   : "a"
       partial   : "▶"
+      cssClass  : "disabled"
       click     : (pubInst, event)=> @fillNextPage()
       tooltip   :
         title   : "Press: Right Arrow Key"
         gravity : "sw"
 
     @pagerWrapper.addSubView @pageNav
+
+    @on "PageFill", -> @checkBoundaries()
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
 
@@ -140,6 +145,18 @@ class BookView extends JView
     fileName = "/home/#{user}#{file}"
     KD.getSingleton("appManager").openFile(FSHelper.createFileFromPath(fileName))
 
+  toggleButton: (button, isDisabled)->
+    @["#{button}Button"][if isDisabled then "setClass" else "unsetClass"] "disabled"
+
+  checkBoundaries: (pages=__bookPages)->
+    if BookView.navigateNewPages
+      @getNewPages (newPages)=>
+        @toggleButton "prev", @newPagePointer is 0
+        @toggleButton "next", @newPagePointer is newPages.length - 1
+    else
+      @toggleButton "prev", @currentIndex is 0
+      @toggleButton "next", @currentIndex is pages.length - 1
+
   fillPrevPage:->
     if BookView.navigateNewPages
       @getNewPages =>
@@ -178,6 +195,8 @@ class BookView extends JView
       @right.unsetClass "out"
       @utils.wait 400, =>
         @setClass "in"
+
+    @emit "PageFill", index
 
     # destroy @pointer
     if @pointer then @destroyPointer()
