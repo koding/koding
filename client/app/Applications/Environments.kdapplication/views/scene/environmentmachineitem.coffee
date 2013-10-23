@@ -4,7 +4,11 @@ class EnvironmentMachineItem extends EnvironmentItem
 
     options.cssClass           = 'machine'
     options.joints             = ['left']
-    options.allowedConnections = EnvironmentDomainItem : ['right']
+    if KD.checkFlag 'nostradamus' then options.joints.push 'right'
+
+    options.allowedConnections =
+      EnvironmentDomainItem : ['right']
+      EnvironmentExtraItem  : ['left']
 
     super options, data
 
