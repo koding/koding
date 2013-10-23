@@ -7,10 +7,12 @@ class IntroPage extends KDSlidePageView
     content = @getOption 'content'
     return content if content
 
+    time = new Date().getTime()
+
     """
       <div class="slider-page">
         <div class="wrapper">
-          <figure><img src="/images/homeslide/#{@getData().slideImage}"></figure>
+          <figure><img src="/images/homeslide/#{@getData().slideImage}?#{time}"></figure>
           <h3><i></i> {{ #(slogan) }}</h3>
           {{ #(subSlogan) }}
         </div>
@@ -80,7 +82,7 @@ class IntroView extends JView
     @slider.addPage new EntryPage
 
     @slider.addPage new IntroPage {},
-      slideImage : "you.jpg"
+      slideImage : "home_you.gif"
       slogan     : "Koding for <span>You</span>"
       subSlogan  : """
         <p>
@@ -92,7 +94,7 @@ class IntroView extends JView
       """
 
     @slider.addPage new IntroPage {},
-      slideImage : "developers.jpg"
+      slideImage : "home_developers.gif"
       slogan     : "Koding for <span>Developers</span>"
       subSlogan  : """
         <p>
@@ -105,7 +107,7 @@ class IntroView extends JView
 
     @slider.addSubPage new IntroPage {},
       slideImage : "developers.jpg"
-      slogan     : "Koding for <span>Sinan</span>"
+      slogan     : "Koding for <span>Developers #2</span>"
       subSlogan  : """
         <p>
           You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
@@ -116,7 +118,7 @@ class IntroView extends JView
       """
 
     @slider.addPage new IntroPage {},
-      slideImage : "education.jpg"
+      slideImage : "home_education.gif"
       slogan     : "Koding for <span>Education</span>"
       subSlogan  : """
         <p>
@@ -128,7 +130,7 @@ class IntroView extends JView
       """
 
     @slider.addPage new IntroPage {},
-      slideImage : "business.jpg"
+      slideImage : "home_business.gif"
       slogan     : "Koding for <span>Business</span>"
       subSlogan  : """
         <p>
