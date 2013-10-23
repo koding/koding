@@ -19,7 +19,7 @@ class AccountPaymentHistoryListController extends AccountListViewController
       warn err  if err
 
       for t in trans when t.amount + t.tax > 0
-        {status, datetime, card, cardType, cardNumber, owner, refundable} = t
+        {status, createdAt, card, cardType, cardNumber, owner, refundable} = t
         amount = ((t.amount + t.tax) / 100).toFixed(2)
         transactions.push {
           status, cardType, cardNumber, owner, refundable, amount
