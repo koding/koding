@@ -85,8 +85,7 @@ func numberOfUsersWhoJoinedToday() (string, int) {
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
-		year, month, day := time.Now().Date()
-		var today = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+		var today = getTodayDate()
 		var filter = bson.M{"meta.createdAt": bson.M{"$gte": today}, "type": "registered"}
 
 		count, err = c.Find(filter).Count()
@@ -104,8 +103,7 @@ func numberOfGuestAccountsCreatedToday() (string, int) {
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
-		year, month, day := time.Now().Date()
-		var today = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+		var today = getTodayDate()
 		var filter = bson.M{"meta.createdAt": bson.M{"$gte": today}, "type": "unregistered"}
 
 		count, err = c.Find(filter).Count()
@@ -138,8 +136,7 @@ func numberOfUsersWhoPostedContentToday() (string, int) {
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
-		year, month, day := time.Now().Date()
-		var today = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+		var today = getTodayDate()
 		var filter = bson.M{"meta.modifiedAt": bson.M{"$gte": today}}
 
 		count, err = c.Find(filter).Count()
@@ -172,8 +169,7 @@ func numberOfUsersWhoLoggedInToday() (string, int) {
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
-		year, month, day := time.Now().Date()
-		var today = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+		var today = getTodayDate()
 		var filter = bson.M{"lastLoginDate": bson.M{"$gte": today}}
 
 		count, err = c.Find(filter).Count()
@@ -184,4 +180,9 @@ func numberOfUsersWhoLoggedInToday() (string, int) {
 	mongodb.Run("jUsers", query)
 
 	return identifier, count
+}
+
+func getTodayDate() time.Time {
+	year, month, day := time.Now().Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, time.Local)
 }
