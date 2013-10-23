@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
 
@@ -101,22 +101,25 @@ app.starttab.styl
   border                    1px solid #ccc
   position                  relative
   opacity                   0
-  vendor                    transition, opacity 1s ease-in
+  vendor                    transition, opacity 1s ease-in \, top .3s ease-in-out
   &.in
     opacity                 1
+  &.on-top
+    top                     -5px
 
 .environment-content
   left                      0
   border-top                1px solid #ccc
   border-bottom             1px solid #ccc
-  height                    2px
   width                     100%
   margin                    0 auto
   text-align                left
-  vendor                    transition, opacity 1.5s ease-in \, height .3s ease-in-out
-  opacity                   0
-  &.in
-    opacity                 1
+
+  &.animated
+    vendor                    transition, opacity 1.5s ease-in \, height .3s ease-in-out
+    opacity                   0
+    &.in
+      opacity                 1
 
 .start-tab-recent-container
   abs()

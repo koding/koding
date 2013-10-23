@@ -19,6 +19,8 @@ class MembersAppController extends AppController
     facebook        :
       nicename      : 'Facebook'
       urlLocation   : 'link'
+    google          :
+      nicename      : 'Google'
     # twitter         :
     #   nicename      : 'Twitter'
     # linkedin        :
@@ -61,9 +63,11 @@ class MembersAppController extends AppController
               JAccount.byRelevance @_searchValue, options, callback
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
-              group.fetchMembersFromGraph options, callback
+              group.fetchMembersFromGraph options, (err, res)=>
+                callback err, res
 
               group.countMembers (err, count) =>
+                count = 0 if err
                 @setCurrentViewNumber 'all', count
 
         followed            :

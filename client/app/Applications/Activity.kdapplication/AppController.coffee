@@ -146,6 +146,7 @@ class ActivityAppController extends AppController
       #to-do add isExempt control.
       #@isExempt (exempt)=>
       #if exempt or @getFilter() isnt activityTypes
+
       groupObj     = KD.getSingleton("groupsController").getCurrentGroup()
       mydate = new Date((new Date()).setSeconds(0) + 60000).getTime()
       options      =
@@ -159,6 +160,8 @@ class ActivityAppController extends AppController
 
       if KD.getSingleton("activityController").flags.showExempt
         options.withExempt = yes
+      else
+        options.withExempt = false
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 

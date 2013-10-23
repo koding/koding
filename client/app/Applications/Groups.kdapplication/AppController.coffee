@@ -4,10 +4,14 @@ class GroupsAppController extends AppController
     name         : "Groups"
     route        : "/Groups"
     hiddenHandle : yes
-    navItem      :
-      title      : "Groups"
-      path       : "/Groups"
-      order      : 40
+    # navItem      :
+    #   title      : "Groups"
+    #   path       : "/Groups"
+    #   order      : 40
+    #   topLevel   : yes
+    preCondition :
+      condition  : (options, cb)-> cb KD.checkFlag "group-admin"
+      failure    : -> KD.getSingleton('router').handleRoute "/Activity"
 
   @privateGroupOpenHandler =(event)->
     event.preventDefault()
@@ -76,10 +80,7 @@ class GroupsAppController extends AppController
     oldGroupName        = @currentGroupName
     @currentGroupName   = groupName
 
-    if oldGroupName?
-      location.reload()
-
-    else unless groupName is oldGroupName
+    unless groupName is oldGroupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?

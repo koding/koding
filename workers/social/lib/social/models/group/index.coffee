@@ -14,7 +14,6 @@ module.exports = class JGroup extends Module
   KodingError    = require '../../error'
   Validators     = require './validators'
   {throttle}     = require 'underscore'
-  Graph          = require "../graph/graph"
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -1390,9 +1389,9 @@ module.exports = class JGroup extends Module
     else
       callback new KodingError "No such VM type: #{data.type}"
 
-  countMembers: (callback)->
-    graph = new Graph({config:KONFIG['neo4j']})
-    graph.fetchRelationshipCount {groupId:@_id, relName:"member"}, callback
+  countMembers: secure (client, callback)->
+    {Member} = require "../graph"
+    Member.fetchMemberCount {groupId:@_id, client:client}, callback
 
   fetchOrCountInvitations: permit 'send invitations',
     success: (client, type, method, options, callback)->
@@ -1400,8 +1399,8 @@ module.exports = class JGroup extends Module
       return callback 'unsupported type'  unless type in supportedTypes
 
       options.groupId = @getId()
-      graph = new Graph({config:KONFIG['neo4j']})
-      graph["fetchOrCount#{type}s"] method, options, callback
+      {Invitation} = require "../graph"
+      Invitation["fetchOrCount#{type}s"] method, options, callback
 
   fetchInvitationsFromGraph: permit 'send invitations',
     success: (client, type, options, callback)->
@@ -1422,29 +1421,11 @@ module.exports = class JGroup extends Module
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
-      graph = new Graph({config:KONFIG['neo4j']})
       options.groupId = @getId()
-      JAccount = require '../account'
       options.client = client
-      graph.fetchMembers options, (err, results)=>
-        if err then return callback err
-        else if results.length < 1 then return callback null, []
-        else
-          tempRes = []
-          collectContents = race (i, res, fin)=>
-            objId = res.id
-            JAccount.one  { _id : objId }, (err, account)=>
-              if err
-                callback err
-                return fin()
-
-              tempRes[i] = account
-              fin()
-          , ->
-            tempRes = tempRes.filter (res)-> res
-            callback null, tempRes
-          for res in results
-            collectContents res
+      {Member} = require '../graph'
+      Member.fetchMemberList options, (err, results)=>
+        callback err, results
 
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'
