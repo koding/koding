@@ -332,11 +332,18 @@ class BookView extends JView
       # click animation
       @clickAnimation()
       @utils.wait 1000, =>
+        chevron = @defaultVm.$ '.chevron'
         # open fileTree menu
-        @defaultVm.$('.chevron').click()
-        $('.jcontextmenu').offset(@defaultVm.$('.chevron').offset())
-        # destroy pointer
-        @destroyPointer()
+        chevron.click()
+        contextMenu = $ '.jcontextmenu'
+        contextMenu.addClass "hidden"
+
+        @utils.wait 500, =>
+          contextMenu.offset chevron.offset()
+          contextMenu.removeClass "hidden"
+
+          # destroy pointer
+          @destroyPointer()
 
     user = KD.nick()
     defaultVMName = KD.singletons.vmController.defaultVmName
@@ -349,47 +356,68 @@ class BookView extends JView
       # move cursor to file tree menu
       @pointer.$().offset vmOffset
 
-  showVMMenu:->
-    @mainView.sidebar.animateLeftNavOut()
+  showVMMenu: (callback) ->
+    startTabView = KD.getSingleton("appManager").get("StartTab").getView()
 
-    @pointer.once 'transitionend', =>
-      # make click action
-      @clickAnimation()
-      # open VM menu
-      @mainView.sidebar.resourcesController.itemsOrdered[0].chevron.$().click()
-      # wait 3 sec.
-      @utils.wait 2000, =>
-        # remove pointer
-        @destroyPointer()
+    presentation = =>
+      defaultVMName = KD.getSingleton("vmController").defaultVmName
+      {machinesContainer} = startTabView.serverContainer
+      for own id, dia of machinesContainer.dias
+        if dia.getData().title is defaultVMName
+          chevron = dia.$ ".chevron"
 
-    # TODO !!! should remove that class on pageNext
-    @setClass 'moveUp'
-    @mainView.once 'transitionend', =>
-      # find VM's menu position on footer
-      @utils.wait 1000, =>
-        vmMenuOffset = @mainView.sidebar.resourcesController.itemsOrdered[0].chevron.$().offset()
-        # move cursor to VM's menu position
-        @pointer.$().offset vmMenuOffset
+          @pointer.once "transitionend", =>
+            @clickAnimation()
+            chevron.click()
+
+            contextMenu = $ '.jcontextmenu'
+            contextMenu.addClass "hidden"
+
+            @utils.wait 500, =>
+              contextMenu.offset chevron.offset()
+              contextMenu.removeClass "hidden"
+              chevron.addClass "hidden"
+
+              if callback then callback()
+              else @destroyPointer()
+
+          chevron.removeClass "hidden"
+          chevron.show()
+          @pointer.$().offset chevron.offset()
+          break
+
+    toggle = startTabView.serverContainerToggle
+
+    if toggle.getState().title is "Hide environments"
+      presentation()
+    else
+      @mainView.sidebar.animateLeftNavOut()
+
+      @pointer.once 'transitionend', =>
+        if toggle.getState().title is "Show environments"
+          @clickAnimation()
+          toggle.$().click()
+          @utils.wait 2000, =>
+            presentation()
+        else
+          presentation()
+
+      @mainView.once 'transitionend', =>
+        @utils.wait 1000, =>
+          @pointer.$().offset toggle.$().offset()
 
   showVMTerminal:->
-    @mainView.sidebar.animateLeftNavOut()
-    @pointer.once 'transitionend', =>
-      # make click action
-      @clickAnimation()
-      # open VM menu
-      # wait 3 sec.
-      @utils.wait 2000, =>
-        @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().click()
-        # remove pointer
-        @destroyPointer()
+    @showVMMenu =>
+      openTerminal = $($(".jcontextmenu li")[3])
 
-    @setClass 'moveUp'
-    @mainView.once 'transitionend', =>
-      # find VM's menu position on footer
-      @utils.wait 200, =>
-        vmMenuOffset = @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().offset()
-        # move cursor to VM's menu position
-        @pointer.$().offset vmMenuOffset
+      @pointer.once "transitionend", =>
+        @utils.wait 1000, =>
+          @clickAnimation()
+          @utils.wait 500, =>
+            openTerminal.click()
+            @destroyPointer()
+
+      @pointer.$().offset openTerminal.offset()
 
   showRecentFilesMenu:->
     @pointer.once 'transitionend', =>
@@ -407,24 +435,32 @@ class BookView extends JView
       @pointer.$().offset offsetTo
 
   showNewVMMenu:->
-    @pointer.once 'transitionend', =>
-      # click animation
-      @clickAnimation()
-      # click menu
-      @mainView.sidebar.createNewVMButton.$().click()
-      @utils.wait 500, =>
-        @destroyPointer()
-
-    # move book to up to make button visible
-    if not @hasClass 'moveUp' then @setClass 'moveUp'
-    # if sidebar is closed opens it.
     @mainView.sidebar.animateLeftNavOut()
 
-    @utils.wait 800 , =>
-      # find new VM mwnu button
-      offsetTo = @mainView.sidebar.createNewVMButton.$().offset()
-      # navigate cursor to there
-      @pointer.$().offset offsetTo
+    callback = =>
+      button = KD.getSingleton("appManager").get("StartTab").getView().serverContainer.machinesContainer.newItemPlus.$()
+
+      @pointer.once "transitionend", =>
+        button.click()
+        @clickAnimation()
+        @utils.wait 1000, =>
+          @destroyPointer()
+
+      @pointer.$().offset button.offset()
+
+    toggle = KD.getSingleton("appManager").get("StartTab").getView().serverContainerToggle
+    @pointer.once 'transitionend', =>
+      if toggle.getState().title is "Show environments"
+        @clickAnimation()
+        toggle.$().click()
+        @utils.wait 2000, =>
+          callback()
+      else
+        callback()
+
+    @mainView.once 'transitionend', =>
+      @utils.wait 200, =>
+        @pointer.$().offset toggle.$().offset()
 
   showConversationsPanel:->
     @pointer.once 'transitionend', =>
@@ -437,9 +473,12 @@ class BookView extends JView
 
     # find conversations panel icon position.
     @setClass "moveUp"
-    offsetTo = @mainView.sidebar.footerMenu.$(".chat").offset()
-    # move cursor to conv. panel button position.
-    @pointer.$().offset offsetTo
+    {sidebar} = @mainView
+    sidebar.animateLeftNavIn()
+    @utils.wait 200, =>
+      offsetTo = sidebar.footerMenu.$(".chat").offset()
+      # move cursor to conv. panel button position.
+      @pointer.$().offset offsetTo
 
   startNewConversation:->
     @pointer.once 'transitionend', =>
@@ -596,18 +635,21 @@ class BookView extends JView
     @pointer.once 'transitionend', =>
       @clickAnimation()
       @mainView.appSettingsMenuButton.$().click()
-      {advancedSettings} = @mainView.appSettingsMenuButton.contextMenu.treeController.nodes
 
-      offsetTo = advancedSettings?.$().offset()
-      # navigate settings icon
-      @utils.wait 1000, =>
+      @utils.wait 200, =>
+        {advancedSettings} = @mainView.appSettingsMenuButton.contextMenu.treeController.nodes
+
+        offsetTo = advancedSettings?.$().offset()
+        # navigate settings icon
         @pointer.once 'transitionend', =>
-          advancedSettings.setClass "selected"
-          advancedSettings.$().click()
-          @clickAnimation()
           @utils.wait 1000, =>
-            @unsetClass 'aside'
-            @destroyPointer()
+            advancedSettings.setClass "selected"
+            advancedSettings.$().click()
+            @clickAnimation()
+            @utils.wait 1000, =>
+              @unsetClass 'aside'
+              @destroyPointer()
+
         @pointer.$().offset offsetTo
 
     # find ace settings menu icon
