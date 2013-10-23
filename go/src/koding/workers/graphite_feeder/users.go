@@ -13,7 +13,11 @@ func init() {
 	registerAnalytic(numberOfEmailsImportedFromGoogle)
 	registerAnalytic(numberOfInvitesSent)
 	registerAnalytic(numberOfUsersWhoJoinedToday)
+	registerAnalytic(numberOfGuestAccountsCreatedToday)
 	registerAnalytic(numberOfUsersWhoDeletedTheirAccount)
+	registerAnalytic(numberOfUsersWhoPostedContentToday)
+	registerAnalytic(numberOfUsersWhoAreOnline)
+	registerAnalytic(numberOfUsersWhoLoggedInToday)
 }
 
 func numberOfAccounts() (string, int) {
@@ -83,7 +87,26 @@ func numberOfUsersWhoJoinedToday() (string, int) {
 	var query = func(c *mgo.Collection) error {
 		year, month, day := time.Now().Date()
 		var today = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
-		var filter = bson.M{"meta.createdAt": bson.M{"$gte": today}}
+		var filter = bson.M{"meta.createdAt": bson.M{"$gte": today}, "type": "registered"}
+
+		count, err = c.Find(filter).Count()
+
+		return err
+	}
+
+	mongodb.Run("jAccounts", query)
+
+	return identifier, count
+}
+
+func numberOfGuestAccountsCreatedToday() (string, int) {
+	var identifier string = "number_of_guest_accounts_created_today"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		year, month, day := time.Now().Date()
+		var today = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+		var filter = bson.M{"meta.createdAt": bson.M{"$gte": today}, "type": "unregistered"}
 
 		count, err = c.Find(filter).Count()
 
@@ -101,6 +124,59 @@ func numberOfUsersWhoDeletedTheirAccount() (string, int) {
 	var err error
 	var query = func(c *mgo.Collection) error {
 		count, err = c.Find(bson.M{"status": "deleted"}).Count()
+
+		return err
+	}
+
+	mongodb.Run("jUsers", query)
+
+	return identifier, count
+}
+
+func numberOfUsersWhoPostedContentToday() (string, int) {
+	var identifier string = "number_of_users_who_posted_content_today"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		year, month, day := time.Now().Date()
+		var today = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+		var filter = bson.M{"meta.modifiedAt": bson.M{"$gte": today}}
+
+		count, err = c.Find(filter).Count()
+
+		return err
+	}
+
+	mongodb.Run("jAccounts", query)
+
+	return identifier, count
+}
+
+func numberOfUsersWhoAreOnline() (string, int) {
+	var identifier string = "number_of_users_who_are_online"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		count, err = c.Find(bson.M{"onlineStatus": "online"}).Count()
+
+		return err
+	}
+
+	mongodb.Run("jAccounts", query)
+
+	return identifier, count
+}
+
+func numberOfUsersWhoLoggedInToday() (string, int) {
+	var identifier string = "number_of_users_who_logged_in_today"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		year, month, day := time.Now().Date()
+		var today = time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+		var filter = bson.M{"lastLoginDate": bson.M{"$gte": today}}
+
+		count, err = c.Find(filter).Count()
 
 		return err
 	}
