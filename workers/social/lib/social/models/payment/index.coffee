@@ -29,12 +29,12 @@ module.exports = class JPayment extends Base
     (require './method').updatePaymentMethodById client, paymentMethodId, data, callback
 
   @fetchAccountDetails = secure ({ connection:{ delegate }}, callback)->
-    throw Error 'needs to be reimplemented'
+    console.error 'needs to be reimplemented'
 #    recurly.fetchAccountDetailsByPaymentMethodId (userCodeOf delegate), callback
 
   @fetchTransactions = secure ({ connection:{ delegate }}, callback) ->
-    throw Error 'needs to be reimplemented'
-#    recurly.fetchTransactions (userCodeOf delegate), callback 
+    console.error 'needs to be reimplemented'
+#    recurly.fetchTransactions (userCodeOf delegate), callback
 
   @fetchAccount = secure (client, callback) ->
     {delegate} = client.connection
@@ -63,7 +63,7 @@ module.exports = class JPayment extends Base
         callback null, spent - charged
 
   @getBalance = secure (client, callback)->
-    throw Error 'needs to be reimplemented'
+    console.error 'needs to be reimplemented'
 #    {delegate} = client.connection
 #    @getBalance_ (userCodeOf delegate), callback
 
