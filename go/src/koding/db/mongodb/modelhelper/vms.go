@@ -41,3 +41,11 @@ func AddVM(vm *models.VM) error {
 
 	return mongodb.Run("jVMs", query)
 }
+
+func DeleteVM(hostnameAlias string) error {
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"hostnameAlias": hostnameAlias})
+	}
+
+	return mongodb.Run("jVMs", query)
+}

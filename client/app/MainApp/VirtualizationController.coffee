@@ -19,10 +19,9 @@ class VirtualizationController extends KDController
         withArgs : command
 
     @fetchVmName options, (err, vmName) =>
-      return callback err  if err?
 
-      if /^vm\./.test options.method
-        options.kiteName = "os-local"
+      # if /^vm\./.test options.method
+      #   options.kiteName = "osk"
 
       if vmName is "local-#{KD.whoami().profile.nickname}"
         if /^fs\./.test options.method
@@ -30,6 +29,9 @@ class VirtualizationController extends KDController
 
         if /^webterm\./.test options.method
             options.kiteName = "terminal"
+
+        if /^vm\./.test options.method
+          options.kiteName = "fs"
 
       if options.method in ['exec', 'spawn']
         options.kiteName = "os-local"
@@ -268,14 +270,23 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   fetchDiskUsage:(vmName, callback = noop)->
-    command = """df | grep aufs | awk '{print $2, $3}'"""
-    @run { vmName, withArgs:command }, (err, res)->
-      if err or not res then [max, current] = [0, 0]
-      else [max, current] = res.trim().split " "
-      warn err  if err
-      callback
-        max     : 1024 * parseInt max, 10
-        current : 1024 * parseInt current, 10
+    if vmName is "local-#{KD.whoami().profile.nickname}"
+      @info vmName, (err, vm, info)->
+        if err or info.state isnt "RUNNING" then [max, current] = [0, 0]
+        else [max, current] = [info.diskTotal, info.diskUsage]
+        warn err  if err
+        callback
+          max     : 1024 * parseInt max, 10
+          current : 1024 * parseInt current, 10
+    else
+      command = """df | grep aufs | awk '{print $2, $3}'"""
+      @run { vmName, withArgs:command }, (err, res)->
+        if err or not res then [max, current] = [0, 0]
+        else [max, current] = res.trim().split " "
+        warn err  if err
+        callback
+          max     : 1024 * parseInt max, 10
+          current : 1024 * parseInt current, 10
 
   fetchRamUsage:(vmName, callback = noop)->
     @info vmName, (err, vm, info)->
