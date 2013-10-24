@@ -464,7 +464,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
   "app/Applications/Groups.kdapplication/Views/paymentvmlist.coffee",
-  "app/Applications/Groups.kdapplication/Views/productsettingsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupview.coffee",
   "app/Applications/Groups.kdapplication/Views/joinbutton.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionsform.coffee",
@@ -579,10 +578,11 @@ module.exports = [
   "app/Applications/Dashboard.kdapplication/AppView.coffee",
 
   # Group Dashboard Views:
-  "app/Applications/Dashboard.kdapplication/Views/paymentmodalview.coffee",
+  "app/Applications/Dashboard.kdapplication/views/paymentmodalview.coffee",
   "app/Applications/Dashboard.kdapplication/views/paymentmethodview.coffee",
   "app/Applications/Dashboard.kdapplication/views/linkablepaymentmethodview.coffee",
   "app/Applications/Dashboard.kdapplication/views/paymentsettingsview.coffee",
+  "app/Applications/Dashboard.kdapplication/views/productsettingsview.coffee",
 
 
   # CONTENT DISPLAY VIEWS
