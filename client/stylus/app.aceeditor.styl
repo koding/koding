@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
 
@@ -80,7 +80,7 @@ app.aceeditor.styl
   .code-wrapper
     size(100%,100%)
     .ace_scroller
-      overflow-x        auto
+      overflow-x        none
       cursor            text
 
   .ace_content
@@ -161,7 +161,6 @@ app.aceeditor.styl
         border-color #cfcfcf !important
 
 .editor-bottom-bar
-  bottom                0
   color                 #282828
   border                1px solid #e2e2e2
   border-top-color      #dadada
@@ -170,6 +169,8 @@ app.aceeditor.styl
   size                  100%,20px
   z-index               1000
   borderBox()
+  &.clearfix
+    bottom              0
 
   .kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
     border-left         1px solid #e2e2e2

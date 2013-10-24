@@ -88,6 +88,14 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  emailConfirmationCheckerWorker :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 1
+    watch                : yes
+    cronSchedule         : '0 * * * * *'
+    usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : no # for production, workers are running as a service
     login                : 'prod-guestcleanerworker'
@@ -124,9 +132,6 @@ module.exports =
     watch         : no
     watchDuration : 300
     includesPath  : 'client'
-    websitePath   : 'website'
-    js            : "js/kd.#{version}.js"
-    css           : "css/kd.#{version}.css"
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
@@ -151,7 +156,7 @@ module.exports =
       apiUri    : 'https://www.koding.com'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
-      sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
+      sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
   mq            :
     host        : '172.16.3.4'
     port        : 5672
@@ -159,7 +164,7 @@ module.exports =
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'Xah8ibeekelah'
     heartbeat   : 20
     vhost       : 'new'
   broker        :
@@ -221,7 +226,7 @@ module.exports =
     host        : '172.16.3.4'
     port        : 5672
     componentUser: 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'Xah8ibeekelah'
     vhost       : 'followfeed'
   github        :
     clientId    : "5891e574253e65ddb7ea"
@@ -233,6 +238,10 @@ module.exports =
     clientId     : "434245153353814"
     clientSecret : "84b024e0d627d5e80ede59150a2b251e"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  google         :
+    client_id    : "134407769088.apps.googleusercontent.com"
+    client_secret: "6Is_WwxB19tuY2xkZNbnAU-t"
+    redirect_uri : "https://koding.com/-/oauth/google/callback"
   statsd         :
     use          : true
     ip           : "172.168.2.7"

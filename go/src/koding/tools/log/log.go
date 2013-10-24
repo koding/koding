@@ -40,7 +40,7 @@ type Event struct {
 	ExitCode int
 }
 
-var shortHostname string
+var hostname string
 var loggrSource string
 var libratoSource string
 var tags string
@@ -54,7 +54,6 @@ var GaugeChanges = make(chan func())
 
 func Init(service string) {
 	hostname, _ := os.Hostname()
-	shortHostname = strings.Split(hostname, ".")[0]
 	loggrSource = fmt.Sprintf("%s %d on %s", service, os.Getpid(), strings.Split(hostname, ".")[0])
 	libratoSource = fmt.Sprintf("%s.%d:%s", service, os.Getpid(), hostname)
 	tags = service + " " + config.Profile
@@ -328,7 +327,7 @@ func LogGauges(reportTime int64) {
 			entries[i] = fmt.Sprintf("%s=%f%s", gauge.Name, gauge.Value, gauge.unit)
 		}
 		cmd := exec.Command("/usr/local/nagios/bin/send_nsca", "-H", config.Current.Opsview.Host, "-c", "/usr/local/nagios/etc/send_nsca.cfg")
-		cmd.Stdin = strings.NewReader(shortHostname + "\tGauges\t0\tGauge Data Sent|" + strings.Join(entries, " ") + "\n")
+		cmd.Stdin = strings.NewReader(hostname + "\tGauges\t0\tGauge Data Sent|" + strings.Join(entries, " ") + "\n")
 		if out, err := cmd.CombinedOutput(); err != nil {
 			fmt.Printf("logger error: send_nsca failed.\n%v\n%v\n", err, string(out))
 		}

@@ -1,4 +1,5 @@
-require('./harness');
+var harness = require('./harness');
+harness.run();
 
 connection.on('ready', function() {
   puts("connected to " + connection.serverProperties.product);
@@ -7,7 +8,7 @@ connection.on('ready', function() {
       'arguments': {'x-expires': 3600000}
   }, function(q) {
     puts("queue declared");
-    var conn = harness_createConnection();
+    var conn = harness.createConnection();
 
     conn.on('ready', function() {
       var q = conn.queue('node-queue-args-queue', {
@@ -17,7 +18,7 @@ connection.on('ready', function() {
       });
       q.on('error', function(err) {
         assert.equal(err.code, 406);
-        assert.ok(err.message.indexOf('PRECONDITION_FAILED') == 0);
+        assert.ok(err.message.indexOf('PRECONDITION_FAILED') === 0);
         connection.end();
         conn.end();
       });

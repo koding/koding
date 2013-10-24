@@ -159,7 +159,14 @@ class AccountReferralSystemListItem extends KDListItemView
     super options, data
 
   viewAppended: ->
-    super
+    @getData().isEmailVerified (err, status)=>
+      unless (err or status)
+        @addSubView editLink = new KDCustomHTMLView
+           tagName      : "a"
+           partial      : "Mail Verification Waiting"
+           cssClass     : "action-link"
+
+      super
 
   partial: (data)->
     """

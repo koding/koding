@@ -1,4 +1,4 @@
-require('./harness');
+require('./harness').run();
 
 var recvCount = 0;
 var body = "hello world";
@@ -44,7 +44,7 @@ connection.addListener('ready', function () {
         // wait one second to receive the message, then quit
         connection.end();
       }, 1000);
-    })
+    });
   });
 });
 
