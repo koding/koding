@@ -381,9 +381,10 @@ class ProfileView extends JView
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
     avatarOptions  =
-      size         :
-        width      : 90
-        height     : 90
+      showStatus      : yes
+      size            :
+        width         : 90
+        height        : 90
       click        : =>
         pos        =
           top      : @avatar.getBounds().y - 8
@@ -615,13 +616,6 @@ class ProfileView extends JView
 
   putNick: (nick) -> "@#{nick}"
 
-  putPresence: (state) ->
-    """
-    <div class="presence #{state or 'offline'}">
-    #{state or 'offline'}
-    </div>
-    """
-
   updateUserHomeLink: ->
     return  unless @userHomeLink
 
@@ -648,7 +642,6 @@ class ProfileView extends JView
     <span>{{> @avatar}}</span>
     {{> @followButton}}
     {cite{ @putNick #(profile.nickname)}}
-    {div{ @putPresence #(onlineStatus)}}
     </div>
 
     {{> @trollSwitch}}
