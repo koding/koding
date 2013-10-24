@@ -583,7 +583,12 @@ module.exports = [
   "app/Applications/Dashboard.kdapplication/views/paymentmethodview.coffee",
   "app/Applications/Dashboard.kdapplication/views/linkablepaymentmethodview.coffee",
   "app/Applications/Dashboard.kdapplication/views/paymentsettingsview.coffee",
-  "app/Applications/Dashboard.kdapplication/views/productsettingsview.coffee",
+
+  # Product Pane
+  "app/Applications/Dashboard.kdapplication/views/groupproductsettingsview.coffee",
+  "app/Applications/Dashboard.kdapplication/views/groupproductcreateform.coffee",
+  "app/Applications/Dashboard.kdapplication/views/groupproductlistitem.coffee",
+  "app/Applications/Dashboard.kdapplication/views/groupproductlistcontroller.coffee",
 
 
   # CONTENT DISPLAY VIEWS

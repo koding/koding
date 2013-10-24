@@ -135,13 +135,19 @@ class DashboardAppController extends AppController
               @refreshPaymentView()
 
   productViewAdded: (pane, view) ->
+
+    { JPaymentProduct } = KD.remote.api
+
     groupsController = KD.getSingleton 'groupsController'
 
     group = groupsController.getCurrentGroup()
 
     group.fetchProducts (err, products) ->
-      view.controller.instantiateListItems products
+      view.setProducts products
 
+    view.on 'ProductCreateRequested', (productData) ->
+      JPaymentProduct.create productData, (err) ->
+        console.log { err }
 
   showPaymentInfoModal: ->
     modal = @createPaymentInfoModal()
