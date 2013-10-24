@@ -3,16 +3,19 @@ package modelhelper
 import (
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/newkite/utils"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
 )
 
-func NewKiteToken(username string) *models.KiteToken {
+func NewKiteToken(username string, expiresAt time.Time) *models.KiteToken {
 	return &models.KiteToken{
-		ID:        bson.NewObjectId(),
+		ObjectId:  bson.NewObjectId(),
+		Token:     utils.RandomStringLength(64),
 		Username:  username,
-		Expire:    0, // means infinite
+		Kites:     make([]string, 0),
+		ExpiresAt: expiresAt,
 		CreatedAt: time.Now(),
 	}
 }
