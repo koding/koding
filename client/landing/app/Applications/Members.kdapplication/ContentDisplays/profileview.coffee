@@ -200,10 +200,16 @@ class AvatarChangeView extends JView
       @takePhotoButton.show()
 
     @webcamView.on "forbidden", =>
-      @webcamTip.updatePartial "<cite>You disabled the camera for Koding.</cite>"
+      @webcamTip.updatePartial """
+      <cite>
+        You disabled the camera for Koding.
+        <a href='https://support.google.com/chrome/answer/2693767?hl=en' target='_blank'>How to fix?</a>
+      </cite>
+      """
 
   resetView: ->
     @webcamView?.destroy()
+    @webcamTip.destroy()
     @uploaderView?.destroy()
     @unsetWide()
     @avatar.show()
@@ -255,6 +261,7 @@ class AvatarChangeView extends JView
 
   pistachio: ->
     """
+    <i class="arrow"></i>
     {{> @wrapper}}
     {{> @avatarHolder}}
     """
