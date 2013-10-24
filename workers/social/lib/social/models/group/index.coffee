@@ -26,6 +26,7 @@ module.exports = class JGroup extends Module
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
   @trait __dirname, '../../traits/slugifiable'
+  @trait __dirname, '../../traits/notifying'
 
   @share()
 
@@ -1255,19 +1256,22 @@ module.exports = class JGroup extends Module
   sendNotificationToAdmins: (event, contents)->
     @fetchAdmins (err, admins)=>
       unless err
-        relationship = new Relationship {
-          as         : 'member',
+        relationship =  {
+          as         : event,
           sourceName : contents.subject.constructorName,
           sourceId   : contents.subject.id,
           targetName : contents.member.constructorName,
           targetId   : contents.member.id,
         }
 
-        CBucket = require '../bucket'
+        contents.relationship = relationship
+        contents.origin       = contents.subject
+        contents.actorType    = event
+        contents[event]       = contents.member
+
         for admin in admins
-          CBucket.addActivities relationship, contents.subject, contents.member, admin, (err)->
-            console.err err if err
-          admin.sendNotification event, contents
+          contents.recipient = admin
+          @notify admin, event, contents
 
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
