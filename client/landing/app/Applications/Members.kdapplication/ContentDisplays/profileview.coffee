@@ -115,6 +115,8 @@ class AvatarChangeView extends JView
         color      : "#ffffff"
         shape      : "spiral"
 
+    @cancelPhoto = @getCancelView()
+
     @headers =
       actions     : new AvatarChangeHeaderView
         buttons   : [@photoButton, @uploadButton, @gravatarButton]
@@ -125,7 +127,7 @@ class AvatarChangeView extends JView
 
       photo       : new AvatarChangeHeaderView
         title     : "Take Photo"
-        buttons   : [@getCancelView()]
+        buttons   : [@cancelPhoto]
 
       upload      : new AvatarChangeHeaderView
         title     : "Upload Image"
@@ -182,6 +184,13 @@ class AvatarChangeView extends JView
     @avatar.hide()
     @avatarHolder.addSubView @webcamTip
     @setWide()
+    @cancelPhoto.disable()
+    @getDelegate().avatarMenu.changeStickyState on
+
+    release = =>
+      @cancelPhoto.enable()
+      @getDelegate().avatarMenu.changeStickyState off
+
     @avatarHolder.addSubView @webcamView = new KDWebcamView
       hideControls  : yes
       countdown     : 3
@@ -196,10 +205,12 @@ class AvatarChangeView extends JView
     @webcamView.addSubView @takePhotoButton
     @webcamView.on "snap", (data)=> @avatarData = data
     @webcamView.on "allowed", =>
+      release()
       @webcamTip.destroy()
       @takePhotoButton.show()
 
     @webcamView.on "forbidden", =>
+      release()
       @webcamTip.updatePartial """
       <cite>
         You disabled the camera for Koding.
@@ -387,7 +398,7 @@ class ProfileView extends JView
             delegate : @avatar
             x        : @avatar.getX() + 96
             y        : @avatar.getY() - 7
-          , customView: @avatarChange = new AvatarChangeView {}, @memberData
+          , customView: @avatarChange = new AvatarChangeView delegate: this, @memberData
 
           @avatarChange.on "UseGravatar", =>
             @avatarSetGravatar()
