@@ -7,7 +7,7 @@ class AvatarView extends LinkView
       width                   : 50
       height                  : 50
     options.detailed        ?= no
-    options.showStatus     or= no
+    options.showStatus     or= yes
     options.statusDiameter or= '10%'
 
     # this needs to be pre-super
@@ -67,7 +67,7 @@ class AvatarView extends LinkView
 
     if @getOptions().showStatus
       onlineStatus = account.onlineStatus or 'offline'
-      statusAttr   = @.$().attr("data-onlineStatus")
+      statusAttr   = @getAttribute "data-onlineStatus"
 
       if statusAttr? and onlineStatus isnt statusAttr
         @setClass "animate"
