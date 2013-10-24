@@ -1,6 +1,7 @@
-_ = require 'underscore'
-neo4j = require "neo4j-koding"
+_      = require 'underscore'
+neo4j  = require "neo4j-koding"
 {race} = require 'sinkrow'
+
 {Base, ObjectId, race} = require 'bongo'
 
 module.exports = class Graph
