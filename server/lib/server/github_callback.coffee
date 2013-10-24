@@ -12,7 +12,6 @@ saveOauthAndRenderPopup = (resp, res, clientId)->
     renderOauthPopup res, {error:null, provider}
 
 module.exports = (req, res) ->
-  {provider}    = req.params
   {code}        = req.query
   {clientId}    = req.cookies
   access_token  = null
