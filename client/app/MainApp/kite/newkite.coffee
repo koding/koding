@@ -75,12 +75,15 @@ class NewKite extends KDEventEmitter
   onMessage: (evt) ->
     try
       args = JSON.parse evt.data
+      err = args.arguments[0]
+      if err?.message?
+          KD.utils.defer => @setBackoffTimeout @bound "getKiteAddr"
+
       {method} = args
       callback = switch method
         when 'ping'             then @bound 'handlePing'
         else (@localStore.get method) ? ->
 
-      # callback = @localStore.get method
       callback.apply this, @unscrub args
     catch e
       console.log "error: ", e, evt.data
