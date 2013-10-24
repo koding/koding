@@ -255,7 +255,7 @@ module.exports = [
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
   "app/Applications/Activity.kdapplication/AppController.coffee",
-  "app/Applications/Home.kdapplication/AppController.coffee",
+  # "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
