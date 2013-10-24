@@ -13,14 +13,14 @@ class FSFile extends FSItem
     @fileInfo     = @getLocalFileInfo()
 
   getLocalFileInfo: ->
-    @localStorage.getValue(btoa FSHelper.plainPath @path) or {}
+    @localStorage.getValue(btoa KD.utils.utf8Encode FSHelper.plainPath @path) or {}
 
   setLocalFileInfo: (data={})->
     @fileInfo[key] = value for own key, value of data
-    @localStorage.setValue btoa(FSHelper.plainPath @path), @fileInfo
+    @localStorage.setValue btoa(KD.utils.utf8Encode FSHelper.plainPath @path), @fileInfo
 
   removeLocalFileInfo: ->
-    @localStorage.unsetKey btoa FSHelper.plainPath @path
+    @localStorage.unsetKey btoa KD.utils.utf8Encode FSHelper.plainPath @path
 
   fetchContentsBinary: (callback)->
     @fetchContents callback, no
