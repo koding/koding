@@ -73,7 +73,7 @@ class AvatarView extends LinkView
 
       @statusAttr = onlineStatus
 
-      if @statusAttr == "online"
+      if @statusAttr is "online"
         @unsetClass "offline"
         @setClass   "online"
       else
