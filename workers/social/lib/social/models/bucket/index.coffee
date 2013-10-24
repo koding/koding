@@ -34,16 +34,18 @@ module.exports = class CBucket extends jraphical.Module
   fetchTeaser:(callback)-> callback null, @
 
   getBucketConstructor =(groupName, role)->
-    CFolloweeBucket   = require './followeebucket'
-    CFollowerBucket   = require './followerbucket'
-    CLikeeBucket      = require './likeebucket'
-    CLikerBucket      = require './likerbucket'
-    CReplieeBucket    = require './replieebucket'
-    CReplierBucket    = require './replierbucket'
-    CInstallerBucket  = require './installerbucket'
-    CInstalleeBucket  = require './installeebucket'
-    CGroupJoineeBucket = require './groupjoineebucket'
-    CGroupJoinerBucket = require './groupjoinerbucket'
+    CFolloweeBucket     = require './followeebucket'
+    CFollowerBucket     = require './followerbucket'
+    CLikeeBucket        = require './likeebucket'
+    CLikerBucket        = require './likerbucket'
+    CReplieeBucket      = require './replieebucket'
+    CReplierBucket      = require './replierbucket'
+    CInstallerBucket    = require './installerbucket'
+    CInstalleeBucket    = require './installeebucket'
+    CGroupJoineeBucket  = require './groupjoineebucket'
+    CGroupJoinerBucket  = require './groupjoinerbucket'
+    CGroupLefteeBucket  = require './grouplefteebucket'
+    CGroupLefterBucket  = require './grouplefterbucket'
 
     switch role
       when 'follower'
