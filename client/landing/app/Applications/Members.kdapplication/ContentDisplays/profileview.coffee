@@ -21,7 +21,7 @@ class AvatarChangeHeaderView extends JView
 
 class AvatarChangeView extends JView
 
-  detectFeatures: ->
+  detectFeatures = ->
     isVideoSupported = KDWebcamView.getUserMediaVendor()
     isDNDSupported   = do ->
       tester = document.createElement('div')
@@ -34,7 +34,7 @@ class AvatarChangeView extends JView
     options.cssClass = "avatar-change-menu"
     super options, data
 
-    {isVideoSupported, isDNDSupported} = @detectFeatures()
+    {isVideoSupported, isDNDSupported} = detectFeatures()
 
     @on "viewAppended", =>
       @overlay = new KDOverlayView
@@ -68,19 +68,19 @@ class AvatarChangeView extends JView
       icon                : yes
       iconOnly            : yes
       iconClass           : "cross"
-      callback            : => @showUploadView()
+      callback            : @bound "showUploadView"
 
     @photoButton = new KDButtonView
       cssClass            : "clean-gray avatar-button"
       title               : "Take Photo"
-      disabled            : !isVideoSupported
-      callback            : => @showPhotoView()
+      disabled            : not isVideoSupported
+      callback            : @bound "showPhotoView"
 
     @uploadButton = new KDButtonView
       cssClass            : "clean-gray avatar-button"
-      disabled            : !isDNDSupported
+      disabled            : not isDNDSupported
       title               : "Upload Image"
-      callback            : => @showUploadView()
+      callback            : @bound "showUploadView"
 
     @gravatarButton = new KDButtonView
       cssClass            : "clean-gray avatar-button"
