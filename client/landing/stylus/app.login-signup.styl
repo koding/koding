@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 
 @css {
@@ -42,6 +42,7 @@ app.login-signup.styl
   .regLink
   .recLink
   .logLink
+  .resend-confirmation-link
   >section
     hidden()
 
@@ -80,6 +81,7 @@ app.login-signup.styl
     .lf
     .regLink
     .recLink
+    .resend-confirmation-link
     .login-options-holder.log
       visible()
 
@@ -107,8 +109,10 @@ app.login-signup.styl
     .rcf
     .logLink
       visible()
+    .rcf > form
+      margin-top          15px
     .flex-wrapper
-      height              183px
+      height              198px
     .rcf .kdnotification.mini.register
       top                 174px!important
 
@@ -120,6 +124,15 @@ app.login-signup.styl
       hidden()
     .flex-wrapper
       height              254px
+
+  &.resendEmail
+    .resend-confirmation-form
+    .logLink
+      visible()
+    .resend-confirmation-form > form
+      margin-top          15px
+    .flex-wrapper
+      height              198px
 
   &.home
     .flex-wrapper

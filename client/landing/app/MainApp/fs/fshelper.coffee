@@ -197,6 +197,17 @@ class FSHelper
   @isPublicPath = (path)->
     /^\/home\/.*\/Web\//.test FSHelper.plainPath path
 
+  @convertToRelative = (path)->
+    path.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+
+  @isUnwanted = (path, isFile=no)->
+
+    dummyFilePatterns = /\.DS_Store|Thumbs.db/
+    dummyFolderPatterns = /\.git|__MACOSX/
+    if isFile
+    then dummyFilePatterns.test path
+    else dummyFolderPatterns.test path
+
   @s3 =
     get    : (name)->
       "#{KD.config.uploadsUri}/#{KD.whoami().getId()}/#{name}"

@@ -20,7 +20,9 @@ class StartTabMainView extends JView
       delegate : this
 
     # Server Container
-    @serverContainer = new EnvironmentsMainView
+    @serverContainer = new EnvironmentsMainScene cssClass : 'animated'
+    @serverContainer.setHeight 2
+
     @serverContainerToggle = new KDToggleButton
       style           : "kdwhitebtn"
       cssClass        : "server-container-handler"
@@ -29,12 +31,14 @@ class StartTabMainView extends JView
         title         : "Show environments"
         callback      : (cb)=>
           @serverContainer.setHeight 500
+          @serverContainerToggle.setClass 'on-top'
           @utils.wait 260, => @serverContainer.scene.updateScene()
           cb()
       ,
         title         : "Hide environments"
         callback      : (cb)=>
           @serverContainer.setHeight 2
+          @serverContainerToggle.unsetClass 'on-top'
           @serverContainer.domainCreateForm.emit "CloseClicked"
           cb()
       ]
@@ -157,7 +161,7 @@ class StartTabMainView extends JView
       title       : "Your session will end in"
       targetDate  : endTime
       endTitle    : "Your session end, logging out."
-      content     : "You can use Koding for 20 minutes without registering. <a href='/Register'>Register now</a>."
+      content     : "Please <a href='/Register'>register</a> to continue using Koding."
       callback    : =>
         return  unless KD.isGuest()
         {defaultVmName} = KD.getSingleton "vmController"

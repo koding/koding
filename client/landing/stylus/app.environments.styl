@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 
 @css {
@@ -803,6 +803,12 @@ div.environments-scene
   bg                image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAHElEQVQYV2M8fPhwmq2t7SwGHIARlwRMfHgoAAAWpAQJz4XcBAAAAABJRU5ErkJggg==")
   background-color  white
 
+  .internet
+    width               100px
+    height              500px
+    background          url('../images/internet.png') no-repeat
+    margin-left         10px
+
   .zoom-slider
     right               50px
     bottom              0
@@ -866,10 +872,12 @@ div.environments-scene
 div.environments-container
 
   width           240px
-  height          auto
+  height          100%
   border          1px dashed #ccc
+  border-top      none
+  border-bottom   none
+  border-radius   0
   background      rgba(205,205,205,.07)
-  cursor          move
   noTextSelection()
 
   .kdheaderview
@@ -884,14 +892,14 @@ div.environments-container
       background-color    #555
       border              1px solid #555
       cursor              pointer
-      vendor              transition, width .2s .2s ease
+      vendor              transition, width .2s ease-in
       position            relative
       overflow            hidden
       fr()
 
       i
         display                 block
-        size                    20px, 20px
+        size                    20px, 25px
         sprite()
         background-position     -120px -440px
         left                    0px
@@ -899,9 +907,9 @@ div.environments-container
         abs()
 
       span
-        left                    25px
+        left                    5px
         top                     0
-        height                  20px
+        height                  25px
         line-height             20px
         font-size               11px
         text-align              left
@@ -909,8 +917,7 @@ div.environments-container
         margin                  0
         font-weight             600
         color                   #fff
-        vendor                  transition, left     .2s .4s ease \,\
-                                            opacity  .1s .4s ease
+        vendor                  transition, opacity  .1s ease-in
         opacity                 0
         abs()
 
@@ -918,7 +925,6 @@ div.environments-container
         width                 73px
 
         span
-          left                5px
           opacity             1
 
     .new-item-loader
