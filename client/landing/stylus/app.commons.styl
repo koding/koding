@@ -849,13 +849,13 @@ button.cancel-edit-button
       bg          position, -480px -60px
 
   &[data-onlineStatus = online] .statusIndicator
-    statusIndicator     10%, -4px, -4px
+    statusIndicator     10%, 0, 0
 
   &[data-onlineStatus = online].animate .statusIndicator
     vendor        animation, showOnline 400ms 1 forwards ease-out
 
   &[data-onlineStatus = offline].animate .statusIndicator
-    statusIndicator     10%, -4px, -4px
+    statusIndicator     10%, 0, 0
     vendor        animation, hideOnline 400ms 1 forwards ease-out
 
 @keyframes showOnline
