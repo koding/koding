@@ -80,8 +80,6 @@ class AvatarView extends LinkView
         @unsetClass "online"
         @setClass   "offline"
 
-    window.asd = @
-
   viewAppended:->
     super
     @render() if @getData()
