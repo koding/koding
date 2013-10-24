@@ -280,13 +280,16 @@ a, a:link {
 }
 
 /* 404 page */
+body#unsupported-page,
 body#not-found-page {
 	background: url('../img/noisy-bg.png');
 	text-align: center;
 }
+#unsupported-page header,
 #not-found-page header {
 	background: #22201b;
 }
+#unsupported-page h2,
 #not-found-page h2 {
 	font-size: 60px;
 	color: #5a5a5a;
@@ -300,13 +303,13 @@ body#not-found-page {
 	color : #9a9a9a;
 	margin: 0 0 100px 0;
 }
+#unsupported-page p,
 #not-found-page a.return-home p {
 	font-size: 25px;
 	font-weight: 100;
 	color: #9a9a9a;
 	margin: 0;
 }
-
 .astronaut-problem-wrapper {
 	width: 664px;
 	height: 455px;
@@ -324,6 +327,29 @@ body#not-found-page {
 	-moz-animation: astronautHover 5s infinite ease;
 	transform: translateY(10px);
 	animation: astronautHover 5s infinite ease;
+}
+#unsupported-page .browsers {
+	width: 200px;
+	height: 60px;
+	margin: 30px auto 10px;
+}
+#unsupported-page .browsers .browser-icon {
+	width: 60px;
+	height: 60px;
+	float: left;
+	display: block;
+}
+#unsupported-page .browsers .browser-icon~.browser-icon {
+	margin-left: 10px;
+}
+.browser-icon.safari {
+	background: url(../img/safari.png);
+}
+.browser-icon.chrome {
+	background: url(../img/chrome.png);
+}
+.browser-icon.firefox {
+	background: url(../img/firefox.png);
 }
 
 @-webkit-keyframes astronautHover {

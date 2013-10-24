@@ -17,9 +17,9 @@ module.exports = ->
   </head>
   <body class='koding'>
 
-    <!--[if IE]>
+
     <script>(function(){window.location.href='/unsupported.html'})();</script>
-    <![endif]-->
+
 
     <div class="kdview home" id="kdmaincontainer">
       <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
