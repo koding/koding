@@ -150,7 +150,7 @@ module.exports = class CBucket extends jraphical.Module
         'meta.createdAt'   : today
       }
       bucketConstructor.one existingBucketSelector, (err, bucket)->
-        if 'function' isnt typeof anchor.addActivity and notificationRecipient?
+        if anchor.bongo_?.constructorName isnt 'JAccount' and notificationRecipient?
           anchor = notificationRecipient
 
         if err then callback err
