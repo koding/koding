@@ -9,6 +9,7 @@ querystring        = require 'querystring'
 {flatten}          = require "underscore"
 koding             = require './bongo'
 {JReferrableEmail} = koding.models
+provider           = "google"
 
 module.exports = (req, res) ->
 
@@ -23,7 +24,7 @@ module.exports = (req, res) ->
   }            = google
 
   unless code
-    renderOauthPopup res, {error:"No code in query", provider:"google"}
+    renderOauthPopup res, {error:"No code in query", provider}
     return
 
   # Get user info with access token
@@ -34,7 +35,7 @@ module.exports = (req, res) ->
       try
         {id} = JSON.parse rawResp
       catch e
-        renderOauthPopup res, {error:"Error getting id", provider:"google"}
+        renderOauthPopup res, {error:"Error getting id", provider}
 
       if id
         googleResp                 = {}
@@ -43,9 +44,9 @@ module.exports = (req, res) ->
         googleResp["refreshToken"] = refresh_token
         googleResp["expires"]      = new Date().getTime()+3600
 
-        saveOauthToSession googleResp, clientId, "google", (err)->
+        saveOauthToSession googleResp, clientId, provider, (err)->
           if err
-            renderOauthPopup res, {error:"Error saving oauth info", provider:"google"}
+            renderOauthPopup res, {error:"Error saving oauth info", provider}
             return
 
           path  = "/m8/feeds/contacts/default/full?"
@@ -59,7 +60,7 @@ module.exports = (req, res) ->
           r = http.request options, fetchUserContacts
           r.end()
       else
-        renderOauthPopup res, {error:"Error getting id", provider:"google"}
+        renderOauthPopup res, {error:"Error getting id", provider}
 
   # Get user contacts with access token
   fetchUserContacts = (contactsResp)->
@@ -69,7 +70,7 @@ module.exports = (req, res) ->
       try
         parseString rawResp, (err, result) ->
           if err
-            renderOauthPopup res, {error:"Error parsing contacts info", provider:"google"}
+            renderOauthPopup res, {error:"Error parsing contacts info", provider}
             return
 
           for i in result.feed.entry
@@ -81,7 +82,7 @@ module.exports = (req, res) ->
       catch e
         console.log "google callback error parsing emails"
 
-      renderOauthPopup res, {error:null, provider:"google"}
+      renderOauthPopup res, {error:null, provider}
 
   authorizeUser = (authUserResp)->
     rawResp = ""
@@ -91,7 +92,7 @@ module.exports = (req, res) ->
       try
         tokenInfo = JSON.parse rawResp
       catch e
-        renderOauthPopup res, {error:"Error getting access token", provider:"google"}
+        renderOauthPopup res, {error:"Error getting access token", provider}
 
       {access_token, refresh_token} = tokenInfo
       if access_token
@@ -102,7 +103,7 @@ module.exports = (req, res) ->
         r = http.request options, fetchUserInfo
         r.end()
       else
-        renderOauthPopup res, {error:"No access token", provider:"google"}
+        renderOauthPopup res, {error:"No access token", provider}
 
   postData   = querystring.stringify {
     code,

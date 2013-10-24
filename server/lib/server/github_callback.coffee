@@ -5,10 +5,11 @@
 
 {github} = KONFIG
 http     = require "https"
+provider = "github"
 
 saveOauthAndRenderPopup = (resp, res, clientId)->
-  saveOauthToSession resp, clientId, "github", ->
-    renderOauthPopup res, {error:null, provider:"github"}
+  saveOauthToSession resp, clientId, provider, ->
+    renderOauthPopup res, {error:null, provider}
 
 module.exports = (req, res) ->
   {provider}    = req.params
@@ -17,7 +18,7 @@ module.exports = (req, res) ->
   access_token  = null
 
   unless code
-    renderOauthPopup res, {error:"No code", provider:"github"}
+    renderOauthPopup res, {error:"No code", provider}
     return
 
   headers =

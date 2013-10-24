@@ -5,6 +5,7 @@
 Odesk         = require 'node-odesk'
 koding        = require './bongo'
 {key, secret} = KONFIG.odesk
+provider      = "odesk"
 
 module.exports = (req, res) ->
   {oauth_token, oauth_verifier} = req.query
@@ -14,7 +15,7 @@ module.exports = (req, res) ->
   JSession.one {clientId}, (err, session)=>
     if err
       console.log "odesk err: fetch session", err
-      renderOauthPopup res, {error:err, provider:"odesk"}
+      renderOauthPopup res, {error:err, provider}
       return
 
     {username} = session.data
@@ -26,7 +27,7 @@ module.exports = (req, res) ->
       (err, accessToken, accessTokenSecret) ->
         if err
           console.log "odesk err: getting tokens", err
-          renderOauthPopup res, {error:err, provider:"odesk"}
+          renderOauthPopup res, {error:err, provider}
           return
 
         o.OAuth.accessToken       = accessToken
@@ -36,7 +37,7 @@ module.exports = (req, res) ->
         o.get 'auth/v1/info', (err, data)->
           if err
             console.log "odesk err, fetching user info", err, data
-            renderOauthPopup res, {error:err, provider:"odesk"}
+            renderOauthPopup res, {error:err, provider}
             return
 
           odesk                   = session.foreignAuth.odesk
@@ -46,10 +47,10 @@ module.exports = (req, res) ->
           odesk.profileUrl        = data.info.profile_url
           odesk.profile           = data
 
-          saveOauthToSession odesk, clientId, "odesk", (err)->
+          saveOauthToSession odesk, clientId, provider, (err)->
             if err
               console.log "odesk err, saving to session", err
-              renderOauthPopup res, {error:err, provider:"odesk"}
+              renderOauthPopup res, {error:err, provider}
               return
 
-            renderOauthPopup res, {error:null, provider:"odesk"}
+            renderOauthPopup res, {error:null, provider}
