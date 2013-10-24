@@ -1,13 +1,13 @@
 class GroupLinkView extends LinkView
 
-	constructor: (options = {}, data) ->
-		super options, data
-		@setClass "profile"
+  constructor: (options = {}, data) ->
+    super options, data
+    @setClass "profile"
 
-	render:->
-		slug = @getData().slug
-		@setAttribute "href", "/#{slug}"
-		super
+  render:->
+    {slug} = @getData()
+    @setAttribute "href", "/#{slug}"
+    super
 
-	pistachio:->
-		super "{{#(title)}}"
+  pistachio:->
+    super "{{#(title)}}"
