@@ -19,12 +19,13 @@ module.exports = class Notifying
     JUser    = require '../models/user'
 
     actor = contents[contents.actorType]
-    {origin} = contents
+    {origin, recipient} = contents
+    recipient or= null
 
     createActivity = =>
       if contents.relationship?
         relationship = new Relationship contents.relationship
-        CBucket.addActivities relationship, origin, actor, null, (err)->
+        CBucket.addActivities relationship, origin, actor, recipient, (err)->
           console.err err if err
 
     sendNotification = =>
