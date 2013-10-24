@@ -62,10 +62,14 @@ module.exports = class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CInstalleeBucket
           when 'target' then CInstallerBucket
-      when 'member'
+      when 'GroupJoined'
         switch groupName
           when 'source' then CGroupJoineeBucket
           when 'target' then CGroupJoinerBucket
+      when 'GroupLeft'
+        switch groupName
+          when 'source' then CGroupLefteeBucket
+          when 'target' then CGroupLefterBucket
 
 
 
