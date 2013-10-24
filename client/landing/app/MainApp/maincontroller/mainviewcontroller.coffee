@@ -1,11 +1,18 @@
 class MainViewController extends KDViewController
 
+  lazyloadQueue = [
+    'Topics', 'Members', 'Apps'
+  ]
+
   constructor:->
 
     super
 
+    {repeat, killRepeat} = KD.utils
+
     mainView       = @getView()
     mainController = KD.getSingleton 'mainController'
+    appManager     = KD.getSingleton 'appManager'
     @registerSingleton 'mainViewController', @, yes
     @registerSingleton 'mainView', mainView, yes
 
@@ -19,6 +26,18 @@ class MainViewController extends KDViewController
 
     mainController.on "ToggleChatPanel", =>
       mainView.chatPanel.toggle()
+
+    mainView.ready ->
+      log "i am ready motherfucker"
+      i = 0
+      r = repeat 5000, ->
+        appManager.open lazyloadQueue[i++],
+          params       :
+            background : yes
+        log "i am opening #{lazyloadQueue[i-1]}"
+        killRepeat r if i is lazyloadQueue.length
+
+
 
   loadView:(mainView)->
 
