@@ -49,8 +49,16 @@ class AvatarView extends LinkView
     {profile, type} = account
     return @setAvatar "url(#{@fallbackUri})"  if type is 'unregistered'
 
-    {width} = @getOptions().size
-    @setAvatar "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
+    {width, height} = @getOptions().size
+
+    height = width unless height
+
+    avatarURI = "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
+    if profile.avatar?.match /^https?:\/\//
+      resizedAvatar = KD.utils.proxifyUrl profile.avatar, {crop: yes, width, height}
+      avatarURI = "url(#{resizedAvatar})"
+
+    @setAvatar avatarURI
 
     flags = ""
     if account.globalFlags
