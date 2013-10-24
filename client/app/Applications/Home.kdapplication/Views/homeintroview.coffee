@@ -119,6 +119,7 @@ class HomeIntroView extends JView
     # @utils.wait 2000, => @try.setClass 'in'
 
   pistachio:->
+    inFrame = KD.runningInFrame()
     if KD.isLoggedIn()
       """
       <section>
@@ -144,8 +145,8 @@ class HomeIntroView extends JView
         </div>
         <aside>
           <form>
-            <div class='formline gh'>{{> @github}}</div>
-            <div class='formline or'>or</div>
+            <div class='formline gh #{'hidden' if inFrame}'>{{> @github}}</div>
+            <div class='formline or #{'hidden' if inFrame}'>or</div>
             <div class='formline signup'>{{> @signup}}</div>
             <div class='formline or'>or check what Koding is:</div>
             <ul class='large'>
