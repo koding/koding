@@ -45,6 +45,11 @@ class MessagesListController extends KDListViewController
         'CFolloweeBucketActivity'
         'CLikeeBucketActivity'
         'CGroupJoineeBucketActivity'
+        'CNewMemberBucketActivity'
+        'CGroupJoineeBucketActivity'
+        'CGroupJoinerBucketActivity'
+        'CGroupLefteeBucketActivity'
+        'CGroupLefterBucketActivity'
       ]
     }, {
       limit: 8
@@ -76,16 +81,19 @@ class NotificationListItem extends KDListItemView
     CReplieeBucketActivity     : "comment"
     CFolloweeBucketActivity    : "follow"
     CLikeeBucketActivity       : "like"
-    CGroupJoineeBucketActivity : "member"
+    CGroupJoineeBucketActivity : "groupJoin"
+    CGroupLefteeBucketActivity : "groupLeft"
 
   actionPhraseMap = ->
-    comment : "commented on"
-    reply   : "replied to"
-    like    : "liked"
-    follow  : ""
-    share   : "shared"
-    commit  : "committed"
-    member  : "joined"
+    comment     : "commented on"
+    reply       : "replied to"
+    like        : "liked"
+    follow      : ""
+    share       : "shared"
+    commit      : "committed"
+    member      : "joined"
+    groupJoin   : "joined"
+    groupLeft   : "left"
 
   constructor:(options = {}, data)->
 
@@ -119,8 +127,8 @@ class NotificationListItem extends KDListItemView
         height : 40
       origin   : group[0]
 
-    @interactedGroups = new options.linkGroupClass 
-      itemClass : GroupLinkView 
+    @interactedGroups = new options.linkGroupClass
+      itemClass : GroupLinkView
       group     : [@snapshot.anchor.data]
 
     @timeAgoView = new KDTimeAgoView {}, @getLatestTimeStamp @getData().dummy
