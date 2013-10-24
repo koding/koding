@@ -234,6 +234,7 @@ module.exports = [
   "app/MainApp/login/logininputs.coffee",
   "app/MainApp/login/loginoptions.coffee",
   "app/MainApp/login/registeroptions.coffee",
+  "app/MainApp/login/resendmailconfirmationform.coffee"
   "app/MainApp/login/registerform.coffee",
   "app/MainApp/login/recoverform.coffee",
   "app/MainApp/login/resetform.coffee",

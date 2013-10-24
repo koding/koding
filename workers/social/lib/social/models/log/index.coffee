@@ -4,7 +4,8 @@ module.exports = class JLog extends Module
 
   {secure, daisy} = Bongo = require 'bongo'
 
-  @share()
+  # no need to share for now
+  # @share()
 
 
   TRY_LIMIT_FOR_BLOCKING = 5
@@ -14,7 +15,7 @@ module.exports = class JLog extends Module
     softDelete      : yes
     sharedMethods   :
       instance      : []
-      static        : [ 'some', 'log', 'checkLoginBruteForce' ]
+      static        : []
     indexes:
       username : 1
       ip       : 1
@@ -67,8 +68,8 @@ module.exports = class JLog extends Module
     # - 2 - false
     headUntil = (list, condition)->
       head = []
-      for i in list 
-        return head if condition(i) 
+      for i in list
+        return head if condition(i)
         head.push i
       return head
 
