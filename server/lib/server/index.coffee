@@ -312,6 +312,7 @@ app.get "/-/oauth/github/callback",   require "./github_callback"
 app.get "/-/oauth/facebook/callback", require "./facebook_callback"
 app.get "/-/oauth/google/callback",   require "./google_callback"
 app.get "/-/oauth/linkedin/callback", require "./linkedin_callback"
+app.get "/-/oauth/twitter/callback",  require "./twitter_callback"
 
 app.all '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models

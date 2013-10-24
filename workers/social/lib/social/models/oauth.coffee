@@ -48,6 +48,30 @@ module.exports = class OAuth extends bongo.Base
         url += "redirect_uri=#{redirect_uri}"
 
         callback null, url
+      when "twitter"
+        @getTwitterUrl (err, requestToken, requestTokenSecret, url)=>
+          return callback err  if err
+          credentials = {requestToken, requestTokenSecret}
+          @saveOauthTokens client, url, "twitter", credentials, (err)->
+            callback err, url
+
+  @getTwitterUrl = (callback)->
+    # TODO: get from config
+    key    = "aFVoHwffzThRszhMo2IQQ"
+    secret = "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
+
+    {OAuth}       = require "oauth"
+    config        = KONFIG.twitter
+    #{key, secret} = config
+
+    oauth   = new OAuth "https://twitter.com/oauth/request_token",
+      "https://twitter.com/oauth/access_token", key, secret,
+      "1.1", null, "HMAC-SHA1"
+
+    oauth.getOAuthRequestToken (err, oauth_token, oauth_token_secret, results)->
+      return callback err  if err
+      callback null, oauth_token, oauth_token_secret,
+        'https://twitter.com/oauth/authenticate?oauth_token='+oauth_token
 
   @getOdeskUrl = (callback)->
     Odesk         = require 'node-odesk'
@@ -56,6 +80,16 @@ module.exports = class OAuth extends bongo.Base
 
     odesk = new Odesk key, secret
     odesk.OAuth.getAuthorizeUrl callback
+
+  @saveOauthTokens = (client, url, provider, creds, callback)->
+    JSession = require './session'
+    JSession.one {clientId: client.sessionToken}, (err, session) ->
+      return callback err  if err
+      query = {}
+      query["foreignAuth.#{provider}"] = creds
+      session.update $set: query, (err)->
+        console.log "saved oauth tokens", query
+        callback err
 
   @saveOdeskTokens = (client, url, requestToken, requestTokenSecret, callback)->
     JSession = require './session'
