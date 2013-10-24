@@ -307,6 +307,58 @@ body#not-found-page {
 	margin: 0;
 }
 
+.astronaut-problem-wrapper {
+	width: 664px;
+	height: 455px;
+	margin: 0 auto;
+	background: url(../img/space.gif) no-repeat center center;
+	position: relative;
+}
+.astronaut-problem-wrapper .astronaut-problem {
+	left: 155px;
+	top: 30px;
+	position: absolute;
+	-webkit-transform: translateY(10px);
+	-webkit-animation: astronautHover 5s infinite ease;
+	-moz-transform: translateY(10px);
+	-moz-animation: astronautHover 5s infinite ease;
+	transform: translateY(10px);
+	animation: astronautHover 5s infinite ease;
+}
+
+@-webkit-keyframes astronautHover {
+	0% {
+		-webkit-transform: translateY(10px) translateX(0);
+	}
+	50% {
+		-webkit-transform: translateY(-10px)  translateX(-10px);
+	}
+	100% {
+		-webkit-transform: translateY(10px)  translateX(0);
+	}
+}
+@-moz-keyframes astronautHover {
+	0% {
+		-moz-transform: translateY(10px) translateX(0);
+	}
+	50% {
+		-moz-transform: translateY(-10px)  translateX(-10px);
+	}
+	100% {
+		-moz-transform: translateY(10px)  translateX(0);
+	}
+}
+@keyframes astronautHover {
+	0% {
+		transform: translateY(10px) translateX(0);
+	}
+	50% {
+		transform: translateY(-10px)  translateX(-10px);
+	}
+	100% {
+		transform: translateY(10px)  translateX(0);
+	}
+}
 
 /* ==|== media queries ====================================================== PLACEHOLDER Media Queries for Responsive Design. These override the primary ('mobile first') styles Modify as content requires. ========================================================================== */
 @media only screen and (min-width:480px) {
