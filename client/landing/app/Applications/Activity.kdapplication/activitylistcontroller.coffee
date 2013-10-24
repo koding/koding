@@ -177,7 +177,6 @@ class ActivityListController extends KDListViewController
 
   updateBucket:(item, constructorName, id)->
     data = item.getData()
-    console.log(item)
     group = data.group or data.anchors
     group.unshift {
       bongo_:
