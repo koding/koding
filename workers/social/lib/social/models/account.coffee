@@ -226,8 +226,8 @@ module.exports = class JAccount extends jraphical.Module
 
   constructor:->
     super
-    @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened', 'GroupJoined'
-    @notifyGroupWhen 'FollowHappened', 'GroupJoined'
+    @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+    @notifyGroupWhen 'FollowHappened'
 
 
   checkGroupMembership: secure (client, groupName, callback)->
