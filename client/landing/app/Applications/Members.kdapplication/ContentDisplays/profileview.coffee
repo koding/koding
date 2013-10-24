@@ -382,7 +382,6 @@ class ProfileView extends JView
 
     avatarOptions  =
       showStatus      : yes
-      statusDiameter  : 7
       size            :
         width         : 90
         height        : 90

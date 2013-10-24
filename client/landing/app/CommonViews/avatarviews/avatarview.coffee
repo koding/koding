@@ -8,7 +8,7 @@ class AvatarView extends LinkView
       height                  : 50
     options.detailed        ?= no
     options.showStatus     or= no
-    options.statusDiameter or= '10%'
+    options.statusDiameter or= 5
 
     # this needs to be pre-super
     if options.detailed
