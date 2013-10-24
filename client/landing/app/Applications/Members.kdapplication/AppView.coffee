@@ -13,23 +13,23 @@ class MembersMainView extends KDView
     @header.setSearchInput()  if 'list members' in KD.config.permissions
 
 class MembersListItemView extends KDListItemView
-  constructor:(options, data)->
 
-    options = options ? {}
-    options.type = "members"
+  constructor:(options = {}, data)->
+
+    options.type          = "members"
     options.avatarSizes or= [60, 60] # [width, height]
 
-    super options,data
+    super options, data
 
     memberData = @getData()
     options    = @getOptions()
 
     @avatar = new AvatarView
-      size          :
-        width: options.avatarSizes[0]
-        height: options.avatarSizes[1]
-      showStatus    : yes
-      statusDiameter: 5
+      size           :
+        width        : options.avatarSizes[0]
+        height       : options.avatarSizes[1]
+      showStatus     : yes
+      statusDiameter : 5
     , memberData
 
     if (memberData.profile.nickname is KD.whoami().profile.nickname) or \
