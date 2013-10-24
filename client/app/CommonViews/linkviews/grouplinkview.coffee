@@ -7,6 +7,7 @@ class GroupLinkView extends LinkView
   render:->
     {slug} = @getData()
     @setAttribute "href", "/#{slug}"
+    @setAttribute "target", "_blank"
     super
 
   pistachio:->
