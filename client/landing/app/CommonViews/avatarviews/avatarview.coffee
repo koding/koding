@@ -85,10 +85,12 @@ class AvatarView extends LinkView
     @render() if @getData()
 
     if @getOptions().showStatus
+      {statusDiameter} = @getOptions()
+
       @addSubView @statusIndicator = new KDCustomHTMLView
         cssClass : 'statusIndicator'
-      @statusIndicator.setWidth @getOptions().statusDiameter
-      @statusIndicator.setHeight @getOptions().statusDiameter
+      @statusIndicator.setWidth statusDiameter
+      @statusIndicator.setHeight statusDiameter
 
   pistachio:-> '<cite></cite>'
 
