@@ -23,8 +23,8 @@ class MembersAppController extends AppController
       nicename      : 'Google'
     linkedin        :
       nicename      : 'LinkedIn'
-    # twitter         :
-    #   nicename      : 'Twitter'
+    twitter         :
+      nicename      : 'Twitter'
     # bitbucket       :
     #   nicename      : 'BitBucket'
 
