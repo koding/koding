@@ -63,8 +63,8 @@ class AvatarView extends LinkView
 
     @$('cite').addClass flags
 
-    @setDomAttributes href: "/#{profile.nickname}"
-    
+    @setAttribute "href", "/#{profile.nickname}"
+
     if @getOptions().showStatus
       onlineStatus = account.onlineStatus or 'offline'
       statusAttr   = @.$().attr("data-onlineStatus")
@@ -72,7 +72,7 @@ class AvatarView extends LinkView
       if statusAttr? and onlineStatus isnt statusAttr
         @setClass "animate"
 
-      @setDomAttributes "data-onlineStatus": onlineStatus
+      @setAttribute "data-onlineStatus", onlineStatus
 
   viewAppended:->
     super
