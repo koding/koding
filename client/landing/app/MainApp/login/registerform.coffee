@@ -87,7 +87,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             rangeLength  : [4,25]
             regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
             usernameCheck: (input, event)=> @usernameCheck input, event
-            finalCheck   : (input, event)=> @usernameCheck input, event
+            finalCheck   : (input, event)=> @usernameCheck input, event, 0
           messages       :
             required     : "Please enter a username."
             regExp       : "For username only lowercase letters and numbers are allowed!"
@@ -183,7 +183,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     input.clearValidationFeedback() for input in inputs
     super
 
-  usernameCheck:(input, event)->
+  usernameCheck:(input, event, delay=800)->
     return if event?.which is 9
 
     clearTimeout usernameCheckTimer
@@ -206,7 +206,7 @@ class RegisterInlineForm extends LoginViewInlineForm
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
             else
               input.setValidationResult "usernameCheck", null
-      ,800
+      , delay
 
   userAvatarFeedback:(input)->
     if input.valid

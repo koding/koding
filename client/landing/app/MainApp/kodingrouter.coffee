@@ -248,16 +248,18 @@ class KodingRouter extends KDRouter
       '/About' : createSectionHandler 'Activity'
 
       # verbs
-      '/:name?/Login'     : ({params:{name}})->
+      '/:name?/Login'        : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'login'
-      '/:name?/Logout'    : ({params:{name}})->
+      '/:name?/Logout'       : ({params:{name}})->
         requireLogin  -> mainController.doLogout()
-      '/:name?/Redeem'    : ({params:{name}})->
+      '/:name?/Redeem'       : ({params:{name}})->
         requireLogin  -> mainController.loginScreen.animateToForm 'redeem'
-      '/:name?/Register'  : ({params:{name}})->
+      '/:name?/Register'     : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'register'
-      '/:name?/Recover'   : ({params:{name}})->
+      '/:name?/Recover'      : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
+      '/:name?/ResendToken'  : ({params:{name}})->
+        requireLogout -> mainController.loginScreen.animateToForm 'resendEmail'
 
       # apps
       '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
@@ -307,11 +309,9 @@ class KodingRouter extends KDRouter
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
-          location.replace '#'
           if err
             error err
-            new KDNotificationView
-              title: "Something went wrong, please try again later!"
+            KD.showError err
           else
             new KDNotificationView
               title: "Thanks for confirming your email address!"
