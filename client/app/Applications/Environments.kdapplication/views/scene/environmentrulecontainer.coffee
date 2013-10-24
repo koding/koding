@@ -5,10 +5,6 @@ class EnvironmentRuleContainer extends EnvironmentContainer
     options.title     = 'Rules'
     super options, data
 
-  addItem:->
-    super
-    log "Added to rules:", arguments
-
   loadItems:->
     super
 
@@ -29,4 +25,3 @@ class EnvironmentRuleContainer extends EnvironmentContainer
 
     @addItem rule for rule in dummyRules
     @emit "DataLoaded"
-    log "Rules loaded.", @
