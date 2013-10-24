@@ -72,26 +72,77 @@ module.exports = class JGroup extends Module
       ]
     sharedMethods   :
       static        : [
-        'one','create','each','count','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers',
+        'one'
+        'create'
+        'each'
+        'count'
+        'byRelevance'
+        'someWithRelationship'
+        '__resetAllGroups'
+        'fetchMyMemberships'
+        '__importKodingMembers'
         'suggestUniqueSlug'
       ]
       instance      : [
-        'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
-        'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
-        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
-        'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
-        'fetchReadme', 'setReadme', 'addCustomRole', 'resolvePendingRequests',
-        'fetchVocabulary', 'fetchMembershipStatuses', 'setBackgroundImage',
-        'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail', 'inviteByEmails',
-        'kickMember', 'transferOwnership', 'fetchRolesByClientId',
-        'fetchInvitationsFromGraph', 'countInvitationsFromGraph', 'fetchMembersFromGraph'
-        'remove', 'bulkApprove', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'setPaymentInfo', 'fetchPaymentInfo',
-        'checkUserBalance', 'makeExpense', 'getUserExpenses', 'getAllExpenses', 'fetchTransactions',
-        'fetchBundle', 'updateBundle', 'addProduct', 'deleteProduct',
-        'createVM', 'canCreateVM', 'vmUsage',
-        'saveInviteMessage', 'redeemInvitation', 'fetchPaymentMethod','linkPaymentMethod'
+        'join'
+        'leave'
+        'modify'
+        'fetchPermissions'
+        'createRole'
+        'updatePermissions'
+        'fetchMembers'
+        'fetchRoles'
+        'fetchMyRoles'
+        'fetchUserRoles'
+        'changeMemberRoles'
+        'canOpenGroup'
+        'canEditGroup'
+        'fetchMembershipPolicy'
+        'modifyMembershipPolicy'
+        'requestAccess'
+        'fetchReadme'
+        'setReadme'
+        'addCustomRole'
+        'resolvePendingRequests'
+        'fetchVocabulary'
+        'fetchMembershipStatuses'
+        'setBackgroundImage'
+        'removeBackgroundImage'
+        'fetchAdmin'
+        'inviteByEmail'
+        'inviteByEmails'
+        'kickMember'
+        'transferOwnership'
+        'fetchRolesByClientId'
+        'fetchInvitationsFromGraph'
+        'countInvitationsFromGraph'
+        'fetchMembersFromGraph'
+        'remove'
+        'bulkApprove'
+        'fetchNewestMembers'
+        'countMembers'
+        'checkPayment'
+        'makePayment'
+        'updatePayment'
+        'setPaymentInfo'
+        'fetchPaymentInfo'
+        'checkUserBalance'
+        'makeExpense'
+        'getUserExpenses'
+        'getAllExpenses'
+        'fetchTransactions'
+        'fetchBundle'
+        'updateBundle'
+        # 'addProduct'
+        # 'deleteProduct'
+        'fetchProducts'
+        'createVM'
+        'canCreateVM'
+        'vmUsage'
+        'saveInviteMessage'
+        'redeemInvitation'
+        'fetchPaymentMethod'
+        'linkPaymentMethod'
         'unlinkPaymentMethod'
       ]
     schema          :
@@ -194,6 +245,9 @@ module.exports = class JGroup extends Module
       paymentMethod :
         targetType  : 'JPaymentMethod'
         as          : 'linked payment method'
+      product       :
+        targetType  : 'JPaymentProduct'
+        as          : 'product'
 
   constructor:->
     super
@@ -1355,15 +1409,15 @@ module.exports = class JGroup extends Module
       return callback err  if err
       plan.subscribeGroup this, data, callback
 
-  addProduct: permit 'manage products',
-    success: (client, data, callback)->
-      JPaymentGroup = require '../payment/group'
-      JPaymentGroup.addPlan this, data, callback
+  # addProduct: permit 'manage products',
+  #   success: (client, data, callback)->
+  #     JPaymentGroup = require '../payment/group'
+  #     JPaymentGroup.addPlan this, data, callback
 
-  deleteProduct: permit 'manage products',
-    success: (client, data, callback)->
-      JPaymentGroup = require '../payment/group'
-      JPaymentGroup.deletePlan this, data, callback
+  # deleteProduct: permit 'manage products',
+  #   success: (client, data, callback)->
+  #     JPaymentGroup = require '../payment/group'
+  #     JPaymentGroup.deletePlan this, data, callback
 
   checkPayment: (callback)->
     JPaymentSubscription = require '../payment/subscription'

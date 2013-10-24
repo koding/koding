@@ -47,21 +47,21 @@ module.exports = class JGroupBundle extends JBundle
         type          : Number
         default       : 0
 
-  canCreateVM: (account, group, data, callback)->
+  canCreateVM: (account, group, data, callback) ->
     { type, planCode, paymentMethodId } = data
 
     JPaymentSubscription.fetchAllSubscriptions
-      paymentMethodId: paymentMethodId
+      # paymentMethodId: paymentMethodId
       planCode: planCode
       $or: [
         {status: 'active'}
         {status: 'canceled'}
       ]
-    , (err, subs)=>
+    , (err, subs) =>
       return callback new KodingError "Payment backend error: #{err}"  if err
 
-      paidVMs     = 0
-      subs.forEach (sub)->
+      paidVMs = 0
+      subs.forEach (sub) ->
         paidVMs = sub.quantity
 
       createdVMs = 0
@@ -80,22 +80,16 @@ module.exports = class JGroupBundle extends JBundle
           callback null, paidVMs > createdVMs or firstVM
 
 
-  createVM: (account, group, data, callback)->
-    {type, planCode} = data
+  createVM: (account, group, data, callback) ->
+    { planCode } = data
 
-    if type is 'user'
-      planOwner = "user_#{account._id}"
-    else if type in ['group', 'expensed']
-      planOwner = "group_#{group._id}"
-
-    @canCreateVM account, group, data, (err, status)=>
+    @canCreateVM account, group, data, (err, status) =>
       return callback err  if err
 
       if status
         options     =
           planCode  : planCode
-          usage     : {cpu: 1, ram: 1, disk: 1}
-          type      : type
+          usage     : { cpu: 1, ram: 1, disk: 1 }
           account   : account
           groupSlug : group.slug
 

@@ -89,11 +89,15 @@ module.exports = class JPaymentPlan extends jraphical.Module
         recurly.createSubscription paymentMethodId, plan: @code, (err, result) ->
           return callback err  if err
           console.log { err, result }
-          # { planCode, uuid, quantity, status, datetime, expires, renew, amount } = result
-          # sub = new JPaymentSubscription {
-          #   userCode, planCode, uuid, quantity, status, datetime, expires, renew, amount
-          # }
-          # sub.save (err)-> callback err, sub
+          { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
+            amount } = result
+          sub = new JPaymentSubscription {
+            planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt, amount
+          }
+          console.log sub
+          sub.save (err)->
+            console.log { err, sub }
+            callback err, sub
 
   subscribe$: secure ({connection:{delegate}}, paymentMethodId, data, callback) ->
     @subscribe paymentMethodId, data, callback
