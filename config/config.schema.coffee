@@ -113,6 +113,14 @@ config =
       watch               : 1
       cronSchedule        : 1
       usageLimitInMinutes : 1
+    emailConfirmationCheckerWorker :
+      enabled             : 1
+      login               : 1
+      queueName           : 1
+      numberOfWorkers     : 1
+      watch               : 1
+      cronSchedule        : 1
+      usageLimitInMinutes : 1
     sitemapWorker         :
       enabled             : 1
       login               : 1
