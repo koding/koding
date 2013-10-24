@@ -3,7 +3,7 @@
 A script for making a new tar package and Homebrew formula.
 Also uploads the generated .tar.gz file to S3 if you provide --upload flag.
 
-usage: package-osx.py [-h] [--upload] version
+usage: package-osx.py [-h] [--upload]
 
 Run it with the same folder as kd.go. It will output 2 files to the same
 directory:
@@ -21,6 +21,7 @@ import hashlib
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 
@@ -43,6 +44,10 @@ class Kd < Formula
   def install
     bin.install "kd"
   end
+
+  def test
+    system "#{{bin}}/kd", "version"
+  end
 end
 """
 
@@ -50,11 +55,8 @@ end
 def main():
     parser = argparse.ArgumentParser(
         description="Compile kd tool and upload to S3.")
-    parser.add_argument('version')
     parser.add_argument('--upload', action='store_true', help="upload to s3")
     args = parser.parse_args()
-
-    tarname = "kd-%s.tar.gz" % args.version
 
     workdir = tempfile.mkdtemp()
     try:
@@ -68,9 +70,15 @@ def main():
             subprocess.check_call(cmd.split())
         except:
             print "Cannot compile kd tool. Try manually."
-            return
+            sys.exit(1)
+
+        # Get the version number from compiled binary
+        version = subprocess.check_output([binpath, "version"]).strip()
+        assert len(version.split(".")) == 3
+        print "Version:", version
 
         print "Making tar file..."
+        tarname = "kd-%s.tar.gz" % version
         tarpath = os.path.join(workdir, tarname)
         cwd = os.getcwd()
         os.chdir(workdir)
@@ -90,12 +98,18 @@ def main():
             b = c.get_bucket('kd-tool')
             k = Key(b)
             k.key = tarname
+            if k.exists():
+                print "This version is already uploaded. " \
+                      "Please do not overwrite the uploaded version, " \
+                      "increment the version number and upload it again."
+                sys.exit(1)
+
             k.set_contents_from_filename(tarpath)
             k.make_public()
             url = k.generate_url(expires_in=0, query_auth=False)
         else:
             # For testing "brew install" locally
-            url = "http://127.0.0.1:8000/kd-%s.tar.gz" % args.version
+            url = "http://127.0.0.1:8000/kd-%s.tar.gz" % version
 
         print "Generating formula..."
         sha1 = sha1_file(tarpath)

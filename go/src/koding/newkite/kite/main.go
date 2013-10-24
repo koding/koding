@@ -5,6 +5,7 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/fatih/goset"
 	"github.com/golang/groupcache"
@@ -174,7 +175,7 @@ func New(options *protocol.Options) *Kite {
 	hostname, _ := os.Hostname()
 	kiteID := utils.GenerateUUID()
 
-	publicKey, err := utils.GetKodingKey("public")
+	publicKey, err := utils.GetKodingKey()
 	if err != nil {
 		slog.Fatal("public key reading:", err)
 	}
@@ -252,6 +253,8 @@ func (k *Kite) createMethodMap(rcvr interface{}, methods map[string]string) {
 // asynchronously. It can be started in a goroutine if you wish to use kite as a
 // client too.
 func (k *Kite) Start() {
+	k.parseVersionFlag()
+
 	// Start our blocking subscriber loop. We except messages in the format of:
 	// filter:msg, where msg is in format JSON  of PubResponse protocol format.
 	// Latter is important to ensure robustness, if not we have to unmarshal or
@@ -261,6 +264,22 @@ func (k *Kite) Start() {
 		k.serve(k.Addr)
 	} else {
 		k.Messenger.Consume(k.handle)
+	}
+}
+
+// If the user wants to call flag.Parse() the flag must be defined in advance.
+var _ = flag.Bool("version", false, "show version")
+
+// parseVersionFlag prints the version number of the kite and exits with 0
+// if "-version" flag is enabled.
+// We did not use the "flag" package because it causes trouble if the user
+// also calls "flag.Parse()" in his code. flag.Parse() can be called only once.
+func (k *Kite) parseVersionFlag() {
+	for _, flag := range os.Args {
+		if flag == "-version" {
+			fmt.Println(k.Version)
+			os.Exit(0)
+		}
 	}
 }
 
