@@ -615,13 +615,6 @@ class ProfileView extends JView
 
   putNick: (nick) -> "@#{nick}"
 
-  putPresence: (state) ->
-    """
-    <div class="presence #{state or 'offline'}">
-    #{state or 'offline'}
-    </div>
-    """
-
   updateUserHomeLink: ->
     return  unless @userHomeLink
 
@@ -648,7 +641,6 @@ class ProfileView extends JView
     <span>{{> @avatar}}</span>
     {{> @followButton}}
     {cite{ @putNick #(profile.nickname)}}
-    {div{ @putPresence #(onlineStatus)}}
     </div>
 
     {{> @trollSwitch}}
