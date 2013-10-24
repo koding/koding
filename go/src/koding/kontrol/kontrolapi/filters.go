@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 )
 
@@ -17,8 +17,7 @@ type FiltersPostMessage struct {
 }
 
 func GetFilters(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/filters")
-	res := proxyDB.GetFilters()
+	res := modelhelper.GetFilters()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -31,9 +30,8 @@ func GetFilters(writer http.ResponseWriter, req *http.Request) {
 func GetFilterByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	name := vars["name"]
-	fmt.Printf("GET\t/filters/%s\n", name)
 
-	res, err := proxyDB.GetFilterByField("name", name)
+	res, err := modelhelper.GetFilterByField("name", name)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -48,7 +46,6 @@ func GetFilterByName(writer http.ResponseWriter, req *http.Request) {
 }
 
 func CreateFilterByName(writer http.ResponseWriter, req *http.Request) {
-	fmt.Printf("POST\t/filters\n")
 	var msg FiltersPostMessage
 	var filterType string
 	var filterMatch string
@@ -90,8 +87,8 @@ func CreateFilterByName(writer http.ResponseWriter, req *http.Request) {
 	// 	return
 	// }
 
-	filter := proxyconfig.NewFilter(filterType, "", filterMatch)
-	resFilter, err := proxyDB.AddFilter(filter)
+	filter := modelhelper.NewFilter(filterType, "", filterMatch)
+	resFilter, err := modelhelper.AddFilter(filter)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -109,9 +106,8 @@ func CreateFilterByName(writer http.ResponseWriter, req *http.Request) {
 func DeleteFilterByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	name := vars["name"]
-	fmt.Printf("DELETE\t/filters/%s\n", name)
 
-	err := proxyDB.DeleteFilterByField("name", name)
+	err := modelhelper.DeleteFilterByField("name", name)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

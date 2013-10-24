@@ -20,6 +20,7 @@ module.exports =
     address     : "http://localhost:3020"
   userSitesDomain: 'localhost'
   containerSubnet: "10.128.2.0/9"
+  vmPool        : "vms"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -32,6 +33,7 @@ module.exports =
     enabled     : yes
     port        : 3526
   mongo         : mongo
+  mongoReplSet  : null
   neo4j         :
     read        : "http://localhost"
     write       : "http://localhost"
@@ -73,14 +75,29 @@ module.exports =
     authAllExchange: authAllExchange
     numberOfWorkers: 1
     watch       : yes
+  emailConfirmationCheckerWorker :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 1
+    watch                : yes
+    cronSchedule         : '0 * * * * *'
+    usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : yes
     login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
-    cronSchedule         : '* * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
@@ -107,14 +124,12 @@ module.exports =
     watch       : yes
     watchDuration : 300
     includesPath: 'client'
-    websitePath : 'website'
-    js          : "js/kd.#{version}.js"
-    css         : "css/kd.#{version}.css"
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      precompiledApi: no
       authExchange: authExchange
       github         :
         clientId     : "f8e440b796d953ea01e5"
@@ -129,10 +144,10 @@ module.exports =
         servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'http://localhost:3020'
-      # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
+      uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
   mq            :
     host        : 'localhost'
@@ -142,14 +157,16 @@ module.exports =
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
     password    : 'djfjfhgh4455__5'
-    heartbeat   : 10
+    # heartbeat disabled in vagrant, because it'll interfere with node-inspector
+    # when the debugger is paused, the target is not able to send the heartbeat,
+    # so it'll disconnect from RabbitMQ if heartbeat is enabled.
+    heartbeat   : 0
     vhost       : '/'
   broker        :
     ip          : ""
     port        : 8008
     certFile    : ""
     keyFile     : ""
-    useKontrold : no
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
@@ -188,6 +205,7 @@ module.exports =
   haproxy         :
     webPort       : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
       apiHost     : "127.0.0.1"
       apiPort     : 8888
@@ -199,13 +217,6 @@ module.exports =
       port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
-      sslips      : '127.0.0.1'
-    rabbitmq      :
-      host        : 'localhost'
-      port        : '5672'
-      login       : 'guest'
-      password    : 'guest'
-      vhost       : '/'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"
@@ -224,7 +235,7 @@ module.exports =
   #     b = decipher.final('utf-8')
   #     return b
   recurly       :
-    apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
+    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :
@@ -234,4 +245,19 @@ module.exports =
     conf        : null
   github        :
     clientId    : "f8e440b796d953ea01e5"
-    clientSecret: "b72e2576926a5d67119d5b440107639c6499ed42"
+    clientSecret : "b72e2576926a5d67119d5b440107639c6499ed42"
+  odesk          :
+    key          : "639ec9419bc6500a64a2d5c3c29c2cf8"
+    secret       : "549b7635e1e4385e"
+  facebook       :
+    clientId     : "475071279247628"
+    clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
+    redirectUri  : "http://localhost:3020/-/oauth/facebook/callback"
+  google         :
+    client_id    : "1058622748167.apps.googleusercontent.com"
+    client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
+    redirect_uri : "http://localhost:3020/-/oauth/google/callback"
+  statsd         :
+    use          : false
+    ip           : "localhost"
+    port         : 8125

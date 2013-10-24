@@ -12,7 +12,8 @@ template  = require './templates'
 {mq, mongo, email, emailWorker, uri} = \
   require('koding-config-manager').load("main.#{argv.c}")
 
-mongo += '?auto_reconnect'
+if 'string' is typeof mongo
+  mongo = "mongodb://#{mongo}?auto_reconnect"
 
 broker = new Broker mq
 
@@ -130,7 +131,7 @@ fetchSubjectContentLink = (content, type, callback)->
       if err then callback err
       else
         if relatedContent.slug? or constructorName in ['JReview']
-          callback null, contentTypeLinkMap(relatedContent.slug)[type]
+          callback null, contentTypeLinkMap(relatedContent.slug, relatedContent.group)[type]
         else
           constructor = \
             Base.constructors[relatedContent.bongo_.constructorName]
@@ -208,7 +209,16 @@ prepareEmail = (notification, daily = no, cb, callback=->)->
 
 instantEmails = ->
   {JMailNotification} = worker.models
-  JMailNotification.some {status: "queued"}, {limit:300}, (err, emails)->
+
+  yesterday = new Date
+  yesterday.setDate    (new Date).getDate() - 1
+  yesterday.setHours   0
+  yesterday.setMinutes 0
+
+  JMailNotification.some {status     : "queued",              \
+                          dateIssued : { $gte: yesterday } }, \
+                         {limit      : 300,                   \
+                          sort       : { dateIssued: 1} }, (err, emails)->
     if err or not emails
       log "Could not load email queue!"
     else

@@ -21,7 +21,7 @@ func AddPort(host, port string) string {
 
 // Check if a server is alive or not
 func CheckServer(host string) error {
-	c, err := net.DialTimeout("tcp", host, time.Second*5)
+	c, err := net.DialTimeout("tcp", host, time.Second*15)
 	if err != nil {
 		return err
 	}

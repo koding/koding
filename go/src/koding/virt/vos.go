@@ -374,7 +374,7 @@ func addPathToWatch(w *Watch, resolved string) error {
 		}
 
 		for _, info := range infos {
-			if info.Mode().IsDir() {
+			if info.Mode().IsDir() && !strings.HasPrefix(info.Name(), ".") {
 				if err := addPathToWatch(w, resolved+"/"+info.Name()); err != nil {
 					return err
 				}

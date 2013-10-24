@@ -89,6 +89,7 @@ class AppsAppController extends AppController
           direction         : -1
       help                  :
         subtitle            : "Learn About Apps"
+        bookIndex           : 26
         tooltip :
           title     : "<p class=\"bigtwipsy\">The App Catalog contains apps and Koding enhancements contributed to the community by users.</p>"
           placement : "above"

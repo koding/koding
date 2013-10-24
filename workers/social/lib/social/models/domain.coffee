@@ -37,7 +37,7 @@ module.exports = class JDomain extends jraphical.Module
                        'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord', 'updateDNSRecord'
                        'remove'
                       ]
-      static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
+      static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain', 'getTldPrice']
 
     sharedEvents    :
       static        : [
@@ -55,6 +55,15 @@ module.exports = class JDomain extends jraphical.Module
         type        : String
         required    : yes
         set         : (value)-> value.toLowerCase()
+
+      domainType    :
+        type        : String
+        enum        : ['invalid domain type', [
+          'new'
+          'subdomain'
+          'existing'
+        ]]
+        default :  'subdomain'
 
       hostnameAlias : [String]
 
@@ -77,12 +86,14 @@ module.exports = class JDomain extends jraphical.Module
         mode        :
           type      : String
           enum      : ['invalid load balancer mode',[
-            'roundrobin'
+            ''
+            # 'roundrobin'
             # 'sticky'
             # 'weighted'
             # 'weighted-roundrobin'
           ]]
-          default   : 'roundrobin'
+          # default   : 'roundrobin'
+          default : ''
         index       :
           type      : Number
           default   : 0
@@ -104,17 +115,23 @@ module.exports = class JDomain extends jraphical.Module
 
   @isDomainEligible: (params, callback)->
     {delegate, domain} = params
-    return callback new KodingError("Invalid domain: #{domain}")  unless /\.kd\.io$/.test domain
 
-    match = domain.match /(.*)\.([\w\-]+)\.kd\.io$/
-    return callback new KodingError("Invalid domain: #{domain}.") unless match
+    {nickname} = delegate.profile
+
+    unless ///\.#{nickname}\.kd\.io$///.test domain
+      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
+
+    match = domain.match /(.*)\.([a-z0-9\-]+)\.kd\.io$/
+
+    unless match
+      return callback new KodingError("Invalid domain: #{domain}.", "INVALIDDOMAIN")
 
     [rest..., prefix, slug] = match
 
-    if slug is delegate.profile.nickname
+    if slug is nickname
       callback null, !/^vm[\-]([0-9]+)$/.test prefix
     else
-      JGroup.one {slug}, (err, group)->
+      JGroup.one {slug:'koding'}, (err, group)->
         return callback err  if err
 
         unless group
@@ -160,21 +177,24 @@ module.exports = class JDomain extends jraphical.Module
             callback err, model
 
 
-  @isDomainAvailable = (domainName, tld, callback)->
+  @isDomainAvailable = (domainName, tld, callback) ->
     domainManager.domainService.isDomainAvailable domainName, tld, callback
 
+  @getTldPrice = (tld, callback) ->
+    domainManager.domainService.getTldPrice tld, callback
+
   @registerDomain = permit 'create domains',
-    success: (client, data, callback)->
+    success: (client, data, callback) ->
       #default user info / all domains are under koding account.
       params =
         domainName         : data.domainName
         years              : data.years
-        customerId         : "9663202"
-        regContactId       : "28083911"
-        adminContactId     : "28083911"
-        techContactId      : "28083911"
-        billingContactId   : "28083911"
-        invoiceOption      : "NoInvoice"
+        customerId         : "10073817"
+        regContactId       : "29527194"
+        adminContactId     : "29527194"
+        techContactId      : "29527194"
+        billingContactId   : "29527194"
+        invoiceOption      : "KeepInvoice"
         protectPrivacy     : no
 
       # Make transaction
@@ -194,7 +214,9 @@ module.exports = class JDomain extends jraphical.Module
               orderId        :
                 resellerClub : data.entityid
               loadBalancer   :
-                  mode       : "roundrobin"
+                  # mode       : "roundrobin"
+                  mode       : ""
+              domainType     : "new"
               , (err, model) =>
                 callback err, model
           else
@@ -203,7 +225,7 @@ module.exports = class JDomain extends jraphical.Module
   @makeTransaction: (client, data, callback)->
     JRecurlyCharge = require './recurly/charge'
 
-    amount = 100 * 10 * data.years
+    amount = 10 * 10 * data.years
 
     JRecurlyCharge.charge client,
       code   : 'domain_abc'
@@ -241,6 +263,7 @@ module.exports = class JDomain extends jraphical.Module
       delegate.fetchDomains (err, domains)->
         return callback err if err
         for domain in domains
+          # console.log "Testing domain:", domain, selector.domainName
           return callback null, domain if domain.domain is selector.domainName
 
   fetchProxyRules: (callback)->

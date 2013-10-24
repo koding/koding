@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 
 @css {
@@ -7,6 +7,10 @@ Content Display stylesheet
 app.contentdisplays.styl
 */
 }
+
+#kdmaincontainer.home
+  .content-display-wrapper
+    height                  auto
 
 .content-display-wrapper
   abs()
@@ -50,7 +54,7 @@ app.contentdisplays.styl
       width               50px
       display             inline-block
       margin-right        20px
-      padding-top         7px
+      padding-top         9px
       font-weight         400
       cursor              pointer
       noTextDeco()
@@ -135,7 +139,7 @@ app.contentdisplays.styl
       h3, h4, h5
         display             inline-block
         rel()
-        margin              5px 10px 0 0
+        margin              0 3px 0 0
         padding             0px
         font-size           16px
         color               #a5a5a5
@@ -143,12 +147,15 @@ app.contentdisplays.styl
       h3
         color               #222
         font-size           30px
+        &.profilename
+          margin-left       -4px
 
       h4
         font-weight         300
 
       h5
         display             block
+        margin              5px 0 0
         a.user-profile-link
         a.user-home-link
         cite
@@ -158,9 +165,15 @@ app.contentdisplays.styl
           noTextDeco()
           margin-right      10px
 
+        a.user-home-link.offline
+          color             #A5A5A5
+          cursor            default
+
         cite
+          margin-right      0
           display           block
           font-size         11px
+          fr()
           // margin-left       10px
           // font-style        normal
 

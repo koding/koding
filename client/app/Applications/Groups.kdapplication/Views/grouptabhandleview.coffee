@@ -1,7 +1,7 @@
 class GroupTabHandleView extends KDTabHandleView
 
   constructor:(options = {}, data)->
-    options.cssClass = @utils.curryCssClass 'grouptabhandle', options.cssClass
+    options.cssClass = @utils.curry 'grouptabhandle', options.cssClass
 
     super options, data
 

@@ -24,8 +24,6 @@ module.exports = class JSession extends Model
       username      : String
       guestId       : Number
       terminalId    : String
-      oAuthCodes    :
-        github      : String
       sessionBegan  :
         type        : Date
         default     : -> new Date
@@ -33,13 +31,10 @@ module.exports = class JSession extends Model
         type        : Date
         get         : -> new Date
       foreignAuth   :
-        github      :
-          token     : String
-          foreignId : String
-          username  : String
-          firstName : String
-          lastName  : String
-          email     : String
+        github      : Object
+        odesk       : Object
+        facebook    : Object
+      foreignAuthType : String
     sharedEvents    :
       instance      : [
         { name: 'updateInstance' }
@@ -82,21 +77,6 @@ module.exports = class JSession extends Model
             callback err
           else
             callback null, session, account
-
-    # JGuest.obtain null, clientId, (err, guest) =>
-    #   if err
-    #     @emit 'error', err
-    #   else
-    #     {guestId} = guest
-    #     session = new JSession {
-    #       clientId
-    #       guestId
-    #     }
-    #     session.save (err)->
-    #       if err
-    #         callback err
-    #       else
-    #         callback null, session, guest
 
   @fetchSession =(clientId, callback)->
     selector = {clientId}

@@ -54,12 +54,12 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @avatarPopupContent.addSubView @listController.getView()
 
     seeAllView = new KDView
-      height   : "auto"
       cssClass : "split sublink"
-      partial  : "<a href='#'>See all groups...</a>"
-      click    : =>
-        KD.getSingleton('router').handleRoute '/Groups'
-        @hide()
+    #   height   : "auto"
+    #   partial  : "<a href='#'>See all groups...</a>"
+    #   click    : =>
+    #     KD.getSingleton('router').handleRoute '/Groups'
+    #     @hide()
 
     groupsController = KD.getSingleton("groupsController")
     groupsController.once 'GroupChanged', () =>
@@ -104,7 +104,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     return  unless KD.isLoggedIn()
 
-    KD.whoami().fetchGroups (err, groups)=>
+    KD.whoami().fetchGroups null, (err, groups)=>
       if err then warn err
       else if groups?
 

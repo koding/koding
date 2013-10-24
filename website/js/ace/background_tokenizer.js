@@ -34,24 +34,25 @@ define(function(require, exports, module) {
 var oop = require("./lib/oop");
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
-// tokenizing lines longer than this makes editor very slow
-var MAX_LINE_LENGTH = 5000;
 
 /**
- * class BackgroundTokenizer
+ * 
  *
- * Tokenizes the current [[Document `Document`]] in the background, and caches the tokenized rows for future use. If a certain row is changed, everything below that row is re-tokenized.
+ * Tokenizes the current [[Document `Document`]] in the background, and caches the tokenized rows for future use. 
+ * 
+ * If a certain row is changed, everything below that row is re-tokenized.
  *
+ * @class BackgroundTokenizer
  **/
 
 /**
- * new BackgroundTokenizer(tokenizer, editor)
- * - tokenizer (Tokenizer): The tokenizer to use
- * - editor (Editor): The editor to associate with
- *
  * Creates a new `BackgroundTokenizer` object.
+ * @param {Tokenizer} tokenizer The tokenizer to use
+ * @param {Editor} editor The editor to associate with
  *
- *
+ * 
+ * 
+ * @constructor
  **/
 
 var BackgroundTokenizer = function(tokenizer, editor) {
@@ -67,29 +68,37 @@ var BackgroundTokenizer = function(tokenizer, editor) {
         if (!self.running) { return; }
 
         var workerStart = new Date();
-        var startLine = self.currentLine;
+        var currentLine = self.currentLine;
+        var endLine = -1;
         var doc = self.doc;
 
-        var processedLines = 0;
+        while (self.lines[currentLine])
+            currentLine++;
+
+        var startLine = currentLine;
 
         var len = doc.getLength();
-        while (self.currentLine < len) {
-            self.$tokenizeRow(self.currentLine);
-            while (self.lines[self.currentLine])
-                self.currentLine++;
+        var processedLines = 0;
+        self.running = false;
+        while (currentLine < len) {
+            self.$tokenizeRow(currentLine);
+            endLine = currentLine;
+            do {
+                currentLine++;
+            } while (self.lines[currentLine]);
 
             // only check every 5 lines
             processedLines ++;
-            if ((processedLines % 5 == 0) && (new Date() - workerStart) > 20) {
-                self.fireUpdateEvent(startLine, self.currentLine-1);
+            if ((processedLines % 5 == 0) && (new Date() - workerStart) > 20) {                
                 self.running = setTimeout(self.$worker, 20);
+                self.currentLine = currentLine;
                 return;
             }
         }
-
-        self.running = false;
-
-        self.fireUpdateEvent(startLine, len - 1);
+        self.currentLine = currentLine;
+        
+        if (startLine <= endLine)
+            self.fireUpdateEvent(startLine, endLine);
     };
 };
 
@@ -98,10 +107,9 @@ var BackgroundTokenizer = function(tokenizer, editor) {
     oop.implement(this, EventEmitter);
 
     /**
-     * BackgroundTokenizer.setTokenizer(tokenizer)
-     * - tokenizer (Tokenizer): The new tokenizer to use
-     *
      * Sets a new tokenizer for this object.
+     *
+     * @param {Tokenizer} tokenizer The new tokenizer to use
      *
      **/
     this.setTokenizer = function(tokenizer) {
@@ -113,11 +121,8 @@ var BackgroundTokenizer = function(tokenizer, editor) {
     };
 
     /**
-     * BackgroundTokenizer.setDocument(doc)
-     * - doc (Document): The new document to associate with
-     *
      * Sets a new document to associate with this object.
-     *
+     * @param {Document} doc The new document to associate with
      **/
     this.setDocument = function(doc) {
         this.doc = doc;
@@ -127,19 +132,17 @@ var BackgroundTokenizer = function(tokenizer, editor) {
         this.stop();
     };
 
-    /**
-     * BackgroundTokenizer.fireUpdateEvent(firstRow, lastRow)
-     * - firstRow (Number): The starting row region
-     * - lastRow (Number): The final row region
-     *
-     * Emits the `'update'` event. `firstRow` and `lastRow` are used to define the boundaries of the region to be updated.
+     /**
+     * Fires whenever the background tokeniziers between a range of rows are going to be updated.
+     * 
+     * @event update
+     * @param {Object} e An object containing two properties, `first` and `last`, which indicate the rows of the region being updated.
      *
      **/
-     /**
-     * BackgroundTokenizer@update(e)
-     * - e (Object): An object containing two properties, `first` and `last`, which indicate the rows of the region being updated.
-     *
-     * Fires whenever the background tokeniziers between a range of rows are going to be updated.
+    /**
+     * Emits the `'update'` event. `firstRow` and `lastRow` are used to define the boundaries of the region to be updated.
+     * @param {Number} firstRow The starting row region
+     * @param {Number} lastRow The final row region
      *
      **/
     this.fireUpdateEvent = function(firstRow, lastRow) {
@@ -151,10 +154,9 @@ var BackgroundTokenizer = function(tokenizer, editor) {
     };
 
     /**
-     * BackgroundTokenizer.start(startRow)
-     * - startRow (Number): The row to start at
-     *
      * Starts tokenizing at the row indicated.
+     *
+     * @param {Number} startRow The row to start at
      *
      **/
     this.start = function(startRow) {
@@ -194,8 +196,6 @@ var BackgroundTokenizer = function(tokenizer, editor) {
     };
 
     /**
-     * BackgroundTokenizer.stop()
-     *
      * Stops tokenizing.
      *
      **/
@@ -206,10 +206,11 @@ var BackgroundTokenizer = function(tokenizer, editor) {
     };
 
     /**
-     * BackgroundTokenizer.getTokens(row) -> [Object]
-     * - row (Number): The row to get tokens at
-     *
      * Gives list of tokens of the row. (tokens are cached)
+     * 
+     * @param {Number} row The row to get tokens at
+     *
+     * 
      *
      **/
     this.getTokens = function(row) {
@@ -217,10 +218,9 @@ var BackgroundTokenizer = function(tokenizer, editor) {
     };
 
     /**
-     * BackgroundTokenizer.getState(row) -> String
-     * - row (Number): The row to get state at
-     *
      * [Returns the state of tokenization at the end of a row.]{: #BackgroundTokenizer.getState}
+     *
+     * @param {Number} row The row to get state at
      **/
     this.getState = function(row) {
         if (this.currentLine == row)
@@ -232,17 +232,9 @@ var BackgroundTokenizer = function(tokenizer, editor) {
         var line = this.doc.getLine(row);
         var state = this.states[row - 1];
 
-        if (line.length > MAX_LINE_LENGTH) {
-            var overflow = {value: line.substr(MAX_LINE_LENGTH), type: "text"};
-            line = line.slice(0, MAX_LINE_LENGTH);
-        }
-        var data = this.tokenizer.getLineTokens(line, state);
-        if (overflow) {
-            data.tokens.push(overflow);
-            data.state = "start";
-        }
+        var data = this.tokenizer.getLineTokens(line, state, row);
 
-        if (this.states[row] !== data.state) {
+        if (this.states[row] + "" !== data.state + "") {
             this.states[row] = data.state;
             this.lines[row + 1] = null;
             if (this.currentLine > row + 1)

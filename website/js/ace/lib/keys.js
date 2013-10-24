@@ -47,7 +47,7 @@ var Keys = (function() {
 
         KEY_MODS: {
             "ctrl": 1, "alt": 2, "option" : 2,
-            "shift": 4, "meta": 8, "command": 8
+            "shift": 4, "meta": 8, "command": 8, "cmd": 8
         },
 
         FUNCTION_KEYS : {
@@ -78,6 +78,7 @@ var Keys = (function() {
             103: "Numpad7",
             104: "Numpad8",
             105: "Numpad9",
+            '-13': "NumpadEnter",
             112: "F1",
             113: "F2",
             114: "F3",

@@ -1,13 +1,18 @@
 .ace_editor {
-    position: absolute;
+    position: relative;
     overflow: hidden;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     font-size: 12px;
+    line-height: normal;
+    color: black;
 }
 
 .ace_scroller {
     position: absolute;
     overflow: hidden;
+    top: 0;
+    bottom: 0;
+    background-color: inherit;
 }
 
 .ace_content {
@@ -21,8 +26,10 @@
 .ace_gutter {
     position: absolute;
     overflow : hidden;
-    height: 100%;
     width: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
     cursor: default;
     z-index: 4;
 }
@@ -64,9 +71,11 @@
 
 .ace_scrollbar {
     position: absolute;
-    overflow-x: hidden;
-    overflow-y: scroll;
+    overflow: hidden;
+    overflow-y: auto;
     right: 0;
+    top: 0;
+    bottom: 0;
 }
 
 .ace_scrollbar-inner {
@@ -74,6 +83,22 @@
     width: 1px;
     left: 0;
 }
+
+.ace_scrollbar-h {
+    position: absolute;
+    overflow-x: auto;
+    overflow-y: hidden;
+    right: 0;
+    left: 0;
+    bottom: 0;
+}
+
+.ace_scrollbar-inner {
+    position: absolute;
+    height: 1px;
+    left: 0;
+}
+
 
 .ace_print-margin {
     position: absolute;
@@ -93,15 +118,16 @@
     resize: none;
     outline: none;
     overflow: hidden;
+    font: inherit;
+    padding: 0 1px;
+    margin: 0 -1px;
 }
 
 .ace_text-input.ace_composition {
-    background: #fff;
-    color: #000;
+    background: #f8f8f8;
+    color: #111;
     z-index: 1000;
     opacity: 1;
-    border: solid lightgray 1px;
-    margin: -1px
 }
 
 .ace_layer {
@@ -127,7 +153,6 @@
 }
 
 .ace_text-layer {
-    color: black;
     font: inherit !important;
 }
 
@@ -172,7 +197,7 @@
     white-space: nowrap;
 }
 
-.ace_marker-layer .ace_step {
+.ace_marker-layer .ace_step, .ace_marker-layer .ace_stack {
     position: absolute;
     z-index: 3;
 }
@@ -242,13 +267,17 @@
 }
 
 .ace_gutter-tooltip {
-    background-color: #FFFFD5;
+    background-color: #FFF;
+    background-image: -webkit-linear-gradient(top, transparent, rgba(0, 0, 0, 0.1));
+    background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1));
     border: 1px solid gray;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+    border-radius: 1px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     color: black;
     display: inline-block;
+    max-width: 500px;
     padding: 4px;
-    position: absolute;
+    position: fixed;
     z-index: 300;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -256,6 +285,10 @@
     cursor: default;
     white-space: pre-line;
     word-wrap: break-word;
+    line-height: normal;
+    font-style: normal;
+    font-weight: normal;
+    letter-spacing: normal;
 }
 
 .ace_folding-enabled > .ace_gutter-cell {
@@ -268,7 +301,7 @@
     box-sizing: border-box;
 
     margin: 0 -12px 0 1px;
-    display: inline-block;
+    display: none;
     width: 11px;
     vertical-align: top;
 
@@ -279,6 +312,11 @@
     border-radius: 3px;
     
     border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.ace_folding-enabled .ace_fold-widget {
+    display: inline-block;   
 }
 
 .ace_fold-widget.ace_end {
@@ -325,9 +363,7 @@
     -webkit-box-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);
     box-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);
 }
-    
-    
-    
+
 .ace_fold-widget.ace_invalid {
     background-color: #FFB4B4;
     border-color: #DE5555;
@@ -365,4 +401,17 @@
 
 .ace_italic {
     font-style: italic;
+}
+
+
+.ace_error-marker {
+    background-color: rgba(255, 0, 0,0.2);
+    position: absolute;
+    z-index: 9;
+}
+
+.ace_highlight-marker {
+    background-color: rgba(255, 255, 0,0.2);
+    position: absolute;
+    z-index: 8;
 }

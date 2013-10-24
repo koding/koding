@@ -9,36 +9,28 @@ class TerminalPane extends Pane
     @createWebTermView()
     @webterm.on "WebTermConnected", (@remote) => @onWebTermConnected()
 
-    @on "PaneResized", @bound "forceResize"
-
   createWebTermView: ->
     @webterm           = new WebTermView
-      delegate         : @
+      delegate         : this
       cssClass         : "webterm"
       advancedSettings : no
 
   onWebTermConnected: ->
-    {command} = @getProperties()
+    {command} = @getOptions()
     @runCommand command if command
 
-  runCommand: (command) ->
+  runCommand: (command, callback) ->
     return unless command
-    return @remote.input "#{command}\n"  if @remote
+    if @remote
+      if callback
+        @webterm.once "WebTermEvent", callback
+        command += ";echo $?|kdevent"
+      return @remote.input "#{command}\n"
 
     if not @remote and not @triedAgain
       @utils.wait 2000, =>
         @runCommand command
         @triedAgain = yes
-
-  viewAppended: ->
-    super
-    @forceResize()
-
-  forceResize: ->
-    # TODO: fatihacet - temp fix, 37 is the height of top header bar.
-    # I need to set split view's height as its normal height - 37.
-    # It will be fixed, when I am done with KDSplitComboView.
-    @setHeight @parent.getHeight() - 37
 
   pistachio: ->
     """

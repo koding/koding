@@ -32,6 +32,7 @@ define(function(require, exports, module) {
 "use strict";
 
 var lang = require("../lib/lang");
+var config = require("../config");
 
 function bindKey(win, mac) {
     return {
@@ -41,6 +42,16 @@ function bindKey(win, mac) {
 }
 
 exports.commands = [{
+    name: "showSettingsMenu",
+    bindKey: bindKey("Ctrl-,", "Command-,"),
+    exec: function(editor) {
+        config.loadModule("ace/ext/settings_menu", function(module) {
+            module.init(editor);
+            editor.showSettingsMenu();
+        });
+    },
+    readOnly: true
+}, {
     name: "selectall",
     bindKey: bindKey("Ctrl-A", "Command-A"),
     exec: function(editor) { editor.selectAll(); },
@@ -94,8 +105,7 @@ exports.commands = [{
     name: "find",
     bindKey: bindKey("Ctrl-F", "Command-F"),
     exec: function(editor) {
-        var needle = prompt("Find:", editor.getCopyText());
-        editor.find(needle);
+        config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor)});
     },
     readOnly: true
 }, {
@@ -108,13 +118,15 @@ exports.commands = [{
     bindKey: bindKey("Ctrl-Shift-Home", "Command-Shift-Up"),
     exec: function(editor) { editor.getSelection().selectFileStart(); },
     multiSelectAction: "forEach",
-    readOnly: true
+    readOnly: true,
+    group: "fileJump"
 }, {
     name: "gotostart",
     bindKey: bindKey("Ctrl-Home", "Command-Home|Command-Up"),
     exec: function(editor) { editor.navigateFileStart(); },
     multiSelectAction: "forEach",
-    readOnly: true
+    readOnly: true,
+    group: "fileJump"
 }, {
     name: "selectup",
     bindKey: bindKey("Shift-Up", "Shift-Up"),
@@ -132,13 +144,15 @@ exports.commands = [{
     bindKey: bindKey("Ctrl-Shift-End", "Command-Shift-Down"),
     exec: function(editor) { editor.getSelection().selectFileEnd(); },
     multiSelectAction: "forEach",
-    readOnly: true
+    readOnly: true,
+    group: "fileJump"
 }, {
     name: "gotoend",
     bindKey: bindKey("Ctrl-End", "Command-End|Command-Down"),
     exec: function(editor) { editor.navigateFileEnd(); },
     multiSelectAction: "forEach",
-    readOnly: true
+    readOnly: true,
+    group: "fileJump"
 }, {
     name: "selectdown",
     bindKey: bindKey("Shift-Down", "Shift-Down"),
@@ -295,6 +309,7 @@ exports.commands = [{
     name: "selecttomatching",
     bindKey: bindKey("Ctrl-Shift-P", null),
     exec: function(editor) { editor.jumpToMatching(true); },
+    multiSelectAction: "forEach",
     readOnly: true
 }, 
 
@@ -315,7 +330,7 @@ exports.commands = [{
     name: "removeline",
     bindKey: bindKey("Ctrl-D", "Command-D"),
     exec: function(editor) { editor.removeLines(); },
-    multiSelectAction: "forEach"
+    multiSelectAction: "forEachLine"
 }, {
     name: "duplicateSelection",
     bindKey: bindKey("Ctrl-Shift-D", "Command-Shift-D"),
@@ -325,11 +340,16 @@ exports.commands = [{
     name: "sortlines",
     bindKey: bindKey("Ctrl-Alt-S", "Command-Alt-S"),
     exec: function(editor) { editor.sortLines(); },
-    multiSelectAction: "forEach"
+    multiSelectAction: "forEachLine"
 }, {
     name: "togglecomment",
     bindKey: bindKey("Ctrl-/", "Command-/"),
     exec: function(editor) { editor.toggleCommentLines(); },
+    multiSelectAction: "forEachLine"
+}, {
+    name: "toggleBlockComment",
+    bindKey: bindKey("Ctrl-Shift-/", "Command-Shift-/"),
+    exec: function(editor) { editor.toggleBlockComment(); },
     multiSelectAction: "forEach"
 }, {
     name: "modifyNumberUp",
@@ -343,27 +363,9 @@ exports.commands = [{
     multiSelectAction: "forEach"
 }, {
     name: "replace",
-    bindKey: bindKey("Ctrl-R", "Command-Option-F"),
+    bindKey: bindKey("Ctrl-H", "Command-Option-F"),
     exec: function(editor) {
-        var needle = prompt("Find:", editor.getCopyText());
-        if (!needle)
-            return;
-        var replacement = prompt("Replacement:");
-        if (!replacement)
-            return;
-        editor.replace(replacement, {needle: needle});
-    }
-}, {
-    name: "replaceall",
-    bindKey: bindKey("Ctrl-Shift-R", "Command-Shift-Option-F"),
-    exec: function(editor) {
-        var needle = prompt("Find:");
-        if (!needle)
-            return;
-        var replacement = prompt("Replacement:");
-        if (!replacement)
-            return;
-        editor.replaceAll(replacement, {needle: needle});
+        config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
     }
 }, {
     name: "undo",
@@ -391,16 +393,27 @@ exports.commands = [{
     exec: function(editor) { editor.moveLinesDown(); }
 }, {
     name: "del",
-    bindKey: bindKey("Delete", "Delete|Ctrl-D"),
+    bindKey: bindKey("Delete", "Delete|Ctrl-D|Shift-Delete"),
     exec: function(editor) { editor.remove("right"); },
     multiSelectAction: "forEach"
 }, {
     name: "backspace",
     bindKey: bindKey(
-        "Command-Backspace|Option-Backspace|Shift-Backspace|Backspace",
-        "Ctrl-Backspace|Command-Backspace|Shift-Backspace|Backspace|Ctrl-H"
+        "Shift-Backspace|Backspace",
+        "Ctrl-Backspace|Shift-Backspace|Backspace|Ctrl-H"
     ),
     exec: function(editor) { editor.remove("left"); },
+    multiSelectAction: "forEach"
+}, {
+    name: "cut_or_delete",
+    bindKey: bindKey("Shift-Delete", null),
+    exec: function(editor) { 
+        if (editor.selection.isEmpty()) {
+            editor.remove("left");
+        } else {
+            return false;
+        }
+    },
     multiSelectAction: "forEach"
 }, {
     name: "removetolinestart",
@@ -432,6 +445,16 @@ exports.commands = [{
     bindKey: bindKey("Tab", "Tab"),
     exec: function(editor) { editor.indent(); },
     multiSelectAction: "forEach"
+},{
+    name: "blockoutdent",
+    bindKey: bindKey("Ctrl-[", "Ctrl-["),
+    exec: function(editor) { editor.blockOutdent(); },
+    multiSelectAction: "forEachLine"
+},{
+    name: "blockindent",
+    bindKey: bindKey("Ctrl-]", "Ctrl-]"),
+    exec: function(editor) { editor.blockIndent(); },
+    multiSelectAction: "forEachLine"
 }, {
     name: "insertstring",
     exec: function(editor, str) { editor.insert(str); },

@@ -2,7 +2,7 @@ class HomeIntroView extends JView
 
   constructor:(options = {}, data)->
 
-    options.tagName or= "section"
+    # options.tagName or= "section"
     options.domId   or= "home-intro"
 
     super options, data
@@ -29,7 +29,7 @@ class HomeIntroView extends JView
       type        : 'button'
       icon        : yes
       iconClass   : 'octocat'
-      callback    : -> KD.utils.openGithubPopUp()
+      callback    : -> KD.singletons.oauthController.openPopup "github"
 
     @signup = new KDButtonView
       title       : 'Sign up with email'
@@ -38,10 +38,9 @@ class HomeIntroView extends JView
       testPath    : "landing-register-email"
       callback    : -> router.handleRoute '/Register'
 
-    @toc = new KDCustomHTMLView
-      cssClass : 'toc'
-      # partial  : 'By signing up, you agree to our <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
-      partial  : 'By signing up, you agree to our <a href="/tos.html" target="_blank">terms of service</a> and <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
+    @tos = new KDCustomHTMLView
+      cssClass : 'tos'
+      partial  : 'By signing up, you agree to our <a href="/tos.html" target="_blank">terms of service</a> and <a href="/privacy.html" target="_blank">privacy policy</a>.'
 
 
     @twoMinsThumb = new KDCustomHTMLView
@@ -97,15 +96,19 @@ class HomeIntroView extends JView
     vmController = KD.getSingleton("vmController")
     {JAccount, JTag, JGroup, CActivity} = KD.remote.api
 
-    members.ready    => JAccount.count type: 'registered', (err, count)=> members.update count    or 0
+    members.ready =>
+      JAccount.fetchCachedUserCount (err, count)=>
+        members.update count or 0
+
     vms.ready        => vmController.fetchTotalVMCount (err, count)=> vms.update count            or 0
     groups.ready     => JGroup.count                   (err, count)=> groups.update count         or 0
     topics.ready     => JTag.fetchCount                (err, count)=> topics.update count         or 0
     activities.ready => CActivity.fetchCount           (err, count)=> activities.update count     or 0
     # loc.ready        => vmController.fetchTotalLoC     (err, count)=> loc.update count        or 0
 
-    KD.getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
-      activities.increment newActivities.length
+    KD.getSingleton("mainController").ready ->
+      KD.getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
+        activities.increment newActivities.length
 
   show:-> @unsetClass 'out'
 
@@ -116,6 +119,7 @@ class HomeIntroView extends JView
     # @utils.wait 2000, => @try.setClass 'in'
 
   pistachio:->
+    inFrame = KD.runningInFrame()
     if KD.isLoggedIn()
       """
       <section>
@@ -141,15 +145,15 @@ class HomeIntroView extends JView
         </div>
         <aside>
           <form>
-            <div class='formline gh'>{{> @github}}</div>
-            <div class='formline or'>or</div>
+            <div class='formline gh #{'hidden' if inFrame}'>{{> @github}}</div>
+            <div class='formline or #{'hidden' if inFrame}'>or</div>
             <div class='formline signup'>{{> @signup}}</div>
             <div class='formline or'>or check what Koding is:</div>
             <ul class='large'>
               <li>{{> @twoMinsThumb}}</li>
               <li>{{> @timedudeThumb}}</li>
             </ul>
-            <div class='formline'>{{> @toc}}</div>
+            <div class='formline'>{{> @tos}}</div>
           </form>
         </aside>
       </section>

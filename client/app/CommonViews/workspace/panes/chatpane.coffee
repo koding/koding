@@ -6,55 +6,67 @@ class ChatPane extends JView
 
     super options, data
 
-    @workspace = @getDelegate()
-    @chatRef   = @workspace.workspaceRef.child "chat"
+    @unreadCount = 0
+    @workspace   = @getDelegate()
+    @chatRef     = @workspace.workspaceRef.child "chat"
 
-    @dock      = new KDView
-      partial  : "Chat"
-      cssClass : "dock"
-      click    : =>
+    @dock        = new KDView
+      cssClass   : "dock"
+      click      : =>
+        @dock.unsetClass "pulsing"
         @toggleClass "active"
         @toggle.toggleClass "active"
+        @unreadCount = 0
+        @title.updatePartial "Chat"
 
-    @dock.addSubView @toggle = new KDView
-      cssClass : "toggle"
+    @title       = new KDCustomHTMLView
+      tagName    : "span"
+      partial    : "Chat"
 
-    @wrapper   = new KDView
-      cssClass : "wrapper"
-
-    @messages  = new KDView
-      cssClass : "messages"
-
-    @input     = new KDHitEnterInputView
-      type     : "text"
-      callback : =>
+    @toggle      = new KDView cssClass : "toggle"
+    @messages    = new KDView cssClass : "messages"
+    @input       = new KDHitEnterInputView
+      type       : "text"
+      callback   : =>
         {nickname, firstName, lastName} = KD.whoami().profile
-        message =
-          user : { nickname, firstName, lastName }
-          time : Date.now()
-          body : @input.getValue()
+        message  =
+          user   : { nickname, firstName, lastName }
+          time   : Date.now()
+          body   : @input.getValue()
 
         @chatRef.child(message.time).set message
         @input.setValue ""
         @input.setFocus()
+        @workspace.setHistory "<strong>#{nickname}:</strong> #{message.body}"
 
-    @wrapper.addSubView @messages
-    @wrapper.addSubView @input
+    @dock.addSubView @toggle
+    @dock.addSubView @title
 
     @chatRef.on "child_added", (snapshot) =>
+      unless @isVisible()
+        @title.updatePartial "Chat (#{++@unreadCount})"
+        @dock.setClass "pulsing"
+
       @utils.wait 300, => @addNew snapshot.val() # to prevent a possible race condition
+
+  isVisible: -> return @hasClass "active"
 
   addNew: (details) ->
     ownerNickname = details.user.nickname
     if @lastChatItemOwner is ownerNickname
       @lastChatItem.messageList.addSubView new KDCustomHTMLView
-        partial : details.body
+        partial : Encoder.XSSEncode details.body
+      @updateDate details.time
       return  @scrollToTop()
 
     @lastChatItem      = new ChatItem details, @workspace.users[ownerNickname]
     @lastChatItemOwner = ownerNickname
     @messages.addSubView @lastChatItem
+    @updateDate details.time
     @scrollToTop()
+
+  updateDate: (timestamp) ->
+    @lastChatItem.timeAgo.setData new Date timestamp
 
   scrollToTop: ->
     $messages = @messages.$()
@@ -63,5 +75,8 @@ class ChatPane extends JView
   pistachio: ->
     """
       {{> @dock}}
-      {{> @wrapper}}
+      {{> @messages}}
+      <div class="input-container">
+        {{> @input}}
+      </div>
     """

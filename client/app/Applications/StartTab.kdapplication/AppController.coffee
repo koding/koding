@@ -4,20 +4,19 @@ class StartTabAppController extends AppController
     name         : "StartTab"
     route        : "/:name?/Develop"
     behavior     : "application"
-    multiple     : yes
+    multiple     : no
     navItem      :
       title      : "Develop"
       path       : "/Develop"
       order      : 50
-      # role       : 'member'
-    # preCondition :
-    #   condition  : (options, cb)-> cb KD.isLoggedIn()
-    #   failure    : (options, cb)->
-    #     KD.requireMembership onFailMsg: 'Login to start...' # getSingleton('router').handleRoute "/Activity"
+    menu         : [
+      { title    : "Make a new App", eventName : "makeANewApp" }
+      { title    : "Refresh Apps",   eventName : "refreshApps" }
+    ]
 
   constructor:(options = {}, data)->
 
-    options.view    = new StartTabMainView
+    options.view = new StartTabMainView
       testPath : "apps-installed"
 
     options.appInfo =

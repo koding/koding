@@ -33,17 +33,15 @@ define(function(require, exports, module) {
 var WorkerClient = require("../worker/worker_client").WorkerClient;
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
-var Tokenizer = require("../tokenizer").Tokenizer;
-var XQueryHighlightRules = require("./xquery_highlight_rules").XQueryHighlightRules;
-//var XQueryBehaviour = require("./behaviour/xquery").XQueryBehaviour;
+var XQueryLexer = require("./xquery/XQueryLexer").XQueryLexer;
 var Range = require("../range").Range;
-var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
+var XQueryBehaviour = require("./behaviour/xquery").XQueryBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 
-var Mode = function(parent) {
-    this.$tokenizer   = new Tokenizer(new XQueryHighlightRules().getRules());
-    this.$behaviour   = new CstyleBehaviour(parent);
+var Mode = function() {
+    this.$tokenizer   = new XQueryLexer();
+    this.$behaviour   = new XQueryBehaviour();
     this.foldingRules = new CStyleFoldMode();
 };
 
@@ -52,22 +50,22 @@ oop.inherits(Mode, TextMode);
 (function() {
 
     this.getNextLineIndent = function(state, line, tab) {
-      var indent = this.$getIndent(line);
-      var match = line.match(/\s*(?:then|else|return|[{\(]|<\w+>)\s*$/);
-      if (match)
-        indent += tab;
+        var indent = this.$getIndent(line);
+        var match = line.match(/\s*(?:then|else|return|[{\(]|<\w+>)\s*$/);
+        if (match)
+            indent += tab;
         return indent;
     };
     
     this.checkOutdent = function(state, line, input) {
-      if (! /^\s+$/.test(line))
+        if (! /^\s+$/.test(line))
             return false;
 
         return /^\s*[\}\)]/.test(input);
     };
     
     this.autoOutdent = function(state, doc, row) {
-      var line = doc.getLine(row);
+        var line = doc.getLine(row);
         var match = line.match(/^(\s*[\}\)])/);
 
         if (!match) return 0;
@@ -81,15 +79,6 @@ oop.inherits(Mode, TextMode);
         doc.replace(new Range(row, 0, row, column-1), indent);
     };
 
-    this.$getIndent = function(line) {
-        var match = line.match(/^(\s+)/);
-        if (match) {
-            return match[1];
-        }
-
-        return "";
-    };
-    
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         var i, line;
         var outdent = true;
@@ -114,78 +103,31 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        this.$deltas = [];
-        var worker = new WorkerClient(["ace"], "ace/mode/xquery_worker", "XQueryWorker");
+        
+      var worker = new WorkerClient(["ace"], "ace/mode/xquery_worker", "XQueryWorker");
         var that = this;
-
-        session.getDocument().on('change', function(evt){
-          that.$deltas.push(evt.data);
-        });
 
         worker.attachToDocument(session.getDocument());
         
-        worker.on("start", function(e) {
-          //console.log("start");
-          that.$deltas = [];
-        });
-
         worker.on("error", function(e) {
           session.setAnnotations([e.data]);
         });
         
         worker.on("ok", function(e) {
-            session.clearAnnotations();
+          session.clearAnnotations();
         });
         
         worker.on("highlight", function(tokens) {
-          var firstRow = 0;
-          var lastRow = session.getLength() - 1;
+          that.$tokenizer.tokens = tokens.data.tokens;
+          that.$tokenizer.lines  = session.getDocument().getAllLines();
           
-          var lines = tokens.data.lines;
-          var states = tokens.data.states;
-          
-          for(var i=0; i < that.$deltas.length; i++)
-          {
-            var delta = that.$deltas[i];
-         
-            if (delta.action === "insertLines")
-            {
-              var newLineCount = delta.lines.length;
-              for (var i = 0; i < newLineCount; i++) {
-                lines.splice(delta.range.start.row + i, 0, undefined);
-                states.splice(delta.range.start.row + i, 0, undefined);
-              }
-            }
-            else if (delta.action === "insertText")
-            {
-              if (session.getDocument().isNewLine(delta.text))
-              {
-                lines.splice(delta.range.end.row, 0, undefined);
-                states.splice(delta.range.end.row, 0, undefined);
-              } else {
-                lines[delta.range.start.row] = undefined;
-                states[delta.range.start.row] = undefined;
-              } 
-            } else if (delta.action === "removeLines") {
-              var oldLineCount = delta.lines.length;
-              lines.splice(delta.range.start.row, oldLineCount);
-              states.splice(delta.range.start.row, oldLineCount);
-            } else if (delta.action === "removeText") {
-              if (session.getDocument().isNewLine(delta.text))
-              {
-                lines[delta.range.start.row] = undefined;
-                lines.splice(delta.range.end.row, 1);
-                states[delta.range.start.row] = undefined;
-                states.splice(delta.range.end.row, 1);
-              } else {
-                lines[delta.range.start.row] = undefined;
-                states[delta.range.start.row] = undefined;
-              }
-            }           
+          var rows = Object.keys(that.$tokenizer.tokens);
+          for(var i=0; i < rows.length; i++) {
+            var row = parseInt(rows[i]);
+            delete session.bgTokenizer.lines[row];
+            delete session.bgTokenizer.states[row];
+            session.bgTokenizer.fireUpdateEvent(row, row);
           }
-          session.bgTokenizer.lines = lines;
-          session.bgTokenizer.states = states;
-          session.bgTokenizer.fireUpdateEvent(firstRow, lastRow);
         });
         
         return worker;

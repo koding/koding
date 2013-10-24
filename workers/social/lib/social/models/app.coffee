@@ -51,7 +51,8 @@ module.exports = class JApp extends jraphical.Module
         'fetchRelativeReviews', 'approve'
       ]
       static        : [
-        'one', 'create', 'someWithRelationship', 'updateAllSlugs', 'some'
+        'one', 'create', 'someWithRelationship', 'updateAllSlugs'
+        'some', 'each', 'fetchAllAppsData'
       ]
 
     schema          :
@@ -269,7 +270,7 @@ module.exports = class JApp extends jraphical.Module
             else
               callback new KodingError 'App is not approved so activity is not created.'
           else
-            callback new KodingError 'Relationship already exists, App already installed'
+            callback null
 
   approve: secure ({connection}, state = yes, callback)->
 
@@ -342,8 +343,7 @@ module.exports = class JApp extends jraphical.Module
         return callback new KodingError 'No such application.'
       callback null, app
 
-  @some$: @someWithRelationship
-  @someWithRelationship: secure (client, selector, options, callback)->
+  getDefaultSelector = (client, selector)->
     {delegate} = client.connection
     selector or= {}
 
@@ -360,21 +360,40 @@ module.exports = class JApp extends jraphical.Module
         {originId: delegate.getId()}
       ]
       delete selector.approved
+    return selector
+
+  @some$: @someWithRelationship
+  @someWithRelationship: secure (client, selector, options, callback)->
+    selector = getDefaultSelector client, selector
+    options  or= {}
+    options.limit = Math.min(options.limit or 0, 10)
 
     @some selector, options, (err, apps)=>
-      return callback err  if err
       @markInstalled client, apps, (err, apps)=>
         @markFollowing client, apps, callback
+
+  @each$: secure (client, selector, fields, options, callback)->
+    selector = getDefaultSelector client, selector
+    @each selector, fields, options, callback
+
+  @fetchAllAppsData: secure (client, selector, callback)->
+    selector = getDefaultSelector client, selector
+    apps     = []
+    @each selector, {}, {}, (err, app)=>
+      return callback err  if err
+      if app then apps.push app
+      else callback err, apps
 
   @markInstalled = secure (client, apps, callback)->
     Relationship.all
       targetId  : client.connection.delegate.getId()
       as        : 'user'
+      sourceType: 'JApp'
     , (err, relationships)->
-      for app in apps
+      apps.forEach (app)->
         app.installed = no
         for relationship, index in relationships
-          if app.getId().equals relationship.sourceId
+          if app._id is relationship.sourceId
             app.installed = yes
             relationships.splice index,1
             break
@@ -425,13 +444,9 @@ module.exports = class JApp extends jraphical.Module
                           callback err
                         else
                           callback null, review
-                          # @fetchActivityId (err, id)->
-                          #   CActivity.update {_id: id}, {
-                          #     $set: 'sorts.reviewsCount': count
-                          #   }, log
                           @fetchCreator (err, origin)=>
                             if err
-                              console.log "Couldn't fetch the origin"
+                              console.log "Couldn't fetch the origin for app."
                             else
                               @emit 'ReviewIsAdded', {
                                 origin
@@ -446,8 +461,9 @@ module.exports = class JApp extends jraphical.Module
                               @follow client, emitActivity: no, (err)->
                               @addParticipant delegate, 'reviewer', (err)-> #TODO: what should we do with this error?
 
-  fetchRelativeReviews:({limit, before, after}, callback)->
-    limit ?= 10
+  fetchRelativeReviews:({offset, limit, before, after}, callback)->
+    limit  ?= 10
+    offset ?= 0
     if before? and after?
       callback new KodingError "Don't use before and after together."
     selector = timestamp:
@@ -456,59 +472,6 @@ module.exports = class JApp extends jraphical.Module
     options = {sort: timestamp: -1}
     if limit > 0
       options.limit = limit
+    if offset > 0
+      options.skip = offset
     @fetchReviews selector, options, callback
-
-  ####
-
-
-  # @create = secure (client, data, callback)->
-  #   {connection:{delegate}} = client
-  #   {thumbnails, screenshots, meta:{tags}} = data
-  #   Resource.storeImages client, thumbnails, (err, thumbnailsFilenames)->
-  #     if err
-  #       callback err
-  #     else
-  #       Resource.storeImages client, screenshots, (err, screenshotsFilenames)->
-  #         if err
-  #           callback err
-  #         else
-  #           app = new JApp {
-  #             title       : data.title
-  #             body        : data.body
-  #             thumbnails  : thumbnailsFilenames
-  #             screenshots : screenshotsFilenames
-  #             attachments : [
-  #               {
-  #                 as          : 'script'
-  #                 content     : data.scriptCode
-  #                 description : data.scriptDescription
-  #                 syntax      : data.scriptSyntax
-  #               },{
-  #                 as          : 'requirements'
-  #                 content     : data.requirementsCode
-  #                 syntax      : data.requirementsSyntax
-  #               }
-  #             ]
-  #           }
-  #           app.save (err)->
-  #             if err
-  #               callback err
-  #             else
-  #               if tags then app.addTags client, tags, (err)->
-  #                 if err
-  #                   callback err
-  #                 else
-  #                   callback null, app
-
-  # @findSuggestions = (client, seed, options, callback)->
-  #   {limit,blacklist}  = options
-
-  #   @some {
-  #     title   : seed
-  #     _id     :
-  #       $nin  : blacklist
-  #   },{
-  #     limit
-  #     sort    : 'title' : 1
-  #   }, callback
-

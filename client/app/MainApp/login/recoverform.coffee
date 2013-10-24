@@ -7,6 +7,7 @@ class RecoverInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "username-or-email"
         placeholder   : "Enter username or email"
+        testPath      : "recover-password-input"
         validate      :
           container   : this
           rules       :

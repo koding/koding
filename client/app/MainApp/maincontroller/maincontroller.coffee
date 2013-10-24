@@ -9,6 +9,7 @@ class MainController extends KDController
     - pageLoaded.as.loggedOut       [account, connectedState, firstLoad]
     - accountChanged.to.loggedIn    [account, connectedState, firstLoad]
     - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
+
   ###
 
   connectedState =
@@ -16,7 +17,7 @@ class MainController extends KDController
 
   constructor:(options = {}, data)->
 
-    options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
+    options.failWait  = 10000            # duration in miliseconds to show a connection failed modal
 
     super options, data
 
@@ -31,7 +32,6 @@ class MainController extends KDController
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
-    KD.registerSingleton "windowController",          new KDWindowController
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton "vmController",              new VirtualizationController
@@ -39,9 +39,9 @@ class MainController extends KDController
     KD.registerSingleton "notificationController",    new NotificationController
     KD.registerSingleton "paymentController",         new PaymentController
     KD.registerSingleton "linkController",            new LinkController
-    KD.registerSingleton 'router',           router = new KodingRouter location.pathname
-
-    # KD.registerSingleton "localStorageController", new LocalStorageController
+    KD.registerSingleton 'router',           router = new KodingRouter
+    KD.registerSingleton "localStorageController",    new LocalStorageController
+    KD.registerSingleton "oauthController",           new OAuthController
     # KD.registerSingleton "fatih", new Fatih
 
     appManager.create 'Groups', (groupsController)->
@@ -52,22 +52,24 @@ class MainController extends KDController
 
     @ready =>
       router.listen()
-      KD.registerSingleton "activityController",   new ActivityController
-      KD.registerSingleton "appStorageController", new AppStorageController
-      KD.registerSingleton "kodingAppsController", new KodingAppsController
+      KD.registerSingleton "activityController",      new ActivityController
+      KD.registerSingleton "appStorageController",    new AppStorageController
+      KD.registerSingleton "kodingAppsController",    new KodingAppsController
       @showInstructionsBookIfNeeded()
       @emit 'AppIsReady'
+
+      console.timeEnd "Koding.com loaded"
 
   accountChanged:(account, firstLoad = no)->
     @userAccount             = account
     connectedState.connected = yes
 
-    KD.whoami().fetchMyPermissionsAndRoles (err, permissions, roles)=>
+    account.fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
       KD.config.roles       = roles
       KD.config.permissions = permissions
 
-      @ready @emit.bind @, "AccountChanged", account, firstLoad
+      @ready @emit.bind this, "AccountChanged", account, firstLoad
 
       @createMainViewController()  unless @mainViewController
 
@@ -107,6 +109,32 @@ class MainController extends KDController
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
 
+    # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
+    wc = @getSingleton 'windowController'
+    @utils.wait 15000, ->
+      KD.remote.api?.JSystemStatus.on 'forceReload', ->
+        window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
+        location.reload()
+
+    # async clientId change checking procedures causes
+    # race conditions between window reloading and post-login callbacks
+    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
+      if cookie? and cookie isnt $.cookie 'clientId'
+        window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
+        @emit "clientIdChanged"
+
+        # window location path is set to last route to ensure visitor is not
+        # redirected to another page
+        @utils.defer ->
+          firstRoute = KD.getSingleton("router").visitedRoutes.first
+
+          if firstRoute and /^\/Verify/.test firstRoute
+            firstRoute = "/"
+
+          window.location.pathname = firstRoute or "/"
+      cookie = $.cookie 'clientId'
+
+
 
   # some day we'll have this :)
   hashDidChange:(params,query)->
@@ -115,12 +143,17 @@ class MainController extends KDController
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
 
-  isUserLoggedIn: -> KD.whoami() instanceof KD.remote.api.JAccount
+  isUserLoggedIn: -> KD.isLoggedIn()
 
   showInstructionsBookIfNeeded:->
     if $.cookie 'newRegister'
       @emit "ShowInstructionsBook", 9
       $.cookie 'newRegister', erase: yes
+    else if @isUserLoggedIn()
+      BookView::getNewPages (pages)=>
+        if pages.length
+          BookView.navigateNewPages = yes
+          @emit "ShowInstructionsBook", pages.first.index
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
@@ -161,3 +194,43 @@ class MainController extends KDController
           modal.buttons["Refresh Now"].destroy()
 
           @utils.wait 2500, -> modal?.destroy()
+
+
+  displayConfirmEmailModal:(name, username)->
+    name or= KD.whoami().profile.firstName
+    message =
+      """
+      Dear #{name},
+
+      Thanks for joining Koding.<br/><br/>
+
+      For security reasons, we need to make sure you have activated your account. When you registered, we have sent you a link to confirm your email address, please use that link to be able to continue using Koding.<br/><br/>
+
+      If you didn't receive the email, please click to Resend email button below.<br/><br/>
+      """
+
+    modal = new KDModalView
+      title            : "You must confirm your email address!"
+      width            : 500
+      overlay          : yes
+      cssClass         : "new-kdmodal"
+      content          : "<div class='modalformline'>#{Encoder.htmlDecode message}</div>"
+      buttons          :
+        "Resend email"  :
+          style        : "modal-clean-red"
+          callback     : => @resendHandler(modal, username)
+        Dismiss        :
+          style        : "modal-cancel"
+          callback     : => modal.destroy()
+
+    return modal
+
+  resendHandler : (modal, username)->
+
+    KD.remote.api.JEmailConfirmation.resetToken username, (err)=>
+      modal.buttons["Resend email"].hideLoader()
+      return KD.showError err if err
+      new KDNotificationView
+        title     : "Check your email"
+        content   : "We've sent you a confirmation mail."
+        duration  : 4500

@@ -6,38 +6,114 @@ import (
 	"github.com/siesta/neo4j"
 	"github.com/streadway/amqp"
 	"io/ioutil"
-	"koding/databases/mongo"
 	oldNeo "koding/databases/neo4j"
+	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
+	"labix.org/v2/mgo"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type strToInf map[string]interface{}
 
-var GRAPH_URL = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
+var (
+	GRAPH_URL           = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
+	EXCHANGENAME        = "graphFeederExchange"
+	MAX_ITERATION_COUNT = 50
+	GUEST_GROUP_ID      = "51f41f195f07655e560001c1"
+	SLEEPING_TIME       = 100 * time.Millisecond
+)
 
 func main() {
+	log.Println("Sync worker started")
+
 	amqpChannel := connectToRabbitMQ()
+	log.Println("Connected to Rabbit")
 
-	coll := mongo.GetCollection("relationships")
-	query := strToInf{
-		"targetName": strToInf{"$nin": oldNeo.NotAllowedNames},
-		"sourceName": strToInf{"$nin": oldNeo.NotAllowedNames},
+	err := mongodb.Run("relationships", createQuery(amqpChannel))
+	if err != nil {
+		fmt.Println("Error >>>", err)
 	}
-	iter := coll.Find(query).Batch(1000).Sort("-timestamp").Iter()
+}
 
-	var result oldNeo.Relationship
-	for iter.Next(&result) {
-		if relationshipNeedsToBeSynced(result) {
-			createRelationship(result, amqpChannel)
+func createQuery(amqpChannel *amqp.Channel) func(coll *mgo.Collection) error {
+
+	return func(coll *mgo.Collection) error {
+		filter := strToInf{
+			"targetName": strToInf{"$nin": oldNeo.NotAllowedNames},
+			"sourceName": strToInf{"$nin": oldNeo.NotAllowedNames},
 		}
-	}
+		query := coll.Find(filter)
 
-	log.Println("Neo4j is now synced with Mongodb.")
+		totalCount, err := query.Count()
+		if err != nil {
+			log.Println("Err while getting count, exiting", err)
+			return err
+		}
+
+		skip := config.Skip
+		// this is a starting point
+		index := skip
+		// this is the item count to be processed
+		limit := config.Count
+		// this will be the ending point
+		count := index + limit
+
+		var result oldNeo.Relationship
+
+		iteration := 0
+		for {
+			// if we reach to the end of the all collection, exit
+			if index >= totalCount {
+				log.Println("All items are processed, exiting")
+				break
+			}
+
+			// this is the max re-iterating count
+			if iteration == MAX_ITERATION_COUNT {
+				break
+			}
+
+			// if we processed all items then exit
+			if index == count {
+				break
+			}
+
+			iter := query.Skip(index).Limit(count - index).Iter()
+			for iter.Next(&result) {
+				time.Sleep(SLEEPING_TIME)
+
+				if relationshipNeedsToBeSynced(result) {
+					createRelationship(result, amqpChannel)
+				}
+
+				index++
+				log.Println(index)
+			}
+
+			if err := iter.Close(); err != nil {
+				log.Println(err)
+			}
+
+			if iter.Timeout() {
+				continue
+			}
+
+			log.Printf("iter existed, starting over from %v  -- %v  item(s) are processsed on this iter", index+1, index-skip)
+			iteration++
+		}
+
+		if iteration == MAX_ITERATION_COUNT {
+			log.Printf("Max iteration count %v reached, exiting", iteration)
+		}
+		log.Printf("Synced %v entries on this process", index-skip)
+
+		return nil
+	}
 }
 
 func connectToRabbitMQ() *amqp.Channel {
@@ -69,10 +145,10 @@ func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 	}
 
 	amqpChannel.Publish(
-		"graphFeederExchange", // exchange name
-		"",    // key
-		false, // mandatory
-		false, // immediate
+		EXCHANGENAME, // exchange name
+		"",           // key
+		false,        // mandatory
+		false,        // immediate
 		amqp.Publishing{
 			Body: neoMessage,
 		},
@@ -80,21 +156,35 @@ func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 }
 
 func relationshipNeedsToBeSynced(result oldNeo.Relationship) bool {
+	if result.SourceId.Hex() == GUEST_GROUP_ID || result.TargetId.Hex() == GUEST_GROUP_ID {
+		return false
+	}
+
 	exists, sourceId := checkNodeExists(result.SourceId.Hex())
 	if exists != true {
-		log.Printf("relId %v. No SourceNode %v with Id: %v for %v", result.Id.Hex(), result.SourceName, result.SourceId.Hex(), result.As)
+		logError(result, "No source node")
 		return true
 	}
 
 	exists, targetId := checkNodeExists(result.TargetId.Hex())
 	if exists != true {
-		log.Printf("relId %v. No TargetNode %v with Id: %v for %v", result.Id.Hex(), result.TargetName, result.TargetId.Hex(), result.As)
+		logError(result, "No target node")
 		return true
 	}
 
-	exists = checkRelationshipExists(sourceId, targetId, result.As)
+	// flip JGroup relationships since they take a long time to check
+	var flipped = false
+	if result.SourceName == "JGroup" {
+		flipped = true
+
+		tempId := sourceId
+		sourceId = targetId
+		targetId = tempId
+	}
+
+	exists = checkRelationshipExists(sourceId, targetId, result.As, flipped)
 	if exists != true {
-		log.Printf("relId %v. No %v relationship exists between %v and %v", result.Id.Hex(), result.As, result.SourceName, result.TargetName)
+		logError(result, "No relationship")
 		return true
 	}
 
@@ -117,7 +207,7 @@ func getAndParse(url string) ([]byte, error) {
 	return body, nil
 }
 
-func checkRelationshipExists(sourceId, targetId, relType string) bool {
+func checkRelationshipExists(sourceId, targetId, relType string, flipped bool) bool {
 	url := fmt.Sprintf("%v/db/data/node/%v/relationships/all/%v", GRAPH_URL, sourceId, relType)
 
 	body, err := getAndParse(url)
@@ -131,14 +221,54 @@ func checkRelationshipExists(sourceId, targetId, relType string) bool {
 		return false
 	}
 
+	var numberofRelsFound = 0
+	var relIds []string
+
 	for _, rl := range relResponse {
-		id := strings.SplitAfter(rl.End, GRAPH_URL+"/db/data/node/")[1]
+		var checkPos string
+		if flipped {
+			checkPos = rl.Start
+		} else {
+			checkPos = rl.End
+		}
+
+		id := strings.SplitAfter(checkPos, GRAPH_URL+"/db/data/node/")[1]
 		if targetId == id {
-			return true
+			numberofRelsFound++
+			relIds = append(relIds, getRelIdFromUrl(rl.Self))
 		}
 	}
 
-	return false
+	switch numberofRelsFound {
+	case 0:
+		return false
+	case 1:
+		return true
+	default:
+		log.Printf("multiple '%v' rel %v", relType, relIds)
+
+		if relType == "member" || relType == "creator" || relType == "author" {
+			deleteDuplicateRel(relIds[1:])
+			log.Printf("deleted multiple '%v' rel", relType)
+		}
+	}
+
+	return true
+}
+
+func deleteDuplicateRel(relIds []string) {
+	neo4jConnection := neo4j.Connect(GRAPH_URL)
+	batch := neo4jConnection.NewBatch()
+
+	for _, id := range relIds {
+		rel := neo4j.Relationship{Id: id}
+		batch.Delete(&rel)
+	}
+
+	_, err := batch.Execute()
+	if err != nil {
+		log.Println("err deleting rel", err)
+	}
 }
 
 func checkNodeExists(id string) (bool, string) {
@@ -159,12 +289,24 @@ func checkNodeExists(id string) (bool, string) {
 	}
 
 	node := nodeResponse[0]
-	idd := strings.SplitAfter(node.Self, GRAPH_URL+"/db/data/node/")
+	idd := getNodeIdFromUrl(node.Self)
 
-	nodeId := string(idd[1])
+	nodeId := string(idd)
 	if nodeId == "" {
 		return false, ""
 	}
 
 	return true, nodeId
+}
+
+func getNodeIdFromUrl(nodeSelf string) string {
+	return strings.SplitAfter(nodeSelf, GRAPH_URL+"/db/data/node/")[1]
+}
+
+func getRelIdFromUrl(nodeSelf string) string {
+	return strings.SplitAfter(nodeSelf, GRAPH_URL+"/db/data/relationship/")[1]
+}
+
+func logError(result oldNeo.Relationship, errMsg string) {
+	log.Printf("id: %v, type: %v, source: {%v %v} target: {%v %v}; err: %v", result.SourceId.Hex(), result.As, result.SourceId.Hex(), result.SourceName, result.TargetId.Hex(), result.TargetName, errMsg)
 }

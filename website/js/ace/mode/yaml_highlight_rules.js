@@ -72,7 +72,6 @@ var YamlHighlightRules = function() {
                 regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
             }, {
                 token : "string", // multi line string start
-                merge : true,
                 regex : '[\\|>]\\w*',
                 next : "qqstring"
             }, {
@@ -96,12 +95,6 @@ var YamlHighlightRules = function() {
             }, {
                 token : "paren.rparen",
                 regex : "[\\])}]"
-            }, {
-                token : "text",
-                regex : "\\s+"
-            }, {
-                token : "text",
-                regex : "\\w+"
             }
         ],
         "qqstring" : [
@@ -111,7 +104,6 @@ var YamlHighlightRules = function() {
                 next : "start"
             }, {
                 token : "string",
-                merge : true,
                 regex : '.+'
             }
         ]};

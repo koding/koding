@@ -1,4 +1,4 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 
 @media only screen and (min-width: 400px) and (max-width: 768px)
@@ -48,13 +48,14 @@
 
   #content-panel.social
     left              50px !important
+    kalc              width, 100% \- 50px, !important
     .content-area-pane.activity
       #content-page-activity.fixed
         .activity-content
           margin-left 0
         .update-widget-tabs
           .kdtabpaneview
-            kalc      width, 100% \- 50px, 100%
+            kalc      width, 100% \- 50px
 
   .member-item
     footer

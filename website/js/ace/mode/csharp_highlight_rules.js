@@ -25,17 +25,22 @@ var CSharpHighlightRules = function() {
             {
                 token : "comment", // multi line comment
                 regex : "\\/\\*",
-                merge : true,
                 next : "comment"
             }, {
                 token : "string.regexp",
                 regex : "[/](?:(?:\\[(?:\\\\]|[^\\]])+\\])|(?:\\\\/|[^\\]/]))*[/]\\w*\\s*(?=[).,;]|$)"
             }, {
-                token : "string", // single line
-                regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
+                token : "string", // character
+                regex : /'(?:.|\\(:?u[\da-fA-F]+|x[\da-fA-F]+|[tbrf'"n]))'/
             }, {
-                token : "string", // single line
-                regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
+                token : "string", start : '"', end : '"|$', next: [
+                    {token: "constant.language.escape", regex: /\\(:?u[\da-fA-F]+|x[\da-fA-F]+|[tbrf'"n])/},
+                    {token: "invalid", regex: /\\./}
+                ]
+            }, {
+                token : "string", start : '@"', end : '"', next:[
+                    {token: "constant.language.escape", regex: '""'}
+                ]
             }, {
                 token : "constant.numeric", // hex
                 regex : "0[xX][0-9a-fA-F]+\\b"
@@ -47,8 +52,6 @@ var CSharpHighlightRules = function() {
                 regex : "(?:true|false)\\b"
             }, {
                 token : keywordMapper,
-                // TODO: Unicode escape sequences
-                // TODO: Unicode identifiers
                 regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
             }, {
                 token : "keyword.operator",
@@ -74,7 +77,6 @@ var CSharpHighlightRules = function() {
                 next : "start"
             }, {
                 token : "comment", // comment spanning whole line
-                merge : true,
                 regex : ".+"
             }
         ]
@@ -82,6 +84,7 @@ var CSharpHighlightRules = function() {
 
     this.embedRules(DocCommentHighlightRules, "doc-",
         [ DocCommentHighlightRules.getEndRule("start") ]);
+    this.normalizeRules();
 };
 
 oop.inherits(CSharpHighlightRules, TextHighlightRules);

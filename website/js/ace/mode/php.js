@@ -35,14 +35,18 @@ var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var PhpHighlightRules = require("./php_highlight_rules").PhpHighlightRules;
+var PhpLangHighlightRules = require("./php_highlight_rules").PhpLangHighlightRules;
 var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
 var Range = require("../range").Range;
+var WorkerClient = require("../worker/worker_client").WorkerClient;
 var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 var unicode = require("../unicode");
 
-var Mode = function() {
-    this.$tokenizer = new Tokenizer(new PhpHighlightRules().getRules());
+var Mode = function(opts) {
+    var inline = opts && opts.inline;
+    var HighlightRules = inline ? PhpLangHighlightRules : PhpHighlightRules;
+    this.$tokenizer = new Tokenizer(new HighlightRules().getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
     this.foldingRules = new CStyleFoldMode();
@@ -65,33 +69,9 @@ oop.inherits(Mode, TextMode);
         + unicode.packages.Pc + "\_]|\s])+", "g"
     );
 
-    this.toggleCommentLines = function(state, doc, startRow, endRow) {
-        var outdent = true;
-        var re = /^(\s*)#/;
-
-        for (var i=startRow; i<= endRow; i++) {
-            if (!re.test(doc.getLine(i))) {
-                outdent = false;
-                break;
-            }
-        }
-
-        if (outdent) {
-            var deleteRange = new Range(0, 0, 0, 0);
-            for (var i=startRow; i<= endRow; i++)
-            {
-                var line = doc.getLine(i);
-                var m = line.match(re);
-                deleteRange.start.row = i;
-                deleteRange.end.row = i;
-                deleteRange.end.column = m[0].length;
-                doc.replace(deleteRange, m[1]);
-            }
-        }
-        else {
-            doc.indentRows(startRow, endRow, "#");
-        }
-    };
+       
+    this.lineCommentStart = ["//", "#"];
+    this.blockComment = {start: "/*", end: "*/"};
 
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
@@ -132,6 +112,21 @@ oop.inherits(Mode, TextMode);
 
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
+    };
+
+    this.createWorker = function(session) {
+        var worker = new WorkerClient(["ace"], "ace/mode/php_worker", "PhpWorker");
+        worker.attachToDocument(session.getDocument());
+
+        worker.on("error", function(e) {
+            session.setAnnotations(e.data);
+        });
+
+        worker.on("ok", function() {
+            session.clearAnnotations();
+        });
+
+        return worker;
     };
 
 }).call(Mode.prototype);

@@ -58,6 +58,7 @@ class InboxView extends KDView
     listMessages = =>
       inboxMessageListController.loadMessages =>
         @newMessageBar.refreshButton.hideLoader()
+
     @newMessageBar.on "RefreshButtonClicked", listMessages
     tab.on            "KDTabPaneActive",      listMessages
 

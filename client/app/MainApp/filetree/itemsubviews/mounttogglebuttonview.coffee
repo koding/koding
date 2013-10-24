@@ -1,7 +1,10 @@
 class NMountToggleButtonView extends JView
 
   constructor:(options, data)->
-    super cssClass: 'vm-toggle-menu', data
+    super
+      cssClass     : 'vm-toggle-menu'
+      defaultLabel : options.defaultLabel ? "<span>Show in Filetree</span>"
+    , data
 
     @toggle = new KDOnOffSwitch
       cssClass : "tiny vm-toggle-item"
@@ -21,7 +24,7 @@ class NMountToggleButtonView extends JView
     @toggle.setDefaultValue no
 
   pistachio:->
-    """<span>Show in Filetree</span> {{> @toggle}}"""
+    """#{@getOption 'defaultLabel'}{{> @toggle}}"""
 
   viewAppended:->
     super

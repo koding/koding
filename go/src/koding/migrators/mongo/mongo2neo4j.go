@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"koding/databases/mongo"
 	"koding/databases/neo4j"
+	"koding/db/mongodb"
 	"koding/tools/config"
 	"koding/tools/log"
+	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
@@ -27,22 +28,13 @@ var (
 	MONGO_CONNECTION      *mgo.Session
 	MONGO_CONN_STRING     = config.Current.Mongo
 	MONGO_COLLECTION_NAME = "relationships"
+	TIME_FORMAT           = "2006-01-02T15:04:05.000Z"
 )
 
 func main() {
 
-	if MONGO_CONNECTION == nil {
-		// connnect to mongo
-		var err error
-		fmt.Println(MONGO_CONN_STRING)
-		MONGO_CONNECTION, err = mgo.Dial(MONGO_CONN_STRING)
-		if err != nil {
-			log.Warn("Connection error: " + err.Error())
-		}
-
-	}
-
-	defer MONGO_CONNECTION.Close()
+	fmt.Println(MONGO_CONN_STRING)
+	MONGO_CONNECTION = mongodb.NewMongoDB(MONGO_CONN_STRING).GetSession()
 
 	neo4j.CreateUniqueIndex("koding")
 
@@ -61,7 +53,7 @@ func main() {
 		i += 1
 		fmt.Println(i)
 
-		if result.SourceName == "" || result.TargetName == "" {
+		if result.SourceName == "" || result.TargetName == "" || result.As == "" {
 			continue
 		}
 
@@ -72,8 +64,17 @@ func main() {
 		hexSourceId := result.SourceId.Hex()
 		hexTargetId := result.TargetId.Hex()
 
-		sourceContent := getContent(result.SourceId, result.SourceName)
-		targetContent := getContent(result.TargetId, result.TargetName)
+		sourceContent, err := mongohelper.FetchContent(result.SourceId, result.SourceName)
+		if err != nil {
+			fmt.Println("sourceContent", err)
+			continue
+		}
+
+		targetContent, err := mongohelper.FetchContent(result.TargetId, result.TargetName)
+		if err != nil {
+			fmt.Println("targetContent", err)
+			continue
+		}
 
 		if sourceContent == "" || targetContent == "" {
 			continue
@@ -87,7 +88,7 @@ func main() {
 		//UTC for date time uniqueness
 		//format is a Go woodoo :)
 		createdAt := result.Timestamp.UTC()
-		relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format("2006-01-02T15:04:05.000Z"), createdAt.Unix())
+		relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format(TIME_FORMAT), createdAt.Unix())
 		neo4j.CreateRelationshipWithData(result.As, source, target, relationshipData)
 
 		if _, ok := SAVED_DATA[hexSourceId]; !ok {
@@ -117,7 +118,8 @@ func getContent(objectId bson.ObjectId, name string) string {
 	if _, ok := SAVED_DATA[hexId]; ok {
 		content = fmt.Sprintf("%s", SAVED_DATA[hexId])
 	} else {
-		content, err = mongo.FetchContent(objectId, name)
+
+		content, err = mongohelper.FetchContent(objectId, name)
 		if err != nil {
 			log.Debug("source err ", err)
 			content = ""

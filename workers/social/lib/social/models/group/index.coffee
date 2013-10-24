@@ -14,7 +14,6 @@ module.exports = class JGroup extends Module
   KodingError    = require '../../error'
   Validators     = require './validators'
   {throttle}     = require 'underscore'
-  Graph          = require "../graph/graph"
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -255,10 +254,15 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-  @renderGroupHomeLoggedIn   : require '../../render/grouphomeloggedin'
-  @renderGroupHomeLoggedOut  : require '../../render/grouphomeloggedout'
-  @renderKodingHomeLoggedIn  : require '../../render/kodinghomeloggedin'
-  @renderKodingHomeLoggedOut : require '../../render/kodinghomeloggedout'
+  @render        :
+    loggedIn     :
+      kodingHome : require '../../render/loggedin/kodinghome'
+      groupHome  : require '../../render/loggedin/grouphome'
+      subPage    : require '../../render/loggedin/subpage'
+    loggedOut    :
+      groupHome  : require '../../render/loggedout/grouphome'
+      kodingHome : require '../../render/loggedout/kodinghome'
+      subPage    : require '../../render/loggedout/subpage'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -394,16 +398,16 @@ module.exports = class JGroup extends Module
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
 
-    @some {
+    @some
       title      : seed
       _id        :
         $nin     : blacklist
       visibility : 'visible'
-    },{
+    ,
       skip
       limit
       sort       : 'title' : 1
-    }, callback
+    , callback
 
   # currently groups in a group show global groups, so it does not
   # make sense to allow this method based on current group's permissions
@@ -688,10 +692,8 @@ module.exports = class JGroup extends Module
             content : readme?.html ? readme?.content
             @customize
           }
-          if account.type is 'unregistered'
-            callback null, JGroup.renderGroupHomeLoggedOut options
-          else
-            callback null, JGroup.renderGroupHomeLoggedIn options
+          prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+          callback null, JGroup.render[prefix].groupHome options
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -1354,9 +1356,9 @@ module.exports = class JGroup extends Module
     else
       callback new KodingError "No such VM type: #{data.type}"
 
-  countMembers: (callback)->
-    graph = new Graph({config:KONFIG['neo4j']})
-    graph.fetchRelationshipCount {groupId:@_id, relName:"member"}, callback
+  countMembers: secure (client, callback)->
+    {Member} = require "../graph"
+    Member.fetchMemberCount {groupId:@_id, client:client}, callback
 
   fetchOrCountInvitations: permit 'send invitations',
     success: (client, type, method, options, callback)->
@@ -1364,8 +1366,8 @@ module.exports = class JGroup extends Module
       return callback 'unsupported type'  unless type in supportedTypes
 
       options.groupId = @getId()
-      graph = new Graph({config:KONFIG['neo4j']})
-      graph["fetchOrCount#{type}s"] method, options, callback
+      {Invitation} = require "../graph"
+      Invitation["fetchOrCount#{type}s"] method, options, callback
 
   fetchInvitationsFromGraph: permit 'send invitations',
     success: (client, type, options, callback)->
@@ -1386,29 +1388,11 @@ module.exports = class JGroup extends Module
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
-      graph = new Graph({config:KONFIG['neo4j']})
       options.groupId = @getId()
-      JAccount = require '../account'
       options.client = client
-      graph.fetchMembers options, (err, results)=>
-        if err then return callback err
-        else if results.length < 1 then return callback null, []
-        else
-          tempRes = []
-          collectContents = race (i, res, fin)=>
-            objId = res.id
-            JAccount.one  { _id : objId }, (err, account)=>
-              if err
-                callback err
-                return fin()
-
-              tempRes[i] = account
-              fin()
-          , ->
-            tempRes = tempRes.filter (res)-> res
-            callback null, tempRes
-          for res in results
-            collectContents res
+      {Member} = require '../graph'
+      Member.fetchMemberList options, (err, results)=>
+        callback err, results
 
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'

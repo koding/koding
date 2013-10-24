@@ -59,21 +59,25 @@ class MainTabHandleHolder extends KDView
           margin    : -20
       ,
         'Your Apps'            :
-          callback             : (source, event)=>
+          callback             : (source, event) ->
             appManager.open "StartTab", forceNew : yes
             contextMenu.destroy()
           separator            : yes
         'Ace Editor'           :
-          callback             : (source, event)=>
+          callback             : (source, event) ->
             appManager.open "Ace", forceNew : yes
             contextMenu.destroy()
         'Terminal'             :
-          callback             : (source, event)=>
+          callback             : (source, event) ->
             appManager.open "WebTerm", forceNew : yes
+            contextMenu.destroy()
+        'Teamwork'             :
+          callback             : ->
+            KD.getSingleton("router").handleRoute "/Develop/Teamwork"
             contextMenu.destroy()
           separator            : yes
         'Search the App Store' :
-          callback             : (source, event)=>
+          callback             : (source, event) ->
             appManager.open "Apps"
             contextMenu.destroy()
         'Make your own app...' :
@@ -81,7 +85,7 @@ class MainTabHandleHolder extends KDView
 
       index = 4
       appsController.fetchApps (err, apps)=>
-        for name, app of apps
+        for own name, app of apps
           app.callback = appManager.open.bind appManager, name, {forceNew : yes}, contextMenu.bound("destroy")
           app.title    = name
           contextMenu.treeController.addNode app, index

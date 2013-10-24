@@ -9,6 +9,25 @@ class MembersAppController extends AppController
       path       : "/Members"
       order      : 30
 
+  @externalProfiles = externalProfiles =
+    github          :
+      nicename      : 'GitHub'
+      urlLocation   : 'html_url'
+    odesk           :
+      nicename      : 'oDesk'
+      urlLocation   : 'info.profile_url'
+    facebook        :
+      nicename      : 'Facebook'
+      urlLocation   : 'link'
+    google          :
+      nicename      : 'Google'
+    # twitter         :
+    #   nicename      : 'Twitter'
+    # linkedin        :
+    #   nicename      : 'linkedIn'
+    # bitbucket       :
+    #   nicename      : 'BitBucket'
+
   constructor:(options = {}, data)->
 
     options.view    = new MembersMainView
@@ -29,12 +48,13 @@ class MembersAppController extends AppController
       limitPerPage          : 10
       help                  :
         subtitle            : "Learn About Members"
+        bookIndex           : 11
         tooltip             :
           title             : "<p class=\"bigtwipsy\">These people are all members of koding.com. Learn more about them and their interests, activity and coding prowess here.</p>"
           placement         : "above"
       filter                :
         everything          :
-          title             : "All Members <span class='member-numbers-all'></span>"
+          title             : "All members <span class='member-numbers-all'></span>"
           optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
             {JAccount} = KD.remote.api
@@ -43,9 +63,11 @@ class MembersAppController extends AppController
               JAccount.byRelevance @_searchValue, options, callback
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
-              group.fetchMembersFromGraph options, callback
+              group.fetchMembersFromGraph options, (err, res)=>
+                callback err, res
 
               group.countMembers (err, count) =>
+                count = 0 if err
                 @setCurrentViewNumber 'all', count
 
         followed            :
@@ -73,10 +95,10 @@ class MembersAppController extends AppController
           title             : "Latest activity"
           direction         : -1
         'counts.followers'  :
-          title             : "Most Followers"
+          title             : "Most followers"
           direction         : -1
         'counts.following'  :
-          title             : "Most Following"
+          title             : "Most following"
           direction         : -1
     }, (controller)=>
       @feedController = controller
@@ -99,6 +121,7 @@ class MembersAppController extends AppController
         # filterFunc selector, options, callback
       help                  :
         subtitle            : "Learn About Members"
+        bookIndex           : 11
         tooltip             :
           title             : "<p class=\"bigtwipsy\">These people are all members of koding.com. Learn more about them and their interests, activity and coding prowess here.</p>"
           placement         : "above"
@@ -115,10 +138,10 @@ class MembersAppController extends AppController
           title             : "Latest activity"
           direction         : -1
         'counts.followers'  :
-          title             : "Most Followers"
+          title             : "Most followers"
           direction         : -1
         'counts.following'  :
-          title             : "Most Following"
+          title             : "Most following"
           direction         : -1
     }, (controller)=>
       view.addSubView controller.getView()
@@ -249,7 +272,8 @@ class MembersAppController extends AppController
     return contentDisplay
 
   setCurrentViewNumber:(type, count)->
-    @getView().$(".feeder-header span.member-numbers-#{type}").html count ? "n/a"
+    countFmt = count.toLocaleString() ? "n/a"
+    @getView().$(".feeder-header span.member-numbers-#{type}").text countFmt
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
@@ -286,59 +310,7 @@ class MembersAppController extends AppController
     KD.remote.api.JAccount.byRelevance selector, options, callback
 
 
-class MembersListViewController extends KDListViewController
-  # _windowDidResize:->
-  #   @scrollView.setHeight @getView().getHeight() - 28
+  fetchExternalProfiles:(account, callback)->
 
-  loadView:(mainView)->
-    super
-
-    @getListView().on 'ItemWasAdded', (view)=> @addListenersForItem view
-
-  addItem:(member, index, animation = null) ->
-    @getListView().addItem member, index, animation
-
-  addListenersForItem:(item)->
-    data = item.getData()
-
-    data.on 'FollowCountChanged', (followCounts)=>
-      {followerCount, followingCount, newFollower, oldFollower} = followCounts
-      data.counts.followers = followerCount
-      data.counts.following = followingCount
-      item.setFollowerCount followerCount
-      switch KD.getSingleton('mainController').getVisitor().currentDelegate
-        when newFollower, oldFollower
-          if newFollower then item.unfollowTheButton() else item.followTheButton()
-
-    return @
-
-  # reloadView:->
-  #   {query, skip, limit, currentFilter} = @getOptions()
-  #   controller = @
-
-  #   currentFilter query, {skip, limit}, (err, members)->
-  #     controller.removeAllItems()
-  #     controller.instantiateListItems members
-  #     if (myItem = controller.itemForId KD.whoami().getId())?
-  #       myItem.isMyItem()
-
-  #       myItem.on "VisitorProfileWantsToBeShown", controller.getDelegate().bound
-  #     controller._windowDidResize()
-
-  # pageDown:->
-  #   listController = @
-  #   {query, skip, limit, currentFilter} = @getOptions()
-  #   skip += @getItemCount()
-  #   unless listController.isLoading
-  #     listController.isLoading = yes
-  #     currentFilter query, {skip, limit}, (err, members)->
-  #       listController.addItem member for member in members
-  #       if (myItem = listController.itemForId KD.whoami().getId())?
-  #         myItem.isMyItem()
-  #         myItem.on "VisitorProfileWantsToBeShown", listController.getDelegate().showMemberContentDisplay.bind listController
-  #       listController._windowDidResize()
-  #       listController.isLoading = no
-  #       listController.hideLazyLoader()
-
-  getTotalMemberCount:(callback)->
-    KD.whoami().count? @getOptions().filterName, callback
+    whitelist = Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
+    account.fetchStorages  whitelist, callback

@@ -46,6 +46,7 @@ config =
       address     : 1
     userSitesDomain: 1
     containerSubnet: 1
+    vmPool        : 1
     projectRoot   : 1
     version       : 1
     webserver     :
@@ -58,6 +59,7 @@ config =
       enabled     : 1
       port        : 1
     mongo         : 1
+    mongoReplSet  : 1
     neo4j         :
       read        : 1
       write       : 1
@@ -111,6 +113,21 @@ config =
       watch               : 1
       cronSchedule        : 1
       usageLimitInMinutes : 1
+    emailConfirmationCheckerWorker :
+      enabled             : 1
+      login               : 1
+      queueName           : 1
+      numberOfWorkers     : 1
+      watch               : 1
+      cronSchedule        : 1
+      usageLimitInMinutes : 1
+    sitemapWorker         :
+      enabled             : 1
+      login               : 1
+      queueName           : 1
+      numberOfWorkers     : 1
+      watch               : 1
+      cronSchedule        : 1
     social        :
       login       : 1
       numberOfWorkers: 1
@@ -131,14 +148,12 @@ config =
       watch         : 1
       watchDuration : 1
       includesPath  : 1
-      websitePath   : 1
-      js            : 1
-      css           : 1
       indexMaster   : 1
       index         : 1
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        precompiledApi: 1
         authExchange  : 1
         github        :
           clientId    : 1
@@ -156,6 +171,7 @@ config =
           sockJS      : 1
         apiUri        : 1
         appsUri       : 1
+        uploadsUri    : 1
         sourceUri     : 1
         # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
@@ -173,7 +189,6 @@ config =
       port        : 1
       certFile    : 1
       keyFile     : 1
-      useKontrold : 1
       webProtocol : 1
       webHostname : 1
       webPort     : 1
@@ -199,6 +214,7 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     kontrold        :
+      vhost         : 1
       overview      :
         apiHost     : 1
         apiPort     : 1
@@ -210,13 +226,6 @@ config =
         port        : 1
         portssl     : 1
         ftpip       : 1
-        sslips      : 1
-      rabbitmq      :
-        host        : 1
-        port        : 1
-        login       : 1
-        password    : 1
-        vhost       : 1
     recurly         :
       apiKey        : 1
     embedly         :
@@ -235,4 +244,19 @@ config =
     github          :
       clientId      : 1
       clientSecret  : 1
+    odesk           :
+      key           : 1
+      secret        : 1
+    facebook        :
+      clientId      : 1
+      clientSecret  : 1
+      redirectUri   : 1
+    google          :
+      client_id     : 1
+      client_secret : 1
+      redirect_uri  : 1
+    statsd          :
+      use           : 1
+      ip            : 1
+      port          : 1
 module.exports = config

@@ -3,13 +3,24 @@ package main
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"koding/kontrol/kontroldaemon/clientconfig"
+	"koding/db/models"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/process"
 	"log"
 	"os"
 )
+
+type ConfigFile struct {
+	Mongo string
+	Mq    struct {
+		Host          string
+		Port          int
+		ComponentUser string
+		Password      string
+		Vhost         string
+	}
+}
 
 func init() {
 	log.SetPrefix("kontrold-client ")
@@ -61,23 +72,23 @@ func gatherData() ([]byte, error) {
 		log.Println(err.Error())
 	}
 
-	config := &clientconfig.ConfigFile{}
+	config := &models.ConfigFile{}
 	err = json.Unmarshal(configJSON, &config)
 	if err != nil {
 		log.Fatalf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n", err.Error(), configJSON)
 	}
 
-	s := &clientconfig.ServerInfo{
+	s := &models.ServerInfo{
 		BuildNumber: buildNumber,
 		GitBranch:   gitbranch,
 		GitCommit:   gitcommit,
 		ConfigUsed:  configused,
 		Config:      config,
-		Hostname: clientconfig.Hostname{
+		Hostname: models.Hostname{
 			Public: publicHostname,
 			Local:  string(localHostname),
 		},
-		IP: clientconfig.IP{
+		IP: models.IP{
 			Public: string(publicIP),
 			Local:  string(localIp),
 		},

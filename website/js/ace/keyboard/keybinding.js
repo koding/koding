@@ -50,11 +50,12 @@ var KeyBinding = function(editor) {
     };
 
     this.setKeyboardHandler = function(kb) {
-        if (this.$handlers[this.$handlers.length - 1] == kb)
+        var h = this.$handlers;
+        if (h[h.length - 1] == kb)
             return;
 
-        while (this.$handlers[1])
-            this.removeKeyboardHandler(this.$handlers[1]);
+        while (h[h.length - 1] && h[h.length - 1] != this.$defaultHandler)
+            this.removeKeyboardHandler(h[h.length - 1]);
 
         this.addKeyboardHandler(kb, 1);
     };
@@ -90,30 +91,28 @@ var KeyBinding = function(editor) {
 
     this.$callKeyboardHandlers = function (hashId, keyString, keyCode, e) {
         var toExecute;
+        var success = false;
+        var commands = this.$editor.commands;
+
         for (var i = this.$handlers.length; i--;) {
             toExecute = this.$handlers[i].handleKeyboard(
                 this.$data, hashId, keyString, keyCode, e
             );
-            if (toExecute && toExecute.command)
+            if (!toExecute || !toExecute.command)
+                continue;
+            
+            // allow keyboardHandler to consume keys
+            if (toExecute.command == "null") {
+                success = true;
+            } else {
+                success = commands.exec(toExecute.command, this.$editor, toExecute.args, e);                
+            }
+            // do not stop input events to not break repeating
+            if (success && e && hashId != -1 && toExecute.passEvent != true)
+                event.stopEvent(e);
+            if (success)
                 break;
         }
-
-        if (!toExecute || !toExecute.command)
-            return false;
-
-        var success = false;
-        var commands = this.$editor.commands;
-
-        // allow keyboardHandler to consume keys
-        if (toExecute.command != "null")
-            success = commands.exec(toExecute.command, this.$editor, toExecute.args, e);
-        else
-            success = toExecute.passEvent != true;
-
-        // do not stop input events to not break repeating
-        if (success && e && hashId != -1)
-            event.stopEvent(e);
-
         return success;
     };
 

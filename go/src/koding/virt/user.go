@@ -3,7 +3,7 @@ package virt
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"koding/virt/models"
+	"koding/db/models"
 )
 
 type User models.User

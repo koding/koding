@@ -90,23 +90,29 @@ class FSItem extends KDObject
 
   @extract:(file, callback)->
 
+    tarPattern = /\.tar\.gz$/
+    zipPattern = /\.zip$/
+
     file.emit "fs.job.started"
     path = FSHelper.plainPath file.path
     vmName = file.vmName or FSHelper.getVMNameFromPath path
-    FSItem.create path, "folder", vmName, (err, folder)=>
-      if err then warn err
-      else
-        command = if /\.tar\.gz$/.test file.name
-          "cd #{escapeFilePath file.parentPath};tar -zxf #{escapeFilePath file.name} -C #{folder.path}"
-        else if /\.zip$/.test file.name
-          "cd #{escapeFilePath file.parentPath};unzip #{escapeFilePath file.name} -d #{folder.path}"
+    command = if tarPattern.test file.name
+      extractFolder = file.path.replace tarPattern, ''
+      "cd #{escapeFilePath file.parentPath};mkdir -p #{escapeFilePath extractFolder};tar -zxf #{escapeFilePath file.name} -C #{escapeFilePath extractFolder}"
+    else if zipPattern.test file.name
+      extractFolder = file.path.replace zipPattern, ''
+      "cd #{escapeFilePath file.parentPath};unzip -o #{escapeFilePath file.name} -d #{escapeFilePath extractFolder}"
+
+    if command
       KD.getSingleton('vmController').run
         vmName   : vmName
         withArgs : command
       , (err, res)->
         file.emit "fs.job.finished"
         if err then warn err
+        folder = FSHelper.createFileFromPath extractFolder, 'folder'
         callback? err, folder
+    else callback? yes
 
   @getFileExtension: (path) ->
     fileName = path or ''
@@ -121,8 +127,7 @@ class FSItem extends KDObject
       code    : [
         "php", "pl", "py", "jsp", "asp", "htm","html", "phtml","shtml"
         "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml"
-        "js","json","coffee"
-        "css","styl","sass"
+        "js","json","coffee", "css","styl","sass", "erb"
       ]
       text    : [
         "txt", "doc", "rtf", "csv", "docx", "pdf"

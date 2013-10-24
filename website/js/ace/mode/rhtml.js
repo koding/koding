@@ -19,9 +19,9 @@
 define(function(require, exports, module) {
 "use strict";
 
-var oop = require("ace/lib/oop");
-var HtmlMode = require("ace/mode/html").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
+var oop = require("../lib/oop");
+var HtmlMode = require("./html").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
 
 var RHtmlHighlightRules = require("./rhtml_highlight_rules").RHtmlHighlightRules;
 /* Make life easier, don't do these right now 
@@ -56,10 +56,10 @@ oop.inherits(Mode, HtmlMode);
       return this.$session.getState(position.row).match(/^r-/) ? 'R' : 'HTML';
    };
 
-   this.getNextLineIndent = function(state, line, tab, tabSize, row)
+   /* this.getNextLineIndent = function(state, line, tab, tabSize, row)
    {
       return this.codeModel.getNextLineIndent(row, line, state, tab, tabSize);
-   };
+   }; */
 
 }).call(Mode.prototype);
 

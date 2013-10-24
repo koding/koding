@@ -5,6 +5,10 @@ deepFreeze = require 'koding-deep-freeze'
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
+mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
+
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0'
+
 socialQueueName = "koding-social-#{version}"
 
 authExchange    = "auth-#{version}"
@@ -20,6 +24,7 @@ module.exports =
     address     : "https://koding.com"
   userSitesDomain: 'kd.io'
   containerSubnet: "10.128.2.0/9"
+  vmPool        : "vms"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -29,13 +34,14 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
-    enabled     : yes
+    enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
-    write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
+    read        : "http://kgraph.sj.koding.com"
+    write       : "http://kgraph.sj.koding.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
+  mongo         : mongo
+  mongoReplSet  : mongoReplSet
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
@@ -82,15 +88,30 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  emailConfirmationCheckerWorker :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 1
+    watch                : yes
+    cronSchedule         : '0 * * * * *'
+    usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : no # for production, workers are running as a service
     login                : 'prod-guestcleanerworker'
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
-    cronSchedule         : '* * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
     watch                : no
+  sitemapWorker          :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'sitemapworker'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
@@ -111,14 +132,12 @@ module.exports =
     watch         : no
     watchDuration : 300
     includesPath  : 'client'
-    websitePath   : 'website'
-    js            : "js/kd.#{version}.js"
-    css           : "css/kd.#{version}.css"
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      precompiledApi: yes
       authExchange: authExchange
       github        :
         clientId    : "5891e574253e65ddb7ea"
@@ -135,17 +154,17 @@ module.exports =
         servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
-      # Is this correct?
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
-      sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
+      uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
+      sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
   mq            :
-    host        : 'rabbitmq.in.koding.com'
+    host        : '172.16.3.4'
     port        : 5672
-    apiAddress  : "rabbitmq.in.koding.com"
+    apiAddress  : "172.16.3.4"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'Xah8ibeekelah'
     heartbeat   : 20
     vhost       : 'new'
   broker        :
@@ -153,7 +172,6 @@ module.exports =
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    useKontrold : yes
     webProtocol : 'https:'
     webHostname : "broker-#{version}a.koding.com"
     webPort     : null
@@ -183,8 +201,9 @@ module.exports =
   haproxy:
     webPort     : 3020
   kontrold        :
+    vhost         : "/"
     overview      :
-      apiHost     : "kontrol.in.koding.com"
+      apiHost     : "172.16.3.11"
       apiPort     : 80
       port        : 8080
       switchHost  : "koding.com"
@@ -194,13 +213,6 @@ module.exports =
       port        : 80
       portssl     : 443
       ftpip       : '54.208.3.200'
-      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
-    rabbitmq      :
-      host        : 'kontrol.in.koding.com'
-      port        : '5672'
-      login       : 'guest'
-      password    : 's486auEkPzvUjYfeFTMQ'
-      vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   embedly       :
@@ -211,11 +223,26 @@ module.exports =
     bin   : '/usr/local/nagios/bin/send_nsca'
     conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
-    host        : 'rabbitmq1.in.koding.com'
+    host        : '172.16.3.4'
     port        : 5672
     componentUser: 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'Xah8ibeekelah'
     vhost       : 'followfeed'
   github        :
     clientId    : "5891e574253e65ddb7ea"
     clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"
+  odesk          :
+    key          : "9ed4e3e791c61a1282c703a42f6e10b7"
+    secret       : "1df959f971cb437c"
+  facebook       :
+    clientId     : "434245153353814"
+    clientSecret : "84b024e0d627d5e80ede59150a2b251e"
+    redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  google         :
+    client_id    : "134407769088.apps.googleusercontent.com"
+    client_secret: "6Is_WwxB19tuY2xkZNbnAU-t"
+    redirect_uri : "https://koding.com/-/oauth/google/callback"
+  statsd         :
+    use          : true
+    ip           : "172.168.2.7"
+    port         : 8125

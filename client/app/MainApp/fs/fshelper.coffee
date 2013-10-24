@@ -20,7 +20,8 @@ class FSHelper
 
     sortedFiles = []
     for p in [yes, no]
-      z = (x for x in files when x.isDir is p).sort (x,y)-> x.name > y.name
+      z = (x for x in files when x.isDir is p).sort (x,y)->
+        x.name.toLowerCase() > y.name.toLowerCase()
       sortedFiles.push x for x in z
 
     nickname = KD.nick()
@@ -37,7 +38,7 @@ class FSHelper
       when "added"
         treeController.addNode file
       when "removed"
-        for npath, node of treeController.nodes
+        for own npath, node of treeController.nodes
           if npath is file.path
             treeController.removeNodeView node
             break
@@ -87,6 +88,14 @@ class FSHelper
       withArgs : {path}
     , callback
 
+  @glob = (pattern, vmName, callback)->
+    [vmName, callback] = [callback, vmName]  if typeof vmName is "function"
+    KD.getSingleton('vmController').run
+      method   : "fs.glob"
+      vmName   : vmName
+      withArgs : {pattern}
+    , callback
+
   @ensureNonexistentPath = (path, vmName, callback=noop)->
     KD.getSingleton('vmController').run
       method   : "fs.ensureNonexistentPath"
@@ -106,11 +115,11 @@ class FSHelper
     delete @registry[path]
 
   @unregisterVmFiles = (vmName)->
-    for path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
+    for own path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
       @unregister path
 
   @updateInstance = (fileData)->
-    for prop, value of fileData
+    for own prop, value of fileData
       @registry[fileData.path][prop] = value
 
   @setFileListeners = (file)->
@@ -131,9 +140,11 @@ class FSHelper
 
   @createFileFromPath = (path, type = "file")->
     return warn "pass a path to create a file instance" unless path
+    vmName     = @getVMNameFromPath(path) or null
+    path       = @plainPath path  if vmName
     parentPath = @getParentPath path
     name       = @getFileNameFromPath path
-    return @createFile { path, parentPath, name, type }
+    return @createFile { path, parentPath, name, type, vmName }
 
   @createFile = (data)->
     unless data and data.type and data.path
@@ -185,5 +196,58 @@ class FSHelper
 
   @isPublicPath = (path)->
     /^\/home\/.*\/Web\//.test FSHelper.plainPath path
+
+  @convertToRelative = (path)->
+    path.replace(/^\//, "").replace /(.+?)\/?$/, "$1/"
+
+  @isUnwanted = (path, isFile=no)->
+
+    dummyFilePatterns = /\.DS_Store|Thumbs.db/
+    dummyFolderPatterns = /\.git|__MACOSX/
+    if isFile
+    then dummyFilePatterns.test path
+    else dummyFolderPatterns.test path
+
+  @s3 =
+    get    : (name)->
+      "#{KD.config.uploadsUri}/#{KD.whoami().getId()}/#{name}"
+
+    upload : (name, content, callback)->
+      vmController = KD.getSingleton 'vmController'
+      vmController.run
+        method    : 's3.store'
+        withArgs  : {name, content}
+      , (err, res)->
+        if err then callback err
+        else callback null, FSHelper.s3.get name
+
+    remove : (name, callback)->
+      vmController = KD.getSingleton 'vmController'
+      vmController.run
+        method    : 's3.delete'
+        withArgs  : {name}
+      , callback
+
+  @getPathHierarchy = (fullPath)->
+    {path, vmName} = KD.getPathInfo fullPath
+    path = path.replace /^~/, "/home/#{KD.nick()}"
+    nodes = path.split("/").filter (node)-> return !!node
+    queue = for node in nodes
+      subPath = nodes.join "/"
+      nodes.pop()
+      "[#{vmName}]/#{subPath}"
+    queue.reverse() # reverse the queue to open files to back
+
+  @chunkify = (data, chunkSize)->
+    chunks = []
+    while data
+      if data.length < chunkSize
+        chunks.push data
+        break
+      else
+        chunks.push data.substr 0, chunkSize
+        # shrink
+        data = data.substr chunkSize
+    return chunks
 
 KD.classes.FSHelper = FSHelper

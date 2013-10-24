@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/streadway/amqp"
-	"koding/databases/mongo"
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
+	"koding/tools/statsd"
+	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ type Message struct {
 }
 
 func main() {
+	statsd.SetAppName("neo4jFeeder")
 	startConsuming()
 }
 
@@ -52,7 +54,7 @@ func startConsuming() {
 
 	c.conn = amqputil.CreateConnection("neo4jFeeding")
 	c.channel = amqputil.CreateChannel(c.conn)
-
+    // exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
 	if err != nil {
 		fmt.Println("exchange.declare: %s", err)
@@ -71,7 +73,7 @@ func startConsuming() {
 	}
 
 	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
-	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", true, false, false, false, nil)
+	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", false, false, false, false, nil)
 	if err != nil {
 		fmt.Println("basic.consume: %s", err)
 		panic(err)
@@ -85,13 +87,13 @@ func startConsuming() {
 		message, err := jsonDecode(body)
 		if err != nil {
 			fmt.Println("Wrong message format", err, body)
-
+			msg.Ack(true)
 			continue
 		}
 
 		if len(message.Payload) < 1 {
 			fmt.Println("Wrong message format; payload should be an Array", message)
-
+			msg.Ack(true)
 			continue
 		}
 		data := message.Payload[0]
@@ -108,6 +110,8 @@ func startConsuming() {
 		} else {
 			fmt.Println(message.Event)
 		}
+
+		msg.Ack(true)
 	}
 }
 
@@ -147,28 +151,42 @@ func checkIfEligible(sourceName, targetName string) bool {
 }
 
 func createNode(data map[string]interface{}) {
-
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	sourceName := fmt.Sprintf("%s", data["sourceName"])
 
 	targetId := fmt.Sprintf("%s", data["targetId"])
 	targetName := fmt.Sprintf("%s", data["targetName"])
 
+	if sourceId == "" || sourceName == "" || targetId == "" || targetName == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
+
 	if !checkIfEligible(sourceName, targetName) {
 		return
 	}
 
-	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
+	if checkForGuestGroup(sourceId, targetId) {
+		return
+	}
+
+	sTimer := statsd.StartTimer("createNode")
+
+	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
+		sTimer.Failed()
 		fmt.Println("sourceContent", err)
+
 		return
 	}
 	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
 	neo4j.UpdateNode(sourceId, sourceContent)
 
-	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(targetId), targetName)
+	targetContent, err := mongohelper.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
+		sTimer.Failed()
 		fmt.Println("targetContent", err)
+
 		return
 	}
 	targetNode := neo4j.CreateUniqueNode(targetId, targetName)
@@ -178,19 +196,25 @@ func createNode(data map[string]interface{}) {
 	target := fmt.Sprintf("%s", targetNode["self"])
 
 	if _, ok := data["as"]; !ok {
+		sTimer.Failed()
 		fmt.Println("as value is not set on this relationship. Discarding this record", data)
+
 		return
 	}
 	as := fmt.Sprintf("%s", data["as"])
 
 	if _, ok := data["_id"]; !ok {
+		sTimer.Failed()
 		fmt.Println("id value is not set on this relationship. Discarding this record", data)
+
 		return
 	}
 
 	createdAt := getCreatedAtDate(data)
 	relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format(TIME_FORMAT), createdAt.Unix())
 	neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
+
+	sTimer.Success()
 }
 
 func getCreatedAtDate(data map[string]interface{}) time.Time {
@@ -213,17 +237,33 @@ func getCreatedAtDate(data map[string]interface{}) time.Time {
 }
 
 func deleteNode(data map[string]interface{}) {
+	sTimer := statsd.StartTimer("deleteNode")
 
 	if _, ok := data["_id"]; !ok {
+		sTimer.Failed()
 		return
 	}
 	id := fmt.Sprintf("%s", data["_id"])
 	neo4j.DeleteNode(id)
+
+	sTimer.Success()
 }
 
 func deleteRelationship(data map[string]interface{}) {
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	targetId := fmt.Sprintf("%s", data["targetId"])
+
+	if sourceId == "" || targetId == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
+
+	if checkForGuestGroup(sourceId, targetId) {
+		return
+	}
+
+	sTimer := statsd.StartTimer("deleteRelationship")
+
 	as := fmt.Sprintf("%s", data["as"])
 
 	// we are not doing anything with result for now
@@ -235,10 +275,11 @@ func deleteRelationship(data map[string]interface{}) {
 	//} else {
 	//	fmt.Println("Relationship couldnt be deleted")
 	//}
+
+	sTimer.Success()
 }
 
 func updateNode(data map[string]interface{}) {
-
 	if _, ok := data["bongo_"]; !ok {
 		return
 	}
@@ -252,16 +293,44 @@ func updateNode(data map[string]interface{}) {
 	sourceId := fmt.Sprintf("%s", obj["_id"])
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
 
+	if sourceId == "" || sourceName == "" {
+		fmt.Println("invalid data", data)
+		return
+	}
+
 	if !checkIfEligible(sourceName, "") {
 		return
 	}
 
-	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
+	if checkForGuestGroup(sourceId, sourceId) {
+		return
+	}
+
+	sTimer := statsd.StartTimer("updateNode")
+
+	sourceContent, err := mongohelper.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
+		sTimer.Failed()
 		fmt.Println("sourceContent", err)
+
 		return
 	}
 
 	neo4j.CreateUniqueNode(sourceId, sourceName)
 	neo4j.UpdateNode(sourceId, sourceContent)
+
+	sTimer.Success()
+}
+
+func checkForGuestGroup(sourceId, targetId string) bool {
+
+	// this is the guest group id of production database
+	guestGroupId := "51f41f195f07655e560001c1"
+	// this is the guest group in vagrant
+	// guestGroupId = "51defdb73ed22b2905000023"
+
+	if sourceId == guestGroupId || targetId == guestGroupId {
+		return true
+	}
+	return false
 }

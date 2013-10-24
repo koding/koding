@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"koding/databases/mongo"
+	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -36,7 +36,6 @@ func main() {
 }
 
 func startPersisting(conn *amqp.Connection) {
-
 	amqpChannel, err := conn.Channel()
 	if err != nil {
 		panic(err)
@@ -115,10 +114,9 @@ func startPersisting(conn *amqp.Connection) {
 	go persistMessages(
 		amqpChannel,
 		deliveries,
-		mongo.GetCollection("jMessages"),
-		mongo.GetCollection("jConversationSlices"),
 		errors,
 	)
+
 	for {
 		select {
 		case err = <-errors:
@@ -130,11 +128,10 @@ func startPersisting(conn *amqp.Connection) {
 func persistMessages(
 	amqpChannel *amqp.Channel,
 	deliveries <-chan amqp.Delivery,
-	messages *mgo.Collection,
-	conversationSlices *mgo.Collection,
 	done chan error,
 ) {
 
+	var err error
 	for d := range deliveries {
 
 		from := d.RoutingKey[strings.LastIndex(d.RoutingKey, ".")+1:]
@@ -146,7 +143,12 @@ func persistMessages(
 
 		message := Message{from, d.RoutingKey, string(d.Body), Meta{t, t}}
 
-		info, err := messages.Upsert(bson.M{"_id": nil}, message)
+		info := new(mgo.ChangeInfo)
+		err := mongodb.Run("jMessages", func(c *mgo.Collection) error {
+			info, err = c.Upsert(bson.M{"_id": nil}, message)
+			return err
+		})
+
 		if err != nil {
 			done <- err
 			continue
@@ -154,10 +156,16 @@ func persistMessages(
 
 		sliceKey := d.RoutingKey[:strings.LastIndex(d.RoutingKey, ".")]
 
-		slice := ConversationSlice{sliceKey, t}
+		slice := ConversationSlice{
+			RoutingKey: sliceKey,
+			To:         t,
+		}
 
-		sliceInfo, err := conversationSlices.
-			Upsert(bson.M{"routingKey": sliceKey}, bson.M{"$set": slice})
+		sliceInfo := new(mgo.ChangeInfo)
+		err = mongodb.Run("jMessages", func(c *mgo.Collection) error {
+			sliceInfo, err = c.Upsert(bson.M{"routingKey": sliceKey}, bson.M{"$set": slice})
+			return err
+		})
 
 		if err != nil {
 			done <- err
@@ -165,10 +173,13 @@ func persistMessages(
 		}
 
 		if sliceInfo.UpsertedId != nil {
-			if err := conversationSlices.Update(
-				bson.M{"_id": sliceInfo.UpsertedId},
-				bson.M{"$set": bson.M{"from": t}},
-			); err != nil {
+			err := mongodb.Run("jConversationSlices", func(c *mgo.Collection) error {
+				return c.Update(
+					bson.M{"_id": sliceInfo.UpsertedId},
+					bson.M{"$set": bson.M{"from": t}})
+			})
+
+			if err != nil {
 				done <- err
 			}
 		}
@@ -186,9 +197,9 @@ func persistMessages(
 
 		amqpChannel.Publish(
 			"graphFeederExchange", // exchange name
-			"",                    // key
-			false,                 // mandatory
-			false,                 // immediate
+			"",    // key
+			false, // mandatory
+			false, // immediate
 			amqp.Publishing{
 				DeliveryMode: amqp.Persistent,
 				Body:         neoMessage,

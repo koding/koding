@@ -1,7 +1,7 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
-// @import "nib/vendor"
+
 
 
 @css {
@@ -32,20 +32,34 @@ app.profile.styl
 .content-display-wrapper
   .content-display
     .profileinfo
-      button
-        width       auto
-        position    absolute
-        top         10px
-        padding     5px 10px
-
-      button.edit
-        right       10px
-
-      button.save
-        right       80px
-
-      button.cancel
-        right       15px
+      .action-wrapper
+        position            absolute
+        top                 -27px
+        height              27px
+        right               25px
+        .custom-link-view
+          margin-top        4px
+          margin-right      -3px
+          span.title
+            color           #999
+          &:hover
+            span.title
+              color       linkColor1
+          &.edit
+            &:hover
+              span.icon
+                bg          position, -260px -400px
+                opacity     1
+            .icon
+              bg            position, -240px -400px
+              opacity       .4
+        button.kdbutton
+          width             auto
+          margin            1px 0 0 10px
+          padding           5px 15px 4px
+          display           inline-block
+          font-size         12px
+          font-weight       400
 
       .kdcontenteditableview
         overflow    visible
@@ -54,13 +68,24 @@ app.profile.styl
         > *
           display         inline-block
           min-width       5px
-          padding         5px
+          padding         4px
 
         > [contenteditable="true"]
           background      white
-          padding         4px
+          padding         3px
           border          1px solid #C7C7C7
           border-radius   5px
+
+        &.firstName
+          > [contenteditable="true"]
+            border-right  none
+            rounded       5px 0 0 5px
+
+        &.lastName
+          > [contenteditable="true"]
+            padding-left  5px
+            margin-left   -1px
+            rounded       0 5px 5px 0
 
         &.bio > *[contenteditable="true"]
           min-height      80px
@@ -79,9 +104,6 @@ app.profile.styl
           font-weight         300
           margin              0 4px 0 8px
           width               auto
-
-          &:hover
-            background-color  #FFFBD3
 
       .personal-profile-about
         p
@@ -130,6 +152,37 @@ app.profile.styl
 .content-display.member
   .profilearea
     // overflow              visible
+    &.own-profile
+      .external-profiles
+        .external-profile
+          visible()
+    .external-profiles
+      display             inline-block
+      vertical-align      top
+      margin-top          10px
+      .external-profile
+        size              24px, 24px
+        margin            0 2px 0 0
+        sprite()
+        fl()
+        hidden()
+        &.linked
+          background-position-y     -860px !important
+          visible()
+        &.facebook
+          bg              position, 0 -890px
+        &.twitter
+          bg              position, -25px -890px
+        &.linkedin
+          bg              position, -50px -890px
+        &.google
+          bg              position, -75px -890px
+        &.github
+          bg              position, -100px -890px
+        &.odesk
+          bg              position, -125px -890px
+        &.bitbucket
+          bg              position, -150px -890px
 
     a.tag
       color               white
@@ -153,14 +206,15 @@ app.profile.styl
     .skilltagslabel
       font-size           12px
       color               #a5a5a5
-      margin              0 0 0 4px
-      width               74px
+      margin              0
+      width               50px
       fl()
 
     .tip
-      line-height         1.8em
+      line-height         21px
       font-size           12px
       color               #a5a5a5
+      margin-bottom       6px
       fl()
 
     .skilltagadd
@@ -194,8 +248,6 @@ app.profile.styl
 
       .form-actions-holder
         padding-top       6px
-        &:hover
-          background-color      #FFFBD3
 
       form.kdformview
         .kdview.kdautocompletedlistitem
@@ -203,20 +255,14 @@ app.profile.styl
           line-height     18px
           height          18px
           border          none
-          margin          0 5px 6px 0
+          margin          2px 5px 6px 0
           padding         0
-          rounded(3px)
+          rounded         3px
           transition      padding .1s ease-in-out
-          &:hover
-            bg            color,#0A92BA
-            a
-              bg          color,#0A92BA
           a
             color         white
             cursor        pointer
             margin        0
-            &:hover
-              bg          color,#0A92BA
 
           span.close-icon
             sprite()
@@ -227,10 +273,10 @@ app.profile.styl
 
         .kdautocompletewrapper
           display         none
-          width           70%
+          width           560px
           background      none
           border          none
-          margin          8px 0
+          margin          0 0 0 50px
           outline         none
 
           input.kdinput

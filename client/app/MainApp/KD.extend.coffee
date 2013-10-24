@@ -1,6 +1,9 @@
 # this class will register itself just before application starts loading, right after framework is ready
 KD.extend
 
+  apiUri  : KD.config.apiUri
+  appsUri : KD.config.appsUri
+
   impersonate : (username)->
     KD.remote.api.JAccount.impersonate username, (err)->
       if err then new KDNotificationView title: err.message
@@ -120,6 +123,32 @@ KD.extend
     new KDNotificationView {title, content, duration}
 
     warn "KodingError:", err.message  unless err.name is 'AccessDenied'
+
+  getPathInfo: (fullPath)->
+    return no unless fullPath
+    path      = FSHelper.plainPath fullPath
+    basename  = FSHelper.getFileNameFromPath fullPath
+    parent    = FSHelper.getParentPath path
+    vmName    = FSHelper.getVMNameFromPath fullPath
+    isPublic  = FSHelper.isPublicPath fullPath
+    {path, basename, parent, vmName, isPublic}
+
+  getPublicURLOfPath: (fullPath, secure=no)->
+    {vmName, isPublic, path} = KD.getPathInfo fullPath
+    return unless isPublic
+    pathPartials = path.match /^\/home\/(\w+)\/Web\/(.*)/
+    return unless pathPartials
+    [_, user, publicPath] = pathPartials
+
+    publicPath or= ""
+    subdomain =
+      if /^shared\-/.test(vmName) and user is KD.nick()
+      then "#{user}."
+      else ""
+
+    return "#{if secure then 'https' else 'http'}://#{subdomain}#{vmName}/#{publicPath}"
+
+  runningInFrame: -> window.top isnt window.self
 
 Object.defineProperty KD, "defaultSlug",
   get:->

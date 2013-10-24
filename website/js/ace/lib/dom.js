@@ -31,21 +31,21 @@
 define(function(require, exports, module) {
 "use strict";
 
+if (typeof document == "undefined")
+    return;
+
 var XHTML_NS = "http://www.w3.org/1999/xhtml";
+
+exports.getDocumentHead = function(doc) {
+    if (!doc)
+        doc = document;
+    return doc.head || doc.getElementsByTagName("head")[0] || doc.documentElement;
+}
 
 exports.createElement = function(tag, ns) {
     return document.createElementNS ?
            document.createElementNS(ns || XHTML_NS, tag) :
            document.createElement(tag);
-};
-
-exports.setText = function(elem, text) {
-    if (elem.innerText !== undefined) {
-        elem.innerText = text;
-    }
-    if (elem.textContent !== undefined) {
-        elem.textContent = text;
-    }
 };
 
 exports.hasCssClass = function(el, name) {
@@ -143,8 +143,7 @@ exports.importCssString = function importCssString(cssText, id, doc) {
         if (id)
             style.id = id;
 
-        var head = doc.getElementsByTagName("head")[0] || doc.documentElement;
-        head.appendChild(style);
+        exports.getDocumentHead(doc).appendChild(style);
     }
 };
 
@@ -156,8 +155,7 @@ exports.importCssStylsheet = function(uri, doc) {
         link.rel = 'stylesheet';
         link.href = uri;
 
-        var head = doc.getElementsByTagName("head")[0] || doc.documentElement;
-        head.appendChild(link);
+        exports.getDocumentHead(doc).appendChild(link);
     }
 };
 
@@ -210,13 +208,13 @@ else
     };
 
 exports.scrollbarWidth = function(document) {
-
-    var inner = exports.createElement("p");
+    var inner = exports.createElement("ace_inner");
     inner.style.width = "100%";
     inner.style.minWidth = "0px";
     inner.style.height = "200px";
+    inner.style.display = "block";
 
-    var outer = exports.createElement("div");
+    var outer = exports.createElement("ace_outer");
     var style = outer.style;
 
     style.position = "absolute";
@@ -225,10 +223,11 @@ exports.scrollbarWidth = function(document) {
     style.width = "200px";
     style.minWidth = "0px";
     style.height = "150px";
+    style.display = "block";
 
     outer.appendChild(inner);
 
-    var body = document.body || document.documentElement;
+    var body = document.documentElement;
     body.appendChild(outer);
 
     var noScrollbar = inner.offsetWidth;
@@ -258,22 +257,24 @@ exports.setInnerHtml = function(el, innerHtml) {
     return element;
 };
 
-exports.setInnerText = function(el, innerText) {
-    var document = el.ownerDocument;
-    if (document.body && "textContent" in document.body)
+if ("textContent" in document.documentElement) {
+    exports.setInnerText = function(el, innerText) {
         el.textContent = innerText;
-    else
-        el.innerText = innerText;
+    };
 
-};
-
-exports.getInnerText = function(el) {
-    var document = el.ownerDocument;
-    if (document.body && "textContent" in document.body)
+    exports.getInnerText = function(el) {
         return el.textContent;
-    else
-         return el.innerText || el.textContent || "";
-};
+    };
+}
+else {
+    exports.setInnerText = function(el, innerText) {
+        el.innerText = innerText;
+    };
+
+    exports.getInnerText = function(el) {
+        return el.innerText;
+    };
+}
 
 exports.getParentWindow = function(document) {
     return document.defaultView || document.parentWindow;

@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -73,7 +73,7 @@ function applyStyles(elm, styles) {
 }
 
 function setupContainer(element, getValue) {
-        if (element.type != 'textarea') {
+    if (element.type != 'textarea') {
         throw "Textarea required!";
     }
 
@@ -132,11 +132,7 @@ function setupContainer(element, getValue) {
     resizeEvent();
 
     // Insert the div container after the element.
-    if (element.nextSibling) {
-        parentNode.insertBefore(container, element.nextSibling);
-    } else {
-        parentNode.appendChild(container);
-    }
+    parentNode.insertBefore(container, element.nextSibling);
 
     // Override the forms onsubmit function. Set the innerHTML and value
     // of the textarea before submitting.
@@ -145,7 +141,6 @@ function setupContainer(element, getValue) {
             var oldSumit = parentNode.onsubmit;
             // Override the onsubmit function of the form.
             parentNode.onsubmit = function(evt) {
-                element.innerHTML = getValue();
                 element.value = getValue();
                 // If there is a onsubmit function already, then call
                 // it with the current context and pass the event.
@@ -177,7 +172,8 @@ exports.transformTextarea = function(element, loader) {
         left: "0px",
         right: "0px",
         bottom: "0px",
-        border: "1px solid gray"
+        border: "1px solid gray",
+        position: "absolute"
     });
     container.appendChild(editorDiv);
 
@@ -198,7 +194,7 @@ exports.transformTextarea = function(element, loader) {
     var settingDiv = document.createElement("div");
     var settingDivStyles = {
         top: "0px",
-        left: "0px",
+        left: "20%",
         right: "0px",
         bottom: "0px",
         position: "absolute",
@@ -207,7 +203,8 @@ exports.transformTextarea = function(element, loader) {
         color: "white",
         display: "none",
         overflow: "auto",
-        fontSize: "14px"
+        fontSize: "14px",
+        boxShadow: "-5px 2px 3px gray"
     };
     if (!UA.isOldIE) {
         settingDivStyles.backgroundColor = "rgba(0, 0, 0, 0.6)";
@@ -228,14 +225,14 @@ exports.transformTextarea = function(element, loader) {
     editor.focus();
 
     // Add the settingPanel opener to the editor's div.
-    editorDiv.appendChild(settingOpener);
+    container.appendChild(settingOpener);
 
     // Create the API.
     setupApi(editor, editorDiv, settingDiv, ace, options, loader);
 
     // Create the setting's panel.
     setupSettingPanel(settingDiv, settingOpener, editor, options);
-    
+
     var state = "";
     event.addListener(settingOpener, "mousemove", function(e) {
         var rect = this.getBoundingClientRect();
@@ -248,7 +245,7 @@ exports.transformTextarea = function(element, loader) {
             this.style.cursor = "nw-resize";
         }
     });
-    
+
     event.addListener(settingOpener, "mousedown", function(e) {
         if (state == "toggle") {
             editor.setDisplaySettings();
@@ -280,23 +277,29 @@ function setupApi(editor, editorDiv, settingDiv, ace, options, loader) {
     loader = loader || load;
 
     function toBool(value) {
-        return value == "true";
+        return value === "true" || value == true;
     }
 
     editor.setDisplaySettings = function(display) {
         if (display == null)
             display = settingDiv.style.display == "none";
-        settingDiv.style.display = display ? "block" : "none";
+        if (display) {
+            settingDiv.style.display = "block";
+            settingDiv.hideButton.focus();
+            editor.on("focus", function onFocus() {
+                editor.removeListener("focus", onFocus);
+                settingDiv.style.display = "none";
+            });
+        } else {
+            editor.focus();
+        }
     };
-    
+
+    editor.$setOption = editor.setOption;
     editor.setOption = function(key, value) {
         if (options[key] == value) return;
 
         switch (key) {
-            case "gutter":
-                renderer.setShowGutter(toBool(value));
-            break;
-
             case "mode":
                 if (value != "text") {
                     // Load the required mode file. Files get loaded only once.
@@ -324,6 +327,19 @@ function setupApi(editor, editorDiv, settingDiv, ace, options, loader) {
                 editorDiv.style.fontSize = value;
             break;
 
+            case "keybindings":
+                switch (value) {
+                    case "vim":
+                        editor.setKeyboardHandler("ace/keyboard/vim");
+                        break;
+                    case "emacs":
+                        editor.setKeyboardHandler("ace/keyboard/emacs");
+                        break;
+                    default:
+                        editor.setKeyboardHandler(null);
+                }
+            break;
+
             case "softWrap":
                 switch (value) {
                     case "off":
@@ -347,18 +363,9 @@ function setupApi(editor, editorDiv, settingDiv, ace, options, loader) {
                     break;
                 }
             break;
-
-            case "useSoftTabs":
-                session.setUseSoftTabs(toBool(value));
-            break;
-
-            case "showPrintMargin":
-                renderer.setShowPrintMargin(toBool(value));
-            break;
-
-            case "showInvisibles":
-                editor.setShowInvisibles(toBool(value));
-            break;
+            
+            default:
+                editor.$setOption(key, toBool(value));
         }
 
         options[key] = value;
@@ -372,18 +379,13 @@ function setupApi(editor, editorDiv, settingDiv, ace, options, loader) {
         return options;
     };
 
-    for (var option in exports.options) {
-        editor.setOption(option, exports.options[option]);
-    }
+    editor.setOptions(exports.options);
 
     return editor;
 }
 
 function setupSettingPanel(settingDiv, settingOpener, editor, options) {
-    var BOOL = {
-        "true":  true,
-        "false": false
-    };
+    var BOOL = null;
 
     var desc = {
         mode:            "Mode:",
@@ -391,6 +393,7 @@ function setupSettingPanel(settingDiv, settingOpener, editor, options) {
         theme:           "Theme:",
         fontSize:        "Font Size:",
         softWrap:        "Soft Wrap:",
+        keybindings:     "Keyboard",
         showPrintMargin: "Show Print Margin:",
         useSoftTabs:     "Use Soft Tabs:",
         showInvisibles:  "Show Invisibles"
@@ -456,6 +459,11 @@ function setupSettingPanel(settingDiv, settingOpener, editor, options) {
             80:     "80",
             free:   "Free"
         },
+        keybindings: {
+            ace: "ace",
+            vim: "vim",
+            emacs: "emacs"
+        },
         showPrintMargin:    BOOL,
         useSoftTabs:        BOOL,
         showInvisibles:     BOOL
@@ -465,6 +473,14 @@ function setupSettingPanel(settingDiv, settingOpener, editor, options) {
     table.push("<table><tr><th>Setting</th><th>Value</th></tr>");
 
     function renderOption(builder, option, obj, cValue) {
+        if (!obj) {
+            builder.push(
+                "<input type='checkbox' title='", option, "' ",
+                    cValue == "true" ? "checked='true'" : "",
+               "'></input>"
+            );
+            return;
+        }
         builder.push("<select title='" + option + "'>");
         for (var value in obj) {
             builder.push("<option value='" + value + "' ");
@@ -489,18 +505,21 @@ function setupSettingPanel(settingDiv, settingOpener, editor, options) {
     table.push("</table>");
     settingDiv.innerHTML = table.join("");
 
+    var onChange = function(e) {
+        var select = e.currentTarget;
+        editor.setOption(select.title, select.value);
+    };
+    var onClick = function(e) {
+        var cb = e.currentTarget;
+        editor.setOption(cb.title, cb.checked);
+    };
     var selects = settingDiv.getElementsByTagName("select");
-    for (var i = 0; i < selects.length; i++) {
-        var onChange = (function() {
-            var select = selects[i];
-            return function() {
-                var option = select.title;
-                var value  = select.value;
-                editor.setOption(option, value);
-            };
-        })();
+    for (var i = 0; i < selects.length; i++)
         selects[i].onchange = onChange;
-    }
+    var cbs = settingDiv.getElementsByTagName("input");
+    for (var i = 0; i < cbs.length; i++)
+        cbs[i].onclick = onClick;
+
 
     var button = document.createElement("input");
     button.type = "button";
@@ -509,6 +528,7 @@ function setupSettingPanel(settingDiv, settingOpener, editor, options) {
         editor.setDisplaySettings(false);
     });
     settingDiv.appendChild(button);
+    settingDiv.hideButton = button;
 }
 
 // Default startup options.
@@ -518,9 +538,10 @@ exports.options = {
     gutter:             "false",
     fontSize:           "12px",
     softWrap:           "off",
+    keybindings:        "ace",
     showPrintMargin:    "false",
     useSoftTabs:        "true",
-    showInvisibles:     "true"
+    showInvisibles:     "false"
 };
 
 });

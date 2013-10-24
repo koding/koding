@@ -27,10 +27,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * Contributor(s):
- * 
- *
- *
  * ***** END LICENSE BLOCK ***** */
 
 /*
@@ -49,11 +45,14 @@ var Mode = function() {
     var highlighter = new LispHighlightRules();
     
     this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-    // Extra logic goes here. 
+       
+    this.lineCommentStart = ";";
+    
 }).call(Mode.prototype);
 
 exports.Mode = Mode;

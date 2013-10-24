@@ -31,7 +31,7 @@ class ApplicationManager extends KDObject
     # set unload listener
     windowController = @getSingleton 'windowController'
     windowController.addUnloadListener 'window', =>
-      safeToUnload = no for app of @appControllers when app in ['Ace', 'WebTerm']
+      safeToUnload = no for own app of @appControllers when app in ['Ace', 'WebTerm']
       return safeToUnload ? yes
 
   setMissingRoute:(appController, appView, appOptions)->
@@ -87,11 +87,14 @@ class ApplicationManager extends KDObject
 
       # if there is no registered appController
       # we assume it should be a 3rd party app
-      # that's why it should be run via kodingappscontroller
+      # that's why it should be run via kodingAppsController
 
-      if not appOptions?
-        return @fetchManifests name, =>
-          @open name, options, callback
+      if not appOptions? and not options.avoidRecursion?
+        return @fetchManifests name, (err)=>
+          options.avoidRecursion = yes
+          unless err
+          then @open name, options, callback
+          else do defaultCallback
 
       appParams = options.params or {}
 
@@ -129,7 +132,12 @@ class ApplicationManager extends KDObject
 
     KD.getSingleton("kodingAppsController").fetchApps (err, manifests)->
       manifestsFetched = yes
-      for name, manifest of manifests when name is appName
+
+      return callback? yes  if err or not manifests
+
+      for own name, manifest of manifests when name is appName
+
+        err = no
 
         manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
         manifest.behavior   or= "application"
@@ -140,6 +148,11 @@ class ApplicationManager extends KDObject
 
       callback?()
 
+  promptOpenFileWith:(file)->
+    finderController = KD.getSingleton "finderController"
+    {treeController} = finderController
+    view = new KDView {}, file
+    treeController.showOpenWithModal view
 
   openFile:(file)->
 
@@ -150,7 +163,9 @@ class ApplicationManager extends KDObject
     return @openFileWithApplication defaultApp, file  if defaultApp
 
     switch type
-      when 'code','text','unknown'
+      when 'unknown'
+        @promptOpenFileWith file
+      when 'code','text'
         log "open with a text editor"
         @open @defaultApps.text, (appController)-> appController.openFile file
       when 'image'
@@ -183,9 +198,18 @@ class ApplicationManager extends KDObject
     appOptions            = $.extend {}, true, KD.getAppOptions name
     appOptions.params     = params
     @register appInstance = new AppClass appOptions  if AppClass
+
+    if appOptions.thirdParty
+      if KD.getSingleton("kodingAppsController").hasForceUpdate appInstance
+        @emit "AppCouldntBeCreated", appInstance
+        @utils.defer => @quitByName appOptions.name, yes
+        return no
+
     @utils.defer =>
+      return @emit "AppCouldntBeCreated"  unless appInstance
       @emit "AppCreated", appInstance
-      KD.getSingleton("kodingAppsController").putAppResources appInstance  if appOptions.thirdParty
+      if appOptions.thirdParty
+        KD.getSingleton("kodingAppsController").putAppResources appInstance, callback
       callback? appInstance
 
   show:(appOptions, callback)->
@@ -248,7 +272,7 @@ class ApplicationManager extends KDObject
   getByView: (view)->
 
     appInstance = null
-    for name, apps of @appControllers
+    for own name, apps of @appControllers
       for appController in apps.instances
         if view.getId() is appController.getView?()?.getId()
           appInstance = appController
@@ -373,7 +397,7 @@ class ApplicationManager extends KDObject
 
   # fetchStorage: (appId, version, callback) ->
   #   # warn "System still trying to access application storage for #{appId}"
-  #   KD.whoami().fetchStorage {appId, version}, (error, storage) =>
+  #   KD.whoami().fetchAppStorage {appId, version}, (error, storage) =>
   #     unless storage
   #       storage = {appId,version,bucket:{}} # creating a fake storage
   #     callback error, storage

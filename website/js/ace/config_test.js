@@ -40,7 +40,7 @@ var assert = require("./test/assertions");
 
 module.exports = {
 
-    "test path resolution" : function() {
+    "test: path resolution" : function() {
         config.set("packaged", "true");
         var url = config.moduleUrl("kr_theme", "theme");
         assert.equal(url, "theme-kr.js");
@@ -60,7 +60,64 @@ module.exports = {
         url = config.moduleUrl("foo/1", "theme");
         assert.equal(url, "a/b1.js");
         
+        url = config.moduleUrl("snippets/js");
+        assert.equal(url, "a/b/snippets/js.js");
+        
+        config.setModuleUrl("snippets/js", "_.js");
+        url = config.moduleUrl("snippets/js");
+        assert.equal(url, "_.js");
+        
+        url = config.moduleUrl("ace/ext/textarea");
+        assert.equal(url, "a/b/ext-textarea.js");
+        
         assert.equal();
+    },
+    "test: define options" : function() {
+        var o = {};
+        config.defineOptions(o, "test_object", {
+            opt1: {
+                set: function(val) {
+                    this.x = val;
+                },
+                value: 7,
+            },
+            initialValue: {
+                set: function(val) {
+                    this.x = val;
+                },
+                initialValue: 8,
+            },
+            opt2: {
+                get: function(val) {
+                    return this.x;
+                }
+            },
+            forwarded: "model"
+        });
+        o.model = {};
+        config.defineOptions(o.model, "model", {
+            forwarded: {value: 1}
+        });
+        
+        config.resetOptions(o);
+        config.resetOptions(o.model);
+        assert.equal(o.getOption("opt1"), 7);
+        assert.equal(o.getOption("opt2"), 7);
+        o.setOption("opt1", 8);
+        assert.equal(o.getOption("opt1"), 8);
+        assert.equal(o.getOption("opt2"), 8);
+        
+        assert.equal(o.getOption("forwarded"), 1);
+        
+        assert.equal(o.getOption("new"), undefined);
+        o.setOption("new", 0);
+        assert.equal(o.getOption("new"), undefined);
+        
+
+        assert.equal(o.getOption("initialValue"), 8);
+        o.setOption("initialValue", 7);
+        assert.equal(o.getOption("opt2"), 7);
+
     }
 };
 

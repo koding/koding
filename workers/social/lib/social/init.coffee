@@ -5,9 +5,6 @@ error = (err)->
   if err.errors?
     console.error lilErr  for lilErr in err.errors
 
-initGuests = ->
-  JGuest = require './models/guest'
-  JGuest.resetAllGuests()
 
 initKodingGroup2 = (groupData, admins)->
   JGroup = require './models/group'
@@ -47,10 +44,6 @@ initKodingGroup = ->
       error err  if err
       adminAccounts.push account
       fin()
-
-init = ->
-  console.log 'init'
-  # initGuests()
 
 exports.init = (koding) ->
   console.warn 'Initialization code is temporarily disabled.'

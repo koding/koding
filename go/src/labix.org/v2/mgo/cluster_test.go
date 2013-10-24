@@ -830,6 +830,75 @@ func (s *S) TestDialWithTimeout(c *C) {
 	c.Assert(started.After(time.Now().Add(-timeout*2)), Equals, true)
 }
 
+func (s *S) TestSocketTimeout(c *C) {
+	if *fast {
+		c.Skip("-fast")
+	}
+
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	s.Freeze("localhost:40001")
+
+	timeout := 3 * time.Second
+	session.SetSocketTimeout(timeout)
+	started := time.Now()
+
+	// Do something.
+	result := struct{ Ok bool }{}
+	err = session.Run("getLastError", &result)
+	c.Assert(err, ErrorMatches, ".*: i/o timeout")
+	c.Assert(started.Before(time.Now().Add(-timeout)), Equals, true)
+	c.Assert(started.After(time.Now().Add(-timeout*2)), Equals, true)
+}
+
+func (s *S) TestSocketTimeoutOnDial(c *C) {
+	if *fast {
+		c.Skip("-fast")
+	}
+
+	timeout := 1 * time.Second
+
+	defer mgo.HackSyncSocketTimeout(timeout)()
+
+	s.Freeze("localhost:40001")
+
+	started := time.Now()
+
+	session, err := mgo.DialWithTimeout("localhost:40001", timeout)
+	c.Assert(err, ErrorMatches, "no reachable servers")
+	c.Assert(session, IsNil)
+
+	c.Assert(started.Before(time.Now().Add(-timeout)), Equals, true)
+	c.Assert(started.After(time.Now().Add(-20 * time.Second)), Equals, true)
+}
+
+func (s *S) TestSocketTimeoutOnInactiveSocket(c *C) {
+	if *fast {
+		c.Skip("-fast")
+	}
+
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	timeout := 2 * time.Second
+	session.SetSocketTimeout(timeout)
+
+	// Do something that relies on the timeout and works.
+	c.Assert(session.Ping(), IsNil)
+
+	// Freeze and wait for the timeout to go by.
+	s.Freeze("localhost:40001")
+	time.Sleep(timeout + 500 * time.Millisecond)
+	s.Thaw("localhost:40001")
+
+	// Do something again. The timeout above should not have killed
+	// the socket as there was nothing to be done.
+	c.Assert(session.Ping(), IsNil)
+}
+
 func (s *S) TestDirect(c *C) {
 	session, err := mgo.Dial("localhost:40012?connect=direct")
 	c.Assert(err, IsNil)
@@ -1300,7 +1369,7 @@ func (s *S) TestNearestSecondary(c *C) {
 }
 
 func (s *S) TestConnectCloseConcurrency(c *C) {
-	restore := mgo.HackPingDelay(1)
+	restore := mgo.HackPingDelay(500 * time.Millisecond)
 	defer restore()
 	var wg sync.WaitGroup
 	const n = 500

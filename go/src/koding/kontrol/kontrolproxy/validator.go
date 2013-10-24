@@ -3,7 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"koding/kontrol/kontrolproxy/models"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"regexp"
 	"strconv"
 	"strings"
@@ -103,7 +104,7 @@ func (v *Validator) AddRules() *Validator {
 			continue
 		}
 
-		filter, err := proxyDB.GetFilterByField("name", rule.Name)
+		filter, err := modelhelper.GetFilterByField("name", rule.Name)
 		if err != nil {
 			continue // if not found just continue with next rule
 		}
@@ -120,6 +121,7 @@ func (v *Validator) AddRules() *Validator {
 
 			return false, "no filter matched"
 		}
+
 		v.addFilter(filter.Type, filter.Name, rule.Action, filter.Match, f)
 	}
 
@@ -171,7 +173,7 @@ func domainDenied(domain, ip, country, reason string) {
 		return
 	}
 
-	err := proxyDB.AddDomainDenied(domain, ip, country, reason)
+	err := modelhelper.AddDomainDenied(domain, ip, country, reason)
 	if err != nil {
 		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
 	}

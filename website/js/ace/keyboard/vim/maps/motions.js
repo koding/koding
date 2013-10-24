@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -138,6 +138,8 @@ function find(editor, needle, dir) {
 
 var Range = require("../../../range").Range;
 
+var LAST_SEARCH_MOTION = {};
+
 module.exports = {
     "w": new Motion(function(editor) {
         var str = new StringStream(editor);
@@ -222,7 +224,11 @@ module.exports = {
 
     "l": {
         nav: function(editor) {
-            editor.navigateRight();
+            var pos = editor.getCursorPosition();
+            var col = pos.column;
+            var lineLen = editor.session.getLine(pos.row).length;
+            if (lineLen && col !== lineLen)
+                editor.navigateRight();
         },
         sel: function(editor) {
             var pos = editor.getCursorPosition();
@@ -377,12 +383,14 @@ module.exports = {
     "f": new Motion({
         param: true,
         handlesCount: true,
-        getPos: function(editor, range, count, param, isSel) {
+        getPos: function(editor, range, count, param, isSel, isRepeat) {
+            if (!isRepeat)
+                LAST_SEARCH_MOTION = {ch: "f", param: param};
             var cursor = editor.getCursorPosition();
             var column = util.getRightNthChar(editor, cursor, param, count || 1);
 
             if (typeof column === "number") {
-                cursor.column += column + (isSel ? 2 : 1);                
+                cursor.column += column + (isSel ? 2 : 1);
                 return cursor;
             }
         }
@@ -390,7 +398,9 @@ module.exports = {
     "F": new Motion({
         param: true,
         handlesCount: true,
-        getPos: function(editor, range, count, param, isSel) {
+        getPos: function(editor, range, count, param, isSel, isRepeat) {
+            if (!isRepeat)
+                LAST_SEARCH_MOTION = {ch: "F", param: param};
             var cursor = editor.getCursorPosition();
             var column = util.getLeftNthChar(editor, cursor, param, count || 1);
 
@@ -403,10 +413,15 @@ module.exports = {
     "t": new Motion({
         param: true,
         handlesCount: true,
-        getPos: function(editor, range, count, param, isSel) {
+        getPos: function(editor, range, count, param, isSel, isRepeat) {
+            if (!isRepeat)
+                LAST_SEARCH_MOTION = {ch: "t", param: param};
             var cursor = editor.getCursorPosition();
             var column = util.getRightNthChar(editor, cursor, param, count || 1);
 
+            if (isRepeat && column == 0 && !(count > 1))
+                var column = util.getRightNthChar(editor, cursor, param, 2);
+                
             if (typeof column === "number") {
                 cursor.column += column + (isSel ? 1 : 0);
                 return cursor;
@@ -416,14 +431,44 @@ module.exports = {
     "T": new Motion({
         param: true,
         handlesCount: true,
-        getPos: function(editor, range, count, param, isSel) {
+        getPos: function(editor, range, count, param, isSel, isRepeat) {
+            if (!isRepeat)
+                LAST_SEARCH_MOTION = {ch: "T", param: param};
             var cursor = editor.getCursorPosition();
             var column = util.getLeftNthChar(editor, cursor, param, count || 1);
 
+            if (isRepeat && column == 0 && !(count > 1))
+                var column = util.getLeftNthChar(editor, cursor, param, 2);
+            
             if (typeof column === "number") {
                 cursor.column -= column;
                 return cursor;
             }
+        }
+    }),
+    ";": new Motion({
+        handlesCount: true,
+        getPos: function(editor, range, count, param, isSel) {
+            var ch = LAST_SEARCH_MOTION.ch;
+            if (!ch)
+                return;
+            return module.exports[ch].getPos(
+                editor, range, count, LAST_SEARCH_MOTION.param, isSel, true
+            );
+        }
+    }),
+    ",": new Motion({
+        handlesCount: true,
+        getPos: function(editor, range, count, param, isSel) {
+            var ch = LAST_SEARCH_MOTION.ch;
+            if (!ch)
+                return;
+            var up = ch.toUpperCase();
+            ch = ch === up ? ch.toLowerCase() : up;
+            
+            return module.exports[ch].getPos(
+                editor, range, count, LAST_SEARCH_MOTION.param, isSel, true
+            );
         }
     }),
 
@@ -559,7 +604,7 @@ module.exports = {
         while(row < l && !/\S/.test(session.getLine(row)))
             row++;
         while(/\S/.test(session.getLine(row)))
-            row++;        
+            row++;
         return {column: 0, row: row};
     }),
     "ctrl-d": {
@@ -575,16 +620,42 @@ module.exports = {
         nav: function(editor, range, count, param) {
             editor.selection.clearSelection();
             keepScrollPosition(editor, editor.gotoPageUp);
-
         },
         sel: function(editor, range, count, param) {
             keepScrollPosition(editor, editor.selectPageUp);
         }
-    }
+    },
+    "`": new Motion({
+        param: true,
+        handlesCount: true,
+        getPos: function(editor, range, count, param, isSel) {
+            var s = editor.session;
+            var marker = s.vimMarkers && s.vimMarkers[param];
+            if (marker) {
+                return marker.getPosition();
+            }
+        }
+    }),
+    "'": new Motion({
+        param: true,
+        handlesCount: true,
+        getPos: function(editor, range, count, param, isSel) {
+            var s = editor.session;
+            var marker = s.vimMarkers && s.vimMarkers[param];
+            if (marker) {
+                var pos = marker.getPosition();
+                var line = editor.session.getLine(pos.row);                
+                pos.column = line.search(/\S/);
+                if (pos.column == -1)
+                    pos.column = line.length;
+                return pos;
+            }
+        }
+    })
 };
 
 module.exports.backspace = module.exports.left = module.exports.h;
-module.exports.right = module.exports.l;
+module.exports.space = module.exports['return'] = module.exports.right = module.exports.l;
 module.exports.up = module.exports.k;
 module.exports.down = module.exports.j;
 module.exports.pagedown = module.exports["ctrl-d"];

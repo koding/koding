@@ -5,7 +5,7 @@ import (
 	"github.com/streadway/amqp"
 	"io/ioutil"
 	"koding/tools/config"
-	"log"
+	"koding/tools/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -28,24 +28,23 @@ func NewProducer(name string) *Producer {
 }
 
 func CreateAmqpConnection() *amqp.Connection {
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
-
-	if port == "" {
-		port = "5672" // default RABBITMQ_NODE_PORT
+	amqpURI := amqp.URI{
+		Scheme:   "amqp",
+		Host:     config.Current.Mq.Host,
+		Port:     config.Current.Mq.Port,
+		Username: config.Current.Mq.ComponentUser,
+		Password: config.Current.Mq.Password,
+		Vhost:    config.Current.Kontrold.Vhost,
 	}
 
-	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
-	conn, err := amqp.Dial(url)
+	conn, err := amqp.Dial(amqpURI.String())
 	if err != nil {
-		log.Fatalln("AMQP dial: ", err)
+		slog.Fatalln("AMQP dial: ", err)
 	}
 
 	go func() {
 		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
-			log.Fatalf("AMQP connection: %s" + err.Error())
+			slog.Fatalf("AMQP connection: %s", err.Error())
 		}
 	}()
 
@@ -59,7 +58,7 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	}
 	go func() {
 		for err := range channel.NotifyClose(make(chan *amqp.Error)) {
-			log.Fatalf("AMQP channel: %s" + err.Error())
+			slog.Fatalf("AMQP channel: %s", err.Error())
 		}
 	}()
 	return channel
@@ -93,7 +92,7 @@ func CustomHostname(host string) string {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		log.Println(err)
+		slog.Println(err)
 	}
 
 	return hostname
@@ -102,7 +101,7 @@ func CustomHostname(host string) string {
 func ReadVersion() string {
 	file, err := ioutil.ReadFile("VERSION")
 	if err != nil {
-		log.Println(err)
+		slog.Println(err)
 	}
 
 	return strings.TrimSpace(string(file))
@@ -111,7 +110,7 @@ func ReadVersion() string {
 func ReadFile(config string) string {
 	file, err := ioutil.ReadFile(config)
 	if err != nil {
-		log.Println(err)
+		slog.Println(err)
 	}
 
 	return strings.TrimSpace(string(file))
@@ -119,7 +118,7 @@ func ReadFile(config string) string {
 
 func CreateProducer(name string) (*Producer, error) {
 	p := NewProducer(name)
-	log.Printf("creating connection for sending %s messages", p.Name)
+	slog.Printf("creating connection for sending %s messages\n", p.Name)
 	p.Conn = CreateAmqpConnection()
 	p.Channel = CreateChannel(p.Conn)
 
@@ -148,7 +147,7 @@ func RegisterToKontrol(name, serviceGenericName, serviceUniqueName, uuid, hostna
 
 	version, err := strconv.Atoi(ReadVersion())
 	if err != nil {
-		log.Println(err)
+		slog.Println(err)
 	}
 
 	cmd := workerMain{
@@ -192,7 +191,7 @@ func RegisterToKontrol(name, serviceGenericName, serviceUniqueName, uuid, hostna
 
 	err = channel.Close()
 	if err != nil {
-		log.Println("could not close kontrold publisher amqp channel", err)
+		slog.Println("could not close kontrold publisher amqp channel", err)
 	}
 
 	return nil

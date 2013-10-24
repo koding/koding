@@ -37,20 +37,17 @@ var event = require("./lib/event");
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 /**
- * class ScrollBar
- *
  * A set of methods for setting and retrieving the editor's scrollbar. 
- *
+ * @class ScrollBar
  **/
 
 /**
- * new ScrollBar(parent)
- * - parent (DOMElement): A DOM element 
- *
  * Creates a new `ScrollBar`. `parent` is the owner of the scroll bar.
+ * @param {DOMElement} parent A DOM element 
  *
+ * @constructor
  **/
-var ScrollBar = function(parent) {
+var ScrollBarV = function(parent, renderer) {
     this.element = dom.createElement("div");
     this.element.className = "ace_scrollbar";
 
@@ -60,77 +57,142 @@ var ScrollBar = function(parent) {
 
     parent.appendChild(this.element);
 
-    // in OSX lion the scrollbars appear to have no width. In this case resize
-    // the to show the scrollbar but still pretend that the scrollbar has a width
+    // in OSX lion the scrollbars appear to have no width. In this case resize the
+    // element to show the scrollbar but still pretend that the scrollbar has a width
     // of 0px
     // in Firefox 6+ scrollbar is hidden if element has the same width as scrollbar
     // make element a little bit wider to retain scrollbar when page is zoomed 
+    renderer.$scrollbarWidth = 
     this.width = dom.scrollbarWidth(parent.ownerDocument);
+    this.fullWidth = this.width;
     this.element.style.width = (this.width || 15) + 5 + "px";
+    this.setVisible(false);
+    this.element.style.overflowY = "scroll";
+    
+    event.addListener(this.element, "scroll", this.onScrollV.bind(this));
+};
 
-    event.addListener(this.element, "scroll", this.onScroll.bind(this));
+var ScrollBarH = function(parent, renderer) {
+    this.element = dom.createElement("div");
+    this.element.className = "ace_scrollbar-h";
+
+    this.inner = dom.createElement("div");
+    this.inner.className = "ace_scrollbar-inner";
+    this.element.appendChild(this.inner);
+
+    parent.appendChild(this.element);
+
+    // in OSX lion the scrollbars appear to have no width. In this case resize the
+    // element to show the scrollbar but still pretend that the scrollbar has a width
+    // of 0px
+    // in Firefox 6+ scrollbar is hidden if element has the same width as scrollbar
+    // make element a little bit wider to retain scrollbar when page is zoomed 
+    this.height = renderer.$scrollbarWidth;
+    this.fullHeight = this.height;
+    this.element.style.height = (this.height || 15) + 5 + "px";
+    this.setVisible(false);
+    this.element.style.overflowX = "scroll";
+
+    event.addListener(this.element, "scroll", this.onScrollH.bind(this));
 };
 
 (function() {
     oop.implement(this, EventEmitter);
 
+    this.setVisible = function(show) {
+        if (show) {
+            this.element.style.display = "";
+            if (this.fullWidth)
+                this.width = this.fullWidth;
+            if (this.fullHeight)
+                this.height = this.fullHeight;
+        } else {
+            this.element.style.display = "none";
+            this.height = this.width = 0;
+        }
+    };
+    
     /**
-     * ScrollBar@scroll(e)
-     * - e (Object): Contains one property, `"data"`, which indicates the current scroll top position
-     *
      * Emitted when the scroll bar, well, scrolls.
-     *
+     * @event scroll
+     * @param {Object} e Contains one property, `"data"`, which indicates the current scroll top position
      **/
-    this.onScroll = function() {
-        this._emit("scroll", {data: this.element.scrollTop});
+    this.onScrollV = function() {
+        if (!this.skipEvent) {
+            this.scrollTop = this.element.scrollTop;
+            this._emit("scroll", {data: this.scrollTop});
+        }
+        this.skipEvent = false;
+    };
+    this.onScrollH = function() {
+        if (!this.skipEvent) {
+            this.scrollLeft = this.element.scrollLeft;
+            this._emit("scroll", {data: this.scrollLeft});
+        }
+        this.skipEvent = false;
     };
 
     /**
-     * ScrollBar.getWidth() -> Number
-     *
      * Returns the width of the scroll bar.
-     *
+     * @returns {Number}
      **/
     this.getWidth = function() {
         return this.width;
     };
 
+    this.getHeight = function() {
+        return this.height;
+    };
+
     /**
-     * ScrollBar.setHeight(height)
-     * - height (Number): The new height
-     *
      * Sets the height of the scroll bar, in pixels.
-     *
+     * @param {Number} height The new height
      **/
     this.setHeight = function(height) {
         this.element.style.height = height + "px";
     };
+    
+    this.setWidth = function(width) {
+        this.element.style.width = width + "px";
+    };
 
     /**
-     * ScrollBar.setInnerHeight(height)
-     * - height (Number): The new inner height
-     *
      * Sets the inner height of the scroll bar, in pixels.
-     *
+     * @param {Number} height The new inner height
      **/
     this.setInnerHeight = function(height) {
         this.inner.style.height = height + "px";
     };
-
-    /**
-     * ScrollBar.setScrollTop(scrollTop)
-     * - scrollTop (Number): The new scroll top
-     *
-     * Sets the scroll top of the scroll bar.
-     *
-     **/
-    // TODO: on chrome 17+ for small zoom levels after calling this function
-    // this.element.scrollTop != scrollTop which makes page to scroll up.
-    this.setScrollTop = function(scrollTop) {
-        this.element.scrollTop = scrollTop;
+    
+    this.setInnerWidth = function(width) {
+        this.inner.style.width = width + "px";
     };
 
-}).call(ScrollBar.prototype);
+    /**
+     * Sets the scroll top of the scroll bar.
+     * @param {Number} scrollTop The new scroll top
+     **/
+    // on chrome 17+ for small zoom levels after calling this function
+    // this.element.scrollTop != scrollTop which makes page to scroll up.
+    this.setScrollTop = function(scrollTop) {
+        if (this.scrollTop != scrollTop) {
+            this.skipEvent = true;
+            this.scrollTop = this.element.scrollTop = scrollTop;
+        }
+    };
+    this.setScrollLeft = function(scrollLeft) {
+        if (this.scrollLeft != scrollLeft) {
+            this.skipEvent = true;
+            this.scrollLeft = this.element.scrollLeft = scrollLeft;
+        }
+    };
 
-exports.ScrollBar = ScrollBar;
+}).call(ScrollBarV.prototype);
+ScrollBarH.prototype = ScrollBarV.prototype;
+
+
+
+exports.ScrollBar = ScrollBarV; // backward compatibility
+exports.ScrollBarV = ScrollBarV;
+exports.ScrollBarH = ScrollBarH;
 });

@@ -11,31 +11,58 @@ class Workspace extends JView
 
     @panels                = []
     @lastCreatedPanelIndex = 0
+    @currentPanelIndex     = 0
+
+    @on "PanelCreated", =>
+      @doInternalResize()
+      KD.getSingleton("windowController").notifyWindowResizeListeners()
+
+    @init()
+
+  init: -> @createPanel()
 
   createPanel: (callback = noop) ->
     panelOptions          = @getOptions().panels[@lastCreatedPanelIndex]
     panelOptions.delegate = @
-    newPanel              = new Panel panelOptions
+    panelClass            = @getOptions().panelClass or Panel
+    newPanel              = new panelClass panelOptions
 
     @container.addSubView newPanel
     @panels.push newPanel
     @activePanel = newPanel
 
     callback()
-    @emit "PanelCreated"
+    @emit "PanelCreated", newPanel
 
   next: ->
-    @lastCreatedPanelIndex++
-    @createPanel =>
-      @panels[@lastCreatedPanelIndex - 1].setClass "hidden"
+    if @lastCreatedPanelIndex is @currentPanelIndex
+      @lastCreatedPanelIndex++
+      @createPanel =>
+        @getPanelByIndex(@lastCreatedPanelIndex - 1).setClass "hidden"
+        @currentPanelIndex = @lastCreatedPanelIndex
+    else
+      @getPanelByIndex(@currentPanelIndex).setClass "hidden"
+      @getPanelByIndex(++@currentPanelIndex).unsetClass "hidden"
 
   prev: ->
+    @getPanelByIndex(@currentPanelIndex).setClass "hidden"
+    @getPanelByIndex(--@currentPanelIndex).unsetClass "hidden"
+
+  getActivePanel: ->
+    return @panels[@lastCreatedPanelIndex]
+
+  getPanelByIndex: (index) ->
+    return @panels[index] or null
 
   _windowDidResize: ->
     return unless @activePanel
+    @doInternalResize()
     pane.emit "PaneResized" for pane in @activePanel.panes
 
-  ready: -> @createPanel()
+  doInternalResize: ->
+    panel               = @getActivePanel()
+    {header, container} = panel
+    container.setHeight panel.getHeight() - header.getHeight()  if header
 
   viewAppended: ->
     super

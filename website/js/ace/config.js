@@ -32,6 +32,9 @@ define(function(require, exports, module) {
 "no use strict";
 
 var lang = require("./lib/lang");
+var oop = require("./lib/oop");
+var net = require("./lib/net");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var global = (function() {
     return this;
@@ -65,28 +68,82 @@ exports.all = function() {
     return lang.copyObject(options);
 };
 
+// module loading
+oop.implement(exports, EventEmitter);
+
 exports.moduleUrl = function(name, component) {
     if (options.$moduleUrls[name])
         return options.$moduleUrls[name];
 
     var parts = name.split("/");
     component = component || parts[parts.length - 2] || "";
-    var base = parts[parts.length - 1].replace(component, "").replace(/(^[\-_])|([\-_]$)/, "");
+    
+    // todo make this configurable or get rid of '-'
+    var sep = component == "snippets" ? "/" : "-";
+    var base = parts[parts.length - 1];    
+    if (sep == "-") {
+        var re = new RegExp("^" + component + "[\-_]|[\-_]" + component + "$", "g");
+        base = base.replace(re, "");
+    }
 
-    if (!base && parts.length > 1)
+    if ((!base || base == component) && parts.length > 1)
         base = parts[parts.length - 2];
     var path = options[component + "Path"];
-    if (path == null)
+    if (path == null) {
         path = options.basePath;
+    } else if (sep == "/") {
+        component = sep = "";
+    }
     if (path && path.slice(-1) != "/")
         path += "/";
-    return path + component + "-" + base + this.get("suffix");
+    return path + component + sep + base + this.get("suffix");
 };
 
 exports.setModuleUrl = function(name, subst) {
     return options.$moduleUrls[name] = subst;
 };
 
+exports.$loading = {};
+exports.loadModule = function(moduleName, onLoad) {
+    var module, moduleType;
+    if (Array.isArray(moduleName)) {
+        moduleType = moduleName[0];
+        moduleName = moduleName[1];
+    }
+
+    try {
+        module = require(moduleName);
+    } catch (e) {};
+    // require(moduleName) can return empty object if called after require([moduleName], callback)
+    if (module && !exports.$loading[moduleName])
+        return onLoad && onLoad(module);
+
+    if (!exports.$loading[moduleName])
+        exports.$loading[moduleName] = [];
+
+    exports.$loading[moduleName].push(onLoad);
+
+    if (exports.$loading[moduleName].length > 1)
+        return;
+
+    var afterLoad = function() {
+        require([moduleName], function(module) {
+            exports._emit("load.module", {name: moduleName, module: module});
+            var listeners = exports.$loading[moduleName];
+            exports.$loading[moduleName] = null;
+            listeners.forEach(function(onLoad) {
+                onLoad && onLoad(module);
+            });
+        });
+    };
+
+    if (!exports.get("packaged"))
+        return afterLoad();
+    net.loadScript(exports.moduleUrl(moduleName, moduleType), afterLoad);
+};
+
+
+// initialization
 exports.init = function() {
     options.packaged = require.packaged || module.packaged || (global.define && define.packaged);
 
@@ -122,6 +179,7 @@ exports.init = function() {
         scriptOptions.packaged = true;
     }
 
+    scriptOptions.basePath = scriptOptions.base;
     scriptOptions.workerPath = scriptOptions.workerPath || scriptOptions.base;
     scriptOptions.modePath = scriptOptions.modePath || scriptOptions.base;
     scriptOptions.themePath = scriptOptions.themePath || scriptOptions.base;
@@ -135,5 +193,97 @@ exports.init = function() {
 function deHyphenate(str) {
     return str.replace(/-(.)/g, function(m, m1) { return m1.toUpperCase(); });
 }
+
+var optionsProvider = {
+    setOptions: function(optList) {
+        Object.keys(optList).forEach(function(key) {
+            this.setOption(key, optList[key]);
+        }, this);
+    },
+    getOptions: function(optionNames) {
+        var result = {};
+        if (!optionNames) {
+            optionNames = Object.keys(this.$options);
+        } else if (!Array.isArray(optionNames)) {
+            result = optionNames;
+            optionNames = Object.keys(result);
+        }
+        optionNames.forEach(function(key) {
+            result[key] = this.getOption(key);
+        }, this);
+        return result;
+    },
+    setOption: function(name, value) {
+        if (this["$" + name] === value)
+            return;
+        var opt = this.$options[name];
+        if (!opt)
+            return undefined;
+        if (opt.forwardTo)
+            return this[opt.forwardTo] && this[opt.forwardTo].setOption(name, value);
+
+        if (!opt.handlesSet)
+            this["$" + name] = value;
+        if (opt && opt.set)
+            opt.set.call(this, value);
+    },
+    getOption: function(name) {
+        var opt = this.$options[name];
+        if (!opt)
+            return undefined;
+        if (opt.forwardTo)
+            return this[opt.forwardTo] && this[opt.forwardTo].getOption(name);
+        return opt && opt.get ? opt.get.call(this) : this["$" + name];
+    }
+};
+
+var defaultOptions = {};
+/*
+ * option {name, value, initialValue, setterName, set, get }
+ */
+exports.defineOptions = function(obj, path, options) {
+    if (!obj.$options)
+        defaultOptions[path] = obj.$options = {};
+
+    Object.keys(options).forEach(function(key) {
+        var opt = options[key];
+        if (typeof opt == "string")
+            opt = {forwardTo: opt};
+
+        opt.name || (opt.name = key);
+        obj.$options[opt.name] = opt;
+        if ("initialValue" in opt)
+            obj["$" + opt.name] = opt.initialValue;
+    });
+
+    // implement option provider interface
+    oop.implement(obj, optionsProvider);
+
+    return this;
+};
+
+exports.resetOptions = function(obj) {
+    Object.keys(obj.$options).forEach(function(key) {
+        var opt = obj.$options[key];
+        if ("value" in opt)
+            obj.setOption(key, opt.value);
+    });
+};
+
+exports.setDefaultValue = function(path, name, value) {
+    var opts = defaultOptions[path] || (defaultOptions[path] = {});
+    if (opts[name]) {
+        if (opts.forwardTo)
+            exports.setDefaultValue(opts.forwardTo, name, value)
+        else
+            opts[name].value = value;
+    }
+};
+
+exports.setDefaultValues = function(path, optionHash) {
+    Object.keys(optionHash).forEach(function(key) {
+        exports.setDefaultValue(path, key, optionHash[key]);
+    });
+};
 
 });

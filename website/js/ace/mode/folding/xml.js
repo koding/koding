@@ -68,7 +68,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         var value = "";
         for (var i = 0; i < tokens.length; i++) {
             var token = tokens[i];
-            if (token.type.indexOf("meta.tag") === 0)
+            if (token.type.lastIndexOf("meta.tag", 0) === 0)
                 value += token.value;
             else
                 value += lang.stringRepeat(" ", token.value.length);
@@ -80,9 +80,8 @@ oop.inherits(FoldMode, BaseFoldMode);
     this.tagRe = /^(\s*)(<?(\/?)([-_a-zA-Z0-9:!]*)\s*(\/?)>?)/;
     this._parseTag = function(tag) {
         
-        var match = this.tagRe.exec(tag);
-        var column = this.tagRe.lastIndex || 0;
-        this.tagRe.lastIndex = 0;
+        var match = tag.match(this.tagRe);
+        var column = 0;
 
         return {
             value: tag,
@@ -106,7 +105,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         var start;
         
         do {
-            if (token.type.indexOf("meta.tag") === 0) {
+            if (token.type.lastIndexOf("meta.tag", 0) === 0) {
                 if (!start) {
                     var start = {
                         row: iterator.getCurrentTokenRow(),
@@ -139,7 +138,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         var end;
 
         do {
-            if (token.type.indexOf("meta.tag") === 0) {
+            if (token.type.lastIndexOf("meta.tag", 0) === 0) {
                 if (!end) {
                     end = {
                         row: iterator.getCurrentTokenRow(),

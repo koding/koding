@@ -37,7 +37,7 @@ koding.connect ->
       incService serviceKey, -1
 
 fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
-  if 'broker' is serviceGenericName and not KONFIG.broker.useKontrold
+  if 'broker' is serviceGenericName and not KONFIG.runKontrol
     process.nextTick -> callback null,
       if KONFIG.broker.webPort?
       then "#{ KONFIG.broker.webHostname }:#{ KONFIG.broker.webPort }"

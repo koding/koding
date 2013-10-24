@@ -64,7 +64,7 @@ class Status extends KDController
 
   eachKite: (callback) ->
     kiteChannels = KD.getSingleton("kiteController").channels
-    for channelName, channel of kiteChannels
+    for own channelName, channel of kiteChannels
       callback(channel)
 
   internetUp: ->

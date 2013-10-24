@@ -35,7 +35,7 @@ var oop = require("../lib/oop");
 var Mirror = require("../worker/mirror").Mirror;
 var JSONParseTreeHandler  = require("./xquery/JSONParseTreeHandler").JSONParseTreeHandler;
 var XQueryParser  = require("./xquery/XQueryParser").XQueryParser;
-var SyntaxHighlighter = require("../mode/xquery/visitors/SyntaxHighlighter").SyntaxHighlighter;
+var SemanticHighlighter = require("./xquery/visitors/SemanticHighlighter").SemanticHighlighter;
 
 var XQueryWorker = exports.XQueryWorker = function(sender) {
     Mirror.call(this, sender);
@@ -49,28 +49,32 @@ oop.inherits(XQueryWorker, Mirror);
   this.onUpdate = function() {
     this.sender.emit("start");
     var value = this.doc.getValue();    
-    var h = new JSONParseTreeHandler();
+    var h = new JSONParseTreeHandler(value);
     var parser = new XQueryParser(value, h);
     try {
       parser.parse_XQuery();
-      var ast = h.getParseTree();
       this.sender.emit("ok");
-      var highlighter = new SyntaxHighlighter(value, ast);
+      var ast = h.getParseTree();
+      var highlighter = new SemanticHighlighter(ast, value);
       var tokens = highlighter.getTokens();
-      this.sender.emit("highlight", tokens);
+      this.sender.emit("highlight", { tokens: tokens, lines: highlighter.lines });
     } catch(e) {
-      var prefix = value.substring(0, e.getBegin());
-      var line = prefix.split("\n").length;
-      var column = e.getBegin() - prefix.lastIndexOf("\n");
-      var message = parser.getErrorMessage(e);
-      this.sender.emit("error", {
-        row: line - 1,
-        column: column,
-        text: message,
-        type: "error"
-      });
+      if(e instanceof parser.ParseException) {
+        var prefix = value.substring(0, e.getBegin());
+        var line = prefix.split("\n").length;
+        var column = e.getBegin() - prefix.lastIndexOf("\n");
+        var message = parser.getErrorMessage(e);
+        this.sender.emit("error", {
+          row: line - 1,
+          column: column,
+          text: message,
+          type: "error"
+        });
+      } else {
+        throw e;
+      }
     }
-  };
+ };
     
 }).call(XQueryWorker.prototype);
 

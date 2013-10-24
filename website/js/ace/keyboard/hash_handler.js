@@ -31,10 +31,11 @@
 define(function(require, exports, module) {
 "use strict";
 
-var keyUtil  = require("../lib/keys");
+var keyUtil = require("../lib/keys");
+var useragent = require("../lib/useragent");
 
 function HashHandler(config, platform) {
-    this.platform = platform;
+    this.platform = platform || (useragent.isMac ? "mac" : "win");
     this.commands = {};
     this.commmandKeyBinding = {};
 
@@ -73,7 +74,7 @@ function HashHandler(config, platform) {
         if(!key)
             return;
         if (typeof command == "function") {
-            this.addCommand({exec: command, bindKey: key, name: key});
+            this.addCommand({exec: command, bindKey: key, name: command.name || key});
             return;
         }
 
@@ -121,10 +122,14 @@ function HashHandler(config, platform) {
         var key = typeof binding == "string" ? binding: binding[this.platform];
         this.bindKey(key, command);
     };
-	
-	// accepts keys in the form ctrl+Enter or ctrl-Enter
-	// keys without modifiers or shift only 
+
+    // accepts keys in the form ctrl+Enter or ctrl-Enter
+    // keys without modifiers or shift only 
     this.parseKeys = function(keys) {
+        // todo support keychains 
+        if (keys.indexOf(" ") != -1)
+            keys = keys.split(/\s+/).pop();
+
         var parts = keys.toLowerCase().split(/[\-\+]([\-\+])?/).filter(function(x){return x});
         var key = parts.pop();
 
@@ -139,8 +144,11 @@ function HashHandler(config, platform) {
         var hashId = 0;
         for (var i = parts.length; i--;) {
             var modifier = keyUtil.KEY_MODS[parts[i]];
-            if (modifier == null)
-                throw "invalid modifier " + parts[i] + " in " + keys;
+            if (modifier == null) {
+                if (typeof console != "undefined")
+                console.error("invalid modifier " + parts[i] + " in " + keys);
+                return false;
+            }
             hashId |= modifier;
         }
         return {key: key, hashId: hashId};

@@ -32,6 +32,7 @@ define(function(require, exports, module) {
 
 "never use strict";
 
+var lang = require("../../lib/lang");
 var util = require("./maps/util");
 var motions = require("./maps/motions");
 var operators = require("./maps/operators");
@@ -82,6 +83,18 @@ var actions = exports.actions = {
                 case "b":
                     editor.renderer.alignCursor(null, 1);
                     break;
+                case "c":
+                    editor.session.onFoldWidgetClick(range.start.row, {domEvent:{target :{}}});
+                    break;
+                case "o":
+                    editor.session.onFoldWidgetClick(range.start.row, {domEvent:{target :{}}});
+                    break;
+                case "C":
+                    editor.session.foldAll();
+                    break;
+                case "O":
+                    editor.session.unfold();
+                    break;
             }
         }
     },
@@ -89,6 +102,8 @@ var actions = exports.actions = {
         param: true,
         fn: function(editor, range, count, param) {
             if (param && param.length) {
+                if (param.length > 1)
+                    param = param == "return" ? "\n" : param == "tab" ? "\t" : param;
                 repeat(function() { editor.insert(param); }, count || 1);
                 editor.navigateLeft();
             }
@@ -131,6 +146,18 @@ var actions = exports.actions = {
             ensureScrollMargin(editor);
             var r = editor.selection.getRange();
             editor.selection.setSelectionRange(r, true);
+        }
+    },
+    "m": {
+        param: true,
+        fn: function(editor, range, count, param) {
+            var s =  editor.session;
+            var markers = s.vimMarkers || (s.vimMarkers = {});
+            var c = editor.getCursorPosition();
+            if (!markers[param]) {
+                markers[param] = editor.session.doc.createAnchor(c);
+            }
+            markers[param].setPosition(c.row, c.column, true);
         }
     },
     "n": {
@@ -195,13 +222,14 @@ var actions = exports.actions = {
             editor.setOverwrite(false);
             if (defaultReg.isLine) {
                 var pos = editor.getCursorPosition();
-                var lines = defaultReg.text.split("\n");
-                editor.session.getDocument().insertLines(pos.row + 1, lines);
+                pos.column = editor.session.getLine(pos.row).length;
+                var text = lang.stringRepeat("\n" + defaultReg.text, count || 1);
+                editor.session.insert(pos, text);
                 editor.moveCursorTo(pos.row + 1, 0);
             }
             else {
                 editor.navigateRight();
-                editor.insert(defaultReg.text);
+                editor.insert(lang.stringRepeat(defaultReg.text, count || 1));
                 editor.navigateLeft();
             }
             editor.setOverwrite(true);
@@ -215,12 +243,13 @@ var actions = exports.actions = {
 
             if (defaultReg.isLine) {
                 var pos = editor.getCursorPosition();
-                var lines = defaultReg.text.split("\n");
-                editor.session.getDocument().insertLines(pos.row, lines);
-                editor.moveCursorTo(pos.row, 0);
+                pos.column = 0;
+                var text = lang.stringRepeat(defaultReg.text + "\n", count || 1);
+                editor.session.insert(pos, text);
+                editor.moveCursorToPosition(pos);
             }
             else {
-                editor.insert(defaultReg.text);
+                editor.insert(lang.stringRepeat(defaultReg.text, count || 1));
             }
             editor.setOverwrite(true);
             editor.selection.clearSelection();
@@ -268,17 +297,23 @@ var actions = exports.actions = {
     },
     ":": {
         fn: function(editor, range, count, param) {
-            // not implemented
+            var val = ":";
+            if (count > 1)
+                val = ".,.+" + count + val;
+            if (editor.showCommandLine)
+                editor.showCommandLine(val);
         }
     },
     "/": {
         fn: function(editor, range, count, param) {
-            // not implemented
+            if (editor.showCommandLine)
+                editor.showCommandLine("/");
         }
     },
     "?": {
         fn: function(editor, range, count, param) {
-            // not implemented
+            if (editor.showCommandLine)
+                editor.showCommandLine("?");
         }
     },
     ".": {
@@ -287,6 +322,16 @@ var actions = exports.actions = {
             var previous = inputBuffer.previous;
             if (previous) // If there is a previous action
                 inputBuffer.exec(editor, previous.action, previous.param);
+        }
+    },
+    "ctrl-x": {
+        fn: function(editor, range, count, param) {
+            editor.modifyNumber(-(count || 1));
+        }
+    },
+    "ctrl-a": {
+        fn: function(editor, range, count, param) {
+            editor.modifyNumber(count || 1);
         }
     }
 };
@@ -305,14 +350,19 @@ var inputBuffer = exports.inputBuffer = {
     lastInsertCommands: [],
 
     push: function(editor, ch, keyId) {
+        var status = this.status;
+        var isKeyHandled = true;
         this.idle = false;
         var wObj = this.waitingForParam;
+        if (/^numpad\d+$/i.test(ch))
+            ch = ch.substr(6);
+            
         if (wObj) {
             this.exec(editor, wObj, ch);
         }
         // If input is a number (that doesn't start with 0)
         else if (!(ch === "0" && !this.currentCount.length) &&
-            (ch.match(/^\d+$/) && this.isAccepting(NUMBER))) {
+            (/^\d+$/.test(ch) && this.isAccepting(NUMBER))) {
             // Assuming that ch is always of type String, and not Number
             this.currentCount += ch;
             this.currentCmd = NUMBER;
@@ -366,9 +416,11 @@ var inputBuffer = exports.inputBuffer = {
                 this.idle = false;
         }
         else if (this.operator) {
+            this.operator.count = this.getCount();
             this.exec(editor, { operator: this.operator }, ch);
         }
         else {
+            isKeyHandled = ch.length == 1;
             this.reset();
         }
         
@@ -378,10 +430,10 @@ var inputBuffer = exports.inputBuffer = {
             this.status = this.currentCount;
         } else if (this.status) {
             this.status = "";
-        } else {
-            return;
         }
-        editor._emit("changeStatus");
+        if (this.status != status)
+            editor._emit("changeStatus");
+        return isKeyHandled;
     },
 
     waitForParam: function(cmd) {

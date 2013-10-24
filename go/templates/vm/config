@@ -5,7 +5,7 @@ lxc.network.flags = up
 lxc.network.hwaddr = {{.MAC}}
 lxc.network.ipv4 = {{.IP}}/9
 lxc.network.ipv4.gateway = auto
-lxc.network.mtu = 1476
+lxc.network.mtu = 1450
 lxc.rootfs = /var/lib/lxc/{{.}}/rootfs
 lxc.utsname = {{.HostnameAlias}}
 
@@ -25,8 +25,19 @@ lxc.id_map = g 0 500000 500000
 lxc.id_map = g 1000000 1000000 49000000
 
 lxc.cgroup.cpu.shares = 1000
-#lxc.cgroup.memory.limit_in_bytes = 60M
-#lxc.cgroup.memory.memsw.limit_in_bytes = 1G
+
+# initial limit, will be changed by limiter
+lxc.cgroup.memory.limit_in_bytes = 100M
+
+{{if swapAccountingEnabled}}
+# initial limit, will be changed by limiter
+lxc.cgroup.memory.memsw.limit_in_bytes = 1G
+{{end}}
+
+{{if kernelMemoryAccountingEnabled}}
+# fixed limit
+lxc.cgroup.memory.kmem.limit_in_bytes = 100M
+{{end}}
 
 # Deny all access to devices
 lxc.cgroup.devices.deny = a

@@ -1,20 +1,22 @@
 "no use strict";
+;(function(window) {
+if (typeof window.window != "undefined" && window.document) {
+    return;
+}
 
-var console = {
-    log: function() {
-        var msgs = Array.prototype.slice.call(arguments, 0);
-        postMessage({type: "log", data: msgs});
-    },
-    error: function() {
-        var msgs = Array.prototype.slice.call(arguments, 0);
-        postMessage({type: "log", data: msgs});
-    }
+window.console = function() {
+    var msgs = Array.prototype.slice.call(arguments, 0);
+    postMessage({type: "log", data: msgs});
 };
-var window = {
-    console: console
-};
+window.console.error =
+window.console.warn = 
+window.console.log =
+window.console.trace = window.console;
 
-var normalizeModule = function(parentId, moduleName) {
+window.window = window;
+window.ace = window;
+
+window.normalizeModule = function(parentId, moduleName) {
     // normalize plugin requires
     if (moduleName.indexOf("!") !== -1) {
         var chunks = moduleName.split("!");
@@ -23,23 +25,27 @@ var normalizeModule = function(parentId, moduleName) {
     // normalize relative requires
     if (moduleName.charAt(0) == ".") {
         var base = parentId.split("/").slice(0, -1).join("/");
-        var moduleName = base + "/" + moduleName;
+        moduleName = base + "/" + moduleName;
         
         while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
             var previous = moduleName;
-            var moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
+            moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
         }
     }
     
     return moduleName;
 };
 
-var require = function(parentId, id) {
+window.require = function(parentId, id) {
+    if (!id) {
+        id = parentId
+        parentId = null;
+    }
     if (!id.charAt)
         throw new Error("worker.js require() accepts only (parentId, id) as arguments");
 
-    var id = normalizeModule(parentId, id);
-    
+    id = normalizeModule(parentId, id);
+
     var module = require.modules[id];
     if (module) {
         if (!module.initialized) {
@@ -55,13 +61,13 @@ var require = function(parentId, id) {
     
     require.id = id;
     importScripts(path);
-    return require(parentId, id);    
+    return require(parentId, id);
 };
 
 require.modules = {};
 require.tlns = {};
 
-var define = function(id, deps, factory) {
+window.define = function(id, deps, factory) {
     if (arguments.length == 2) {
         factory = deps;
         if (typeof id != "string") {
@@ -81,10 +87,9 @@ var define = function(id, deps, factory) {
     };
 
     require.modules[id] = {
+        exports: {},
         factory: function() {
-            var module = {
-                exports: {}
-            };
+            var module = this;
             var returnExports = factory(req, module.exports, module);
             if (returnExports)
                 module.exports = returnExports;
@@ -93,14 +98,14 @@ var define = function(id, deps, factory) {
     };
 };
 
-function initBaseUrls(topLevelNamespaces) {
+window.initBaseUrls  = function initBaseUrls(topLevelNamespaces) {
     require.tlns = topLevelNamespaces;
 }
 
-function initSender() {
+window.initSender = function initSender() {
 
-    var EventEmitter = require(null, "ace/lib/event_emitter").EventEmitter;
-    var oop = require(null, "ace/lib/oop");
+    var EventEmitter = require("ace/lib/event_emitter").EventEmitter;
+    var oop = require("ace/lib/oop");
     
     var Sender = function() {};
     
@@ -129,10 +134,10 @@ function initSender() {
     return new Sender();
 }
 
-var main;
-var sender;
+window.main = null;
+window.sender = null;
 
-onmessage = function(e) {
+window.onmessage = function(e) {
     var msg = e.data;
     if (msg.command) {
         if (main[msg.command])
@@ -142,12 +147,13 @@ onmessage = function(e) {
     }
     else if (msg.init) {        
         initBaseUrls(msg.tlns);
-        require(null, "ace/lib/fixoldbrowsers");
+        require("ace/lib/es5-shim");
         sender = initSender();
-        var clazz = require(null, msg.module)[msg.classname];
+        var clazz = require(msg.module)[msg.classname];
         main = new clazz(sender);
     } 
     else if (msg.event && sender) {
         sender._emit(msg.event, msg.data);
     }
 };
+})(this);

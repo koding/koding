@@ -408,8 +408,7 @@ var PgsqlHighlightRules = function() {
     }, "identifier", true);
 
 
-    var sqlRules = [
-        {
+    var sqlRules = [{
             token : "string", // single line string -- assume dollar strings if multi-line for now
             regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
         }, {
@@ -420,36 +419,34 @@ var PgsqlHighlightRules = function() {
             regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?\\b"
         }, {
             token : keywordMapper,
-              regex : "[a-zA-Z_][a-zA-Z0-9_$]*\\b" // TODO - Unicode in identifiers
-          }, {
-              token : "keyword.operator",
-              regex : "!|!!|!~|!~\\*|!~~|!~~\\*|#|##|#<|#<=|#<>|#=|#>|#>=|%|\\&|\\&\\&|\\&<|\\&<\\||\\&>|\\*|\\+|" +
-                      "\\-|/|<|<#>|<\\->|<<|<<=|<<\\||<=|<>|<\\?>|<@|<\\^|=|>|>=|>>|>>=|>\\^|\\?#|\\?\\-|\\?\\-\\||" +
-                      "\\?\\||\\?\\|\\||@|@\\-@|@>|@@|@@@|\\^|\\||\\|\\&>|\\|/|\\|>>|\\|\\||\\|\\|/|~|~\\*|~<=~|~<~|" +
-                      "~=|~>=~|~>~|~~|~~\\*"
-          }, {
-              token : "paren.lparen",
-              regex : "[\\(]"
-          }, {
-              token : "paren.rparen",
-              regex : "[\\)]"
-          }, {
-              token : "text",
-              regex : "\\s+"
-          }
+            regex : "[a-zA-Z_][a-zA-Z0-9_$]*\\b" // TODO - Unicode in identifiers
+        }, {
+            token : "keyword.operator",
+            regex : "!|!!|!~|!~\\*|!~~|!~~\\*|#|##|#<|#<=|#<>|#=|#>|#>=|%|\\&|\\&\\&|\\&<|\\&<\\||\\&>|\\*|\\+|" +
+                    "\\-|/|<|<#>|<\\->|<<|<<=|<<\\||<=|<>|<\\?>|<@|<\\^|=|>|>=|>>|>>=|>\\^|\\?#|\\?\\-|\\?\\-\\||" +
+                    "\\?\\||\\?\\|\\||@|@\\-@|@>|@@|@@@|\\^|\\||\\|\\&>|\\|/|\\|>>|\\|\\||\\|\\|/|~|~\\*|~<=~|~<~|" +
+                    "~=|~>=~|~>~|~~|~~\\*"
+        }, {
+            token : "paren.lparen",
+            regex : "[\\(]"
+        }, {
+            token : "paren.rparen",
+            regex : "[\\)]"
+        }, {
+            token : "text",
+            regex : "\\s+"
+        }
     ];
 
 
     this.$rules = {
-        "start" : [
-            {
+        "start" : [{
                 token : "comment",
                 regex : "--.*$"
             },
             DocCommentHighlightRules.getStartRule("doc-start"),
             {
                 token : "comment", // multi-line comment
-                merge : true,
                 regex : "\\/\\*",
                 next : "comment"
             },{
@@ -462,13 +459,11 @@ var PgsqlHighlightRules = function() {
             }
         ],
 
-        "statement" : [
-            {
+        "statement" : [{
                 token : "comment",
                 regex : "--.*$"
             }, {
                 token : "comment", // multi-line comment
-                merge : true,
                 regex : "\\/\\*",
                 next : "commentStatement"
             }, {
@@ -494,13 +489,11 @@ var PgsqlHighlightRules = function() {
             }
         ].concat(sqlRules),
 
-        "dollarSql" : [
-            {
+        "dollarSql" : [{
                 token : "comment",
                 regex : "--.*$"
             }, {
                 token : "comment", // multi-line comment
-                merge : true,
                 regex : "\\/\\*",
                 next : "commentDollarSql"
             }, {
@@ -514,62 +507,52 @@ var PgsqlHighlightRules = function() {
             }
         ].concat(sqlRules),
 
-        "comment" : [
-            {
+        "comment" : [{
                 token : "comment", // closing comment
                 regex : ".*?\\*\\/",
                 next : "start"
             }, {
                 token : "comment", // comment spanning whole line
-                merge : true,
                 regex : ".+"
             }
         ],
 
-        "commentStatement" : [
-            {
+        "commentStatement" : [{
                 token : "comment", // closing comment
                 regex : ".*?\\*\\/",
                 next : "statement"
             }, {
                 token : "comment", // comment spanning whole line
-                merge : true,
                 regex : ".+"
             }
         ],
 
-        "commentDollarSql" : [
-            {
+        "commentDollarSql" : [{
                 token : "comment", // closing comment
                 regex : ".*?\\*\\/",
                 next : "dollarSql"
             }, {
                 token : "comment", // comment spanning whole line
-                merge : true,
                 regex : ".+"
             }
         ],
 
-        "dollarStatementString" : [
-            {
+        "dollarStatementString" : [{
                 token : "string", // closing dollarstring
                 regex : ".*?\\$[\\w_0-9]*\\$",
                 next : "statement"
             }, {
                 token : "string", // dollarstring spanning whole line
-                merge : true,
                 regex : ".+"
             }
         ],
 
-        "dollarSqlString" : [
-            {
+        "dollarSqlString" : [{
                 token : "string", // closing dollarstring
                 regex : ".*?\\$[\\w_0-9]*\\$",
                 next : "dollarSql"
             }, {
                 token : "string", // dollarstring spanning whole line
-                merge : true,
                 regex : ".+"
             }
         ]

@@ -10,7 +10,7 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
     @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(options, callback)->
+  run:(options, callback = noop)->
     [callback, options] = [options, callback]  unless callback
     options ?= {}
     if "string" is typeof options
@@ -43,6 +43,9 @@ class VirtualizationController extends KDController
             vmName   : vm
           , cb
         else unless command is 'vm.info' then @info vm
+
+  resizeDisk:(vm, callback)->
+    @_runWrapper 'vm.resizeDisk', vm, callback
 
   start:(vm, callback)->
     @_runWrapper 'vm.start', vm, callback
@@ -81,8 +84,8 @@ class VirtualizationController extends KDController
             modal = new VmDangerModalView
               name     : vmInfo.hostnameAlias
               title    : "Destroy '#{hostnameAlias}'"
-              action   : 'Destroy my VM'
-              callback : (callback) =>
+              action   : "Destroy my VM"
+              callback : =>
                 deleteVM vm, callback
                 new KDNotificationView title:'Successfully destroyed!'
                 modal.destroy()
@@ -112,12 +115,12 @@ class VirtualizationController extends KDController
     if region = @vmRegions[vmName]
       return @utils.defer -> callback region
 
-    KD.remote.api.JVM.fetchVmInfo vmName, (err, info)=>
-      if err
-        warn err
-        callback 'aws' # This by default 'aws' please change it if needed! ~ GG
+    KD.remote.api.JVM.fetchVmRegion vmName, (err, region)=>
+      if err or not region
+        warn err  if err
+        callback 'sj' # This by default 'aws' please change it if needed! ~ GG
       else
-        @vmRegions[vmName] = info.region
+        @vmRegions[vmName] = region
         callback @vmRegions[vmName]
 
   fetchVmName: (options, callback) ->
@@ -247,12 +250,31 @@ class VirtualizationController extends KDController
     return (rest...)=>
       @info vm, callback? rest...
 
+  fetchDiskUsage:(vmName, callback = noop)->
+    command = """df | grep aufs | awk '{print $2, $3}'"""
+    @run { vmName, withArgs:command }, (err, res)->
+      if err or not res then [max, current] = [0, 0]
+      else [max, current] = res.trim().split " "
+      warn err  if err
+      callback
+        max     : 1024 * parseInt max, 10
+        current : 1024 * parseInt current, 10
+
+  fetchRamUsage:(vmName, callback = noop)->
+    @info vmName, (err, vm, info)->
+      if err or info.state isnt "RUNNING" then [max, current] = [0, 0]
+      else [max, current] = [info.totalMemoryLimit, info.memoryUsage]
+      warn err  if err
+      callback {max, current}
+
   hasDefaultVM:(callback)->
     KD.remote.api.JVM.fetchDefaultVm callback
 
   createDefaultVM: (callback)->
+
     @hasDefaultVM (err, state)->
       return warn 'Default VM already exists.'  if state
+
       notify = new KDNotificationView
         title         : "Creating your VM..."
         overlay       :
@@ -261,6 +283,7 @@ class VirtualizationController extends KDController
         loader        :
           color       : "#ffffff"
         duration      : 120000
+
       KD.remote.cacheable KD.defaultSlug, (err, group)->
         if err or not group?.length
           return warn err
@@ -276,7 +299,9 @@ class VirtualizationController extends KDController
               KD.getSingleton('finderController').mountVm defaultVmName
               notify.destroy()
               callback?()
-          else warn err
+          else
+            notify?.destroy()
+            KD.showError err
 
   createNewVM: (callback)->
     @hasDefaultVM (err, state)=>
@@ -574,11 +599,13 @@ class VirtualizationController extends KDController
   # there may be a better place for these who methods below - SY
 
   fetchVMPlans:(callback)->
+    @emit "VMPlansFetchStart"
     KD.remote.api.JRecurlyPlan.getPlans "group", "vm", (err, plans)=>
       if err then warn err
       else if plans
         plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
 
+      @emit "VMPlansFetchEnd"
       callback err, plans
 
   sanitizeVMPlansForInputs:(plans)->

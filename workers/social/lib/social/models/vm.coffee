@@ -4,7 +4,7 @@
 module.exports = class JVM extends Module
 
   {permit} = require './group/permissionset'
-  {secure} = require 'bongo'
+  {secure, dash} = require 'bongo'
   {uniq}   = require 'underscore'
 
   {argv} = require 'optimist'
@@ -35,12 +35,13 @@ module.exports = class JVM extends Module
       ]
       instance          : [
         { name : "RemovedFromCollection" }
+        { name : "control" }
       ]
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVmInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
-                           'count', 'fetchDefaultVm' #'calculateUsage'
+                           'count', 'fetchDefaultVm', 'fetchVmRegion' #'calculateUsage'
                           ]
       instance          : []
     schema              :
@@ -84,6 +85,18 @@ module.exports = class JVM extends Module
       shouldDelete      :
         type            : Boolean
         default         : no
+      diskSizeInMB      :
+        type            : Number
+        default         : 1200
+
+  suspend: (callback)->
+    @update { $set: { hostKite: '(banned)' } }, (err)=>
+      return callback err if err
+      @emit 'control', {
+        routingKey: "control.suspendVM"
+        @hostnameAlias
+      }
+      return callback null
 
   @createDomains = (account, domains, hostnameAlias)->
 
@@ -301,7 +314,13 @@ module.exports = class JVM extends Module
           planOwner        : vm.planOwner
           hostnameAlias    : vm.hostnameAlias
           underMaintenance : vm.hostKite is "(maintenance)"
-          region           : vm.region or 'aws'
+          region           : vm.region or 'sj'
+
+  @fetchVmRegion = secure (client, hostnameAlias, callback)->
+    {delegate} = client.connection
+    JVM.one {hostnameAlias}, (err, vm)->
+      return callback err  if err or not vm
+      callback null, vm.region
 
   @fetchDefaultVm = secure (client, callback)->
     {delegate} = client.connection
@@ -511,19 +530,49 @@ module.exports = class JVM extends Module
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
 
-    uidFactory = (require 'koding-counter') {
-      db          : JVM.getClient()
-      counterName : 'uid'
-      offset      : 1e6
-    }
+    uidFactory = null
 
-    uidFactory.reset (err, lastId)->
-      console.log "UID counter is reset: %s", lastId
+    require('bongo').Model.on 'dbClientReady', ->
+      uidFactory = (require 'koding-counter') {
+        db          : JVM.getClient()
+        counterName : 'uid'
+        offset      : 1e6
+      }
+
+      uidFactory.reset (err, lastId)->
+        console.log "UID counter is reset: %s", lastId
 
     JUser.on 'UserCreated', (user)->
       uidFactory.next (err, uid)->
         if err then handleError err
         else user.update { $set: { uid } }, handleError
+
+    JUser.on "UserBlocked", (user)->
+      selector =
+        'users.id'    : user.getId()
+        'users.owner' : yes
+
+      JVM.some selector, {}, (err, vms)->
+        return console.error err  if err
+        queue = vms.map (vm)->->
+          # shutdown all vms that user has
+          vm.suspend -> queue.fin()
+        if queue.length > 0
+          dash queue, (err)->
+            console.error err if err
+
+    JUser.on "UserUnblocked", (user)->
+      selector =
+        'users.id'    : user.getId()
+        'users.owner' : yes
+
+      JVM.some selector, {}, (err, vms)->
+        return console.error err  if err
+        queue = vms.map (vm)->->
+          vm.update { $set: { hostKite: null } }, -> queue.fin()
+        if queue.length > 0
+          dash queue, (err)->
+            console.error err if err
 
     JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
       return  unless oldUsername and username

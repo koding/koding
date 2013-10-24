@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/virt/models"
+	"koding/db/models"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
@@ -18,6 +18,7 @@ import (
 type VM models.VM
 type Permissions models.Permissions
 
+var VMPool string = "vms"
 var templateDir string
 var Templates = template.New("lxc")
 
@@ -37,7 +38,17 @@ func LoadTemplates(dir string) error {
 
 	templateDir = dir
 	Templates.Funcs(template.FuncMap{
-		"hostIP": func() string { return hostIP.String() },
+		"hostIP": func() string {
+			return hostIP.String()
+		},
+		"swapAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes")
+			return err == nil
+		},
+		"kernelMemoryAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes")
+			return err == nil
+		},
 	})
 	if _, err := Templates.ParseGlob(templateDir + "/vm/*"); err != nil {
 		return err
@@ -63,7 +74,7 @@ func (vm *VM) MAC() net.HardwareAddr {
 }
 
 func (vm *VM) RbdDevice() string {
-	return "/dev/rbd/vms/" + vm.String()
+	return "/dev/rbd/" + VMPool + "/" + vm.String()
 }
 
 func (vm *VM) File(p string) string {
@@ -90,6 +101,18 @@ func (vm *VM) GetPermissions(user *User) *Permissions {
 		}
 	}
 	return nil
+}
+
+func (vm *VM) ApplyDefaults() {
+	if vm.NumCPUs == 0 {
+		vm.NumCPUs = 1
+	}
+	if vm.MaxMemoryInMB == 0 {
+		vm.MaxMemoryInMB = 1024
+	}
+	if vm.DiskSizeInMB == 0 {
+		vm.DiskSizeInMB = 1200
+	}
 }
 
 func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
@@ -230,22 +253,19 @@ func (vm *VM) MountRBD(mountDir string) error {
 	makeFileSystem := false
 
 	// create image if it does not exist
-	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
 			return commandError("rbd info failed.", err, out)
 		}
 
-		if vm.DiskSizeInMB == 0 {
-			vm.DiskSizeInMB = 1200
-		}
 		if vm.SnapshotName == "" {
-			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "1").CombinedOutput(); err != nil {
+			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", VMPool, "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "1").CombinedOutput(); err != nil {
 				return commandError("rbd create failed.", err, out)
 			}
 		}
 		if vm.SnapshotName != "" {
-			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", "vms", "--dest", vm.String()).CombinedOutput(); err != nil {
+			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", VMPool, "--image", VMName(vm.SnapshotVM), "--snap", vm.SnapshotName, "--dest-pool", VMPool, "--dest", vm.String()).CombinedOutput(); err != nil {
 				return commandError("rbd clone failed.", err, out)
 			}
 		}
@@ -254,7 +274,7 @@ func (vm *VM) MountRBD(mountDir string) error {
 	}
 
 	// map image
-	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		return commandError("rbd map failed.", err, out)
 	}
 
@@ -315,7 +335,7 @@ func (vm *VM) UnmountRBD(mountDir string) error {
 }
 
 func (vm *VM) ResizeRBD() error {
-	if out, err := exec.Command("/usr/bin/rbd", "resize", "--pool", "vms", "--image", vm.String(), "--size", strconv.Itoa(vm.DiskSizeInMB)).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "resize", "--pool", VMPool, "--image", vm.String(), "--size", strconv.Itoa(vm.DiskSizeInMB)).CombinedOutput(); err != nil {
 		return commandError("rbd resize failed.", err, out)
 	}
 
@@ -358,27 +378,27 @@ func (vm *VM) CreateConsistentSnapshot(snapshotName string) error {
 		return err
 	}
 	defer vm.ThawFileSystem()
-	if out, err := exec.Command("/usr/bin/rbd", "snap", "create", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "snap", "create", "--pool", VMPool, "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Creating snapshot failed.", err, out)
 	}
-	if out, err := exec.Command("/usr/bin/rbd", "snap", "protect", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "snap", "protect", "--pool", VMPool, "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Protecting snapshot failed.", err, out)
 	}
 	return nil
 }
 
 func (vm *VM) DeleteSnapshot(snapshotName string) error {
-	if out, err := exec.Command("/usr/bin/rbd", "snap", "unprotect", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "snap", "unprotect", "--pool", VMPool, "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Unprotecting snapshot failed.", err, out)
 	}
-	if out, err := exec.Command("/usr/bin/rbd", "snap", "rm", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "snap", "rm", "--pool", VMPool, "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
 		return commandError("Removing snapshot failed.", err, out)
 	}
 	return nil
 }
 
 func DestroyVM(id bson.ObjectId) error {
-	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", "vms", "--image", VMName(id)).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", VMPool, "--image", VMName(id)).CombinedOutput(); err != nil {
 		return commandError("Removing image failed.", err, out)
 	}
 	return nil

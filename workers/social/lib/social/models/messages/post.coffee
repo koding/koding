@@ -345,18 +345,18 @@ module.exports = class JPost extends jraphical.Message
         return callback err if err
         daisy queue = [
           ->
-            delegate.addContent comment, (err)-> 
+            delegate.addContent comment, (err)->
               return callback err if err
               queue.next()
           ->
-            delegate.updateMetaModifiedAt (err)-> 
+            delegate.updateMetaModifiedAt (err)->
               return callback err if err
               queue.next()
           =>
             @addComment comment, flags: {isLowQuality: exempt}, (err, docs)=>
               return callback err if err
               queue.docs = docs
-              queue.next() 
+              queue.next()
           =>
             Relationship.count {sourceId: @getId(),as:'reply'}, (err, count)=>
               queue.relationshipCount = count
@@ -392,7 +392,7 @@ module.exports = class JPost extends jraphical.Message
           ->
             callback null, comment
         ]
-        
+
 
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".

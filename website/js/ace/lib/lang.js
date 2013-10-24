@@ -36,7 +36,15 @@ exports.stringReverse = function(string) {
 };
 
 exports.stringRepeat = function (string, count) {
-     return new Array(count + 1).join(string);
+    var result = '';
+    while (count > 0) {
+        if (count & 1)
+            result += string;
+
+        if (count >>= 1)
+            string += string;
+    }
+    return result;
 };
 
 var trimBeginRegexp = /^\s\s*/;
@@ -179,7 +187,7 @@ exports.delayedCall = function(fcn, defaultTimeout) {
         timer = setTimeout(callback, timeout || defaultTimeout);
     };
 
-    _self.delay = delayed;
+    _self.delay = _self;
     _self.schedule = function(timeout) {
         if (timer == null)
             timer = setTimeout(callback, timeout || 0);

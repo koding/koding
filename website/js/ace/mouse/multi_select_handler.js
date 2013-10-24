@@ -106,7 +106,7 @@ function onMouseDown(e) {
 
         var oldRange = selection.rangeList.rangeAtPoint(pos);
 
-        event.capture(editor.container, function(){}, function() {
+        editor.once("mouseup", function() {
             var tmpSel = selection.toOrientedRange();
 
             if (oldRange && tmpSel.isEmpty() && isSamePoint(oldRange.cursor, tmpSel.cursor))
@@ -120,7 +120,7 @@ function onMouseDown(e) {
             }
         });
 
-    } else if (!shift && alt && button == 0) {
+    } else if (alt && button == 0) {
         e.stop();
 
         if (isMultiSelect && !ctrl)
@@ -128,10 +128,15 @@ function onMouseDown(e) {
         else if (!isMultiSelect && ctrl)
             selection.addRange();
 
-        selection.moveCursorToPosition(pos);
-        selection.clearSelection();
-
         var rectSel = [];
+        if (shift) {
+            screenAnchor = session.documentToScreenPosition(selection.lead);
+            blockSelect();
+        } else {
+            selection.moveCursorToPosition(pos);
+            selection.clearSelection();
+        }
+
 
         var onMouseSelectionEnd = function(e) {
             clearInterval(timerId);

@@ -1,4 +1,4 @@
-require('./harness');
+require('./harness').run();
 
 var queueName = 'node-unsubscribe-test';
 var counter = 0;

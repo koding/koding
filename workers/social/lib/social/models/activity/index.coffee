@@ -1,7 +1,4 @@
 jraphical      = require 'jraphical'
-
-Graph          = require "../graph/graph"
-
 KodingError = require '../../error'
 
 module.exports = class CActivity extends jraphical.Capsule
@@ -41,12 +38,12 @@ module.exports = class CActivity extends jraphical.Capsule
         private             : ['member','moderator']
     sharedMethods     :
       static          : [
-        'fetchPublicContents', 'fetchFolloweeContents'
+        'fetchFolloweeContents'
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count', 'fetchCount'
         'fetchPublicActivityFeed', 'fetchUsersActivityFeed',
-        'fetchLastActivityTimestamp'
+        'fetchLastActivityTimestamp',
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -235,18 +232,6 @@ module.exports = class CActivity extends jraphical.Capsule
       'CBlogPostActivity'
     ]
 
-  neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
-    "JStatusUpdate"
-    "JComment"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
-    "JCodeShare"
-  ]
-
   @fetchCount = permit 'read activity',
     success:(client, callback)-> @count callback
 
@@ -285,51 +270,6 @@ module.exports = class CActivity extends jraphical.Capsule
 
           callback null, activities
 
-
-
-  # this function fetchs content for public activity
-  @fetchPublicContents = secure (client, options, callback)->
-    @getCurrentGroup client, (err, group)=>
-      if err then return callback err
-
-      {facets, to, limit} = options
-      limit = 5 #bandage for now
-
-      groupId = group._id
-      groupName = group.slug
-
-      query = [
-        'START koding=node:koding(id="' + groupId + '")'
-        'MATCH koding-[:member]->members<-[:author]-items'
-        'WHERE items.group = "' + groupName + '"'
-      ]
-
-      # build facet queries
-      if facets and 'Everything' not in facets
-        facetQueryList = []
-        for facet in facets
-          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-          facetQueryList.push("items.name='#{facet}'")
-        query.push("AND (" + facetQueryList.join(' OR ') + ")")
-
-      # add timestamp
-      if to
-        timestamp = Math.floor(to / 1000)
-        query.push "AND items.`meta.createdAtEpoch` < #{timestamp}"
-
-      # add return statement
-      query.push "return items"
-      # add sorting option
-      query.push "order by items.`meta.createdAtEpoch` DESC"
-      # add limit option
-      query.push "LIMIT #{limit}"
-
-      # join query
-      query = query.join('\n')
-      graph = new Graph({config:KONFIG['neo4j']})
-      graph.runQuery(query, options, callback)
-
-
   @getCurrentGroup: (client, callback)->
     {delegate} = client.connection
     if not delegate
@@ -346,108 +286,23 @@ module.exports = class CActivity extends jraphical.Capsule
 
   # this is used for activities on profile page
   @fetchUsersActivityFeed: secure (client, options, callback)->
-    @getCurrentGroup client, (err, group)=>
-      if err then return callback err
-      userId = client.connection.delegate.getId()
-      {facets, to, limit} = options
-      limit = 5 #bandage for now
+    {Activity} = require "../graph"
+    options.client = client
 
-      groupId = group._id
-      groupName = group.slug
-
-      query = [
-        "start koding=node:koding(id='#{options.originId}')"
-        'MATCH koding<-[:author]-content'
-      ]
-
-      whereClause = []
-      # build facet queries
-      if facets and 'Everything' not in facets
-        facetQueryList = []
-        for facet in facets
-          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-          facetQueryList.push("content.name='#{facet}'")
-        whereClause.push("(" + facetQueryList.join(' OR ') + ")")
-      # add timestamp
-
-      if to
-        timestamp = Math.floor(to / 1000)
-        whereClause.push "content.`meta.createdAtEpoch` < #{timestamp}"
-
-      if whereClause.length > 0
-        query.push 'WHERE', whereClause.join(' AND ')
-
-      # add return statement
-      query.push "return distinct content"
-
-      if options.sort.likesCount?
-        query.push "order by coalesce(content.`meta.likes`?, 0) DESC"
-      else if options.sort.repliesCount?
-        query.push "order by coalesce(content.repliesCount?, 0) DESC"
-      else
-        query.push "order by content.`meta.createdAtEpoch` DESC"
-
-      # add limit option
-      query.push "LIMIT #{limit}"
-
-      query = query.join('\n')
-
-      graph = new Graph({config:KONFIG['neo4j']})
-      options.returnAsBongoObjects = true
-      graph.runQuery(query, options, callback)
-
+    Activity.fetchUsersActivityFeed options, callback
 
   @fetchFolloweeContents: secure (client, options, callback)->
-    @getCurrentGroup client, (err, group)=>
-      if err then return callback err
-      graph = new Graph {config:KONFIG['neo4j']}
-      
-      userId = client.connection.delegate.getId()
+    {Activity} = require "../graph"
+    {facets, to, limit} = options
+    requestOptions =
+      userId : client.connection.delegate.getId()
+      limit : 5 #limit #bandage for now
+      withExempt: options.withExempt
+      facet : facets
+      to : to
+      client : client
 
-      {facets, to, limit} = options
-      limit = 5 #bandage for now
-
-      groupId = group._id
-      options.groupName = group.slug
-
-      query = [
-        "start koding=node:koding(id='#{userId}')"
-        'MATCH koding<-[:follower]-myfollowees-[:author]-content'
-        'where myfollowees.name="JAccount"'
-        'AND content.group = "' + options.groupName + '"'
-      ]
-
-      # build facet queries
-      facets = [facets]
-      if facets and 'Everything' not in facets
-        facetQueryList = []
-        for facet in facets
-          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-          facetQueryList.push("content.name='#{facet}'")
-        query.push("AND (" + facetQueryList.join(' OR ') + ")")
-      # add timestamp
-
-      if to
-        timestamp = Math.floor(to / 1000)
-        query.push "AND content.`meta.createdAtEpoch` < #{timestamp}"
-
-      options.client = client
-
-      graph.getExemptUsersClauseIfNeeded options, (err, exemptClause)->
-        query.push exemptClause
-
-        # add return statement
-        query.push "return distinct content"
-        # add sorting option
-        query.push "order by content.`meta.createdAtEpoch` DESC"
-        # add limit option
-        query.push "LIMIT #{limit}"
-
-        query = query.join('\n')
-
-        options.returnAsBongoObjects = true
-        options.client = client
-        graph.runQuery(query, options, callback)
+    Activity.fetchFolloweeContents requestOptions, callback
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
@@ -464,11 +319,7 @@ module.exports = class CActivity extends jraphical.Capsule
         targetId: delegate.getId()
         as: 'like'
       , {}, (err, likedRels)=>
-        likedIds = []
-        for likedRel in likedRels
-          likedIds.push likedRel.sourceId
-
-        callback err, likedIds
+        callback err, (likedRel.sourceId for likedRel in likedRels)
 
   notifyCache = (event, contents)->
     routingKey = contents.group or 'koding'
@@ -483,16 +334,13 @@ module.exports = class CActivity extends jraphical.Capsule
   @fetchPublicActivityFeed = secure (client, options, callback)->
     @getCurrentGroup client, (err, group) =>
       if err then return callback err
-
       to = options.to
-      to = if to then parseInt(to, 10) else (new Date).getTime()
+      to = if to then parseInt(to, 10) else Date.now()
       to = Math.floor(to/1000)  # unix vs js timestamp diff.
 
-      neo4jConfig = KONFIG.neo4j
       requestOptions =
         client    : client
         startDate : to
-        neo4j     : neo4jConfig
         withExempt: options.withExempt
         group     :
           groupName : group.slug

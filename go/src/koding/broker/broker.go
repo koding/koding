@@ -114,7 +114,7 @@ func main() {
 				// log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
 				return
 			}
-			if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
+			if len(subscriptions) > 0 && len(subscriptions)%2000 == 0 {
 				log.Warn("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
 			}
 			routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
@@ -297,12 +297,12 @@ func main() {
 	// returns config.BrokerDomain back
 	brokerHostname := kontrolhelper.CustomHostname(config.BrokerDomain)
 
-	serviceGenericName := strings.Replace(brokerHostname, ".", "_", -1)
-	serviceUniqueName := "broker" /* + strconv.Itoa(os.Getpid()) */ + "|" + serviceGenericName
+	sanitizedHostname := strings.Replace(brokerHostname, ".", "_", -1)
+	serviceUniqueName := "broker" /* + strconv.Itoa(os.Getpid()) */ + "|" + sanitizedHostname
 
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
-		serviceGenericName,
+		"broker",
 		serviceUniqueName,
 		config.Uuid,
 		brokerHostname,

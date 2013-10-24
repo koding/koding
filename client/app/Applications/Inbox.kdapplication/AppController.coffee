@@ -24,6 +24,12 @@ class InboxAppController extends AppController
     @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback
 
+    nc = KD.getSingleton 'notificationController'
+    nc.on 'PrivateMessageSent', =>
+      @emit 'PrivateMessageReceived'
+    nc.on 'ReplyIsAdded', ({subject:{constructorName}})=>
+      @emit 'PrivateMessageReceived'  if constructorName is 'JPrivateMessage'
+
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback
 
@@ -55,6 +61,7 @@ class InboxAppController extends AppController
                 label         : "Subject:"
                 placeholder   : 'Enter a subject'
                 name          : "subject"
+                testPath      : "inbox-new-message-subject"
                 validate      :
                   rules       :
                     required  : yes
@@ -64,6 +71,7 @@ class InboxAppController extends AppController
                 label         : "Message:"
                 type          : "textarea"
                 name          : "body"
+                testPath      : "inbox-new-message-body"
                 placeholder   : 'Enter your message'
                 validate      :
                   rules       :
@@ -75,6 +83,7 @@ class InboxAppController extends AppController
                 title         : "Send"
                 style         : "modal-clean-gray"
                 type          : "submit"
+                testPath      : "inbox-new-message-submit"
               Cancel          :
                 title         : "cancel"
                 style         : "modal-cancel"
@@ -94,6 +103,7 @@ class InboxAppController extends AppController
       outputWrapper       : recipientsWrapper
       form                : modal.modalTabs.forms.sendForm
       itemDataPath        : "profile.nickname"
+      testPath            : "inbox-new-message-to"
       listWrapperCssClass : "users"
       submitValuesAsText  : yes
       dataSource          : (args, callback)=>
@@ -105,7 +115,7 @@ class InboxAppController extends AppController
     toField.addSubView recipientsWrapper
     if users
       recipient.setDefaultValue users
-      
+
       if users.length is 1
         toField.hide()
 
@@ -169,6 +179,8 @@ class InboxAppController extends AppController
     @off 'MessageShouldBeSent'
     @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback, newMessageBar
+
+    @on 'PrivateMessageReceived', -> newMessageBar?.emit 'RefreshButtonClicked'
 
     newMessageBar.on 'MessageShouldBeDisowned', do =>
       if not @selection

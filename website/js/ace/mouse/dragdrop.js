@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36,62 +36,86 @@ var event = require("../lib/event");
 var DragdropHandler = function(mouseHandler) {
     var editor = mouseHandler.editor;
     var dragSelectionMarker, x, y;
-    var timerId, range, isBackwards;
+    var timerId, range;
     var dragCursor, counter = 0;
 
     var mouseTarget = editor.container;
     event.addListener(mouseTarget, "dragenter", function(e) {
+        if (editor.getReadOnly())
+            return;
+        var types = e.dataTransfer.types;
+        if (types && Array.prototype.indexOf.call(types, "text/plain") === -1)
+            return;
+        if (!dragSelectionMarker)
+            addDragMarker();
         counter++;
-        if (!dragSelectionMarker) {
-            range = editor.getSelectionRange();
-            isBackwards = editor.selection.isBackwards();
-            var style = editor.getSelectionStyle();
-            dragSelectionMarker = editor.session.addMarker(range, "ace_selection", style);
-            editor.clearSelection();
-            clearInterval(timerId);
-            timerId = setInterval(onDragInterval, 20);
-        }
         return event.preventDefault(e);
     });
 
     event.addListener(mouseTarget, "dragover", function(e) {
+        if (editor.getReadOnly())
+            return;
+        var types = e.dataTransfer.types;
+        if (types && Array.prototype.indexOf.call(types, "text/plain") === -1)
+            return;
+        if (onMouseMoveTimer !== null)
+            onMouseMoveTimer = null;
         x = e.clientX;
         y = e.clientY;
         return event.preventDefault(e);
     });
-    
+
     var onDragInterval =  function() {
         dragCursor = editor.renderer.screenToTextCoordinates(x, y);
         editor.moveCursorToPosition(dragCursor);
         editor.renderer.scrollCursorIntoView();
     };
-    
+
     event.addListener(mouseTarget, "dragleave", function(e) {
         counter--;
-        if (counter > 0)
-            return;
-        console.log(e.type, counter,e.target);
-        clearInterval(timerId);
-        editor.session.removeMarker(dragSelectionMarker);
-        dragSelectionMarker = null;
-        editor.selection.setSelectionRange(range, isBackwards);
-        return event.preventDefault(e);
+        if (counter <= 0 && dragSelectionMarker) {
+            clearDragMarker();
+            return event.preventDefault(e);
+        }
     });
-    
-    event.addListener(mouseTarget, "drop", function(e) {
-        console.log(e.type, counter,e.target);
-        counter = 0;
-        clearInterval(timerId);
-        editor.session.removeMarker(dragSelectionMarker);
-        dragSelectionMarker = null;
 
+    event.addListener(mouseTarget, "drop", function(e) {
+        if (!dragSelectionMarker)
+            return;
         range.end = editor.session.insert(dragCursor, e.dataTransfer.getData('Text'));
         range.start = dragCursor;
+        clearDragMarker();
         editor.focus();
-        editor.selection.setSelectionRange(range);
         return event.preventDefault(e);
     });
 
+    function addDragMarker() {
+        range = editor.selection.toOrientedRange();
+        dragSelectionMarker = editor.session.addMarker(range, "ace_selection", editor.getSelectionStyle());
+        editor.clearSelection();
+        clearInterval(timerId);
+        timerId = setInterval(onDragInterval, 20);
+        counter = 0;
+        event.addListener(document, "mousemove", onMouseMove);
+    }
+    function clearDragMarker() {
+        clearInterval(timerId);
+        editor.session.removeMarker(dragSelectionMarker);
+        dragSelectionMarker = null;
+        editor.selection.fromOrientedRange(range);
+        counter = 0;
+        event.removeListener(document, "mousemove", onMouseMove);
+    }
+    // sometimes other code on the page can stop dragleave event leaving editor stuck in the drag state
+    var onMouseMoveTimer = null;
+    function onMouseMove() {
+        if (onMouseMoveTimer == null) {
+            onMouseMoveTimer = setTimeout(function() {
+                if (onMouseMoveTimer != null && dragSelectionMarker)
+                    clearDragMarker();
+            }, 20);
+        }
+    }
 };
 
 exports.DragdropHandler = DragdropHandler;

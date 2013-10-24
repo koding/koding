@@ -1,73 +1,34 @@
-class ActivitySharePopup extends JView
+class ActivitySharePopup extends SharePopup
 
   constructor: (options={}, data)->
 
-    options.cssClass = "share-popup"
+    options.cssClass        = "share-popup"
+    options.shortenText     = true
+    options.twitter         = @getTwitterOptions options
+    options.newTab          = @getNewTabOptions options
 
     super options, data
 
-    {url} = @getOptions()
-
-    @urlInput = new KDInputView
-      cssClass    : "share-input"
-      type        : "text"
-      placeholder : "shortening..."
-      attributes  :
-        readonly  : yes
-      width       : 50
-
-    unless @getDelegate()._shorten
-      KD.utils.shortenUrl url, (shorten, data)=>
-
-        url = if data then @getDelegate()._shorten = shorten else shorten
-
-        @urlInput.setValue shorten
-        @urlInput.$().select()
+  getTwitterOptions:(options)->
+    data = options.delegate.getData()
+    {tags} = data
+    if tags
+      hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
+      hashTags  = _.unique(hashTags).join " "
+      hashTags += " "
     else
-      url = @getDelegate()._shorten
-      @urlInput.setValue url
+      hashTags = ''
 
-    @once "viewAppended", =>
-      @urlInput.$().select()
+    {title, body} = data
+    itemText  = KD.utils.shortenText title or body, maxLength: 100, minLength: 100
+    shareText = "#{itemText} #{hashTags}- #{options.url}"
 
-    @twitterShareLink = new KDCustomHTMLView
-      tagName   : 'a'
-      cssClass  : "share-twitter icon-link"
-      partial   : "<span class='icon tw'></span>"
-      click     : (event)=>
-        KD.utils.stopDOMEvent event
-        {tags} = @getDelegate().getData()
-        if tags
-          hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
-          hashTags  = _.unique(hashTags).join " "
-          hashTags += " "
-        else
-          hashTags = ''
+    return twitter =
+      enabled : true
+      text    : shareText
 
-        {title, body} = @getDelegate().getData()
-        itemText  = @utils.shortenText title or body, maxLength: 100, minLength: 100
-        shareText = "#{itemText} #{hashTags}- #{url}"
-        window.open(
-          "https://twitter.com/intent/tweet?text=#{encodeURIComponent shareText}&via=koding&source=koding",
-          "twitter-share-dialog",
-          "width=500,height=350,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
-        )
-
-    @openNewTabButton = new CustomLinkView
-      cssClass    : "icon-link"
-      title       : ""
-      href        : url
-      target      : url
-      icon        :
-        cssClass  : 'new-page'
-        placement : 'right'
-
-  pistachio: ->
-    """
-    {{> @urlInput}}
-    {{> @openNewTabButton}}
-    {{> @twitterShareLink}}
-    """
+  getNewTabOptions:(options)->
+    return { enabled : true, url : options.url }
 
 class ActivityActionsView extends KDView
 
@@ -154,7 +115,7 @@ class ActivityActionsView extends KDView
       BackgroundActivityStarted  : 'show'
       BackgroundActivityFinished : 'hide'
 
-    for ev, func of events
+    for own ev, func of events
       commentList.off ev
       commentList.on ev, @loader.bound func
 

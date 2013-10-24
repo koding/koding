@@ -18,30 +18,27 @@
 define(function(require, exports, module) {
 "use strict";
 
-var oop = require("ace/lib/oop");
+var oop = require("../lib/oop");
 var RHighlightRules = require("./r_highlight_rules").RHighlightRules;
 var HtmlHighlightRules = require("./html_highlight_rules").HtmlHighlightRules;
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var RHtmlHighlightRules = function() {
+    HtmlHighlightRules.call(this);
 
-    // regexp must not have capturing parentheses
-    // regexps are ordered -> the first match is used
-
-    this.$rules = new HtmlHighlightRules().getRules();
     this.$rules["start"].unshift({
         token: "support.function.codebegin",
         regex: "^<" + "!--\\s*begin.rcode\\s*(?:.*)",
         next: "r-start"
     });
 
-    var rRules = new RHighlightRules().getRules();
-    this.addRules(rRules, "r-");
-    this.$rules["r-start"].unshift({
+    this.embedRules(RHighlightRules, "r-", [{
         token: "support.function.codeend",
         regex: "^\\s*end.rcode\\s*-->",
         next: "start"
-    });
+    }], ["start"]);
+
+    this.normalizeRules();
 };
 oop.inherits(RHtmlHighlightRules, TextHighlightRules);
 

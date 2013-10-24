@@ -2,7 +2,7 @@ class NewMemberBucketData extends KDObject
 
   constructor:(data)->
 
-    @[key] = val for key,val of data
+    @[key] = val for own key,val of data
 
     @bongo_ = {}
     @bongo_.constructorName = "NewMemberBucketData"

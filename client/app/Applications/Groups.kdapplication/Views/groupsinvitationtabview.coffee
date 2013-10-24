@@ -62,6 +62,7 @@ class GroupsInvitationTabView extends KDTabView
     @buttonContainer.addSubView @inviteByEmailButton = new KDButtonView
       title    : 'Invite by Email'
       cssClass : 'clean-gray'
+      testPath : "groups-dashboard-invite-button"
       callback : @getDelegate().showInviteByEmailModal.bind @getDelegate()
     @buttonContainer.addSubView @createInvitationCodeButton = new KDButtonView
       title    : 'Create Invitation Code'
@@ -91,6 +92,7 @@ class GroupsInvitationTabView extends KDTabView
       viewClass  : GroupsMembershipRequestsTabPaneView
   ,
     name         : 'Invitations'
+    testPath     : "groups-dashboard-invitations"
     viewOptions  :
       viewClass  : GroupsSentInvitationsTabPaneView
   ,

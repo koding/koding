@@ -5,7 +5,7 @@ define(function(require, exports, module) {
 
     var GolangHighlightRules = function() {
         var keywords = (
-            "true|else|false|break|case|return|goto|if|const|" +
+            "else|break|case|return|goto|if|const|" +
             "continue|struct|default|switch|for|" +
             "func|import|package|chan|defer|fallthrough|go|interface|map|range" +
             "select|type|var"
@@ -13,7 +13,6 @@ define(function(require, exports, module) {
         var buildinConstants = ("nil|true|false|iota");
 
         var keywordMapper = this.createKeywordMapper({
-            "variable.language": "this",
             "keyword": keywords,
             "constant.language": buildinConstants
         }, "identifier");
@@ -27,25 +26,22 @@ define(function(require, exports, module) {
                 DocCommentHighlightRules.getStartRule("doc-start"),
                 {
                     token : "comment", // multi line comment
-                    merge : true,
                     regex : "\\/\\*",
                     next : "comment"
                 }, {
                     token : "string", // single line
                     regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
                 }, {
-                    token : "string", // multi line string start
-                    merge : true,
-                    regex : '["].*\\\\$',
-                    next : "qqstring"
-                }, {
                     token : "string", // single line
-                    regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
+                    regex : '[`](?:[^`]*)[`]'
                 }, {
                     token : "string", // multi line string start
                     merge : true,
-                    regex : "['].*\\\\$",
-                    next : "qstring"
+                    regex : '[`](?:[^`]*)$',
+                    next : "bqstring"
+                }, {
+                    token : "constant.numeric", // rune
+                    regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))[']"
                 }, {
                     token : "constant.numeric", // hex
                     regex : "0[xX][0-9a-fA-F]+\\b"
@@ -53,17 +49,11 @@ define(function(require, exports, module) {
                     token : "constant.numeric", // float
                     regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?\\b"
                 }, {
-                    token : "constant", // <CONSTANT>
-                    regex : "<[a-zA-Z0-9.]+>"
-                }, {
-                    token : "keyword", // pre-compiler directivs
-                    regex : "(?:#include|#pragma|#line|#define|#undef|#ifdef|#else|#elif|#endif|#ifndef)"
-                }, {
                     token : keywordMapper,
                     regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
                 }, {
                     token : "keyword.operator",
-                    regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|==|=|!=|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^=|\\b(?:in|new|delete|typeof|void)"
+                    regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|==|=|!=|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^="
                 }, {
                     token : "punctuation.operator",
                     regex : "\\?|\\:|\\,|\\;|\\."
@@ -73,6 +63,9 @@ define(function(require, exports, module) {
                 }, {
                     token : "paren.rparen",
                     regex : "[\\])}]"
+                }, {
+                    token: "invalid",
+                    regex: "\\s+$"
                 }, {
                     token : "text",
                     regex : "\\s+"
@@ -85,29 +78,16 @@ define(function(require, exports, module) {
                     next : "start"
                 }, {
                     token : "comment", // comment spanning whole line
-                    merge : true,
                     regex : ".+"
                 }
             ],
-            "qqstring" : [
+            "bqstring" : [
                 {
                     token : "string",
-                    regex : '(?:(?:\\\\.)|(?:[^"\\\\]))*?"',
+                    regex : '(?:[^`]*)`',
                     next : "start"
                 }, {
                     token : "string",
-                    merge : true,
-                    regex : '.+'
-                }
-            ],
-            "qstring" : [
-                {
-                    token : "string",
-                    regex : "(?:(?:\\\\.)|(?:[^'\\\\]))*?'",
-                    next : "start"
-                }, {
-                    token : "string",
-                    merge : true,
                     regex : '.+'
                 }
             ]
@@ -115,7 +95,7 @@ define(function(require, exports, module) {
 
         this.embedRules(DocCommentHighlightRules, "doc-",
             [ DocCommentHighlightRules.getEndRule("start") ]);
-    }
+    };
     oop.inherits(GolangHighlightRules, TextHighlightRules);
 
     exports.GolangHighlightRules = GolangHighlightRules;

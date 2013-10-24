@@ -36,29 +36,25 @@ var EventEmitter = require("../lib/event_emitter").EventEmitter;
 var config = require("../config");
 
 var WorkerClient = function(topLevelNamespaces, mod, classname) {
+    this.$sendDeltaQueue = this.$sendDeltaQueue.bind(this);
     this.changeListener = this.changeListener.bind(this);
     this.onMessage = this.onMessage.bind(this);
     this.onError = this.onError.bind(this);
 
+    // nameToUrl is renamed to toUrl in requirejs 2
+    if (require.nameToUrl && !require.toUrl)
+        require.toUrl = require.nameToUrl;
+
     var workerUrl;
-    if (config.get("packaged")) {
+    if (config.get("packaged") || !require.toUrl) {
         workerUrl = config.moduleUrl(mod, "worker");
     } else {
         var normalizePath = this.$normalizePath;
-        if (typeof require.supports !== "undefined" && require.supports.indexOf("ucjs2-pinf-0") >= 0) {
-            // We are running in the sourcemint loader.
-            workerUrl = require.nameToUrl("ace/worker/worker_sourcemint");
-        } else {
-            // We are running in RequireJS.
-            // nameToUrl is renamed to toUrl in requirejs 2
-            if (require.nameToUrl && !require.toUrl)
-                require.toUrl = require.nameToUrl;
-            workerUrl = normalizePath(require.toUrl("ace/worker/worker", null, "_"));
-        }
+        workerUrl = normalizePath(require.toUrl("ace/worker/worker.js", null, "_"));
 
         var tlns = {};
         topLevelNamespaces.forEach(function(ns) {
-            tlns[ns] = normalizePath(require.toUrl(ns, null, "_").replace(/.js(\?.*)?$/, ""));
+            tlns[ns] = normalizePath(require.toUrl(ns, null, "_").replace(/(\.js)?(\?.*)?$/, ""));
         });
     }
 
@@ -120,6 +116,7 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
 
     this.terminate = function() {
         this._emit("terminate", {});
+        this.deltaQueue = null;
         this.$worker.terminate();
         this.$worker = null;
         this.$doc.removeEventListener("change", this.changeListener);
@@ -158,17 +155,28 @@ var WorkerClient = function(topLevelNamespaces, mod, classname) {
     };
 
     this.changeListener = function(e) {
-        e.range = {
-            start: e.data.range.start,
-            end: e.data.range.end
-        };
-        this.emit("change", e);
+        if (!this.deltaQueue) {
+            this.deltaQueue = [e.data];
+            setTimeout(this.$sendDeltaQueue, 1);
+        } else
+            this.deltaQueue.push(e.data);
     };
+
+    this.$sendDeltaQueue = function() {
+        var q = this.deltaQueue;
+        if (!q) return;
+        this.deltaQueue = null;
+        if (q.length > 20 && q.length > this.$doc.getLength() >> 1) {
+            this.call("setValue", [this.$doc.getValue()]);
+        } else
+            this.emit("change", {data: q});
+    }
 
 }).call(WorkerClient.prototype);
 
 
 var UIWorkerClient = function(topLevelNamespaces, mod, classname) {
+    this.$sendDeltaQueue = this.$sendDeltaQueue.bind(this);
     this.changeListener = this.changeListener.bind(this);
     this.callbackId = 1;
     this.callbacks = {};
@@ -178,7 +186,8 @@ var UIWorkerClient = function(topLevelNamespaces, mod, classname) {
     var sender = Object.create(EventEmitter);
     var _self = this;
 
-    this.$worker = {}
+    this.$worker = {};
+    this.$worker.terminate = function() {};
     this.$worker.postMessage = function(e) {
         _self.messageBuffer.push(e);
         main && setTimeout(processNext);
@@ -202,7 +211,7 @@ var UIWorkerClient = function(topLevelNamespaces, mod, classname) {
         this.postMessage({type: "event", name: name, data: data});
     };
 
-    require([mod], function(Main) {
+    config.loadModule(["worker", mod], function(Main) {
         main = new Main[classname](sender);
         while (_self.messageBuffer.length)
             processNext();

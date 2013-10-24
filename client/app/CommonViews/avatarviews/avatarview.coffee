@@ -21,7 +21,7 @@ class AvatarView extends LinkView
 
       options.tooltip or= {}
       options.tooltip.view         or= if options.detailed then @detailedAvatar else null
-      options.tooltip.viewCssClass or= 'avatar-tooltip'
+      options.tooltip.cssClass     or= 'avatar-tooltip'
       options.tooltip.animate       ?= yes
       options.tooltip.placement    or= 'top'
       options.tooltip.direction    or= 'right'
@@ -54,7 +54,13 @@ class AvatarView extends LinkView
     {width} = @getOptions().size
     @setAvatar "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
 
-    flags = account.globalFlags?.join(" ") ? ""
+    flags = ""
+    if account.globalFlags
+      if Array.isArray account.globalFlags
+        flags = account.globalFlags.join(" ")
+      else
+        flags = (value for own key, value of account.globalFlags).join(" ")
+
     @$('cite').addClass flags
 
     @setDomAttributes href: "/#{profile.nickname}"

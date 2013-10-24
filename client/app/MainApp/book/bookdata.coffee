@@ -107,6 +107,14 @@ __bookPages = [
     howToSteps: ['showFileTreeFolderAndFileMenu']
     menuItem  : "Develop"
   ,
+    cssClass  : "develop more-5"
+    content   : """
+                <h2>Need to upload files?</h2>
+                <p>To upload your files, simply drag a file from your Desktop onto your FileTree!</p>
+                <p>Your files will be uploaded into your Upload directory. It doesn't get much easier than that!</p>
+                """
+    version   : 1.1
+  ,
     cssClass  : "develop more-1"
     content   : """<h2> Your default applications: </h2>
                    <p><strong>Ace</strong> is your perfect text editor on cloud! Use it to edit documents in your file tree! </p>
@@ -148,16 +156,16 @@ __bookPages = [
     howToSteps: ['openVMTerminal']
     menuItem  : "Develop"
   ,
-    cssClass  : "develop more-1"
-    content   : """<p>You can view your recently opened files by moving your cursor to the footer area. A new section will slide up displaying your recently opened files!</p>
-                """
-    section   : 5
-    parent    : 5
-    routeURL  : "/Develop"
-    showHow   : yes
-    howToSteps: ['showRecentFiles']
-    menuItem  : "Develop"
-  ,
+  #   cssClass  : "develop more-1"
+  #   content   : """<p>You can view your recently opened files by moving your cursor to the footer area. A new section will slide up displaying your recently opened files!</p>
+  #               """
+  #   section   : 5
+  #   parent    : 5
+  #   routeURL  : "/Develop"
+  #   showHow   : yes
+  #   howToSteps: ['showRecentFiles']
+  #   menuItem  : "Develop"
+  # ,
     cssClass  : "develop buy more-1"
     content   : """<h2>Need more Virtual Machines?</h2>
                    <p>It's easy to buy more Virtual Machines. If you need more space, just buy new one!</p>
@@ -212,11 +220,11 @@ __bookPages = [
   ,
     cssClass  : "develop more-3"
     content   : """
-                <p>Dont’ forget about your settings in the bottom corner.
+                <p>Don't forget about your settings in the top corner.
                 Here you can change the syntax, font, margins, and a whole
                 lot of other features.</p>
                 """
-    embed     : BookDevelopButton
+    # embed     : BookDevelopButton
     routeURL  : ""
     section   : 10
     parent    : 5
@@ -250,14 +258,14 @@ __bookPages = [
     section   : 6
     parent    : 0
   ,
-    title     : "Groups"
-    cssClass  : "groups-intro "
-    content   : """<p class='centered'>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
-                """
-    routeURL  : "/Groups"
-    section   : 7
-    parent    : 0
-  ,
+  #   title     : "Groups"
+  #   cssClass  : "groups-intro "
+  #   content   : """<p class='centered'>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
+  #               """
+  #   routeURL  : "/Groups"
+  #   section   : 7
+  #   parent    : 0
+  # ,
     title     : "Chat"
     cssClass  : "chats-intro"
     content   : """<p class='centered'>You can chat with your friends or anyone from koding. Just type his/her name and hit enter thats all!</p>
@@ -283,8 +291,17 @@ __bookPages = [
                    <p>Help by providing insight and not insult to people asking basic questions. Help by researching your question to see if it has had already been given an answer. And lastly, help us make this service the best it can be!</p>"""
     section   : -1
   ,
+    title     : "Share!"
+    content   : """
+                <p>The best part about social development is that you can bring your friends along with you! By sharing Koding, you're inviting others to join our ever growing community, and inviting them to be a part of something great.</p>
+                <p>Best of all, you get referral rewards for sharing Koding with others. So what do you say, share Koding today!</p>
+                """
+    section   : -1
+    # version   : 1.1 # enable later
+  ,
     title     : "Enjoy!"
     content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
                    <p>That's it, we hope that you enjoy what we built.</p>"""
     section   : -1
+    embed     : SocialShare
 ]

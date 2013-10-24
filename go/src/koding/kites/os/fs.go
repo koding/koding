@@ -12,6 +12,7 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -24,6 +25,8 @@ func init() {
 }
 
 func registerFileSystemMethods(k *kite.Kite) {
+	syscall.Umask(0)
+
 	registerVmMethod(k, "fs.readDirectory", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path                string
@@ -44,16 +47,20 @@ func registerFileSystemMethods(k *kite.Kite) {
 					if info == nil {
 						return // skip this event, file was deleted and deletion event will follow
 					}
+					event := "added"
+					if ev.Mask&inotify.IN_ATTRIB != 0 {
+						event = "attributesChanged"
+					}
 					params.OnChange(map[string]interface{}{
-						"event": "added",
-						"file":  makeFileEntry(vos, path.Dir(ev.Name), info),
+						"event": event,
+						"file":  makeFileEntry(vos, ev.Name, info),
 					})
 					return
 				}
 				if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
 					params.OnChange(map[string]interface{}{
 						"event": "removed",
-						"file":  FileEntry{Name: path.Base(ev.Name)},
+						"file":  FileEntry{Name: path.Base(ev.Name), FullPath: ev.Name},
 					})
 					return
 				}
@@ -78,11 +85,26 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 		files := make([]FileEntry, len(infos))
 		for i, info := range infos {
-			files[i] = makeFileEntry(vos, params.Path, info)
+			files[i] = makeFileEntry(vos, path.Join(params.Path, info.Name()), info)
 		}
 		response["files"] = files
 
 		return response, nil
+	})
+
+	registerVmMethod(k, "fs.glob", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		var params struct {
+			Pattern string
+		}
+		if args.Unmarshal(&params) != nil || params.Pattern == "" {
+			return nil, &kite.ArgumentError{Expected: "{ pattern: [string] }"}
+		}
+
+		matches, err := vos.Glob(params.Pattern)
+		if err == nil && matches == nil {
+			matches = []string{}
+		}
+		return matches, err
 	})
 
 	registerVmMethod(k, "fs.readFile", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -121,21 +143,35 @@ func registerFileSystemMethods(k *kite.Kite) {
 			Path           string
 			Content        []byte
 			DoNotOverwrite bool
+			Append         bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" || params.Content == nil {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], content: [base64], doNotOverwrite: [bool], append: [bool] }"}
 		}
 
-		flags := os.O_RDWR | os.O_CREATE | os.O_TRUNC
+		flags := os.O_RDWR | os.O_CREATE
 		if params.DoNotOverwrite {
 			flags |= os.O_EXCL
 		}
-		file, err := vos.OpenFile(params.Path, flags, 0666)
+		if !params.Append {
+			flags |= os.O_TRUNC
+		}
+		dirInfo, err := vos.Stat(path.Dir(params.Path))
+		if err != nil {
+			return nil, err
+		}
+		file, err := vos.OpenFile(params.Path, flags, dirInfo.Mode().Perm()&0666)
 		if err != nil {
 			return nil, err
 		}
 		defer file.Close()
 
+		if params.Append {
+			_, err := file.Seek(0, 2)
+			if err != nil {
+				return nil, err
+			}
+		}
 		return file.Write(params.Content)
 	})
 
@@ -187,7 +223,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 			return nil, err
 		}
 
-		return makeFileEntry(vos, path.Dir(params.Path), fi), nil
+		return makeFileEntry(vos, params.Path, fi), nil
 	})
 
 	registerVmMethod(k, "fs.setPermissions", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -294,7 +330,11 @@ func registerFileSystemMethods(k *kite.Kite) {
 			return true, nil
 		}
 
-		if err := vos.Mkdir(params.Path, 0755); err != nil {
+		dirInfo, err := vos.Stat(path.Dir(params.Path))
+		if err != nil {
+			return nil, err
+		}
+		if err := vos.Mkdir(params.Path, dirInfo.Mode().Perm()); err != nil {
 			return nil, err
 		}
 		return true, nil
@@ -303,6 +343,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 type FileEntry struct {
 	Name     string      `json:"name"`
+	FullPath string      `json:"fullPath"`
 	IsDir    bool        `json:"isDir"`
 	Size     int64       `json:"size"`
 	Mode     os.FileMode `json:"mode"`
@@ -312,9 +353,10 @@ type FileEntry struct {
 	Writable bool        `json:"writable"`
 }
 
-func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
+func makeFileEntry(vos *virt.VOS, fullPath string, fi os.FileInfo) FileEntry {
 	entry := FileEntry{
 		Name:     fi.Name(),
+		FullPath: fullPath,
 		IsDir:    fi.IsDir(),
 		Size:     fi.Size(),
 		Mode:     fi.Mode(),
@@ -324,7 +366,7 @@ func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
 	}
 
 	if fi.Mode()&os.ModeSymlink != 0 {
-		symlinkInfo, err := vos.Stat(dir + "/" + fi.Name())
+		symlinkInfo, err := vos.Stat(path.Dir(fullPath) + "/" + fi.Name())
 		if err != nil {
 			entry.IsBroken = true
 			return entry

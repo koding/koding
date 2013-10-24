@@ -1,5 +1,10 @@
 class WebTermView extends KDView
 
+  constructor: (options = {}, data) ->
+
+    super options, data
+    @initBackoff()
+
   viewAppended: ->
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
@@ -10,7 +15,7 @@ class WebTermView extends KDView
 
     @terminal = new WebTerm.Terminal @container.$()
     KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
-    @options.advancedSettings ?= yes
+    @options.advancedSettings ?= no
     if @options.advancedSettings
       @advancedSettings = new KDButtonViewWithMenu
         style         : 'editor-advanced-settings-menu'
@@ -26,6 +31,7 @@ class WebTermView extends KDView
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
+      @clearConnectionAttempts()
 
     @terminal.setTitleCallback = (title) =>
       #@tabPane.setTitle title
@@ -42,10 +48,12 @@ class WebTermView extends KDView
       @terminal.setFocused false
       KD.getSingleton('windowController').removeLayer @
 
-    $(window).bind "blur", =>
+    @on "KDObjectWillBeDestroyed", @bound "clearConnectionAttempts"
+
+    $(window).on "blur", =>
       @terminal.setFocused false
 
-    $(window).bind "focus", =>
+    $(window).on "focus", =>
       @terminal.setFocused @focused
 
     $(document).on "paste", (event) =>
@@ -57,33 +65,119 @@ class WebTermView extends KDView
 
     @appStorage = new AppStorage 'WebTerm', '1.0'
     @appStorage.fetchStorage =>
-      @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
-      @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
-      @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
+      @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
+      @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
+      @appStorage.setValue 'theme'     , 'green-on-black' if not @appStorage.getValue('theme')?
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
 
+      delegateOptions = @getDelegate().getOptions()
+      myOptions       = @getOptions()
+
       KD.getSingleton("vmController").run
-        method   : 'webterm.connect',
-        vmName   : @getOption('delegate').getOption('vmName')
-        withArgs :
-          remote : @terminal.clientInterface
-          joinUser : @getOption('delegate').getOption('joinUser')
-          session  : @getOption('delegate').getOption('session')
-          sizeX  : @terminal.sizeX
-          sizeY  : @terminal.sizeY
-          noScreen: @getOption('delegate').getOption('noScreen')
+        method        : "webterm.connect",
+        vmName        : delegateOptions.vmName
+        withArgs      :
+          remote      : @terminal.clientInterface
+          sizeX       : @terminal.sizeX
+          sizeY       : @terminal.sizeY
+          joinUser    : myOptions.joinUser or delegateOptions.joinUser
+          session     : myOptions.session  or delegateOptions.session
+          noScreen    : delegateOptions.noScreen
       , (err, remote) =>
         if err
-          # We don't create any error popup not to be annoying. User can handle the error.
-          error err
-        else
-          @terminal.eventHandler = (data)=>
-            @emit "WebTermEvent", data
-          @terminal.server = remote
-          @setKeyView()
-          @emit "WebTermConnected", remote
+          warn err
+          if err.message is "Invalid session identifier."
+            return @reinitializeWebTerm()
+
+        @terminal.eventHandler = (data)=> @emit "WebTermEvent", data
+        @terminal.server       = remote
+        @setKeyView()
+        @emit "WebTermConnected", remote
+        @sessionId = remote.session
+
+    KD.getSingleton("status").once "reconnected", => @handleReconnect()
+
+    kiteErrorCallback = (err) =>
+      @reconnected               = no
+      {code, serviceGenericName} = err
+
+      if code is 503 and serviceGenericName.indexOf("kite-os") is 0
+        @reconnectAttemptFailed serviceGenericName, @getDelegate().getOption "vmName"
+
+    kiteController = KD.getSingleton "kiteController"
+    kiteController.on "KiteError", kiteErrorCallback
+
+    @on "KiteErrorBindingNeedsToBeRemoved", =>
+      kiteController.off "KiteError", kiteErrorCallback
+
+  reconnectAttemptFailed: (serviceGenericName, vmName) ->
+    return  if @reconnected or not serviceGenericName
+
+    kiteController = KD.getSingleton "kiteController"
+    [prefix, kiteType, kiteRegion] = serviceGenericName.split "-"
+    serviceName = "~#{kiteType}-#{kiteRegion}~#{vmName}"
+
+    @setBackoffTimeout(
+      @bound "atttemptToReconnect"
+      @bound "handleConnectionFailure"
+    )
+
+    kiteController.kiteInstances[serviceName]?.cycleChannel()
+
+  atttemptToReconnect: ->
+    return  if @reconnected
+    @reconnectingNotification ?= new KDNotificationView
+      type      : "mini"
+      title     : "Trying to reconnect your Terminal"
+      duration  : 2 * 60 * 1000 # 2 mins
+      container : @container
+
+    vmController = KD.getSingleton "vmController"
+    hasResponse  = no
+
+    vmController.info @getDelegate().getOption("vmName"), (err, res) =>
+      hasResponse = yes
+      @handleReconnect()
+      @clearConnectionAttempts()
+
+    @utils.wait 500, => @reconnectAttemptFailed() unless hasResponse
+
+  clearConnectionAttempts: ->
+    @emit "KiteErrorBindingNeedsToBeRemoved"
+    @clearBackoffTimeout()
+
+  handleReconnect: ->
+    return  if @reconnected
+    @clearConnectionAttempts()
+    options =
+      session  : @sessionId
+      joinUser : KD.nick()
+
+    @reinitializeWebTerm options
+    @reconnectingNotification?.destroy()
+    @reconnected = yes
+
+  reinitializeWebTerm: (options = {}) ->
+    options.delegate = @getDelegate()
+    @addSubView webterm = new WebTermView options
+
+    webterm.on "WebTermConnected", =>
+      @getSubViews().first.destroy() # TODO: refactor this, don't use subviews
+
+  handleConnectionFailure: ->
+    return if @failedToReconnect
+    @reconnectingNotification?.destroy()
+    @reconnected       = no
+    @failedToReconnect = yes
+    @clearConnectionAttempts()
+    new KDNotificationView
+      type      : "mini"
+      title     : "Sorry, something is wrong with our backend."
+      container : @container
+      cssClass  : "error"
+      duration  : 15 * 1000 # 15 secs
 
   destroy: ->
     super
@@ -184,3 +278,5 @@ class WebTermView extends KDView
       mainView = KD.getSingleton "mainView"
       mainView.toggleFullscreen()
       event.preventDefault()
+
+  initBackoff: KDBroker.Broker::initBackoff

@@ -24,7 +24,7 @@ class DomainForwardForm extends KDView
               rules     :
                 required: yes
               messages  :
-                requires: "Enter your domain name"
+                required: "Enter your domain name"
 
   saveDomain:->
     modalTabs = @getOptions().modalTabs
@@ -35,7 +35,8 @@ class DomainForwardForm extends KDView
       regYears       : 0
       hostnameAlias  : []
       loadBalancer   :
-          mode       : "roundrobin"
+          # mode       : "roundrobin"
+          mode       : ""
     , (err, domain)=>
       unless err
         modalTabs.parent.emit "DomainForwarded", {domainName}

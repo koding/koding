@@ -1,5 +1,5 @@
 version = `VBoxManage --version 2> /dev/null` rescue "0"
-if version < "4.2.16r86992" and ARGV[0] != "halt"
+if version < "4.2.18r88780" and ARGV[0] != "halt"
   print "\e[31mVirtualBox not installed or outdated. \e[39m"
 
   install = false
@@ -15,7 +15,7 @@ if version < "4.2.16r86992" and ARGV[0] != "halt"
   end
 
   system "vagrant halt" or exit! 1
-  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.16/VirtualBox-4.2.16-86992-OSX.dmg" or exit! 1
+  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.18/VirtualBox-4.2.18-88780-OSX.dmg" or exit! 1
   system "hdiutil attach /tmp/VirtualBox.dmg" or exit! 1
   system "sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg  -target /" or exit! 1
   sleep 1 # somehow the installer stays active for some time

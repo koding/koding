@@ -126,6 +126,8 @@ task 'socialWorker', "Run the socialWorker", ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {social} = KONFIG
 
+  console.log 'CAKEFILE STARTING SOCIAL WORKERS'
+
   for i in [1..social.numberOfWorkers]
     processes.fork
       name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
@@ -184,20 +186,6 @@ task 'authWorker', "Run the authWorker", ({configFile}) ->
             else
               processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
-task 'guestCleanup', "Runs guestCleanup which removes old guests from mongo", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.fork
-    name           : 'guestCleanup'
-    cmd            : "./workers/guestcleanup/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-    verbose        : yes
-
-
 task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
@@ -217,6 +205,47 @@ task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
         folders   : ['./workers/guestcleaner']
         onChange  : (path) ->
           processes.kill "guestCleanerWorker"
+
+
+task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", ({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.fork
+    name           : 'emailConfirmationCheckerWorker'
+    cmd            : "./workers/emailconfirmationchecker/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 1
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
+  watcher = new Watcher
+    groups        :
+      guestcleaner:
+        folders   : ['./workers/emailconfirmationchecker']
+        onChange  : (path) ->
+          processes.kill "emailConfirmationCheckerWorker"
+
+task 'sitemapGeneratorWorker', "Generate the sitemap worker", ({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.fork
+    name           : 'sitemapGeneratorWorker'
+    cmd            : "./workers/sitemapgenerator/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 1
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
+  watcher = new Watcher
+    groups        :
+      sitemapgenerator:
+        folders   : ['./workers/sitemapgenerator']
+        onChange  : (path) ->
+          processes.kill "sitemapGeneratorWorker"
 
 task 'emailWorker', "Run the email worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -434,20 +463,20 @@ run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile, ->
-    invoke 'goBroker'       if config.runGoBroker
-    invoke 'osKite'         if config.runOsKite
-    invoke 'rerouting'      if config.runRerouting
-    invoke 'userpresence'   if config.runUserPresence
-    invoke 'persistence'    if config.runPersistence
-    invoke 'proxy'          if config.runProxy
-    invoke 'neo4jfeeder'    if config.runNeo4jFeeder
-    invoke 'authWorker'     if config.authWorker
-    invoke 'guestCleanup'   if config.guests
-    invoke 'guestCleanerWorker'   if config.guestCleanerWorker.enabled
-    invoke 'cacheWorker'    if config.cacheWorker?.run is yes
+    invoke 'goBroker'                         if config.runGoBroker
+    invoke 'osKite'                           if config.runOsKite
+    invoke 'rerouting'                        if config.runRerouting
+    invoke 'userpresence'                     if config.runUserPresence
+    invoke 'persistence'                      if config.runPersistence
+    invoke 'proxy'                            if config.runProxy
+    invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+    invoke 'authWorker'                       if config.authWorker
+    invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
+    invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
+    invoke 'cacheWorker'                      if config.cacheWorker?.run is yes
     invoke 'socialWorker'
-    invoke 'emailWorker'    if config.emailWorker?.run is yes
-    invoke 'emailSender'    if config.emailSender?.run is yes
+    invoke 'emailWorker'                      if config.emailWorker?.run is yes
+    invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'webserver'
 
 task 'run', (options)->
@@ -501,12 +530,6 @@ task 'buildAll',"build chris's modules", ->
           b next+1
   b 0
 
-
-task 'resetGuests', "Run ./workers/guestcleanup/guestinit", (options)->
-  configFile = normalizeConfigPath options.configFile
-  {resetGuests} = require './workers/guestcleanup/guestinit'
-  resetGuests configFile
-
 task 'runExternals', "runs externals kite which imports info about github, will be used to show suggested tags, users to follow etc.", (options)->
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -531,30 +554,43 @@ task 'test-all', 'Runs functional test suite', (options)->
       return path if fs.existsSync(path)
 
   # do we have the virtualenv ???
-  pip = which ['./env/bin/pip', '/usr/local/bin/pip']
+  pip = which ['./env/bin/pip', '/usr/local/bin/pip', '/usr/bin/pip']
   unless pip
     console.error "please install pip with \n brew install python --framework"
     return
 
-  cmd = "sudo #{pip} install -e 'git+ssh://git@git.in.koding.com/qa.git@master#egg=testengine'"
+  cmd = "sudo #{pip} install --src=/tmp/.koding-qa -e 'git+ssh://git@git.sj.koding.com/qa.git@master#egg=testengine'"
   exec cmd, (err, stdout, stderr)->
-    # log.info err
-    # log.info stdout
-    # log.info stderr
-    # log.info "done installation"
+    if err
+      log.error """
+        TestEngine installation error, please copy and paste the output below
+        and send to QA
+      """
+      log.info "cmd:", cmd
+      log.info err
+      log.info stdout
+      log.info stderr
+      return
+
     testEngine = which ['./env/bin/testengine_run', '/usr/local/bin/testengine_run']
-    args = ['-p', './tests', '-c', options.configFile]
+    if not testEngine
+      throw "TestEngine installation error"
+    configFile = options.configFile or 'vagrant'
+
+    args = ['-p', './tests', '-c', configFile]
     if options.file
       args.push '-f', options.file
     if options.location
       args.push '-l', options.location
-    testProcess = spawn testEngine, args  
+
+    testProcess = spawn testEngine, args
+
     testProcess.stderr.on 'data', (data)->
       process.stdout.write data.toString()
     testProcess.stdout.on 'data', (data)->
       process.stdout.write data.toString()
     testProcess.on 'close', (code)->
-      process.exit code      
+      process.exit code
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 

@@ -37,13 +37,15 @@ var Tokenizer = require("../tokenizer").Tokenizer;
 var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
 var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
 var WorkerClient = require("../worker/worker_client").WorkerClient;
-var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
+var CssBehaviour = require("./behaviour/css").CssBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new CssHighlightRules().getRules(), "i");
+    var highlighter = new CssHighlightRules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
     this.$outdent = new MatchingBraceOutdent();
-    this.$behaviour = new CstyleBehaviour();
+    this.$behaviour = new CssBehaviour();
+    this.$keywordList = highlighter.$keywordList;
     this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
@@ -51,6 +53,7 @@ oop.inherits(Mode, TextMode);
 (function() {
 
     this.foldingRules = "cStyle";
+    this.blockComment = {start: "/*", end: "*/"};
 
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);

@@ -1,8 +1,7 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
-@import "nib"
 @import "nib/gradients"
-// @import "nib/vendor"
+
 
 
 .slideable
@@ -10,138 +9,6 @@
 
 // .slide-down
 //   margin-top                51px
-
-#static-landing-page.profile-landing
-  // abs()
-  bg image,                 url("../images/koding-new-bg.png");
-  bg repeat,                repeat-x
-  vendor transition,        top 0.3s ease \, margin-top 0.3s ease
-  shadow                    0 0 50px 20px rgba(0,0,0,0.4)
-  height                    100%
-  width                     100%
-  z-index                   99
-  bg size,                  auto 100%
-
-  // &.down
-  //   top                     52px
-  //   .profile-avatar
-  //     height                77px
-
-  &.out
-    opacity                 0
-
-  &.profile-leaving
-    rel()
-
-  &.profile-shrinking
-    height                  0
-
-  &.profile-fading
-    opacity                 0
-
-  &.profile-hidden
-    z-index                 1
-    display                 none
-
-  .kdlistview-navigation
-
-    .navigation-item
-
-      .kdloader
-        fr()
-        // margin-right        5px
-        display             inline-block!important
-        margin-top          6px
-
-      &.invisible
-        border              none
-        height              0px
-
-  &.custom-bg
-
-    .profile-content-wrapper
-      border-left           1px solid #aaa
-
-    .profile-title
-      // bg color,             rgba(255,255,255,0.5)
-      shadow                none
-      background-image      none!important
-      bg color,             white
-
-    .profile-sidebar
-      bg color,             rgba(0,0,0,0.2)
-
-      .navigation-item .title
-        color               rgba(255,255,255,0.7)!important
-        shadow              1px 1px 3px rgba(0,0,0,0.4)!important
-        vendor box-shadow,  none!important
-    // .profile-splitview
-    //   bg color, rgba(255,255,255,0.95)
-
-    .kdlistview-navigation
-      margin-bottom         5px
-
-  .user-button-bar
-    abs()
-    height                  auto
-    top                     26px
-    right                   26px
-
-.profile-sidebar#landing-page-sidebar
-  abs()
-  width                       100%
-  height                      auto
-  display                     inline-block
-  // padding                     0
-  // margin-right                -3px
-  margin-top                  -28px
-  z-index                     1
-
-  .kdlistview-navigation
-    text-align                center
-    width                     100%
-    margin                    0px
-    height                    40px
-
-    .navigation-item
-      border                  1px solid white
-      width                   auto
-      min-width               85px
-      display                 inline-block
-      z-index                 1000
-      margin                  0
-      // margin                  0 5px 0 0
-      height                  25px
-      vertical-align          top
-      bg color,               white
-      padding-left:20px
-
-      &:first-child
-        rounded 0 0 0 3px
-
-      &:last-child
-        rounded 0 0 3px 0
-
-      &.selected
-        bg color,             white
-        // margin                0 5px 0 0
-
-        button.editor-button
-          font-weight         bold
-
-      button.editor-button
-        border                none
-        bg color,             transparent
-        bg image,             none
-        fl()
-        // display               inline-block
-
-        &:active
-          shadow              none
-          border              none
-
-
-
 
 .profile-header
   width                     100%
@@ -933,14 +800,11 @@ textarea.profile-handle-customize.kdinput
   .content-display-wrapper
     rel()
     left                    0
-    // top                     0
-    // right                   0
-    // bottom                  0
     width                   300px
     height                  100%
     fr()
 
-    bg color,               transparent
+    bg                      color, transparent
 
     .content-display
       height                100%

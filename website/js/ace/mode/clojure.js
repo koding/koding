@@ -39,40 +39,16 @@ var MatchingParensOutdent = require("./matching_parens_outdent").MatchingParensO
 var Range = require("../range").Range;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new ClojureHighlightRules().getRules());
+    var highlighter = new ClojureHighlightRules();
+    this.$tokenizer = new Tokenizer(highlighter.getRules());
+    this.$keywordList = highlighter.$keywordList;
     this.$outdent = new MatchingParensOutdent();
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
 
-    this.toggleCommentLines = function(state, doc, startRow, endRow) {
-        var outdent = true;
-        var re = /^(\s*)#/;
-
-        for (var i=startRow; i<= endRow; i++) {
-            if (!re.test(doc.getLine(i))) {
-                outdent = false;
-                break;
-            }
-        }
-
-        if (outdent) {
-            var deleteRange = new Range(0, 0, 0, 0);
-            for (var i=startRow; i<= endRow; i++)
-            {
-                var line = doc.getLine(i);
-                var m = line.match(re);
-                deleteRange.start.row = i;
-                deleteRange.end.row = i;
-                deleteRange.end.column = m[0].length;
-                doc.replace(deleteRange, m[1]);
-            }
-        }
-        else {
-            doc.indentRows(startRow, endRow, ";");
-        }
-    };
+    this.lineCommentStart = ";";
 
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);

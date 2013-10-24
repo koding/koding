@@ -11,7 +11,7 @@ class AceView extends JView
 
   constructor:(options = {}, file)->
 
-    options.advancedSettings ?= yes
+    options.advancedSettings ?= no
 
     super options, file
 
@@ -66,20 +66,49 @@ class AceView extends JView
       @openSaveDialog()
 
     @ace.on "ace.requests.save", (contents)=>
-      if /localfile:/.test @getData().path
+      file = @getData()
+      if /localfile:/.test file.path
         @openSaveDialog()
       else
-        @getData().emit "file.requests.save", contents
+        file.once "fs.save.started",    @ace.bound "saveStarted"
+        file.once "fs.save.finished",   @ace.bound "saveFinished"
+        file.emit "file.requests.save", contents
 
     @ace.on "FileContentChanged", =>
+      @ace.contentChanged = yes
       @getActiveTabHandle().setClass "modified"
       @getDelegate().quitOptions =
         message : "You have unsaved changes. You will lose them if you close this tab."
         title   : "Do you want to close this tab?"
 
     @ace.on "FileContentSynced", =>
+      @ace.contentChanged = no
       @getActiveTabHandle().unsetClass "modified"
       delete @getDelegate().quitOptions
+
+    @ace.on "FileIsReadOnly", =>
+      @getActiveTabHandle().setClass "readonly"
+      @ace.setReadOnly yes
+      modal             = new KDModalView
+        title           : "This file is readonly"
+        content         : """
+        <div class="modalformline">
+          <p>
+            The file <code>#{@getData().name}</code> is set to readonly,
+            you won't be able to save your changes.
+          </p>
+        </div>
+        """
+        buttons         :
+          "Edit Anyway" :
+            cssClass    : "modal-clean-red"
+            callback    : =>
+              @ace.setReadOnly no
+              modal.destroy()
+          "Cancel"      :
+            cssClass    : "modal-cancel"
+            callback    : ->
+              modal.destroy()
 
   getActiveTabHandle: ->
     return  @getDelegate().tabView.getActivePane().tabHandle
@@ -145,79 +174,28 @@ class AceView extends JView
   openSaveDialog: (callback) ->
 
     file = @getData()
-    @addSubView saveDialog = new KDDialogView
-      cssClass      : "save-as-dialog"
-      duration      : 200
-      topOffset     : 0
-      overlay       : yes
-      height        : "auto"
-      buttons       :
-        Save        :
-          style     : "modal-clean-gray"
-          callback  : =>
-            [node] = @finderController.treeController.selectedNodes
-            name   = @inputFileName.getValue()
+    KD.utils.showSaveDialog this, (input, finderController, dialog) =>
+      [node] = finderController.treeController.selectedNodes
+      name   = input.getValue()
 
-            if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
-              @ace.notify "Please type valid file name!", "error"
-              return
+      return @ace.notify "Please type valid file name!"   , "error"  unless FSHelper.isValidFileName name
+      return @ace.notify "Please select a folder to save!", "error"  unless node
 
-            unless node
-              @ace.notify "Please select a folder to save!", "error"
-              return
-
-            saveDialog.hide()
-            @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation
-              parent = node.getData()
-              file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
-              @ace.emit "AceDidSaveAs", name, parent.path
-              oldCursorPosition = @ace.editor.getCursorPosition()
-              file.on "fs.saveAs.finished", =>
-                {tabView} = @getDelegate()
-                return  if tabView.willClose
-                @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
-                @utils.defer =>
-                  newIndex = tabView.getPaneIndex tabView.getActivePane()
-                  tabView.removePane_ tabView.getPaneByIndex newIndex - 1
-                  {ace} = tabView.getActivePane().getOptions().aceView
-                  ace.on "ace.ready", =>
-                    ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
-
-        Cancel      :
-          style     : "modal-cancel"
-          callback  : =>
-            @finderController.stopAllWatchers()
-            delete @finderController
-            saveDialog.hide()
-
-    saveDialog.addSubView wrapper = new KDView
-      cssClass : "kddialog-wrapper"
-
-    wrapper.addSubView form = new KDFormView
-
-    form.addSubView labelFileName = new KDLabelView
-      title : "Filename:"
-
-    form.addSubView @inputFileName = inputFileName = new KDInputView
-      label        : labelFileName
-      defaultValue : file.name
-
-    form.addSubView labelFinder = new KDLabelView
-      title : "Select a folder:"
-
-    saveDialog.show()
-    inputFileName.setFocus()
-
-    @finderController = new NFinderController
-      nodeIdPath        : "path"
-      nodeParentIdPath  : "parentPath"
-      foldersOnly       : yes
-      contextMenu       : no
-      loadFilesOnInit   : yes
-
-    finder = @finderController.getView()
-    @finderController.reset()
-
-    form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog file-container",null
-    finderWrapper.addSubView finder
-    finderWrapper.setHeight 200
+      dialog.destroy()
+      @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation
+        parent = node.getData()
+        file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
+        file.once "fs.saveAs.finished",   @ace.bound "saveAsFinished"
+        @ace.emit "AceDidSaveAs", name, parent.path
+        oldCursorPosition = @ace.editor.getCursorPosition()
+        file.on "fs.saveAs.finished", =>
+          {tabView} = @getDelegate()
+          return  if tabView.willClose
+          @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+          @utils.defer =>
+            newIndex = tabView.getPaneIndex tabView.getActivePane()
+            tabView.removePane_ tabView.getPaneByIndex newIndex - 1
+            {ace} = tabView.getActivePane().getOptions().aceView
+            ace.on "ace.ready", =>
+              ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
+    , { inputDefaultValue: file.name }

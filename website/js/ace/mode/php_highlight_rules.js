@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2010, Ajax.org B.V.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -14,7 +14,7 @@
  *     * Neither the name of Ajax.org B.V. nor the
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -899,11 +899,7 @@ var PhpLangHighlightRules = function() {
         "start" : [
             {
                 token : "comment",
-                regex : "\\/\\/.*$"
-            },
-            {
-               token : "comment",
-               regex : "#.*$"
+                regex : /(?:#|\/\/)(?:[^?]|\?[^>])*/
             },
             docComment.getStartRule("doc-start"),
             {
@@ -934,6 +930,12 @@ var PhpLangHighlightRules = function() {
                         "HP_(?:BINDIR|CONFIG_FILE_(?:PATH|SCAN_DIR)|DATADIR|E(?:OL|XTENSION_DIR)|INT_(?:MAX|SIZE)|" +
                         "L(?:IBDIR|OCALSTATEDIR)|O(?:S|UTPUT_HANDLER_(?:CONT|END|START))|PREFIX|S(?:API|HLIB_SUFFIX|YSCONFDIR)|" +
                         "VERSION))|__COMPILER_HALT_OFFSET__)\\b"
+            }, {
+                token : ["keyword", "text", "support.class"],
+                regex : "\\b(new)(\\s+)(\\w+)"
+            }, {
+                token : ["support.class", "keyword.operator"],
+                regex : "\\b(\\w+)(::)"
             }, {
                 token : "constant.language", // constants
                 regex : "\\b(?:A(?:B(?:DAY_(?:1|2|3|4|5|6|7)|MON_(?:1(?:0|1|2|)|2|3|4|5|6|7|8|9))|LT_DIGITS|M_STR|" +
@@ -975,17 +977,43 @@ var PhpLangHighlightRules = function() {
                 // TODO: Unicode identifiers
                 regex : "[a-zA-Z_$][a-zA-Z0-9_$]*\\b"
             }, {
-                token : "keyword.operator",
-                regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^=|\\b(?:in|instanceof|new|delete|typeof|void)"
+                onMatch : function(value, currentSate, state) {
+                    value = value.substr(3);
+                    if (value[0] == "'" || value[0] == '"')
+                        value = value.slice(1, -1);
+                    state.unshift(this.next, value);
+                    return "markup.list";
+                },
+                regex : /<<<(?:\w+|'\w+'|"\w+")$/,
+                next: "heredoc"
             }, {
-                token : "lparen",
+                token : "keyword.operator",
+                regex : "::|!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|===|==|!=|!==|<=|>=|=>|<<=|>>=|>>>=|<>|<|>|=|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^=|\\b(?:in|instanceof|new|delete|typeof|void)"
+            }, {
+                token : "paren.lparen",
                 regex : "[[({]"
             }, {
-                token : "rparen",
+                token : "paren.rparen",
                 regex : "[\\])}]"
             }, {
                 token : "text",
                 regex : "\\s+"
+            }
+        ],
+        "heredoc" : [
+            {
+                onMatch : function(value, currentSate, stack) {
+                    if (stack[1] != value)
+                        return "string";
+                    stack.shift();
+                    stack.shift();
+                    return "markup.list"
+                },
+                regex : "^\\w+(?=;?$)",
+                next: "start"
+            }, {
+                token: "string",
+                regex : ".*"
             }
         ],
         "comment" : [
@@ -1004,31 +1032,18 @@ var PhpLangHighlightRules = function() {
                 regex : '\\\\(?:[nrtvef\\\\"$]|[0-7]{1,3}|x[0-9A-Fa-f]{1,2})'
             }, {
                 token : "constant.language.escape",
-                regex : /\$[\w\d]+(?:\[[\w\d]+\])?/
+                regex : /\$[\w]+(?:\[[\w\]+]|=>\w+)?/
             }, {
                 token : "constant.language.escape",
                 regex : /\$\{[^"\}]+\}?/           // this is wrong but ok for now
-            }, {
-                token : "string",
-                regex : '"',
-                next : "start"
-            }, {
-                token : "string",
-                regex : '.+?'
-            }
+            },
+            {token : "string", regex : '"', next : "start"},
+            {defaultToken : "string"}
         ],
         "qstring" : [
-            {
-                token : "constant.language.escape",
-                regex : "\\\\['\\\\]"
-            }, {
-                token : "string",
-                regex : "'",
-                next : "start"
-            }, {
-                token : "string",
-                regex : ".+?"
-            }
+            {token : "constant.language.escape", regex : /\\['\\]/},
+            {token : "string", regex : "'", next : "start"},
+            {defaultToken : "string"}
         ]
     };
 
@@ -1042,24 +1057,32 @@ oop.inherits(PhpLangHighlightRules, TextHighlightRules);
 var PhpHighlightRules = function() {
     HtmlHighlightRules.call(this);
 
-    for (var i in this.$rules) {
-        this.$rules[i].unshift({
+    var startRules = [
+        {
             token : "support.php_tag", // php open tag
-            regex : "<\\?(?:php|\\=)?",
-            next  : "php-start"
-        });
-    }
+            regex : "<\\?(?:php|=)?",
+            push  : "php-start"
+        }
+    ];
 
-    this.embedRules(PhpLangHighlightRules, "php-");
+    var endRules = [
+        {
+            token : "support.php_tag", // php close tag
+            regex : "\\?>",
+            next  : "pop"
+        }
+    ];
 
-    this.$rules["php-start"].unshift({
-        token : "support.php_tag", // php close tag
-        regex : "\\?>",
-        next  : "start"
-    });
+    for (var key in this.$rules)
+        this.$rules[key].unshift.apply(this.$rules[key], startRules);
+
+    this.embedRules(PhpLangHighlightRules, "php-", endRules, ["start"]);
+
+    this.normalizeRules();
 };
 
 oop.inherits(PhpHighlightRules, HtmlHighlightRules);
 
 exports.PhpHighlightRules = PhpHighlightRules;
+exports.PhpLangHighlightRules = PhpLangHighlightRules;
 });

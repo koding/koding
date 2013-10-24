@@ -1,4 +1,4 @@
-koding     = require './bongo'
+koding = require './bongo'
 
 error_messages =
   404: "Page not found."
@@ -78,11 +78,6 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
       req.account = account
       callback(err, account)
 
-renderLoginTemplate = (resp, res)->
-  saveOauthToSession resp, ->
-    {loginTemplate} = require './staticpages'
-    serve loginTemplate, res
-
 serve = (content, res)->
   res.header 'Content-type', 'text/html'
   res.send content
@@ -92,26 +87,25 @@ isLoggedIn = (req, res, callback)->
   findUsernameFromSession req, res, (err, isLoggedIn, username)->
     return callback null, no, {}  unless username
     JName.fetchModels username, (err, models)->
+      return callback null, no, {}  if err or not models.first
       user = models.last
       user.fetchAccount "koding", (err, account)->
         if err or account.type is 'unregistered'
         then callback err, no, account
         else callback null, yes, account
 
-saveOauthToSession = (resp, callback)->
-  {JSession} = koding.models
-  {provider, access_token, id, login, email, firstName, lastName, clientId} = resp
-  JSession.one {clientId}, (err, session)->
-    foreignAuth           = {}
-    foreignAuth[provider] =
-      token     : access_token
-      foreignId : String(id)
-      username  : login
-      email     : email
-      firstName : firstName
-      lastName  : lastName
+saveOauthToSession = (oauthInfo, clientId, provider, callback)->
+  {JSession}                       = koding.models
+  query                            = {"foreignAuthType" : provider}
+  query["foreignAuth.#{provider}"] = oauthInfo
 
-    JSession.update {clientId}, $set: {foreignAuth}, callback
+  JSession.update {clientId}, $set:query, callback
+
+renderOauthPopup = (res, locals)->
+  templateFn       = require "./templates/oauth_popup.coffee"
+  renderedTemplate = templateFn locals
+
+  serve renderedTemplate, res
 
 getAlias = do->
   caseSensitiveAliases = ['auth']
@@ -122,6 +116,15 @@ getAlias = do->
       alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
     if alias and rooted then "/#{alias}" else alias
 
+
+# adds referral code into cookie if exists
+addReferralCode = (req, res)->
+  match = req.path.match(/\/R\/(.*)/)
+  if match and match[1]
+    refCode = match[1]
+    console.log "refCode: #{refCode}"
+    res.cookie "referrer", refCode, { maxAge: 900000, httpOnly: false }
+
 module.exports = {
   error_
   error_404
@@ -130,9 +133,10 @@ module.exports = {
   findUsernameFromKey
   findUsernameFromSession
   fetchJAccountByKiteUserNameAndKey
-  renderLoginTemplate
   serve
   isLoggedIn
-  saveOauthToSession
   getAlias
+  addReferralCode
+  saveOauthToSession
+  renderOauthPopup
 }

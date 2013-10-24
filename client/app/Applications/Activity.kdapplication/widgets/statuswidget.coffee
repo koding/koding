@@ -1,4 +1,4 @@
-class ActivityStatusUpdateWidget extends KDFormView
+class ActivityStatusUpdateWidget extends ActivityWidgetFormView
 
   constructor:(options,data)->
 
@@ -105,37 +105,11 @@ class ActivityStatusUpdateWidget extends KDFormView
       tooltip  :
         title  : "This is a public wall, here you can share anything with the Koding community."
 
-    @labelAddTags = new KDLabelView
-      title : "Add Tags:"
-
-    @selectedItemWrapper = new KDCustomHTMLView
-      tagName  : "div"
-      cssClass : "tags-selected-item-wrapper clearfix"
-
-    @tagController = new TagAutoCompleteController
-      name                : "meta.tags"
-      type                : "tags"
-      itemClass           : TagAutoCompleteItemView
-      selectedItemClass   : TagAutoCompletedItemView
-      outputWrapper       : @selectedItemWrapper
-      selectedItemsLimit  : 5
-      listWrapperCssClass : "tags"
-      itemDataPath        : 'title'
-      form                : @
-      dataSource          : (args, callback)=>
-        {inputValue} = args
-        updateWidget = @getDelegate()
-        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
-
-
     @inputLinkInfoBox = new InfoBox
       cssClass : "protocol-info-box"
       delegate : @
 
     @inputLinkInfoBox.hide()
-
-    @tagAutoComplete = @tagController.getView()
 
     # checkbox autocheck
     @appStorage = new AppStorage 'Activity', '1.0'
@@ -280,6 +254,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       @updateCheckboxFromStorage()
 
     super
+
+    @largeInput.resize()
 
   viewAppended:->
     @setTemplate @pistachio()

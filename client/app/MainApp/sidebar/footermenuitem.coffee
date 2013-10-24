@@ -5,16 +5,14 @@ class FooterMenuItem extends KDListItemView
     options.tooltip = switch data.title.toLowerCase()
       when "chat"
         title     : "Chat"
-        direction : 'left'
+        direction : 'center'
         placement : 'top'
-        selector  : 'span'
         delay     : 500
         offset    :
-          top     : 3
-          left    : -8
+          top     : 5
+          left    : 0
       when "about"
         title     : "About Koding"
-        selector  : 'span'
         placement : 'top'
         direction : 'center'
         delay     : 500
@@ -23,13 +21,12 @@ class FooterMenuItem extends KDListItemView
           left    : -3
       when "help"
         title     : "Instructions Book"
-        selector  : 'span'
         placement : 'top'
         direction : 'right'
         delay     : 500
         offset    :
           top     : 3
-          left    : -8
+          left    : 13
 
     super options, data
 

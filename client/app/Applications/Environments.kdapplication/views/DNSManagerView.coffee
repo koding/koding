@@ -4,12 +4,13 @@ class DNSManagerView extends KDView
     data or= {}
     super options, data
 
-    @on "DomainChanged", (domainListItem)->
-      @getData().domain = domainListItem.data
-      @updateViewContent()
+  #   @on "DomainChanged", (domainListItem)->
+  #     @getData().domain = domainListItem.data
+  #     @updateViewContent()
 
-  updateViewContent:->
-    {domain} = @getData()
+  # updateViewContent:->
+  viewAppended:->
+    domain = @getData()
 
     @destroySubViews()
 
@@ -21,5 +22,3 @@ class DNSManagerView extends KDView
 
     @addSubView @newRecordForm
     @addSubView @recordsListController.getView()
-
-
