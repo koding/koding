@@ -381,9 +381,11 @@ class ProfileView extends JView
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
     avatarOptions  =
-      size         :
-        width      : 90
-        height     : 90
+      showStatus      : yes
+      statusDiameter  : 7
+      size            :
+        width         : 90
+        height        : 90
       click        : =>
         pos        =
           top      : @avatar.getBounds().y - 8
