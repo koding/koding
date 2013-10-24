@@ -327,6 +327,7 @@ app.profile.styl
       font-size           11px !important
 
     .kdlistview-contextmenu
+      box-shadow          0px 5px 10px rgba(0,0,0,0.5)
       border              1px solid #454545
     .kdlistview
       gradient            #676767, #5f5f5f
@@ -364,6 +365,15 @@ app.profile.styl
     overflow              visible
   .avatar-change-menu
     overflow              visible
+
+    .arrow
+      abs                 5px 0 0 -5px
+      size                0px 0px
+      border-top          5px solid transparent
+      border-bottom       5px solid transparent
+      border-right        5px solid #454545
+      z-index             10
+
     .wrapper
       overflow            hidden
       height              20px
@@ -390,14 +400,20 @@ app.profile.styl
             bg            position,-83px -483px
 
       &.cancel
-        min-width         60px
+        min-width         45px !important
         float             right
+        padding           0
+        margin-right      5px
+        width             auto !important
+        color             #3f3f3f
+        box-shadow        none
 
       &.confirm
         float             right
 
     .avatar-holder
-      box-shadow          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
+      box-shadow          inset 0px 25px 10px -20px rgba(0, 0, 0, 0.5),
+                          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
                           0 7px 20px -7px rgba(0,0,0,0.8)
       vendor              transition-duration, 200ms
       overflow            hidden
@@ -417,7 +433,7 @@ app.profile.styl
             abs           0px
 
       .webcam-tip
-        background        #ededed url(/images/photo.png) center 40px no-repeat
+        background        transparent url(/images/photo.png) center 40px no-repeat
         text-align        center
         color             #676767
         cite
