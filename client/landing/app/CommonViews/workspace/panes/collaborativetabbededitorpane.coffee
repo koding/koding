@@ -4,17 +4,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     super options, data
 
-    log "i am a CollaborativeTabbedEditorPane"
-
-    @panel            = @getDelegate()
-    @workspace        = @panel.getDelegate()
-    @sessionKey       = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef     = @workspace.firepadRef.child @sessionKey
-    @isJoinedASession = @getOptions().sessionKey
     @openedFiles      = []
+    @editors          = []
     @activeTabIndex   = 0
-
-    log "joined an old session again, creating new tabbed editor" if @isJoinedASession
 
     @createEditorTabs()
     @createEditorInstance()  unless @isJoinedASession
@@ -28,19 +20,27 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
         return @workspaceRef.child("ActiveTabIndex").remove()
 
       if val.tabs?
-        for key, data of val.tabs
+        for own key, data of val.tabs
           if data.path and @openedFiles.indexOf(data.path) is -1
             file = FSHelper.createFileFromPath data.path
             @createEditorInstance file, null, data.sessionKey
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
-    @on "PaneResized", =>
-      @setHeight @parent.getHeight()
-      for pane in @tabView.panes
-        {codeMirrorEditor} = pane.subViews[0]
-        codeMirrorEditor.display.wrapper.style.height = "#{@parent.getHeight() - 22}px"
-        codeMirrorEditor.refresh()
+  getActivePaneEditor: ->
+    return @editors[@getActivePaneIndex()] or null
+
+  getActivePaneContent: ->
+    return @getActivePaneEditor().getValue()
+
+  getActivePaneFileData: ->
+    return @getActivePaneEditor().getData()
+
+  getActivePane: ->
+    return @tabView.getActivePane()
+
+  getActivePaneIndex: ->
+    return @tabView.getPaneIndex @getActivePane()
 
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
@@ -56,17 +56,18 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @tabView.on "PaneAdded", (pane) =>
       {tabHandle} = pane
       tabHandle.on "click", =>
-        newIndex = @tabView.getPaneIndex @tabView.getActivePane()
+        activeTab = @getActivePane()
+        newIndex  = @tabView.getPaneIndex activeTab
         return  if newIndex is @activeTabIndex
 
         @workspaceRef.child("ActiveTabIndex").set newIndex
         @activeTabIndex = newIndex
+        @workspace.setHistory "$0 switched to #{activeTab.getOptions().name}"
 
   createEditorInstance: (file, content, sessionKey) ->
     if file
       fileIndexInOpenedFiles = @openedFiles.indexOf(file.path)
       if fileIndexInOpenedFiles > -1
-        log "same file detected, setting tab acive"
         return  @tabView.showPaneByIndex fileIndexInOpenedFiles
     else
       file = FSHelper.createFileFromPath "localfile:/untitled.txt"
@@ -75,13 +76,15 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       name : file.name
 
     editor = new CollaborativeEditorPane {
-      delegate : @getDelegate()
+      delegate     : @getDelegate()
+      saveCallback : @getOptions().saveCallback
       sessionKey
       file
       content
     }
 
     pane.addSubView editor
+    @editors.push editor
     @tabView.addPane pane
     @activeTabIndex = @tabView.panes.length
 
@@ -95,11 +98,16 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @workspaceRef.child("tabs").push workspaceRefData  unless sessionKey
 
     pane.on "KDTabPaneDestroy", =>
+      removedPaneIndex = @tabView.getPaneIndex pane
+      @editors.splice removedPaneIndex, 1
       @workspaceRef.once "value", (snapshot) =>
         {tabs} = snapshot.val()
         return unless tabs
-        delete tabs[key] for key, value of tabs when value.sessionKey is editor.sessionKey
+        for own key, value of tabs when value.sessionKey is editor.sessionKey
+          fileName = FSHelper.getFileNameFromPath tabs[key].path
+          delete tabs[key]
         @workspaceRef.set { tabs }
+        @workspace.setHistory "$0 closed #{fileName}"
 
       @openedFiles.splice @openedFiles.indexOf(file.path), 1
 
@@ -107,8 +115,18 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
   openFile: CollaborativeTabbedEditorPane::createEditorInstance
 
+  handlePaneResized: ->
+    @tabView.setHeight @parent.getHeight() - 22
+    for pane in @tabView.panes
+      pane.subViews[0].codeMirrorEditor.refresh()
+
+  viewAppended: ->
+    super
+    @emit "PaneResized"
+
   pistachio: ->
-    return """
+    """
+      {{> @header}}
       {{> @tabHandleContainer}}
       {{> @tabView}}
     """

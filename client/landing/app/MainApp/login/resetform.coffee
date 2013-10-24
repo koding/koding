@@ -5,6 +5,7 @@ class ResetInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "password"
         type          : "password"
+        testPath      : "recover-password"
         placeholder   : "Enter a new password"
         validate      :
           container   : this
@@ -19,6 +20,7 @@ class ResetInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "passwordConfirm"
         type          : "password"
+        testPath      : "recover-password-confirm"
         placeholder   : "Confirm your password"
         validate      :
           container   : this

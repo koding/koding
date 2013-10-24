@@ -36,6 +36,8 @@ class GroupCreationModal extends KDModalView
 
     super options, data
 
+    @destroy()  unless KD.checkFlag "group-admin"
+
     @plans = []
     @buttons.next.hide()
 
@@ -55,10 +57,12 @@ class GroupCreationModal extends KDModalView
         width       : 32
       loaderOptions :
         color       : "#ff9200"
+
     loader.show()
 
     vmController = KD.getSingleton('vmController')
     vmController.fetchVMPlans (err, plans)=>
+
       loader.destroy()
       @buttons.next.show()
 
@@ -119,13 +123,16 @@ class GroupCreationModal extends KDModalView
             label                : "Description"
             type                 : "textarea"
             name                 : "body"
+            testPath             : "groups-create-desc"
             placeholder          : "Please enter a description for your group here..."
           "Privacy"              :
             label                : "Privacy/Visibility"
             itemClass            : KDSelectBox
+            testPath             : "groups-create-privacy"
             type                 : "select"
             name                 : "privacy"
             defaultValue         : "public"
+            change               : @bound "privacyChanged"
             selectOptions        :
               Public             : [ { title : "Anyone can join",    value : "public" } ]
               Private            : [
@@ -144,7 +151,12 @@ class GroupCreationModal extends KDModalView
                   { title : "Visible in group listings", value : "visible" }
                   { title : "Hidden in group listings",  value : "hidden" }
                 ]
+              "DomainAddress"    :
+                name             : "domainaddress"
+                placeholder      : 'Please enter your domain ...'
+                cssClass         : "domain-address"
 
+      @mainSettings.inputs.DomainAddress.hide()
 
       descPartial = ""
       for d in descriptions
@@ -157,6 +169,7 @@ class GroupCreationModal extends KDModalView
             </p>
             #{d.description}
           </section>"""
+
       @addSubView @hostSelector = new KDFormViewWithFields
         cssClass         : "host-selector"
         fields           :
@@ -235,6 +248,10 @@ class GroupCreationModal extends KDModalView
 
       @allocationChanged()
       @emit 'ready'
+
+  privacyChanged:->
+    {Privacy, DomainAddress} = @mainSettings.inputs
+    DomainAddress[if Privacy.getValue() is 'same-domain' then 'show' else 'hide']()
 
   hostChanged:->
     {next}           = @buttons

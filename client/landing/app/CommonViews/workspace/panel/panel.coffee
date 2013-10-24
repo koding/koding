@@ -9,6 +9,7 @@ class Panel extends JView
     @headerButtons  = {}
     @panesContainer = []
     @panes          = []
+    @panesByName    = {}
     @header         = new KDCustomHTMLView
 
     {title}         = options
@@ -21,61 +22,80 @@ class Panel extends JView
     @createLayout()
 
   createHeader: (title = "") ->
-    @header     = new KDView
-      cssClass  : "inner-header"
-      partial   : """<span class="title">#{title}</span>"""
+    @header        = new KDView cssClass : "inner-header"
+    @headerTitle   = new KDCustomHTMLView
+      tagName      : "span"
+      cssClass     : "title"
+      partial      : title
+
+    @header.addSubView @headerTitle
+
+    {headerStyling} = @getOptions()
+    @applyHeaderStyling headerStyling if headerStyling
 
   createHeaderButtons: ->
+    # TODO: fatihacet - DRY
     @getOptions().buttons.forEach (buttonOptions) =>
-      buttonView = new KDButtonView
-        title    : buttonOptions.title
-        cssClass : buttonOptions.cssClass
-        callback : =>
-          buttonOptions.callback @, @getDelegate()
+      if buttonOptions.itemClass
+        Klass = buttonOptions.itemClass
+        delete buttonOptions.itemClass
+        buttonOptions.callback = buttonOptions.callback?.bind this, this, @getDelegate()
+
+        buttonView = new Klass buttonOptions
+      else
+        buttonOptions.callback = buttonOptions.callback?.bind this, this, @getDelegate()
+        buttonView = new KDButtonView buttonOptions
 
       @headerButtons[buttonOptions.title] = buttonView
       @header.addSubView buttonView
 
   createHeaderHint: ->
-    @header.addSubView new KDCustomHTMLView
+    @header.addSubView @headerHint = new KDCustomHTMLView
       cssClass  : "help"
+      tooltip   :
+        title   : "Need help?"
       click     : => @showHintModal()
 
   createLayout: ->
-    @container  = new KDView
-      cssClass  : "panel-container"
+    {pane, layout} = @getOptions()
+    @container     = new KDView
+      cssClass     : "panel-container"
 
-    panesLength = @getOptions().panes.length
+    if pane
+      newPane = @createPane pane
+      @container.addSubView newPane
+      @getDelegate().emit "AllPanesAddedToPanel", this, [newPane]
+    else if layout
+      @layoutContainer = new WorkspaceLayout
+        delegate       : this
+        layoutOptions  : layout
 
-    return  unless panesLength
+      @container.addSubView @layoutContainer
+    else
+      warn "no layout config or pane passed to create a panel"
 
-    panelTypeByPaneLength  =
-      "1"                  : "SingleLayout"
-      "2"                  : "DoubleLayout"
-      "3"                  : "TripleLayout"
-      "4"                  : "QuadrupleLayout"
-    methodName             = "create#{panelTypeByPaneLength[panesLength]}"
+  createPane: (paneOptions) ->
+    PaneClass = @getPaneClass paneOptions
+    pane      = new PaneClass paneOptions
 
-    do @[methodName]
+    @panesByName[paneOptions.name] = pane  if paneOptions.name
 
-  createPanes: ->
-    for paneOptions, index in @getOptions().panes
-      @createPane paneOptions, @getPaneContainerByIndex index
-
-  createPane: (paneOptions, targetContainer) ->
-    PaneClass            = @getPaneClass paneOptions.type
-    paneOptions.delegate = @
-    pane                 = new PaneClass paneOptions
-
-    targetContainer.addSubView pane
     @panes.push pane
     @emit "NewPaneCreated", pane
+    return pane
 
-  # GETTERS #
-  getPaneContainerByIndex: (index) ->
-    return  @panesContainer[index]
+  getPaneClass: (paneOptions) ->
+    paneType             = paneOptions.type
+    paneOptions.delegate = this
 
-  getPaneClass: (paneType) ->
+    PaneClass = if paneType is "custom" then paneOptions.paneClass else @findPaneClass paneType
+
+    return unless PaneClass
+      new Error "PaneClass is not defined for \"#{paneOptions.type}\" pane type"
+
+    return PaneClass
+
+  findPaneClass: (paneType) ->
     paneTypesToPaneClass =
       "terminal"         : @TerminalPaneClass
       "editor"           : @EditorPaneClass
@@ -83,61 +103,12 @@ class Panel extends JView
       "preview"          : @PreviewPaneClass
       "finder"           : @FinderPaneClass
       "tabbedEditor"     : @TabbedEditorPaneClass
+      "drawing"          : @DrawingPaneClass
 
-    return  paneTypesToPaneClass[paneType]
+    return paneTypesToPaneClass[paneType]
 
-  # LAYOUT CREATOR HELPERS #
-  createSplitView: (type, views) ->
-    splitView = new SplitViewWithOlderSiblings {
-      resizable : yes
-      sizes     : ["50%", "50%"]
-      type
-      views
-    }
-    splitView.on "ResizeDidStop", =>
-      for pane in @splitView.panelPanes
-        pane.getSubViews().first.emit "PaneResized"
-    return  splitView
-
-  createSingleLayout: ->
-    view       = new KDView
-      cssClass : "panel-container"
-
-    @container.addSubView view
-    @panesContainer.push view
-
-  createDoubleLayout: ->
-    pane1      = new KDView
-    pane2      = new KDView
-    @splitView = @createSplitView "vertical", [pane1, pane2]
-
-    @container.addSubView @splitView
-    @panesContainer.push pane1, pane2
-    @splitView.panelPanes = [pane1, pane2]
-
-  createTripleLayout: ->
-    pane1           = new KDView
-    pane2           = new KDView
-    pane3           = new KDView
-    rightInnerSplit = @createSplitView "horizontal", [pane2, pane3]
-    @splitView      = @createSplitView "vertical", [pane1, rightInnerSplit]
-
-    @container.addSubView @splitView
-    @panesContainer.push pane1, pane2, pane3
-    @splitView.panelPanes = [pane1, pane2, pane3]
-
-  createQuadrupleLayout: ->
-    pane1             = new KDView
-    pane2             = new KDView
-    pane3             = new KDView
-    pane4             = new KDView
-    leftInnerSplit    = @createSplitView "horizontal", [pane1, pane2]
-    rightInnerSplit   = @createSplitView "horizontal", [pane3, pane4]
-    @splitView        = @createSplitView "vertical",   [leftInnerSplit, rightInnerSplit]
-
-    @container.addSubView @splitView
-    @panesContainer.push pane1, pane2, pane3, pane4
-    @splitView.panelPanes = [pane1, pane2, pane3, pane4]
+  getPaneByName: (name) ->
+    return @panesByName[name] or null
 
   showHintModal: ->
     options        = @getOptions()
@@ -152,10 +123,21 @@ class Panel extends JView
           cssClass : "modal-cancel"
           callback : -> modal.destroy()
 
+  applyHeaderStyling: (options) ->
+    {bgColor, bgGradient, bgImage, textColor, textShadowColor, borderColor} = options
+
+    @header.setCss      "color"             , textColor                        if textColor
+    @header.setCss      "textShadowColor"   , "0 1px 0 #{textShadowColor}" if textShadowColor
+    @header.setCss      "borderBottomColor" , "#{borderColor}"                 if borderColor
+    @header.setCss      "background"        , "#{bgColor}"                     if bgColor
+    @headerTitle.setCss "backgroundImage"   , "url(#{bgImage})"                if bgImage
+
+    if bgGradient
+      KD.utils.applyGradient @header, bgGradient.first, bgGradient.last
+
   viewAppended: ->
     super
-    @getDelegate().emit "NewPanelAdded", @
-    @createPanes()
+    @getDelegate().emit "NewPanelAdded", this
 
   pistachio: ->
     """
@@ -163,8 +145,9 @@ class Panel extends JView
       {{> @container}}
     """
 
-Panel::EditorPaneClass        = EditorPane
-Panel::TabbedEditorPaneClass  = EditorPane
-Panel::TerminalPaneClass      = TerminalPane
-Panel::VideoPaneClass         = VideoPane
-Panel::PreviewPaneClass       = PreviewPane
+  EditorPaneClass       : EditorPane
+  TabbedEditorPaneClass : EditorPane
+  TerminalPaneClass     : TerminalPane
+  VideoPaneClass        : VideoPane
+  PreviewPaneClass      : PreviewPane
+  DrawingPaneClass      : KDView

@@ -27,7 +27,7 @@ class ActivityAppController extends AppController
   ]
 
   @clearQuotes = clearQuotes = (activities)->
-    return activities = for activityId, activity of activities
+    return activities = for own activityId, activity of activities
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '\"'
       activity
 
@@ -146,9 +146,11 @@ class ActivityAppController extends AppController
       #to-do add isExempt control.
       #@isExempt (exempt)=>
       #if exempt or @getFilter() isnt activityTypes
+
       groupObj     = KD.getSingleton("groupsController").getCurrentGroup()
+      mydate = new Date((new Date()).setSeconds(0) + 60000).getTime()
       options      =
-        to         : options.to or Date.now()
+        to         : options.to or mydate #Date.now() we cant cache if we change ts everytime.
         group      :
           slug     : groupObj?.slug or "koding"
           id       : groupObj.getId()
@@ -158,6 +160,8 @@ class ActivityAppController extends AppController
 
       if KD.getSingleton("activityController").flags.showExempt
         options.withExempt = yes
+      else
+        options.withExempt = false
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 

@@ -2,294 +2,153 @@ class StartTabMainView extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass or= 'start-tab'
+    options.cssClass = 'start-tab'
 
     super options, data
 
-    @listenWindowResize()
+    @appIcons   = {}
+    appStorages = KD.getSingleton('appStorageController')
+    @appStorage = appStorages.storage 'Finder', '1.1'
+    @_connectAppsController()
 
-    @appIcons       = {}
-    mainView        = KD.getSingleton('mainView')
-
-    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
-    @appsController = KD.getSingleton("kodingAppsController")
-    @appsController.on "AppsRefreshed", (apps)=>
-      @decorateApps apps
-    @appsController.on "aNewAppCreated", =>
-      @aNewAppCreated()
-
-    @finderController = KD.getSingleton "finderController"
-    @finderController.on 'recentfiles.updated', =>
-      @updateRecentFileViews()
+    # Main view elements
 
     @loader = new KDLoaderView size : width : 16
 
-    @refreshButton = new KDButtonView
-      cssClass    : "editor-button refresh-apps-button"
-      title       : "Refresh Apps"
-      icon        : yes
-      iconClass   : "refresh"
-      loader      :
-        diameter  : 16
-      callback    : =>
-        @removeAppIcons()
-        @showLoader()
-        @appsController.refreshApps (err, apps)=>
-          @hideLoader()
-          @refreshButton.hideLoader()
-
-    @addAnAppButton = new KDButtonView
-      cssClass    : "editor-button new-app-button"
-      icon        : yes
-      iconClass   : "plus-black"
-      title       : "Make a new App"
-      callback    : =>
-        @appsController.makeNewApp()
-
     @appItemContainer = new StartTabAppItemContainer
       cssClass : 'app-item-container'
-      delegate : @
+      delegate : this
 
-    @recentFilesWrapper = new KDView
-      cssClass : 'file-container'
+    # Server Container
+    @serverContainer = new EnvironmentsMainScene cssClass : 'animated'
+    @serverContainer.setHeight 2
 
-    @downloadFilesLink = new KDCustomHTMLView
-    userJoinDate       = new Date(KD.whoami().meta.createdAt).getTime()
-    oldKodingDownDate  = 1374267600000
+    @serverContainerToggle = new KDToggleButton
+      style           : "kdwhitebtn"
+      cssClass        : "server-container-handler"
+      defaultState    : "Show environments"
+      states          : [
+        title         : "Show environments"
+        callback      : (cb)=>
+          @serverContainer.setHeight 500
+          @serverContainerToggle.setClass 'on-top'
+          @utils.wait 260, => @serverContainer.scene.updateScene()
+          cb()
+      ,
+        title         : "Hide environments"
+        callback      : (cb)=>
+          @serverContainer.setHeight 2
+          @serverContainerToggle.unsetClass 'on-top'
+          @serverContainer.domainCreateForm.emit "CloseClicked"
+          cb()
+      ]
 
-    if userJoinDate < oldKodingDownDate
-      @appStorage = KD.getSingleton("appStorageController").storage "Finder", "1.0"
+  # Application Specific Operations
 
-      @appStorage.fetchStorage (err, storage) =>
-        return if @appStorage.getValue "HideOldKodingDownloadLink"
+  _connectAppsController:->
+    @appsController = KD.getSingleton("kodingAppsController")
 
-        @downloadFilesLink.addSubView text = new KDCustomHTMLView
-          cssClass     : "download-files-link"
-          partial      : "Click here to get download link for your old Koding files"
-          click        : ->
-            KD.whoami().fetchOldKodingDownloadLink (err, url) ->
-              modal          = new KDModalView
-                cssClass     : "modal-with-text old-file-download-modal"
-                overlay      : yes
-                title        : "Your old Koding files"
-                content      : """
-                  <p>
-                    You can use the following link to download your files. Note that these files won't be available after Sep 1, 2013. You have to download before then.
-                    <a href="#{url}" class="download-link" target="_blank">#{url}</a>
-                  </p>
-                """
-                buttons      :
-                  Close      :
-                    title    : "Close"
-                    cssClass : "modal-cancel"
-                    callback : -> modal.destroy()
+    @appsController.on "AppsRefreshed",   (apps)=> @decorateApps apps
+    @appsController.on "AppsDataChanged", @bound "updateAppIcons"
+    @appsController.on "InvalidateApp",   @bound "removeAppIcon"
+    @appsController.on "UpdateAppData",   @bound "createAppIcon"
 
-        text.addSubView new KDCustomHTMLView
-          cssClass : "close-download-notification"
-          tagName  : "span"
-          tooltip  :
-            title  : "Don't show this again."
-          click    : (e) =>
-            e.stopPropagation()
-            @downloadFilesLink.destroy()
-            @appStorage.setValue "HideOldKodingDownloadLink", yes
-
-  showLoader:->
-
-    @loader.show()
-    @$('h1.loaded, h2.loaded').addClass "hidden"
-    @$('h2.loader').removeClass "hidden"
-
-  hideLoader:->
-
-    @loader.hide()
-    @$('h2.loader').addClass "hidden"
-    @$('h1.loaded, h2.loaded').removeClass "hidden"
-
-  viewAppended:->
-
-    super
-    @addRealApps()
-    @addSplitOptions()
-    @addRecentFiles()
-    if KD.isGuest()
-      unless $.cookie "guestForFirstTime"
-        @utils.wait 5*60*1000, =>
-          @showGuestNotification()
-          $.cookie "guestForFirstTime", yes
-      else
-        @showGuestNotification()
-
-  _windowDidResize:->
-
-  addApps:->
-
-    for app in apps
-      @appItemContainer.addSubView new StartTabOldAppThumbView
-        tab : @
-      , app
-
-  aNewAppCreated:->
-    new KDNotificationView
-      type     : "mini"
-      cssClass : "success"
-      title    : "App is created! Check your Applications folder!"
-
-    @removeAppIcons()
-    @showLoader()
-    @appsController.refreshApps =>
-      @hideLoader()
-
-    # FIXME Use Default VM ~ GG
-    # # Refresh Applications Folder
-    # finder = KD.getSingleton("finderController").treeController
-    # finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
-
-  pistachio:->
-    """
-    <div class='app-list-wrapper'>
-      <div class='app-button-holder'>
-        {{> @downloadFilesLink}}
-        {{> @addAnAppButton}}
-        {{> @refreshButton}}
-      </div>
-      <header>
-        <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
-        <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
-        <h2 class="loader">{{> @loader}} Loading applications...</h1>
-      </header>
-      {{> @appItemContainer}}
-    </div>
-    <div class='start-tab-split-options expanded'>
-      <h3>Start with a workspace</h3>
-    </div>
-    <div class='start-tab-recent-container'>
-      <h3>Recent files:</h3>
-      {{> @recentFilesWrapper}}
-    </div>
-    """
+    @on 'refreshAppsMenuItemClicked', =>
+      @appsController.syncAppStorageWithFS yes
+    @on 'makeANewAppMenuItemClicked', =>
+      @appsController.makeNewApp()
 
   addRealApps:->
 
     @removeAppIcons()
     @showLoader()
     @appsController.fetchApps (err, apps)=>
+      if not @appsController._loadedOnce and apps and Object.keys(apps).length > 0
+        @appsController.syncAppStorageWithFS()
       @decorateApps apps
 
   decorateApps:(apps)->
+
+    apps or= @appsController.getManifests()
+
     @removeAppIcons()
     @showLoader()
-    @refreshButton.hide()
-    @putAppIcons apps
 
-    shortcuts = @appsController.appStorage.getValue 'shortcuts'
+    @appsController.appStorage.fetchValue 'shortcuts', (shortcuts)=>
 
-    for shortcut, manifest of shortcuts
-      do (shortcut, manifest)=>
-        @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
-          delegate : @
-        , manifest
+      for own shortcut, manifest of shortcuts
+        do (shortcut, manifest)=>
+          @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
+            delegate : @
+          , manifest
 
+      @createAllAppIcons apps
+      @createGetMoreAppsButton()
+
+      @hideLoader()
+
+  createGetMoreAppsButton:->
+    @appIcons['GET_MORE_APPS']?.destroy()
     @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
       delegate : @
-    @hideLoader()
-    @refreshButton.show()
+
+  removeAppIcon:(appName)->
+    appIcon = @appIcons[appName]
+    return  unless appIcon
+    appIcon.destroy()
+    delete @appIcons[appName]
 
   removeAppIcons:->
 
     @appItemContainer.destroySubViews()
     @appIcons = {}
 
-  putAppIcons:(apps)->
+  updateAppIcons:(changes)->
 
-    for app, manifest of apps
-      do (app, manifest)=>
-        @appItemContainer.addSubView @appIcons[manifest.name] = new StartTabAppThumbView
-          delegate : @
-        , manifest
+    {removedApps, newApps, existingApps, force} = changes
+    return @decorateApps()  if force or existingApps.length is 0
+    @removeAppIcon app  for app in removedApps
+    @createAllAppIcons @appsController.getManifests()  if newApps.length > 0
 
-  addSplitOptions:->
-    for splitOption in getSplitOptions()
-      option = new KDCustomHTMLView
-        tagName   : 'a'
-        cssClass  : 'start-tab-split-option'
-        partial   : splitOption.partial
-        click     : -> KD.getSingleton("appManager").notify()
-      @addSubView option, '.start-tab-split-options'
+  createAppIcon:(app, appData, bulk=no)->
 
-  addRecentFiles:->
+    appData or= @appsController.getManifest app
+    return  unless appData
 
-    @recentFileViews = {}
+    oldIcon = @appIcons[app]
+    @appItemContainer.addSubView newIcon = new StartTabAppThumbView
+      delegate : this
+    , appData
 
-    @appStorage.fetchValue 'recentFiles', (recentFilePaths)=>
-      recentFilePaths or= []
-      @updateRecentFileViews()
-      @finderController.on "NoSuchFile", (file)=>
-        recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
-        @appStorage.setValue 'recentFiles', recentFilePaths
+    if oldIcon
+      newIcon.$().insertAfter oldIcon.$()
+      oldIcon.destroy()
 
-  updateRecentFileViews:(recentFilePaths)->
+    @appIcons[app] = newIcon
 
-    @recentFileViews or= {}
-    recentFilePaths   ?= @appStorage.getValue('recentFiles') or []
+    # To make sure its always the last icon
+    @createGetMoreAppsButton()  unless bulk
 
-    for path, view of @recentFileViews
-      @recentFileViews[path].destroy()
-      delete @recentFileViews[path]
+  createAllAppIcons:(apps)->
+    for own app, appData of apps
+      do (app, appData)=>
+        @createAppIcon app, appData, yes
 
-    if recentFilePaths.length
-      recentFilePaths.forEach (filePath)=>
-        @recentFileViews[filePath] = new StartTabRecentFileItemView {}, filePath
-        @recentFilesWrapper.addSubView @recentFileViews[filePath]
+    # To make sure its always the last icon
+    @createGetMoreAppsButton()
+
+  # Guest Notifications if necessary
+  #
+  # We need to inform Guest users to register a new account in 20 min.
+
+  startGuestTimer:->
+    return  unless KD.isGuest()
+    unless $.cookie "guestForFirstTime"
+      @utils.wait 5*60*1000, =>
+        @showGuestNotification()
+        $.cookie "guestForFirstTime", yes
     else
-      @recentFilesWrapper.hide()
-
-  createSplitView:(type)->
-
-  getSplitOptions = ->
-    [
-      {
-        partial               : '<span class="fl w50"></span><span class="fr w50"></span>'
-        splitType             : 'vertical'
-        splittingFromStartTab : yes
-        splits                : [1,1]
-      },
-      {
-        partial               : '<span class="fl h50 w50"></span><span class="fr h50 w50"></span><span class="h50 full-b"></span>'
-        splitType             : 'horizontal'
-        secondSplitType       : 'vertical'
-        splittingFromStartTab : yes
-        splits                : [2,1]
-      },
-      {
-        partial               : '<span class="h50 full-t"></span><span class="fl w50 h50"></span><span class="fr w50 h50"></span>'
-        splitType             : 'horizontal'
-        secondSplitType       : 'vertical'
-        splittingFromStartTab : yes
-        splits                : [1,2]
-      },
-      {
-        partial               : '<span class="fl w50 h50"></span><span class="fr w50 full-r"></span><span class="fl w50 h50"></span>'
-        splitType             : 'vertical'
-        secondSplitType       : 'horizontal'
-        splittingFromStartTab : yes
-        splits                : [2,1]
-      },
-      {
-        partial               : '<span class="fl w50 full-l"></span><span class="fr w50 h50"></span><span class="fr w50 h50"></span>'
-        splitType             : 'vertical'
-        secondSplitType       : 'horizontal'
-        splittingFromStartTab : yes
-        splits                : [1,2]
-      },
-      {
-        partial               : '<span class="fl w50 h50"></span><span class="fr w50 h50"></span><span class="fl w50 h50"></span><span class="fr w50 h50"></span>'
-        splitType             : 'vertical'
-        secondSplitType       : 'horizontal'
-        splittingFromStartTab : yes
-        splits                : [2,2]
-      },
-    ]
+      @showGuestNotification()
 
   showGuestNotification: (guestTimeout = 20)->
     return  unless KD.isGuest()
@@ -297,12 +156,12 @@ class StartTabMainView extends JView
     guestCreateTime  = guestCreate.getTime()
 
     endTime       = new Date(guestCreateTime + guestTimeout*60*1000)
-    log endTime
+
     notification  = new GlobalNotification
       title       : "Your session will end in"
       targetDate  : endTime
       endTitle    : "Your session end, logging out."
-      content     : "You can use Koding for 20 minutes without registering. <a href='/Register'>Register now</a>."
+      content     : "Please <a href='/Register'>register</a> to continue using Koding."
       callback    : =>
         return  unless KD.isGuest()
         {defaultVmName} = KD.getSingleton "vmController"
@@ -311,3 +170,44 @@ class StartTabMainView extends JView
           KD.getSingleton("vmController").emit 'VMListChanged'
           $.cookie "clientId", erase: yes
           $.cookie "guestForFirstTime", erase: yes
+
+  # Common parts
+
+  showLoader:->
+
+    @loader.show()
+    @$('h1.loaded, h2.loaded').addClass "hidden"
+    @$('h2.loader').removeClass "hidden"
+    @serverContainerToggle.unsetClass 'in'
+    @serverContainer.unsetClass 'in'
+
+  hideLoader:->
+
+    @loader.hide()
+    @$('h2.loader').addClass "hidden"
+    @$('h1.loaded, h2.loaded').removeClass "hidden"
+    @serverContainerToggle.setClass 'in'
+    @serverContainer.setClass 'in'
+
+  viewAppended:->
+
+    super
+    @addRealApps()
+    @startGuestTimer()
+
+    @utils.wait 220, =>
+      @serverContainer.scene.updateScene()
+
+  pistachio:->
+    """
+    <div class='app-list-wrapper'>
+      <header>
+        <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
+        <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
+        <h2 class="loader">{{> @loader}} Loading applications...</h1>
+      </header>
+      {{> @serverContainerToggle}}
+      {{> @serverContainer}}
+      {{> @appItemContainer}}
+    </div>
+    """

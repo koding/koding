@@ -39,7 +39,7 @@ class BlogPostActivityItemView extends ActivityItemChild
       <h3 class="blog-post-body">{{> @readThisLink}}</h3>
       <div class="activity-content-container discussion">
         <p class="body no-scroll has-markdown force-small-markdown">
-          {{@utils.shortenText @utils.applyMarkdown #(body)}}
+          {{@utils.shortenText @utils.applyMarkdown Encoder.htmlDecode #(body)}}
         </p>
       </div>
       <footer class='clearfix'>

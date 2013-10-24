@@ -33,6 +33,7 @@ class GroupsInvitationView extends KDView
             buttons          :
               Send           :
                 itemClass    : KDButtonView
+                testPath     : "groups-dashboard-invite-button"
                 title        : options.submitButtonLabel or 'Send'
                 type         : 'submit'
                 loader       :
@@ -133,14 +134,23 @@ class GroupsInvitationView extends KDView
       title              : 'Invite by Email'
       cssClass           : 'invite-by-email'
       callback           : ({emails, message, saveMessage, bcc})=>
-        @getData().inviteByEmails emails, {message, bcc}, (err)=>
-          @modalCallback @inviteByEmail, noop, err
-          @saveInviteMessage 'invitationMessage', message  if saveMessage
+
+        KD.remote.api.JUser.fetchUser (err, user)=>
+          emailList = emails.split(/\n/).map (email)-> email.trim()
+          if user.email in emailList
+            @inviteByEmail.modalTabs.forms.invite.buttons.Send.hideLoader()
+            return new KDNotificationView
+              title: "You cannot invite yourself!"
+
+          @getData().inviteByEmails emails, {message, bcc}, (err)=>
+            @modalCallback @inviteByEmail, noop, err
+            @saveInviteMessage 'invitationMessage', message  if saveMessage
       fields             :
         emails           :
           label          : 'Emails'
           type           : 'textarea'
           cssClass       : 'emails-input'
+          testPath       : "groups-dashboard-invite-list"
           placeholder    : 'Enter each email address on a new line...'
           validate       :
             rules        :

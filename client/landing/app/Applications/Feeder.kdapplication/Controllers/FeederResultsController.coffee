@@ -13,7 +13,7 @@ class FeederResultsController extends KDViewController
     @panes = {}
     @listControllers = {}
 
-    @createTab name, filter for name, filter of options.filters
+    @createTab name, filter for own name, filter of options.filters
 
   loadView:(mainView)->
 

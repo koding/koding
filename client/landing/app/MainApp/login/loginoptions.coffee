@@ -1,5 +1,8 @@
 class LoginOptions extends KDView
   viewAppended:->
+
+    inFrame = KD.runningInFrame()
+
     @addSubView new KDHeaderView
       type      : "small"
       title     : "SIGN IN WITH:"
@@ -17,8 +20,8 @@ class LoginOptions extends KDView
 
     optionsHolder.addSubView new KDCustomHTMLView
       tagName   : "li"
-      cssClass  : "github"
+      cssClass  : "github #{'hidden' if inFrame}"
       partial   : "github"
-      click     : -> KD.utils.openGithubPopUp()
+      click     : -> KD.singletons.oauthController.openPopup "github"
       tooltip   :
         title   : "<p class='login-tip'>Sign in with GitHub</p>"

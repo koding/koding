@@ -147,7 +147,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
     f
 
   ignored = (str) ->
-    -> log "Ignored: " + str
+    -> log "Ignored: " + str if localStorage?["WebTerm.logRawOutput"] is "true"
 
   originMode = false
 

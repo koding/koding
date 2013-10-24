@@ -6,16 +6,15 @@ class CollaborativeClientFinderPane extends Pane
 
     super options, data
 
-    @container = new KDView
-      cssClass : "client-finder-pane"
-      partial  : "Fetching remote file tree"
+    @container    = new KDView
+      cssClass    : "client-finder-pane"
 
-    panel              = @getDelegate()
-    workspace          = panel.getDelegate()
-    {@sessionKey}      = @getOptions()
-    @workspaceRef      = workspace.firepadRef.child @sessionKey
+    panel         = @getDelegate()
+    workspace     = panel.getDelegate()
+    {@sessionKey} = @getOptions()
+    @workspaceRef = workspace.firepadRef.child @sessionKey
 
-    log "i am a client fake file tree and my session key is #{@sessionKey}"
+    @createLoader()
 
     @workspaceRef.on "value", (snapshot) =>
       files = snapshot.val()?.files
@@ -28,18 +27,30 @@ class CollaborativeClientFinderPane extends Pane
         fileInstance.vmName = file.vmName
         fileInstances.push fileInstance
 
-      @fileTree = new CollaborativeClientTreeViewController { @workspaceRef }, fileInstances
+      @fileTree = new CollaborativeClientTreeViewController { @workspaceRef, workspace }, fileInstances
 
       view = @fileTree.getView()
       @container.updatePartial ""
       @container.addSubView view
 
+  createLoader: ->
+    @container.addSubView loaderContainer = new KDView
+      cssClass    : "loader-container"
+
+    loaderContainer.addSubView new KDLoaderView
+      showLoader  : yes
+      size        :
+        width     : 32
+
+    loaderContainer.addSubView new KDCustomHTMLView
+      tagName     : "p"
+      partial     : "Fetching remote file tree"
+
   pistachio: ->
     """
+      {{> @header}}
       {{> @container}}
     """
-
-
 
 
 class CollaborativeClientTreeViewController extends JTreeViewController
@@ -55,10 +66,10 @@ class CollaborativeClientTreeViewController extends JTreeViewController
     super options, data
 
   dblClick: (nodeView, event) ->
-    log "Client interacted with this", nodeView
-
     nodeData = nodeView.getData()
     @getOptions().workspaceRef.set "ClientWantsToInteractWithRemoteFileTree":
       path   : nodeData.path
       type   : nodeData.type
       vmName : nodeData.vmName
+
+    @getOptions().workspace.setHistory "$0 toggled #{nodeData.path}"

@@ -55,6 +55,17 @@ __aceSettings =
       title: '8 chars'
   ]
 
+  keyboardHandlers: [
+      value: "default"
+      title: "Default"
+    ,
+      value: "vim"
+      title: "Vim"
+    ,
+      value: "emacs"
+      title: "Emacs"
+  ]
+
   themes:
     Bright : [
       { title: 'Chrome',                value: 'chrome' }
@@ -133,7 +144,7 @@ __aceSettings =
     rdoc        : ["RDOC"         , "rdoc"]
     powershell  : ["Powershell"   , "ps1"]
     python      : ["Python"       , "py"]
-    ruby        : ["Ruby"         , "ru|gemspec|rake|rb"]
+    ruby        : ["Ruby"         , "ru|gemspec|rake|rb|erb"]
     scad        : ["OpenSCAD"     , "scad"]
     scala       : ["Scala"        , "scala"]
     scss        : ["SCSS"         , "scss|sass"]
@@ -147,12 +158,12 @@ __aceSettings =
     typescript  : ["Typescript"   , "ts"]
     xml         : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
     xquery      : ["XQuery"       , "xq"]
-    yaml        : ["YAML"         , "yaml"]
+    yaml        : ["YAML"         , "yaml|yml"]
     objectivec  : ["Objective C"  , "__dummy__"]
 
   getSyntaxOptions : ->
 
-    o = for syntax, info of __aceSettings.syntaxAssociations
+    o = for own syntax, info of __aceSettings.syntaxAssociations
       { title : info[0], value : syntax }
 
     o.sort (a, b) -> if a.title < b.title then -1 else 1
@@ -180,6 +191,7 @@ __aceSettings =
     json        : "javascript"
     # json        : "json"
     latex       : "tex"
+    go          : "golang"
     less        : "css"
     lisp        : "lisp"
     # liquid      : null

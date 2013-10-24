@@ -1,30 +1,31 @@
 class DNSRecordListController extends KDListViewController
 
   constructor:(options={}, data)->
-
     options.itemClass   or= DNSRecordListItemView
-    options.noItemView  or= new EmptyDNSRecordListItemView
+    options.noItemFoundWidget  or= new EmptyDNSRecordListItemView
     options.viewOptions or=
       type      : 'env-list'
-      tagName   : 'table'
+      tagName   : 'ul'
       partial   :
         """
-        <thead>
-          <tr>
-            <th>Record Type</th>
-            <th>Host</th>
-            <th>Value</th>
-            <th>TTL</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+        <h3 class="records-title clearfix">
+          <div class="record-type record-element">Record Type</div>
+          <div class="record-host record-element">Host</div>
+          <div class="record-value record-element">Value</div>
+          <div class="record-ttl record-element">TTL</div>
+          <div class="record-priority record-element">Priority</div>
+        </h3>
         """
     super options, data
 
     {domain} = @getData()
     @getListView().setData @getData()
-    @instantiateListItems domain.dnsRecords  if domain.dnsRecords?
 
+  loadView:(mainView)->
+    super
+    {domain} = @getData()
+    @instantiateListItems domain.dnsRecords  if domain.dnsRecords?
+    
     @on "newRecordCreated", @bound "addItem"
     @getListView().on "recordDeletionRequested", @bound "deleteRecordItem"
     @getListView().on "recordUpdateRequested", @bound "updateRecordItem"
@@ -36,8 +37,10 @@ class DNSRecordListController extends KDListViewController
     domain.deleteDNSRecord {recordType, value, host}, (err, response)=>
       unless err
         @removeItem recordItem
+        return new KDNotificationView {title: "Record has been removed."}
       else
-        new KDNotificationView
+        log err
+        return new KDNotificationView
           title : "An error occured while removing your record. Please try again."
 
   updateRecordItem:(oldData, recordItem)->

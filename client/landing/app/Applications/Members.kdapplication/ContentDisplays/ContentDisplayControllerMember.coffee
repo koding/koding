@@ -85,7 +85,7 @@ class ContentDisplayControllerMember extends KDViewController
       delegate   : @getView()
 
     if KD.isMine member
-      options.cssClass = KD.utils.curryCssClass "own-profile", options.cssClass
+      options.cssClass = KD.utils.curry "own-profile", options.cssClass
     else
       options.bind = "mouseenter" unless KD.isMine member
 
@@ -116,7 +116,7 @@ class ContentDisplayControllerMember extends KDViewController
       title             : title
       dataSource        : (selector, options, callback)=>
         options.originId = account.getId()
-        options.facets   = facets
+        options.facet   = facets
         KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
     return filter
 
@@ -135,12 +135,12 @@ class ContentDisplayControllerMember extends KDViewController
           title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
           placement         : "above"
       filter                :
-        everything          : @createFilter("Everything", account, ['Everything'])
-        statuses            : @createFilter("Status Updates", account, ['JStatusUpdate'])
-        codesnips           : @createFilter("Code Snippets", account, ['JCodeSnip'])
-        blogposts           : @createFilter("Blog Posts", account, ['JBlogPost'])
-        discussions         : @createFilter("Discussions", account, ['JDiscussion'])
-        tutorials           : @createFilter("Tutorials", account, ['JTutorial'])
+        everything          : @createFilter("Everything", account, 'Everything')
+        statuses            : @createFilter("Status Updates", account, 'JStatusUpdate')
+        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
+        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
+        discussions         : @createFilter("Discussions", account, 'JDiscussion')
+        tutorials           : @createFilter("Tutorials", account, 'JTutorial')
       sort                  :
         'likesCount'  :
           title             : "Most popular"

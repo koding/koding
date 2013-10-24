@@ -1,77 +1,62 @@
+class LocalStorage extends AppStorage
+
+  storage = window.localStorage
+
+  fetchStorage:->
+    KD.utils.defer => @emit "ready"
+
+  getValue: (key)->
+    data = @_storageData[key]
+    return data  if data
+    data = storage[@getSignature key]
+    if data
+      try
+        data = JSON.parse data
+      catch e
+        warn "parse failed", e
+    return data
+
+  getAt: (path)->
+    return null  unless path
+    keys = path.split '.'
+    data = @getValue keys.shift()
+    return null  unless data
+    return data  if keys.length is 0
+    JsPath.getAt data, keys.join '.'
+
+  setAt: (path, value, callback)->
+    return null  unless path and value
+    keys = path.split '.'
+    key  = keys.shift()
+    if keys.length is 0
+      @setValue key, value, callback
+    else
+      @setValue key, (JsPath.setAt {}, (keys.join '.'), value), callback
+
+  fetchValue:(key, callback)->
+    callback? @getValue key
+
+  setValue: (key, value, callback)->
+    @_storageData[key] = value or ''
+    storage[@getSignature key] = (JSON.stringify value) or ''
+    KD.utils.defer => callback? null
+
+  unsetKey: (key, callback)->
+    delete storage[@getSignature key]
+    delete @_storageData[key]
+
+  getSignature:(key)->
+    "koding-#{@_applicationID}-#{@_applicationVersion}-#{key}"
+
 class LocalStorageController extends KDController
 
-  idPrefix = 'koding-'
+  constructor:->
+    super
+    @localStorages = {}
 
-  constructor:(options,data)->
-    super options,data
+  storage:(appName, version = "1.0")->
+    key = "#{appName}-#{version}"
+    return @localStorages[key] or= new LocalStorage appName, version
 
-    @storage = window["localStorage"]
-
-    # this even will only fire when a different window changes the LS
-    window.addEventListener 'storage', @storageEvent ,false
-
-  storageEvent:(event)->
-    log 'storage event found.', event
-
-  assureStorageIndex:->
-  createStorageIndex:->
-  deleteStorageIndex:->
-
-  # DELETER for key/value or set value to null
-  deleteValueByKey:(key)->
-    @setValueByKey key, null
-
-  deleteValueById:(id)->
-    @setValueByKey @getKeyFromId, null
-
-  deleteKey:(key)->
-    @storage.removeItem key
-
-  deleteId:(idKey)->
-    @deleteKey @getIdFromKey idKey
-
-  # GET values from id or key
-  getKeyFromId:(id)->
-    id.replace idPrefix, ''
-
-  getIdFromKey:(key)->
-    @getSlug key
-
-  getValueByIndex:(index)->
-    if @storage.length > index and @storage.key index
-      @storage.key index
-    else null
-
-  getValueByKey:(key)->
-    @storage.getItem key
-
-  getValueById:(id)->
-    @getValueByKey @getSlug(id)
-
-  # SETTER
-  setValueByKey:(key, value)->
-    @storage.setItem key,value
-
-  setValueById:(id, value)->
-    @setValueByKey @getSlug(id), value
-
-
-  # SIZE related methods
-  getStorageLength:->
-    @storage.length
-
-  getStorageSize:->
-  getStorageRemainingSize:->
-  getStorageUsedSize:->
-    JSON.stringify(@storage).length # in bytes
-
-
-  hasKey:(key)->
-    @storage.getItem(key) isnt null
-
-  hasId:(id)->
-    @hasKey @getSlug id
-
-
-  getSlug:(id)-> idPrefix+id
-
+# Let people can use AppStorage
+KD.classes.LocalStorage = LocalStorage

@@ -221,7 +221,7 @@ class EmbedBoxImageView extends KDView
         'data-src': (@utils.proxifyUrl oembed.images?[0]?.url, width: 341, height: 291) or 'https://koding.com/images/small-loader.gif'
         title     : oembed.title or ''
       load        : =>
-        @image.setDomAttributes src: @image.$().data "src"
+        @image.setAttribute "src", @image.$().data "src"
       error       : =>
         unless @getDelegate().getOptions().hasConfig # do not hide for widgets
           @getDelegate().hide()
@@ -243,7 +243,7 @@ class EmbedBoxImageView extends KDView
       @utils.defer =>
         @loader.hide()
         if @image.$().attr 'data-src'
-          @image.setDomAttributes src : @image.$().attr('data-src')
+          @image.setAttribute  "src", @image.$().attr('data-src')
           @image.$().removeAttr 'data-src'
 
   pistachio:->
@@ -301,7 +301,7 @@ class EmbedBoxLinkViewImage extends KDView
   # this will get called from the image-switch click events to update the preview
   # images when browsing the available embed links
   setSrc:(url='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==')->
-    @imageView.setDomAttributes src : url
+    @imageView.setAttributes src : url
 
   viewAppended:->
     JView::viewAppended.call this

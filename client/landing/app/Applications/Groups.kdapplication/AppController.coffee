@@ -4,10 +4,14 @@ class GroupsAppController extends AppController
     name         : "Groups"
     route        : "/Groups"
     hiddenHandle : yes
-    navItem      :
-      title      : "Groups"
-      path       : "/Groups"
-      order      : 40
+    # navItem      :
+    #   title      : "Groups"
+    #   path       : "/Groups"
+    #   order      : 40
+    #   topLevel   : yes
+    preCondition :
+      condition  : (options, cb)-> cb KD.checkFlag "group-admin"
+      failure    : -> KD.getSingleton('router').handleRoute "/Activity"
 
   @privateGroupOpenHandler =(event)->
     event.preventDefault()
@@ -76,10 +80,7 @@ class GroupsAppController extends AppController
     oldGroupName        = @currentGroupName
     @currentGroupName   = groupName
 
-    if oldGroupName?
-      location.reload()
-
-    else unless groupName is oldGroupName
+    unless groupName is oldGroupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?
@@ -178,7 +179,7 @@ class GroupsAppController extends AppController
           title             : "My groups"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchGroups (err, items)=>
+            KD.whoami().fetchGroups options, (err, items)=>
               ids = []
               for item in items
                 item.followee = true
@@ -237,7 +238,7 @@ class GroupsAppController extends AppController
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
       owner : (view)-> view.markOwnGroup()
-    for as, callback of fetchRoles
+    for own as, callback of fetchRoles
       do (as, callback)->
         KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
           return error err if err
@@ -339,6 +340,7 @@ class GroupsAppController extends AppController
       buttons        :
         request      :
           title      : title
+          testPath   : "groups-request-button"
           loader     :
             color    : "#ffffff"
             diameter : 12

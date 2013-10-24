@@ -27,6 +27,7 @@ class GroupsInvitationListItemView extends KDListItemView
       title       : 'Approve'
       icon        : yes
       iconClass   : 'approve'
+      testPath    : "groups-request-approve"
       callback    : =>
         @getData().approve (err)=>
           @updateButtons err, 'approved'

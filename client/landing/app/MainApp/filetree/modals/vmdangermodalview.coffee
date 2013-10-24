@@ -52,4 +52,5 @@ class VmDangerModalView extends KDModalViewWithForms
       input.setValidationResult 'slugCheck', null
       @modalTabs.forms.dangerForm.buttons.confirmButton.enable()
     else
+      @modalTabs.forms.dangerForm.buttons.confirmButton.disable()
       input.setValidationResult 'slugCheck', 'Sorry, entered value does not match vm name!', showError

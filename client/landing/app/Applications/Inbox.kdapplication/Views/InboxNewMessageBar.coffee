@@ -5,6 +5,7 @@ class InboxNewMessageBar extends KDView
     @addSubView newMessageButton = new KDButtonView
       title     : "New Message"
       style     : "clean-gray left"
+      testPath  : "inbox-new-message-button"
       callback  : => @createNewMessageModal()
 
     @addSubView @refreshButton = new KDButtonView
@@ -22,7 +23,7 @@ class InboxNewMessageBar extends KDView
         @emit 'RefreshButtonClicked'
 
     @addSubView @markMessageAsReadButton = new KDButtonView
-      style       : "clean-gray"
+      style       : "clean-gray hidden"
       icon        : yes
       iconOnly    : yes
       iconClass   : "mark-unread"
@@ -33,7 +34,7 @@ class InboxNewMessageBar extends KDView
         @emit 'MessageShouldBeMarkedAsUnread'
 
     @addSubView @deleteMessageButton = new KDButtonView
-      style       : "clean-gray"
+      style       : "clean-gray hidden"
       icon        : yes
       iconOnly    : yes
       iconClass   : "delete"
@@ -75,3 +76,5 @@ class InboxNewMessageBar extends KDView
   enableMessageActionButtons:->
     @deleteMessageButton.enable()
     @markMessageAsReadButton.enable()
+    @deleteMessageButton.show()
+    @markMessageAsReadButton.show()

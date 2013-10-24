@@ -4,7 +4,7 @@ class DomainsMainView extends JView
       { name : "Routing",     partial  : "<p class='soon'>Select a domain from left to see its settings.</p>"}
       { name : "Analytics",   partial  : "<p class='soon'>Domain analytics will be here soon.</p>" }
       { name : "Firewall",    partial  : "<p class='soon'>Firewall settings will be here soon.</p>" }
-      { name : "DNS Manager", partial  : "<p class='soon'>DNS settings will be here soon.</p>" }
+      { name : "DNS Manager", partial  : "<p class='soon'>Select a domain from left to see its settings.</p>" }
     ]
 
   constructor:(options={}, data)->
@@ -110,6 +110,8 @@ class DomainsMainView extends JView
       p.destroyMainView()
 
     routingPane = @tabView.getPaneByName('Routing')
+    firewallPane = @tabView.getPaneByName('Firewall')
+    dnsPane = @tabView.getPaneByName('DNS Manager')
     unless item
       routingPane.updatePartial "<p class='soon'>Select a domain from left to see its settings.</p>"
       return
@@ -117,6 +119,10 @@ class DomainsMainView extends JView
     domain = item.getData()
 
     routingPane.updatePartial ""
+    firewallPane.updatePartial ""
+    dnsPane.updatePartial ""
+
     @tabView.getPaneByName('Routing').setMainView     new DomainsRoutingView {}, domain
     @tabView.getPaneByName('Firewall').setMainView    new FirewallMapperView {}, domain
     @tabView.getPaneByName('DNS Manager').setMainView new DNSManagerView     {}, domain
+

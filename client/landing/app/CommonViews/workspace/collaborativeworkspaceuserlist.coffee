@@ -52,7 +52,7 @@ class CollaborativeWorkspaceUserList extends JView
       userList  = {}
       userNames = []
 
-      for userName, status of val.users
+      for own userName, status of val.users
         userList[userName] = status
         userNames.push userName
 
@@ -102,9 +102,7 @@ class CollaborativeWorkspaceUserList extends JView
   createInviteView: ->
     @inviteView   = new KDView
       cssClass    : "invite-view hidden"
-      partial     : """
-        <p>You can share your session key with your friends or type a name to send an invite to your session.</p>
-      """
+      partial     : "<p>You can share your session key with your friends or type a name to send an invite to your session.</p>"
 
     @inviteView.addSubView new KDView
       cssClass    : "session-key"
@@ -181,6 +179,7 @@ class CollaborativeWorkspaceUserList extends JView
       type     : "tray"
 
     @workspaceRef.child("users").child(to).set "invited"
+    delegate.setHistory "$0 invited #{to}."
 
   returnToInviteView: ->
     for key in ["onlineUsers", "offlineUsers", "invitedUsers"]
@@ -192,12 +191,12 @@ class CollaborativeWorkspaceUserList extends JView
   close: ->
     container = @container
     container.unsetClass "active"
-    container.once "transitionend", -> container.destroySubViews()
-    @getDelegate().userListVisible = no
+    container.once "transitionend", =>
+      container.destroySubViews()
+      delete @getDelegate().userList
 
   reset: ->
     @container.destroySubViews()
-    @getDelegate().userListVisible = no
     @getDelegate().showUsers()
 
   viewAppended: ->

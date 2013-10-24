@@ -1,7 +1,7 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "nib/gradients"
-// @import "nib/vendor"
+
 
 
 active-color = rgb(246,162,32)
@@ -225,6 +225,34 @@ dimmedNeighbor()
       a.cancel
         bg          position, -62px -242px
 
+  .progressbar-container
+    hidden()
+
+  &.progress
+    vendor          transition-duration, 100ms
+    opacity         0.7
+    .title
+      width         70px
+    .progressbar-container
+      visible()
+      abs           8px 30px
+      size          40px 5px
+      .bar
+        gradient    #afafaf, #afafaf
+        shadow      none
+    &.being-deleted
+    &.being-edited
+      .progressbar-container
+        hidden()
+    .vm
+      .vm-info
+        hidden()
+      .title
+        width       auto
+      & + .progressbar-container
+        top         23px
+        right       11px
+        width       187px
 
 
 .drop-helper
@@ -322,6 +350,13 @@ dimmedNeighbor()
     min-width       208px
     span
       margin-left   5px
+
+#finder-dnduploader
+  position          absolute
+  z-index           100
+  size              100%, 100%
+  background-color  inherit
+  top               45px
 
 #finder-bottom-controls
   abs()
@@ -656,6 +691,13 @@ div.led-wrapper
     span.icon.ftp
       bg          position,-40px -60px
 
+#finder-dnduploader
+  .file-droparea
+    kalc          width,   100% \- 20px, !important
+    kalc          height,  100% \- 65px, !important
+    .file-drop
+      z-index     -1
+
 .file-container
 
   .vm
@@ -923,6 +965,12 @@ div.led-wrapper
 .vm-details-menu
   font-size       12px
   padding         8px 4px 7px 10px
+
+  .progressbar-container.ram-bar
+    width         58px
+    margin        0 2px 0 0
+    span
+      width       58px
 
 .open-with-modal
   .separator

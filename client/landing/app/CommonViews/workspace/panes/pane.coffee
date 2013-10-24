@@ -9,10 +9,12 @@ class Pane extends JView
     @createHeader()
     @createButtons()  if hasButtons
 
+    @on "PaneResized", @bound "handlePaneResized"
+
   createHeader: ->
     options    = @getOptions()
     hasButtons = options.buttons?.length
-    title      = options.title or @getProperties().title or ""
+    title      = options.title or ""
 
     if title or hasButtons
       @header    = new KDHeaderView
@@ -25,10 +27,4 @@ class Pane extends JView
     for buttonOptions in @getOptions().buttons
       @header.addSubView new KDButtonView buttonOptions
 
-  getProperties: ->
-    {properties} = @getOptions()
-    return {}  unless properties
-    return properties
-
-  getProperty: (name) ->
-    return @getProperties()[name]
+  handlePaneResized: ->

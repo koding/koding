@@ -15,6 +15,7 @@ class MainViewController extends KDViewController
     mainController.on "ShowInstructionsBook", (index)=>
       book = mainView.addBook()
       book.fillPage index
+      book.checkBoundaries()
 
     mainController.on "ToggleChatPanel", =>
       mainView.chatPanel.toggle()
@@ -43,7 +44,7 @@ class MainViewController extends KDViewController
 
     isEntryPointSet = null
 
-    (options)->
+    (options = {})->
 
       {behavior, name} = options
       isEntryPointSet  = yes if name isnt "Home"

@@ -9,13 +9,13 @@ class CounterGroupView extends KDCustomHTMLView
     @counters = {}
     counters  = @getData()
 
-    for title, options of counters
+    for own title, options of counters
       @counters[title] = new CounterView {title}, options
 
     @$().html "" # tmp: clear the lazy dom stuff
 
     @addSubView wrapper = new KDView
-    wrapper.addSubView counter for title, counter of @counters
+    wrapper.addSubView counter for own title, counter of @counters
 
 class CounterView extends KDCustomHTMLView
 

@@ -1,6 +1,8 @@
 class RegisterOptions extends KDView
   viewAppended:->
 
+    inFrame = KD.runningInFrame()
+
     @addSubView optionsHolder = new KDCustomHTMLView
       tagName  : "ul"
       cssClass : "login-options"
@@ -14,8 +16,8 @@ class RegisterOptions extends KDView
 
     optionsHolder.addSubView new KDCustomHTMLView
       tagName  : "li"
-      cssClass : "github active"
+      cssClass : "github active #{'hidden' if inFrame}"
       partial  : "github"
-      click    : -> KD.utils.openGithubPopUp()
+      click    : -> KD.singletons.oauthController.openPopup "github"
       tooltip  :
         title  : "<p class='login-tip'>Register with GitHub</p>"

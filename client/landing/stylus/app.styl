@@ -1,8 +1,8 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
 @import "./client/stylus/app.fonts"
 @import "nib/gradients"
-// @import "nib/vendor"
+
 
 active-color = rgb(246,162,32)
 
@@ -57,13 +57,6 @@ body
   input,textarea,button,select,option
     font-weight     400
 
-#main-koding-loader
-  abs()
-  top               0
-  left              0
-  z-index           1000
-  background        #332F2A url(../images/koding-new-bg.png) repeat-x scroll 0 0
-
 @keyframes pulse
   0%
     opacity .5
@@ -71,6 +64,12 @@ body
     opacity 1
   100%
     opacity .5
+
+@keyframes pulse-to-fade-out
+  0%
+    opacity 1
+  100%
+    opacity 0
 
 @keyframes shrink
   0%
@@ -91,18 +90,65 @@ body
     opacity      0
 
 .pulsing
-  vendor            transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
-  vendor            animation, pulse 1.5s ease-in-out 100
+  vendor              transition, margin .6s ease-in-out //\, opacity .3s ease-in-out
+  vendor              animation, pulse 1.5s ease-in-out 100
+  &.out
+    opacity           0
+    vendor            animation, pulse-to-fade-out .75s ease-in-out
+    vendor            animation-iteration-count, 1
 
 .main-loading
-  vendor            animation, shrink 5s ease-in-out
-  vendor            animation-iteration-count, 1
-  vendor            transform, scale(0)
-  size              100%, 100%
-  rel()
+  abs()
+  top                 0
+  left                0
+  z-index             1000
+  background          #332F2A url("../images/koding-new-bg.png") repeat-x scroll 0 0
+  vendor              transition, opacity .75s ease-in-out
+  opacity             1
+  overflow            hidden
+  &.out
+    opacity           0
+  figure.splash
+    // max-width         40%
+    // margin            0 auto
+    text-align        center
+    text-shadow       0 1px 0 rgba(0,0,0,.5)
+    padding           20px
+    // bg                color, rgba(0, 0, 0, .05)
+    // border            1px solid rgba(0, 0, 0, .1)
+    top               50px
+    rel()
+    .splash-title
+      font-weight     300
+      font-size       18px
+      padding         0 0 20px
+      color           #eee
+    .splash-name
+      bg              color, rgba(0, 0, 0, .05)
+      display         inline-block
+      font-weight     300
+      font-size       24px
+      color           linkColor1
+      padding         5px 10px
+    .splash-body
+      font-weight     300
+      margin          0 auto
+      max-width       400px
+      max-height      100px
+      font-size       14px
+      color           #ccc
+
+
+  &.about
+    vendor            animation, shrink 5s ease-in-out
+    vendor            animation-iteration-count, 1
+    vendor            transform, scale(0)
+    size              100%, 100%
+    rel()
+    ul
+      opacity         0
+      transition      opacity 1s ease-in
   ul
-    opacity         0
-    transition      opacity 1s ease-in
     top             50%
     left            50%
     margin          -75px 0 0 -57px
@@ -253,13 +299,13 @@ body
     shadow            none
   &.with-finder
     left              260px
-    kalc              width, 100%\-260px, 100%
+    kalc              width, 100%\-260px
   &.mouse-on-nav
     left              173px!important
-    kalc              width, 100%\-173px, 100%
+    kalc              width, 100%\-173px
   &.social
     left              160px!important
-    kalc              width, 100%\-160px, 100%
+    kalc              width, 100%\-160px
   &.develop
     min-width         250px
   &.no-anim
@@ -271,10 +317,10 @@ body
     bottom            0!important
     right             0!important
     z-index           10
-    kalc              height, 100% \+ 51px, 100%
+    kalc              height, 100% \+ 51px
     .application-page
       padding         0!important
-      kalc            height, 100% \+ 10px, 100%
+      kalc            height, 100% \+ 10px
     .app-settings-menu
       top             0
       right           0
@@ -330,9 +376,20 @@ body
         padding-top     3px
         margin-top      -1px
         font-size       11px
+    &.promote
+      .title
+        color           #ddd !important
+    &.docs
+      .ext
+        display         inline-block
+        color           #adadad
+        &:hover
+          color         #adadad
+          text-decoration underline
+
 
     &.separator
-      margin            10px 0 6px
+      margin            3px 0 0
       padding           0 11px
       cursor            default
       borderBox()
@@ -561,6 +618,10 @@ span.main-nav-icon
     bg                    position, 0 -540px
   &.open-group
     bg                    position, 0 -260px
+  &.promote
+    bg                    position, 0 -600px
+  &.docs-jobs
+    bg                    position, 0 -620px
 
 
 .kdlistitemview.selected
@@ -627,14 +688,14 @@ span.main-nav-icon
   right               5px
   width               20px !important
   height              20px
-  border-radius       0 0 0 4px
+  rounded             0 0 0 3px
   box-shadow          -1px 1px 1px 0px #ccc
   padding             0
   border              none
   .icon
     padding           0
     sprite()
-    bg                  position, -137px -298px !important
+    bg                  position, 0 -580px !important
 
 .app-settings
   .enable-fullscreen-menu-item
@@ -651,12 +712,19 @@ span.main-nav-icon
   left                0
   padding             0
   margin              0
+  opacity             0
   border              none
   overflow            hidden
   size                100%,25px
   z-index             0
   bg                  color,transparent
-  vendor              transition, top .3s linear \, width .3s linear
+  vendor              transition, top .3s linear\,\
+                                  opacity .3s ease-out\,\
+                                  width .3s linear
+  &.in
+    top               -25px
+    opacity           1
+
   .kdtabhandle
     color             rgba(255,255,255,0.95)
     line-height       23px
@@ -1548,69 +1616,6 @@ span.main-nav-icon
       width          300px
       margin         8px
 
-
-// #finder-panel
-// #content-panel
-// #kdmaincontainer
-//   -webkit-transition            all .8s ease
-
-// body
-
-//   #server-rack
-//     background-image              url('/images/racks.png')
-//     height                        835px
-//     position                      absolute
-//     width                         180px
-//     top                           190px
-//     left                          230px
-//     background-repeat             no-repeat
-//     -webkit-transition            opacity .8s ease
-//     display                       hidden
-//     opacity                       0
-//     z-index                       0
-
-//   #kdmaincontainer
-//     header
-//       -webkit-transition            opacity .8s ease
-//       opacity                       1
-
-//     section
-//       -webkit-perspective           700px
-//       -webkit-perspective-origin-x  260px
-//       -webkit-perspective-origin-y  400px
-
-//     #sidebar-panel
-//       -webkit-transform-origin      0 0
-//       -webkit-transform             rotate3d(0, 0, 0, 0deg)
-//       -webkit-transition            all .8s ease
-
-//     #content-panel
-//       -webkit-transform-origin      32% 0px
-//       -webkit-transition            all .8s ease
-//       -webkit-transform             rotate3d(0, 0, 0, 0deg)
-
-//   &.server-stack
-//     #kdmaincontainer
-//       #server-rack
-//         opacity                       1
-//         display                       block
-//         z-index                       999999
-
-//       header
-//         -webkit-transition            opacity .8s ease
-
-//       #sidebar-panel
-//         -webkit-transform-origin      0 0
-//         -webkit-transform             rotate3d(0, 1, 0, 20deg)
-//         -webkit-transition            all .8s ease
-//         left                          -56px
-
-//       #content-panel
-//         -webkit-transform-origin      32% 0px
-//         -webkit-transition            all .8s ease
-//         -webkit-transform             rotate3d(0, 1, 0, -20deg)
-//         left                          460px
-
 .invite-recovery-notification-bar
   position              fixed
   z-index               10000
@@ -1715,3 +1720,166 @@ span.main-nav-icon
   left                  25px
   color                 #fff
   abs()
+
+
+.file-droparea
+  borderBox()
+  noTextSelection()
+  margin          10px
+  border          5px dashed #afafaf
+  kalc            height, 100% \- 20px
+  kalc            width,  100% \- 20px
+  border-radius   5px
+  &.hover
+    border-color  #444
+  .file-drop
+    text-align    center
+    font-size     20px
+    font-weight   bold
+    position      absolute
+    top           50%
+    margin-top    -10px
+    width         100%
+    z-index       0
+    small
+      font-size   10px
+      word-wrap   break-word
+      display     block
+  .cancel
+    position      absolute
+    width         100%
+    bottom        20px
+    text-align    center
+
+#chrome-terminal-banner
+  abs                   30px, 30px
+  size                  auto, auto
+  z-index               1
+  font-size             11px
+  line-height           20px
+  padding-top           35px
+  min-height            30px
+  min-width             270px
+  overflow              visible
+  .koding-icon
+    abs                 0px, 0px
+    size                23px, 30px
+    sprite()
+    bg                  position,-400px 0
+  .actions
+    abs                 2px, 25px
+    a.action
+      color             #fff
+      text-decoration   none
+      display           inline-block
+      padding           5px 15px
+      border-right      1px solid #444
+      &:last-of-type
+        border-right    none
+      &:hover
+        color           #ff9200
+        .title
+          color         #ff9200
+      .title
+        font-size       inherit !important
+        color           #fff
+  p
+    color               #fff
+    text-align          right
+    padding-right       40px
+    a
+      color             #ff9200
+
+/*3d loading*/
+/* logo */
+#main-loading
+  vendor               perspective, 600px
+  vendor               transform-style, preserve-3d
+
+.threed-logo
+  left                 50%
+  top                  50%;
+  size                 200px, 260px
+  margin               -130px 0 0 -100px
+  // -moz-animation       logoHeartBeat 2s infinite ease
+  abs()
+
+  &
+  & *
+    vendor             transform-style, preserve-3d
+
+  .line
+    display            block
+    position           relative
+    size               200px, 20px
+    bg                 color, #fff
+
+    &~.line
+      margin-top       20px
+
+    &:nth-child(1)
+      height           60px
+      bg               color, #ff9200
+    &:nth-child(3)
+      width            142px
+    &:nth-child(6)
+      width            122px
+
+    i
+      abs()
+      top              0
+      left             0
+      display          block
+      size             100%, 20px
+      bg               color, #eee
+      vendor           backface-visibility, hidden
+      vendor           transform, rotateX(90deg) translateZ(10px) translateY(-10px)
+
+      &:after
+        abs()
+        top            0
+        left           0
+        content        ""
+        display        block
+        size           100%, 100%
+        bg             color, #ccc
+        vendor         backface-visibility, hidden
+        vendor         transform, translateZ(-20px) rotateX(180deg)
+
+    &:nth-child(1) i
+      bg               color, #c97200
+
+      &:after
+        abs()
+        top            0
+        left           0
+        content        ""
+        display        block
+        size           100%, 100%
+        bg             color, #b86800
+        vendor         backface-visibility, hidden
+        vendor         transform, translateZ(-60px) rotateX(180deg)
+
+    &:nth-child(1)
+      vendor           animation, lineRotate 2.5s 0.01s infinite forwards ease-out /* .01s = hack for firefox :@ */
+    &:nth-child(2)
+      vendor           animation, lineRotate 2.5s .5s infinite forwards ease-out
+    &:nth-child(3)
+      vendor           animation, lineRotate 2.5s 1s infinite forwards ease-out
+    &:nth-child(4)
+      vendor           animation, lineRotate 2.5s 1.5s infinite forwards ease-out
+    &:nth-child(5)
+      vendor           animation, lineRotate 2.5s 2s infinite forwards ease-out
+    &:nth-child(6)
+      vendor           animation, lineRotate 2.5s 2.5s infinite forwards ease-out
+
+
+@-webkit-keyframes lineRotate
+  20%
+    -webkit-transform translateZ(-60px) rotateX(40deg)
+    opacity           .5
+
+@-moz-keyframes lineRotate
+  20%
+    -moz-transform translateZ(-60px) rotateX(40deg)
+    opacity           .5

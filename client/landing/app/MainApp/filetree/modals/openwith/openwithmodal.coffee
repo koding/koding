@@ -44,7 +44,7 @@ class OpenWithModal extends KDObject
     modal.addSubView new KDView
       cssClass     : "separator"
 
-    for appName, manifest of apps when supportedApps.indexOf(appName) is -1
+    for own appName, manifest of apps when supportedApps.indexOf(appName) is -1
       modal.addSubView new OpenWithModalItem { delegate: modal }, manifest
 
     label = new KDLabelView

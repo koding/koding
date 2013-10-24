@@ -12,7 +12,8 @@ class KodingRouter extends KDRouter
 
   constructor:(@defaultRoute)->
 
-    @openRoutes = {}
+    @defaultRoute or= location.pathname + location.search
+    @openRoutes     = {}
     @openRoutesById = {}
     KD.getSingleton('contentDisplayController')
       .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
@@ -78,10 +79,15 @@ class KodingRouter extends KDRouter
         app = 'Activity' if app is 'Home' and KD.isLoggedIn()
 
         @setPageTitle nicenames[app] ? app
-        appManager = KD.getSingleton "appManager"
+        appManager  = KD.getSingleton "appManager"
+        handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
+
+        appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
+
         appManager.open app, (appInstance)=>
           appInstance.setOption "initialRoute", @getCurrentPath()
-        appManager.tell app, 'handleQuery', query
+
+        handleQuery()  if appWasOpen
 
   handleNotFound:(route)->
 
@@ -122,12 +128,25 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-    KD.getSingleton("appManager").tell section, method, options ? models,
-      (contentDisplay)=>
+
+    callback = =>
+      KD.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
         routeWithoutParams = route.split('?')[0]
         @openRoutes[routeWithoutParams] = contentDisplay
         @openRoutesById[contentDisplay.id] = routeWithoutParams
         contentDisplay.emit 'handleQuery', query
+
+    groupsController = KD.getSingleton('groupsController')
+    currentGroup = groupsController.getCurrentGroup()
+
+    # change group if necessary
+    unless currentGroup
+      groupName = if section is "Groups" then name else "koding"
+      groupsController.changeGroup groupName, (err) =>
+        KD.showError err if err
+        callback()
+    else
+      callback()
 
   loadContent:(name, section, slug, route, query, passOptions)->
     routeWithoutParams = route.split('?')[0]
@@ -229,16 +248,18 @@ class KodingRouter extends KDRouter
       '/About' : createSectionHandler 'Activity'
 
       # verbs
-      '/:name?/Login'     : ({params:{name}})->
+      '/:name?/Login'        : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'login'
-      '/:name?/Logout'    : ({params:{name}})->
+      '/:name?/Logout'       : ({params:{name}})->
         requireLogin  -> mainController.doLogout()
-      '/:name?/Redeem'    : ({params:{name}})->
+      '/:name?/Redeem'       : ({params:{name}})->
         requireLogin  -> mainController.loginScreen.animateToForm 'redeem'
-      '/:name?/Register'  : ({params:{name}})->
+      '/:name?/Register'     : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'register'
-      '/:name?/Recover'   : ({params:{name}})->
+      '/:name?/Recover'      : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
+      '/:name?/ResendToken'  : ({params:{name}})->
+        requireLogout -> mainController.loginScreen.animateToForm 'resendEmail'
 
       # apps
       '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
@@ -271,12 +292,12 @@ class KodingRouter extends KDRouter
             mainController.loginScreen.headBannerShowRecovery recoveryToken
           @clear()
 
-      '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})=>
-        inviteToken = decodeURIComponent inviteToken
+      '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
+        inviteCode = decodeURIComponent inviteCode
         if KD.isLoggedIn()
-          @handleRoute '/Redeem', entryPoint: KD.config.entryPoint
-          mainController.loginScreen.redeemForm.inviteCode.input.setValue inviteToken
-        else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)=>
+          mainController.loginScreen.doRedeem {inviteCode}
+          @handleRoute '/', entryPoint: KD.config.entryPoint
+        else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
             if err then error err
             new KDNotificationView
@@ -288,11 +309,9 @@ class KodingRouter extends KDRouter
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
-          location.replace '#'
           if err
             error err
-            new KDNotificationView
-              title: "Something went wrong, please try again later!"
+            KD.showError err
           else
             new KDNotificationView
               title: "Thanks for confirming your email address!"
@@ -405,7 +424,8 @@ class KodingRouter extends KDRouter
             open.call this, routeInfo, state
 
           else
-            KD.remote.cacheable routeInfo.params.name, (err, [model], name)=>
+            KD.remote.cacheable routeInfo.params.name, (err, models, name)=>
+              model = models.first  if models
               open.call this, routeInfo, model
 
     routes

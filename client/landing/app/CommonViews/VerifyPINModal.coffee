@@ -25,6 +25,7 @@ class VerifyPINModal extends KDModalViewWithForms
                 label             : "PIN:"
                 name              : "pin"
                 placeholder       : "PIN"
+                testPath          : "account-email-pin"
                 validate          :
                   rules           :
                     required      : yes

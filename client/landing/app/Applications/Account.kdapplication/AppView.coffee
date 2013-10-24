@@ -19,6 +19,8 @@ class AccountListWrapper extends KDView
       emailNotifications             : AccountEmailNotifications
       linkedAccountsController       : AccountLinkedAccountsListController
       linkedAccounts                 : AccountLinkedAccountsList
+      referralSystemController       : AccountReferralSystemListController
+      referralSystem                 : AccountReferralSystemList
     billing                          :
       historyController              : AccountPaymentHistoryListController
       history                        : AccountPaymentHistoryList
@@ -37,23 +39,29 @@ class AccountListWrapper extends KDView
       keys                           : AccountSshKeyList
       kodingKeysController           : AccountKodingKeyListController
       kodingKeys                     : AccountKodingKeyList
+    danger                           :
+      delete                         : DeleteAccountView
 
   viewAppended:->
 
     data = @getData()
 
-    @addSubView @header = new KDHeaderView type : "medium",title : data.item.listHeader
+    @addSubView @header = new KDHeaderView type : "medium", title : data.item.listHeader
+    id    = if data.section?.id   then data.section.id    or 'default'
+    type  = if data.item.listType then data.item.listType or 'view'
 
-    @list = new listClasses[data.section.id][data.item.listType]
-      cssClass : "#{data.section.id}-#{data.item.listType}"
+    ListView = if listClasses[id]?[type]
+    then listClasses[id][type]
+    else KDListView
 
-    listControllerClass = listClasses[data.section.id]["#{data.item.listType}Controller"] or KDListViewController
-    listController = new listControllerClass
-      view : @list
+    Controller = if listClasses[id]?["#{type}Controller"]
+    then listClasses[id]["#{type}Controller"]
+    else KDListViewController
 
-    @addSubView listController.getView()
+    controller = new Controller
+      view     : new ListView cssClass : "#{id}-#{type}", delegate: this
 
-    @list.on "passwordDidChange",()-> log "password"
+    @addSubView controller.getView()
 
 class AccountsSwappable extends KDView
   constructor:(options,data)->

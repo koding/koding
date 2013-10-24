@@ -13,15 +13,15 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     @appsController = KD.getSingleton("kodingAppsController")
 
-    {icns, name, identifier, version, author, description,
+    {icns, name, identifier, version, author, description, title,
      authorNick, additionalinfo} = manifest = @getData()
 
     additionalinfo or= ''
     description    or= ''
     version        or= ''
+    appPath          = ''
 
-    if not authorNick
-      authorNick = KD.whoami().profile.nickname
+    authorNick or= KD.nick()
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}"
 
@@ -38,14 +38,20 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @img = new KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
-      error       : =>
-        @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
         src       : encodeURI thumb
+
+    @img.off 'error'
+    @img.on  'error', ->
+      @setAttribute "src", "/images/default.app.thumb.png"
 
     @loader = new KDLoaderView
       size          :
         width       : 40
+
+    if name isnt title
+      appPath = Encoder.XSSEncode "/home/#{KD.nick()}/Applications/#{name}"
+      appPath = "<p class='app-path'><cite>#{appPath}</cite></p>"
 
     @info = new KDCustomHTMLView
       tagName  : "span"
@@ -56,9 +62,10 @@ class StartTabAppThumbView extends KDCustomHTMLView
           left : -5
         title  : """
           <div class='app-tip'>
-            <header><strong>#{Encoder.XSSEncode name} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
+            <header><strong>#{Encoder.XSSEncode title} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
             <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
             #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
+            #{appPath}
           <div>
           """
       click    : -> no
@@ -74,8 +81,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @delete.getTooltip().hide()
         @deleteModal = new KDModalView
-          title          : "Delete #{Encoder.XSSEncode name}"
-          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode name}</strong> application?</div>"
+          title          : "Delete #{Encoder.XSSEncode title}"
+          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode title}</strong> application?</div>"
           height         : "auto"
           overlay        : yes
           buttons        :
@@ -172,7 +179,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     updateText        = "Update Available"
     updateTooltip     = "An update available for this app. Click here to see."
 
-    if manifest.forceUpdate is yes
+    if @appsController.getAppUpdateType(manifest.name) is "required"
       updateClass     = "orange"
       updateText      = "Update Required"
       updateTooltip   = "You must update this app. Click here to see."
@@ -189,17 +196,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
     appPath   = @appsController.getAppPath manifest.path, yes
     appFolder = FSHelper.createFileFromPath appPath, 'folder'
     appFolder.remove (err, res) =>
-      unless err
-        @appsController.refreshApps =>
-          @deleteModal.destroy()
-          @destroy()
-        , no
-      else
-        new KDNotificationView
-          title    : "An error occured while deleting the App!"
-          type     : 'mini'
-          cssClass : 'error'
-        @deleteModal.destroy()
+
+      KD.showError err,
+        KodingError : "An error occured while deleting the App!"
+
+      @deleteModal.destroy()
+      @destroy()  unless err
 
   viewAppended:->
 
@@ -210,11 +212,32 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     return if $(event.target).closest('.icon-container').length > 0 or \
               $(event.target).closest('.dev-mode').length > 0
-    manifest = @getData()
+
     @showLoader()
-    KD.getSingleton("appManager").open manifest.name, =>
+
+    manifest   = @getData()
+    appManager = KD.getSingleton "appManager"
+    router     = KD.getSingleton "router"
+
+    couldntCreate = =>
+      appManager.off "AppCouldntBeCreated", appCreated
       @hideLoader()
+
+    appCreated    = =>
+      appManager.off "AppCreated", couldntCreate
       KD.track "Apps", "ApplicationRun", manifest.name
+      @hideLoader()
+
+    appManager.once "AppCouldntBeCreated", couldntCreate
+    appManager.once "AppCreated",          appCreated
+
+    route = if manifest.route
+      if "string" is typeof manifest.route
+      then manifest.route
+      else manifest.route.slug
+    else "/Develop/#{manifest.name}"
+
+    router.handleRoute route
 
   showLoader:->
 
@@ -238,7 +261,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       </div>
       {{> @loader}}
       <p>{{> @img}}</p>
-      <cite>{{ #(name)}} {{ #(version)}}</cite>
+      <cite>{{ #(title) or #(name) }} {{ #(version)}}</cite>
     """
 
 class GetMoreAppsButton extends StartTabAppThumbView
@@ -260,8 +283,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
   click : (event)->
 
     return if $(event.target).closest('.icon-container').length > 0
-    @showLoader()
-    KD.getSingleton("appManager").open 'Apps', => @hideLoader()
+    KD.getSingleton('router').handleRoute "/Apps"
     KD.track "Apps", "GetMoreAppsClicked"
 
 
@@ -276,7 +298,7 @@ class AppShortcutButton extends StartTabAppThumbView
 
     super options, data
 
-    @img.$().attr "src", "/images/#{data.icon}"
+    @img.setAttribute "src", "/images/#{data.icon}"
 
     @compile = new KDView
     @delete  = new KDView  if data.type is 'koding-app'
@@ -290,16 +312,3 @@ class AppShortcutButton extends StartTabAppThumbView
       unless err
         @destroy()
         KD.track "Apps", "RemoveShortcutClicked"
-
-  click:(event)->
-
-    return if $(event.target).closest('.icon-container').length > 0
-
-    {type, name, path} = @getData()
-    path = name if not path
-
-    if type is 'koding-app'
-      @showLoader()
-      KD.getSingleton("appManager").open path, => @hideLoader()
-
-    return no

@@ -2,8 +2,8 @@ class MainView extends KDView
 
   viewAppended:->
 
+    @bindPulsingRemove()
     @bindTransitionEnd()
-    # @addServerStack()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
@@ -13,6 +13,25 @@ class MainView extends KDView
     @listenWindowResize()
 
     @utils.defer => @_windowDidResize()
+
+  bindPulsingRemove:->
+    router     = KD.getSingleton 'router'
+    appManager = KD.getSingleton 'appManager'
+
+    appManager.once 'AppCouldntBeCreated', removePulsing
+
+    appManager.on 'AppCreated', (appInstance)->
+      options = appInstance.getOptions()
+      {title, name, appEmitsReady} = options
+      routeArr = location.pathname.split('/')
+      routeArr.shift()
+      checkedRoute = if routeArr.first is "Develop" then routeArr.last else routeArr.first
+
+      if checkedRoute is name or checkedRoute is title
+        if appEmitsReady
+          appView = appInstance.getView()
+          appView.ready removePulsing
+        else removePulsing()
 
   putAbout:->
 
@@ -58,7 +77,8 @@ class MainView extends KDView
 
   createMainPanels:->
 
-    @addSubView @homeIntro = new HomeIntroView
+    klass = if KD.isLoggedIn() then KDCustomHTMLView else HomeIntroView
+    @addSubView @homeIntro = new klass
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
@@ -74,13 +94,6 @@ class MainView extends KDView
 
     @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
 
-  addServerStack:->
-    @addSubView @serverStack = new KDView
-      domId : "server-rack"
-      click : ->
-        $('body').removeClass 'server-stack'
-        $('.kdoverlay').remove()
-
   addHeader:->
 
     {entryPoint} = KD.config
@@ -89,19 +102,22 @@ class MainView extends KDView
       tagName : "header"
       domId   : "main-header"
 
-    @logo = new KDCustomHTMLView
+    @header.getElement().innerHTML = ''
+
+    @header.addSubView wrapper = new KDView
+    wrapper.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
-      cssClass  : if entryPoint?.type? is 'group' then 'group' else ''
+      cssClass  : if entryPoint?.type is 'group' then 'group' else ''
       partial   : "<span></span>"
       click     : (event)=>
         KD.utils.stopDOMEvent event
         homeRoute = if KD.isLoggedIn() then "/Activity" else "/Home"
         KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
 
-    loginLink = new CustomLinkView
+    wrapper.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
-      title       : 'Already a user? Sign in'
+      title       : 'Already a user? Sign in.'
       icon        :
         placement : 'right'
       cssClass    : 'login'
@@ -165,14 +181,15 @@ class MainView extends KDView
 
   createChatPanel:->
     @addSubView @chatPanel   = new MainChatPanel
-    @addSubView @chatHandler = new MainChatHandler
+    # @addSubView @chatHandler = new MainChatHandler
+    @chatHandler = new MainChatHandler
 
   setStickyNotification:->
     # sticky = KD.getSingleton('windowController')?.stickyNotification
     return if not KD.isLoggedIn() # don't show it to guests
 
     @utils.defer => getStatus()
-    
+
     {JSystemStatus} = KD.remote.api
 
     JSystemStatus.on 'restartScheduled', (systemStatus)=>
@@ -191,10 +208,12 @@ class MainView extends KDView
 
   enableFullscreen: ->
     @contentPanel.$().addClass "fullscreen no-anim"
+    @emit "fullscreen", yes
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
   disableFullscreen: ->
     @contentPanel.$().removeClass "fullscreen no-anim"
+    @emit "fullscreen", no
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
   isFullscreen: ->
@@ -221,3 +240,34 @@ class MainView extends KDView
           title       : systemStatus.title
           content     : systemStatus.content
           type        : systemStatus.type
+
+  removePulsing = ->
+
+    loadingScreen = document.getElementById 'main-loading'
+
+    return unless loadingScreen
+
+    logo = loadingScreen.children[0]
+    logo.classList.add 'out'
+
+    KD.utils.wait 750, ->
+
+      loadingScreen.classList.add 'out'
+
+      KD.utils.wait 750, ->
+
+        loadingScreen.parentElement.removeChild loadingScreen
+
+        return if KD.isLoggedIn()
+
+        cdc      = KD.getSingleton 'contentDisplayController'
+        mainView = KD.getSingleton 'mainView'
+
+        return unless Object.keys(cdc.displays).length
+
+        for own id, display of cdc.displays
+          top      = display.$().offset().top
+          duration = 400
+          KDScrollView::scrollTo.call mainView, {top, duration}
+          break
+

@@ -1,8 +1,7 @@
-@import "./client/Framework/themes/default/kdfn"
+@import "./kdfn"
 @import "./client/stylus/appfn"
-// @import "nib"
 @import "nib/gradients"
-// @import "nib/vendor"
+
 
 
 @css {
@@ -152,6 +151,7 @@ Group Creation Modal Styles
   .formline.host-type
     border-bottom               none
     padding-bottom              0
+
   .formline.desc
     section
       line-height               32px
@@ -186,6 +186,7 @@ Group Creation Modal Styles
           color                   #aaa
         > cite
           top                     68px
+
   .radiogroup.host-type
     padding                     10px 20px
     margin                      0
@@ -292,11 +293,15 @@ Group Creation Modal Styles
 
       &.privacy
         .kdselectbox
-          fr()
+          fl()
           &.visibility
-            margin-right      5px
+            margin-left       5px
         .input-wrapper
-          overflow              visible
+          overflow            visible
+        .domain-address
+          right               10px
+          width               250px
+          abs()
 
   div.vm-settings
     .kdselectbox

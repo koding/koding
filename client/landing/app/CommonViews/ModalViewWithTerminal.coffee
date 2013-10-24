@@ -10,10 +10,10 @@
 #         "Hello":
 #             cssClass: "modal-clean-gray"
 #             callback: -> modal.showTerminal()
-# 
+#
 # modal.on "terminal.event", (data)->
 #     alert data
-# 
+#
 # modal.on "terminal.terminated", ->
 #     modal.destroy()
 
@@ -37,7 +37,9 @@ class ModalViewWithTerminal extends KDModalView
       @run @terminal.command  if @terminal.command and not @hidden
 
     terminalWrapper = new KDView
-      noScreen: !@terminal.screen
+      cssClass : "modal-terminal-wrapper"
+      noScreen : !@terminal.screen
+      vmName   : @terminal.vmName
 
     @webterm = new WebTermView
       delegate          : terminalWrapper

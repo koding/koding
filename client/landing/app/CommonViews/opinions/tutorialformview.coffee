@@ -56,35 +56,10 @@ class TutorialFormView extends KDFormView
       type            : "text"
       placeholder     : "What do you want to talk about?"
 
-    @labelAddTags = new KDLabelView
-      title           : "Add Tags:"
-
-    @selectedItemWrapper = new KDCustomHTMLView
-      tagName         : "div"
-      cssClass        : "tags-selected-item-wrapper clearfix"
-
     if data instanceof KD.remote.api.JTutorial
       @discussionBody.setValue Encoder.htmlDecode data.body
       @discussionEmbedLink.setValue Encoder.htmlDecode data.link?.link_url
       @discussionTitle.setValue Encoder.htmlDecode data.title
-
-    @tagController = new TagAutoCompleteController
-      name                : "meta.tags"
-      type                : "tags"
-      itemClass           : TagAutoCompleteItemView
-      selectedItemClass   : TagAutoCompletedItemView
-      outputWrapper       : @selectedItemWrapper
-      selectedItemsLimit  : 5
-      listWrapperCssClass : "tags"
-      itemDataPath        : 'title'
-      form                : @
-      dataSource          : (args, callback)=>
-        {inputValue} = args
-        updateWidget = @getDelegate()
-        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
-
-    @tagAutoComplete = @tagController.getView()
 
   sanitizeUrls:(text)->
     text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
