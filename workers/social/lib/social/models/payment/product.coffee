@@ -10,40 +10,65 @@ module.exports = class JPaymentProduct extends Module
   @share()
 
   @set
-    sharedMethods :
-      static      : ['create']
-      instance    : ['remove']
-    schema        :
-      title       : String
-      description : String
-      amount      : Number
-      planCode    : String
+    sharedMethods     :
+      static          : ['create']
+      instance        : ['remove']
+    schema            :
+      title           :
+        type          : String
+        required      : yes
+      description     : String
+      subscriptionType: String
+      amount          :
+        type          : Number
+        required      : yes
+      overageEnabled  : Boolean
+      planCode        : String
 
   @create = (group, formData, callback) ->
 
     JGroup = require '../group'
 
-    product = new this formData
-    product.planCode = createId()
+    { type: subscriptionType, overageEnabled, title, description,
+      amount } = formData
 
-    product.save (err) ->
+    product = new this {
+      title
+      description
+      amount            : amount * 100
+      subscriptionType  : subscriptionType ? 'recurring'
+      planCode          : createId()
+      overageEnabled    : overageEnabled is 'on'
+    }
+
+    product.save (err) =>
       return callback err  if err
 
-      planData =
-        code        : product.planCode
-        title       : "#{ product.title } - Overage"
-        feeMonthly  : product.amount
-
-      recurly.createPlan planData, (err, plan) ->
+      @savePlanToRecurly product, (err, plan) ->
         return callback err  if err
 
-        JGroup.one { slug: group }, (err, group) ->
+        JGroup.one slug: group, (err, group) ->
           return callback err  if err
 
           group.addProduct product, (err) ->
             return callback err  if err
 
             callback null, product
+
+  @savePlanToRecurly = (product, callback) ->
+    if product.overageEnabled
+
+      planData =
+        code        : product.planCode
+        title       : "#{ product.title } - Overage"
+        feeMonthly  : product.amount
+        feeInterval : switch product.subscriptionType
+          when 'recurring' then 1
+          when 'single'    then 9999 # wat
+
+      recurly.createPlan planData, callback
+
+    else process.nextTick -> callback null
 
   remove: permit 'manage products',
     success: (client, callback) ->
