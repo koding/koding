@@ -26,7 +26,7 @@ class NewKite extends KDEventEmitter
   bound: Bongo.bound
 
   connectDirectly:->
-    # console.log "trying to connect to #{@addr}"
+    # log "trying to connect to #{@addr}"
     @ws = new WebSocket "ws://#{@addr}/sock"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
@@ -48,8 +48,10 @@ class NewKite extends KDEventEmitter
        if xhr.status is 200
           data = JSON.parse xhr.responseText
           @token = data[0].token
-          console.log {@token}
           @addr = data[0].addr
+          log "token is ready", {@token}
+
+          # this should be optional
           @connectDirectly() if connect
         else
           log "kontrol request error", xhr.responseText
@@ -61,7 +63,7 @@ class NewKite extends KDEventEmitter
     @ws.close()
 
   onOpen:->
-    console.log "I'm connected to #{@kiteName} at #{@addr}. Yayyy!"
+    log "I'm connected to #{@kiteName} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
     @emit 'ready'
@@ -75,21 +77,24 @@ class NewKite extends KDEventEmitter
   onMessage: (evt) ->
     try
       args = JSON.parse evt.data
-      err = args.arguments[0]
-      if err?.message?
-          KD.utils.defer => @setBackoffTimeout @bound "getKiteAddr"
+    catch e
+      log "json parse error: ", e, evt.data
 
+    if args and not e
+      err = args.arguments[0]
       {method} = args
       callback = switch method
         when 'ping'             then @bound 'handlePing'
         else (@localStore.get method) ? ->
 
+    if err?.message?
+      KD.utils.defer => @setBackoffTimeout @bound "getKiteAddr"
+    else
       callback.apply this, @unscrub args
-    catch e
-      console.log "error: ", e, evt.data
+
 
   onError: (evt) ->
-    # console.log "#{@kiteName}: error #{evt.data}"
+    # log "#{@kiteName}: error #{evt.data}"
 
   handlePing: ->
     @send JSON.stringify
@@ -155,7 +160,7 @@ class NewKite extends KDEventEmitter
       if @readyState is READY
         @ws.send JSON.stringify data
       else
-        # console.log "slow down ... I'm still trying to reconnect!"
+        # log "slow down ... I'm still trying to reconnect!"
     catch e
       @disconnect()
 
