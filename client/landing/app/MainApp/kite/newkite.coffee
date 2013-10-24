@@ -21,7 +21,7 @@ class NewKite extends KDEventEmitter
   connect:->
     if @addr
     then @connectDirectly()
-    else @getKiteAddr()
+    else @getKiteAddr(true)
 
   bound: Bongo.bound
 
@@ -33,7 +33,7 @@ class NewKite extends KDEventEmitter
     @ws.onmessage = @bound 'onMessage'
     @ws.onerror   = @bound 'onError'
 
-  getKiteAddr:->
+  getKiteAddr:(connect=false)->
     requestData =
       username   : "#{KD.nick()}"
       remoteKite : @kiteName
@@ -50,7 +50,7 @@ class NewKite extends KDEventEmitter
           @token = data[0].token
           console.log {@token}
           @addr = data[0].addr
-          @connectDirectly()
+          @connectDirectly() if connect
         else
           log "kontrol request error", xhr.responseText
           # Make a request again if we could not get the addres, use backoff for that
