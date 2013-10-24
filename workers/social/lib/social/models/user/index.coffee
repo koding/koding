@@ -144,6 +144,8 @@ module.exports = class JUser extends jraphical.Module
           foreignId          : String
           username           : String
           token              : String
+        linkedin             :
+          foreignId          : String
     relationships       :
       ownAccount        :
         targetType      : JAccount

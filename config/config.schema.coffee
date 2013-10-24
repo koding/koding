@@ -251,4 +251,8 @@ config =
       use           : 1
       ip            : 1
       port          : 1
+    linkedin        :
+      client_id     : 1
+      client_secret : 1
+      redirect_uri  : 1
 module.exports = config

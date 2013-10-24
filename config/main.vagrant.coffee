@@ -253,3 +253,7 @@ module.exports =
     use          : false
     ip           : "localhost"
     port         : 8125
+  linkedin       :
+    client_id    : "f4xbuwft59ui"
+    client_secret: "fBWSPkARTnxdfomg"
+    redirect_uri : "http://localhost:3020/-/oauth/linkedin/callback"

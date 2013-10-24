@@ -1,5 +1,6 @@
 bongo    = require 'bongo'
 {secure} = bongo
+crypto   = require 'crypto'
 
 module.exports = class OAuth extends bongo.Base
   @share()
@@ -34,6 +35,17 @@ module.exports = class OAuth extends bongo.Base
         url += "response_type=code&"
         url += "client_id=#{client_id}&"
         url += "access_type=offline"
+
+        callback null, url
+      when "linkedin"
+        {client_id, redirect_uri} = KONFIG.linkedin
+        state = crypto.createHash("md5").update((new Date).toString()).digest("hex")
+
+        url  = "https://www.linkedin.com/uas/oauth2/authorization?"
+        url += "response_type=code&"
+        url += "client_id=#{client_id}&"
+        url += "state=#{state}&"
+        url += "redirect_uri=#{redirect_uri}"
 
         callback null, url
 
