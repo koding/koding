@@ -3,14 +3,13 @@ package modelhelper
 import (
 	"koding/db/models"
 	"koding/db/mongodb"
-	"koding/newkite/protocol"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 func NewKite() *models.Kite {
 	return &models.Kite{
-		Base: protocol.Base{
+		KiteBase: models.KiteBase{
 			Id: bson.NewObjectId(),
 		},
 	}

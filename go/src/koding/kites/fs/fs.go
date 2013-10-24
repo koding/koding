@@ -34,6 +34,7 @@ func main() {
 		Version:  "1",
 		Kind:     "vm",
 		Port:     *port,
+		// KontrolAddr: "newkontrol.sj.koding.com:80",
 	}
 
 	methods := map[string]string{

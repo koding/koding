@@ -189,6 +189,8 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  newkontrol      :
+    port          : 80
   kontrold        :
     vhost         : "/"
     overview      :

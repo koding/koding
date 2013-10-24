@@ -196,6 +196,8 @@ module.exports =
     interval      : 60000
   haproxy         :
     webPort       : 3020
+  newkontrol      :
+    port          : 4000
   kontrold        :
     vhost         : "/"
     overview      :

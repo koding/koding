@@ -205,6 +205,8 @@ config =
       batchSize       : 1
       cleanupCron     : 1
     pidFile       : 1
+    newkontrol      :
+      port          : 1
     kontrold        :
       vhost         : 1
       overview      :
