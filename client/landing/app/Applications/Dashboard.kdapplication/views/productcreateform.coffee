@@ -2,7 +2,7 @@ class GroupProductCreateForm extends KDFormViewWithFields
 
   constructor: (options = {}, data) ->
 
-    options.isRecurringOptional ?= yes
+    options.isRecurOptional ?= yes
 
     options.callback ?= =>
       @emit 'CreateRequested', @getProductData()
@@ -26,7 +26,7 @@ class GroupProductCreateForm extends KDFormViewWithFields
         label           : "Description"
         placeholder     : options.placeholders?.description or "(optional)"
 
-    if options.isRecurringOptional
+    if options.isRecurOptional
       options.fields.subscriptionType =
         label           : "Subscription type"
         itemClass       : KDSelectBox
@@ -54,7 +54,7 @@ class GroupProductCreateForm extends KDFormViewWithFields
           partial     : "/ mo"
           cssClass    : 'fr'
 
-    if options.isOverageEnabled
+    if options.showOverage
       options.fields.overageEnabled =
         label           : "Overage enabled"
         itemClass       : KDOnOffSwitch

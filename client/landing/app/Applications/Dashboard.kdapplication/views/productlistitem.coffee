@@ -3,7 +3,7 @@ class GroupProductListItem extends KDListItemView
   constructor:(options,data)->
     super options, data
 
-    { planCode } = @getData()
+    { planCode, soldAlone } = @getData()
 
     codeCheck =
       """
@@ -44,6 +44,8 @@ class GroupProductListItem extends KDListItemView
           @embedView.unsetClass "hidden"
         else
           @embedView.setClass "hidden"
+
+    @embedButton.hide()  unless soldAlone
 
     @embedView = new KDTabView
       cssClass             : "hidden product-embed"
