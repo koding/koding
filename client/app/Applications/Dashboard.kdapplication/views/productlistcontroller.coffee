@@ -2,7 +2,6 @@ class GroupProductListController extends KDListViewController
 
   constructor:(options = {}, data)->
     @group = options.group
-    console.log @group
     super
 
   addCustomItem:(message)->

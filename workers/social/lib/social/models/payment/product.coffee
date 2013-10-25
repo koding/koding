@@ -27,7 +27,12 @@ module.exports = class JPaymentProduct extends Module
       amount          :
         type          : Number
         required      : yes
-      overageEnabled  : Boolean
+      overageEnabled  :
+        type          : Boolean
+        default       : no
+      soldAlone       :
+        type          : Boolean
+        default       : no
       planCode        : String
       group           : String
 
@@ -41,7 +46,7 @@ module.exports = class JPaymentProduct extends Module
     product = new this {
       title
       description
-      amount            : amount * 100
+      amount            : amount * 100 # cents
       subscriptionType  : subscriptionType ? 'recurring'
       planCode          : createId()
       overageEnabled    : overageEnabled is 'on'
@@ -67,7 +72,7 @@ module.exports = class JPaymentProduct extends Module
       @create client.context.group, formData, callback
 
   @savePlanToRecurly = (product, callback) ->
-    if product.overageEnabled
+    if product.overageEnabled or product.soldAlone
 
       planData =
         code        : product.planCode
