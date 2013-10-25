@@ -19,9 +19,11 @@ koding               = require './bongo'
 }                    = KONFIG[provider]
 
 module.exports = (req, res)->
-  {oauth_token, oauth_verifier} = req.query
-  {clientId}                    = req.cookies
-  {JSession}                    = koding.models
+  {query, cookies} = req
+  {oauth_token, oauth_verifier} = query
+  {clientId} = cookies
+
+  {JSession} = koding.models
 
   JSession.one {clientId}, (err, session)->
     if err
