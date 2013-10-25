@@ -5,7 +5,8 @@ module.exports = class JPaymentPlan extends jraphical.Module
     forceRefresh  : yes
     forceInterval : 60
 
-  recurly   = require 'koding-payment'
+  recurly = require 'koding-payment'
+  createId = require 'hat'
 
   {secure, dash}       = require 'bongo'
   {difference, extend} = require 'underscore'
@@ -50,12 +51,38 @@ module.exports = class JPaymentPlan extends jraphical.Module
       contents      : Object
       group         : String
 
-  @create = (formData, callback) ->
-    console.log { formData }
-    callback message: 'needs to be implemented'
+  @create = (group, formData, callback) ->
+
+    JGroup = require '../group'
+
+    { title, description, amount } = formData
+
+    plan = new this {
+      title
+      description
+      code        : createId()
+      feeMonthly  : amount * 100 # cents
+      feeInitial  : 0
+      feeInterval : 1
+    }
+
+    plan.save (err) ->
+      return callback err  if err
+
+      recurly.createPlan plan, (err) ->
+        return callback err  if err
+
+        JGroup.one slug: group, (err, group) ->
+          return callback err  if err
+
+          group.addPlan plan, (err) ->
+            return callback err  if err
+
+            callback null, plan
 
   @create$ = permit 'manage products',
-    success: (client, formData, callback) -> @create formData, callback
+    success: (client, formData, callback) ->
+      @create client.context.group, formData, callback
 
   @removeByCode = (code, callback) ->
     console.log { code }
