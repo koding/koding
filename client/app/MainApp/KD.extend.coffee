@@ -151,6 +151,8 @@ KD.extend
 
   runningInFrame: -> window.top isnt window.self
 
+  getGroup: -> (KD.getSingleton 'groupsController').getCurrentGroup()
+
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
