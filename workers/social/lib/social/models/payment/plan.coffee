@@ -10,6 +10,8 @@ module.exports = class JPaymentPlan extends jraphical.Module
   {secure, dash}       = require 'bongo'
   {difference, extend} = require 'underscore'
 
+  {permit}             = require '../group/permissionset'
+
   JUser                = require '../user'
   JPayment             = require './index'
   JPaymentToken        = require './token'
@@ -18,24 +20,49 @@ module.exports = class JPaymentPlan extends jraphical.Module
   @share()
 
   @set
-    indexes:
-      code         : 'unique'
-    sharedMethods  :
-      static       : ['fetchPlans', 'fetchPlanByCode', 'fetchAccountDetails']
-      instance     : ['getToken', 'getType', 'subscribe', 'getSubscriptions']
-    schema         :
-      code         : String
-      title        : String
-      description  : Object
-      feeMonthly   : Number
-      feeInitial   : Number
-      feeInterval  : Number
-      product      :
-        prefix     : String
-        category   : String
-        item       : String
-        version    : Number
-      lastUpdate   : Number
+    indexes         :
+      code          : 'unique'
+    sharedMethods   :
+      static        : [
+        'create'
+        'removeByCode'
+        'fetchPlans'
+        'fetchPlanByCode'
+        'fetchAccountDetails'
+      ]
+      instance      : [
+        'fetchToken'
+        'subscribe'
+      ]
+    schema          :
+      code          : String
+      title         : String
+      description   : Object
+      feeMonthly    : Number
+      feeInitial    : Number
+      feeInterval   : Number
+      product       :
+        prefix      : String
+        category    : String
+        item        : String
+        version     : Number
+      lastUpdate    : Number
+      contents      : Object
+      group         : String
+
+  @create = (formData, callback) ->
+    console.log { formData }
+    callback message: 'needs to be implemented'
+
+  @create$ = permit 'manage products',
+    success: (client, formData, callback) -> @create formData, callback
+
+  @removeByCode = (code, callback) ->
+    console.log { code }
+    callback message: 'needs to be implemented'
+
+  @removeByCode$ = permit 'manage products',
+    success: (client, code, callback) -> @removeByCode formData, callback
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
     console.error 'needs to be reimplemented'
@@ -54,7 +81,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
   @fetchPlanByCode = (code, callback) -> @one { code }, callback
 
-  getToken: secure (client, data, callback) ->
+  fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @code, callback
 
   subscribe: (paymentMethodId, data, callback) ->
