@@ -139,7 +139,7 @@ class NotificationListItem extends KDListItemView
         {{> @avatar}}
       </div>
       <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>
+        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}} {{> @interactedGroups}}</p>
         <footer>
           {{> @timeAgoView}}
         </footer>
