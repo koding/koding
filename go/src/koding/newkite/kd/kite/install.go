@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,19 +22,18 @@ func NewInstall() *Install {
 }
 
 func (*Install) Definition() string {
-	return "Install kite from Koding repository"
+	return "Install a kite from Koding repository"
 }
 
 const S3URL = "http://koding-kites.s3.amazonaws.com/"
 
-func (*Install) Exec() error {
+func (*Install) Exec(args []string) error {
 	// Parse kite name
-	flag.Parse()
-	if flag.NArg() != 1 {
+	if len(args) != 1 {
 		return errors.New("You should give a kite name")
 	}
 
-	kiteFullName := flag.Arg(0)
+	kiteFullName := args[0]
 	kiteName, kiteVersion, err := splitVersion(kiteFullName, true)
 	if err != nil {
 		kiteName, kiteVersion = kiteFullName, "latest"
@@ -68,13 +66,22 @@ func (*Install) Exec() error {
 		return err
 	}
 
-	// Move kite from tmp to kites folder (~/.kd/kites)
-	kiteFullName, err = moveFromTempToHome(kiteName, tempKitePath)
+	foundName, foundVersion, bundlePath, err := validatePackage(tempKitePath)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Installed successfully:", kiteFullName)
+	if foundName != kiteName {
+		return fmt.Errorf("Invalid package: Bundle name does not match with package name: %s != %s",
+			foundName, kiteName)
+	}
+
+	err = installBundle(bundlePath)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Installed successfully:", foundName+"-"+foundVersion)
 	return nil
 }
 
@@ -103,6 +110,7 @@ func requestPackage(kiteName, kiteVersion string) (io.ReadCloser, error) {
 
 // extractTar reads from the io.Reader and writes the files into the directory.
 func extractTar(r io.Reader, dir string) error {
+	first := true // true if we are on the first entry of tarball
 	tr := tar.NewReader(r)
 	for {
 		hdr, err := tr.Next()
@@ -114,14 +122,32 @@ func extractTar(r io.Reader, dir string) error {
 			return err
 		}
 
-		path := filepath.Join(dir, hdr.Name)
+		// Check if the same kite version is installed before
+		if first {
+			first = false
+			kiteName := strings.TrimSuffix(hdr.Name, ".kite/")
 
-		// TODO make the binary under /bin executable
+			installed, err := isInstalled(kiteName)
+			if err != nil {
+				return err
+			}
+
+			if installed {
+				return fmt.Errorf("Already installed: %s", kiteName)
+			}
+		}
+
+		path := filepath.Join(dir, hdr.Name)
 
 		if hdr.FileInfo().IsDir() {
 			os.MkdirAll(path, 0700)
 		} else {
-			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+			mode := 0600
+			if isBinaryFile(hdr.Name) {
+				mode = 0700
+			}
+
+			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(mode))
 			if err != nil {
 				return err
 			}
@@ -134,48 +160,39 @@ func extractTar(r io.Reader, dir string) error {
 	return nil
 }
 
-// moveFromTempToHome make some assertions about the bundle extracted from
-// package, then it moves the .kite bundle into ~/kd/kites.
-// Returns the full kite name moved.
-func moveFromTempToHome(kiteName, tempKitePath string) (string, error) {
+// validatePackage returns the package name, version and bundle path.
+func validatePackage(tempKitePath string) (string, string, string, error) {
 	dirs, err := ioutil.ReadDir(tempKitePath)
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 
 	if len(dirs) != 1 {
-		return "", errors.New("Invalid package: Package must contain only one directory.")
+		return "", "", "", errors.New("Invalid package: Package must contain only one directory.")
 	}
 
-	// found prefix means we got it from extracted tar.
-	// We should assert that they are expected.
-	foundKiteBundleName := dirs[0].Name() // Example: asdf-1.2.3.kite
-	if !strings.HasSuffix(foundKiteBundleName, ".kite") {
-		return "", errors.New("Invalid package: Direcory name must end with \".kite\".")
+	bundleName := dirs[0].Name() // Example: asdf-1.2.3.kite
+	if !strings.HasSuffix(bundleName, ".kite") {
+		return "", "", "", errors.New("Invalid package: Direcory name must end with \".kite\".")
 	}
 
-	foundKiteFullName := strings.TrimSuffix(foundKiteBundleName, ".kite") // Example: asdf-1.2.3
-	foundKiteName, _, err := splitVersion(foundKiteFullName, false)
+	fullName := strings.TrimSuffix(bundleName, ".kite") // Example: asdf-1.2.3
+	kiteName, version, err := splitVersion(fullName, false)
 	if err != nil {
-		return "", errors.New("Invalid package: No version number in Kite bundle")
+		return "", "", "", errors.New("Invalid package: No version number in Kite bundle")
 	}
 
-	if foundKiteName != kiteName {
-		return "", fmt.Errorf("Invalid package: Bundle name does not match with package name: %s != %s",
-			foundKiteName, kiteName)
-	}
+	return kiteName, version, filepath.Join(tempKitePath, bundleName), nil
+}
 
-	tempKitePath = filepath.Join(tempKitePath, foundKiteBundleName)
+// installBundle moves the .kite bundle into ~/kd/kites.
+func installBundle(bundlePath string) error {
 	kitesPath := filepath.Join(util.GetKdPath(), "kites")
 	os.MkdirAll(kitesPath, 0700)
 
-	kitePath := filepath.Join(kitesPath, foundKiteBundleName)
-	err = os.Rename(tempKitePath, kitePath)
-	if err != nil {
-		return "", err
-	}
-
-	return foundKiteFullName, nil
+	bundleName := filepath.Base(bundlePath)
+	kitePath := filepath.Join(kitesPath, bundleName)
+	return os.Rename(bundlePath, kitePath)
 }
 
 // splitVersion takes a name like "asdf-1.2.3" and
@@ -205,4 +222,36 @@ func splitVersion(fullname string, allowLatest bool) (name, version string, err 
 	}
 
 	return name, version, nil
+}
+
+// isBinaryFile returns true if the path is the path of the binary file
+// in aplication bundle. Example: fs-0.0.1.kite/bin/fs
+func isBinaryFile(path string) bool {
+	parts := strings.Split(path, string(os.PathSeparator))
+	if len(parts) != 3 {
+		return false
+	}
+
+	binPath, err := getBinPath(parts[0])
+	if err != nil {
+		return false
+	}
+
+	return path == binPath
+}
+
+// getBinPath takes a bundle name and return the path of the kite executable.
+// example: fs-0.0.1.kite -> fs-0.0.1/fs/bin
+func getBinPath(bundleName string) (string, error) {
+	if !strings.HasSuffix(bundleName, ".kite") {
+		return "", fmt.Errorf("Invalid bundle name: %s", bundleName)
+	}
+
+	fullName := strings.TrimSuffix(bundleName, ".kite")
+	name, _, err := splitVersion(fullName, false)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Join([]string{bundleName, "bin", name}, string(os.PathSeparator)), nil
 }

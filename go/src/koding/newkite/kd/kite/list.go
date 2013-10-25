@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/newKite/kd/util"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -18,25 +19,50 @@ func (*List) Definition() string {
 	return "List installed kites"
 }
 
-func (*List) Exec() error {
-	kitesPath := filepath.Join(util.GetKdPath(), "kites")
-	kites, err := ioutil.ReadDir(kitesPath)
+func (*List) Exec(args []string) error {
+	kites, err := getInstalledKites("")
 	if err != nil {
-		if strings.Contains(err.Error(), "no such file or directory") {
-			return nil
-		}
 		return err
 	}
+
+	for _, k := range kites {
+		fmt.Println(k)
+	}
+
+	return nil
+}
+
+// getIntalledKites returns installed kites in .kd/kites folder.
+// an empty argument returns all kites.
+func getInstalledKites(kiteName string) ([]string, error) {
+	kitesPath := filepath.Join(util.GetKdPath(), "kites")
+
+	kites, err := ioutil.ReadDir(kitesPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{}, nil
+		}
+
+		return nil, err
+	}
+
+	installedKites := []string{} // to be returned
 	for _, fi := range kites {
 		name := fi.Name()
 		if !strings.HasSuffix(name, ".kite") {
 			continue
 		}
-		name = strings.TrimSuffix(name, ".kite")
-		name, version, err := splitVersion(name, false)
-		if err == nil {
-			fmt.Println(name + "-" + version)
+
+		fullName := strings.TrimSuffix(name, ".kite")
+		name, _, err := splitVersion(fullName, false)
+		if err != nil {
+			continue
+		}
+
+		if kiteName == "" || kiteName == name {
+			installedKites = append(installedKites, fullName)
 		}
 	}
-	return nil
+
+	return installedKites, nil
 }
