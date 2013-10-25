@@ -55,23 +55,29 @@ class IntroView extends JView
 
   constructor:(options={}, data)->
     options.cssClass = 'intro-view'
-  # options.bind     = 'scroll mousewheel wheel'
+    options.bind     = 'scroll mousewheel wheel'
     super options, data
 
-  # FIXME ~ GG
-  #   for e in ['mousewheel', 'wheel']
-  #     @on e, _.throttle @bound 'scroll'
+  setCurrentPage: (direction)->
+    unless @_lock
+      @_lock = yes
+      @slider[direction]()
+      @utils.wait 1200, => delete @_lock
 
-  # scroll:(e)->
+  mouseWheel:(e)->
+    oevent = e.originalEvent
 
-  #   oevent = e.originalEvent
-  #   if oevent?
-  #     deltaY = oevent.wheelDeltaY or oevent.deltaY
-  #     deltaX = oevent.wheelDeltaX or oevent.deltaX
-  #     if deltaY >  30 then @slider.previousPage()
-  #     if deltaY < -30 then @slider.nextPage()
+    if oevent? and not @_lock
 
-  #   KD.utils.stopDOMEvent e
+      deltaY = oevent.wheelDeltaY or -oevent.deltaY
+      deltaX = oevent.wheelDeltaX or -oevent.deltaX
+
+      if deltaY < -15 then @setCurrentPage 'nextPage'
+      if deltaY >  15 then @setCurrentPage 'previousPage'
+      if deltaX >  15 then @setCurrentPage 'previousSubPage'
+      if deltaX < -15 then @setCurrentPage 'nextSubPage'
+
+    KD.utils.stopDOMEvent e
 
   destroyIntro:->
     @setClass 'out'
