@@ -12,9 +12,13 @@ class IntroPage extends KDSlidePageView
     """
       <div class="slider-page">
         <div class="wrapper">
-          <figure><img src="/images/homeslide/#{@getData().slideImage}?#{time}"></figure>
-          <h3><i></i> {{ #(slogan) }}</h3>
-          {{ #(subSlogan) }}
+          <figure>
+            <img src="/images/homeslide/#{@getData().slideImage}?#{time}" />
+          </figure>
+          <div class="details">
+            <h3><i></i> {{ #(slogan) }}</h3>
+            {{ #(subSlogan) }}
+          </div>
         </div>
       </div>
     """
@@ -190,8 +194,10 @@ class IntroView extends JView
     @updateSize()
 
   updateSize:->
+    # Poor man's font resizer ~ GG
+    sizes = @slider.currentPage.getBounds()
     @slider.setCss
-      fontSize : Math.max Math.min( @slider.currentPage.getWidth() / 40, parseFloat 120 ), parseFloat 12
+      fontSize : Math.max Math.min( (sizes.w + sizes.h) / 80, parseFloat 120 ), parseFloat 12
 
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
