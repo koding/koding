@@ -137,9 +137,7 @@ class DashboardAppController extends AppController
   productViewAdded: do ->
 
     prepareProductView = (view, category) ->
-
       group = KD.getGroup()
-
       konstructor = KD.remote.api["JPayment#{category}"]
 
       reload = ->
@@ -149,13 +147,11 @@ class DashboardAppController extends AppController
       view.on "#{category}CreateRequested", (productData) ->
         konstructor.create productData, (err) ->
           return if KD.showError err
-
           reload()
 
       view.on "#{category}DeleteRequested", (code) ->
         konstructor.removeByCode code, (err) ->
           return if KD.showError err
-
           reload()
 
       reload()
