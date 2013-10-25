@@ -10,6 +10,9 @@
       span
         color black !important
 
+a
+  outline           0
+
 @keyframes fadeIn
   100%
     opacity 1
@@ -21,7 +24,7 @@
   background-size       cover
   z-index               99
   opacity               0
-  vendor                transition, opacity .6s ease-in\, background-position 0.5s ease
+  vendor                transition, opacity .6s ease-in\, background-position .5s ease
 
   abs()
 
@@ -36,7 +39,10 @@
 
   .bottom-menu
     text-align          center
-    bottom              40px
+    bottom              0
+    padding             40px
+    padding-top          5px
+    margin-left        -40px
     width               100%
     z-index             5
     abs()
@@ -113,16 +119,14 @@
     text-align          left
 
     figure
-      size            641px, 467px
-      // bg              image, url("../images/homeslide/browser.png")
-      // bg              repeat, no-repeat
-      // bg              position, center center
-      margin-left     100px
+      height          460px
+      width           50%
       position        relative
+      max-width       600px
       fr()
 
       img
-        // top          66px
+        width        100%
         rounded      0 0 4px 4px
         abs()
 
@@ -142,16 +146,16 @@
       borderBox()
 
     h3
-      font-size         42px
+      // font-size         42px
       color             #595959
-      font-weight       600
+      // font-weight       600
       span > span
         color           #ff9e3c
 
     p
-      font-size         18px
+      // font-size         18px
       margin            40px 0 0 0
-      font-weight       300
+      // font-weight       300
 
     &.active
       opacity           1
@@ -229,3 +233,6 @@
             color       #545454
           i
             bg          position, -630px -45px
+
+
+// @media only screen and (max-width: 1024px)

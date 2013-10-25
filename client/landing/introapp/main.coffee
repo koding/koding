@@ -186,6 +186,13 @@ class IntroView extends JView
     @utils.wait 300, ->
       if target isnt 'Koding' then multipleChoice.setValue target
 
+    $(window).on 'resize orientationchange', => @updateSize()
+    @updateSize()
+
+  updateSize:->
+    @slider.setCss
+      fontSize : Math.max Math.min( @slider.currentPage.getWidth() / 40, parseFloat 120 ), parseFloat 12
+
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
 
