@@ -36,20 +36,38 @@
     .page-nav
       display               inline-block
       margin-left           15px
+      text-align            center
       a
         width               28px
         padding             0
-        text-align          center
         margin              0
+        i
+          display                          inline-block
+          size                             0,0
+          border                           7px solid #727272
+          border-top-width                 5px
+          border-bottom-width              5px
+          border-top-color                 transparent
+          border-bottom-color              transparent
+          margin-top                       8px
         &:first-child
           border-top-right-radius          0
           border-bottom-right-radius       0
           border-right                     0
+          i
+            border-left-color              transparent
+            margin-left                    -7px
         &:last-child
           border-top-left-radius           0
           border-bottom-left-radius        0
+          i
+            border-right-color             transparent
+            margin-right                   -7px
         &.disabled
-          color             #ccc
+          i.prev
+            border-right-color             #ccc
+          i.next
+            border-left-color              #ccc
     a
       noTextDeco()
       font-size           11px
