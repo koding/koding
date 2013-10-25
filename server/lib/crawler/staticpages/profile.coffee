@@ -1,5 +1,4 @@
 module.exports = ({account})->
-  console.log account.profile
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
 
