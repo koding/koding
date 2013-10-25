@@ -3,7 +3,7 @@ class VmProductView extends JView
     super options, data
 
   formatCurrency: (cents) ->
-    "#{ ( cents / 100 ).toFixed(2).toLocaleString currency: 'USD' }"
+    "#{ ( cents / 100 ).toFixed(2) }"
 
   pistachio: ->
     """
