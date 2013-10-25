@@ -81,7 +81,7 @@ class NotificationListItem extends KDListItemView
     CReplieeBucketActivity     : "comment"
     CFolloweeBucketActivity    : "follow"
     CLikeeBucketActivity       : "like"
-    CGroupJoineeBucketActivity : "groupJoin"
+    CGroupJoineeBucketActivity : "groupJoined"
     CGroupLefteeBucketActivity : "groupLeft"
 
   actionPhraseMap = ->
@@ -92,7 +92,7 @@ class NotificationListItem extends KDListItemView
     share       : "shared"
     commit      : "committed"
     member      : "joined"
-    groupJoin   : "joined"
+    groupJoined : "joined"
     groupLeft   : "left"
 
   constructor:(options = {}, data)->
