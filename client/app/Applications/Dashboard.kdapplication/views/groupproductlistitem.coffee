@@ -1,19 +1,20 @@
 class GroupProductListItem extends KDListItemView
+
   constructor:(options,data)->
     super options, data
 
-    {code} = @getData()
+    { planCode } = @getData()
 
     codeCheck =
       """
-      KD.remote.api.JPaymentSubscription.checkUserSubscription '#{code}', (err, subscriptions)->
+      KD.remote.api.JPaymentSubscription.checkUserSubscription '#{planCode}', (err, subscriptions)->
         if not err and subscriptions.length > 0
           console.log "User is subscribed to the plan."
       """
 
     codeGet =
       """
-      KD.remote.api.JPaymentPlan.fetchPlanByCode '#{code}', (err, plan)->
+      KD.remote.api.JPaymentPlan.fetchPlanByCode '#{planCode}', (err, plan)->
         if not err and plan
           plan.fetchSubscriptions (err, subs)->
             console.log "Subscribers:", subs
@@ -28,7 +29,7 @@ class GroupProductListItem extends KDListItemView
           console.log "Open video..."
 
       @payment = new PaymentWidget
-        planCode        : '#{code}'
+        planCode        : '#{planCode}'
         contentCssClass : 'modal-clean-green'
         content         : @content
 
@@ -56,18 +57,18 @@ class GroupProductListItem extends KDListItemView
     @clientsButton = new KDButtonView
       title    : "View Buyers"
       callback : =>
-        plan = @getData()
-        plan.fetchSubscriptions (err, subs)->
+        product = @getData()
+        product.fetchSubscriptions (err, subs)->
           if err
             subs = []
           new KDNotificationView
             title: "This product has #{subs.length} buyer(s)."
 
     @deleteButton = new KDButtonView
-      title    : "-"
+      title    : "Remove"
       callback : =>
         @confirmDelete =>
-          @getDelegate().emit "DeleteItem", code
+          @getDelegate().emit "DeleteItem", planCode
 
   confirmDelete:(callback) ->
     deleteModal = new KDModalView
@@ -90,9 +91,9 @@ class GroupProductListItem extends KDListItemView
   pistachio:->
     product = @getData()
 
-    code  = product.planCode
-    title = product.title
-    price = (product.amount / 100).toFixed(2).toLocaleString()
+    planCode  = product.planCode
+    title     = product.title
+    price     = (product.amount / 100).toFixed(2)
 
     subscriptionType =
       if product.subscriptionType is 'single'
