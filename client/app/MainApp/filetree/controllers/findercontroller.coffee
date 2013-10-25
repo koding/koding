@@ -42,7 +42,22 @@ class NFinderController extends KDViewController
 
     KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
 
+    kiteController = KD.getSingleton("kiteController")
+    kiteController.on "KiteConnected", (kiteName) =>
+      @mountFSKite kiteName
+      kiteController.once "KiteDisconnected", => @unmountFSKite kiteName
+
   watchers: {}
+
+  mountFSKite:(kiteName)->
+    log "KiteConnected received", kiteName
+    if /^fs/.test kiteName
+      @mountVm "local-#{KD.nick()}"
+
+  unmountFSKite:(kiteName)->
+    log "KiteDisconnected received", kiteName
+    if /^fs/.test kiteName
+      @unmountVm "local-#{KD.nick()}"
 
   registerWatcher:(path, stopWatching)->
     @watchers[path] = stop: stopWatching

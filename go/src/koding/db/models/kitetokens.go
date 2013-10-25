@@ -6,8 +6,10 @@ import (
 )
 
 type KiteToken struct {
-	ID        bson.ObjectId `bson:"_id" json:"id"`
+	ObjectId  bson.ObjectId `bson:"_id" json:"id"`
+	Token     string        `bson:"token" json:"token"`
 	Username  string        `bson:"username" json:"username"`
-	Expire    time.Duration `bson:"expire" json:"expire"`
+	Kites     []string      `bson:"kites" json:"kites"`
+	ExpiresAt time.Time     `bson:"expiresAt" json:"expiresAt"`
 	CreatedAt time.Time     `bson:"createdAt" json:"createdAt"`
 }

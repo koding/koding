@@ -21,19 +21,19 @@ class NewKite extends KDEventEmitter
   connect:->
     if @addr
     then @connectDirectly()
-    else @getKiteAddr()
+    else @getKiteAddr(true)
 
   bound: Bongo.bound
 
   connectDirectly:->
-    # console.log "trying to connect to #{@addr}"
+    # log "trying to connect to #{@addr}"
     @ws = new WebSocket "ws://#{@addr}/sock"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
     @ws.onmessage = @bound 'onMessage'
     @ws.onerror   = @bound 'onError'
 
-  getKiteAddr:->
+  getKiteAddr:(connect=false)->
     requestData =
       username   : "#{KD.nick()}"
       remoteKite : @kiteName
@@ -48,9 +48,11 @@ class NewKite extends KDEventEmitter
        if xhr.status is 200
           data = JSON.parse xhr.responseText
           @token = data[0].token
-          console.log {@token}
           @addr = data[0].addr
-          @connectDirectly()
+          log "token is ready", {@token}
+
+          # this should be optional
+          @connectDirectly() if connect
         else
           log "kontrol request error", xhr.responseText
           # Make a request again if we could not get the addres, use backoff for that
@@ -61,13 +63,15 @@ class NewKite extends KDEventEmitter
     @ws.close()
 
   onOpen:->
-    console.log "I'm connected to #{@kiteName} at #{@addr}. Yayyy!"
+    log "I'm connected to #{@kiteName} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
+    @emit 'KiteConnected', @kiteName
     @emit 'ready'
 
   onClose: (evt) ->
-    # console.log "#{@kiteName}: disconnected, trying to reconnect"
+    # log "#{@kiteName}: disconnected, trying to reconnect"
+    @emit 'KiteDisconnected', @kiteName
     @readyState = CLOSED
     if @autoReconnect
       KD.utils.defer => @setBackoffTimeout @bound "connect"
@@ -75,18 +79,24 @@ class NewKite extends KDEventEmitter
   onMessage: (evt) ->
     try
       args = JSON.parse evt.data
+    catch e
+      log "json parse error: ", e, evt.data
+
+    if args and not e
+      err = args.arguments[0]
       {method} = args
       callback = switch method
         when 'ping'             then @bound 'handlePing'
         else (@localStore.get method) ? ->
 
-      # callback = @localStore.get method
+    if err?.message?
+      KD.utils.defer => @setBackoffTimeout @bound "getKiteAddr"
+    else
       callback.apply this, @unscrub args
-    catch e
-      console.log "error: ", e, evt.data
+
 
   onError: (evt) ->
-    # console.log "#{@kiteName}: error #{evt.data}"
+    # log "#{@kiteName}: error #{evt.data}"
 
   handlePing: ->
     @send JSON.stringify
@@ -152,7 +162,7 @@ class NewKite extends KDEventEmitter
       if @readyState is READY
         @ws.send JSON.stringify data
       else
-        # console.log "slow down ... I'm still trying to reconnect!"
+        # log "slow down ... I'm still trying to reconnect!"
     catch e
       @disconnect()
 
