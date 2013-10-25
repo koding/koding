@@ -274,7 +274,7 @@ module.exports =
   twitter        :
     key          : "aFVoHwffzThRszhMo2IQQ"
     secret       : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
-    redirect_uri : "http://127.0.0.1:3020/-/oauth/linkedin/callback"
+    redirect_uri : "http://127.0.0.1:3020/-/oauth/twitter/callback"
     request_url  : "https://twitter.com/oauth/request_token"
     access_url   : "https://twitter.com/oauth/access_token"
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
