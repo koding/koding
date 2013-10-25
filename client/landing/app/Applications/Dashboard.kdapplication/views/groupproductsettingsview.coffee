@@ -3,36 +3,53 @@ class GroupProductSettingsView extends JView
   constructor: (options = {}, data) ->
     super options, data
 
-    group = @getData()
+    @setClass 'group-product-section'
 
-    @setClass "payment-settings-view"
+    @productsView = new GroupProductsView
 
-    @productCreateForm = new GroupProductCreateForm
+    @forwardEvent @productsView, 'DeleteRequested', 'Product'
 
-    @forwardEvent @productCreateForm, 'ProductCreateRequested'
+    @productsView.on 'CreateRequested', =>
+      @showCreateModal
+        productType       : 'product'
+        isOverageEnabled  : yes
 
-    @reloadButton = new KDButtonView
-      cssClass   : "product-button"
-      title      : "Reload"
-      callback   : =>
-        @emit 'ProductReloadRequested'
+    @plansView = new GroupPlansView
 
-    @productListController = new GroupProductListController
-      group     : group
-      itemClass : GroupProductListItem
-    # @controller.loadItems()
+    @plansView.on 'CreateRequested', =>
+      @showCreateModal
+        productType         : 'plan'
+        isRecurringOptional : no
+        isOverageEnabled    : no
+        placeholders        :
+          title             : 'e.g. "Gold Plan"'
+          description       : 'e.g. "2 VMs, and a tee shirt"'
 
-    @list = @productListController.getListView()
-    @list.on "DeleteItem", (code)=>
-      group.deleteProduct {code}, =>
-        @emit 'ProductReloadRequested'
+  showCreateModal: (options) ->
+
+    productType = options.productType ? 'product'
+
+    modal = new KDModalView
+      overlay       : yes
+      title         : "Create #{ productType }"
+
+    createForm = new GroupProductCreateForm options
+
+    modal.addSubView createForm
+
+    createForm.on 'CancelRequested', ->
+      modal.destroy()
+
+    createForm.on 'CreateRequested', (productData) =>
+      createEventName = "#{ productType.capitalize() }CreateRequested"
+      @emit createEventName, productData
+      modal.destroy()
 
   setProducts: (products) ->
-    @productListController.instantiateListItems products
+    @productsView.setProducts products
 
   pistachio: ->
     """
-    {{> @productCreateForm}}
-    {{> @reloadButton}}
-    {{> @productListController.getView()}}
+    {{> @productsView}}
+    {{> @plansView}}
     """
