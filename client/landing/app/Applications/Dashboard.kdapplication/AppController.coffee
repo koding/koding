@@ -136,18 +136,43 @@ class DashboardAppController extends AppController
 
   productViewAdded: (pane, view) ->
 
-    { JPaymentProduct } = KD.remote.api
+    { JPaymentProduct, JPaymentPlan } = KD.remote.api
 
     groupsController = KD.getSingleton 'groupsController'
 
     group = groupsController.getCurrentGroup()
 
-    group.fetchProducts (err, products) ->
-      view.setProducts products
+    reloadProducts = ->
+      group.fetchProducts (err, products) -> view.setProducts products
+
+    reloadPlans = -> # noop for now
 
     view.on 'ProductCreateRequested', (productData) ->
       JPaymentProduct.create productData, (err) ->
-        console.log { err }
+        return if KD.showError err
+
+        reloadProducts()
+
+    view.on 'ProductDeleteRequested', (code) ->
+      JPaymentProduct.removeByCode code, (err) ->
+        return if KD.showError err
+
+        reloadProducts()
+
+    view.on 'PlanCreateRequested', (planData) ->
+      JPaymentPlan.create planData, (err) ->
+        return if KD.showError err
+
+        reloadPlans()
+
+    view.on 'PlanDeleteRequested', (code) ->
+      JPaymentPlan.removeByCode code, (err) ->
+        return if KD.showError err
+
+        reloadPlans()
+
+    reloadProducts()
+    reloadPlans()
 
   showPaymentInfoModal: ->
     modal = @createPaymentInfoModal()
