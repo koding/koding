@@ -2,8 +2,7 @@ class VmProductView extends JView
   constructor: (options = {}, data) ->
     super options, data
 
-  formatCurrency: (cents) ->
-    "#{ ( cents / 100 ).toFixed(2) }"
+  formatCurrency: (cents) -> ( cents / 100 ).toFixed 2
 
   pistachio: ->
     """
