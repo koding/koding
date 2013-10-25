@@ -1,60 +1,69 @@
-class GroupProductCreateForm extends KDFormView
+class GroupProductCreateForm extends KDFormViewWithFields
 
   constructor: (options = {}, data) ->
 
-    super options, data
+    options.isRecurringOptional ?= yes
 
-    @titleInput = new KDInputView
-      cssClass   : "product-title"
-      placeholder: "Product name"
+    options.callback ?= =>
+      @emit 'CreateRequested', @getProductData()
 
-    @descriptionInput = new KDInputView
-      cssClass   : "product-description"
-      placeholder: "Product description"
+    options.buttons ?=
+      Create      :
+        cssClass  : "modal-clean-green"
+        type      : "submit"
+      cancel      :
+        cssClass  : "modal-cancel"
+        callback  : =>
+          @emit 'CancelRequested'
 
-    @subscriptionTypeInput = new KDSelectBox
-      defaultValue  : "recurring"
-      selectOptions : [
-        { title : "Recurring payment", value : 'recurring' }
-        { title : "Single payment"   , value : 'single'    }
-      ]
-      callback: =>
-        if @subscriptionTypeInput.getValue() is 'single'
-        then @perMonth.hide()
-        else @perMonth.show()
+    options.fields ?=
 
-    @amountInput = new KDInputView
-      cssClass    : "product-price"
-      placeholder : "0.00"
-      change      : ->
+      title             :
+        label           : "Title"
+        placeholder     : options.placeholders?.title
+
+      description       :
+        label           : "Description"
+        placeholder     : options.placeholders?.description or "(optional)"
+
+    if options.isRecurringOptional
+      options.fields.subscriptionType =
+        label           : "Subscription type"
+        itemClass       : KDSelectBox
+        defaultValue    : "recurring"
+        selectOptions   : [
+          { title : "Recurring payment", value : 'recurring' }
+          { title : "Single payment"   , value : 'single'    }
+        ]
+        callback: =>
+          if @inputs.subscriptionType.getValue() is 'single'
+          then @inputs.perMonth.hide()
+          else @inputs.perMonth.show()
+
+    options.fields.amount ?=
+      label           : "Amount"
+      placeholder     : "0.00"
+      change          : ->
         num = parseFloat @getValue()
 
         @setValue if isNaN num then '' else num.toFixed(2)
+      nextElementFlat :
 
-    @perMonth = new KDView
-      tagName: 'span'
-      partial: '/ mo'
+        perMonth      :
+          itemClass   : KDCustomHTMLView
+          partial     : "/ mo"
+          cssClass    : 'fr'
 
-    @submitButton = new KDButtonView
-      cssClass   : "product-button"
-      title      : "Create product"
-      callback   : =>
-        @emit 'ProductCreateRequested', @getProductData()
+    if options.isOverageEnabled
+      options.fields.overageEnabled =
+        label           : "Overage enabled"
+        itemClass       : KDOnOffSwitch
 
-  viewAppended: JView::viewAppended
-
-  pistachio: ->
-    """
-    {{> @titleInput}}
-    {{> @descriptionInput}}
-    {{> @subscriptionTypeInput}}
-    {{> @amountInput}}
-    {{> @perMonth}}
-    {{> @submitButton}}
-    """
+    super options, data
 
   getProductData: ->
-    price             : @amountInput.getValue()
-    title             : @titleInput.getValue()
-    description       : @descriptionInput.getValue()
-    subscriptionType  : @subscriptionTypeInput.getValue()
+    { amount, title, description, subscriptionType } = @inputs
+    amount            : amount.getValue()
+    title             : title.getValue()
+    description       : description.getValue()
+    subscriptionType  : subscriptionType?.getValue()
