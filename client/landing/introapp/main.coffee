@@ -82,7 +82,7 @@ class IntroView extends JView
     @slider.addPage new EntryPage
 
     @slider.addPage new IntroPage {},
-      slideImage : "home_you.gif"
+      slideImage : "you.svg"
       slogan     : "Koding for <span>You</span>"
       subSlogan  : """
         <p>
@@ -94,7 +94,7 @@ class IntroView extends JView
       """
 
     @slider.addPage new IntroPage {},
-      slideImage : "home_developers.gif"
+      slideImage : "developers.svg"
       slogan     : "Koding for <span>Developers</span>"
       subSlogan  : """
         <p>
@@ -106,7 +106,7 @@ class IntroView extends JView
       """
 
     @slider.addSubPage new IntroPage {},
-      slideImage : "developers.jpg"
+      slideImage : "developers.svg"
       slogan     : "Koding for <span>Developers #2</span>"
       subSlogan  : """
         <p>
@@ -118,7 +118,7 @@ class IntroView extends JView
       """
 
     @slider.addPage new IntroPage {},
-      slideImage : "home_education.gif"
+      slideImage : "education.svg"
       slogan     : "Koding for <span>Education</span>"
       subSlogan  : """
         <p>
@@ -130,7 +130,7 @@ class IntroView extends JView
       """
 
     @slider.addPage new IntroPage {},
-      slideImage : "home_business.gif"
+      slideImage : "business.svg"
       slogan     : "Koding for <span>Business</span>"
       subSlogan  : """
         <p>
@@ -142,7 +142,7 @@ class IntroView extends JView
       """
 
     @slider.addPage new IntroPage {},
-      slideImage : "business.jpg"
+      slideImage : "business.svg"
       slogan     : "Pricing"
       subSlogan  : """
         <p>
