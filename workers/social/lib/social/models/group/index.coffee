@@ -136,6 +136,7 @@ module.exports = class JGroup extends Module
         # 'addProduct'
         # 'deleteProduct'
         'fetchProducts'
+        'fetchPlans'
         'createVM'
         'canCreateVM'
         'vmUsage'
@@ -248,6 +249,9 @@ module.exports = class JGroup extends Module
       product       :
         targetType  : 'JPaymentProduct'
         as          : 'product'
+      plan          :
+        targetType  : 'JPaymentPlan'
+        as          : 'group plan'
 
   constructor:->
     super
