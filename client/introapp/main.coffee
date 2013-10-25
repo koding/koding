@@ -156,10 +156,10 @@ class IntroView extends JView
       slogan     : "Pricing"
       subSlogan  : """
         <p>
-          When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
+          You'll be able to buy more resources for your personal account or for accounts in your organization.
         </p>
         <p>
-          Koding is your new workspace.
+          Coming soon.
         </p>
       """
 
