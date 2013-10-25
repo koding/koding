@@ -46,10 +46,7 @@ class MessagesListController extends KDListViewController
         'CLikeeBucketActivity'
         'CGroupJoineeBucketActivity'
         'CNewMemberBucketActivity'
-        'CGroupJoineeBucketActivity'
-        'CGroupJoinerBucketActivity'
         'CGroupLefteeBucketActivity'
-        'CGroupLefterBucketActivity'
       ]
     }, {
       limit: 8
@@ -91,7 +88,6 @@ class NotificationListItem extends KDListItemView
     follow      : ""
     share       : "shared"
     commit      : "committed"
-    member      : "joined"
     groupJoin   : "joined"
     groupLeft   : "left"
 
