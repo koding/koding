@@ -146,13 +146,17 @@ class NFinderController extends KDViewController
     pipedVm = @_pipedVmName vmName
     path or= vmRoots[pipedVm] or "/home/#{KD.nick()}"
 
-    if vmName is "local-#{KD.nick()}"
-      # path = "/Users/#{KD.nick()}"
-      path = "/Users/fatih"
-
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
 
+    if vmName is "local-#{KD.nick()}"
+      KD.getSingleton('vmController').info vm, (err, vm, info)=>
+        path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
+        return @_mountVMHelper vmName, path
+    else
+      @_mountVMHelper vmName, path, fetchContent
+
+  _mountVMHelper: (vmName, path, fetchContent)->
     @updateMountState vmName, yes
 
     @vms.push FSHelper.createFile
@@ -176,6 +180,7 @@ class NFinderController extends KDViewController
           @utils.defer =>
             if @getOptions().useStorage then @reloadPreviousState vmName
         , yes
+
 
   unmountVm:(vmName)->
     vmItem = @getVmNode vmName
