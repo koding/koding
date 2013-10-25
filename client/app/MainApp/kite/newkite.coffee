@@ -66,10 +66,12 @@ class NewKite extends KDEventEmitter
     log "I'm connected to #{@kiteName} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
+    @emit 'KiteConnected', @kiteName
     @emit 'ready'
 
   onClose: (evt) ->
-    # console.log "#{@kiteName}: disconnected, trying to reconnect"
+    # log "#{@kiteName}: disconnected, trying to reconnect"
+    @emit 'KiteDisconnected', @kiteName
     @readyState = CLOSED
     if @autoReconnect
       KD.utils.defer => @setBackoffTimeout @bound "connect"
