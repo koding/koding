@@ -33,10 +33,10 @@ putContent = (activityContent, name, section, model)->
   name = activityContent.name
   body = activityContent.body
 
-  # Ugly spaghetti HTML exceeding 80 characters.
+  # Ugly spaghetti HTML code exceeding 80 characters.
   accountName = " by <span itemprop='author'>#{activityContent.fullName}</span>"
   imgURL = "https://gravatar.com/avatar/#{activityContent.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
-  avatarImg = "<span itemscope itemtype=\"http://schema.org/ImageObject\"><img class=\"avatarview\" style=\"width: 90px; height: 90px;\" src=\"#{imgURL}\" itemprop=\"contentURL\"/></span>"
+  avatarImg = "<img class=\"avatarview\" style=\"width: 90px; height: 90px;\" src=\"#{imgURL}\" itemprop=\"image\"/>"
   createdAt = "Created at: <span itemprop=\"dateCreated\">#{activityContent.createdAt}</span>"
   commentsCount = "<span>#{activityContent.numberOfComments}</span> comments"
   likesCount = "<span>#{activityContent.numberOfLikes}</span> likes."

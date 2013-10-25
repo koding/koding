@@ -2,7 +2,7 @@
 
 kodinghome = require './staticpages/kodinghome'
 grouphome = require './staticpages/grouphome'
-subPage = require './staticpages/subpage'
+activity = require './staticpages/activity'
 profile = require './staticpages/profile'
 
 forceTwoDigits = (val) ->
@@ -106,7 +106,7 @@ module.exports =
                       tags : model?.data?.meta?.tags,
                       type : model?.bongo_?.constructorName
                     }
-                    content = subPage {activityContent, name, section, models}
+                    content = activity {activityContent, name, section, models}
                     return res.send 200, content
               daisy queue
       else return console.log "no section is given"
@@ -115,13 +115,11 @@ module.exports =
         JName.fetchModels name, (err, models, jname)->
           return res.send 500, error_500()  if err
           return res.send 404, error_404()  if not models
-          # this is a group
+          # this is a group, we are not serving groups to bots anymore.
           if jname.slugs.first.usedAsPath is "slug"
-            group = models.last
-            content = grouphome {group}
-            return res.send 200, content
+            return res.send 404, error_404()
 
-            # this is a user
+          # this is a user
           else
             models.last.fetchOwnAccount (err, account)->
               content = profile {account}
