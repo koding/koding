@@ -1,20 +1,24 @@
 koding = require './bongo'
 
 error_messages =
-  404: "Page not found."
+  404: "Page not found"
   500: "Something wrong."
 
 error_ = (code, message)->
   # Refactor this to use pistachio instead of underscore template engine - FKA
-  {errorTemplate} = require './staticpages'
+  staticpages     = require './staticpages'
   {template}      = require 'underscore'
-  messageHTML = message.split('\n')
+  messageHTML     = message.split('\n')
     .map((line)-> "<p>#{line}</p>")
     .join '\n'
+
+  {errorTemplate} = staticpages
+  errorTemplate   = staticpages.notFoundTemplate if code is 404
+
   template errorTemplate, {code, error_messages, messageHTML}
 
 error_404 = ->
-  error_ 404, "This webpage is not available."
+  error_ 404, "Return to Koding home"
 
 error_500 = ->
   error_ 500, "Something wrong with the Koding servers."
@@ -119,7 +123,9 @@ getAlias = do->
 
 # adds referral code into cookie if exists
 addReferralCode = (req, res)->
-  if refCode = req.query.r
+  match = req.path.match(/\/R\/(.*)/)
+  if match and match[1]
+    refCode = match[1]
     console.log "refCode: #{refCode}"
     res.cookie "referrer", refCode, { maxAge: 900000, httpOnly: false }
 

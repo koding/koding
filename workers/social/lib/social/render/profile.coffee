@@ -18,6 +18,13 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
   slug         = nickname
   amountOfDays = Math.floor (new Date().getTime()-meta.createdAt)/(1000*60*60*24)
 
+  hash    = profile.hash or ''
+  avatar  = profile.avatar or no
+  bgImg   = "//gravatar.com/avatar/#{hash}?size=90&d=#{encodeURIComponent '//images/defaultavatar/default.avatar.90.png'}"
+  if avatar
+    bgImg = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
+
+
   """
 
   <!DOCTYPE html>
@@ -62,9 +69,6 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                 <a class="title"><span class="main-nav-icon members"></span>Members</a>
               </div>
               <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-                <a class="title"><span class="main-nav-icon groups"></span>Groups</a>
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
                 <a class="title"><span class="main-nav-icon develop"></span>Develop</a>
               </div>
               <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
@@ -98,7 +102,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
                 <div id="profilearea" class="kdview profilearea clearfix">
                   <div class="profileleft">
                     <span>
-                      <span class="avatarview" style="width: 90px; height: 90px; background-image: url(https://gravatar.com/avatar/#{profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png);"></span>
+                      <span class="avatarview" style="width: 90px; height: 90px; background-image: url(#{bgImg});"></span>
                     </span>
                     <button type="button" class="kdbutton kdwhitebtn profilefollowbtn w-loader"><span class="kdview kdloader hidden" style="width: 18px; height: 18px; position: absolute; left: 50%; top: 50%; margin-top: -9px; margin-left: -9px;"><span class="canvas-loader" style="display: none;"><canvas width="18" height="18"></canvas><canvas style="display: none;" width="18" height="18"></canvas></span></span>
                       <span class="icon hidden"></span>

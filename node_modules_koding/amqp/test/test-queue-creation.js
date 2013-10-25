@@ -1,11 +1,14 @@
-require('./harness');
+require('./harness').run();
+
+// setImmediate should be used in node 0.10
+var nextTick = typeof setImmediate !== "undefined" ? setImmediate : process.nextTick;
 
 function countdownLatch(num, callback) {
   var count = num;
 
   function tick() {
-    process.nextTick(function() {
-      if (0 == count) {
+    nextTick(function() {
+      if (0 === count) {
         callback();
       }
       else {
@@ -19,7 +22,7 @@ function countdownLatch(num, callback) {
     decr: function() {
       count--;
     }
-  }
+  };
 }
 
 var testsLeft = countdownLatch(3, function() {

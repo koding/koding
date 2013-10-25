@@ -84,6 +84,14 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  emailConfirmationCheckerWorker :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 1
+    watch                : yes
+    cronSchedule         : '0 * * * * *'
+    usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : yes
     login                : 'prod-social'
@@ -119,9 +127,6 @@ module.exports =
     watch         : no
     watchDuration : 300
     includesPath  : 'client'
-    websitePath   : 'website'
-    js            : "js/kd.#{version}.js"
-    css           : "css/kd.#{version}.css"
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
@@ -230,6 +235,10 @@ module.exports =
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
     redirectUri  : "https://koding.com/-/oauth/facebook/callback"
+  google         :
+    client_id    : "1058622748167.apps.googleusercontent.com"
+    client_secret: "vlF2m9wue6JEvsrcAaQ-y9wq"
+    redirect_uri : "http://localhost:3020/-/oauth/google/callback"
   statsd         :
     use          : true
     ip           : "172.168.2.7"

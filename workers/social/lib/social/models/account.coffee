@@ -15,12 +15,12 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/flaggable'
 
-  JStorage     = require './storage'
-  JAppStorage  = require './appstorage'
-  JTag         = require './tag'
-  CActivity    = require './activity'
-  Graph        = require "./graph/graph"
-  JName        = require './name'
+  JStorage         = require './storage'
+  JAppStorage      = require './appstorage'
+  JTag             = require './tag'
+  CActivity        = require './activity'
+  Graph            = require "./graph/graph"
+  JName            = require './name'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -91,9 +91,9 @@ module.exports = class JAccount extends jraphical.Module
         'fetchMyFollowersFromGraph', 'blockUser', 'unblockUser',
         'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
         'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
-        'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
+        'unlinkOauth', 'changeUsername',
         'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
-        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore'
+        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore', 'isEmailVerified'
       ]
     schema                  :
       skillTags             : [String]
@@ -148,6 +148,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+      referrerUsername      : String
       isExempt              : # is a troll ?
         type                : Boolean
         default             : false
@@ -228,13 +229,6 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
 
-  fetchOldKodingDownloadLink : secure (client,callback)->
-    crypto = require 'crypto'
-    {delegate}    = client.connection
-    user      = delegate.profile.nickname
-    userhash  = crypto.createHash('md5').update("#{user}+salty\n").digest("hex")
-    link      = "http://old.koding.s3.amazonaws.com/koding.old/#{user}-#{userhash}.tgz"
-    callback null,link
 
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection
@@ -624,6 +618,11 @@ module.exports = class JAccount extends jraphical.Module
         if err
           return callback err, null
         callback null, (i._id for i in data)
+
+  isEmailVerified: (callback)->
+    @fetchUser (err, user)->
+      return callback err if err
+      callback null, (user.status is "confirmed")
 
   markUserAsExempt: secure (client, exempt, callback)->
     {delegate} = client.connection
@@ -1157,14 +1156,25 @@ module.exports = class JAccount extends jraphical.Module
     {delegate} = client.connection
     isMine     = @equals delegate
     if isMine
-      @fetchUser (err, user)->
+      @fetchUser (err, user)=>
         return callback err  if err
 
         query                            = {}
         query["foreignAuth.#{provider}"] = ""
-        user.update $unset: query, callback
+        user.update $unset: query, (err)=>
+          return callback err  if err
+          @oauthDeleteCallback provider, user, callback
     else
       callback new KodingError 'Access denied'
+
+  oauthDeleteCallback: (provider, user, callback)->
+    if provider is "google"
+      user.fetchAccount 'koding', (err, account)->
+        return callback err  if err
+        JReferrableEmail = require "./referrableemail"
+        JReferrableEmail.delete user.username, callback
+    else
+      callback()
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->

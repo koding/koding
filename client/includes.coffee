@@ -5,6 +5,7 @@ module.exports = [
   "libs/md5-min.js",
 
   # --- Application ---
+  "app/MainApp/utils.coffee"
   "app/MainApp/KD.extend.coffee" # our extensions to KD global
   "app/MainApp/kodingrouter.coffee",
   "app/MainApp/mq.config.coffee",
@@ -19,7 +20,8 @@ module.exports = [
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
   "app/CommonViews/applicationview/applicationtabhandleholder.coffee",
-  "app/CommonViews/sharepopup.coffee"
+  "app/CommonViews/sharepopup.coffee",
+  "app/CommonViews/sharelink.coffee",
   "app/CommonViews/linkviews/linkview.coffee",
   "app/CommonViews/linkviews/customlinkview.coffee",
   "app/CommonViews/linkviews/linkgroup.coffee",
@@ -35,9 +37,7 @@ module.exports = [
 
   "app/CommonViews/avatarviews/avatarview.coffee",
   "app/CommonViews/avatarviews/avatarstaticview.coffee",
-  "app/CommonViews/avatarviews/avatarswapview.coffee",
   "app/CommonViews/avatarviews/autocompleteavatarview.coffee",
-
 
   "app/MainApp/navigation/navigationcontroller.coffee",
 
@@ -94,6 +94,8 @@ module.exports = [
   "app/CommonViews/markdownmodal.coffee",
   "app/CommonViews/dropboxdownloaditemview.coffee",
 
+  "app/CommonViews/CommonVMUsageBar.coffee",
+
   # FATIH
   # "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
   # "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
@@ -142,6 +144,7 @@ module.exports = [
   "app/MainApp/book/embedded/topics.coffee",
   "app/MainApp/book/embedded/startbutton.coffee",
   "app/MainApp/book/embedded/developbutton.coffee",
+  "app/MainApp/book/embedded/socialshare.coffee",
   "app/MainApp/book/bookdata.coffee",
   "app/MainApp/book/pointerview.coffee",
   "app/MainApp/book/bookview.coffee",
@@ -220,6 +223,7 @@ module.exports = [
   "app/MainApp/login/logininputs.coffee",
   "app/MainApp/login/loginoptions.coffee",
   "app/MainApp/login/registeroptions.coffee",
+  "app/MainApp/login/resendmailconfirmationform.coffee"
   "app/MainApp/login/registerform.coffee",
   "app/MainApp/login/recoverform.coffee",
   "app/MainApp/login/resetform.coffee",
@@ -254,8 +258,7 @@ module.exports = [
   "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
-  # Disable Environments App
-  # "app/Applications/Environments.kdapplication/AppController.coffee",
+  "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Apps.kdapplication/AppController.coffee",
   "app/Applications/Inbox.kdapplication/AppController.coffee",
   "app/Applications/Demos.kdapplication/AppController.coffee",
@@ -387,13 +390,17 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/scene/colortagselectorview.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentcontainer.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentdomaincontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentrulecontainer.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentmachinecontainer.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentextracontainer.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentitemjointview.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentitemsview.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentruleitem.coffee",
+  "app/Applications/Environments.kdapplication/views/scene/environmentextraitem.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentdomainitem.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentmachineitem.coffee",
   "app/Applications/Environments.kdapplication/views/scene/environmentsceneview.coffee",
+  "app/Applications/Environments.kdapplication/views/environmentsmainscene.coffee",
 
   # "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
   # "app/Applications/Environments.kdapplication/views/domainsmainview.coffee",
@@ -455,11 +462,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
   "app/Applications/Groups.kdapplication/Views/blockedusersview.coffee",
   "app/Applications/Groups.kdapplication/Views/blockeduserslistitemview.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
-  # "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
-  # "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",
@@ -468,11 +470,8 @@ module.exports = [
   "app/Applications/Apps.kdapplication/AppView.coffee",
 
   "app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee",
-  "app/Applications/Apps.kdapplication/Views/AppSubmission.coffee",
   "app/Applications/Apps.kdapplication/Views/appinfoview.coffee",
   "app/Applications/Apps.kdapplication/Views/appview.coffee",
-  # "app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee",
-  # "app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee",
   "app/Applications/Apps.kdapplication/Views/appdetailsview.coffee",
 
   "app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee",
@@ -561,6 +560,8 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/subscriptions.coffee",
   "app/Applications/Account.kdapplication/views/referralsystem.coffee",
   "app/Applications/Account.kdapplication/views/deleteaccountview.coffee",
+  "app/Applications/Account.kdapplication/views/gmailcontact.coffee",
+  "app/Applications/Account.kdapplication/views/referrermodal.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
@@ -617,6 +618,8 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # TEAMWORK
+  "app/Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/teamworkpanel.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
