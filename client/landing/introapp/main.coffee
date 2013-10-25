@@ -168,11 +168,12 @@ class IntroView extends JView
         state = '' if state is 'Koding'
         history.replaceState {}, state, "/##{state}"
 
-    @slider.on 'CurrentPageChanged', (current)->
+    @slider.on 'CurrentPageChanged', (current)=>
 
       multipleChoice.setValue labels[current.x], no
 
       if current.x > 0
+        @setClass 'ghost'
         multipleChoice.setClass 'black'
         @utils.wait 500, ->
           $('#koding-logo').addClass    'black'
