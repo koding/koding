@@ -586,6 +586,8 @@ module.exports = [
 
   # Product Pane
   "app/Applications/Dashboard.kdapplication/views/groupproductsettingsview.coffee",
+  "app/Applications/Dashboard.kdapplication/views/groupproductsview.coffee",
+  "app/Applications/Dashboard.kdapplication/views/groupplansview.coffee",
   "app/Applications/Dashboard.kdapplication/views/groupproductcreateform.coffee",
   "app/Applications/Dashboard.kdapplication/views/groupproductlistitem.coffee",
   "app/Applications/Dashboard.kdapplication/views/groupproductlistcontroller.coffee",
