@@ -73,7 +73,6 @@ a
   size                  100%, 100%
   left                  0
   top                   0
-  padding               110px
   padding-top           0
   background-color      white
   borderBox()
@@ -84,7 +83,6 @@ a
     color               #fff
     font-weight         normal
     text-shadow         0 0 10px black
-    margin-left        -100px
     margin-top         -160px
     width               100%
     top                 50%
@@ -94,7 +92,6 @@ a
     text-shadow         0 0 10px black
     line-height         40px
     font-weight         300
-    margin-left        -100px
     margin-top         -60px
     font-size           30px
     width               100%
@@ -111,22 +108,25 @@ a
     left          50%
     abs()
 
+  .details
+    width          45%
+
   .slider-page
     display             table
     size                100%, 100%
-    // bg                  color, #fff
     top                 0
     text-align          left
 
     figure
-      height          460px
+      height          50%
       width           50%
       position        relative
       max-width       600px
       fr()
 
       img
-        width        100%
+        size         100%, 100%
+        min-height   200px
         rounded      0 0 4px 4px
         abs()
 
@@ -142,7 +142,7 @@ a
       width             100%
       max-width         1280px
       margin            0 auto
-      padding           60px 20px 0
+      padding           80px 60px 80px 60px
       borderBox()
 
     h3
@@ -176,7 +176,6 @@ a
     text-align          center
     bottom              150px
     width               100%
-    margin-left         -100px
     abs()
 
     button.kdbutton
@@ -235,4 +234,10 @@ a
             bg          position, -630px -45px
 
 
-// @media only screen and (max-width: 1024px)
+@media only screen and (max-width: 400px)
+  .kd-page
+    .details
+      width           100%
+    .slider-page
+      figure
+        width           0%
