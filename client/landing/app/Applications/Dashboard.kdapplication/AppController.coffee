@@ -134,45 +134,35 @@ class DashboardAppController extends AppController
               modal.destroy()
               @refreshPaymentView()
 
-  productViewAdded: (pane, view) ->
+  productViewAdded: do ->
 
-    { JPaymentProduct, JPaymentPlan } = KD.remote.api
+    prepareProductView = (view, category) ->
 
-    groupsController = KD.getSingleton 'groupsController'
+      group = KD.getGroup()
 
-    group = groupsController.getCurrentGroup()
+      konstructor = KD.remote.api["JPayment#{category}"]
 
-    reloadProducts = ->
-      group.fetchProducts (err, products) -> view.setProducts products
+      reload = ->
+        group["fetch#{category}s"] (err, results) ->
+          view["set#{category}s"] results
 
-    reloadPlans = -> # noop for now
+      view.on "#{category}CreateRequested", (productData) ->
+        konstructor.create productData, (err) ->
+          return if KD.showError err
 
-    view.on 'ProductCreateRequested', (productData) ->
-      JPaymentProduct.create productData, (err) ->
-        return if KD.showError err
+          reload()
 
-        reloadProducts()
+      view.on "#{category}DeleteRequested", (code) ->
+        konstructor.removeByCode code, (err) ->
+          return if KD.showError err
 
-    view.on 'ProductDeleteRequested', (code) ->
-      JPaymentProduct.removeByCode code, (err) ->
-        return if KD.showError err
+          reload()
 
-        reloadProducts()
+      reload()
 
-    view.on 'PlanCreateRequested', (planData) ->
-      JPaymentPlan.create planData, (err) ->
-        return if KD.showError err
-
-        reloadPlans()
-
-    view.on 'PlanDeleteRequested', (code) ->
-      JPaymentPlan.removeByCode code, (err) ->
-        return if KD.showError err
-
-        reloadPlans()
-
-    reloadProducts()
-    reloadPlans()
+    productViewAdded = (pane, view) ->
+      prepareProductView view, 'Product'
+      prepareProductView view, 'Plan'
 
   showPaymentInfoModal: ->
     modal = @createPaymentInfoModal()
