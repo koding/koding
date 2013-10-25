@@ -11,12 +11,12 @@ class IntroPage extends KDSlidePageView
 
     """
       <div class="slider-page">
+        <div class="slogan">{{ #(slogan) }}</div>
         <div class="wrapper">
           <figure>
             <img src="/images/homeslide/#{@getData().slideImage}?#{time}" />
           </figure>
           <div class="details">
-            <h3><i></i> {{ #(slogan) }}</h3>
             {{ #(subSlogan) }}
           </div>
         </div>
@@ -32,7 +32,7 @@ class EntryPage extends KDSlidePageView
 
     @addSubView new KDCustomHTMLView
       partial   : "A new way for developers to work"
-      cssClass  : "slogan"
+      cssClass  : "top-slogan"
 
     @addSubView new KDCustomHTMLView
       partial   : "Software development has finally evolved,<br> It's now social, in the browser and free!"
@@ -93,7 +93,7 @@ class IntroView extends JView
 
     @slider.addPage new IntroPage {},
       slideImage : "you.svg"
-      slogan     : "Koding for <span>You</span>"
+      slogan     : "for <span>You</span>"
       subSlogan  : """
         <p>
           You have great ideas.  You want to meet brilliant minds, and bring those ideas to life.  You want to start simple.  Maybe soon you'll have a 10 person team, commanding 100s of servers.
@@ -105,7 +105,7 @@ class IntroView extends JView
 
     @slider.addPage new IntroPage {},
       slideImage : "developers.svg"
-      slogan     : "Koding for <span>Developers</span>"
+      slogan     : "for <span>Developers</span>"
       subSlogan  : """
         <p>
           You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
@@ -117,7 +117,7 @@ class IntroView extends JView
 
     @slider.addSubPage new IntroPage {},
       slideImage : "developers.svg"
-      slogan     : "Koding for <span>Developers #2</span>"
+      slogan     : "for <span>Developers #2</span>"
       subSlogan  : """
         <p>
           You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
@@ -129,7 +129,7 @@ class IntroView extends JView
 
     @slider.addPage new IntroPage {},
       slideImage : "education.svg"
-      slogan     : "Koding for <span>Education</span>"
+      slogan     : "for <span>Education</span>"
       subSlogan  : """
         <p>
           Create a group where your students enjoy the resources you provide to them. Make it private or invite-only.  Let them share, collaborate and submit their assignments together.  It doesn't matter if you have ten students, or ten thousand.  Scale from just one to hundreds of computers.
@@ -141,7 +141,7 @@ class IntroView extends JView
 
     @slider.addPage new IntroPage {},
       slideImage : "business.svg"
-      slogan     : "Koding for <span>Business</span>"
+      slogan     : "for <span>Business</span>"
       subSlogan  : """
         <p>
           When you hire someone, they can get up to speed in your development environment in 5 minutes—easily collaborating with others and contributing code.  All without sharing ssh keys or passwords.  Stop cc'ing your team; stop searching through old emails.
@@ -203,7 +203,7 @@ class IntroView extends JView
     # Poor man's font resizer ~ GG
     sizes = @slider.currentPage.getBounds()
     @slider.setCss
-      fontSize : Math.max Math.min( (sizes.w + sizes.h) / 80, parseFloat 120 ), parseFloat 12
+      fontSize : Math.max Math.min( (sizes.w + sizes.h) / 80, parseFloat 23 ), parseFloat 12
 
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
