@@ -48,6 +48,8 @@ class GroupProductSettingsView extends JView
   setProducts: (products) ->
     @productsView.setProducts products
 
+  setPlans: (plans) -> console.log 'need to set the plans', plans
+
   pistachio: ->
     """
     {{> @productsView}}
