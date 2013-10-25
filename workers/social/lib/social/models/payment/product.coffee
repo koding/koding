@@ -1,4 +1,4 @@
-{Module} = require 'jraphical'
+{ Module } = require 'jraphical'
 
 module.exports = class JPaymentProduct extends Module
 
@@ -11,8 +11,13 @@ module.exports = class JPaymentProduct extends Module
 
   @set
     sharedMethods     :
-      static          : ['create']
-      instance        : ['remove']
+      static          : [
+        'create'
+        'removeByCode'
+      ]
+      instance        : [
+        'remove'
+      ]
     schema            :
       title           :
         type          : String
@@ -24,6 +29,7 @@ module.exports = class JPaymentProduct extends Module
         required      : yes
       overageEnabled  : Boolean
       planCode        : String
+      group           : String
 
   @create = (group, formData, callback) ->
 
@@ -39,6 +45,7 @@ module.exports = class JPaymentProduct extends Module
       subscriptionType  : subscriptionType ? 'recurring'
       planCode          : createId()
       overageEnabled    : overageEnabled is 'on'
+      group
     }
 
     product.save (err) =>
@@ -55,6 +62,10 @@ module.exports = class JPaymentProduct extends Module
 
             callback null, product
 
+  @create$ = permit 'manage products',
+    success: (client, formData, callback) ->
+      @create client.context.group, formData, callback
+
   @savePlanToRecurly = (product, callback) ->
     if product.overageEnabled
 
@@ -70,13 +81,27 @@ module.exports = class JPaymentProduct extends Module
 
     else process.nextTick -> callback null
 
-  remove: permit 'manage products',
-    success: (client, callback) ->
-      Module::remove.call this, (err) =>
-        return callback err  if err
+  @removeByCode = (planCode, callback) ->
+    @one { planCode }, (err, product) ->
+      return callback err  if err
 
-        recurly.deletePlan @planCode, callback
+      unless product?
+        return callback { message: 'Unrecognized product code', planCode }
 
-  @create$ = permit 'manage products',
-    success: (client, formData, callback) ->
-      @create client.context.group, formData, callback
+      product.remove callback
+
+  @removeByCode$ = permit 'manage products',
+    success: (client, planCode, callback) -> @removeByCode planCode, callback
+
+  remove: (callback) ->
+    { planCode: code, overageEnabled } = this
+    super (err) ->
+      if err
+        callback err
+      else if code? and overageEnabled
+        recurly.deletePlan { code }, callback
+      else
+        callback null
+
+  remove$: permit 'manage products',
+    success: (client, callback) -> @remove callback
