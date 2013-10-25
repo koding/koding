@@ -14,7 +14,7 @@ class WebTermView extends KDView
     @addSubView @container
 
     @terminal = new WebTerm.Terminal @container.$()
-    KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
+    # KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
     @options.advancedSettings ?= no
     if @options.advancedSettings
       @advancedSettings = new KDButtonViewWithMenu
