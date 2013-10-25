@@ -176,11 +176,10 @@ class IntroView extends JView
         @setClass 'ghost'
         multipleChoice.setClass 'black'
         @utils.wait 500, ->
-          $('#koding-logo').addClass    'black'
-          $('#header-sign-in').addClass 'black'
+          $('#main-header').addClass 'black'
       else
-        $('#koding-logo').removeClass    'black'
-        $('#header-sign-in').removeClass 'black'
+        $('#main-header').removeClass 'black'
+        @unsetClass 'ghost'
         @utils.wait 500, ->
           multipleChoice.unsetClass 'black'
 
