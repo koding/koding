@@ -1,52 +1,47 @@
-{
-  renderOauthPopup
-  saveOauthToSession
-}             = require './helpers'
-koding        = require './bongo'
-#{key, secret} = KONFIG.twitter
-provider      = "twitter"
+provider             = "twitter"
+http                 = require "https"
+koding               = require './bongo'
+{OAuth}              = require "oauth"
 
 {
   renderOauthPopup
   saveOauthToSession
-}                  = require './helpers'
-#{twitter}          = KONFIG
-http               = require "https"
-koding             = require './bongo'
-provider           = "twitter"
+}                    = require './helpers'
 
-module.exports = (req, res) ->
+{
+  key
+  secret
+  request_url
+  access_url
+  version
+  redirect_uri
+  signature
+}                    = KONFIG[provider]
+
+module.exports = (req, res)->
   {oauth_token, oauth_verifier} = req.query
   {clientId}                    = req.cookies
-  {JSession, JUser}             = koding.models
+  {JSession}                    = koding.models
 
-  JSession.one {clientId}, (err, session)=>
+  JSession.one {clientId}, (err, session)->
     if err
       renderOauthPopup res, {error:err, provider}
       return
 
+    {foreignAuth}        = session
     {username}           = session.data
-    {requestTokenSecret} = session.foreignAuth.twitter
+    {requestTokenSecret} = foreignAuth[provider]
 
-    # TODO: get from config
-    key    = "aFVoHwffzThRszhMo2IQQ"
-    secret = "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
+    client = new OAuth request_url, access_url, key, secret, version,
+      redirect_uri, signature
 
-    {OAuth}       = require "oauth"
-    #config        = KONFIG.twitter
-    #{key, secret} = config
-
-    oauth   = new OAuth "https://twitter.com/oauth/request_token",
-      "https://twitter.com/oauth/access_token", key, secret,
-      "1.0", "http://127.0.0.1:3020/-/oauth/twitter/callback", "HMAC-SHA1"
-
-    oauth.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,
+    client.getOAuthAccessToken oauth_token, requestTokenSecret, oauth_verifier,
       (err, oauthAccessToken, oauthAccessTokenSecret, results)->
         if err
           renderOauthPopup res, {error:err, provider}
           return
 
-        oauth.get 'https://api.twitter.com/1.1/account/verify_credentials.json',
+        client.get 'https://api.twitter.com/1.1/account/verify_credentials.json',
           oauthAccessToken, oauthAccessTokenSecret, (error, data)->
             if err
               renderOauthPopup res, {error:err, provider}
@@ -58,7 +53,7 @@ module.exports = (req, res) ->
               renderOauthPopup res, {error:"twitter err: parsing json", provider}
               return
 
-            twitter                   = session.foreignAuth.twitter
+            twitter                   = foreignAuth[provider]
             twitter.token             = oauthAccessToken
             twitter.accessTokenSecret = oauthAccessTokenSecret
             twitter.foreignId         = response.id
