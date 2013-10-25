@@ -45,7 +45,6 @@ module.exports =
             console.error err if err
             model = models.first if models and Array.isArray 
             model?.fetchRelativeComments limit:10, after:"", (err, comments)=>
-              commentSummaries = []
               # Get comments authors, put comment info into commentSummaries
               queue = [0..comments.length].map (index)=>=>
                 comment = comments[index]

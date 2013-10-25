@@ -10,7 +10,7 @@ module.exports = ->
   <meta property="og:url" content="http://www.koding.com"/>
   <meta property="og:type" content="website" />
   <meta property="og:image" content="http://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/s160x160/376261_340500336028684_1260543768_a.jpg"/>
-  <meta property="og:image:secure_url" content="http://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/s160x160/376261_340500336028684_1260543768_a.jpg"/>
+  <meta property="og:image:secure_url" content="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/s160x160/376261_340500336028684_1260543768_a.jpg"/>
   <meta property="og:image:type" content="JPG">
   <meta property="og:image:width" content="160">
   <meta property="og:image:height" content="160">

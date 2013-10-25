@@ -23,9 +23,9 @@ module.exports = ({activityContent, account, name, section, models})->
   </html>
   """
 createCommentNode = (comment)->
-  if comment
-    return "<li><span itemprop=\"commentText\">#{comment.body}</span> at <span itemprop=\"commentTime\">#{comment.createdAt}</span> \
-      by <span itemprop=\"name\">#{comment.name}</span></li>"
+  if comment.body
+    return "<li><span itemtype=\"http://schema.org/Comment\" itemscope itemprop=\"comment\"><span itemprop=\"commentText\">#{comment.body}</span> at <span itemprop=\"commentTime\">#{comment.createdAt}</span> \
+      by <span itemprop=\"name\">#{comment.name}</span></span></li>"
   else return ""
 
 putContent = (activityContent, name, section, model)->
@@ -36,21 +36,22 @@ putContent = (activityContent, name, section, model)->
   # Ugly spaghetti HTML exceeding 80 characters.
   accountName = " by <span itemprop='author'>#{activityContent.fullName}</span>"
   imgURL = "https://gravatar.com/avatar/#{activityContent.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
-  avatarImg = "<span class=\"avatarview\" style=\"width: 90px; height: 90px; background-image: url(#{imgURL});\"></span>"
+  avatarImg = "<span itemscope itemtype=\"http://schema.org/ImageObject\"><img class=\"avatarview\" style=\"width: 90px; height: 90px;\" src=\"#{imgURL}\" itemprop=\"contentURL\"/></span>"
   createdAt = "Created at: <span itemprop=\"dateCreated\">#{activityContent.createdAt}</span>"
   commentsCount = "<span>#{activityContent.numberOfComments}</span> comments"
   likesCount = "<span>#{activityContent.numberOfLikes}</span> likes."
 
   userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserLikes:#{activityContent.numberOfLikes}\"/>"
   userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{activityContent.numberOfComments}\"/>"
-  
-  comments = (createCommentNode(comment) \
-    for comment in activityContent.comments when comment.body)
 
-  commentsContent = "<h4>Comments:</h4>"
-  commentsContent += "<ol style='text-align:left' itemscope itemtype=\"http://schema.org/UserComments\">"
-  commentsContent += comments.join("")
-  commentsContent += "</ol>"
+  if activityContent.numberOfComments > 0
+    comments = (createCommentNode(comment) for comment in activityContent.comments)
+    commentsContent = "<h4>Comments:</h4>"
+    commentsContent += "<ol style='text-align:left'>"
+    commentsContent += comments.join("")
+    commentsContent += "</ol>"
+  else 
+    commentsContent = ""
 
   tags = ""
   if activityContent?.tags
@@ -70,7 +71,7 @@ putContent = (activityContent, name, section, model)->
   else "launching an application"
 
   content  =
-    """<figure class='splash' style="color:white">
+    """<figure class='splash' style="color:black">
          <h2>
            #{title}
          </h2>
