@@ -21,8 +21,12 @@
   background-size       cover
   z-index               99
   opacity               0
-  vendor                transition, opacity .6s ease-in
+  vendor                transition, opacity .6s ease-in\, background-position 0.5s ease
+
   abs()
+
+  &.ghost
+    background-position-y   -250px
 
   &.in
     opacity 1
