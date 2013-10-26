@@ -56,7 +56,8 @@ a
       text-transform        none
       font-weight           normal
       font-family           'Open Sans'
-      padding-left          24px
+      padding-left          12px
+      padding-right         12px
       &.active
         font-weight         bold
 
@@ -126,9 +127,8 @@ a
       fr()
 
       img
-        size         100%, 100%
-        min-height   200px
-        rounded      0 0 4px 4px
+        size         100%, 80%
+        min-height   160px
         abs()
 
     &.left-aligned
@@ -147,9 +147,8 @@ a
       borderBox()
 
     p
-      // font-size         18px
       margin            40px 0 0 0
-      // font-weight       300
+      font-weight       100
 
     &.active
       opacity           1
@@ -167,14 +166,18 @@ a
   background-color      rgba(0, 0, 0, 0)
 
   .top-slogan
-    font-size           50px
+    font-size           2.4em
     color               #fff
-    font-weight         normal
     text-shadow         0 0 10px black
-    margin-top         -160px
     width               100%
-    top                 50%
+    top                 23%
+    font-weight         100
     abs()
+
+    > div
+      font-size         .5em
+      margin-top        20px
+      font-weight       100
 
   .buttons
     text-align          center
@@ -239,9 +242,87 @@ a
 
 
 @media only screen and (max-width: 400px)
+
   .kd-page
     .details
-      width           100%
+      width            100%
     .slider-page
+      .slogan
+        left           55px
       figure
-        width           0%
+        width          100%
+        height         30%
+        img
+          height       30%
+          min-height   80px
+      .wrapper
+        padding        20px
+
+  .entryPage
+    .top-slogan
+      top              15%
+    .buttons
+      bottom           100px
+      button
+        width          70%   !important
+        &.github
+          margin-left  0     !important
+          margin-top   10px  !important
+
+  #header-sign-in
+    width              70px !important
+
+  #main-header
+    #koding-logo
+      > span
+        width            120px  !important
+
+    &.black
+      #koding-logo
+        > span
+          width          30px  !important
+
+@media only screen and (max-height: 420px)
+
+  .entryPage
+    .buttons
+      vendor           transform, scale(.7)
+      bottom           40px !important
+
+  .kd-page
+    .slider-page
+      p
+        margin          5px 0 0 0
+      .slogan
+        top             11px !important
+        left           133px !important
+      .wrapper
+        padding        10px
+      figure
+        img
+          min-height   100px
+
+  .intro-view
+    .bottom-menu
+      padding             15px !important
+      margin-left        -15px !important
+
+  #main-header
+    #koding-logo
+      > span
+        top            -18px !important
+        left            13px !important
+
+  #header-sign-in
+    width              70px !important
+    top                 0   !important
+
+@media only screen and (max-height: 250px)
+
+  .entryPage
+    .top-slogan
+      top              15%
+      > div
+        display        none
+    .buttons
+      bottom           60px !important
