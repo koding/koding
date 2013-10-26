@@ -111,8 +111,10 @@ class MainView extends KDView
       partial   : "<span></span>"
       click     : (event)=>
         KD.utils.stopDOMEvent event
-        homeRoute = if KD.isLoggedIn() then "/Activity" else "/"
-        KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
+        if KD.isLoggedIn()
+          KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
+        else
+          location.replace '/'
 
     wrapper.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
