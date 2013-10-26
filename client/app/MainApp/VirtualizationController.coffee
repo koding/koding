@@ -19,26 +19,16 @@ class VirtualizationController extends KDController
         withArgs : command
 
     @fetchVmName options, (err, vmName) =>
-
-      # if /^vm\./.test options.method
-      #   options.kiteName = "osk"
-
       if vmName is "local-#{KD.whoami().profile.nickname}"
         if /^fs\./.test options.method
-            options.kiteName = "fs"
-
-        if /^webterm\./.test options.method
-            options.kiteName = "terminal"
-
-        if /^vm\./.test options.method
           options.kiteName = "fs"
-
-      if options.method in ['exec', 'spawn']
-        options.kiteName = "os-local"
+        else if /^webterm\./.test options.method
+          options.kiteName = "terminal"
+        else if /^vm\./.test options.method
+          options.kiteName = "fs"
 
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
-        # NEWKITE
         options.kiteName or= "os-#{region}"
         @kc.run options, (rest...) ->
           # log rest...
