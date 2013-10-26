@@ -1,41 +1,9 @@
 class GroupProductListItem extends KDListItemView
 
-  constructor:(options,data)->
-    super options, data
-
+  viewAppended: ->
     { planCode, soldAlone } = @getData()
 
-    codeCheck =
-      """
-      KD.remote.api.JPaymentSubscription.checkUserSubscription '#{planCode}', (err, subscriptions)->
-        if not err and subscriptions.length > 0
-          console.log "User is subscribed to the plan."
-      """
-
-    codeGet =
-      """
-      KD.remote.api.JPaymentPlan.fetchPlanByCode '#{planCode}', (err, plan)->
-        if not err and plan
-          plan.fetchSubscriptions (err, subs)->
-            console.log "Subscribers:", subs
-      """
-
-    codeWidget =
-      """
-      @content = new KDButtonView
-        cssClass   : "clean-gray test-input"
-        title      : "Subscribed! View Video"
-        callback   : ->
-          console.log "Open video..."
-
-      @payment = new PaymentWidget
-        planCode        : '#{planCode}'
-        contentCssClass : 'modal-clean-green'
-        content         : @content
-
-      @payment.on "subscribed", ->
-        console.log "User is subscribed."
-      """
+    @embedView = new EmbedCodeView { planCode }
 
     @embedButton = new KDButtonView
       title    : "View Embed Code"
@@ -46,15 +14,6 @@ class GroupProductListItem extends KDListItemView
           @embedView.setClass "hidden"
 
     @embedButton.hide()  unless soldAlone
-
-    @embedView = new KDTabView
-      cssClass             : "hidden product-embed"
-      hideHandleCloseIcons : yes
-      paneData             : [
-        { name : "Check Subscription", partial: "<pre>#{codeCheck}</pre>" }
-        { name : "Get Subscribers",    partial: "<pre>#{codeGet}</pre>" }
-        { name : "Subscribe Widget",   partial: "<pre>#{codeWidget}</pre>" }
-      ]
 
     @clientsButton = new KDButtonView
       title    : "View Buyers"
@@ -72,6 +31,8 @@ class GroupProductListItem extends KDListItemView
         @confirmDelete =>
           @getDelegate().emit "DeleteItem", planCode
 
+    JView::viewAppended.call this
+
   confirmDelete:(callback) ->
     deleteModal = new KDModalView
       title        : "Warning"
@@ -87,8 +48,6 @@ class GroupProductListItem extends KDListItemView
           callback : ->
             deleteModal.destroy()
             callback()
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     product = @getData()
