@@ -1,7 +1,7 @@
 CBucketActivity = require '../../activity/bucketactivity'
 CActivity = require '../../activity'
 
-module.exports = class CGroupLefteeBucketActivity extends CBucketActivity
+module.exports = class CGroupLeaverActivity extends CBucketActivity
 
   @share()
 

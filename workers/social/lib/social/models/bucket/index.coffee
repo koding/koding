@@ -44,8 +44,8 @@ module.exports = class CBucket extends jraphical.Module
     CInstalleeBucket    = require './installeebucket'
     CGroupJoineeBucket  = require './groupjoineebucket'
     CGroupJoinerBucket  = require './groupjoinerbucket'
-    CGroupLefteeBucket  = require './grouplefteebucket'
-    CGroupLefterBucket  = require './grouplefterbucket'
+    CGroupLeaveeBucket  = require './groupleaveebucket'
+    CGroupLeaverBucket  = require './groupleaverbucket'
 
     switch role
       when 'follower'
@@ -70,8 +70,8 @@ module.exports = class CBucket extends jraphical.Module
           when 'target' then CGroupJoinerBucket
       when 'GroupLeft'
         switch groupName
-          when 'source' then CGroupLefteeBucket
-          when 'target' then CGroupLefterBucket
+          when 'source' then CGroupLeaveeBucket
+          when 'target' then CGroupLeaverBucket
 
 
 
