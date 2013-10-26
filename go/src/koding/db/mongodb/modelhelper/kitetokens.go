@@ -51,3 +51,24 @@ func DeleteKiteToken(username string) error {
 
 	return mongodb.Run("jKiteTokens", query)
 }
+
+// Deletes the uuid in the token.Kites array that belongs to the given username
+func DeleteKiteTokenUuid(username, uuid string) error {
+	token, err := GetKiteToken(username)
+	if err != nil {
+		return err
+	}
+
+	kites := make([]string, 0)
+	for _, kiteUuid := range token.Kites {
+		if kiteUuid == uuid {
+			continue
+		}
+
+		kites = append(kites, kiteUuid)
+	}
+
+	token.Kites = kites
+
+	return AddKiteToken(token)
+}
