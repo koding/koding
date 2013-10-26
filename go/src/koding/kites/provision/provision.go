@@ -50,7 +50,7 @@ func main() {
 		PublicIP: "localhost",
 		Username: "fatih",
 		Kitename: "os-local",
-		Version:  "1",
+		Version:  "0.0.1",
 		Port:     *port,
 	}
 

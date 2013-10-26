@@ -43,7 +43,7 @@ func main() {
 	options := &protocol.Options{
 		PublicIP: "localhost",
 		Kitename: "terminal",
-		Version:  "1",
+		Version:  "0.0.1",
 		Kind:     "vm",
 		Port:     *port,
 	}
