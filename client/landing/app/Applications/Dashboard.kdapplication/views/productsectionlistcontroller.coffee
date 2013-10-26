@@ -1,8 +1,4 @@
-class GroupProductListController extends KDListViewController
-
-  constructor:(options = {}, data)->
-    @group = options.group
-    super
+class ProductSectionListController extends KDListViewController
 
   addCustomItem:(message)->
     @removeAllItems()
@@ -10,4 +6,3 @@ class GroupProductListController extends KDListViewController
     @scrollView.addSubView @customItem = new KDCustomHTMLView
       cssClass : "no-item-found"
       partial  : message
-
