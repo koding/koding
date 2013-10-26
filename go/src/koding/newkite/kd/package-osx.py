@@ -68,7 +68,7 @@ def main():
         cmd = "go build -o %s %s" % (binpath, "main/kd.go")
         try:
             subprocess.check_call(cmd.split())
-        except:
+        except subprocess.CalledProcessError:
             print "Cannot compile kd tool. Try manually."
             sys.exit(1)
 
@@ -80,16 +80,11 @@ def main():
         print "Making tar file..."
         tarname = "kd-%s.tar.gz" % version
         tarpath = os.path.join(workdir, tarname)
-        cwd = os.getcwd()
-        os.chdir(workdir)
         with tarfile.open(tarpath, "w:gz") as tar:
-            tar.add("kd")
-        os.chdir(cwd)
+            tar.add(binpath, arcname="kd")
 
         # Move the tar to current working directory
-        dst = os.path.join(cwd, tarname)
-        shutil.move(tarpath, dst)
-        tarpath = dst
+        shutil.move(tarpath, tarname)
 
         # Upload to Amazon S3
         if args.upload:
@@ -105,7 +100,7 @@ def main():
                       "increment the version number and upload it again."
                 sys.exit(1)
 
-            tarfile_key.set_contents_from_filename(tarpath)
+            tarfile_key.set_contents_from_filename(tarname)
             tarfile_key.make_public()
             url = tarfile_key.generate_url(expires_in=0, query_auth=False)
 
@@ -115,7 +110,7 @@ def main():
             url = "http://127.0.0.1:8000/kd-%s.tar.gz" % version
 
         print "Generating formula..."
-        sha1 = sha1_file(tarpath)
+        sha1 = sha1_file(tarname)
         formula_str = FORMULA.format(url=url, sha1=sha1)
         with open("kd.rb", "w") as f:
             f.write(formula_str)
