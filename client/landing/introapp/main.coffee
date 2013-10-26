@@ -31,12 +31,11 @@ class EntryPage extends KDSlidePageView
   viewAppended:->
 
     @addSubView new KDCustomHTMLView
-      partial   : "A new way for developers to work"
       cssClass  : "top-slogan"
-
-    @addSubView new KDCustomHTMLView
-      partial   : "Software development has finally evolved,<br> It's now social, in the browser and free!"
-      cssClass  : "sub-slogan"
+      partial   : """
+        A new way for developers to work
+        <div>Software development has finally evolved,<br> It's now social, in the browser and free!</div>
+      """
 
     buttons = new KDCustomHTMLView cssClass : 'buttons'
     buttons.addSubView emailSignupButton  = new KDButtonView
@@ -115,18 +114,6 @@ class IntroView extends JView
         </p>
       """
 
-    @slider.addSubPage new IntroPage {},
-      slideImage : "developers.svg"
-      slogan     : "for <span>Developers #2</span>"
-      subSlogan  : """
-        <p>
-          You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
-        </p>
-        <p>
-          It's free. Koding is your new localhost, in the cloud.
-        </p>
-      """
-
     @slider.addPage new IntroPage {},
       slideImage : "education.svg"
       slogan     : "for <span>Education</span>"
@@ -152,7 +139,7 @@ class IntroView extends JView
       """
 
     @slider.addPage new IntroPage {},
-      slideImage : "business.svg"
+      slideImage : "price.svg"
       slogan     : "Pricing"
       subSlogan  : """
         <p>
