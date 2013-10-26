@@ -17,7 +17,7 @@ var testData = []byte(testMessage)
 
 func TestRequestReply(t *testing.T) {
 	log.Println("Creating new Replier")
-	srv := NewMessagingServer(echoHandler)
+	srv := NewMessagingServer(echoHandler, nil)
 	go srv.ListenAndServe(testAddr)
 	defer srv.Close()
 
@@ -33,7 +33,7 @@ func TestRequestReply(t *testing.T) {
 
 func TestPublishSubscibe(t *testing.T) {
 	log.Println("Creating new Publisher")
-	srv := NewMessagingServer(nil)
+	srv := NewMessagingServer(nil, nil)
 	go srv.ListenAndServe(testAddr)
 	defer srv.Close()
 
@@ -78,7 +78,7 @@ func TestPublishSubscibe(t *testing.T) {
 
 func TestBroadcast(t *testing.T) {
 	log.Println("Creating new Publisher")
-	srv := NewMessagingServer(nil)
+	srv := NewMessagingServer(nil, nil)
 	go srv.ListenAndServe(testAddr)
 	defer srv.Close()
 

@@ -42,6 +42,10 @@ type Subscriber struct {
 type subscriberCommand struct {
 	Name string `json:"name"`
 	Args args   `json:"args"`
+	Auth struct {
+		UserName  string `json:"userName"`
+		KodingKey string `json:"kodingKey"`
+	} `json:"auth"`
 }
 
 type args map[string]interface{}
