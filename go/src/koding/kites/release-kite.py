@@ -25,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Compile a kite and upload to S3.")
     parser.add_argument('kite_name', help="name of the kite")
-    parser.add_argument('main_file', help="path of the main file")
+    parser.add_argument('main_file', help='path of the ".go" file that contains main()')
     parser.add_argument('--upload', action='store_true', help="upload to s3")
     args = parser.parse_args()
 
