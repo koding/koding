@@ -96,17 +96,20 @@ def main():
             print "Uploading to Amazon S3..."
             c = boto.connect_s3(AWS_KEY, AWS_SECRET)
             b = c.get_bucket('kd-tool')
-            k = Key(b)
-            k.key = tarname
-            if k.exists():
+
+            tarfile_key = Key(b)
+            tarfile_key.key = tarname
+            if tarfile_key.exists():
                 print "This version is already uploaded. " \
                       "Please do not overwrite the uploaded version, " \
                       "increment the version number and upload it again."
                 sys.exit(1)
 
-            k.set_contents_from_filename(tarpath)
-            k.make_public()
-            url = k.generate_url(expires_in=0, query_auth=False)
+            tarfile_key.set_contents_from_filename(tarpath)
+            tarfile_key.make_public()
+            url = tarfile_key.generate_url(expires_in=0, query_auth=False)
+
+            #key_kd_
         else:
             # For testing "brew install" locally
             url = "http://127.0.0.1:8000/kd-%s.tar.gz" % version
@@ -121,7 +124,18 @@ def main():
         print "    %s" % tarname
         print "    kd.rb"
 
-        if not args.upload:
+        if args.upload:
+            print "Uploading new brew formula..."
+            formula_key = Key(b)
+            formula_key.key = "kd.rb"
+            formula_key.set_contents_from_string(formula_str)
+            formula_key.make_public()
+            formula_url = formula_key.generate_url(expires_in=0, query_auth=False)
+
+            print "kd tool has been uplaoded successfully.\n" \
+                  "Users can install it with:\n    " \
+                  "brew install \"%s\"" % formula_url
+        else:
             print "Did not upload to S3. " \
                   "If you want to upload, run with --upload flag."
 
