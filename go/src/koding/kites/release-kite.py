@@ -81,7 +81,7 @@ def main():
 
             # Upload it again as kitename-latest.kite.tar.gz
             # kd tool install the latest version when version is not given.
-            tarfile_key.name = "%s-latest.tar.gz" % args.kite_name
+            tarfile_key.name = "%s-latest.kite.tar.gz" % args.kite_name
             tarfile_key.set_contents_from_filename(tar_name)
             tarfile_key.make_public()
 
