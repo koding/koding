@@ -826,9 +826,6 @@ button.cancel-edit-button
   &:hover
     color           #787878
 
-
-
-
 .right-overflow
   width           auto
   display         block
@@ -850,6 +847,36 @@ button.cancel-edit-button
     sprite()
     &.staff
       bg          position, -480px -60px
+
+  &.online .statusIndicator
+    statusIndicator     10%, 0, 0
+
+  &.online.animate .statusIndicator
+    vendor        animation, showOnline 400ms 1 forwards ease-out
+
+  &.offline.animate .statusIndicator
+    statusIndicator     10%, 0, 0
+    vendor        animation, hideOnline 400ms 1 forwards ease-out
+
+@keyframes showOnline
+  0%
+    vendor        transform, scale(0)
+  60%
+    vendor        transform, scale(1.2)
+  80%
+    vendor        transform, scale(0.8)
+  100%
+    vendor        transform, scale(1)
+@keyframes hideOnline
+  0%
+    vendor        transform, scale(1)
+  40%
+    vendor        transform, scale(0.8)
+  80%
+    vendor        transform, scale(1.2)
+  100%
+    vendor        transform, scale(0)
+
 
 .super .avatarview cite.exempt
   size          40px, 40px

@@ -998,6 +998,10 @@ span.main-nav-icon
     &.reply
       span.icon
         bg              position, -140px -540px
+    &.groupJoin, &.groupLeft
+      span.icon
+        bg              position, -60px -580px
+
 
     span.avatar
       border            1px solid #e3e3e3
@@ -1049,12 +1053,15 @@ span.main-nav-icon
     min-height        100%
     overflow          hidden
     .avatar-placeholder
+      width           160px
       height          76px
       bg              color,transparent
       overflow        visible
-      vendor          transition, margin-left .3s linear
+      .avatar-image-wrapper
+        vendor        transition, background-position-x .3s linear
       &.collapsed
-        margin-left   -54px
+        .avatar-image-wrapper
+          background-position-x -54px
 
     .kdlistview-navigation
       opacity         1
