@@ -45,17 +45,18 @@ class NewKite extends KDEventEmitter
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
     xhr.send JSON.stringify requestData
     xhr.onload = =>
-       if xhr.status is 200
-          data = JSON.parse xhr.responseText
-          @token = data[0].token
-          @addr = data[0].addr
+      if xhr.status is 200
+        data = JSON.parse xhr.responseText
+        @token = data[0].token
+        @addr = data[0].addr
 
-          # this should be optional
-          @connectDirectly() if connect
-        else
-          log "kontrol request error", xhr.responseText
-          # Make a request again if we could not get the addres, use backoff for that
-          KD.utils.defer => @setBackoffTimeout @bound "getKiteAddr"
+        # this should be optional
+        @connectDirectly() if connect
+      else
+        log "kontrol request error", xhr.responseText
+        # Make a request again if we could not get the addres, use backoff for that
+        KD.utils.defer => @setBackoffTimeout =>
+          @getKiteAddr true
 
   disconnect:(reconnect=true)->
     @autoReconnect = !!reconnect  if reconnect?
