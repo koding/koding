@@ -103,8 +103,6 @@ def main():
             tarfile_key.set_contents_from_filename(tarname)
             tarfile_key.make_public()
             url = tarfile_key.generate_url(expires_in=0, query_auth=False)
-
-            #key_kd_
         else:
             # For testing "brew install" locally
             url = "http://127.0.0.1:8000/kd-%s.tar.gz" % version
