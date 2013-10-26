@@ -190,7 +190,7 @@ class IntroView extends JView
     # Poor man's font resizer ~ GG
     sizes = @slider.currentPage.getBounds()
     @slider.setCss
-      fontSize : Math.max Math.min( (sizes.w + sizes.h) / 80, parseFloat 23 ), parseFloat 12
+      fontSize : Math.max Math.min( (sizes.w + sizes.h) / 80, parseFloat 20 ), parseFloat 12
 
 KD.introView = new IntroView
 KD.introView.appendToDomBody()
