@@ -49,7 +49,6 @@ class NewKite extends KDEventEmitter
           data = JSON.parse xhr.responseText
           @token = data[0].token
           @addr = data[0].addr
-          log "token is ready", {@token}
 
           # this should be optional
           @connectDirectly() if connect
