@@ -144,8 +144,10 @@ app.environments.styl
           bg            position, -60px -500px
 
   .action-area
-    bg                  color, #e8e8e8
+    bg                  color, #bbb
     z-index             0
+    vendor              transform-style, preserve-3d
+    vendor              perspective, 1000px
     borderBox()
     abs()
     &.in
@@ -688,9 +690,23 @@ app.environments.styl
 
 div.environments-add-domain-form
   width                 500px
-  height                600px
+  height                500px
   padding               30px
+  bg                    color, #e8e8e8
+  opacity               0
+  vendor                transform-origin-x, 0
+  vendor                transform, rotateY(90deg)
+  -webkit-transition    -webkit-transform .4s ease \,\
+                        opacity           .4s ease
+  -moz-transition       -moz-transform    .4s ease \,\
+                        opacity           .4s ease
+  transition            transform         .4s ease \,\
+                        opacity           .4s ease
   borderBox()
+
+  &.opened
+    opacity             1
+    vendor              transform, rotateY(0)
 
   h4.kdheaderview
     display             block
