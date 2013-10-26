@@ -1,11 +1,9 @@
 class GroupProductSectionView extends JView
 
   viewAppended: ->
-    console.log "ever fires?"
-
     group = @getData()
 
-    { category, listControllerClass, itemClass } = @getOptions()
+    { category, itemClass } = @getOptions()
 
     @setClass "payment-settings-view"
 
@@ -15,7 +13,7 @@ class GroupProductSectionView extends JView
       callback    : =>
         @emit 'CreateRequested'
 
-    @listController = new listControllerClass { group, itemClass }
+    @listController = new ProductSectionListController { itemClass }
 
     @list = @listController.getListView()
 

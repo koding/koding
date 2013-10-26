@@ -6,10 +6,9 @@ class GroupProductSettingsView extends JView
     @setClass 'group-product-section'
 
     @productsView = new GroupProductSectionView
-      category            : 'product'
-      listControllerClass : GroupProductListController
-      itemClass           : GroupProductListItem
-      pistachio           :
+      category  : 'product'
+      itemClass : GroupProductListItem
+      pistachio :
         """
         <h2>Products</h2>
         {{> @createButton}}
@@ -26,15 +25,15 @@ class GroupProductSettingsView extends JView
         showSoldAlone   : yes
 
     @plansView = new GroupProductSectionView
-      category            : 'plan'
-      listControllerClass : GroupProductListController
-      itemClass           : GroupProductListItem
-      pistachio           :
+      category  : 'plan'
+      itemClass : GroupProductListItem
+      pistachio :
         """
         <h2>Plans</h2>
         <p>Plans are bundles of products.  Effectively, the quantities
            you choose will serve as maximum quantities per plan.</p>
         {{> @createButton}}
+        {{> @list}}
         """
 
     @plansView.on 'CreateRequested', =>
