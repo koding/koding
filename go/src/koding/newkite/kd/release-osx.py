@@ -74,7 +74,7 @@ def main():
 
         # Get the version number from compiled binary
         version = subprocess.check_output([binpath, "version"]).strip()
-        assert len(version.split(".")) == 3
+        assert len(version.split(".")) == 3, "Please use 3-digits versioning"
         print "Version:", version
 
         print "Making tar file..."
