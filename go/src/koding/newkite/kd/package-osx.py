@@ -65,7 +65,7 @@ def main():
 
         print "Building kd tool..."
         binpath = os.path.join(tardir, "kd")
-        cmd = "go build -o %s %s" % (binpath, "kd.go")
+        cmd = "go build -o %s %s" % (binpath, "main/kd.go")
         try:
             subprocess.check_call(cmd.split())
         except:
