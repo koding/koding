@@ -13,9 +13,9 @@ forceTwoDigits = (val) ->
 formatDate = (date) ->
   year = date.getFullYear()
   month = date.getMonth()
-  day = forceTwoDigits(date.getDate())
-  hour = forceTwoDigits(date.getHours())
-  minute = forceTwoDigits(date.getMinutes())
+  day = forceTwoDigits date.getDate()
+  hour = forceTwoDigits date.getHours()
+  minute = forceTwoDigits date.getMinutes()
 
   # What about i18n? Does GoogleBot crawl in different languages?
   months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
@@ -42,9 +42,11 @@ module.exports =
             return res.send 200, content
 
           JName.fetchModels "#{name}/#{section}", (err, models)=>
-            console.error err if err
+            if err
+              console.error err
+              return res.send 500, error_500()
             model = models.first if models and Array.isArray 
-            model?.fetchRelativeComments limit:10, after:"", (err, comments)=>
+            model?.fetchRelativeComments limit:3, after:"", (err, comments)=>
               # Get comments authors, put comment info into commentSummaries
               queue = [0..comments.length].map (index)=>=>
                 comment = comments[index]

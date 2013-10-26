@@ -7,7 +7,7 @@ module.exports = ->
   <meta property="og:site_name" content="Koding"/>
   <meta property="og:description" content="Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money."/>
   <meta property="og:title" content="Koding - A new way for developers to work."/>
-  <meta property="og:url" content="http://www.koding.com"/>
+  <meta property="og:url" content="https://www.koding.com"/>
   <meta property="og:type" content="website" />
   <meta property="og:image" content="http://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/s160x160/376261_340500336028684_1260543768_a.jpg"/>
   <meta property="og:image:secure_url" content="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash4/s160x160/376261_340500336028684_1260543768_a.jpg"/>

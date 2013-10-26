@@ -23,10 +23,14 @@ module.exports = ({activityContent, account, name, section, models})->
   </html>
   """
 createCommentNode = (comment)->
+  commentContent = ""
   if comment.body
-    return "<li><span itemtype=\"http://schema.org/Comment\" itemscope itemprop=\"comment\"><span itemprop=\"commentText\">#{comment.body}</span> at <span itemprop=\"commentTime\">#{comment.createdAt}</span> \
-      by <span itemprop=\"name\">#{comment.name}</span></span></li>"
-  else return ""
+    commentContent =
+    """
+    <li><span itemtype=\"http://schema.org/Comment\" itemscope itemprop=\"comment\"><span itemprop=\"commentText\">#{comment.body}</span> at <span itemprop=\"commentTime\">#{comment.createdAt}</span> \
+      by <span itemprop=\"name\">#{comment.name}</span></span></li>
+    """
+  return commentContent
 
 putContent = (activityContent, name, section, model)->
 
