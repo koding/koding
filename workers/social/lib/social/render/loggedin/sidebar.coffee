@@ -1,7 +1,10 @@
 module.exports = (account)->
 
-  hash  = account.profile?.hash or ''
-  bgImg = "//gravatar.com/avatar/#{hash}?size=160&d=#{encodeURIComponent '//images/defaultavatar/default.avatar.160.png'}"
+  hash    = account.profile?.hash or ''
+  avatar  = account.profile?.avatar or no
+  bgImg   = "//gravatar.com/avatar/#{hash}?size=160&d=#{encodeURIComponent '//images/defaultavatar/default.avatar.160.png'}"
+  if avatar
+    bgImg = "//i.embed.ly/1/display/crop?grow=false&width=160&height=76&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
 
   markup =
     """

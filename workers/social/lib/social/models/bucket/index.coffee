@@ -155,6 +155,7 @@ module.exports = class CBucket extends jraphical.Module
         'anchor.id' : relationship[groupName+'Id']
         'meta.createdAt'   : today
       }
+      # Race condition!!!
       bucketConstructor.one existingBucketSelector, (err, bucket)->
         if anchor.bongo_?.constructorName isnt 'JAccount' and notificationRecipient?
           anchor = notificationRecipient
