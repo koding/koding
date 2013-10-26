@@ -1,4 +1,4 @@
-module.exports = ->
+module.exports = (intro = no)->
   """
   <script>
 
@@ -23,6 +23,7 @@ module.exports = ->
     require.config({baseUrl: "/js", waitSeconds:30});
     require(["order!/js/highlightjs/highlight.pack.js",
              "order!/js/kd.#{KONFIG.version}.js",
+             #{if intro then '"order!/js/introapp.'+KONFIG.version+'.js",' else ''}
              "order!/js/koding.#{KONFIG.version}.js"]);
   </script>
 

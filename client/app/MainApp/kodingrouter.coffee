@@ -61,10 +61,10 @@ class KodingRouter extends KDRouter
     unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
       {entryPoint} = KD.config
-      # if KD.isLoggedIn()
-      @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
-      # else
-      #   @handleRoute @getDefaultRoute(), {entryPoint}
+      if KD.isLoggedIn()
+        @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
+      else
+        @handleRoute @getDefaultRoute(), {entryPoint}
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -76,7 +76,7 @@ class KodingRouter extends KDRouter
       if err then new KDNotificationView title: err.message
       else
         # temp fix for not showing homepage to loggedin users
-        app = 'Activity' if app is 'Home' and KD.isLoggedIn()
+        # app = 'Activity' if app is 'Home' and KD.isLoggedIn()
 
         @setPageTitle nicenames[app] ? app
         appManager  = KD.getSingleton "appManager"
@@ -101,7 +101,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
+  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -213,10 +213,13 @@ class KodingRouter extends KDRouter
   clear:(route, replaceState=yes)->
     unless route
       {entryPoint} = KD.config
-      if entryPoint?.type is 'group' and entryPoint?.slug?
-        route = "/#{KD.config.entryPoint?.slug}"
+      if KD.isLoggedIn()
+        if entryPoint?.type is 'group' and entryPoint?.slug?
+          route = "/#{KD.config.entryPoint?.slug}"
+        else
+          route = '/'
       else
-        route = '/'
+        location.replace '/'
     super route, replaceState
 
   getRoutes =->
@@ -244,7 +247,7 @@ class KodingRouter extends KDRouter
 
       '/'      : handleRoot
       ''       : handleRoot
-      # '/About' : createStaticContentHandler 'Home', yes
+      # '/Home'  : handleRoot
       '/About' : createSectionHandler 'Activity'
 
       # verbs

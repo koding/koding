@@ -178,6 +178,8 @@ class LoginView extends KDScrollView
       <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
       <p class='resend-confirmation-link'>Didn't receive confirmation email? {{> @goToResendMailConfirmationLink}}</p>
+      <p><a href="/tos.html" target="_blank">Terms of service</a></p>
+      <p><a href="/privacy.html" target="_blank">Privacy policy</a></p>
     </div>
     """
 
