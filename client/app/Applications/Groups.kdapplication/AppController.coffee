@@ -4,11 +4,14 @@ class GroupsAppController extends AppController
     name         : "Groups"
     route        : "/Groups"
     hiddenHandle : yes
-    navItem      :
-      title      : "Groups"
-      path       : "/Groups"
-      order      : 40
-      topLevel   : yes
+    # navItem      :
+    #   title      : "Groups"
+    #   path       : "/Groups"
+    #   order      : 40
+    #   topLevel   : yes
+    preCondition :
+      condition  : (options, cb)-> cb KD.checkFlag "group-admin"
+      failure    : -> KD.getSingleton('router').handleRoute "/Activity"
 
   @privateGroupOpenHandler =(event)->
     event.preventDefault()
@@ -353,13 +356,12 @@ class GroupsAppController extends AppController
               modal.destroy()
               callback null
 
-  joinGroup:(group)->
+  joinGroup:(group, callback)->
     group.join (err, response)=>
-      return KD.showError err  if err
-      KD.track "Groups", "JoinedGroup", group.slug
-      new KDNotificationView
-        title : "You've successfully joined the group!"
-      KD.getSingleton('mainController').emit 'JoinedGroup'
+      unless err
+        callback err, response
+        KD.track "Groups", "JoinedGroup", group.slug
+        KD.getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>

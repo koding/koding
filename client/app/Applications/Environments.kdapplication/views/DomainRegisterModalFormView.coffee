@@ -24,7 +24,7 @@ class DomainForwardForm extends KDView
               rules     :
                 required: yes
               messages  :
-                requires: "Enter your domain name"
+                required: "Enter your domain name"
 
   saveDomain:->
     modalTabs = @getOptions().modalTabs

@@ -37,7 +37,7 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://kgraph.sj.koding.com"
+    read        : "http://172.16.3.15"
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
   mongo         : mongo
@@ -88,6 +88,14 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  emailConfirmationCheckerWorker :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 1
+    watch                : yes
+    cronSchedule         : '0 * * * * *'
+    usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : no # for production, workers are running as a service
     login                : 'prod-guestcleanerworker'
@@ -156,7 +164,7 @@ module.exports =
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'Xah8ibeekelah'
     heartbeat   : 20
     vhost       : 'new'
   broker        :
@@ -218,7 +226,7 @@ module.exports =
     host        : '172.16.3.4'
     port        : 5672
     componentUser: 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'Xah8ibeekelah'
     vhost       : 'followfeed'
   github        :
     clientId    : "5891e574253e65ddb7ea"

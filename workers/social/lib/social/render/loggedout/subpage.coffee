@@ -29,7 +29,7 @@ module.exports = ({account, name, section, models})->
         </figure>
       #{putSplash(name, section, model)}
     </div>
-    <div class="kdview#{if isLoggedIn then '' else ' home'}" id="kdmaincontainer">
+    <div class="kdview" id="kdmaincontainer">
     </div>
 
     #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
@@ -57,4 +57,4 @@ putSplash = (name, section, model)->
   else "launching an application"
 
   content  = "<figure class='splash'><h2 class='splash-title'>Please wait, #{title}:</h2>"
-  content += "<h3 class='splash-name'>[ #{name.substr 0, 100}#{if name.length > 100 then '...' else ''} ]</h3></figure>"
+  content += "<h3 class='splash-name'>#{name.substr 0, 100}#{if name.length > 100 then '...' else ''}</h3></figure>"

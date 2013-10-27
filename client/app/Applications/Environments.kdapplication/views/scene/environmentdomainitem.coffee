@@ -4,6 +4,8 @@ class EnvironmentDomainItem extends EnvironmentItem
 
     options.cssClass           = 'domain'
     options.joints             = ['right']
+    if KD.checkFlag 'nostradamus' then options.joints.push 'left'
+
     options.allowedConnections =
       EnvironmentRuleItem    : ['right']
       EnvironmentMachineItem : ['left']

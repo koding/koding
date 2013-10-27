@@ -1,4 +1,4 @@
-require('./harness');
+require('./harness').run();
 var assert = require('assert');
 var cbcnt = 0;
 
