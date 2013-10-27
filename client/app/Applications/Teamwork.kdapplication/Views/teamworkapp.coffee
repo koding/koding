@@ -4,31 +4,38 @@ class TeamworkApp extends KDObject
 
     super options, data
 
+    options               = @getOptions()
     instanceName          = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
+    additionalButton      =
+      title               : "Environments"
+      cssClass            : "clean-gray"
+      callback            : (panel, workspace) => @showEnvironmentsModal panel, workspace
+
     @teamwork             = new TeamworkWorkspace
-      name                : "Teamwork"
-      version             : "0.1"
-      joinModalTitle      : "Join a coding session"
-      joinModalContent    : "<p>Paste the session key that you received and start coding together.</p>"
-      shareSessionKeyInfo : "<p>This is your session key, you can share this key with your friends to work together.</p>"
-      firebaseInstance    : instanceName
-      sessionKey          : @getOptions().sessionKey
+      name                : options.name                or "Teamwork"
+      joinModalTitle      : options.joinModalTitle      or "Join a coding session"
+      joinModalContent    : options.joinModalContent    or "<p>Paste the session key that you received and start coding together.</p>"
+      shareSessionKeyInfo : options.shareSessionKeyInfo or "<p>This is your session key, you can share this key with your friends to work together.</p>"
+      firebaseInstance    : options.firebaseInstance    or instanceName
+      sessionKey          : options.sessionKey
       panelClass          : TeamworkPanel
       delegate            : this
-      panels              : [
+      environment         : options.environment         or null
+      panels              : options.panels              or [
         title             : "Teamwork"
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
         buttons           : [
           {
             title         : "Tools"
-            cssClass      : "clean-gray"
-            callback      : (panel, workspace) => @showToolsModal panel, workspace
+            cssClass      : "clean-gray tw-tools-button"
+            callback      : => @showToolsModal @teamwork.getActivePanel(), @teamwork
           }
+          # additionalButton
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
           direction       : "vertical"
-          sizes           : [ "25%", null ]
+          sizes           : [ "250px", null ]
           splitName       : "BaseSplit"
           views           : [
             {
