@@ -1,5 +1,5 @@
 # account and models will be removed.
-module.exports = ({activityContent, account, name, section, models})->
+module.exports = ({activityContent, account, section, models})->
   {Relationship} = require 'jraphical'
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
@@ -15,7 +15,7 @@ module.exports = ({activityContent, account, name, section, models})->
   </head>
     <body class='koding' itemscope itemtype="http://schema.org/WebPage">
       <div id='main-loading' class="kdview main-loading" itemscope itemtype="http://schema.org/BlogPosting">
-        #{putContent(activityContent, name, section, model)}
+        #{putContent(activityContent, section, model)}
       </div>
       <div class="kdview home" id="kdmaincontainer">
       </div>
@@ -57,7 +57,7 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfComments}\"/>"
   return userInteractionMeta
 
-putContent = (activityContent, name, section, model)->
+putContent = (activityContent, section, model)->
 
   name = activityContent.name
   body = activityContent.body

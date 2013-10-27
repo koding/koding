@@ -3,6 +3,7 @@
 kodinghome = require './staticpages/kodinghome'
 activity = require './staticpages/activity'
 profile = require './staticpages/profile'
+{Relationship} = require 'jraphical'
 
 forceTwoDigits = (val) ->
   if val < 10
@@ -22,6 +23,66 @@ formatDate = (date) ->
   monthName = months[month]
   return "#{monthName} #{day}, #{year} #{hour}:#{minute}"
 
+decorateComment = (JAccount, comment, callback) ->
+  createdAt = formatDate(new Date(comment.timestamp_))
+  commentSummary = {body: comment.data.body, createdAt: createdAt}
+  selector = 
+  {
+    "targetId" : comment.getId(),
+    "sourceName": "JAccount"
+  }
+  Relationship.one selector, (err, rel) =>
+    if err
+      console.error err 
+      callback null, err
+    sel = { "_id" : rel.data.sourceId}
+
+    JAccount.one sel, (err, acc) =>
+      if err
+        console.error err 
+        callback null, err
+      commentSummary.name = acc.data.profile.firstName + " " 
+      commentSummary.name += acc.data.profile.lastName
+      callback commentSummary, null
+
+createActivityContent = (JAccount, models, comments, section, callback) ->
+  model = models.first if models and Array.isArray models
+  statusUpdateId = model.getId()
+  jAccountId = model.data.originId
+  selector = 
+  {
+    "sourceId" : statusUpdateId,
+    "as" : "author"
+  }
+  Relationship.one selector, (err, rel) =>
+    if err
+        console.error err 
+        callback null, err
+    sel = 
+    {
+      "_id" : rel.data.targetId
+    }
+    JAccount.one sel, (err, acc) =>
+      if err
+        console.error err 
+        callback null, err
+      fullName = acc.data.profile.firstName + " " 
+      fullName += acc.data.profile.lastName
+      activityContent = {
+        fullName : fullName,
+        hash : acc.data.profile.hash,
+        name : if model?.title then model.title else section,
+        body : if model?.body  then model.body  else "",
+        createdAt : formatDate(model?.data?.meta?.createdAt),
+        numberOfComments : comments.length,
+        numberOfLikes : model?.data?.meta?.likes,
+        comments : comments,
+        tags : model?.data?.meta?.tags,
+        type : model?.bongo_?.constructorName
+      }
+      content = activity {activityContent, section, models}
+      callback content, null
+
 module.exports =
   crawl: (bongo, req, res, slug)->
     {Base, race, dash, daisy} = require "bongo"
@@ -33,17 +94,17 @@ module.exports =
     return res.redirect 302, req.url.substring 7 if name in ['koding', 'guests']
     [firstLetter] = name
 
-    # if there is no firstLetter, request is for home
+    # if there is no firstLetter, request hits home
     unless firstLetter
       content = kodinghome()
-      console.warn content
       return res.send 200, content
 
     if firstLetter.toUpperCase() is firstLetter
       if section
         isLoggedIn req, res, (err, loggedIn, account)->
+          # Serve homepage for Develop tab, instead of empty content.
           if name is "Develop"
-            content = subPage {account, name, section}
+            content = kodinghome()
             return res.send 200, content
 
           JName.fetchModels "#{name}/#{section}", (err, models)=>
@@ -53,70 +114,23 @@ module.exports =
             model = models.first if models and Array.isArray models
             return res.send 404, error_404() unless model
 
-            model?.fetchRelativeComments limit:3, after:"", (err, comments)=>
-              # Get comments authors, put comment info into commentSummaries
+            model?.fetchRelativeComments limit:3, after:"", (error, comments)=>
+
               queue = [0..comments.length].map (index)=>=>
                 comment = comments[index]
                 if comment?.data
-                  createdAt = formatDate(new Date(comment.timestamp_))
-                  commentSummary = {body: comment.data.body, createdAt: createdAt}
-                  selector = 
-                  {
-                    "targetId" : comment.getId(),
-                    "sourceName": "JAccount"
-                  }
-                  Relationship.one selector, (err, rel) =>
-                    if err
-                      console.error err 
-                      return queue.next()
-                    sel = { "_id" : rel.data.sourceId}
-
-                    JAccount.one sel, (err, acc) =>
-                      if err
-                        console.error err 
-                        return queue.next()
-                      commentSummary.name = acc.data.profile.firstName + " " 
-                      commentSummary.name += acc.data.profile.lastName
-                      queue.commentSummaries or= []
-                      if commentSummary.body
-                        queue.commentSummaries.push commentSummary
-                      queue.next()
+                  # Get comments authors, put comment info into commentSummaries
+                  decorateComment JAccount, comment, (commentSummary, error)=>
+                    queue.next() if error
+                    queue.commentSummaries or= []
+                    if commentSummary.body
+                      queue.commentSummaries.push commentSummary
+                    queue.next()
                 else queue.next()
               queue.push => 
-                statusUpdateId = model.getId()
-                jAccountId = model.data.originId
-                selector = 
-                {
-                  "sourceId" : statusUpdateId,
-                  "as" : "author"
-                }
-                Relationship.one selector, (err, rel) =>
-                  if err
-                      console.error err 
-                      return queue.next()
-                  sel = 
-                  {
-                    "_id" : rel.data.targetId
-                  }
-                  JAccount.one sel, (err, acc) =>
-                    if err
-                      console.error err 
-                      return queue.next()
-                    fullName = acc.data.profile.firstName + " " 
-                    fullName += acc.data.profile.lastName
-                    activityContent = {
-                      fullName : fullName,
-                      hash : acc.data.profile.hash,
-                      name : if model?.title then model.title else section,
-                      body : if model?.body  then model.body  else "",
-                      createdAt : formatDate(model?.data?.meta?.createdAt),
-                      numberOfComments : comments.length,
-                      numberOfLikes : model?.data?.meta?.likes,
-                      comments : queue.commentSummaries,
-                      tags : model?.data?.meta?.tags,
-                      type : model?.bongo_?.constructorName
-                    }
-                    content = activity {activityContent, name, section, models}
+                createActivityContent JAccount, models, \
+                  queue.commentSummaries, section, (content, error)=>
+                    queue.next() if error
                     return res.send 200, content
               daisy queue
       else return console.log "no section is given"
