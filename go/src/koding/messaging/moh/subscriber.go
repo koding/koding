@@ -43,8 +43,8 @@ type subscriberCommand struct {
 	Name string `json:"name"`
 	Args args   `json:"args"`
 	Auth struct {
-		UserName  string `json:"userName"`
-		KodingKey string `json:"kodingKey"`
+		Username string `json:"username"`
+		Password string `json:"password"`
 	} `json:"auth"`
 }
 

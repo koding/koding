@@ -101,7 +101,7 @@ func (c *connection) reader() {
 			break
 		}
 
-		if c.publisher.auth != nil && !c.publisher.auth.Authenticate(cmd.Auth.UserName, cmd.Auth.KodingKey) {
+		if c.publisher.auth != nil && !c.publisher.auth.Authenticate(cmd.Auth.Username, cmd.Auth.Password) {
 			break
 		}
 
