@@ -20,7 +20,7 @@ formatDate = (date) ->
   months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   monthName = months[month]
-  return "#{day} #{monthName} #{year} #{hour}:#{minute}"
+  return "#{monthName} #{day}, #{year} #{hour}:#{minute}"
 
 module.exports =
   crawl: (bongo, req, res, slug)->
