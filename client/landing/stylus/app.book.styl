@@ -36,18 +36,38 @@
     .page-nav
       display               inline-block
       margin-left           15px
+      text-align            center
       a
         width               28px
         padding             0
-        text-align          center
         margin              0
+        i
+          display                          inline-block
+          size                             0,0
+          border                           7px solid #727272
+          border-top-width                 5px
+          border-bottom-width              5px
+          border-top-color                 transparent
+          border-bottom-color              transparent
+          margin-top                       8px
         &:first-child
           border-top-right-radius          0
           border-bottom-right-radius       0
           border-right                     0
+          i
+            border-left-color              transparent
+            margin-left                    -7px
         &:last-child
           border-top-left-radius           0
           border-bottom-left-radius        0
+          i
+            border-right-color             transparent
+            margin-right                   -7px
+        &.disabled
+          i.prev
+            border-right-color             #ccc
+          i.next
+            border-left-color              #ccc
     a
       noTextDeco()
       font-size           11px
@@ -120,7 +140,7 @@
 
   >div
     size                    735px, 408px
-    // vendor                  transition, opacity .3s ease-out
+    vendor                  transition, opacity .3s ease-out
     &.left-page
       margin                6px 0 0 15px
     &.right-page
@@ -260,6 +280,19 @@ section.page
         margin          70px 30px 0 400px
         p
           padding-left  0
+
+      .embedded
+        .editor-advanced-settings-menu
+          top           66px
+          left          336px
+    &.more-5
+      bg                image, url("../images/book/drag-drop.jpg")
+      bg                position, 40px 70px
+      >article
+        margin          70px 30px 0 400px
+        p
+          padding-left  0
+
   &.terminal
     bg                  image, url("../images/book/13a.png")
     bg                  position, left 80px
@@ -288,6 +321,10 @@ section.page
   &.apps
     bg                  image, url("../images/book/18.png")
     bg                  position, right bottom
+
+  &.share
+    bg                  image, url("../images/book/share.jpg")
+    bg                  position, 90% 100px
 
   &.etiquette
     bg                  image, url("../images/book/19.png")
