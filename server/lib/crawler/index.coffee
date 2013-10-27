@@ -1,7 +1,6 @@
 { isLoggedIn, error_404, error_500 } = require '../server/helpers'
 
 kodinghome = require './staticpages/kodinghome'
-grouphome = require './staticpages/grouphome'
 activity = require './staticpages/activity'
 profile = require './staticpages/profile'
 
@@ -34,6 +33,12 @@ module.exports =
     return res.redirect 302, req.url.substring 7 if name in ['koding', 'guests']
     [firstLetter] = name
 
+    # if there is no firstLetter, request is for home
+    unless firstLetter
+      content = kodinghome()
+      console.warn content
+      return res.send 200, content
+
     if firstLetter.toUpperCase() is firstLetter
       if section
         isLoggedIn req, res, (err, loggedIn, account)->
@@ -45,7 +50,9 @@ module.exports =
             if err
               console.error err
               return res.send 500, error_500()
-            model = models.first if models and Array.isArray 
+            model = models.first if models and Array.isArray models
+            return res.send 404, error_404() unless model
+
             model?.fetchRelativeComments limit:3, after:"", (err, comments)=>
               # Get comments authors, put comment info into commentSummaries
               queue = [0..comments.length].map (index)=>=>
@@ -63,6 +70,7 @@ module.exports =
                       console.error err 
                       return queue.next()
                     sel = { "_id" : rel.data.sourceId}
+
                     JAccount.one sel, (err, acc) =>
                       if err
                         console.error err 

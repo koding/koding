@@ -3,7 +3,7 @@ module.exports = ({activityContent, account, name, section, models})->
   {Relationship} = require 'jraphical'
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
-  model      = models.first if models and Array.isArray 
+  model      = models.first if models and Array.isArray models
 
   """
   <!doctype html>
@@ -32,21 +32,44 @@ createCommentNode = (comment)->
     """
   return commentContent
 
+createAccountName = (fullName)->
+  return " by <span itemprop='author'>#{fullName}</span>"
+
+createAvatarImage = (hash)->
+  imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
+  image = 
+    """
+    <img class=\"avatarview\" style=\"width: 90px; height: 90px;\" src=\"#{imgURL}\" itemprop=\"image\"/>
+    """
+  return image
+
+createCreationDate = (createdAt)->
+  return "Created at: <span itemprop=\"dateCreated\">#{createdAt}</span>"
+
+createCommentsCount = (numberOfComments)->
+  return "<span>#{numberOfComments}</span> comments"
+
+createLikesCount = (numberOfLikes)->
+  return "<span>#{numberOfLikes}</span> likes."
+
+createUserInteractionMeta = (numberOfLikes, numberOfComments)->
+  userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserLikes:#{numberOfLikes}\"/>"
+  userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfComments}\"/>"
+  return userInteractionMeta
+
 putContent = (activityContent, name, section, model)->
 
   name = activityContent.name
   body = activityContent.body
 
-  # Ugly spaghetti HTML code exceeding 80 characters.
-  accountName = " by <span itemprop='author'>#{activityContent.fullName}</span>"
-  imgURL = "https://gravatar.com/avatar/#{activityContent.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
-  avatarImg = "<img class=\"avatarview\" style=\"width: 90px; height: 90px;\" src=\"#{imgURL}\" itemprop=\"image\"/>"
-  createdAt = "Created at: <span itemprop=\"dateCreated\">#{activityContent.createdAt}</span>"
-  commentsCount = "<span>#{activityContent.numberOfComments}</span> comments"
-  likesCount = "<span>#{activityContent.numberOfLikes}</span> likes."
+  accountName = createAccountName activityContent.fullName
+  avatarImage = createAvatarImage activityContent.hash
+  createdAt = createCreationDate activityContent.createdAt
+  commentsCount = createCommentsCount activityContent.numberOfComments
+  likesCount = createLikesCount activityContent.numberOfLikes
 
-  userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserLikes:#{activityContent.numberOfLikes}\"/>"
-  userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{activityContent.numberOfComments}\"/>"
+  userInteractionMeta = createUserInteractionMeta \
+    activityContent.numberOfLikes, activityContent.numberOfComments
 
   if activityContent.numberOfComments > 0
     comments = (createCommentNode(comment) for comment in activityContent.comments)
@@ -61,26 +84,15 @@ putContent = (activityContent, name, section, model)->
   if activityContent?.tags
     tags = """<span>tags: #{activityContent.tags}</span>"""
 
-  title  = if activityContent?.type
-    # console.log model.bongo_.constructorName
-    switch activityContent.type
-      when "JStatusUpdate"  then "status update"
-      when "JCodeSnip"      then "code snippet"
-      when "JDiscussion"    then "discussion"
-      when "JBlogPost"      then "blog post"
-      when "JTutorial"      then "tutorial"
-      when "JTag"           then "topic"
-      when "JApp"           then "koding app page"
-      else "loading something."
-  else "launching an application"
+  title  = activityContent?.type
 
   content  =
-    """<figure class='splash' style="color:black">
+    """<figure class='splash' style="color:white">
          <h2>
            #{title}
          </h2>
          <h3>
-           #{avatarImg} [ #{body} ] #{accountName}
+           #{avatarImage} [ #{body} ] #{accountName}
          </h3>
          #{userInteractionMeta}
          #{createdAt}<br />
