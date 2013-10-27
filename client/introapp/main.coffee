@@ -45,7 +45,7 @@ class EntryPage extends KDSlidePageView
 
     buttons.addSubView gitHubSignupButton = new KDButtonView
       cssClass  : "github"
-      partial   : "<i></i>Sign up <span>with gitHub</span>"
+      partial   : "<i></i>Sign up <span>with GitHub</span>"
       callback  : -> KD.getSingleton("oauthController").openPopup "github"
 
     @addSubView buttons
@@ -107,7 +107,7 @@ class IntroView extends JView
       slogan     : "for <span>Developers</span>"
       subSlogan  : """
         <p>
-          You can have an amazing VM that is better than your laptop.  It's connected to internet 100x faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
+          You will have an amazing virtual machine that is better than your laptop.  It's connected to the internet 100's of times faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
         </p>
         <p>
           It's free. Koding is your new localhost, in the cloud.
