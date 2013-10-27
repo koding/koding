@@ -118,6 +118,9 @@ class CollaborativeWorkspace extends Workspace
     u    = KD.utils
     return  "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
 
+  getSessionOwner: ->
+    return @sessionKey.split(":").first
+
   amIHost: ->
     [sessionOwner] = @sessionKey.split ":"
     return sessionOwner is KD.nick()
@@ -154,9 +157,12 @@ class CollaborativeWorkspace extends Workspace
     @loader.on "viewAppended", -> loaderView.show()
     @container.addSubView @loader
 
-  joinSession: (sessionKey) ->
+  isJoinedASession: ->
+    return  @getOptions().joinedASession
+
+  joinSession: (newOptions) ->
     options                = @getOptions()
-    options.sessionKey     = sessionKey.trim()
+    options.sessionKey     = newOptions.sessionKey.trim()
     options.joinedASession = yes
     @destroySubViews()
 
@@ -241,7 +247,7 @@ class CollaborativeWorkspace extends Workspace
 
   handleJoinASessionFromModal: (sessionKey, modal) ->
     return unless sessionKey
-    @joinSession sessionKey
+    @joinSession { sessionKey }
     modal.destroy()
 
   showShareView: (panel, workspace, event) ->

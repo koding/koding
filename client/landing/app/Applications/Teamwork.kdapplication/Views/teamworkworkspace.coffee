@@ -1,5 +1,21 @@
 class TeamworkWorkspace extends CollaborativeWorkspace
 
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    {environment, environmentManifest} = @getOptions()
+
+    @on "PanelCreated", (panel) =>
+      @createRunButton panel  if environment
+
+    @on "WorkspaceSyncedWithRemote", =>
+      if environment and @amIHost()
+        @workspaceRef.child("environment").set environment
+
+        if environmentManifest
+          @workspaceRef.child("environmentManifest").set environmentManifest
+
   createLoader: ->
     @container.addSubView @loader = new KDCustomHTMLView
       cssClass   : "teamwork-loader"
@@ -7,20 +23,51 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       attributes :
         src      : "#{KD.apiUri}/images/teamwork/loading.gif"
 
-  startNewSession: ->
+  startNewSession: (options) ->
     @destroySubViews()
-    options  = @getOptions()
-    delete options.sessionKey
-    teamwork = new TeamworkWorkspace options
+    unless options
+      options = @getOptions()
+      delete options.sessionKey
+
+    workspaceClass          = @getEnvironmentClass options.environment
+    teamwork                = new workspaceClass options
     @getDelegate().teamwork = teamwork
     @addSubView teamwork
 
-  joinSession: (sessionKey) ->
-    options                = @getOptions()
-    options.sessionKey     = sessionKey.trim()
-    options.joinedASession = yes
+  joinSession: (newOptions) ->
+    sessionKey              = newOptions.sessionKey.trim()
+    options                 = @getOptions()
+    options.sessionKey      = sessionKey
+    options.joinedASession  = yes
     @destroySubViews()
 
     @forceDisconnect()
+    @firepadRef.child(sessionKey).once "value", (snapshot) =>
+      value = snapshot.val()
+      {environment, environmentManifest} = value  if value
 
-    @addSubView new TeamworkWorkspace options
+      teamworkClass     = TeamworkWorkspace
+      teamworkOptions   = options
+
+      if environment
+        teamworkClass   = @getEnvironmentClass environment
+
+      if environmentManifest
+        teamworkOptions = @getDelegate().mergeEnvironmentOptions environmentManifest
+
+      teamworkOptions.sessionKey = newOptions.sessionKey
+
+      teamwork                   = new teamworkClass teamworkOptions
+      @getDelegate().teamwork    = teamwork
+      @addSubView teamwork
+
+  createRunButton: (panel) ->
+    # panel.headerButtons.Environments.hide()
+    panel.header.addSubView new KDButtonView
+      title      : "Run"
+      callback   : => @handleRun()
+
+  getEnvironmentClass: (environment) ->
+    if environment is "Facebook" then FacebookTeamwork else TeamworkWorkspace
+
+  handleRun: ->
