@@ -101,6 +101,8 @@ func (c *connection) reader() {
 			break
 		}
 
+		// We are requiring the credentials to be sent every request because
+		// The password might be expired after the connection is opened.
 		if c.publisher.auth != nil && !c.publisher.auth.Authenticate(cmd.Auth.Username, cmd.Auth.Password) {
 			break
 		}
