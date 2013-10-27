@@ -24,6 +24,7 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       @createPanes()
 
   click: ->
+    @createPanes()  unless @panesCreated
     @toggleClass "active"
 
   createPanes: ->
@@ -37,6 +38,8 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
         click    : =>
           @handleLaunch pane
 
+      @panesCreated = yes
+
   createFloatingPane: (paneKey) ->
     @["create#{paneKey.capitalize()}Pane"]()
 
@@ -45,7 +48,7 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
     pane.setClass "active"
 
     KD.getSingleton("windowController").addLayer pane
-    pane.on 'ReceivedClickElsewhere', =>
+    pane.on "ReceivedClickElsewhere", =>
       pane.unsetClass "active"
 
   createChatPane: ->
@@ -82,12 +85,14 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
         </div>
       """
 
-    previewPane  = new CollaborativePreviewPane
+    @previewPane  = new CollaborativePreviewPane
       delegate   : @panel
       sessionKey : @sessionKeys.preview
 
     @workspace.on "WorkspaceSyncedWithRemote", =>
-      @keysRef.child("preview").set previewPane.sessionKey
+      @keysRef.child("preview").set @previewPane.sessionKey
 
-    @preview.addSubView previewPane
+    @preview.addSubView @previewPane
 
+  getPaneByType: (type) ->
+    return @[type] or null

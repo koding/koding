@@ -49,6 +49,10 @@ class TeamworkApp extends KDObject
           ]
       ]
 
+    if options.environment
+      @teamwork.on "viewAppended", (panel) =>
+        @handleEnvironmentSelection options.environment
+
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
       cssClass  : "teamwork-tools-modal"
@@ -58,12 +62,13 @@ class TeamworkApp extends KDObject
 
     modal.addSubView new TeamworkTools { modal, panel, workspace, twApp: this }
 
-  showImportWarning: (url) ->
-    modal           = new KDModalView
+  showImportWarning: (url, callback = noop) ->
+    @importModal?.destroy()
+    modal           = @importModal = new KDModalView
       title         : "Import File"
       cssClass      : "modal-with-text"
       overlay       : yes
-      content       : """
+      content       : @teamwork.getOptions().importModalContent or """
         <p>This Teamwork URL wants to download a file to your VM from <strong>#{url}</strong></p>
         <p>Would you like to import and start working with these files?</p>
       """
@@ -71,13 +76,16 @@ class TeamworkApp extends KDObject
         Import      :
           title     : "Import"
           cssClass  : "modal-clean-green"
-          callback  : => @importContent url, modal
+          loader    :
+            color   : "#FFFFFF"
+            diameter: 14
+          callback  : => @importContent url, modal, callback
         DontImport  :
           title     : "Don't import anything"
           cssClass  : "modal-cancel"
           callback  : -> modal.destroy()
 
-  importContent: (url, modal) ->
+  importContent: (url, modal, callback) ->
     fileName     = "file#{Date.now()}.zip"
     root         = "Web/Teamwork"
     path         = "#{root}/tmp"
@@ -110,7 +118,7 @@ class TeamworkApp extends KDObject
                     title    : "Overwrite"
                     cssClass : "modal-clean-red"
                     callback : =>
-                      @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url
+                      @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url, callback
                   Cancel     :
                     title    : "Cancel"
                     cssClass : "modal-cancel"
@@ -120,7 +128,7 @@ class TeamworkApp extends KDObject
                       notification.destroy()
                       @setVMRoot "#{root}/#{folderName}"
             else
-              @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url
+              @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url, callback
 
   showMarkdownModal: (rawContent) ->
     @teamwork.markdownContent = KD.utils.applyMarkdown rawContent  if rawContent
@@ -128,7 +136,7 @@ class TeamworkApp extends KDObject
       content                 : @teamwork.markdownContent
       targetEl                : @teamwork.getActivePanel().headerHint
 
-  handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url) ->
+  handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url, callback) ->
     vmController.run "rm -rf #{root}/#{folderName} ; mv #{path}/#{folderName} #{root}", (err, res) =>
       return warn err if err
       modal.destroy()
@@ -137,12 +145,71 @@ class TeamworkApp extends KDObject
       folderPath = "#{root}/#{folderName}"
       readMeFile = "#{folderPath}/README.md"
       @setVMRoot folderPath
+      callback()
       FSHelper.exists readMeFile, vmController.defaultVmName, (err, res) =>
         return unless res
         file  = FSHelper.createFileFromPath readMeFile
         file.fetchContents (err, readMeContent) => @showMarkdownModal readMeContent
 
   setVMRoot: (path) ->
-    vmController       = KD.getSingleton "vmController"
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
-    finderController.updateVMRoot vmController.defaultVmName, path
+    {defaultVmName}    = KD.getSingleton "vmController"
+
+    if finderController.getVmNode defaultVmName
+      finderController.unmountVm defaultVmName
+
+    finderController.mountVm "#{defaultVmName}:#{path}"
+
+  showEnvironmentsModal: ->
+    new TeamworkEnvironmentsModal delegate: this
+
+  mergeEnvironmentOptions: (manifest, environment) ->
+    {rawOptions}                    = @teamwork
+    {name}                          = manifest
+    firstPanel                      = rawOptions.panels.first
+    firstPanel.title                = name
+    rawOptions.environment          = environment
+    rawOptions.name                 = name
+    firstPanel.headerStyling        = manifest.styling
+    rawOptions.examples             = manifest.examples
+    rawOptions.contentDetails       = manifest.content
+    rawOptions.environmentManifest  = manifest
+
+    if manifest.importModalContent
+      rawOptions.importModalContent = manifest.importModalContent
+
+    return rawOptions
+
+  handleEnvironmentSelection: (environment) ->
+    manifestPath = "https://raw.github.com/fatihacet/TeamworkPlaygrounds/master/#{environment}.json"
+    KD.utils.wait 1000, => # KNOWN ISSUE...
+      KD.getSingleton("vmController").run "curl -kLs #{manifestPath}", (err, contents) =>
+        try
+          manifest = JSON.parse contents
+        catch err
+          return warn "Manifest file is broken for #{environment}"
+
+        @teamwork.startNewSession @mergeEnvironmentOptions manifest, environment
+        @teamwork.container.setClass environment
+        @teamwork.on "WorkspaceSyncedWithRemote", =>
+          {contentDetails} = @teamwork.getOptions()
+          if contentDetails.type is "zip"
+            appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
+            appStorage.fetchStorage (storage) =>
+              version  = appStorage.getValue "#{environment}AppVersion"
+              if KD.utils.versionCompare manifest.version, "gt", version
+                FSHelper.exists "Web/Teamwork/#{environment}", KD.getSingleton("vmController").defaultVmName, (err, res) =>
+                  return @setVMRoot "Web/Teamwork/#{environment}"  if res
+                  if contentDetails.url
+                    @teamwork.importInProgress = yes
+                    @showImportWarning contentDetails.url, =>
+                      appStorage.setValue "#{environment}AppVersion", manifest.version
+                      @teamwork.emit "ContentImportDone"
+                      @teamwork.importModalContent = no
+                  else
+                    warn "Missing url parameter to import zip file for #{name}"
+              else
+                KD.singletons.vmController.fetchVMs (err, res) =>
+                  @setVMRoot "Web/Teamwork/#{environment}"
+          else
+            warn "Unhandled content type for #{name}"

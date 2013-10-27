@@ -26,7 +26,10 @@ class Panel extends JView
     @headerTitle   = new KDCustomHTMLView
       tagName      : "span"
       cssClass     : "title"
-      partial      : title
+      partial      : """
+        <span class="icon"></span>
+        <span class="text">#{title}</span>
+      """
 
     @header.addSubView @headerTitle
 
@@ -138,7 +141,7 @@ class Panel extends JView
     super
     @getDelegate().emit "NewPanelAdded", this
     if @getOptions().floatingPanes
-      @addSubView new WorkspaceFloatingPaneLauncher delegate: this
+      @addSubView @paneLauncher = new WorkspaceFloatingPaneLauncher delegate: this
 
   pistachio: ->
     """
