@@ -590,6 +590,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
   "app/CommonViews/workspace/workspacelayout.coffee",
+  "app/CommonViews/workspace/views/workspacefloatingpanelauncher.coffee",
   "app/CommonViews/workspace/workspace.coffee",
 
   # COLLABORATIVE WORKSPACE
@@ -618,11 +619,14 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # TEAMWORK
+  "app/Applications/Teamwork.kdapplication/Views/teamworkenvironmentsmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/facebookteamworkinstructionsmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkpanel.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/facebookteamwork.coffee",
   "app/Applications/Teamwork.kdapplication/AppView.coffee",
   "app/Applications/Teamwork.kdapplication/AppController.coffee",
 
