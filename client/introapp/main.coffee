@@ -107,7 +107,7 @@ class IntroView extends JView
       slogan     : "for <span>Developers</span>"
       subSlogan  : """
         <p>
-          You will have an amazing virtual machine that is better than your laptop.  It's connected to the internet 100's of times faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
+          You will have an amazing virtual machine that is better than your laptop.  It's connected to the internet 100s of times faster.  You can share it with anyone you wish. Clone git repos.  Test and iterate on your code without breaking your setup.
         </p>
         <p>
           It's free. Koding is your new localhost, in the cloud.
