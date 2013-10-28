@@ -28,7 +28,7 @@ createCommentNode = (comment)->
     commentContent =
     """
     <li><span itemtype=\"http://schema.org/Comment\" itemscope itemprop=\"comment\"><span itemprop=\"commentText\">#{comment.body}</span> at <span itemprop=\"commentTime\">#{comment.createdAt}</span> \
-      by <span itemprop=\"name\">#{comment.name}</span></span></li>
+      by <span itemprop=\"name\">#{comment.authorName}</span></span></li>
     """
   return commentContent
 
@@ -81,8 +81,8 @@ putContent = (activityContent, section, model)->
     commentsContent = ""
 
   tags = ""
-  if activityContent?.tags
-    tags = """<span>tags: #{activityContent.tags}</span>"""
+  if activityContent?.tags?.length > 0
+    tags = """<span>tags: #{activityContent.tags.join(',')}</span>"""
 
   title  = activityContent?.type
 

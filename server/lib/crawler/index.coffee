@@ -41,12 +41,14 @@ decorateComment = (JAccount, comment, callback) ->
       if err
         console.error err 
         callback null, err
-      commentSummary.name = acc.data.profile.firstName + " " 
-      commentSummary.name += acc.data.profile.lastName
+      commentSummary.authorName = acc.data.profile.firstName + " " 
+      commentSummary.authorName += acc.data.profile.lastName
       callback commentSummary, null
 
 createActivityContent = (JAccount, models, comments, section, callback) ->
   model = models.first if models and Array.isArray models
+  unless model 
+    callback null, "JStatusUpdate cannot be found."
   statusUpdateId = model.getId()
   jAccountId = model.data.originId
   selector = 
@@ -54,34 +56,41 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
     "sourceId" : statusUpdateId,
     "as" : "author"
   }
-  Relationship.one selector, (err, rel) =>
-    if err
-        console.error err 
-        callback null, err
-    sel = 
-    {
-      "_id" : rel.data.targetId
-    }
-    JAccount.one sel, (err, acc) =>
+  
+  model.fetchTeaser (error, teaser)=>
+
+    tags = []
+    if teaser?.tags?
+      tags = (tag.title for tag in teaser.tags)
+
+    Relationship.one selector, (err, rel) =>
       if err
-        console.error err 
-        callback null, err
-      fullName = acc.data.profile.firstName + " " 
-      fullName += acc.data.profile.lastName
-      activityContent = {
-        fullName : fullName,
-        hash : acc.data.profile.hash,
-        name : if model?.title then model.title else section,
-        body : if model?.body  then model.body  else "",
-        createdAt : formatDate(model?.data?.meta?.createdAt),
-        numberOfComments : comments.length,
-        numberOfLikes : model?.data?.meta?.likes,
-        comments : comments,
-        tags : model?.data?.meta?.tags,
-        type : model?.bongo_?.constructorName
+          console.error err 
+          callback null, err
+      sel = 
+      {
+        "_id" : rel.data.targetId
       }
-      content = activity {activityContent, section, models}
-      callback content, null
+      JAccount.one sel, (err, acc) =>
+        if err
+          console.error err 
+          callback null, err
+        fullName = acc.data.profile.firstName + " " 
+        fullName += acc.data.profile.lastName
+        activityContent = {
+          fullName : fullName
+          hash : acc.data.profile.hash
+          name : if model.title then model.title else section
+          body : if model.body  then model.body  else ""
+          createdAt : formatDate(model.data?.meta?.createdAt)
+          numberOfComments : comments?.length or 0
+          numberOfLikes : model?.data?.meta?.likes or 0
+          comments : comments
+          tags : tags
+          type : model.bongo_?.constructorName
+        }
+        content = activity {activityContent, section, models}
+        callback content, null
 
 module.exports =
   crawl: (bongo, req, res, slug)->
@@ -91,7 +100,6 @@ module.exports =
 
     # Are all slugs start with a '/'? 
     [slash, name, section] = slug.split("/")
-    return res.redirect 302, req.url.substring 7 if name in ['koding', 'guests']
     [firstLetter] = name
 
     # if there is no firstLetter, request hits home
@@ -133,7 +141,8 @@ module.exports =
                     queue.next() if error
                     return res.send 200, content
               daisy queue
-      else return console.log "no section is given"
+      else 
+        return res.send 404, error_404("No section is given.")
     else
       isLoggedIn req, res, (err, loggedIn, account)->
         JName.fetchModels name, (err, models, jname)->

@@ -21,16 +21,18 @@ module.exports = ({account})->
   """
 
 putContent = (account)->
-  username   = if account.profile.nickname  then account.profile.nickname  else "A koding nickname"
-  firstName  = if account.profile.firstName then account.profile.firstName else "a koding "
-  lastName   = if account.profile.lastName  then account.profile.lastName  else "user"
+  {profile:{nickname, firstName, lastName}} = account if account
+  nickname or= "A koding nickname"
+  firstName or= "a koding "
+  lastName or= "user"
+
   numberOfLikes = if account.counts.likes then account.counts.likes else "0"
   imgURL = "https://gravatar.com/avatar/#{account.profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
 
   content  =
     """<figure class='splash' itemscope itemtype="http://schema.org/Person">
           <h2 class='splash-title' itemprop="name">
-            #{username}
+            #{nickname}
           </h2>
           <h3 class='splash-name'>
             <img class="avatarview" style="width: 90px; height: 90px;" src="#{imgURL}" itemprop="image"/>
