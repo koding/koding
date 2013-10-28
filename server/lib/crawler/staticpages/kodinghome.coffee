@@ -1,3 +1,7 @@
+# This file contains static HTML output which is generated with browser. 
+# Since Koding homepage is now serving static content, we're serving very same
+# content to GoogleBot. 
+
 module.exports = ->
 
   getStyles    = require './styleblock'

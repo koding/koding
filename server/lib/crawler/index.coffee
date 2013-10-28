@@ -58,10 +58,13 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
   }
   
   model.fetchTeaser (error, teaser)=>
-
     tags = []
     if teaser?.tags?
       tags = (tag.title for tag in teaser.tags)
+
+    codeSnippet = ""
+    if model.bongo_?.constructorName is "JCodeSnip"
+      codeSnippet = model.data?.attachments[0]?.content
 
     Relationship.one selector, (err, rel) =>
       if err
@@ -80,8 +83,9 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
         activityContent = {
           fullName : fullName
           hash : acc.data.profile.hash
-          name : if model.title then model.title else section
+          title : if model.title then model.title else model.body or ""
           body : if model.body  then model.body  else ""
+          codeSnippet : codeSnippet
           createdAt : formatDate(model.data?.meta?.createdAt)
           numberOfComments : comments?.length or 0
           numberOfLikes : model?.data?.meta?.likes or 0
@@ -98,7 +102,8 @@ module.exports =
     {JName, JAccount} = bongo.models
     {Relationship} = require 'jraphical'
 
-    # Are all slugs start with a '/'? 
+    unless slug[0] is "/"
+      slug = "/" + slug
     [slash, name, section] = slug.split("/")
     [firstLetter] = name
 

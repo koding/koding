@@ -52,6 +52,12 @@ createCommentsCount = (numberOfComments)->
 createLikesCount = (numberOfLikes)->
   return "<span>#{numberOfLikes}</span> likes."
 
+createCodeSnippet = (code)->
+  codeSnippet = ""
+  if code
+    codeSnippet = "<pre>#{code}</pre>"
+  return codeSnippet
+
 createUserInteractionMeta = (numberOfLikes, numberOfComments)->
   userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserLikes:#{numberOfLikes}\"/>"
   userInteractionMeta += "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfComments}\"/>"
@@ -59,7 +65,6 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
 
 putContent = (activityContent, section, model)->
 
-  name = activityContent.name
   body = activityContent.body
 
   accountName = createAccountName activityContent.fullName
@@ -71,10 +76,12 @@ putContent = (activityContent, section, model)->
   userInteractionMeta = createUserInteractionMeta \
     activityContent.numberOfLikes, activityContent.numberOfComments
 
+  codeSnippet = createCodeSnippet activityContent.codeSnippet
+
   if activityContent.numberOfComments > 0
     comments = (createCommentNode(comment) for comment in activityContent.comments)
     commentsContent = "<h4>Comments:</h4>"
-    commentsContent += "<ol style='text-align:left'>"
+    commentsContent += "<ol style='text-align:left; list-style: none'>"
     commentsContent += comments.join("")
     commentsContent += "</ol>"
   else 
@@ -84,7 +91,7 @@ putContent = (activityContent, section, model)->
   if activityContent?.tags?.length > 0
     tags = """<span>tags: #{activityContent.tags.join(',')}</span>"""
 
-  title  = activityContent?.type
+  title  = activityContent?.title
 
   content  =
     """<figure class='splash' style="color:white">
@@ -92,7 +99,7 @@ putContent = (activityContent, section, model)->
            #{title}
          </h2>
          <h3>
-           #{avatarImage} [ #{body} ] #{accountName}
+           #{avatarImage} [ #{body} #{codeSnippet}] #{accountName}
          </h3>
          #{userInteractionMeta}
          #{createdAt}<br />
