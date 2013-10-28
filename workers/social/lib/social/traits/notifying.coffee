@@ -12,7 +12,10 @@ module.exports = class Notifying
     receivers.forEach (receiver)=>
       @notify receiver, event, contents
 
-  notify:(receiver, event, contents)->
+  notify:(receiver, event, contents, callback)->
+    callback ?= (err) ->
+      console.err err if err
+      
     JMailNotification  = require '../models/emailnotification'
     JAccount = require '../models/account'
     CBucket  = require '../models/bucket'
@@ -25,8 +28,7 @@ module.exports = class Notifying
     createActivity = =>
       if contents.relationship?
         relationship = new Relationship contents.relationship
-        CBucket.addActivities relationship, origin, actor, recipient, (err)->
-          console.err err if err
+        CBucket.addActivities relationship, origin, actor, recipient, callback
 
     sendNotification = =>
       if receiver instanceof JAccount and receiver.type isnt 'unregistered'
