@@ -1,6 +1,6 @@
 class GroupProductCreateForm extends KDFormViewWithFields
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}, data = {}) ->
 
     options.isRecurOptional ?= yes
 
@@ -8,7 +8,7 @@ class GroupProductCreateForm extends KDFormViewWithFields
       @emit 'CreateRequested', @getProductData()
 
     options.buttons ?=
-      Create      :
+      Save        :
         cssClass  : "modal-clean-green"
         type      : "submit"
       cancel      :
@@ -21,28 +21,42 @@ class GroupProductCreateForm extends KDFormViewWithFields
       title             :
         label           : "Title"
         placeholder     : options.placeholders?.title
+        defaultValue    : data.title
 
       description       :
         label           : "Description"
         placeholder     : options.placeholders?.description or "(optional)"
+        defaultValue    : data.description
 
-    if options.isRecurOptional
-      options.fields.subscriptionType =
+
+      subscriptionType  :
         label           : "Subscription type"
         itemClass       : KDSelectBox
-        defaultValue    : "recurring"
-        selectOptions   : [
-          { title : "Recurring payment", value : 'recurring' }
-          { title : "Single payment"   , value : 'single'    }
-        ]
-        callback: =>
-          if @inputs.subscriptionType.getValue() is 'single'
-          then @inputs.perMonth.hide()
-          else @inputs.perMonth.show()
+        defaultValue    : data.subscriptionType ? "mo"
+        selectOptions   : do ->
 
-    options.fields.amount ?=
+          selectOptions = [
+            { title: "Recurs every month",     value: 'mo' }
+            { title: "Recurs every 3 months",  value: '3 mo' }
+            { title: "Recurs every 6 months",  value: '6 mo' }
+            { title: "Recurs every year",      value: 'yr' }
+            { title: "Recurs every 2 years",   value: '2 yr' }
+            { title: "Recurs every 5 years",   value: '5 yr' }
+          ]
+
+          if options.isRecurOptional
+            selectOptions.push { title: "Single payment", value: 'single' }
+
+          return selectOptions
+
+        callback: @bound 'handleSubscriptionType'
+
+    options.fields.feeAmount ?=
       label           : "Amount"
       placeholder     : "0.00"
+      defaultValue    :
+        if data.feeAmount
+        then (data.feeAmount / 100).toFixed(2)
       change          : ->
         num = parseFloat @getValue()
 
@@ -56,14 +70,47 @@ class GroupProductCreateForm extends KDFormViewWithFields
 
     if options.showOverage
       options.fields.overageEnabled =
-        label           : "Overage enabled"
-        itemClass       : KDOnOffSwitch
+        label         : "Overage enabled"
+        itemClass     : KDOnOffSwitch
+        defaultValue  : data.overageEnabled
+
+    if options.showSoldAlone
+      options.fields.soldAlone =
+        label         : "Sold alone"
+        itemClass     : KDOnOffSwitch
+        defaultValue  : data.soldAlone
 
     super options, data
 
+  getPlanInfo: (subscriptionType) ->
+    feeUnit     : 'months'
+    feeInterval : switch subscriptionType
+      when 'mo'     then 1
+      when '3 mo'   then 3
+      when '6 mo'   then 6
+      when 'yr'     then 12
+      when '2 yr'   then 12 * 2 # 24 mo
+      when '5 yr'   then 12 * 5 # 60 mo
+    subscriptionType: subscriptionType
+
   getProductData: ->
-    { amount, title, description, subscriptionType } = @inputs
-    amount            : amount.getValue()
-    title             : title.getValue()
-    description       : description.getValue()
-    subscriptionType  : subscriptionType?.getValue()
+    { feeAmount, title, description, subscriptionType: subType } = @inputs
+
+    { subscriptionType, feeUnit, feeInterval } = @getPlanInfo subType.getValue()
+
+    {
+      title             : title.getValue()
+      description       : description.getValue()
+      feeAmount         : feeAmount.getValue()
+      feeUnit
+      feeInterval
+      subscriptionType
+    }
+
+  handleSubscriptionType: ->
+    subscriptionType = @inputs.subscriptionType.getValue()
+    if subscriptionType is 'single'
+      @inputs.perMonth.hide()
+    else
+      @inputs.perMonth.show()
+      @inputs.perMonth.updatePartial "/ #{subscriptionType}"
