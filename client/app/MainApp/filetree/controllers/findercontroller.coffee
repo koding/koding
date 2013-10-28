@@ -42,16 +42,16 @@ class NFinderController extends KDViewController
 
     KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
 
-    kontrol = KD.getSingleton("kontrol")
-    kontrol.on "KiteConnected", (kite) =>
-      @mountFSKite kite
-      kontrol.once "KiteDisconnected", => @unmountFSKite kite
+    kc = KD.getSingleton("kiteController")
+    kc.on "KiteConnected", (kitename) =>
+      @mountFSKite kitename
+      kc.once "KiteDisconnected", => @unmountFSKite kitename
 
   watchers: {}
 
-  mountFSKite:(kite)->
-    # log "KiteConnected, mounting", kite.kitename
-    if kite.kitename is "fs"
+  mountFSKite:(kitename)->
+    log "KiteConnected, mounting", kitename
+    if kitename is "fs"
       options =
         kiteName        : "fs"
         method          : "vm.info"
@@ -63,9 +63,9 @@ class NFinderController extends KDViewController
         path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
         return @_mountVMHelper "local-#{KD.nick()}", path
 
-  unmountFSKite:(kite)->
-    # log "KiteDisconnected, unmounting", kite.kitename
-    if kite.kitename is "fs"
+  unmountFSKite:(kitename)->
+    log "KiteDisconnected, unmounting", kitename
+    if kitename is "fs"
       @unmountVm "local-#{KD.nick()}"
 
   registerWatcher:(path, stopWatching)->
