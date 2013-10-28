@@ -53,36 +53,6 @@ func numberOfUsersWhoLinkedOauth() (string, int) {
 	return identifier, count
 }
 
-func numberOfReferrableEmails() (string, int) {
-	var identifier string = "number_of_referrable_emails"
-	var count int
-	var err error
-	var query = func(c *mgo.Collection) error {
-		count, err = c.Count()
-
-		return err
-	}
-
-	mongodb.Run("jReferrableEmails", query)
-
-	return identifier, count
-}
-
-func numberOfInvitesSent() (string, int) {
-	var identifier string = "number_of_invites_sent"
-	var count int
-	var err error
-	var query = func(c *mgo.Collection) error {
-		count, err = c.Find(bson.M{"invited": true}).Count()
-
-		return err
-	}
-
-	mongodb.Run("jReferrableEmails", query)
-
-	return identifier, count
-}
-
 func numberOfUsersWhoJoinedToday() (string, int) {
 	var identifier string = "number_of_users_who_joined_today"
 	var count int
