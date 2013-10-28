@@ -1,4 +1,4 @@
-class GroupProductCreateForm extends KDFormViewWithFields
+class GroupProductEditForm extends KDFormViewWithFields
 
   constructor: (options = {}, data = {}) ->
 
