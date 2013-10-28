@@ -136,6 +136,25 @@ class DashboardAppController extends AppController
 
   productViewAdded: do ->
 
+    confirmDelete = (callback) ->
+      deleteModal = new KDModalView
+        title        : "Warning"
+        content      : "<div class='modalformline'>Are you sure you want to delete this item?</div>"
+        height       : "auto"
+        overlay      : yes
+        buttons      :
+          Remove     :
+            loader   :
+              color  : "#ffffff"
+              diameter : 16
+            style    : "modal-clean-red"
+            callback : ->
+              deleteModal.destroy()
+              callback()
+          cancel     :
+            style    : "modal-cancel"
+            callback : -> deleteModal.destroy()
+
     prepareProductView = (view, category) ->
       group = KD.getGroup()
       konstructor = KD.remote.api["JPayment#{category}"]
@@ -150,7 +169,7 @@ class DashboardAppController extends AppController
           reload()
 
       view.on "#{category}DeleteRequested", (code) ->
-        konstructor.removeByCode code, (err) ->
+        confirmDelete -> konstructor.removeByCode code, (err) ->
           return if KD.showError err
           reload()
 
