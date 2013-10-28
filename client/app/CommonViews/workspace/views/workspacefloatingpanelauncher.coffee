@@ -64,13 +64,13 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       cssClass   : "floating-pane"
       size       : height : 400
 
-    @terminal.addSubView terminalPane = new terminalClass
+    @terminal.addSubView @terminalPane = new terminalClass
       delegate   : @panel
       sessionKey : @sessionKeys.terminal
 
-    terminalPane.webterm.on "WebTermConnected", =>
+    @terminalPane.webterm.on "WebTermConnected", =>
       @keysRef.child("terminal").set
-        key    : terminalPane.remote.session
+        key    : @terminalPane.remote.session
         host   : KD.nick()
         vmName : KD.getSingleton("vmController").defaultVmName
 
