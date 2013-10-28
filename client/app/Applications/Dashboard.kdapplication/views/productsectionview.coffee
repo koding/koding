@@ -20,6 +20,7 @@ class GroupProductSectionView extends JView
     @list.on "ItemWasAdded", (item) =>
       @forwardEvents item, [
         'DeleteRequested'
+        'EditRequested'
         'BuyersReportRequested'
       ]
 
