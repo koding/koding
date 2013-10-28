@@ -8,12 +8,20 @@ import (
 )
 
 const (
-	testAddr    = "127.0.0.1:18500"
-	testMessage = "cenk"
-	testWait    = 10 * time.Millisecond
+	testAddr     = "127.0.0.1:18500"
+	testMessage  = "cenk"
+	testWait     = 10 * time.Millisecond
+	testUser     = "cenk6"
+	testPassword = "xxx"
 )
 
 var testData = []byte(testMessage)
+
+type TestAuthenticator struct{}
+
+func (a TestAuthenticator) Authenticate(user, pass string) bool {
+	return user == testUser && pass == testPassword
+}
 
 func TestRequestReply(t *testing.T) {
 	log.Println("Creating new Replier")
@@ -92,6 +100,35 @@ func TestBroadcast(t *testing.T) {
 
 	log.Println("Publishing a message")
 	srv.Broadcast(testData)
+
+	log.Println("Waiting for a message")
+	select {
+	case <-ch:
+	case <-time.After(1 * time.Second):
+		t.Error("Handler is not called")
+	}
+}
+
+func TestPublishSubscibeAuthentication(t *testing.T) {
+	log.Println("Creating new Publisher")
+	srv := NewMessagingServer(nil, TestAuthenticator{})
+	go srv.ListenAndServe(testAddr)
+	defer srv.Close()
+
+	log.Println("Creating new Subscriber")
+	ch := make(chan bool, 1)
+	cl := NewMessagingClient(testAddr, withChan(echoHandler, ch))
+	cl.Credentials.Username = testUser
+	cl.Credentials.Password = testPassword
+	cl.Connect()
+
+	log.Println("Subscribing key")
+	cl.Subscribe("asdf")
+
+	time.Sleep(testWait)
+
+	log.Println("Publishing a message")
+	srv.Publish("asdf", testData)
 
 	log.Println("Waiting for a message")
 	select {
