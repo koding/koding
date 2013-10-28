@@ -17,8 +17,11 @@ class GroupProductSectionView extends JView
 
     @list = @listController.getListView()
 
-    @list.on "DeleteItem", (code) =>
-      @emit 'DeleteRequested', code
+    @list.on "ItemWasAdded", (item) =>
+      @forwardEvents item, [
+        'DeleteRequested'
+        'BuyersReportRequested'
+      ]
 
     super()
 
