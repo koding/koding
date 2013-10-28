@@ -29,6 +29,38 @@ class FacebookTeamwork extends TeamworkWorkspace
     @on "WorkspaceSyncedWithRemote", =>
       @getAppInfo()  if @amIHost()
 
+    @getDelegate().on "TeamworkToolsModalIsReady", (modal) =>
+      modal.addSubView header = new KDCustomHTMLView
+        cssClass : "teamwork-modal-header"
+        partial  : """
+          <div class="header full-width">
+            <span class="text">Facebook App Details</span>
+          </div>
+        """
+      modal.addSubView wrapper = new KDCustomHTMLView
+        cssClass : "teamwork-modal-content full-width tw-fb-revoke"
+        partial  : """
+          <div class="teamwork-modal-content">
+            <span class="initial">Below you can find your app details.</span>
+            <p>
+              <span>App ID</span>         <strong>#{@appId}</strong><br />
+              <span>App Namespace</span>  <strong>#{@appNamespace}</strong><br />
+              <span>Canvas Url</span>     <strong>#{@appCanvasUrl}</strong><br /><br />
+            </p>
+          </div>
+        """
+      wrapper.addSubView revoke = new KDCustomHTMLView
+        cssClass : "teamwork-modal-content revoke"
+        partial  : """
+          <p>If you want to update your Facebook App ID, App Namespace or App Canvas Url click this button to start progress.</p>
+        """
+
+      revoke.addSubView new KDButtonView
+        title    : "Update"
+        callback : =>
+          modal.destroy()
+          @showInstructions()
+
   showInstructions: ->
     @instructionsModal = new FacebookTeamworkInstructionsModal delegate: this
 
