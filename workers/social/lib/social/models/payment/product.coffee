@@ -23,10 +23,22 @@ module.exports = class JPaymentProduct extends Module
         type          : String
         required      : yes
       description     : String
-      subscriptionType: String
-      amount          :
+      subscriptionType:
+        type          : String
+        default       : 'recurring'
+      feeAmount       :
         type          : Number
         required      : yes
+      feeInterval     :
+        type          : Number
+        default       : 1
+      feeUnit         :
+        type          : String
+        default       : 'months'
+        enum          : ['fee unit should be "months" or "days"',[
+          'months'
+          'days'
+        ]]
       overageEnabled  :
         type          : Boolean
         default       : no
@@ -41,13 +53,15 @@ module.exports = class JPaymentProduct extends Module
     JGroup = require '../group'
 
     { type: subscriptionType, overageEnabled, title, description,
-      amount } = formData
+      feeAmount, feeUnit, feeInterval } = formData
 
     product = new this {
       title
       description
-      amount            : amount * 100 # cents
-      subscriptionType  : subscriptionType ? 'recurring'
+      feeAmount         : feeAmount * 100 # cents
+      feeUnit
+      feeInterval
+      subscriptionType
       planCode          : createId()
       overageEnabled    : overageEnabled is 'on'
       group
@@ -77,7 +91,7 @@ module.exports = class JPaymentProduct extends Module
       planData =
         code        : product.planCode
         title       : "#{ product.title } - Overage"
-        feeMonthly  : product.amount
+        feeAmount   : product.feeAmount
         feeInterval : switch product.subscriptionType
           when 'recurring' then 1
           when 'single'    then 9999 # wat

@@ -268,7 +268,7 @@ class GroupCreationModal extends KDModalView
       desc.hide()
 
     # index      = parseInt selector.getValue(), 10
-    # monthlyFee = (@plans[index].feeMonthly/100).toFixed(2)
+    # monthlyFee = (@plans[index].feeAmount / 100).toFixed(2)
     index      = 0
 
     next.show()

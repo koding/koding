@@ -527,7 +527,7 @@ class VirtualizationController extends KDController
     JPaymentPlan.fetchPlans prefix: 'group', category: 'vm', (err, plans) =>
       return warn err  if err
 
-      if plans then plans.sort (a, b) -> a.feeMonthly - b.feeMonthly
+      if plans then plans.sort (a, b) -> a.feeAmount - b.feeAmount
 
       @emit "VMPlansFetchEnd"
 
@@ -539,7 +539,7 @@ class VirtualizationController extends KDController
     hostTypes    = plans.map (plan, i)->
       title       : plan.description.title
       value       : i
-      feeMonthly  : (plan.feeMonthly / 100).toFixed 0
+      feeAmount  : (plan.feeAmount / 100).toFixed 0
 
     { descriptions, hostTypes }
 

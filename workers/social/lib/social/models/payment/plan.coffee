@@ -39,7 +39,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
       code          : String
       title         : String
       description   : Object
-      feeMonthly    : Number
+      feeAmount     : Number
       feeInitial    : Number
       feeInterval   : Number
       product       :
@@ -55,13 +55,13 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
     JGroup = require '../group'
 
-    { title, description, amount } = formData
+    { title, description, feeAmount } = formData
 
     plan = new this {
       title
       description
       code        : createId()
-      feeMonthly  : amount * 100 # cents
+      feeAmount   : feeAmount * 100 # cents
       feeInitial  : 0
       feeInterval : 1
     }
@@ -213,7 +213,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
       forEach     : (k, cached, plan, fin)->
         return fin()  unless k.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/
 
-        {title, desc, feeMonthly, feeInitial, feeInterval} = plan
+        {title, desc, feeAmount, feeInitial, feeInterval} = plan
 
         [prefix, category, item, version] = k.split '_'
 
@@ -224,7 +224,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
         cached.set {
           title
           description
-          feeMonthly
+          feeAmount
           feeInitial
           feeInterval
           lastUpdate: Date.now()

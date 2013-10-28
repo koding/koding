@@ -90,7 +90,7 @@ class PaymentWidget extends KDView
     @fetchPlan (err, plan) ->
 
       title     = plan.title
-      price     = plan.feeMonthly / 100
+      price     = plan.feeAmount / 100
       recurring = plan.feeInterval is 1
 
       if recurring

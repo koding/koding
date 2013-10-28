@@ -41,7 +41,7 @@ module.exports = class JPaymentGroup extends JPayment
 #    recurly.fetchTransactions (groupCodeOf group), callback
 
   @addPlan = (group, data, callback)->
-    data.feeMonthly = data.price
+    data.feeAmount = data.price
     data.feeInitial = 0
     data.code       = "groupplan_#{group.getId()}_#{data.name}_0"
     # 9999 is a hack, since Recurly sucks at non-recurring payments

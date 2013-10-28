@@ -1396,8 +1396,8 @@ module.exports = class JGroup extends Module
       return callback err  if err
       @checkUserBalance client, data, (err, limit, balance)=>
         return callback err  if err
-        console.log limit, balance, plan.feeMonthly
-        if limit >= balance + plan.feeMonthly
+        console.log limit, balance, plan.feeAmount
+        if limit >= balance + plan.feeAmount
           @chargeGroup client, data, callback
         else
           callback new KodingError "You don't have enough balance"

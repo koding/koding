@@ -88,7 +88,7 @@ module.exports = class JPaymentPayment extends jraphical.Module
   @calculateAmount = (data, callback) ->
     @fetchPlan data.plan, (err, plan) ->
       return callback err  if err
-      callback null, plan.feeMonthly * data.quantity
+      callback null, plan.feeAmount * data.quantity
 
   # Create user account on Recurly
   @createAccount = (account, callback) ->

@@ -67,7 +67,7 @@ class HostCreationSelector extends GroupCreationSelector
         class  : options.cssClassPrefix + @utils.slugify radioOptions.value
       icon     = $ "<cite/>",
         class  : "icon"
-        html   : "$<b>#{radioOptions.feeMonthly}</b>/mo"
+        html   : "$<b>#{radioOptions.feeAmount}</b>/mo"
 
       bg.append  div
       div.append radio
