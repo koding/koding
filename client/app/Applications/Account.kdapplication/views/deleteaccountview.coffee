@@ -98,4 +98,4 @@ class DeleteModalView extends KDModalViewWithForms
       @modalTabs.forms.dangerForm.buttons.confirmButton.enable()
     else
       @modalTabs.forms.dangerForm.buttons.confirmButton.disable()
-      input.setValidationResult 'keyupCheck', 'Sorry, entered value does not match vm name!', showError
+      input.setValidationResult 'keyupCheck', 'Sorry, entered value does not match your username!', showError
