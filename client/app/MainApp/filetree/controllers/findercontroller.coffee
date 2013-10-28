@@ -42,21 +42,30 @@ class NFinderController extends KDViewController
 
     KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
 
-    kiteController = KD.getSingleton("kiteController")
-    kiteController.on "KiteConnected", (kiteName) =>
-      @mountFSKite kiteName
-      kiteController.once "KiteDisconnected", => @unmountFSKite kiteName
+    kontrol = KD.getSingleton("kontrol")
+    kontrol.on "KiteConnected", (kite) =>
+      @mountFSKite kite
+      kontrol.once "KiteDisconnected", => @unmountFSKite kite
 
   watchers: {}
 
-  mountFSKite:(kiteName)->
-    log "KiteConnected received", kiteName
-    if /^fs/.test kiteName
-      @mountVm "local-#{KD.nick()}"
+  mountFSKite:(kite)->
+    # log "KiteConnected, mounting", kite.kitename
+    if kite.kitename is "fs"
+      options =
+        kiteName        : "fs"
+        method          : "vm.info"
+        correlationName : "local-#{KD.nick()}"
 
-  unmountFSKite:(kiteName)->
-    log "KiteDisconnected received", kiteName
-    if /^fs/.test kiteName
+      kc = KD.getSingleton("kiteController")
+      kc.run options, (err, info) =>
+        if err then log err
+        path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
+        return @_mountVMHelper "local-#{KD.nick()}", path
+
+  unmountFSKite:(kite)->
+    # log "KiteDisconnected, unmounting", kite.kitename
+    if kite.kitename is "fs"
       @unmountVm "local-#{KD.nick()}"
 
   registerWatcher:(path, stopWatching)->
@@ -149,12 +158,7 @@ class NFinderController extends KDViewController
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
 
-    if vmName is "local-#{KD.nick()}"
-      KD.getSingleton('vmController').info vm, (err, vm, info)=>
-        path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
-        return @_mountVMHelper vmName, path
-    else
-      @_mountVMHelper vmName, path, fetchContent
+    @_mountVMHelper vmName, path, fetchContent
 
   _mountVMHelper: (vmName, path, fetchContent)->
     @updateMountState vmName, yes
