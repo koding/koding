@@ -52,7 +52,7 @@ module.exports = class JPaymentProduct extends Module
 
     JGroup = require '../group'
 
-    { type: subscriptionType, overageEnabled, title, description,
+    { subscriptionType, overageEnabled, title, description,
       feeAmount, feeUnit, feeInterval } = formData
 
     product = new this {
