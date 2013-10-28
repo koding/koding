@@ -155,23 +155,73 @@ class DashboardAppController extends AppController
             style    : "modal-cancel"
             callback : -> deleteModal.destroy()
 
+    showCreateModal = (options, data, callback) ->
+
+      productType = options.productType ? 'product'
+
+      modal = new KDModalView
+        overlay       : yes
+        title         : "Create #{ productType }"
+
+      createForm = new GroupProductCreateForm options, data
+
+      modal.addSubView createForm
+
+      createForm.on 'CancelRequested', ->
+        modal.destroy()
+
+      createForm.on 'CreateRequested', (productData) =>
+        (getConstructor productType).create productData, (err) ->
+          return if KD.showError err
+          callback null
+
+        modal.destroy()
+
+
+        # createEventName = "#{ productType.capitalize() }CreateRequested"
+        # @emit createEventName, productData
+        # modal.destroy()
+
+    getProductFormOptions = (category) ->
+      switch category
+
+        when 'Product'
+          productType     : 'product'
+          isRecurOptional : yes
+          showOverage     : yes
+          showSoldAlone   : yes
+
+        when 'Plan'
+          productType     : 'plan'
+          isRecurOptional : no
+          showOverage     : no
+          showSoldAlone   : no
+          placeholders    :
+            title         : 'e.g. "Gold Plan"'
+            description   : 'e.g. "2 VMs, and a tee shirt"'
+
+    getConstructor = (category) ->
+      KD.remote.api["JPayment#{ category.capitalize() }"]
+
     prepareProductView = (view, category) ->
       group = KD.getGroup()
-      konstructor = KD.remote.api["JPayment#{category}"]
+      konstructor = getConstructor category
 
       reload = ->
         group["fetch#{category}s"] (err, results) ->
           view["set#{category}s"] results
 
-      view.on "#{category}CreateRequested", (productData) ->
-        konstructor.create productData, (err) ->
-          return if KD.showError err
-          reload()
+      # view.on "#{category}CreateRequested", (productData) ->
 
       view.on "#{category}DeleteRequested", (code) ->
         confirmDelete -> konstructor.removeByCode code, (err) ->
           return if KD.showError err
           reload()
+
+      view.on "#{category}EditRequested", (data) ->
+        options = getProductFormOptions category
+
+        showCreateModal options, data, reload
 
       reload()
 
@@ -194,8 +244,8 @@ class DashboardAppController extends AppController
             new KDNotificationView title: err.message
           @refreshPaymentView()
 
-
 #    modal.on 'CountryDataPopulated', -> callback null, modal
+    modal
 
   createPaymentInfoModal: ->
 
