@@ -2,7 +2,12 @@ class Workspace extends JView
 
   constructor: (options = {}, data) ->
 
+    raw      = {}
+    raw[key] = value for own key, value of options
+
     super options, data
+
+    @rawOptions = raw
 
     @listenWindowResize()
 
