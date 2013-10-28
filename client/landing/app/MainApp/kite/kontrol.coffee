@@ -39,29 +39,25 @@ class Kontrol extends KDEventEmitter
       switch args.action
         when "AddKite"
           @addKite args
-          KD.utils.wait 1000, => @emit "KiteConnected", args
         when "RemoveKite"
-          @removeKite args
-          KD.utils.wait 1000, => @emit "KiteDisconnected", args
+          @removeKite args.kitename
 
   addKite: (kite) ->
     kc = KD.getSingleton("kiteController")
     correlationName = "local-#{KD.nick()}"
     key = kc.getKiteKey kite.kitename, correlationName
-    kiteInstance = new NewKite {addr: kite.addr, kiteName: kite.kitename, token: kite.token}
+    kiteInstance = kc.createNewKite kite.addr, kite.kitename, kite.token
 
     log "ADDING KITE #{kite.kitename} with key #{key}"
     kc.kiteInstances[key] = kiteInstance
 
-  removeKite: (kite) ->
+  removeKite: (kitename) ->
     kc = KD.getSingleton("kiteController")
     correlationName = "local-#{KD.nick()}"
-    key = kc.getKiteKey kite.kitename, correlationName
+    key = kc.getKiteKey kitename, correlationName
 
-    log "REMOVING KITE #{kite.kitename} with key #{key}"
+    log "REMOVING KITE #{kitename} with key #{key}"
     delete kc.kiteInstances[key]
-
-
 
   onError: (evt) ->
     log "kontrol: error #{evt.data}"
