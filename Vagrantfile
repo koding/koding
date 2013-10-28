@@ -14,8 +14,8 @@ if version < "4.2.18r88780" and ARGV[0] != "halt"
     exit! 1
   end
 
-  system "vagrant halt" or exit! 1
-  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.18/VirtualBox-4.2.18-88780-OSX.dmg" or exit! 1
+  system "vagrant halt" # may fail if Vagrant is not yet installed
+  system "curl -L http://download.virtualbox.org/virtualbox/4.2.18/VirtualBox-4.2.18-88780-OSX.dmg > /tmp/VirtualBox.dmg" or exit! 1
   system "hdiutil attach /tmp/VirtualBox.dmg" or exit! 1
   system "sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg  -target /" or exit! 1
   sleep 1 # somehow the installer stays active for some time
@@ -38,7 +38,7 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.7"
     exit! 1
   end
 
-  system "wget -O /tmp/Vagrant.dmg http://files.vagrantup.com/packages/7ec0ee1d00a916f80b109a298bab08e391945243/Vagrant-1.2.7.dmg" or exit! 1
+  system "curl -L http://files.vagrantup.com/packages/7ec0ee1d00a916f80b109a298bab08e391945243/Vagrant-1.2.7.dmg > /tmp/Vagrant.dmg" or exit! 1
   system "hdiutil attach /tmp/Vagrant.dmg" or exit! 1
   system "sudo installer -pkg /Volumes/Vagrant/Vagrant.pkg  -target /" or exit! 1
   sleep 1 # somehow the installer stays active for some time

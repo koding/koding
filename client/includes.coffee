@@ -266,7 +266,7 @@ module.exports = [
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
   "app/Applications/Activity.kdapplication/AppController.coffee",
-  "app/Applications/Home.kdapplication/AppController.coffee",
+  # "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
@@ -535,17 +535,17 @@ module.exports = [
 
 
   # HOME VIEWS
-  "app/Applications/Home.kdapplication/AppView.coffee",
+  # "app/Applications/Home.kdapplication/AppView.coffee",
   "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
   "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
   "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
-  "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
-  "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
-  "app/Applications/Home.kdapplication/Views/featuredactivitiescontainer.coffee",
-  "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
-  "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
-  "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
-  "app/Applications/Home.kdapplication/Views/counterview.coffee",
+  # "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
+  # "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
+  # "app/Applications/Home.kdapplication/Views/featuredactivitiescontainer.coffee",
+  # "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
+  # "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
+  # "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
+  # "app/Applications/Home.kdapplication/Views/counterview.coffee",
 
   # DEMO VIEWS
   "app/Applications/Demos.kdapplication/AppView.coffee",
@@ -614,6 +614,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
   "app/CommonViews/workspace/workspacelayout.coffee",
+  "app/CommonViews/workspace/views/workspacefloatingpanelauncher.coffee",
   "app/CommonViews/workspace/workspace.coffee",
 
   # COLLABORATIVE WORKSPACE
@@ -642,11 +643,14 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # TEAMWORK
+  "app/Applications/Teamwork.kdapplication/Views/teamworkenvironmentsmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/facebookteamworkinstructionsmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkpanel.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/facebookteamwork.coffee",
   "app/Applications/Teamwork.kdapplication/AppView.coffee",
   "app/Applications/Teamwork.kdapplication/AppController.coffee",
 

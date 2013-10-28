@@ -26,7 +26,10 @@ class Panel extends JView
     @headerTitle   = new KDCustomHTMLView
       tagName      : "span"
       cssClass     : "title"
-      partial      : title
+      partial      : """
+        <span class="icon"></span>
+        <span class="text">#{title}</span>
+      """
 
     @header.addSubView @headerTitle
 
@@ -126,18 +129,19 @@ class Panel extends JView
   applyHeaderStyling: (options) ->
     {bgColor, bgGradient, bgImage, textColor, textShadowColor, borderColor} = options
 
-    @header.setCss      "color"             , textColor                        if textColor
-    @header.setCss      "textShadowColor"   , "0 1px 0 #{textShadowColor}" if textShadowColor
-    @header.setCss      "borderBottomColor" , "#{borderColor}"                 if borderColor
-    @header.setCss      "background"        , "#{bgColor}"                     if bgColor
-    @headerTitle.setCss "backgroundImage"   , "url(#{bgImage})"                if bgImage
+    @header.setCss      "color"             , textColor                     if textColor
+    @header.setCss      "textShadowColor"   , "0 1px 0 #{textShadowColor}"  if textShadowColor
+    @header.setCss      "borderBottomColor" , "#{borderColor}"              if borderColor
+    @header.setCss      "background"        , "#{bgColor}"                  if bgColor
+    @headerTitle.setCss "backgroundImage"   , "url(#{bgImage})"             if bgImage
 
-    if bgGradient
-      KD.utils.applyGradient @header, bgGradient.first, bgGradient.last
+    KD.utils.applyGradient @header, bgGradient.first, bgGradient.last       if bgGradient
 
   viewAppended: ->
     super
     @getDelegate().emit "NewPanelAdded", this
+    if @getOptions().floatingPanes
+      @addSubView @paneLauncher = new WorkspaceFloatingPaneLauncher delegate: this
 
   pistachio: ->
     """

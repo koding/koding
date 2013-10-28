@@ -253,6 +253,10 @@ A:hover {text-decoration: underline; color: white;}
 <body>
   <h1>We're updating Koding, it will be back shortly.<span>
   In the meantime, why not shoot each other?</span></h1>
+  <h1 class="hidden up">Hey! Koding is up now!<span>
+  You will be in Koding in <time>20</time> seconds, or <a href="#" class="keeper">keep playing</a></span></h1>
+  <h1 class="hidden keep">Hey! Koding is up now!<span>
+  <a href="https://koding.com/" target="_top">Go to Koding.</a></span></h1>
   <div id="asteroids">
     <div id="game-pane">
       <div id="game-container">
@@ -1660,6 +1664,89 @@ $(function () {
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
       })();
     }
+  </script>
+
+
+
+  <!-- Koding Checker -->
+  <script>
+  function KodingChecker(options) {
+    if (typeof options != "object")
+      options = {}
+
+    this.checkURL = options.url;
+    this.checkDuration = options.duration || 1000;
+    this.callback = options.callback || function () {};
+  }
+
+  KodingChecker.prototype.startChecking = function () {
+    var request = function () {
+      $.get(this.checkURL, this.onCheck.bind(this));
+    }.bind(this);
+
+    this._checker = setInterval(request, this.checkDuration);
+    request();
+  };
+
+  KodingChecker.prototype.stopChecking = function () {
+    clearInterval(this._checker);
+  };
+
+  KodingChecker.prototype.onCheck = function (response, status, xhr) {
+    this.callback(response.toLowerCase() == "ok", status, xhr);
+  };
+
+  (function (KC, redirectionTimer) {
+
+    var getHeader = function (state) {
+      var header = "body h1";
+      return {main: $(header), state: $([header, state].join("."))};
+    };
+
+    var setHeader = function (state) {
+      var header = getHeader(state);
+      header.main.addClass("hidden");
+      header.state.removeClass("hidden");
+      return header.state;
+    };
+
+    getHeader("up").state.find(".keeper").click(function (event) {
+      event.preventDefault();
+      setHeader("keep");
+      clearInterval(redirectionTimer);
+      return false;
+    });
+
+    // Usage
+    var checker = new KC({
+
+      url: "/-/presence/something/",
+
+      callback: function (isUp) {
+
+        console.log("ping koding...");
+        if (isUp) {
+
+          console.log("koding is up!");
+          checker.stopChecking()
+
+          var header = setHeader("up");
+          var counter = header.find("time");
+
+          redirectionTimer = setInterval(function () {
+            var remaining = parseInt(counter.text());
+            counter.text(--remaining);
+            if (remaining == 0) {
+              window.location.href = "https://koding.com/";
+            }
+          }, 1000);
+
+        }
+      }
+    });
+    checker.startChecking();
+
+  })(KodingChecker, null);
   </script>
 </body>
 </html>
