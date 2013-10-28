@@ -59,10 +59,10 @@ class NFinderController extends KDViewController
   watchers: {}
 
   mountFSKite:(kitename)->
-    log "FinderController: Mounting", kitename
     unless kitename is "fs"
       return
 
+    log "FinderController: Mounting", kitename
     vmName = "local-#{KD.nick()}"
 
     options =
