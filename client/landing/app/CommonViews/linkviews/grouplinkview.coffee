@@ -12,3 +12,5 @@ class GroupLinkView extends LinkView
 
   pistachio:->
     super "{{#(title)}}"
+
+  click:-> #super has @utils.stopDOMEvent
