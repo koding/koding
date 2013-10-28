@@ -4,6 +4,8 @@ module.exports = class CBucket extends jraphical.Module
 
   {Base, Model, ObjectRef, ObjectId, dash, daisy} = require 'bongo'
 
+  {Relationship} = require 'jraphical'
+
   @trait __dirname, '../../traits/notifying'
 
   @set
@@ -83,7 +85,7 @@ module.exports = class CBucket extends jraphical.Module
         if err
           callback err
         else
-          jraphical.Relationship.one {
+          Relationship.one {
             targetId: bucket.getId()
             sourceName: bucket.constructor.name + 'Activity'
             as: 'content'
@@ -99,18 +101,32 @@ module.exports = class CBucket extends jraphical.Module
                 else if isOwn
                   callback null, bucket
                 else
-                  anchor.assureActivity activity, (err)->
+                  Relationship.one 
+                    sourceId : anchor.getId()
+                    targetId : activity.getId()
+                    as       : 'activity'
+                  , (err, relationship) ->
                     if err
                       callback err
                     else
+                      relationship.update
+                        $set :
+                          data:
+                            flags:
+                              glanced: false
+                          timestamp: new Date
+                      , (err)->
+                        if err
+                          callback err
+                        else 
+                          bucketOptions =
+                            type        : activity.constructor.name
+                            teaserId    : bucket.getId()
+                            createdAt   : bucket.meta.createdAt
 
-                      bucketOptions =
-                        type        : activity.constructor.name
-                        teaserId    : bucket.getId()
-                        createdAt   : bucket.meta.createdAt
-
-                      CActivity.emit 'BucketIsUpdated', bucketOptions
-                      callback null, bucket
+                          CActivity.emit 'BucketIsUpdated', bucketOptions
+                          callback null, bucket
+                      
             else
               CBucketActivity = require '../activity/bucketactivity'
               activity = CBucketActivity.create bucket
