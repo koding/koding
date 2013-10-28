@@ -97,7 +97,7 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
         <div id="content-display-wrapper" class="kdview content-display-wrapper in">
             <div id="member-contentdisplay" class="kdview member content-display">
                 <h2 class="sub-header" id='members-sub-header'>
-                    <a id='members-back-link' class="" href="#"><span>«</span> Back</a>
+                    <!-- <a id='members-back-link' class="" href="#"><span>«</span> Back</a> -->
                 </h2>
                 <div id="profilearea" class="kdview profilearea clearfix">
                   <div class="profileleft">
