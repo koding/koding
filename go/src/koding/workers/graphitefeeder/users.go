@@ -16,7 +16,8 @@ func init() {
 	registerAnalytic(numberOfGuestAccountsCreatedToday)
 	registerAnalytic(numberOfUsersWhoDeletedTheirAccount)
 	registerAnalytic(numberOfUsersWhoPostedContentToday)
-	registerAnalytic(numberOfUsersWhoAreOnline)
+	// commenting this out till persistence worker is fixed
+	//registerAnalytic(numberOfUsersWhoAreOnline)
 	registerAnalytic(numberOfUsersWhoLoggedInToday)
 	registerAnalytic(numberOfGuestAccounts)
 }
