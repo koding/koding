@@ -61,20 +61,12 @@ class MainViewController extends KDViewController
 
   setViewState: do ->
 
-    isEntryPointSet = null
-
     (options = {})->
 
       {behavior, name} = options
-      isEntryPointSet  = yes if name isnt "Home"
-      mainView         = @getView()
-      {
-       contentPanel
-       mainTabView
-       sidebar
-       homeIntro
-      }                = mainView
-      o                = { isEntryPointSet, name }
+      mainView = @getView()
+      {contentPanel, mainTabView, sidebar} = mainView
+      o = { name }
 
       switch behavior
         when 'hideTabs'
@@ -89,32 +81,38 @@ class MainViewController extends KDViewController
 
       @emit "UILayoutNeedsToChange", o
 
-      isEntryPointSet = yes
+      # if options.name is 'Activity'
+      # if KD.introView
 
-      group = KD.getSingleton('groupsController').getCurrentGroup()
+      $('body').removeClass 'intro'
+      $('#kdmaincontainer').removeClass 'home'
+      KD.introView?.unsetClass 'in'
+      KD.introView?.setClass 'out'
 
-      if name is 'Home' and group.slug is 'koding'
-      then @decorateHome()
-      else @clearHome()
+  #     group = KD.getSingleton('groupsController').getCurrentGroup()
 
-  decorateHome:->
-    mainView = @getView()
-    {homeIntro, logo, chatPanel, chatHandler} = mainView
+  #     if group.slug is 'koding'
+  #     then @decorateHome()
+  #     else @clearHome()
 
-    chatHandler.hide()
-    chatPanel.hide()
-    mainView.setClass 'home'
-    logo.setClass 'large'
-    homeIntro.show()
+  # decorateHome:->
+  #   mainView = @getView()
+  #   {logo, chatPanel, chatHandler} = mainView
 
+  #   chatHandler.hide()
+  #   chatPanel.hide()
+  #   mainView.setClass 'home'
+  #   logo.setClass 'large'
+  #   KD.introView?.show()
 
-  clearHome:->
-    mainView = @getView()
-    {homeIntro, logo, chatPanel, chatHandler} = mainView
+  # clearHome:->
+  #   mainView = @getView()
+  #   {homeIntro, logo, chatPanel, chatHandler} = mainView
 
-    KD.utils.wait 300, ->
-      chatHandler.show()
-      chatPanel.show()
-    mainView.unsetClass 'home'
-    logo.unsetClass 'large'
-    homeIntro.hide()
+  #   KD.introView.hide()
+  #   KD.utils.wait 300, ->
+  #     chatHandler.show()
+  #     chatPanel.show()
+  #   mainView.unsetClass 'home'
+  #   logo.unsetClass 'large'
+  #   KD.introView?.hide()
