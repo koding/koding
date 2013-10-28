@@ -23,7 +23,7 @@ type Publisher struct {
 const all = "4658f005d49885355f4e771ed9dace10cca9563e"
 
 type Authenticator interface {
-	Authenticate(userName, kodingKey string) bool
+	Authenticate(username, password string) bool
 }
 
 // NewPublisher creates a new Publisher and returns a pointer to it.  The
