@@ -106,9 +106,19 @@ module.exports = class CBucket extends jraphical.Module
                     targetId : activity.getId()
                     as       : 'activity'
                   , (err, relationship) ->
+
+                    emitBucketIsUpdated = (bucket, activity, callback) ->
+                      bucketOptions =
+                        type        : activity.constructor.name
+                        teaserId    : bucket.getId()
+                        createdAt   : bucket.meta.createdAt
+
+                      CActivity.emit 'BucketIsUpdated', bucketOptions
+                      callback null, bucket
+
                     if err
                       callback err
-                    else
+                    else if relationship?
                       relationship.update
                         $set :
                           data:
@@ -116,16 +126,16 @@ module.exports = class CBucket extends jraphical.Module
                               glanced: false
                           timestamp: new Date
                       , (err)->
-                        if err
+                          if err
+                            callback err
+                          else
+                            emitBucketIsUpdated bucket, activity, callback
+                    else
+                      anchor.addActivity activity, (err)->
+                        if err 
                           callback err
-                        else 
-                          bucketOptions =
-                            type        : activity.constructor.name
-                            teaserId    : bucket.getId()
-                            createdAt   : bucket.meta.createdAt
-
-                          CActivity.emit 'BucketIsUpdated', bucketOptions
-                          callback null, bucket
+                        else
+                          emitBucketIsUpdated bucket, activity, callback
                       
             else
               CBucketActivity = require '../activity/bucketactivity'
