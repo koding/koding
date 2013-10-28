@@ -14,11 +14,11 @@ class KiteController extends KDController
     checkingServers   : "Checking if servers are back..."
     alive             : "Shared hosting is alive!"
 
-  getKiteKey =(kiteName, correlationName)->
+  getKiteKey:(kiteName, correlationName)->
     "~#{kiteName}~#{correlationName}"
 
   getKite:(kiteName, correlationName)->
-    key = getKiteKey kiteName, correlationName
+    key = @getKiteKey kiteName, correlationName
     kite = @kiteInstances[key]
     return kite  if kite?
     kite = @createKite kiteName, correlationName, key

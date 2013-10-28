@@ -6,7 +6,7 @@ class NewKite extends KDEventEmitter
 
   constructor: (options)->
     super
-    { @addr, @kiteName, @correlationName, @kiteKey } = options
+    { @addr, @kiteName, @token, @correlationName, @kiteKey } = options
     @localStore   = new Store
     @remoteStore  = new Store
     @tokenStore = {}
@@ -14,7 +14,7 @@ class NewKite extends KDEventEmitter
     @readyState = NOTREADY
     @kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
     @addr or= ""
-    @token = ""
+    @token or= ""
     @initBackoff options  if @autoReconnect
     @connect()
 
@@ -34,6 +34,7 @@ class NewKite extends KDEventEmitter
     @ws.onerror   = @bound 'onError'
 
   getKiteAddr:(connect=false)->
+    log "#{@kiteName} no addr available. making request to kontrol"
     requestData =
       username   : "#{KD.nick()}"
       remoteKite : @kiteName
@@ -73,8 +74,9 @@ class NewKite extends KDEventEmitter
     # log "#{@kiteName}: disconnected, trying to reconnect"
     @emit 'KiteDisconnected', @kiteName
     @readyState = CLOSED
-    if @autoReconnect
-      KD.utils.defer => @setBackoffTimeout @bound "connect"
+    # enable below to autoReconnect when the socket has been closed
+    # if @autoReconnect
+    #   KD.utils.defer => @setBackoffTimeout @bound "connect"
 
   onMessage: (evt) ->
     try

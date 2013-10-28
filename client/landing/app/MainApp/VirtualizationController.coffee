@@ -261,7 +261,7 @@ class VirtualizationController extends KDController
 
   fetchDiskUsage:(vmName, callback = noop)->
     if vmName is "local-#{KD.whoami().profile.nickname}"
-      @info vmName, (err, vm, info)->
+      @kc.run options, (err, info) =>
         if err or info.state isnt "RUNNING" then [max, current] = [0, 0]
         else [max, current] = [info.diskTotal, info.diskUsage]
         warn err  if err
