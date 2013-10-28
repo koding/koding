@@ -88,7 +88,8 @@ class BookView extends JView
       if BookView.navigateNewPages
         BookView.navigateNewPages = no
         BookView.lastIndex = 0
-        @getStorage().setValue "lastReadVersion", @getVersion()
+
+      @getStorage().setValue "lastReadVersion", @getVersion()
 
     @once "OverlayWillBeRemoved", =>
       if @pointer then @destroyPointer()
