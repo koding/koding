@@ -15,8 +15,6 @@ class GroupProductSettingsView extends JView
         {{> @list}}
         """
 
-    @forwardEvent @productsView, 'DeleteRequested', 'Product'
-
     @productsView.on 'CreateRequested', =>
       @showCreateModal
         productType     : 'product'
@@ -26,7 +24,7 @@ class GroupProductSettingsView extends JView
 
     @plansView = new GroupProductSectionView
       category  : 'plan'
-      itemClass : GroupProductListItem
+      itemClass : GroupPlanListItem
       pistachio :
         """
         <h2>Plans</h2>
@@ -45,6 +43,12 @@ class GroupProductSettingsView extends JView
         placeholders    :
           title         : 'e.g. "Gold Plan"'
           description   : 'e.g. "2 VMs, and a tee shirt"'
+
+    ['product', 'plan'].forEach (category) =>
+      @forwardEvents @["#{category}sView"], [
+        'DeleteRequested'
+        'BuyerReportRequested'
+      ], category.capitalize()
 
   showCreateModal: (options) ->
 
