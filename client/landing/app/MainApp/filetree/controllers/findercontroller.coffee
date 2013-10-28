@@ -47,24 +47,35 @@ class NFinderController extends KDViewController
       @mountFSKite kitename
       kc.once "KiteDisconnected", => @unmountFSKite kitename
 
+    NewKite.getKites "fs", (err, kites)->
+      if err then log err
+      else
+        for kite in kites
+          correlationName = "local-#{KD.nick()}"
+          key = kc.getKiteKey kite.kitename, correlationName
+          kiteInstance = kc.createNewKite kite
+          kc.kiteInstances[key] = kiteInstance
+
   watchers: {}
 
   mountFSKite:(kitename)->
     log "FinderController: Mounting", kitename
-    if kitename is "fs"
+    unless kitename is "fs"
+      return
 
-      vmName = "local-#{KD.nick()}"
+    vmName = "local-#{KD.nick()}"
 
-      options =
-        kiteName        : "fs"
-        method          : "vm.info"
-        correlationName : vmName
+    options =
+      kiteName        : "fs"
+      method          : "vm.info"
+      correlationName : vmName
 
-      kc = KD.getSingleton("kiteController")
-      kc.run options, (err, info) =>
-        if err then log err
-        path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
+    kc = KD.getSingleton("kiteController")
+    kc.run options, (err, info) =>
+      if err then log err
+      path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
 
+      KD.utils.wait 1000, =>
         @vms.push FSHelper.createFile
           name   : "#{path}"
           path   : "[#{vmName}]#{path}"

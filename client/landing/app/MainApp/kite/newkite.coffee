@@ -4,6 +4,8 @@ class NewKite extends KDEventEmitter
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
+  kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
+
   constructor: (options)->
     super
     { @addr, @kitename, @token, @correlationName, @kiteKey } = options
@@ -12,7 +14,6 @@ class NewKite extends KDEventEmitter
     @tokenStore = {}
     @autoReconnect = true
     @readyState = NOTREADY
-    @kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
     @addr or= ""
     @token or= ""
     @initBackoff options  if @autoReconnect
@@ -33,31 +34,37 @@ class NewKite extends KDEventEmitter
     @ws.onmessage = @bound 'onMessage'
     @ws.onerror   = @bound 'onError'
 
-  getKiteAddr:(connect=false)->
-    # log "#{@kitename} no addr available. making request to kontrol"
-    requestData =
-      username   : "#{KD.nick()}"
-      remoteKite : @kitename
-      sessionID  : KD.remote.getSessionToken()
-
-    # $.ajax was used here... added if we want to replace the following in the future
-    xhr = new XMLHttpRequest
-    xhr.open "POST", @kontrolEndpoint, yes
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-    xhr.send JSON.stringify requestData
-    xhr.onload = =>
-      if xhr.status is 200
-        data = JSON.parse xhr.responseText
+  getKiteAddr : (connect=false)->
+    @getKites kitename, (err, data) ->
+      if err
+        log "kontrol request error", xhr.responseText
+        # Make a request again if we could not get the addres, use backoff for that
+        KD.utils.defer => @setBackoffTimeout =>
+          @getKiteAddr true
+      else
         @token = data[0].token
         @addr = data[0].addr
 
         # this should be optional
         @connectDirectly() if connect
+
+  @getKites: (kitename, callback)->
+    requestData =
+      username   : "#{KD.nick()}"
+      remoteKite : kitename
+      sessionID  : KD.remote.getSessionToken()
+
+    xhr = new XMLHttpRequest
+    xhr.open "POST", kontrolEndpoint, yes
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+    xhr.send JSON.stringify requestData
+    xhr.onload = =>
+      if xhr.status is 200
+        data = JSON.parse xhr.responseText
+        callback null, data
       else
         log "kontrol request error", xhr.responseText
-        # Make a request again if we could not get the addres, use backoff for that
-        KD.utils.defer => @setBackoffTimeout =>
-          @getKiteAddr true
+        callback xhr.responseText, null
 
   disconnect:(reconnect=true)->
     @autoReconnect = !!reconnect  if reconnect?
