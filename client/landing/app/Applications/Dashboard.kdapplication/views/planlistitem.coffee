@@ -5,8 +5,8 @@ class GroupPlanListItem extends GroupProductListItem
   prepareData: ->
     product = @getData()
 
-    title     = product.title
-    price     = (product.feeMonthly / 100).toFixed(2)
+    title = product.title
+    price = (product.feeAmount / 100).toFixed(2)
 
     subscriptionType =
       if product.subscriptionType is 'single'
@@ -24,5 +24,6 @@ class GroupPlanListItem extends GroupProductListItem
     {{> @embedButton}}
     {{> @deleteButton}}
     {{> @clientsButton}}
+    {{> @editButton}}
     {{> @embedView}}
     """
