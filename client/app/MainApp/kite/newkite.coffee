@@ -6,7 +6,7 @@ class NewKite extends KDEventEmitter
 
   constructor: (options)->
     super
-    { @addr, @kiteName, @token, @correlationName, @kiteKey } = options
+    { @addr, @kitename, @token, @correlationName, @kiteKey } = options
     @localStore   = new Store
     @remoteStore  = new Store
     @tokenStore = {}
@@ -26,7 +26,7 @@ class NewKite extends KDEventEmitter
   bound: Bongo.bound
 
   connectDirectly:->
-    # log "trying to connect to #{@addr}"
+    log "trying to connect to #{@addr}"
     @ws = new WebSocket "ws://#{@addr}/sock"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
@@ -34,10 +34,10 @@ class NewKite extends KDEventEmitter
     @ws.onerror   = @bound 'onError'
 
   getKiteAddr:(connect=false)->
-    log "#{@kiteName} no addr available. making request to kontrol"
+    # log "#{@kitename} no addr available. making request to kontrol"
     requestData =
       username   : "#{KD.nick()}"
-      remoteKite : @kiteName
+      remoteKite : @kitename
       sessionID  : KD.remote.getSessionToken()
 
     # $.ajax was used here... added if we want to replace the following in the future
@@ -64,16 +64,16 @@ class NewKite extends KDEventEmitter
     @ws.close()
 
   onOpen:->
-    log "I'm connected to #{@kiteName} at #{@addr}. Yayyy!"
+    # log "I'm connected to #{@kitename} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
-    @emit 'KiteConnected', @kiteName
+    @emit 'KiteConnected', @kitename
     @emit 'ready'
 
   onClose: (evt) ->
-    # log "#{@kiteName}: disconnected, trying to reconnect"
-    @emit 'KiteDisconnected', @kiteName
+    # log "#{@kitename}: disconnected, trying to reconnect"
     @readyState = CLOSED
+    @emit 'KiteDisconnected', @kitename
     # enable below to autoReconnect when the socket has been closed
     # if @autoReconnect
     #   KD.utils.defer => @setBackoffTimeout @bound "connect"
@@ -98,7 +98,7 @@ class NewKite extends KDEventEmitter
 
 
   onError: (evt) ->
-    # log "#{@kiteName}: error #{evt.data}"
+    # log "#{@kitename}: error #{evt.data}"
 
   handlePing: ->
     @send JSON.stringify
