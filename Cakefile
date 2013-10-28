@@ -456,7 +456,7 @@ task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite"
   console.log "Running Graphite feeder"
   processes.spawn
     name    : 'graphiteFeeder'
-    cmd     : "./go/bin/graphite_feeder -c #{configFile}"
+    cmd     : "./go/bin/graphitefeeder -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
