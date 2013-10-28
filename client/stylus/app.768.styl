@@ -5,12 +5,90 @@
   #kdmaincontainer.home > header
     bg              position, 50% -211px
 
+  div#home-intro
+    .slogan
+      font-size     45px    !important
+
+  section#slider-section
+    .home-slider
+      .wrapper
+        padding-top   50px  !important
+      h3
+        font-size   52px    !important
+        text-align  center  !important
+      p
+        font-size   32px    !important
+        text-align  center  !important
+      figure
+        display     none    !important
+
   .member-item
     footer
       button
         margin-bottom 10px
       .followers
         margin-bottom 10px
+
+  .content-area-pane.home
+    // min-width                 850px
+
+    .content-page.home
+      min-width             768px
+
+      .slide
+        .introtext
+          width             90%
+          margin            65px auto 0 auto
+          min-width         90%
+          max-width         1024px
+        .mainleft
+          margin-right      290px
+          h1
+            margin-bottom   20px
+            font-size       40px
+            letter-spacing  -1px
+            line-height     46px
+          p
+            line-height     22px
+            font-size       15px
+
+        .mainright
+          width             250px
+          .mainlink
+            font-size       26px
+            height          60px
+            line-height     60px
+            padding         0
+            text-indent     25px
+            &.magic
+              margin-top    -60px
+              &.anim
+                width       250px
+
+      .widget-holder
+        max-width             1024px
+        height                600px
+        width                 94%
+        margin                0 auto
+        shadow                0 0 20px rgba(0, 0, 0, 0.19)
+        section
+          size                100%,auto
+          min-width           100%
+          max-width           100%
+          border-bottom       4px solid #999
+          shadow              none
+
+        aside
+          abs()
+          size                50%,auto
+          min-width           50%
+          max-width           50%
+          top                 300px
+          border-left         1px solid #CCCCCC
+          borderBox()
+          &:last-child
+            right             0
+            border-right      1px solid #CCCCCC
 
   .kdview.login-screen.home
     .flex-wrapper
