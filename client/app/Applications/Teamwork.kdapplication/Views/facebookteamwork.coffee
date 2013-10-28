@@ -102,10 +102,12 @@ class FacebookTeamwork extends TeamworkWorkspace
 
   exampleItemMarkup: (title, description) ->
     """
-      <div class="example">
-        <h3>#{title}</h3>
-        <p>#{description}</p>
-      </div>
+      <a href="https://#{KD.nick()}.kd.io/Teamwork/Facebook/#{title}/index.html">
+        <div class="example">
+          <h3>#{title}</h3>
+          <p>#{description}</p>
+        </div>
+      </a>
     """
 
   examplesPageMarkup: (examplesMarkup) ->
@@ -113,16 +115,11 @@ class FacebookTeamwork extends TeamworkWorkspace
       <html>
         <head>
           <title>Facebook App Examples</title>
+          <link rel="stylesheet" type="text/css" href="https://koding-cdn.s3.amazonaws.com/teamwork/tw-fb.css" />
         </head>
         <body>
-          <div id="tw-fb-container">
-            <div id="header">
-              <img src="/images/teamwork/environments/facebook-text-big.png" />
-              <p>Facebook</p>
-            </div>
-            <div class="examples">
-              #{examplesMarkup}
-            </div>
+          <div class="examples">
+            #{examplesMarkup}
           </div>
         </body>
       </html>
