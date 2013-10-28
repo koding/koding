@@ -1269,9 +1269,12 @@ module.exports = class JGroup extends Module
         contents.actorType    = event
         contents[event]       = contents.member
 
-        for admin in admins
+        next = -> queue.next()
+        queue = admins.map (admin) =>=>
           contents.recipient = admin
-          @notify admin, event, contents
+          @notify admin, event, contents, next
+        
+        daisy queue
 
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
