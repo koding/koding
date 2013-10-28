@@ -1,6 +1,6 @@
 CBucket = require '../index'
 
-module.exports = class CGroupLefteeBucket extends CBucket
+module.exports = class CGroupLeaveeBucket extends CBucket
 
   @share()
 
