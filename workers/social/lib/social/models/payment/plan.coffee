@@ -85,11 +85,16 @@ module.exports = class JPaymentPlan extends jraphical.Module
       @create client.context.group, formData, callback
 
   @removeByCode = (code, callback) ->
-    console.log { code }
-    callback message: 'needs to be implemented'
+    @one { code }, (err, plan) ->
+      return callback err  if err
+
+      unless plan?
+        return callback { message: 'Unrecognized plan code', code }
+
+      plan.remove callback
 
   @removeByCode$ = permit 'manage products',
-    success: (client, code, callback) -> @removeByCode formData, callback
+    success: (client, code, callback) -> @removeByCode code, callback
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
     console.error 'needs to be reimplemented'
@@ -107,6 +112,19 @@ module.exports = class JPaymentPlan extends jraphical.Module
     JPayment.invalidateCacheAndLoad this, selector, force, callback
 
   @fetchPlanByCode = (code, callback) -> @one { code }, callback
+
+  remove: (callback) ->
+    { code } = this
+    super (err) ->
+      if err
+        callback err
+      else if code?
+        recurly.deletePlan { code }, callback
+      else
+        callback null
+
+  remove$: permit 'manage products',
+    success: (client, callback) -> @remove callback
 
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @code, callback
