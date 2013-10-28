@@ -104,6 +104,11 @@ func ReadVersion() string {
 		slog.Println(err)
 	}
 
+	if file == nil {
+		slog.Println("Setting default version to 0.0.1")
+		return "0.0.1"
+	}
+
 	return strings.TrimSpace(string(file))
 }
 
