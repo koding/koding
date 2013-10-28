@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"koding/db/mongodb"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
@@ -16,24 +17,26 @@ type S3 struct {
 	uploadsBucket *s3utils.Bucket
 }
 
+var port = flag.String("port", "2002", "port to bind itself.")
+
 func main() {
-	o := &protocol.Options{
-		Username: "huseyin",
-		Kitename: "s3-local",
+	options := &protocol.Options{
+		Kitename: "s3",
 		Version:  "1",
-		Port:     "4005",
+		Port:     *port,
 	}
 
-	methods := map[string]interface{}{
-		"s3.store":  S3.Store,
-		"s3.delete": S3.Delete,
+	methods := map[string]string{
+		"s3.store":  "Store",
+		"s3.delete": "Delete",
 	}
 
 	s := &S3{
 		uploadsBucket: s3utils.NewBucket("koding-uploads"), // TODO: read bucket from config
 	}
 
-	k := kite.New(o, s, methods)
+	k := kite.New(options)
+	k.AddMethods(s, methods)
 	k.Start()
 }
 
@@ -56,6 +59,7 @@ func (s S3) Store(r *protocol.KiteDnodeRequest, result *bool) error {
 	if err != nil {
 		return err
 	}
+
 	listResult, err := s.uploadsBucket.List(userId.Hex()+"/", "", "", 10)
 	if err != nil {
 		return err
