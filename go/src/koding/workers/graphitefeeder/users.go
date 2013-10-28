@@ -10,12 +10,12 @@ import (
 func init() {
 	registerAnalytic(numberOfAccounts)
 	registerAnalytic(numberOfUsersWhoLinkedOauth)
-	registerAnalytic(numberOfEmailsImportedFromGoogle)
+	registerAnalytic(numberOfReferrableEmails)
 	registerAnalytic(numberOfInvitesSent)
 	registerAnalytic(numberOfUsersWhoJoinedToday)
 	registerAnalytic(numberOfGuestAccountsCreatedToday)
 	registerAnalytic(numberOfUsersWhoDeletedTheirAccount)
-	registerAnalytic(numberOfUsersWhoPostedContentToday)
+	registerAnalytic(numberOfUsersWhoDidASocialActivityToday)
 	// commenting this out till persistence worker is fixed
 	//registerAnalytic(numberOfUsersWhoAreOnline)
 	registerAnalytic(numberOfUsersWhoLoggedInToday)
@@ -27,7 +27,8 @@ func numberOfAccounts() (string, int) {
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
-		count, err = c.Count()
+		var filter = bson.M{"type": "registered"}
+		count, err = c.Find(filter).Count()
 
 		return err
 	}
@@ -52,12 +53,12 @@ func numberOfUsersWhoLinkedOauth() (string, int) {
 	return identifier, count
 }
 
-func numberOfEmailsImportedFromGoogle() (string, int) {
-	var identifier string = "number_of_emails_imported_from_google"
+func numberOfReferrableEmails() (string, int) {
+	var identifier string = "number_of_referrable_emails"
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
-		count, err = c.Find(nil).Count()
+		count, err = c.Count()
 
 		return err
 	}
@@ -133,8 +134,8 @@ func numberOfUsersWhoDeletedTheirAccount() (string, int) {
 	return identifier, count
 }
 
-func numberOfUsersWhoPostedContentToday() (string, int) {
-	var identifier string = "number_of_users_who_posted_content_today"
+func numberOfUsersWhoDidASocialActivityToday() (string, int) {
+	var identifier string = "number_of_users_who_did_a_social_activity_today"
 	var count int
 	var err error
 	var query = func(c *mgo.Collection) error {
