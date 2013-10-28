@@ -13,6 +13,8 @@ type Publisher struct {
 	// Modifier operations on this type is made by registrar() function.
 	filters *Filters
 
+	auth Authenticator
+
 	websocket.Server // implements http.Handler interface
 }
 
@@ -20,11 +22,16 @@ type Publisher struct {
 // Hoping that it is unique enough to not collide with another key.
 const all = "4658f005d49885355f4e771ed9dace10cca9563e"
 
+type Authenticator interface {
+	Authenticate(userName, kodingKey string) bool
+}
+
 // NewPublisher creates a new Publisher and returns a pointer to it.  The
 // publisher will listen on addr and accept websocket connections from
 // Subscribers.
-func NewPublisher() *Publisher {
+func NewPublisher(auth Authenticator) *Publisher {
 	p := &Publisher{
+		auth:    auth,
 		filters: NewFilters(),
 		Server:  websocket.Server{},
 	}
@@ -55,9 +62,10 @@ func (p *Publisher) Broadcast(message []byte) {
 
 func (p *Publisher) handleWebsocketConn(ws *websocket.Conn) {
 	c := &connection{
-		ws:   ws,
-		send: make(chan []byte, 256),
-		keys: make(map[string]bool),
+		ws:        ws,
+		publisher: p,
+		send:      make(chan []byte, 256),
+		keys:      make(map[string]bool),
 	}
 
 	p.filters.Add(c, all)
@@ -67,12 +75,13 @@ func (p *Publisher) handleWebsocketConn(ws *websocket.Conn) {
 	}()
 
 	go c.writer()
-	c.reader(p.filters)
+	c.reader()
 }
 
 // connection represents a connected Subscriber in Publisher.
 type connection struct {
-	ws *websocket.Conn
+	ws        *websocket.Conn
+	publisher *Publisher
 
 	// Buffered channel of outbount messages
 	send chan []byte
@@ -83,7 +92,7 @@ type connection struct {
 
 // reader reads the subscription requests from websocket and saves it in a map
 // for accessing later.
-func (c *connection) reader(filters *Filters) {
+func (c *connection) reader() {
 	for {
 		var cmd subscriberCommand
 		err := websocket.JSON.Receive(c.ws, &cmd)
@@ -92,13 +101,19 @@ func (c *connection) reader(filters *Filters) {
 			break
 		}
 
+		// We are requiring the credentials to be sent every request because
+		// The password might be expired after the connection is opened.
+		if c.publisher.auth != nil && !c.publisher.auth.Authenticate(cmd.Auth.Username, cmd.Auth.Password) {
+			break
+		}
+
 		// log.Printf("reader: Received a command from websocket: %+v\n", cmd)
 		if cmd.Name == "subscribe" {
 			key := cmd.Args["key"].(string)
-			filters.Add(c, key)
+			c.publisher.filters.Add(c, key)
 		} else if cmd.Name == "unsubscribe" {
 			key := cmd.Args["key"].(string)
-			filters.Remove(c, key)
+			c.publisher.filters.Remove(c, key)
 		} else {
 			log.Println("Unknown command, dropping client")
 			break
