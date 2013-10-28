@@ -61,6 +61,7 @@ class TeamworkApp extends KDObject
       width     : 600
 
     modal.addSubView new TeamworkTools { modal, panel, workspace, twApp: this }
+    @emit "TeamworkToolsModalIsReady", modal
 
   showImportWarning: (url, callback = noop) ->
     @importModal?.destroy()
