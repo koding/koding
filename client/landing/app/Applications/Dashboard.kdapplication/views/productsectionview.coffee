@@ -1,8 +1,6 @@
 class GroupProductSectionView extends JView
 
   viewAppended: ->
-    group = @getData()
-
     { category, itemClass } = @getOptions()
 
     @setClass "payment-settings-view"
