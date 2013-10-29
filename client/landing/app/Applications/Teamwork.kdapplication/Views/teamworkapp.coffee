@@ -137,7 +137,7 @@ class TeamworkApp extends KDObject
       content                 : @teamwork.markdownContent
       targetEl                : @teamwork.getActivePanel().headerHint
 
-  handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url, callback) ->
+  handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url, callback = noop) ->
     vmController.run "rm -rf #{root}/#{folderName} ; mv #{path}/#{folderName} #{root}", (err, res) =>
       return warn err if err
       modal.destroy()
