@@ -34,9 +34,11 @@ class MainViewController extends KDViewController
     cdController.emit "ContentDisplaysShouldBeHidden"
     {mainTabView}   = mainView
 
+    # temp fix
+    # until fixing the original issue w/ the dnd this should be kept here
     if pane
     then @setViewState pane.getOptions()
-    else mainTabView.getActivePane().unsetClass "kdhiddentab"
+    else mainTabView.getActivePane().show()
 
     {title} = app.getOption('navItem')
 
