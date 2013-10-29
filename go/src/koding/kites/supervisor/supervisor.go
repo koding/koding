@@ -1,7 +1,11 @@
+// +build linux
+
 package main
 
 import (
+	"errors"
 	"flag"
+	"github.com/caglar10ur/lxc"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 )
@@ -32,8 +36,61 @@ func main() {
 	k.Start()
 }
 
-func (Supervisor) Create(r *protocol.KiteDnodeRequest, result *bool) error  { return nil }
-func (Supervisor) Destroy(r *protocol.KiteDnodeRequest, result *bool) error { return nil }
-func (Supervisor) Start(r *protocol.KiteDnodeRequest, result *bool) error   { return nil }
-func (Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error    { return nil }
-func (Supervisor) Exec(r *protocol.KiteDnodeRequest, result *bool) error    { return nil }
+func (s *Supervisor) Create(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		ContainerName string
+		Template      string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	err := s.lxcCreate(params.ContainerName, params.Template)
+	if err != nil {
+		return err
+	}
+
+	*result = true
+	return nil
+}
+
+func (s *Supervisor) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	err := s.lxcDestroy(params.ContainerName)
+	if err != nil {
+		return err
+	}
+
+	*result = true
+	return nil
+}
+
+func (s *Supervisor) Start(r *protocol.KiteDnodeRequest, result *bool) error {
+	return nil
+}
+
+func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
+	return nil
+}
+
+func (s *Supervisor) Exec(r *protocol.KiteDnodeRequest, result *bool) error {
+	return nil
+}
+
+func (s *Supervisor) lxcCreate(containerName, template string) error {
+	c := lxc.NewContainer(containerName)
+	return c.Create(template)
+}
+
+func (s *Supervisor) lxcDestroy(containerName string) error {
+	c := lxc.NewContainer(containerName)
+	return c.Destroy()
+}
