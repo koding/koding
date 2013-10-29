@@ -89,14 +89,25 @@ func (s *Supervisor) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 		return err
 	}
 
-	fmt.Println("no err")
-
 	*result = true
-
 	return nil
 }
 
 func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	err := s.lxcStop(params.ContainerName)
+	if err != nil {
+		return err
+	}
+
+	*result = true
 	return nil
 }
 
@@ -105,8 +116,9 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
 		ContainerName string
 		Command       string
 	}
-	if r.Args.Unmarshal(&params) != nil {
-		return errors.New("excepted [string]")
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Command == "" {
+		return errors.New("{ containerName: [string], command : [string]}")
 	}
 
 	err := s.lxcRun(params.ContainerName, params.Command)
@@ -123,16 +135,10 @@ func (s *Supervisor) lxcRun(containerName, command string) error {
 	c := lxc.NewContainer(containerName)
 	defer lxc.PutContainer(c)
 
-	fmt.Printf("AttachRunShell\n")
-	if err := c.AttachRunShell(); err != nil {
-		fmt.Errorf("ERROR: %s\n", err.Error())
-	}
+	args := strings.Split(strings.TrimSpace(command), " ")
 
-	args := strings.Split(command, " ")
-
-	fmt.Printf("AttachRunCommand\n", args)
 	if err := c.AttachRunCommand(args...); err != nil {
-		fmt.Errorf("ERROR: %s\n", err.Error())
+		return fmt.Errorf("ERROR: %s\n", err.Error())
 	}
 
 	return nil
@@ -146,12 +152,26 @@ func (s *Supervisor) lxcStart(containerName string) error {
 
 	err := c.SetDaemonize()
 	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err.Error())
+		return fmt.Errorf("ERROR: %s\n", err)
 	}
 
 	err = c.Start(false)
 	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err.Error())
+		return fmt.Errorf("ERROR: %s\n", err)
+	}
+
+	return nil
+}
+
+func (s *Supervisor) lxcStop(containerName string) error {
+	fmt.Println("stopping ", containerName)
+
+	c := lxc.NewContainer(containerName)
+	defer lxc.PutContainer(c)
+
+	err := c.Stop()
+	if err != nil {
+		return fmt.Errorf("ERROR: %s\n", err)
 	}
 
 	return nil

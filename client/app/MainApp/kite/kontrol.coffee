@@ -11,7 +11,7 @@ class Kontrol extends KDEventEmitter
     @connect()
 
   connect:->
-    @ws = new WebSocket @addr
+    @ws = new WebSocket @addr, KD.remote.getSessionToken()
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
     @ws.onmessage = @bound 'onMessage'
@@ -51,7 +51,7 @@ class Kontrol extends KDEventEmitter
       kitename : kite.kitename
       token    : kite.token
 
-    log "ADDING KITE #{kite.kitename} with key #{key}"
+    # log "ADDING KITE #{kite.kitename} with key #{key}"
     kc.kiteInstances[key] = kiteInstance
 
   removeKite: (kitename) ->
@@ -59,7 +59,7 @@ class Kontrol extends KDEventEmitter
     correlationName = "local-#{KD.nick()}"
     key = kc.getKiteKey kitename, correlationName
 
-    log "REMOVING KITE #{kitename} with key #{key}"
+    # log "REMOVING KITE #{kitename} with key #{key}"
     delete kc.kiteInstances[key]
 
   onError: (evt) ->
