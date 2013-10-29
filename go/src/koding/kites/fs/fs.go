@@ -29,7 +29,6 @@ var (
 func main() {
 	flag.Parse()
 	options := &protocol.Options{
-		PublicIP: "localhost",
 		Kitename: "fs",
 		Version:  "0.0.1",
 		Port:     *port,

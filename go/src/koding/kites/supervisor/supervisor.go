@@ -105,8 +105,9 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
 		ContainerName string
 		Command       string
 	}
-	if r.Args.Unmarshal(&params) != nil {
-		return errors.New("excepted [string]")
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Command == "" {
+		return errors.New("{ containerName: [string], command : [string]}")
 	}
 
 	err := s.lxcRun(params.ContainerName, params.Command)
@@ -123,15 +124,12 @@ func (s *Supervisor) lxcRun(containerName, command string) error {
 	c := lxc.NewContainer(containerName)
 	defer lxc.PutContainer(c)
 
-	fmt.Printf("AttachRunShell\n")
-	if err := c.AttachRunShell(); err != nil {
-		fmt.Errorf("ERROR: %s\n", err.Error())
-	}
+	args := strings.Split(strings.TrimSpace(command), " ")
 
-	args := strings.Split(command, " ")
+	escapeArgs := []string{"--"}
+	escapeArgs = append(escapeArgs, args...)
 
-	fmt.Printf("AttachRunCommand\n", args)
-	if err := c.AttachRunCommand(args...); err != nil {
+	if err := c.AttachRunCommand(escapeArgs...); err != nil {
 		fmt.Errorf("ERROR: %s\n", err.Error())
 	}
 
