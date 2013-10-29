@@ -55,7 +55,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
-      @showInstructionsBookIfNeeded()
+      @showInstructionsBook()
       @emit 'AppIsReady'
 
       console.timeEnd "Koding.com loaded"
@@ -73,7 +73,6 @@ class MainController extends KDController
 
       @createMainViewController()  unless @mainViewController
 
-      @decorateBodyTag()
       @emit 'ready'
 
       # this emits following events
@@ -136,29 +135,21 @@ class MainController extends KDController
 
 
 
-  # some day we'll have this :)
-  hashDidChange:(params,query)->
-
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
 
   isUserLoggedIn: -> KD.isLoggedIn()
 
-  showInstructionsBookIfNeeded:->
+  showInstructionsBook:->
     if $.cookie 'newRegister'
       @emit "ShowInstructionsBook", 9
       $.cookie 'newRegister', erase: yes
     else if @isUserLoggedIn()
       BookView::getNewPages (pages)=>
-        if pages.length
-          BookView.navigateNewPages = yes
-          @emit "ShowInstructionsBook", pages.first.index
-
-  decorateBodyTag:->
-    if KD.checkFlag 'super-admin'
-    then $('body').addClass 'super'
-    else $('body').removeClass 'super'
+        return unless pages.length
+        BookView.navigateNewPages = yes
+        @emit "ShowInstructionsBook", pages.first.index
 
   setFailTimer: do->
     modal = null
