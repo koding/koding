@@ -29,7 +29,10 @@ module.exports = class JPaymentProduct extends Module
         default       : 'recurring'
       feeAmount       :
         type          : Number
-        required      : yes
+        validate      : [
+          'invalid fee amount'
+          (value) -> not value? or value >= 0
+        ]
       feeInterval     :
         type          : Number
         default       : 1
@@ -46,6 +49,9 @@ module.exports = class JPaymentProduct extends Module
       soldAlone       :
         type          : Boolean
         default       : no
+      priceIsVolatile :
+        type          : Boolean
+        default       : no
       planCode        : String
       group           : String
 
@@ -53,25 +59,28 @@ module.exports = class JPaymentProduct extends Module
 
     JGroup = require '../group'
 
-    { subscriptionType, overageEnabled, title, description,
-      feeAmount, feeUnit, feeInterval } = formData
+    { subscriptionType, overageEnabled, soldAlone,
+      priceIsVolatile, title, description, feeAmount,
+      feeUnit, feeInterval } = formData
 
     product = new this {
+      planCode: createId()
       title
       description
       feeAmount
       feeUnit
       feeInterval
       subscriptionType
-      planCode          : createId()
-      overageEnabled    : overageEnabled is 'on'
+      priceIsVolatile
+      overageEnabled
+      soldAlone
       group
     }
 
     product.save (err) =>
       return callback err  if err
 
-      @savePlanToRecurly product, (err, plan) ->
+      product.savePlanToRecurly (err, plan) ->
         return callback err  if err
 
         JGroup.one slug: group, (err, group) ->
@@ -86,14 +95,14 @@ module.exports = class JPaymentProduct extends Module
     success: (client, formData, callback) ->
       @create client.context.group, formData, callback
 
-  @savePlanToRecurly = (product, callback) ->
-    if product.overageEnabled or product.soldAlone
+  savePlanToRecurly: (callback) ->
+    if not @priceIsVolatile and @overageEnabled or @soldAlone
 
       planData =
-        code        : product.planCode
+        code        : @planCode
         title       : "#{ product.title } - Overage"
-        feeAmount   : product.feeAmount
-        feeInterval : switch product.subscriptionType
+        feeAmount   : @feeAmount
+        feeInterval : switch @subscriptionType
           when 'recurring' then 1
           when 'single'    then 9999 # wat
 
