@@ -2,12 +2,12 @@ class GroupProductEditForm extends KDFormViewWithFields
 
   constructor: (options = {}, data = {}) ->
 
-    @model = data  if data.planCode
+    model = data  if data.planCode
 
     options.isRecurOptional ?= yes
 
     options.callback ?= =>
-      @emit 'SaveRequested', @model, @getProductData()
+      @emit 'SaveRequested', model, @getProductData()
 
     options.buttons ?=
       Save        :
@@ -70,6 +70,15 @@ class GroupProductEditForm extends KDFormViewWithFields
           partial     : "/ #{ data.subscriptionType ? 'mo' }"
           cssClass    : 'fr'
 
+    if options.showPriceIsVolatile
+      options.fields.priceIsVolatile =
+        label         : "Price is volatile"
+        itemClass     : KDOnOffSwitch
+        defaultValue  : data.priceIsVolatile
+        callback      : =>
+          enabled = @inputs.priceIsVolatile.getValue()
+          do @fields.feeAmount[if enabled then 'hide' else 'show']
+
     if options.showOverage
       options.fields.overageEnabled =
         label         : "Overage enabled"
@@ -84,7 +93,9 @@ class GroupProductEditForm extends KDFormViewWithFields
 
     super options, data
 
-  getPlanInfo: (subscriptionType) ->
+    @fields.feeAmount.hide()  if data.priceIsVolatile
+
+  getPlanInfo: (subscriptionType = @inputs.subscriptionType?.getValue()) ->
     feeUnit     : 'months'
     feeInterval : switch subscriptionType
       when 'mo'     then 1
@@ -96,18 +107,29 @@ class GroupProductEditForm extends KDFormViewWithFields
     subscriptionType: subscriptionType
 
   getProductData: ->
-    { feeAmount, title, description, subscriptionType: subType } = @inputs
+    do (i = @inputs) =>
+      title           = i.title.getValue()
+      description     = i.description.getValue()
+      overageEnabled  = i.overageEnabled.getValue()
+      soldAlone       = i.soldAlone.getValue()
+      priceIsVolatile = i.priceIsVolatile.getValue()
+      feeAmount       =
+        unless priceIsVolatile
+        then i.feeAmount.getValue() * 100
 
-    { subscriptionType, feeUnit, feeInterval } = @getPlanInfo subType.getValue()
+      { subscriptionType, feeUnit, feeInterval } = @getPlanInfo()
 
-    {
-      title             : title.getValue()
-      description       : description.getValue()
-      feeAmount         : feeAmount.getValue() * 100
-      feeUnit
-      feeInterval
-      subscriptionType
-    }
+      {
+        title         : i.title.getValue()
+        description   : i.description.getValue()
+        feeAmount
+        feeUnit
+        feeInterval
+        subscriptionType
+        overageEnabled
+        soldAlone
+        priceIsVolatile
+      }
 
   handleSubscriptionType: ->
     subscriptionType = @inputs.subscriptionType.getValue()
