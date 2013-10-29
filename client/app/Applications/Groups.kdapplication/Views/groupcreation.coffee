@@ -338,8 +338,8 @@ class GroupCreationModal extends KDModalView
 
     if formData["shared-vm"]
       formData.payment =
-        # plan: @plans[formData.host].code
-        plan: @plans[0].code
+        # plan: @plans[formData.host].planCode
+        plan: @plans[0].planCode
 
     log "form for group creation submitted", formData
 

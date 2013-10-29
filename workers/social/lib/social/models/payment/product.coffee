@@ -99,7 +99,7 @@ module.exports = class JPaymentProduct extends Module
     if not @priceIsVolatile and @overageEnabled or @soldAlone
 
       planData =
-        code        : @planCode
+        planCode    : @planCode
         title       : "#{ product.title } - Overage"
         feeAmount   : @feeAmount
         feeInterval : switch @subscriptionType
@@ -123,12 +123,12 @@ module.exports = class JPaymentProduct extends Module
     success: (client, planCode, callback) -> @removeByCode planCode, callback
 
   remove: (callback) ->
-    { planCode: code, overageEnabled } = this
+    { planCode, overageEnabled } = this
     super (err) ->
       if err
         callback err
       else if code? and overageEnabled
-        recurly.deletePlan { code }, callback
+        recurly.deletePlan { planCode }, callback
       else
         callback null
 

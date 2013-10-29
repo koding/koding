@@ -43,14 +43,14 @@ module.exports = class JPaymentGroup extends JPayment
   @addPlan = (group, data, callback)->
     data.feeAmount = data.price
     data.feeInitial = 0
-    data.code       = "groupplan_#{group.getId()}_#{data.name}_0"
+    data.planCode = "groupplan_#{group.getId()}_#{data.name}_0"
     # 9999 is a hack, since Recurly sucks at non-recurring payments
     data.feeInterval = if data.type is 'recurring' then 1 else 9999
 
     recurly.createPlan data, callback
 
   @deletePlan = (group, data, callback)->
-    if data.code.indexOf("groupplan_#{group.getId()}_") > -1
+    if data.planCode.indexOf("groupplan_#{group.getId()}_") > -1
       recurly.deletePlan data, callback
 
   @fetchAccount = (group, callback)->

@@ -22,7 +22,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
   @set
     indexes         :
-      code          : 'unique'
+      planCode      : 'unique'
     sharedMethods   :
       static        : [
         'create'
@@ -36,7 +36,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
         'subscribe'
       ]
     schema          :
-      code          : String
+      planCode      : String
       title         : String
       description   : Object
       feeAmount     : Number
@@ -58,10 +58,10 @@ module.exports = class JPaymentPlan extends jraphical.Module
     { title, description, feeAmount } = formData
 
     plan = new this {
+      planCode    : createId()
       title
       description
-      code        : createId()
-      feeAmount   : feeAmount * 100 # cents
+      feeAmount
       feeInitial  : 0
       feeInterval : 1
     }
@@ -84,17 +84,17 @@ module.exports = class JPaymentPlan extends jraphical.Module
     success: (client, formData, callback) ->
       @create client.context.group, formData, callback
 
-  @removeByCode = (code, callback) ->
-    @one { code }, (err, plan) ->
+  @removeByCode = (planCode, callback) ->
+    @one { planCode }, (err, plan) ->
       return callback err  if err
 
       unless plan?
-        return callback { message: 'Unrecognized plan code', code }
+        return callback { message: 'Unrecognized plan code', planCode }
 
       plan.remove callback
 
   @removeByCode$ = permit 'manage products',
-    success: (client, code, callback) -> @removeByCode code, callback
+    success: (client, planCode, callback) -> @removeByCode planCode, callback
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
     console.error 'needs to be reimplemented'
@@ -111,15 +111,15 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
     JPayment.invalidateCacheAndLoad this, selector, force, callback
 
-  @fetchPlanByCode = (code, callback) -> @one { code }, callback
+  @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
 
   remove: (callback) ->
-    { code } = this
+    { planCode } = this
     super (err) ->
       if err
         callback err
-      else if code?
-        recurly.deletePlan { code }, callback
+      else if planCode?
+        recurly.deletePlan { planCode }, callback
       else
         callback null
 
@@ -127,14 +127,14 @@ module.exports = class JPaymentPlan extends jraphical.Module
     success: (client, callback) -> @remove callback
 
   fetchToken: secure (client, data, callback) ->
-    JPaymentToken.createToken client, planCode: @code, callback
+    JPaymentToken.createToken client, planCode: @planCode, callback
 
   subscribe: (paymentMethodId, data, callback) ->
     data.multiple ?= no
 
     JPaymentSubscription.fetchAllSubscriptions {
       paymentMethodId
-      planCode  : @code
+      planCode  : @planCode
       $or       : [
         {status : 'active'}
         {status : 'canceled'}
@@ -149,7 +149,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
         recurly.updateSubscription paymentMethodId,
           quantity : quantity
-          plan     : @code
+          plan     : @planCode
           uuid     : sub.uuid
         , (err) =>
           return callback err  if err
@@ -158,7 +158,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
             then callback err
             else callback null, sub
       else
-        recurly.createSubscription paymentMethodId, plan: @code, (err, result) ->
+        recurly.createSubscription paymentMethodId, plan: @planCode, (err, result) ->
           return callback err  if err
           console.log { err, result }
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
@@ -180,7 +180,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
   fetchSubscription: secure ({ connection:{ delegate }}, callback) ->
     selector    =
       userCode  : "user_#{delegate.getId()}"
-      planCode  : @code
+      planCode  : @planCode
 
     JPaymentSubscription.one selector, callback
 
@@ -188,7 +188,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
   fetchSubscriptions: (callback) ->
     JPaymentSubscription.all
-      planCode: @code
+      planCode: @planCode
       $or: [
         { status: 'active' }
         { status: 'canceled' }
@@ -208,7 +208,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
     JPayment.updateCache(
       constructor : this
       method      : 'fetchPlans'
-      keyField    : 'code'
+      keyField    : 'planCode'
       message     : 'product cache'
       forEach     : (k, cached, plan, fin)->
         return fin()  unless k.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/

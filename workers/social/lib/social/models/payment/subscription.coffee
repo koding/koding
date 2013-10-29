@@ -48,12 +48,12 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback err      if err
       return callback null, [] unless subs
 
-      code = $in: (sub.planCode for sub in subs)
+      planCode = $in: (sub.planCode for sub in subs)
       JPaymentPlan = require './plan'
-      JPaymentPlan.some {code}, {}, (err, plans)->
+      JPaymentPlan.some { planCode }, {}, (err, plans)->
         return callback err  if err
         planMap = {}
-        planMap[plan.code] = plan         for plan in plans
+        planMap[plan.planCode] = plan         for plan in plans
         sub.plan = planMap[sub.planCode]  for sub in subs
 
         callback null, subs

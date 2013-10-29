@@ -79,8 +79,8 @@ module.exports = class JPaymentPayment extends jraphical.Module
             callback null, group, account, plan
 
   # Get plan
-  @fetchPlan = (code, callback) ->
-    JPaymentPlan.fetchPlanByCode code, (err, plan) ->
+  @fetchPlan = (planCode, callback) ->
+    JPaymentPlan.fetchPlanByCode planCode, (err, plan) ->
       if err then return callback new KodingError 'Unable to access product information. Please try again later.'
       callback null, plan
 
