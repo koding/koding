@@ -28,8 +28,12 @@ class KiteController extends KDController
   destroyKite:(kite)->
     delete @kiteInstances[kite.kiteKey]
 
-  createNewKite:(addr, kiteName, token)->
-    kite = new NewKite {addr, kiteName, token}
+  createNewKite:(options)->
+    kite = new NewKite
+      addr     : options.addr
+      kitename : options.kitename
+      token    : options.token
+
     @forwardEvent kite, "KiteDisconnected"
     @forwardEvent kite, "KiteConnected"
     return kite
@@ -37,11 +41,11 @@ class KiteController extends KDController
   createKite:(kiteName, correlationName, kiteKey)->
     switch kiteName
       when 'os-local'
-        kite = @createNewKite {kiteName: kiteName}
+        kite = @createNewKite {kitename: kiteName}
       when 'fs'
-        kite = @createNewKite {kiteName: kiteName}
+        kite = @createNewKite {kitename: kiteName}
       when 'terminal'
-        kite = @createNewKite {kiteName: kiteName}
+        kite = @createNewKite {kitename: kiteName}
       else
         kite = new Kite { kiteName, correlationName, kiteKey }
 

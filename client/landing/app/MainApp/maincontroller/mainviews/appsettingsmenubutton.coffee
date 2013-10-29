@@ -64,4 +64,5 @@ class AppSettingsMenuButton extends KDButtonView
         placement : "right"
         margin    : 5
     , menu
-    @contextMenu.setWidth @menuWidth  if @menuWidth > 172
+    @contextMenu.on "viewAppended", =>
+      @contextMenu.setWidth @menuWidth  if @menuWidth > 172

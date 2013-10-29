@@ -1,92 +1,61 @@
 @import "./kdfn"
 @import "./client/stylus/appfn"
 
-@media only screen and (max-width: 480px)
-  #kdmaincontainer.home > header
-    bg                      position, 50% -211px
-    .custom-link-view
-      right                 8px
+@media only screen and (max-width: 520px)
+  #kdmaincontainer.home
+    #main-tab-view.kdview
+      overflow              visible !important
+    > header
+      bg                    position, 50% -211px
+      .custom-link-view
+        right               8px
 
   #koding-logo.large
     left                    18px
 
   // html, body
-  //   min-width               400px
 
   div#home-intro
-    min-width               0
-    size                    100%, 690px
-    bg                      position, 50% -261px
+    // height                  680px !important
+
     section
-      padding               20px 0 0
-      max-width             48  0px
-      text-align            center
-      > div
-        width               100%
-        padding             0
-        float               none
-      > aside
-        width               300px
-        padding             32px 0 0
-        margin              0 auto
-        float               none
+      .slogan
+        font-size           32px !important
+        padding-top         150px !important
+      .sub-slogan
+        font-size           20px !important
 
-    h2.slogan
-      font-size             34px
-      margin-bottom         20px
+    .email.kdbutton
+    .github.kdbutton
+      margin                10px 0 !important
+      width                 80% !important
 
-    h3.slogan-continues
-      font-size             16px
-      margin-top            19px
-      line-height           2.2em
-      margin                0
-      span
-        padding             5px 7px
+  section#slider-section
+    .home-slider
+      nav.slider-nav
+        a.slider-navlink
+        a.slider-navlink span
+          font-size         18px   !important
 
-  #home-counter-bar
-    text-align      left
-    padding         10px 15%
+      .wrapper
+        padding-top         0px    !important
+        h3
+          text-align          center
+          margin-top          80px !important
+        p
+          text-align          center
+          font-size           24px !important
+        figure
+          display             none !important
 
-  figure.counter
-    width           100%
-    margin-right    0
-    h6.title
-      height        22px
-      line-height   22px
-      margin        0
-      font-size     10px
-    > div
-      clear         right
-      fr()
-    i
-      font-size     1.3em
-  .home-links
-    height          50px
-    margin-top      -50px
-    text-align      center
-    > ul
-      > li
-        padding     5px 0 0 5px
-        &:last-child
-          padding   5px 5px 0 5px
 
-    .custom-link-view.button
-      padding         0 7px 0 5px
-      height          30px
-      line-height     29px
-      font-size       11px
-      .icon
-        margin-top    5px
-      .title
-        font-size     12px
-    .custom-link-view
-      line-height     15px
-      &:first-child
-        padding-top   0
-      span.title
-        font-size     10px
-      span.icon
-        margin-top    -3px
+  .price-boxes
+      width                 350px !important
+      a
+        size                190px !important, 190px !important
+        font-size           24px  !important
+        &:nth-child(2)
+          left              170px !important
 
   #content-panel
     min-width    0
@@ -97,7 +66,7 @@
     .kdmodal-buttons
       width    100% !important
 
-  #content-page-home 
-    .feeder-tabs 
-      .feeder-header 
+  #content-page-home
+    .feeder-tabs
+      .feeder-header
         font-size   15px

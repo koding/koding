@@ -25,7 +25,8 @@ class MainView extends KDView
       {title, name, appEmitsReady} = options
       routeArr = location.pathname.split('/')
       routeArr.shift()
-      checkedRoute = if routeArr.first is "Develop" then routeArr.last else routeArr.first
+      checkedRoute = if routeArr.first is "Develop" \
+                     then routeArr.last else routeArr.first
 
       if checkedRoute is name or checkedRoute is title
         if appEmitsReady
@@ -77,9 +78,6 @@ class MainView extends KDView
 
   createMainPanels:->
 
-    klass = if KD.isLoggedIn() then KDCustomHTMLView else HomeIntroView
-    @addSubView @homeIntro = new klass
-
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
       domId    : "main-panel-wrapper"
@@ -92,7 +90,8 @@ class MainView extends KDView
       domId    : "content-panel"
       cssClass : "transition"
 
-    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
+    @contentPanel.on "ViewResized", (rest...)=>
+      @emit "ContentPanelResized", rest...
 
   addHeader:->
 
@@ -112,15 +111,14 @@ class MainView extends KDView
       partial   : "<span></span>"
       click     : (event)=>
         KD.utils.stopDOMEvent event
-        homeRoute = if KD.isLoggedIn() then "/Activity" else "/Home"
-        KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
+        if KD.isLoggedIn()
+          KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
+        else
+          location.replace '/'
 
     wrapper.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
-      title       : 'Already a user? Sign in.'
-      icon        :
-        placement : 'right'
-      cssClass    : 'login'
+      title       : 'Login'
       attributes  :
         href      : '/Login'
       click       : (event)->
@@ -156,7 +154,8 @@ class MainView extends KDView
     @mainTabView.on "PaneDidShow", =>
       appManager  = KD.getSingleton "appManager"
       appManifest = appManager.getFrontAppManifest()
-      menu = appManifest?.menu or KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
+      menu = appManifest?.menu or \
+             KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
       if Array.isArray menu
         menu = items: menu
       if menu?.items?.length

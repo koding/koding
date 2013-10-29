@@ -61,10 +61,10 @@ class KodingRouter extends KDRouter
     unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
       {entryPoint} = KD.config
-      # if KD.isLoggedIn()
-      @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
-      # else
-      #   @handleRoute @getDefaultRoute(), {entryPoint}
+      if KD.isLoggedIn()
+        @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
+      else
+        @handleRoute @getDefaultRoute(), {entryPoint}
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -76,7 +76,7 @@ class KodingRouter extends KDRouter
       if err then new KDNotificationView title: err.message
       else
         # temp fix for not showing homepage to loggedin users
-        app = 'Activity' if app is 'Home' and KD.isLoggedIn()
+        # app = 'Activity' if app is 'Home' and KD.isLoggedIn()
 
         @setPageTitle nicenames[app] ? app
         appManager  = KD.getSingleton "appManager"
@@ -101,7 +101,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
+  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -213,10 +213,13 @@ class KodingRouter extends KDRouter
   clear:(route, replaceState=yes)->
     unless route
       {entryPoint} = KD.config
-      if entryPoint?.type is 'group' and entryPoint?.slug?
-        route = "/#{KD.config.entryPoint?.slug}"
+      if KD.isLoggedIn()
+        if entryPoint?.type is 'group' and entryPoint?.slug?
+          route = "/#{KD.config.entryPoint?.slug}"
+        else
+          route = '/'
       else
-        route = '/'
+        location.replace '/'
     super route, replaceState
 
   getRoutes =->
@@ -244,20 +247,22 @@ class KodingRouter extends KDRouter
 
       '/'      : handleRoot
       ''       : handleRoot
-      # '/About' : createStaticContentHandler 'Home', yes
+      # '/Home'  : handleRoot
       '/About' : createSectionHandler 'Activity'
 
       # verbs
-      '/:name?/Login'     : ({params:{name}})->
+      '/:name?/Login'        : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'login'
-      '/:name?/Logout'    : ({params:{name}})->
+      '/:name?/Logout'       : ({params:{name}})->
         requireLogin  -> mainController.doLogout()
-      '/:name?/Redeem'    : ({params:{name}})->
+      '/:name?/Redeem'       : ({params:{name}})->
         requireLogin  -> mainController.loginScreen.animateToForm 'redeem'
-      '/:name?/Register'  : ({params:{name}})->
+      '/:name?/Register'     : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'register'
-      '/:name?/Recover'   : ({params:{name}})->
+      '/:name?/Recover'      : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
+      '/:name?/ResendToken'  : ({params:{name}})->
+        requireLogout -> mainController.loginScreen.animateToForm 'resendEmail'
 
       # apps
       '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
@@ -281,14 +286,15 @@ class KodingRouter extends KDRouter
         {JPasswordRecovery} = KD.remote.api
         JPasswordRecovery.validate recoveryToken, (err, isValid)=>
           if err or !isValid
-            new KDNotificationView
-              title   : 'Something went wrong.'
-              content : err?.message or """
-                That doesn't seem to be a valid recovery token!
-                """
+            unless KD.isLoggedIn()
+              new KDNotificationView
+                title   : 'Something went wrong.'
+                content : err?.message or """
+                  That doesn't seem to be a valid recovery token!
+                  """
           else
             mainController.loginScreen.headBannerShowRecovery recoveryToken
-          @clear()
+          @clear "/"
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
         inviteCode = decodeURIComponent inviteCode
@@ -297,21 +303,20 @@ class KodingRouter extends KDRouter
           @handleRoute '/', entryPoint: KD.config.entryPoint
         else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
-            if err then error err
-            new KDNotificationView
-              title: 'Invalid invitation code!'
+            unless KD.isLoggedIn()
+              if err then error err
+              new KDNotificationView
+                title: 'Invalid invitation code!'
           else
             mainController.loginScreen.headBannerShowInvitation invite
-          @clear()
+          @clear "/"
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
-          location.replace '#'
           if err
             error err
-            new KDNotificationView
-              title: "Something went wrong, please try again later!"
+            KD.showError err
           else
             new KDNotificationView
               title: "Thanks for confirming your email address!"
