@@ -70,13 +70,16 @@ app.environments.styl
     clear                 both
 
   p.success
-    padding               10px 20px 20px
+    padding               20px
     line-height           22px
     bg                    color, #E3EEDA
     color                 #59824D
     rounded               4px
     max-width             400px
-    margin-top            20px
+    margin-top            10px
+    border                1px solid rgba(89, 130, 77, 0.18)
+    fl()
+
     b
       font-size           22px
       line-height         42px
@@ -722,58 +725,59 @@ div.environments-add-domain-form
       margin            3px 0 0 0
       fr()
 
-  form.main-form
+  fieldset.domain-option-group
+    padding           20px 0
+    .kd-radio-holder
+      width           140px
+      padding         0
+      margin          0
+      font-size       11px
+      color           #8c8c8c
+      height          32px
+      line-height     32px
+      rounded         3px
+      background      #f7f7f7
+      text-align      center
+      shadow          0 1px 2px rgba(0, 0, 0, .2) \,\
+                      inset 0 -3px 0 #e8e8e8
+      text-shadow     0 1px 0 #fff
+      border-bottom
+      fl()
+
+      &~.kd-radio-holder
+        margin-left       10px
+
+      &.disabled
+        opacity           .5
+        cursor            default
+        *
+          cursor          default
+
+      &.active
+        shadow            0 1px 2px rgba(0, 0, 0, .2) \,\
+                          inset 0 -3px 0 #ffa800
+        position          relative
+
+      &.active:after
+        content         ""
+        display         block
+        border          5px solid transparent
+        border-top      7px solid #ffa800
+        left            64px
+        top             32px
+        abs()
+
+      input[type=radio]
+        display         none
+
+
+  form.new-subdomain-form
     padding             0
     margin              0
 
     .formline
       padding           0
       margin            0
-
-    fieldset.domain-option-group
-      padding           20px 0
-      .kd-radio-holder
-        width           140px
-        padding         0
-        margin          0
-        font-size       11px
-        color           #8c8c8c
-        height          32px
-        line-height     32px
-        rounded         3px
-        background      #f7f7f7
-        text-align      center
-        shadow          0 1px 2px rgba(0, 0, 0, .2) \,\
-                        inset 0 -3px 0 #e8e8e8
-        text-shadow     0 1px 0 #fff
-        border-bottom
-        fl()
-
-        &~.kd-radio-holder
-          margin-left       10px
-
-        &.disabled
-          opacity           .5
-          cursor            default
-          *
-            cursor          default
-
-        &.active
-          shadow            0 1px 2px rgba(0, 0, 0, .2) \,\
-                            inset 0 -3px 0 #ffa800
-          position          relative
-
-        &.active:after
-          content         ""
-          display         block
-          border          5px solid transparent
-          border-top      7px solid #ffa800
-          left            64px
-          top             32px
-          abs()
-
-        input[type=radio]
-          display         none
 
     label.subdomain-name
       display             block
@@ -796,21 +800,20 @@ div.environments-add-domain-form
       right              5px
       abs()
 
-  .formline.button-field
-    bg                   color, transparent
-
-    .kdbutton.add-domain
-      fr()
-      margin-top         10px
-      font-size          14px
-      font-weight        normal
-      width              140px
+  .kdbutton.add-domain
+    fr()
+    margin-top         10px
+    font-size          14px
+    font-weight        normal
+    width              160px
 
   form+p.success
     border               1px solid #bbb
     shadow               inset 0 0 0 1px #fff
     padding              20px
-
+    clear                both
+    border               1px solid rgba(89, 130, 77, 0.18);
+    fl()
 
 /*--- Scene -----*/
 
