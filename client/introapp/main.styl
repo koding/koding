@@ -24,12 +24,12 @@ a
   background-size       cover
   z-index               99
   opacity               0
-  vendor                transition, opacity .6s ease-in\, background-position .6s ease
+  vendor                transition, opacity .6s ease-in\, background-position .5s ease
 
   abs()
 
   &.ghost
-    background-position-y   -300px
+    background-position-y   -250px
 
   &.in
     opacity 1
@@ -143,7 +143,7 @@ a
       width             100%
       max-width         1280px
       margin            0 auto
-      padding           40px 60px
+      padding           40px 60px 40px 60px
       borderBox()
 
     p
@@ -172,8 +172,6 @@ a
     width               100%
     top                 23%
     font-weight         100
-    padding             0 20px
-    borderBox()
     abs()
 
     > div
