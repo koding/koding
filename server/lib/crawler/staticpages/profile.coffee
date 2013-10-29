@@ -2,20 +2,17 @@ module.exports = ({account})->
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
 
+  {profile:{nickname}} = account if account
+
   """
-  <!doctype html>
-  <html lang="en" itemscope="" itemtype="http://schema.org/WebPage">
+  <!DOCTYPE html>
+  <html lang="en">
   <head>
-    <title>Koding</title>
-    #{getStyles()}
+    <title>#{nickname} - Koding</title>
     #{getGraphMeta()}
   </head>
     <body class='koding' itemscope itemtype="http://schema.org/WebPage">
-      <div id='main-loading' class="kdview main-loading">
-        #{putContent(account)}
-      </div>
-      <div class="kdview home" id="kdmaincontainer">
-      </div>
+      #{putContent(account)}
     </body>
   </html>
   """
@@ -30,15 +27,14 @@ putContent = (account)->
   imgURL = "https://gravatar.com/avatar/#{account.profile.hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
 
   content  =
-    """<figure class='splash' itemscope itemtype="http://schema.org/Person">
-          <h2 class='splash-title' itemprop="name">
+    """<figure itemscope itemtype="http://schema.org/Person" title="#{firstName} #{lastName}">
+          <h2itemprop="name">
             #{nickname}
           </h2>
-          <h3 class='splash-name'>
-            <img class="avatarview" style="width: 90px; height: 90px;" src="#{imgURL}" itemprop="image"/>
-            [ <span itemprop="givenName">#{firstName}</span> <span itemprop="familyName">#{lastName}</span> ]
-          </h3>
-          <br />
-          <h4 class='splash-name' itemprop="interactionCount">#{numberOfLikes} likes.</h4>
+          <figcaption>
+            <img src="#{imgURL}" itemprop="image"/> <br>
+            <span itemprop="givenName">#{firstName}</span> <span itemprop="familyName">#{lastName}</span><br>
+            <span itemprop="interactionCount">#{numberOfLikes} likes.</span>
+          </figcaption>
        </figure>
     """
