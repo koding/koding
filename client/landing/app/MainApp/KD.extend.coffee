@@ -122,7 +122,9 @@ KD.extend
 
     new KDNotificationView {title, content, duration}
 
-    warn "KodingError:", err.message  unless err.name is 'AccessDenied'
+    unless err.name is 'AccessDenied'
+      warn "KodingError:", err.message
+      error err
     err?
 
   getPathInfo: (fullPath)->
