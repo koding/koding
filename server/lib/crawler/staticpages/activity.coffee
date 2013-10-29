@@ -5,20 +5,19 @@ module.exports = ({activityContent, account, section, models})->
   getGraphMeta  = require './graphmeta'
   model      = models.first if models and Array.isArray models
 
+  title  = activityContent?.title
+
   """
-  <!doctype html>
+  <!DOCTYPE html>
   <html lang="en">
   <head>
-    <title>Koding</title>
-    #{getStyles()}
+    <title>#{title} - Koding</title>
     #{getGraphMeta()}
   </head>
-    <body class='koding' itemscope itemtype="http://schema.org/WebPage">
-      <div id='main-loading' class="kdview main-loading" itemscope itemtype="http://schema.org/BlogPosting">
+    <body itemscope itemtype="http://schema.org/WebPage">
+      <article itemscope itemtype="http://schema.org/BlogPosting">
         #{putContent(activityContent, section, model)}
-      </div>
-      <div class="kdview home" id="kdmaincontainer">
-      </div>
+      </article>
     </body>
   </html>
   """
@@ -27,19 +26,22 @@ createCommentNode = (comment)->
   if comment.body
     commentContent =
     """
-    <li><span itemtype=\"http://schema.org/Comment\" itemscope itemprop=\"comment\"><span itemprop=\"commentText\">#{comment.body}</span> at <span itemprop=\"commentTime\">#{comment.createdAt}</span> \
-      by <span itemprop=\"name\">#{comment.authorName}</span></span></li>
+    <li itemtype="http://schema.org/Comment" itemscope itemprop="comment">
+        <span itemprop="commentText">#{comment.body}</span> - at
+        <span itemprop="commentTime">#{comment.createdAt}</span> by
+        <span itemprop="name">#{comment.authorName}</span>
+    </li>
     """
   return commentContent
 
 createAccountName = (fullName)->
-  return " by <span itemprop='author'>#{fullName}</span>"
+  return "#{fullName}"
 
 createAvatarImage = (hash)->
   imgURL = "https://gravatar.com/avatar/#{hash}?size=90&amp;d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.90.png"
-  image = 
+  image =
     """
-    <img class=\"avatarview\" style=\"width: 90px; height: 90px;\" src=\"#{imgURL}\" itemprop=\"image\"/>
+    <img src="#{imgURL}" itemprop="image"/>
     """
   return image
 
@@ -55,7 +57,7 @@ createLikesCount = (numberOfLikes)->
 createCodeSnippet = (code)->
   codeSnippet = ""
   if code
-    codeSnippet = "<pre>#{code}</pre>"
+    codeSnippet = "<code>#{code}</code>"
   return codeSnippet
 
 createUserInteractionMeta = (numberOfLikes, numberOfComments)->
@@ -66,7 +68,6 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
 putContent = (activityContent, section, model)->
 
   body = activityContent.body
-
   accountName = createAccountName activityContent.fullName
   avatarImage = createAvatarImage activityContent.hash
   createdAt = createCreationDate activityContent.createdAt
@@ -81,31 +82,36 @@ putContent = (activityContent, section, model)->
   if activityContent.numberOfComments > 0
     comments = (createCommentNode(comment) for comment in activityContent.comments)
     commentsContent = "<h4>Comments:</h4>"
-    commentsContent += "<ol style='text-align:left; list-style: none'>"
+    commentsContent += "<ol>"
     commentsContent += comments.join("")
     commentsContent += "</ol>"
-  else 
+  else
     commentsContent = ""
 
   tags = ""
   if activityContent?.tags?.length > 0
-    tags = """<span>tags: #{activityContent.tags.join(',')}</span>"""
+    tags = """<span>tags: #{activityContent.tags.join(',')}</span><br>"""
 
   title  = activityContent?.title
 
   content  =
-    """<figure class='splash' style="color:white">
-         <h2>
-           #{title}
-         </h2>
-         <h3>
-           #{avatarImage} [ #{body} #{codeSnippet}] #{accountName}
-         </h3>
-         #{userInteractionMeta}
-         #{createdAt}<br />
-         #{tags}<br />
-         #{commentsCount}, 
-         #{likesCount}<br />
-         #{commentsContent}
-       </figure>
+    """
+        <header itemprop="headline"><h1>#{title}</h1></header>
+        #{body} #{codeSnippet}
+        <hr>
+        <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
+          #{avatarImage}
+          <figcaption>
+            Author: <span itemprop="name">#{accountName}</span>
+          </figcaption>
+        </figure>
+        <footer>
+          #{userInteractionMeta}
+          #{createdAt} by <span itemprop='author'>#{accountName}</span>
+          <br>
+          #{tags}
+          <hr>
+          #{commentsCount}, #{likesCount}
+        </footer>
+        #{commentsContent}
     """
