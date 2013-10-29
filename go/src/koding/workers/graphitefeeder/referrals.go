@@ -7,9 +7,10 @@ import (
 )
 
 func init() {
-	registerAnalytic(numberOfReferrals)
 	registerAnalytic(numberOfReferrableEmails)
 	registerAnalytic(numberOfInvitesSent)
+	registerAnalytic(numberOfReferrals)
+	registerAnalytic(numberOfReferralsToday)
 }
 
 func numberOfReferrableEmails() (string, int) {
@@ -53,4 +54,24 @@ func numberOfReferrals() (string, int) {
 	}
 
 	mongodb.Run("jReferrals", query)
+
+	return identifier, count
+}
+
+func numberOfReferralsToday() (string, int) {
+	var identifier string = "number_of_referrals_today"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		var today = getTodayDate()
+		var filter = bson.M{"createdAt": bson.M{"$gte": today}}
+
+		count, err = c.Find(filter).Count()
+
+		return err
+	}
+
+	mongodb.Run("jReferrals", query)
+
+	return identifier, count
 }
