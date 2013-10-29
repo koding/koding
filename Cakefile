@@ -377,16 +377,18 @@ task 'proxy', "Run the go-Proxy", ({configFile})->
     stderr  : process.stderr
     verbose : yes
 
-task 'neo4jfeeder', "Run the neo4jFeeder", ({configFile})->
+task 'neo4jfeeder', "Run the neo4jFeeder", (options)->
 
-  config = require('koding-config-manager').load("main.#{configFile}")
+  {configFile} = options
+  config       = require('koding-config-manager').load("main.#{configFile}")
   feederConfig = config.graphFeederWorker
+
   numberOfWorkers = if feederConfig.numberOfWorkers then feederConfig.numberOfWorkers else 1
 
   for i in [1..numberOfWorkers]
     processes.spawn
       name    : if numberOfWorkers is 1 then "neo4jfeeder" else "neo4jfeeder-#{i}"
-      cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+      cmd     : "./go/bin/neo4jfeeder -c #{configFile} #{addFlags options}"
       restart : yes
       stdout  : process.stdout
       stderr  : process.stderr
