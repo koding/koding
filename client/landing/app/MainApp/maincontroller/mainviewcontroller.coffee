@@ -32,7 +32,11 @@ class MainViewController extends KDViewController
     app             = appManager.getFrontApp()
     {navController} = KD.getSingleton('mainController').sidebarController.getView()
     cdController.emit "ContentDisplaysShouldBeHidden"
-    @setViewState pane.getOptions()
+    {mainTabView}   = mainView
+
+    if pane
+    then @setViewState pane.getOptions()
+    else mainTabView.getActivePane().unsetClass "kdhiddentab"
 
     {title} = app.getOption('navItem')
 
