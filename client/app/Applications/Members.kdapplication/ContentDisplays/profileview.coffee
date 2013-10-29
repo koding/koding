@@ -1,3 +1,283 @@
+class AvatarChangeHeaderView extends JView
+
+  constructor: (options={}, data)->
+
+    options.tagName  = "article"
+    options.cssClass = "avatar-change-header"
+    super options, data
+
+  viewAppended: ->
+    super
+    options = @getOptions()
+
+    if options.title
+      @addSubView new KDCustomHTMLView
+        tagName: "strong"
+        partial: options.title
+
+    if options.buttons?.length > 0
+      for button in options.buttons
+        @addSubView button
+
+class AvatarChangeView extends JView
+
+  detectFeatures = ->
+    isVideoSupported = KDWebcamView.getUserMediaVendor()
+    isDNDSupported   = do ->
+      tester = document.createElement('div')
+      "draggable" of tester or\
+      ("ondragstart" of tester and "ondrop" of tester)
+    return {isVideoSupported, isDNDSupported}
+
+  constructor: (options={}, data)->
+
+    options.cssClass = "avatar-change-menu"
+    super options, data
+
+    {isVideoSupported, isDNDSupported} = detectFeatures()
+
+    @on "viewAppended", =>
+      @overlay = new KDOverlayView
+        isRemovable: no
+        parent     : "body"
+
+    @on "KDObjectWillBeDestroyed", => @overlay.destroy()
+
+    @avatarData = null
+
+    @webcamTip = new KDView
+      cssClass            : "webcam-tip"
+      partial             : "<cite>Please allow Koding to access your camera.</cite>"
+
+    @takePhotoButton = new CustomLinkView
+      cssClass            : "take-photo hidden"
+      title               : "Take Photo"
+
+    @photoRetakeButton = new KDButtonView
+      cssClass            : "clean-gray confirm avatar-button"
+      icon                : yes
+      iconOnly            : yes
+      iconClass           : "cross"
+      callback            : =>
+        @changeHeader "photo"
+        @takePhotoButton.show()
+        @webcamView.reset()
+
+    @reuploadButton = new KDButtonView
+      cssClass            : "clean-gray confirm avatar-button"
+      icon                : yes
+      iconOnly            : yes
+      iconClass           : "cross"
+      callback            : @bound "showUploadView"
+
+    @photoButton = new KDButtonView
+      cssClass            : "clean-gray avatar-button"
+      title               : "Take Photo"
+      disabled            : not isVideoSupported
+      callback            : @bound "showPhotoView"
+
+    @uploadButton = new KDButtonView
+      cssClass            : "clean-gray avatar-button"
+      disabled            : not isDNDSupported
+      title               : "Upload Image"
+      callback            : @bound "showUploadView"
+
+    @gravatarButton = new KDButtonView
+      cssClass            : "clean-gray avatar-button"
+      title               : "Use Gravatar"
+      callback            : =>
+        @unsetWide()
+        @changeHeader "gravatar"
+
+    @gravatarConfirmButton = new KDButtonView
+      cssClass            : "clean-gray confirm avatar-button"
+      icon                : yes
+      iconOnly            : yes
+      iconClass           : "okay"
+      callback            : =>
+        @emit "UseGravatar"
+        @changeHeader()
+
+    @avatarHolder = new KDCustomHTMLView
+      cssClass: "avatar-holder"
+      tagName : "div"
+
+    @avatarHolder.addSubView @avatar = new AvatarStaticView
+      size     :
+        width  : 300
+        height : 300
+    , @getData()
+
+    @loader = new KDLoaderView
+      size         :
+        width      : 15
+      loaderOptions:
+        color      : "#ffffff"
+        shape      : "spiral"
+
+    @cancelPhoto = @getCancelView()
+
+    @headers =
+      actions     : new AvatarChangeHeaderView
+        buttons   : [@photoButton, @uploadButton, @gravatarButton]
+
+      gravatar    : new AvatarChangeHeaderView
+        title     : "Use Gravatar"
+        buttons   : [@getCancelView(), @gravatarConfirmButton]
+
+      photo       : new AvatarChangeHeaderView
+        title     : "Take Photo"
+        buttons   : [@cancelPhoto]
+
+      upload      : new AvatarChangeHeaderView
+        title     : "Upload Image"
+        buttons   : [@getCancelView()]
+
+      phototaken  : new AvatarChangeHeaderView
+        title     : "Take Photo"
+        buttons   : [@getCancelView(), @photoRetakeButton, @getConfirmView()]
+
+      imagedropped: new AvatarChangeHeaderView
+        title     : "Upload Image"
+        buttons   : [@getCancelView(), @reuploadButton, @getConfirmView()]
+
+      loading     : new AvatarChangeHeaderView
+        title     : "Uploading and resizing your avatar, please wait..."
+        buttons   : [@loader]
+
+    @wrapper = new KDCustomHTMLView
+      tagName     : "section"
+      cssClass    : "wrapper"
+
+    @wrapper.addSubView view for action, view of @headers
+
+    @on "LoadingEnd",   => @changeHeader()
+
+    @on "LoadingStart", =>
+      @changeHeader "loading"
+      @unsetWide()
+
+    @once "viewAppended", =>
+      @slideDownAvatar()
+      @loader.show()
+
+  showUploadView: ->
+    @changeHeader "upload"
+    @resetView()
+    @unsetWide()
+    @avatar.hide()
+    @avatarHolder.addSubView @uploaderView = new DNDUploader
+      title       : "Drag and drop your avatar here!"
+      uploadToVM  : no
+      size: height: 280
+
+    @uploaderView.on "dropFile", ({origin, content})=>
+      if origin is "external"
+        @resetView()
+        @avatarData = "data:image/png;base64,#{btoa content}"
+        @changeHeader "imagedropped"
+        @setAvatarImage()
+
+  showPhotoView: ->
+    @changeHeader "photo"
+    @resetView()
+    @avatar.hide()
+    @avatarHolder.addSubView @webcamTip
+    @setWide()
+    @cancelPhoto.disable()
+    @getDelegate().avatarMenu.changeStickyState on
+
+    release = =>
+      @cancelPhoto.enable()
+      @getDelegate().avatarMenu.changeStickyState off
+
+    @avatarHolder.addSubView @webcamView = new KDWebcamView
+      hideControls  : yes
+      countdown     : 3
+      snapTitle     : "Take Avatar Picture"
+      size          :
+        width       : 300
+      click         : =>
+        @webcamView.takePicture()
+        @takePhotoButton.hide()
+        @changeHeader "phototaken"
+
+    @webcamView.addSubView @takePhotoButton
+    @webcamView.on "snap", (data)=> @avatarData = data
+    @webcamView.on "allowed", =>
+      release()
+      @webcamTip.destroy()
+      @takePhotoButton.show()
+
+    @webcamView.on "forbidden", =>
+      release()
+      @webcamTip.updatePartial """
+      <cite>
+        You disabled the camera for Koding.
+        <a href='https://support.google.com/chrome/answer/2693767?hl=en' target='_blank'>How to fix?</a>
+      </cite>
+      """
+
+  resetView: ->
+    @webcamView?.destroy()
+    @webcamTip.destroy()
+    @uploaderView?.destroy()
+    @unsetWide()
+    @avatar.show()
+
+  setWide: ->
+    @avatarHolder.setClass "wide"
+    @avatar.setSize
+      width : 300
+      height: 225
+
+  unsetWide: ->
+    @avatarHolder.unsetClass "wide"
+    @avatar.setSize
+      width : 300
+      height: 300
+
+  setAvatarImage: ->
+    @avatar.setAvatar "url(#{@avatarData})"
+    @avatar.setSize width: 300, height: 300
+
+  setAvatar: ->
+    @setAvatarImage()
+    @avatar.show()
+    @emit "UsePhoto", @avatarData
+
+  getConfirmView: ->
+    new KDButtonView
+      cssClass  : "clean-gray confirm avatar-button"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "okay"
+      callback  : => @setAvatar()
+
+  getCancelView: (callback)->
+    new KDButtonView
+      cssClass  : "clean-gray cancel avatar-button"
+      title     : "Cancel"
+      callback  : =>
+        @changeHeader "actions"
+        @resetView()
+        callback?()
+
+  slideDownAvatar: -> @avatarHolder.setClass "opened"
+  slideUpAvatar: -> @avatarHolder.unsetClass "opened"
+
+  changeHeader: (viewname="actions")->
+    @headers[action]?.hide() for action, view of @headers
+    @headers[viewname]?.show()
+
+  pistachio: ->
+    """
+    <i class="arrow"></i>
+    {{> @wrapper}}
+    {{> @avatarHolder}}
+    """
+
+
 class ProfileView extends JView
 
   constructor: (options = {}, data) ->
@@ -101,29 +381,61 @@ class ProfileView extends JView
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
     avatarOptions  =
-      size         :
-        width      : 90
-        height     : 90
+      showStatus      : yes
+      size            :
+        width         : 90
+        height        : 90
       click        : =>
         pos        =
           top      : @avatar.getBounds().y - 8
           left     : @avatar.getBounds().x - 8
-        modal      = new KDModalView
-          width    : 400
-          fx       : yes
-          overlay  : yes
-          draggable: yes
-          position : pos
-        modal.addSubView new AvatarStaticView
-          size     :
-            width  : 400
-            height : 400
-        , @memberData
 
-    if KD.whoami().getId() is @memberData.getId()
+        if KD.isMine @memberData
+
+          @avatarMenu?.destroy()
+          @avatarMenu = new JContextMenu
+            menuWidth: 312
+            cssClass : "avatar-menu dark"
+            delegate : @avatar
+            x        : @avatar.getX() + 96
+            y        : @avatar.getY() - 7
+          , customView: @avatarChange = new AvatarChangeView delegate: this, @memberData
+
+          @avatarChange.on "UseGravatar", =>
+            @avatarSetGravatar()
+
+          @avatarChange.on "UsePhoto", (dataURI)=>
+            [_, avatarBase64] = dataURI.split ","
+            @avatar.setAvatar "url(#{dataURI})"
+            @avatar.$().css
+              backgroundSize: "auto 90px"
+            @avatarChange.emit "LoadingStart"
+            @uploadAvatar avatarBase64, =>
+              @avatarChange.emit "LoadingEnd"
+
+
+        else
+          @modal = new KDModalView
+            cssClass : "avatar-container"
+            width    : 300
+            fx       : yes
+            overlay  : yes
+            draggable: yes
+            position : pos
+
+          @modal.addSubView @bigAvatar = new AvatarStaticView
+            size     :
+              width  : 300
+              height : 300
+          , @memberData
+
+    if KD.isMine @memberData
       avatarOptions.tooltip =
-        title    : "<p class='centertext'>please use gravatar.com<br/>to set your avatar</p>"
-        placement: "below"
+        # offset      : top: 0, left: -3
+        title       : "<p class='centertext'>Click avatar to edit</p>"
+        placement   : "below"
+        arrow       :
+          placement : "top"
 
     @avatar = new AvatarStaticView avatarOptions, @memberData
 
@@ -179,6 +491,15 @@ class ProfileView extends JView
     @createExternalProfiles()
     @createBadges()
 
+  uploadAvatar: (avatarData, callback)->
+    FSHelper.s3.upload "avatar.png", avatarData, (err, url)=>
+      resized = KD.utils.proxifyUrl url,
+        crop: true, width: 300, height: 300
+
+      @memberData.modify "profile.avatar": [url, +new Date()].join("?"), callback
+
+  avatarSetGravatar: (callback)->
+    @memberData.modify "profile.avatar": "", callback
 
   createExternalProfiles:->
 
@@ -194,9 +515,7 @@ class ProfileView extends JView
 
       @addSubView view, '.external-profiles'
 
-
   createBadges:->
-
 
   setEditingMode: (state) ->
     @editingMode = state
@@ -297,13 +616,6 @@ class ProfileView extends JView
 
   putNick: (nick) -> "@#{nick}"
 
-  putPresence: (state) ->
-    """
-    <div class="presence #{state or 'offline'}">
-    #{state or 'offline'}
-    </div>
-    """
-
   updateUserHomeLink: ->
     return  unless @userHomeLink
 
@@ -330,7 +642,6 @@ class ProfileView extends JView
     <span>{{> @avatar}}</span>
     {{> @followButton}}
     {cite{ @putNick #(profile.nickname)}}
-    {div{ @putPresence #(onlineStatus)}}
     </div>
 
     {{> @trollSwitch}}

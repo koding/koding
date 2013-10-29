@@ -186,20 +186,6 @@ task 'authWorker', "Run the authWorker", ({configFile}) ->
             else
               processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
-task 'guestCleanup', "Runs guestCleanup which removes old guests from mongo", ({configFile})->
-  config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.fork
-    name           : 'guestCleanup'
-    cmd            : "./workers/guestcleanup/index -c #{configFile}"
-    restart        : yes
-    restartTimeout : 100
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
-    verbose        : yes
-
-
 task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
@@ -219,6 +205,28 @@ task 'guestCleanerWorker', "Run the guest cleanup worker", ({configFile})->
         folders   : ['./workers/guestcleaner']
         onChange  : (path) ->
           processes.kill "guestCleanerWorker"
+
+
+task 'emailConfirmationCheckerWorker', "Run the email confirmtion worker", ({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.fork
+    name           : 'emailConfirmationCheckerWorker'
+    cmd            : "./workers/emailconfirmationchecker/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 1
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
+
+  watcher = new Watcher
+    groups        :
+      guestcleaner:
+        folders   : ['./workers/emailconfirmationchecker']
+        onChange  : (path) ->
+          processes.kill "emailConfirmationCheckerWorker"
+
 task 'sitemapGeneratorWorker', "Generate the sitemap worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
@@ -238,8 +246,6 @@ task 'sitemapGeneratorWorker', "Generate the sitemap worker", ({configFile})->
         folders   : ['./workers/sitemapgenerator']
         onChange  : (path) ->
           processes.kill "sitemapGeneratorWorker"
-
-
 
 task 'emailWorker', "Run the email worker", ({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -370,16 +376,18 @@ task 'proxy', "Run the go-Proxy", ({configFile})->
     stderr  : process.stderr
     verbose : yes
 
-task 'neo4jfeeder', "Run the neo4jFeeder", ({configFile})->
+task 'neo4jfeeder', "Run the neo4jFeeder", (options)->
 
-  config = require('koding-config-manager').load("main.#{configFile}")
+  {configFile} = options
+  config       = require('koding-config-manager').load("main.#{configFile}")
   feederConfig = config.graphFeederWorker
+
   numberOfWorkers = if feederConfig.numberOfWorkers then feederConfig.numberOfWorkers else 1
 
   for i in [1..numberOfWorkers]
     processes.spawn
       name    : if numberOfWorkers is 1 then "neo4jfeeder" else "neo4jfeeder-#{i}"
-      cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+      cmd     : "./go/bin/neo4jfeeder -c #{configFile} #{addFlags options}"
       restart : yes
       stdout  : process.stdout
       stderr  : process.stderr
@@ -457,19 +465,20 @@ run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile, ->
-    invoke 'goBroker'       if config.runGoBroker
-    invoke 'osKite'         if config.runOsKite
-    invoke 'rerouting'      if config.runRerouting
-    invoke 'userpresence'   if config.runUserPresence
-    invoke 'persistence'    if config.runPersistence
-    invoke 'proxy'          if config.runProxy
-    invoke 'neo4jfeeder'    if config.runNeo4jFeeder
-    invoke 'authWorker'     if config.authWorker
-    invoke 'guestCleanerWorker'   if config.guestCleanerWorker.enabled
-    invoke 'cacheWorker'    if config.cacheWorker?.run is yes
+    invoke 'goBroker'                         if config.runGoBroker
+    invoke 'osKite'                           if config.runOsKite
+    invoke 'rerouting'                        if config.runRerouting
+    invoke 'userpresence'                     if config.runUserPresence
+    invoke 'persistence'                      if config.runPersistence
+    invoke 'proxy'                            if config.runProxy
+    invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+    invoke 'authWorker'                       if config.authWorker
+    invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
+    invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
+    invoke 'cacheWorker'                      if config.cacheWorker?.run is yes
     invoke 'socialWorker'
-    invoke 'emailWorker'    if config.emailWorker?.run is yes
-    invoke 'emailSender'    if config.emailSender?.run is yes
+    invoke 'emailWorker'                      if config.emailWorker?.run is yes
+    invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'webserver'
 
 task 'run', (options)->
@@ -555,7 +564,7 @@ task 'test-all', 'Runs functional test suite', (options)->
   cmd = "sudo #{pip} install --src=/tmp/.koding-qa -e 'git+ssh://git@git.sj.koding.com/qa.git@master#egg=testengine'"
   exec cmd, (err, stdout, stderr)->
     if err
-      log.error """ 
+      log.error """
         TestEngine installation error, please copy and paste the output below
         and send to QA
       """
@@ -569,21 +578,21 @@ task 'test-all', 'Runs functional test suite', (options)->
     if not testEngine
       throw "TestEngine installation error"
     configFile = options.configFile or 'vagrant'
-    
+
     args = ['-p', './tests', '-c', configFile]
     if options.file
       args.push '-f', options.file
     if options.location
       args.push '-l', options.location
 
-    testProcess = spawn testEngine, args  
-    
+    testProcess = spawn testEngine, args
+
     testProcess.stderr.on 'data', (data)->
       process.stdout.write data.toString()
     testProcess.stdout.on 'data', (data)->
       process.stdout.write data.toString()
     testProcess.on 'close', (code)->
-      process.exit code      
+      process.exit code
 
 # ------------ OTHER LESS IMPORTANT STUFF ---------------------#
 

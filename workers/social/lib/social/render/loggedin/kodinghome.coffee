@@ -1,6 +1,5 @@
 module.exports = ({account})->
 
-  getHomeIntro    = require './../homeintro'
   getStyles       = require './../styleblock'
   getScripts      = require './../scriptblock'
   getInnerNav     = require './../innernav'
@@ -27,9 +26,10 @@ module.exports = ({account})->
           <a id="koding-logo" href="#"><span></span></a>
         </div>
       </header>
-      #{getHomeIntro yes}
       <section class="kdview" id="main-panel-wrapper">
+
         #{getSidebar account}
+
         <div class="kdview transition social" id="content-panel">
           <div class="kdview kdscrollview kdtabview" id="main-tab-view">
             <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">

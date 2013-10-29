@@ -34,6 +34,17 @@ formatByte = (bytes) ->
 
   return "#{minus}#{bytes.toFixed 2} #{units[unitIndex]}"
 
+checkFileCase = (fileName) ->
+  basename = path.basename fileName
+  dirname  = path.normalize path.dirname fileName
+  listing  = fs.readdirSync dirname
+
+  if basename in listing
+    if (dirname.split '/').length > 1
+    then checkFileCase dirname
+    else yes
+  else no
+
 module.exports = class Builder
 
   buildClient: (options) ->
@@ -208,12 +219,11 @@ module.exports = class Builder
             cacheTime     : if fs.existsSync(cachePath) then Date.parse(fs.statSync(cachePath).mtime) else 0
             extension     : path.extname(includePath)
 
-          if not (path.basename(file.sourcePath) in fs.readdirSync(path.dirname(file.sourcePath)))
-            log.error "File name case is wrong: " + includePath
+          if file.sourcePath in @blackList
+            @blackList.splice (@blackList.indexOf file.sourcePath), 1
+          else if not checkFileCase file.sourcePath
+            log.error "File name case is wrong: #{ includePath }"
             process.exit 1
-          else
-            if file.sourcePath in @blackList
-              @blackList.splice (@blackList.indexOf file.sourcePath), 1
 
           switch file.extension
             when ".coffee", ".js"

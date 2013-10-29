@@ -1,50 +1,58 @@
 @import "./kdfn"
 @import "./client/stylus/appfn"
 
-@media only screen and (min-width: 400px) and (max-width: 768px)
+@media only screen and (min-width: 300px) and (max-width: 768px)
   #kdmaincontainer.home > header
     bg                      position, 50% -211px
     .custom-link-view
       right                 18px
 
-
   #koding-logo.large
     left                    18px
 
   div#home-intro
-    min-width               400px
-    size                    100%, 760px
-    bg                      position, 50% -261px
+    // height                  828px !important
+
+    .gunduz-varligi
+      // height                828px !important
+      bg                    size, 1500px
+      bg                    repeat, no-repeat
+
     section
-      padding               30px 0 0
-      max-width             768px
-      text-align            center
-      > div
-        width               100%
-        padding             0
-        float               none
-      > aside
-        width               300px
-        padding             32px 0 0
-        margin              0 auto
-        float               none
 
-    h2.slogan
-      font-size             52px
+      .slogan
+        padding-top         160px !important
+        font-size           55px  !important
+      .sub-slogan
+        font-size           32px  !important
 
-    h3.slogan-continues
-      font-size             24px
-      margin-top            24px
-      line-height           1.9em
-      margin-left           -7px
-      span
-        padding             5px 7px
+    .buttons
+
+      button
+        margin               15px 0 !important
+        width                65%    !important
+        line-height          44px   !important
+        font-size            25px   !important
+        span
+          text-align         center
+          display            inline !important
+          font-size          25px   !important
+
+  section#slider-section
+    .home-slider
+      .wrapper
+        padding-top         0px     !important
+      h3
+        text-align          center
+        margin-top          80px    !important
+      p
+        text-align          center
+        font-size           28px    !important
+      figure
+        display             none    !important
 
   #content-page-home .feeder-tabs .feeder-header
-    font-size               18px
-
-  html, body
-    min-width         400px
+    font-size               24px !important
 
   #content-panel.social
     left              50px !important
@@ -104,53 +112,6 @@
 
     div.screenshots
       height              460px
-
-
-
-  #home-counter-bar
-    text-align      left
-    padding         10px 15%
-
-  figure.counter
-    width           100%
-    margin-right    0
-    h6.title
-      height        22px
-      line-height   22px
-      margin        0
-      font-size     10px
-    > div
-      clear         right
-      fr()
-    i
-      font-size     1.3em
-  .home-links
-    height          50px
-    margin-top      -50px
-    text-align      center
-    > ul
-      > li
-        padding     5px 0 0 5px
-        &:last-child
-          padding   5px 5px 0 5px
-
-    .custom-link-view.button
-      padding         0 7px 0 5px
-      height          30px
-      line-height     29px
-      font-size       11px
-      .icon
-        margin-top    5px
-      .title
-        font-size     12px
-    .custom-link-view
-      line-height     15px
-      &:first-child
-        padding-top   0
-      span.title
-        font-size     10px
-      span.icon
-        margin-top    -3px
 
   .settings-list-wrapper
     form
