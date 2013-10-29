@@ -23,7 +23,7 @@ type Publisher struct {
 	// ValidateCommand is an optional function to be called on each command
 	// coming from subscriber. It should return true if the command is allowed.
 	// If it returns false, then the connection will be dropped.
-	ValidateCommand func(*websocket.Conn, *SubscriberCommand) bool
+	ValidateCommand func(username string, cmd *SubscriberCommand) bool
 
 	websocket.Server // implements http.Handler interface
 }
@@ -123,7 +123,8 @@ func (c *connection) reader() {
 		}
 
 		// Drop the websocket connection if the command is invalid.
-		if c.publisher.ValidateCommand != nil && !c.publisher.ValidateCommand(c.ws, &cmd) {
+		username := c.ws.Request().Header.Get("Koding-Username")
+		if c.publisher.ValidateCommand != nil && !c.publisher.ValidateCommand(username, &cmd) {
 			break
 		}
 
