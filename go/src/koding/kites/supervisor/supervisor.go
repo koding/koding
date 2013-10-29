@@ -138,8 +138,9 @@ func (s *Supervisor) lxcRun(containerName, command string) error {
 	args := strings.Split(strings.TrimSpace(command), " ")
 
 	if err := c.AttachRunCommand(args...); err != nil {
-		fmt.Errorf("ERROR: %s\n", err.Error())
+		return fmt.Errorf("ERROR: %s\n", err.Error())
 	}
+
 	return nil
 }
 
