@@ -73,7 +73,6 @@ class MainController extends KDController
 
       @createMainViewController()  unless @mainViewController
 
-      @decorateBodyTag()
       @emit 'ready'
 
       # this emits following events
@@ -151,11 +150,6 @@ class MainController extends KDController
       $.cookie 'newRegister', erase: yes
     else if @isUserLoggedIn()
       BookView::getNewPages (pages)=>
-
-  decorateBodyTag:->
-    if KD.checkFlag 'super-admin'
-    then $('body').addClass 'super'
-    else $('body').removeClass 'super'
         return unless pages.length
         BookView.navigateNewPages = yes
         @emit "ShowInstructionsBook", pages.first.index
