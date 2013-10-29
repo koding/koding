@@ -1,9 +1,13 @@
 class GroupProductListItem extends KDListItemView
 
   viewAppended: ->
-    { planCode, code, soldAlone } = @getData()
+    product = @getData()
+
+    { planCode, code, soldAlone } = product
 
     planCode ?= code
+
+    @productView = new GroupProductView {}, product
 
     @embedView = new EmbedCodeView { planCode }
 
@@ -19,11 +23,11 @@ class GroupProductListItem extends KDListItemView
 
     @clientsButton = new KDButtonView
       title    : "View Buyers"
-      callback : => @emit 'BuyersReportRequested', planCode
+      callback : => @emit 'BuyersReportRequested', @getData()
 
     @deleteButton = new KDButtonView
       title    : "Remove"
-      callback : => @emit 'DeleteRequested', planCode
+      callback : => @emit 'DeleteRequested', @getData()
 
     @editButton = new KDButtonView
       title    : "Edit"
@@ -31,34 +35,10 @@ class GroupProductListItem extends KDListItemView
 
     JView::viewAppended.call this
 
-  prepareData: ->
-    product = @getData()
-
-    title     = product.title
-    price     = (product.feeAmount / 100).toFixed(2)
-
-    subscriptionType =
-      if product.subscriptionType is 'single'
-      then "Single payment"
-      else if product.feeUnit is 'months'
-        switch product.feeInterval
-          when 1        then "monthly"
-          when 3        then "every 3 months"
-          when 6        then "every 6 months"
-          when 12       then "yearly"
-          when 12 * 2   then "every 2 years"
-          when 12 * 5   then "every 5 years"
-          else               "every #{product.feeInterval} months"
-      else '' # we don't support renewals by the day (yet)
-
-    { title, price, subscriptionType }
-
   pistachio: ->
-    { title, price, subscriptionType } = @prepareData()
-
     """
     <div class="product-item">
-      #{title} — $#{price} #{subscriptionType}
+      {{> @productView}}
       {{> @embedButton}}
       {{> @deleteButton}}
       {{> @clientsButton}}
