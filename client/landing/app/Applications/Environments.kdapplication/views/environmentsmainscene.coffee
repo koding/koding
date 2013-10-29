@@ -15,6 +15,7 @@ class EnvironmentsMainScene extends JView
     # Domain Creation form connections
     @domainCreateForm.on 'CloseClicked', =>
       @scene.unsetClass 'out'
+      @domainCreateForm.unsetClass 'opened'
       @scene.off "click"
 
     # Main scene for DIA
@@ -64,6 +65,7 @@ class EnvironmentsMainScene extends JView
           title: "You need to have at least one VM to manage domains."
 
       @scene.setClass 'out'
+      @domainCreateForm.setClass 'opened'
       @domainCreateForm.emit 'DomainNameShouldFocus'
       @utils.defer =>
         @scene.once 'click', => @domainCreateForm.emit 'CloseClicked'

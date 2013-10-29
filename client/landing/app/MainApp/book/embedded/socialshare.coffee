@@ -18,7 +18,7 @@ class SocialShare extends JView
       href          : "https://twitter.com/koding"
       partial       : ""
 
-    @twitter.on "viewAppended", =>
+    @twitter.once "viewAppended", =>
       protocol = if /^http:/.test document.location then 'http' else 'https'
       require ["#{protocol}://platform.twitter.com/widgets.js"], =>
         twttr.widgets.createFollowButton(
