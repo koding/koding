@@ -55,7 +55,9 @@ module.exports = class JPaymentProduct extends Module
       priceIsVolatile :
         type          : Boolean
         default       : no
-      group           : String
+      group           :
+        type          : String
+        required      : yes
 
   @create = (group, formData, callback) ->
 

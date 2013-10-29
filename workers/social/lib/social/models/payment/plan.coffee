@@ -60,7 +60,9 @@ module.exports = class JPaymentPlan extends jraphical.Module
         version     : Number
       lastUpdate    : Number
       contents      : Object
-      group         : String
+      group         :
+        type        : String
+        required    : yes
 
   # * It seems like we're stuffing some JSON into the description field
   #   on recurly.  I think that's a really bad idea, so let's store any
