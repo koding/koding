@@ -76,7 +76,7 @@ module.exports =
     numberOfWorkers: 1
     watch       : yes
   emailConfirmationCheckerWorker :
-    enabled              : yes
+    enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
