@@ -46,6 +46,8 @@ class KiteController extends KDController
         kite = @createNewKite {kitename: kiteName}
       when 'terminal'
         kite = @createNewKite {kitename: kiteName}
+      when 's3'
+        kite = @createNewKite {kitename: kiteName}
       else
         kite = new Kite { kiteName, correlationName, kiteKey }
 
