@@ -37,7 +37,7 @@ class GroupProductSettingsView extends JView
       @forwardEvents @["#{category}sView"], [
         'DeleteRequested'
         'EditRequested'
-        'BuyerReportRequested'
+        'BuyersReportRequested'
       ], category.capitalize()
 
   setProducts: (products) ->
