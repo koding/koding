@@ -1,4 +1,4 @@
-class GroupPaymentsController extends KDController
+class GroupPaymentController extends KDController
 
   constructor: (options = {}, data) ->
     super options, data
