@@ -37,6 +37,7 @@ class NewKite extends KDEventEmitter
     @ws.onerror   = @bound 'onError'
 
   getKiteAddr : (connect=no)->
+    log "calling getKiteAddr"
     NewKite.getKites @kitename, (err, data) =>
       if err
         log "kontrol request error", err
@@ -100,11 +101,7 @@ class NewKite extends KDEventEmitter
         when 'ping'             then @bound 'handlePing'
         else (@localStore.get method) ? ->
 
-    if err?.message?
-      KD.utils.defer => @setBackoffTimeout @bound "getKiteAddr"
-    else
       callback.apply this, @unscrub args
-
 
   onError: (evt) ->
     # log "#{@kitename}: error #{evt.data}"
