@@ -18,7 +18,6 @@ class TeamworkApp extends KDObject
       shareSessionKeyInfo : options.shareSessionKeyInfo or "<p>This is your session key, you can share this key with your friends to work together.</p>"
       firebaseInstance    : options.firebaseInstance    or instanceName
       sessionKey          : options.sessionKey
-      panelClass          : TeamworkPanel
       delegate            : this
       environment         : options.environment         or null
       panels              : options.panels              or [
@@ -61,6 +60,7 @@ class TeamworkApp extends KDObject
       width     : 600
 
     modal.addSubView new TeamworkTools { modal, panel, workspace, twApp: this }
+    @emit "TeamworkToolsModalIsReady", modal
 
   showImportWarning: (url, callback = noop) ->
     @importModal?.destroy()
@@ -136,7 +136,7 @@ class TeamworkApp extends KDObject
       content                 : @teamwork.markdownContent
       targetEl                : @teamwork.getActivePanel().headerHint
 
-  handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url, callback) ->
+  handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url, callback = noop) ->
     vmController.run "rm -rf #{root}/#{folderName} ; mv #{path}/#{folderName} #{root}", (err, res) =>
       return warn err if err
       modal.destroy()

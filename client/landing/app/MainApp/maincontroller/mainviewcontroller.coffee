@@ -20,6 +20,10 @@ class MainViewController extends KDViewController
     mainController.on "ToggleChatPanel", =>
       mainView.chatPanel.toggle()
 
+    if KD.checkFlag 'super-admin'
+    then $('body').addClass 'super'
+    else $('body').removeClass 'super'
+
   loadView:(mainView)->
 
     mainView.mainTabView.on "MainTabPaneShown", (pane)=>
@@ -32,7 +36,13 @@ class MainViewController extends KDViewController
     app             = appManager.getFrontApp()
     {navController} = KD.getSingleton('mainController').sidebarController.getView()
     cdController.emit "ContentDisplaysShouldBeHidden"
-    @setViewState pane.getOptions()
+    {mainTabView}   = mainView
+
+    # temp fix
+    # until fixing the original issue w/ the dnd this should be kept here
+    if pane
+    then @setViewState pane.getOptions()
+    else mainTabView.getActivePane().show()
 
     {title} = app.getOption('navItem')
 
