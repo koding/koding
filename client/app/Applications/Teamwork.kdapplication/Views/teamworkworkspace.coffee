@@ -75,3 +75,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   handleRun: (panel) ->
     warn "You should override this method."
+
+  showHintModal: ->
+    if @markdownContent
+      @getDelegate().showMarkdownModal()
+    else
+      Panel::showHintModal.call @getActivePanel()
