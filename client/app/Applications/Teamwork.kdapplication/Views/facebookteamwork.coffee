@@ -95,8 +95,6 @@ class FacebookTeamwork extends TeamworkWorkspace
     panel.header.addSubView @runButton = new KDButtonViewWithMenu
       title               : "Run"
       menu                :
-        "Run"             :
-          callback        : => @run()
         "Run on Facebook" :
           callback        : => @runOnFB()
       callback            : => @run()
