@@ -46,7 +46,10 @@ class Kontrol extends KDEventEmitter
     kc = KD.getSingleton("kiteController")
     correlationName = "local-#{KD.nick()}"
     key = kc.getKiteKey kite.kitename, correlationName
-    kiteInstance = kc.createNewKite kite.addr, kite.kitename, kite.token
+    kiteInstance = kc.createNewKite
+      addr     : kite.addr
+      kitename : kite.kitename
+      token    : kite.token
 
     log "ADDING KITE #{kite.kitename} with key #{key}"
     kc.kiteInstances[key] = kiteInstance

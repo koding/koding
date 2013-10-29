@@ -21,7 +21,7 @@ class CollaborativePanel extends Panel
         title  : "Show Users"
       click    : => @getDelegate().showUsers()
 
-  createPane: (paneOptions, targetContainer) ->
+  createPane: (paneOptions) ->
     PaneClass = @getPaneClass paneOptions
     paneOptions.sessionKey = @getOptions().sessionKeys[@panes.length]  if @getOptions().sessionKeys
     isJoinedASession       = !!paneOptions.sessionKey and not @getDelegate().amIHost()

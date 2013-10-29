@@ -4,15 +4,18 @@ class NewKite extends KDEventEmitter
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
+  kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
+
   constructor: (options)->
-    super
-    { @addr, @kiteName, @token, @correlationName, @kiteKey } = options
+
+    super options
+
+    { @addr, @kitename, @token, @correlationName, @kiteKey } = options
     @localStore   = new Store
     @remoteStore  = new Store
     @tokenStore = {}
     @autoReconnect = true
     @readyState = NOTREADY
-    @kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
     @addr or= ""
     @token or= ""
     @initBackoff options  if @autoReconnect
@@ -26,54 +29,60 @@ class NewKite extends KDEventEmitter
   bound: Bongo.bound
 
   connectDirectly:->
-    # log "trying to connect to #{@addr}"
+    log "trying to connect to #{@addr}"
     @ws = new WebSocket "ws://#{@addr}/sock"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
     @ws.onmessage = @bound 'onMessage'
     @ws.onerror   = @bound 'onError'
 
-  getKiteAddr:(connect=false)->
-    log "#{@kiteName} no addr available. making request to kontrol"
+  getKiteAddr : (connect=no)->
+    NewKite.getKites @kitename, (err, data) =>
+      if err
+        log "kontrol request error", err
+        # Make a request again if we could not get the addres, use backoff for that
+        KD.utils.defer => @setBackoffTimeout =>
+          @getKiteAddr true
+      else
+        log {data}
+        @token = data[0].token
+        @addr = data[0].publicIP
+
+        # this should be optional
+        @connectDirectly() if connect
+
+  @getKites: (kitename, callback)->
     requestData =
       username   : "#{KD.nick()}"
-      remoteKite : @kiteName
+      remoteKite : kitename
       sessionID  : KD.remote.getSessionToken()
 
-    # $.ajax was used here... added if we want to replace the following in the future
     xhr = new XMLHttpRequest
-    xhr.open "POST", @kontrolEndpoint, yes
+    xhr.open "POST", kontrolEndpoint, yes
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
     xhr.send JSON.stringify requestData
     xhr.onload = =>
       if xhr.status is 200
         data = JSON.parse xhr.responseText
-        @token = data[0].token
-        @addr = data[0].addr
-
-        # this should be optional
-        @connectDirectly() if connect
+        callback null, data
       else
-        log "kontrol request error", xhr.responseText
-        # Make a request again if we could not get the addres, use backoff for that
-        KD.utils.defer => @setBackoffTimeout =>
-          @getKiteAddr true
+        callback xhr.responseText, null
 
   disconnect:(reconnect=true)->
     @autoReconnect = !!reconnect  if reconnect?
     @ws.close()
 
   onOpen:->
-    log "I'm connected to #{@kiteName} at #{@addr}. Yayyy!"
+    log "I'm connected to #{@kitename} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
-    @emit 'KiteConnected', @kiteName
+    @emit 'KiteConnected', @kitename
     @emit 'ready'
 
   onClose: (evt) ->
-    # log "#{@kiteName}: disconnected, trying to reconnect"
-    @emit 'KiteDisconnected', @kiteName
+    # log "#{@kitename}: disconnected, trying to reconnect"
     @readyState = CLOSED
+    @emit 'KiteDisconnected', @kitename
     # enable below to autoReconnect when the socket has been closed
     # if @autoReconnect
     #   KD.utils.defer => @setBackoffTimeout @bound "connect"
@@ -98,7 +107,7 @@ class NewKite extends KDEventEmitter
 
 
   onError: (evt) ->
-    # log "#{@kiteName}: error #{evt.data}"
+    # log "#{@kitename}: error #{evt.data}"
 
   handlePing: ->
     @send JSON.stringify

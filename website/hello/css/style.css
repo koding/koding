@@ -106,9 +106,6 @@ header a {
 .perl .hellobox {
 	background:#000 url('../img/hellodesert.jpg') no-repeat center top;
 }
-
-
-
 .wrap {
 	width: 660px;
 	margin: 0 auto;
@@ -282,6 +279,113 @@ a, a:link {
   color: #ff9400;
 }
 
+/* 404 page */
+body#unsupported-page,
+body#not-found-page {
+	background: url('../img/noisy-bg.png');
+	text-align: center;
+}
+#unsupported-page header,
+#not-found-page header {
+	background: #22201b;
+}
+#unsupported-page h2,
+#not-found-page h2 {
+	font-size: 60px;
+	color: #5a5a5a;
+	text-shadow: none;
+	font-weight: 600;
+	margin: 100px 0 20px 0;
+	line-height: normal;
+}
+#not-found-page a.return-home {
+	display: block;
+	color : #9a9a9a;
+	margin: 0 0 100px 0;
+}
+#unsupported-page p,
+#not-found-page a.return-home p {
+	font-size: 25px;
+	font-weight: 100;
+	color: #9a9a9a;
+	margin: 0;
+}
+.astronaut-problem-wrapper {
+	width: 664px;
+	height: 455px;
+	margin: 0 auto;
+	background: url(../img/space.gif) no-repeat center center;
+	position: relative;
+}
+.astronaut-problem-wrapper .astronaut-problem {
+	left: 155px;
+	top: 30px;
+	position: absolute;
+	-webkit-transform: translateY(10px);
+	-webkit-animation: astronautHover 5s infinite ease;
+	-moz-transform: translateY(10px);
+	-moz-animation: astronautHover 5s infinite ease;
+	transform: translateY(10px);
+	animation: astronautHover 5s infinite ease;
+}
+#unsupported-page .browsers {
+	width: 200px;
+	height: 60px;
+	margin: 30px auto 10px;
+}
+#unsupported-page .browsers .browser-icon {
+	width: 60px;
+	height: 60px;
+	float: left;
+	display: block;
+}
+#unsupported-page .browsers .browser-icon~.browser-icon {
+	margin-left: 10px;
+}
+.browser-icon.safari {
+	background: url(../img/safari.png);
+}
+.browser-icon.chrome {
+	background: url(../img/chrome.png);
+}
+.browser-icon.firefox {
+	background: url(../img/firefox.png);
+}
+
+@-webkit-keyframes astronautHover {
+	0% {
+		-webkit-transform: translateY(10px) translateX(0);
+	}
+	50% {
+		-webkit-transform: translateY(-10px)  translateX(-10px);
+	}
+	100% {
+		-webkit-transform: translateY(10px)  translateX(0);
+	}
+}
+@-moz-keyframes astronautHover {
+	0% {
+		-moz-transform: translateY(10px) translateX(0);
+	}
+	50% {
+		-moz-transform: translateY(-10px)  translateX(-10px);
+	}
+	100% {
+		-moz-transform: translateY(10px)  translateX(0);
+	}
+}
+@keyframes astronautHover {
+	0% {
+		transform: translateY(10px) translateX(0);
+	}
+	50% {
+		transform: translateY(-10px)  translateX(-10px);
+	}
+	100% {
+		transform: translateY(10px)  translateX(0);
+	}
+}
+
 /* ==|== media queries ====================================================== PLACEHOLDER Media Queries for Responsive Design. These override the primary ('mobile first') styles Modify as content requires. ========================================================================== */
 @media only screen and (min-width:480px) {
 	/* Style adjustments for viewports 480px and over go here */
@@ -336,3 +440,4 @@ a, a:link {
 	@media only screen and (min-width: 768px) {
 		/* Style adjustments for viewports 768px and over go here */
 	}
+

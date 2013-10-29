@@ -32,7 +32,6 @@ func main() {
 		PublicIP: "localhost",
 		Kitename: "fs",
 		Version:  "0.0.1",
-		Kind:     "vm",
 		Port:     *port,
 		// KontrolAddr: "newkontrol.sj.koding.com:80",
 	}

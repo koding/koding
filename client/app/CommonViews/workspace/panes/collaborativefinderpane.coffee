@@ -13,13 +13,10 @@ class CollaborativeFinderPane extends CollaborativePane
       nodeIdPath          : "path"
       nodeParentIdPath    : "parentPath"
       contextMenu         : yes
-      loadFilesOnInit     : yes
       useStorage          : no
       treeControllerClass : CollaborativeFinderTreeController
 
     @finderController.treeController.workspace = @workspace
-
-    @finderController.reset()
 
     @container?.destroy()
     @finder = @container = @finderController.getView()
@@ -47,6 +44,8 @@ class CollaborativeFinderPane extends CollaborativePane
       editorPane.openFile file, content
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
+
+    @finderController.reset()  unless @workspace.getOptions().environment
 
   syncContent: (files) ->
     @workspaceRef.set { files }

@@ -55,6 +55,9 @@ class CollaborativeEditorPane extends CollaborativePane
   getValue: ->
     return @codeMirrorEditor.getValue()
 
+  setValue: (value) ->
+    @codeMirrorEditor.setValue value
+
   createEditor: ->
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
