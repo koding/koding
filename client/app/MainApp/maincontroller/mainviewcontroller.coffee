@@ -20,6 +20,10 @@ class MainViewController extends KDViewController
     mainController.on "ToggleChatPanel", =>
       mainView.chatPanel.toggle()
 
+    if KD.checkFlag 'super-admin'
+    then $('body').addClass 'super'
+    else $('body').removeClass 'super'
+
   loadView:(mainView)->
 
     mainView.mainTabView.on "MainTabPaneShown", (pane)=>
