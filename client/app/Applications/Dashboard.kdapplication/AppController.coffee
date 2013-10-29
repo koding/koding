@@ -136,24 +136,21 @@ class DashboardAppController extends AppController
 
   productViewAdded: do ->
 
-    confirmDelete = (callback) ->
-      deleteModal = new KDModalView
-        title        : "Warning"
-        content      : "<div class='modalformline'>Are you sure you want to delete this item?</div>"
-        height       : "auto"
-        overlay      : yes
-        buttons      :
-          Remove     :
-            loader   :
-              color  : "#ffffff"
-              diameter : 16
-            style    : "modal-clean-red"
-            callback : ->
-              deleteModal.destroy()
-              callback()
-          cancel     :
-            style    : "modal-cancel"
-            callback : -> deleteModal.destroy()
+    confirmDelete = (data, callback) ->
+
+      productViewOptions =
+        tagName   : 'div'
+        cssClass  : 'modalformline'
+
+      modal = KDModalView.confirm
+        title       : "Warning"
+        description : "Are you sure you want to delete this item?"
+        subView     : new GroupProductView productViewOptions, data
+        ok          :
+          title     : "Remove"
+          callback  : ->
+            modal.destroy()
+            callback()
 
     showCreateModal = (options, data, callback) ->
       productType = options.productType ? 'product'
@@ -178,19 +175,21 @@ class DashboardAppController extends AppController
       switch category
 
         when 'Product'
-          productType     : 'product'
-          isRecurOptional : yes
-          showOverage     : yes
-          showSoldAlone   : yes
+          productType         : 'product'
+          isRecurOptional     : yes
+          showOverage         : yes
+          showSoldAlone       : yes
+          showPriceIsVolatile : yes
 
         when 'Plan'
-          productType     : 'plan'
-          isRecurOptional : no
-          showOverage     : no
-          showSoldAlone   : no
-          placeholders    :
-            title         : 'e.g. "Gold Plan"'
-            description   : 'e.g. "2 VMs, and a tee shirt"'
+          productType         : 'plan'
+          isRecurOptional     : no
+          showOverage         : no
+          showSoldAlone       : no
+          showPriceIsVolatile : no
+          placeholders        :
+            title             : 'e.g. "Gold Plan"'
+            description       : 'e.g. "2 VMs, and a tee shirt"'
 
     getConstructor = (category) ->
       KD.remote.api["JPayment#{ category.capitalize() }"]
@@ -208,10 +207,9 @@ class DashboardAppController extends AppController
 
         reload()
 
-      # view.on "#{category}CreateRequested", (productData) ->
-
-      view.on "#{category}DeleteRequested", (code) ->
-        confirmDelete -> konstructor.removeByCode code, handleResponse
+      view.on "#{category}DeleteRequested", (data) ->
+        confirmDelete data, ->
+          konstructor.removeByCode data.planCode, handleResponse
 
       view.on "#{category}EditRequested", (data) ->
         options = getProductFormOptions category
