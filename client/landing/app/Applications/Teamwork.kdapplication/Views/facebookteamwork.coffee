@@ -154,3 +154,11 @@ class FacebookTeamwork extends TeamworkWorkspace
         </body>
       </html>
     """
+
+  showHintModal: ->
+    editor = @getActivePanel().getPaneByName "editor"
+    file   = editor.getActivePaneFileData()
+    readme = FSHelper.createFileFromPath "#{file.parentPath}/README.md"
+    readme.fetchContents (err, content) =>
+      return  unless content
+      @getDelegate().showMarkdownModal content
