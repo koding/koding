@@ -169,10 +169,10 @@ class DashboardAppController extends AppController
       createForm.on 'CancelRequested', ->
         modal.destroy()
 
-      createForm.on 'SaveRequested', (productData) ->
+      createForm.on 'SaveRequested', (model, productData) ->
         modal.destroy()
 
-        callback null, productData
+        callback null, model, productData
 
     getProductFormOptions = (category) ->
       switch category
@@ -203,25 +203,26 @@ class DashboardAppController extends AppController
         group["fetch#{category}s"] (err, results) ->
           view["set#{category}s"] results
 
+      handleResponse = (err) ->
+        return if KD.showError err
+
+        reload()
+
       # view.on "#{category}CreateRequested", (productData) ->
 
       view.on "#{category}DeleteRequested", (code) ->
-        confirmDelete -> konstructor.removeByCode code, (err) ->
-          return if KD.showError err
-          reload()
+        confirmDelete -> konstructor.removeByCode code, handleResponse
 
       view.on "#{category}EditRequested", (data) ->
         options = getProductFormOptions category
 
-        showCreateModal options, data, (err, productData) ->
+        showCreateModal options, data, (err, model, productData) ->
           return if KD.showError err
 
-          debugger
-
-          konstructor.create productData, (err) ->
-            return if KD.showError err
-
-            reload()
+          if model
+            model.modify productData, handleResponse
+          else
+            konstructor.create productData, handleResponse
 
       reload()
 
