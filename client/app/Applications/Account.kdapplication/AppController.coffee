@@ -164,7 +164,7 @@ class AccountAppController extends AppController
   indexOfItem:(item)->
     @itemsOrdered.indexOf item
 
-  displayConfirmEmailModal:(name, username, callback=->)->
+  displayConfirmEmailModal:(name, username, callback=noop)->
     name or= KD.whoami().profile.firstName
     message =
       """
