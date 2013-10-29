@@ -1,3 +1,0 @@
-class TeamworkPanel extends CollaborativePanel
-
-

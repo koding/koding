@@ -18,7 +18,6 @@ class TeamworkApp extends KDObject
       shareSessionKeyInfo : options.shareSessionKeyInfo or "<p>This is your session key, you can share this key with your friends to work together.</p>"
       firebaseInstance    : options.firebaseInstance    or instanceName
       sessionKey          : options.sessionKey
-      panelClass          : TeamworkPanel
       delegate            : this
       environment         : options.environment         or null
       panels              : options.panels              or [

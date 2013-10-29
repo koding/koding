@@ -156,7 +156,7 @@ class TeamworkTools extends JView
           <span class="text">Join</span>
         </div>
       </div>
-      <div class="teamwork-modal-contents top">
+      <div class="teamwork-modal-contents top-content">
         <div class="teamwork-modal-content">
           <div class="invite">
             <span class="icon"></span>

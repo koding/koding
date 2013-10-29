@@ -9,4 +9,4 @@ class GoLangTeamwork extends TeamworkWorkspace
   handleRun: (panel) ->
     panel.paneLauncher.handleLaunch "terminal"
     path = FSHelper.plainPath panel.getPaneByName("editor").getActivePaneFileData().path
-    panel.paneLauncher.terminalPane.runCommand "go run \"#{path}\""
+    panel.paneLauncher.terminalPane.runCommand """ go run "#{path}" """
