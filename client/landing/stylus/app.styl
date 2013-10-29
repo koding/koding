@@ -212,7 +212,12 @@ body
     &~.turn-off-dot
       top                   50%
       left                  50%
-      vendor                animation, logoutTvDot .3s .45s 1 forwards ease
+      bg                    color, #fff
+      rounded               20px
+      size                  10px, 10px
+      vendor                transform, scaleX(0) scaleY(0)
+      shadow                0 0 8px #fff
+      vendor                animation, logoutTvDot .3s .6s 1 forwards ease
       z-index               1000
       abs()
 
@@ -1928,6 +1933,7 @@ span.main-nav-icon
     -webkit-transform   scaleX(2) scaleY(0.0005)
   100%
     -webkit-transform   scaleX(0) scaleY(0.0005)
+
 @-webkit-keyframes logoutTvLine
   10%
     opacity             1
@@ -1935,13 +1941,14 @@ span.main-nav-icon
   100%
     opacity             1
     -webkit-transform   scale(0)
+
 @-webkit-keyframes logoutTvDot
-  50%
-    shadow              0 0 25px 15px #fff
+  75%
     opacity             1
+    -webkit-transform   scaleX(2) scaleY(2)
   100%
-    shadow              0 0 50px 5px #fff
     opacity             0
+    -webkit-transform   scaleX(0) scaleY(0)
 
 @-moz-keyframes logoutTv
   0%
@@ -1958,9 +1965,9 @@ span.main-nav-icon
     opacity             1
     -moz-transform   scale(0)
 @-moz-keyframes logoutTvDot
-  50%
-    shadow              0 0 25px 15px #fff
+  75%
     opacity             1
+    -moz-transform      scaleX(2) scaleY(2)
   100%
-    shadow              0 0 50px 5px #fff
     opacity             0
+    -moz-transform      scaleX(0) scaleY(0)
