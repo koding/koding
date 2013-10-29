@@ -31,10 +31,11 @@ module.exports = class Notifying
         CBucket.addActivities relationship, origin, actor, recipient, callback
 
     sendNotification = =>
-      if receiver instanceof JAccount and receiver.type isnt 'unregistered'
-        JMailNotification.create {actor, receiver, event, contents}, \
-        (err)->
-          console.error err if err
+      if receiver instanceof JAccount and receiver.type isnt 'unregistered' 
+        if not (contents.subject.constructorName is 'JGroup' and contents.origin.slug is 'koding')
+          JMailNotification.create {actor, receiver, event, contents}, \
+          (err)->
+            console.error err if err
 
     if actor? and not receiver.getId().equals actor.id
       receiver?.sendNotification? event, contents

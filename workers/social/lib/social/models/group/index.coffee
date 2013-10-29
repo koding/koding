@@ -1266,6 +1266,7 @@ module.exports = class JGroup extends Module
 
         contents.relationship = relationship
         contents.origin       = contents.subject
+        contents.origin.slug  = @slug
         contents.actorType    = event
         contents[event]       = contents.member
 
