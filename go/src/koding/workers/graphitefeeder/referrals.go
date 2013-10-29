@@ -7,6 +7,7 @@ import (
 )
 
 func init() {
+	registerAnalytic(numberOfReferrals)
 	registerAnalytic(numberOfReferrableEmails)
 	registerAnalytic(numberOfInvitesSent)
 }
@@ -39,4 +40,17 @@ func numberOfInvitesSent() (string, int) {
 	mongodb.Run("jReferrableEmails", query)
 
 	return identifier, count
+}
+
+func numberOfReferrals() (string, int) {
+	var identifier string = "number_of_referrals"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		count, err = c.Count()
+
+		return err
+	}
+
+	mongodb.Run("jReferrals", query)
 }
