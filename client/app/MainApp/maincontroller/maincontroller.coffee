@@ -55,7 +55,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
-      @showInstructionsBookIfNeeded()
+      @showInstructionsBook()
       @emit 'AppIsReady'
 
       console.timeEnd "Koding.com loaded"
@@ -73,7 +73,6 @@ class MainController extends KDController
 
       @createMainViewController()  unless @mainViewController
 
-      @decorateBodyTag()
       @emit 'ready'
 
       # this emits following events
@@ -95,14 +94,27 @@ class MainController extends KDController
     KDView.appendToDOMBody mainView
 
   doLogout:->
-
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
-      location.reload()
+      @_logoutAnimation()
+      KD.utils.wait 1100, -> location.reload()
 
-    # fixme: make a old tv switch off animation and reload
-    # $('body').addClass "turn-off"
+  _logoutAnimation:->
+    mainView      = KD.getSingleton("mainView")
+    {body}        = document
+
+    turnOffLine   = new KDCustomHTMLView
+      cssClass    : "turn-off-line"
+    turnOffDot    = new KDCustomHTMLView
+      cssClass    : "turn-off-dot"
+
+    turnOffLine.appendToDomBody()
+    turnOffDot.appendToDomBody()
+
+    body.style.background = "#000"
+    mainView.setClass       "logout-tv"
+
 
   attachListeners:->
 
@@ -136,29 +148,21 @@ class MainController extends KDController
 
 
 
-  # some day we'll have this :)
-  hashDidChange:(params,query)->
-
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
 
   isUserLoggedIn: -> KD.isLoggedIn()
 
-  showInstructionsBookIfNeeded:->
+  showInstructionsBook:->
     if $.cookie 'newRegister'
       @emit "ShowInstructionsBook", 9
       $.cookie 'newRegister', erase: yes
     else if @isUserLoggedIn()
       BookView::getNewPages (pages)=>
-        if pages.length
-          BookView.navigateNewPages = yes
-          @emit "ShowInstructionsBook", pages.first.index
-
-  decorateBodyTag:->
-    if KD.checkFlag 'super-admin'
-    then $('body').addClass 'super'
-    else $('body').removeClass 'super'
+        return unless pages.length
+        BookView.navigateNewPages = yes
+        @emit "ShowInstructionsBook", pages.first.index
 
   setFailTimer: do->
     modal = null
@@ -194,43 +198,3 @@ class MainController extends KDController
           modal.buttons["Refresh Now"].destroy()
 
           @utils.wait 2500, -> modal?.destroy()
-
-
-  displayConfirmEmailModal:(name, username)->
-    name or= KD.whoami().profile.firstName
-    message =
-      """
-      Dear #{name},
-
-      Thanks for joining Koding.<br/><br/>
-
-      For security reasons, we need to make sure you have activated your account. When you registered, we have sent you a link to confirm your email address, please use that link to be able to continue using Koding.<br/><br/>
-
-      If you didn't receive the email, please click to Resend email button below.<br/><br/>
-      """
-
-    modal = new KDModalView
-      title            : "You must confirm your email address!"
-      width            : 500
-      overlay          : yes
-      cssClass         : "new-kdmodal"
-      content          : "<div class='modalformline'>#{Encoder.htmlDecode message}</div>"
-      buttons          :
-        "Resend email"  :
-          style        : "modal-clean-red"
-          callback     : => @resendHandler(modal, username)
-        Dismiss        :
-          style        : "modal-cancel"
-          callback     : => modal.destroy()
-
-    return modal
-
-  resendHandler : (modal, username)->
-
-    KD.remote.api.JEmailConfirmation.resetToken username, (err)=>
-      modal.buttons["Resend email"].hideLoader()
-      return KD.showError err if err
-      new KDNotificationView
-        title     : "Check your email"
-        content   : "We've sent you a confirmation mail."
-        duration  : 4500
