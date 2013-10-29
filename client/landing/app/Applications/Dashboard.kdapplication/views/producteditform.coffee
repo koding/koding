@@ -1,6 +1,6 @@
 class GroupProductEditForm extends KDFormViewWithFields
 
-  constructor: (options = {}, data = {}) ->
+  constructor: (options = {}, data = new KD.remote.api.JPaymentProduct) ->
 
     model = data  if data.planCode
 
@@ -23,12 +23,12 @@ class GroupProductEditForm extends KDFormViewWithFields
       title             :
         label           : "Title"
         placeholder     : options.placeholders?.title
-        defaultValue    : data.title
+        defaultValue    : data.decoded 'title'
 
       description       :
         label           : "Description"
         placeholder     : options.placeholders?.description or "(optional)"
-        defaultValue    : data.description
+        defaultValue    : data.decoded 'description'
 
 
       subscriptionType  :
