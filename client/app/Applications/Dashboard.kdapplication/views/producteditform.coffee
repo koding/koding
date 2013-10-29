@@ -2,12 +2,12 @@ class GroupProductEditForm extends KDFormViewWithFields
 
   constructor: (options = {}, data = {}) ->
 
-    { @planCode } = data
+    @model = data  if data.planCode
 
     options.isRecurOptional ?= yes
 
     options.callback ?= =>
-      @emit 'SaveRequested', @getProductData()
+      @emit 'SaveRequested', @model, @getProductData()
 
     options.buttons ?=
       Save        :
@@ -67,7 +67,7 @@ class GroupProductEditForm extends KDFormViewWithFields
 
         perMonth      :
           itemClass   : KDCustomHTMLView
-          partial     : "/ #{data.subscriptionType}"
+          partial     : "/ #{ data.subscriptionType ? 'mo' }"
           cssClass    : 'fr'
 
     if options.showOverage
@@ -101,10 +101,9 @@ class GroupProductEditForm extends KDFormViewWithFields
     { subscriptionType, feeUnit, feeInterval } = @getPlanInfo subType.getValue()
 
     {
-      @planCode
       title             : title.getValue()
       description       : description.getValue()
-      feeAmount         : feeAmount.getValue()
+      feeAmount         : feeAmount.getValue() * 100
       feeUnit
       feeInterval
       subscriptionType

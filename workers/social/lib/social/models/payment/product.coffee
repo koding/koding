@@ -17,6 +17,7 @@ module.exports = class JPaymentProduct extends Module
       ]
       instance        : [
         'remove'
+        'modify'
       ]
     schema            :
       title           :
@@ -58,7 +59,7 @@ module.exports = class JPaymentProduct extends Module
     product = new this {
       title
       description
-      feeAmount         : feeAmount * 100 # cents
+      feeAmount
       feeUnit
       feeInterval
       subscriptionType
@@ -124,3 +125,8 @@ module.exports = class JPaymentProduct extends Module
 
   remove$: permit 'manage products',
     success: (client, callback) -> @remove callback
+
+  modify: (formData, callback) -> @update $set: formData, callback
+
+  modify$: permit 'manage products',
+    success: (client, formData, callback) -> @modify formData, callback
