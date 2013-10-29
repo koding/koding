@@ -49,11 +49,11 @@ class NotificationController extends KDObject
         duration: 5000
       modal.destroy()
 
-    @once 'EmailShouldBeConfirmed', ()->
+    @once 'EmailShouldBeConfirmed', ->
       {firstName, nickname} = KD.whoami().profile
-      modal = KD.getSingleton("mainController").displayConfirmEmailModal(firstName, nickname)
-      @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
-      modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
+      KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
+        @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
+        modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
     @on 'UsernameChanged', ({username, oldUsername}) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
