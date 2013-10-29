@@ -65,9 +65,19 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     # panel.headerButtons.Environments.hide()
     panel.header.addSubView new KDButtonView
       title      : "Run"
-      callback   : => @handleRun()
+      callback   : => @handleRun panel
 
   getEnvironmentClass: (environment) ->
-    if environment is "Facebook" then FacebookTeamwork else TeamworkWorkspace
+    switch environment
+      when "Facebook" then FacebookTeamwork
+      when "GoLang"   then GoLangTeamwork
+      else TeamworkWorkspace
 
-  handleRun: ->
+  handleRun: (panel) ->
+    console.warn "You should override this method."
+
+  showHintModal: ->
+    if @markdownContent
+      @getDelegate().showMarkdownModal()
+    else
+      Panel::showHintModal.call @getActivePanel()
