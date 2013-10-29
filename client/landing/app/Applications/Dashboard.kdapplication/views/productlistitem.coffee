@@ -3,9 +3,7 @@ class GroupProductListItem extends KDListItemView
   viewAppended: ->
     product = @getData()
 
-    { planCode, code, soldAlone } = product
-
-    planCode ?= code
+    { planCode, soldAlone } = product
 
     @productView = new GroupProductView {}, product
 
@@ -23,15 +21,15 @@ class GroupProductListItem extends KDListItemView
 
     @clientsButton = new KDButtonView
       title    : "View Buyers"
-      callback : => @emit 'BuyersReportRequested', @getData()
+      callback : => @emit 'BuyersReportRequested', product
 
     @deleteButton = new KDButtonView
       title    : "Remove"
-      callback : => @emit 'DeleteRequested', @getData()
+      callback : => @emit 'DeleteRequested', product
 
     @editButton = new KDButtonView
       title    : "Edit"
-      callback : => @emit 'EditRequested', @getData()
+      callback : => @emit 'EditRequested', product
 
     JView::viewAppended.call this
 
