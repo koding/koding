@@ -34,14 +34,21 @@ module.exports = class JPaymentPlan extends jraphical.Module
       instance      : [
         'fetchToken'
         'subscribe'
+        'modify'
       ]
     schema          :
-      planCode      : String
-      title         : String
-      description   : Object
+      planCode      :
+        type        : String
+        required    : yes
+      title         :
+        type        : String
+        required    : yes
+      description   : Object # TODO: see below*
       feeAmount     : Number
       feeInitial    : Number
-      feeInterval   : Number
+      feeInterval   :
+        type        : Number
+        default     : 1
       product       :
         prefix      : String
         category    : String
@@ -50,6 +57,11 @@ module.exports = class JPaymentPlan extends jraphical.Module
       lastUpdate    : Number
       contents      : Object
       group         : String
+
+  # * It seems like we're stuffing some JSON into the description field
+  #   on recurly.  I think that's a really bad idea, so let's store any
+  #   data that is orthogonal to the recurly API in our own database,
+  #   the way we're doing with JPaymentProduct C.T.
 
   @create = (group, formData, callback) ->
 
@@ -125,6 +137,11 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
   remove$: permit 'manage products',
     success: (client, callback) -> @remove callback
+
+  modify: (formData, callback) -> @update $set: formData, callback
+
+  modify$: permit 'manage products',
+    success: (client, formData, callback) -> @modify formData
 
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @planCode, callback
