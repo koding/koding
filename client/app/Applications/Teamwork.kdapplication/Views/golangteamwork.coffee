@@ -4,7 +4,7 @@ class GoLangTeamwork extends TeamworkWorkspace
 
     super options, data
 
-    @container.setClass "GoLang"
+    @container.setClass "go-lang"
 
   handleRun: (panel) ->
     panel.paneLauncher.handleLaunch "terminal"
