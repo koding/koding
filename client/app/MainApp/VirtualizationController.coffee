@@ -26,6 +26,8 @@ class VirtualizationController extends KDController
           options.kiteName = "terminal"
         else if /^vm\./.test options.method
           options.kiteName = "fs"
+        else if /^s3\./.test options.method
+          options.kiteName = "s3"
 
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
