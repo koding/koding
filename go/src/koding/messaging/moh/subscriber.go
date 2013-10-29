@@ -37,22 +37,14 @@ type Subscriber struct {
 
 	// errCount defines the number o reconnection errors
 	errCount int
-
-	Credentials Credentials
 }
 
-type subscriberCommand struct {
-	Name string      `json:"name"`
-	Args args        `json:"args"`
-	Auth Credentials `json:"auth"`
+type SubscriberCommand struct {
+	Name string `json:"name"`
+	Args args   `json:"args"`
 }
 
 type args map[string]interface{}
-
-type Credentials struct {
-	Username string
-	Password string
-}
 
 // NewSubscriber opens a websocket connection to a Publisher and returns a
 // pointer to newly created Subscriber.  After creating a Subscriber you should
@@ -109,10 +101,9 @@ func (s *Subscriber) Subscribe(key string) {
 	}
 
 	// Then send to the server
-	cmd := subscriberCommand{
+	cmd := SubscriberCommand{
 		Name: "subscribe",
 		Args: args{"key": key},
-		Auth: s.Credentials,
 	}
 
 	// We do not check for the error here because if it fails the command will
@@ -134,10 +125,9 @@ func (s *Subscriber) Unsubscribe(key string) {
 	}
 
 	// Then send to the server
-	cmd := subscriberCommand{
+	cmd := SubscriberCommand{
 		Name: "unsubscribe",
 		Args: args{"key": key},
-		Auth: s.Credentials,
 	}
 	websocket.JSON.Send(ws, cmd)
 }
@@ -210,10 +200,9 @@ func (s *Subscriber) sendSubscriptionCommands() error {
 	defer s.keysMutex.Unlock()
 
 	for key := range s.keys {
-		cmd := subscriberCommand{
+		cmd := SubscriberCommand{
 			Name: "subscribe",
 			Args: args{"key": key},
-			Auth: s.Credentials,
 		}
 
 		err := websocket.JSON.Send(s.ws, cmd)
