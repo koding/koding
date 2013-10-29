@@ -9,15 +9,28 @@ app.teamwork.styl
 }
 
 .teamwork
+  .user-list-container
+    .inner-header
+      .title
+        text-indent             10px
   .inner-header
     .title
-      text-indent               40px
+      text-indent               0
+    .icon
       background                url(/images/teamwork/icon.128.png) 3px -2px no-repeat
-      background-size           38px 38px
+      background-size           37px 37px
+      size                      37px 37px
+      fl()
   .finder-pane
+    .file-container
+      vendor                    box-shadow, -3px 0px 3px rgba(0,0,0,0.2) inset
+    .client-finder-pane
+      vendor                    box-shadow, -3px 0px 3px rgba(0,0,0,0.2) inset
     &.file-container
       .no-vm-found-widget
         display                 none
+  .kdsplitview-resizer.vertical
+    display                     none
 
 .teamwork-loader
   size                          204px, 324px
@@ -179,9 +192,101 @@ app.teamwork.styl
   h2
     font-size                   24px
 
-// .teamwork .panel-1
-//   bg                            color, #202020
-//   .kdsplitview-resizer
-//     cursor                      default
-//     background                  none !important
-//     margin-top                  -5px
+.tw-environments-wrapper
+  margin                        20px 0 0 20px
+
+.flip-container
+  vendor                        perspective, 1000
+  overflow                      visible
+  margin                        0 20px 20px 0
+  size                          240px, 160px
+  pointer()
+  fl()
+  &:hover
+    .flipper
+      vendor                    transform, rotateY(180deg)
+  .flipper
+    vendor                      transition, .6s
+    vendor                      transform-style, preserve-3d
+    position                    relative
+  .front, .back
+    vendor                      backface-visibility, hidden
+    top                         0
+    left                        0
+    abs()
+    size                        240px, 160px
+  .front
+    z-index                     200
+  .back
+    z-index                     199
+    vendor                      transform, rotateY(180deg)
+    padding                     20px
+    border                      1px solid #a9a9a9
+    box-sizing                  border-box
+    rounded                     3px
+    p
+      font-size                 22px
+      color                     #4B4848
+      margin-bottom             10px
+    span
+      font-size                 13px
+      line-height               14px
+      color                     #646464
+
+.tw-python .front
+  bg                            image, url("../images/teamwork/environments/python.jpg")
+.tw-ruby .front
+  bg                            image, url("../images/teamwork/environments/ruby.jpg")
+.tw-mongodb .front
+  bg                            image, url("../images/teamwork/environments/mongodb.jpg")
+.tw-html5 .front
+  bg                            image, url("../images/teamwork/environments/html5.jpg")
+.tw-facebook .front
+  bg                            image, url("../images/teamwork/environments/facebook.jpg")
+.tw-nodejs .front
+  bg                            image, url("../images/teamwork/environments/nodejs.jpg")
+
+.workspace.Facebook
+  .user-list-container
+    .inner-header
+      border                    none
+    .title
+      top                       2px !important
+      left                      0 !important
+  .inner-header
+    border                      1px solid #3B5998
+    .icon
+      bg                        image, none
+    .title
+      size                      75px 17px
+      top                       10px
+      left                      10px
+      position                  relative
+  .tw-tools-button
+    left                        -31px
+  .users
+    left                        53px
+  .kdbuttonwithmenu-wrapper
+    fr()
+    margin                      7px 10px 0 0
+
+.tw-modal-image
+  size                          663px, 210px
+  left                          10px
+  position                      relative
+.tw-modal-line
+  padding                       11px 0
+  font-size                     13px
+.appcanvasurl
+  padding-top                   0 !important
+  border-bottom                 none !important
+.canvasurltext
+  padding                       0 20px !important
+  border-bottom                 none !important
+.formline.image
+  border-bottom                 none !important
+.formline.appid
+  border-bottom                 none !important
+  padding                       0 20px !important
+.tw-modal-image.step-general
+  left                          0

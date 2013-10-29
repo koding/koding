@@ -59,8 +59,7 @@ class NFinderController extends KDViewController
   watchers: {}
 
   mountFSKite:(kitename)->
-    unless kitename is "fs"
-      return
+    return unless kitename is "fs"
 
     log "FinderController: Mounting", kitename
     vmName = "local-#{KD.nick()}"
@@ -85,13 +84,14 @@ class NFinderController extends KDViewController
         @treeController.addNode @vms.last
 
   unmountFSKite:(kitename)->
+    return unless kitename is "fs"
     log "FinderController: Unmounting", kitename
-    if kitename is "fs"
-      vmName = "local-#{KD.nick()}"
-      vmItem = @getVmNode vmName
 
-      FSHelper.unregisterVmFiles vmName
-      @treeController.removeNodeView vmItem
+    vmName = "local-#{KD.nick()}"
+    vmItem = @getVmNode vmName
+
+    FSHelper.unregisterVmFiles vmName
+    @treeController.removeNodeView vmItem
 
   registerWatcher:(path, stopWatching)->
     @watchers[path] = stop: stopWatching

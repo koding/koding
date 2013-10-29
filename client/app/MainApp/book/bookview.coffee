@@ -62,7 +62,7 @@ class BookView extends JView
 
     @pageNav.addSubView @prevButton = new KDCustomHTMLView
       tagName   : "a"
-      partial   : "◀"
+      partial   : "<i class='prev'></i>"
       cssClass  : "disabled"
       click     : (pubInst, event)=> @fillPrevPage()
       tooltip   :
@@ -71,7 +71,7 @@ class BookView extends JView
 
     @pageNav.addSubView @nextButton = new KDCustomHTMLView
       tagName   : "a"
-      partial   : "▶"
+      partial   : "<i class='next'></i>"
       cssClass  : "disabled"
       click     : (pubInst, event)=> @fillNextPage()
       tooltip   :

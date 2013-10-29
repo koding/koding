@@ -2,11 +2,13 @@ class AvatarView extends LinkView
 
   constructor:(options = {},data)->
 
-    options.cssClass or= ""
-    options.size     or=
-      width            : 50
-      height           : 50
-    options.detailed  ?= no
+    options.cssClass       or= ""
+    options.size           or=
+      width                   : 50
+      height                  : 50
+    options.detailed        ?= no
+    options.showStatus     or= no
+    options.statusDiameter or= 5
 
     # this needs to be pre-super
     if options.detailed
@@ -49,8 +51,16 @@ class AvatarView extends LinkView
     {profile, type} = account
     return @setAvatar "url(#{@fallbackUri})"  if type is 'unregistered'
 
-    {width} = @getOptions().size
-    @setAvatar "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
+    {width, height} = @getOptions().size
+
+    height = width unless height
+
+    avatarURI = "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
+    if profile.avatar?.match /^https?:\/\//
+      resizedAvatar = KD.utils.proxifyUrl profile.avatar, {crop: yes, width, height}
+      avatarURI = "url(#{resizedAvatar})"
+
+    @setAvatar avatarURI
 
     flags = ""
     if account.globalFlags
@@ -63,9 +73,32 @@ class AvatarView extends LinkView
 
     @setAttribute "href", "/#{profile.nickname}"
 
+    if @getOptions().showStatus
+      onlineStatus = account.onlineStatus or 'offline'
+
+      if @statusAttr? and onlineStatus isnt @statusAttr
+        @setClass "animate"
+
+      @statusAttr = onlineStatus
+
+      if @statusAttr is "online"
+        @unsetClass "offline"
+        @setClass   "online"
+      else
+        @unsetClass "online"
+        @setClass   "offline"
+
   viewAppended:->
     super
     @render() if @getData()
+
+    if @getOptions().showStatus
+      {statusDiameter} = @getOptions()
+
+      @addSubView @statusIndicator = new KDCustomHTMLView
+        cssClass : 'statusIndicator'
+      @statusIndicator.setWidth statusDiameter
+      @statusIndicator.setHeight statusDiameter
 
   pistachio:-> '<cite></cite>'
 

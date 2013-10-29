@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
 	libgeo "github.com/nranchev/go-libGeoIP"
@@ -37,6 +38,10 @@ type Proxy struct {
 	// restrictions and filter collections to validate the incoming requests
 	// accoding to ip, country, requests and so on..
 	EnableFirewall bool
+
+	// LogDestination specifies the destination of requests logs in the
+	// Combined Log Format.
+	LogDestination io.Writer
 }
 
 // Client is used to register incoming request with an 1 hour cache. After that
@@ -131,8 +136,19 @@ func configureProxy() {
 
 // startProxy is used to fire off all our ftp, https and http proxies
 func startProxy() {
+	var err error
+	var logOutput io.Writer
+	logFile := "/var/log/koding/kontrolproxyCLH.log"
+
+	logOutput, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE, 0640)
+	if err != nil {
+		fmt.Printf("err: '%s'. \nusing stderr for log destination\n", err)
+		logOutput = os.Stderr
+	}
+
 	reverseProxy := &Proxy{
 		EnableFirewall: false,
+		LogDestination: logOutput,
 	}
 
 	startHTTPS(reverseProxy) // non-blocking
@@ -211,7 +227,8 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// our main handler mux function goes and picks the correct handler
 	if h := p.getHandler(r); h != nil {
-		h.ServeHTTP(w, r)
+		loggingHandler := handlers.CombinedLoggingHandler(p.LogDestination, h)
+		loggingHandler.ServeHTTP(w, r)
 		return
 	}
 
@@ -238,7 +255,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			return templateHandler("notfound.html", req.Host, 410)
 		}
 
-		logs.Info(fmt.Sprintf("resolver error %s", err))
+		logs.Info(fmt.Sprintf("resolver error (%s - %s): %s", userIP, userCountry, err))
 		return templateHandler("notfound.html", req.Host, 404)
 	}
 
