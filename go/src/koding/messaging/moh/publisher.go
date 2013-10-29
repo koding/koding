@@ -20,7 +20,7 @@ type Publisher struct {
 	// the connection handler can read it from there.
 	Authenticate func(*websocket.Config, *http.Request) (username string, err error)
 
-	// ValidateCommand is an optional fucntion to be called on each command
+	// ValidateCommand is an optional function to be called on each command
 	// coming from subscriber. Should return true if the command will be allowed.
 	// If it returns false, then the connection will be dropped.
 	ValidateCommand func(*websocket.Conn, *SubscriberCommand) bool
