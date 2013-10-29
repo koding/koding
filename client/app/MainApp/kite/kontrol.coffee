@@ -11,7 +11,7 @@ class Kontrol extends KDEventEmitter
     @connect()
 
   connect:->
-    @ws = new WebSocket @addr
+    @ws = new WebSocket @addr, KD.remote.getSessionToken()
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
     @ws.onmessage = @bound 'onMessage'
