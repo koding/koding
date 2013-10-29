@@ -74,7 +74,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       else TeamworkWorkspace
 
   handleRun: (panel) ->
-    warn "You should override this method."
+    console.warn "You should override this method."
 
   showHintModal: ->
     if @markdownContent

@@ -622,7 +622,6 @@ module.exports = [
   "app/Applications/Teamwork.kdapplication/Views/teamworkenvironmentsmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/facebookteamworkinstructionsmodal.coffee",
-  "app/Applications/Teamwork.kdapplication/Views/teamworkpanel.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
