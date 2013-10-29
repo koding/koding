@@ -6,6 +6,7 @@ import (
 	"github.com/streadway/amqp"
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
+	"koding/tools/log"
 	"koding/tools/statsd"
 	"koding/workers/neo4jfeeder/mongohelper"
 	"labix.org/v2/mgo/bson"
@@ -54,7 +55,7 @@ func startConsuming() {
 
 	c.conn = amqputil.CreateConnection("neo4jFeeding")
 	c.channel = amqputil.CreateChannel(c.conn)
-    // exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
+	// exchangeName, ExchangeType, durable, autoDelete, internal, noWait, args
 	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
 	if err != nil {
 		fmt.Println("exchange.declare: %s", err)
@@ -98,7 +99,7 @@ func startConsuming() {
 		}
 		data := message.Payload[0]
 
-		fmt.Println(message.Event)
+		log.Debug(message.Event)
 		if message.Event == "RelationshipSaved" {
 			createNode(data)
 		} else if message.Event == "RelationshipRemoved" {
@@ -108,7 +109,7 @@ func startConsuming() {
 		} else if message.Event == "RemovedFromCollection" {
 			deleteNode(data)
 		} else {
-			fmt.Println(message.Event)
+			log.Debug(message.Event)
 		}
 
 		msg.Ack(true)
@@ -123,28 +124,26 @@ func checkIfEligible(sourceName, targetName string) bool {
 
 	for _, name := range neo4j.NotAllowedNames {
 		if name == sourceName {
-			fmt.Println("not eligible " + sourceName)
+			log.Debug("not eligible " + sourceName)
 			return false
 		}
 
 		if name == targetName {
-			fmt.Println("not eligible " + targetName)
+			log.Debug("not eligible " + targetName)
 			return false
 		}
 	}
 
 	for _, name := range notAllowedSuffixes {
-
 		if strings.HasSuffix(sourceName, name) {
-			fmt.Println("not eligible " + sourceName)
+			log.Debug("not eligible " + sourceName)
 			return false
 		}
 
 		if strings.HasSuffix(targetName, name) {
-			fmt.Println("not eligible " + targetName)
+			log.Debug("not eligible " + targetName)
 			return false
 		}
-
 	}
 
 	return true
