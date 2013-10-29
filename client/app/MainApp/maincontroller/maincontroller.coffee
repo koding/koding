@@ -135,9 +135,6 @@ class MainController extends KDController
 
 
 
-  # some day we'll have this :)
-  hashDidChange:(params,query)->
-
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
