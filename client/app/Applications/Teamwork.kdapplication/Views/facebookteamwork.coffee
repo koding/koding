@@ -29,6 +29,38 @@ class FacebookTeamwork extends TeamworkWorkspace
     @on "WorkspaceSyncedWithRemote", =>
       @getAppInfo()  if @amIHost()
 
+    @getDelegate().on "TeamworkToolsModalIsReady", (modal) =>
+      modal.addSubView header = new KDCustomHTMLView
+        cssClass : "teamwork-modal-header"
+        partial  : """
+          <div class="header full-width">
+            <span class="text">Facebook App Details</span>
+          </div>
+        """
+      modal.addSubView wrapper = new KDCustomHTMLView
+        cssClass : "teamwork-modal-content full-width tw-fb-revoke"
+        partial  : """
+          <div class="teamwork-modal-content">
+            <span class="initial">Below you can find your app details.</span>
+            <p>
+              <span>App ID</span>         <strong>#{@appId}</strong><br />
+              <span>App Namespace</span>  <strong>#{@appNamespace}</strong><br />
+              <span>Canvas Url</span>     <strong>#{@appCanvasUrl}</strong><br /><br />
+            </p>
+          </div>
+        """
+      wrapper.addSubView revoke = new KDCustomHTMLView
+        cssClass : "teamwork-modal-content revoke"
+        partial  : """
+          <p>If you want to update your Facebook App ID, App Namespace or App Canvas Url click this button to start progress.</p>
+        """
+
+      revoke.addSubView new KDButtonView
+        title    : "Update"
+        callback : =>
+          modal.destroy()
+          @showInstructions()
+
   showInstructions: ->
     @instructionsModal = new FacebookTeamworkInstructionsModal delegate: this
 
@@ -63,8 +95,6 @@ class FacebookTeamwork extends TeamworkWorkspace
     panel.header.addSubView @runButton = new KDButtonViewWithMenu
       title               : "Run"
       menu                :
-        "Run"             :
-          callback        : => @run()
         "Run on Facebook" :
           callback        : => @runOnFB()
       callback            : => @run()
@@ -102,10 +132,12 @@ class FacebookTeamwork extends TeamworkWorkspace
 
   exampleItemMarkup: (title, description) ->
     """
-      <div class="example">
-        <h3>#{title}</h3>
-        <p>#{description}</p>
-      </div>
+      <a href="https://#{KD.nick()}.kd.io/Teamwork/Facebook/#{title}/index.html">
+        <div class="example">
+          <h3>#{title}</h3>
+          <p>#{description}</p>
+        </div>
+      </a>
     """
 
   examplesPageMarkup: (examplesMarkup) ->
@@ -113,17 +145,20 @@ class FacebookTeamwork extends TeamworkWorkspace
       <html>
         <head>
           <title>Facebook App Examples</title>
+          <link rel="stylesheet" type="text/css" href="https://koding-cdn.s3.amazonaws.com/teamwork/tw-fb.css" />
         </head>
         <body>
-          <div id="tw-fb-container">
-            <div id="header">
-              <img src="/images/teamwork/environments/facebook-text-big.png" />
-              <p>Facebook</p>
-            </div>
-            <div class="examples">
-              #{examplesMarkup}
-            </div>
+          <div class="examples">
+            #{examplesMarkup}
           </div>
         </body>
       </html>
     """
+
+  showHintModal: ->
+    editor = @getActivePanel().getPaneByName "editor"
+    file   = editor.getActivePaneFileData()
+    readme = FSHelper.createFileFromPath "#{file.parentPath}/README.md"
+    readme.fetchContents (err, content) =>
+      return  unless content
+      @getDelegate().showMarkdownModal content

@@ -57,7 +57,7 @@ class Panel extends JView
       cssClass  : "help"
       tooltip   :
         title   : "Need help?"
-      click     : => @showHintModal()
+      click     : => @getDelegate().showHintModal() # it's intentional to override
 
   createLayout: ->
     {pane, layout} = @getOptions()

@@ -59,6 +59,9 @@ class Workspace extends JView
   getPanelByIndex: (index) ->
     return @panels[index] or null
 
+  showHintModal: ->
+    @getActivePanel().showHintModal()
+
   _windowDidResize: ->
     return unless @activePanel
     @doInternalResize()
