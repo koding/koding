@@ -26,10 +26,10 @@ class HomeAppController extends ActivityAppController
     AppController::constructor.call this, options, data
 
   loadView:(appView)->
-    appView.ready =>
-      appView.featuredActivities.ready =>
-        @listController = appView.featuredActivities.controller
-        @populateActivity()
+    # appView.ready =>
+    #   appView.featuredActivities.ready =>
+    #     @listController = appView.featuredActivities.controller
+    #     @populateActivity()
 
   populateActivity:(options = {}, callback=noop)->
     @listController.showLazyLoader no

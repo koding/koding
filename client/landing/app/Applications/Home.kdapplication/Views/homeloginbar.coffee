@@ -1,8 +1,9 @@
 class HomeLoginBar extends JView
 
   requiresLogin = (callback)->
-    if KD.isLoggedIn() then callback()
-    else KD.getSingleton('router').handleRoute '/Login', entryPoint: KD.config.entryPoint
+    KD.requireMembership
+      tryAgain: yes
+      callback: callback
 
   constructor:(options = {}, data)->
 
@@ -11,7 +12,8 @@ class HomeLoginBar extends JView
 
     super options, data
 
-    @appManager = KD.getSingleton('appManager')
+    @appManager   = KD.getSingleton("appManager")
+    @localStorage = KD.getSingleton("localStorageController").storage "HomeLoginBar"
 
     handler = (event)->
       route = this.$()[0].getAttribute 'href'
@@ -84,12 +86,10 @@ class HomeLoginBar extends JView
       click       : (event)=>
         KD.track "Login", "GroupAccessRequest", @group.slug
         @utils.stopDOMEvent event
-        requiresLogin =>
-          @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
-            unless err
-              @access.hide()
-              @requested.show()
-              @listenToApproval()
+
+        if KD.isLoggedIn() then @requestAccess()
+        else requiresLogin =>
+          @localStorage.setValue "RequestAccess", yes
 
     @join         = new CustomLinkView
       tagName     : "a"
@@ -102,7 +102,12 @@ class HomeLoginBar extends JView
       click       : (event)=>
         KD.track "Login", "GroupJoinRequest", @group.slug
         @utils.stopDOMEvent event
-        requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
+        requiresLogin (err, result) =>
+          @appManager.tell 'Groups', "joinGroup", @group, (err) =>
+            return KD.showError err  if err
+            @join.hide()
+            new KDNotificationView
+              title : "You've successfully joined the group!"
 
     @requested    = new CustomLinkView
       tagName     : "a"
@@ -125,7 +130,7 @@ class HomeLoginBar extends JView
                 loader     :
                   color    : "#ffffff"
                   diameter : 16
-                callback   : ->
+                callback   : =>
                   modal.destroy()
                   KD.track "Login", "GroupJoinRequestDismiss", @group.slug
 
@@ -198,8 +203,10 @@ class HomeLoginBar extends JView
                 callback   : -> modal.destroy()
 
     @decorateButtons()
-    KD.getSingleton('mainController').on 'AccountChanged', @bound 'decorateButtons'
-    KD.getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
+
+    mainController = KD.getSingleton "mainController"
+    mainController.on "AccountChanged", @bound "decorateButtons"
+    mainController.on "JoinedGroup"   , @bound "hide"
 
   handleBackendResponse:(err, successMsg)->
     return KD.showError err  if err
@@ -260,8 +267,21 @@ class HomeLoginBar extends JView
                   @requested.show()
                 else if status is 'invited'
                   @invited.show()
+
+              @localStorage.fetchValue "RequestAccess", (state) =>
+                @requestAccess()  if state
+                @localStorage.setValue "RequestAccess", no
+
     else
       @hide()
+
+  requestAccess: ->
+    @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err) =>
+      return log err if err
+      @access.hide()
+      @request.hide()
+      @requested.show()
+      @listenToApproval()
 
   listenToApproval:->
     @once 'MemberAdded', @listenToApprovalCallback ?= =>

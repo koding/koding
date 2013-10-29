@@ -52,15 +52,17 @@ class NVMItemView extends NFileItemView
     parents.reverse()
 
     vm = @getData().vmName
-    parents.forEach (path)=>
-      contextMenu.treeController.addNode
-        title    : path
-        callback : ->
-          KD.getSingleton('finderController').updateVMRoot \
-            vm, path, contextMenu.bound("destroy")
 
-    contextMenu.positionContextMenu()
-    contextMenu.treeController.selectFirstNode()
+    @utils.defer ->
+      parents.forEach (path)->
+        contextMenu.treeController.addNode
+          title    : path
+          callback : ->
+            KD.getSingleton('finderController').updateVMRoot \
+              vm, path, contextMenu.bound("destroy")
+
+      contextMenu.positionContextMenu()
+      contextMenu.treeController.selectFirstNode()
 
   checkVMState:(err, vm, info)->
     return unless vm is @getData().vmName
