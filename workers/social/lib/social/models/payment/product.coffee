@@ -20,6 +20,9 @@ module.exports = class JPaymentProduct extends Module
         'modify'
       ]
     schema            :
+      planCode        :
+        type          : String
+        required      : yes
       title           :
         type          : String
         required      : yes
@@ -29,10 +32,10 @@ module.exports = class JPaymentProduct extends Module
         default       : 'recurring'
       feeAmount       :
         type          : Number
-        validate      : [
-          'invalid fee amount'
-          (value) -> not value? or value >= 0
-        ]
+        validate      : (require './validators').fee
+      feeInitial      :
+        type          : Number
+        validate      : (require './validators').fee
       feeInterval     :
         type          : Number
         default       : 1
@@ -52,7 +55,6 @@ module.exports = class JPaymentProduct extends Module
       priceIsVolatile :
         type          : Boolean
         default       : no
-      planCode        : String
       group           : String
 
   @create = (group, formData, callback) ->

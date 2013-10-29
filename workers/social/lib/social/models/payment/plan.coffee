@@ -44,8 +44,12 @@ module.exports = class JPaymentPlan extends jraphical.Module
         type        : String
         required    : yes
       description   : Object # TODO: see below*
-      feeAmount     : Number
-      feeInitial    : Number
+      feeAmount     :
+        type        : Number
+        validate    : (require './validators').fee
+      feeInitial    :
+        type        : Number
+        validate    : (require './validators').fee
       feeInterval   :
         type        : Number
         default     : 1
