@@ -26,11 +26,12 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"vm.create":  "Create",
-		"vm.destroy": "Destroy",
-		"vm.start":   "Start",
-		"vm.stop":    "Stop",
-		"vm.run":     "Run",
+		"vm.create":   "Create",
+		"vm.destroy":  "Destroy",
+		"vm.start":    "Start",
+		"vm.stop":     "Stop",
+		"vm.shutdown": "Shutdown",
+		"vm.run":      "Run",
 	}
 
 	k := kite.New(options)
@@ -111,6 +112,25 @@ func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
+func (s *Supervisor) Shutdown(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		ContainerName string
+		Timeout       int
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Timeout == 0 {
+		return errors.New("{ containerName: [string], timeout : [int]}")
+	}
+
+	err := s.lxcShutdown(params.ContainerName, params.Timeout)
+	if err != nil {
+		return err
+	}
+
+	*result = true
+	return nil
+}
+
 func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
@@ -170,6 +190,20 @@ func (s *Supervisor) lxcStop(containerName string) error {
 	defer lxc.PutContainer(c)
 
 	err := c.Stop()
+	if err != nil {
+		return fmt.Errorf("ERROR: %s\n", err)
+	}
+
+	return nil
+}
+
+func (s *Supervisor) lxcShutdown(containerName string, timeout int) error {
+	fmt.Println("shutting down ", containerName)
+
+	c := lxc.NewContainer(containerName)
+	defer lxc.PutContainer(c)
+
+	err := c.Shutdown(timeout)
 	if err != nil {
 		return fmt.Errorf("ERROR: %s\n", err)
 	}
