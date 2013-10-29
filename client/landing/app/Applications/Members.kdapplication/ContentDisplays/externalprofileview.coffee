@@ -34,6 +34,7 @@ class ExternalProfileView extends JView
     account.fetchStorage "ext|profile|#{provider}", (err, storage)=>
       return warn err  if err
       return           unless storage
+      return           unless urlLocation = @getOption 'urlLocation'
 
       @setData storage
 
@@ -42,7 +43,7 @@ class ExternalProfileView extends JView
       @linked = yes
       @setClass 'linked'
       @setAttributes
-        href   : JsPath.getAt @getData().content, @getOption('urlLocation')
+        href   : JsPath.getAt storage.content, urlLocation
         target : '_blank'
 
       @setTooltip if KD.isMine(account)
