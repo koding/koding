@@ -103,7 +103,7 @@ class DashboardAppController extends AppController
   policyViewAdded: (pane, view) ->
 
   paymentViewAdded: (pane, view) ->
-    new GroupPaymentsController { view }
+    new GroupPaymentController { view }
 
   productViewAdded: (pane, view) ->
     new GroupProductsController { view }
