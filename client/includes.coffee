@@ -585,6 +585,9 @@ module.exports = [
   "app/Applications/Dashboard.kdapplication/views/paymentsettingsview.coffee",
 
   # Product Pane
+  # controller:
+  "app/Applications/Dashboard.kdapplication/controllers/productscontroller.coffee",
+  # views:
   "app/Applications/Dashboard.kdapplication/views/productsettingsview.coffee",
   "app/Applications/Dashboard.kdapplication/views/productsectionview.coffee",
   "app/Applications/Dashboard.kdapplication/views/producteditform.coffee",
