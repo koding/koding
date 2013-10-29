@@ -47,26 +47,51 @@ class NFinderController extends KDViewController
       @mountFSKite kitename
       kc.once "KiteDisconnected", => @unmountFSKite kitename
 
+    NewKite.getKites "fs", (err, kites)->
+      if err then log err
+      else
+        for kite in kites
+          correlationName = "local-#{KD.nick()}"
+          key = kc.getKiteKey kite.kitename, correlationName
+          kiteInstance = kc.createNewKite kite
+          kc.kiteInstances[key] = kiteInstance
+
   watchers: {}
 
   mountFSKite:(kitename)->
-    log "KiteConnected, mounting", kitename
-    if kitename is "fs"
-      options =
-        kiteName        : "fs"
-        method          : "vm.info"
-        correlationName : "local-#{KD.nick()}"
+    unless kitename is "fs"
+      return
 
-      kc = KD.getSingleton("kiteController")
-      kc.run options, (err, info) =>
-        if err then log err
-        path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
-        return @_mountVMHelper "local-#{KD.nick()}", path
+    log "FinderController: Mounting", kitename
+    vmName = "local-#{KD.nick()}"
+
+    options =
+      kiteName        : "fs"
+      method          : "vm.info"
+      correlationName : vmName
+
+    kc = KD.getSingleton("kiteController")
+    kc.run options, (err, info) =>
+      if err then log err
+      path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
+
+      KD.utils.wait 1000, =>
+        @vms.push FSHelper.createFile
+          name   : "#{path}"
+          path   : "[#{vmName}]#{path}"
+          type   : "vm"
+          vmName : vmName
+
+        @treeController.addNode @vms.last
 
   unmountFSKite:(kitename)->
-    log "KiteDisconnected, unmounting", kitename
+    log "FinderController: Unmounting", kitename
     if kitename is "fs"
-      @unmountVm "local-#{KD.nick()}"
+      vmName = "local-#{KD.nick()}"
+      vmItem = @getVmNode vmName
+
+      FSHelper.unregisterVmFiles vmName
+      @treeController.removeNodeView vmItem
 
   registerWatcher:(path, stopWatching)->
     @watchers[path] = stop: stopWatching
