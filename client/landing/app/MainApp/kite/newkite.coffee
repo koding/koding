@@ -7,7 +7,9 @@ class NewKite extends KDEventEmitter
   kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
 
   constructor: (options)->
-    super
+
+    super options
+
     { @addr, @kitename, @token, @correlationName, @kiteKey } = options
     @localStore   = new Store
     @remoteStore  = new Store
@@ -34,16 +36,17 @@ class NewKite extends KDEventEmitter
     @ws.onmessage = @bound 'onMessage'
     @ws.onerror   = @bound 'onError'
 
-  getKiteAddr : (connect=false)->
-    @getKites kitename, (err, data) ->
+  getKiteAddr : (connect=no)->
+    NewKite.getKites @kitename, (err, data) =>
       if err
-        log "kontrol request error", xhr.responseText
+        log "kontrol request error", err
         # Make a request again if we could not get the addres, use backoff for that
         KD.utils.defer => @setBackoffTimeout =>
           @getKiteAddr true
       else
+        log {data}
         @token = data[0].token
-        @addr = data[0].addr
+        @addr = data[0].publicIP
 
         # this should be optional
         @connectDirectly() if connect
@@ -63,7 +66,6 @@ class NewKite extends KDEventEmitter
         data = JSON.parse xhr.responseText
         callback null, data
       else
-        log "kontrol request error", xhr.responseText
         callback xhr.responseText, null
 
   disconnect:(reconnect=true)->
@@ -71,7 +73,7 @@ class NewKite extends KDEventEmitter
     @ws.close()
 
   onOpen:->
-    # log "I'm connected to #{@kitename} at #{@addr}. Yayyy!"
+    log "I'm connected to #{@kitename} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
     @emit 'KiteConnected', @kitename
