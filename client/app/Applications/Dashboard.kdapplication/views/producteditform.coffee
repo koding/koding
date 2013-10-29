@@ -110,9 +110,9 @@ class GroupProductEditForm extends KDFormViewWithFields
     do (i = @inputs) =>
       title           = i.title.getValue()
       description     = i.description.getValue()
-      overageEnabled  = i.overageEnabled.getValue()
-      soldAlone       = i.soldAlone.getValue()
-      priceIsVolatile = i.priceIsVolatile.getValue()
+      overageEnabled  = i.overageEnabled?.getValue()
+      soldAlone       = i.soldAlone?.getValue()
+      priceIsVolatile = i.priceIsVolatile?.getValue()
       feeAmount       =
         unless priceIsVolatile
         then i.feeAmount.getValue() * 100
@@ -120,8 +120,8 @@ class GroupProductEditForm extends KDFormViewWithFields
       { subscriptionType, feeUnit, feeInterval } = @getPlanInfo()
 
       {
-        title         : i.title.getValue()
-        description   : i.description.getValue()
+        title
+        description
         feeAmount
         feeUnit
         feeInterval
