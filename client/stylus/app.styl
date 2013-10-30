@@ -14,6 +14,11 @@ body
   bg                  repeat, repeat-x
   font-weight         400
   overflow            hidden
+
+  &.intro
+    bg                image, none
+    bg                color, #000
+
   // &.login,
   // &.loading
   //   bg                image,url("../images/koding-new-bg.png")
@@ -184,6 +189,38 @@ body
 
 #kdmaincontainer
   // vendor              transition, opacity .6s ease-in-out
+
+  &.logout-tv
+    vendor                  animation, logoutTv .5s 1 forwards ease
+    &~.turn-off-line
+      top                   50%
+      left                  0
+      size                  100%, 2px
+      background            #fff
+      opacity               0
+      z-index               1000
+      vendor                animation, logoutTvLine .3s .35s 1 forwards ease
+      abs()
+      &:after
+        content             ""
+        display             block
+        margin              -3px auto 0
+        size                50%, 6px
+        background          #fff
+        rounded             100%
+        box-shadow          0 0 20px 10px rgba(255,255,255,.6)
+    &~.turn-off-dot
+      top                   50%
+      left                  50%
+      bg                    color, #fff
+      rounded               20px
+      size                  10px, 10px
+      vendor                transform, scaleX(0) scaleY(0)
+      shadow                0 0 8px #fff
+      vendor                animation, logoutTvDot .3s .6s 1 forwards ease
+      z-index               1000
+      abs()
+
   &.scale
     vendor            animation, shrink 1s ease-out
     vendor            animation-iteration-count, 1
@@ -1872,3 +1909,51 @@ span.main-nav-icon
   20%
     -moz-transform translateZ(-60px) rotateX(40deg)
     opacity           .5
+
+
+/* Logout animation (old tv turn off) */
+@-webkit-keyframes logoutTv
+  0%
+    -webkit-transform   scaleX(1) scaleY(1)
+  40%
+    -webkit-transform   scaleX(2) scaleY(0.0005)
+  100%
+    -webkit-transform   scaleX(0) scaleY(0.0005)
+
+@-webkit-keyframes logoutTvLine
+  10%
+    opacity             1
+    border-radius       100%
+  100%
+    opacity             1
+    -webkit-transform   scale(0)
+
+@-webkit-keyframes logoutTvDot
+  75%
+    opacity             1
+    -webkit-transform   scaleX(2) scaleY(2)
+  100%
+    opacity             0
+    -webkit-transform   scaleX(0) scaleY(0)
+
+@-moz-keyframes logoutTv
+  0%
+    -moz-transform   scaleX(1) scaleY(1)
+  40%
+    -moz-transform   scaleX(2) scaleY(0.0005)
+  100%
+    -moz-transform   scaleX(0) scaleY(0.0005)
+@-moz-keyframes logoutTvLine
+  10%
+    opacity             1
+    border-radius       100%
+  100%
+    opacity             1
+    -moz-transform   scale(0)
+@-moz-keyframes logoutTvDot
+  75%
+    opacity             1
+    -moz-transform      scaleX(2) scaleY(2)
+  100%
+    opacity             0
+    -moz-transform      scaleX(0) scaleY(0)

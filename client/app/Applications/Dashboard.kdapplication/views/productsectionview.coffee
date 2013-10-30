@@ -1,8 +1,6 @@
 class GroupProductSectionView extends JView
 
   viewAppended: ->
-    group = @getData()
-
     { category, itemClass } = @getOptions()
 
     @setClass "payment-settings-view"
@@ -17,8 +15,12 @@ class GroupProductSectionView extends JView
 
     @list = @listController.getListView()
 
-    @list.on "DeleteItem", (code) =>
-      @emit 'DeleteRequested', code
+    @list.on "ItemWasAdded", (item) =>
+      @forwardEvents item, [
+        'DeleteRequested'
+        'EditRequested'
+        'BuyersReportRequested'
+      ]
 
     super()
 

@@ -48,12 +48,12 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback err      if err
       return callback null, [] unless subs
 
-      code = $in: (sub.planCode for sub in subs)
+      planCode = $in: (sub.planCode for sub in subs)
       JPaymentPlan = require './plan'
-      JPaymentPlan.some {code}, {}, (err, plans)->
+      JPaymentPlan.some { planCode }, {}, (err, plans)->
         return callback err  if err
         planMap = {}
-        planMap[plan.code] = plan         for plan in plans
+        planMap[plan.planCode] = plan         for plan in plans
         sub.plan = planMap[sub.planCode]  for sub in subs
 
         callback null, subs
@@ -99,7 +99,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     JPaymentPlan.fetchPlanByCode @planCode, (err, plan) =>
       return callback err  if err
       payment.addUserCharge @userCode,
-        amount: -1 * plan.feeMonthly * percent / 100
+        amount: -1 * plan.feeAmount * percent / 100
       , callback
 
   calculateRefund: (callback)->

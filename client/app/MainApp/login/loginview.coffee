@@ -178,6 +178,8 @@ class LoginView extends KDScrollView
       <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
       <p class='resend-confirmation-link'>Didn't receive confirmation email? {{> @goToResendMailConfirmationLink}}</p>
+      <p><a href="/tos.html" target="_blank">Terms of service</a></p>
+      <p><a href="/privacy.html" target="_blank">Privacy policy</a></p>
     </div>
     """
 
@@ -462,7 +464,7 @@ class LoginView extends KDScrollView
 
     if err.message is "CONFIRMATION_WAITING"
       {name, nickname}  = err.data
-      KD.getSingleton('mainController').displayConfirmEmailModal(name, nickname)
+      KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname
 
     else if err.message.length > 50
       new KDModalView

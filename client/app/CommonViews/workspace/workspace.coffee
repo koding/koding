@@ -2,7 +2,12 @@ class Workspace extends JView
 
   constructor: (options = {}, data) ->
 
+    raw      = {}
+    raw[key] = value for own key, value of options
+
     super options, data
+
+    @rawOptions = raw
 
     @listenWindowResize()
 
@@ -53,6 +58,9 @@ class Workspace extends JView
 
   getPanelByIndex: (index) ->
     return @panels[index] or null
+
+  showHintModal: ->
+    @getActivePanel().showHintModal()
 
   _windowDidResize: ->
     return unless @activePanel

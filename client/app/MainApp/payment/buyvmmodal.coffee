@@ -99,7 +99,7 @@ class BuyVmModal extends KDModalView
       warn err  if err
 
       index      = (parseInt form.inputs.selector.getValue(), 10) or 0
-      monthlyFee = plans[index].feeMonthly
+      monthlyFee = plans[index].feeAmount
 
       if limit > 0
         credits = (limit / 100).toFixed 2

@@ -80,7 +80,11 @@ class BookView extends JView
 
     @pagerWrapper.addSubView @pageNav
 
-    @on "PageFill", -> @checkBoundaries()
+    @on "PageFill", =>
+      @checkBoundaries()
+      if BookView.navigateNewPages
+      then @setClass   "new-feature"
+      else @unsetClass "new-feature"
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
 
@@ -88,7 +92,8 @@ class BookView extends JView
       if BookView.navigateNewPages
         BookView.navigateNewPages = no
         BookView.lastIndex = 0
-        @getStorage().setValue "lastReadVersion", @getVersion()
+
+      @getStorage().setValue "lastReadVersion", @getVersion()
 
     @once "OverlayWillBeRemoved", =>
       if @pointer then @destroyPointer()

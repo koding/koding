@@ -46,8 +46,10 @@ website/js/*.js.map
 website/js/testapp.js
 website/css/testapp.css
 website/css/koding.*.css
+website/css/introapp.*.css
 website/js/bongo.*.js
 website/js/koding.*.js
+website/js/introapp.*.js
 website/default.html
 website/index.html
 kontrolUUID-*

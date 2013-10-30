@@ -17,46 +17,74 @@ module.exports = class JPaymentProduct extends Module
       ]
       instance        : [
         'remove'
+        'modify'
       ]
     schema            :
+      planCode        :
+        type          : String
+        required      : yes
       title           :
         type          : String
         required      : yes
       description     : String
-      subscriptionType: String
-      amount          :
+      subscriptionType:
+        type          : String
+        default       : 'recurring'
+      feeAmount       :
         type          : Number
-        required      : yes
+        validate      : (require './validators').fee
+      feeInitial      :
+        type          : Number
+        validate      : (require './validators').fee
+      feeInterval     :
+        type          : Number
+        default       : 1
+      feeUnit         :
+        type          : String
+        default       : 'months'
+        enum          : ['fee unit should be "months" or "days"',[
+          'months'
+          'days'
+        ]]
       overageEnabled  :
         type          : Boolean
         default       : no
       soldAlone       :
         type          : Boolean
         default       : no
-      planCode        : String
-      group           : String
+      priceIsVolatile :
+        type          : Boolean
+        default       : no
+      group           :
+        type          : String
+        required      : yes
 
   @create = (group, formData, callback) ->
 
     JGroup = require '../group'
 
-    { type: subscriptionType, overageEnabled, title, description,
-      amount } = formData
+    { subscriptionType, overageEnabled, soldAlone,
+      priceIsVolatile, title, description, feeAmount,
+      feeUnit, feeInterval } = formData
 
     product = new this {
+      planCode: createId()
       title
       description
-      amount            : amount * 100 # cents
-      subscriptionType  : subscriptionType ? 'recurring'
-      planCode          : createId()
-      overageEnabled    : overageEnabled is 'on'
+      feeAmount
+      feeUnit
+      feeInterval
+      subscriptionType
+      priceIsVolatile
+      overageEnabled
+      soldAlone
       group
     }
 
     product.save (err) =>
       return callback err  if err
 
-      @savePlanToRecurly product, (err, plan) ->
+      product.savePlanToRecurly (err, plan) ->
         return callback err  if err
 
         JGroup.one slug: group, (err, group) ->
@@ -71,14 +99,14 @@ module.exports = class JPaymentProduct extends Module
     success: (client, formData, callback) ->
       @create client.context.group, formData, callback
 
-  @savePlanToRecurly = (product, callback) ->
-    if product.overageEnabled or product.soldAlone
+  savePlanToRecurly: (callback) ->
+    if not @priceIsVolatile and @overageEnabled or @soldAlone
 
       planData =
-        code        : product.planCode
+        planCode    : @planCode
         title       : "#{ product.title } - Overage"
-        feeMonthly  : product.amount
-        feeInterval : switch product.subscriptionType
+        feeAmount   : @feeAmount
+        feeInterval : switch @subscriptionType
           when 'recurring' then 1
           when 'single'    then 9999 # wat
 
@@ -99,14 +127,19 @@ module.exports = class JPaymentProduct extends Module
     success: (client, planCode, callback) -> @removeByCode planCode, callback
 
   remove: (callback) ->
-    { planCode: code, overageEnabled } = this
+    { planCode, overageEnabled } = this
     super (err) ->
       if err
         callback err
       else if code? and overageEnabled
-        recurly.deletePlan { code }, callback
+        recurly.deletePlan { planCode }, callback
       else
         callback null
 
   remove$: permit 'manage products',
     success: (client, callback) -> @remove callback
+
+  modify: (formData, callback) -> @update $set: formData, callback
+
+  modify$: permit 'manage products',
+    success: (client, formData, callback) -> @modify formData, callback

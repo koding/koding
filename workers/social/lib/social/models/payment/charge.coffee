@@ -58,7 +58,7 @@ module.exports = class JPaymentCharge extends jraphical.Module
   @getToken = secure (client, data, callback)->
     {delegate} = client.connection
     JPaymentToken.createToken client,
-      planCode: "charge_#{data.code}_#{data.amount}"
+      planCode: "charge_#{data.planCode}_#{data.amount}"
     , callback
 
   @charge = secure (client, data, callback)->
@@ -66,7 +66,7 @@ module.exports = class JPaymentCharge extends jraphical.Module
     userCode = "user_#{delegate._id}"
 
     JPaymentToken.checkToken client,
-      planCode: "charge_#{data.code}_#{data.amount}"
+      planCode: "charge_#{data.planCode}_#{data.amount}"
       pin: data.pin
     , (err)=>
       return callback err  if err

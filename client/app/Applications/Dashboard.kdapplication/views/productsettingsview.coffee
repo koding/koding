@@ -15,18 +15,12 @@ class GroupProductSettingsView extends JView
         {{> @list}}
         """
 
-    @forwardEvent @productsView, 'DeleteRequested', 'Product'
-
     @productsView.on 'CreateRequested', =>
-      @showCreateModal
-        productType     : 'product'
-        isRecurOptional : yes
-        showOverage     : yes
-        showSoldAlone   : yes
+      @emit 'ProductEditRequested'
 
     @plansView = new GroupProductSectionView
       category  : 'plan'
-      itemClass : GroupProductListItem
+      itemClass : GroupPlanListItem
       pistachio :
         """
         <h2>Plans</h2>
@@ -37,34 +31,14 @@ class GroupProductSettingsView extends JView
         """
 
     @plansView.on 'CreateRequested', =>
-      @showCreateModal
-        productType     : 'plan'
-        isRecurOptional : no
-        showOverage     : no
-        showSoldAlone   : no
-        placeholders    :
-          title         : 'e.g. "Gold Plan"'
-          description   : 'e.g. "2 VMs, and a tee shirt"'
+      @emit 'PlanEditRequested'
 
-  showCreateModal: (options) ->
-
-    productType = options.productType ? 'product'
-
-    modal = new KDModalView
-      overlay       : yes
-      title         : "Create #{ productType }"
-
-    createForm = new GroupProductCreateForm options
-
-    modal.addSubView createForm
-
-    createForm.on 'CancelRequested', ->
-      modal.destroy()
-
-    createForm.on 'CreateRequested', (productData) =>
-      createEventName = "#{ productType.capitalize() }CreateRequested"
-      @emit createEventName, productData
-      modal.destroy()
+    ['product', 'plan'].forEach (category) =>
+      @forwardEvents @["#{category}sView"], [
+        'DeleteRequested'
+        'EditRequested'
+        'BuyersReportRequested'
+      ], category.capitalize()
 
   setProducts: (products) ->
     @productsView.setContents products

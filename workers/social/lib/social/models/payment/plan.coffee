@@ -22,7 +22,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
   @set
     indexes         :
-      code          : 'unique'
+      planCode      : 'unique'
     sharedMethods   :
       static        : [
         'create'
@@ -34,14 +34,25 @@ module.exports = class JPaymentPlan extends jraphical.Module
       instance      : [
         'fetchToken'
         'subscribe'
+        'modify'
       ]
     schema          :
-      code          : String
-      title         : String
-      description   : Object
-      feeMonthly    : Number
-      feeInitial    : Number
-      feeInterval   : Number
+      planCode      :
+        type        : String
+        required    : yes
+      title         :
+        type        : String
+        required    : yes
+      description   : Object # TODO: see below*
+      feeAmount     :
+        type        : Number
+        validate    : (require './validators').fee
+      feeInitial    :
+        type        : Number
+        validate    : (require './validators').fee
+      feeInterval   :
+        type        : Number
+        default     : 1
       product       :
         prefix      : String
         category    : String
@@ -49,19 +60,26 @@ module.exports = class JPaymentPlan extends jraphical.Module
         version     : Number
       lastUpdate    : Number
       contents      : Object
-      group         : String
+      group         :
+        type        : String
+        required    : yes
+
+  # * It seems like we're stuffing some JSON into the description field
+  #   on recurly.  I think that's a really bad idea, so let's store any
+  #   data that is orthogonal to the recurly API in our own database,
+  #   the way we're doing with JPaymentProduct C.T.
 
   @create = (group, formData, callback) ->
 
     JGroup = require '../group'
 
-    { title, description, amount } = formData
+    { title, description, feeAmount } = formData
 
     plan = new this {
+      planCode    : createId()
       title
       description
-      code        : createId()
-      feeMonthly  : amount * 100 # cents
+      feeAmount
       feeInitial  : 0
       feeInterval : 1
     }
@@ -84,12 +102,17 @@ module.exports = class JPaymentPlan extends jraphical.Module
     success: (client, formData, callback) ->
       @create client.context.group, formData, callback
 
-  @removeByCode = (code, callback) ->
-    console.log { code }
-    callback message: 'needs to be implemented'
+  @removeByCode = (planCode, callback) ->
+    @one { planCode }, (err, plan) ->
+      return callback err  if err
+
+      unless plan?
+        return callback { message: 'Unrecognized plan code', planCode }
+
+      plan.remove callback
 
   @removeByCode$ = permit 'manage products',
-    success: (client, code, callback) -> @removeByCode formData, callback
+    success: (client, planCode, callback) -> @removeByCode planCode, callback
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
     console.error 'needs to be reimplemented'
@@ -106,17 +129,36 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
     JPayment.invalidateCacheAndLoad this, selector, force, callback
 
-  @fetchPlanByCode = (code, callback) -> @one { code }, callback
+  @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
+
+  remove: (callback) ->
+    { planCode } = this
+    super (err) ->
+      if err
+        callback err
+      else if planCode?
+        recurly.deletePlan { planCode }, callback
+      else
+        callback null
+
+  remove$: permit 'manage products',
+    success: (client, callback) -> @remove callback
+
+  modify: (formData, callback) ->
+    @update $set: formData, callback
+
+  modify$: permit 'manage products',
+    success: (client, formData, callback) -> @modify formData, callback
 
   fetchToken: secure (client, data, callback) ->
-    JPaymentToken.createToken client, planCode: @code, callback
+    JPaymentToken.createToken client, planCode: @planCode, callback
 
   subscribe: (paymentMethodId, data, callback) ->
     data.multiple ?= no
 
     JPaymentSubscription.fetchAllSubscriptions {
       paymentMethodId
-      planCode  : @code
+      planCode  : @planCode
       $or       : [
         {status : 'active'}
         {status : 'canceled'}
@@ -131,7 +173,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
         recurly.updateSubscription paymentMethodId,
           quantity : quantity
-          plan     : @code
+          plan     : @planCode
           uuid     : sub.uuid
         , (err) =>
           return callback err  if err
@@ -140,7 +182,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
             then callback err
             else callback null, sub
       else
-        recurly.createSubscription paymentMethodId, plan: @code, (err, result) ->
+        recurly.createSubscription paymentMethodId, plan: @planCode, (err, result) ->
           return callback err  if err
           console.log { err, result }
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
@@ -162,7 +204,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
   fetchSubscription: secure ({ connection:{ delegate }}, callback) ->
     selector    =
       userCode  : "user_#{delegate.getId()}"
-      planCode  : @code
+      planCode  : @planCode
 
     JPaymentSubscription.one selector, callback
 
@@ -170,7 +212,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
   fetchSubscriptions: (callback) ->
     JPaymentSubscription.all
-      planCode: @code
+      planCode: @planCode
       $or: [
         { status: 'active' }
         { status: 'canceled' }
@@ -190,12 +232,12 @@ module.exports = class JPaymentPlan extends jraphical.Module
     JPayment.updateCache(
       constructor : this
       method      : 'fetchPlans'
-      keyField    : 'code'
+      keyField    : 'planCode'
       message     : 'product cache'
       forEach     : (k, cached, plan, fin)->
         return fin()  unless k.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/
 
-        {title, desc, feeMonthly, feeInitial, feeInterval} = plan
+        {title, desc, feeAmount, feeInitial, feeInterval} = plan
 
         [prefix, category, item, version] = k.split '_'
 
@@ -206,7 +248,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
         cached.set {
           title
           description
-          feeMonthly
+          feeAmount
           feeInitial
           feeInterval
           lastUpdate: Date.now()
