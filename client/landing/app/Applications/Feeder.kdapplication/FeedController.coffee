@@ -1,5 +1,7 @@
 class FeedController extends KDViewController
 
+  USEDFEEDS = []
+
   constructor:(options={})->
 
     options.autoPopulate   ?= no
@@ -164,26 +166,40 @@ class FeedController extends KDViewController
 
     options    = @getFeedOptions()
     selector   = @getFeedSelector()
-    itemClass  = @getOptions().itemClass
+    {itemClass, feedId}  = @getOptions()
+
+    log "feedId :", feedId
+
+    kallback = (err, items, rest...)=>
+      listController = @emitLoadCompleted filter
+      @emit "FilterLoaded"
+      {limit}      = options
+      {scrollView} = listController
+      if items?
+        unless err
+          items = @sortByKey(items, filter.activeSort) if filter.activeSort
+          listController.instantiateListItems items
+          @emitCountChanged listController.itemsOrdered.length, filter.name
+          if items.length is limit and scrollView.getScrollHeight() <= scrollView.getHeight()
+            @loadFeed filter
+        else
+          warn err
+      else unless err
+        filter.dataEnd? this, rest...
+      else
+        filter.dataError? this, err
 
     @emitLoadStarted filter
     if options.skip isnt 0 and options.skip < options.limit # Dont load forever
       @emitLoadCompleted filter
       @emit "FilterLoaded"
+    else unless feedId in USEDFEEDS
+      log "exhausting feed:", feedId
+      USEDFEEDS.push feedId
+      unless prefetchedItems = KD.prefetchedFeeds[feedId]
+      then @loadFeed filter
+      else
+        log "burdan yukle dayi"
+        kallback null, prefetchedItems
     else
-      filter.dataSource selector, options, (err, items, rest...)=>
-        listController = @emitLoadCompleted filter
-        @emit "FilterLoaded"
-        if items?
-          unless err
-            items = @sortByKey(items, filter.activeSort) if filter.activeSort
-            listController.instantiateListItems items
-            @emitCountChanged listController.itemsOrdered.length, filter.name
-            if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
-              @loadFeed filter
-          else
-            warn err
-        else unless err
-          filter.dataEnd? @, rest...
-        else
-          filter.dataError? @, err
+      filter.dataSource selector, options, kallback
