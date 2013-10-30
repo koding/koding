@@ -15,8 +15,7 @@ class GroupProductEditForm extends KDFormViewWithFields
         type      : "submit"
       cancel      :
         cssClass  : "modal-cancel"
-        callback  : =>
-          @emit 'CancelRequested'
+        callback  : => @emit 'CancelRequested'
 
     options.fields ?=
 
@@ -24,34 +23,19 @@ class GroupProductEditForm extends KDFormViewWithFields
         label           : "Title"
         placeholder     : options.placeholders?.title
         defaultValue    : data.decoded 'title'
+        required        : 'Title is required!'
 
       description       :
         label           : "Description"
         placeholder     : options.placeholders?.description or "(optional)"
         defaultValue    : data.decoded 'description'
 
-
       subscriptionType  :
         label           : "Subscription type"
         itemClass       : KDSelectBox
         defaultValue    : data.subscriptionType ? "mo"
-        selectOptions   : do ->
-
-          selectOptions = [
-            { title: "Recurs every month",     value: 'mo' }
-            { title: "Recurs every 3 months",  value: '3 mo' }
-            { title: "Recurs every 6 months",  value: '6 mo' }
-            { title: "Recurs every year",      value: 'yr' }
-            { title: "Recurs every 2 years",   value: '2 yr' }
-            { title: "Recurs every 5 years",   value: '5 yr' }
-          ]
-
-          if options.isRecurOptional
-            selectOptions.push { title: "Single payment", value: 'single' }
-
-          return selectOptions
-
-        callback: @bound 'handleSubscriptionType'
+        selectOptions   : @getSubscriptionOptions()
+        callback        : @bound 'subscriptionTypeChanged'
 
     options.fields.feeAmount ?=
       label           : "Amount"
@@ -59,10 +43,7 @@ class GroupProductEditForm extends KDFormViewWithFields
       defaultValue    :
         if data.feeAmount
         then (data.feeAmount / 100).toFixed(2)
-      change          : ->
-        num = parseFloat @getValue()
-
-        @setValue if isNaN num then '' else num.toFixed(2)
+      change          : @bound 'feeChanged'
       nextElementFlat :
 
         perMonth      :
@@ -75,9 +56,7 @@ class GroupProductEditForm extends KDFormViewWithFields
         label         : "Price is volatile"
         itemClass     : KDOnOffSwitch
         defaultValue  : data.priceIsVolatile
-        callback      : =>
-          enabled = @inputs.priceIsVolatile.getValue()
-          do @fields.feeAmount[if enabled then 'hide' else 'show']
+        callback      : @bound 'priceVolatilityChanged'
 
     if options.showOverage
       options.fields.overageEnabled =
@@ -131,10 +110,35 @@ class GroupProductEditForm extends KDFormViewWithFields
         priceIsVolatile
       }
 
-  handleSubscriptionType: ->
+  getSubscriptionOptions:->
+
+    selectOptions = [
+      { title: "Recurs every month",     value: 'mo' }
+      { title: "Recurs every 3 months",  value: '3 mo' }
+      { title: "Recurs every 6 months",  value: '6 mo' }
+      { title: "Recurs every year",      value: 'yr' }
+      { title: "Recurs every 2 years",   value: '2 yr' }
+      { title: "Recurs every 5 years",   value: '5 yr' }
+    ]
+
+    if @getOptions().isRecurOptional
+      selectOptions.push { title: "Single payment", value: 'single' }
+
+    return selectOptions
+
+  subscriptionTypeChanged: ->
     subscriptionType = @inputs.subscriptionType.getValue()
     if subscriptionType is 'single'
       @inputs.perMonth.hide()
     else
       @inputs.perMonth.show()
       @inputs.perMonth.updatePartial "/ #{subscriptionType}"
+
+  feeChanged: (num) ->
+    num = parseFloat @getValue()
+
+    @setValue if isNaN num then '' else num.toFixed(2)
+
+  priceVolatilityChanged: ->
+    enabled = @inputs.priceIsVolatile.getValue()
+    do @fields.feeAmount[if enabled then 'hide' else 'show']
