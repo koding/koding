@@ -3,7 +3,7 @@ class FacebookTeamworkInstructionsModal extends KDModalViewWithForms
   constructor: (options = {}, data) ->
 
     options.title                  = "Before Starting"
-    options.cssClas                = "modal-with-text"
+    options.cssClass               = "tw-before-starting-modal"
     options.width                  = 700
     options.overlay                = yes
     options.overlayClick           = no

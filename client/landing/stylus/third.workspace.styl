@@ -370,7 +370,7 @@ third.workspace.styl
   bottom                10px
   right                 10px
   z-index               3000
-  background            #F7931E
+  bg                    color, #F7931E
   font-size             26px
   color                 #FFF
   text-align            center
@@ -418,6 +418,34 @@ third.workspace.styl
       &.preview
         left            -45px
         bg              position, -1px -65px
+
+.workspace-launcher.vertical
+  size                  50px, 156px
+  bottom                0
+  right                 0
+  rounded               0
+  bg                    color, transparent
+  .launcher-item
+    position            relative
+    size                42px, 42px
+    bg                  color, #3a3a3a
+    opacity             1
+    rounded             10px
+    z-index             100
+    margin-bottom       10px
+    bg                  repeat, no-repeat
+    &:hover
+      bg                color, #2d2d2d
+    &.chat
+      bg                position, 8px -53px
+    &.terminal
+      bg                position, 8px -104px
+    &.preview
+      bg                position, 10px 0
+  &.active
+    .launcher-item
+      top               0
+      left              0
 
 .workspace
   .workspace-floating-panes
