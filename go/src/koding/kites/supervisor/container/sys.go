@@ -25,7 +25,7 @@ type SysGroup struct {
 }
 
 func (c *Container) MergePasswdFile() {
-	passwdFile := c.Dir + "/overlay/etc/passwd"
+	passwdFile := c.OverlayPath("/etc/passwd")
 	users, err := ReadPasswd(passwdFile) // error ignored
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -61,7 +61,7 @@ func (c *Container) MergePasswdFile() {
 }
 
 func (c *Container) MergeGroupFile() {
-	groupFile := c.Dir + "/overlay/etc/group"
+	groupFile := c.OverlayPath("/etc/group")
 	groups, err := ReadGroup(groupFile) // error ignored
 	if err != nil {
 		if os.IsNotExist(err) {

@@ -143,7 +143,7 @@ func (pkg *Package) InfoFile(extension string) string {
 }
 
 func (c *Container) MergeDpkgDatabase() {
-	dpkgStatusFile := c.Dir + "/overlay/var/lib/dpkg/status"
+	dpkgStatusFile := c.OverlayPath("var/lib/dpkg/status")
 	upperPackages, err := ReadDpkgStatus(dpkgStatusFile)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -173,7 +173,7 @@ func (c *Container) MergeDpkgDatabase() {
 
 			// delete package files from overlay
 			listFile := upperPkg.InfoFile("list")
-			list, err := ioutil.ReadFile(c.Dir + "overlay/" + listFile)
+			list, err := ioutil.ReadFile(c.OverlayPath(listFile))
 			if err != nil {
 				list, err = ioutil.ReadFile(vmRoot + "rootfs/" + listFile)
 				if err != nil {
@@ -182,7 +182,7 @@ func (c *Container) MergeDpkgDatabase() {
 			}
 			files := strings.Split(string(list), "\n")
 			for _, file := range files {
-				overlayFile := c.Dir + "overlay/" + file
+				overlayFile := c.OverlayPath(file)
 				originalHash, found := conffiles[file]
 				if found {
 					hash := md5.New()
@@ -204,7 +204,7 @@ func (c *Container) MergeDpkgDatabase() {
 
 			// delete informations from overlay
 			for _, ext := range DPKG_INFO_EXTENSIONS {
-				os.Remove(c.Dir + "overlay/" + upperPkg.InfoFile(ext))
+				os.Remove(c.OverlayPath(upperPkg.InfoFile(ext)))
 			}
 		}
 		upperPackages[name] = lowerPkg
@@ -215,7 +215,7 @@ func (c *Container) MergeDpkgDatabase() {
 		if _, found := lowerPackages[name]; found {
 			continue // still in lower
 		}
-		_, err := os.Stat(c.Dir + "overlay/" + upperPkg.InfoFile("list"))
+		_, err := os.Stat(c.OverlayPath(upperPkg.InfoFile("list")))
 		if err == nil {
 			continue // files in overlay
 		}

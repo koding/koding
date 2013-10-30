@@ -104,10 +104,6 @@ func (c *Container) VEth() string {
 	return fmt.Sprintf("veth-%x", []byte(c.IP[12:16]))
 }
 
-func (c *Container) Mkdir(name string) error {
-	return os.Mkdir(c.Dir+name, 0755)
-}
-
 func (c *Container) CopyFile(src, dst string) error {
 	sf, err := os.Open(src)
 	if err != nil {
@@ -138,15 +134,23 @@ func (c *Container) CopyFile(src, dst string) error {
 }
 
 func (c *Container) Chown(name string) error {
-	return os.Chown(c.Dir+name, c.UID, c.UID)
+	return os.Chown(name, c.UID, c.UID)
 }
 
 func (c *Container) PrepareDir(name string) error {
-	if err := c.Mkdir(name); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(name, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
 
 	return c.Chown(name)
+}
+
+func (c *Container) Path(file string) string {
+	return c.Dir + file
+}
+
+func (c *Container) OverlayPath(file string) string {
+	return c.Dir + "overlay/" + file
 }
 
 func (c *Container) AsHost() *Container {
@@ -166,7 +170,7 @@ func (c *Container) PtsDir() string {
 func (c *Container) GenerateFile(name, template string) error {
 	var mode os.FileMode = 0644
 
-	file, err := os.OpenFile(c.Dir+name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
+	file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
 		return err
 	}
@@ -257,10 +261,10 @@ func (c *Container) Unprepare(hostnameAlias string) error {
 	// backup dpkg database for statistical purposes
 	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
 
-	c.AsContainer().CopyFile(c.Dir+"overlay/var/lib/dpkg/status", "/var/lib/lxc/dpkg-statuses/"+c.Name)
+	c.AsContainer().CopyFile(c.OverlayPath("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+c.Name)
 
 	if c.IP == nil {
-		if ip, err := ioutil.ReadFile(c.Dir + "ip-address"); err == nil {
+		if ip, err := ioutil.ReadFile(c.Path("ip-address")); err == nil {
 			c.IP = net.ParseIP(string(ip))
 		}
 	}
@@ -294,13 +298,13 @@ func (c *Container) Unprepare(hostnameAlias string) error {
 		return err
 	}
 
-	os.Remove(c.Dir + "overlay")
-	os.Remove(c.Dir + "config")
-	os.Remove(c.Dir + "fstab")
-	os.Remove(c.Dir + "ip-address")
-	os.Remove(c.Dir + "rootfs")
-	os.Remove(c.Dir + "rootfs.hold")
-	os.Remove(c.Dir + "")
+	os.Remove(c.OverlayPath(""))
+	os.Remove(c.Path("config"))
+	os.Remove(c.Path("fstab"))
+	os.Remove(c.Path("ip-address"))
+	os.Remove(c.Path("rootfs"))
+	os.Remove(c.Path("rootfs.hold"))
+	os.Remove(c.Path(""))
 
 	return nil
 }
@@ -314,23 +318,23 @@ func (c *Container) Prepare(hostnameAlias string) error {
 	// c.IP = vm.IP
 	// c.LdapPassword = vm.LdapPassword
 
-	c.AsHost().PrepareDir("/")
-	c.AsHost().GenerateFile("config", "config")
-	c.AsHost().GenerateFile("fstab", "fstab")
-	c.AsHost().GenerateFile("ip-address", "ip-address")
+	c.AsHost().PrepareDir(c.Path(""))
+	c.AsHost().GenerateFile(c.Path("config"), "config")
+	c.AsHost().GenerateFile(c.Path("fstab"), "fstab")
+	c.AsHost().GenerateFile(c.Path("ip-address"), "ip-address")
 
 	err := c.MountRBD()
 	if err != nil {
 		return err
 	}
 
-	c.AsContainer().PrepareDir("/overlay")            // for chown
-	c.AsContainer().PrepareDir("/overlay/lost+found") // for chown
-	c.AsContainer().PrepareDir("/overlay/etc")
+	c.AsContainer().PrepareDir(c.OverlayPath(""))            //for chown
+	c.AsContainer().PrepareDir(c.OverlayPath("/lost+found")) // for chown
+	c.AsContainer().PrepareDir(c.OverlayPath("/etc"))
 
-	c.AsContainer().GenerateFile("/overlay/etc/hostname", "hostname")
-	c.AsContainer().GenerateFile("/overlay/etc/hosts", "hosts")
-	c.AsContainer().GenerateFile("/overlay/etc/ldap.conf", "ldap.conf")
+	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hostname"), "hostname")
+	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hosts"), "hosts")
+	c.AsContainer().GenerateFile(c.OverlayPath("/etc/ldap.conf"), "ldap.conf")
 
 	c.MergePasswdFile()
 	c.MergeGroupFile()
@@ -411,8 +415,8 @@ func (c *Container) MountAufs() error {
 	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 	// under "/var/lib/lxc/vm-{id}/rootfs"
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
-		fmt.Sprintf("noplink,br=%s:%s", c.Dir+"/overlay", vmRoot+"/rootfs/"),
-		"aufs", c.Dir+"rootfs").CombinedOutput()
+		fmt.Sprintf("noplink,br=%s:%s", c.OverlayPath(""), vmRoot+"/rootfs/"),
+		"aufs", c.Path("rootfs")).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("mount overlay failed. err: %s\n out:%s\n", err, out)
 	}
@@ -421,12 +425,12 @@ func (c *Container) MountAufs() error {
 }
 
 func (c *Container) UnmountAufs() error {
-	out, err := exec.Command("/sbin/auplink", c.Dir+"rootfs", "flush").CombinedOutput()
+	out, err := exec.Command("/sbin/auplink", c.Path("rootfs"), "flush").CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("AUFS flush failed.", err, out)
 	}
 
-	out, err = exec.Command("/bin/umount", c.Dir+"rootfs").CombinedOutput()
+	out, err = exec.Command("/bin/umount", c.Path("rootfs")).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("umount overlay failed.", err, out)
 	}
@@ -504,7 +508,7 @@ func (c *Container) MountRBD() error {
 		}
 	}
 
-	mountDir := c.Dir + "overlay"
+	mountDir := c.OverlayPath("")
 
 	err = c.CheckExt4(r.Device)
 	if err != nil {
@@ -526,7 +530,7 @@ func (c *Container) MountRBD() error {
 func (c *Container) UnmountRBD() error {
 	r := rbd.NewRBD(c.Name)
 
-	out, err := exec.Command("/bin/umount", c.Dir+"/overlay").CombinedOutput()
+	out, err := exec.Command("/bin/umount", c.OverlayPath("")).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("umount rbd failed.", err, out)
 	}
