@@ -29,74 +29,59 @@ class DomainCreationForm extends KDCustomHTMLView
       cssClass          : "domain-option-group"
       defaultValue      : "subdomain"
       change            : (actionType)=>
-        # Let's implement a simple state machine ~ GG
-        # switch actionType
-        #   when 'new'
-        #     @createButton.setTitle 'Check availability...'
-        #   when 'subdomain'
-        #     @createButton.setTitle 'Create Subdomain'
+        switch actionType
+          when 'new'
+            @tabs.showPaneByName 'NewDomain'
+          when 'subdomain'
+            @tabs.showPaneByName 'SubDomain'
 
-    @addSubView @domainEntryForm = new KDFormViewWithFields
-      cssClass          : "new-subdomain-form"
-      fields            :
-        domainName      :
-          name          : "subdomainInput"
-          cssClass      : "subdomain-input"
-          placeholder   : "Type your subdomain"
-          validate      :
-            rules       : required : yes
-            messages    : required : "Subdomain name is required!"
-          nextElement   :
-            domains     :
-              itemClass : KDSelectBox
-              cssClass  : "main-domain-select"
+    @addSubView @tabs = new KDTabView
+      cssClass            : 'domain-tabs'
+      hideHandleContainer : yes
 
-    @addSubView @createButton = new KDButtonView
-      title             : "Create Subdomain"
-      style             : "cupid-green"
-      cssClass          : "add-domain"
-      type              : "submit"
-      loader            : {color : "#ffffff", diameter : 10}
-      callback          : @bound 'registerDomain'
+    @newDomainPane = new KDTabPaneView { name : "NewDomain" }
+    @newDomainPane.addSubView @newDomainEntryForm = new DomainBuyForm
+    @tabs.addPane @newDomainPane
+    @newDomainEntryForm.on 'registerDomain', @bound 'registerNewDomain'
 
-  registerDomain : ->
+    @subDomainPane = new KDTabPaneView { name : "SubDomain" }
+    @subDomainPane.addSubView @subDomainEntryForm = new SubDomainCreateForm
+    @subDomainEntryForm.on 'registerDomain', @bound 'createSubDomain'
+    @tabs.addPane @subDomainPane
 
-    {domains, domainName} = @domainEntryForm.inputs
+  registerNewDomain: ->
+    {createButton}        = @newDomainEntryForm.buttons
+    createButton.hideLoader()
+    warn "Not implemented yet."
+
+  createSubDomain: ->
+    {domains, domainName} = @subDomainEntryForm.inputs
+    {createButton}        = @subDomainEntryForm.buttons
     domainName            = domainName.getValue()
-    actionType            = @typeSelector.getValue()
 
-    switch actionType
-      when 'new'
-        # new domain
-        log "Not implemented yet."
-      when 'existing'
-        # use existing domain
-        log "Not implemented yet."
-      else # create a subdomain
+    # Test given subdomain
+    unless subDomainPattern.test domainName
+      createButton.hideLoader()
+      return notifyUser "#{domainName} is an invalid subdomain."
 
-        # Test given subdomain
-        unless subDomainPattern.test domainName
-          @createButton.hideLoader()
+    domainName = "#{domainName}.#{domains.getValue()}"
+    domainType = 'subdomain'
+    regYears   = 0
+
+    @createJDomain {domainName, regYears, domainType}, (err, domain)=>
+      createButton.hideLoader()
+      if err
+        warn "An error occured while creating domain:", err
+        if err.code is 11000
+          return notifyUser "The domain #{domainName} already exists."
+        else if err.name is "INVALIDDOMAIN"
           return notifyUser "#{domainName} is an invalid subdomain."
+        return notifyUser "An unknown error occured. Please try again later."
+      else
+        @showSuccess domain
+        @updateDomains()
 
-        domainName = "#{domainName}.#{domains.getValue()}"
-        domainType = 'subdomain'
-        regYears   = 0
-
-        @createDomain {domainName, regYears, domainType}, (err, domain)=>
-          @createButton.hideLoader()
-          if err
-            warn "An error occured while creating domain:", err
-            if err.code is 11000
-              return notifyUser "The domain #{domainName} already exists."
-            else if err.name is "INVALIDDOMAIN"
-              return notifyUser "#{domainName} is an invalid subdomain."
-            return notifyUser "An unknown error occured. Please try again later."
-          else
-            @showSuccess domain
-            @updateDomains()
-
-  createDomain:(params, callback) ->
+  createJDomain:(params, callback) ->
 
     KD.remote.api.JDomain.createDomain
       domain         : params.domainName
@@ -109,7 +94,7 @@ class DomainCreationForm extends KDCustomHTMLView
 
   showSuccess:(domain) ->
 
-    {domainName} = @domainEntryForm.inputs
+    {domainName} = @subDomainEntryForm.inputs
     @emit 'DomainSaved', domain
     @successNote?.destroy()
 
@@ -133,7 +118,8 @@ class DomainCreationForm extends KDCustomHTMLView
 
   reset:->
     @successNote?.destroy()
-    @domainEntryForm.inputs.domainName.setValue ''
+    for form in [@subDomainEntryForm, @newDomainEntryForm]
+      form.inputs.domainName.setValue ''
     @emit 'CloseClicked'
 
   updateDomains: ->
@@ -146,7 +132,7 @@ class DomainCreationForm extends KDCustomHTMLView
         if not domain.regYears > 0
           domainList.push {title:".#{domain.domain}", value:domain.domain}
 
-      {domains, domainName} = @domainEntryForm.inputs
+      {domains, domainName} = @subDomainEntryForm.inputs
 
       domainName.setValue ""
       domains.removeSelectOptions()
@@ -156,3 +142,53 @@ class DomainCreationForm extends KDCustomHTMLView
     @updateDomains()
     KD.getSingleton("vmController").on 'VMListChanged', @bound 'updateDomains'
 
+class CommonDomainCreationForm extends KDFormViewWithFields
+  constructor:(options = {}, data)->
+    super
+      cssClass              : KD.utils.curry "new-domain-form", options.cssClass
+      fields                :
+        domainName          :
+          name              : "domainInput"
+          cssClass          : "domain-input"
+          placeholder       : options.placeholder or "Type your domain"
+          validate          :
+            rules           : required : yes
+            messages        : required : "A domain name is required"
+          nextElement       :
+            domains         :
+              itemClass     : KDSelectBox
+              cssClass      : "main-domain-select"
+              selectOptions : options.selectOptions
+      buttons               :
+        createButton        :
+          name              : "createButton"
+          title             : options.buttonTitle or "Check availability..."
+          style             : "cupid-green"
+          cssClass          : "add-domain"
+          type              : "submit"
+          loader            : {color : "#ffffff", diameter : 10}
+      , data
+
+  submit:->
+    @once "FormValidationPassed", =>
+      @emit 'registerDomain'
+    super
+    @buttons.createButton.hideLoader()
+
+class SubDomainCreateForm extends CommonDomainCreationForm
+  constructor:(options = {}, data)->
+    super
+      placeholder : "Type your subdomain..."
+      buttonTitle : "Create Subdomain"
+    , data
+
+class DomainBuyForm extends CommonDomainCreationForm
+  constructor:(options = {}, data)->
+    super
+      placeholder   : "Type your awesome domain..."
+      selectOptions : [
+        {title: ".com" , value: "com"}
+        {title: ".net" , value: "net"}
+        {title: ".org" , value: "org"}
+      ]
+    , data
