@@ -136,7 +136,6 @@ module.exports = class JGroup extends Module
         # 'addProduct'
         # 'deleteProduct'
         'fetchProducts'
-        'fetchPlans'
         'createVM'
         'canCreateVM'
         'vmUsage'
@@ -1542,3 +1541,10 @@ module.exports = class JGroup extends Module
         JPaymentMethod.decoratePaymentMethods [paymentMethod], (err, paymentMethods) ->
           return callback err  if err
           callback null, paymentMethods[0]
+
+  fetchProducts$: (category, callback) ->
+    switch category
+      when 'product'
+        @fetchProducts callback
+      when 'plan'
+        @fetchPlans callback

@@ -16,7 +16,7 @@ class GroupProductSettingsView extends JView
         """
 
     @productsView.on 'CreateRequested', =>
-      @emit 'ProductEditRequested'
+      @emit 'EditRequested'
 
     @plansView = new GroupProductSectionView
       category  : 'plan'
@@ -31,20 +31,20 @@ class GroupProductSettingsView extends JView
         """
 
     @plansView.on 'CreateRequested', =>
-      @emit 'PlanEditRequested'
+      @emit 'EditRequested'
 
     ['product', 'plan'].forEach (category) =>
       @forwardEvents @["#{category}sView"], [
         'DeleteRequested'
         'EditRequested'
         'BuyersReportRequested'
-      ], category.capitalize()
+      ]
 
-  setProducts: (products) ->
-    @productsView.setContents products
+  getCategoryView: (category) -> @["#{ category }sView"]
 
-  setPlans: (plans) ->
-    @plansView.setContents plans
+  setProducts: (category, contents) ->
+    view = @getCategoryView category
+    view.setContents contents
 
   pistachio: ->
     """
