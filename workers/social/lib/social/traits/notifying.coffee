@@ -15,7 +15,7 @@ module.exports = class Notifying
   notify:(receiver, event, contents, callback)->
     callback ?= (err) ->
       console.err err if err
-      
+
     JMailNotification  = require '../models/emailnotification'
     JAccount = require '../models/account'
     CBucket  = require '../models/bucket'
@@ -31,14 +31,25 @@ module.exports = class Notifying
         CBucket.addActivities relationship, origin, actor, recipient, callback
 
     sendNotification = =>
-      if receiver instanceof JAccount and receiver.type isnt 'unregistered' 
+      if receiver instanceof JAccount and receiver.type isnt 'unregistered'
         if not (contents.subject.constructorName is 'JGroup' and contents.origin.slug is 'koding')
           JMailNotification.create {actor, receiver, event, contents}, \
           (err)->
             console.error err if err
 
+      if receiver instanceof JAccount and receiver.type isnt 'unregistered'
+        JMailNotification.create {actor, receiver, event, contents}, (err)->
+          console.error err if err
+
     if actor? and not receiver.getId().equals actor.id
       receiver?.sendNotification? event, contents
+
+      # do not create activity for koding group
+      # do not send mail notification for koding group
+      # return if koding
+      subject = contents.subject
+      return  if subject and subject.constructorName is 'JGroup' and subject.slug is "koding"
+
       do createActivity
       do sendNotification
 
