@@ -727,6 +727,8 @@ div.environments-add-domain-form
 
   fieldset.domain-option-group
     padding           20px 0
+    padding-bottom    0
+
     .kd-radio-holder
       width           140px
       padding         0
@@ -770,8 +772,10 @@ div.environments-add-domain-form
       input[type=radio]
         display         none
 
+  .domain-tabs
+    height              auto
 
-  form.new-subdomain-form
+  form.new-domain-form
     padding             0
     margin              0
 
@@ -779,14 +783,14 @@ div.environments-add-domain-form
       padding           0
       margin            0
 
-    label.subdomain-name
+    label.domain-name
       display             block
       float               none
       color               #8c8c8c
       text-shadow         0 1px 0 #fff
       font-size           11px
 
-    input.subdomain-input
+    input.domain-input
       height              35px
       line-height         35px
       shadow              0 1px 0 #fff
@@ -800,12 +804,15 @@ div.environments-add-domain-form
       right              5px
       abs()
 
-  .kdbutton.add-domain
-    fr()
-    margin-top         10px
-    font-size          14px
-    font-weight        normal
-    width              160px
+  .formline.button-field
+    bg                   color, transparent
+
+    .kdbutton.add-domain
+      fr()
+      margin-top         10px
+      font-size          14px
+      font-weight        normal
+      width              180px
 
   form+p.success
     border               1px solid #bbb
