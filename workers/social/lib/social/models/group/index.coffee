@@ -1274,7 +1274,7 @@ module.exports = class JGroup extends Module
         queue = admins.map (admin) =>=>
           contents.recipient = admin
           @notify admin, event, contents, next
-        
+
         daisy queue
 
   updateBundle: (formData, callback = (->)) ->
