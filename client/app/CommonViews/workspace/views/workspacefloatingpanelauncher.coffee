@@ -24,7 +24,6 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       @createPanes()
 
   click: ->
-    @createPanes()  unless @panesCreated
     @toggleClass "active"
 
   createPanes: ->
