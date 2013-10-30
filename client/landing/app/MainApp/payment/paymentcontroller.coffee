@@ -115,8 +115,6 @@ class PaymentController extends KDController
 
     { JPaymentPlan } = KD.remote.api
 
-    debugger
-
     switch type
       when 'group', 'expensed'
         getGroup().fetchPaymentInfo callback
