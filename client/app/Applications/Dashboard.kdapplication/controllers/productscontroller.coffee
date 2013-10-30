@@ -3,42 +3,48 @@ class GroupProductsController extends KDController
   constructor: (options = {}, data) ->
     super options, data
 
-    @prepareProductView 'Product'
-    @prepareProductView 'Plan'
+    @prepareProductView 'product'
+    @prepareProductView 'plan'
 
   prepareProductView: (category) ->
     { view } = @getOptions()
-    group = KD.getGroup()
+
     konstructor = getConstructor category
 
-    reload = ->
-      group["fetch#{ category }s"] (err, results) ->
-        view["set#{ category }s"] results
+    do reload = ->
+      KD.getGroup().fetchProducts category, (err, results) ->
+        view.setProducts category, results
 
     handleResponse = (err) ->
-      return if KD.showError err
+      return  if KD.showError err
 
       reload()
 
-    view.on "#{ category }BuyersReportRequested", ->
-      debugger # needs to be implemented
-
-    view.on "#{ category }DeleteRequested", (data) ->
-      confirmDelete data, ->
-        konstructor.removeByCode data.planCode, handleResponse
-
-    view.on "#{ category }EditRequested", (data) ->
+    handleEdit = (data) ->
       options = getProductFormOptions category
 
       showEditModal options, data, (err, model, productData) ->
-        return if KD.showError err
+        return  if KD.showError err
 
         if model
           model.modify productData, handleResponse
         else
           konstructor.create productData, handleResponse
 
-    reload()
+    categoryView = view.getCategoryView category
+
+    categoryView
+
+      .on("CreateRequested", handleEdit)
+
+      .on("EditRequested", handleEdit)
+
+      .on "DeleteRequested", (data) ->
+        confirmDelete data, ->
+          konstructor.removeByCode data.planCode, handleResponse
+
+      .on "BuyersReportRequested", (data) ->
+        debugger # needs to be implemented
 
   confirmDelete = (data, callback) ->
 
@@ -46,12 +52,10 @@ class GroupProductsController extends KDController
       tagName   : 'div'
       cssClass  : 'modalformline'
 
-    productView = new GroupProductView productViewOptions, data
-
     modal = KDModalView.confirm
       title       : "Warning"
       description : "Are you sure you want to delete this item?"
-      subView     : productView
+      subView     : new GroupProductView productViewOptions, data
       ok          :
         title     : "Remove"
         callback  : ->
@@ -69,25 +73,26 @@ class GroupProductsController extends KDController
 
     modal.addSubView createForm
 
-    createForm.on 'CancelRequested', ->
-      modal.destroy()
+    createForm
 
-    createForm.on 'SaveRequested', (model, productData) ->
-      modal.destroy()
+      .on('CancelRequested', modal.bound 'destroy')
 
-      callback null, model, productData
+      .on 'SaveRequested', (model, productData) ->
+        modal.destroy()
+
+        callback null, model, productData
 
   getProductFormOptions = (category) ->
     switch category
 
-      when 'Product'
+      when 'product'
         productType         : 'product'
         isRecurOptional     : yes
         showOverage         : yes
         showSoldAlone       : yes
         showPriceIsVolatile : yes
 
-      when 'Plan'
+      when 'plan'
         productType         : 'plan'
         isRecurOptional     : no
         showOverage         : no
