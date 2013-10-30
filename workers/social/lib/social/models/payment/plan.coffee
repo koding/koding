@@ -82,6 +82,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
       feeAmount
       feeInitial  : 0
       feeInterval : 1
+      group
     }
 
     plan.save (err) ->
