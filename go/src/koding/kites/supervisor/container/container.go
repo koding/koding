@@ -470,16 +470,17 @@ func (c *Container) MountRBD() error {
 	makeFileSystem := false
 	// means image doesn't exist, create new one
 	if out == nil {
-		if _, err := r.Create(c.Name, "1024"); err != nil {
-			return err
+		out, err := r.Create(c.Name, "1024")
+		if err != nil {
+			return fmt.Errorf("mountrbd create failed.", err, out)
 		}
 
 		makeFileSystem = true
 	}
 
-	_, err = r.Map(c.Name)
+	out, err = r.Map(c.Name)
 	if err != nil {
-		return err
+		return fmt.Errorf("mountrbd map failed.", err, out)
 	}
 
 	// wait for rbd device to appear
@@ -506,19 +507,9 @@ func (c *Container) MountRBD() error {
 
 	mountDir := c.Dir + "overlay"
 
-	// check/correct filesystem
-	if out, err := exec.Command("/sbin/fsck.ext4", "-p", r.Device).CombinedOutput(); err != nil {
-		exitError, ok := err.(*exec.ExitError)
-		if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() == 4 {
-			if out, err := exec.Command("/sbin/fsck.ext4", "-y", r.Device).CombinedOutput(); err != nil {
-				exitError, ok := err.(*exec.ExitError)
-				if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-					return fmt.Errorf(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", c.HostnameAlias), err, out)
-				}
-			}
-		} else {
-			return fmt.Errorf(fmt.Sprintf("fsck.ext4 failed %s.", c.HostnameAlias), err, out)
-		}
+	err = c.CheckExt4(r.Device)
+	if err != nil {
+		return err
 	}
 
 	if err := os.Mkdir(mountDir, 0755); err != nil && !os.IsExist(err) {
@@ -548,4 +539,29 @@ func (c *Container) UnmountRBD() error {
 
 	return nil
 
+}
+
+func (c *Container) CheckExt4(device string) error {
+	// check/correct filesystem
+	out, err := exec.Command("/sbin/fsck.ext4", "-p", device).CombinedOutput()
+	if err == nil {
+		return nil
+	}
+
+	exitError, ok := err.(*exec.ExitError)
+	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 4 {
+		return fmt.Errorf(fmt.Sprintf("fsck.ext4 failed %s.", c.HostnameAlias), err, out)
+	}
+
+	out, err = exec.Command("/sbin/fsck.ext4", "-y", device).CombinedOutput()
+	if err == nil {
+		return nil
+	}
+
+	exitError, ok = err.(*exec.ExitError)
+	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
+		return fmt.Errorf(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", c.HostnameAlias), err, out)
+	}
+
+	return nil
 }
