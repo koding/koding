@@ -182,34 +182,33 @@ class TeamworkApp extends KDObject
 
   handleEnvironmentSelection: (environment) ->
     manifestPath = "https://raw.github.com/fatihacet/TeamworkPlaygrounds/master/#{environment}.json"
-    KD.utils.wait 1000, => # KNOWN ISSUE...
-      KD.getSingleton("vmController").run "curl -kLs #{manifestPath}", (err, contents) =>
-        try
-          manifest = JSON.parse contents
-        catch err
-          return warn "Manifest file is broken for #{environment}"
+    KD.getSingleton("vmController").run "curl -kLs #{manifestPath}", (err, contents) =>
+      try
+        manifest = JSON.parse contents
+      catch err
+        return warn "Manifest file is broken for #{environment}"
 
-        @teamwork.startNewSession @mergeEnvironmentOptions manifest, environment
-        @teamwork.container.setClass environment
-        @teamwork.on "WorkspaceSyncedWithRemote", =>
-          {contentDetails} = @teamwork.getOptions()
-          if contentDetails.type is "zip"
-            appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
-            appStorage.fetchStorage (storage) =>
-              version  = appStorage.getValue "#{environment}AppVersion"
-              if KD.utils.versionCompare manifest.version, "gt", version
-                FSHelper.exists "Web/Teamwork/#{environment}", KD.getSingleton("vmController").defaultVmName, (err, res) =>
-                  return @setVMRoot "Web/Teamwork/#{environment}"  if res
-                  if contentDetails.url
-                    @teamwork.importInProgress = yes
-                    @showImportWarning contentDetails.url, =>
-                      appStorage.setValue "#{environment}AppVersion", manifest.version
-                      @teamwork.emit "ContentImportDone"
-                      @teamwork.importModalContent = no
-                  else
-                    warn "Missing url parameter to import zip file for #{name}"
-              else
-                KD.singletons.vmController.fetchVMs (err, res) =>
-                  @setVMRoot "Web/Teamwork/#{environment}"
-          else
-            warn "Unhandled content type for #{name}"
+      @teamwork.startNewSession @mergeEnvironmentOptions manifest, environment
+      @teamwork.container.setClass environment
+      @teamwork.on "WorkspaceSyncedWithRemote", =>
+        {contentDetails} = @teamwork.getOptions()
+        if contentDetails.type is "zip"
+          appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
+          appStorage.fetchStorage (storage) =>
+            version  = appStorage.getValue "#{environment}AppVersion"
+            if KD.utils.versionCompare manifest.version, "gt", version
+              FSHelper.exists "Web/Teamwork/#{environment}", KD.getSingleton("vmController").defaultVmName, (err, res) =>
+                return @setVMRoot "Web/Teamwork/#{environment}"  if res
+                if contentDetails.url
+                  @teamwork.importInProgress = yes
+                  @showImportWarning contentDetails.url, =>
+                    appStorage.setValue "#{environment}AppVersion", manifest.version
+                    @teamwork.emit "ContentImportDone"
+                    @teamwork.importModalContent = no
+                else
+                  warn "Missing url parameter to import zip file for #{name}"
+            else
+              KD.singletons.vmController.fetchVMs (err, res) =>
+                @setVMRoot "Web/Teamwork/#{environment}"
+        else
+          warn "Unhandled content type for #{name}"
