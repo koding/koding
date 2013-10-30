@@ -15,18 +15,18 @@ module.exports = class JPaymentPayment extends jraphical.Module
   @share()
 
   @set
-    sharedMethods  :
-      static       : ['makePayment']
-      instance     : ['info']
-    schema           :
-      planCode       : String
-      planQuantity   : Number
-      buyer          : String # Recurly account name
-      user           : String # Recurly account name
-      amount         : Number
-      timestamp      : Number
-      subscription   : String # Recurly UUID for subscription
-      active         : Boolean
+    sharedMethods     :
+      static          : ['makePayment']
+      instance        : ['info']
+    schema            :
+      planCode        : String
+      planQuantity    : Number
+      buyer           : String # Recurly account name
+      user            : String # Recurly account name
+      amount          : Number
+      timestamp       : Number
+      subscription    : String # Recurly UUID for subscription
+      active          : Boolean
 
   @makePayment = secure (client, data, callback)->
     @initialize client, data, (err, group, account, plan)=>
