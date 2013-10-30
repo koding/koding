@@ -100,7 +100,7 @@ class KeyboardHelperModalView extends KDModalView
     @setClass "fx"                                if options.fx
     @setContent options.content                   if options.content
 
-    KDView.appendToDOMBody @
+    @appendToDomBody()
 
     @setModalWidth options.width
     @setModalHeight options.height                if options.height
