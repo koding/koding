@@ -334,8 +334,7 @@ func (c *Container) Prepare(hostnameAlias string) error {
 
 	c.MergePasswdFile()
 	c.MergeGroupFile()
-
-	// TODO: merge dpkg database
+	c.MergeDpkgDatabase()
 
 	err = c.MountAufs()
 	if err != nil {
