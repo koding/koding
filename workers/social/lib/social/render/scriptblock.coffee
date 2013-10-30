@@ -1,4 +1,8 @@
 module.exports = (intro = no)->
+
+  prefetchedFeeds  =
+    'members.main' : []
+
   """
   <script>
 
@@ -45,4 +49,7 @@ module.exports = (intro = no)->
   </script>
 
   <script type="text/javascript" src="https://www.dropbox.com/static/api/1/dropins.js" id="dropboxjs" data-app-key="yzye39livlcc21j"></script>
+  <script>
+    KD.prefetchedFeeds = #{JSON.stringify prefetchedFeeds};
+  </script>
   """
