@@ -34,7 +34,7 @@ class GroupProductEditForm extends KDFormViewWithFields
         label           : "Subscription type"
         itemClass       : KDSelectBox
         defaultValue    : data.subscriptionType ? "mo"
-        selectOptions   : @getSubscriptionOptions()
+        selectOptions   : @getSubscriptionTypes options
         callback        : @bound 'subscriptionTypeChanged'
 
     options.fields.feeAmount ?=
@@ -110,7 +110,7 @@ class GroupProductEditForm extends KDFormViewWithFields
         priceIsVolatile
       }
 
-  getSubscriptionOptions:->
+  getSubscriptionTypes: (options) ->
 
     selectOptions = [
       { title: "Recurs every month",     value: 'mo' }
@@ -121,7 +121,7 @@ class GroupProductEditForm extends KDFormViewWithFields
       { title: "Recurs every 5 years",   value: '5 yr' }
     ]
 
-    if @getOptions().isRecurOptional
+    if options.isRecurOptional
       selectOptions.push { title: "Single payment", value: 'single' }
 
     return selectOptions
