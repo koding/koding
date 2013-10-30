@@ -22,9 +22,12 @@ var (
 )
 
 type Container struct {
-	Name string
-	Dir  string
-	Lxc  *lxc.Container
+	Name          string
+	Dir           string
+	Lxc           *lxc.Container
+	HwAddr        net.HardwareAddr
+	IP            net.IP
+	HostnameAlias string
 }
 
 func init() {
@@ -75,20 +78,30 @@ func (c *Container) String() string {
 	return c.Name
 }
 
+// Generate unique MAC address from IP address
+func (c *Container) MAC() net.HardwareAddr {
+	return net.HardwareAddr([]byte{0, 0, c.IP[12], c.IP[13], c.IP[14], c.IP[15]})
+}
+
+// Generate unique VEth pair from IP address
+func (c *Container) VEth() string {
+	return fmt.Sprintf("veth-%x", []byte(c.IP[12:16]))
+}
+
 func (c *Container) Mkdir(name string) error {
 	return os.Mkdir(c.Dir+name, 0755)
 }
 
-func (c *Container) GenerateFile(name, template string, data interface{}) error {
+func (c *Container) GenerateFile(name, template string) error {
 	var mode os.FileMode = 0644
 
-	file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
+	file, err := os.OpenFile(c.Dir+name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	if err := templates.ExecuteTemplate(file, template, data); err != nil {
+	if err := templates.ExecuteTemplate(file, template, c); err != nil {
 		return err
 	}
 
@@ -159,10 +172,17 @@ func (c *Container) Destroy() error {
 }
 
 func (c *Container) Prepare(hostnameAlias string) error {
+	// vm, err := modelhelper.GetVM(hostnameAlias)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// c.VM = &vm
+
 	c.Mkdir("/")
-	c.GenerateFile("/config", "config", nil)
-	c.GenerateFile("/fstab", "fstab", nil)
-	c.GenerateFile("/ip-address", "ip-address", nil)
+	c.GenerateFile("config", "config")
+	c.GenerateFile("fstab", "fstab")
+	c.GenerateFile("ip-address", "ip-address")
 
 	// * create Vm struct or get one and modify it
 	// * get vmroot directory (/var/lib/lxc/vmroot)

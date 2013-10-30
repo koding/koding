@@ -1,6 +1,7 @@
 package container
 
 import (
+	"net"
 	"os"
 	"testing"
 )
@@ -8,6 +9,8 @@ import (
 const (
 	ContainerName = "testContainer"
 	ContainerType = "busybox"
+	PrepareHost   = "vagrant"
+	PrepareName   = "vm-test"
 )
 
 func TestNewContainer(t *testing.T) {
@@ -34,63 +37,90 @@ func TestContainer_Mkdir(t *testing.T) {
 	}
 }
 
-func TestContainer_Create(t *testing.T) {
+func TestContainer_GenerateFiles(t *testing.T) {
 	c := NewContainer(ContainerName)
+	c.IP = net.ParseIP("127.0.0.1")
+	c.HostnameAlias = "vagrant"
 
-	if err := c.Create(ContainerType); err != nil {
-		t.Error(err)
+	var files = []struct {
+		fileName string
+		template string
+	}{
+		{"config", "config"},
+		{"fstab", "fstab"},
+		{"ip-address", "ip-address"},
 	}
 
-	if _, err := os.Stat(c.Dir); os.IsNotExist(err) {
-		t.Errorf("Create: %s does not exist", c.Dir)
+	for _, file := range files {
+		err := c.GenerateFile(file.fileName, file.template)
+		if err != nil {
+			t.Errorf("Generatefile: %s ", err)
+		}
+
+		if _, err := os.Stat(c.Dir + file.fileName); os.IsNotExist(err) {
+			t.Errorf("Generatefile: %s does not exist", c.Dir+file.fileName)
+		}
 	}
 
 }
 
-func TestContainer_Start(t *testing.T) {
-	c := NewContainer(ContainerName)
+// func TestContainer_Create(t *testing.T) {
+// 	c := NewContainer(ContainerName)
 
-	if err := c.Start(); err != nil {
-		t.Error(err)
-	}
+// 	if err := c.Create(ContainerType); err != nil {
+// 		t.Error(err)
+// 	}
 
-	if !c.IsRunning() {
-		t.Errorf("Starting the container failed...")
-	}
-}
+// 	if _, err := os.Stat(c.Dir); os.IsNotExist(err) {
+// 		t.Errorf("Create: %s does not exist", c.Dir)
+// 	}
 
-func TestShutdown(t *testing.T) {
-	c := NewContainer(ContainerName)
+// }
 
-	if err := c.Shutdown(3); err != nil {
-		t.Errorf(err.Error())
-	}
+// func TestContainer_Start(t *testing.T) {
+// 	c := NewContainer(ContainerName)
 
-	if c.IsRunning() {
-		t.Errorf("Shutting down the container failed...")
-	}
-}
+// 	if err := c.Start(); err != nil {
+// 		t.Error(err)
+// 	}
 
-func TestStop(t *testing.T) {
-	c := NewContainer(ContainerName)
+// 	if !c.IsRunning() {
+// 		t.Errorf("Starting the container failed...")
+// 	}
+// }
 
-	if err := c.Start(); err != nil {
-		t.Error(err)
-	}
+// func TestShutdown(t *testing.T) {
+// 	c := NewContainer(ContainerName)
 
-	if err := c.Stop(); err != nil {
-		t.Errorf(err.Error())
-	}
+// 	if err := c.Shutdown(3); err != nil {
+// 		t.Errorf(err.Error())
+// 	}
 
-	if c.IsRunning() {
-		t.Errorf("Stopping the container failed...")
-	}
-}
+// 	if c.IsRunning() {
+// 		t.Errorf("Shutting down the container failed...")
+// 	}
+// }
 
-func TestDestroy(t *testing.T) {
-	c := NewContainer(ContainerName)
+// func TestStop(t *testing.T) {
+// 	c := NewContainer(ContainerName)
 
-	if err := c.Destroy(); err != nil {
-		t.Error(err)
-	}
-}
+// 	if err := c.Start(); err != nil {
+// 		t.Error(err)
+// 	}
+
+// 	if err := c.Stop(); err != nil {
+// 		t.Errorf(err.Error())
+// 	}
+
+// 	if c.IsRunning() {
+// 		t.Errorf("Stopping the container failed...")
+// 	}
+// }
+
+// func TestDestroy(t *testing.T) {
+// 	c := NewContainer(ContainerName)
+
+// 	if err := c.Destroy(); err != nil {
+// 		t.Error(err)
+// 	}
+// }
