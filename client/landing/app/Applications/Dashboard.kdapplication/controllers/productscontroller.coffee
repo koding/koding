@@ -11,9 +11,9 @@ class GroupProductsController extends KDController
 
     konstructor = getConstructor category
 
-    do reload = ->
-      KD.getGroup().fetchProducts category, (err, results) ->
-        view.setProducts category, results
+    do reload = =>
+      @fetchProducts category, (err, products) ->
+        view.setProducts category, products
 
     handleResponse = (err) ->
       return  if KD.showError err
@@ -39,13 +39,11 @@ class GroupProductsController extends KDController
 
       .on("EditRequested", handleEdit)
 
+      .on("AddProductsRequested", @bound 'showAddProductsModal')
+
       .on "DeleteRequested", (data) ->
         confirmDelete data, ->
           konstructor.removeByCode data.planCode, handleResponse
-
-      .on "AddProductsRequested", (data) ->
-        modal = new GroupPlanAddProductsModal {}, data
-        modal.on 'ProductsAdded', -> debugger
 
       .on "BuyersReportRequested", (data) ->
         debugger # needs to be implemented
@@ -108,3 +106,16 @@ class GroupProductsController extends KDController
 
   getConstructor = (category) ->
     KD.remote.api["JPayment#{ category.capitalize() }"]
+
+  fetchProducts: (category, callback) ->
+    KD.getGroup().fetchProducts category, callback
+
+  showAddProductsModal: (plan) ->
+
+    modal = new GroupPlanAddProductsModal {}, plan
+    modal.on 'ProductsAdded', -> debugger
+
+    @fetchProducts 'product', (err, products) ->
+      return  if KD.showError err
+
+      modal.setProducts products
