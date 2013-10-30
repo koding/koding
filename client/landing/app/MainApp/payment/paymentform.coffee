@@ -6,22 +6,22 @@ class PaymentForm extends KDFormViewWithFields
 
       cardFirstName       :
         label             : 'Name'
-        placeholder       : 'First Name'
+        placeholder       : 'First name'
         defaultValue      : KD.whoami().profile.firstName
-        validate          : @required 'First name is required!'
+        required          : 'First name is required!'
         keyup             : @bound 'updateDescription'
         nextElementFlat   :
           cardLastName    :
-            placeholder   : 'Last Name'
+            placeholder   : 'Last name'
             defaultValue  : KD.whoami().profile.lastName
-            validate      : @required 'Last name is required!'
+            required      : 'Last name is required!'
 
       cardDescription     :
         label             : 'Description'
 
       cardNumber          :
-        label             : 'Credit Card'
-        placeholder       : 'Credit Card Number'
+        label             : 'Credit card'
+        placeholder       : 'Credit card number'
         blur              : ->
           @oldValue = @getValue()
           @setValue @oldValue.replace /\s|-/g, ''
@@ -178,10 +178,6 @@ class PaymentForm extends KDFormViewWithFields
         when 'address2' then # ignore
         else
           @inputs[key]?.setValue value
-
-  required:(msg)->
-    rules    : required  : yes
-    messages : required  : msg
 
   clearValidation:->
     inputs = KDFormView.findChildInputs this
