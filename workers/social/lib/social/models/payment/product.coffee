@@ -39,13 +39,7 @@ module.exports = class JPaymentProduct extends Module
       feeInterval     :
         type          : Number
         default       : 1
-      feeUnit         :
-        type          : String
-        default       : 'months'
-        enum          : ['fee unit should be "months" or "days"',[
-          'months'
-          'days'
-        ]]
+      feeUnit         : (require './schema').feeUnit
       overageEnabled  :
         type          : Boolean
         default       : no

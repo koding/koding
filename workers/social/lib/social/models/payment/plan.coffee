@@ -53,6 +53,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
       feeInterval   :
         type        : Number
         default     : 1
+      feeUnit       : (require './schema').feeUnit
       product       :
         prefix      : String
         category    : String
