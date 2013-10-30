@@ -144,10 +144,11 @@ module.exports = class JPaymentPlan extends jraphical.Module
   remove$: permit 'manage products',
     success: (client, callback) -> @remove callback
 
-  modify: (formData, callback) -> @update $set: formData, callback
+  modify: (formData, callback) ->
+    @update $set: formData, callback
 
   modify$: permit 'manage products',
-    success: (client, formData, callback) -> @modify formData
+    success: (client, formData, callback) -> @modify formData, callback
 
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @planCode, callback
