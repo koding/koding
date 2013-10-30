@@ -4,9 +4,16 @@ class GroupPlanAddProductsModal extends KDModalView
 
     options.title ?= "Add products"
 
+    options.overlay ?= yes
+
     super options, data
 
     data = @getData()
+
+    @loader = new KDLoaderView { size: 14 }
+
+    @addSubView @loader
+    @loader.show()
 
     @planExplanation = new KDCustomHTMLView
       cssClass: 'modalformline'
@@ -28,8 +35,33 @@ class GroupPlanAddProductsModal extends KDModalView
         <p>Add some products to this plan</p>
         """
 
+    @products = new KDListViewController
+      itemClass: GroupAddProductListItem
+
+    @buttonField = new KDView
+      cssClass: "formline button-field clearfix"
+
+    @buttonField.addSubView new KDButtonView
+      title: 'Save'
+      cssClass: 'modal-clean-green'
+
+    @buttonField.addSubView new KDButtonView
+      title: 'cancel'
+      cssClass: 'modal-cancel'
+
     @addSubView @planExplanation
     @addSubView @planView
     @addSubView @productsExplanation
+    @addSubView @products.getView()
+    @addSubView @buttonField
 
-  setContents: (contents) -> debugger
+
+  setProducts: (products) ->
+    @loader.hide()
+
+    plan = @getData()
+
+    for product in products
+      qty = plan.quatities?[product.planCode] ? 0
+      item = @products.addItem product
+      item.setQuantity qty
