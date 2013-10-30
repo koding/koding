@@ -96,47 +96,38 @@ module.exports = class CBucket extends jraphical.Module
             else if rel
               konstructor = Base.constructors[rel.sourceName]
               konstructor.one _id: rel.sourceId, (err, activity)->
-                if err
-                  callback err
-                else if isOwn
-                  callback null, bucket
-                else
-                  Relationship.one 
-                    sourceId : anchor.getId()
-                    targetId : activity.getId()
-                    as       : 'activity'
-                  , (err, relationship) ->
+                return callback err if err
+                return callback null, bucket if isOwn
+                Relationship.one
+                  sourceId : anchor.getId()
+                  targetId : activity.getId()
+                  as       : 'activity'
+                , (err, relationship) ->
+                  return callback err if err
+                  emitBucketIsUpdated = (bucket, activity, callback) ->
+                    bucketOptions =
+                      type        : activity.constructor.name
+                      teaserId    : bucket.getId()
+                      createdAt   : bucket.meta.createdAt
 
-                    emitBucketIsUpdated = (bucket, activity, callback) ->
-                      bucketOptions =
-                        type        : activity.constructor.name
-                        teaserId    : bucket.getId()
-                        createdAt   : bucket.meta.createdAt
+                    CActivity.emit 'BucketIsUpdated', bucketOptions
+                    callback null, bucket
 
-                      CActivity.emit 'BucketIsUpdated', bucketOptions
-                      callback null, bucket
+                  if relationship?
+                    relationship.update
+                      $set :
+                        data:
+                          flags:
+                            glanced: false
+                        timestamp: new Date
+                    , (err)->
+                        return callback err if err
+                        emitBucketIsUpdated bucket, activity, callback
+                  else
+                    anchor.addActivity activity, (err)->
+                      return callback err if err
+                      emitBucketIsUpdated bucket, activity, callback
 
-                    if err
-                      callback err
-                    else if relationship?
-                      relationship.update
-                        $set :
-                          data:
-                            flags:
-                              glanced: false
-                          timestamp: new Date
-                      , (err)->
-                          if err
-                            callback err
-                          else
-                            emitBucketIsUpdated bucket, activity, callback
-                    else
-                      anchor.addActivity activity, (err)->
-                        if err 
-                          callback err
-                        else
-                          emitBucketIsUpdated bucket, activity, callback
-                      
             else
               CBucketActivity = require '../activity/bucketactivity'
               activity = CBucketActivity.create bucket
