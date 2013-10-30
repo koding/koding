@@ -8,11 +8,11 @@ class GroupProductView extends JView
     product = @getData()
 
     title     = product.title
-    price     = (product.feeAmount / 100).toFixed 2
+    price     = @utils.formatMoney product.feeAmount / 100
     fmtPrice  =
       if product.priceIsVolatile
       then '<span class="price-volatile">(price is volatile)</span>'
-      else "<span class=\"price\">$#{ price }</span>"
+      else "<span class=\"price\">#{ price }</span>"
 
     subscriptionType =
       if product.subscriptionType is 'single'
