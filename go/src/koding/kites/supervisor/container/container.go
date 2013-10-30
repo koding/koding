@@ -5,12 +5,15 @@ package container
 import (
 	"fmt"
 	"github.com/caglar10ur/lxc"
+	"io"
+	"io/ioutil"
 	"koding/kites/supervisor/rbd"
 	"net"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"text/template"
 	"time"
@@ -40,6 +43,7 @@ type Container struct {
 	IP            net.IP
 	HostnameAlias string
 	LdapPassword  string
+	sync.Mutex
 }
 
 func init() {
@@ -102,6 +106,35 @@ func (c *Container) VEth() string {
 
 func (c *Container) Mkdir(name string) error {
 	return os.Mkdir(c.Dir+name, 0755)
+}
+
+func (c *Container) CopyFile(src, dst string) error {
+	sf, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+
+	fi, err := sf.Stat()
+	if err != nil {
+		return err
+	}
+
+	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fi.Mode())
+	if err != nil {
+		return err
+	}
+	defer df.Close()
+
+	if _, err := io.Copy(df, sf); err != nil {
+		return err
+	}
+
+	if err := df.Chown(c.UID, c.UID); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Container) Chown(name string) error {
@@ -209,6 +242,69 @@ func (c *Container) Destroy() error {
 	return c.Lxc.Destroy()
 }
 
+func (c *Container) Unprepare(hostnameAlias string) error {
+	// first shutdown and stop container
+	err := c.Shutdown(3)
+	if err != nil {
+		return err
+	}
+
+	err = c.Stop()
+	if err != nil {
+		return err
+	}
+
+	// backup dpkg database for statistical purposes
+	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
+
+	c.AsContainer().CopyFile(c.Dir+"overlay/var/lib/dpkg/status", "/var/lib/lxc/dpkg-statuses/"+c.Name)
+
+	if c.IP == nil {
+		if ip, err := ioutil.ReadFile(c.Dir + "ip-address"); err == nil {
+			c.IP = net.ParseIP(string(ip))
+		}
+	}
+
+	if c.IP != nil {
+		// remove ebtables entry
+		err = c.RemoveEbtablesRule()
+		if err != nil {
+			return err
+		}
+
+		err = c.RemoveStaticRoute()
+		if err != nil {
+			return err
+		}
+
+	}
+
+	err = c.UnmountPts()
+	if err != nil {
+		return err
+	}
+
+	err = c.UnmountAufs()
+	if err != nil {
+		return err
+	}
+
+	err = c.UnmountRBD()
+	if err != nil {
+		return err
+	}
+
+	os.Remove(c.Dir + "overlay")
+	os.Remove(c.Dir + "config")
+	os.Remove(c.Dir + "fstab")
+	os.Remove(c.Dir + "ip-address")
+	os.Remove(c.Dir + "rootfs")
+	os.Remove(c.Dir + "rootfs.hold")
+	os.Remove(c.Dir + "")
+
+	return nil
+}
+
 func (c *Container) Prepare(hostnameAlias string) error {
 	// vm, err := modelhelper.GetVM(hostnameAlias)
 	// if err != nil {
@@ -236,7 +332,10 @@ func (c *Container) Prepare(hostnameAlias string) error {
 	c.AsContainer().GenerateFile("/overlay/etc/hosts", "hosts")
 	c.AsContainer().GenerateFile("/overlay/etc/ldap.conf", "ldap.conf")
 
-	// TODO: merge passwd and group functions
+	c.MergePasswdFile()
+	c.MergeGroupFile()
+
+	// TODO: merge dpkg database
 
 	err = c.MountAufs()
 	if err != nil {
@@ -265,11 +364,20 @@ func (c *Container) AddStaticRoute() error {
 	// add a static route so it is redistributed by BGP
 	out, err := exec.Command("/sbin/route", "add", c.IP.String(), "lxcbr0").CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("mount overlay failed. err: %s\n out:%s\n", err, out)
+		return fmt.Errorf("adding route failed. err: %s\n out:%s\n", err, out)
 	}
 
 	return nil
+}
 
+func (c *Container) RemoveStaticRoute() error {
+	// remove the static route so it is no longer redistribed by BGP
+	out, err := exec.Command("/sbin/route", "del", c.IP.String(), "lxcbr0").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("removing route failed. err: %s\n out:%s\n", err, out)
+	}
+
+	return nil
 }
 
 func (c *Container) AddEbtablesRule() error {
@@ -284,17 +392,44 @@ func (c *Container) AddEbtablesRule() error {
 	return nil
 }
 
+func (c *Container) RemoveEbtablesRule() error {
+	// add ebtables entry to restrict IP and MAC
+	out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source",
+		c.MAC().String(), "--ip-src", c.IP.String(), "--in-interface", c.VEth(),
+		"--jump", "ACCEPT").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("ebtables rule deletion failed.", err, out)
+	}
+
+	return nil
+}
+
 func (c *Container) MountAufs() error {
 	c.AsContainer().PrepareDir("rootfs")
 
+	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
+
 	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 	// under "/var/lib/lxc/vm-{id}/rootfs"
-	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", c.Dir+"/overlay", vmRoot+"/rootfs/"),
 		"aufs", c.Dir+"rootfs").CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("mount overlay failed. err: %s\n out:%s\n", err, out)
+	}
+
+	return nil
+}
+
+func (c *Container) UnmountAufs() error {
+	out, err := exec.Command("/sbin/auplink", c.Dir+"rootfs", "flush").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("AUFS flush failed.", err, out)
+	}
+
+	out, err = exec.Command("/bin/umount", c.Dir+"rootfs").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("umount overlay failed.", err, out)
 	}
 
 	return nil
@@ -312,6 +447,15 @@ func (c *Container) MountPts() error {
 
 	c.AsContainer().Chown(c.PtsDir())
 	c.AsContainer().Chown(c.PtsDir() + "/ptmx")
+
+	return nil
+}
+
+func (c *Container) UnmountPts() error {
+	out, err := exec.Command("/bin/umount", c.PtsDir()).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("umount devpts failed.", err, out)
+	}
 
 	return nil
 }
@@ -350,6 +494,10 @@ func (c *Container) MountRBD() error {
 		time.Sleep(time.Second / 2)
 	}
 
+	// protect fsck.ext4 is not concurrent ready
+	c.Lock()
+	defer c.Unlock()
+
 	if makeFileSystem {
 		if out, err := exec.Command("/sbin/mkfs.ext4", r.Device).CombinedOutput(); err != nil {
 			return fmt.Errorf("mkfs.ext4 failed.", err, out)
@@ -383,4 +531,21 @@ func (c *Container) MountRBD() error {
 	}
 
 	return nil
+}
+
+func (c *Container) UnmountRBD() error {
+	r := rbd.NewRBD(c.Name)
+
+	out, err := exec.Command("/bin/umount", c.Dir+"/overlay").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("umount rbd failed.", err, out)
+	}
+
+	out, err = r.Unmap()
+	if err != nil {
+		return fmt.Errorf("rbd unmap failed.", err, out)
+	}
+
+	return nil
+
 }
