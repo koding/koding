@@ -37,6 +37,10 @@ class MainViewController extends KDViewController
         log "i am opening #{lazyloadQueue[i-1]}"
         killRepeat r if i is lazyloadQueue.length
 
+    if KD.checkFlag 'super-admin'
+    then $('body').addClass 'super'
+    else $('body').removeClass 'super'
+
 
 
   loadView:(mainView)->
@@ -51,7 +55,13 @@ class MainViewController extends KDViewController
     app             = appManager.getFrontApp()
     {navController} = KD.getSingleton('mainController').sidebarController.getView()
     cdController.emit "ContentDisplaysShouldBeHidden"
-    @setViewState pane.getOptions()
+    {mainTabView}   = mainView
+
+    # temp fix
+    # until fixing the original issue w/ the dnd this should be kept here
+    if pane
+    then @setViewState pane.getOptions()
+    else mainTabView.getActivePane().show()
 
     {title} = app.getOption('navItem')
 
