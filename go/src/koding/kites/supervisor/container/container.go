@@ -5,10 +5,14 @@ package container
 import (
 	"fmt"
 	"github.com/caglar10ur/lxc"
+	"koding/kites/supervisor/rbd"
 	"net"
 	"os"
+	"os/exec"
 	"strings"
+	"syscall"
 	"text/template"
+	"time"
 )
 
 const (
@@ -177,17 +181,18 @@ func (c *Container) Prepare(hostnameAlias string) error {
 	// 	return err
 	// }
 
-	// c.VM = &vm
+	// c.IP = vm.IP
 
 	c.Mkdir("/")
 	c.GenerateFile("config", "config")
 	c.GenerateFile("fstab", "fstab")
 	c.GenerateFile("ip-address", "ip-address")
 
-	// * create Vm struct or get one and modify it
-	// * get vmroot directory (/var/lib/lxc/vmroot)
-	// * create lxc directory (/var/lib/lxc/vm-{id}) with following files: config, fstab, ip-address
-	// * map rbd image to block device ?
+	err := c.MountRBD()
+	if err != nil {
+		return err
+	}
+
 	// * create overlay directory (/var/lib/lxc/vm-{id}/overlay) with following content:
 	// 	"/"
 	// 	"/lost+found"
@@ -202,6 +207,75 @@ func (c *Container) Prepare(hostnameAlias string) error {
 	// * create ptsdir and mount it
 	// * add ebtables entry to restrict IP and MAC
 	// * add a static route so it is redistributed by BGP
+
+	return nil
+}
+
+func (c *Container) MountRBD() error {
+	r := rbd.NewRBD(c.Name)
+	out, err := r.Info(c.Name)
+	if err != nil {
+		return err
+	}
+
+	makeFileSystem := false
+	// means image doesn't exist, create new one
+	if out == nil {
+		if _, err := r.Create(c.Name, "1024"); err != nil {
+			return err
+		}
+
+		makeFileSystem = true
+	}
+
+	_, err = r.Map(c.Name)
+	if err != nil {
+		return err
+	}
+
+	// wait for rbd device to appear
+	for {
+		_, err := os.Stat(r.Device)
+		if err == nil {
+			break
+		}
+		if !os.IsNotExist(err) {
+			return err
+		}
+		time.Sleep(time.Second / 2)
+	}
+
+	if makeFileSystem {
+		if out, err := exec.Command("/sbin/mkfs.ext4", r.Device).CombinedOutput(); err != nil {
+			return fmt.Errorf("mkfs.ext4 failed.", err, out)
+		}
+	}
+
+	mountDir := c.Dir + "overlay"
+
+	// check/correct filesystem
+	if out, err := exec.Command("/sbin/fsck.ext4", "-p", r.Device).CombinedOutput(); err != nil {
+		exitError, ok := err.(*exec.ExitError)
+		if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() == 4 {
+			if out, err := exec.Command("/sbin/fsck.ext4", "-y", r.Device).CombinedOutput(); err != nil {
+				exitError, ok := err.(*exec.ExitError)
+				if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
+					return fmt.Errorf(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", c.HostnameAlias), err, out)
+				}
+			}
+		} else {
+			return fmt.Errorf(fmt.Sprintf("fsck.ext4 failed %s.", c.HostnameAlias), err, out)
+		}
+	}
+
+	if err := os.Mkdir(mountDir, 0755); err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	if out, err := exec.Command("/bin/mount", "-t", "ext4", r.Device, mountDir).CombinedOutput(); err != nil {
+		os.Remove(mountDir)
+		return fmt.Errorf("mount rbd failed.", err, out)
+	}
 
 	return nil
 }
