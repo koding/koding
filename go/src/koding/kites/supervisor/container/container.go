@@ -16,8 +16,10 @@ import (
 )
 
 const (
-	lxcDir  = "/var/lib/lxc/"
-	rootUID = 0
+	lxcDir        = "/var/lib/lxc/"
+	RootUID       = 0
+	UserUIDOffset = 1000000
+	RootUIDOffset = 500000
 )
 
 var (
@@ -26,12 +28,16 @@ var (
 )
 
 type Container struct {
-	Name          string
-	Dir           string
-	Lxc           *lxc.Container
+	Name string
+	Dir  string
+	Lxc  *lxc.Container
+	UID  int
+
+	// needed for templating
 	HwAddr        net.HardwareAddr
 	IP            net.IP
 	HostnameAlias string
+	LdapPassword  string
 }
 
 func init() {
@@ -96,6 +102,28 @@ func (c *Container) Mkdir(name string) error {
 	return os.Mkdir(c.Dir+name, 0755)
 }
 
+func (c *Container) Chown(name string) error {
+	return os.Chown(c.Dir+name, c.UID, c.UID)
+}
+
+func (c *Container) PrepareDir(name string) error {
+	if err := c.Mkdir(name); err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	return c.Chown(name)
+}
+
+func (c *Container) AsHost() *Container {
+	c.UID = RootUID
+	return c
+}
+
+func (c *Container) AsContainer() *Container {
+	c.UID = RootUIDOffset
+	return c
+}
+
 func (c *Container) GenerateFile(name, template string) error {
 	var mode os.FileMode = 0644
 
@@ -109,7 +137,7 @@ func (c *Container) GenerateFile(name, template string) error {
 		return err
 	}
 
-	if err := file.Chown(rootUID, rootUID); err != nil {
+	if err := file.Chown(c.UID, c.UID); err != nil {
 		return err
 	}
 
@@ -182,16 +210,25 @@ func (c *Container) Prepare(hostnameAlias string) error {
 	// }
 
 	// c.IP = vm.IP
+	// c.LdapPassword
 
-	c.Mkdir("/")
-	c.GenerateFile("config", "config")
-	c.GenerateFile("fstab", "fstab")
-	c.GenerateFile("ip-address", "ip-address")
+	c.AsHost().PrepareDir("/")
+	c.AsHost().GenerateFile("config", "config")
+	c.AsHost().GenerateFile("fstab", "fstab")
+	c.AsHost().GenerateFile("ip-address", "ip-address")
 
 	err := c.MountRBD()
 	if err != nil {
 		return err
 	}
+
+	c.AsContainer().PrepareDir("/overlay")            // for chown
+	c.AsContainer().PrepareDir("/overlay/lost+found") // for chown
+	c.AsContainer().PrepareDir("/overlay/etc")
+
+	c.AsContainer().GenerateFile("/overlay/etc/hostname", "hostname")
+	c.AsContainer().GenerateFile("/overlay/etc/hosts", "hosts")
+	c.AsContainer().GenerateFile("/overlay/etc/ldap.conf", "ldap.conf")
 
 	// * create overlay directory (/var/lib/lxc/vm-{id}/overlay) with following content:
 	// 	"/"

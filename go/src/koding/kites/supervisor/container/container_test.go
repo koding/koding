@@ -52,7 +52,7 @@ func TestContainer_GenerateFiles(t *testing.T) {
 	}
 
 	for _, file := range files {
-		err := c.GenerateFile(file.fileName, file.template)
+		err := c.AsHost().GenerateFile(file.fileName, file.template)
 		if err != nil {
 			t.Errorf("Generatefile: %s ", err)
 		}
@@ -62,6 +62,44 @@ func TestContainer_GenerateFiles(t *testing.T) {
 		}
 	}
 
+}
+
+func TestContainer_GenerateOverlayFiles(t *testing.T) {
+	c := NewContainer(ContainerName)
+
+	if err := c.AsContainer().PrepareDir("/overlay"); err != nil {
+		t.Errorf("PrepareDir Overlay: %s ", err)
+	}
+
+	if err := c.AsContainer().PrepareDir("/overlay/lost+found"); err != nil {
+		t.Errorf("PrepareDir Overlay/lost+found: %s ", err)
+	}
+
+	if err := c.AsContainer().PrepareDir("/overlay/etc"); err != nil {
+		t.Errorf("PrepareDir Overlay/etc: %s ", err)
+	}
+
+	var containerFiles = []struct {
+		fileName string
+		template string
+	}{
+		{"/overlay/etc/hostname", "hostname"},
+		{"/overlay/etc/hosts", "hosts"},
+		{"/overlay/etc/ldap.conf", "ldap.conf"},
+	}
+
+	c.LdapPassword = "123456789"
+
+	for _, file := range containerFiles {
+		err := c.AsContainer().GenerateFile(file.fileName, file.template)
+		if err != nil {
+			t.Errorf("Generatefile: %s ", err)
+		}
+
+		if _, err := os.Stat(c.Dir + file.fileName); os.IsNotExist(err) {
+			t.Errorf("Generatefile: %s does not exist", c.Dir+file.fileName)
+		}
+	}
 }
 
 // func TestContainer_Create(t *testing.T) {
