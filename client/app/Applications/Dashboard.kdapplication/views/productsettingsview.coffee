@@ -34,9 +34,10 @@ class GroupProductSettingsView extends JView
       @emit 'EditRequested'
 
     ['product', 'plan'].forEach (category) =>
-      @forwardEvents @["#{category}sView"], [
+      @forwardEvents (@getCategoryView category), [
         'DeleteRequested'
         'EditRequested'
+        'AddProductsRequested'
         'BuyersReportRequested'
       ]
 

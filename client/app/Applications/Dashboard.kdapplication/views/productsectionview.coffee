@@ -19,6 +19,7 @@ class GroupProductSectionView extends JView
       @forwardEvents item, [
         'DeleteRequested'
         'EditRequested'
+        'AddProductsRequested'
         'BuyersReportRequested'
       ]
 

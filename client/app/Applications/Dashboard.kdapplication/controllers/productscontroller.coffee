@@ -43,6 +43,10 @@ class GroupProductsController extends KDController
         confirmDelete data, ->
           konstructor.removeByCode data.planCode, handleResponse
 
+      .on "AddProductsRequested", (data) ->
+        modal = new GroupPlanAddProductsModal {}, data
+        modal.on 'ProductsAdded', -> debugger
+
       .on "BuyersReportRequested", (data) ->
         debugger # needs to be implemented
 
