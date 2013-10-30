@@ -62,7 +62,9 @@ class FacebookTeamwork extends TeamworkWorkspace
           @showInstructions()
 
   showInstructions: ->
-    @instructionsModal = new FacebookTeamworkInstructionsModal delegate: this
+    d = @getDelegate()
+    d.instructionsModal?.destroy()
+    d.instructionsModal = new FacebookTeamworkInstructionsModal delegate: this
 
   getAppInfo: ->
     @appStorage.fetchStorage (storage) =>
@@ -91,7 +93,7 @@ class FacebookTeamwork extends TeamworkWorkspace
       @emit "ContentImportDone"
 
   createRunButton: (panel) ->
-    # panel.headerButtons.Environments.hide()
+    panel.headerButtons.Playgrounds.hide()
     panel.header.addSubView @runButton = new KDButtonViewWithMenu
       title               : "Run"
       menu                :
