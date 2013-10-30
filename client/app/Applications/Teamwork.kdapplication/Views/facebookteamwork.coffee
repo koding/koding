@@ -120,6 +120,20 @@ class FacebookTeamwork extends TeamworkWorkspace
   runOnFB: ->
     KD.utils.createExternalLink "http://apps.facebook.com/#{@appNamespace}"
 
+  setAppInfoToCloud: ->
+    @workspaceRef.child("FacebookAppInfo").set { @appId, @appNamespace, @appCanvasUrl }
+
+  getAppInforFromCloud: (callback = noop) ->
+    @workspaceRef.once "value", (snapshot) =>
+      facebookAppInfo = snapshot.val().FacebookAppInfo
+      return unless facebookAppInfo
+
+      @appId          = facebookAppInfo.appId
+      @appNamespace   = facebookAppInfo.appNamespace
+      @appCanvasUrl   = facebookAppInfo.appCanvasUrl
+
+      callback()
+
   createIndexFile: ->
     markup = ""
 
