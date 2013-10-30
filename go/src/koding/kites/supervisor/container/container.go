@@ -59,6 +59,15 @@ func (c *Container) GenerateFile(name, template string, data interface{}) error 
 
 }
 
+func (c *Container) IsRunning() bool {
+	return c.Lxc.Running()
+}
+
+func (c *Container) Create(template string) error {
+	fmt.Printf("creating vm '%s' with template '%s'\n", c.Name, template)
+	return c.Lxc.Create(template)
+}
+
 func (c *Container) Run(command string) error {
 	fmt.Printf("running '%s' on '%s'\n", command, c.Name)
 	args := strings.Split(strings.TrimSpace(command), " ")
@@ -71,7 +80,7 @@ func (c *Container) Run(command string) error {
 }
 
 func (c *Container) Start() error {
-	fmt.Println("starting ", c.Name)
+	fmt.Println("starting", c.Name)
 	err := c.Lxc.SetDaemonize()
 	if err != nil {
 		return fmt.Errorf("ERROR: %s\n", err)
@@ -86,7 +95,7 @@ func (c *Container) Start() error {
 }
 
 func (c *Container) Stop() error {
-	fmt.Println("stopping ", c.Name)
+	fmt.Println("stopping", c.Name)
 	err := c.Lxc.Stop()
 	if err != nil {
 		return fmt.Errorf("ERROR: %s\n", err)
@@ -96,7 +105,7 @@ func (c *Container) Stop() error {
 }
 
 func (c *Container) Shutdown(timeout int) error {
-	fmt.Println("shutting down ", c.Name)
+	fmt.Println("shutdown", c.Name)
 	err := c.Lxc.Shutdown(timeout)
 	if err != nil {
 		return fmt.Errorf("ERROR: %s\n", err)
@@ -105,13 +114,8 @@ func (c *Container) Shutdown(timeout int) error {
 	return nil
 }
 
-func (c *Container) Create(template string) error {
-	fmt.Printf("creating vm '%s' with template '%s'\n", c.Name, template)
-	return c.Lxc.Create(template)
-}
-
 func (c *Container) Destroy() error {
-	fmt.Println("destroying ", c.Name)
+	fmt.Println("destroying", c.Name)
 	return c.Lxc.Destroy()
 }
 
