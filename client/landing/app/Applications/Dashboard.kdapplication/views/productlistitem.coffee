@@ -20,7 +20,7 @@ class GroupProductListItem extends KDListItemView
     @embedButton.hide()  unless soldAlone
 
     @clientsButton = new KDButtonView
-      title    : "View Buyers"
+      title    : "View buyers"
       callback : => @emit 'BuyersReportRequested', product
 
     @deleteButton = new KDButtonView
