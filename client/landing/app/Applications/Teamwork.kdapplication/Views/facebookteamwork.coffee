@@ -24,6 +24,7 @@ class FacebookTeamwork extends TeamworkWorkspace
       @appStorage.setValue "FacebookAppId"       , @appId
       @appStorage.setValue "FacebookAppNamespace", @appNamespace
       @appStorage.setValue "FacebookAppCanvasUrl", @appCanvasUrl
+      @setAppInfoToCloud()
 
     @container.setClass "Facebook"
     @on "WorkspaceSyncedWithRemote", =>
@@ -79,6 +80,7 @@ class FacebookTeamwork extends TeamworkWorkspace
           else
             @startImport()
       else
+        @setAppInfoToCloud()
         @checkFiles (err, res) =>
           @startImport()  unless res
 
@@ -118,6 +120,9 @@ class FacebookTeamwork extends TeamworkWorkspace
     previewPane.previewer.openPath target
 
   runOnFB: ->
+    if not @amIHost() and not @appNamespace
+      return @getAppInforFromCloud => @runOnFB()
+
     KD.utils.createExternalLink "http://apps.facebook.com/#{@appNamespace}"
 
   setAppInfoToCloud: ->
