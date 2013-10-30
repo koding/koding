@@ -6,10 +6,6 @@ class TeamworkApp extends KDObject
 
     options               = @getOptions()
     instanceName          = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
-    additionalButton      =
-      title               : "Environments"
-      cssClass            : "clean-gray"
-      callback            : (panel, workspace) => @showEnvironmentsModal panel, workspace
 
     @teamwork             = new TeamworkWorkspace
       name                : options.name                or "Teamwork"
@@ -29,7 +25,14 @@ class TeamworkApp extends KDObject
             cssClass      : "clean-gray tw-tools-button"
             callback      : => @showToolsModal @teamwork.getActivePanel(), @teamwork
           }
-          # additionalButton
+          title           : "Playgrounds"
+          itemClass       : KDButtonViewWithMenu
+          cssClass        : "clean-gray playgrounds-button"
+          menu            :
+            Facebook      :
+              callback    : (panel, workspace) =>
+                @handleEnvironmentSelection "Facebook"
+                # @showEnvironmentsModal panel, workspace
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
