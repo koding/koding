@@ -255,7 +255,6 @@ module.exports = [
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
   "app/Applications/Activity.kdapplication/AppController.coffee",
-  # "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
@@ -521,20 +520,6 @@ module.exports = [
   "app/Applications/Feeder.kdapplication/Views/FeederTabView.coffee",
   "app/Applications/Feeder.kdapplication/Views/feederonboardingview.coffee",
 
-
-  # HOME VIEWS
-  # "app/Applications/Home.kdapplication/AppView.coffee",
-  "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
-  "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
-  "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
-  # "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
-  # "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
-  # "app/Applications/Home.kdapplication/Views/featuredactivitiescontainer.coffee",
-  # "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
-  # "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
-  # "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
-  # "app/Applications/Home.kdapplication/Views/counterview.coffee",
-
   # DEMO VIEWS
   "app/Applications/Demos.kdapplication/AppView.coffee",
 
@@ -681,7 +666,6 @@ module.exports = [
   "stylus/app.styl",
   "stylus/app.bottom.styl",
   "stylus/app.splitlayout.styl",
-  "stylus/app.about.styl",
   "stylus/app.commons.styl",
   "stylus/app.editor.styl",
   "stylus/app.finder.styl",
