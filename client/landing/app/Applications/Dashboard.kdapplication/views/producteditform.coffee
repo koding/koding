@@ -127,17 +127,18 @@ class GroupProductEditForm extends KDFormViewWithFields
     return selectOptions
 
   subscriptionTypeChanged: ->
-    subscriptionType = @inputs.subscriptionType.getValue()
+    { subscriptionType, perMonth } = @inputs
+    newType = subscriptionType.getValue()
     if subscriptionType is 'single'
-      @inputs.perMonth.hide()
+      perMonth.hide()
     else
-      @inputs.perMonth.show()
-      @inputs.perMonth.updatePartial "/ #{subscriptionType}"
+      perMonth.show()
+      perMonth.updatePartial "/ #{ newType }"
 
-  feeChanged: (num) ->
-    num = parseFloat @getValue()
-
-    @setValue if isNaN num then '' else num.toFixed(2)
+  feeChanged: ->
+    { feeAmount } = @inputs
+    num = parseFloat feeAmount.getValue()
+    feeAmount.setValue if isNaN num then '' else num.toFixed 2
 
   priceVolatilityChanged: ->
     enabled = @inputs.priceIsVolatile.getValue()
