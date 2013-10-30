@@ -5,16 +5,17 @@ package main
 import (
 	"errors"
 	"flag"
-	"fmt"
-	"github.com/caglar10ur/lxc"
+	"koding/kites/supervisor/container"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
-	"strings"
 )
 
 type Supervisor struct{}
 
-var port = flag.String("port", "4005", "port to bind itself")
+var (
+	port   = flag.String("port", "4005", "port to bind itself")
+	vmRoot = "/var/lib/lxc/vmroot"
+)
 
 func main() {
 	flag.Parse()
@@ -31,7 +32,7 @@ func main() {
 		"vm.start":    "Start",
 		"vm.stop":     "Stop",
 		"vm.shutdown": "Shutdown",
-		"vm.run":      "Run",
+		"vm.prepare":  "Prepare",
 	}
 
 	k := kite.New(options)
@@ -49,7 +50,8 @@ func (s *Supervisor) Create(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string], template: [string] }")
 	}
 
-	err := s.lxcCreate(params.ContainerName, params.Template)
+	c := container.NewContainer(params.ContainerName)
+	err := c.Create(params.Template)
 	if err != nil {
 		return err
 	}
@@ -67,7 +69,8 @@ func (s *Supervisor) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string] }")
 	}
 
-	err := s.lxcDestroy(params.ContainerName)
+	c := container.NewContainer(params.ContainerName)
+	err := c.Destroy()
 	if err != nil {
 		return err
 	}
@@ -85,7 +88,8 @@ func (s *Supervisor) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string] }")
 	}
 
-	err := s.lxcStart(params.ContainerName)
+	c := container.NewContainer(params.ContainerName)
+	err := c.Start()
 	if err != nil {
 		return err
 	}
@@ -103,7 +107,8 @@ func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string] }")
 	}
 
-	err := s.lxcStop(params.ContainerName)
+	c := container.NewContainer(params.ContainerName)
+	err := c.Stop()
 	if err != nil {
 		return err
 	}
@@ -122,7 +127,8 @@ func (s *Supervisor) Shutdown(r *protocol.KiteDnodeRequest, result *bool) error 
 		return errors.New("{ containerName: [string], timeout : [int]}")
 	}
 
-	err := s.lxcShutdown(params.ContainerName, params.Timeout)
+	c := container.NewContainer(params.ContainerName)
+	err := c.Shutdown(params.Timeout)
 	if err != nil {
 		return err
 	}
@@ -141,7 +147,8 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string], command : [string]}")
 	}
 
-	err := s.lxcRun(params.ContainerName, params.Command)
+	c := container.NewContainer(params.ContainerName)
+	err := c.Run(params.Command)
 	if err != nil {
 		return err
 	}
@@ -149,80 +156,21 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Supervisor) lxcRun(containerName, command string) error {
-	fmt.Printf("running '%s' on '%s'\n", command, containerName)
+func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		ContainerName string
+		HostnameAlias string
+	}
 
-	c := lxc.NewContainer(containerName)
-	defer lxc.PutContainer(c)
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.HostnameAlias == "" {
+		return errors.New("{ containerName: [string], command : [string]}")
+	}
 
-	args := strings.Split(strings.TrimSpace(command), " ")
-
-	if err := c.AttachRunCommand(args...); err != nil {
-		return fmt.Errorf("ERROR: %s\n", err.Error())
+	c := container.NewContainer(params.ContainerName)
+	err := c.Prepare(params.HostnameAlias)
+	if err != nil {
+		return err
 	}
 
 	return nil
-}
-
-func (s *Supervisor) lxcStart(containerName string) error {
-	fmt.Println("starting ", containerName)
-
-	c := lxc.NewContainer(containerName)
-	defer lxc.PutContainer(c)
-
-	err := c.SetDaemonize()
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
-	}
-
-	err = c.Start(false)
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
-	}
-
-	return nil
-}
-
-func (s *Supervisor) lxcStop(containerName string) error {
-	fmt.Println("stopping ", containerName)
-
-	c := lxc.NewContainer(containerName)
-	defer lxc.PutContainer(c)
-
-	err := c.Stop()
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
-	}
-
-	return nil
-}
-
-func (s *Supervisor) lxcShutdown(containerName string, timeout int) error {
-	fmt.Println("shutting down ", containerName)
-
-	c := lxc.NewContainer(containerName)
-	defer lxc.PutContainer(c)
-
-	err := c.Shutdown(timeout)
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
-	}
-
-	return nil
-}
-
-func (s *Supervisor) lxcCreate(containerName, template string) error {
-	fmt.Printf("creating vm '%s' with template '%s'\n", containerName, template)
-
-	c := lxc.NewContainer(containerName)
-	defer lxc.PutContainer(c)
-	return c.Create(template)
-}
-
-func (s *Supervisor) lxcDestroy(containerName string) error {
-	fmt.Println("destroying ", containerName)
-
-	c := lxc.NewContainer(containerName)
-	defer lxc.PutContainer(c)
-	return c.Destroy()
 }
