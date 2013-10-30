@@ -1,6 +1,12 @@
 class GroupPlanListItem extends GroupProductListItem
   viewAppended: ->
-    @planView = new GroupProductView {}, @getData()
+    plan = @getData()
+
+    @planView = new GroupProductView {}, plan
+
+    @addProductsButton = new KDButtonView
+      title    : "Add products"
+      callback : => @emit 'AddProductsRequested', plan
 
     super()
 
@@ -11,5 +17,6 @@ class GroupPlanListItem extends GroupProductListItem
     {{> @deleteButton}}
     {{> @clientsButton}}
     {{> @editButton}}
+    {{> @addProductsButton}}
     {{> @embedView}}
     """
