@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"syscall"
 	"text/template"
@@ -23,6 +24,7 @@ const (
 )
 
 var (
+	vmRoot      = "/var/lib/lxc/vmroot"
 	templateDir = "/opt/koding/go/templates"
 	templates   = template.New("container")
 )
@@ -124,6 +126,10 @@ func (c *Container) AsContainer() *Container {
 	return c
 }
 
+func (c *Container) PtsDir() string {
+	return c.Dir + "rootfs/dev/pts"
+}
+
 func (c *Container) GenerateFile(name, template string) error {
 	var mode os.FileMode = 0644
 
@@ -210,7 +216,7 @@ func (c *Container) Prepare(hostnameAlias string) error {
 	// }
 
 	// c.IP = vm.IP
-	// c.LdapPassword
+	// c.LdapPassword = vm.LdapPassword
 
 	c.AsHost().PrepareDir("/")
 	c.AsHost().GenerateFile("config", "config")
@@ -230,20 +236,82 @@ func (c *Container) Prepare(hostnameAlias string) error {
 	c.AsContainer().GenerateFile("/overlay/etc/hosts", "hosts")
 	c.AsContainer().GenerateFile("/overlay/etc/ldap.conf", "ldap.conf")
 
-	// * create overlay directory (/var/lib/lxc/vm-{id}/overlay) with following content:
-	// 	"/"
-	// 	"/lost+found"
-	// 	"/etc"
-	// 	"/etc/hostname"
-	// 	"/etc/hosts"
-	// 	"/etc/ldap.conf"
-	// * create rootfs directory (/var/lob/lxc/vm-{id}/vmroot)
-	// * mount aufs. "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
-	// under "/var/lib/lxc/vm-{id}/rootfs". overlay on top of vmroot and define this
-	// to the folder 'rootfs'.
-	// * create ptsdir and mount it
-	// * add ebtables entry to restrict IP and MAC
-	// * add a static route so it is redistributed by BGP
+	// TODO: merge passwd and group functions
+
+	err = c.MountAufs()
+	if err != nil {
+		return err
+	}
+
+	err = c.MountPts()
+	if err != nil {
+		return err
+	}
+
+	err = c.AddEbtablesRule()
+	if err != nil {
+		return err
+	}
+
+	err = c.AddStaticRoute()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Container) AddStaticRoute() error {
+	// add a static route so it is redistributed by BGP
+	out, err := exec.Command("/sbin/route", "add", c.IP.String(), "lxcbr0").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("mount overlay failed. err: %s\n out:%s\n", err, out)
+	}
+
+	return nil
+
+}
+
+func (c *Container) AddEbtablesRule() error {
+	// add ebtables entry to restrict IP and MAC
+	out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source",
+		c.MAC().String(), "--ip-src", c.IP.String(), "--in-interface", c.VEth(),
+		"--jump", "ACCEPT").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("ebtables rule addition failed. err: %s\n out:%s\n", err, out)
+	}
+
+	return nil
+}
+
+func (c *Container) MountAufs() error {
+	c.AsContainer().PrepareDir("rootfs")
+
+	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
+	// under "/var/lib/lxc/vm-{id}/rootfs"
+	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
+		fmt.Sprintf("noplink,br=%s:%s", c.Dir+"/overlay", vmRoot+"/rootfs/"),
+		"aufs", c.Dir+"rootfs").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("mount overlay failed. err: %s\n out:%s\n", err, out)
+	}
+
+	return nil
+}
+
+func (c *Container) MountPts() error {
+	c.AsContainer().PrepareDir(c.PtsDir())
+
+	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
+		"rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootUIDOffset+5)+",mode=0620,ptmxmode=0666",
+		"devpts", c.PtsDir()).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("mount devpts failed. err: %s\n out:%s\n", err, out)
+	}
+
+	c.AsContainer().Chown(c.PtsDir())
+	c.AsContainer().Chown(c.PtsDir() + "/ptmx")
 
 	return nil
 }

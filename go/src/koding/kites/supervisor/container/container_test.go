@@ -66,6 +66,9 @@ func TestContainer_GenerateFiles(t *testing.T) {
 
 func TestContainer_GenerateOverlayFiles(t *testing.T) {
 	c := NewContainer(ContainerName)
+	c.HostnameAlias = "vagrant"
+	c.LdapPassword = "123456789"
+	c.IP = net.ParseIP("127.0.0.1")
 
 	if err := c.AsContainer().PrepareDir("/overlay"); err != nil {
 		t.Errorf("PrepareDir Overlay: %s ", err)
@@ -87,8 +90,6 @@ func TestContainer_GenerateOverlayFiles(t *testing.T) {
 		{"/overlay/etc/hosts", "hosts"},
 		{"/overlay/etc/ldap.conf", "ldap.conf"},
 	}
-
-	c.LdapPassword = "123456789"
 
 	for _, file := range containerFiles {
 		err := c.AsContainer().GenerateFile(file.fileName, file.template)

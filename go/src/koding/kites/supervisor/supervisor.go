@@ -13,8 +13,7 @@ import (
 type Supervisor struct{}
 
 var (
-	port   = flag.String("port", "4005", "port to bind itself")
-	vmRoot = "/var/lib/lxc/vmroot"
+	port = flag.String("port", "4005", "port to bind itself")
 )
 
 func main() {
