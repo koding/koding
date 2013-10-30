@@ -50,6 +50,7 @@ func (s *Supervisor) Create(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string], template: [string] }")
 	}
 
+	fmt.Printf("creating vm '%s' with template '%s'\n", c.Name, template)
 	c := container.NewContainer(params.ContainerName)
 	err := c.Create(params.Template)
 	if err != nil {
@@ -69,6 +70,7 @@ func (s *Supervisor) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string] }")
 	}
 
+	fmt.Println("destroying", c.Name)
 	c := container.NewContainer(params.ContainerName)
 	err := c.Destroy()
 	if err != nil {
@@ -88,6 +90,7 @@ func (s *Supervisor) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string] }")
 	}
 
+	fmt.Println("starting", c.Name)
 	c := container.NewContainer(params.ContainerName)
 	err := c.Start()
 	if err != nil {
@@ -107,6 +110,7 @@ func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string] }")
 	}
 
+	fmt.Println("stopping", c.Name)
 	c := container.NewContainer(params.ContainerName)
 	err := c.Stop()
 	if err != nil {
@@ -127,6 +131,7 @@ func (s *Supervisor) Shutdown(r *protocol.KiteDnodeRequest, result *bool) error 
 		return errors.New("{ containerName: [string], timeout : [int]}")
 	}
 
+	fmt.Println("shutdown", c.Name)
 	c := container.NewContainer(params.ContainerName)
 	err := c.Shutdown(params.Timeout)
 	if err != nil {
@@ -147,6 +152,7 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string], command : [string]}")
 	}
 
+	fmt.Printf("running '%s' on '%s'\n", command, c.Name)
 	c := container.NewContainer(params.ContainerName)
 	err := c.Run(params.Command)
 	if err != nil {
@@ -166,6 +172,7 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string], command : [string]}")
 	}
 
+	fmt.Printf("preparing container '%s'\n", c.Name)
 	c := container.NewContainer(params.ContainerName)
 	err := c.Prepare(params.HostnameAlias)
 	if err != nil {

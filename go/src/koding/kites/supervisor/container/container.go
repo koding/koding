@@ -5,17 +5,62 @@ package container
 import (
 	"fmt"
 	"github.com/caglar10ur/lxc"
+	"net"
 	"os"
 	"strings"
+	"text/template"
 )
 
-const lxcDir = "/var/lib/lxc/"
-const rootUID = 0
+const (
+	lxcDir  = "/var/lib/lxc/"
+	rootUID = 0
+)
+
+var (
+	templateDir = "/opt/koding/go/templates"
+	templates   = template.New("container")
+)
 
 type Container struct {
 	Name string
 	Dir  string
 	Lxc  *lxc.Container
+}
+
+func init() {
+	interf, err := net.InterfaceByName("lxcbr0")
+	if err != nil {
+		panic(err)
+	}
+
+	addrs, err := interf.Addrs()
+	if err != nil {
+		panic(err)
+	}
+
+	hostIP, _, err := net.ParseCIDR(addrs[0].String())
+	if err != nil {
+		panic(err)
+	}
+
+	templates.Funcs(template.FuncMap{
+		"hostIP": func() string {
+			return hostIP.String()
+		},
+		"swapAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes")
+			return err == nil
+		},
+		"kernelMemoryAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes")
+			return err == nil
+		},
+	})
+
+	if _, err := templates.ParseGlob(templateDir + "/vm/*"); err != nil {
+		panic(err)
+	}
+
 }
 
 func NewContainer(containerName string) *Container {
@@ -43,9 +88,9 @@ func (c *Container) GenerateFile(name, template string, data interface{}) error 
 	}
 	defer file.Close()
 
-	// if err := Templates.ExecuteTemplate(file, template, data); err != nil {
-	// 	return err
-	// }
+	if err := templates.ExecuteTemplate(file, template, data); err != nil {
+		return err
+	}
 
 	if err := file.Chown(rootUID, rootUID); err != nil {
 		return err
@@ -64,12 +109,10 @@ func (c *Container) IsRunning() bool {
 }
 
 func (c *Container) Create(template string) error {
-	fmt.Printf("creating vm '%s' with template '%s'\n", c.Name, template)
 	return c.Lxc.Create(template)
 }
 
 func (c *Container) Run(command string) error {
-	fmt.Printf("running '%s' on '%s'\n", command, c.Name)
 	args := strings.Split(strings.TrimSpace(command), " ")
 
 	if err := c.Lxc.AttachRunCommand(args...); err != nil {
@@ -80,7 +123,6 @@ func (c *Container) Run(command string) error {
 }
 
 func (c *Container) Start() error {
-	fmt.Println("starting", c.Name)
 	err := c.Lxc.SetDaemonize()
 	if err != nil {
 		return fmt.Errorf("ERROR: %s\n", err)
@@ -95,7 +137,6 @@ func (c *Container) Start() error {
 }
 
 func (c *Container) Stop() error {
-	fmt.Println("stopping", c.Name)
 	err := c.Lxc.Stop()
 	if err != nil {
 		return fmt.Errorf("ERROR: %s\n", err)
@@ -105,7 +146,6 @@ func (c *Container) Stop() error {
 }
 
 func (c *Container) Shutdown(timeout int) error {
-	fmt.Println("shutdown", c.Name)
 	err := c.Lxc.Shutdown(timeout)
 	if err != nil {
 		return fmt.Errorf("ERROR: %s\n", err)
@@ -115,13 +155,10 @@ func (c *Container) Shutdown(timeout int) error {
 }
 
 func (c *Container) Destroy() error {
-	fmt.Println("destroying", c.Name)
 	return c.Lxc.Destroy()
 }
 
 func (c *Container) Prepare(hostnameAlias string) error {
-	fmt.Printf("preparing container '%s'\n", c.Name)
-
 	c.Mkdir("/")
 	c.GenerateFile("/config", "config", nil)
 	c.GenerateFile("/fstab", "fstab", nil)
