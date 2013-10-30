@@ -474,3 +474,5 @@ __utils.extend
     form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog save-file-container", null
     finderWrapper.addSubView finder
     finderWrapper.setHeight 200
+
+  formatMoney: accounting.formatMoney
