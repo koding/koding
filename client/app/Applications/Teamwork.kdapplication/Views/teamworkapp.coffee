@@ -49,8 +49,7 @@ class TeamworkApp extends KDObject
       ]
 
     if options.environment
-      @teamwork.on "viewAppended", (panel) =>
-        @handleEnvironmentSelection options.environment
+      @handleEnvironmentSelection options.environment
 
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
