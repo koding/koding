@@ -9,7 +9,6 @@ class ContentDisplayControllerMember extends KDViewController
     "JOpinion"
     "JDiscussion"
     "JCodeSnip"
-    "JCodeShare"
   ]
 
   constructor:(options={}, data)->
