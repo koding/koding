@@ -37,7 +37,8 @@ module.exports = class JDomain extends jraphical.Module
                        'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord', 'updateDNSRecord'
                        'remove'
                       ]
-      static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain', 'getTldPrice']
+      static        : ['one', 'getDomainInfo', 'registerDomain',
+                       'createDomain', 'getTldPrice', 'getDomainSuggestions']
 
     sharedEvents    :
       static        : [
@@ -177,8 +178,11 @@ module.exports = class JDomain extends jraphical.Module
             callback err, model
 
 
-  @isDomainAvailable = (domainName, tld, callback) ->
-    domainManager.domainService.isDomainAvailable domainName, tld, callback
+  @getDomainSuggestions = (domainName, callback)->
+    domainManager.domainService.getDomainSuggestions domainName, callback
+
+  @getDomainInfo = (domainName, callback) ->
+    domainManager.domainService.getDomainInfo domainName, callback
 
   @getTldPrice = (tld, callback) ->
     domainManager.domainService.getTldPrice tld, callback
