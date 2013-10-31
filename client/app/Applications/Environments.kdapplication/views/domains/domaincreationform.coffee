@@ -204,9 +204,33 @@ class DomainBuyForm extends CommonDomainCreationForm
       placeholder : "Type your awesome domain..."
       createButtonAnimated : yes
     , data
+
+    @domainList = null
+
   viewAppended:->
     tldList = []
     KD.remote.api.JDomain.getTldList (tlds)=>
       for tld in tlds
         tldList.push {title:".#{tld}", value: tld}
       @inputs.domains.setSelectOptions tldList
+
+  setAvailableDomainsData:(domains)->
+    @domainList?.destroy?()
+
+    @domainList = new KDView cssClass:'domain-list'
+    @addSubView @domainList
+
+    for domain in domains
+      @domainList.addSubView new DomainBuyItem {}, domain
+
+class DomainBuyItem extends JView
+
+  constructor:(options={}, data)->
+    options.cssClass = KD.utils.curry "domain-buy-items", options.cssClass
+    super options, data
+
+  pistachio:->
+    """
+      {h1#domain{#(domain)}}
+      {{#(price)}}
+    """
