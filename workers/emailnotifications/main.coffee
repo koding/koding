@@ -51,6 +51,12 @@ flags =
   groupApproved        :
     template           : template.instantMail
     definition         : "group membership request approved"
+  groupJoined          :
+    template           : template.instantMail
+    definition         : "a member has joind group"
+  groupLeft            :
+    template           : template.instantMail
+    definition         : "a member has left group"
 
 sendDailyEmail = (details, content)->
   unless content or details.email

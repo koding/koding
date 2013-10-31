@@ -1,5 +1,5 @@
 { isLoggedIn, error_404, error_500 } = require '../server/helpers'
-
+{htmlEncode} = require 'htmlencode'
 kodinghome = require './staticpages/kodinghome'
 activity = require './staticpages/activity'
 profile = require './staticpages/profile'
@@ -85,7 +85,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
           hash : acc.data.profile.hash
           title : if model.title then model.title else model.body or ""
           body : if model.body  then model.body  else ""
-          codeSnippet : codeSnippet
+          codeSnippet : htmlEncode codeSnippet
           createdAt : formatDate(model.data?.meta?.createdAt)
           numberOfComments : teaser.repliesCount or 0
           numberOfLikes : model?.data?.meta?.likes or 0

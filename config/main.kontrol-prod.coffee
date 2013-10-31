@@ -94,17 +94,16 @@ module.exports =
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
     watch                : yes
-    cronSchedule         : '0 * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : no # for production, workers are running as a service
-    login                : 'prod-guestcleanerworker'
+    login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
-    numberOfWorkers      : 2
+    numberOfWorkers      : 1
     watch                : yes
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
-    watch                : no
   sitemapWorker          :
     enabled              : yes
     login                : 'prod-social'

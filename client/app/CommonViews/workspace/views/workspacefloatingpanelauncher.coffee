@@ -2,8 +2,9 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "workspace-launcher"
-    options.partial  = "<span>+</span>"
+    # options.cssClass = "workspace-launcher"
+    # options.partial  = "<span>+</span>"
+    options.cssClass  = "workspace-launcher vertical"
 
     super options, data
 
@@ -24,7 +25,6 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       @createPanes()
 
   click: ->
-    @createPanes()  unless @panesCreated
     @toggleClass "active"
 
   createPanes: ->
@@ -64,13 +64,13 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       cssClass   : "floating-pane"
       size       : height : 400
 
-    @terminal.addSubView terminalPane = new terminalClass
+    @terminal.addSubView @terminalPane = new terminalClass
       delegate   : @panel
       sessionKey : @sessionKeys.terminal
 
-    terminalPane.webterm.on "WebTermConnected", =>
+    @terminalPane.webterm.on "WebTermConnected", =>
       @keysRef.child("terminal").set
-        key    : terminalPane.remote.session
+        key    : @terminalPane.remote.session
         host   : KD.nick()
         vmName : KD.getSingleton("vmController").defaultVmName
 

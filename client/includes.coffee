@@ -32,6 +32,7 @@ module.exports = [
   "app/CommonViews/linkviews/applinkview.coffee",
   "app/CommonViews/linkviews/activitychildviewtaggroup.coffee",
   "app/CommonViews/linkviews/autocompleteprofiletextview.coffee",
+  "app/CommonViews/linkviews/grouplinkview.coffee",
   "app/CommonViews/splitview.coffee",
   "app/CommonViews/slidingsplit.coffee",
 
@@ -622,11 +623,11 @@ module.exports = [
   "app/Applications/Teamwork.kdapplication/Views/teamworkenvironmentsmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/facebookteamworkinstructionsmodal.coffee",
-  "app/Applications/Teamwork.kdapplication/Views/teamworkpanel.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
   "app/Applications/Teamwork.kdapplication/Views/facebookteamwork.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/golangteamwork.coffee",
   "app/Applications/Teamwork.kdapplication/AppView.coffee",
   "app/Applications/Teamwork.kdapplication/AppController.coffee",
 

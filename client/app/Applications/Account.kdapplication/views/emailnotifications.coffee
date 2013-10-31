@@ -23,6 +23,10 @@ class AccountEmailNotifications extends KDView
         title          : 'Someone requests access to my group'
       groupApproved    :
         title          : 'Group admin approves my access request'
+      groupJoined      :
+        title          : 'When someone joins your group'
+      groupLeft        :
+        title          : 'When someone leaves your group'
 
     globalValue = if user.getAt("emailFrequency.global") is on then 'ON' else 'OFF'
 
