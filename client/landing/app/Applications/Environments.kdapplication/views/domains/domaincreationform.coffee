@@ -190,10 +190,11 @@ class SubDomainCreateForm extends CommonDomainCreationForm
 class DomainBuyForm extends CommonDomainCreationForm
   constructor:(options = {}, data)->
     super
-      placeholder   : "Type your awesome domain..."
-      selectOptions : [
-        {title: ".com" , value: "com"}
-        {title: ".net" , value: "net"}
-        {title: ".org" , value: "org"}
-      ]
+      placeholder : "Type your awesome domain..."
     , data
+  viewAppended:->
+    tldList = []
+    KD.remote.api.JDomain.getTldList (tlds)=>
+      for tld in tlds
+        tldList.push {title:".#{tld}", value: tld}
+      @inputs.domains.setSelectOptions tldList
