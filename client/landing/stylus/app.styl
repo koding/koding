@@ -76,13 +76,21 @@ body
   100%
     opacity 0
 
-@keyframes shrink
+@-webkit-keyframes shrink
   0%
-    vendor       transform, scale(1)
+    -webkit-transform       scale(1)
   70%
-    vendor       transform, scale(1)
+    -webkit-transform       scale(1)
   100%
-    vendor       transform, scale(0)
+    -webkit-transform       scale(0)
+
+@-moz-keyframes shrink
+  0%
+    -moz-transform       scale(1)
+  70%
+    -moz-transform       scale(1)
+  100%
+    -moz-transform       scale(0)
 
 @keyframes fade-in-out
   0%
