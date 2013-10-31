@@ -173,9 +173,22 @@ class CommonDomainCreationForm extends KDFormViewWithFields
           loader            : {color : "#ffffff", diameter : 10}
       , data
 
+    if options.createButtonAnimated
+      # Add working animations for create button
+      @buttons.createButton.showLoader = ->
+        KDButtonView::showLoader.call this
+        @setClass 'working'
+
+      @buttons.createButton.hideLoader = ->
+        KDButtonView::hideLoader.call this
+        @unsetClass 'working'
+
   submit:->
+    @buttons.createButton.hideLoader()
+    @off  "FormValidationPassed"
     @once "FormValidationPassed", =>
       @emit 'registerDomain'
+      @buttons.createButton.showLoader()
     super
 
 class SubDomainCreateForm extends CommonDomainCreationForm
@@ -189,6 +202,7 @@ class DomainBuyForm extends CommonDomainCreationForm
   constructor:(options = {}, data)->
     super
       placeholder : "Type your awesome domain..."
+      createButtonAnimated : yes
     , data
   viewAppended:->
     tldList = []
