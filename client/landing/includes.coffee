@@ -188,10 +188,6 @@ module.exports = [
 
   "app/MainApp/filetree/helpers/dropboxuploader.coffee",
 
-  # re-used files
-  "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
-  "app/MainApp/filetree/bottomlist/finderbottomlistitem.coffee",
-
   # fs representation
   "app/MainApp/fs/fshelper.coffee",
   "app/MainApp/fs/fswatcher.coffee",
@@ -482,7 +478,6 @@ module.exports = [
   # START TAB VIEWS
   "app/Applications/StartTab.kdapplication/AppView.coffee",
   "app/Applications/StartTab.kdapplication/views/appthumbview.coffee",
-  "app/Applications/StartTab.kdapplication/views/appthumbview.old.coffee",
   "app/Applications/StartTab.kdapplication/views/recentfileview.coffee",
   "app/Applications/StartTab.kdapplication/views/appcontainer.coffee",
 
@@ -700,7 +695,6 @@ module.exports = [
   "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
 
   # mediaqueries should stay at the bottom
-  "stylus/app.1200.styl",
   "stylus/app.1024.styl",
   "stylus/app.768.styl",
   "stylus/app.480.styl",
