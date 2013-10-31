@@ -57,6 +57,8 @@ app        = express()
   addReferralCode
 }          = require './helpers'
 
+{ generateFakeClient } = require "./client"
+
 
 # this is a hack so express won't write the multipart to /tmp
 #delete express.bodyParser.parse['multipart/form-data']
@@ -236,7 +238,7 @@ app.get "/sitemap:sitemapName", (req, res)->
   sitemapName = req.params.sitemapName
   if sitemapName is ".xml"
     sitemapName = "sitemap.xml"
-  else 
+  else
     sitemapName = "sitemap" + sitemapName
   JSitemap.one "name" : sitemapName, (err, sitemap)->
     if err or not sitemap
@@ -313,6 +315,10 @@ app.get "/-/oauth/facebook/callback", require "./facebook_callback"
 app.get "/-/oauth/google/callback",   require "./google_callback"
 
 app.all '/:name/:section?*', (req, res, next)->
+
+  # sample usage for generateFakeClient
+  # generateFakeClient req, res, ()-> console.log arguments[1]
+
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
