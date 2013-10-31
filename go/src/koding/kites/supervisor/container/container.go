@@ -246,6 +246,52 @@ func (c *Container) Destroy() error {
 	return c.Lxc.Destroy()
 }
 
+func (c *Container) Prepare() error {
+	c.AsHost().PrepareDir(c.Path(""))
+	c.AsHost().GenerateFile(c.Path("config"), "config")
+	c.AsHost().GenerateFile(c.Path("fstab"), "fstab")
+	c.AsHost().GenerateFile(c.Path("ip-address"), "ip-address")
+
+	err := c.MountRBD()
+	if err != nil {
+		return err
+	}
+
+	c.AsContainer().PrepareDir(c.OverlayPath(""))            //for chown
+	c.AsContainer().PrepareDir(c.OverlayPath("/lost+found")) // for chown
+	c.AsContainer().PrepareDir(c.OverlayPath("/etc"))
+
+	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hostname"), "hostname")
+	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hosts"), "hosts")
+	c.AsContainer().GenerateFile(c.OverlayPath("/etc/ldap.conf"), "ldap.conf")
+
+	c.MergePasswdFile()
+	c.MergeGroupFile()
+	c.MergeDpkgDatabase()
+
+	err = c.MountAufs()
+	if err != nil {
+		return err
+	}
+
+	err = c.MountPts()
+	if err != nil {
+		return err
+	}
+
+	err = c.AddEbtablesRule()
+	if err != nil {
+		return err
+	}
+
+	err = c.AddStaticRoute()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Container) Unprepare(hostnameAlias string) error {
 	// first shutdown and stop container
 	err := c.Shutdown(3)
@@ -309,57 +355,7 @@ func (c *Container) Unprepare(hostnameAlias string) error {
 	return nil
 }
 
-func (c *Container) Prepare(hostnameAlias string) error {
-	// vm, err := modelhelper.GetVM(hostnameAlias)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// c.IP = vm.IP
-	// c.LdapPassword = vm.LdapPassword
-
-	c.AsHost().PrepareDir(c.Path(""))
-	c.AsHost().GenerateFile(c.Path("config"), "config")
-	c.AsHost().GenerateFile(c.Path("fstab"), "fstab")
-	c.AsHost().GenerateFile(c.Path("ip-address"), "ip-address")
-
-	err := c.MountRBD()
-	if err != nil {
-		return err
-	}
-
-	c.AsContainer().PrepareDir(c.OverlayPath(""))            //for chown
-	c.AsContainer().PrepareDir(c.OverlayPath("/lost+found")) // for chown
-	c.AsContainer().PrepareDir(c.OverlayPath("/etc"))
-
-	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hostname"), "hostname")
-	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hosts"), "hosts")
-	c.AsContainer().GenerateFile(c.OverlayPath("/etc/ldap.conf"), "ldap.conf")
-
-	c.MergePasswdFile()
-	c.MergeGroupFile()
-	c.MergeDpkgDatabase()
-
-	err = c.MountAufs()
-	if err != nil {
-		return err
-	}
-
-	err = c.MountPts()
-	if err != nil {
-		return err
-	}
-
-	err = c.AddEbtablesRule()
-	if err != nil {
-		return err
-	}
-
-	err = c.AddStaticRoute()
-	if err != nil {
-		return err
-	}
-
+func (c *Container) PrepareHomeDirectory() error {
 	return nil
 }
 

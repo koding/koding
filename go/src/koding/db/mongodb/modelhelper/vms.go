@@ -16,10 +16,10 @@ func NewVM() models.VM {
 	}
 }
 
-func GetVM(hostname string) (models.VM, error) {
-	vm := models.VM{}
+func GetVM(hostname string) (*models.VM, error) {
+	vm := new(models.VM)
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"hostnameAlias": hostname}).One(&vm)
+		return c.Find(bson.M{"hostnameAlias": hostname}).One(vm)
 	}
 
 	err := mongodb.Run("jVMs", query)

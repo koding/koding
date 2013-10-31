@@ -2,12 +2,12 @@ package rbd
 
 import (
 	"fmt"
+	"koding/tools/config"
 	"os/exec"
 	"syscall"
 )
 
 const RBDCmd = "/usr/bin/rbd"
-const pool = "vms"
 
 type RBD struct {
 	Device string
@@ -15,9 +15,14 @@ type RBD struct {
 }
 
 func NewRBD(device string) *RBD {
+	pool := config.Current.VmPool
+	if pool == "" {
+		panic("rbd pool is not defined in config")
+	}
+
 	return &RBD{
 		Device: "/dev/rbd/" + pool + "/" + device,
-		Pool:   "vms",
+		Pool:   pool,
 	}
 }
 
