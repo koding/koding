@@ -263,16 +263,19 @@ func (c *Container) Destroy() error {
 }
 
 func (c *Container) Prepare() error {
+	fmt.Println("generating lxc files")
 	c.AsHost().PrepareDir(c.Path(""))
 	c.AsHost().GenerateFile(c.Path("config"), "config")
 	c.AsHost().GenerateFile(c.Path("fstab"), "fstab")
 	c.AsHost().GenerateFile(c.Path("ip-address"), "ip-address")
 
+	fmt.Println("mounting rbd")
 	err := c.MountRBD()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("generating  overlay files")
 	c.AsContainer().PrepareDir(c.OverlayPath(""))            //for chown
 	c.AsContainer().PrepareDir(c.OverlayPath("/lost+found")) // for chown
 	c.AsContainer().PrepareDir(c.OverlayPath("/etc"))
@@ -281,31 +284,37 @@ func (c *Container) Prepare() error {
 	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hosts"), "hosts")
 	c.AsContainer().GenerateFile(c.OverlayPath("/etc/ldap.conf"), "ldap.conf")
 
+	fmt.Println("merging files")
 	c.MergePasswdFile()
 	c.MergeGroupFile()
 	c.MergeDpkgDatabase()
 
+	fmt.Println("mounting aufs")
 	err = c.MountAufs()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("mounting pts")
 	err = c.MountPts()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("add ebtables")
 	err = c.AddEbtablesRule()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("add static rout")
 	err = c.AddStaticRoute()
 	if err != nil {
 		return err
 	}
 
-	err = c.PrepareHomeDirectory()
+	fmt.Println("prepare home directories")
+	err = c.PrepareHomeDirectories()
 	if err != nil {
 		return err
 	}
@@ -313,18 +322,26 @@ func (c *Container) Prepare() error {
 	return nil
 }
 
-func (c *Container) PrepareHomeDirectory() error {
-	// vmWebDir := "/home/" + c.WebHome + "/Web"
-	// userWebDir := "/home/" + c.Username + "/Web"
+func (c *Container) PrepareHomeDirectories() error {
+	// make sure that executable flag is set
+	os.Chmod(c.Path("rootfs/"), 0755)
+	os.Chmod(c.Path("rootfs/home"), 0755)
 
 	err := c.createUserHome()
 	if err != nil {
 		return err
 	}
 
+	vmWebDir := c.Path(fmt.Sprintf("rootfs/home/%s/Web", c.WebHome))
+	err = c.createWebDir(vmWebDir)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
+// create and initiate /home/username from {templatedir}/user
 func (c *Container) createUserHome() error {
 	homeDir := c.Path(fmt.Sprintf("rootfs/home/%s", c.Username))
 
@@ -344,12 +361,44 @@ func (c *Container) createUserHome() error {
 		return err
 	}
 
-	err = c.copyIntoContainer(templateDir+"/user", "/home/"+c.Username)
+	err = c.copyIntoContainer(templateDir+"/user", homeDir)
 	if err != nil {
 		return err
 	}
 
-	return err
+	return nil
+}
+
+// create and initiate /home/username/Web from {templatedir}/website. Also
+// make symlink to /var/www from /home/username/Web that it get served via
+// Apache webserver.
+func (c *Container) createWebDir(webDir string) error {
+	wwwDir := c.Path("rootfs/var/www")
+	if err := os.Symlink(webDir, "/var/www"); err != nil && !os.IsExist(err) {
+		return err
+	}
+	c.AsContainer().Lchown(wwwDir)
+
+	if _, err := os.Stat(webDir); !os.IsNotExist(err) {
+		return nil // web directory exist
+	}
+
+	err := os.MkdirAll(webDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	err = c.AsUser().Lchown(webDir)
+	if err != nil {
+		return err
+	}
+
+	err = c.copyIntoContainer(templateDir+"/website", webDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Container) copyIntoContainer(src, dst string) error {
@@ -379,20 +428,17 @@ func (c *Container) copyIntoContainer(src, dst string) error {
 			return err
 		}
 
-		fmt.Println("creating dir for dst:", dst)
 		entries, err := sf.Readdirnames(0)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println("entries for src is:", entries)
 		for _, entry := range entries {
 			if err := c.copyIntoContainer(src+"/"+entry, dst+"/"+entry); err != nil {
 				return err
 			}
 		}
 	} else {
-		fmt.Println("src is a file:", src)
 		err := c.AsUser().CopyFile(src, dst)
 		if err != nil {
 			return err
@@ -402,16 +448,21 @@ func (c *Container) copyIntoContainer(src, dst string) error {
 	return nil
 }
 
-func (c *Container) Unprepare(hostnameAlias string) error {
-	// first shutdown and stop container
-	err := c.Shutdown(3)
-	if err != nil {
-		return err
-	}
+func (c *Container) Unprepare() error {
+	// first shutdown and stop container if it's running already
+	if c.IsRunning() {
+		fmt.Println("shutting down containers")
+		err := c.Shutdown(3)
+		if err != nil {
+			return err
+		}
 
-	err = c.Stop()
-	if err != nil {
-		return err
+		fmt.Println("stopping down containers")
+		err = c.Stop()
+		if err != nil {
+			return err
+		}
+
 	}
 
 	// backup dpkg database for statistical purposes
@@ -425,9 +476,10 @@ func (c *Container) Unprepare(hostnameAlias string) error {
 		}
 	}
 
+	fmt.Println("removing ebtables and route")
 	if c.IP != nil {
 		// remove ebtables entry
-		err = c.RemoveEbtablesRule()
+		err := c.RemoveEbtablesRule()
 		if err != nil {
 			return err
 		}
@@ -439,21 +491,25 @@ func (c *Container) Unprepare(hostnameAlias string) error {
 
 	}
 
-	err = c.UnmountPts()
+	fmt.Println("unmount pts")
+	err := c.UnmountPts()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("unmount afs")
 	err = c.UnmountAufs()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("unmount rbd")
 	err = c.UnmountRBD()
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("removing overlay paths")
 	os.Remove(c.OverlayPath(""))
 	os.Remove(c.Path("config"))
 	os.Remove(c.Path("fstab"))
@@ -510,7 +566,11 @@ func (c *Container) RemoveEbtablesRule() error {
 }
 
 func (c *Container) MountAufs() error {
-	c.AsContainer().PrepareDir("rootfs")
+	fmt.Println("preparing rootfs")
+	err := c.AsContainer().PrepareDir(c.Path("rootfs"))
+	if err != nil {
+		return err
+	}
 
 	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
 
@@ -567,14 +627,18 @@ func (c *Container) UnmountPts() error {
 
 func (c *Container) MountRBD() error {
 	r := rbd.NewRBD(c.Name)
+
+	fmt.Println("getting info")
 	out, err := r.Info(c.Name)
 	if err != nil {
 		return err
 	}
+	fmt.Println("info out", string(out))
 
 	makeFileSystem := false
 	// means image doesn't exist, create new one
 	if out == nil {
+		fmt.Println("creating new one")
 		out, err := r.Create(c.Name, "1024")
 		if err != nil {
 			return fmt.Errorf("mountrbd create failed.", err, out)
@@ -583,12 +647,15 @@ func (c *Container) MountRBD() error {
 		makeFileSystem = true
 	}
 
+	fmt.Println("mapping rbd")
 	out, err = r.Map(c.Name)
 	if err != nil {
 		return fmt.Errorf("mountrbd map failed.", err, out)
 	}
+	fmt.Println("mapping out", string(out))
 
-	// wait for rbd device to appear
+	fmt.Println("waiting for", r.Device)
+	timeout := time.Now().Add(30 * time.Second)
 	for {
 		_, err := os.Stat(r.Device)
 		if err == nil {
@@ -598,6 +665,10 @@ func (c *Container) MountRBD() error {
 			return err
 		}
 		time.Sleep(time.Second / 2)
+
+		if time.Now().After(timeout) {
+			return fmt.Errorf("timeout. rbd device '%s' does not exist", r.Device)
+		}
 	}
 
 	// protect fsck.ext4 is not concurrent ready

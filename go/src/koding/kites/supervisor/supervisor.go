@@ -39,12 +39,13 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"vm.create":   "Create",
-		"vm.destroy":  "Destroy",
-		"vm.start":    "Start",
-		"vm.stop":     "Stop",
-		"vm.shutdown": "Shutdown",
-		"vm.prepare":  "Prepare",
+		"vm.create":    "Create",
+		"vm.destroy":   "Destroy",
+		"vm.start":     "Start",
+		"vm.stop":      "Stop",
+		"vm.shutdown":  "Shutdown",
+		"vm.prepare":   "Prepare",
+		"vm.unprepare": "Unprepare",
 	}
 
 	initialize()
@@ -185,6 +186,41 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
 		return err
 	}
 
+	return nil
+}
+
+func (s *Supervisor) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	vm, err := getVM(r.Hostname)
+	if err != nil {
+		return err
+	}
+
+	err = validateVM(vm)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("unpreparing container '%s'\n", params.ContainerName)
+	c := container.NewContainer(params.ContainerName)
+
+	// these values are needed for templating. will be changed later
+	// with a template struct.
+	c.IP = vm.IP
+
+	err = c.Unprepare()
+	if err != nil {
+		return err
+	}
+
+	*result = true
 	return nil
 }
 
