@@ -316,9 +316,6 @@ app.get "/-/oauth/google/callback",   require "./google_callback"
 
 app.all '/:name/:section?*', (req, res, next)->
 
-  # sample usage for generateFakeClient
-  # generateFakeClient req, res, ()-> console.log arguments[1]
-
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
@@ -353,24 +350,32 @@ app.all '/:name/:section?*', (req, res, next)->
             else if view? then res.send view
             else res.send 500, error_500()
 
-app.get "/", (req, res)->
+app.get "/", (req, res, next)->
 
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
     {JGroup} = koding.models
-    isLoggedIn req, res, (err, loggedIn, account)->
-      if err
-        res.send 500, error_500()
-        console.error err
-      else if loggedIn
-        # go to koding activity
-        activityPage = JGroup.render.loggedIn.kodingHome {account}
-        serve activityPage, res
-      else
-        # go to koding home
-        homePage = JGroup.render.loggedOut.kodingHome()
-        serve homePage, res
+
+    generateFakeClient req, res, (err, client)->
+      if err or not client
+        console.log err
+        return next()
+
+      isLoggedIn req, res, (err, loggedIn, account)->
+        if err
+          res.send 500, error_500()
+          console.error err
+        else if loggedIn
+          # go to koding activity
+          JGroup.render.loggedIn.kodingHome {client, account}, (err, activityPage)->
+            return next()  if err
+            serve activityPage, res
+        else
+          # go to koding home
+          JGroup.render.loggedOut.kodingHome {client}, (err, homePage)->
+            return next()  if err
+            serve homePage, res
 
 
 ###
