@@ -3,18 +3,16 @@ class DomainCreationForm extends KDCustomHTMLView
   subDomainPattern = \
     /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
 
-  # -- Form -- #
   domainOptions = [
     { title : "Create A Subdomain",     value : "subdomain" }
     { title : "Register New Domain",    value : "new"}
     { title : "Use An Existing Domain", value : "existing", disabled : yes }
   ]
 
-  constructor:(options = {})->
+  constructor:(options = {}, data)->
     options.cssClass = "environments-add-domain-form"
-    super options
+    super options, data
 
-    # -- Header -- #
     @addSubView @header = new KDHeaderView
       title             : "Add a domain"
 
@@ -43,14 +41,14 @@ class DomainCreationForm extends KDCustomHTMLView
     @newDomainPane = new KDTabPaneView { name : "NewDomain" }
     @newDomainPane.addSubView @newDomainEntryForm = new DomainBuyForm
     @tabs.addPane @newDomainPane
-    @newDomainEntryForm.on 'registerDomain', @bound 'registerNewDomain'
+    @newDomainEntryForm.on 'registerDomain', @bound 'checkDomainAvailability'
 
     @subDomainPane = new KDTabPaneView { name : "SubDomain" }
     @subDomainPane.addSubView @subDomainEntryForm = new SubDomainCreateForm
     @subDomainEntryForm.on 'registerDomain', @bound 'createSubDomain'
     @tabs.addPane @subDomainPane
 
-  registerNewDomain: ->
+  checkDomainAvailability: ->
     {createButton}        = @newDomainEntryForm.buttons
     {domains, domainName} = @newDomainEntryForm.inputs
     domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
@@ -65,7 +63,7 @@ class DomainCreationForm extends KDCustomHTMLView
     {createButton}        = @subDomainEntryForm.buttons
     domainName            = domainName.getValue()
 
-    # Test given subdomain
+    # Check given subdomain
     unless subDomainPattern.test domainName
       createButton.hideLoader()
       return notifyUser "#{domainName} is an invalid subdomain."
@@ -168,7 +166,7 @@ class CommonDomainCreationForm extends KDFormViewWithFields
       buttons               :
         createButton        :
           name              : "createButton"
-          title             : options.buttonTitle or "Check availability..."
+          title             : options.buttonTitle or "Check availability"
           style             : "cupid-green"
           cssClass          : "add-domain"
           type              : "submit"
