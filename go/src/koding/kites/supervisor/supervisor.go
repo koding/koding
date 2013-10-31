@@ -219,6 +219,9 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 
 	fmt.Printf("preparing container '%s'\n", params.ContainerName)
 	c := container.NewContainer(params.ContainerName)
+
+	// these values are needed for templating. will be changed later
+	// with a template struct.
 	c.IP = vm.IP
 	c.LdapPassword = vm.LdapPassword
 	c.HostnameAlias = vm.HostnameAlias

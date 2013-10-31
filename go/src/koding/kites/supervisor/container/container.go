@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -127,6 +128,7 @@ func (c *Container) CopyFile(src, dst string) error {
 	}
 	defer df.Close()
 
+	fmt.Printf("copying from '%s' to '%s'", sf.Name(), df.Name())
 	if _, err := io.Copy(df, sf); err != nil {
 		return err
 	}
@@ -140,6 +142,10 @@ func (c *Container) CopyFile(src, dst string) error {
 
 func (c *Container) Chown(name string) error {
 	return os.Chown(name, c.UID, c.UID)
+}
+
+func (c *Container) Lchown(name string) error {
+	return os.Lchown(name, c.UID, c.UID)
 }
 
 func (c *Container) PrepareDir(name string) error {
@@ -165,6 +171,11 @@ func (c *Container) AsHost() *Container {
 
 func (c *Container) AsContainer() *Container {
 	c.UID = RootUIDOffset
+	return c
+}
+
+func (c *Container) AsUser() *Container {
+	c.UID = c.Useruid
 	return c
 }
 
@@ -328,16 +339,67 @@ func (c *Container) createUserHome() error {
 		return err
 	}
 
-	err = os.Chown(homeDir, c.Useruid, c.Useruid)
+	err = c.AsUser().Chown(homeDir)
 	if err != nil {
 		return err
 	}
 
-	// if err := copyIntoVos(templateDir+"/user", "/home/"+user.Name, userVos); err != nil {
-	// 	panic(err)
-	// }
+	err = c.copyIntoContainer(templateDir+"/user", "/home/"+c.Username)
+	if err != nil {
+		return err
+	}
 
 	return err
+}
+
+func (c *Container) copyIntoContainer(src, dst string) error {
+	sf, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+
+	fi, err := sf.Stat()
+	if err != nil {
+		return err
+	}
+
+	// TODO: There are some folders called "empty-diretory", look at them.
+	if fi.Name() == "empty-directory" {
+		// ignored file
+	} else if fi.IsDir() {
+		fmt.Println("src is a dir:", src, path.Base(src))
+		err := os.Mkdir(dst, fi.Mode())
+		if err != nil && !os.IsExist(err) {
+			return err
+		}
+
+		err = c.AsUser().Lchown(dst)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("creating dir for dst:", dst)
+		entries, err := sf.Readdirnames(0)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("entries for src is:", entries)
+		for _, entry := range entries {
+			if err := c.copyIntoContainer(src+"/"+entry, dst+"/"+entry); err != nil {
+				return err
+			}
+		}
+	} else {
+		fmt.Println("src is a file:", src)
+		err := c.AsUser().CopyFile(src, dst)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (c *Container) Unprepare(hostnameAlias string) error {
