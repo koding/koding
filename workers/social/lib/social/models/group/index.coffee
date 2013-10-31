@@ -26,6 +26,7 @@ module.exports = class JGroup extends Module
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
   @trait __dirname, '../../traits/slugifiable'
+  @trait __dirname, '../../traits/notifying'
 
   @share()
 
@@ -194,6 +195,14 @@ module.exports = class JGroup extends Module
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
+      unless @slug is 'guests'
+        @sendNotificationToAdmins 'GroupLeft',
+          actionType : 'groupLeft'
+          actorType  : 'member'
+          subject    : ObjectRef(this).data
+          member     : ObjectRef(member).data
+        @broadcast 'MemberLeftGroup',
+          member : ObjectRef(member).data
 
     @on 'MemberRolesChanged', (member)->
       @constructor.emit 'MemberRolesChanged', { group: this, member }
@@ -1247,8 +1256,26 @@ module.exports = class JGroup extends Module
   sendNotificationToAdmins: (event, contents)->
     @fetchAdmins (err, admins)=>
       unless err
-        for admin in admins
-          admin.sendNotification event, contents
+        relationship =  {
+          as         : event,
+          sourceName : contents.subject.constructorName,
+          sourceId   : contents.subject.id,
+          targetName : contents.member.constructorName,
+          targetId   : contents.member.id,
+        }
+
+        contents.relationship = relationship
+        contents.origin       = contents.subject
+        contents.origin.slug  = @slug
+        contents.actorType    = event
+        contents[event]       = contents.member
+
+        next = -> queue.next()
+        queue = admins.map (admin) =>=>
+          contents.recipient = admin
+          @notify admin, event, contents, next
+
+        daisy queue
 
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
