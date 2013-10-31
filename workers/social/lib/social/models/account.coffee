@@ -820,6 +820,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
 
   fetchActivityTeasers : secure ({connection}, selector, options, callback)->
+    # log 'options', options 
     unless @equals connection.delegate
       callback new KodingError 'Access denied'
     else

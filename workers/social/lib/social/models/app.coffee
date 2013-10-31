@@ -262,7 +262,7 @@ module.exports = class JApp extends jraphical.Module
                       , (err, relation)=>
                         if err then callback err
                         else
-                          CBucket.addActivities relation, @, delegate, (err)=>
+                          CBucket.addActivities relation, @, delegate, null, (err)=>
                             if err
                               callback err
                             else

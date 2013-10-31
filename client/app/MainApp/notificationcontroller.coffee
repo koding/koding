@@ -49,11 +49,11 @@ class NotificationController extends KDObject
         duration: 5000
       modal.destroy()
 
-    @once 'EmailShouldBeConfirmed', ()->
+    @once 'EmailShouldBeConfirmed', ->
       {firstName, nickname} = KD.whoami().profile
-      modal = KD.getSingleton("mainController").displayConfirmEmailModal(firstName, nickname)
-      @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
-      modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
+      KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
+        @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
+        modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
     @on 'UsernameChanged', ({username, oldUsername}) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
@@ -114,7 +114,8 @@ class NotificationController extends KDObject
     # 7 - Your membership request to < group title > has been approved.
     # 8 - < actor fullname > has requested access to < group title >.
     # 9 - < actor fullname > has invited you to < group title >.
-    # 9 - < actor fullname > has joined < group title >.
+    # 10 - < actor fullname > has joined < group title >.
+    # 11 - < actor fullname > has left < group title >.
 
     options = {}
     {origin, subject, actionType, actorType} = notification.contents
@@ -179,7 +180,9 @@ class NotificationController extends KDObject
           when "groupInvited"
             "#{actorName} has invited you to <a href='#'>#{subjectObj.title}</a>."
           when "groupJoined"
-            "#{actorName} has joined <a href='#'>#{subjectObj.title}</a>."
+            "#{actorName} has joined <a href='/#{subjectObj.slug}'>#{subjectObj.title}</a>."
+          when "groupLeft"
+            "#{actorName} has left <a href='/#{subjectObj.slug}'>#{subjectObj.title}</a>."
           else
             if actorType is "follower"
               "#{actorName} started following you."
