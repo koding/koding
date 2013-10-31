@@ -199,7 +199,7 @@ class FeedController extends KDViewController
       unless prefetchedItems = KD.prefetchedFeeds[feedId]
       then @loadFeed filter
       else
-        log "burdan yukle dayi"
-        kallback null, prefetchedItems
+        log "buyur dayi feed var, burdan yukle."
+        kallback null, (KD.remote.revive item for item in prefetchedItems)
     else
       filter.dataSource selector, options, kallback
