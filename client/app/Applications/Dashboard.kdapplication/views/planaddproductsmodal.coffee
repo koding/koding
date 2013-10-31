@@ -42,12 +42,14 @@ class GroupPlanAddProductsModal extends KDModalView
       cssClass: "formline button-field clearfix"
 
     @buttonField.addSubView new KDButtonView
-      title: 'Save'
-      cssClass: 'modal-clean-green'
+      title     : 'Save'
+      cssClass  : 'modal-clean-green'
+      callback  : => @save @bound 'destroy'
 
     @buttonField.addSubView new KDButtonView
-      title: 'cancel'
-      cssClass: 'modal-cancel'
+      title     : 'cancel'
+      cssClass  : 'modal-cancel'
+      callback  : @bound 'destroy'
 
     @addSubView @planExplanation
     @addSubView @planView
@@ -55,6 +57,21 @@ class GroupPlanAddProductsModal extends KDModalView
     @addSubView @products.getView()
     @addSubView @buttonField
 
+  save: (callback) ->
+    quantities = {}
+
+    plan = @getData()
+
+    @products.getItemsOrdered().forEach (item) ->
+      { planCode } = item.getData()
+      qty = item.qtyView.getValue()
+      quantities[planCode] = qty  if qty > 0
+
+    plan.quantities = quantities
+
+    plan.modify { quantities }, callback
+
+    @emit 'ProductsAdded'
 
   setProducts: (products) ->
     @loader.hide()
@@ -62,6 +79,6 @@ class GroupPlanAddProductsModal extends KDModalView
     plan = @getData()
 
     for product in products
-      qty = plan.quatities?[product.planCode] ? 0
+      qty = plan.quantities?[product.planCode] ? 0
       item = @products.addItem product
       item.setQuantity qty
