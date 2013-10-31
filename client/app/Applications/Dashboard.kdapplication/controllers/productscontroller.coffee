@@ -31,6 +31,15 @@ class GroupProductsController extends KDController
         else
           konstructor.create productData, handleResponse
 
+    showAddProductsModal = (plan) =>
+      modal = new GroupPlanAddProductsModal {}, plan
+      modal.on 'ProductsAdded', reload
+
+      @fetchProducts 'product', (err, products) ->
+        return  if KD.showError err
+
+        modal.setProducts products
+
     categoryView = view.getCategoryView category
 
     categoryView
@@ -39,7 +48,7 @@ class GroupProductsController extends KDController
 
       .on("EditRequested", handleEdit)
 
-      .on("AddProductsRequested", @bound 'showAddProductsModal')
+      .on("AddProductsRequested", showAddProductsModal)
 
       .on "DeleteRequested", (data) ->
         confirmDelete data, ->
@@ -109,13 +118,3 @@ class GroupProductsController extends KDController
 
   fetchProducts: (category, callback) ->
     KD.getGroup().fetchProducts category, callback
-
-  showAddProductsModal: (plan) ->
-
-    modal = new GroupPlanAddProductsModal {}, plan
-    modal.on 'ProductsAdded', -> debugger
-
-    @fetchProducts 'product', (err, products) ->
-      return  if KD.showError err
-
-      modal.setProducts products
