@@ -43,9 +43,14 @@ type Container struct {
 	IP            net.IP
 	HostnameAlias string
 	LdapPassword  string
-	sync.Mutex
+	Username      string
+	Useruid       int
+	WebHome       string
+
+	sync.Mutex // protects mount commands
 }
 
+// It's put here that it get initiated only once
 func init() {
 	interf, err := net.InterfaceByName("lxcbr0")
 	if err != nil {
@@ -289,7 +294,50 @@ func (c *Container) Prepare() error {
 		return err
 	}
 
+	err = c.PrepareHomeDirectory()
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (c *Container) PrepareHomeDirectory() error {
+	// vmWebDir := "/home/" + c.WebHome + "/Web"
+	// userWebDir := "/home/" + c.Username + "/Web"
+
+	err := c.createUserHome()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Container) createUserHome() error {
+	homeDir := c.Path(fmt.Sprintf("rootfs/home/%s", c.Username))
+
+	if info, err := os.Stat(homeDir); !os.IsNotExist(err) {
+		// make sure that user read and executable flag is set
+		return os.Chmod(homeDir, info.Mode().Perm()|0511)
+	}
+
+	// home directory does not exist, create it
+	err := os.MkdirAll(homeDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	err = os.Chown(homeDir, c.Useruid, c.Useruid)
+	if err != nil {
+		return err
+	}
+
+	// if err := copyIntoVos(templateDir+"/user", "/home/"+user.Name, userVos); err != nil {
+	// 	panic(err)
+	// }
+
+	return err
 }
 
 func (c *Container) Unprepare(hostnameAlias string) error {
@@ -352,10 +400,6 @@ func (c *Container) Unprepare(hostnameAlias string) error {
 	os.Remove(c.Path("rootfs.hold"))
 	os.Remove(c.Path(""))
 
-	return nil
-}
-
-func (c *Container) PrepareHomeDirectory() error {
 	return nil
 }
 

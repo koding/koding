@@ -219,12 +219,19 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 
 	fmt.Printf("preparing container '%s'\n", params.ContainerName)
 	c := container.NewContainer(params.ContainerName)
+	c.IP = vm.IP
+	c.LdapPassword = vm.LdapPassword
+	c.HostnameAlias = vm.HostnameAlias
+	c.WebHome = vm.WebHome
+	c.Username = user.Name
+	c.Useruid = user.Uid
 
 	err = c.Prepare()
 	if err != nil {
 		return err
 	}
 
+	*result = true
 	return nil
 }
 
