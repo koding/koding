@@ -93,7 +93,7 @@ class PaymentController extends KDController
 
     @modal = modal = new KDModalViewWithForms
       title                       : "Billing Information"
-      width                       : 520
+      width                       : 495
       height                      : "auto"
       cssClass                    : "payments-modal"
       overlay                     : yes
