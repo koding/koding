@@ -71,16 +71,6 @@ class AccountPaymentMethodsList extends KDListView
 
       form = modal.modalTabs.forms["Billing Info"]
 
-      # Credit card icon
-
-      form.inputs['cardNumber'].on "ValidationError", ->
-        @parent.unsetClass "visa mastercard amex diners discover jcb"
-
-      form.inputs['cardNumber'].on "CreditCardTypeIdentified", (type)->
-        @parent.unsetClass "visa mastercard amex diners discover jcb"
-        cardType = type.toLowerCase()
-        @parent.setClass cardType
-
 
 class AccountPaymentMethodsListItem extends KDListItemView
   constructor:(options,data)->
