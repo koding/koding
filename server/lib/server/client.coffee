@@ -14,7 +14,7 @@ fetchGroupName = (req, callback)->
   # and it means it is koding group
   # it is like Activity -- Develop
 
-  if name[0].toUpperCase() is name[0]
+  if not name or name[0].toUpperCase() is name[0]
     return callback null, "koding"
   else
     JName.fetchModels "#{name}/#{section}", (err, models)->
