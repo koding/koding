@@ -18,7 +18,7 @@ formatDate = (date) ->
   minute = forceTwoDigits date.getMinutes()
 
   # What about i18n? Does GoogleBot crawl in different languages?
-  months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+  months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   monthName = months[month]
   return "#{monthName} #{day}, #{year} #{hour}:#{minute}"
@@ -26,37 +26,37 @@ formatDate = (date) ->
 decorateComment = (JAccount, comment, callback) ->
   createdAt = formatDate(new Date(comment.timestamp_))
   commentSummary = {body: comment.data.body, createdAt: createdAt}
-  selector = 
+  selector =
   {
     "targetId" : comment.getId(),
     "sourceName": "JAccount"
   }
   Relationship.one selector, (err, rel) =>
     if err
-      console.error err 
+      console.error err
       callback null, err
     sel = { "_id" : rel.data.sourceId}
 
     JAccount.one sel, (err, acc) =>
       if err
-        console.error err 
+        console.error err
         callback null, err
-      commentSummary.authorName = acc.data.profile.firstName + " " 
+      commentSummary.authorName = acc.data.profile.firstName + " "
       commentSummary.authorName += acc.data.profile.lastName
       callback commentSummary, null
 
 createActivityContent = (JAccount, models, comments, section, callback) ->
   model = models.first if models and Array.isArray models
-  unless model 
+  unless model
     callback null, "JStatusUpdate cannot be found."
   statusUpdateId = model.getId()
   jAccountId = model.data.originId
-  selector = 
+  selector =
   {
     "sourceId" : statusUpdateId,
     "as" : "author"
   }
-  
+
   model.fetchTeaser (error, teaser)=>
     tags = []
     if teaser?.tags?
@@ -68,17 +68,17 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
 
     Relationship.one selector, (err, rel) =>
       if err
-          console.error err 
+          console.error err
           callback null, err
-      sel = 
+      sel =
       {
         "_id" : rel.data.targetId
       }
       JAccount.one sel, (err, acc) =>
         if err
-          console.error err 
+          console.error err
           callback null, err
-        fullName = acc.data.profile.firstName + " " 
+        fullName = acc.data.profile.firstName + " "
         fullName += acc.data.profile.lastName
         activityContent = {
           fullName : fullName
@@ -87,7 +87,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
           body : if model.body  then model.body  else ""
           codeSnippet : codeSnippet
           createdAt : formatDate(model.data?.meta?.createdAt)
-          numberOfComments : comments?.length or 0
+          numberOfComments : teaser.repliesCount or 0
           numberOfLikes : model?.data?.meta?.likes or 0
           comments : comments
           tags : tags
@@ -140,13 +140,13 @@ module.exports =
                       queue.commentSummaries.push commentSummary
                     queue.next()
                 else queue.next()
-              queue.push => 
+              queue.push =>
                 createActivityContent JAccount, models, \
                   queue.commentSummaries, section, (content, error)=>
                     queue.next() if error
                     return res.send 200, content
               daisy queue
-      else 
+      else
         return res.send 404, error_404("No section is given.")
     else
       isLoggedIn req, res, (err, loggedIn, account)->
