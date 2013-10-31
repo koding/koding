@@ -8,6 +8,12 @@ class GroupPlanListItem extends GroupProductListItem
       title    : "Add products"
       callback : => @emit 'AddProductsRequested', plan
 
+    @quantitiesView = new KDView
+      cssClass : 'formline button-field clearfix'
+
+    for own planCode, qty of plan.quantities
+      @quantitiesView.addSubView new GroupPlanProduct {}, { planCode, qty }
+
     super()
 
   pistachio:->
@@ -18,5 +24,6 @@ class GroupPlanListItem extends GroupProductListItem
     {{> @clientsButton}}
     {{> @editButton}}
     {{> @addProductsButton}}
+    {{> @quantitiesView}}
     {{> @embedView}}
     """
