@@ -52,9 +52,25 @@ class DomainCreationForm extends KDCustomHTMLView
     {createButton}        = @newDomainEntryForm.buttons
     {domains, domainName} = @newDomainEntryForm.inputs
     domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
-    KD.remote.api.JDomain.getDomainInfo domainName, (err, status)->
-      createButton.hideLoader()
-      return warn err if err
+    {getDomainInfo, getDomainSuggestions} = KD.remote.api.JDomain
+
+    getDomainInfo domainName, (err, status)=>
+
+      if err
+        createButton.hideLoader()
+        return warn err
+
+      if status.available
+        @newDomainEntryForm.setAvailableDomainsData \
+          [{domain:domainName, price:status.price}]
+        createButton.hideLoader()
+      else
+        @newDomainEntryForm.domainList?.destroy?()
+        getDomainSuggestions domainName, (err, suggestions)=>
+          createButton.hideLoader()
+          return warn err if err
+          @newDomainEntryForm.setAvailableDomainsData suggestions
+
       new KDNotificationView
         title: if status.available then 'Yay its available' else 'Sorry dude.'
 
