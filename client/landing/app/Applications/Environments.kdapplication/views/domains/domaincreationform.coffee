@@ -29,6 +29,7 @@ class DomainCreationForm extends KDCustomHTMLView
       cssClass          : "domain-option-group"
       defaultValue      : "subdomain"
       change            : (actionType)=>
+        @successNote?.destroy()
         switch actionType
           when 'new'
             @tabs.showPaneByName 'NewDomain'
@@ -51,8 +52,13 @@ class DomainCreationForm extends KDCustomHTMLView
 
   registerNewDomain: ->
     {createButton}        = @newDomainEntryForm.buttons
-    createButton.hideLoader()
-    warn "Not implemented yet."
+    {domains, domainName} = @newDomainEntryForm.inputs
+    domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
+    KD.remote.api.JDomain.getDomainInfo domainName, (err, status)->
+      createButton.hideLoader()
+      return warn err if err
+      new KDNotificationView
+        title: if status.available then 'Yay its available' else 'Sorry dude.'
 
   createSubDomain: ->
     {domains, domainName} = @subDomainEntryForm.inputs
@@ -173,7 +179,6 @@ class CommonDomainCreationForm extends KDFormViewWithFields
     @once "FormValidationPassed", =>
       @emit 'registerDomain'
     super
-    @buttons.createButton.hideLoader()
 
 class SubDomainCreateForm extends CommonDomainCreationForm
   constructor:(options = {}, data)->
