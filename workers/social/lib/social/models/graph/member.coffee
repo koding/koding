@@ -56,15 +56,9 @@ module.exports = class Member extends Graph
     activity.getCurrentGroup options.client, (err, group)=>
       if err then return callback err
 
-      queryOptions =
-        blacklistQuery: ""
-
-        seed: seed
-        firstNameRegExp: firstNameRegExp
-        lastNameRegexp: lastNameRegexp
-
-      options.groupId = "#{group.getId()}"
-      options.skipCount = skip or 0
+      queryOptions       = { seed, firstNameRegExp, lastNameRegexp, blacklistQuery: "" }
+      options.groupId    = "#{group.getId()}"
+      options.skipCount  = skip  or 0
       options.limitCount = limit or 10
 
       if blacklist? and blacklist.length
