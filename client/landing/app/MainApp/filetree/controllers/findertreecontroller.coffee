@@ -443,31 +443,6 @@ class NFinderTreeController extends JTreeViewController
       else
         @notify "Download failed!", "error", err
 
-  createCodeShare:({data})->
-
-    CodeShares = []
-    @notify "Fetching file list..."
-
-    data.fetchContents (err, items)=>
-      @notify "Fetching file contents..."
-      files = (file for file in items when file.constructor.name is 'FSFile')
-      count = 0
-      # Poor mans queue mechanism
-      for file in files
-        do (file)->
-          file.fetchContents (err, content)->
-            count+=1
-            if not err and content
-              CodeShare =
-                CodeShareItemOptions : {}
-                CodeShareItemSource  : content
-                CodeShareItemTitle   : file.name
-                CodeShareItemType    :
-                  syntax             : FSItem.getFileExtension file.path
-              CodeShares.push CodeShare
-            if count == files.length
-              KD.getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
-
   openTerminalFromHere: (nodeView) ->
     @appManager.open "WebTerm", (appInstance) =>
       path          = nodeView.getData().path
@@ -508,7 +483,6 @@ class NFinderTreeController extends JTreeViewController
   cmDownloadApp:   (nodeView, contextMenuItem)-> @downloadAppSource nodeView
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
-  cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
   cmDropboxSaver:  (nodeView, contextMenuItem)-> __saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
