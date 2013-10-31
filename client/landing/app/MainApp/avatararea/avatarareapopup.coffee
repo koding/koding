@@ -4,7 +4,7 @@ class AvatarPopup extends KDView
     super
 
     @sidebar = @getDelegate()
-    @sidebar.on "NavigationPanelWillCollapse", => @hide()
+    @sidebar.on "NavigationPanelWillCollapse", => @hide() if @hasClass "active"
 
     @on 'ReceivedClickElsewhere', => @hide()
 

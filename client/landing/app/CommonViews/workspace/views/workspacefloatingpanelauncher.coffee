@@ -2,17 +2,19 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "workspace-launcher"
-    options.partial  = "<span>+</span>"
+    # options.cssClass = "workspace-launcher"
+    # options.partial  = "<span>+</span>"
+    options.cssClass  = "workspace-launcher vertical"
 
     super options, data
 
-    @sessionKeys      = {}
-    @panel            = @getDelegate()
-    @workspace        = @panel.getDelegate()
-    @container        = new KDView cssClass: "workspace-floating-panes"
-    @keysRef          = @workspace.workspaceRef.child "floatingPaneKeys"
-    @isJoinedASession = @workspace.getOptions().joinedASession
+    @sessionKeys       = {}
+    @panel             = @getDelegate()
+    @workspace         = @panel.getDelegate()
+    @container         = new KDView cssClass: "workspace-floating-panes"
+    @keysRef           = @workspace.workspaceRef.child "floatingPaneKeys"
+    @isJoinedASession  = @workspace.getOptions().joinedASession
+    @lastActivePaneKey = null
 
     @panel.addSubView @container
 
@@ -24,7 +26,6 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       @createPanes()
 
   click: ->
-    @createPanes()  unless @panesCreated
     @toggleClass "active"
 
   createPanes: ->
@@ -45,11 +46,21 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
 
   handleLaunch: (paneKey) ->
     pane = @[paneKey]
-    pane.setClass "active"
+    if @lastActivePaneKey is paneKey
+      @hidePane pane
+    else
+      lastActivePane = @getPaneByType @lastActivePaneKey
+      @hidePane lastActivePane if lastActivePane
+      @showPane pane, paneKey
 
-    KD.getSingleton("windowController").addLayer pane
-    pane.on "ReceivedClickElsewhere", =>
-      pane.unsetClass "active"
+  hidePane: (pane) ->
+    pane.unsetClass "active"
+    @lastActivePaneKey = null
+
+  showPane: (pane, paneKey) ->
+    return @chat.dock.emit "click"  if paneKey is "chat"
+    pane.setClass "active"
+    @lastActivePaneKey = paneKey
 
   createChatPane: ->
     @container.addSubView @chat = new ChatPane
