@@ -209,7 +209,9 @@ module.exports = class JDomain extends jraphical.Module
       @makeTransaction client, data, (err, charge)=>
         return callback err  if err
 
-        domainManager.domainService.registerDomain params, (err, data)=>
+        do (err = null, data = {actionstatus:'Success', entityid:'TEST_ID'})->
+        # domainManager.domainService.registerDomain params, (err, data)->
+
           if err
             return charge.cancel client, ->
               callback err, data
@@ -248,6 +250,18 @@ module.exports = class JDomain extends jraphical.Module
             callback {message: "Domain registration failed"}
 
   @makeTransaction: (client, data, callback)->
+
+    {delegate} = client.connection
+    {nickname} = delegate.profile
+
+    if nickname in ['devrim', 'chris', 'gokmen']
+      console.log "#{nickname} made a test transaction for #{data.domainName} (#{data.years} year(s)})"
+      callback null,
+        cancel :->
+          console.log "Payment cancelled..."
+    else
+      console.log message = "Transaction is not valid."
+      callback {message}
 
     # JRecurlyCharge = require './recurly/charge'
 
