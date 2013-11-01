@@ -63,97 +63,96 @@ body.group
         color                  #5F5F5F
 
 .activity-main-split
-  height              100%
+  height                       100%
   .panel-1
-    overflow hidden
+    overflow                   hidden
 
   a
   a:visited
-    color #FF9200
+    color                      #FF9200
 
 h1.kdheaderview.notification-header
-  background-color      #F4F4F4
-  font-weight           400px
-  height                75px
-  border-bottom         1px solid #E5E5E5
+  background-color             #F4F4F4
+  font-weight                  400px
+  height                       75px
+  border-bottom                1px solid #E5E5E5
   div
-    display             inline-block
-    margin              11px 10px 10px 25px
+    display                    inline-block
+    margin                     11px 10px 10px 25px
   i
-    right               20px
-    display             inline-block
-    top                 30px
-    size                18px,18px
+    right                      20px
+    display                    inline-block
+    top                        30px
+    size                       18px, 18px
     abs()
-    bg                  position, -480px -100px
+    bg                         position, -480px -100px
     sprite()
     hidden()
   span
-    font-size           18px
-    padding             0
-    margin              0
-    font-weight         300
-    text-shadow         0px 1px 0px rgba(255, 255, 255, 1)
+    font-size                  18px
+    padding                    0
+    margin                     0
+    font-weight                300
+    text-shadow                0px 1px 0px #fff
   cite
-    top                 34px
-    left                26px
-    font-weight         300
-    font-style          normal
-    font-size           12px
-    display             block
-    font-style          normal
-    // noTextDeco()
+    top                        34px
+    left                       26px
+    font-weight                300
+    font-style                 normal
+    font-size                  12px
+    display                    block
+    font-style                 normal
     abs()
     a
-      color               #ff9200
+      color                    #ff9200
       &:hover
-        color             #27a3c9
+        color                  #27a3c9
 
 
 .new-members-loader
-  display           block !important
-  margin            10px auto !important
+  display                      block !important
+  margin                       10px auto !important
 
 
 .download-old-koding-files
-  cursor           pointer
-  color            #ff9200
-  text-decoration  none
-  width            190px
-  left             5px
+  cursor                       pointer
+  color                        #ff9200
+  text-decoration              none
+  width                        190px
+  left                         5px
 
 .new-member
   .close-button
     abs()
-    top              3px
-    right            0px
-    width           40px
-    height          20px
-    text-align      right
-    cursor          pointer
+    top                        3px
+    right                      0px
+    width                      40px
+    height                     20px
+    text-align                 right
+    cursor                     pointer
   .show-more
-    width           70px
-    cursor          pointer
-    margin          0 auto 10px
+    width                      70px
+    cursor                     pointer
+    margin                     0 auto 10px
 .activity-new-members
-  max-width         737px
-  margin-left       53px
+  max-width                    737px
+  margin-left                  53px
   .kdlistitemview
-    max-width       348px
-    height           40px
-    float           left
-    clear           none
+    max-width                  348px
+    height                     40px
+    float                      left
+    clear                      none
     &:nth-child(2n)
-      margin-left   40px
+      margin-left              40px
     .member-details
-      float         left
-      margin-left   20px
+      float                    left
+      margin-left              20px
     .avatarview
-      float         left
+      float                    left
     footer
       abs()
-      right          0px
-      top            5px
+      right                    0px
+      top                      5px
 
 
 /*
@@ -168,8 +167,8 @@ h1.kdheaderview.notification-header
     .header-wrapper
       max-width           800px
       > a
-       font-size         88%
-       color             linkColor1
+       font-size          88%
+       color              linkColor1
        noTextDeco()
       > span
         fl()
@@ -186,20 +185,20 @@ h1.kdheaderview.notification-header
       margin-left         12px
       fr()
       > a
-       color             linkColor1
+       color              linkColor1
        noTextDeco()
       span
         rounded           3px
         background-color  #FF9200
-        color             white
+        color             #fff
         font-size         10px
         padding           1px 4px
         line-height       10px
         display           inline-block
 
 .super .activity-related .activity-item.exempt
-  bg                    color, rgba(255, 0, 0, .03)
-  border                1px dotted rgba(255, 0, 0, .1)
+  bg                      color, rgba(255, 0, 0, .03)
+  border                  1px dotted rgba(255, 0, 0, .1)
 
 .activity-related
   borderBox()
@@ -220,7 +219,6 @@ h1.kdheaderview.notification-header
     borderBox()
     &.hidden-item
       border-width        0
-      // background-color    #FDF5D9
       left                -100%
     .kdloader
       vertical-align      bottom
@@ -246,7 +244,7 @@ h1.kdheaderview.notification-header
     .icon
       margin              -3px 30px 0 0
       sprite()
-      size(20px,20px)
+      size                20px, 20px
       blockMid()
       &.fx
         vendor            transition, left .3s ease-in //\, opacity .3s ease-in
@@ -290,17 +288,16 @@ h1.kdheaderview.notification-header
         bg                position,-320px -200px
 
   .activity-item
-    max-width           840px
-    padding             22px 0 21px 20px
+    max-width             840px
+    padding               22px 0 21px 20px
     borderBox()
 
     span.avatar
-      padding       1px
-      border        1px solid #E3E3E3
-      width         40px
-      height        40px
-      float         left
-      // margin-top    3px
+      padding             1px
+      border              1px solid #E3E3E3
+      width               40px
+      height              40px
+      float               left
       a
         size                  40px,40px
         background-size       cover
@@ -314,18 +311,17 @@ h1.kdheaderview.notification-header
       padding           0
       margin            -2px 0 0 0
       sprite()
-      size(18px,16px)
+      size              18px, 16px
       blockMid()
 
     &.status
       .type-icon
-        bg(position,-399px -376px)
+        bg              position,-399px -376px
 
     &.blog-post
       .type-icon
-        bg(position,-707px -816px)
+        bg              position,-707px -816px
 
-      // bg color,         #f5f5f5
       .read-this-link
         span.title
           color             #444
@@ -335,31 +331,27 @@ h1.kdheaderview.notification-header
 
     &.qanda
       .type-icon
-        bg(position,-552px -376px)
+        bg              position, -552px -376px
 
     &.codesnip
       .type-icon
-        bg(position,-706px -376px)
-
-    &.codeshare
-      .type-icon
-        bg(position,-706px -376px)
+        bg              position, -706px -376px
 
     &.tutorial
       .type-icon
-        bg(position,-782px -376px)
+        bg              position, -782px -376px
 
     &.discussion
       .type-icon
-        bg(position,-475px -376px)
+        bg              position, -475px -376px
 
     &.link
       .type-icon
-        bg(position,-630px -376px)
+        bg              position, -630px -376px
 
     &.blog-post
       .type-icon
-        bg(position,-864px -376px)
+        bg              position, -864px -376px
 
     &:hover
       div.activity-settings-menu
@@ -403,7 +395,6 @@ h1.kdheaderview.notification-header
     .kdview.kdtreeitemview.default
       padding           2px
       font-size         11px
-
 
 .activity-item-right-col
   padding-right   20px
@@ -565,7 +556,7 @@ button.kdbutton.dark
     height                  250px !important
     overflow                auto
     white-space             pre
-    bg(color,#000)
+    bg                      color, #000
 
 .update-widget-tabs
   z-index                   3
@@ -573,8 +564,7 @@ button.kdbutton.dark
 
   .kdtabpaneview
     overflow                visible
-    // min-height              73px
-    bg                      color, white
+    bg                      color, #fff
     shadow                  0 10px 20px -5px rgba(173, 173, 173, .8)
     borderBox()
     &.no-shadow
@@ -602,9 +592,7 @@ button.kdbutton.dark
     padding               8px 10px 6px 10px
     line-height           17px
     borderBox()
-    // this breaks focus border color better to be removed
-    // &:hover
-    //   border-color        rgb(199,199,199)
+
     &.discussion-body
       min-height 72px
       max-height 300px
@@ -619,9 +607,6 @@ button.kdbutton.dark
     color                 #b2b2b2
     font-size             13px
     display               inline-block!important
-    // input.kdinput.text
-    //   size                100%,100%
-    //   borderBox()
 
   .form-headline
     left                    169px
@@ -631,7 +616,6 @@ button.kdbutton.dark
 
   .tags-selected-item-wrapper
     margin                  10px 0 0 0
-
 
   .formline
     rel()
@@ -666,17 +650,17 @@ button.kdbutton.dark
       abs()
       bottom                5px
       right                 5px
-      background            rgb(36,36,36)
+      background            #242424
       shadow                none
       font-size             10px
-      border                1px solid rgb(74,74,74)!important
+      border                1px solid #4a4a4a !important
       span.title
         color               rgba(255, 255, 255,.7)
-        text-shadow         0 -1px 1px rgb(9,9,9)
+        text-shadow         0 -1px 1px #090909
       &.focus
         outline             none
         shadow              none!important
-        border              1px solid rgb(255,255,255)
+        border              1px solid #fff
       span.arrows
         sprite()
         bg                  position,-80px -200px!important
@@ -685,8 +669,8 @@ button.kdbutton.dark
 
   .formline.submit
     rel()
-    background              rgb(244,244,244)
-    border-top              1px solid rgb(229,229,229)
+    background              #f4f4f4
+    border-top              1px solid #e5e5e5
     height                  55px
     padding                 14px 16px
 
@@ -698,7 +682,7 @@ button.kdbutton.dark
       padding-left          14px
       padding-right         14px
     a
-      color                 rgb(173,173,173)
+      color                 #adadad
       margin-right          10px
       cursor                pointer
       blockMid()
@@ -723,7 +707,7 @@ form.status-widget
 
   .kdinput.text.status-update-input
     &.validation-error
-      border-color        red
+      border-color        #f00
 
   textarea.kdinput.text.status-update-input
     size                  100%,72px
@@ -747,11 +731,10 @@ form.status-widget
           overflow        hidden
           text-overflow   ellipsis
 
-
 .code-snip-holder
   rel()
   padding                   10px
-  bg                        color,rgba(51,51,51,1)
+  bg                        color, #333
   rounded                   4px
   size                      auto, 90px
   borderBox()
@@ -762,19 +745,19 @@ form.status-widget
 
   .code-wrapper.ace_editor
     overflow                visible
-    size                    100%,100%
+    size                    100%, 100%
     .ace_sb
       overflow-y            auto
     .ace_scroller
       overflow-x            auto
-      bg                    color,rgba(51,51,51,1)
+      bg                    color, #333
     .ace_gutter
       color                 #999
-      bg                    color, #444!important
+      bg                    color, #444 !important
       border                none
 
   .bottom-right-wrapper
-    float                 left
+    fl()
 
   .editor-bottom-bar
     left                  -10px
@@ -782,7 +765,7 @@ form.status-widget
     padding               0 20px 0 0
     border                none
     bg                    image,none
-    bg                    color,rgba(36,36,36,1)
+    bg                    color, #242424
     rounded               0 0 4px 4px
     height                32px
     vendor                box-sizing, content-box
@@ -794,79 +777,76 @@ form.status-widget
       height              auto
 
   footer
-    color             #bbb
-    display           block
-    width             100%
-    padding           10px 0px
-    border            1px solid #dedede
+    color                 #bbb
+    display               block
+    width                 100%
+    padding               10px 0px
+    border                1px solid #dedede
     rel()
-    left              -1px
-    rounded(0,0,4px,4px)
-    shadow(0 2px 1px 0 #ebebeb)
-    bg(color,#f4f4f4)
+    left                  -1px
+    rounded               0,0,4px,4px
+    shadow                0 2px 1px 0 #ebebeb
+    bg                    color, #f4f4f4
     .qtip
       color               #bbb
       text-decoration     none
       span
         blockMid()
-        size(20px,20px)
+        size              20px, 20px
         sprite()
-        bg(position,-140px -460px)
+        bg                position,-140px -460px
       cite
-        text-decoration     underline
-        font-style          normal
+        text-decoration   underline
+        font-style        normal
     .dummybuttonclass
-      margin-right    30px
-      margin-top      6px
-      float           right
+      margin-right        30px
+      margin-top          6px
+      float               right
     > a
-      margin-left     30px
+      margin-left         30px
 
 
 .kdbuttongroup.activity-group
   abs()
-  top                 20px
-  left                16px
-  z-index             4
-  // size                auto!important,35px
+  top                     20px
+  left                    16px
+  z-index                 4
 
   span.icon
-    float           none
-    margin-right    10px
-    margin          2px 2px 0 0!important
-    padding         0!important
+    float                 none
+    margin-right          10px
+    margin                2px 2px 0 0!important
+    padding               0!important
     sprite()
-    size            20px,20px
+    size                  20px,20px
     blockMid()
     &.update
-      bg            position,-80px 0
+      bg                  position,-80px 0
     &.blogpost
-      bg            position,-80px 0
+      bg                  position,-80px 0
     &.discussion
-      bg            position,-80px -20px
+      bg                  position,-80px -20px
     &.question
-      bg            position,-80px -40px
+      bg                  position,-80px -40px
     &.tutorial
-      bg            position,-80px -60px
+      bg                  position,-80px -60px
     &.link
-      bg            position,-80px -80px
+      bg                  position,-80px -80px
     &.codesnip
-      bg            position,-80px -100px
-    &.codeshare
-      bg            position,-80px -100px
+      bg                  position,-80px -100px
 
   > button.icon-only
-    padding       4px 4px 5px 5px
+    padding               4px 4px 5px 5px
 
   button.active
     span.icon
-      bg            position-x, -60px
+      bg                  position-x, -60px
 // *
 // * ACTIVITY PAGE UPDATE WIDGET BUTTON DROPDOWN STYLES
 // *
 button.activity-status-context
-  border            1px solid rgba(232,232,232,1)
-  border-color      rgba(232,232,232,1) rgba(232,232,232,1) rgba(224,224,224,1) rgba(232,232,232,1)
+  border            1px solid #e8e8e8
+  border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
   shadow            0px 1px 0px 0px #fff
   padding           4px 7px 6px 5px
   cursor            pointer
@@ -886,21 +866,19 @@ button.activity-status-context
     size            20px,20px
     blockMid()
     &.update
-      bg(position,-140px -320px)
+      bg            position, -140px -320px
     &.blogpost
-      bg(position,-139px -640px)
+      bg            position, -139px -640px
     &.discussion
-      bg(position,-140px -340px)
+      bg            position, -140px -340px
     &.question
-      bg(position,-140px -360px)
+      bg            position, -140px -360px
     &.tutorial
-      bg(position,-140px -380px)
+      bg            position, -140px -380px
     &.link
-      bg(position,-140px -400px)
+      bg            position, -140px -400px
     &.codesnip
-      bg(position,-140px -420px)
-    &.codeshare
-      bg(position,-140px -420px)
+      bg            position, -140px -420px
 
 .activity-update-widget-wrapper
   height                auto
@@ -932,14 +910,12 @@ button.activity-status-context
     blockMid()
 
   .no-shadow
-
     .status-widget
-      width                 100%
-      height                53px
-      bg                    color, white
-      border-bottom         1px solid rgb(229,229,229)
+      size                  100%, 53px
+      bg                    color, #fff
+      border-bottom         1px solid #e5e5e5
       shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
-      gradient              rgb(255,255,255),rgb(242,242,242)
+      gradient              #fff, #f2f2f2
 
 .activity-status-context.kdbuttonwithmenu-wrapper
   abs()
@@ -1008,8 +984,6 @@ button.activity-status-context
     bg                      position,-140px -400px
   .codesnip .icon
     bg                      position,-140px -420px
-  .codeshare .icon
-    bg                      position,-140px -420px
 
   .selected
     .update .icon
@@ -1026,8 +1000,6 @@ button.activity-status-context
       bg                    position,-160px -400px
     .codesnip .icon
       bg                    position,-160px -420px
-    .codeshare .icon
-      bg                    position,-160px -420px
 
 // // Activity Item for Discussions
 
@@ -1036,14 +1008,14 @@ button.activity-status-context
 
   &:hover
     div.view-full-discussion
-      background-color #ff9200
-      border-color darken(#ff9200,25%)
+      background-color      #ff9200
+      border-color          #bf6e00
       a
-        color white
+        color               #fff
 
   .comment-body
-    max-height 250px
-    overflow hidden
+    max-height              250px
+    overflow                hidden
 
     // this is supposed to visually cut off the box nicely
     // &:before
@@ -1058,27 +1030,25 @@ button.activity-status-context
 
   div.view-full-discussion
     // vendor text-shadow, 1px 1px 1px rgba(0, 0, 0, 0.5)
-    cursor pointer
-    vendor transition, all 0.2s ease-in-out
+    cursor                  pointer
+    vendor                  transition, all 0.2s ease-in-out
 
     borderBox()
-    height auto
-    width 100%
-    background-color #f7f7f7
-    border 1px solid #e3e3e3
-    // z-index -1
-    margin-top 0px
-    padding-top 5px
-    padding-bottom 5px
-    padding-left 10px
-    rounded 0px 0px 3px 3px
+    size                    100%, auto
+    bg                      color, #f7f7f7
+    border                  1px solid #e3e3e3
+    margin-top              0px
+    padding-top             5px
+    padding-bottom          5px
+    padding-left            10px
+    rounded                 0px 0px 3px 3px
     span
-      font-size 12px
-      font-weight 500
-      color #FF9200
-      height auto
+      font-size             12px
+      font-weight           500
+      color                 #FF9200
+      height                auto
     a
-      vendor transition, color 0.2s linear
+      vendor                transition, color .2s linear
       noTextDeco()
     // &:hover
     //   background-color #FF9200
@@ -1088,59 +1058,55 @@ button.activity-status-context
 
 
   .comment-title
-    margin-bottom:10px
+    margin-bottom           10px
     p
-      color #e80
-      font-weight 500
+      color                 #e80
+      font-weight           500
   span.activity-text
-    margin 0px 2px
-    color #FF9200
-    font-size 11px
-    font-weight bold
+    margin                  0px 2px
+    color                   #FF9200
+    font-size               11px
+    font-weight             bold
 
 div.activity-opinion.item-content-comment
-  cursor pointer
+  cursor                    pointer
 
   > span.avatar
-    height 20px !important
-    width 20px !important
+    size                    20px !important, 20px !important
 
   p.comment-body
-    margin-top 5px
+    margin-top              5px
 
   footer.activity-opinion-item-footer
-    margin-top 2px
+    margin-top              2px
     a
       noTextDeco()
 
   span.comment-count
-    float right
+    fr()
 
 
 div.show-more-opinions
-  border none
-  padding-left 20px
-  padding-top 5px
-  padding-bottom 5px
-  background-color #f7f7f7
-  size                  auto, 0
-  padding               0 10px
-  line-height           27px
-  vendor                transition, height .15s linear
+  border                    none
+  background-color          #f7f7f7
+  size                      auto, 0
+  padding                   0 10px
+  line-height               27px
+  vendor                    transition, height .15s linear
   borderBox()
   &.in
-    height              27px
+    height                  27px
 
   &.has-new-items
     a.new-count
-      display           inline
+      display               inline
   a
-    line-height         14px
-    color               #299FC6
-    font-weight         400
+    line-height             14px
+    color                   #299FC6
+    font-weight             400
     noTextDeco()
     &.new-count
-      font-weight       600
+      font-weight           600
 
   .new-items
     left                  500px
@@ -1148,11 +1114,11 @@ div.show-more-opinions
     padding-left          2px
     padding-right         2px
     font-weight           600
-    color                 white
+    color                 #fff
     rel()
     bg                    color, #FF9200
     border                1px solid #FF9200
-    rounded(3px 3px 3px 3px)
+    rounded               3px 3px 3px 3px
     vendor                transition, left .3s ease-in-out // \, opacity .3s ease-in-out
 
     &.in
@@ -1193,9 +1159,9 @@ div.show-more-discussion
 
 div.discussion-widget-content
   width                           100%
-  float                           right
   display                         block
   text-align                      right
+  fr()
 
   label.markdown-preview-label
     font-size                     11px
@@ -1230,102 +1196,89 @@ div.discussion-widget-content
     color                         #ff9200
 
 div.kdview.link-embed-box.condensed
-  width max-content
-  width intrinsic
+  width                           max-content
+  width                           intrinsic
 
 .kdview.link-embed-box
   borderBox()
   rel()
+  size                            auto, auto
+  height                          max-content
+  height                          intrinsic
 
-  // vendor transition, opacity .1s linear
-
-  width auto
-  height auto
-
-  // // this is gecko
-  // width max-content
-  height max-content
-
-  // // this is webkit-only
-  // width intrinsic
-  height intrinsic
-
-  rounded 4px
-  border 1px solid black
-  border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+  rounded                         4px
+  border                          1px solid #000
+  border-color                    #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
 
   // Fix YouTube style breakage in Chrome
   // vendor font-smoothing, subpixel-antialiased !important;
 
-  background-color #F7F7F7
+  background-color                #F7F7F7
+  padding                         0px 0px
+  margin-top                      15px
 
-  padding 0px 0px
-  margin-top 15px
-
-  min-height 45px
+  min-height                      45px
 
   &.link-wigdet
-    margin-top 0px
+    margin-top                    0px
 
   .embed
     &.embed-image-view
       > a
-        display           block
-      padding             10px
+        display                   block
+      padding                     10px
       .details
         borderBox()
-        height            45px
-        padding           10px 0
+        height                    45px
+        padding                   10px 0
         strong
         a
-          display         block
-          width           340px
-          white-space     nowrap
-          overflow        hidden
-          text-overflow   ellipsis
+          display                 block
+          width                   340px
+          white-space             nowrap
+          overflow                hidden
+          text-overflow           ellipsis
 
   // report button for embeds
   > button.kdbutton.report-embed, button.kdbutton.hide-embed
     abs()
-    top 4px
-    right 3px
-    size 20px,20px
-    margin 0px
-    padding 0px
-    border none
-    opacity 0.5
-    background transparent
-    // vendor transition, opacity 0.3s ease-in-out
-    z-index 3
+    top                           4px
+    right                         3px
+    size                          20px,20px
+    margin                        0px
+    padding                       0px
+    border                        none
+    opacity                       0.5
+    background                    transparent
+    z-index                       3
 
     > span.icon
       sprite()
 
       &.hide
-        bg position, -80px -240px
+        bg                        position, -80px -240px
       &.report
-        bg position, 0px -120px
+        bg                        position, 0px -120px
 
     &:hover
-      opacity 1
+      opacity                     1
 
   > div.embed-box-settings
-    // vendor            transition, opacity .1s ease-out
-    size              21px, 18px
-    opacity           .2
+    size                          21px, 18px
+    opacity                       .2
     abs()
-    top               0
-    right             20px
-    z-index           10
+    top                           0
+    right                         20px
+    z-index                       10
     abs()
-    right 0px
-    top 0px
-    margin 0px
-    display inline-block
-    height inherit
+    right                         0px
+    top                           0px
+    margin                        0px
+    display                       inline-block
+    height                        inherit
 
     .kdview.jcontextmenu.kdbuttonmenu
-      border-color          rgba(0,0,0,.2)
+      border-color                rgba(0,0,0,.2)
       .chevron-ghost-wrapper
         border-color        rgba(0,0,0,.2)
         rounded             2px 2px 0 0
@@ -1349,16 +1302,9 @@ div.kdview.link-embed-box.condensed
 
       span.icon
         display block
-        float left
+        fl()
         rel()
-        background-repeat no-repeat
-        background-color transparent
-        background-image url("../images/_kd.sprites.png")
-        margin 0
-        padding 0
-        height 16px
-        width 16px
-        background-position -81px -281px
+        sprite()
         bg            position, -81px -281px
         size          16px, 16px
         padding       0

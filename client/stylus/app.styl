@@ -76,13 +76,21 @@ body
   100%
     opacity 0
 
-@keyframes shrink
+@-webkit-keyframes shrink
   0%
-    vendor       transform, scale(1)
+    -webkit-transform       scale(1)
   70%
-    vendor       transform, scale(1)
+    -webkit-transform       scale(1)
   100%
-    vendor       transform, scale(0)
+    -webkit-transform       scale(0)
+
+@-moz-keyframes shrink
+  0%
+    -moz-transform       scale(1)
+  70%
+    -moz-transform       scale(1)
+  100%
+    -moz-transform       scale(0)
 
 @keyframes fade-in-out
   0%
@@ -1255,7 +1263,7 @@ span.main-nav-icon
   border            none !important
   size				20px, 20px
   background-color  transparent !important
-  bg				image, url("../images/_kd.sprites.png")!important
+  bg				image, url("../images/_kd.sprites.png") !important
   bg                position, -120px -340px!important
   .title
       blockMid() !important
@@ -1692,8 +1700,8 @@ span.main-nav-icon
     .formline
 
       > label.kdlabel
-        float           none
-        display         inline-block
+        display         block
+        fl()
       &.intro
         bg              color, rgb(255, 244, 221)
         text-shadow     0 1px 0 white
@@ -1701,37 +1709,54 @@ span.main-nav-icon
         .input-wrapper
           width         auto
 
-      &.cardMonth
+      &.cardmonth
         .input-wrapper
           width auto
 
-      &.cardNumber
+      &.cardnumber
 
         > div.input-wrapper:first-of-type
-          width 270px
+          width 240px
 
         > div.input-wrapper:last-of-type
-          width 70px
+          width 100px
 
-        span.icon
-          abs()
-          right         56px
-          top           14px
-          size          30px, 20px
-          sprite()
-          bg position,  30px 20px
+        .input-wrapper:first-of-type
+          position       relative
 
-          &.mastercard
-            bg position, -70px -440px
+          &:after
+            content      ""
+            display      block
+            size         24px, 16px
+            right        4px
+            top          4px
+            vendor       transition, opacity 500ms ease
+            opacity      0
+            abs()
 
-          &.amex
-            bg position, -70px -460px
+          &.visa:after, &.mastercard:after, &.amex:after
+          &.diners:after, &.discover:after, &.jcb:after
+            sprite()
+            opacity      1
 
-          &.visa
-            bg position, -40px -440px
+          &.visa:after
+            bg           position, 0 -920px
 
-          &.discover
-            bg position, -40px -460px
+          &.mastercard:after
+            bg           position, -25px -920px
+
+          &.amex:after
+            bg           position, -50px -920px
+
+          &.diners:after
+            bg           position, -75px -920px
+
+          &.discover:after
+            bg           position, -100px -920px
+
+          &.jcb:after
+            bg           position, -125px -920px
+
 
       &.address1, &.address2
 

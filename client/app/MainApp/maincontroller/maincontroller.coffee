@@ -87,11 +87,11 @@ class MainController extends KDController
   createMainViewController:->
     @loginScreen = new LoginView
       testPath   : "landing-login"
-    KDView.appendToDOMBody @loginScreen
+    @loginScreen.appendToDomBody()
     @mainViewController  = new MainViewController
       view    : mainView = new MainView
         domId : "kdmaincontainer"
-    KDView.appendToDOMBody mainView
+    mainView.appendToDomBody()
 
   doLogout:->
     KD.logout()
