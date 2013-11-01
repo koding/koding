@@ -10,13 +10,19 @@ class NewKite extends KDEventEmitter
 
     super options
 
-    { @addr, @kitename, @token, @correlationName, @kiteKey } = options
+    { @addr, @name, @token, @correlationName, @kiteKey, @publicIP, @port } = options
     @localStore   = new Store
     @remoteStore  = new Store
     @tokenStore = {}
     @autoReconnect = true
     @readyState = NOTREADY
+
+    # addr is shortcut for IP and port.
+    # It is not present in Kite structure sent from Kontrol.
     @addr or= ""
+    if options.publicIP and options.port
+      @addr = options.publicIP + ":" + options.port
+
     @token or= ""
     @initBackoff options  if @autoReconnect
     @connect()
@@ -37,17 +43,18 @@ class NewKite extends KDEventEmitter
     @ws.onerror   = @bound 'onError'
 
   getKiteAddr : (connect=no)->
-    log "calling getKiteAddr"
-    NewKite.getKites @kitename, (err, data) =>
+    NewKite.getKites @name, (err, kites) =>
       if err
         log "kontrol request error", err
         # Make a request again if we could not get the addres, use backoff for that
         KD.utils.defer => @setBackoffTimeout =>
           @getKiteAddr true
       else
-        log {data}
-        @token = data[0].token
-        @addr = data[0].publicIP
+        # kite and token comes in seperate objects. See protocol.go.
+        first = kites[0]
+        kite = first.kite
+        @token = first.token
+        @addr = kite.publicIP + ":" + kite.port
 
         # this should be optional
         @connectDirectly() if connect
@@ -55,7 +62,7 @@ class NewKite extends KDEventEmitter
   @getKites: (kitename, callback)->
     requestData =
       username   : "#{KD.nick()}"
-      remoteKite : kitename
+      kitename   : kitename
       sessionID  : KD.remote.getSessionToken()
 
     xhr = new XMLHttpRequest
@@ -74,16 +81,16 @@ class NewKite extends KDEventEmitter
     @ws.close()
 
   onOpen:->
-    log "I'm connected to #{@kitename} at #{@addr}. Yayyy!"
+    log "I'm connected to #{@name} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
-    @emit 'KiteConnected', @kitename
+    @emit 'KiteConnected', @name
     @emit 'ready'
 
   onClose: (evt) ->
-    # log "#{@kitename}: disconnected, trying to reconnect"
+    # log "#{@name}: disconnected, trying to reconnect"
     @readyState = CLOSED
-    @emit 'KiteDisconnected', @kitename
+    @emit 'KiteDisconnected', @name
     # enable below to autoReconnect when the socket has been closed
     # if @autoReconnect
     #   KD.utils.defer => @setBackoffTimeout @bound "connect"
@@ -104,7 +111,7 @@ class NewKite extends KDEventEmitter
       callback.apply this, @unscrub args
 
   onError: (evt) ->
-    # log "#{@kitename}: error #{evt.data}"
+    # log "#{@name}: error #{evt.data}"
 
   handlePing: ->
     @send JSON.stringify
@@ -147,7 +154,6 @@ class NewKite extends KDEventEmitter
 
   handleRequest: (method, args) ->
     @scrub method, args, (scrubbed) =>
-      messageString = JSON.stringify(scrubbed)
       @ready => @send scrubbed
 
   scrub: (method, args, callback) ->
