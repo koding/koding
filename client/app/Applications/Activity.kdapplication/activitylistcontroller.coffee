@@ -102,7 +102,10 @@ class ActivityListController extends KDListViewController
         if activity?.teaser
           activity.teaser.createdAtTimestamps = overviewItem.createdAt
           view = @addHiddenItem activity.teaser, index, animation
-          view.slideIn => @removeFromHiddenItems view
+          view.setClass 'no-anim'
+          view.unsetClass 'hidden-item'
+          KD.utils.defer -> view.unsetClass 'no-anim'
+          @removeFromHiddenItems view
           activityIds.push activity.teaser._id
 
     @checkIfLikedBefore activityIds
