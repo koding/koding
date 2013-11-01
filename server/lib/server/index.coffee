@@ -15,6 +15,7 @@ Object.defineProperty global, 'KONFIG',
 
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
+Crawler = require '../crawler'
 
 processMonitor = (require 'processes-monitor').start
   name                : "webServer on port #{webPort}"
@@ -304,16 +305,17 @@ app.all '/:name/:section?*', (req, res, next)->
       JName.fetchModels name, (err, models)->
         if err then next err
         else unless models? then res.send 404, error_404()
-        else
+        else if models.last?
           models.last.fetchHomepageView account, (err, view)->
             if err then next err
             else if view? then res.send view
             else res.send 500, error_500()
+        else next()
 
 app.get "/", (req, res)->
 
-  if frag = req.query._escaped_fragment_?
-    res.send 'this is crawlable content'
+  if slug = req.query._escaped_fragment_
+    return Crawler.crawl koding, req, res, slug
   else
     {JGroup} = koding.models
     isLoggedIn req, res, (err, loggedIn, account)->

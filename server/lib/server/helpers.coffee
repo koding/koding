@@ -110,7 +110,7 @@ isLoggedIn = (req, res, callback)->
   findUsernameFromSession req, res, (err, isLoggedIn, username)->
     return callback null, no, {}  unless username
     JName.fetchModels username, (err, models)->
-      return callback null, no, {}  if err or not models.first
+      return callback null, no, {}  if err or not models?.first
       user = models.last
       user.fetchAccount "koding", (err, account)->
         if err or account.type is 'unregistered'

@@ -12,29 +12,42 @@ module.exports = class Notifying
     receivers.forEach (receiver)=>
       @notify receiver, event, contents
 
-  notify:(receiver, event, contents)->
+  notify:(receiver, event, contents, callback)->
+    callback ?= (err) ->
+      console.err err if err
+
     JMailNotification  = require '../models/emailnotification'
     JAccount = require '../models/account'
     CBucket  = require '../models/bucket'
     JUser    = require '../models/user'
 
     actor = contents[contents.actorType]
-    {origin} = contents
+    {origin, recipient} = contents
+    recipient or= null
 
     createActivity = =>
       if contents.relationship?
         relationship = new Relationship contents.relationship
-        CBucket.addActivities relationship, origin, actor, (err)->
-          console.err err if err
+        CBucket.addActivities relationship, origin, actor, recipient, callback
 
     sendNotification = =>
       if receiver instanceof JAccount and receiver.type isnt 'unregistered'
-        JMailNotification.create {actor, receiver, event, contents}, \
-        (err)->
+        JMailNotification.create {actor, receiver, event, contents}, (err)->
+          console.error err if err
+
+      if receiver instanceof JAccount and receiver.type isnt 'unregistered'
+        JMailNotification.create {actor, receiver, event, contents}, (err)->
           console.error err if err
 
     if actor? and not receiver.getId().equals actor.id
       receiver?.sendNotification? event, contents
+
+      # do not create activity for koding group
+      # do not send mail notification for koding group
+      # return if koding
+      subject = contents.subject
+      return  if subject and subject.constructorName is 'JGroup' and subject.slug is "koding"
+
       do createActivity
       do sendNotification
 

@@ -25,6 +25,10 @@ module.exports = class CBucketActivity extends CActivity
         'CReplieeBucket'
         'CInstallerBucket'
         'CInstalleeBucket'
+        'CGroupJoinerBucket'
+        'CGroupJoineeBucket'
+        'CGroupLeaverBucket'
+        'CGroupLeaveeBucket'
       ]
       as          : 'content'
 
