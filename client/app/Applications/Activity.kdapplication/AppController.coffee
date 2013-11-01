@@ -199,16 +199,24 @@ class ActivityAppController extends AppController
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
-    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+
+    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
+      if activity = KD.prefetchedFeeds["activity.main"]
+        return @prepareCacheForListing activity
+
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
       return @emit "activitiesCouldntBeFetched", err  if err
+      @prepareCacheForListing  cache
 
-      cache.overview.reverse()  if cache.overview
+  prepareCacheForListing: (cache)->
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      @sanitizeCache cache, (err, sanitizedCache)=>
-        if err
-        then @emit "activitiesCouldntBeFetched", err
-        else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
+    cache.overview.reverse()  if cache.overview
+
+    @sanitizeCache cache, (err, sanitizedCache)=>
+      if err
+      then @emit "activitiesCouldntBeFetched", err
+      else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
 
 
   fetchFollowingActivities:(options = {})->
