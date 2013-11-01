@@ -7,7 +7,7 @@ module.exports = ({account, client, bongoModels}, callback)->
   getStatusWidget = require './statuswidget'
 
 
-  prepareHTML = ({scripts})->
+  prepareHTML = (scripts)->
     """
     <!doctype html>
     <html lang="en">
@@ -62,6 +62,6 @@ module.exports = ({account, client, bongoModels}, callback)->
     """
 
   fetchScripts {bongoModels, client, intro : no}, (err, scripts)->
-    callback null, prepareHTML {scripts}
+    callback null, prepareHTML scripts
 
 

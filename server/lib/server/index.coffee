@@ -326,20 +326,28 @@ app.all '/:name/:section?*', (req, res, next)->
     unless section
     then next()
     else
-      isLoggedIn req, res, (err, loggedIn, account)->
-        prefix = if loggedIn then 'loggedIn' else 'loggedOut'
-        if name is "Develop"
-          subPage = JGroup.render[prefix].subPage {account, name, section}
-          return serve subPage, res
+      bongoModels = koding.models
+      generateFakeClient req, res, (err, client)->
 
-        JName.fetchModels "#{name}/#{section}", (err, models)->
-          if err
-            subPage = JGroup.render[prefix].subPage {account, name, section}
-            return serve subPage, res
-          else unless models? then next()
-          else
-            subPage = JGroup.render[prefix].subPage {account, name, section, models}
-            return serve subPage, res
+        isLoggedIn req, res, (err, loggedIn, account)->
+          prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
+          serveSub = (err, subPage)->
+            return next()  if err
+            serve subPage, res
+
+          if name is "Develop"
+            options = {account, name, section, client, bongoModels}
+            JGroup.render[prefix].subPage options, serveSub
+
+          JName.fetchModels "#{name}/#{section}", (err, models)->
+            if err
+              options = {account, name, section, client, bongoModels}
+              JGroup.render[prefix].subPage options, serveSub
+            else unless models? then next()
+            else
+              options = {account, name, section, models, client, bongoModels}
+              JGroup.render[prefix].subPage options, serveSub
+
   else
     isLoggedIn req, res, (err, loggedIn, account)->
       JName.fetchModels name, (err, models)->
@@ -357,7 +365,9 @@ app.get "/", (req, res, next)->
   if slug = req.query._escaped_fragment_
     return Crawler.crawl koding, req, res, slug
   else
-
+    serveSub = (err, subPage)->
+      return next()  if err
+      serve subPage, res
     {JGroup} = koding.models
     bongoModels = koding.models
 
@@ -372,14 +382,10 @@ app.get "/", (req, res, next)->
           console.error err
         else if loggedIn
           # go to koding activity
-          JGroup.render.loggedIn.kodingHome {client, account, bongoModels}, (err, activityPage)->
-            return next()  if err
-            serve activityPage, res
+          JGroup.render.loggedIn.kodingHome {client, account, bongoModels}, serveSub
         else
           # go to koding home
-          JGroup.render.loggedOut.kodingHome {client, account, bongoModels}, (err, homePage)->
-            return next()  if err
-            serve homePage, res
+          JGroup.render.loggedOut.kodingHome {client, account, bongoModels}, serveSub
 
 
 ###

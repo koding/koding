@@ -702,7 +702,7 @@ module.exports = class JGroup extends Module
             @customize
           }
           prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-          callback null, JGroup.render[prefix].groupHome options
+          JGroup.render[prefix].groupHome options, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback

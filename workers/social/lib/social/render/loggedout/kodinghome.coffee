@@ -4,7 +4,7 @@ module.exports = ({account, client, bongoModels}, callback)->
   fetchScripts = require './../scriptblock'
   getGraphMeta = require './../graphmeta'
 
-  prepareHTML = ({scripts})->
+  prepareHTML = (scripts)->
     """
 
     <!doctype html>
@@ -39,5 +39,5 @@ module.exports = ({account, client, bongoModels}, callback)->
 
 
   fetchScripts {bongoModels, client, intro : yes}, (err, scripts)->
-    callback null, prepareHTML {scripts}
+    callback null, prepareHTML scripts
 
