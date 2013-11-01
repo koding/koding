@@ -1,4 +1,4 @@
-module.exports = ({account, client}, callback)->
+module.exports = ({account, client, bongoModels}, callback)->
 
   getStyles       = require './../styleblock'
   fetchScripts    = require './../scriptblock'
@@ -61,7 +61,7 @@ module.exports = ({account, client}, callback)->
     </html>
     """
 
-  fetchScripts {client, intro : no}, (err, scripts)->
+  fetchScripts {bongoModels, client, intro : no}, (err, scripts)->
     callback null, prepareHTML {scripts}
 
 
