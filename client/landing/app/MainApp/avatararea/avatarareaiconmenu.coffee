@@ -62,7 +62,7 @@ class AvatarAreaIconMenu extends JView
     KD.getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
       # No need the following
       # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
-      if event is 'ActivityIsAdded'
+      if event is 'ActivityIsAdded' or 'BucketIsUpdated'
         @notificationsPopup.listController.fetchNotificationTeasers (notifications)=>
           @notificationsPopup.noNotification.hide()
           @notificationsPopup.listController.removeAllItems()

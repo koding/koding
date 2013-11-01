@@ -18,9 +18,8 @@ class LinkView extends KDCustomHTMLView
     return data
 
   click:(event)->
-    event.stopPropagation()
-    event.preventDefault()
     @emit 'LinkClicked'
+    @utils.stopDOMEvent event
 
   destroy:->
     super

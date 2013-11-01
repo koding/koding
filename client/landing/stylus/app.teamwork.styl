@@ -59,6 +59,8 @@ app.teamwork.styl
     &.full-width
       width                     100%
       border-top                1px solid #dcdcdc
+    &:last-child
+      border-right              none
 
 .teamwork-modal-content
   width                         259px
@@ -67,11 +69,16 @@ app.teamwork.styl
   padding                       20px
   shadow                        inset 0 0 0 1px #FFF
   position                      relative
+  .teamwork-modal-content
+    &:hover span, &:hover p
+      color                     #444
   &.full-width
     width                       100%
     padding                     0
     p
       margin-bottom             10px
+  &:last-child
+    border-right                none
   .export-file-tree
     abs()
     top                         -193px
@@ -96,11 +103,10 @@ app.teamwork.styl
       line-height               14px
   p
     line-height                 14px
-    margin-top                  10px
     color                       #bbb
     cursor                      default
-    &:hover
-      color                     #444
+  .invite .text, .join .text
+    margin-bottom               10px
   .teamwork-modal-input
     width                       238px
     height                      38px !important
@@ -148,9 +154,26 @@ app.teamwork.styl
 .teamwork-tools-modal
   .kdmodal-content
     gradient                    #f3f3f3, #fff
+    overflow-x                  hidden !important
 
 .teamwork-modal-contents
   overflow                      hidden
+  &.top-content
+    .teamwork-modal-content
+      height                    105px
+      &:hover span, &:hover p
+        color                   #444
+
+.tw-fb-revoke
+  width                         560px
+  p
+    span
+      display                   inline-block
+      width                     100px
+  .initial
+    display                     inline-block
+    color                       #bbb
+    margin-bottom               10px
 
 .teamwork-export-dialog .kdformview .kdlabel:first-child,
 .teamwork-export-dialog .kdformview .kdinput,
@@ -233,6 +256,10 @@ app.teamwork.styl
       line-height               14px
       color                     #646464
 
+.kdbuttonwithmenu-wrapper.playgrounds-button
+  margin                        7px 10px 0 0
+  fr()
+
 .tw-python .front
   bg                            image, url("../images/teamwork/environments/python.jpg")
 .tw-ruby .front
@@ -262,13 +289,15 @@ app.teamwork.styl
       top                       10px
       left                      10px
       position                  relative
-  .tw-tools-button
-    left                        -31px
   .users
-    left                        53px
+    left                        -68px
   .kdbuttonwithmenu-wrapper
     fr()
     margin                      7px 10px 0 0
+    left                        56px
+  .help
+    display                     block
+    left                        -67px
 
 .tw-modal-image
   size                          663px, 210px
@@ -290,3 +319,16 @@ app.teamwork.styl
   padding                       0 20px !important
 .tw-modal-image.step-general
   left                          0
+
+.workspace.go-lang
+  .inner-header
+    .title
+      background                none !important
+    .icon
+      bg                        image, url("/images/teamwork/golang/logo.png")
+      bg                        size, 30px 30px
+      top                       4px
+      position                  relative
+
+.tw-before-starting-modal .kdscrollview
+  overflow                      auto !important
