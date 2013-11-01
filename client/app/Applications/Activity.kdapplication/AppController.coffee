@@ -9,7 +9,10 @@ class ActivityAppController extends AppController
       path       : "/Activity"
       order      : 10
 
+
   {dash} = Bongo
+
+  USEDFEEDS = []
 
   activityTypes = [
     'Everything'
@@ -201,8 +204,11 @@ class ActivityAppController extends AppController
     {CStatusActivity} = KD.remote.api
 
     if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
-      if activity = KD.prefetchedFeeds["activity.main"]
-        return @prepareCacheForListing activity
+      if KD.prefetchedFeeds["activity.main"] and 'activities.main' not in USEDFEEDS
+        log "exhausting feed:", "activity.main"
+        log "buyur dayi feed var, burdan yukle."
+        USEDFEEDS.push 'activities.main'
+        return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
 
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
       return @emit "activitiesCouldntBeFetched", err  if err
