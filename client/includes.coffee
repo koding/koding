@@ -422,6 +422,8 @@ module.exports = [
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
+  "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
+  "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
   "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
