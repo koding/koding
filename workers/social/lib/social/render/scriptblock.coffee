@@ -87,20 +87,28 @@ module.exports = (options = {}, callback)->
   generateScript = ->
     html = createHTML()
     return callback null, html
+
+  # do not fetch activity feed for unregistered users
+  if client?.connection?.delegate?.type isnt "registered"
+    return generateScript()
+  queue.push ->
     fetchMembersFromGraph (err, members)->
       prefetchedFeeds['members.main'] = members  if members
       queue.fin()
 
-  queue.push do ->
+  queue.push ->
     JTag.some {}, defaultOptions, (err, topics)->
       prefetchedFeeds['topics.main'] = topics  if topics
       queue.fin()
 
-  queue.push do ->
+  queue.push ->
     JApp.some {}, defaultOptions, (err, apps)->
       prefetchedFeeds['apps.main'] = apps  if apps
       queue.fin()
 
-  dash queue, ->
-    html = createHTML()
-    callback null, html
+  queue.push ->
+    fetchActivityFromGraph (err, activity)->
+      prefetchedFeeds['activity.main'] = activity  if activity
+      queue.fin()
+
+  dash queue, generateScript
