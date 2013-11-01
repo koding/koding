@@ -117,7 +117,6 @@ class MainController extends KDController
 
 
   attachListeners:->
-
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
 
@@ -130,8 +129,12 @@ class MainController extends KDController
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
-      if cookie? and cookie isnt $.cookie 'clientId'
+    @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
+      cookieMatches = cookie is ($.cookie 'clientId')
+      cookie = $.cookie 'clientId'
+      if cookie? and not cookieMatches
+        return @isLoggingIn off  if @isLoggingIn() is on
+
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         @emit "clientIdChanged"
 
@@ -144,7 +147,6 @@ class MainController extends KDController
             firstRoute = "/"
 
           window.location.pathname = firstRoute or "/"
-      cookie = $.cookie 'clientId'
 
 
 
@@ -153,6 +155,15 @@ class MainController extends KDController
   getAccount: -> KD.whoami()
 
   isUserLoggedIn: -> KD.isLoggedIn()
+
+  isLoggingIn: (isLoggingIn) ->
+    if isLoggingIn?
+      console.log 'setting is logging in', isLoggingIn
+      @_isLoggingIn = isLoggingIn
+    else
+      console.log 'getting is logging in', @_isLoggingIn
+      @_isLoggingIn ? no
+
 
   showInstructionsBook:->
     if $.cookie 'newRegister'
