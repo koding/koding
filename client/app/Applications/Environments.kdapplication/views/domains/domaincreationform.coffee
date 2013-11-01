@@ -31,8 +31,10 @@ class DomainCreationForm extends KDCustomHTMLView
         switch actionType
           when 'new'
             @tabs.showPaneByName 'NewDomain'
+            @newDomainEntryForm.inputs.domainName.setFocus()
           when 'subdomain'
             @tabs.showPaneByName 'SubDomain'
+            @subDomainEntryForm.inputs.domainName.setFocus()
 
     @addSubView @tabs = new KDTabView
       cssClass            : 'domain-tabs'
@@ -161,6 +163,7 @@ class DomainCreationForm extends KDCustomHTMLView
   viewAppended:->
     @updateDomains()
     KD.getSingleton("vmController").on 'VMListChanged', @bound 'updateDomains'
+    @subDomainEntryForm.inputs.domainName.setFocus()
 
 class CommonDomainCreationForm extends KDFormViewWithFields
   constructor:(options = {}, data)->
