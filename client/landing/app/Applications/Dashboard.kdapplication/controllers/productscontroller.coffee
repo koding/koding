@@ -1,17 +1,36 @@
 class GroupProductsController extends KDController
 
+  { dash } = Bongo
+
   constructor: (options = {}, data) ->
     super options, data
 
-    @prepareProductView 'product'
-    @prepareProductView 'plan'
+    @productsView = @prepareProductView 'product'
+    @plansView    = @prepareProductView 'plan'
+
+    @loadProducts()
+
+  loadProducts:->
+    { view } = @getOptions()
+
+    dash [
+      => @fetchProducts 'product', (err, products) =>
+        return callback err  if err
+        @products = products
+        view.setProducts 'product', products
+
+      => @fetchProducts 'plan', (err, plans) =>
+        return callback err  if err
+        @plans = plans
+        view.setProducts 'plan', plans
+    ]
 
   prepareProductView: (category) ->
     { view } = @getOptions()
 
     konstructor = getConstructor category
 
-    do reload = =>
+    reload = =>
       @fetchProducts category, (err, products) ->
         view.setProducts category, products
 
