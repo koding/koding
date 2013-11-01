@@ -20,7 +20,7 @@ class KiteController extends KDController
   getKite:(kiteName, correlationName)->
     key = @getKiteKey kiteName, correlationName
     kite = @kiteInstances[key]
-    return kite  if kite?
+    return kite if kite?
     kite = @createKite kiteName, correlationName, key
     @kiteInstances[key] = kite
     return kite
@@ -28,11 +28,9 @@ class KiteController extends KDController
   destroyKite:(kite)->
     delete @kiteInstances[kite.kiteKey]
 
-  createNewKite:(options)->
-    kite = new NewKite
-      addr     : options.addr
-      kitename : options.kitename
-      token    : options.token
+  createNewKite:(kiteStruct)->
+    # kiteStruct is the struct coming from Kontrol
+    kite = new NewKite kiteStruct
 
     @forwardEvent kite, "KiteDisconnected"
     @forwardEvent kite, "KiteConnected"
@@ -41,13 +39,13 @@ class KiteController extends KDController
   createKite:(kiteName, correlationName, kiteKey)->
     switch kiteName
       when 'os-local'
-        kite = @createNewKite {kitename: kiteName}
+        kite = @createNewKite {name: kiteName}
       when 'fs'
-        kite = @createNewKite {kitename: kiteName}
+        kite = @createNewKite {name: kiteName}
       when 'terminal'
-        kite = @createNewKite {kitename: kiteName}
+        kite = @createNewKite {name: kiteName}
       when 's3'
-        kite = @createNewKite {kitename: kiteName}
+        kite = @createNewKite {name: kiteName}
       else
         kite = new Kite { kiteName, correlationName, kiteKey }
 

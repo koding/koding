@@ -30,26 +30,24 @@ class Kontrol extends KDEventEmitter
   onMessage: (evt) ->
     @blobToString evt.data, (msg) =>
       try
-        args = JSON.parse msg
+        msg = JSON.parse msg
+        log "Message from Kontrol", {msg}
       catch e
         log "json parse error: ", e, msg
+        return
 
-      log {args}
+      switch msg.type
+        when "KITE_REGISTERED"
+          @addKite msg.args.kite, msg.args.token
+        when "KITE_DISCONNECTED"
+          @removeKite msg.args.kite.name
 
-      switch args.action
-        when "AddKite"
-          @addKite args
-        when "RemoveKite"
-          @removeKite args.kitename
-
-  addKite: (kite) ->
+  addKite: (kite, token) ->
+    kite.token = token
     kc = KD.getSingleton("kiteController")
     correlationName = "local-#{KD.nick()}"
-    key = kc.getKiteKey kite.kitename, correlationName
-    kiteInstance = kc.createNewKite
-      addr     : kite.addr
-      kitename : kite.kitename
-      token    : kite.token
+    key = kc.getKiteKey kite.name, correlationName
+    kiteInstance = kc.createNewKite kite
 
     # log "ADDING KITE #{kite.kitename} with key #{key}"
     kc.kiteInstances[key] = kiteInstance
@@ -70,14 +68,12 @@ class Kontrol extends KDEventEmitter
     @once 'ready', callback
 
   subscribe: ->
-    log "subscribing"
     @send
       name: "subscribe"
       args:
         key: "kite.start.#{KD.nick()}"
 
   send: (data) ->
-    log "sending", {data}
     @ready =>
       try @ws.send JSON.stringify data
       catch e then log e
