@@ -93,7 +93,7 @@ class PaymentController extends KDController
 
     @modal = modal = new KDModalViewWithForms
       title                       : "Billing Information"
-      width                       : 520
+      width                       : 495
       height                      : "auto"
       cssClass                    : "payments-modal"
       overlay                     : yes
@@ -201,6 +201,14 @@ class PaymentController extends KDController
     form = modal.modalTabs.forms["Billing Info"]
 
     form.on "FormValidationFailed", => modal.buttons.Save.hideLoader()
+
+    form.inputs['cardNumber'].on "ValidationError", ->
+      @parent.unsetClass "visa mastercard amex diners discover jcb"
+
+    form.inputs['cardNumber'].on "CreditCardTypeIdentified", (type)->
+      @parent.unsetClass "visa mastercard amex diners discover jcb"
+      cardType = type.toLowerCase()
+      @parent.setClass cardType
 
     for k, v of data
       if form.inputs[k]
