@@ -18,6 +18,14 @@ module.exports = (options = {}, callback)->
       return cb null, [] if err
       group._fetchMembersFromGraph client, {}, cb
 
+  fetchActivityFromGraph = (cb)->
+    return cb null, [] unless bongoModels
+    {CActivity} = bongoModels
+    CActivity._fetchPublicActivityFeed client, {}, (err, data)->
+      return cb null, [] if err
+      return cb null, data
+
+
   createHTML = ->
     """
     <script>
