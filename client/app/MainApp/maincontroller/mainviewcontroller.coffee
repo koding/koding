@@ -1,9 +1,5 @@
 class MainViewController extends KDViewController
 
-  lazyloadQueue = [
-    'Topics', 'Members', 'Apps'
-  ]
-
   constructor:->
 
     super
@@ -26,16 +22,6 @@ class MainViewController extends KDViewController
 
     mainController.on "ToggleChatPanel", =>
       mainView.chatPanel.toggle()
-
-    # mainView.ready ->
-    #   log "i am ready motherfucker"
-    #   i = 0
-    #   r = repeat 5000, ->
-    #     appManager.open lazyloadQueue[i++],
-    #       params       :
-    #         background : yes
-    #     log "i am opening #{lazyloadQueue[i-1]}"
-    #     killRepeat r if i is lazyloadQueue.length
 
     if KD.checkFlag 'super-admin'
     then $('body').addClass 'super'
