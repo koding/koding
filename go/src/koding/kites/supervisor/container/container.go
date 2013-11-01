@@ -15,22 +15,29 @@ import (
 
 const (
 	lxcDir        = "/var/lib/lxc/"
-	RootUID       = 0
-	UserUIDOffset = 1000000
-	RootUIDOffset = 500000
+	RootUID       = 0       // the is of the root user
+	UserUIDOffset = 1000000 // used for id mapping in lxc.conf
+	RootUIDOffset = 500000  // used for id mapping in lxc.conf
 )
 
 var (
-	vmRoot      = "/var/lib/lxc/vmroot"
+	// contains the rootfs that is used for templating our lxc's. the vmroot
+	// is created manually via a script. It can be found in sysops  git repo
+	// under: lxc-vmroot-generator/prepareVMRoot.sh
+	vmRoot = "/var/lib/lxc/vmroot"
+
+	// used for bootrapping lxc container. It contains the templates for
+	// creating files like config, fstab. It also contains folders that is used
+	// to create the home and web directory for new containers.
 	templateDir = "/opt/koding/go/templates"
 	templates   = template.New("container")
 )
 
 type Container struct {
-	Name string
-	Dir  string
+	Name string // ContainerName
+	Dir  string // Container directory path, i.e: /var/lib/lxc/containerName/
 	Lxc  *lxc.Container
-	UID  int
+	UID  int // Used for AsXXX() methods.
 
 	// needed for templating
 	HwAddr        net.HardwareAddr
@@ -41,7 +48,7 @@ type Container struct {
 	Useruid       int
 	WebHome       string
 
-	sync.Mutex // protects mount commands
+	sync.Mutex // protects linux commands such as 'mount' or 'fsck'
 }
 
 // It's put here that it get initiated only once
@@ -81,6 +88,7 @@ func init() {
 
 }
 
+// NewContainer returns a new instance of the Container struct.
 func NewContainer(containerName string) *Container {
 	return &Container{
 		Name: containerName,
@@ -89,11 +97,13 @@ func NewContainer(containerName string) *Container {
 	}
 }
 
+// String representation of the container. Returns the containername that is
+// passed to lxc's --name option.
 func (c *Container) String() string {
 	return c.Name
 }
 
-// Generate unique MAC address from IP address
+// Generate unique MAC address from IP address.
 func (c *Container) MAC() net.HardwareAddr {
 	return net.HardwareAddr([]byte{0, 0, c.IP[12], c.IP[13], c.IP[14], c.IP[15]})
 }
@@ -103,6 +113,47 @@ func (c *Container) VEth() string {
 	return fmt.Sprintf("veth-%x", []byte(c.IP[12:16]))
 }
 
+// Path returns the absolute path of a file that residue in the container. For
+// example c.Path("config") will return: "/var/lib/lxc/containerName/config".
+func (c *Container) Path(file string) string {
+	return c.Dir + file
+}
+
+// Overlaypath returns the absolute path of a file that residue in the
+// containers overlay folder. For example c.OverlayPath("/etc/hosts") will return:
+// "/var/lib/lxc/containerName/overlaay/etc/hosts".
+func (c *Container) OverlayPath(file string) string {
+	return c.Dir + "overlay/" + file
+}
+
+// AsHost returns a new instance of Container with the UID and GID set to the
+// host's root user. It is used to be chained with methods like Chown or
+// Lchown.
+func (c *Container) AsHost() *Container {
+	c.UID = RootUID
+	return c
+}
+
+// AsContainer returns a new instance of Container with the UID and GID set to
+// the containers's root user. It is used to be chained with methods like
+// Chown or Lchown.
+func (c *Container) AsContainer() *Container {
+	c.UID = RootUIDOffset
+	return c
+}
+
+// AsUser returns a new instance of Container with the UID and GID set to the
+// containers's default user. It is used to be chained with methods like Chown
+// or Lchown.
+func (c *Container) AsUser() *Container {
+	c.UID = c.Useruid
+	return c
+}
+
+// CopyFile copyies the src path to the dst path, the paths should be absoule.
+// It should be chained with an AsXXX() function because it also calles chown
+// on the newly dst file. An example call might be:
+// c.AsUser().CopyFile("/Users/arslan/example.txt", c.OverlayPath("/home/arslan/example.txt"))
 func (c *Container) CopyFile(src, dst string) error {
 	sf, err := os.Open(src)
 	if err != nil {
@@ -121,7 +172,6 @@ func (c *Container) CopyFile(src, dst string) error {
 	}
 	defer df.Close()
 
-	fmt.Printf("copying from '%s' to '%s'", sf.Name(), df.Name())
 	if _, err := io.Copy(df, sf); err != nil {
 		return err
 	}
@@ -133,15 +183,23 @@ func (c *Container) CopyFile(src, dst string) error {
 	return nil
 }
 
+// Chown is a wrapper around os.Chown. It's need to be chained with AsXXX()
+// method which sets the UID and GUID. An example call might be:
+// c.AsContainer().Chown("example.txt")
 func (c *Container) Chown(name string) error {
 	fmt.Println("chowning ", name, c.UID)
 	return os.Chown(name, c.UID, c.UID)
 }
 
+// Lchown is a wrapper around os.Lchown. It's need to be chained with a AsXXX()
+// method which sets the UID and GUID. An example call might be:
+// c.AsContainer().Lchown("example.txt")
 func (c *Container) Lchown(name string) error {
 	return os.Lchown(name, c.UID, c.UID)
 }
 
+// PrepareDir creates a new directory with and chowns it. It's need to be
+// chained with a AsXXX() method.
 func (c *Container) PrepareDir(name string) error {
 	if err := os.Mkdir(name, 0755); err != nil && !os.IsExist(err) {
 		return err
@@ -150,33 +208,13 @@ func (c *Container) PrepareDir(name string) error {
 	return c.Chown(name)
 }
 
-func (c *Container) Path(file string) string {
-	return c.Dir + file
-}
-
-func (c *Container) OverlayPath(file string) string {
-	return c.Dir + "overlay/" + file
-}
-
-func (c *Container) AsHost() *Container {
-	c.UID = RootUID
-	return c
-}
-
-func (c *Container) AsContainer() *Container {
-	c.UID = RootUIDOffset
-	return c
-}
-
-func (c *Container) AsUser() *Container {
-	c.UID = c.Useruid
-	return c
-}
-
+// PtsDir return the container's pts path.
 func (c *Container) PtsDir() string {
 	return c.Dir + "rootfs/dev/pts"
 }
 
+// Generatefile generates a new file based on the template in the templateDir.
+// Name should is the path the file is going to be stored.
 func (c *Container) GenerateFile(name, template string) error {
 	var mode os.FileMode = 0644
 
@@ -202,14 +240,17 @@ func (c *Container) GenerateFile(name, template string) error {
 
 }
 
+// IsRunning returns true if the container is running.
 func (c *Container) IsRunning() bool {
 	return c.Lxc.Running()
 }
 
+// Create creates a new lxc based on the template.
 func (c *Container) Create(template string) error {
 	return c.Lxc.Create(template)
 }
 
+// Run invokes the given command inside the container.
 func (c *Container) Run(command string) error {
 	args := strings.Split(strings.TrimSpace(command), " ")
 
@@ -220,6 +261,8 @@ func (c *Container) Run(command string) error {
 	return nil
 }
 
+// Start starts the container. It calls lxc-start with --daemonize set to
+// true.
 func (c *Container) Start() error {
 	err := c.Lxc.SetDaemonize()
 	if err != nil {
@@ -234,6 +277,7 @@ func (c *Container) Start() error {
 	return nil
 }
 
+// Stop stops the running container. It calls lxc-stop.
 func (c *Container) Stop() error {
 	err := c.Lxc.Stop()
 	if err != nil {
@@ -243,6 +287,7 @@ func (c *Container) Stop() error {
 	return nil
 }
 
+// Destroy detroys the given container. It calls lxc-destroy.
 func (c *Container) Destroy() error {
 	return c.Lxc.Destroy()
 }

@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+// Prepare creates and initialized the container to be started later directly
+// with lxc.start. We don't use lxc.create (which uses shell scipts for
+// templating). Instead we use this method which basically let us do things
+// more simpler. It creates the home directory, generates files like lxc.conf
+// and mounts the necessary disks.
 func (c *Container) Prepare() error {
 	fmt.Println("generating lxc files")
 	c.AsHost().PrepareDir(c.Path(""))
@@ -330,6 +335,7 @@ func (c *Container) copyIntoContainer(src, dst string) error {
 			}
 		}
 	} else {
+		fmt.Printf("copying from '%s' to '%s'", src, dst)
 		err := c.AsUser().CopyFile(src, dst)
 		if err != nil {
 			return err

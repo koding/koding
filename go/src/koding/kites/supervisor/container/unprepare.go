@@ -9,17 +9,16 @@ import (
 	"os/exec"
 )
 
+// Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
+// (which purges the container immediately). Instead we use this method which
+// basically let us unmount previously mounted disks, remove generated files,
+// etc. It doesn't remove the home folder or any newly created system files.
+// Those files will be stored in the vmroot.
 func (c *Container) Unprepare() error {
-	// first shutdown and stop container if it's running already
+	// first stop container if it's running already
 	if c.IsRunning() {
-		fmt.Println("shutting down containers")
-		err := c.Shutdown(3)
-		if err != nil {
-			return err
-		}
-
 		fmt.Println("stopping down containers")
-		err = c.Stop()
+		err := c.Stop()
 		if err != nil {
 			return err
 		}
