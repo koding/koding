@@ -89,8 +89,8 @@ module.exports = (options = {}, callback)->
     return callback null, html
 
   # do not fetch activity feed for unregistered users
-  if client?.connection?.delegate?.type isnt "registered"
-    return generateScript()
+  return generateScript()  if client?.connection?.delegate?.type isnt "registered"
+
   queue.push ->
     fetchMembersFromGraph (err, members)->
       prefetchedFeeds['members.main'] = members  if members
