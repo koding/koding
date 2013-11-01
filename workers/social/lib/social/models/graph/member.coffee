@@ -22,12 +22,16 @@ module.exports = class Member extends Graph
   @generateOptions: (options)->
     {client, skip, limit, sort, groupId, startDate} = options
 
-    currentUserId = client.connection.delegate.getId()
+
+    currentUserId = null
+    if client?.connection?.delegate?.getId()
+      currentUserId = client.connection.delegate.getId()
+
     options =
       limitCount: limit or 10
       skipCount: skip or 0
       groupId: "#{groupId}"
-      currentUserId: "#{currentUserId}"
+      currentUserId: "#{currentUserId}" if currentUserId
       to: startDate
 
   # fetch members that are in given group who follows current user
