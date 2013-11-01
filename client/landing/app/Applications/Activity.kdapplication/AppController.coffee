@@ -206,7 +206,6 @@ class ActivityAppController extends AppController
     if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
       if KD.prefetchedFeeds["activity.main"] and 'activities.main' not in USEDFEEDS
         log "exhausting feed:", "activity.main"
-        log "buyur dayi feed var, burdan yukle."
         USEDFEEDS.push 'activities.main'
         return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
 
