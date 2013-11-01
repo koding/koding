@@ -5,7 +5,11 @@ module.exports = (options = {}, callback)->
   JApp   = require '../models/app'
 
   options.intro   ?= no
-  options.client or= null
+  options.client or= {}
+  options.client.context or= {}
+  options.client.context.group or= "koding"
+
+
 
   prefetchedFeeds = {}
   {bongoModels, client, intro} = options
@@ -88,24 +92,33 @@ module.exports = (options = {}, callback)->
     html = createHTML()
     return callback null, html
 
+  # todo  - implement this prefetching for all groups
+
   # do not fetch activity feed for unregistered users
   return generateScript()  if client?.connection?.delegate?.type isnt "registered"
 
+
+  # fetch members function returns only members of the given group(context)
+  # we can return this result also
   queue.push ->
     fetchMembersFromGraph (err, members)->
       prefetchedFeeds['members.main'] = members  if members
       queue.fin()
 
+  # Modified this function to fetch groups' tags
+  # also we can return topics for all groups
   queue.push ->
-    JTag.some {}, defaultOptions, (err, topics)->
+    JTag._some client, {}, defaultOptions, (err, topics)->
       prefetchedFeeds['topics.main'] = topics  if topics
       queue.fin()
 
+  # This is not koding specific so we can return this to every group
   queue.push ->
     JApp.some {}, defaultOptions, (err, apps)->
       prefetchedFeeds['apps.main'] = apps  if apps
       queue.fin()
 
+  # we are fetching group activity, so again we can return this one for all groups
   queue.push ->
     fetchActivityFromGraph (err, activity)->
       prefetchedFeeds['activity.main'] = activity  if activity
