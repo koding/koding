@@ -8,14 +8,13 @@ module.exports = (options = {}, callback)->
   options.client or= null
 
   prefetchedFeeds = {}
-
-  {client, intro} = options
+  {bongoModels, client, intro} = options
 
   fetchMembersFromGraph = (cb)->
-    JGroup    = require '../models/group'
-    {Member}  = require '../models/graph'
+    return cb null, [] unless bongoModels
+    {JGroup}  = bongoModels
     groupName = client?.context?.group or 'koding'
-    JGroup.one slug : groupName, (err, group)->
+    JGroup.one slug: groupName, (err, group)->
       return cb null, [] if err
       group._fetchMembersFromGraph client, {}, cb
 
