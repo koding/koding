@@ -356,7 +356,9 @@ app.get "/", (req, res, next)->
   if slug = req.query._escaped_fragment_
     return Crawler.crawl koding, req, res, slug
   else
+
     {JGroup} = koding.models
+    bongoModels = koding.models
 
     generateFakeClient req, res, (err, client)->
       if err or not client
