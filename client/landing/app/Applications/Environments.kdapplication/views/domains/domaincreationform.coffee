@@ -56,6 +56,8 @@ class DomainCreationForm extends KDCustomHTMLView
     domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
     {getDomainInfo, getDomainSuggestions} = KD.remote.api.JDomain
 
+    @newDomainEntryForm.domainList?.setClass 'out'
+
     getDomainInfo domainName, (err, status)=>
 
       if err
@@ -72,9 +74,6 @@ class DomainCreationForm extends KDCustomHTMLView
           createButton.hideLoader()
           return warn err if err
           @newDomainEntryForm.setAvailableDomainsData suggestions
-
-      new KDNotificationView
-        title: if status.available then 'Yay its available' else 'Sorry dude.'
 
   createSubDomain: ->
     {domains, domainName} = @subDomainEntryForm.inputs
@@ -246,10 +245,23 @@ class DomainBuyItem extends JView
 
   constructor:(options={}, data)->
     options.cssClass = KD.utils.curry "domain-buy-items", options.cssClass
+
     super options, data
+
+    @buyButton = new KDButtonView
+      title    : "Buy"
+      style    : "clean-gray"
+      callback : ->
+        alert 'Buy it'
+
+    price = (parseFloat @getData().price).toFixed 2
+    selectOptions = \
+      ({title: "#{i} year for $ #{(price * i).toFixed 2}" , value: i} for i in [1..5])
+    @yearBox = new KDSelectBox {name:'year', selectOptions}
 
   pistachio:->
     """
-      {h1#domain{#(domain)}}
-      {{#(price)}}
+      {h1{#(domain)}}
+      {{> @yearBox}}
+      {{> @buyButton}}
     """
