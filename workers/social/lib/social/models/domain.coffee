@@ -215,6 +215,8 @@ module.exports = class JDomain extends jraphical.Module
               callback err, data
 
           if data.actionstatus is "Success"
+
+            model = new JDomain
               domain         : data.description
               hostnameAlias  : []
               regYears       : params.years
@@ -223,6 +225,25 @@ module.exports = class JDomain extends jraphical.Module
               loadBalancer   :
                   mode       : "" # "roundrobin"
               domainType     : "new"
+
+            model.save (err) ->
+
+              return callback err if err
+
+              # Why are adding this manually? ~ GG
+              account = client.connection.delegate
+              rel = new Relationship
+                targetId    : model.getId()
+                targetName  : 'JDomain'
+                sourceId    : account.getId()
+                sourceName  : 'JAccount'
+                as          : 'owner'
+
+              rel.save (err)->
+                return callback err if err
+
+              callback err, model
+
           else
             callback {message: "Domain registration failed"}
 
