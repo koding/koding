@@ -190,8 +190,10 @@ module.exports = class JDomain extends jraphical.Module
     domainManager.domainService.getTldPrice tld, callback
 
   @registerDomain = permit 'create domains',
+
     success: (client, data, callback) ->
-      #default user info / all domains are under koding account.
+
+      # default user info / all domains are under koding account.
       params =
         domainName         : data.domainName
         years              : data.years
@@ -213,31 +215,28 @@ module.exports = class JDomain extends jraphical.Module
               callback err, data
 
           if data.actionstatus is "Success"
-            @createDomain client,
               domain         : data.description
               hostnameAlias  : []
               regYears       : params.years
               orderId        :
                 resellerClub : data.entityid
               loadBalancer   :
-                  # mode       : "roundrobin"
-                  mode       : ""
+                  mode       : "" # "roundrobin"
               domainType     : "new"
-              , (err, model) =>
-                callback err, model
           else
-              callback "Domain registration failed"
+            callback {message: "Domain registration failed"}
 
   @makeTransaction: (client, data, callback)->
-    JRecurlyCharge = require './recurly/charge'
 
-    amount = 10 * 10 * data.years
+    # JRecurlyCharge = require './recurly/charge'
 
-    JRecurlyCharge.charge client,
-      code   : 'domain_abc'
-      amount : amount
-      desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"
-    , callback
+    # amount = 10 * 10 * data.years
+
+    # JRecurlyCharge.charge client,
+    #   code   : 'domain_abc'
+    #   amount : amount
+    #   desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"
+    # , callback
 
   bound: require 'koding-bound'
 
