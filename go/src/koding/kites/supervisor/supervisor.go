@@ -43,7 +43,6 @@ func main() {
 		"vm.destroy":   "Destroy",
 		"vm.start":     "Start",
 		"vm.stop":      "Stop",
-		"vm.shutdown":  "Shutdown",
 		"vm.prepare":   "Prepare",
 		"vm.unprepare": "Unprepare",
 	}
@@ -140,27 +139,6 @@ func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	fmt.Println("stopping", params.ContainerName)
 	c := container.NewContainer(params.ContainerName)
 	err := c.Stop()
-	if err != nil {
-		return err
-	}
-
-	*result = true
-	return nil
-}
-
-func (s *Supervisor) Shutdown(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-		Timeout       int
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Timeout == 0 {
-		return errors.New("{ containerName: [string], timeout : [int]}")
-	}
-
-	fmt.Println("shutdown", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
-	err := c.Shutdown(params.Timeout)
 	if err != nil {
 		return err
 	}

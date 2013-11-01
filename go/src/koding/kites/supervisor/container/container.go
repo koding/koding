@@ -243,15 +243,6 @@ func (c *Container) Stop() error {
 	return nil
 }
 
-func (c *Container) Shutdown(timeout int) error {
-	err := c.Lxc.Shutdown(timeout)
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
-	}
-
-	return nil
-}
-
 func (c *Container) Destroy() error {
 	return c.Lxc.Destroy()
 }
