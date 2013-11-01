@@ -98,6 +98,20 @@ func TestContainer_GenerateOverlayFiles(t *testing.T) {
 	}
 }
 
+func TestContainer_CreateUserHome(t *testing.T) {
+	c := NewContainer(ContainerName)
+	c.HostnameAlias = "vagrant"
+	c.LdapPassword = "123456789"
+	c.IP = net.ParseIP("127.0.0.1")
+	c.Username = "testing"
+	c.WebHome = "testing"
+
+	if err := c.createUserHome(); err != nil {
+		t.Errorf("CreateUserHome %s ", err)
+	}
+
+}
+
 // func TestContainer_Create(t *testing.T) {
 // 	c := NewContainer(ContainerName)
 
