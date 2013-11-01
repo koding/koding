@@ -134,8 +134,13 @@ class NFinderTreeController extends JTreeViewController
 
     failCallback = (err)=>
       unless silence
-        KD.logToExternal "Couldn't fetch files"
-        @notify "Couldn't fetch files! Click to retry", 'clickable', \
+        if err?.message?.match /permission denied/i
+          message = "Permission denied!"
+          KD.logToExternal "Couldn't fetch files, permission denied"
+        else
+          message = "Couldn't fetch files! Click to retry"
+          KD.logToExternal "Couldn't fetch files"
+        @notify message, 'clickable', \
                 """Sorry, a problem occured while communicating with servers,
                    please try again later.""", yes
         @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
