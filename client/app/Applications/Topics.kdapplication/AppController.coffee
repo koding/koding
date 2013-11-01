@@ -24,7 +24,7 @@ class TopicsAppController extends AppController
   createFeed:(view, loadFeed = no)->
     {JTag} = KD.remote.api
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
-      feedId                : 'Topics.main'
+      feedId                : 'topics.main'
       itemClass             : @listItemClass
       limitPerPage          : 20
       useHeaderNav          : yes
