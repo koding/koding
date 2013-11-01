@@ -194,7 +194,7 @@ class ActivityAppController extends AppController
   listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>
       @extractCacheTimeStamps sanitizedCache
-      @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, yes
+      @listController.listActivitiesFromCache sanitizedCache
       callback sanitizedCache
 
   fetchPublicActivities:(options = {})->
