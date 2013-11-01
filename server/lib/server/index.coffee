@@ -345,11 +345,12 @@ app.all '/:name/:section?*', (req, res, next)->
       JName.fetchModels name, (err, models)->
         if err then next err
         else unless models? then res.send 404, error_404()
-        else
+        else if models.last?
           models.last.fetchHomepageView account, (err, view)->
             if err then next err
             else if view? then res.send view
             else res.send 500, error_500()
+        else next()
 
 app.get "/", (req, res, next)->
 

@@ -118,10 +118,10 @@ module.exports = class JName extends Model
       if 'string' is typeof name
         @one {name}, (err, nameObj)->
           if err then next err
-          else if nameObj? then fetchByNameObject nameObj, callback
+          else if nameObj?
+            fetchByNameObject nameObj, callback
           else
-            console.log 'models not found!', name
-            callback null, []
+            callback null
       else
         fetchByNameObject name, callback
 
