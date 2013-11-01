@@ -210,10 +210,7 @@ func (s *Supervisor) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error
 
 	fmt.Printf("unpreparing container '%s'\n", params.ContainerName)
 	c := container.NewContainer(params.ContainerName)
-
-	// these values are needed for templating. will be changed later
-	// with a template struct.
-	c.IP = vm.IP
+	c.IP = vm.IP // needed for removing static route and ebtables in unprepare
 
 	err = c.Unprepare()
 	if err != nil {
@@ -253,7 +250,6 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 		return err
 	}
 
-	fmt.Printf("preparing container '%s'\n", params.ContainerName)
 	c := container.NewContainer(params.ContainerName)
 
 	// these values are needed for templating. will be changed later
@@ -264,6 +260,8 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	c.WebHome = vm.WebHome
 	c.Username = user.Name
 	c.Useruid = user.Uid
+	fmt.Printf("preparing container '%s' for user '%s' with uid '%d'\n",
+		params.ContainerName, user.Name, user.Uid)
 
 	err = c.Prepare()
 	if err != nil {

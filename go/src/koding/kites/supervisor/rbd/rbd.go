@@ -40,7 +40,7 @@ func (r *RBD) Info(image string) ([]byte, error) {
 			return nil, fmt.Errorf("rbd info failed. err: %s\nout: %s\n", err, out)
 		}
 
-		return nil, err
+		return nil, nil // means there is no image
 	}
 
 	return out, nil
