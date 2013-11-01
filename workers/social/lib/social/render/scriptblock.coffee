@@ -84,7 +84,9 @@ module.exports = (options = {}, callback)->
     skip  : 0
     sort  : 'counts.followers' : -1
 
-  queue.push do ->
+  generateScript = ->
+    html = createHTML()
+    return callback null, html
     fetchMembersFromGraph (err, members)->
       prefetchedFeeds['members.main'] = members  if members
       queue.fin()
