@@ -371,12 +371,12 @@ app.get "/", (req, res, next)->
           console.error err
         else if loggedIn
           # go to koding activity
-          JGroup.render.loggedIn.kodingHome {client, account}, (err, activityPage)->
+          JGroup.render.loggedIn.kodingHome {client, account, bongoModels}, (err, activityPage)->
             return next()  if err
             serve activityPage, res
         else
           # go to koding home
-          JGroup.render.loggedOut.kodingHome {client}, (err, homePage)->
+          JGroup.render.loggedOut.kodingHome {client, account, bongoModels}, (err, homePage)->
             return next()  if err
             serve homePage, res
 
