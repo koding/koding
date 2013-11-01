@@ -69,9 +69,11 @@ class GroupPlanAddProductsModal extends KDModalView
 
     plan.quantities = quantities
 
-    plan.modify { quantities }, callback
+    plan.modify { quantities }, (err) =>
+      return callback err  if err
+      callback null
 
-    @emit 'ProductsAdded'
+      @emit 'ProductsAdded'
 
   setProducts: (products) ->
     @loader.hide()
