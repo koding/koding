@@ -51,12 +51,17 @@ class DomainCreationForm extends KDCustomHTMLView
     @tabs.addPane @subDomainPane
 
   checkDomainAvailability: ->
+    {message}             = @newDomainEntryForm
     {createButton}        = @newDomainEntryForm.buttons
     {domains, domainName} = @newDomainEntryForm.inputs
     domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
     {getDomainInfo, getDomainSuggestions} = KD.remote.api.JDomain
 
     @newDomainEntryForm.domainList?.setClass 'out'
+
+    # Maybe a CSS hero can remove these br with some alternative styles ~GG
+    message.updatePartial "<br/> Checking for availability..."
+    message.setClass 'in'
 
     getDomainInfo domainName, (err, status)=>
 
@@ -68,11 +73,20 @@ class DomainCreationForm extends KDCustomHTMLView
         @newDomainEntryForm.setAvailableDomainsData \
           [{domain:domainName, price:status.price}]
         createButton.hideLoader()
+        message.updatePartial "<br/> Yay it's available!"
+
       else
         @newDomainEntryForm.domainList?.destroy?()
+        message.updatePartial "<br/> Checking for alternatives..."
         getDomainSuggestions domainName, (err, suggestions)=>
           createButton.hideLoader()
           return warn err if err
+          result = "Sorry, <b>#{domainName}</b> is taken,"
+          if suggestions.length > 0
+            result = "#{result}<br/>but we found following alternatives:"
+          else
+            result = "#{result}<br/>and we couldn't find any alternative."
+          message.updatePartial result
           @newDomainEntryForm.setAvailableDomainsData suggestions
 
   createSubDomain: ->
@@ -190,6 +204,9 @@ class CommonDomainCreationForm extends KDFormViewWithFields
           type              : "submit"
           loader            : {color : "#ffffff", diameter : 10}
       , data
+
+    @addSubView @message = new KDCustomHTMLView
+      cssClass : 'status-message'
 
     if options.createButtonAnimated
       # Add working animations for create button

@@ -775,6 +775,50 @@ div.environments-add-domain-form
   .domain-tabs
     height              auto
 
+    .status-message
+      top               64px
+      left              64px
+      opacity           0
+      vendor            transition, opacity  .2s ease-in\,
+                                    left     .3s ease-in
+      abs()
+
+      &.in
+        left            4px
+        opacity         1
+
+    .domain-list
+      margin-top        5px
+      vendor            transition, opacity  .3s ease-out\,
+                                    left     .2s ease-out
+      &.out
+        left            30px
+        opacity         0
+
+    .domain-buy-items
+      padding           10px
+      background        rgba(255,255,255,.6)
+      border-radius     2px
+      border            1px solid #ccc
+      margin-top        6px
+      width             418px
+      height            16px
+
+      h1
+        font-size       14px
+
+      button
+        width           42px
+        right           6px
+        top             6px
+        abs()
+
+      .kdselectbox
+        height          22px
+        right           55px
+        top             6px
+        abs()
+
   form.new-domain-form
     padding             0
     margin              0
