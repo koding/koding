@@ -137,7 +137,8 @@ class CollaborativeWorkspace extends Workspace
     notValid.addSubView new KDButtonView
       cssClass : "cupid-green"
       title    : "Start New Session"
-      callback : @bound "startNewSession"
+      callback : =>
+        @startNewSession()
 
     @container.addSubView notValid
     @loader.hide()
