@@ -57,7 +57,7 @@ class DomainCreationForm extends KDCustomHTMLView
     domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
     {getDomainInfo, getDomainSuggestions} = KD.remote.api.JDomain
 
-    @newDomainEntryForm.domainList?.setClass 'out'
+    @newDomainEntryForm.domainList?.unsetClass 'in'
 
     # Maybe a CSS hero can remove these br with some alternative styles ~GG
     message.updatePartial "<br/> Checking for availability..."
@@ -208,16 +208,6 @@ class CommonDomainCreationForm extends KDFormViewWithFields
     @addSubView @message = new KDCustomHTMLView
       cssClass : 'status-message'
 
-    if options.createButtonAnimated
-      # Add working animations for create button
-      @buttons.createButton.showLoader = ->
-        KDButtonView::showLoader.call this
-        @setClass 'working'
-
-      @buttons.createButton.hideLoader = ->
-        KDButtonView::hideLoader.call this
-        @unsetClass 'working'
-
   submit:->
     @buttons.createButton.hideLoader()
     @off  "FormValidationPassed"
@@ -237,7 +227,6 @@ class DomainBuyForm extends CommonDomainCreationForm
   constructor:(options = {}, data)->
     super
       placeholder : "Type your awesome domain..."
-      createButtonAnimated : yes
     , data
 
     @domainList = null
@@ -257,6 +246,8 @@ class DomainBuyForm extends CommonDomainCreationForm
 
     for domain in domains
       @domainList.addSubView new DomainBuyItem {}, domain
+
+    @utils.defer => @domainList.setClass 'in'
 
 class DomainBuyItem extends JView
 
