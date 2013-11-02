@@ -68,7 +68,6 @@ func TestContainer_GenerateFiles(t *testing.T) {
 
 func TestContainer_MountRBD(t *testing.T) {
 	c := NewContainer(ContainerName)
-
 	if err := c.MountRBD(); err != nil {
 		t.Errorf("Could not mount rbd '%s'", err)
 	}
@@ -79,21 +78,94 @@ func TestContainer_MountRBD(t *testing.T) {
 	}
 
 	if !mounted {
-		t.Error("Overlay is not mounted")
+		t.Error("Overlay is not mounted. It should be mounted after MountAufs()")
 	}
 
+}
+
+func TestContainer_MountAufs(t *testing.T) {
+	c := NewContainer(ContainerName)
+
+	if err := c.MountAufs(); err != nil {
+		t.Errorf("Could not mount aufs '%s'", err)
+	}
+
+	mounted, err := c.CheckMount(c.Path("rootfs"))
+	if err != nil {
+		t.Error("Could not check mount state of aufs rootfs", err)
+	}
+
+	if !mounted {
+		t.Error("Aufs rootfs is not mounted. It should be mounted after MountAufs()")
+	}
+
+}
+
+func TestContainer_MountPts(t *testing.T) {
+	c := NewContainer(ContainerName)
+
+	if err := c.PrepareAndMountPts(); err != nil {
+		t.Errorf("Could not mount pts '%s'", err)
+	}
+
+	mounted, err := c.CheckMount(c.PtsDir())
+	if err != nil {
+		t.Error("Could not check mount state of pts dir", err)
+	}
+
+	if !mounted {
+		t.Error("Pts dir is not mounted. It should be mounted after PrepareAndMountPts()")
+	}
+}
+
+func TestContainer_UmountPts(t *testing.T) {
+	c := NewContainer(ContainerName)
+
+	if err := c.UmountPts(); err != nil {
+		t.Errorf("Could not mount pts '%s'", err)
+	}
+
+	mounted, err := c.CheckMount(c.PtsDir())
+	if err != nil {
+		t.Error("Could not check mount state of pts dir", err)
+	}
+
+	if mounted {
+		t.Error("Pts dir is mounted. It should be unmounted after UmountPts()")
+	}
+}
+
+func TestContainer_UmountAufs(t *testing.T) {
+	c := NewContainer(ContainerName)
+	if err := c.UmountAufs(); err != nil {
+		t.Errorf("Could not umount rbd '%s'", err)
+	}
+
+	mounted, err := c.CheckMount(c.Path("rootfs"))
+	if err != nil {
+		t.Error("Could not check mount state of aufs rootfs", err)
+	}
+
+	if mounted {
+		t.Error("Aufs rootfs is mounted. It should be unmounted after UmountAufs()")
+	}
+}
+
+func TestContainer_UmountRBD(t *testing.T) {
+	c := NewContainer(ContainerName)
 	if err := c.UmountRBD(); err != nil {
 		t.Errorf("Could not umount rbd '%s'", err)
 	}
 
-	mounted, err = c.CheckMount(c.OverlayPath(""))
+	mounted, err := c.CheckMount(c.OverlayPath(""))
 	if err != nil {
 		t.Error("Could not check mount state of overlay path", err)
 	}
 
 	if mounted {
-		t.Error("Overlay is mounted. It should be unnmounted after UmountRBD(")
+		t.Error("Overlay is mounted. It should be unnmounted after UmountRBD()")
 	}
+
 }
 
 func TestContainer_GenerateOverlayFiles(t *testing.T) {

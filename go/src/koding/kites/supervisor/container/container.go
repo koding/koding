@@ -60,6 +60,11 @@ func init() {
 		os.Exit(1)
 	}
 
+	if os.Geteuid() != 0 {
+		fmt.Println("running as non-root")
+		os.Exit(1)
+	}
+
 	loadTemplates()
 }
 

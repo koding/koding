@@ -31,7 +31,7 @@ func (c *Container) Prepare() error {
 		return err
 	}
 
-	err = c.MergingFiles()
+	err = c.MergeFiles()
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (c *Container) MountRBD() error {
 	return nil
 }
 
-// IsMounted returns true if the given path/filesystem is mounted.
+// CheckMount returns true if the given path/filesystem is mounted.
 func (c *Container) CheckMount(path string) (bool, error) {
 	// mountpoint returns with exit status 0 when the mountpoint is available
 	// or it returns exit status 1.
@@ -217,7 +217,7 @@ func (c *Container) CreateOverlay() error {
 	return nil
 }
 
-func (c *Container) MergingFiles() error {
+func (c *Container) MergeFiles() error {
 	c.MergePasswdFile()
 	c.MergeGroupFile()
 	c.MergeDpkgDatabase()
@@ -232,7 +232,6 @@ func (c *Container) MountAufs() error {
 		return err
 	}
 
-	fmt.Println("mounting aufs")
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", c.OverlayPath(""), vmRoot+"/rootfs/"),
 		"aufs", c.Path("rootfs")).CombinedOutput()
@@ -244,7 +243,10 @@ func (c *Container) MountAufs() error {
 }
 
 func (c *Container) PrepareAndMountPts() error {
-	c.AsContainer().PrepareDir(c.PtsDir())
+	err := c.AsContainer().PrepareDir(c.PtsDir())
+	if err != nil {
+		return err
+	}
 
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
 		"rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootUIDOffset+5)+",mode=0620,ptmxmode=0666",
