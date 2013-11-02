@@ -310,6 +310,7 @@ class LoginView extends KDScrollView
       if firstRoute and /^\/Verify/.test firstRoute
         firstRoute = "/"
 
+      KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView
