@@ -49,17 +49,17 @@ class ApplicationManager extends KDObject
 
   open: do ->
 
-    createOrShow = (appOptions, appParams, callback = noop)->
+    createOrShow = (appOptions = {}, appParams, callback = noop)->
 
-      appManager  = KD.getSingleton "appManager"
-      name        = appOptions?.name
+      name = appOptions?.name
+      return @handleAppNotFound()  unless name
 
-      return appManager.handleAppNotFound()  unless name
+      appInstance = @get name
+      cb = if appParams.background or appOptions.background
+      then -> KD.utils.defer callback
+      else @show.bind this, name, appParams, callback
 
-      appInstance = appManager.get name
-      cb          = -> appManager.show appOptions, callback
-      if appInstance then do cb
-      else appManager.create name, appParams, cb
+      if appInstance then cb() else @create name, appParams, cb
 
     (name, options, callback)->
 
@@ -69,7 +69,7 @@ class ApplicationManager extends KDObject
       options            or= {}
       appOptions           = KD.getAppOptions name
       appParams            = options.params or {}
-      defaultCallback      = -> createOrShow appOptions, appParams, callback
+      defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
       kodingAppsController = KD.getSingleton("kodingAppsController")
 
       # If app has a preCondition then first check condition in it
@@ -214,12 +214,10 @@ class ApplicationManager extends KDObject
         KD.getSingleton("kodingAppsController").putAppResources appInstance, callback
       callback? appInstance
 
-  show:(appOptions, callback)->
+  show:(name, appParams, callback)->
 
-    appInstance = @get appOptions.name
-
-    if appOptions.background
-      return @utils.defer -> callback? appInstance
+    appOptions  = KD.getAppOptions name
+    appInstance = @get name
 
     appView     = appInstance.getView?()
     return unless appView

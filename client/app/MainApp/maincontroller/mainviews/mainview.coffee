@@ -12,7 +12,9 @@ class MainView extends KDView
     @createChatPanel()
     @listenWindowResize()
 
-    @utils.defer => @_windowDidResize()
+    @utils.defer =>
+      @_windowDidResize()
+      @emit 'ready'
 
   bindPulsingRemove:->
     router     = KD.getSingleton 'router'

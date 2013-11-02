@@ -9,7 +9,10 @@ class ActivityAppController extends AppController
       path       : "/Activity"
       order      : 10
 
+
   {dash} = Bongo
+
+  USEDFEEDS = []
 
   activityTypes = [
     'Everything'
@@ -194,21 +197,31 @@ class ActivityAppController extends AppController
   listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>
       @extractCacheTimeStamps sanitizedCache
-      @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, yes
+      @listController.listActivitiesFromCache sanitizedCache
       callback sanitizedCache
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
-    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+
+    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
+      if KD.prefetchedFeeds["activity.main"] and 'activities.main' not in USEDFEEDS
+        log "exhausting feed:", "activity.main"
+        USEDFEEDS.push 'activities.main'
+        return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
+
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
       return @emit "activitiesCouldntBeFetched", err  if err
+      @prepareCacheForListing  cache
 
-      cache.overview.reverse()  if cache.overview
+  prepareCacheForListing: (cache)->
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      @sanitizeCache cache, (err, sanitizedCache)=>
-        if err
-        then @emit "activitiesCouldntBeFetched", err
-        else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
+    cache.overview.reverse()  if cache.overview
+
+    @sanitizeCache cache, (err, sanitizedCache)=>
+      if err
+      then @emit "activitiesCouldntBeFetched", err
+      else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
 
 
   fetchFollowingActivities:(options = {})->
