@@ -1,14 +1,13 @@
 package container
 
 import (
-	"fmt"
 	"net"
 	"os"
 	"testing"
 )
 
 const (
-	ContainerName = "testContainer"
+	ContainerName = "tt"
 	ContainerType = "busybox"
 	PrepareHost   = "vagrant"
 	PrepareName   = "vm-test"
@@ -65,7 +64,36 @@ func TestContainer_GenerateFiles(t *testing.T) {
 			t.Errorf("Generatefile: %s does not exist", file.fileName)
 		}
 	}
+}
 
+func TestContainer_MountRBD(t *testing.T) {
+	c := NewContainer(ContainerName)
+
+	if err := c.MountRBD(); err != nil {
+		t.Errorf("Could not mount rbd '%s'", err)
+	}
+
+	mounted, err := c.CheckMount(c.OverlayPath(""))
+	if err != nil {
+		t.Error("Could not check mount state of overlay path", err)
+	}
+
+	if !mounted {
+		t.Error("Overlay is not mounted")
+	}
+
+	if err := c.UmountRBD(); err != nil {
+		t.Errorf("Could not umount rbd '%s'", err)
+	}
+
+	mounted, err = c.CheckMount(c.OverlayPath(""))
+	if err != nil {
+		t.Error("Could not check mount state of overlay path", err)
+	}
+
+	if mounted {
+		t.Error("Overlay is mounted. It should be unnmounted after UmountRBD(")
+	}
 }
 
 func TestContainer_GenerateOverlayFiles(t *testing.T) {

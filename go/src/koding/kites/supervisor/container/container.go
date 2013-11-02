@@ -161,7 +161,6 @@ func (c *Container) CopyFile(src, dst string) error {
 // method which sets the UID and GUID. An example call might be:
 // c.AsContainer().Chown("example.txt")
 func (c *Container) Chown(name string) error {
-	fmt.Println("chowning ", name, c.UID)
 	return os.Chown(name, c.UID, c.UID)
 }
 

@@ -5,7 +5,6 @@ import (
 	"koding/kites/supervisor/rbd"
 	"os"
 	"os/exec"
-	"path"
 	"strconv"
 	"syscall"
 	"time"
@@ -15,24 +14,24 @@ import (
 // with lxc.start. We don't use lxc.create (which uses shell scipts for
 // templating). Instead we use this method which basically let us do things
 // more simpler. It creates the home directory, generates files like lxc.conf
-// and mounts the necessary disks.
+// and mounts the necessary filesystems.
 func (c *Container) Prepare() error {
 	err := c.CreateContainerDir()
 	if err != nil {
 		return err
 	}
 
-	err := c.MountRBD()
+	err = c.MountRBD()
 	if err != nil {
 		return err
 	}
 
-	err := c.CreateOverlay()
+	err = c.CreateOverlay()
 	if err != nil {
 		return err
 	}
 
-	err := c.MergingFiles()
+	err = c.MergingFiles()
 	if err != nil {
 		return err
 	}
@@ -65,8 +64,7 @@ func (c *Container) Prepare() error {
 	return nil
 }
 
-func (c *Container) CreateContainerDir() {
-	fmt.Println("generating lxc files")
+func (c *Container) CreateContainerDir() error {
 	err := c.AsHost().PrepareDir(c.Path(""))
 	if err != nil {
 		return err // for now just check this, no need for others
@@ -80,7 +78,6 @@ func (c *Container) CreateContainerDir() {
 }
 
 func (c *Container) MountRBD() error {
-	fmt.Println("mounting rbd")
 	r := rbd.NewRBD(c.Name)
 
 	out, err := r.Info(c.Name)
@@ -141,6 +138,15 @@ func (c *Container) MountRBD() error {
 		return err
 	}
 
+	mounted, err := c.CheckMount(mountDir)
+	if err != nil {
+		return err
+	}
+
+	if mounted {
+		return nil
+	}
+
 	if out, err := exec.Command("/bin/mount", "-t", "ext4", r.Device, mountDir).CombinedOutput(); err != nil {
 		os.Remove(mountDir)
 		return fmt.Errorf("mount rbd failed. err: %s\nout:%s\n", err, string(out))
@@ -149,8 +155,53 @@ func (c *Container) MountRBD() error {
 	return nil
 }
 
+// IsMounted returns true if the given path/filesystem is mounted.
+func (c *Container) CheckMount(path string) (bool, error) {
+	// mountpoint returns with exit status 0 when the mountpoint is available
+	// or it returns exit status 1.
+	cmd := exec.Command("/bin/mountpoint", "-q", path+"/")
+	err := cmd.Run()
+	if err == nil {
+		return true, nil // exit status 0, means mounted
+	}
+
+	_, ok := err.(*exec.ExitError)
+	if !ok {
+		// means mountpoint couldn't be invoked or the binary is not
+		// avilable. Check what the returning err is saying.
+		return false, err
+	}
+
+	return false, nil // exit status 1, means not mounted
+}
+
+func (c *Container) CheckExt4(device string) error {
+	// check/correct filesystem
+	out, err := exec.Command("/sbin/fsck.ext4", "-p", device).CombinedOutput()
+	if err == nil {
+		return nil
+	}
+
+	exitError, ok := err.(*exec.ExitError)
+	if ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 4 {
+		return fmt.Errorf("fsck.ext4 failed %s. %s %s", c.HostnameAlias, err, string(out))
+	}
+
+	out, err = exec.Command("/sbin/fsck.ext4", "-y", device).CombinedOutput()
+	if err == nil {
+		return nil
+	}
+
+	exitError, ok = err.(*exec.ExitError)
+	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
+		return fmt.Errorf("fsck.ext4 could not automatically repair FS for %s. err '%s', out: '%s;",
+			c.HostnameAlias, err, string(out))
+	}
+
+	return nil
+}
+
 func (c *Container) CreateOverlay() error {
-	fmt.Println("generating  overlay files")
 	err := c.AsContainer().PrepareDir(c.OverlayPath("")) //for chown
 	if err != nil {
 		return err // for now just check this, no need for others
@@ -167,17 +218,16 @@ func (c *Container) CreateOverlay() error {
 }
 
 func (c *Container) MergingFiles() error {
-	fmt.Println("merging files")
 	c.MergePasswdFile()
 	c.MergeGroupFile()
 	c.MergeDpkgDatabase()
+	return nil
 }
 
 // mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 // under "/var/lib/lxc/vm-{id}/rootfs"
 func (c *Container) MountAufs() error {
-	fmt.Println("creating empty rootfs for aufs")
-	err = c.AsContainer().PrepareDir(c.Path("rootfs"))
+	err := c.AsContainer().PrepareDir(c.Path("rootfs"))
 	if err != nil {
 		return err
 	}
@@ -194,7 +244,6 @@ func (c *Container) MountAufs() error {
 }
 
 func (c *Container) PrepareAndMountPts() error {
-	fmt.Println("preparing and mounting pts")
 	c.AsContainer().PrepareDir(c.PtsDir())
 
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
@@ -210,9 +259,8 @@ func (c *Container) PrepareAndMountPts() error {
 	return nil
 }
 
+// AddEbtablesRule adds entries to restrict IP and MAC
 func (c *Container) AddEbtablesRule() error {
-	fmt.Println("add ebtables rules")
-	// add ebtables entry to restrict IP and MAC
 	out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source",
 		c.MAC().String(), "--ip-src", c.IP.String(), "--in-interface", c.VEth(),
 		"--jump", "ACCEPT").CombinedOutput()
@@ -223,9 +271,8 @@ func (c *Container) AddEbtablesRule() error {
 	return nil
 }
 
+//AddStaticRoute adds a route so it is redistributed by BGP
 func (c *Container) AddStaticRoute() error {
-	fmt.Println("add static route")
-	// add a static route so it is redistributed by BGP
 	out, err := exec.Command("/sbin/route", "add", c.IP.String(), "lxcbr0").CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("adding route failed. err: %s\n out:%s\n", err, out)
@@ -235,7 +282,6 @@ func (c *Container) AddStaticRoute() error {
 }
 
 func (c *Container) PrepareHomeDirectory() error {
-	fmt.Println("prepare home directories")
 	// make sure that executable flag is set
 	os.Chmod(c.Path("rootfs/"), 0755)
 	os.Chmod(c.Path("rootfs/home"), 0755)
@@ -258,21 +304,17 @@ func (c *Container) PrepareHomeDirectory() error {
 func (c *Container) createUserHome() error {
 	homeDir := c.Path(fmt.Sprintf("rootfs/home/%s", c.Username))
 
-	fmt.Println("creating user home:...", homeDir)
 	if info, err := os.Stat(homeDir); !os.IsNotExist(err) {
 		// make sure that user read and executable flag is set
-		fmt.Println("username exist", info.Name(), info.IsDir())
 		return os.Chmod(homeDir, info.Mode().Perm()|0511)
 	}
 
-	fmt.Println("home directory does not exist", c.Username)
 	// home directory does not exist, create it
 	err := os.MkdirAll(homeDir, 0755)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("chowning ", homeDir)
 	err = c.AsUser().Lchown(homeDir)
 	if err != nil {
 		return err
@@ -339,7 +381,6 @@ func (c *Container) copyIntoContainer(src, dst string) error {
 	if fi.Name() == "empty-directory" {
 		// ignored file
 	} else if fi.IsDir() {
-		fmt.Println("src is a dir:", src, path.Base(src))
 		err := os.Mkdir(dst, fi.Mode())
 		if err != nil && !os.IsExist(err) {
 			return err
@@ -361,38 +402,10 @@ func (c *Container) copyIntoContainer(src, dst string) error {
 			}
 		}
 	} else {
-		fmt.Printf("copying from '%s' to '%s'\n", src, dst)
 		err := c.AsUser().CopyFile(src, dst)
 		if err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (c *Container) CheckExt4(device string) error {
-	// check/correct filesystem
-	out, err := exec.Command("/sbin/fsck.ext4", "-p", device).CombinedOutput()
-	if err == nil {
-		return nil
-	}
-
-	exitError, ok := err.(*exec.ExitError)
-	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() == 4 {
-		return fmt.Errorf(fmt.Sprintf("fsck.ext4 failed %s. %s %s", c.HostnameAlias), err,
-			string(out))
-	}
-
-	out, err = exec.Command("/sbin/fsck.ext4", "-y", device).CombinedOutput()
-	if err == nil {
-		return nil
-	}
-
-	exitError, ok = err.(*exec.ExitError)
-	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-		return fmt.Errorf(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.",
-			c.HostnameAlias), err, string(out))
 	}
 
 	return nil

@@ -11,7 +11,7 @@ import (
 
 // Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
 // (which purges the container immediately). Instead we use this method which
-// basically let us unmount previously mounted disks, remove generated files,
+// basically let us umount previously mounted disks, remove generated files,
 // etc. It doesn't remove the home folder or any newly created system files.
 // Those files will be stored in the vmroot.
 func (c *Container) Unprepare() error {
@@ -51,20 +51,17 @@ func (c *Container) Unprepare() error {
 
 	}
 
-	fmt.Println("unmount pts")
-	err := c.UnmountPts()
+	err := c.UmountPts()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("unmount aufs")
-	err = c.UnmountAufs()
+	err = c.UmountAufs()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("unmount rbd")
-	err = c.UnmountRBD()
+	err = c.UmountRBD()
 	if err != nil {
 		return err
 	}
@@ -103,7 +100,7 @@ func (c *Container) RemoveStaticRoute() error {
 	return nil
 }
 
-func (c *Container) UnmountPts() error {
+func (c *Container) UmountPts() error {
 	out, err := exec.Command("/bin/umount", c.PtsDir()).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("umount devpts failed. err: %s\n out:%s\n", err, string(out))
@@ -112,7 +109,7 @@ func (c *Container) UnmountPts() error {
 	return nil
 }
 
-func (c *Container) UnmountAufs() error {
+func (c *Container) UmountAufs() error {
 	out, err := exec.Command("/sbin/auplink", c.Path("rootfs"), "flush").CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("aufs flush failed. err: %s\n out:%s\n", err, string(out))
@@ -126,21 +123,17 @@ func (c *Container) UnmountAufs() error {
 	return nil
 }
 
-func (c *Container) UnmountRBD() error {
-	r := rbd.NewRBD(c.Name)
-
+func (c *Container) UmountRBD() error {
 	out, err := exec.Command("/bin/umount", c.OverlayPath("")).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("umount overlay failed. err: %s\n out:%s\n", err, string(out))
 	}
-	fmt.Println("ouput of umount", c.OverlayPath(""), string(out), err)
 
+	r := rbd.NewRBD(c.Name)
 	out, err = r.Unmap()
 	if err != nil {
 		return fmt.Errorf("rbd unmap failed. err: %s\n out:%s\n", err, string(out))
 	}
-
-	fmt.Println("ouput of umap", string(out), err)
 
 	return nil
 
