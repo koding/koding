@@ -118,6 +118,43 @@ func TestContainer_MountPts(t *testing.T) {
 	}
 }
 
+func TestContainer_AddEbtablesRule(t *testing.T) {
+	c := NewContainer(ContainerName)
+	c.IP = net.ParseIP("127.0.0.1")
+
+	if err := c.AddEbtablesRule(); err != nil {
+		t.Errorf("Could not add ebtables rule '%s'", err)
+	}
+
+	available, err := c.CheckEbtables()
+	if err != nil {
+		t.Error("Could not check ebtables for IP: '%s'", c.IP.String())
+	}
+
+	if !available {
+		t.Errorf("Ebtables rule for IP '%s' is not available. It should be available after AddEbtablesRule()", c.IP.String())
+	}
+
+}
+
+func TestContainer_RemoveEbtablesRule(t *testing.T) {
+	c := NewContainer(ContainerName)
+	c.IP = net.ParseIP("127.0.0.1")
+
+	if err := c.RemoveEbtablesRule(); err != nil {
+		t.Errorf("Could not remove ebtables rule '%s'", err)
+	}
+
+	available, err := c.CheckEbtables()
+	if err != nil {
+		t.Error("Could not check ebtables for IP: '%s'", c.IP.String())
+	}
+
+	if available {
+		t.Errorf("Ebtables rule for IP '%s' is available. It should be not available after AddEbtablesRule()", c.IP.String())
+	}
+}
+
 func TestContainer_UmountPts(t *testing.T) {
 	c := NewContainer(ContainerName)
 

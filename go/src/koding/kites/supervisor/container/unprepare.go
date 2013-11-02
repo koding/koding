@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"regexp"
 )
 
 // Unprepare is basically the inverse of Prepare. We don't use lxc.destroy
@@ -79,6 +80,15 @@ func (c *Container) Unprepare() error {
 }
 
 func (c *Container) RemoveEbtablesRule() error {
+	isAvailable, err := c.CheckEbtables()
+	if err != nil {
+		return err
+	}
+
+	if !isAvailable {
+		return nil
+	}
+
 	// add ebtables entry to restrict IP and MAC
 	out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source",
 		c.MAC().String(), "--ip-src", c.IP.String(), "--in-interface", c.VEth(),
@@ -88,6 +98,16 @@ func (c *Container) RemoveEbtablesRule() error {
 	}
 
 	return nil
+}
+
+func (c *Container) CheckEbtables() (bool, error) {
+	cmd := exec.Command("/sbin/ebtables", "--list")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return false, err
+	}
+
+	return regexp.Match(c.IP.String(), out)
 }
 
 func (c *Container) RemoveStaticRoute() error {
