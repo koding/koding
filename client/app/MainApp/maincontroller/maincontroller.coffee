@@ -96,9 +96,10 @@ class MainController extends KDController
   doLogout:->
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
-      $.cookie 'clientId', replacementToken if replacementToken
       @_logoutAnimation()
-      KD.utils.wait 1100, -> location.reload()
+      KD.utils.wait 1000, ->
+        $.cookie 'clientId', replacementToken  if replacementToken
+        location.reload()
 
   _logoutAnimation:->
     mainView      = KD.getSingleton("mainView")
