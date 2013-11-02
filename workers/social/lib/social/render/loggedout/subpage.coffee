@@ -20,13 +20,11 @@ putSplash = (name, section, model)->
 
 module.exports = (options, callback)->
 
-  {account, name, section, models, bongoModels, client} = options
+  {name, section, models, bongoModels, client} = options
 
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   model        = models.first if models and Array.isArray models
-  isLoggedIn   = account.type is "registered"
-
 
   prepareHTML  = (scripts)->
     """
