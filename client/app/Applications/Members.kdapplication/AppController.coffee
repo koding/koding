@@ -41,6 +41,7 @@ class MembersAppController extends AppController
 
   createFeed:(view, loadFeed = no)->
     @appManager.tell 'Feeder', 'createContentFeedController', {
+      feedId                : 'members.main'
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       useHeaderNav          : no
@@ -113,6 +114,7 @@ class MembersAppController extends AppController
 
     @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
+      feedId                : "members.#{account.profile.username}"
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10

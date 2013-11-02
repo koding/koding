@@ -1,44 +1,3 @@
-module.exports = ({account, name, section, models})->
-
-  getStyles  = require './../styleblock'
-  getScripts = require './../scriptblock'
-  model      = models.first if models and Array.isArray models
-  isLoggedIn = account.type is "registered"
-
-  """
-  <!doctype html>
-  <html lang="en">
-  <head>
-    <title>Koding</title>
-    #{getStyles()}
-  </head>
-  <body class='koding'>
-
-    <!--[if IE]>
-    <script>(function(){window.location.href='/unsupported.html'})();</script>
-    <![endif]-->
-
-    <div id='main-loading' class="kdview main-loading">
-        <figure class="threed-logo">
-          <span class="line"><i></i></span>
-          <span class="line"><i></i></span>
-          <span class="line"><i></i></span>
-          <span class="line"><i></i></span>
-          <span class="line"><i></i></span>
-          <span class="line"><i></i></span>
-        </figure>
-      #{putSplash(name, section, model)}
-    </div>
-    <div class="kdview" id="kdmaincontainer">
-    </div>
-
-    #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
-    #{getScripts()}
-
-  </body>
-  </html>
-  """
-
 putSplash = (name, section, model)->
   name = if model?.title then model.title else section
   body = if model?.body  then model.body  else ""
@@ -58,3 +17,51 @@ putSplash = (name, section, model)->
 
   content  = "<figure class='splash'><h2 class='splash-title'>Please wait, #{title}:</h2>"
   content += "<h3 class='splash-name'>#{name.substr 0, 100}#{if name.length > 100 then '...' else ''}</h3></figure>"
+
+module.exports = (options, callback)->
+
+  {account, name, section, models, bongoModels, client} = options
+
+  getStyles    = require './../styleblock'
+  fetchScripts = require './../scriptblock'
+  model        = models.first if models and Array.isArray models
+  isLoggedIn   = account.type is "registered"
+
+
+  prepareHTML  = (scripts)->
+    """
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <title>Koding</title>
+      #{getStyles()}
+    </head>
+    <body class='koding'>
+
+      <!--[if IE]>
+      <script>(function(){window.location.href='/unsupported.html'})();</script>
+      <![endif]-->
+
+      <div id='main-loading' class="kdview main-loading">
+          <figure class="threed-logo">
+            <span class="line"><i></i></span>
+            <span class="line"><i></i></span>
+            <span class="line"><i></i></span>
+            <span class="line"><i></i></span>
+            <span class="line"><i></i></span>
+            <span class="line"><i></i></span>
+          </figure>
+        #{putSplash(name, section, model)}
+      </div>
+      <div class="kdview" id="kdmaincontainer">
+      </div>
+
+      #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
+      #{scripts}
+
+    </body>
+    </html>
+    """
+
+  fetchScripts {bongoModels, client}, (err, scripts)->
+    callback null, prepareHTML scripts

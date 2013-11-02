@@ -331,8 +331,8 @@ module.exports = class CActivity extends jraphical.Capsule
   @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
   @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'
 
-  @fetchPublicActivityFeed = secure (client, options, callback)->
-    @getCurrentGroup client, (err, group) =>
+  @_fetchPublicActivityFeed = (client, options, callback)->
+    @getCurrentGroup client, (err, group)=>
       if err then return callback err
       to = options.to
       to = if to then parseInt(to, 10) else Date.now()
@@ -353,3 +353,5 @@ module.exports = class CActivity extends jraphical.Capsule
         callback null, results
 
 
+  @fetchPublicActivityFeed = secure (client, options, callback)->
+    @_fetchPublicActivityFeed client, options, callback
