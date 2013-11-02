@@ -14,6 +14,16 @@ const (
 	ContainerIP   = "127.0.0.2"
 )
 
+var c = NewContainer(ContainerName)
+
+func init() {
+	c.HostnameAlias = "vagrant"
+	c.LdapPassword = "123456789"
+	c.IP = net.ParseIP(ContainerIP)
+	c.Username = "testing"
+	c.WebHome = "testing"
+}
+
 func exist(filename string) bool {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		return false
@@ -23,8 +33,6 @@ func exist(filename string) bool {
 }
 
 func TestNewContainer(t *testing.T) {
-	c := NewContainer(ContainerName)
-
 	if c.Name != ContainerName {
 		t.Errorf("NewContainer: exptecting: %s got: %s", ContainerName, c.Name)
 	}
@@ -38,10 +46,6 @@ func TestNewContainer(t *testing.T) {
 }
 
 func TestContainer_GenerateFiles(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.IP = net.ParseIP(ContainerIP)
-	c.HostnameAlias = "vagrant"
-
 	if err := c.AsHost().PrepareDir(c.Path("")); err != nil {
 		t.Errorf("Generatefile: %s ", err)
 	}
@@ -68,7 +72,6 @@ func TestContainer_GenerateFiles(t *testing.T) {
 }
 
 func TestContainer_MountRBD(t *testing.T) {
-	c := NewContainer(ContainerName)
 	if err := c.MountRBD(); err != nil {
 		t.Errorf("Could not mount rbd '%s'", err)
 	}
@@ -85,8 +88,6 @@ func TestContainer_MountRBD(t *testing.T) {
 }
 
 func TestContainer_MountAufs(t *testing.T) {
-	c := NewContainer(ContainerName)
-
 	if err := c.MountAufs(); err != nil {
 		t.Errorf("Could not mount aufs '%s'", err)
 	}
@@ -103,8 +104,6 @@ func TestContainer_MountAufs(t *testing.T) {
 }
 
 func TestContainer_MountPts(t *testing.T) {
-	c := NewContainer(ContainerName)
-
 	if err := c.PrepareAndMountPts(); err != nil {
 		t.Errorf("Could not mount pts '%s'", err)
 	}
@@ -120,7 +119,6 @@ func TestContainer_MountPts(t *testing.T) {
 }
 
 func TestContainer_AddEbtablesRule(t *testing.T) {
-	c := NewContainer(ContainerName)
 	c.IP = net.ParseIP(ContainerIP)
 
 	if err := c.AddEbtablesRule(); err != nil {
@@ -138,9 +136,6 @@ func TestContainer_AddEbtablesRule(t *testing.T) {
 }
 
 func TestContainer_AddStaticRoute(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.IP = net.ParseIP(ContainerIP)
-
 	if err := c.AddStaticRoute(); err != nil {
 		t.Errorf("Could not add static route rule '%s'", err)
 	}
@@ -156,9 +151,6 @@ func TestContainer_AddStaticRoute(t *testing.T) {
 }
 
 func TestContainer_RemoveStaticRoute(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.IP = net.ParseIP(ContainerIP)
-
 	if err := c.RemoveStaticRoute(); err != nil {
 		t.Errorf("Could not remove static route rule '%s'", err)
 	}
@@ -174,9 +166,6 @@ func TestContainer_RemoveStaticRoute(t *testing.T) {
 }
 
 func TestContainer_RemoveEbtablesRule(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.IP = net.ParseIP(ContainerIP)
-
 	if err := c.RemoveEbtablesRule(); err != nil {
 		t.Errorf("Could not remove ebtables rule '%s'", err)
 	}
@@ -192,8 +181,6 @@ func TestContainer_RemoveEbtablesRule(t *testing.T) {
 }
 
 func TestContainer_UmountPts(t *testing.T) {
-	c := NewContainer(ContainerName)
-
 	if err := c.UmountPts(); err != nil {
 		t.Errorf("Could not mount pts '%s'", err)
 	}
@@ -209,7 +196,6 @@ func TestContainer_UmountPts(t *testing.T) {
 }
 
 func TestContainer_UmountAufs(t *testing.T) {
-	c := NewContainer(ContainerName)
 	if err := c.UmountAufs(); err != nil {
 		t.Errorf("Could not umount rbd '%s'", err)
 	}
@@ -225,7 +211,6 @@ func TestContainer_UmountAufs(t *testing.T) {
 }
 
 func TestContainer_UmountRBD(t *testing.T) {
-	c := NewContainer(ContainerName)
 	if err := c.UmountRBD(); err != nil {
 		t.Errorf("Could not umount rbd '%s'", err)
 	}
@@ -242,11 +227,6 @@ func TestContainer_UmountRBD(t *testing.T) {
 }
 
 func TestContainer_GenerateOverlayFiles(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.HostnameAlias = "vagrant"
-	c.LdapPassword = "123456789"
-	c.IP = net.ParseIP(ContainerIP)
-
 	if err := c.AsContainer().PrepareDir(c.OverlayPath("")); err != nil {
 		t.Errorf("PrepareDir Overlay: %s ", err)
 	}
@@ -281,13 +261,6 @@ func TestContainer_GenerateOverlayFiles(t *testing.T) {
 }
 
 func TestContainer_CreateUserHome(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.HostnameAlias = "vagrant"
-	c.LdapPassword = "123456789"
-	c.IP = net.ParseIP(ContainerIP)
-	c.Username = "testing"
-	c.WebHome = "testing"
-
 	if err := c.createUserHome(); err != nil {
 		t.Errorf("Could not create home directory %s ", err)
 	}
