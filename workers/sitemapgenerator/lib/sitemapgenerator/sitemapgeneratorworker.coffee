@@ -84,13 +84,14 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
                 skip  : skip
               }
               JName.some selector, option, (err, names)=>
-                urls = (name.name for name in names) 
-                sitemapName =  @generateSitemapName groupPageNumber, skip
-                content = @generateSitemapString urls
-                @saveSitemap sitemapName, content
+                if names
+                  urls = (name.name for name in names) 
+                  sitemapName =  @generateSitemapName groupPageNumber, skip
+                  content = @generateSitemapString urls
+                  @saveSitemap sitemapName, content
 
-                groupQueue.sitemapNames or= []
-                groupQueue.sitemapNames.push sitemapName
+                  groupQueue.sitemapNames or= []
+                  groupQueue.sitemapNames.push sitemapName
                 queue.next()
             queue.push => groupQueue.next()
             daisy queue

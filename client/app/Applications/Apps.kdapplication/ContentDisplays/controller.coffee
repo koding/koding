@@ -10,7 +10,8 @@ class ContentDisplayControllerApps extends KDViewController
     app = @getData()
 
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
-    subHeader.addSubView backLink = new KDCustomHTMLView
+
+    backLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "<span>&laquo;</span> Back"
       attributes  :
@@ -19,6 +20,8 @@ class ContentDisplayControllerApps extends KDViewController
         event.stopPropagation()
         event.preventDefault()
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
+
+    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     contentDisplayController = KD.getSingleton "contentDisplayController"
 
