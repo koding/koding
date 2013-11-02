@@ -82,7 +82,9 @@ class DomainCreationForm extends KDCustomHTMLView
           createButton.hideLoader()
           return warn err if err
           result = "Sorry, <b>#{domainName}</b> is taken,"
-          if suggestions.length > 0
+          if suggestions.length is 1
+            result = "#{result}<br/>but we found an alternative:"
+          else if suggestions.length > 1
             result = "#{result}<br/>but we found following alternatives:"
           else
             result = "#{result}<br/>and we couldn't find any alternative."
@@ -181,7 +183,7 @@ class DomainCreationForm extends KDCustomHTMLView
 class CommonDomainCreationForm extends KDFormViewWithFields
   constructor:(options = {}, data)->
     super
-      cssClass              : KD.utils.curry "new-domain-form", options.cssClass
+      cssClass              : KD.utils.curry "new-domain-form",options.cssClass
       fields                :
         domainName          :
           name              : "domainInput"
@@ -256,16 +258,19 @@ class DomainBuyItem extends JView
 
     super options, data
 
+    price = (parseFloat @getData().price).toFixed 2
+    selectOptions = \
+      ({title: "#{i} year for $ #{(price * i).toFixed 2}", \
+        value: i} for i in [1..5])
+
+    @yearBox = new KDSelectBox {name:'year', selectOptions}
+
     @buyButton = new KDButtonView
       title    : "Buy"
       style    : "clean-gray"
       callback : ->
         alert 'Buy it'
 
-    price = (parseFloat @getData().price).toFixed 2
-    selectOptions = \
-      ({title: "#{i} year for $ #{(price * i).toFixed 2}" , value: i} for i in [1..5])
-    @yearBox = new KDSelectBox {name:'year', selectOptions}
 
   pistachio:->
     """
