@@ -6,10 +6,6 @@ module.exports = (options = {}, callback)->
 
   options.intro   ?= no
   options.client or= {}
-  options.client.context or= {}
-  options.client.context.group or= "koding"
-
-
 
   prefetchedFeeds = {}
   {bongoModels, client, intro} = options
@@ -97,11 +93,15 @@ module.exports = (options = {}, callback)->
   # todo  - implement this prefetching for all groups
 
   # do not fetch activity feed for unregistered users
-  return generateScript()  if client?.connection?.delegate?.type isnt "registered"
+  # do fetch them for better ux for the ones who are gonna sign up or sign in.
+  # return generateScript()  if client?.connection?.delegate?.type isnt "registered"
 
 
   # fetch members function returns only members of the given group(context)
   # we can return this result also
+
+  # debugger
+
   queue.push ->
     fetchMembersFromGraph (err, members)->
       prefetchedFeeds['members.main'] = members  if members
