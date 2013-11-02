@@ -5,6 +5,7 @@ import (
 	"koding/kites/supervisor/rbd"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"syscall"
 	"time"
@@ -275,12 +276,31 @@ func (c *Container) AddEbtablesRule() error {
 
 //AddStaticRoute adds a route so it is redistributed by BGP
 func (c *Container) AddStaticRoute() error {
+	available, err := c.CheckStaticRoute()
+	if err != nil {
+		return err
+	}
+
+	if available {
+		return nil
+	}
+
 	out, err := exec.Command("/sbin/route", "add", c.IP.String(), "lxcbr0").CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("adding route failed. err: %s\n out:%s\n", err, out)
 	}
 
 	return nil
+}
+
+func (c *Container) CheckStaticRoute() (bool, error) {
+	cmd := exec.Command("/sbin/ip", "route", "show", c.IP.String())
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return false, err
+	}
+
+	return regexp.Match(c.IP.String(), out)
 }
 
 func (c *Container) PrepareHomeDirectory() error {

@@ -11,6 +11,7 @@ const (
 	ContainerType = "busybox"
 	PrepareHost   = "vagrant"
 	PrepareName   = "vm-test"
+	ContainerIP   = "127.0.0.2"
 )
 
 func exist(filename string) bool {
@@ -38,7 +39,7 @@ func TestNewContainer(t *testing.T) {
 
 func TestContainer_GenerateFiles(t *testing.T) {
 	c := NewContainer(ContainerName)
-	c.IP = net.ParseIP("127.0.0.1")
+	c.IP = net.ParseIP(ContainerIP)
 	c.HostnameAlias = "vagrant"
 
 	if err := c.AsHost().PrepareDir(c.Path("")); err != nil {
@@ -120,7 +121,7 @@ func TestContainer_MountPts(t *testing.T) {
 
 func TestContainer_AddEbtablesRule(t *testing.T) {
 	c := NewContainer(ContainerName)
-	c.IP = net.ParseIP("127.0.0.1")
+	c.IP = net.ParseIP(ContainerIP)
 
 	if err := c.AddEbtablesRule(); err != nil {
 		t.Errorf("Could not add ebtables rule '%s'", err)
@@ -134,12 +135,47 @@ func TestContainer_AddEbtablesRule(t *testing.T) {
 	if !available {
 		t.Errorf("Ebtables rule for IP '%s' is not available. It should be available after AddEbtablesRule()", c.IP.String())
 	}
+}
 
+func TestContainer_AddStaticRoute(t *testing.T) {
+	c := NewContainer(ContainerName)
+	c.IP = net.ParseIP(ContainerIP)
+
+	if err := c.AddStaticRoute(); err != nil {
+		t.Errorf("Could not add static route rule '%s'", err)
+	}
+
+	available, err := c.CheckStaticRoute()
+	if err != nil {
+		t.Error("Could not check static route for IP: '%s'", c.IP.String())
+	}
+
+	if !available {
+		t.Errorf("Static route for IP '%s' is not available. It should be available after AddStaticRoute()", c.IP.String())
+	}
+}
+
+func TestContainer_RemoveStaticRoute(t *testing.T) {
+	c := NewContainer(ContainerName)
+	c.IP = net.ParseIP(ContainerIP)
+
+	if err := c.RemoveStaticRoute(); err != nil {
+		t.Errorf("Could not remove static route rule '%s'", err)
+	}
+
+	available, err := c.CheckStaticRoute()
+	if err != nil {
+		t.Error("Could not check static route for IP: '%s'", c.IP.String())
+	}
+
+	if available {
+		t.Errorf("Static route for IP '%s' is available. It should be not available after RemoveStaticRoute()", c.IP.String())
+	}
 }
 
 func TestContainer_RemoveEbtablesRule(t *testing.T) {
 	c := NewContainer(ContainerName)
-	c.IP = net.ParseIP("127.0.0.1")
+	c.IP = net.ParseIP(ContainerIP)
 
 	if err := c.RemoveEbtablesRule(); err != nil {
 		t.Errorf("Could not remove ebtables rule '%s'", err)
@@ -209,7 +245,7 @@ func TestContainer_GenerateOverlayFiles(t *testing.T) {
 	c := NewContainer(ContainerName)
 	c.HostnameAlias = "vagrant"
 	c.LdapPassword = "123456789"
-	c.IP = net.ParseIP("127.0.0.1")
+	c.IP = net.ParseIP(ContainerIP)
 
 	if err := c.AsContainer().PrepareDir(c.OverlayPath("")); err != nil {
 		t.Errorf("PrepareDir Overlay: %s ", err)
@@ -248,7 +284,7 @@ func TestContainer_CreateUserHome(t *testing.T) {
 	c := NewContainer(ContainerName)
 	c.HostnameAlias = "vagrant"
 	c.LdapPassword = "123456789"
-	c.IP = net.ParseIP("127.0.0.1")
+	c.IP = net.ParseIP(ContainerIP)
 	c.Username = "testing"
 	c.WebHome = "testing"
 
@@ -265,7 +301,7 @@ func TestContainer_CreateUserHome(t *testing.T) {
 // 	c := NewContainer(ContainerName)
 // 	c.HostnameAlias = "vagrant"
 // 	c.LdapPassword = "123456789"
-// 	c.IP = net.ParseIP("127.0.0.1")
+// 	c.IP = net.ParseIP(ContainerIP)
 // 	c.Username = "testing"
 // 	c.WebHome = "testing"
 
