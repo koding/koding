@@ -1,6 +1,7 @@
 package container
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"testing"
@@ -12,6 +13,14 @@ const (
 	PrepareHost   = "vagrant"
 	PrepareName   = "vm-test"
 )
+
+func exist(filename string) bool {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
 
 func TestNewContainer(t *testing.T) {
 	c := NewContainer(ContainerName)
@@ -52,7 +61,7 @@ func TestContainer_GenerateFiles(t *testing.T) {
 			t.Errorf("Generatefile: %s ", err)
 		}
 
-		if _, err := os.Stat(file.fileName); os.IsNotExist(err) {
+		if !exist(file.fileName) {
 			t.Errorf("Generatefile: %s does not exist", file.fileName)
 		}
 	}
@@ -81,9 +90,9 @@ func TestContainer_GenerateOverlayFiles(t *testing.T) {
 		fileName string
 		template string
 	}{
-		{c.OverlayPath("/etc/hostname"), "hostname"},
-		{c.OverlayPath("/etc/hosts"), "hosts"},
-		{c.OverlayPath("/etc/ldap.conf"), "ldap.conf"},
+		{c.OverlayPath("etc/hostname"), "hostname"},
+		{c.OverlayPath("etc/hosts"), "hosts"},
+		{c.OverlayPath("etc/ldap.conf"), "ldap.conf"},
 	}
 
 	for _, file := range containerFiles {
@@ -92,7 +101,7 @@ func TestContainer_GenerateOverlayFiles(t *testing.T) {
 			t.Errorf("Generatefile: %s ", err)
 		}
 
-		if _, err := os.Stat(file.fileName); os.IsNotExist(err) {
+		if !exist(file.fileName) {
 			t.Errorf("Generatefile: %s does not exist", file.fileName)
 		}
 	}
@@ -107,68 +116,33 @@ func TestContainer_CreateUserHome(t *testing.T) {
 	c.WebHome = "testing"
 
 	if err := c.createUserHome(); err != nil {
-		t.Errorf("CreateUserHome %s ", err)
+		t.Errorf("Could not create home directory %s ", err)
 	}
 
+	if !exist(c.Path("rootfs/home/testing")) {
+		t.Error("User home directory does not exist")
+	}
 }
 
-// func TestContainer_Create(t *testing.T) {
+// func TestContainer_CreateWebDir(t *testing.T) {
 // 	c := NewContainer(ContainerName)
+// 	c.HostnameAlias = "vagrant"
+// 	c.LdapPassword = "123456789"
+// 	c.IP = net.ParseIP("127.0.0.1")
+// 	c.Username = "testing"
+// 	c.WebHome = "testing"
 
-// 	if err := c.Create(ContainerType); err != nil {
-// 		t.Error(err)
+// 	vmWebDir := c.Path(fmt.Sprintf("rootfs/home/%s/Web", c.WebHome))
+
+// 	if err := c.createWebDir(vmWebDir); err != nil {
+// 		t.Errorf("Could not create web directory %s ", err)
 // 	}
 
-// 	if _, err := os.Stat(c.Dir); os.IsNotExist(err) {
-// 		t.Errorf("Create: %s does not exist", c.Dir)
+// 	if !exist(c.Path("rootfs/var/www")) {
+// 		t.Error("Create web directory, /var/www does not exist")
 // 	}
 
-// }
-
-// func TestContainer_Start(t *testing.T) {
-// 	c := NewContainer(ContainerName)
-
-// 	if err := c.Start(); err != nil {
-// 		t.Error(err)
-// 	}
-
-// 	if !c.IsRunning() {
-// 		t.Errorf("Starting the container failed...")
-// 	}
-// }
-
-// func TestShutdown(t *testing.T) {
-// 	c := NewContainer(ContainerName)
-
-// 	if err := c.Shutdown(3); err != nil {
-// 		t.Errorf(err.Error())
-// 	}
-
-// 	if c.IsRunning() {
-// 		t.Errorf("Shutting down the container failed...")
-// 	}
-// }
-
-// func TestStop(t *testing.T) {
-// 	c := NewContainer(ContainerName)
-
-// 	if err := c.Start(); err != nil {
-// 		t.Error(err)
-// 	}
-
-// 	if err := c.Stop(); err != nil {
-// 		t.Errorf(err.Error())
-// 	}
-
-// 	if c.IsRunning() {
-// 		t.Errorf("Stopping the container failed...")
-// 	}
-// }
-
-// func TestDestroy(t *testing.T) {
-// 	c := NewContainer(ContainerName)
-
-// 	if err := c.Destroy(); err != nil {
-// 		t.Error(err)
+// 	if !exist(c.Path("rootfs/home/testing/Web")) {
+// 		t.Error("Create web directory. /home/testing/Web does not exist")
 // 	}
 // }
