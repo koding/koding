@@ -60,8 +60,6 @@ func initialize() {
 		fmt.Println(err)
 		return
 	}
-
-	fmt.Println("initialized")
 }
 
 func (s *Supervisor) Create(r *protocol.KiteDnodeRequest, result *bool) error {

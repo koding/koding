@@ -87,7 +87,7 @@ func (c *Container) RemoveEbtablesRule() error {
 		c.MAC().String(), "--ip-src", c.IP.String(), "--in-interface", c.VEth(),
 		"--jump", "ACCEPT").CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("ebtables rule deletion failed.", err, out)
+		return fmt.Errorf("ebtables rule deletion failed. err: %s\n out:%s\n", err, string(out))
 	}
 
 	return nil
@@ -103,24 +103,24 @@ func (c *Container) RemoveStaticRoute() error {
 	return nil
 }
 
-func (c *Container) UnmountAufs() error {
-	out, err := exec.Command("/sbin/auplink", c.Path("rootfs"), "flush").CombinedOutput()
+func (c *Container) UnmountPts() error {
+	out, err := exec.Command("/bin/umount", c.PtsDir()).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("AUFS flush failed.", err, out)
-	}
-
-	out, err = exec.Command("/bin/umount", c.Path("rootfs")).CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("umount overlay failed.", err, out)
+		return fmt.Errorf("umount devpts failed. err: %s\n out:%s\n", err, string(out))
 	}
 
 	return nil
 }
 
-func (c *Container) UnmountPts() error {
-	out, err := exec.Command("/bin/umount", c.PtsDir()).CombinedOutput()
+func (c *Container) UnmountAufs() error {
+	out, err := exec.Command("/sbin/auplink", c.Path("rootfs"), "flush").CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("umount devpts failed.", err, out)
+		return fmt.Errorf("aufs flush failed. err: %s\n out:%s\n", err, string(out))
+	}
+
+	out, err = exec.Command("/bin/umount", c.Path("rootfs")).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("umount rootfs failed. err: %s\n out:%s\n", err, string(out))
 	}
 
 	return nil
@@ -131,13 +131,13 @@ func (c *Container) UnmountRBD() error {
 
 	out, err := exec.Command("/bin/umount", c.OverlayPath("")).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("umount rbd failed.", err, out)
+		return fmt.Errorf("umount overlay failed. err: %s\n out:%s\n", err, string(out))
 	}
 	fmt.Println("ouput of umount", c.OverlayPath(""), string(out), err)
 
 	out, err = r.Unmap()
 	if err != nil {
-		return fmt.Errorf("rbd unmap failed.", err, out)
+		return fmt.Errorf("rbd unmap failed. err: %s\n out:%s\n", err, string(out))
 	}
 
 	fmt.Println("ouput of umap", string(out), err)

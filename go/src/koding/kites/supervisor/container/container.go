@@ -8,13 +8,13 @@ import (
 	"io"
 	"net"
 	"os"
-	"strings"
 	"sync"
 	"text/template"
 )
 
 const (
 	lxcDir        = "/var/lib/lxc/"
+	lxcVersion    = "1.0.0.alpha1"
 	RootUID       = 0       // the is of the root user
 	UserUIDOffset = 1000000 // used for id mapping in lxc.conf
 	RootUIDOffset = 500000  // used for id mapping in lxc.conf
@@ -36,8 +36,7 @@ var (
 type Container struct {
 	Name string // ContainerName
 	Dir  string // Container directory path, i.e: /var/lib/lxc/containerName/
-	Lxc  *lxc.Container
-	UID  int // Used for AsXXX() methods.
+	UID  int    // Used for AsXXX() methods.
 
 	// needed for templating
 	HwAddr        net.HardwareAddr
@@ -53,39 +52,12 @@ type Container struct {
 
 // It's put here that it get initiated only once
 func init() {
-	interf, err := net.InterfaceByName("lxcbr0")
-	if err != nil {
-		panic(err)
+	if lxc.Version() != lxcVersion {
+		fmt.Printf("lxc version mismatch. expected: '%s' got: '%s'\n", lxcVersion, lxc.Version())
+		os.Exit(1)
 	}
 
-	addrs, err := interf.Addrs()
-	if err != nil {
-		panic(err)
-	}
-
-	hostIP, _, err := net.ParseCIDR(addrs[0].String())
-	if err != nil {
-		panic(err)
-	}
-
-	templates.Funcs(template.FuncMap{
-		"hostIP": func() string {
-			return hostIP.String()
-		},
-		"swapAccountingEnabled": func() bool {
-			_, err := os.Stat("/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes")
-			return err == nil
-		},
-		"kernelMemoryAccountingEnabled": func() bool {
-			_, err := os.Stat("/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes")
-			return err == nil
-		},
-	})
-
-	if _, err := templates.ParseGlob(templateDir + "/vm/*"); err != nil {
-		panic(err)
-	}
-
+	loadTemplates()
 }
 
 // NewContainer returns a new instance of the Container struct.
@@ -93,7 +65,6 @@ func NewContainer(containerName string) *Container {
 	return &Container{
 		Name: containerName,
 		Dir:  lxcDir + containerName + "/",
-		Lxc:  lxc.NewContainer(containerName),
 	}
 }
 
@@ -242,21 +213,31 @@ func (c *Container) GenerateFile(name, template string) error {
 
 // IsRunning returns true if the container is running.
 func (c *Container) IsRunning() bool {
-	return c.Lxc.Running()
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	return l.Running()
 }
 
 // Create creates a new lxc based on the template.
 func (c *Container) Create(template string) error {
-	return c.Lxc.Create(template)
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	if l.Create(template, []string{}) {
+		return nil
+	}
+
+	return fmt.Errorf("could not create: %s\n", c.Name)
 }
 
 // Run invokes the given command inside the container.
 func (c *Container) Run(command string) error {
-	args := strings.Split(strings.TrimSpace(command), " ")
+	// args := strings.Split(strings.TrimSpace(command), " ")
 
-	if err := c.Lxc.AttachRunCommand(args...); err != nil {
-		return fmt.Errorf("ERROR: %s\n", err.Error())
-	}
+	// if err := c.Lxc.AttachRunCommand(args...); err != nil {
+	// 	return fmt.Errorf("ERROR: %s\n", err.Error())
+	// }
 
 	return nil
 }
@@ -264,30 +245,73 @@ func (c *Container) Run(command string) error {
 // Start starts the container. It calls lxc-start with --daemonize set to
 // true.
 func (c *Container) Start() error {
-	err := c.Lxc.SetDaemonize()
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	l.SetDaemonize()
+
+	if l.Start(false, nil) {
+		return nil
 	}
 
-	err = c.Lxc.Start(false)
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
-	}
-
-	return nil
+	return fmt.Errorf("could not start: %s\n", c.Name)
 }
 
 // Stop stops the running container. It calls lxc-stop.
 func (c *Container) Stop() error {
-	err := c.Lxc.Stop()
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	if l.Stop() {
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("could not stop: %s\n", c.Name)
 }
 
 // Destroy detroys the given container. It calls lxc-destroy.
 func (c *Container) Destroy() error {
-	return c.Lxc.Destroy()
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	if l.Destroy() {
+		return nil
+	}
+
+	return fmt.Errorf("could not destroy: %s\n", c.Name)
+}
+
+func loadTemplates() {
+	interf, err := net.InterfaceByName("lxcbr0")
+	if err != nil {
+		panic(err)
+	}
+
+	addrs, err := interf.Addrs()
+	if err != nil {
+		panic(err)
+	}
+
+	hostIP, _, err := net.ParseCIDR(addrs[0].String())
+	if err != nil {
+		panic(err)
+	}
+
+	templates.Funcs(template.FuncMap{
+		"hostIP": func() string {
+			return hostIP.String()
+		},
+		"swapAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes")
+			return err == nil
+		},
+		"kernelMemoryAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes")
+			return err == nil
+		},
+	})
+
+	if _, err := templates.ParseGlob(templateDir + "/vm/*"); err != nil {
+		panic(err)
+	}
 }
