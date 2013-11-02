@@ -235,7 +235,7 @@ class KodingRouter extends KDRouter
         modal = KDModalView.confirm
           title: "Are you sure you want to #{getAction formName}?"
           description: "You will lose your work"
-          ok:callback: ->
+          ok: callback: ->
             ok = yes
             modal.destroy()
             animateToForm formName, yes
