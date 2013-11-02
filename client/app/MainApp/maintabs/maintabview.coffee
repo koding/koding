@@ -78,8 +78,15 @@ class MainTabView extends KDTabView
     # to show the previousPane when a pane
     # is removed, that's why we override it to use
     # kodingrouter
+
+    index        = @getPaneIndex pane
+    visibles     = @getVisibleTabs()
+    visibleIndex = visibles.indexOf pane
+    leftPane     = visibles[visibleIndex - 1]
+    rightPane    = visibles[visibleIndex + 1]
+
     pane.emit "KDTabPaneDestroy"
-    index = @getPaneIndex pane
+
     isActivePane = @getActivePane() is pane
     @panes.splice index, 1
     pane.destroy()
@@ -87,13 +94,13 @@ class MainTabView extends KDTabView
     @handles.splice index, 1
     handle.destroy()
     @emit "PaneRemoved"
-    if isActivePane
-      if prevPane = @getPaneByIndex @lastOpenPaneIndex
-        appInstance = @appManager.getByView prevPane.mainView
-        @appManager.showInstance appInstance
-      else
-        @router.back()
 
+    if rightPane
+      @appManager.showInstance @appManager.getByView rightPane.mainView
+    else if leftPane
+      @appManager.showInstance @appManager.getByView leftPane.mainView
+    else
+      @router.handleRoute "/Activity"
 
   createTabPane:(options = {}, mainView)->
 
