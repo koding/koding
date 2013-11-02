@@ -213,18 +213,35 @@ class KodingRouter extends KDRouter
   clear:(route, replaceState=yes)->
     unless route
       {entryPoint} = KD.config
-      if KD.isLoggedIn()
-        if entryPoint?.type is 'group' and entryPoint?.slug?
-          route = "/#{KD.config.entryPoint?.slug}"
-        else
-          route = '/'
-      else
-        location.replace '/'
+      route =
+        if KD.isLoggedIn() and entryPoint?.type is 'group' and entryPoint?.slug?
+           "/#{KD.config.entryPoint?.slug}"
+        else '/'
     super route, replaceState
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
     clear = @bound 'clear'
+
+    getAction = (formName) -> switch formName
+      when 'login'    then 'log in'
+      when 'register' then 'register'
+
+    animateToForm = (formName, force = no) ->
+      { mainTabView } = KD.getSingleton 'mainView'
+      appsAreOpen = mainTabView.getVisibleHandles().length > 0
+      if not force and formName in ['login', 'register'] and appsAreOpen
+        ok = no
+        modal = KDModalView.confirm
+          title: "Are you sure you want to #{getAction formName}?"
+          description: "You will lose your work"
+          ok:callback: ->
+            ok = yes
+            modal.destroy()
+            animateToForm formName, yes
+        modal.once 'KDObjectWillBeDestroyed', -> clear()  if not ok
+      else
+        mainController.loginScreen.animateToForm formName
 
     requireLogin =(fn)->
       mainController.ready ->
@@ -252,17 +269,17 @@ class KodingRouter extends KDRouter
 
       # verbs
       '/:name?/Login'        : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'login'
+        requireLogout -> animateToForm 'login'
       '/:name?/Logout'       : ({params:{name}})->
         requireLogin  -> mainController.doLogout()
       '/:name?/Redeem'       : ({params:{name}})->
-        requireLogin  -> mainController.loginScreen.animateToForm 'redeem'
+        requireLogin  -> animateToForm 'redeem'
       '/:name?/Register'     : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'register'
+        requireLogout -> animateToForm 'register'
       '/:name?/Recover'      : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'recover'
+        requireLogout -> animateToForm 'recover'
       '/:name?/ResendToken'  : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'resendEmail'
+        requireLogout -> animateToForm 'resendEmail'
 
       # apps
       '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
