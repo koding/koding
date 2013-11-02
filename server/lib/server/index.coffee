@@ -337,7 +337,7 @@ app.all '/:name/:section?*', (req, res, next)->
 
           if name is "Develop"
             options = {account, name, section, client, bongoModels}
-            JGroup.render[prefix].subPage options, serveSub
+            return JGroup.render[prefix].subPage options, serveSub
 
           JName.fetchModels "#{name}/#{section}", (err, models)->
             if err
