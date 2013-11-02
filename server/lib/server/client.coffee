@@ -36,9 +36,17 @@ fetchAccount = (username, callback)->
 
 generateFakeClient = (req, res, callback)->
 
-  fakeClient = {}
+  fakeClient    =
+    context     :
+      group     : 'koding'
+      user      : 'guest-1'
+    connection  :
+      delegate  : null
+      groupName : 'koding'
+
   {clientId} = req.cookies
-  return callback null, {} unless clientId?
+
+  return callback null, fakeClient unless clientId?
 
   bongo.models.JSession.fetchSession clientId, (err, session)->
     return handleError err, callback if err
