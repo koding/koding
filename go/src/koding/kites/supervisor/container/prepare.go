@@ -17,63 +17,46 @@ import (
 // more simpler. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary disks.
 func (c *Container) Prepare() error {
-	fmt.Println("generating lxc files")
-	c.AsHost().PrepareDir(c.Path(""))
-	c.AsHost().GenerateFile(c.Path("config"), "config")
-	c.AsHost().GenerateFile(c.Path("fstab"), "fstab")
-	c.AsHost().GenerateFile(c.Path("ip-address"), "ip-address")
+	err := c.CreateContainerDir()
+	if err != nil {
+		return err
+	}
 
-	fmt.Println("mounting rbd")
 	err := c.MountRBD()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("generating  overlay files")
-	c.AsContainer().PrepareDir(c.OverlayPath(""))            //for chown
-	c.AsContainer().PrepareDir(c.OverlayPath("/lost+found")) // for chown
-	c.AsContainer().PrepareDir(c.OverlayPath("/etc"))
-
-	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hostname"), "hostname")
-	c.AsContainer().GenerateFile(c.OverlayPath("/etc/hosts"), "hosts")
-	c.AsContainer().GenerateFile(c.OverlayPath("/etc/ldap.conf"), "ldap.conf")
-
-	fmt.Println("merging files")
-	c.MergePasswdFile()
-	c.MergeGroupFile()
-	c.MergeDpkgDatabase()
-
-	fmt.Println("preparing rootfs")
-	err = c.AsContainer().PrepareDir(c.Path("rootfs"))
+	err := c.CreateOverlay()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("mounting aufs")
+	err := c.MergingFiles()
+	if err != nil {
+		return err
+	}
+
 	err = c.MountAufs()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("mounting pts")
 	err = c.PrepareAndMountPts()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("add ebtables")
 	err = c.AddEbtablesRule()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("add static rout")
 	err = c.AddStaticRoute()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("prepare home directories")
 	err = c.PrepareHomeDirectory()
 	if err != nil {
 		return err
@@ -82,10 +65,24 @@ func (c *Container) Prepare() error {
 	return nil
 }
 
+func (c *Container) CreateContainerDir() {
+	fmt.Println("generating lxc files")
+	err := c.AsHost().PrepareDir(c.Path(""))
+	if err != nil {
+		return err // for now just check this, no need for others
+	}
+
+	c.AsHost().GenerateFile(c.Path("config"), "config")
+	c.AsHost().GenerateFile(c.Path("fstab"), "fstab")
+	c.AsHost().GenerateFile(c.Path("ip-address"), "ip-address")
+
+	return nil
+}
+
 func (c *Container) MountRBD() error {
+	fmt.Println("mounting rbd")
 	r := rbd.NewRBD(c.Name)
 
-	fmt.Println("getting info")
 	out, err := r.Info(c.Name)
 	if err != nil {
 		return err
@@ -94,7 +91,6 @@ func (c *Container) MountRBD() error {
 	makeFileSystem := false
 	// means image doesn't exist, create new one
 	if out == nil {
-		fmt.Println("creating new one")
 		out, err := r.Create(c.Name, "1024")
 		if err != nil {
 			return fmt.Errorf("mountrbd create failed.", err, out)
@@ -103,14 +99,11 @@ func (c *Container) MountRBD() error {
 		makeFileSystem = true
 	}
 
-	fmt.Println("mapping rbd")
 	out, err = r.Map(c.Name)
 	if err != nil {
 		return fmt.Errorf("mountrbd map failed.", err, out)
 	}
-	fmt.Println("mapping out", string(out))
 
-	fmt.Println("waiting for", r.Device)
 	timeout := time.Now().Add(30 * time.Second)
 	for {
 		_, err := os.Stat(r.Device)
@@ -156,9 +149,40 @@ func (c *Container) MountRBD() error {
 	return nil
 }
 
+func (c *Container) CreateOverlay() error {
+	fmt.Println("generating  overlay files")
+	err := c.AsContainer().PrepareDir(c.OverlayPath("")) //for chown
+	if err != nil {
+		return err // for now just check this, no need for others
+	}
+
+	c.AsContainer().PrepareDir(c.OverlayPath("lost+found")) // for chown
+	c.AsContainer().PrepareDir(c.OverlayPath("etc"))
+
+	c.AsContainer().GenerateFile(c.OverlayPath("etc/hostname"), "hostname")
+	c.AsContainer().GenerateFile(c.OverlayPath("etc/hosts"), "hosts")
+	c.AsContainer().GenerateFile(c.OverlayPath("etc/ldap.conf"), "ldap.conf")
+
+	return nil
+}
+
+func (c *Container) MergingFiles() error {
+	fmt.Println("merging files")
+	c.MergePasswdFile()
+	c.MergeGroupFile()
+	c.MergeDpkgDatabase()
+}
+
 // mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
 // under "/var/lib/lxc/vm-{id}/rootfs"
 func (c *Container) MountAufs() error {
+	fmt.Println("creating empty rootfs for aufs")
+	err = c.AsContainer().PrepareDir(c.Path("rootfs"))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("mounting aufs")
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", c.OverlayPath(""), vmRoot+"/rootfs/"),
 		"aufs", c.Path("rootfs")).CombinedOutput()
@@ -170,6 +194,7 @@ func (c *Container) MountAufs() error {
 }
 
 func (c *Container) PrepareAndMountPts() error {
+	fmt.Println("preparing and mounting pts")
 	c.AsContainer().PrepareDir(c.PtsDir())
 
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
@@ -186,6 +211,7 @@ func (c *Container) PrepareAndMountPts() error {
 }
 
 func (c *Container) AddEbtablesRule() error {
+	fmt.Println("add ebtables rules")
 	// add ebtables entry to restrict IP and MAC
 	out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source",
 		c.MAC().String(), "--ip-src", c.IP.String(), "--in-interface", c.VEth(),
@@ -198,6 +224,7 @@ func (c *Container) AddEbtablesRule() error {
 }
 
 func (c *Container) AddStaticRoute() error {
+	fmt.Println("add static route")
 	// add a static route so it is redistributed by BGP
 	out, err := exec.Command("/sbin/route", "add", c.IP.String(), "lxcbr0").CombinedOutput()
 	if err != nil {
@@ -208,6 +235,7 @@ func (c *Container) AddStaticRoute() error {
 }
 
 func (c *Container) PrepareHomeDirectory() error {
+	fmt.Println("prepare home directories")
 	// make sure that executable flag is set
 	os.Chmod(c.Path("rootfs/"), 0755)
 	os.Chmod(c.Path("rootfs/home"), 0755)
@@ -268,7 +296,7 @@ func (c *Container) createUserHome() error {
 // Apache webserver.
 func (c *Container) createWebDir(webDir string) error {
 	wwwDir := c.Path("rootfs/var/www")
-	if err := os.Symlink(webDir, "/var/www"); err != nil && !os.IsExist(err) {
+	if err := os.Symlink(webDir, wwwDir); err != nil && !os.IsExist(err) {
 		return err
 	}
 	c.AsContainer().Lchown(wwwDir)
@@ -333,7 +361,7 @@ func (c *Container) copyIntoContainer(src, dst string) error {
 			}
 		}
 	} else {
-		fmt.Printf("copying from '%s' to '%s'", src, dst)
+		fmt.Printf("copying from '%s' to '%s'\n", src, dst)
 		err := c.AsUser().CopyFile(src, dst)
 		if err != nil {
 			return err
@@ -352,7 +380,8 @@ func (c *Container) CheckExt4(device string) error {
 
 	exitError, ok := err.(*exec.ExitError)
 	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() == 4 {
-		return fmt.Errorf(fmt.Sprintf("fsck.ext4 failed %s. %s %s", c.HostnameAlias), err, string(out))
+		return fmt.Errorf(fmt.Sprintf("fsck.ext4 failed %s. %s %s", c.HostnameAlias), err,
+			string(out))
 	}
 
 	out, err = exec.Command("/sbin/fsck.ext4", "-y", device).CombinedOutput()
@@ -362,7 +391,8 @@ func (c *Container) CheckExt4(device string) error {
 
 	exitError, ok = err.(*exec.ExitError)
 	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-		return fmt.Errorf(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", c.HostnameAlias), err, string(out))
+		return fmt.Errorf(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.",
+			c.HostnameAlias), err, string(out))
 	}
 
 	return nil
