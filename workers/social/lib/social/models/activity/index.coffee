@@ -339,13 +339,13 @@ module.exports = class CActivity extends jraphical.Capsule
       to = Math.floor(to/1000)  # unix vs js timestamp diff.
 
       requestOptions =
-        client    : client
-        startDate : to
-        withExempt: options.withExempt
-        group     :
-          groupName : group.slug
-          groupId   : group._id
-          facets    : options.facets
+        client       : client
+        startDate    : to
+        withExempt   : options.withExempt
+        group        :
+          groupName  : group.slug
+          groupId    : group._id
+          facets     : options.facets
 
       FetchAllActivityParallel = require './../graph/fetch'
       fetch = new FetchAllActivityParallel requestOptions
