@@ -8,6 +8,9 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/exec"
+	"strconv"
+	"strings"
 	"sync"
 	"text/template"
 )
@@ -224,37 +227,40 @@ func (c *Container) Create(template string) error {
 	l := lxc.NewContainer(c.Name)
 	defer lxc.PutContainer(l)
 
-	if l.Create(template, []string{}) {
-		return nil
+	if !l.Create(template, []string{}) {
+		return fmt.Errorf("could not create: %s\n", c.Name)
 	}
+	return nil
 
-	return fmt.Errorf("could not create: %s\n", c.Name)
 }
 
 // Run invokes the given command inside the container.
-func (c *Container) Run(command string) error {
-	// args := strings.Split(strings.TrimSpace(command), " ")
+func (c *Container) Run(command string) ([]byte, error) {
+	args := strings.Split(strings.TrimSpace(command), " ")
 
-	// if err := c.Lxc.AttachRunCommand(args...); err != nil {
-	// 	return fmt.Errorf("ERROR: %s\n", err.Error())
-	// }
+	totalArgs := []string{"--name", c.Name, "--", "/usr/bin/sudo", "-i", "-u",
+		"#" + strconv.Itoa(c.Useruid), "--", "/bin/bash", "-c"}
 
-	return nil
+	totalArgs = append(totalArgs, args...)
+
+	cmd := exec.Command("/usr/bin/lxc-attach", totalArgs...)
+	cmd.Env = []string{"TERM=xterm-256color"}
+
+	fmt.Println("going to run ", cmd.Args)
+
+	return cmd.CombinedOutput()
 }
 
 // Start starts the container. It calls lxc-start with --daemonize set to
-// true.
+// true. Current binding
 func (c *Container) Start() error {
-	l := lxc.NewContainer(c.Name)
-	defer lxc.PutContainer(l)
-
-	l.SetDaemonize()
-
-	if l.Start(false, nil) {
-		return nil
+	out, err := exec.Command("/usr/bin/lxc-start", "--name", c.Name, "--daemon").CombinedOutput()
+	if err != nil {
+		fmt.Println("lxc-start failed", err, string(out))
+		return fmt.Errorf("could not start '%s'", c.Name)
 	}
 
-	return fmt.Errorf("could not start: %s\n", c.Name)
+	return nil
 }
 
 // Stop stops the running container. It calls lxc-stop.
@@ -262,11 +268,11 @@ func (c *Container) Stop() error {
 	l := lxc.NewContainer(c.Name)
 	defer lxc.PutContainer(l)
 
-	if l.Stop() {
-		return nil
+	if !l.Stop() {
+		return fmt.Errorf("could not stop: %s\n", c.Name)
 	}
 
-	return fmt.Errorf("could not stop: %s\n", c.Name)
+	return nil
 }
 
 // Destroy detroys the given container. It calls lxc-destroy.
@@ -274,11 +280,11 @@ func (c *Container) Destroy() error {
 	l := lxc.NewContainer(c.Name)
 	defer lxc.PutContainer(l)
 
-	if l.Destroy() {
-		return nil
+	if !l.Destroy() {
+		return fmt.Errorf("could not destroy: %s\n", c.Name)
 	}
 
-	return fmt.Errorf("could not destroy: %s\n", c.Name)
+	return nil
 }
 
 func loadTemplates() {
