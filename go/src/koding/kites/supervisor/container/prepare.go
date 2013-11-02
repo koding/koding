@@ -56,7 +56,7 @@ func (c *Container) Prepare() error {
 	}
 
 	fmt.Println("mounting pts")
-	err = c.MountPts()
+	err = c.PrepareAndMountPts()
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (c *Container) Prepare() error {
 	}
 
 	fmt.Println("prepare home directories")
-	err = c.PrepareHomeDirectories()
+	err = c.PrepareHomeDirectory()
 	if err != nil {
 		return err
 	}
@@ -156,11 +156,9 @@ func (c *Container) MountRBD() error {
 	return nil
 }
 
+// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
+// under "/var/lib/lxc/vm-{id}/rootfs"
 func (c *Container) MountAufs() error {
-	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
-
-	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
-	// under "/var/lib/lxc/vm-{id}/rootfs"
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o",
 		fmt.Sprintf("noplink,br=%s:%s", c.OverlayPath(""), vmRoot+"/rootfs/"),
 		"aufs", c.Path("rootfs")).CombinedOutput()
@@ -171,7 +169,7 @@ func (c *Container) MountAufs() error {
 	return nil
 }
 
-func (c *Container) MountPts() error {
+func (c *Container) PrepareAndMountPts() error {
 	c.AsContainer().PrepareDir(c.PtsDir())
 
 	out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o",
@@ -209,7 +207,7 @@ func (c *Container) AddStaticRoute() error {
 	return nil
 }
 
-func (c *Container) PrepareHomeDirectories() error {
+func (c *Container) PrepareHomeDirectory() error {
 	// make sure that executable flag is set
 	os.Chmod(c.Path("rootfs/"), 0755)
 	os.Chmod(c.Path("rootfs/home"), 0755)
