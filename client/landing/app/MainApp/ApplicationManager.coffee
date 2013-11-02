@@ -31,7 +31,9 @@ class ApplicationManager extends KDObject
     # set unload listener
     windowController = @getSingleton 'windowController'
     windowController.addUnloadListener 'window', =>
-      safeToUnload = no for own app of @appControllers when app in ['Ace', 'WebTerm']
+      for own app of @appControllers when app in ['Ace', 'WebTerm']
+        safeToUnload = no
+        break
       return safeToUnload ? yes
 
   setMissingRoute:(appController, appView, appOptions)->
@@ -242,8 +244,8 @@ class ApplicationManager extends KDObject
     #   KD.getSingleton('router').clear()
 
   quit:(appInstance, callback = noop)->
-
-    destroyer = if view = appInstance.getView?() then view else appInstance
+    view = appInstance.getView?()
+    destroyer = if view? then view else appInstance
     destroyer.destroy()
     callback()
 
@@ -258,7 +260,7 @@ class ApplicationManager extends KDObject
 
     if closeAllInstances
       instances = appController.instances
-      @quit instances[0] while instances.length > 0
+      @quit instances.first while instances.length > 0
     else
       @quit appController.instances[appController.lastActiveIndex]
 
