@@ -271,18 +271,22 @@ module.exports = class CActivity extends jraphical.Capsule
           callback null, activities
 
   @getCurrentGroup: (client, callback)->
-    {delegate} = client.connection
-    if not delegate
-      callback callback {error: "Request not valid"}
-    else
-      groupName = client.context.group or "koding"
-      JGroup = require '../group'
-      JGroup.one slug : groupName, (err, group)=>
-        if err then return callback err
-        unless group then return callback {error: "Group not found"}
-        group.canReadActivity client, (err, res)->
-          if err then return callback {error: "Not allowed to open this group"}
-          else callback null, group
+    groupName = client.context.group or "koding"
+    JGroup = require '../group'
+    JGroup.one slug : groupName, (err, group)=>
+      if err then return callback err
+      unless group then return callback {error: "Group not found"}
+
+      # this is not a security hole
+      # everybody can read koding activity feed
+      return callback null, group if groupName is "koding"
+
+      # if group is not koding check for security
+      {delegate} = client.connection
+      return callback {error: "Request not valid"} unless delegate
+      group.canReadActivity client, (err, res)->
+        if err then return callback {error: "Not allowed to open this group"}
+        else callback null, group
 
   # this is used for activities on profile page
   @fetchUsersActivityFeed: secure (client, options, callback)->
