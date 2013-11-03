@@ -649,7 +649,7 @@ module.exports = class JVM extends Module
             planCode  : 'free'
             planOwner : "user_#{member._id}"
             groupSlug : group.slug
-            webHome   : user.username
+            webHome   : member.profile.nickname
             groups    : wrapGroup group
           }
         else if group.slug is 'koding'

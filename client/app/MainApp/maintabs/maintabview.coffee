@@ -80,7 +80,7 @@ class MainTabView extends KDTabView
     # kodingrouter
 
     index        = @getPaneIndex pane
-    visibles     = @getVisibleTabs()
+    visibles     = @getVisibleTabs?()
     visibleIndex = visibles.indexOf pane
     leftPane     = visibles[visibleIndex - 1]
     rightPane    = visibles[visibleIndex + 1]

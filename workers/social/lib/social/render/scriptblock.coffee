@@ -1,3 +1,8 @@
+
+cachedRoutes    = {}
+cachedRouteTTL  = {}
+cachingTimeInMS = 30000
+
 module.exports = (options = {}, callback)->
 
   {dash} = require 'bongo'
@@ -80,6 +85,11 @@ module.exports = (options = {}, callback)->
     </script>
     """
 
+
+  # while implementing profile prefetching we will need
+  # a custom route for prefetched content
+  getRoute =-> return "scriptblock"
+
   queue          = []
   defaultOptions =
     limit : 20
@@ -89,6 +99,13 @@ module.exports = (options = {}, callback)->
   generateScript = ->
     html = createHTML()
     return callback null, html
+
+  route = getRoute()
+  if cachedRoutes[route]
+    if (Date.now() - (cachedRouteTTL[route] || 0)  < cachingTimeInMS)
+      console.log "#{route} cache is still valid"
+      prefetchedFeeds = cachedRoutes[route]
+      return generateScript()
 
   # todo  - implement this prefetching for all groups
 
@@ -125,5 +142,12 @@ module.exports = (options = {}, callback)->
     fetchActivityFromGraph (err, activity)->
       prefetchedFeeds['activity.main'] = activity  if activity
       queue.fin()
+
+  queue.push ->
+    route = getRoute()
+    cachedRoutes[route] = prefetchedFeeds
+    cachedRouteTTL[route] = Date.now()
+    console.log "#{route} cache is updated"
+    queue.fin()
 
   dash queue, generateScript
