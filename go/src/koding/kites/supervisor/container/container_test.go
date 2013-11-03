@@ -9,10 +9,7 @@ import (
 
 const (
 	ContainerName = "tt"
-	ContainerType = "busybox"
-	PrepareHost   = "vagrant"
-	PrepareName   = "vm-test"
-	ContainerIP   = "127.0.0.2"
+	ContainerIP   = "10.0.1.33" // TODO: take subnet from config
 )
 
 var c = NewContainer(ContainerName)
@@ -46,7 +43,7 @@ func TestNewContainer(t *testing.T) {
 
 }
 
-func TestContainer_CreateContainerDir(t *testing.T) {
+func TestContainer_CreateContainerDir_prepare(t *testing.T) {
 	var files = []struct {
 		fileName string
 		template string
@@ -68,7 +65,7 @@ func TestContainer_CreateContainerDir(t *testing.T) {
 	}
 }
 
-func TestContainer_MountRBD(t *testing.T) {
+func TestContainer_MountRBD_prepare(t *testing.T) {
 	if err := c.MountRBD(); err != nil {
 		t.Errorf("Could not mount rbd '%s'", err)
 	}
@@ -84,7 +81,7 @@ func TestContainer_MountRBD(t *testing.T) {
 
 }
 
-func TestContainer_CreateOverlay(t *testing.T) {
+func TestContainer_CreateOverlay_prepare(t *testing.T) {
 	var containerFiles = []struct {
 		fileName string
 		template string
@@ -106,7 +103,7 @@ func TestContainer_CreateOverlay(t *testing.T) {
 	}
 }
 
-func TestContainer_MountAufs(t *testing.T) {
+func TestContainer_MountAufs_prepare(t *testing.T) {
 	if err := c.MountAufs(); err != nil {
 		t.Errorf("Could not mount aufs '%s'", err)
 	}
@@ -122,7 +119,7 @@ func TestContainer_MountAufs(t *testing.T) {
 
 }
 
-func TestContainer_MountPts(t *testing.T) {
+func TestContainer_MountPts_prepare(t *testing.T) {
 	if err := c.PrepareAndMountPts(); err != nil {
 		t.Errorf("Could not mount pts '%s'", err)
 	}
@@ -137,7 +134,7 @@ func TestContainer_MountPts(t *testing.T) {
 	}
 }
 
-func TestContainer_AddEbtablesRule(t *testing.T) {
+func TestContainer_AddEbtablesRule_prepare(t *testing.T) {
 	c.IP = net.ParseIP(ContainerIP)
 
 	if err := c.AddEbtablesRule(); err != nil {
@@ -154,7 +151,7 @@ func TestContainer_AddEbtablesRule(t *testing.T) {
 	}
 }
 
-func TestContainer_AddStaticRoute(t *testing.T) {
+func TestContainer_AddStaticRoute_prepare(t *testing.T) {
 	if err := c.AddStaticRoute(); err != nil {
 		t.Errorf("Could not add static route rule '%s'", err)
 	}
@@ -169,7 +166,7 @@ func TestContainer_AddStaticRoute(t *testing.T) {
 	}
 }
 
-func TestContainer_PrepareHomeDirectory(t *testing.T) {
+func TestContainer_PrepareHomeDirectory_prepare(t *testing.T) {
 	err := c.PrepareHomeDirectory()
 	if err != nil {
 		t.Errorf("Could not create home directory: '%s'", err)
@@ -187,7 +184,7 @@ func TestContainer_PrepareHomeDirectory(t *testing.T) {
 
 }
 
-func TestContainer_CheckAndStopContainer(t *testing.T) {
+func TestContainer_CheckAndStopContainer_unprepare(t *testing.T) {
 	err := c.CheckAndStopContainer()
 	if err != nil {
 		t.Errorf("Could not stop the container: '%s'", err)
@@ -198,14 +195,14 @@ func TestContainer_CheckAndStopContainer(t *testing.T) {
 	}
 }
 
-func TestContainer_BackupDpkg(t *testing.T) {
+func TestContainer_BackupDpkg_unprepare(t *testing.T) {
 	err := c.BackupDpkg()
 	if err != nil {
 		t.Errorf("Could not backup dpkg files: '%s'", err)
 	}
 }
 
-func TestContainer_RemoveStaticRoute(t *testing.T) {
+func TestContainer_RemoveStaticRoute_unprepare(t *testing.T) {
 	if err := c.RemoveStaticRoute(); err != nil {
 		t.Errorf("Could not remove static route rule '%s'", err)
 	}
@@ -220,7 +217,7 @@ func TestContainer_RemoveStaticRoute(t *testing.T) {
 	}
 }
 
-func TestContainer_RemoveEbtablesRule(t *testing.T) {
+func TestContainer_RemoveEbtablesRule_unprepare(t *testing.T) {
 	if err := c.RemoveEbtablesRule(); err != nil {
 		t.Errorf("Could not remove ebtables rule '%s'", err)
 	}
@@ -235,7 +232,7 @@ func TestContainer_RemoveEbtablesRule(t *testing.T) {
 	}
 }
 
-func TestContainer_UmountPts(t *testing.T) {
+func TestContainer_UmountPts_unprepare(t *testing.T) {
 	if err := c.UmountPts(); err != nil {
 		t.Errorf("Could not mount pts '%s'", err)
 	}
@@ -250,7 +247,7 @@ func TestContainer_UmountPts(t *testing.T) {
 	}
 }
 
-func TestContainer_UmountAufs(t *testing.T) {
+func TestContainer_UmountAufs_unprepare(t *testing.T) {
 	if err := c.UmountAufs(); err != nil {
 		t.Errorf("Could not umount rbd '%s'", err)
 	}
@@ -265,7 +262,7 @@ func TestContainer_UmountAufs(t *testing.T) {
 	}
 }
 
-func TestContainer_UmountRBD(t *testing.T) {
+func TestContainer_UmountRBD_unprepare(t *testing.T) {
 	if err := c.UmountRBD(); err != nil {
 		t.Errorf("Could not umount rbd '%s'", err)
 	}
@@ -281,7 +278,7 @@ func TestContainer_UmountRBD(t *testing.T) {
 
 }
 
-func TestContainer_RemoveContainerFiles(t *testing.T) {
+func TestContainer_RemoveContainerFiles_unprepare(t *testing.T) {
 	files := []string{
 		c.OverlayPath(""),
 		c.Path("config"),
