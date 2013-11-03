@@ -11,6 +11,9 @@ module.exports = (options = {}, callback)->
 
   options.intro   ?= no
   options.client or= {}
+  options.client.context or= {}
+  options.client.context.group or= "koding"
+
 
   prefetchedFeeds = {}
   {bongoModels, client, intro} = options
