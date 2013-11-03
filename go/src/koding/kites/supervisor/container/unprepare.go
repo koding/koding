@@ -16,43 +16,22 @@ import (
 // etc. It doesn't remove the home folder or any newly created system files.
 // Those files will be stored in the vmroot.
 func (c *Container) Unprepare() error {
-	// first stop container if it's running already
-	if c.IsRunning() {
-		fmt.Println("stopping down containers")
-		err := c.Stop()
-		if err != nil {
-			return err
-		}
-
+	err := c.CheckAndStopContainer()
+	if err != nil {
+		return nil
 	}
 
-	// backup dpkg database for statistical purposes
-	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
-
-	c.AsContainer().CopyFile(c.OverlayPath("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+c.Name)
-
-	if c.IP == nil {
-		if ip, err := ioutil.ReadFile(c.Path("ip-address")); err == nil {
-			c.IP = net.ParseIP(string(ip))
-		}
+	err = c.BackupDpkg()
+	if err != nil {
+		return err
 	}
 
-	fmt.Println("removing ebtables and route")
-	if c.IP != nil {
-		// remove ebtables entry
-		err := c.RemoveEbtablesRule()
-		if err != nil {
-			return err
-		}
-
-		err = c.RemoveStaticRoute()
-		if err != nil {
-			return err
-		}
-
+	err = c.RemoveNetworkRules()
+	if err != nil {
+		return err
 	}
 
-	err := c.UmountPts()
+	err = c.UmountPts()
 	if err != nil {
 		return err
 	}
@@ -67,14 +46,85 @@ func (c *Container) Unprepare() error {
 		return err
 	}
 
-	fmt.Println("removing overlay paths")
-	fmt.Println(os.Remove(c.OverlayPath("")))
-	fmt.Println(os.Remove(c.Path("config")))
-	fmt.Println(os.Remove(c.Path("fstab")))
-	fmt.Println(os.Remove(c.Path("ip-address")))
-	fmt.Println(os.Remove(c.Path("rootfs")))
-	fmt.Println(os.Remove(c.Path("rootfs.hold")))
-	fmt.Println(os.Remove(c.Path("")))
+	err = c.RemoveContainerFiles()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Container) CheckAndStopContainer() error {
+	if !c.IsRunning() {
+		return nil
+	}
+
+	fmt.Println("stopping down containers")
+	err := c.Stop()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Container) BackupDpkg() error {
+	// backup dpkg database for statistical purposes
+	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
+	c.AsContainer().CopyFile(c.OverlayPath("/var/lib/dpkg/status"),
+		"/var/lib/lxc/dpkg-statuses/"+c.Name)
+
+	return nil // silently fail, because a newly prepared vm doesn't have this file
+}
+
+func (c *Container) RemoveNetworkRules() error {
+	if c.IP == nil {
+		if ip, err := ioutil.ReadFile(c.Path("ip-address")); err == nil {
+			c.IP = net.ParseIP(string(ip))
+		}
+	}
+
+	if c.IP != nil {
+		// remove ebtables entry
+		err := c.RemoveStaticRoute()
+		if err != nil {
+			return err
+		}
+
+		err = c.RemoveEbtablesRule()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Container) RemoveContainerFiles() error {
+	// our overlay folder
+	err := os.Remove(c.OverlayPath(""))
+	if err != nil {
+		return err
+	}
+
+	// container files
+	os.Remove(c.Path("config"))
+	os.Remove(c.Path("fstab"))
+	os.Remove(c.Path("ip-address"))
+
+	// remove
+	err = os.Remove(c.Path("rootfs"))
+	if err != nil {
+		return err
+	}
+
+	os.Remove(c.Path("rootfs.hold"))
+
+	// finally remove our container dir
+	err = os.Remove(c.Path(""))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

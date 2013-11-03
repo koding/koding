@@ -264,6 +264,15 @@ func (c *Container) PrepareAndMountPts() error {
 
 // AddEbtablesRule adds entries to restrict IP and MAC
 func (c *Container) AddEbtablesRule() error {
+	available, err := c.CheckEbtables()
+	if err != nil {
+		return err
+	}
+
+	if available {
+		return nil
+	}
+
 	out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source",
 		c.MAC().String(), "--ip-src", c.IP.String(), "--in-interface", c.VEth(),
 		"--jump", "ACCEPT").CombinedOutput()

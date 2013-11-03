@@ -1,6 +1,7 @@
 package container
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"testing"
@@ -45,11 +46,7 @@ func TestNewContainer(t *testing.T) {
 
 }
 
-func TestContainer_GenerateFiles(t *testing.T) {
-	if err := c.AsHost().PrepareDir(c.Path("")); err != nil {
-		t.Errorf("Generatefile: %s ", err)
-	}
-
+func TestContainer_CreateContainerDir(t *testing.T) {
 	var files = []struct {
 		fileName string
 		template string
@@ -59,12 +56,12 @@ func TestContainer_GenerateFiles(t *testing.T) {
 		{c.Path("ip-address"), "ip-address"},
 	}
 
-	for _, file := range files {
-		err := c.AsHost().GenerateFile(file.fileName, file.template)
-		if err != nil {
-			t.Errorf("Generatefile: %s ", err)
-		}
+	err := c.CreateContainerDir()
+	if err != nil {
+		t.Errorf("Could not create container dir: '%s'", err)
+	}
 
+	for _, file := range files {
 		if !exist(file.fileName) {
 			t.Errorf("Generatefile: %s does not exist", file.fileName)
 		}
@@ -85,6 +82,28 @@ func TestContainer_MountRBD(t *testing.T) {
 		t.Error("Overlay is not mounted. It should be mounted after MountAufs()")
 	}
 
+}
+
+func TestContainer_CreateOverlay(t *testing.T) {
+	var containerFiles = []struct {
+		fileName string
+		template string
+	}{
+		{c.OverlayPath("etc/hostname"), "hostname"},
+		{c.OverlayPath("etc/hosts"), "hosts"},
+		{c.OverlayPath("etc/ldap.conf"), "ldap.conf"},
+	}
+
+	err := c.CreateOverlay()
+	if err != nil {
+		t.Errorf("Could not create overlay files: '%s'", err)
+	}
+
+	for _, file := range containerFiles {
+		if !exist(file.fileName) {
+			t.Errorf("Generatefile: %s does not exist", file.fileName)
+		}
+	}
 }
 
 func TestContainer_MountAufs(t *testing.T) {
@@ -147,6 +166,42 @@ func TestContainer_AddStaticRoute(t *testing.T) {
 
 	if !available {
 		t.Errorf("Static route for IP '%s' is not available. It should be available after AddStaticRoute()", c.IP.String())
+	}
+}
+
+func TestContainer_PrepareHomeDirectory(t *testing.T) {
+	err := c.PrepareHomeDirectory()
+	if err != nil {
+		t.Errorf("Could not create home directory: '%s'", err)
+
+	}
+
+	if !exist(c.Path("rootfs/home/testing")) {
+		t.Error("User home directory does not exist")
+	}
+
+	vmWebDir := c.Path(fmt.Sprintf("rootfs/home/%s/Web", c.WebHome))
+	if !exist(vmWebDir) {
+		t.Error("User web directory does not exist")
+	}
+
+}
+
+func TestContainer_CheckAndStopContainer(t *testing.T) {
+	err := c.CheckAndStopContainer()
+	if err != nil {
+		t.Errorf("Could not stop the container: '%s'", err)
+	}
+
+	if c.IsRunning() {
+		t.Error("Container is still running (it should be stopped)")
+	}
+}
+
+func TestContainer_BackupDpkg(t *testing.T) {
+	err := c.BackupDpkg()
+	if err != nil {
+		t.Errorf("Could not backup dpkg files: '%s'", err)
 	}
 }
 
@@ -226,69 +281,25 @@ func TestContainer_UmountRBD(t *testing.T) {
 
 }
 
-func TestContainer_GenerateOverlayFiles(t *testing.T) {
-	if err := c.AsContainer().PrepareDir(c.OverlayPath("")); err != nil {
-		t.Errorf("PrepareDir Overlay: %s ", err)
+func TestContainer_RemoveContainerFiles(t *testing.T) {
+	files := []string{
+		c.OverlayPath(""),
+		c.Path("config"),
+		c.Path("fstab"),
+		c.Path("ip-addres"),
+		c.Path("rootfs"),
+		c.Path("rootfs.hold"),
+		c.Path(""),
 	}
 
-	if err := c.AsContainer().PrepareDir(c.OverlayPath("/lost+found")); err != nil {
-		t.Errorf("PrepareDir Overlay/lost+found: %s ", err)
+	err := c.RemoveContainerFiles()
+	if err != nil {
+		t.Errorf("Could not remove container dir and files: '%s'", err)
 	}
 
-	if err := c.AsContainer().PrepareDir(c.OverlayPath("/etc")); err != nil {
-		t.Errorf("PrepareDir Overlay/etc: %s ", err)
-	}
-
-	var containerFiles = []struct {
-		fileName string
-		template string
-	}{
-		{c.OverlayPath("etc/hostname"), "hostname"},
-		{c.OverlayPath("etc/hosts"), "hosts"},
-		{c.OverlayPath("etc/ldap.conf"), "ldap.conf"},
-	}
-
-	for _, file := range containerFiles {
-		err := c.AsContainer().GenerateFile(file.fileName, file.template)
-		if err != nil {
-			t.Errorf("Generatefile: %s ", err)
-		}
-
-		if !exist(file.fileName) {
-			t.Errorf("Generatefile: %s does not exist", file.fileName)
+	for _, file := range files {
+		if exist(file) {
+			t.Errorf("Removing container files: %s does exist", file)
 		}
 	}
 }
-
-func TestContainer_CreateUserHome(t *testing.T) {
-	if err := c.createUserHome(); err != nil {
-		t.Errorf("Could not create home directory %s ", err)
-	}
-
-	if !exist(c.Path("rootfs/home/testing")) {
-		t.Error("User home directory does not exist")
-	}
-}
-
-// func TestContainer_CreateWebDir(t *testing.T) {
-// 	c := NewContainer(ContainerName)
-// 	c.HostnameAlias = "vagrant"
-// 	c.LdapPassword = "123456789"
-// 	c.IP = net.ParseIP(ContainerIP)
-// 	c.Username = "testing"
-// 	c.WebHome = "testing"
-
-// 	vmWebDir := c.Path(fmt.Sprintf("rootfs/home/%s/Web", c.WebHome))
-
-// 	if err := c.createWebDir(vmWebDir); err != nil {
-// 		t.Errorf("Could not create web directory %s ", err)
-// 	}
-
-// 	if !exist(c.Path("rootfs/var/www")) {
-// 		t.Error("Create web directory, /var/www does not exist")
-// 	}
-
-// 	if !exist(c.Path("rootfs/home/testing/Web")) {
-// 		t.Error("Create web directory. /home/testing/Web does not exist")
-// 	}
-// }
