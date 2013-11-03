@@ -1,21 +1,39 @@
 package container
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"testing"
 )
 
 const (
-	ContainerName = "testContainer"
-	ContainerType = "busybox"
-	PrepareHost   = "vagrant"
-	PrepareName   = "vm-test"
+	ContainerName     = "tt"
+	ContainerIP       = "10.0.1.33" // TODO: take subnet from config
+	ContainerUsername = "testing"
+	ContainerUseruid  = 1000333
 )
 
-func TestNewContainer(t *testing.T) {
-	c := NewContainer(ContainerName)
+var c = NewContainer(ContainerName)
 
+func init() {
+	c.HostnameAlias = "vagrant"
+	c.LdapPassword = "123456789"
+	c.IP = net.ParseIP(ContainerIP)
+	c.Username = ContainerUsername
+	c.WebHome = ContainerUsername
+	c.Useruid = ContainerUseruid
+}
+
+func exist(filename string) bool {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+func TestNewContainer(t *testing.T) {
 	if c.Name != ContainerName {
 		t.Errorf("NewContainer: exptecting: %s got: %s", ContainerName, c.Name)
 	}
@@ -28,15 +46,7 @@ func TestNewContainer(t *testing.T) {
 
 }
 
-func TestContainer_GenerateFiles(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.IP = net.ParseIP("127.0.0.1")
-	c.HostnameAlias = "vagrant"
-
-	if err := c.AsHost().PrepareDir(c.Path("")); err != nil {
-		t.Errorf("Generatefile: %s ", err)
-	}
-
+func TestContainer_CreateContainerDir_prepare(t *testing.T) {
 	var files = []struct {
 		fileName string
 		template string
@@ -46,129 +56,290 @@ func TestContainer_GenerateFiles(t *testing.T) {
 		{c.Path("ip-address"), "ip-address"},
 	}
 
-	for _, file := range files {
-		err := c.AsHost().GenerateFile(file.fileName, file.template)
-		if err != nil {
-			t.Errorf("Generatefile: %s ", err)
-		}
+	err := c.CreateContainerDir()
+	if err != nil {
+		t.Errorf("Could not create container dir: '%s'", err)
+	}
 
-		if _, err := os.Stat(file.fileName); os.IsNotExist(err) {
+	for _, file := range files {
+		if !exist(file.fileName) {
 			t.Errorf("Generatefile: %s does not exist", file.fileName)
 		}
+	}
+}
+
+func TestContainer_MountRBD_prepare(t *testing.T) {
+	if err := c.MountRBD(); err != nil {
+		t.Errorf("Could not mount rbd '%s'", err)
+	}
+
+	mounted, err := c.CheckMount(c.OverlayPath(""))
+	if err != nil {
+		t.Error("Could not check mount state of overlay path", err)
+	}
+
+	if !mounted {
+		t.Error("Overlay is not mounted. It should be mounted after MountAufs()")
 	}
 
 }
 
-func TestContainer_GenerateOverlayFiles(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.HostnameAlias = "vagrant"
-	c.LdapPassword = "123456789"
-	c.IP = net.ParseIP("127.0.0.1")
-
-	if err := c.AsContainer().PrepareDir(c.OverlayPath("")); err != nil {
-		t.Errorf("PrepareDir Overlay: %s ", err)
-	}
-
-	if err := c.AsContainer().PrepareDir(c.OverlayPath("/lost+found")); err != nil {
-		t.Errorf("PrepareDir Overlay/lost+found: %s ", err)
-	}
-
-	if err := c.AsContainer().PrepareDir(c.OverlayPath("/etc")); err != nil {
-		t.Errorf("PrepareDir Overlay/etc: %s ", err)
-	}
-
+func TestContainer_CreateOverlay_prepare(t *testing.T) {
 	var containerFiles = []struct {
 		fileName string
 		template string
 	}{
-		{c.OverlayPath("/etc/hostname"), "hostname"},
-		{c.OverlayPath("/etc/hosts"), "hosts"},
-		{c.OverlayPath("/etc/ldap.conf"), "ldap.conf"},
+		{c.OverlayPath("etc/hostname"), "hostname"},
+		{c.OverlayPath("etc/hosts"), "hosts"},
+		{c.OverlayPath("etc/ldap.conf"), "ldap.conf"},
+	}
+
+	err := c.CreateOverlay()
+	if err != nil {
+		t.Errorf("Could not create overlay files: '%s'", err)
 	}
 
 	for _, file := range containerFiles {
-		err := c.AsContainer().GenerateFile(file.fileName, file.template)
-		if err != nil {
-			t.Errorf("Generatefile: %s ", err)
-		}
-
-		if _, err := os.Stat(file.fileName); os.IsNotExist(err) {
+		if !exist(file.fileName) {
 			t.Errorf("Generatefile: %s does not exist", file.fileName)
 		}
 	}
 }
 
-func TestContainer_CreateUserHome(t *testing.T) {
-	c := NewContainer(ContainerName)
-	c.HostnameAlias = "vagrant"
-	c.LdapPassword = "123456789"
-	c.IP = net.ParseIP("127.0.0.1")
-	c.Username = "testing"
-	c.WebHome = "testing"
+func TestContainer_MountAufs_prepare(t *testing.T) {
+	if err := c.MountAufs(); err != nil {
+		t.Errorf("Could not mount aufs '%s'", err)
+	}
 
-	if err := c.createUserHome(); err != nil {
-		t.Errorf("CreateUserHome %s ", err)
+	mounted, err := c.CheckMount(c.Path("rootfs"))
+	if err != nil {
+		t.Error("Could not check mount state of aufs rootfs", err)
+	}
+
+	if !mounted {
+		t.Error("Aufs rootfs is not mounted. It should be mounted after MountAufs()")
 	}
 
 }
 
-// func TestContainer_Create(t *testing.T) {
-// 	c := NewContainer(ContainerName)
+func TestContainer_MountPts_prepare(t *testing.T) {
+	if err := c.PrepareAndMountPts(); err != nil {
+		t.Errorf("Could not mount pts '%s'", err)
+	}
 
-// 	if err := c.Create(ContainerType); err != nil {
-// 		t.Error(err)
-// 	}
+	mounted, err := c.CheckMount(c.PtsDir())
+	if err != nil {
+		t.Error("Could not check mount state of pts dir", err)
+	}
 
-// 	if _, err := os.Stat(c.Dir); os.IsNotExist(err) {
-// 		t.Errorf("Create: %s does not exist", c.Dir)
-// 	}
+	if !mounted {
+		t.Error("Pts dir is not mounted. It should be mounted after PrepareAndMountPts()")
+	}
+}
 
-// }
+func TestContainer_AddEbtablesRule_prepare(t *testing.T) {
+	c.IP = net.ParseIP(ContainerIP)
 
-// func TestContainer_Start(t *testing.T) {
-// 	c := NewContainer(ContainerName)
+	if err := c.AddEbtablesRule(); err != nil {
+		t.Errorf("Could not add ebtables rule '%s'", err)
+	}
 
-// 	if err := c.Start(); err != nil {
-// 		t.Error(err)
-// 	}
+	available, err := c.CheckEbtables()
+	if err != nil {
+		t.Error("Could not check ebtables for IP: '%s'", c.IP.String())
+	}
 
-// 	if !c.IsRunning() {
-// 		t.Errorf("Starting the container failed...")
-// 	}
-// }
+	if !available {
+		t.Errorf("Ebtables rule for IP '%s' is not available. It should be available after AddEbtablesRule()", c.IP.String())
+	}
+}
 
-// func TestShutdown(t *testing.T) {
-// 	c := NewContainer(ContainerName)
+func TestContainer_AddStaticRoute_prepare(t *testing.T) {
+	if err := c.AddStaticRoute(); err != nil {
+		t.Errorf("Could not add static route rule '%s'", err)
+	}
 
-// 	if err := c.Shutdown(3); err != nil {
-// 		t.Errorf(err.Error())
-// 	}
+	available, err := c.CheckStaticRoute()
+	if err != nil {
+		t.Error("Could not check static route for IP: '%s'", c.IP.String())
+	}
 
-// 	if c.IsRunning() {
-// 		t.Errorf("Shutting down the container failed...")
-// 	}
-// }
+	if !available {
+		t.Errorf("Static route for IP '%s' is not available. It should be available after AddStaticRoute()", c.IP.String())
+	}
+}
 
-// func TestStop(t *testing.T) {
-// 	c := NewContainer(ContainerName)
+func TestContainer_PrepareHomeDirectory_prepare(t *testing.T) {
+	err := c.PrepareHomeDirectory()
+	if err != nil {
+		t.Errorf("Could not create home directory: '%s'", err)
 
-// 	if err := c.Start(); err != nil {
-// 		t.Error(err)
-// 	}
+	}
 
-// 	if err := c.Stop(); err != nil {
-// 		t.Errorf(err.Error())
-// 	}
+	if !exist(c.Path("rootfs/home/testing")) {
+		t.Error("User home directory does not exist")
+	}
 
-// 	if c.IsRunning() {
-// 		t.Errorf("Stopping the container failed...")
-// 	}
-// }
+	vmWebDir := c.Path(fmt.Sprintf("rootfs/home/%s/Web", c.WebHome))
+	if !exist(vmWebDir) {
+		t.Error("User web directory does not exist")
+	}
 
-// func TestDestroy(t *testing.T) {
-// 	c := NewContainer(ContainerName)
+}
 
-// 	if err := c.Destroy(); err != nil {
-// 		t.Error(err)
-// 	}
-// }
+func TestContainer_Start_prepare(t *testing.T) {
+	err := c.Start()
+	if err != nil {
+		t.Errorf("Could not start container: '%s'", c.Name)
+	}
+
+	if !c.IsRunning() {
+		t.Errorf("Container is not running. It should be running after Start() method")
+	}
+}
+
+func TestContainer_Run(t *testing.T) {
+	var commands = []struct {
+		input  string
+		output string
+	}{
+		{"uname", "Linux"},
+		{"ls /home", ContainerUsername},
+	}
+
+	for _, cmd := range commands {
+		t.Logf("run command '%s' inside container\n", cmd.input)
+		out, err := c.Run(cmd.input)
+		if err != nil {
+			t.Errorf("Could not run command '%s'", cmd.input)
+		}
+
+		if string(out) != cmd.output {
+			t.Errorf("Command output mismatch. Expecting: '%s', Got: '%s'", cmd.output, string(out))
+		}
+	}
+}
+
+/*
+
+Prepare is done.
+Now we are going to unprepare it.
+
+*/
+
+func TestContainer_CheckAndStopContainer_unprepare(t *testing.T) {
+	err := c.CheckAndStopContainer()
+	if err != nil {
+		t.Errorf("Could not stop the container: '%s'", err)
+	}
+
+	if c.IsRunning() {
+		t.Error("Container is still running (it should be stopped)")
+	}
+}
+
+func TestContainer_BackupDpkg_unprepare(t *testing.T) {
+	err := c.BackupDpkg()
+	if err != nil {
+		t.Errorf("Could not backup dpkg files: '%s'", err)
+	}
+}
+
+func TestContainer_RemoveStaticRoute_unprepare(t *testing.T) {
+	if err := c.RemoveStaticRoute(); err != nil {
+		t.Errorf("Could not remove static route rule '%s'", err)
+	}
+
+	available, err := c.CheckStaticRoute()
+	if err != nil {
+		t.Error("Could not check static route for IP: '%s'", c.IP.String())
+	}
+
+	if available {
+		t.Errorf("Static route for IP '%s' is available. It should be not available after RemoveStaticRoute()", c.IP.String())
+	}
+}
+
+func TestContainer_RemoveEbtablesRule_unprepare(t *testing.T) {
+	if err := c.RemoveEbtablesRule(); err != nil {
+		t.Errorf("Could not remove ebtables rule '%s'", err)
+	}
+
+	available, err := c.CheckEbtables()
+	if err != nil {
+		t.Error("Could not check ebtables for IP: '%s'", c.IP.String())
+	}
+
+	if available {
+		t.Errorf("Ebtables rule for IP '%s' is available. It should be not available after AddEbtablesRule()", c.IP.String())
+	}
+}
+
+func TestContainer_UmountPts_unprepare(t *testing.T) {
+	if err := c.UmountPts(); err != nil {
+		t.Errorf("Could not mount pts '%s'", err)
+	}
+
+	mounted, err := c.CheckMount(c.PtsDir())
+	if err != nil {
+		t.Error("Could not check mount state of pts dir", err)
+	}
+
+	if mounted {
+		t.Error("Pts dir is mounted. It should be unmounted after UmountPts()")
+	}
+}
+
+func TestContainer_UmountAufs_unprepare(t *testing.T) {
+	if err := c.UmountAufs(); err != nil {
+		t.Errorf("Could not umount rbd '%s'", err)
+	}
+
+	mounted, err := c.CheckMount(c.Path("rootfs"))
+	if err != nil {
+		t.Error("Could not check mount state of aufs rootfs", err)
+	}
+
+	if mounted {
+		t.Error("Aufs rootfs is mounted. It should be unmounted after UmountAufs()")
+	}
+}
+
+func TestContainer_UmountRBD_unprepare(t *testing.T) {
+	if err := c.UmountRBD(); err != nil {
+
+	}
+
+	mounted, err := c.CheckMount(c.OverlayPath(""))
+	if err != nil {
+		t.Error("Could not check mount state of overlay path", err)
+	}
+
+	if mounted {
+		t.Error("Overlay is mounted. It should be unnmounted after UmountRBD()")
+	}
+
+}
+
+func TestContainer_RemoveContainerFiles_unprepare(t *testing.T) {
+	files := []string{
+		c.OverlayPath(""),
+		c.Path("config"),
+		c.Path("fstab"),
+		c.Path("ip-addres"),
+		c.Path("rootfs"),
+		c.Path("rootfs.hold"),
+		c.Path(""),
+	}
+
+	err := c.RemoveContainerFiles()
+	if err != nil {
+		t.Errorf("Could not remove container dir and files: '%s'", err)
+	}
+
+	for _, file := range files {
+		if exist(file) {
+			t.Errorf("Removing container files: %s does exist", file)
+		}
+	}
+}

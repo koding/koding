@@ -45,6 +45,7 @@ func main() {
 		"vm.stop":      "Stop",
 		"vm.prepare":   "Prepare",
 		"vm.unprepare": "Unprepare",
+		"vm.run":       "Run",
 	}
 
 	initialize()
@@ -60,8 +61,6 @@ func initialize() {
 		fmt.Println(err)
 		return
 	}
-
-	fmt.Println("initialized")
 }
 
 func (s *Supervisor) Create(r *protocol.KiteDnodeRequest, result *bool) error {
@@ -147,7 +146,7 @@ func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
+func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *[]byte) error {
 	var params struct {
 		ContainerName string
 		Command       string
@@ -157,13 +156,23 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *bool) error {
 		return errors.New("{ containerName: [string], command : [string]}")
 	}
 
-	fmt.Printf("running '%s' on '%s'\n", params.Command, params.Command)
-	c := container.NewContainer(params.ContainerName)
-	err := c.Run(params.Command)
+	user, err := getUser(r.Username)
 	if err != nil {
 		return err
 	}
 
+	fmt.Printf("running '%s' on '%s'\n", params.Command, params.ContainerName)
+	c := container.NewContainer(params.ContainerName)
+	c.Useruid = user.Uid
+
+	output, err := c.Run(params.Command)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("output is", string(output))
+
+	*result = output
 	return nil
 }
 

@@ -3,18 +3,21 @@
 package container
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/caglar10ur/lxc"
 	"io"
 	"net"
 	"os"
-	"strings"
+	"os/exec"
+	"strconv"
 	"sync"
 	"text/template"
 )
 
 const (
 	lxcDir        = "/var/lib/lxc/"
+	lxcVersion    = "1.0.0.alpha1"
 	RootUID       = 0       // the is of the root user
 	UserUIDOffset = 1000000 // used for id mapping in lxc.conf
 	RootUIDOffset = 500000  // used for id mapping in lxc.conf
@@ -36,8 +39,7 @@ var (
 type Container struct {
 	Name string // ContainerName
 	Dir  string // Container directory path, i.e: /var/lib/lxc/containerName/
-	Lxc  *lxc.Container
-	UID  int // Used for AsXXX() methods.
+	UID  int    // Used for AsXXX() methods.
 
 	// needed for templating
 	HwAddr        net.HardwareAddr
@@ -53,39 +55,17 @@ type Container struct {
 
 // It's put here that it get initiated only once
 func init() {
-	interf, err := net.InterfaceByName("lxcbr0")
-	if err != nil {
-		panic(err)
+	if lxc.Version() != lxcVersion {
+		fmt.Printf("lxc version mismatch. expected: '%s' got: '%s'\n", lxcVersion, lxc.Version())
+		os.Exit(1)
 	}
 
-	addrs, err := interf.Addrs()
-	if err != nil {
-		panic(err)
+	if os.Geteuid() != 0 {
+		fmt.Println("running as non-root")
+		os.Exit(1)
 	}
 
-	hostIP, _, err := net.ParseCIDR(addrs[0].String())
-	if err != nil {
-		panic(err)
-	}
-
-	templates.Funcs(template.FuncMap{
-		"hostIP": func() string {
-			return hostIP.String()
-		},
-		"swapAccountingEnabled": func() bool {
-			_, err := os.Stat("/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes")
-			return err == nil
-		},
-		"kernelMemoryAccountingEnabled": func() bool {
-			_, err := os.Stat("/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes")
-			return err == nil
-		},
-	})
-
-	if _, err := templates.ParseGlob(templateDir + "/vm/*"); err != nil {
-		panic(err)
-	}
-
+	loadTemplates()
 }
 
 // NewContainer returns a new instance of the Container struct.
@@ -93,7 +73,6 @@ func NewContainer(containerName string) *Container {
 	return &Container{
 		Name: containerName,
 		Dir:  lxcDir + containerName + "/",
-		Lxc:  lxc.NewContainer(containerName),
 	}
 }
 
@@ -187,7 +166,6 @@ func (c *Container) CopyFile(src, dst string) error {
 // method which sets the UID and GUID. An example call might be:
 // c.AsContainer().Chown("example.txt")
 func (c *Container) Chown(name string) error {
-	fmt.Println("chowning ", name, c.UID)
 	return os.Chown(name, c.UID, c.UID)
 }
 
@@ -242,36 +220,46 @@ func (c *Container) GenerateFile(name, template string) error {
 
 // IsRunning returns true if the container is running.
 func (c *Container) IsRunning() bool {
-	return c.Lxc.Running()
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	return l.Running()
 }
 
 // Create creates a new lxc based on the template.
 func (c *Container) Create(template string) error {
-	return c.Lxc.Create(template)
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	if !l.Create(template, []string{}) {
+		return fmt.Errorf("could not create: %s\n", c.Name)
+	}
+	return nil
+
 }
 
 // Run invokes the given command inside the container.
-func (c *Container) Run(command string) error {
-	args := strings.Split(strings.TrimSpace(command), " ")
+func (c *Container) Run(command string) ([]byte, error) {
+	args := []string{"--name", c.Name, "--", "/usr/bin/sudo", "-i", "-u",
+		"#" + strconv.Itoa(c.Useruid), "--", "/bin/bash", "-c", command}
 
-	if err := c.Lxc.AttachRunCommand(args...); err != nil {
-		return fmt.Errorf("ERROR: %s\n", err.Error())
+	cmd := exec.Command("/usr/bin/lxc-attach", args...)
+	cmd.Env = []string{"TERM=xterm-256color"}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	return bytes.TrimSpace(out), nil
 }
 
 // Start starts the container. It calls lxc-start with --daemonize set to
-// true.
+// true. Current binding
 func (c *Container) Start() error {
-	err := c.Lxc.SetDaemonize()
+	out, err := exec.Command("/usr/bin/lxc-start", "--name", c.Name, "--daemon").CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
-	}
-
-	err = c.Lxc.Start(false)
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
+		fmt.Println("lxc-start failed", err, string(out))
+		return fmt.Errorf("could not start '%s'", c.Name)
 	}
 
 	return nil
@@ -279,9 +267,11 @@ func (c *Container) Start() error {
 
 // Stop stops the running container. It calls lxc-stop.
 func (c *Container) Stop() error {
-	err := c.Lxc.Stop()
-	if err != nil {
-		return fmt.Errorf("ERROR: %s\n", err)
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	if !l.Stop() {
+		return fmt.Errorf("could not stop: %s\n", c.Name)
 	}
 
 	return nil
@@ -289,5 +279,47 @@ func (c *Container) Stop() error {
 
 // Destroy detroys the given container. It calls lxc-destroy.
 func (c *Container) Destroy() error {
-	return c.Lxc.Destroy()
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	if !l.Destroy() {
+		return fmt.Errorf("could not destroy: %s\n", c.Name)
+	}
+
+	return nil
+}
+
+func loadTemplates() {
+	interf, err := net.InterfaceByName("lxcbr0")
+	if err != nil {
+		panic(err)
+	}
+
+	addrs, err := interf.Addrs()
+	if err != nil {
+		panic(err)
+	}
+
+	hostIP, _, err := net.ParseCIDR(addrs[0].String())
+	if err != nil {
+		panic(err)
+	}
+
+	templates.Funcs(template.FuncMap{
+		"hostIP": func() string {
+			return hostIP.String()
+		},
+		"swapAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes")
+			return err == nil
+		},
+		"kernelMemoryAccountingEnabled": func() bool {
+			_, err := os.Stat("/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes")
+			return err == nil
+		},
+	})
+
+	if _, err := templates.ParseGlob(templateDir + "/vm/*"); err != nil {
+		panic(err)
+	}
 }
