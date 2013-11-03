@@ -204,7 +204,8 @@ class ActivityAppController extends AppController
     {CStatusActivity} = KD.remote.api
 
     if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
-      if KD.prefetchedFeeds["activity.main"] and 'activities.main' not in USEDFEEDS
+      prefetchedActivity = KD.prefetchedFeeds["activity.main"]
+      if prefetchedActivity and ('activities.main' not in USEDFEEDS) and prefetchedActivity.activities
         log "exhausting feed:", "activity.main"
         USEDFEEDS.push 'activities.main'
         return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
