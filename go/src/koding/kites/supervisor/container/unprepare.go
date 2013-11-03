@@ -112,7 +112,7 @@ func (c *Container) RemoveContainerFiles() error {
 	os.Remove(c.Path("fstab"))
 	os.Remove(c.Path("ip-address"))
 
-	// remove
+	// remove rootfs too
 	err = os.Remove(c.Path("rootfs"))
 	if err != nil {
 		return err

@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	ContainerName = "tt"
-	ContainerIP   = "10.0.1.33" // TODO: take subnet from config
+	ContainerName     = "tt"
+	ContainerIP       = "10.0.1.33" // TODO: take subnet from config
+	ContainerUsername = "testing"
+	ContainerUseruid  = 1000333
 )
 
 var c = NewContainer(ContainerName)
@@ -18,8 +20,9 @@ func init() {
 	c.HostnameAlias = "vagrant"
 	c.LdapPassword = "123456789"
 	c.IP = net.ParseIP(ContainerIP)
-	c.Username = "testing"
-	c.WebHome = "testing"
+	c.Username = ContainerUsername
+	c.WebHome = ContainerUsername
+	c.Useruid = ContainerUseruid
 }
 
 func exist(filename string) bool {
@@ -184,6 +187,46 @@ func TestContainer_PrepareHomeDirectory_prepare(t *testing.T) {
 
 }
 
+func TestContainer_Start_prepare(t *testing.T) {
+	err := c.Start()
+	if err != nil {
+		t.Errorf("Could not start container: '%s'", c.Name)
+	}
+
+	if !c.IsRunning() {
+		t.Errorf("Container is not running. It should be running after Start() method")
+	}
+}
+
+func TestContainer_Run(t *testing.T) {
+	var commands = []struct {
+		input  string
+		output string
+	}{
+		{"uname", "Linux"},
+		{"ls /home", ContainerUsername},
+	}
+
+	for _, cmd := range commands {
+		t.Logf("run command '%s' inside container\n", cmd.input)
+		out, err := c.Run(cmd.input)
+		if err != nil {
+			t.Errorf("Could not run command '%s'", cmd.input)
+		}
+
+		if string(out) != cmd.output {
+			t.Errorf("Command output mismatch. Expecting: '%s', Got: '%s'", cmd.output, string(out))
+		}
+	}
+}
+
+/*
+
+Prepare is done.
+Now we are going to unprepare it.
+
+*/
+
 func TestContainer_CheckAndStopContainer_unprepare(t *testing.T) {
 	err := c.CheckAndStopContainer()
 	if err != nil {
@@ -264,7 +307,7 @@ func TestContainer_UmountAufs_unprepare(t *testing.T) {
 
 func TestContainer_UmountRBD_unprepare(t *testing.T) {
 	if err := c.UmountRBD(); err != nil {
-		t.Errorf("Could not umount rbd '%s'", err)
+
 	}
 
 	mounted, err := c.CheckMount(c.OverlayPath(""))

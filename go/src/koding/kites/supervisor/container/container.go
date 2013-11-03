@@ -3,6 +3,7 @@
 package container
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/caglar10ur/lxc"
 	"io"
@@ -10,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 	"sync"
 	"text/template"
 )
@@ -240,19 +240,17 @@ func (c *Container) Create(template string) error {
 
 // Run invokes the given command inside the container.
 func (c *Container) Run(command string) ([]byte, error) {
-	args := strings.Split(strings.TrimSpace(command), " ")
+	args := []string{"--name", c.Name, "--", "/usr/bin/sudo", "-i", "-u",
+		"#" + strconv.Itoa(c.Useruid), "--", "/bin/bash", "-c", command}
 
-	totalArgs := []string{"--name", c.Name, "--", "/usr/bin/sudo", "-i", "-u",
-		"#" + strconv.Itoa(c.Useruid), "--", "/bin/bash", "-c"}
-
-	totalArgs = append(totalArgs, args...)
-
-	cmd := exec.Command("/usr/bin/lxc-attach", totalArgs...)
+	cmd := exec.Command("/usr/bin/lxc-attach", args...)
 	cmd.Env = []string{"TERM=xterm-256color"}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, err
+	}
 
-	fmt.Println("going to run ", cmd.Args)
-
-	return cmd.CombinedOutput()
+	return bytes.TrimSpace(out), nil
 }
 
 // Start starts the container. It calls lxc-start with --daemonize set to
