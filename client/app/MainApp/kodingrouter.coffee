@@ -229,7 +229,7 @@ class KodingRouter extends KDRouter
 
     animateToForm = (formName, force = no) ->
       { mainTabView } = KD.getSingleton 'mainView'
-      appsAreOpen = mainTabView.getVisibleHandles().length > 0
+      appsAreOpen = mainTabView.getVisibleHandles?().length > 0
       if not force and formName in ['login', 'register'] and appsAreOpen
         ok = no
         modal = KDModalView.confirm
