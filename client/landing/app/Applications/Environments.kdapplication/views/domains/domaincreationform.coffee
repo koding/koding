@@ -57,7 +57,7 @@ class DomainCreationForm extends KDCustomHTMLView
     domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
     {getDomainInfo, getDomainSuggestions} = KD.remote.api.JDomain
 
-    @newDomainEntryForm.domainList?.unsetClass 'in'
+    @newDomainEntryForm.domainListView?.unsetClass 'in'
 
     # Maybe a CSS hero can remove these br with some alternative styles ~GG
     message.updatePartial "<br/> Checking for availability..."
@@ -74,9 +74,7 @@ class DomainCreationForm extends KDCustomHTMLView
           [{domain:domainName, price:status.price}]
         createButton.hideLoader()
         message.updatePartial "<br/> Yay it's available!"
-
       else
-        @newDomainEntryForm.domainList?.destroy?()
         message.updatePartial "<br/> Checking for alternatives..."
         getDomainSuggestions domainName, (err, suggestions)=>
           createButton.hideLoader()
@@ -219,6 +217,7 @@ class CommonDomainCreationForm extends KDFormViewWithFields
     super
 
 class SubDomainCreateForm extends CommonDomainCreationForm
+
   constructor:(options = {}, data)->
     super
       placeholder : "Type your subdomain..."
@@ -226,12 +225,17 @@ class SubDomainCreateForm extends CommonDomainCreationForm
     , data
 
 class DomainBuyForm extends CommonDomainCreationForm
+
   constructor:(options = {}, data)->
     super
       placeholder : "Type your awesome domain..."
     , data
 
-    @domainList = null
+    @availableDomainsList = new KDListViewController
+      itemClass : DomainBuyItem
+
+    @domainListView = @availableDomainsList.getView()
+                      .setClass 'domain-list'
 
   viewAppended:->
     tldList = []
@@ -239,28 +243,22 @@ class DomainBuyForm extends CommonDomainCreationForm
       for tld in tlds
         tldList.push {title:".#{tld}", value: tld}
       @inputs.domains.setSelectOptions tldList
+    @addSubView @domainListView
 
   setAvailableDomainsData:(domains)->
-    @domainList?.destroy?()
+    @availableDomainsList.replaceAllItems domains
+    @utils.defer => @domainListView.setClass 'in'
 
-    @domainList = new KDView cssClass:'domain-list'
-    @addSubView @domainList
-
-    for domain in domains
-      @domainList.addSubView new DomainBuyItem {}, domain
-
-    @utils.defer => @domainList.setClass 'in'
-
-class DomainBuyItem extends JView
+class DomainBuyItem extends KDListItemView
 
   constructor:(options={}, data)->
     options.cssClass = KD.utils.curry "domain-buy-items", options.cssClass
 
+    data.price = (parseFloat data.price).toFixed 2
     super options, data
 
-    price = (parseFloat @getData().price).toFixed 2
     selectOptions = \
-      ({title: "#{i} year for $ #{(price * i).toFixed 2}", \
+      ({title: "#{i} year for $ #{(@getData().price * i).toFixed 2}", \
         value: i} for i in [1..5])
 
     @yearBox = new KDSelectBox {name:'year', selectOptions}
@@ -268,9 +266,10 @@ class DomainBuyItem extends JView
     @buyButton = new KDButtonView
       title    : "Buy"
       style    : "clean-gray"
-      callback : ->
-        alert 'Buy it'
+      callback : => @parent.emit 'BuyButtonClicked', this
 
+  viewAppended: ->
+    JView::viewAppended.call this
 
   pistachio:->
     """
@@ -278,3 +277,4 @@ class DomainBuyItem extends JView
       {{> @yearBox}}
       {{> @buyButton}}
     """
+
