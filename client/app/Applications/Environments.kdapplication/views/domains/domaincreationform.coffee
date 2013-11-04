@@ -265,7 +265,7 @@ class DomainBuyItem extends KDListItemView
     super options, data
 
     selectOptions = \
-      ({title: "#{i} year for $ #{(@getData().price * i).toFixed 2}", \
+      ({title: "#{i} year for $#{(@getData().price * i).toFixed 2}", \
         value: i} for i in [1..5])
 
     @yearBox = new KDSelectBox {name:'year', selectOptions}
