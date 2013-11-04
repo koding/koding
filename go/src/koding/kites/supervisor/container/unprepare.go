@@ -142,6 +142,15 @@ func (c *Container) CheckEbtables() (bool, error) {
 }
 
 func (c *Container) RemoveStaticRoute() error {
+	available, err := c.CheckStaticRoute()
+	if err != nil {
+		return err
+	}
+
+	if !available {
+		return nil
+	}
+
 	// remove the static route so it is no longer redistribed by BGP
 	out, err := exec.Command("/sbin/route", "del", c.IP.String(), "lxcbr0").CombinedOutput()
 	if err != nil {

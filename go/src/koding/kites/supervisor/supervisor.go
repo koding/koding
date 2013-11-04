@@ -28,6 +28,7 @@ var (
 	containerSubnet  *net.IPNet
 	firstContainerIP net.IP
 	containers       = make(map[string]*Info)
+	k                = &kite.Kite{}
 )
 
 func main() {
@@ -51,7 +52,7 @@ func main() {
 
 	initialize()
 
-	k := kite.New(options)
+	k = kite.New(options)
 	k.AddMethods(new(Supervisor), methods)
 	k.Start()
 }
@@ -162,7 +163,7 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *string) error {
 		return err
 	}
 
-	fmt.Printf("running '%s' on '%s'\n", params.Command, params.ContainerName)
+	// fmt.Printf("running '%s' on '%s'\n", params.Command, params.ContainerName)
 	c := container.NewContainer(params.ContainerName)
 	c.Useruid = user.Uid
 
@@ -204,7 +205,7 @@ func (s *Supervisor) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error
 	c.IP = vm.IP // needed for removing static route and ebtables in unprepare
 
 	if c.IsRunning() {
-		err = c.Stop()
+		err = c.Shutdown(5)
 		if err != nil {
 			return err
 		}
@@ -250,6 +251,10 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 
 	c := container.NewContainer(params.ContainerName)
 
+	if c.IsRunning() {
+		return errors.New("vm is running")
+	}
+
 	// these values are needed for templating. will be changed later
 	// with a template struct.
 	c.IP = vm.IP
@@ -276,6 +281,10 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	info := GetInfo(params.ContainerName)
 	info.IP = c.IP
 	info.StartTimer()
+
+	k.OnDisconnect(r.Username, func() {
+		info.StopTimer()
+	})
 
 	*result = true
 	return nil

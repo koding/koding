@@ -29,11 +29,9 @@ func GetInfo(name string) *Info {
 	// var found bool
 	info, found := containers[name]
 	if !found {
-		fmt.Println("creating new one")
 		info = NewInfo(name)
 		containers[name] = info
 	} else {
-		fmt.Println("using old one")
 	}
 
 	return info
@@ -43,7 +41,7 @@ func GetInfo(name string) *Info {
 // unprepares the container.
 func (i *Info) StartTimer() {
 	i.ShutdownTimer = time.AfterFunc(ContainerOnDuration, func() {
-		fmt.Println("startTimer has been fired")
+		fmt.Println("startTimer has been ended")
 		c := container.NewContainer(i.Name)
 		c.IP = i.IP
 
@@ -66,4 +64,9 @@ func (i *Info) StartTimer() {
 func (i *Info) ResetTimer() {
 	fmt.Println("resetting timer")
 	i.ShutdownTimer.Reset(ContainerOnDuration)
+}
+
+func (i *Info) StopTimer() {
+	fmt.Println("stopping timer")
+	i.ShutdownTimer.Stop()
 }
