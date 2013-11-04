@@ -238,7 +238,7 @@ module.exports =
     secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
-    redirect_uri : "http://koding.com/-/oauth/odesk/callback"
+    redirect_uri : "https://koding.com/-/oauth/odesk/callback"
   facebook       :
     clientId     : "434245153353814"
     clientSecret : "84b024e0d627d5e80ede59150a2b251e"
@@ -254,11 +254,11 @@ module.exports =
   linkedin       :
     client_id    : "aza9cks1zb3d"
     client_secret: "zIMa5kPYbZjHfOsq"
-    redirect_uri : "http://koding.com/-/oauth/linkedin/callback"
+    redirect_uri : "https://koding.com/-/oauth/linkedin/callback"
   twitter        :
     key          : "tvkuPsOd7qzTlFoJORwo6w"
     secret       : "48HXyTkCYy4hvUuRa7t4vvhipv4h04y6Aq0n5wDYmA"
-    redirect_uri : "http://koding.com/-/oauth/twitter/callback"
+    redirect_uri : "https://koding.com/-/oauth/twitter/callback"
     request_url  : "https://twitter.com/oauth/request_token"
     access_url   : "https://twitter.com/oauth/access_token"
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
