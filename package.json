@@ -59,7 +59,8 @@
     "xml2js"          : "0.2.6",
     "nesh"            : "1.2.0",
     "htmlencode"      : "0.0.3",
-    "node-odesk"      : "0.0.7"
+    "node-odesk"      : "0.0.7",
+    "oauth"           : "0.9.10"
   },
   "devDependencies": {},
   "optionalDependencies": {},

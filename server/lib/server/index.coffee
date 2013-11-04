@@ -310,10 +310,12 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get "/-/oauth/odesk/callback",    require "./odesk_callback"
-app.get "/-/oauth/github/callback",   require "./github_callback"
-app.get "/-/oauth/facebook/callback", require "./facebook_callback"
-app.get "/-/oauth/google/callback",   require "./google_callback"
+app.get "/-/oauth/odesk/callback"     , require "./odesk_callback"
+app.get "/-/oauth/github/callback"    , require "./github_callback"
+app.get "/-/oauth/facebook/callback"  , require "./facebook_callback"
+app.get "/-/oauth/google/callback"    , require "./google_callback"
+app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
+app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
 
 app.all '/:name/:section?*', (req, res, next)->
 

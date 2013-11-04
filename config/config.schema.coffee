@@ -247,6 +247,12 @@ config =
     odesk           :
       key           : 1
       secret        : 1
+      request_url   : 1
+      access_url    : 1
+      secret_url    : 1
+      version       : 1
+      signature     : 1
+      redirect_uri  : 1
     facebook        :
       clientId      : 1
       clientSecret  : 1
@@ -259,4 +265,17 @@ config =
       use           : 1
       ip            : 1
       port          : 1
+    linkedin        :
+      client_id     : 1
+      client_secret : 1
+      redirect_uri  : 1
+    twitter         :
+      key           : 1
+      secret        : 1
+      redirect_uri  : 1
+      request_url   : 1
+      access_url    : 1
+      secret_url    : 1
+      version       : 1
+      signature     : 1
 module.exports = config

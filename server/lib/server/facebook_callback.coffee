@@ -5,6 +5,7 @@
 {facebook} = KONFIG
 http       = require "https"
 {decode}   = require "querystring"
+provider   = "facebook"
 
 module.exports = (req, res) ->
   access_token = null
@@ -12,7 +13,7 @@ module.exports = (req, res) ->
   {code}       = req.query
 
   unless code
-    renderOauthPopup res, {error:"No code", provider:"facebook"}
+    renderOauthPopup res, {error:"No code", provider}
     return
 
   url  = "https://graph.facebook.com/oauth/access_token?"
@@ -36,7 +37,7 @@ module.exports = (req, res) ->
         r.end()
       else
         console.log "facebook err, no access token", rawResp
-        renderOauthPopup res, {error:"No access token", provider:"facebook"}
+        renderOauthPopup res, {error:"No access token", provider}
 
   # Get user info with access token
   fetchUserInfo = (userInfoResp) ->
@@ -50,10 +51,10 @@ module.exports = (req, res) ->
       facebookResp["foreignId"] = id
       facebookResp["profile"]   = userInfo
 
-      saveOauthToSession facebookResp, clientId, "facebook", (err)->
+      saveOauthToSession facebookResp, clientId, provider, (err)->
         if err
           console.log "facebook err, saving to session", err
-          renderOauthPopup res, {error:err, provider:"facebook"}
+          renderOauthPopup res, {error:err, provider}
           return
 
-        renderOauthPopup res, {error:null, provider:"facebook"}
+        renderOauthPopup res, {error:null, provider}
