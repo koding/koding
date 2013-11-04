@@ -1,4 +1,4 @@
-class Kontrol extends KDEventEmitter
+class Kontrol extends KDObject
 
   bound: Bongo.bound
 

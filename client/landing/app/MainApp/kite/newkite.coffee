@@ -1,4 +1,4 @@
-class NewKite extends KDEventEmitter
+class NewKite extends KDObject
 
   { Scrubber, Store } = Bongo.dnodeProtocol
 
