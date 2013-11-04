@@ -5,6 +5,8 @@
 
 
 active-color = rgb(246,162,32)
+.no-anim
+  noAnim()
 
 body
 
@@ -76,13 +78,21 @@ body
   100%
     opacity 0
 
-@keyframes shrink
+@-webkit-keyframes shrink
   0%
-    vendor       transform, scale(1)
+    -webkit-transform       scale(1)
   70%
-    vendor       transform, scale(1)
+    -webkit-transform       scale(1)
   100%
-    vendor       transform, scale(0)
+    -webkit-transform       scale(0)
+
+@-moz-keyframes shrink
+  0%
+    -moz-transform       scale(1)
+  70%
+    -moz-transform       scale(1)
+  100%
+    -moz-transform       scale(0)
 
 @keyframes fade-in-out
   0%
@@ -215,6 +225,7 @@ body
       bg                    color, #fff
       rounded               20px
       size                  10px, 10px
+      margin-top            -5px
       vendor                transform, scaleX(0) scaleY(0)
       shadow                0 0 8px #fff
       vendor                animation, logoutTvDot .3s .6s 1 forwards ease
@@ -1035,6 +1046,10 @@ span.main-nav-icon
     &.reply
       span.icon
         bg              position, -140px -540px
+    &.groupJoined, &.groupLeft
+      span.icon
+        bg              position, -60px -580px
+
 
     span.avatar
       border            1px solid #e3e3e3
@@ -1250,7 +1265,7 @@ span.main-nav-icon
   border            none !important
   size				20px, 20px
   background-color  transparent !important
-  bg				image, url("../images/_kd.sprites.png")!important
+  bg				image, url("../images/_kd.sprites.png") !important
   bg                position, -120px -340px!important
   .title
       blockMid() !important
@@ -1687,8 +1702,68 @@ span.main-nav-icon
     .formline
 
       > label.kdlabel
-        float           none
-        display         inline-block
+        display         block
+        fl()
+      &.intro
+        bg              color, rgb(255, 244, 221)
+        text-shadow     0 1px 0 white
+        shadow          inset 0 0 15px -5px rgba(0,0,0,0.3)
+        .input-wrapper
+          width         auto
+
+      &.cardmonth
+        .input-wrapper
+          width auto
+
+      &.cardnumber
+
+        > div.input-wrapper:first-of-type
+          width 240px
+
+        > div.input-wrapper:last-of-type
+          width 100px
+
+        .input-wrapper:first-of-type
+          position       relative
+
+          &:after
+            content      ""
+            display      block
+            size         24px, 16px
+            right        4px
+            top          4px
+            vendor       transition, opacity 500ms ease
+            opacity      0
+            abs()
+
+          &.visa:after, &.mastercard:after, &.amex:after
+          &.diners:after, &.discover:after, &.jcb:after
+            sprite()
+            opacity      1
+
+          &.visa:after
+            bg           position, 0 -920px
+
+          &.mastercard:after
+            bg           position, -25px -920px
+
+          &.amex:after
+            bg           position, -50px -920px
+
+          &.diners:after
+            bg           position, -75px -920px
+
+          &.discover:after
+            bg           position, -100px -920px
+
+          &.jcb:after
+            bg           position, -125px -920px
+
+
+      &.address1, &.address2
+
+        .input-wrapper
+          width         350px
 
       .input-wrapper
         display         inline-block
@@ -1701,35 +1776,6 @@ span.main-nav-icon
         > input, > textarea
           borderBox()
           min-width     10px
-
-      &.cardmonth
-        .input-wrapper
-          width auto
-
-      &.cardnumber
-
-        > div.input-wrapper:first-of-type
-          width 270px
-
-        > div.input-wrapper:last-of-type
-          width 70px
-
-        span.icon
-          abs()
-          right         16px
-          top           15px
-          size          30px, 20px
-          sprite()
-          bg position,  30px 20px
-
-          &.mastercard
-            bg position, -70px -440px
-          &.amex
-            bg position, -70px -460px
-          &.visa
-            bg position, -40px -440px
-          &.discover
-            bg position, -40px -460px
 
   .no-payment-found
     padding       15px

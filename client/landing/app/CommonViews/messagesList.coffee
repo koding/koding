@@ -44,6 +44,9 @@ class MessagesListController extends KDListViewController
         'CReplieeBucketActivity'
         'CFolloweeBucketActivity'
         'CLikeeBucketActivity'
+        'CGroupJoineeBucketActivity'
+        'CNewMemberBucketActivity'
+        'CGroupLeaveeBucketActivity'
       ]
     }, {
       limit: 8
@@ -69,19 +72,25 @@ class NotificationListItem extends KDListItemView
     JDiscussion     : "your discussion."
     JOpinion        : "your opinion."
     JReview         : "your review."
+    JGroup          : "your group"
 
   bucketNameMap = ->
-    CReplieeBucketActivity  : "comment"
-    CFolloweeBucketActivity : "follow"
-    CLikeeBucketActivity    : "like"
+    CReplieeBucketActivity     : "comment"
+    CFolloweeBucketActivity    : "follow"
+    CLikeeBucketActivity       : "like"
+    CGroupJoineeBucketActivity : "groupJoined"
+    CGroupLeaveeBucketActivity : "groupLeft"
 
   actionPhraseMap = ->
-    comment : "commented on"
-    reply   : "replied to"
-    like    : "liked"
-    follow  : ""
-    share   : "shared"
-    commit  : "committed"
+    comment     : "commented on"
+    reply       : "replied to"
+    like        : "liked"
+    follow      : ""
+    share       : "shared"
+    commit      : "committed"
+    member      : "joined"
+    groupJoined : "joined"
+    groupLeft   : "left"
 
   constructor:(options = {}, data)->
 
@@ -115,6 +124,13 @@ class NotificationListItem extends KDListItemView
         height : 40
       origin   : group[0]
 
+    if @snapshot.anchor.constructorName is "JGroup"
+      @interactedGroups = new options.linkGroupClass
+        itemClass : GroupLinkView
+        group     : [@snapshot.anchor.data]
+    else
+      @interactedGroups = new KDCustomHTMLView
+
     @timeAgoView = new KDTimeAgoView {}, @getLatestTimeStamp @getData().dummy
 
   viewAppended:->
@@ -127,7 +143,7 @@ class NotificationListItem extends KDListItemView
         {{> @avatar}}
       </div>
       <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>
+        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}} {{> @interactedGroups}}</p>
         <footer>
           {{> @timeAgoView}}
         </footer>
@@ -165,11 +181,15 @@ class NotificationListItem extends KDListItemView
           title : "This post has been deleted!"
           duration : 1000
 
-    if @snapshot.anchor.constructorName is "JPrivateMessage"
-      appManager = KD.getSingleton "appManager"
-      appManager.open "Inbox"
-      appManager.tell 'Inbox', "goToMessages"
-    else if @snapshot.anchor.constructorName in ["JComment", "JReview", "JOpinion"]
-      KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
-    else unless @snapshot.anchor.constructorName is "JAccount"
-      KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, showPost
+    switch @snapshot.anchor.constructorName
+      when  "JPrivateMessage"
+        appManager = KD.getSingleton "appManager"
+        appManager.open "Inbox"
+        appManager.tell 'Inbox', "goToMessages"
+      when "JComment", "JReview", "JOpinion"
+        KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
+      when "JGroup"
+        # do nothing
+      else
+        unless @snapshot.anchor.constructorName is "JAccount"
+          KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, showPost

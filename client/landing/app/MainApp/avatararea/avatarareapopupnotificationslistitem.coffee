@@ -21,7 +21,7 @@ class PopupNotificationListItem extends NotificationListItem
       <span class='icon notification-type'></span>
       <span class='avatar'>{{> @avatar}}</span>
       <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>
+        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}} {{> @interactedGroups}}</p>
         <footer>
           <time>{{$.timeago @getLatestTimeStamp #(dummy)}}</time>
         </footer>

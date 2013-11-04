@@ -32,6 +32,7 @@ module.exports = [
   "app/CommonViews/linkviews/applinkview.coffee",
   "app/CommonViews/linkviews/activitychildviewtaggroup.coffee",
   "app/CommonViews/linkviews/autocompleteprofiletextview.coffee",
+  "app/CommonViews/linkviews/grouplinkview.coffee",
   "app/CommonViews/splitview.coffee",
   "app/CommonViews/slidingsplit.coffee",
   "app/CommonViews/paymentwidgets.coffee",
@@ -180,7 +181,6 @@ module.exports = [
   "app/MainApp/filetree/controllers/findercontroller.coffee",
   "app/MainApp/filetree/controllers/findertreecontroller.coffee",
   "app/MainApp/filetree/controllers/findercontextmenucontroller.coffee",
-  "app/MainApp/filetree/controllers/resourcescontroller.coffee",
 
   "app/MainApp/filetree/itemviews/finderitem.coffee",
   "app/MainApp/filetree/itemviews/fileitem.coffee",
@@ -196,14 +196,9 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
   "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
-  "app/MainApp/filetree/itemsubviews/vmdetailsview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
 
   "app/MainApp/filetree/helpers/dropboxuploader.coffee",
-
-  # re-used files
-  "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
-  "app/MainApp/filetree/bottomlist/finderbottomlistitem.coffee",
 
   # fs representation
   "app/MainApp/fs/fshelper.coffee",
@@ -267,7 +262,6 @@ module.exports = [
   "app/Applications/Members.kdapplication/AppController.coffee",
   "app/Applications/Account.kdapplication/AppController.coffee",
   "app/Applications/Activity.kdapplication/AppController.coffee",
-  # "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
@@ -338,9 +332,6 @@ module.exports = [
   "app/Applications/Activity.kdapplication/views/activityitemchild.coffee",
   "app/Applications/Activity.kdapplication/views/discussionactivityactions.coffee",
   "app/Applications/Activity.kdapplication/views/tutorialactivityactions.coffee",
-  "app/Applications/Activity.kdapplication/views/codesharebox.coffee",
-  "app/Applications/Activity.kdapplication/views/codesharetabview.coffee",
-  "app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee",
   "app/Applications/Activity.kdapplication/views/embedbox.coffee",
   "app/Applications/Activity.kdapplication/views/embedboxviews.coffee",
   "app/Applications/Activity.kdapplication/views/newmemberbucket.coffee",
@@ -356,7 +347,6 @@ module.exports = [
   "app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee",
   "app/Applications/Activity.kdapplication/widgets/blogpostwidget.coffee",
   # "app/Applications/Activity.kdapplication/widgets/questionwidget.coffee",
-  # "app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee",
   # "app/Applications/Activity.kdapplication/widgets/linkwidget.coffee",
 
   # Activity content displays
@@ -366,7 +356,6 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/tutorial.coffee",
-  "app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/link.coffee",
@@ -383,7 +372,6 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemStatusUpdate.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeSnippet.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemBlogPost.coffee",
-  "app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeShare.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemDiscussion.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemFollow.coffee",
   "app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee",
@@ -446,6 +434,9 @@ module.exports = [
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
+  "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee"
+  "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
+  "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
   "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
@@ -503,7 +494,6 @@ module.exports = [
   # START TAB VIEWS
   "app/Applications/StartTab.kdapplication/AppView.coffee",
   "app/Applications/StartTab.kdapplication/views/appthumbview.coffee",
-  "app/Applications/StartTab.kdapplication/views/appthumbview.old.coffee",
   "app/Applications/StartTab.kdapplication/views/recentfileview.coffee",
   "app/Applications/StartTab.kdapplication/views/appcontainer.coffee",
 
@@ -533,20 +523,6 @@ module.exports = [
   "app/Applications/Feeder.kdapplication/Views/feedersingleview.coffee",
   "app/Applications/Feeder.kdapplication/Views/FeederTabView.coffee",
   "app/Applications/Feeder.kdapplication/Views/feederonboardingview.coffee",
-
-
-  # HOME VIEWS
-  # "app/Applications/Home.kdapplication/AppView.coffee",
-  "app/Applications/Home.kdapplication/ContentDisplays/AboutView.coffee",
-  "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
-  "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
-  # "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
-  # "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
-  # "app/Applications/Home.kdapplication/Views/featuredactivitiescontainer.coffee",
-  # "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
-  # "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
-  # "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
-  # "app/Applications/Home.kdapplication/Views/counterview.coffee",
 
   # DEMO VIEWS
   "app/Applications/Demos.kdapplication/AppView.coffee",
@@ -713,9 +689,8 @@ module.exports = [
   "stylus/kdfn.styl",
   "stylus/appfn.styl",
   "stylus/app.styl",
-  "stylus/app.bottom.styl",
+  # "stylus/app.bottom.styl",
   "stylus/app.splitlayout.styl",
-  "stylus/app.about.styl",
   "stylus/app.commons.styl",
   "stylus/app.editor.styl",
   "stylus/app.finder.styl",
@@ -733,20 +708,17 @@ module.exports = [
   "stylus/app.keyboard.styl",
   "stylus/app.profile.styl",
   "stylus/appstore.styl",
-  "stylus/app.home.styl",
   "stylus/app.topics.styl",
   "stylus/app.contentdisplays.styl",
   "stylus/app.starttab.styl",
   "stylus/app.viewer.styl",
   "stylus/app.book.styl",
-  "stylus/app.codeshare.styl",
   "stylus/app.group.general.styl",
   "stylus/app.group.dashboard.styl",
   "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
   # "stylus/app.classroom.styl",
-  "stylus/temp.styl",
   "stylus/third.workspace.styl",
   "stylus/app.teamwork.styl",
   # "stylus/app.predefined.styl",
@@ -760,7 +732,6 @@ module.exports = [
   "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
 
   # mediaqueries should stay at the bottom
-  "stylus/app.1200.styl",
   "stylus/app.1024.styl",
   "stylus/app.768.styl",
   "stylus/app.480.styl",

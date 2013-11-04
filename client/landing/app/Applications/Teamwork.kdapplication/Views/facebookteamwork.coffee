@@ -24,6 +24,7 @@ class FacebookTeamwork extends TeamworkWorkspace
       @appStorage.setValue "FacebookAppId"       , @appId
       @appStorage.setValue "FacebookAppNamespace", @appNamespace
       @appStorage.setValue "FacebookAppCanvasUrl", @appCanvasUrl
+      @setAppInfoToCloud()
 
     @container.setClass "Facebook"
     @on "WorkspaceSyncedWithRemote", =>
@@ -62,7 +63,9 @@ class FacebookTeamwork extends TeamworkWorkspace
           @showInstructions()
 
   showInstructions: ->
-    @instructionsModal = new FacebookTeamworkInstructionsModal delegate: this
+    d = @getDelegate()
+    d.instructionsModal?.destroy()
+    d.instructionsModal = new FacebookTeamworkInstructionsModal delegate: this
 
   getAppInfo: ->
     @appStorage.fetchStorage (storage) =>
@@ -77,6 +80,7 @@ class FacebookTeamwork extends TeamworkWorkspace
           else
             @startImport()
       else
+        @setAppInfoToCloud()
         @checkFiles (err, res) =>
           @startImport()  unless res
 
@@ -91,7 +95,7 @@ class FacebookTeamwork extends TeamworkWorkspace
       @emit "ContentImportDone"
 
   createRunButton: (panel) ->
-    # panel.headerButtons.Environments.hide()
+    panel.headerButtons.Playgrounds.hide()
     panel.header.addSubView @runButton = new KDButtonViewWithMenu
       title               : "Run"
       menu                :
@@ -116,7 +120,24 @@ class FacebookTeamwork extends TeamworkWorkspace
     previewPane.previewer.openPath target
 
   runOnFB: ->
+    if not @amIHost() and not @appNamespace
+      return @getAppInforFromCloud => @runOnFB()
+
     KD.utils.createExternalLink "http://apps.facebook.com/#{@appNamespace}"
+
+  setAppInfoToCloud: ->
+    @workspaceRef.child("FacebookAppInfo").set { @appId, @appNamespace, @appCanvasUrl }
+
+  getAppInforFromCloud: (callback = noop) ->
+    @workspaceRef.once "value", (snapshot) =>
+      facebookAppInfo = snapshot.val().FacebookAppInfo
+      return unless facebookAppInfo
+
+      @appId          = facebookAppInfo.appId
+      @appNamespace   = facebookAppInfo.appNamespace
+      @appCanvasUrl   = facebookAppInfo.appCanvasUrl
+
+      callback()
 
   createIndexFile: ->
     markup = ""

@@ -140,6 +140,7 @@ class GroupsAppController extends AppController
   createFeed:(view, loadFeed = no)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+      feedId                : 'groups.main'
       itemClass             : @listItemClass
       limitPerPage          : 20
       useHeaderNav          : yes
