@@ -99,6 +99,7 @@ class MainController extends KDController
       @_logoutAnimation()
       KD.utils.wait 1000, ->
         $.cookie 'clientId', replacementToken  if replacementToken
+        localStorage.loggingOut = '1'
         location.reload()
 
   _logoutAnimation:->
@@ -158,11 +159,12 @@ class MainController extends KDController
   isUserLoggedIn: -> KD.isLoggedIn()
 
   isLoggingIn: (isLoggingIn) ->
+    if localStorage.loggingOut is '1'
+      delete localStorage.loggingOut
+      return yes
     if isLoggingIn?
-      console.log 'setting is logging in', isLoggingIn
       @_isLoggingIn = isLoggingIn
     else
-      console.log 'getting is logging in', @_isLoggingIn
       @_isLoggingIn ? no
 
 
