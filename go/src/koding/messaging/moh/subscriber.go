@@ -232,6 +232,6 @@ func (s *Subscriber) consumer() {
 		}
 
 		// log.Println("Received data:", string(message))
-		s.Handler(message)
+		go s.Handler(message)
 	}
 }

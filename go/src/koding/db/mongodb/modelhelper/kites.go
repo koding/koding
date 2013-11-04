@@ -1,36 +1,42 @@
 package modelhelper
 
 import (
+	"errors"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"time"
 )
+
+const KitesCollection = "jKites"
 
 func NewKite() *models.Kite {
 	return &models.Kite{
-		KiteBase: models.KiteBase{
-			Id: bson.NewObjectId(),
-		},
+		UpdatedAt: time.Now().UTC(),
 	}
 }
 
 func UpsertKite(kite *models.Kite) error {
+	if kite.ID == "" {
+		panic(errors.New("Kite must have an ID field"))
+	}
+
 	query := func(c *mgo.Collection) error {
-		_, err := c.Upsert(bson.M{"uuid": kite.Uuid}, kite)
+		_, err := c.Upsert(bson.M{"_id": kite.ID}, kite)
 		return err
 	}
 
-	return mongodb.Run("jKites", query)
+	return mongodb.Run(KitesCollection, query)
 }
 
-func GetKite(uuid string) (*models.Kite, error) {
+func GetKite(id string) (*models.Kite, error) {
 	kite := models.Kite{}
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"uuid": uuid}).One(&kite)
+		return c.Find(bson.M{"_id": id}).One(&kite)
 	}
 
-	err := mongodb.Run("jKites", query)
+	err := mongodb.Run(KitesCollection, query)
 	if err != nil {
 		return nil, err
 	}
@@ -39,18 +45,18 @@ func GetKite(uuid string) (*models.Kite, error) {
 
 func UpdateKite(kite *models.Kite) error {
 	query := func(c *mgo.Collection) error {
-		return c.Update(bson.M{"uuid": kite.Uuid}, kite)
+		return c.Update(bson.M{"_id": kite.ID}, kite)
 	}
 
-	return mongodb.Run("jKites", query)
+	return mongodb.Run(KitesCollection, query)
 }
 
-func DeleteKite(uuid string) error {
+func DeleteKite(id string) error {
 	query := func(c *mgo.Collection) error {
-		return c.Remove(bson.M{"uuid": uuid})
+		return c.Remove(bson.M{"_id": id})
 	}
 
-	return mongodb.Run("jKites", query)
+	return mongodb.Run(KitesCollection, query)
 }
 
 func SizeKites() (int, error) {
@@ -61,7 +67,7 @@ func SizeKites() (int, error) {
 		return err
 	}
 
-	err = mongodb.Run("jKites", query)
+	err = mongodb.Run(KitesCollection, query)
 	return count, err
 }
 
@@ -74,6 +80,6 @@ func ListKites() []*models.Kite {
 		return iter.All(&kites)
 	}
 
-	mongodb.Run("jKites", query)
+	mongodb.Run(KitesCollection, query)
 	return kites
 }

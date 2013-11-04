@@ -50,9 +50,13 @@ class NFinderController extends KDViewController
     NewKite.getKites "fs", (err, kites)->
       if err then log err
       else
-        for kite in kites
+        for kt in kites
+          # kite and token comes in seperate objects. See protocol.go.
+          kite = kt.kite
+          kite.token = kt.token
+
           correlationName = "local-#{KD.nick()}"
-          key = kc.getKiteKey kite.kitename, correlationName
+          key = kc.getKiteKey kite.name, correlationName
           kiteInstance = kc.createNewKite kite
           kc.kiteInstances[key] = kiteInstance
 
