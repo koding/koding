@@ -1,5 +1,6 @@
-jraphical = require 'jraphical'
-module.exports = class JPaymentPlan extends jraphical.Module
+{Module, Relationship} = require 'jraphical'
+
+module.exports = class JPaymentPlan extends Module
 
   force =
     forceRefresh  : yes
@@ -35,6 +36,8 @@ module.exports = class JPaymentPlan extends jraphical.Module
         'fetchToken'
         'subscribe'
         'modify'
+        'fetchProducts'
+        'updateProducts'
       ]
     schema          :
       planCode      :
@@ -68,6 +71,10 @@ module.exports = class JPaymentPlan extends jraphical.Module
         type        : Object
         default     : -> {}
       tags          : (require './schema').tags
+    relationships   :
+      product       :
+        targetType  : 'JPaymentProduct'
+        as          : 'plan product'
 
   # * It seems like we're stuffing some JSON into the description field
   #   on recurly.  I think that's a really bad idea, so let's store any
@@ -233,6 +240,45 @@ module.exports = class JPaymentPlan extends jraphical.Module
       JGroup = require '../group'
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
+
+  updateProducts: (quantities, callback) ->
+    JPaymentProduct = require './product'
+
+    planCodes = Object.keys quantities
+    productSelector = planCode: $in: planCodes
+
+    JPaymentProduct.some productSelector, { limit: 20 }, (err, products) =>
+      return callback err  if err
+
+      if products.length isnt planCodes.length
+        planCodesMap = planCodes.reduce( (acc, planCode) ->
+          acc[planCode] = yes
+          acc
+        , {})
+        products.forEach (product) ->
+          if planCodesMap.hasOwnProperty product.planCode
+            delete planCodesMap[product.planCode]
+        return callback {
+          message           : 'Unknown plan codes!'
+          unknownPlanCodes  : Object.keys planCodesMap
+        }
+
+      Relationship.remove {
+        sourceId    : @getId()
+        targetName  : 'JPaymentProduct'
+      }, (err) =>
+        return callback err  if err
+
+        queue = products.map (product) => =>
+          @addProduct product, (err) -> queue.fin err
+
+        dash queue, (err) =>
+          return callback err  if err
+          @modify { quantities }, (err) -> callback err
+
+  updateProducts$: permit 'manage products',
+    success: (client, quantities, callback) ->
+      @updateProducts quantities, callback
 
   @updateCache = (selector, callback)->
     # TODO: what on earth is the point of this? C
