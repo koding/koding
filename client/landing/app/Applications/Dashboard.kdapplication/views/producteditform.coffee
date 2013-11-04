@@ -97,10 +97,10 @@ class GroupProductEditForm extends KDFormViewWithFields
       overageEnabled  = i.overageEnabled?.getValue()
       soldAlone       = i.soldAlone?.getValue()
       priceIsVolatile = i.priceIsVolatile?.getValue()
+      tags            = @utils.splitTrim i.tags?.getValue()
       feeAmount       =
         unless priceIsVolatile
         then i.feeAmount.getValue() * 100
-      tags            = @utils.splitTrim i.tags?.getValue()
 
       { subscriptionType, feeUnit, feeInterval } = @getPlanInfo()
 
