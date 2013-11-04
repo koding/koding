@@ -1,102 +1,123 @@
 class DomainCreationForm extends KDCustomHTMLView
 
-  constructor:(options = {})->
+  subDomainPattern = \
+    /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
+
+  domainOptions = [
+    { title : "Create A Subdomain",     value : "subdomain" }
+    { title : "Register New Domain",    value : "new"}
+    { title : "Use An Existing Domain", value : "existing", disabled : yes }
+  ]
+
+  constructor:(options = {}, data)->
     options.cssClass = "environments-add-domain-form"
+    super options, data
 
-    super options
-
-    {firstName} = KD.whoami().profile
-
-    # -- Header -- #
     @addSubView @header = new KDHeaderView
-      title       : "Add a domain"
+      title             : "Add a domain"
 
     @header.addSubView new KDButtonView
-      cssClass    : "small-gray"
-      title       : "Cancel"
-      callback    : => @emit 'CloseClicked'
+      cssClass          : "small-gray"
+      title             : "Cancel"
+      callback          : => @emit 'CloseClicked'
 
-    # -- Form -- #
-    domainOptions = [
-      { title : "Create A Subdomain", value : "subdomain" }
-      { title : "Register New Domain", value : "new", disabled : yes }
-      { title : "Use An Existing Domain", value : "existing", disabled : yes }
-    ]
+    @addSubView @typeSelector = new KDInputRadioGroup
+      name              : "DomainOption"
+      radios            : domainOptions
+      cssClass          : "domain-option-group"
+      defaultValue      : "subdomain"
+      change            : (actionType)=>
+        @successNote?.destroy()
+        switch actionType
+          when 'new'
+            @tabs.showPaneByName 'NewDomain'
+            @newDomainEntryForm.inputs.domainName.setFocus()
+          when 'subdomain'
+            @tabs.showPaneByName 'SubDomain'
+            @subDomainEntryForm.inputs.domainName.setFocus()
 
-    @addSubView @form = new KDFormViewWithFields
-      cssClass              : "main-form"
-      fields                :
-        domainOption        :
-          name              : "DomainOption"
-          itemClass         : KDInputRadioGroup
-          cssClass          : "domain-option-group"
-          defaultValue      : "subdomain"
-          radios            : domainOptions
-        domainName          :
-          name              : "subdomainInput"
-          cssClass          : "subdomain-input"
-          placeholder       : "Type your subdomain"
-          validate          :
-            rules           :
-              required      : yes
-            messages        :
-              required      : "Subdomain name is required!"
-          nextElement       :
-            domains         :
-              itemClass     : KDSelectBox
-              cssClass      : "main-domain-select"
-      buttons               :
-        createButton        :
-          title             : "Add Domain"
-          style             : "cupid-green"
-          cssClass          : "add-domain"
-          type              : "submit"
-          loader            :
-            color           : "#ffffff"
-            diameter        : 10
-          callback          : (event) => @registerDomain event
+    @addSubView @tabs = new KDTabView
+      cssClass            : 'domain-tabs'
+      hideHandleContainer : yes
 
-  registerDomain : (event) ->
+    @newDomainPane = new KDTabPaneView { name : "NewDomain" }
+    @newDomainPane.addSubView @newDomainEntryForm = new DomainBuyForm
+    @tabs.addPane @newDomainPane
+    @newDomainEntryForm.on 'registerDomain', @bound 'checkDomainAvailability'
 
-    KD.utils.stopDOMEvent event
+    @subDomainPane = new KDTabPaneView { name : "SubDomain" }
+    @subDomainPane.addSubView @subDomainEntryForm = new SubDomainCreateForm
+    @subDomainEntryForm.on 'registerDomain', @bound 'createSubDomain'
+    @tabs.addPane @subDomainPane
 
-    form           = @form
-    {createButton} = form.buttons
+  checkDomainAvailability: ->
+    {message}             = @newDomainEntryForm
+    {createButton}        = @newDomainEntryForm.buttons
+    {domains, domainName} = @newDomainEntryForm.inputs
+    domainName            = "#{domainName.getValue()}.#{domains.getValue()}"
+    {getDomainInfo, getDomainSuggestions} = KD.remote.api.JDomain
 
-    {domainOption, domainName, domains} = form.inputs
-    domainInput       = domainName
-    domainName        = form.inputs.domainName.getValue()
+    @newDomainEntryForm.domainListView?.unsetClass 'in'
 
-    domainOptionValue = domainOption.getValue()
+    # Maybe a CSS hero can remove these br with some alternative styles ~GG
+    message.updatePartial "<br/> Checking for availability..."
+    message.setClass 'in'
 
-    if domainOptionValue is 'new'
-      # new domain
+    getDomainInfo domainName, (err, status)=>
 
-    else if domainOptionValue is 'existing'
-      # use existing domain
-
-    else # create a subdomain
-      subDomainPattern = /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
-      unless subDomainPattern.test domainName
+      if err
         createButton.hideLoader()
-        return notifyUser "#{domainName} is an invalid subdomain."
-      domainName = "#{domainName}.#{domains.getValue()}"
+        message.updatePartial "<br/> Please just provide domain name."
+        return warn err
 
-      @createDomain {domainName, regYears:0, domainType:'subdomain'}, (err, domain)=>
+      if status.available
+        @newDomainEntryForm.setAvailableDomainsData \
+          [{domain:domainName, price:status.price}]
         createButton.hideLoader()
-        if err
-          warn err
-          if err.message?.indexOf("duplicate key error") isnt -1
-            return notifyUser "The domain #{domainName} already exists."
-          else if err.name is "INVALIDDOMAIN"
-            return notifyUser "#{domainName} is an invalid subdomain."
-          return notifyUser "An error occured. Please try again later."
-        else
-          @showSuccess domain
-          @updateDomains()
+        message.updatePartial "<br/> Yay it's available!"
+      else
+        message.updatePartial "<br/> Checking for alternatives..."
+        getDomainSuggestions domainName, (err, suggestions)=>
+          createButton.hideLoader()
+          return warn err if err
+          result = "Sorry, <b>#{domainName}</b> is taken,"
+          if suggestions.length is 1
+            result = "#{result}<br/>but we found an alternative:"
+          else if suggestions.length > 1
+            result = "#{result}<br/>but we found following alternatives:"
+          else
+            result = "#{result}<br/>and we couldn't find any alternative."
+          message.updatePartial result
+          @newDomainEntryForm.setAvailableDomainsData suggestions
 
-  createDomain:(params, callback) ->
-    # log params
+  createSubDomain: ->
+    {domains, domainName} = @subDomainEntryForm.inputs
+    {createButton}        = @subDomainEntryForm.buttons
+    domainName            = domainName.getValue()
+
+    # Check given subdomain
+    unless subDomainPattern.test domainName
+      createButton.hideLoader()
+      return notifyUser "#{domainName} is an invalid subdomain."
+
+    domainName = "#{domainName}.#{domains.getValue()}"
+    domainType = 'subdomain'
+    regYears   = 0
+
+    @createJDomain {domainName, regYears, domainType}, (err, domain)=>
+      createButton.hideLoader()
+      if err
+        warn "An error occured while creating domain:", err
+        if err.code is 11000
+          return notifyUser "The domain #{domainName} already exists."
+        else if err.name is "INVALIDDOMAIN"
+          return notifyUser "#{domainName} is an invalid subdomain."
+        return notifyUser "An unknown error occured. Please try again later."
+      else
+        @showSuccess domain
+        @updateDomains()
+
+  createJDomain:(params, callback) ->
 
     KD.remote.api.JDomain.createDomain
       domain         : params.domainName
@@ -104,30 +125,26 @@ class DomainCreationForm extends KDCustomHTMLView
       proxy          : { mode: 'vm' }
       hostnameAlias  : []
       domainType     : params.domainType
-      loadBalancer   :
-        mode         : ""
-    , (err, domain)=>
-      callback err, domain
+      loadBalancer   : mode : ""
+    , callback
 
   showSuccess:(domain) ->
 
-    form = @form
-    {domainName}   = form.inputs
-    {createButton} = form.buttons
-
+    {domainName} = @subDomainEntryForm.inputs
     @emit 'DomainSaved', domain
-
     @successNote?.destroy()
-    delete @successNote?
 
     @addSubView @successNote = new KDCustomHTMLView
-      tagName : 'p'
-      cssClass: 'success'
-      partial : "Your subdomain <strong>#{domainName.getValue()}</strong> has been added. You can dismiss this panel and point your new domain to one of your VMs on the right."
-      click   : => @reset()
+      tagName  : 'p'
+      cssClass : 'success'
+      partial  : """
+        Your subdomain <strong>#{domainName.getValue()}</strong> has been added.
+        You can dismiss this panel and point your new domain to one of your VMs
+        on the right.
+      """
+      click    : @bound 'reset'
 
-    KD.utils.wait 7000, =>
-      @successNote.destroy()
+    KD.utils.wait 7000, @successNote.bound 'destroy'
 
   notifyUser = (msg) ->
     new KDNotificationView
@@ -136,23 +153,23 @@ class DomainCreationForm extends KDCustomHTMLView
       duration : 5000
 
   reset:->
-    form            = @form
-    {domainName}    = form.inputs
-    {createButton}  = form.buttons
-
     @successNote?.destroy()
-    delete @successNote?
-    domainName.setValue ""
+    for form in [@subDomainEntryForm, @newDomainEntryForm]
+      form.inputs.domainName.setValue ''
     @emit 'CloseClicked'
 
   updateDomains: ->
+
     KD.whoami().fetchDomains (err, userDomains)=>
-      warn err  if err
+      warn "Failed to update domains:", err  if err
       domainList = []
+
       for domain in userDomains
         if not domain.regYears > 0
           domainList.push {title:".#{domain.domain}", value:domain.domain}
-      {domains, domainName} = @form.inputs
+
+      {domains, domainName} = @subDomainEntryForm.inputs
+
       domainName.setValue ""
       domains.removeSelectOptions()
       domains.setSelectOptions domainList
@@ -160,376 +177,144 @@ class DomainCreationForm extends KDCustomHTMLView
   viewAppended:->
     @updateDomains()
     KD.getSingleton("vmController").on 'VMListChanged', @bound 'updateDomains'
+    @subDomainEntryForm.inputs.domainName.setFocus()
 
-# splitDomain = (domainName) ->
-#   splitted =  domainName.split "."
-#   return {
-#     first: splitted[0],
-#     extension: if splitted.length > 1 then splitted[1..].join "." else ""
-#   }
+class CommonDomainCreationForm extends KDFormViewWithFields
+  constructor:(options = {}, data)->
+    super
+      cssClass              : KD.utils.curry "new-domain-form",options.cssClass
+      fields                :
+        domainName          :
+          name              : "domainInput"
+          cssClass          : "domain-input"
+          placeholder       : options.placeholder or "Type your domain"
+          validate          :
+            rules           : required : yes
+            messages        : required : "A domain name is required"
+          nextElement       :
+            domains         :
+              itemClass     : KDSelectBox
+              cssClass      : "main-domain-select"
+              selectOptions : options.selectOptions
+      buttons               :
+        createButton        :
+          name              : "createButton"
+          title             : options.buttonTitle or "Check availability"
+          style             : "cupid-green"
+          cssClass          : "add-domain"
+          type              : "submit"
+          loader            : {color : "#ffffff", diameter : 10}
+      , data
 
-# class DomainCreationForm extends KDTabViewWithForms
+    @addSubView @message = new KDCustomHTMLView
+      cssClass : 'status-message'
 
-#   domainOptions = [
-#       { title : "Create a subdomain", value : "subdomain" }
-#       { title : "I want to register a domain", value : "new" }
-#       { title : "I already have a domain", value : "existing" }
-#     ]
+  submit:->
+    @buttons.createButton.hideLoader()
+    @off  "FormValidationPassed"
+    @once "FormValidationPassed", =>
+      @emit 'registerDomain'
+      @buttons.createButton.showLoader()
+    super
 
-#   constructor:->
+class SubDomainCreateForm extends CommonDomainCreationForm
 
-#     {nickname, firstName, lastName} = KD.whoami().profile
+  constructor:(options = {}, data)->
+    super
+      placeholder : "Type your subdomain..."
+      buttonTitle : "Create Subdomain"
+    , data
 
-#     super
-#       navigable                       : no
-#       goToNextFormOnSubmit            : no
-#       hideHandleContainer             : yes
-#       forms                           :
-#         "Domain Address"              :
-#           callback                    : ->
-#           buttons                     :
-#             registerButton            :
-#               title                   : "Register Domain"
-#               style                   : "cupid-green hidden"
-#               type                    : "submit"
-#               loader                  :
-#                 color                 : "#ffffff"
-#                 diameter              : 24
-#               callback                : =>
-#                 @registerDomain()
-#             createButton              :
-#               title                   : "Add Domain"
-#               style                   : "cupid-green"
-#               type                    : "submit"
-#               loader                  :
-#                 color                 : "#ffffff"
-#                 diameter              : 24
-#               callback                : =>
-#                 @registerDomain()
-#             checkButton              :
-#               title                   : "Check Domain"
-#               style                   : "cupid-green hidden"
-#               type                    : "submit"
-#               loader                  :
-#                 color                 : "#ffffff"
-#                 diameter              : 24
-#               callback                : =>
-#                 @checkAvailability()
+class DomainBuyForm extends CommonDomainCreationForm
 
-#             close                     :
-#               title                   : "Back to settings"
-#               style                   : "cupid-green hidden"
-#               callback                : => @reset()
-#             cancel                    :
-#               style                   : "cupid-green"
-#               callback                : => @emit 'DomainCreationCancelled'
-#             another                   :
-#               title                   : "add another domain"
-#               style                   : "modal-cancel hidden"
-#               callback                : => @addAnotherDomainClicked()
+  constructor:(options = {}, data)->
+    super
+      placeholder : "Type your awesome domain..."
+    , data
 
-#           fields                      :
-#             header                    :
-#               title                   : "Add a domain"
-#               itemClass               : KDHeaderView
-#             DomainOption              :
-#               name                    : "DomainOption"
-#               itemClass               : KDRadioGroup
-#               cssClass                : "group-type"
-#               defaultValue            : "subdomain"
-#               radios                  : domainOptions
-#               change                  : =>
-#                 {DomainOption, domainName, domains, regYears} = @forms["Domain Address"].inputs
-#                 {checkButton, registerButton} = @forms["Domain Address"].buttons
-#                 actionState = DomainOption.getValue()
-#                 domainName.setValue ''
-#                 domainName.getElement().setAttribute 'placeholder', switch actionState
-#                   when "new"
-#                     @suggestionBox?.show()
-#                     # domainName.setValidation domainNameValidation
-#                     domains.hide()
-#                     regYears.show()
-#                     createButton.hide()
-#                     checkButton.show()
-#                     registerButton.hide()
-#                     "#{KD.utils.slugify firstName}s-new-domain.com"
-#                   when "existing"
-#                     @suggestionBox?.hide()
-#                     # domainName.setValidation domainNameValidation
-#                     domains.hide()
-#                     regYears.hide()
-#                     checkButton.hide()
-#                     registerButton.hide()
-#                     createButton.show()
-#                     "#{KD.utils.slugify firstName}s-existing-domain.com"
-#                   when "subdomain"
-#                     # domainName.unsetValidation()
-#                     @suggestionBox?.hide()
-#                     domains.show()
-#                     regYears.hide()
-#                     checkButton.hide()
-#                     registerButton.hide()
-#                     createButton.show()
-#                     "#{KD.utils.slugify firstName}s-subdomain"
-#             domainName                :
-#               cssClass                : "domain"
-#               placeholder             : "#{KD.utils.slugify firstName}s-subdomain"
-#               validate                :
-#                 rules                 :
-#                   required            : yes
-#                 messages              :
-#                   required            : "Subdomain name is required!"
-#               keydown                 :
-#                 =>
-#                   @clearSuggestions()
-#                   {DomainOption} = @forms["Domain Address"].inputs
-#                   actionState = DomainOption.getValue()
-#                   if actionState is "new"
-#                     {registerButton, checkButton} = form.buttons
-#                     registerButton.hide()
-#                     checkButton.show()
-#               nextElement             :
-#                 regYears              :
-#                   cssClass            : "hidden"
-#                   itemClass           : KDSelectBox
-#                   selectOptions       : ({title: "#{i} Year#{if i > 1 then 's' else ''}", value:i} for i in [1..10])
-#                 domains               :
-#                   cssClass            : "domains"
-#                   itemClass           : KDSelectBox
-#                   validate            :
-#                     rules             :
-#                       required        : yes
-#                     messages          :
-#                       required        : "Please select a parent domain."
-#             suggestionBox             :
-#               type                    : "hidden"
+    @availableDomainsList = new KDListViewController
+      itemClass : DomainBuyItem
 
-#     form = @forms["Domain Address"]
-#     {createButton} = form.buttons
+    @domainListView = @availableDomainsList.getView()
+                      .setClass 'domain-list'
 
-#     form.on "FormValidationFailed", createButton.bound 'hideLoader'
-#     @on "DomainCreationCancelled",  createButton.bound 'hideLoader'
-#     @on "DomainNameShouldFocus", => form.inputs.domainName.setFocus()
+    listView = @availableDomainsList.getListView()
+    listView.on 'BuyButtonClicked', (item)->
+      {price, domain} = item.getData()
+      year  =  item.yearBox.getValue()
+      price = (year * price).toFixed 2
+      new BuyDomainApprovalDialog {}, {domain, year, price}
 
-#   viewAppended:->
-#     KD.whoami().fetchDomains (err, userDomains)=>
-#       warn err  if err
-#       domainList = []
-#       for domain in userDomains
-#         if not domain.regYears > 0
-#           domainList.push {title:".#{domain.domain}", value:domain.domain}
-#       {domains} = @forms["Domain Address"].inputs
-#       domains.setSelectOptions domainList
+  viewAppended:->
+    tldList = []
+    KD.remote.api.JDomain.getTldList (tlds)=>
+      for tld in tlds
+        tldList.push {title:".#{tld}", value: tld}
+      @inputs.domains.setSelectOptions tldList
+    @addSubView @domainListView
 
-#   checkAvailability: ->
-#     form = @forms["Domain Address"]
-#     domainInput       = domainName
-#     domainName        = form.inputs.domainName.getValue()
-#     splittedDomain    = splitDomain(domainName)
-#     domain            = splittedDomain.first
-#     tld               = splittedDomain.extension
-#     {createButton, checkButton, registerButton} = form.buttons
-#     @clearSuggestions()
-#     KD.remote.api.JDomain.getTldPrice tld, (err, tldPrice) =>
-#       if err
-#         notifyUser "An error occured. Please try again later."
-#       KD.remote.api.JDomain.isDomainAvailable domain, tld, (avErr, result) =>
-#         if avErr
-#           checkButton.hideLoader()
-#           log result
-#           log tld
-#           log avErr
-#           return notifyUser "An error occured: #{avErr}"
-#         status = result.status
-#         price = result.price
-#         suggestions = result.suggestions
-#         checkButton.hideLoader()
-#         switch status
-#           when "available"
-#             checkButton.hide()
-#             registerButton.show()
-#             @showSuggestions true, price, suggestions
-#           when "regthroughus", "regthroughothers"
-#             checkButton.show()
-#             registerButton.hide()
-#             @showSuggestions false, price, suggestions
-#           when "unknown"
-#             checkButton.show()
-#             registerButton.hide()
-#             notifyUser "Connections are not available. re-check the domain name availability after some time."
+  setAvailableDomainsData:(domains)->
+    @availableDomainsList.replaceAllItems domains
+    @utils.defer => @domainListView.setClass 'in'
 
-#   registerDomain: ->
-#     form = @forms["Domain Address"]
-#     {createButton, registerButton} = form.buttons
-#     @clearSuggestions()
+class DomainBuyItem extends KDListItemView
 
-#     {DomainOption, domainName, regYears, domains} = form.inputs
-#     domainInput       = domainName
-#     domainName        = form.inputs.domainName.getValue()
+  constructor:(options={}, data)->
+    options.cssClass = KD.utils.curry "domain-buy-items", options.cssClass
 
-#     domainOptionValue = DomainOption.getValue()
+    data.price = (parseFloat data.price).toFixed 2
+    super options, data
 
-#     if domainOptionValue is 'new'
-#       splittedDomain    = splitDomain(domainName)
-#       domain            = splittedDomain.first
-#       tld               = splittedDomain.extension
-#       form = @forms["Domain Address"]
-#       {createButton, registerButton} = form.buttons
-#       paymentController = KD.getSingleton('paymentController')
-#       group             = KD.getSingleton("groupsController").getCurrentGroup()
-#       registerTheDomain = =>
-#           KD.remote.api.JDomain.registerDomain
-#             domainName : domainInput.getValue()
-#             years      : regYears.getValue()
-#           , (err, domain) =>
-#             if err
-#               warn err
-#               console.log err
-#               notifyUser "An error occured. Please try again later."
-#             else
-#               @showSuccess domain
-#               domain.setDomainCNameToProxyDomain()
-#             registerButton.hideLoader()
+    selectOptions = \
+      ({title: "#{i} year for $#{(@getData().price * i).toFixed 2}", \
+        value: i} for i in [1..5])
 
-#       paymentController.getPaymentInfo 'user', group, (err, account)->
-#         need = err or not account or not account.cardNumber
-#         if need
-#           paymentController.setPaymentInfo 'user', group, (success)->
-#             if success
-#               registerTheDomain()
-#         else
-#           registerTheDomain()
+    @yearBox = new KDSelectBox {name:'year', selectOptions}
 
+    @buyButton = new KDButtonView
+      title    : "Buy"
+      style    : "clean-gray"
+      callback : => @parent.emit 'BuyButtonClicked', this
 
-#     else if domainOptionValue is 'existing'
-#       @createDomain {domainName, regYears:0, domainType:'existing'}, (err, domain)=>
-#         createButton.hideLoader()
-#         if err
-#           warn err
-#           if err.message?.indexOf("duplicate key error") isnt -1
-#             return notifyUser "The domain #{domainName} already exists."
-#           return notifyUser "Invalid domain #{domainName}.  "
-#         else
-#           @showSuccess domain
+  viewAppended: ->
+    JView::viewAppended.call this
 
+  pistachio:->
+    """
+      {h1{#(domain)}}
+      {{> @yearBox}}
+      {{> @buyButton}}
+    """
 
-#     else # create a subdomain
-#       subDomainPattern = /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
-#       unless subDomainPattern.test domainName
-#         createButton.hideLoader()
-#         return notifyUser "#{domainName} is an invalid subdomain."
-#       domainName = "#{domainName}.#{domains.getValue()}"
+class BuyDomainApprovalDialog extends KDModalView
 
-#       @createDomain {domainName, regYears:0, domainType:'subdomain'}, (err, domain)=>
-#         createButton.hideLoader()
-#         if err
-#           warn err
-#           if err.message?.indexOf("duplicate key error") isnt -1
-#             return notifyUser "The domain #{domainName} already exists."
-#           return notifyUser "An error occured. Please try again later."
-#         else
-#           @showSuccess domain
+  constructor:(options={}, data)->
 
+    data.year = parseInt data.year, 10
+    s = if data.year > 1 then 's' else ''
 
-#   createDomain:(params, callback) ->
-#     console.log params
-#     KD.remote.api.JDomain.createDomain
-#         domain         : params.domainName
-#         regYears       : params.regYears
-#         proxy          : { mode: 'vm' }
-#         hostnameAlias  : []
-#         domainType     : params.domainType
-#         loadBalancer   :
-#             # mode       : "roundrobin"
-#             mode         : ""
-#       , (err, domain)=>
-#         callback err, domain
+    super
+      cssClass      : KD.utils.curry "modal-with-text", options.cssClass
+      title         : "Do you want to buy #{data.domain} for #{data.year} year#{s} ?"
+      content       : """
+        <div class='modalformline'>
+          <p>You will be charged <b>$#{data.price}</b> for registering
+          <b>#{data.domain}</b> domain for <b>#{data.year}</b> year#{s}.</p>
+        </div>
+      """
+      overlay       : yes
+      buttons       :
+        Buy         :
+          cssClass  : "modal-clean-green"
+          callback  : =>
+            {registerDomain} = KD.remote.api.JDomain
+            log 'Buying....', @getData()
+            registerDomain @getData(), (err)=>
+              log "Register result:", err
+              @destroy()
 
-#   clearSuggestions:-> @suggestionBox?.destroy()
-
-#   showSuggestions:(available, price, suggestions) ->
-#     @clearSuggestions()
-
-#     form            = @forms["Domain Address"]
-#     {domainName}    = form.inputs
-#     {suggestionBox} = form.fields
-#     if not available
-#       partial         = "<p>This domain is already registered. #{if suggestions.length > 0 then 'You may click and try one below.' else ''}</p>"
-#     else
-#       partial         = "<p>Domain price is: #{price}$</p>"
-
-#     for domain in suggestions
-#       partial += "<li class=''>#{domain.domain}</li><i>#{domain.price}$</i>"
-
-#     for own domain, variants of suggestions
-#       for own variant, status of variants when status is "available"
-#         partial += "<li class='#{variant}'>#{domain}.#{variant}</li>"
-
-#     suggestionBox.addSubView @suggestionBox = new KDCustomHTMLView
-#       tagName : 'ul'
-#       cssClass: 'suggestion-box'
-#       partial : partial
-#       click   : (event)->
-#         domainName.setValue $(event.target).closest('li').text()
-
-#   showSuccess:(domain) ->
-#     @clearSuggestions()
-#     form            = @forms["Domain Address"]
-#     {domainName}    = form.inputs
-#     {suggestionBox} = form.fields
-#     {close, createButton, cancel, another} = form.buttons
-
-#     close.show()
-#     another.show()
-#     createButton.hide()
-#     cancel.hide()
-
-#     @emit 'DomainSaved', domain
-
-#     suggestionBox.addSubView @successNote = new KDCustomHTMLView
-#       tagName : 'p'
-#       cssClass: 'success'
-#       # the following partial will vary depending on the DomainOption value.
-#       # Users who registered a domain through us won't need this change.
-#       # partial : "<b>Thank you!</b><br>Your domain #{domainName.getValue()} has been added to our database. Please go to your provider's website and add a CNAME record mapping to kontrol.in.koding.com."
-
-#       # change this part when registering is there.
-#       partial : "<b>Thank you!</b><br>Your subdomain <strong>#{domainName.getValue()}</strong> has been added to our database. You can dismiss this panel and point your new domain to one of your VMs on the settings screen."
-#       click   : => @reset()
-
-
-#   reset:->
-#     form            = @forms["Domain Address"]
-#     {domainName}    = form.inputs
-#     {suggestionBox} = form.fields
-#     {close, createButton, cancel, another} = form.buttons
-
-#     close.hide()
-#     another.hide()
-#     createButton.show()
-#     cancel.show()
-#     @successNote.destroy()
-#     delete @successNote
-#     domainName.setValue ''
-#     @emit 'CloseClicked'
-
-#   addAnotherDomainClicked:->
-#     form            = @forms["Domain Address"]
-#     {domainName}    = form.inputs
-#     {suggestionBox} = form.fields
-#     {close, createButton, cancel, another} = form.buttons
-
-#     close.hide()
-#     another.hide()
-#     createButton.show()
-#     cancel.show()
-#     @successNote.destroy()
-#     delete @successNote
-#     domainName.setValue ''
-#     domainName.setFocus()
-
-#   notifyUser = (msg) ->
-#     new KDNotificationView
-#       type     : 'tray'
-#       title    : msg
-#       duration : 5000
+        "Cancel"    :
+          cssClass  : "modal-cancel"
+          title     : "Cancel"
+          callback  : => @destroy()
+    , data

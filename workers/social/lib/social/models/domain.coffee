@@ -37,7 +37,8 @@ module.exports = class JDomain extends jraphical.Module
                        'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord', 'updateDNSRecord'
                        'remove'
                       ]
-      static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain', 'getTldPrice']
+      static        : ['one', 'getDomainInfo', 'registerDomain', 'getTldList'
+                       'createDomain', 'getTldPrice', 'getDomainSuggestions']
 
     sharedEvents    :
       static        : [
@@ -176,19 +177,26 @@ module.exports = class JDomain extends jraphical.Module
 
             callback err, model
 
+  @getTldList = (callback)->
+    domainManager.domainService.getAvailableTlds callback
 
-  @isDomainAvailable = (domainName, tld, callback) ->
-    domainManager.domainService.isDomainAvailable domainName, tld, callback
+  @getDomainSuggestions = (domainName, callback)->
+    domainManager.domainService.getDomainSuggestions domainName, callback
+
+  @getDomainInfo = (domainName, callback) ->
+    domainManager.domainService.getDomainInfo domainName, callback
 
   @getTldPrice = (tld, callback) ->
     domainManager.domainService.getTldPrice tld, callback
 
   @registerDomain = permit 'create domains',
+
     success: (client, data, callback) ->
-      #default user info / all domains are under koding account.
+
+      # default user info / all domains are under koding account.
       params =
-        domainName         : data.domainName
-        years              : data.years
+        domainName         : data.domain
+        years              : data.year
         customerId         : "10073817"
         regContactId       : "29527194"
         adminContactId     : "29527194"
@@ -197,41 +205,87 @@ module.exports = class JDomain extends jraphical.Module
         invoiceOption      : "KeepInvoice"
         protectPrivacy     : no
 
-      # Make transaction
-      @makeTransaction client, data, (err, charge)=>
-        return callback err  if err
+      console.log "User has privileges to register domain..", params
 
-        domainManager.domainService.registerDomain params, (err, data)=>
-          if err
-            return charge.cancel client, ->
-              callback err, data
+      @one {domain: data.domain}, (err, domain)=>
 
-          if data.actionstatus is "Success"
-            @createDomain client,
-              domain         : data.description
-              hostnameAlias  : []
-              regYears       : params.years
-              orderId        :
-                resellerClub : data.entityid
-              loadBalancer   :
-                  # mode       : "roundrobin"
-                  mode       : ""
-              domainType     : "new"
-              , (err, model) =>
+        if err or domain
+          callback {message: "Already created."}
+          return
+
+        # Make transaction
+        @makeTransaction client, data, (err, charge)=>
+          return callback err  if err
+
+          console.log "Transaction is done."
+          do (err = null, data = {actionstatus : 'Success',  \
+                                  entityid     : 'TEST_ID',  \
+                                  description  : data.domain})->
+
+          # domainManager.domainService.registerDomain params, (err, data)->
+
+            if err
+              return charge.cancel client, ->
+                callback err, data
+
+            if data.actionstatus is "Success"
+
+              console.log "Creating new JDomain..."
+              model = new JDomain
+                domain         : data.description
+                hostnameAlias  : []
+                regYears       : params.years
+                orderId        :
+                  resellerClub : data.entityid
+                loadBalancer   :
+                  mode         : "" # "roundrobin"
+                domainType     : "new"
+
+              model.save (err) ->
+
+                return callback err if err
+
+                # Why are adding this manually? ~ GG
+                account = client.connection.delegate
+                rel = new Relationship
+                  targetId    : model.getId()
+                  targetName  : 'JDomain'
+                  sourceId    : account.getId()
+                  sourceName  : 'JAccount'
+                  as          : 'owner'
+
+                rel.save (err)->
+                  return callback err if err
+
                 callback err, model
-          else
-              callback "Domain registration failed"
+
+            else
+              callback {message: "Domain registration failed"}
 
   @makeTransaction: (client, data, callback)->
-    JPaymentCharge = require './payment/charge'
 
-    amount = 10 * 10 * data.years
+    {delegate} = client.connection
+    {nickname} = delegate.profile
 
-    JPaymentCharge.charge client,
-      code   : 'domain_abc'
-      amount : amount
-      desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"
-    , callback
+    if nickname in ['devrim', 'chris', 'gokmen']
+      console.log "#{nickname} made a test transaction for #{data.domain} (#{data.year} year/s)"
+      console.log "we charged him $#{data.price} ...."
+      callback null,
+        cancel :->
+          console.log "Payment cancelled..."
+    else
+      console.log message = "Transaction is not valid."
+      callback {message}
+
+    # JRecurlyCharge = require './recurly/charge'
+
+    # amount = 10 * 10 * data.years
+
+    # JRecurlyCharge.charge client,
+    #   code   : 'domain_abc'
+    #   amount : amount
+    #   desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"
+    # , callback
 
   bound: require 'koding-bound'
 
