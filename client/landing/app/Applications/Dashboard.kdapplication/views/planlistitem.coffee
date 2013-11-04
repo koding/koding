@@ -8,11 +8,18 @@ class GroupPlanListItem extends GroupProductListItem
       title    : "Add products"
       callback : => @emit 'AddProductsRequested', plan
 
-    @quantitiesView = new KDView
-      cssClass : 'formline button-field clearfix'
+    @childProducts = new KDListViewController
+      itemClass : GroupChildProductListItem
 
-    for own planCode, qty of plan.quantities
-      @quantitiesView.addSubView new GroupPlanProduct {}, { planCode, qty }
+    if plan.childProducts?
+
+      @childProducts.instantiateListItems(
+        plan.childProducts.map (product) ->
+          {
+            product
+            quantity: plan.quantities[product.planCode]
+          }
+      )
 
     super()
 
@@ -24,6 +31,6 @@ class GroupPlanListItem extends GroupProductListItem
     {{> @clientsButton}}
     {{> @editButton}}
     {{> @addProductsButton}}
-    {{> @quantitiesView}}
+    {{> @childProducts.getView()}}
     {{> @embedView}}
     """
