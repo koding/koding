@@ -4,6 +4,6 @@ class GroupChildProductListItem extends KDListItemView
 
   pistachio: ->
     """
-    {{ #(product.title) }}
-    <span class="qty">x{{ #(quantity) }}</span>
+    {.fl{ #(product.title) }}
+    <span class="fr">x{{ #(quantity) }}</span>
     """
