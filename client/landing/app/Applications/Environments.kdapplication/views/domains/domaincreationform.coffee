@@ -237,6 +237,13 @@ class DomainBuyForm extends CommonDomainCreationForm
     @domainListView = @availableDomainsList.getView()
                       .setClass 'domain-list'
 
+    listView = @availableDomainsList.getListView()
+    listView.on 'BuyButtonClicked', (item)->
+      {price, domain} = item.getData()
+      year  =  item.yearBox.getValue()
+      price = (year * price).toFixed 2
+      new BuyDomainApprovalDialog {}, {domain, year, price}
+
   viewAppended:->
     tldList = []
     KD.remote.api.JDomain.getTldList (tlds)=>
@@ -278,3 +285,31 @@ class DomainBuyItem extends KDListItemView
       {{> @buyButton}}
     """
 
+class BuyDomainApprovalDialog extends KDModalView
+
+  constructor:(options={}, data)->
+
+    data.year = parseInt data.year, 10
+    s = if data.year > 1 then 's' else ''
+
+    super
+      cssClass      : KD.utils.curry "modal-with-text", options.cssClass
+      title         : "Do you want to buy #{data.domain} for #{data.year} year#{s} ?"
+      content       : """
+        <div class='modalformline'>
+          <p>You will be charged <b>$ #{data.price}</b> for registering
+          <b>#{data.domain}</b> domain for <b>#{data.year}</b> year#{s}.</p>
+        </div>
+      """
+      overlay       : yes
+      buttons       :
+        Buy         :
+          cssClass  : "modal-clean-green"
+          callback  : =>
+            log 'Buying....', @getData()
+            @destroy()
+        "Cancel"    :
+          cssClass  : "modal-cancel"
+          title     : "Cancel"
+          callback  : => @destroy()
+    , data
