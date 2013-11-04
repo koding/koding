@@ -1,5 +1,74 @@
 @import "../Framework/themes/default/kdfn"
 
+#header-sign-in
+  display           none
+
+#kdmaincontainer.home
+  #main-panel-wrapper
+    min-height      100%
+    height          auto!important
+
+  #sidebar-panel
+    hidden()
+
+  #content-panel
+    min-height      100%
+    height          auto!important
+    width           100% !important
+    background      none
+
+  #main-tab-handle-holder
+    display                 none
+
+  #main-tab-view
+    background              none
+
+  >header
+    size                    100%, 100px
+    top                     0
+    left                    0
+    background              none
+    z-index                 100
+    overflow                visible
+    position                fixed
+
+    .kdview
+      size                  100%, 100px
+      max-width             1280px
+      position              relative
+      margin                0 auto
+      overflow              visible
+      z-index               100
+      borderBox()
+
+      #koding-logo
+        left                0
+        height              50px
+        line-height         50px
+        display             block
+        width               122px
+        top                 30px
+        position            fixed
+        padding-left        40px
+
+        span
+          top               12px
+          left              24px
+
+      #header-sign-in
+        height              50px
+        line-height         50px
+        display             block
+        width               120px
+        right               0
+        top                 30px
+        position            fixed
+        padding-left        20px
+
+        span
+          font-size           20px !important
+          color               #eaeaea
+
 #main-header
   &.black
     #koding-logo
