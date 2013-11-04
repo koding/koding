@@ -195,8 +195,8 @@ module.exports = class JDomain extends jraphical.Module
 
       # default user info / all domains are under koding account.
       params =
-        domainName         : data.domainName
-        years              : data.years
+        domainName         : data.domain
+        years              : data.year
         customerId         : "10073817"
         regContactId       : "29527194"
         adminContactId     : "29527194"
@@ -205,49 +205,62 @@ module.exports = class JDomain extends jraphical.Module
         invoiceOption      : "KeepInvoice"
         protectPrivacy     : no
 
-      # Make transaction
-      @makeTransaction client, data, (err, charge)=>
-        return callback err  if err
+      console.log "User has privileges to register domain..", params
 
-        do (err = null, data = {actionstatus:'Success', entityid:'TEST_ID'})->
-        # domainManager.domainService.registerDomain params, (err, data)->
+      @one {domain: data.domain}, (err, domain)=>
 
-          if err
-            return charge.cancel client, ->
-              callback err, data
+        if err or domain
+          callback {message: "Already created."}
+          return
 
-          if data.actionstatus is "Success"
+        # Make transaction
+        @makeTransaction client, data, (err, charge)=>
+          return callback err  if err
 
-            model = new JDomain
-              domain         : data.description
-              hostnameAlias  : []
-              regYears       : params.years
-              orderId        :
-                resellerClub : data.entityid
-              loadBalancer   :
-                  mode       : "" # "roundrobin"
-              domainType     : "new"
+          console.log "Transaction is done."
+          do (err = null, data = {actionstatus : 'Success',  \
+                                  entityid     : 'TEST_ID',  \
+                                  description  : data.domain})->
 
-            model.save (err) ->
+          # domainManager.domainService.registerDomain params, (err, data)->
 
-              return callback err if err
+            if err
+              return charge.cancel client, ->
+                callback err, data
 
-              # Why are adding this manually? ~ GG
-              account = client.connection.delegate
-              rel = new Relationship
-                targetId    : model.getId()
-                targetName  : 'JDomain'
-                sourceId    : account.getId()
-                sourceName  : 'JAccount'
-                as          : 'owner'
+            if data.actionstatus is "Success"
 
-              rel.save (err)->
+              console.log "Creating new JDomain..."
+              model = new JDomain
+                domain         : data.description
+                hostnameAlias  : []
+                regYears       : params.years
+                orderId        :
+                  resellerClub : data.entityid
+                loadBalancer   :
+                  mode         : "" # "roundrobin"
+                domainType     : "new"
+
+              model.save (err) ->
+
                 return callback err if err
 
-              callback err, model
+                # Why are adding this manually? ~ GG
+                account = client.connection.delegate
+                rel = new Relationship
+                  targetId    : model.getId()
+                  targetName  : 'JDomain'
+                  sourceId    : account.getId()
+                  sourceName  : 'JAccount'
+                  as          : 'owner'
 
-          else
-            callback {message: "Domain registration failed"}
+                rel.save (err)->
+                  return callback err if err
+
+                callback err, model
+
+            else
+              callback {message: "Domain registration failed"}
 
   @makeTransaction: (client, data, callback)->
 
@@ -255,7 +268,8 @@ module.exports = class JDomain extends jraphical.Module
     {nickname} = delegate.profile
 
     if nickname in ['devrim', 'chris', 'gokmen']
-      console.log "#{nickname} made a test transaction for #{data.domainName} (#{data.years} year(s)})"
+      console.log "#{nickname} made a test transaction for #{data.domain} (#{data.year} year/s)"
+      console.log "we charged him $#{data.price} ...."
       callback null,
         cancel :->
           console.log "Payment cancelled..."
