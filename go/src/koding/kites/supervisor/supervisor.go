@@ -146,7 +146,7 @@ func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *[]byte) error {
+func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *string) error {
 	var params struct {
 		ContainerName string
 		Command       string
@@ -172,7 +172,7 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *[]byte) error {
 
 	fmt.Println("output is", string(output))
 
-	*result = output
+	*result = string(output)
 	return nil
 }
 
@@ -247,6 +247,8 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	c.WebHome = vm.WebHome
 	c.Username = user.Name
 	c.Useruid = user.Uid
+	c.DiskSizeInMB = vm.DiskSizeInMB
+
 	fmt.Printf("preparing container '%s' for user '%s' with uid '%d'\n",
 		params.ContainerName, user.Name, user.Uid)
 

@@ -208,7 +208,7 @@ func TestContainer_Run(t *testing.T) {
 	}
 
 	for _, cmd := range commands {
-		t.Logf("run command '%s' inside container\n", cmd.input)
+		// t.Logf("run command '%s' inside container\n", cmd.input)
 		out, err := c.Run(cmd.input)
 		if err != nil {
 			t.Errorf("Could not run command '%s'", cmd.input)

@@ -4,6 +4,7 @@ package container
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/caglar10ur/lxc"
 	"io"
@@ -49,6 +50,7 @@ type Container struct {
 	Username      string
 	Useruid       int
 	WebHome       string
+	DiskSizeInMB  int
 
 	sync.Mutex // protects linux commands such as 'mount' or 'fsck'
 }
@@ -240,6 +242,10 @@ func (c *Container) Create(template string) error {
 
 // Run invokes the given command inside the container.
 func (c *Container) Run(command string) ([]byte, error) {
+	if !c.IsRunning() {
+		return nil, errors.New("vm is not running")
+	}
+
 	args := []string{"--name", c.Name, "--", "/usr/bin/sudo", "-i", "-u",
 		"#" + strconv.Itoa(c.Useruid), "--", "/bin/bash", "-c", command}
 

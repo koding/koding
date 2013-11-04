@@ -89,7 +89,7 @@ func (c *Container) MountRBD() error {
 	makeFileSystem := false
 	// means image doesn't exist, create new one
 	if out == nil {
-		out, err := r.Create(c.Name, "1024")
+		out, err := r.Create(c.Name, c.DiskSizeInMB)
 		if err != nil {
 			return fmt.Errorf("mountrbd create failed.", err, out)
 		}

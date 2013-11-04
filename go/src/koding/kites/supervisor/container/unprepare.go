@@ -59,7 +59,6 @@ func (c *Container) CheckAndStopContainer() error {
 		return nil
 	}
 
-	fmt.Println("stopping down containers")
 	err := c.Stop()
 	if err != nil {
 		return err

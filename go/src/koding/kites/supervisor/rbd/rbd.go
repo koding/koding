@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/tools/config"
 	"os/exec"
+	"strconv"
 	"syscall"
 )
 
@@ -46,8 +47,8 @@ func (r *RBD) Info(image string) ([]byte, error) {
 	return out, nil
 }
 
-func (r *RBD) Create(image, sizeInMB string) ([]byte, error) {
-	args := []string{"create", "--pool", r.Pool, "--size", sizeInMB,
+func (r *RBD) Create(image string, sizeInMB int) ([]byte, error) {
+	args := []string{"create", "--pool", r.Pool, "--size", strconv.Itoa(sizeInMB),
 		"--image", image, "--image-format", "1"}
 	return r.executeRBDCommand(args)
 }
