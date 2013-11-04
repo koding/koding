@@ -1,14 +1,33 @@
-class Kontrol extends KDEventEmitter
+class Kontrol extends KDObject
 
   bound: Bongo.bound
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
+
+  kontrolEndpoint = "http://127.0.0.1:4000/request"
 
   constructor: (options)->
     super
     @readyState = NOTREADY
     @addr = "ws://127.0.0.1:4000/_moh_/pub" #kontrol addr
     @connect()
+
+  getKites: (kitename, callback)->
+    requestData =
+      username   : "#{KD.nick()}"
+      kitename   : kitename
+      sessionID  : KD.remote.getSessionToken()
+
+    xhr = new XMLHttpRequest
+    xhr.open "POST", kontrolEndpoint, yes
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+    xhr.send JSON.stringify requestData
+    xhr.onload = =>
+      if xhr.status is 200
+        data = JSON.parse xhr.responseText
+        callback null, data
+      else
+        callback xhr.responseText, null
 
   connect:->
     @ws = new WebSocket @addr, KD.remote.getSessionToken()
