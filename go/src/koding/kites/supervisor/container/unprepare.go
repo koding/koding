@@ -16,12 +16,7 @@ import (
 // etc. It doesn't remove the home folder or any newly created system files.
 // Those files will be stored in the vmroot.
 func (c *Container) Unprepare() error {
-	err := c.CheckAndStopContainer()
-	if err != nil {
-		return nil
-	}
-
-	err = c.BackupDpkg()
+	err := c.BackupDpkg()
 	if err != nil {
 		return err
 	}
@@ -47,19 +42,6 @@ func (c *Container) Unprepare() error {
 	}
 
 	err = c.RemoveContainerFiles()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Container) CheckAndStopContainer() error {
-	if !c.IsRunning() {
-		return nil
-	}
-
-	err := c.Stop()
 	if err != nil {
 		return err
 	}

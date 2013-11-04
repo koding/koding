@@ -19,7 +19,7 @@ import (
 const (
 	lxcDir        = "/var/lib/lxc/"
 	lxcVersion    = "1.0.0.alpha1"
-	RootUID       = 0       // the is of the root user
+	RootUID       = 0       // id of the root user
 	UserUIDOffset = 1000000 // used for id mapping in lxc.conf
 	RootUIDOffset = 500000  // used for id mapping in lxc.conf
 )
@@ -42,7 +42,7 @@ type Container struct {
 	Dir  string // Container directory path, i.e: /var/lib/lxc/containerName/
 	UID  int    // Used for AsXXX() methods.
 
-	// needed for templating
+	// needed for templating and preparing a single Container
 	HwAddr        net.HardwareAddr
 	IP            net.IP
 	HostnameAlias string
@@ -55,7 +55,6 @@ type Container struct {
 	sync.Mutex // protects linux commands such as 'mount' or 'fsck'
 }
 
-// It's put here that it get initiated only once
 func init() {
 	if lxc.Version() != lxcVersion {
 		fmt.Printf("lxc version mismatch. expected: '%s' got: '%s'\n", lxcVersion, lxc.Version())
@@ -67,6 +66,7 @@ func init() {
 		os.Exit(1)
 	}
 
+	// it's put here that it get initiated only once
 	loadTemplates()
 }
 
@@ -278,6 +278,18 @@ func (c *Container) Stop() error {
 
 	if !l.Stop() {
 		return fmt.Errorf("could not stop: %s\n", c.Name)
+	}
+
+	return nil
+}
+
+// Shutdown stops the running container after the given timeout. It calls lxc-stop.
+func (c *Container) Shutdown(timeout int) error {
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	if !l.Shutdown(timeout) {
+		return fmt.Errorf("could not shutdown: %s\n", c.Name)
 	}
 
 	return nil

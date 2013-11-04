@@ -27,6 +27,7 @@ var (
 	port             = flag.String("port", "4005", "port to bind itself")
 	containerSubnet  *net.IPNet
 	firstContainerIP net.IP
+	containers       = make(map[string]*Info)
 )
 
 func main() {
@@ -170,6 +171,9 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *string) error {
 		return err
 	}
 
+	info := GetInfo(params.ContainerName)
+	info.ResetTimer()
+
 	fmt.Println("output is", string(output))
 
 	*result = string(output)
@@ -198,6 +202,13 @@ func (s *Supervisor) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error
 	fmt.Printf("unpreparing container '%s'\n", params.ContainerName)
 	c := container.NewContainer(params.ContainerName)
 	c.IP = vm.IP // needed for removing static route and ebtables in unprepare
+
+	if c.IsRunning() {
+		err = c.Stop()
+		if err != nil {
+			return err
+		}
+	}
 
 	err = c.Unprepare()
 	if err != nil {
@@ -256,6 +267,15 @@ func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	if err != nil {
 		return err
 	}
+
+	err = c.Start()
+	if err != nil {
+		return err
+	}
+
+	info := GetInfo(params.ContainerName)
+	info.IP = c.IP
+	info.StartTimer()
 
 	*result = true
 	return nil

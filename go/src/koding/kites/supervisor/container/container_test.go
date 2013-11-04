@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	ContainerName     = "tt"
-	ContainerIP       = "10.0.1.33" // TODO: take subnet from config
-	ContainerUsername = "testing"
-	ContainerUseruid  = 1000333
+	ContainerName         = "tt"
+	ContainerIP           = "10.0.1.33" // TODO: take subnet from config
+	ContainerUsername     = "testing"
+	ContainerUseruid      = 1000333
+	ContainerDiskSizeInMB = 1200
 )
 
 var c = NewContainer(ContainerName)
@@ -23,6 +24,7 @@ func init() {
 	c.Username = ContainerUsername
 	c.WebHome = ContainerUsername
 	c.Useruid = ContainerUseruid
+	c.DiskSizeInMB = ContainerDiskSizeInMB
 }
 
 func exist(filename string) bool {
@@ -227,8 +229,8 @@ Now we are going to unprepare it.
 
 */
 
-func TestContainer_CheckAndStopContainer_unprepare(t *testing.T) {
-	err := c.CheckAndStopContainer()
+func TestContainer_Stop(t *testing.T) {
+	err := c.Stop()
 	if err != nil {
 		t.Errorf("Could not stop the container: '%s'", err)
 	}
