@@ -47,7 +47,7 @@ class NFinderController extends KDViewController
       @mountFSKite kitename
       kc.once "KiteDisconnected", => @unmountFSKite kitename
 
-    NewKite.getKites "fs", (err, kites)->
+    KD.getSingleton("kontrol").getKites "fs", (err, kites)->
       if err then log err
       else
         for kt in kites
