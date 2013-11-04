@@ -5,19 +5,19 @@
 
 {github} = KONFIG
 http     = require "https"
+provider = "github"
 
 saveOauthAndRenderPopup = (resp, res, clientId)->
-  saveOauthToSession resp, clientId, "github", ->
-    renderOauthPopup res, {error:null, provider:"github"}
+  saveOauthToSession resp, clientId, provider, ->
+    renderOauthPopup res, {error:null, provider}
 
 module.exports = (req, res) ->
-  {provider}    = req.params
   {code}        = req.query
   {clientId}    = req.cookies
   access_token  = null
 
   unless code
-    renderOauthPopup res, {error:"No code", provider:"github"}
+    renderOauthPopup res, {error:"No code", provider}
     return
 
   headers =
@@ -73,8 +73,10 @@ module.exports = (req, res) ->
     rawResp = ""
     userEmailResp.on "data", (chunk) -> rawResp += chunk
     userEmailResp.on "end", ->
-      email = JSON.parse(rawResp)[0]
-      originalResp.email = email
+      emails = JSON.parse(rawResp)
+      emails = emails.filter (email)-> !/noreply.github/.test email
+
+      originalResp.email = emails[0]
 
       saveOauthAndRenderPopup originalResp, res, clientId
 
