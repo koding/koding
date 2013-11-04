@@ -32,7 +32,7 @@ log "E-Mail Sender Worker has started with PID #{process.pid}"
 sendEmail = (emailContent)->
   {from, replyto, email, subject, content, unsubscribeId, bcc} = emailContent
 
-  To       = emailWorker.forcedRecepient or email
+  To       = emailWorker.forcedRecipient or email
   From     = if from is 'hello@koding.com' then "Koding <#{from}>" else from
   HtmlBody = template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
   TextBody = template.textTemplate content, unsubscribeId, email

@@ -1,5 +1,7 @@
 bongo    = require 'bongo'
 {secure} = bongo
+crypto   = require 'crypto'
+oauth    = require "oauth"
 
 module.exports = class OAuth extends bongo.Base
   @share()
@@ -18,12 +20,6 @@ module.exports = class OAuth extends bongo.Base
         {clientId, redirectUri} = KONFIG.facebook
         url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}"
         callback null, url
-      when "odesk"
-        @getOdeskUrl (err, url, requestToken, requestTokenSecret)=>
-          if err then callback err
-          else
-            @saveOdeskTokens client, url, requestToken, requestTokenSecret, (err)->
-              callback err, url
       when "google"
         {client_id, redirect_uri} = KONFIG.google
 
@@ -36,20 +32,54 @@ module.exports = class OAuth extends bongo.Base
         url += "access_type=offline"
 
         callback null, url
+      when "linkedin"
+        {client_id, redirect_uri} = KONFIG.linkedin
+        state = crypto.createHash("md5").update((new Date).toString()).digest("hex")
 
-  @getOdeskUrl = (callback)->
-    Odesk         = require 'node-odesk'
-    config        = KONFIG.odesk
-    {key, secret} = config
+        url  = "https://www.linkedin.com/uas/oauth2/authorization?"
+        url += "response_type=code&"
+        url += "client_id=#{client_id}&"
+        url += "state=#{state}&"
+        url += "redirect_uri=#{redirect_uri}"
 
-    odesk = new Odesk key, secret
-    odesk.OAuth.getAuthorizeUrl callback
+        callback null, url
+      when "odesk"
+        @saveTokensAndReturnUrl client, "odesk", callback
+      when "twitter"
+        @saveTokensAndReturnUrl client, "twitter", callback
 
-  @saveOdeskTokens = (client, url, requestToken, requestTokenSecret, callback)->
+  @saveTokensAndReturnUrl = (client, provider, callback)->
+    @getTokens provider, (err, requestToken, requestTokenSecret, url)=>
+      return callback err  if err
+
+      credentials = {requestToken, requestTokenSecret}
+      @saveTokens client, provider, credentials, (err)->
+        callback err, url
+
+  @getTokens = (provider, callback)->
+    {
+      key
+      secret
+      request_url
+      access_url
+      version
+      redirect_uri
+      signature
+      secret_url
+    }      = KONFIG[provider]
+
+    client = new oauth.OAuth request_url, access_url, key, secret, version,
+      redirect_uri, signature
+
+    client.getOAuthRequestToken (err, token, tokenSecret, results)->
+      return callback err  if err
+      callback null, token, tokenSecret, secret_url+token
+
+  @saveTokens = (client, provider, credentials, callback)->
     JSession = require './session'
-    JSession.one {clientId: client.sessionToken}, (err, session) =>
-      if err then callback err
-      else
-        odesk = {requestToken, requestTokenSecret}
-        session.update $set: {"foreignAuth.odesk" : odesk}, (err)->
-          callback err, url
+    JSession.one {clientId: client.sessionToken}, (err, session) ->
+      return callback err  if err
+
+      query = {}
+      query["foreignAuth.#{provider}"] = credentials
+      session.update $set: query, callback

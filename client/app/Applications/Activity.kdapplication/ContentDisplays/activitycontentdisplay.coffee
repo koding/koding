@@ -36,6 +36,8 @@ class ActivityContentDisplay extends KDScrollView
         event.preventDefault()
         KD.getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
 
+    @back = new KDCustomHTMLView  unless KD.isLoggedIn()
+
 
 
 

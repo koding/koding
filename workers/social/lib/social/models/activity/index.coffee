@@ -271,18 +271,22 @@ module.exports = class CActivity extends jraphical.Capsule
           callback null, activities
 
   @getCurrentGroup: (client, callback)->
-    {delegate} = client.connection
-    if not delegate
-      callback callback {error: "Request not valid"}
-    else
-      groupName = client.context.group or "koding"
-      JGroup = require '../group'
-      JGroup.one slug : groupName, (err, group)=>
-        if err then return callback err
-        unless group then return callback {error: "Group not found"}
-        group.canReadActivity client, (err, res)->
-          if err then return callback {error: "Not allowed to open this group"}
-          else callback null, group
+    groupName = client.context.group or "koding"
+    JGroup = require '../group'
+    JGroup.one slug : groupName, (err, group)=>
+      if err then return callback err
+      unless group then return callback {error: "Group not found"}
+
+      # this is not a security hole
+      # everybody can read koding activity feed
+      return callback null, group if groupName is "koding"
+
+      # if group is not koding check for security
+      {delegate} = client.connection
+      return callback {error: "Request not valid"} unless delegate
+      group.canReadActivity client, (err, res)->
+        if err then return callback {error: "Not allowed to open this group"}
+        else callback null, group
 
   # this is used for activities on profile page
   @fetchUsersActivityFeed: secure (client, options, callback)->
@@ -331,21 +335,21 @@ module.exports = class CActivity extends jraphical.Capsule
   @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
   @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'
 
-  @fetchPublicActivityFeed = secure (client, options, callback)->
-    @getCurrentGroup client, (err, group) =>
+  @_fetchPublicActivityFeed = (client, options, callback)->
+    @getCurrentGroup client, (err, group)=>
       if err then return callback err
       to = options.to
       to = if to then parseInt(to, 10) else Date.now()
       to = Math.floor(to/1000)  # unix vs js timestamp diff.
 
       requestOptions =
-        client    : client
-        startDate : to
-        withExempt: options.withExempt
-        group     :
-          groupName : group.slug
-          groupId   : group._id
-          facets    : options.facets
+        client       : client
+        startDate    : to
+        withExempt   : options.withExempt
+        group        :
+          groupName  : group.slug
+          groupId    : group._id
+          facets     : options.facets
 
       FetchAllActivityParallel = require './../graph/fetch'
       fetch = new FetchAllActivityParallel requestOptions
@@ -353,3 +357,5 @@ module.exports = class CActivity extends jraphical.Capsule
         callback null, results
 
 
+  @fetchPublicActivityFeed = secure (client, options, callback)->
+    @_fetchPublicActivityFeed client, options, callback

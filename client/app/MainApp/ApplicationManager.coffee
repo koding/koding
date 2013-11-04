@@ -31,7 +31,9 @@ class ApplicationManager extends KDObject
     # set unload listener
     windowController = @getSingleton 'windowController'
     windowController.addUnloadListener 'window', =>
-      safeToUnload = no for own app of @appControllers when app in ['Ace', 'WebTerm']
+      for own app of @appControllers when app in ['Ace', 'WebTerm']
+        safeToUnload = no
+        break
       return safeToUnload ? yes
 
   setMissingRoute:(appController, appView, appOptions)->
@@ -47,17 +49,17 @@ class ApplicationManager extends KDObject
 
   open: do ->
 
-    createOrShow = (appOptions, appParams, callback = noop)->
+    createOrShow = (appOptions = {}, appParams, callback = noop)->
 
-      appManager  = KD.getSingleton "appManager"
-      name        = appOptions?.name
+      name = appOptions?.name
+      return @handleAppNotFound()  unless name
 
-      return appManager.handleAppNotFound()  unless name
+      appInstance = @get name
+      cb = if appParams.background or appOptions.background
+      then -> KD.utils.defer callback
+      else @show.bind this, name, appParams, callback
 
-      appInstance = appManager.get name
-      cb          = -> appManager.show appOptions, callback
-      if appInstance then do cb
-      else appManager.create name, appParams, cb
+      if appInstance then cb() else @create name, appParams, cb
 
     (name, options, callback)->
 
@@ -67,7 +69,7 @@ class ApplicationManager extends KDObject
       options            or= {}
       appOptions           = KD.getAppOptions name
       appParams            = options.params or {}
-      defaultCallback      = -> createOrShow appOptions, appParams, callback
+      defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
       kodingAppsController = KD.getSingleton("kodingAppsController")
 
       # If app has a preCondition then first check condition in it
@@ -212,12 +214,10 @@ class ApplicationManager extends KDObject
         KD.getSingleton("kodingAppsController").putAppResources appInstance, callback
       callback? appInstance
 
-  show:(appOptions, callback)->
+  show:(name, appParams, callback)->
 
-    appInstance = @get appOptions.name
-
-    if appOptions.background
-      return @utils.defer -> callback? appInstance
+    appOptions  = KD.getAppOptions name
+    appInstance = @get name
 
     appView     = appInstance.getView?()
     return unless appView
@@ -242,8 +242,8 @@ class ApplicationManager extends KDObject
     #   KD.getSingleton('router').clear()
 
   quit:(appInstance, callback = noop)->
-
-    destroyer = if view = appInstance.getView?() then view else appInstance
+    view = appInstance.getView?()
+    destroyer = if view? then view else appInstance
     destroyer.destroy()
     callback()
 
@@ -258,7 +258,7 @@ class ApplicationManager extends KDObject
 
     if closeAllInstances
       instances = appController.instances
-      @quit instances[0] while instances.length > 0
+      @quit instances.first while instances.length > 0
     else
       @quit appController.instances[appController.lastActiveIndex]
 

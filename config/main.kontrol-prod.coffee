@@ -37,7 +37,7 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    read        : "http://172.16.3.15"
+    read        : "http://kgraph.sj.koding.com"
     write       : "http://kgraph.sj.koding.com"
     port        : 7474
   mongo         : mongo
@@ -94,17 +94,16 @@ module.exports =
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
     watch                : yes
-    cronSchedule         : '0 * * * * *'
+    cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
   guestCleanerWorker     :
     enabled              : no # for production, workers are running as a service
-    login                : 'prod-guestcleanerworker'
+    login                : 'prod-social'
     queueName            : socialQueueName+'guestcleaner'
-    numberOfWorkers      : 2
+    numberOfWorkers      : 1
     watch                : yes
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
-    watch                : no
   sitemapWorker          :
     enabled              : yes
     login                : 'prod-social'
@@ -234,6 +233,12 @@ module.exports =
   odesk          :
     key          : "9ed4e3e791c61a1282c703a42f6e10b7"
     secret       : "1df959f971cb437c"
+    request_url  : "https://www.odesk.com/api/auth/v1/oauth/token/request"
+    access_url   : "https://www.odesk.com/api/auth/v1/oauth/token/access"
+    secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
+    version      : "1.0"
+    signature    : "HMAC-SHA1"
+    redirect_uri : "https://koding.com/-/oauth/odesk/callback"
   facebook       :
     clientId     : "434245153353814"
     clientSecret : "84b024e0d627d5e80ede59150a2b251e"
@@ -246,3 +251,16 @@ module.exports =
     use          : true
     ip           : "172.168.2.7"
     port         : 8125
+  linkedin       :
+    client_id    : "aza9cks1zb3d"
+    client_secret: "zIMa5kPYbZjHfOsq"
+    redirect_uri : "https://koding.com/-/oauth/linkedin/callback"
+  twitter        :
+    key          : "tvkuPsOd7qzTlFoJORwo6w"
+    secret       : "48HXyTkCYy4hvUuRa7t4vvhipv4h04y6Aq0n5wDYmA"
+    redirect_uri : "https://koding.com/-/oauth/twitter/callback"
+    request_url  : "https://twitter.com/oauth/request_token"
+    access_url   : "https://twitter.com/oauth/access_token"
+    secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
+    version      : "1.0"
+    signature    : "HMAC-SHA1"

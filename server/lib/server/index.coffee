@@ -15,6 +15,7 @@ Object.defineProperty global, 'KONFIG',
 
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
+Crawler = require '../crawler'
 
 processMonitor = (require 'processes-monitor').start
   name                : "webServer on port #{webPort}"
@@ -56,6 +57,8 @@ app        = express()
   getAlias
   addReferralCode
 }          = require './helpers'
+
+{ generateFakeClient } = require "./client"
 
 
 # this is a hack so express won't write the multipart to /tmp
@@ -236,7 +239,7 @@ app.get "/sitemap:sitemapName", (req, res)->
   sitemapName = req.params.sitemapName
   if sitemapName is ".xml"
     sitemapName = "sitemap.xml"
-  else 
+  else
     sitemapName = "sitemap" + sitemapName
   JSitemap.one "name" : sitemapName, (err, sitemap)->
     if err or not sitemap
@@ -307,12 +310,15 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get "/-/oauth/odesk/callback",    require "./odesk_callback"
-app.get "/-/oauth/github/callback",   require "./github_callback"
-app.get "/-/oauth/facebook/callback", require "./facebook_callback"
-app.get "/-/oauth/google/callback",   require "./google_callback"
+app.get "/-/oauth/odesk/callback"     , require "./odesk_callback"
+app.get "/-/oauth/github/callback"    , require "./github_callback"
+app.get "/-/oauth/facebook/callback"  , require "./facebook_callback"
+app.get "/-/oauth/google/callback"    , require "./google_callback"
+app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
+app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
 
 app.all '/:name/:section?*', (req, res, next)->
+
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
@@ -322,49 +328,66 @@ app.all '/:name/:section?*', (req, res, next)->
     unless section
     then next()
     else
-      isLoggedIn req, res, (err, loggedIn, account)->
-        prefix = if loggedIn then 'loggedIn' else 'loggedOut'
-        if name is "Develop"
-          subPage = JGroup.render[prefix].subPage {account, name, section}
-          return serve subPage, res
+      bongoModels = koding.models
+      generateFakeClient req, res, (err, client)->
 
-        JName.fetchModels "#{name}/#{section}", (err, models)->
-          if err
-            subPage = JGroup.render[prefix].subPage {account, name, section}
-            return serve subPage, res
-          else unless models? then next()
-          else
-            subPage = JGroup.render[prefix].subPage {account, name, section, models}
-            return serve subPage, res
+        isLoggedIn req, res, (err, loggedIn, account)->
+          prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
+          serveSub = (err, subPage)->
+            return next()  if err
+            serve subPage, res
+
+          if name is "Develop"
+            options = {account, name, section, client, bongoModels}
+            return JGroup.render[prefix].subPage options, serveSub
+
+          JName.fetchModels "#{name}/#{section}", (err, models)->
+            if err
+              options = {account, name, section, client, bongoModels}
+              JGroup.render[prefix].subPage options, serveSub
+            else unless models? then next()
+            else
+              options = {account, name, section, models, client, bongoModels}
+              JGroup.render[prefix].subPage options, serveSub
+
   else
     isLoggedIn req, res, (err, loggedIn, account)->
       JName.fetchModels name, (err, models)->
         if err then next err
         else unless models? then res.send 404, error_404()
-        else
+        else if models.last?
           models.last.fetchHomepageView account, (err, view)->
             if err then next err
             else if view? then res.send view
             else res.send 500, error_500()
+        else next()
 
-app.get "/", (req, res)->
+app.get "/", (req, res, next)->
 
-  if frag = req.query._escaped_fragment_?
-    res.send 'this is crawlable content'
+  if slug = req.query._escaped_fragment_
+    return Crawler.crawl koding, req, res, slug
   else
+    serveSub = (err, subPage)->
+      return next()  if err
+      serve subPage, res
     {JGroup} = koding.models
-    isLoggedIn req, res, (err, loggedIn, account)->
-      if err
-        res.send 500, error_500()
-        console.error err
-      else if loggedIn
-        # go to koding activity
-        activityPage = JGroup.render.loggedIn.kodingHome {account}
-        serve activityPage, res
-      else
-        # go to koding home
-        homePage = JGroup.render.loggedOut.kodingHome()
-        serve homePage, res
+    bongoModels = koding.models
+
+    generateFakeClient req, res, (err, client)->
+      if err or not client
+        console.log err
+        return next()
+
+      isLoggedIn req, res, (err, loggedIn, account)->
+        if err
+          res.send 500, error_500()
+          console.error err
+        else if loggedIn
+          # go to koding activity
+          JGroup.render.loggedIn.kodingHome {client, account, bongoModels}, serveSub
+        else
+          # go to koding home
+          JGroup.render.loggedOut.kodingHome {client, account, bongoModels}, serveSub
 
 
 ###

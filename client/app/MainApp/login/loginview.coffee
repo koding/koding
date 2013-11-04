@@ -221,6 +221,7 @@ class LoginView extends KDScrollView
           duration  : 4500
 
   doRegister:(formData)->
+    (KD.getSingleton 'mainController').isLoggingIn on
     formData.agree = 'on'
     formData.referrer = $.cookie 'referrer'
     @registerForm.notificationsDisabled = yes
@@ -273,8 +274,9 @@ class LoginView extends KDScrollView
         KD.track "userSignedUp", account
 
   doLogin:(credentials)->
+    (KD.getSingleton 'mainController').isLoggingIn on
     credentials.username = credentials.username.toLowerCase().trim()
-    KD.remote.api.JUser.login credentials, @afterLoginCallback.bind this
+    KD.remote.api.JUser.login credentials, @bound 'afterLoginCallback'
 
   runExternal = (token)->
     KD.getSingleton("kiteController").run
@@ -308,6 +310,7 @@ class LoginView extends KDScrollView
       if firstRoute and /^\/Verify/.test firstRoute
         firstRoute = "/"
 
+      KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView

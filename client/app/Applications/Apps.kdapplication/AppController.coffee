@@ -30,6 +30,7 @@ class AppsAppController extends AppController
   createFeed:(view)->
 
     options =
+      feedId                : 'apps.main'
       itemClass             : AppsListItemView
       limitPerPage          : 10
       filter                :
