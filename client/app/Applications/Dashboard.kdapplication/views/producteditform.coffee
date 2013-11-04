@@ -17,25 +17,25 @@ class GroupProductEditForm extends KDFormViewWithFields
         cssClass  : "modal-cancel"
         callback  : => @emit 'CancelRequested'
 
-    options.fields ?=
+    options.fields ?= {}
 
-      title             :
-        label           : "Title"
-        placeholder     : options.placeholders?.title
-        defaultValue    : data.decoded 'title'
-        required        : 'Title is required!'
+    options.fields.title ?=
+      label           : "Title"
+      placeholder     : options.placeholders?.title
+      defaultValue    : data.decoded 'title'
+      required        : 'Title is required!'
 
-      description       :
-        label           : "Description"
-        placeholder     : options.placeholders?.description or "(optional)"
-        defaultValue    : data.decoded 'description'
+    options.fields.description ?=
+      label           : "Description"
+      placeholder     : options.placeholders?.description or "(optional)"
+      defaultValue    : data.decoded 'description'
 
-      subscriptionType  :
-        label           : "Subscription type"
-        itemClass       : KDSelectBox
-        defaultValue    : data.subscriptionType ? "mo"
-        selectOptions   : @getSubscriptionTypes options
-        callback        : @bound 'subscriptionTypeChanged'
+    options.fields.subscriptionType ?=
+      label           : "Subscription type"
+      itemClass       : KDSelectBox
+      defaultValue    : data.subscriptionType ? "mo"
+      selectOptions   : @getSubscriptionTypes options
+      callback        : @bound 'subscriptionTypeChanged'
 
     options.fields.feeAmount ?=
       label           : "Amount"
@@ -52,23 +52,28 @@ class GroupProductEditForm extends KDFormViewWithFields
           cssClass    : 'fr'
 
     if options.showPriceIsVolatile
-      options.fields.priceIsVolatile =
+      options.fields.priceIsVolatile ?=
         label         : "Price is volatile"
         itemClass     : KDOnOffSwitch
         defaultValue  : data.priceIsVolatile
         callback      : @bound 'priceVolatilityChanged'
 
     if options.showOverage
-      options.fields.overageEnabled =
+      options.fields.overageEnabled ?=
         label         : "Overage enabled"
         itemClass     : KDOnOffSwitch
         defaultValue  : data.overageEnabled
 
     if options.showSoldAlone
-      options.fields.soldAlone =
+      options.fields.soldAlone ?=
         label         : "Sold alone"
         itemClass     : KDOnOffSwitch
         defaultValue  : data.soldAlone
+
+    options.fields.tags ?=
+      label         : "Tags"
+      defaultValue  : data.tags?.join ', '
+      change        : @bound 'tagsChanged'
 
     super options, data
 
@@ -95,6 +100,7 @@ class GroupProductEditForm extends KDFormViewWithFields
       feeAmount       =
         unless priceIsVolatile
         then i.feeAmount.getValue() * 100
+      tags            = @utils.splitTrim i.tags?.getValue()
 
       { subscriptionType, feeUnit, feeInterval } = @getPlanInfo()
 
@@ -108,6 +114,7 @@ class GroupProductEditForm extends KDFormViewWithFields
         overageEnabled
         soldAlone
         priceIsVolatile
+        tags
       }
 
   getSubscriptionTypes: (options) ->
@@ -143,3 +150,7 @@ class GroupProductEditForm extends KDFormViewWithFields
   priceVolatilityChanged: ->
     enabled = @inputs.priceIsVolatile.getValue()
     do @fields.feeAmount[if enabled then 'hide' else 'show']
+
+  tagsChanged: ->
+    { tags } = @inputs
+    tags.setValue (@utils.splitTrim tags.getValue()).join ', '
