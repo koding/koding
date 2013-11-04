@@ -3,9 +3,8 @@ putSplash = (name, section, model)->
   body = if model?.body  then model.body  else ""
 
   title  = if model?.bongo_?.constructorName
-    # console.log model.bongo_.constructorName
     switch model.bongo_.constructorName
-      when "JStatusUpdate"  then "loading a status update"
+      when "JStatusUpdate"  then "loading a status update."
       when "JCodeSnip"      then "loading a code snippet"
       when "JDiscussion"    then "loading a discussion"
       when "JBlogPost"      then "loading a blog post"
@@ -18,21 +17,48 @@ putSplash = (name, section, model)->
   content  = "<figure class='splash'><h2 class='splash-title'>Please wait, #{title}:</h2>"
   content += "<h3 class='splash-name'>#{name.substr 0, 100}#{if name.length > 100 then '...' else ''}</h3></figure>"
 
+generateShareUrl = (model, uri)->
+  slug = if model?.bongo_?.constructorName and model?.slug
+    switch model.bongo_.constructorName
+      when "JStatusUpdate", "JCodeSnip", "JDiscussion", "JBlogPost", "JTutorial"
+        "/Activity/" + model.slug
+      when "JTag"
+        "/Topics/" + model.slug
+      when "JApp"
+        "/Apps/" + model.slug
+      else ""
+
+  url = if uri?.address then uri.address else "https://koding.com"
+  shareUrl = url + slug
+  shareUrl
+
 module.exports = (options, callback)->
+  {argv} = require 'optimist'
+  {uri} = require('koding-config-manager').load("main.#{argv.c}")
 
   {name, section, models, bongoModels, client} = options
 
   getStyles    = require './../styleblock'
+  getGraphMeta = require './../graphmeta'
   fetchScripts = require './../scriptblock'
   model        = models.first if models and Array.isArray models
 
-  prepareHTML  = (scripts)->
+  title = if model?.title then model.title else section
+
+  shareUrl = generateShareUrl model, uri
+
+  # JStatusUpdate doesn't have title; we're using body instead.
+  if model?.bongo_?.constructorName is "JStatusUpdate"
+    title = if model?.body then model.body
+
+  prepareHTML  = (scripts, title, shareUrl)->
     """
     <!doctype html>
     <html lang="en">
     <head>
       <title>Koding</title>
       #{getStyles()}
+      #{getGraphMeta(title, shareUrl)}
     </head>
     <body class='koding'>
 
@@ -62,4 +88,4 @@ module.exports = (options, callback)->
     """
 
   fetchScripts {bongoModels, client}, (err, scripts)->
-    callback null, prepareHTML scripts
+    callback null, prepareHTML scripts, title, shareUrl
