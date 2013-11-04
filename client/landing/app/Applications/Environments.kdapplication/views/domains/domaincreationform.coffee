@@ -67,6 +67,7 @@ class DomainCreationForm extends KDCustomHTMLView
 
       if err
         createButton.hideLoader()
+        message.updatePartial "<br/> Please just provide domain name."
         return warn err
 
       if status.available
@@ -297,7 +298,7 @@ class BuyDomainApprovalDialog extends KDModalView
       title         : "Do you want to buy #{data.domain} for #{data.year} year#{s} ?"
       content       : """
         <div class='modalformline'>
-          <p>You will be charged <b>$ #{data.price}</b> for registering
+          <p>You will be charged <b>$#{data.price}</b> for registering
           <b>#{data.domain}</b> domain for <b>#{data.year}</b> year#{s}.</p>
         </div>
       """
@@ -306,8 +307,12 @@ class BuyDomainApprovalDialog extends KDModalView
         Buy         :
           cssClass  : "modal-clean-green"
           callback  : =>
+            {registerDomain} = KD.remote.api.JDomain
             log 'Buying....', @getData()
-            @destroy()
+            registerDomain @getData(), (err)=>
+              log "Register result:", err
+              @destroy()
+
         "Cancel"    :
           cssClass  : "modal-cancel"
           title     : "Cancel"
