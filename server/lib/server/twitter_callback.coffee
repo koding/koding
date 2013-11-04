@@ -1,3 +1,7 @@
+# Twitter doesn't allow localhost as a callback url, so it's
+# set to 127.0.0.1 instead. If testing twitter, you'll need to
+# start koding in 127.0.0.1, which can be configured in config.
+
 provider             = "twitter"
 http                 = require "https"
 koding               = require './bongo'
@@ -30,8 +34,8 @@ module.exports = (req, res)->
       renderOauthPopup res, {error:err, provider}
       return
 
-    {foreignAuth}        = session
     {username}           = session.data
+    {foreignAuth}        = session
     {requestTokenSecret} = foreignAuth[provider]
 
     client = new OAuth request_url, access_url, key, secret, version,
