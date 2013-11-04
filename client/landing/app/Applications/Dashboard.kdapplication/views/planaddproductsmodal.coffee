@@ -58,22 +58,15 @@ class GroupPlanAddProductsModal extends KDModalView
     @addSubView @buttonField
 
   save: (callback) ->
-    quantities = {}
 
-    plan = @getData()
+    quantities = {}
 
     @products.getItemsOrdered().forEach (item) ->
       { planCode } = item.getData()
       qty = item.qtyView.getValue()
       quantities[planCode] = qty  if qty > 0
 
-    plan.quantities = quantities
-
-    plan.modify { quantities }, (err) =>
-      return callback err  if err
-      callback null
-
-      @emit 'ProductsAdded'
+    @emit 'ProductsAdded', quantities
 
   setProducts: (products) ->
     @loader.hide()
