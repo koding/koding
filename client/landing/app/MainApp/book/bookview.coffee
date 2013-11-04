@@ -62,7 +62,7 @@ class BookView extends JView
 
     @pageNav.addSubView @prevButton = new KDCustomHTMLView
       tagName   : "a"
-      partial   : "◀"
+      partial   : "<i class='prev'></i>"
       cssClass  : "disabled"
       click     : (pubInst, event)=> @fillPrevPage()
       tooltip   :
@@ -71,7 +71,7 @@ class BookView extends JView
 
     @pageNav.addSubView @nextButton = new KDCustomHTMLView
       tagName   : "a"
-      partial   : "▶"
+      partial   : "<i class='next'></i>"
       cssClass  : "disabled"
       click     : (pubInst, event)=> @fillNextPage()
       tooltip   :
@@ -80,7 +80,11 @@ class BookView extends JView
 
     @pagerWrapper.addSubView @pageNav
 
-    @on "PageFill", -> @checkBoundaries()
+    @on "PageFill", =>
+      @checkBoundaries()
+      if BookView.navigateNewPages
+      then @setClass   "new-feature"
+      else @unsetClass "new-feature"
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
 
@@ -88,7 +92,8 @@ class BookView extends JView
       if BookView.navigateNewPages
         BookView.navigateNewPages = no
         BookView.lastIndex = 0
-        @getStorage().setValue "lastReadVersion", @getVersion()
+
+      @getStorage().setValue "lastReadVersion", @getVersion()
 
     @once "OverlayWillBeRemoved", =>
       if @pointer then @destroyPointer()

@@ -150,12 +150,6 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
       Refresh                     :
         action                    : 'refresh'
-      # 'Open Terminal from here'   :
-      #   action                    : 'openTerminal'
-      #   separator                 : yes
-      #   separator                 : yes
-      # 'Create a CodeShare'        :
-      #   action                    : 'codeShare'
 
     if fileView.expanded
       delete items.Expand

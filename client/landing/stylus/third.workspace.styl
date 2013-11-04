@@ -211,6 +211,11 @@ third.workspace.styl
         font-size       12px
         fl()
   .file-container
+    bg                  color, #E2E2E2
+    &.client-finder-pane
+      .vm
+        .icon
+          bg            position, -20px -140px !important
     .loader-container
       height            76px
       top               50%
@@ -256,6 +261,8 @@ third.workspace.styl
     right               15px
   .modal-cancel
     top                 -2px
+  .kdmodal-buttons
+    width               400px !important
 
 .workspace-chat
   abs()
@@ -263,7 +270,9 @@ third.workspace.styl
   z-index               10000
   bottom                0px
   right                 0px
-  vendor                transition, height .2s ease-in
+  -webkit-transition    top .4s ease, height .2s ease-in
+  -moz-transition       top .4s ease, height .2s ease-in
+  transition            top .4s ease, height .2s ease-in
   &.active
     height              317px
   .dock
@@ -277,7 +286,7 @@ third.workspace.styl
     gradient            #F39A37, #ED6A20
     border-bottom       1px solid #9E4A19
     pointer()
-    text-shadow         1px 0px 1px rgba(0,0,0,0.3)
+    text-shadow         1px 0px 1px rgba(0, 0, 0, .3)
     span
       margin-left       5px
   .toggle
@@ -336,7 +345,6 @@ third.workspace.styl
       background        #ECECEC
       div
         margin          1px 5px
-        height          15px
         line-height     15px
       .username
         background      #DDD
@@ -356,37 +364,116 @@ third.workspace.styl
         text-align      right
         abs()
 
-.workspace-collapse-toggle
-  div
-    gradient            #f39a37, #ed6a20
+.workspace-launcher
+  size                  30px, 30px
+  bottom                10px
+  right                 10px
+  z-index               3000
+  bg                    color, #F7931E
+  font-size             26px
+  color                 #FFF
+  text-align            center
+  line-height           30px
+  text-shadow           0 1px 0 rgba(0, 0, 0, .444)
+  rounded               30px
+  abs()
+  vendor                transition, background-color .8s ease
+  pointer()
+  span
+    display             block
+    vendor              user-select, none
+  .launcher-item
+    size                30px, 30px
+    opacity             0
+    top                 0
+    left                0
+    z-index             -100
     abs()
-    rounded             4px 4px 0 0
-    text-align          center
-    pointer()
-
-  .horizontal
-    size                41px, 10px
-    bottom              0
-    left                50%
-    margin-left         -20px
+    bg                  color, #F7931E
+    bg                  image, url("../images/teamwork/icons.png")
+    rounded             30px
+    -webkit-transition  top .4s ease, left .4s ease, opacity .4s ease
+    -moz-transition     top .4s ease, left .4s ease, opacity .4s ease
+    transition          top .4s ease, left .4s ease, opacity .4s ease
+    &:hover
+      bg                color, #367489
+  &.active
+    bg                  color, #367489
     span
-      size              0, 0
-      border            4px solid transparent
-      border-bottom-color #f2f2f2
-      position          relative
-      left              7px
-      vendor            transform-origin-y, 75%
-      fl()
-      &.m
-        margin          0 1px
+      vendor             transform, rotateZ(45deg)
+      -webkit-transition -webkit-transform .2s ease
+      -moz-transition    -moz-transform    .2s ease
+      transition         transform         .2s ease
+    .launcher-item
+      opacity           1
+      z-index           3000
+      &.chat
+        top             -45px
+        bg              position, -1px -34px
+      &.terminal
+        top             -33px
+        left            -33px
+        bg              position, -1px -1px
+      &.preview
+        left            -45px
+        bg              position, -1px -65px
+
+.workspace-launcher.vertical
+  size                  50px, 156px
+  bottom                0
+  right                 0
+  rounded               0
+  bg                    color, transparent
+  .launcher-item
+    position            relative
+    size                42px, 42px
+    bg                  color, #3a3a3a
+    opacity             1
+    rounded             10px
+    z-index             100
+    margin-bottom       10px
+    bg                  repeat, no-repeat
+    &:hover
+      bg                color, #2d2d2d
+    &.chat
+      bg                position, 8px -53px
+    &.terminal
+      bg                position, 8px -104px
+    &.preview
+      bg                position, 10px 0
+  &.active
+    .launcher-item
+      top               0
+      left              0
 
 .workspace
-  .toggle-active
-    .workspace-collapse-toggle.active
-      div
-        border-radius   0 0 4px 4px
+  .workspace-floating-panes
+    overflow            visible
+  .floating-pane
+    abs()
+    vendor              transition, top .4s ease
+    z-index             2000
+    &.active
+      vendor            box-shadow, 0px 0px 10px rgba(0, 0, 0, .5)
+      top               -400px
+  .workspace-chat.floating
+    bottom              -24px
+    &.active
+      height            341px
+      top               -317px
+  .floating-preview-pane
+    background          #FFF
+    .warning
+      abs()
+      top               180px
+      left              50%
+      width             460px
+      margin-left       -230px
+      text-align        center
+      p
+        font-size       16px
+        font-weight     600
+        margin-bottom   10px
       span
-        vendor          transform, rotateZ(180deg)
-        top             -1px
-    .panel-1 .kdsplitview-resizer
-      margin-top        5px
+        font-size       10px
+        color           #AAA

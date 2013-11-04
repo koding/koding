@@ -7,13 +7,11 @@ class CollaborativeWorkspace extends Workspace
     @createLoader()
     @fetchUsers()
     @createUserListContainer()
-    @createChat()
+    @createChat()  if @getOptions().enableChat
     @bindRemoteEvents()
 
   createChat: ->
-    return unless @getOptions().enableChat
-    @container.addSubView @chatView = new ChatPane
-      delegate: this
+    @container.addSubView @chatView = new ChatPane delegate: this
     @chatView.hide()
 
   createRemoteInstance: ->
@@ -72,9 +70,10 @@ class CollaborativeWorkspace extends Workspace
 
     @workspaceRef.on "child_removed", (snapshot) =>
       return  if @disconnectedModal
-      # we are protecting root node to write. however when someone call remove method
-      # on root node it triggers disconnect event once which is a really wrong behaviour
-      # we have to be sure client is really disconnected by checking it's value again.
+      # root node is write protected. however when someone try to remove root node
+      # firebase will trigger disconnect event for once, which is a really wrong behaviour.
+      # to be sure it's a real disconnection, trying to get node value again.
+      # if we can't get the node value then it means user really disconnected.
       KD.utils.wait 1500, =>
         @workspaceRef.once "value", (snapshot) =>
           @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
@@ -117,10 +116,13 @@ class CollaborativeWorkspace extends Workspace
   createSessionKey: ->
     nick = KD.nick()
     u    = KD.utils
-    return  "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
+    return  "#{nick}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
+
+  getSessionOwner: ->
+    return @sessionKey.split("_").first
 
   amIHost: ->
-    [sessionOwner] = @sessionKey.split ":"
+    [sessionOwner] = @sessionKey.split "_"
     return sessionOwner is KD.nick()
 
   showNotActiveView: ->
@@ -135,7 +137,8 @@ class CollaborativeWorkspace extends Workspace
     notValid.addSubView new KDButtonView
       cssClass : "cupid-green"
       title    : "Start New Session"
-      callback : @bound "startNewSession"
+      callback : =>
+        @startNewSession()
 
     @container.addSubView notValid
     @loader.hide()
@@ -155,15 +158,18 @@ class CollaborativeWorkspace extends Workspace
     @loader.on "viewAppended", -> loaderView.show()
     @container.addSubView @loader
 
-  joinSession: (sessionKey) ->
-    {parent}           = @
-    options            = @getOptions()
-    options.sessionKey = sessionKey.trim()
-    @destroy()
+  isJoinedASession: ->
+    return  @getOptions().joinedASession
+
+  joinSession: (newOptions) ->
+    options                = @getOptions()
+    options.sessionKey     = newOptions.sessionKey.trim()
+    options.joinedASession = yes
+    @destroySubViews()
 
     @forceDisconnect()
 
-    parent.addSubView new CollaborativeWorkspace options
+    @addSubView new CollaborativeWorkspace options
 
   forceDisconnect: ->
     return  unless @amIHost()
@@ -183,34 +189,41 @@ class CollaborativeWorkspace extends Workspace
       content = "It seems, host is disconnected from Firebase server. You cannot continue this session."
 
     @disconnectedModal = new KDBlockingModalView
-      title        : title
-      content      : "<p>#{content}</p>"
-      cssClass     : "host-disconnected-modal"
-      overlay      : yes
-      buttons      :
-        Start      :
-          title    : "Start New Session"
-          callback : =>
+      title            : title
+      appendToDomBody  : no
+      content          : "<p>#{content}</p>"
+      cssClass         : "host-disconnected-modal"
+      overlay          : no
+      buttons          :
+        Start          :
+          title        : "Start New Session"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
             @startNewSession()
-        Join       :
-          title    : "Join Another Session"
-          callback : =>
+        Join           :
+          title        : "Join Another Session"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
-            @showSessionModal (modal) ->
-              modal.modalTabs.showPaneByIndex(1)
-        Exit       :
-          title    : "Exit App"
-          cssClass : "modal-cancel"
-          callback : =>
+            @showJoinModal()
+        Exit           :
+          title        : "Exit App"
+          cssClass     : "modal-cancel"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
-            appManager = KD.getSingleton("appManager")
+            appManager = KD.getSingleton "appManager"
             appManager.quit appManager.frontApp
 
-  showJoinModal: (callback = noop) ->
+    @disconnectedModal.on "KDObjectWillBeDestroyed", =>
+      delete @disconnectedModal
+      @disconnectOverlay.destroy()
+
+    @disconnectOverlay = new KDOverlayView
+      parent           : KD.singletons.mainView.mainTabView.activePane
+      isRemovable      : no
+
+    @container.getDomElement().append @disconnectedModal.getDomElement()
+
+  showJoinModal: ->
     options        = @getOptions()
     modal          = new KDModalView
       title        : options.joinModalTitle   or "Join New Session"
@@ -233,11 +246,9 @@ class CollaborativeWorkspace extends Workspace
       placeholder  : "Paste new session key and hit enter to join"
       callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
 
-    callback modal
-
   handleJoinASessionFromModal: (sessionKey, modal) ->
     return unless sessionKey
-    @joinSession sessionKey
+    @joinSession { sessionKey }
     modal.destroy()
 
   showShareView: (panel, workspace, event) ->
