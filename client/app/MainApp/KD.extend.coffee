@@ -74,6 +74,7 @@ KD.extend
 
   logout:->
     mainController = KD.getSingleton('mainController')
+    mainController.isLoggingIn on
     delete mainController?.userAccount
 
   isGuest:-> not KD.isLoggedIn()

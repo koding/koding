@@ -13,7 +13,7 @@ class ContentDisplayControllerTopic extends KDViewController
       tagName  : "h2"
       cssClass : 'sub-header'
 
-    subHeader.addSubView backLink = new KDCustomHTMLView
+    backLink = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : (event)=>
@@ -21,10 +21,12 @@ class ContentDisplayControllerTopic extends KDViewController
         event.preventDefault()
         contentDisplayController = KD.getSingleton "contentDisplayController"
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
+    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     topicView = @addTopicView topic
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+      feedId              : "topics.#{topic.slug}"
       itemClass           : ActivityListItemView
       listCssClass        : "activity-related"
       noItemFoundText     : "There is no activity related with <strong>#{topic.title}</strong>."
