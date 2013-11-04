@@ -39,10 +39,6 @@ class GroupCreationSelector extends KDInputRadioGroup
     return  unless input.length
     @setValue input[0].getAttribute "value"
 
-  setValue:(value)->
-    super
-    @$("input[value='#{value}']").trigger("change")
-
 class HostCreationSelector extends GroupCreationSelector
 
   setDomElement:->
