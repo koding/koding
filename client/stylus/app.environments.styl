@@ -774,6 +774,7 @@ div.environments-add-domain-form
 
   .domain-tabs
     height              auto
+    overflow            hidden
 
     .status-message
       top               64px
@@ -791,23 +792,26 @@ div.environments-add-domain-form
       left              30px
       opacity           0
       margin-top        5px
+      height            285px
       vendor            transition, opacity  .3s ease-out\,
                                     left     .2s ease-out
       &.in
         left            0
         opacity         1
 
+      .kdlistview
+        padding-right   2px
+
     .domain-buy-items
-      padding           10px
       background        rgba(255,255,255,.6)
       border-radius     2px
       border            1px solid #ccc
       margin-top        6px
-      width             418px
-      height            16px
+      height            36px
 
       h1
         font-size       14px
+        padding         10px
 
       button
         width           42px
