@@ -73,8 +73,10 @@ module.exports = (req, res) ->
     rawResp = ""
     userEmailResp.on "data", (chunk) -> rawResp += chunk
     userEmailResp.on "end", ->
-      email = JSON.parse(rawResp)[0]
-      originalResp.email = email
+      emails = JSON.parse(rawResp)
+      emails = emails.filter (email)-> !/noreply.github/.test email
+
+      originalResp.email = emails[0]
 
       saveOauthAndRenderPopup originalResp, res, clientId
 
