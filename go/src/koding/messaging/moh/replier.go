@@ -8,12 +8,14 @@ import (
 // Replier is the counterpart of Requester.
 // It is a HTTP server that responds to HTTP requests with it's handler function.
 type Replier struct {
-	Handler func([]byte) []byte
+	Handler ReplierHandler
 }
+
+type ReplierHandler func(*http.Request, []byte) ([]byte, error)
 
 // NewReplier starts a new HTTP server on addr and returns a pointer to the Replier.
 // All request will be replied by the handler function.
-func NewReplier(handler func([]byte) []byte) *Replier {
+func NewReplier(handler ReplierHandler) *Replier {
 	return &Replier{Handler: handler}
 }
 
@@ -26,11 +28,11 @@ func (r *Replier) ServeHTTP(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	reply := r.Handler(body)
-
-	_, err = w.Write(reply)
+	reply, err := r.Handler(request, body)
 	if err != nil {
-		http.Error(w, "Cannot write reply", 500)
+		http.Error(w, err.Error(), 500)
 		return
 	}
+
+	w.Write(reply)
 }

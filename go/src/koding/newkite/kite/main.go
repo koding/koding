@@ -70,18 +70,11 @@ type Kite struct {
 	// KodingKey is used for authenticate to Kontrol.
 	KodingKey string
 
-	// Local network interface address.
-	// It will be populated after registering with Kontrol.
-	LocalIP string
-
 	// Registered is true if the Kite is registered to kontrol itself
 	Registered bool
 
 	// other kites that needs to be run, in order to run this one
 	Dependencies string
-
-	// kind is temporary field that is used for Koding client side functionality
-	Kind string
 
 	// by default yes, if disabled it bypasses kontrol
 	KontrolEnabled bool
@@ -139,13 +132,6 @@ func New(options *protocol.Options) *Kite {
 		port = "0" // OS binds to an automatic port
 	}
 
-	var publicIP string
-	if options.PublicIP == "" {
-		publicIP = utils.GetLocalIP(options.LocalIP)
-	} else {
-		publicIP = options.PublicIP
-	}
-
 	if options.KontrolAddr == "" {
 		options.KontrolAddr = "127.0.0.1:4000" // local fallback address
 	}
@@ -157,10 +143,12 @@ func New(options *protocol.Options) *Kite {
 			ID:       kiteID,
 			Version:  options.Version,
 			Hostname: hostname,
-			PublicIP: publicIP,
 			Port:     port,
+			Kind:     options.Kind,
+
+			// PublicIP will be set by Kontrol after registering if it is not set.
+			PublicIP: options.PublicIP,
 		},
-		Kind:           options.Kind,
 		KodingKey:      kodingKey,
 		Server:         rpc.NewServer(),
 		KontrolEnabled: true,
@@ -328,14 +316,14 @@ func (k *Kite) Pong() {
 
 	resp, _ := k.kontrolClient.Request(msg)
 	if string(resp) == "UPDATE" {
+		k.Registered = false
+
 		k.registerMutex.Lock()
 		defer k.registerMutex.Unlock()
 
 		if k.Registered {
 			return
 		}
-
-		k.Registered = false
 
 		err := k.registerToKontrol()
 		if err != nil {
@@ -376,6 +364,12 @@ func (k *Kite) registerToKontrol() error {
 	case protocol.AllowKite:
 		slog.Printf("registered to kontrol: \n  Addr\t\t: %s\n  Version\t: %s\n  Uuid\t\t: %s\n\n", k.Addr(), k.Version, k.ID)
 		k.Username = resp.Username // we know now which user that is
+
+		// Set the correct PublicIP if left empty in options.
+		if k.PublicIP == "" {
+			k.PublicIP = resp.PublicIP
+		}
+
 		return nil
 	case protocol.RejectKite:
 		return errors.New("no permission to run")
@@ -395,21 +389,18 @@ var connected = "200 Connected to Go RPC"
 
 // listenAndServe starts our rpc server with the given addr.
 func (k *Kite) listenAndServe() error {
-	listener, err := net.Listen("tcp4", k.Addr())
+	listener, err := net.Listen("tcp4", ":"+k.Port)
 	if err != nil {
 		return err
 	}
 
-	slog.Println("serve addr is", k.Addr())
+	slog.Println("serve addr is", listener.Addr().String())
 
 	// Port is known here if "0" is used as port number
-	host, port, err := net.SplitHostPort(listener.Addr().String())
+	_, k.Port, err = net.SplitHostPort(listener.Addr().String())
 	if err != nil {
 		slog.Fatalln("Invalid address")
 	}
-
-	k.PublicIP = host
-	k.Port = port
 
 	// We must connect to Kontrol after starting to listen on port
 	if k.KontrolEnabled {

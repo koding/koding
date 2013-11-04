@@ -3,6 +3,7 @@ package moh
 import (
 	"bytes"
 	"log"
+	"net/http"
 	"testing"
 	"time"
 )
@@ -17,7 +18,7 @@ var testData = []byte(testMessage)
 
 func TestRequestReply(t *testing.T) {
 	log.Println("Creating new Replier")
-	srv := NewMessagingServer(echoHandler)
+	srv := NewMessagingServer(echoReplier)
 	go srv.ListenAndServe(testAddr)
 	defer srv.Close()
 
@@ -112,4 +113,8 @@ func withChan(h func([]byte) []byte, ch chan bool) func([]byte) {
 
 func echoHandler(message []byte) []byte {
 	return message
+}
+
+func echoReplier(r *http.Request, message []byte) ([]byte, error) {
+	return message, nil
 }

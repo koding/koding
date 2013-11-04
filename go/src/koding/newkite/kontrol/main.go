@@ -15,6 +15,7 @@ import (
 	"koding/newkite/utils"
 	"koding/tools/config"
 	"koding/tools/slog"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -84,7 +85,7 @@ func main() {
 		Port:     strconv.Itoa(config.Current.NewKontrol.Port),
 	}
 
-	k.Replier = moh.NewReplier(k.makeRequestHandler())
+	k.Replier = moh.NewReplier(k.replyMohRequest)
 	k.Publisher = moh.NewPublisher()
 	k.Publisher.Authenticate = findUsernameFromSessionID
 	k.Publisher.ValidateCommand = validateCommand
@@ -113,18 +114,6 @@ func (k *Kontrol) Start() {
 	slog.Println(http.ListenAndServe(":"+k.Port, nil))
 }
 
-func (k *Kontrol) makeRequestHandler() func([]byte) []byte {
-	return func(msg []byte) []byte {
-		// slog.Printf("Request came in: %s\n", string(msg))
-		result, err := k.handle(msg)
-		if err != nil {
-			slog.Println(err)
-		}
-
-		return result
-	}
-}
-
 // This is used for two reasons:
 // 1. HeartBeat mechanism for kite (Node Coordination)
 // 2. Triggering kites to register themself to kontrol (Synchronize PUB/SUB)
@@ -146,6 +135,10 @@ func (k *Kontrol) ping() {
 // HeartBeat pool checker. Checking for kites if they are live or dead.
 // It removes kites from the DB if they are no more alive.
 func (k *Kontrol) heartBeatChecker() {
+	// Wait for a while before removing dead kites.
+	// It is required to maintain old kites on db in case of Kontrol restart.
+	time.Sleep(protocol.HEARTBEAT_DELAY)
+
 	ticker := time.NewTicker(protocol.HEARTBEAT_INTERVAL)
 	for _ = range ticker.C {
 		for _, kite := range storage.List() {
@@ -208,8 +201,8 @@ func (k *Kontrol) heartBeatChecker() {
 	}
 }
 
-// handle handles the messages coming from Kites.
-func (k *Kontrol) handle(msg []byte) ([]byte, error) {
+// replyMohRequest handles the messages coming from Kites.
+func (k *Kontrol) replyMohRequest(httpReq *http.Request, msg []byte) ([]byte, error) {
 	req, err := unmarshalRequest(msg)
 	if err != nil {
 		return nil, err
@@ -229,12 +222,12 @@ func (k *Kontrol) handle(msg []byte) ([]byte, error) {
 	case protocol.Pong:
 		return k.handlePong(req)
 	case protocol.RegisterKite:
-		return k.handleRegister(req)
+		return k.handleRegister(httpReq, req)
 	case protocol.GetKites:
 		return k.handleGetKites(req)
 	}
 
-	return []byte("handle error"), nil
+	return nil, errors.New("Invalid method")
 }
 
 func (k *Kontrol) validateKiteRequest(req *protocol.KiteToKontrolRequest) error {
@@ -281,11 +274,13 @@ func (k *Kontrol) handlePong(req *protocol.KiteToKontrolRequest) ([]byte, error)
 	return []byte("OK"), nil
 }
 
-func (k *Kontrol) handleRegister(req *protocol.KiteToKontrolRequest) ([]byte, error) {
+func (k *Kontrol) handleRegister(httpReq *http.Request, req *protocol.KiteToKontrolRequest) ([]byte, error) {
 	slog.Printf("[%s (%s)] at '%s' wants to be registered\n",
 		req.Kite.Name, req.Kite.Version, req.Kite.Hostname)
 
-	kite, err := k.RegisterKite(req)
+	remoteHost, _, _ := net.SplitHostPort(httpReq.RemoteAddr)
+
+	kite, err := k.RegisterKite(req, remoteHost)
 	if err != nil {
 		response := protocol.RegisterResponse{Result: protocol.RejectKite}
 		resp, _ := json.Marshal(response)
@@ -315,6 +310,7 @@ func (k *Kontrol) handleRegister(req *protocol.KiteToKontrolRequest) ([]byte, er
 	response := protocol.RegisterResponse{
 		Result:   protocol.AllowKite,
 		Username: kite.Username,
+		PublicIP: remoteHost,
 	}
 
 	resp, _ := json.Marshal(response)
@@ -401,7 +397,7 @@ func (k *Kontrol) Publish(filter string, msg []byte) {
 // RegisterKite returns true if the specified kite has been seen before.
 // If not, it first validates the kites. If the kite has permission to run, it
 // creates a new struct, stores it and returns it.
-func (k *Kontrol) RegisterKite(req *protocol.KiteToKontrolRequest) (*models.Kite, error) {
+func (k *Kontrol) RegisterKite(req *protocol.KiteToKontrolRequest, ip string) (*models.Kite, error) {
 	if req.Kite.ID == "" {
 		return nil, errors.New("Invalid Kite ID")
 	}
@@ -415,17 +411,23 @@ func (k *Kontrol) RegisterKite(req *protocol.KiteToKontrolRequest) (*models.Kite
 		return kite, nil
 	}
 
-	return createAndAddKite(req)
+	return createAndAddKite(req, ip)
 }
 
-func createAndAddKite(req *protocol.KiteToKontrolRequest) (*models.Kite, error) {
+func createAndAddKite(req *protocol.KiteToKontrolRequest, remoteIP string) (*models.Kite, error) {
 	// in the future we'll check other things too, for now just make sure that
 	// the variables are not empty
 	if req.Kite.Name == "" && req.Kite.Version == "" && req.Kite.PublicIP == "" && req.Kite.Port == "" {
 		return nil, fmt.Errorf("kite fields are not initialized correctly")
 	}
 
-	kite := createKiteModel(req)
+	kite := modelhelper.NewKite()
+	kite.Kite = req.Kite
+	kite.KodingKey = req.KodingKey
+
+	if req.Kite.PublicIP == "" {
+		kite.PublicIP = remoteIP
+	}
 
 	username, err := usernameFromKey(kite.KodingKey)
 	if err != nil {
@@ -446,13 +448,6 @@ func createAndAddKite(req *protocol.KiteToKontrolRequest) (*models.Kite, error) 
 	}
 
 	return kite, nil
-}
-
-func createKiteModel(req *protocol.KiteToKontrolRequest) *models.Kite {
-	k := modelhelper.NewKite()
-	k.Kite = req.Kite
-	k.KodingKey = req.KodingKey
-	return k
 }
 
 func usernameFromKey(key string) (string, error) {

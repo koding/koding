@@ -56,7 +56,7 @@ type MessagingServer struct {
 // NewMessagingServer returns a pointer to new MessagingServer.
 // To start the server it is necessary to invoke ListenAndServe(),
 // typically in a go statement.
-func NewMessagingServer(replyFunc func([]byte) []byte) *MessagingServer {
+func NewMessagingServer(replyFunc ReplierHandler) *MessagingServer {
 	s := &MessagingServer{
 		CloseableServer: NewCloseableServer(),
 		Replier:         NewReplier(replyFunc),
