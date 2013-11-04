@@ -4,7 +4,7 @@ putSplash = (name, section, model)->
 
   title  = if model?.bongo_?.constructorName
     switch model.bongo_.constructorName
-      when "JStatusUpdate"  then "loading a status update."
+      when "JStatusUpdate"  then "loading a status update"
       when "JCodeSnip"      then "loading a code snippet"
       when "JDiscussion"    then "loading a discussion"
       when "JBlogPost"      then "loading a blog post"
