@@ -489,6 +489,8 @@ module.exports = class JUser extends jraphical.Module
     {sessionToken} = client
     JSession.one {clientId: sessionToken}, (err, session) =>
       return callback err  if err
+      return callback createKodingError "No session"  unless session
+
       kallback = (err, resp={}) ->
         {account, replacementToken} = resp
         callback err, {
@@ -498,7 +500,7 @@ module.exports = class JUser extends jraphical.Module
           replacementToken
         }
       @fetchUserByProvider provider, session, (err, user) =>
-        return callback createKodingError err.message if err
+        return callback createKodingError err.message  if err
         if isUserLoggedIn
           if user
             callback createKodingError """
