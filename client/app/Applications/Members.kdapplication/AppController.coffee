@@ -21,10 +21,10 @@ class MembersAppController extends AppController
       urlLocation   : 'link'
     google          :
       nicename      : 'Google'
-    # twitter         :
-    #   nicename      : 'Twitter'
-    # linkedin        :
-    #   nicename      : 'linkedIn'
+    linkedin        :
+      nicename      : 'LinkedIn'
+    twitter         :
+      nicename      : 'Twitter'
     # bitbucket       :
     #   nicename      : 'BitBucket'
 
