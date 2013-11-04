@@ -8,29 +8,12 @@ class GroupProductsController extends KDController
     @productsView = @prepareProductView 'product'
     @plansView    = @prepareProductView 'plan'
 
-    @loadProducts()
-
-  loadProducts:->
-    { view } = @getOptions()
-
-    dash [
-      => @fetchProducts 'product', (err, products) =>
-        return callback err  if err
-        @products = products
-        view.setProducts 'product', products
-
-      => @fetchProducts 'plan', (err, plans) =>
-        return callback err  if err
-        @plans = plans
-        view.setProducts 'plan', plans
-    ]
-
   prepareProductView: (category) ->
     { view } = @getOptions()
 
     konstructor = getConstructor category
 
-    reload = =>
+    do reload = =>
       @fetchProducts category, (err, products) ->
         view.setProducts category, products
 
@@ -52,7 +35,11 @@ class GroupProductsController extends KDController
 
     showAddProductsModal = (plan) =>
       modal = new GroupPlanAddProductsModal {}, plan
-      modal.on 'ProductsAdded', reload
+      modal.on 'ProductsAdded', (quantities) ->
+        plan.updateProducts quantities, (err) ->
+          handleResponse err
+
+          modal.destroy()
 
       @fetchProducts 'product', (err, products) ->
         return  if KD.showError err
@@ -136,4 +123,21 @@ class GroupProductsController extends KDController
     KD.remote.api["JPayment#{ category.capitalize() }"]
 
   fetchProducts: (category, callback) ->
-    KD.getGroup().fetchProducts category, callback
+    KD.getGroup().fetchProducts category, (err, products) ->
+      return callback err  if err
+
+      queue = products.map (plan) -> ->
+        # recursively fetch nested products, if any
+        if plan.fetchProducts?
+          plan.fetchProducts (err, planProducts) ->
+            return queue.fin err  if err
+
+            plan.childProducts = planProducts
+            queue.fin()
+
+        else queue.fin()
+
+      dash queue, (err) ->
+        return callback err  if err
+
+        callback null, products
