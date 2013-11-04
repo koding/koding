@@ -4,8 +4,6 @@ class NewKite extends KDObject
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
-  kontrolEndpoint = "http://127.0.0.1:4000/request" #kontrol addr
-
   constructor: (options)->
 
     super options
@@ -43,7 +41,7 @@ class NewKite extends KDObject
     @ws.onerror   = @bound 'onError'
 
   getKiteAddr : (connect=no)->
-    NewKite.getKites @name, (err, kites) =>
+    KD.getSingleton("kontrol").getKites @name, (err, kites) =>
       if err
         log "kontrol request error", err
         # Make a request again if we could not get the addres, use backoff for that
@@ -58,23 +56,6 @@ class NewKite extends KDObject
 
         # this should be optional
         @connectDirectly() if connect
-
-  @getKites: (kitename, callback)->
-    requestData =
-      username   : "#{KD.nick()}"
-      kitename   : kitename
-      sessionID  : KD.remote.getSessionToken()
-
-    xhr = new XMLHttpRequest
-    xhr.open "POST", kontrolEndpoint, yes
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-    xhr.send JSON.stringify requestData
-    xhr.onload = =>
-      if xhr.status is 200
-        data = JSON.parse xhr.responseText
-        callback null, data
-      else
-        callback xhr.responseText, null
 
   disconnect:(reconnect=true)->
     @autoReconnect = !!reconnect  if reconnect?
