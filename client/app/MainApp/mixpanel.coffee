@@ -15,7 +15,7 @@ class KDMixpanel
       @track eventName, KD.whoami().profile
     else if eventName is "User Opened Ace"
       {title, privacy, visibility} = eventData
-      
+
       options = {title, privacy, visibility, $user}
       @setOnce 'First Time Ace Opened', Date.now()
       @track eventName, options
@@ -27,14 +27,14 @@ class KDMixpanel
       @track "User Opened Terminal", options
 
     else if eventName is "Apps" and eventData is "Install"
-      
+
       appTitle   = rest[2]
       options    = {$user, appTitle}
       @track "Application Installed", options
-    
+
     else if eventName is "User Clicked Buy VM"
       @track eventName, $user
-    
+
     else if eventName is "Read Tutorial Book"
       @track eventName, $user
 
@@ -45,7 +45,6 @@ class KDMixpanel
         when "StatusUpdateSubmitted" then activity = "Status Updated"
         when "BlogPostSubmitted"     then activity = "Blog Post"
         when "TutorialSubmitted"     then activity = "Tutorial Submitted"
-        when "CodeShareSubmitted"    then activity = "Code Shared"
         when "DiscussionSubmitted"   then activity = "Discussion Started"
         else activity is eventData
 

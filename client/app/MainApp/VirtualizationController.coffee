@@ -7,8 +7,12 @@ class VirtualizationController extends KDController
     @dialogIsOpen = no
     @resetVMData()
 
-    (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
+    KD.getSingleton('mainController')
+      .once('AppIsReady', @bound 'fetchVMs')
+      .on('AccountChanged', => @emit 'VMListChanged')
+
     @on 'VMListChanged', @bound 'resetVMData'
+
 
   run:(options, callback = noop)->
     [callback, options] = [options, callback]  unless callback

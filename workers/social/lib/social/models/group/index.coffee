@@ -26,6 +26,7 @@ module.exports = class JGroup extends Module
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
   @trait __dirname, '../../traits/slugifiable'
+  @trait __dirname, '../../traits/notifying'
 
   @share()
 
@@ -268,6 +269,14 @@ module.exports = class JGroup extends Module
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
+      unless @slug is 'guests'
+        @sendNotificationToAdmins 'GroupLeft',
+          actionType : 'groupLeft'
+          actorType  : 'member'
+          subject    : ObjectRef(this).data
+          member     : ObjectRef(member).data
+        @broadcast 'MemberLeftGroup',
+          member : ObjectRef(member).data
 
     @on 'MemberRolesChanged', (member)->
       @constructor.emit 'MemberRolesChanged', { group: this, member }
@@ -767,7 +776,7 @@ module.exports = class JGroup extends Module
             @customize
           }
           prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-          callback null, JGroup.render[prefix].groupHome options
+          JGroup.render[prefix].groupHome options, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -1321,8 +1330,26 @@ module.exports = class JGroup extends Module
   sendNotificationToAdmins: (event, contents)->
     @fetchAdmins (err, admins)=>
       unless err
-        for admin in admins
-          admin.sendNotification event, contents
+        relationship =  {
+          as         : event,
+          sourceName : contents.subject.constructorName,
+          sourceId   : contents.subject.id,
+          targetName : contents.member.constructorName,
+          targetId   : contents.member.id,
+        }
+
+        contents.relationship = relationship
+        contents.origin       = contents.subject
+        contents.origin.slug  = @slug
+        contents.actorType    = event
+        contents[event]       = contents.member
+
+        next = -> queue.next()
+        queue = admins.map (admin) =>=>
+          contents.recipient = admin
+          @notify admin, event, contents, next
+
+        daisy queue
 
   updateBundle: permit 'change bundle',
     success: (client, formData, callback = (->)) ->
@@ -1503,13 +1530,15 @@ module.exports = class JGroup extends Module
       @fetchOrCountInvitations client, type, 'count', options, (err, result)=>
         return callback err, result?[0]?.count
 
+  _fetchMembersFromGraph:(client, options, callback)->
+    options.groupId = @getId()
+    options.client  = client
+    {Member} = require '../graph'
+    Member.fetchMemberList options, (err, results)=>
+      callback err, results
+
   fetchMembersFromGraph: permit 'list members',
-    success:(client, options, callback)->
-      options.groupId = @getId()
-      options.client = client
-      {Member} = require '../graph'
-      Member.fetchMemberList options, (err, results)=>
-        callback err, results
+    success: @::_fetchMembersFromGraph
 
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'

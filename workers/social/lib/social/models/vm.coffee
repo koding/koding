@@ -211,18 +211,17 @@ module.exports = class JVM extends Module
         return callback err  if err
 
         # We are keeping this names just for counter
-        planOwner   = "group_#{group._id}"
-        counterName = "#{groupSlug}~"
         webHome     = groupSlug
 
-        if type is 'user'
-          planOwner   = "user_#{account._id}"
-          counterName = "#{groupSlug}~#{user.username}~"
-          webHome     = user.username
-        else if type is 'expensed'
-          planOwner   = "group_#{group._id}"
-          counterName = "#{groupSlug}~#{user.username}~"
-          webHome     = user.username
+        {nickame} = account.profile
+
+        planOwner   = switch type
+          when 'user'     then "user_#{account._id}"
+          when 'expensed' then "group_#{group._id}"
+
+        counterName = "#{groupSlug}~#{nickname}~"
+        webHome     = nickname
+
 
         nameFactory = (require 'koding-counter') {
           db     : JVM.getClient()
@@ -233,7 +232,6 @@ module.exports = class JVM extends Module
         nameFactory.next (err, uid)=>
           return callback err  if err
 
-          nickname = user.username
           hostnameAliases = JVM.createAliases {
             nickname, type, uid, groupSlug
           }
@@ -658,7 +656,7 @@ module.exports = class JVM extends Module
             planCode  : 'free'
             planOwner : "user_#{member._id}"
             groupSlug : group.slug
-            webHome   : user.username
+            webHome   : member.profile.nickname
             groups    : wrapGroup group
           }
         else if group.slug is 'koding'

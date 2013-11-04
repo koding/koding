@@ -134,10 +134,11 @@ class MembersLikedContentDisplayView extends KDView
       tagName  : "h2"
       cssClass : 'sub-header'
 
-    subHeader.addSubView backLink = new KDCustomHTMLView
+    backLink = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : => contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
+    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     @listenWindowResize()
 
@@ -166,12 +167,14 @@ class MembersContentDisplayView extends KDView
       tagName  : "h2"
       cssClass : 'sub-header'
 
-    subHeader.addSubView backLink = new KDCustomHTMLView
+    backLink = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : (event)=>
         event.preventDefault()
         event.stopPropagation()
         KD.getSingleton('contentDisplayController').emit "ContentDisplayWantsToBeHidden", @
+
+    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     @listenWindowResize()

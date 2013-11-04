@@ -10,7 +10,7 @@ class ActivityListController extends KDListViewController
     options.startWithLazyLoader = yes
     options.showHeader         ?= no
     options.noItemFoundWidget or= new KDCustomHTMLView
-      cssClass : "lazy-loader"
+      cssClass : "lazy-loader hidden"
       partial  : "There is no activity."
 
     # this is regressed until i touch this again. - SY
@@ -79,7 +79,7 @@ class ActivityListController extends KDListViewController
 
     @emit "teasersLoaded"
 
-  listActivitiesFromCache:(cache, index, animation, isFeaturedContent)->
+  listActivitiesFromCache:(cache, index, animation)->
     @hideLazyLoader()
     return  unless cache.overview?.length > 0
     activityIds = []
@@ -102,10 +102,13 @@ class ActivityListController extends KDListViewController
         if activity?.teaser
           activity.teaser.createdAtTimestamps = overviewItem.createdAt
           view = @addHiddenItem activity.teaser, index, animation
-          view.slideIn => @removeFromHiddenItems view
+          view.setClass 'no-anim'
+          view.unsetClass 'hidden-item'
+          KD.utils.defer -> view.unsetClass 'no-anim'
+          @removeFromHiddenItems view
           activityIds.push activity.teaser._id
 
-    @checkIfLikedBefore activityIds  unless isFeaturedContent
+    @checkIfLikedBefore activityIds
 
     @lastItemTimeStamp = cache.from
 

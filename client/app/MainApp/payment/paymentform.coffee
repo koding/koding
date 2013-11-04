@@ -119,6 +119,14 @@ class PaymentForm extends KDFormViewWithFields
     @inputs.cardNumber.on 'keyup', @bound 'handleCardKeyup'
     @on 'FormValidationFailed', => @buttons.Save.hideLoader()
 
+    @inputs['cardNumber'].on "ValidationError", ->
+      @parent.unsetClass "visa mastercard amex diners discover jcb"
+
+    @inputs['cardNumber'].on "CreditCardTypeIdentified", (type)->
+      @parent.unsetClass "visa mastercard amex diners discover jcb"
+      cardType = type.toLowerCase()
+      @parent.setClass cardType
+
     @fields.cardNumber.addSubView @icon = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'icon'

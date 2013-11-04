@@ -256,6 +256,10 @@ app.teamwork.styl
       line-height               14px
       color                     #646464
 
+.kdbuttonwithmenu-wrapper.playgrounds-button
+  margin                        7px 10px 0 0
+  fr()
+
 .tw-python .front
   bg                            image, url("../images/teamwork/environments/python.jpg")
 .tw-ruby .front
@@ -319,9 +323,18 @@ app.teamwork.styl
 .workspace.go-lang
   .inner-header
     .title
-      background                  none !important
+      background                none !important
     .icon
-      bg                          image, url("/images/teamwork/golang/logo.png")
-      bg                          size, 30px 30px
-      top                         4px
-      position                    relative
+      bg                        image, url("/images/teamwork/golang/logo.png")
+      bg                        size, 30px 30px
+      top                       4px
+      position                  relative
+
+.tw-before-starting-modal .kdscrollview
+  overflow                      auto !important
+
+.workspace-chat .dock .toggle
+  &:before
+    content                     "x" !important
+    font-size                   14px
+    top                         0

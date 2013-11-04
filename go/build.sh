@@ -27,6 +27,7 @@ services=(
   koding/workers/neo4jfeeder
   koding/workers/externals
   koding/dns
+  koding/workers/graphitefeeder
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"
