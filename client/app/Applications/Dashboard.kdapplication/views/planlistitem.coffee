@@ -9,7 +9,9 @@ class GroupPlanListItem extends GroupProductListItem
       callback : => @emit 'AddProductsRequested', plan
 
     @childProducts = new KDListViewController
-      itemClass : GroupChildProductListItem
+      view        : new KDListView
+        cssClass  : 'plan-child-products'
+        itemClass : GroupChildProductListItem
 
     if plan.childProducts?
 
@@ -31,6 +33,7 @@ class GroupPlanListItem extends GroupProductListItem
     {{> @clientsButton}}
     {{> @editButton}}
     {{> @addProductsButton}}
+    <h3>Contains:</h3>
     {{> @childProducts.getView()}}
     {{> @embedView}}
     """
