@@ -52,6 +52,7 @@ module.exports = class JPaymentProduct extends Module
       group           :
         type          : String
         required      : yes
+      tags            : (require './schema').tags
 
   @create = (group, formData, callback) ->
 
@@ -59,7 +60,7 @@ module.exports = class JPaymentProduct extends Module
 
     { subscriptionType, overageEnabled, soldAlone,
       priceIsVolatile, title, description, feeAmount,
-      feeUnit, feeInterval } = formData
+      feeUnit, feeInterval, tags } = formData
 
     product = new this {
       planCode: createId()
@@ -73,6 +74,7 @@ module.exports = class JPaymentProduct extends Module
       overageEnabled
       soldAlone
       group
+      tags
     }
 
     product.save (err) =>

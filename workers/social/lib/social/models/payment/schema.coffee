@@ -7,3 +7,7 @@ module.exports =
       'months'
       'days'
     ]]
+
+  tags    :
+    type  :[String]
+    set   : (value) -> (value.map (tag)-> tag.trim()).filter(Boolean)

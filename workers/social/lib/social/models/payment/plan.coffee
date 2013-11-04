@@ -67,6 +67,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
       quantities    :
         type        : Object
         default     : -> {}
+      tags          : (require './schema').tags
 
   # * It seems like we're stuffing some JSON into the description field
   #   on recurly.  I think that's a really bad idea, so let's store any
@@ -77,7 +78,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
 
     JGroup = require '../group'
 
-    { title, description, feeAmount } = formData
+    { title, description, feeAmount, tags } = formData
 
     plan = new this {
       planCode    : createId()
@@ -87,6 +88,7 @@ module.exports = class JPaymentPlan extends jraphical.Module
       feeInitial  : 0
       feeInterval : 1
       group
+      tags
     }
 
     plan.save (err) ->
