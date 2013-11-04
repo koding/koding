@@ -80,7 +80,7 @@ class CollaborativeWorkspaceUserList extends JView
           <p>#{user.profile.nickname}</p>
         """
 
-    [sessionOwner] = @sessionKey.split ":"
+    [sessionOwner] = @sessionKey.split "_"
     if user.profile.nickname is sessionOwner
       userView.addSubView new KDView
         cssClass : "host-badge"

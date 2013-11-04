@@ -5,6 +5,8 @@
 
 
 active-color = rgb(246,162,32)
+.no-anim
+  noAnim()
 
 body
 
@@ -14,6 +16,11 @@ body
   bg                  repeat, repeat-x
   font-weight         400
   overflow            hidden
+
+  &.intro
+    bg                image, none
+    bg                color, #000
+
   // &.login,
   // &.loading
   //   bg                image,url("../images/koding-new-bg.png")
@@ -71,13 +78,21 @@ body
   100%
     opacity 0
 
-@keyframes shrink
+@-webkit-keyframes shrink
   0%
-    vendor       transform, scale(1)
+    -webkit-transform       scale(1)
   70%
-    vendor       transform, scale(1)
+    -webkit-transform       scale(1)
   100%
-    vendor       transform, scale(0)
+    -webkit-transform       scale(0)
+
+@-moz-keyframes shrink
+  0%
+    -moz-transform       scale(1)
+  70%
+    -moz-transform       scale(1)
+  100%
+    -moz-transform       scale(0)
 
 @keyframes fade-in-out
   0%
@@ -184,6 +199,39 @@ body
 
 #kdmaincontainer
   // vendor              transition, opacity .6s ease-in-out
+
+  &.logout-tv
+    vendor                  animation, logoutTv .5s 1 forwards ease
+    &~.turn-off-line
+      top                   50%
+      left                  0
+      size                  100%, 2px
+      background            #fff
+      opacity               0
+      z-index               1000
+      vendor                animation, logoutTvLine .3s .35s 1 forwards ease
+      abs()
+      &:after
+        content             ""
+        display             block
+        margin              -3px auto 0
+        size                50%, 6px
+        background          #fff
+        rounded             100%
+        box-shadow          0 0 20px 10px rgba(255,255,255,.6)
+    &~.turn-off-dot
+      top                   50%
+      left                  50%
+      bg                    color, #fff
+      rounded               20px
+      size                  10px, 10px
+      margin-top            -5px
+      vendor                transform, scaleX(0) scaleY(0)
+      shadow                0 0 8px #fff
+      vendor                animation, logoutTvDot .3s .6s 1 forwards ease
+      z-index               1000
+      abs()
+
   &.scale
     vendor            animation, shrink 1s ease-out
     vendor            animation-iteration-count, 1
@@ -998,6 +1046,10 @@ span.main-nav-icon
     &.reply
       span.icon
         bg              position, -140px -540px
+    &.groupJoined, &.groupLeft
+      span.icon
+        bg              position, -60px -580px
+
 
     span.avatar
       border            1px solid #e3e3e3
@@ -1213,7 +1265,7 @@ span.main-nav-icon
   border            none !important
   size				20px, 20px
   background-color  transparent !important
-  bg				image, url("../images/_kd.sprites.png")!important
+  bg				image, url("../images/_kd.sprites.png") !important
   bg                position, -120px -340px!important
   .title
       blockMid() !important
@@ -1650,8 +1702,8 @@ span.main-nav-icon
     .formline
 
       > label.kdlabel
-        float           none
-        display         inline-block
+        display         block
+        fl()
       &.intro
         bg              color, rgb(255, 244, 221)
         text-shadow     0 1px 0 white
@@ -1659,37 +1711,54 @@ span.main-nav-icon
         .input-wrapper
           width         auto
 
-      &.cardMonth
+      &.cardmonth
         .input-wrapper
           width auto
 
-      &.cardNumber
+      &.cardnumber
 
         > div.input-wrapper:first-of-type
-          width 270px
+          width 240px
 
         > div.input-wrapper:last-of-type
-          width 70px
+          width 100px
 
-        span.icon
-          abs()
-          right         56px
-          top           14px
-          size          30px, 20px
-          sprite()
-          bg position,  30px 20px
+        .input-wrapper:first-of-type
+          position       relative
 
-          &.mastercard
-            bg position, -70px -440px
+          &:after
+            content      ""
+            display      block
+            size         24px, 16px
+            right        4px
+            top          4px
+            vendor       transition, opacity 500ms ease
+            opacity      0
+            abs()
 
-          &.amex
-            bg position, -70px -460px
+          &.visa:after, &.mastercard:after, &.amex:after
+          &.diners:after, &.discover:after, &.jcb:after
+            sprite()
+            opacity      1
 
-          &.visa
-            bg position, -40px -440px
+          &.visa:after
+            bg           position, 0 -920px
 
-          &.discover
-            bg position, -40px -460px
+          &.mastercard:after
+            bg           position, -25px -920px
+
+          &.amex:after
+            bg           position, -50px -920px
+
+          &.diners:after
+            bg           position, -75px -920px
+
+          &.discover:after
+            bg           position, -100px -920px
+
+          &.jcb:after
+            bg           position, -125px -920px
+
 
       &.address1, &.address2
 
@@ -1886,3 +1955,51 @@ span.main-nav-icon
   20%
     -moz-transform translateZ(-60px) rotateX(40deg)
     opacity           .5
+
+
+/* Logout animation (old tv turn off) */
+@-webkit-keyframes logoutTv
+  0%
+    -webkit-transform   scaleX(1) scaleY(1)
+  40%
+    -webkit-transform   scaleX(2) scaleY(0.0005)
+  100%
+    -webkit-transform   scaleX(0) scaleY(0.0005)
+
+@-webkit-keyframes logoutTvLine
+  10%
+    opacity             1
+    border-radius       100%
+  100%
+    opacity             1
+    -webkit-transform   scale(0)
+
+@-webkit-keyframes logoutTvDot
+  75%
+    opacity             1
+    -webkit-transform   scaleX(2) scaleY(2)
+  100%
+    opacity             0
+    -webkit-transform   scaleX(0) scaleY(0)
+
+@-moz-keyframes logoutTv
+  0%
+    -moz-transform   scaleX(1) scaleY(1)
+  40%
+    -moz-transform   scaleX(2) scaleY(0.0005)
+  100%
+    -moz-transform   scaleX(0) scaleY(0.0005)
+@-moz-keyframes logoutTvLine
+  10%
+    opacity             1
+    border-radius       100%
+  100%
+    opacity             1
+    -moz-transform   scale(0)
+@-moz-keyframes logoutTvDot
+  75%
+    opacity             1
+    -moz-transform      scaleX(2) scaleY(2)
+  100%
+    opacity             0
+    -moz-transform      scaleX(0) scaleY(0)

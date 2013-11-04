@@ -338,10 +338,12 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:(account, callback)->
 
-    callback null, JAccount.renderHomepage
+    JAccount.renderHomepage
       renderedAccount : account
       account         : this
       isLoggedIn      : account.type is 'unregistered'
+    , callback
+
 
   setHandle: secure (client, data, callback)->
     {delegate}      = client.connection
@@ -820,6 +822,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
 
   fetchActivityTeasers : secure ({connection}, selector, options, callback)->
+
     unless @equals connection.delegate
       callback new KodingError 'Access denied'
     else

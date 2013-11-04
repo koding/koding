@@ -32,6 +32,11 @@ projects      =
     style     : "website/css/testapp.css"
     script    : "website/js/testapp.js"
 
+  HomeIntro   :
+    files     : "client/introapp/includes.coffee"
+    style     : "website/css/introapp.#{KODING_VERSION}.css"
+    script    : "website/js/introapp.#{KODING_VERSION}.js"
+
 bundles       =
 
   Koding      :

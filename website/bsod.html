@@ -64,15 +64,15 @@ var dumpTimer;
 
 
 setTimeout(function() {
-  return location.assign("http://localhost:3000");
-}, 2000);
+  return location.assign(window.location.origin);
+}, 3000);
 
 function stageTimerFunc(){
     switch(stage){
         case 0:
             document.getElementById('timed').innerHTML = "Collecting data for crash dump ...";
             break;
-        case 1: 
+        case 1:
             document.getElementById('timed').innerHTML = "Collecting data for crash dump ...<br />Initializing disk for crash dump ...";
             break;
         case 2:
@@ -83,7 +83,7 @@ function stageTimerFunc(){
             dumpTimer = setTimeout("dumpTimerFunc()",500);
             break;
     }
-    
+
     if(stage != 3){
         stageTimer = setTimeout("stageTimerFunc()",300);
         stage ++;

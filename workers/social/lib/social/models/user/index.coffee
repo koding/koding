@@ -206,9 +206,16 @@ module.exports = class JUser extends jraphical.Module
             globalFlags           : ['deleted']
             onlineStatus          : 'offline'
           }
-          delegate.update $set: accountValues, (err) =>
+          delegate.update $set: accountValues, (err)=>
             return callback err  if err?
-            @logout client, callback
+            JName.release confirmUsername, (err)=>
+              return callback err  if err?
+              JAccount.emit "UsernameChanged", {
+                oldUsername    : confirmUsername
+                isRegistration : false
+                username
+              }
+              @logout client, callback
 
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences = require '../registrationpreferences'

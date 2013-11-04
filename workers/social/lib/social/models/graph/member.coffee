@@ -22,12 +22,16 @@ module.exports = class Member extends Graph
   @generateOptions: (options)->
     {client, skip, limit, sort, groupId, startDate} = options
 
-    currentUserId = client.connection.delegate.getId()
+
+    currentUserId = null
+    if client?.connection?.delegate?.getId()
+      currentUserId = client.connection.delegate.getId()
+
     options =
       limitCount: limit or 10
       skipCount: skip or 0
       groupId: "#{groupId}"
-      currentUserId: "#{currentUserId}"
+      currentUserId: "#{currentUserId}" if currentUserId
       to: startDate
 
   # fetch members that are in given group who follows current user
@@ -56,15 +60,9 @@ module.exports = class Member extends Graph
     activity.getCurrentGroup options.client, (err, group)=>
       if err then return callback err
 
-      queryOptions =
-        blacklistQuery: ""
-
-        seed: seed
-        firstNameRegExp: firstNameRegExp
-        lastNameRegexp: lastNameRegexp
-
-      options.groupId = "#{group.getId()}"
-      options.skipCount = skip or 0
+      queryOptions       = { seed, firstNameRegExp, lastNameRegexp, blacklistQuery: "" }
+      options.groupId    = "#{group.getId()}"
+      options.skipCount  = skip  or 0
       options.limitCount = limit or 10
 
       if blacklist? and blacklist.length

@@ -55,7 +55,6 @@ class CodesnipActivityItemView extends ActivityItemChild
       @codeSnippetView.unsetClass 'scroll-highlight out'
 
   pistachio:->
-    # {{> @codeShareBoxView}}
     """
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>

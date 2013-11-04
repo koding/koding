@@ -26,6 +26,12 @@ flags =
   groupApproved           :
     definition            : "group access approval"
     fullDefinition        : "has approved your access request to"
+  groupLeft               :
+    definition            : "group left"
+    fullDefinition        : "has left your group"
+  groupJoined             :
+    definition            : "group join"
+    fullDefinition        : "has joined your group"
 
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""
@@ -154,6 +160,12 @@ Templates =
         preview = ''
       when 'Approved'
         action  = 'has approved your access request to the group'
+        preview = ''
+      when 'GroupJoined'
+        action  = 'has joined your group'
+        preview = ''
+      when 'GroupLeft'
+        action  = 'has left your group'
         preview = ''
 
     """
