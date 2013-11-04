@@ -212,10 +212,12 @@ module.exports = class JVM extends Module
         counterName = "#{groupSlug}~"
         webHome     = groupSlug
 
+        nickname = account.profile.nickname
+
         if type is 'user'
           planOwner   = "user_#{account._id}"
-          counterName = "#{groupSlug}~#{user.username}~"
-          webHome     = user.username
+          counterName = "#{groupSlug}~#{nickname}~"
+          webHome     = nickname
 
         nameFactory = (require 'koding-counter') {
           db     : JVM.getClient()
@@ -226,7 +228,6 @@ module.exports = class JVM extends Module
         nameFactory.next (err, uid)=>
           return callback err  if err
 
-          nickname = user.username
           hostnameAliases = JVM.createAliases {
             nickname, type, uid, groupSlug
           }

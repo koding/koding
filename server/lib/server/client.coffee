@@ -61,14 +61,14 @@ generateFakeClient = (req, res, callback)->
         fakeClient.sessionToken = session.clientId
 
         # set username into context
-        fakeClient.context = {}
-        fakeClient.context.group = groupName
-        fakeClient.context.user  = session.username
+        fakeClient.context or= {}
+        fakeClient.context.group = groupName or fakeClient.context.group
+        fakeClient.context.user  = session.username or fakeClient.context.user
 
         # create connection property
-        fakeClient.connection = {}
-        fakeClient.connection.delegate  = account
-        fakeClient.connection.groupName = groupName
+        fakeClient.connection or= {}
+        fakeClient.connection.delegate  = account or fakeClient.connection.delegate
+        fakeClient.connection.groupName = groupName or fakeClient.connection.groupName
 
         return callback null, fakeClient
 
