@@ -19,6 +19,7 @@ class ChatPane extends JView
         @toggle.toggleClass "active"
         @unreadCount = 0
         @title.updatePartial "Chat"
+        @emit "WorkspaceChatClosed"  unless @isVisible()
 
     @title       = new KDCustomHTMLView
       tagName    : "span"

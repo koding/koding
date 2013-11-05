@@ -17,6 +17,8 @@ class ActivityAppView extends KDScrollView
 
     if entryPoint in ['koding', 'guest']
       @setClass 'fixed'
+    else if entryPoint?.type is 'profile'
+      @setClass 'fixed'
 
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
