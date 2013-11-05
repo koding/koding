@@ -30,16 +30,21 @@ module.exports = class JDomain extends jraphical.Module
       'list domains'       : ['member']
       'list own domains'   : ['member']
 
-    sharedMethods   :
-      instance      : ['bindVM', 'unbindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule',
-                       'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain',
-                       'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches',
-                       'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord', 'updateDNSRecord'
-                       'remove'
+    sharedMethods   :  # Basic methods
+      instance      : ['bindVM', 'unbindVM', 'remove'
+
+                       # Proxy Methods
+                       'deleteProxyRule', 'createProxyRule', 'fetchProxyRules',
+                       'updateProxyRule', 'updateRuleOrders',
+                       'createProxyFilter', 'fetchProxyFilters',
+                       'fetchProxyRulesWithMatches'
+
+                       # DNS Related methods
+                       'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord',
+                       'updateDNSRecord', 'setDomainCNameToProxyDomain'
                       ]
       static        : ['one', 'getDomainInfo', 'registerDomain', 'getTldList'
                        'createDomain', 'getTldPrice', 'getDomainSuggestions']
-
     sharedEvents    :
       static        : [
         { name : "RemovedFromCollection" }
@@ -189,6 +194,13 @@ module.exports = class JDomain extends jraphical.Module
   @getTldPrice = (tld, callback) ->
     domainManager.domainService.getTldPrice tld, callback
 
+  # Where the hell security here? ~ GG
+  setDomainCNameToProxyDomain:(callback)->
+    domainManager.domainService.updateDomainCName
+      domainName : @domain
+      orderId    : @orderId.resellerClub
+    , (err, response)-> callback err, response if callback?
+
   @registerDomain = permit 'create domains',
 
     success: (client, data, callback) ->
@@ -320,69 +332,17 @@ module.exports = class JDomain extends jraphical.Module
           # console.log "Testing domain:", domain, selector.domainName
           return callback null, domain if domain.domain is selector.domainName
 
-  fetchProxyRules: (callback)->
-    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
-      return callback err if err
-      return callback null, restriction.ruleList if restriction
-      return callback null, []
-
-  fetchProxyRulesWithMatches: (callback)->
-    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
-      return callback err if err
-
-      restrictions = {}
-
-      if restriction and restriction.ruleList?
-        for rest in restriction.ruleList
-          restrictions[rest.match] = rest.action
-
-      callback null, restrictions
-
-  createProxyRule: permit
+  remove$: permit
     advanced: [
-      { permission: 'edit own domains', validateWith: Validators.own }
+      { permission: 'delete own domains', validateWith: Validators.own }
     ]
-    success: (client, params, callback)->
-      JProxyRestriction.fetchRestrictionByDomain params.domainName, (err, restriction)->
-        return callback err if err
+    success: (client, callback)->
+      {delegate} = client.connection
+      if /^([\w\-]+)\.kd\.io$/.test @domain
+        return callback new KodingError "It's not allowed to delete root domains"
+      @remove (err)=> callback err
 
-        unless restriction
-          restriction = new JProxyRestriction {domainName: params.domainName}
-          restriction.save (err)->
-            return callback err if err
-
-        restriction.addRule params, (err, rule)->
-          return callback err if err
-          callback err, rule
-
-  updateRuleOrders: permit
-    advanced: [
-      { permission: 'edit own domains', validateWith: Validators.own }
-    ]
-    success: (client, newRuleList, callback)->
-      JProxyRestriction.updateRuleOrders {domainName:@domain, ruleList:newRuleList}, (err)->
-        callback err
-
-  updateProxyRule: permit
-    advanced: [
-      {permission: 'edit own domains', validateWith: Validators.own}
-    ]
-    success: (client, params, callback)->
-      JProxyRestriction.updateRule params, (err)-> callback err
-
-  deleteProxyRule: permit
-    advanced: [
-      {permission: 'edit own domains', validateWith: Validators.own}
-    ]
-    success: (client, params, callback)->
-      params.domainName = @domain
-      JProxyRestriction.deleteRule params, (err)-> callback err
-
-  setDomainCNameToProxyDomain:(callback)->
-      domainManager.domainService.updateDomainCName
-        domainName : @domain
-        orderId    : @orderId.resellerClub
-      , (err, response)-> callback err, response if callback?
+  # DNS Related Methods
 
   fetchDNSRecords: permit
     advanced: [
@@ -458,12 +418,62 @@ module.exports = class JDomain extends jraphical.Module
 
         callback err, response
 
-  remove$: permit
+  # Proxy Functions
+
+  fetchProxyRules: (callback)->
+    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
+      return callback err if err
+      return callback null, restriction.ruleList if restriction
+      return callback null, []
+
+  fetchProxyRulesWithMatches: (callback)->
+    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
+      return callback err if err
+
+      restrictions = {}
+
+      if restriction and restriction.ruleList?
+        for rest in restriction.ruleList
+          restrictions[rest.match] = rest.action
+
+      callback null, restrictions
+
+  createProxyRule: permit
     advanced: [
-      { permission: 'delete own domains', validateWith: Validators.own }
+      { permission: 'edit own domains', validateWith: Validators.own }
     ]
-    success: (client, callback)->
-      {delegate} = client.connection
-      if /^([\w\-]+)\.kd\.io$/.test @domain
-        return callback new KodingError "It's not allowed to delete root domains"
-      @remove (err)=> callback err
+    success: (client, params, callback)->
+      JProxyRestriction.fetchRestrictionByDomain params.domainName, (err, restriction)->
+        return callback err if err
+
+        unless restriction
+          restriction = new JProxyRestriction {domainName: params.domainName}
+          restriction.save (err)->
+            return callback err if err
+
+        restriction.addRule params, (err, rule)->
+          return callback err if err
+          callback err, rule
+
+  updateRuleOrders: permit
+    advanced: [
+      { permission: 'edit own domains', validateWith: Validators.own }
+    ]
+    success: (client, newRuleList, callback)->
+      JProxyRestriction.updateRuleOrders {domainName:@domain, ruleList:newRuleList}, (err)->
+        callback err
+
+  updateProxyRule: permit
+    advanced: [
+      {permission: 'edit own domains', validateWith: Validators.own}
+    ]
+    success: (client, params, callback)->
+      JProxyRestriction.updateRule params, (err)-> callback err
+
+  deleteProxyRule: permit
+    advanced: [
+      {permission: 'edit own domains', validateWith: Validators.own}
+    ]
+    success: (client, params, callback)->
+      params.domainName = @domain
+      JProxyRestriction.deleteRule params, (err)-> callback err
