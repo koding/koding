@@ -149,6 +149,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
+      newkontrol:
+        host    : '127.0.0.1'
+        port    : 4000
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -205,6 +208,7 @@ module.exports =
   haproxy         :
     webPort       : 3020
   newkontrol      :
+    host          : "127.0.0.1"
     port          : 4000
   kontrold        :
     vhost         : "/"

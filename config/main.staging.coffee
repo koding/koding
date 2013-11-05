@@ -154,6 +154,9 @@ module.exports =
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
+      newkontrol:
+        host    : '127.0.0.1'
+        port    : 80
   mq            :
     host        : '172.16.6.14'
     port        : 5672
@@ -198,6 +201,7 @@ module.exports =
   haproxy:
     webPort     : 3020
   newkontrol      :
+    host          : "127.0.0.1"
     port          : 80
   kontrold        :
     vhost         : "/"

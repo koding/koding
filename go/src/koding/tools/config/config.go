@@ -59,6 +59,7 @@ type Config struct {
 		Host string
 	}
 	NewKontrol struct {
+		Host string
 		Port int
 	}
 	Kontrold struct {

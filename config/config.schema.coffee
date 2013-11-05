@@ -173,6 +173,9 @@ config =
         appsUri       : 1
         uploadsUri    : 1
         sourceUri     : 1
+        newkontrol    :
+          host        : 1
+          port        : 1
         # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1
@@ -214,6 +217,7 @@ config =
       cleanupCron     : 1
     pidFile       : 1
     newkontrol      :
+      host          : 1
       port          : 1
     kontrold        :
       vhost         : 1

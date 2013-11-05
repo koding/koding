@@ -18,6 +18,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -33,11 +34,17 @@ var (
 
 func main() {
 	flag.Parse()
+
+	kontrolPort := strconv.Itoa(config.Current.NewKontrol.Port)
+	kontrolHost := config.Current.NewKontrol.Host
+	kontrolAddr := fmt.Sprintf("%s:%s", kontrolHost, kontrolPort)
+
 	options := &protocol.Options{
-		PublicIP: "localhost",
-		Kitename: "provisioning",
-		Version:  "0.0.1",
-		Port:     *port,
+		PublicIP:    "localhost",
+		Kitename:    "provisioning",
+		Version:     "0.0.1",
+		Port:        *port,
+		KontrolAddr: kontrolAddr,
 	}
 
 	methods := map[string]string{
