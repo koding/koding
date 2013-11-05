@@ -44,6 +44,7 @@ module.exports = (options, callback)->
   model        = models.first if models and Array.isArray models
 
   title = if model?.title then model.title else section
+  body = if model?.body then model.body else title
 
   shareUrl = generateShareUrl model, uri
 
@@ -58,7 +59,7 @@ module.exports = (options, callback)->
     <head>
       <title>Koding</title>
       #{getStyles()}
-      #{getGraphMeta title: title, shareUrl: shareUrl}
+      #{getGraphMeta title: title, shareUrl: shareUrl, body: body}
     </head>
     <body class='koding'>
 
