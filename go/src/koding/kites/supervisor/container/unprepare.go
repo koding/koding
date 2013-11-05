@@ -81,35 +81,6 @@ func (c *Container) RemoveNetworkRules() error {
 	return nil
 }
 
-func (c *Container) RemoveContainerFiles() error {
-	// our overlay folder
-	err := os.Remove(c.OverlayPath(""))
-	if err != nil {
-		return err
-	}
-
-	// container files
-	os.Remove(c.Path("config"))
-	os.Remove(c.Path("fstab"))
-	os.Remove(c.Path("ip-address"))
-
-	// remove rootfs too
-	err = os.Remove(c.Path("rootfs"))
-	if err != nil {
-		return err
-	}
-
-	os.Remove(c.Path("rootfs.hold"))
-
-	// finally remove our container dir
-	err = os.Remove(c.Path(""))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *Container) RemoveEbtablesRule() error {
 	isAvailable, err := c.CheckEbtables()
 	if err != nil {
@@ -161,6 +132,15 @@ func (c *Container) RemoveStaticRoute() error {
 }
 
 func (c *Container) UmountPts() error {
+	mounted, err := c.CheckMount(c.PtsDir())
+	if err != nil {
+		return fmt.Errorf("could not check mount state of pts dir: '%s'", err)
+	}
+
+	if !mounted {
+		return nil // don't umount if it doesn't exist
+	}
+
 	out, err := exec.Command("/bin/umount", c.PtsDir()).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("umount devpts failed. err: %s\n out:%s\n", err, string(out))
@@ -170,6 +150,15 @@ func (c *Container) UmountPts() error {
 }
 
 func (c *Container) UmountAufs() error {
+	mounted, err := c.CheckMount(c.Path("rootfs"))
+	if err != nil {
+		return fmt.Errorf("could not check mount state of aufs rootfs: '%s'", err)
+	}
+
+	if !mounted {
+		return nil // don't umount if it doesn't exist
+	}
+
 	out, err := exec.Command("/sbin/auplink", c.Path("rootfs"), "flush").CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("aufs flush failed. err: %s\n out:%s\n", err, string(out))
@@ -184,6 +173,15 @@ func (c *Container) UmountAufs() error {
 }
 
 func (c *Container) UmountRBD() error {
+	mounted, err := c.CheckMount(c.OverlayPath(""))
+	if err != nil {
+		return fmt.Errorf("Could not check mount state of overlay path: '%s'", err)
+	}
+
+	if !mounted {
+		return nil
+	}
+
 	out, err := exec.Command("/bin/umount", c.OverlayPath("")).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("umount overlay failed. err: %s\n out:%s\n", err, string(out))
@@ -197,4 +195,35 @@ func (c *Container) UmountRBD() error {
 
 	return nil
 
+}
+
+// We don't return the errors for remove actions, because a second unprepare
+// might be invoked, which is then an excepten situaton
+func (c *Container) RemoveContainerFiles() error {
+	// our overlay folder
+	err := os.Remove(c.OverlayPath(""))
+	if err != nil {
+		fmt.Printf("[%s] RemoveContainerFiles: %s\n", c.Name, err)
+	}
+
+	// container files
+	os.Remove(c.Path("config"))
+	os.Remove(c.Path("fstab"))
+	os.Remove(c.Path("ip-address"))
+
+	// remove rootfs too
+	err = os.Remove(c.Path("rootfs"))
+	if err != nil {
+		fmt.Printf("[%s] RemoveContainerFiles: %s\n", c.Name, err)
+	}
+
+	os.Remove(c.Path("rootfs.hold"))
+
+	// finally remove our container dir
+	err = os.Remove(c.Path(""))
+	if err != nil {
+		fmt.Printf("[%s] RemoveContainerFiles: %s\n", c.Name, err)
+	}
+
+	return nil
 }
