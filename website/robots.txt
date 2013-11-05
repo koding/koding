@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://koding.com/sitemap.xml
