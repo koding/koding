@@ -74,21 +74,21 @@ func initialize() {
 func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		log.Error("start: could not fetch vm via '%s'. err: '%s'", r.Hostname, err)
-		return errors.New("could not start vm")
+		log.Error("[%s] could not fetch vm document to start '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not start vm - 1")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
 
-	log.Info("going to start container: %s", containerName)
-
 	c := container.NewContainer(containerName)
 	err = c.Start()
 	if err != nil {
-		log.Error("could not start container: '%s'. err: '%s'", containerName, err)
-		return errors.New("could not start vm")
+		log.Error("[%s] could not start container: '%s'. err: '%s'", r.Username, containerName, err)
+		return errors.New("could not start vm - 2")
 	}
 
+	log.Info("[%s] started the container: '%s'", r.Username, containerName)
 	*result = true
 	return nil
 }
@@ -96,19 +96,21 @@ func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		log.Error("stop: could not fetch vm via '%s'. err: '%s'", r.Hostname, err)
-		return errors.New("could not stop vm")
+		log.Error("[%s] could not fetch vm document to stop '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not stop vm - 1")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
 
-	fmt.Println("stopping", containerName)
 	c := container.NewContainer(containerName)
 	err = c.Stop()
 	if err != nil {
-		log.Error("could not stop container: '%s'. err: '%s'", containerName, err)
-		return errors.New("could not stop vm")
+		log.Error("[%s] could not stop container: '%s'. err: '%s'", r.Username, containerName, err)
+		return errors.New("could not stop vm - 2")
 	}
+
+	log.Info("[%s] stopped the container: '%s'", r.Username, containerName)
 
 	*result = true
 	return nil
@@ -123,29 +125,32 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 
 	user, err := getUser(r.Username)
 	if err != nil {
-		return err
+		log.Error("[%s] could not fetch user document to exec a command on '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not run command - 1")
 	}
 
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		return err
+		log.Error("[%s] could not fetch vm document to exec a command on '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not run command - 2")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
 
-	// fmt.Printf("running '%s' on '%s'\n", params.Command, containerName)
 	c := container.NewContainer(containerName)
 	c.Useruid = user.Uid
 
 	output, err := c.Run(command)
 	if err != nil {
-		return err
+		log.Error("[%s] could not exec a command on '%s'. err: '%s'", r.Username, r.Hostname, err)
+		return errors.New("could not run command - 3")
 	}
 
 	info := GetInfo(containerName)
 	info.ResetTimer()
-
-	fmt.Println("output is", string(output))
+	log.Info("[%s] did run the command '%s' on container'%s'\n", r.Username, command, containerName)
 
 	*result = string(output)
 	return nil
@@ -154,27 +159,33 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		return err
+		log.Error("[%s] could not fetch vm document to unprepare '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not unprepare vm - 1")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
 
-	log.Info("unpreparing container '%s'", containerName)
 	c := container.NewContainer(containerName)
 	c.IP = vm.IP // needed for removing static route and ebtables in unprepare
 
 	if c.IsRunning() {
 		err = c.Shutdown(5)
 		if err != nil {
-			return err
+			log.Error("[%s] could not shutdown vm for unprepare vm: '%s'. err: '%s'",
+				r.Username, r.Hostname, err)
+			return errors.New("could not unprepare vm - 2")
 		}
 	}
 
 	err = c.Unprepare()
 	if err != nil {
-		return err
+		log.Error("[%s] could not unprepare vm: '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not unprepare vm - 3")
 	}
 
+	log.Info("[%s] unprepared the container '%s'", r.Username, containerName)
 	*result = true
 	return nil
 }
@@ -182,7 +193,9 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	err := prepare(r.Username, r.Hostname)
 	if err != nil {
-		return err
+		log.Error("[%s] could not prepare vm: '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not prepare vm")
 	}
 
 	*result = true
@@ -242,6 +255,7 @@ func prepare(username, hostname string) error {
 		info.StopTimer()
 	})
 
+	log.Info("[%s] prepared the container '%s'", username, containerName)
 	return nil
 }
 
