@@ -116,13 +116,15 @@ class PaymentForm extends KDFormViewWithFields
   viewAppended:->
     super()
 
-    @inputs.cardNumber.on 'keyup', @bound 'handleCardKeyup'
+    { cardNumber: cardNumberInput } = @inputs
+
+    cardNumberInput.on 'keyup', @bound 'handleCardKeyup'
     @on 'FormValidationFailed', => @buttons.Save.hideLoader()
 
-    @inputs['cardNumber'].on "ValidationError", ->
+    cardNumberInput.on "ValidationError", ->
       @parent.unsetClass "visa mastercard amex diners discover jcb"
 
-    @inputs['cardNumber'].on "CreditCardTypeIdentified", (type)->
+    cardNumberInput.on "CreditCardTypeIdentified", (type)->
       @parent.unsetClass "visa mastercard amex diners discover jcb"
       cardType = type.toLowerCase()
       @parent.setClass cardType
@@ -136,7 +138,7 @@ class PaymentForm extends KDFormViewWithFields
     @updateDescription()
 
   getCardInputValue:->
-    @inputs['cardNumber'].getValue().replace /-|\s/g, ''
+    @inputs.cardNumber.getValue().replace /-|\s/g, ''
 
   getCardType: (value = @getCardInputValue()) ->
     ###
