@@ -94,29 +94,14 @@ class MainController extends KDController
     mainView.appendToDomBody()
 
   doLogout:->
+    mainView = KD.getSingleton("mainView")
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
-      @_logoutAnimation()
+      mainView._logoutAnimation()
       KD.utils.wait 1000, ->
         $.cookie 'clientId', replacementToken  if replacementToken
         localStorage.loggingOut = '1'
         location.reload()
-
-  _logoutAnimation:->
-    mainView      = KD.getSingleton("mainView")
-    {body}        = document
-
-    turnOffLine   = new KDCustomHTMLView
-      cssClass    : "turn-off-line"
-    turnOffDot    = new KDCustomHTMLView
-      cssClass    : "turn-off-dot"
-
-    turnOffLine.appendToDomBody()
-    turnOffDot.appendToDomBody()
-
-    body.style.background = "#000"
-    mainView.setClass       "logout-tv"
-
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
