@@ -4,12 +4,12 @@ class Kontrol extends KDObject
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
-  kontrolEndpoint = "http://127.0.0.1:4000/request"
+  kontrolEndpoint = "http://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/request"
 
   constructor: (options)->
     super
     @readyState = NOTREADY
-    @addr = "ws://127.0.0.1:4000/_moh_/pub" #kontrol addr
+    @addr = "ws://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/_moh_/pub" #kontrol addr
     @connect()
 
   getKites: (kitename, callback)->
