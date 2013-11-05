@@ -15,7 +15,7 @@ class CollaborativePane extends Pane
   createSessionKey: ->
     nick = KD.nick()
     u    = KD.utils
-    return "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
+    return "#{nick}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
 
   pistachio: ->
     """

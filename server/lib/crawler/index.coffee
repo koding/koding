@@ -78,16 +78,26 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
         if err
           console.error err
           callback null, err
-        fullName = acc.data.profile.firstName + " "
-        fullName += acc.data.profile.lastName
+
+        fullName = "A koding user"
+        if acc?.data?.profile?.firstName
+          fullName = acc.data.profile.firstName + " "
+
+        if acc?.data?.profile?.lastName
+          fullName += acc.data.profile.lastName
+
+        hash = ""
+        if acc?.data?.profile?.hash
+          hash = acc.data.profile.hash
+
         activityContent = {
           fullName : fullName
-          hash : acc.data.profile.hash
+          hash : hash
           title : if model.title then model.title else model.body or ""
           body : if model.body  then model.body  else ""
           codeSnippet : htmlEncode codeSnippet
           createdAt : formatDate(model.data?.meta?.createdAt)
-          numberOfComments : comments?.length or 0
+          numberOfComments : teaser.repliesCount or 0
           numberOfLikes : model?.data?.meta?.likes or 0
           comments : comments
           tags : tags
@@ -107,7 +117,7 @@ module.exports =
     [slash, name, section] = slug.split("/")
     [firstLetter] = name
 
-    # if there is no firstLetter, request hits home
+    # if there is no firstLetter, serve homepage to bot.
     unless firstLetter
       content = kodinghome()
       return res.send 200, content

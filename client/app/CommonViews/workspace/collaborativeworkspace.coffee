@@ -116,13 +116,13 @@ class CollaborativeWorkspace extends Workspace
   createSessionKey: ->
     nick = KD.nick()
     u    = KD.utils
-    return  "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
+    return  "#{nick}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
 
   getSessionOwner: ->
-    return @sessionKey.split(":").first
+    return @sessionKey.split("_").first
 
   amIHost: ->
-    [sessionOwner] = @sessionKey.split ":"
+    [sessionOwner] = @sessionKey.split "_"
     return sessionOwner is KD.nick()
 
   showNotActiveView: ->
@@ -137,7 +137,8 @@ class CollaborativeWorkspace extends Workspace
     notValid.addSubView new KDButtonView
       cssClass : "cupid-green"
       title    : "Start New Session"
-      callback : @bound "startNewSession"
+      callback : =>
+        @startNewSession()
 
     @container.addSubView notValid
     @loader.hide()

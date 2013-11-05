@@ -4,8 +4,11 @@ class MainViewController extends KDViewController
 
     super
 
+    {repeat, killRepeat} = KD.utils
+
     mainView       = @getView()
     mainController = KD.getSingleton 'mainController'
+    appManager     = KD.getSingleton 'appManager'
     @registerSingleton 'mainViewController', @, yes
     @registerSingleton 'mainView', mainView, yes
 
@@ -23,6 +26,8 @@ class MainViewController extends KDViewController
     if KD.checkFlag 'super-admin'
     then $('body').addClass 'super'
     else $('body').removeClass 'super'
+
+
 
   loadView:(mainView)->
 
