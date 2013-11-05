@@ -25,13 +25,10 @@ func NewInfo(name string) *Info {
 }
 
 func GetInfo(name string) *Info {
-	// var info *Info
-	// var found bool
 	info, found := containers[name]
 	if !found {
 		info = NewInfo(name)
 		containers[name] = info
-	} else {
 	}
 
 	return info

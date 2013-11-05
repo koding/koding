@@ -72,7 +72,7 @@ func initialize() {
 	}
 }
 
-func (s *Provisioning) Create(r *protocol.KiteDnodeRequest, result *bool) error {
+func (p *Provisioning) Create(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 		Template      string
@@ -95,7 +95,7 @@ func (s *Provisioning) Create(r *protocol.KiteDnodeRequest, result *bool) error 
 	return nil
 }
 
-func (s *Provisioning) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
+func (p *Provisioning) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -115,7 +115,7 @@ func (s *Provisioning) Destroy(r *protocol.KiteDnodeRequest, result *bool) error
 	return nil
 }
 
-func (s *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
+func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -135,7 +135,7 @@ func (s *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
+func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -155,7 +155,7 @@ func (s *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Provisioning) Run(r *protocol.KiteDnodeRequest, result *string) error {
+func (p *Provisioning) Run(r *protocol.KiteDnodeRequest, result *string) error {
 	var params struct {
 		ContainerName string
 		Command       string
@@ -188,7 +188,7 @@ func (s *Provisioning) Run(r *protocol.KiteDnodeRequest, result *string) error {
 	return nil
 }
 
-func (s *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
+func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -198,11 +198,6 @@ func (s *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 	}
 
 	vm, err := getVM(r.Hostname)
-	if err != nil {
-		return err
-	}
-
-	err = validateVM(vm)
 	if err != nil {
 		return err
 	}
@@ -227,7 +222,7 @@ func (s *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 	return nil
 }
 
-func (s *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
+func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -236,27 +231,27 @@ func (s *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error
 		return errors.New("{ containerName: [string] }")
 	}
 
-	user, err := getUser(r.Username)
+	err := prepare(r.Username, r.Hostname)
 	if err != nil {
 		return err
 	}
 
-	vm, err := getVM(r.Hostname)
+	*result = true
+	return nil
+}
+
+func prepare(username, hostname string) error {
+	user, err := getUser(username)
 	if err != nil {
 		return err
 	}
 
-	err = validateVM(vm)
+	vm, err := getVM(hostname)
 	if err != nil {
 		return err
 	}
 
-	err = validateUser(user)
-	if err != nil {
-		return err
-	}
-
-	c := container.NewContainer(params.ContainerName)
+	c := container.NewContainer(vm.Id.Hex())
 
 	if c.IsRunning() {
 		return errors.New("vm is running")
@@ -273,7 +268,7 @@ func (s *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error
 	c.DiskSizeInMB = vm.DiskSizeInMB
 
 	fmt.Printf("preparing container '%s' for user '%s' with uid '%d'\n",
-		params.ContainerName, user.Name, user.Uid)
+		vm.Id.Hex(), user.Name, user.Uid)
 
 	err = c.Prepare()
 	if err != nil {
@@ -285,15 +280,18 @@ func (s *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error
 		return err
 	}
 
-	info := GetInfo(params.ContainerName)
+	if vm.AlwaysOn {
+		return nil
+	}
+
+	info := GetInfo(vm.Id.Hex())
 	info.IP = c.IP
 	info.StartTimer()
 
-	k.OnDisconnect(r.Username, func() {
+	k.OnDisconnect(username, func() {
 		info.StopTimer()
 	})
 
-	*result = true
 	return nil
 }
 
@@ -302,7 +300,17 @@ func getUser(username string) (*models.User, error) {
 		return nil, errors.New("username is empty")
 	}
 
-	return modelhelper.GetUser(username)
+	user, err := modelhelper.GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func getVM(hostnameAlias string) (*models.VM, error) {
@@ -310,7 +318,17 @@ func getVM(hostnameAlias string) (*models.VM, error) {
 		return nil, errors.New("hostname is empty")
 	}
 
-	return modelhelper.GetVM(hostnameAlias)
+	vm, err := modelhelper.GetVM(hostnameAlias)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateVM(vm)
+	if err != nil {
+		return nil, err
+	}
+
+	return vm, nil
 }
 
 func validateVM(vm *models.VM) error {
