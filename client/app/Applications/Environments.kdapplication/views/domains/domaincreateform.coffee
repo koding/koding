@@ -1,4 +1,4 @@
-class DomainCreationForm extends KDCustomHTMLView
+class DomainCreateForm extends KDCustomHTMLView
 
   subDomainPattern = \
     /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
@@ -46,7 +46,7 @@ class DomainCreationForm extends KDCustomHTMLView
     @newDomainEntryForm.on 'registerDomain', @bound 'checkDomainAvailability'
 
     @subDomainPane = new KDTabPaneView { name : "SubDomain" }
-    @subDomainPane.addSubView @subDomainEntryForm = new SubDomainCreateForm
+    @subDomainPane.addSubView @subDomainEntryForm = new SubdomainCreateForm
     @subDomainEntryForm.on 'registerDomain', @bound 'createSubDomain'
     @tabs.addPane @subDomainPane
 
@@ -180,150 +180,3 @@ class DomainCreationForm extends KDCustomHTMLView
     @updateDomains()
     KD.getSingleton("vmController").on 'VMListChanged', @bound 'updateDomains'
     @subDomainEntryForm.inputs.domainName.setFocus()
-
-class CommonDomainCreationForm extends KDFormViewWithFields
-  constructor:(options = {}, data)->
-    super
-      cssClass              : KD.utils.curry "new-domain-form",options.cssClass
-      fields                :
-        domainName          :
-          name              : "domainInput"
-          cssClass          : "domain-input"
-          placeholder       : options.placeholder or "Type your domain"
-          validate          :
-            rules           : required : yes
-            messages        : required : "A domain name is required"
-          nextElement       :
-            domains         :
-              itemClass     : KDSelectBox
-              cssClass      : "main-domain-select"
-              selectOptions : options.selectOptions
-      buttons               :
-        createButton        :
-          name              : "createButton"
-          title             : options.buttonTitle or "Check availability"
-          style             : "cupid-green"
-          cssClass          : "add-domain"
-          type              : "submit"
-          loader            : {color : "#ffffff", diameter : 10}
-      , data
-
-    @addSubView @message = new KDCustomHTMLView
-      cssClass : 'status-message'
-
-  submit:->
-    @buttons.createButton.hideLoader()
-    @off  "FormValidationPassed"
-    @once "FormValidationPassed", =>
-      @emit 'registerDomain'
-      @buttons.createButton.showLoader()
-    super
-
-class SubDomainCreateForm extends CommonDomainCreationForm
-
-  constructor:(options = {}, data)->
-    super
-      placeholder : "Type your subdomain..."
-      buttonTitle : "Create subdomain"
-    , data
-
-class DomainBuyForm extends CommonDomainCreationForm
-
-  constructor:(options = {}, data)->
-    super
-      placeholder : "Type your awesome domain..."
-    , data
-
-    @availableDomainsList = new KDListViewController
-      itemClass : DomainBuyItem
-
-    @domainListView = @availableDomainsList.getView()
-                      .setClass 'domain-list'
-
-    listView = @availableDomainsList.getListView()
-    listView.on 'BuyButtonClicked', (item)->
-      {price, domain} = item.getData()
-      year  =  item.yearBox.getValue()
-      price = (year * price).toFixed 2
-      modal = new DomainBuyModal
-        domain      : domain
-        confirmForm : new DomainBuyConfirmForm { domain, year, price }
-
-      modal.on 'PaymentConfirmed', (data) ->
-        data; debugger
-
-  viewAppended:->
-    tldList = []
-    KD.remote.api.JDomain.getTldList (tlds)=>
-      for tld in tlds
-        tldList.push {title:".#{tld}", value: tld}
-      @inputs.domains.setSelectOptions tldList
-    @addSubView @domainListView
-
-  setAvailableDomainsData:(domains)->
-    @availableDomainsList.replaceAllItems domains
-    @utils.defer => @domainListView.setClass 'in'
-
-class DomainBuyItem extends KDListItemView
-
-  constructor:(options={}, data)->
-    options.cssClass = KD.utils.curry "domain-buy-items", options.cssClass
-
-    data.price = (parseFloat data.price).toFixed 2
-    super options, data
-
-    selectOptions = \
-      ({title: "#{i} year for $#{(@getData().price * i).toFixed 2}", \
-        value: i} for i in [1..5])
-
-    @yearBox = new KDSelectBox {name:'year', selectOptions}
-
-    @buyButton = new KDButtonView
-      title    : "Buy"
-      style    : "clean-gray"
-      callback : => @parent.emit 'BuyButtonClicked', this
-
-  viewAppended: ->
-    JView::viewAppended.call this
-
-  pistachio:->
-    """
-      {h1{#(domain)}}
-      {{> @yearBox}}
-      {{> @buyButton}}
-    """
-
-class DomainBuyConfirmForm extends KDFormViewWithFields
-
-  constructor: (options = {}, data) ->
-
-    options.buttons ?= {}
-
-    options.buttons.Buy ?=
-      cssClass  : "modal-clean-green"
-      callback  : => @emit 'PaymentConfirmed'
-
-    options.buttons.cancel ?=
-      cssClass  : "modal-cancel"
-
-    super options, data
-
-  setPaymentMethod: (method) ->
-    @details.addSubView new PaymentMethodView {}, method
-
-  viewAppended: ->
-    { year, domain, price } = @getOptions()
-
-    s = if year > 1 then 's' else ''
-
-    @details = new KDView
-      partial:
-        """
-        <h3>Do you want to buy #{domain} for #{year} year#{s} ?</h3>
-        <div class='modalformline'>
-          <p>You will be charged <b>$#{price}</b> for registering
-          <b>#{domain}</b> domain for <b>#{year}</b> year#{s}.</p>
-        </div>
-        """
-
-    @addSubView @details, null, yes

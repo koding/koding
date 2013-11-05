@@ -410,7 +410,12 @@ module.exports = [
   # "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
   # "app/Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
   # "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
-  "app/Applications/Environments.kdapplication/views/domains/domaincreationform.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domaincreateform.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/commondomaincreateform.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domainbuyform.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domainbuyitem.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domainbuyconfirmform.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/subdomaincreateform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domainbuymodal.coffee",
 
