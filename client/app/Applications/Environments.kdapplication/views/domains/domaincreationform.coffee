@@ -119,7 +119,9 @@ class DomainCreationForm extends KDCustomHTMLView
 
   createJDomain:(params, callback) ->
 
-    KD.remote.api.JDomain.createDomain
+    { JDomain } = KD.remote.api
+
+    JDomain.createDomain
       domain         : params.domainName
       regYears       : params.regYears
       proxy          : { mode: 'vm' }
@@ -222,7 +224,7 @@ class SubDomainCreateForm extends CommonDomainCreationForm
   constructor:(options = {}, data)->
     super
       placeholder : "Type your subdomain..."
-      buttonTitle : "Create Subdomain"
+      buttonTitle : "Create subdomain"
     , data
 
 class DomainBuyForm extends CommonDomainCreationForm
@@ -243,7 +245,12 @@ class DomainBuyForm extends CommonDomainCreationForm
       {price, domain} = item.getData()
       year  =  item.yearBox.getValue()
       price = (year * price).toFixed 2
-      new BuyDomainApprovalDialog {}, {domain, year, price}
+      modal = new DomainBuyModal
+        domain      : domain
+        confirmForm : new DomainBuyConfirmForm { domain, year, price }
+
+      modal.on 'PaymentConfirmed', (data) ->
+        data; debugger
 
   viewAppended:->
     tldList = []
@@ -286,35 +293,37 @@ class DomainBuyItem extends KDListItemView
       {{> @buyButton}}
     """
 
-class BuyDomainApprovalDialog extends KDModalView
+class DomainBuyConfirmForm extends KDFormViewWithFields
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
 
-    data.year = parseInt data.year, 10
-    s = if data.year > 1 then 's' else ''
+    options.buttons ?= {}
 
-    super
-      cssClass      : KD.utils.curry "modal-with-text", options.cssClass
-      title         : "Do you want to buy #{data.domain} for #{data.year} year#{s} ?"
-      content       : """
+    options.buttons.Buy ?=
+      cssClass  : "modal-clean-green"
+      callback  : => @emit 'PaymentConfirmed'
+
+    options.buttons.cancel ?=
+      cssClass  : "modal-cancel"
+
+    super options, data
+
+  setPaymentMethod: (method) ->
+    @details.addSubView new PaymentMethodView {}, method
+
+  viewAppended: ->
+    { year, domain, price } = @getOptions()
+
+    s = if year > 1 then 's' else ''
+
+    @details = new KDView
+      partial:
+        """
+        <h3>Do you want to buy #{domain} for #{year} year#{s} ?</h3>
         <div class='modalformline'>
-          <p>You will be charged <b>$#{data.price}</b> for registering
-          <b>#{data.domain}</b> domain for <b>#{data.year}</b> year#{s}.</p>
+          <p>You will be charged <b>$#{price}</b> for registering
+          <b>#{domain}</b> domain for <b>#{year}</b> year#{s}.</p>
         </div>
-      """
-      overlay       : yes
-      buttons       :
-        Buy         :
-          cssClass  : "modal-clean-green"
-          callback  : =>
-            {registerDomain} = KD.remote.api.JDomain
-            log 'Buying....', @getData()
-            registerDomain @getData(), (err)=>
-              log "Register result:", err
-              @destroy()
+        """
 
-        "Cancel"    :
-          cssClass  : "modal-cancel"
-          title     : "Cancel"
-          callback  : => @destroy()
-    , data
+    @addSubView @details, null, yes
