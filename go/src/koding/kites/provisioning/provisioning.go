@@ -30,6 +30,7 @@ var (
 	firstContainerIP net.IP
 	containers       = make(map[string]*Info)
 	k                = &kite.Kite{}
+	log              = kite.GetLogger()
 )
 
 func main() {
@@ -48,13 +49,11 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"vm.create":    "Create",
-		"vm.destroy":   "Destroy",
 		"vm.start":     "Start",
 		"vm.stop":      "Stop",
 		"vm.prepare":   "Prepare",
 		"vm.unprepare": "Unprepare",
-		"vm.run":       "Run",
+		"vm.exec":      "Exec",
 	}
 
 	initialize()
@@ -72,63 +71,22 @@ func initialize() {
 	}
 }
 
-func (p *Provisioning) Create(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-		Template      string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Template == "" {
-		return errors.New("{ containerName: [string], template: [string] }")
-	}
-
-	fmt.Printf("creating vm '%s' with template '%s'\n",
-		params.ContainerName, params.Template)
-
-	c := container.NewContainer(params.ContainerName)
-	err := c.Create(params.Template)
-	if err != nil {
-		return err
-	}
-
-	*result = true
-	return nil
-}
-
-func (p *Provisioning) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
-	fmt.Println("destroying", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
-	err := c.Destroy()
-	if err != nil {
-		return err
-	}
-
-	*result = true
-	return nil
-}
-
 func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
-	fmt.Println("starting", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
-	err := c.Start()
+	vm, err := getVM(r.Hostname)
 	if err != nil {
-		return err
+		log.Error("start: could not fetch vm via '%s'. err: '%s'", r.Hostname, err)
+		return errors.New("could not start vm")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+
+	log.Info("going to start container: %s", containerName)
+
+	c := container.NewContainer(containerName)
+	err = c.Start()
+	if err != nil {
+		log.Error("could not start container: '%s'. err: '%s'", containerName, err)
+		return errors.New("could not start vm")
 	}
 
 	*result = true
@@ -136,33 +94,31 @@ func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 }
 
 func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
-	fmt.Println("stopping", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
-	err := c.Stop()
+	vm, err := getVM(r.Hostname)
 	if err != nil {
-		return err
+		log.Error("stop: could not fetch vm via '%s'. err: '%s'", r.Hostname, err)
+		return errors.New("could not stop vm")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+
+	fmt.Println("stopping", containerName)
+	c := container.NewContainer(containerName)
+	err = c.Stop()
+	if err != nil {
+		log.Error("could not stop container: '%s'. err: '%s'", containerName, err)
+		return errors.New("could not stop vm")
 	}
 
 	*result = true
 	return nil
 }
 
-func (p *Provisioning) Run(r *protocol.KiteDnodeRequest, result *string) error {
-	var params struct {
-		ContainerName string
-		Command       string
-	}
+func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error {
+	var command string
 
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Command == "" {
-		return errors.New("{ containerName: [string], command : [string]}")
+	if r.Args.Unmarshal(&command) != nil {
+		return errors.New("{ [string] }")
 	}
 
 	user, err := getUser(r.Username)
@@ -170,16 +126,23 @@ func (p *Provisioning) Run(r *protocol.KiteDnodeRequest, result *string) error {
 		return err
 	}
 
-	// fmt.Printf("running '%s' on '%s'\n", params.Command, params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
-	c.Useruid = user.Uid
-
-	output, err := c.Run(params.Command)
+	vm, err := getVM(r.Hostname)
 	if err != nil {
 		return err
 	}
 
-	info := GetInfo(params.ContainerName)
+	containerName := "vm-" + vm.Id.Hex()
+
+	// fmt.Printf("running '%s' on '%s'\n", params.Command, containerName)
+	c := container.NewContainer(containerName)
+	c.Useruid = user.Uid
+
+	output, err := c.Run(command)
+	if err != nil {
+		return err
+	}
+
+	info := GetInfo(containerName)
 	info.ResetTimer()
 
 	fmt.Println("output is", string(output))
@@ -189,21 +152,15 @@ func (p *Provisioning) Run(r *protocol.KiteDnodeRequest, result *string) error {
 }
 
 func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
 	vm, err := getVM(r.Hostname)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("unpreparing container '%s'\n", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
+	containerName := "vm-" + vm.Id.Hex()
+
+	log.Info("unpreparing container '%s'", containerName)
+	c := container.NewContainer(containerName)
 	c.IP = vm.IP // needed for removing static route and ebtables in unprepare
 
 	if c.IsRunning() {
@@ -223,14 +180,6 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 }
 
 func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
 	err := prepare(r.Username, r.Hostname)
 	if err != nil {
 		return err
@@ -251,7 +200,8 @@ func prepare(username, hostname string) error {
 		return err
 	}
 
-	c := container.NewContainer(vm.Id.Hex())
+	containerName := "vm-" + vm.Id.Hex()
+	c := container.NewContainer(containerName)
 
 	if c.IsRunning() {
 		return errors.New("vm is running")
@@ -267,8 +217,8 @@ func prepare(username, hostname string) error {
 	c.Useruid = user.Uid
 	c.DiskSizeInMB = vm.DiskSizeInMB
 
-	fmt.Printf("preparing container '%s' for user '%s' with uid '%d'\n",
-		vm.Id.Hex(), user.Name, user.Uid)
+	log.Info("preparing container '%s' for user '%s' with uid '%d'",
+		containerName, user.Name, user.Uid)
 
 	err = c.Prepare()
 	if err != nil {
@@ -284,7 +234,7 @@ func prepare(username, hostname string) error {
 		return nil
 	}
 
-	info := GetInfo(vm.Id.Hex())
+	info := GetInfo(containerName)
 	info.IP = c.IP
 	info.StartTimer()
 
