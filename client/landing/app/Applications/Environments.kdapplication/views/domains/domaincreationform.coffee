@@ -4,9 +4,9 @@ class DomainCreationForm extends KDCustomHTMLView
     /^([a-z0-9]([_\-](?![_\-])|[a-z0-9]){0,60}[a-z0-9]|[a-z0-9])$/
 
   domainOptions = [
-    { title : "Create A Subdomain",     value : "subdomain" }
-    { title : "Register New Domain",    value : "new"}
-    { title : "Use An Existing Domain", value : "existing", disabled : yes }
+    { title : "Create a subdomain",     value : "subdomain" }
+    { title : "Register new domain",    value : "new"}
+    { title : "Use an existing domain", value : "existing", disabled : yes }
   ]
 
   constructor:(options = {}, data)->
