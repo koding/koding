@@ -8,7 +8,7 @@ class NewKite extends KDObject
 
     super options
 
-    { @addr, @name, @token, @correlationName, @kiteKey, @publicIP, @port } = options
+    { @addr, @name, @token, @correlationName, @publicIP, @port } = options
     @localStore   = new Store
     @remoteStore  = new Store
     @tokenStore = {}
