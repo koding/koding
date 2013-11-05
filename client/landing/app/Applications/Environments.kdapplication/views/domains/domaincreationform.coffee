@@ -5,7 +5,7 @@ class DomainCreationForm extends KDCustomHTMLView
 
   domainOptions = [
     { title : "Create a subdomain",     value : "subdomain" }
-    { title : "Register new domain",    value : "new"}
+    { title : "Register a new domain",    value : "new"}
     { title : "Use an existing domain", value : "existing", disabled : yes }
   ]
 
