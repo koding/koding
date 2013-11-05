@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /
+
+User-agent: Googlebot
+Disallow: /Login
+Disallow: /Logout
+Disallow: /Recover
+Disallow: /Register
+Disallow: /Resend
+Disallow: /ResendToken
+Disallow: /Verify
+
+Sitemap: https://koding.com/sitemap.xml
