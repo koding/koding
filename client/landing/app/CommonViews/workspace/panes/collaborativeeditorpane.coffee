@@ -61,6 +61,7 @@ class CollaborativeEditorPane extends CollaborativePane
   createEditor: ->
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
+      mode            : "htmlmixed"
       extraKeys       :
         "Cmd-S"       : @bound "save"
         "Ctrl-S"      : @bound "save"
