@@ -2,7 +2,7 @@ package container
 
 import (
 	"fmt"
-	"koding/kites/supervisor/rbd"
+	"koding/kites/provisioning/rbd"
 	"os"
 	"os/exec"
 	"regexp"

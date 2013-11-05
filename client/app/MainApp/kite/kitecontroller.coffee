@@ -38,7 +38,7 @@ class KiteController extends KDController
 
   createKite:(kiteName, correlationName, kiteKey)->
     switch kiteName
-      when 'os-local'
+      when 'provisioning'
         kite = @createNewKite {name: kiteName}
       when 'fs'
         kite = @createNewKite {name: kiteName}

@@ -10,7 +10,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/supervisor/container"
+	"koding/kites/provisioning/container"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 	"koding/tools/config"
@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-type Supervisor struct{}
+type Provisioning struct{}
 
 var (
 	port             = flag.String("port", "4005", "port to bind itself")
@@ -35,7 +35,7 @@ func main() {
 	flag.Parse()
 	options := &protocol.Options{
 		PublicIP: "localhost",
-		Kitename: "supervisor",
+		Kitename: "provisioning",
 		Version:  "0.0.1",
 		Port:     *port,
 	}
@@ -53,7 +53,7 @@ func main() {
 	initialize()
 
 	k = kite.New(options)
-	k.AddMethods(new(Supervisor), methods)
+	k.AddMethods(new(Provisioning), methods)
 	k.Start()
 }
 
@@ -65,7 +65,7 @@ func initialize() {
 	}
 }
 
-func (s *Supervisor) Create(r *protocol.KiteDnodeRequest, result *bool) error {
+func (s *Provisioning) Create(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 		Template      string
@@ -88,7 +88,7 @@ func (s *Supervisor) Create(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Supervisor) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
+func (s *Provisioning) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -108,7 +108,7 @@ func (s *Supervisor) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Supervisor) Start(r *protocol.KiteDnodeRequest, result *bool) error {
+func (s *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -128,7 +128,7 @@ func (s *Supervisor) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
+func (s *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -148,7 +148,7 @@ func (s *Supervisor) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	return nil
 }
 
-func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *string) error {
+func (s *Provisioning) Run(r *protocol.KiteDnodeRequest, result *string) error {
 	var params struct {
 		ContainerName string
 		Command       string
@@ -181,7 +181,7 @@ func (s *Supervisor) Run(r *protocol.KiteDnodeRequest, result *string) error {
 	return nil
 }
 
-func (s *Supervisor) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
+func (s *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}
@@ -220,7 +220,7 @@ func (s *Supervisor) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error
 	return nil
 }
 
-func (s *Supervisor) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
+func (s *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
 	}

@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	"koding/kites/supervisor/container"
+	"koding/kites/provisioning/container"
 	"net"
 	"time"
 )

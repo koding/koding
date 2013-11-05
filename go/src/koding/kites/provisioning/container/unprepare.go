@@ -3,7 +3,7 @@ package container
 import (
 	"fmt"
 	"io/ioutil"
-	"koding/kites/supervisor/rbd"
+	"koding/kites/provisioning/rbd"
 	"net"
 	"os"
 	"os/exec"
