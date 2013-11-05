@@ -158,7 +158,6 @@ class NFinderController extends KDViewController
             if @getOptions().useStorage then @reloadPreviousState vmName
         , yes
 
-
   unmountVm:(vmName)->
     vmItem = @getVmNode vmName
     return warn 'No such VM!'  unless vmItem
