@@ -83,6 +83,12 @@ module.exports =
     watch                : yes
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
+  elasticSearch          :
+    host                 : "localhost"
+    port                 : 9200
+    enabled              : yes
+    queue                : "elasticSearchFeederQueue"
+
   guestCleanerWorker     :
     enabled              : yes
     login                : 'prod-social'
