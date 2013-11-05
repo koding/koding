@@ -14,13 +14,13 @@ class KiteController extends KDController
     checkingServers   : "Checking if servers are back..."
     alive             : "Shared hosting is alive!"
 
-  getKiteKey:(kiteName, correlationName)->
+  getKiteKey =(kiteName, correlationName)->
     "~#{kiteName}~#{correlationName}"
 
   getKite:(kiteName, correlationName)->
-    key = @getKiteKey kiteName, correlationName
+    key = getKiteKey kiteName, correlationName
     kite = @kiteInstances[key]
-    return kite if kite?
+    return kite  if kite?
     kite = @createKite kiteName, correlationName, key
     @kiteInstances[key] = kite
     return kite
@@ -28,28 +28,8 @@ class KiteController extends KDController
   destroyKite:(kite)->
     delete @kiteInstances[kite.kiteKey]
 
-  createNewKite:(kiteStruct)->
-    # kiteStruct is the struct coming from Kontrol
-    kite = new NewKite kiteStruct
-
-    @forwardEvent kite, "KiteDisconnected"
-    @forwardEvent kite, "KiteConnected"
-    return kite
-
   createKite:(kiteName, correlationName, kiteKey)->
-    switch kiteName
-      when 'provisioning'
-        kite = @createNewKite {name: kiteName}
-      when 'fs'
-        kite = @createNewKite {name: kiteName}
-      when 'terminal'
-        kite = @createNewKite {name: kiteName}
-      when 's3'
-        kite = @createNewKite {name: kiteName}
-      else
-        kite = new Kite { kiteName, correlationName, kiteKey }
-
-    # kite = new Kite { kiteName, correlationName, kiteKey }
+    kite = new Kite { kiteName, correlationName, kiteKey }
     kite.on 'destroy', => @destroyKite kite
     @forwardEvent kite, "KiteError"
     return kite

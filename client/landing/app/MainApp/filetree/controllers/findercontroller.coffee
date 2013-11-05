@@ -42,60 +42,7 @@ class NFinderController extends KDViewController
 
     KD.getSingleton("vmController").on "StateChanged", @bound "checkVMState"
 
-    kc = KD.getSingleton("kiteController")
-    kc.on "KiteConnected", (kitename) =>
-      @mountFSKite kitename
-      kc.once "KiteDisconnected", => @unmountFSKite kitename
-
-    KD.getSingleton("kontrol").getKites "fs", (err, kites)->
-      if err then log err
-      else
-        for kt in kites
-          # kite and token comes in seperate objects. See protocol.go.
-          kite = kt.kite
-          kite.token = kt.token
-
-          correlationName = "local-#{KD.nick()}"
-          key = kc.getKiteKey kite.name, correlationName
-          kiteInstance = kc.createNewKite kite
-          kc.kiteInstances[key] = kiteInstance
-
   watchers: {}
-
-  mountFSKite:(kitename)->
-    return unless kitename is "fs"
-
-    log "FinderController: Mounting", kitename
-    vmName = "local-#{KD.nick()}"
-
-    options =
-      kiteName        : "fs"
-      method          : "vm.info"
-      correlationName : vmName
-
-    kc = KD.getSingleton("kiteController")
-    kc.run options, (err, info) =>
-      if err then log err
-      path = if info.homeDir then info.homeDir else "/Users/#{KD.nick()}"
-
-      KD.utils.wait 1000, =>
-        @vms.push FSHelper.createFile
-          name   : "#{path}"
-          path   : "[#{vmName}]#{path}"
-          type   : "vm"
-          vmName : vmName
-
-        @treeController.addNode @vms.last
-
-  unmountFSKite:(kitename)->
-    return unless kitename is "fs"
-    log "FinderController: Unmounting", kitename
-
-    vmName = "local-#{KD.nick()}"
-    vmItem = @getVmNode vmName
-
-    FSHelper.unregisterVmFiles vmName
-    @treeController.removeNodeView vmItem
 
   registerWatcher:(path, stopWatching)->
     @watchers[path] = stop: stopWatching
@@ -187,9 +134,6 @@ class NFinderController extends KDViewController
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
 
-    @_mountVMHelper vmName, path, fetchContent
-
-  _mountVMHelper: (vmName, path, fetchContent)->
     @updateMountState vmName, yes
 
     @vms.push FSHelper.createFile
