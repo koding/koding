@@ -7,7 +7,6 @@ import (
 
 type VM struct {
 	Id            bson.ObjectId `bson:"_id"`
-	ContainerName string        `bson:"containerName"`
 	HostnameAlias string        `bson:"hostnameAlias"`
 	WebHome       string        `bson:"webHome"`
 	Users         []Permissions `bson:"users"`
@@ -18,14 +17,12 @@ type VM struct {
 	DiskSizeInMB  int           `bson:"diskSizeInMB"`
 	AlwaysOn      bool          `bson:"alwaysOn"`
 	PinnedToHost  string        `bson:"pinnedToHost"`
-	IsEnabled     bool          `bson:"isEnabled"`
 	SnapshotVM    bson.ObjectId `bson:"diskSnapshot"`
 	SnapshotName  string        `bson:"snapshotName"`
 	IP            net.IP        `bson:"ip"`
 	Region        string        `bson:"region"`
 	HostKite      string        `bson:"hostKite"`
 	VMRoot        string        `bson:"-"`
-	Kites         []string      `bson:"kites"`
 }
 
 type Permissions struct {
