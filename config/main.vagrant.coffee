@@ -86,9 +86,8 @@ module.exports =
   elasticSearch          :
     host                 : "localhost"
     port                 : 9200
-    enabled              : yes
+    enabled              : no
     queue                : "elasticSearchFeederQueue"
-
   guestCleanerWorker     :
     enabled              : yes
     login                : 'prod-social'

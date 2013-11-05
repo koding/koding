@@ -99,7 +99,7 @@ module.exports =
   elasticSearch          :
     host                 : "localhost"
     port                 : 9200
-    enabled              : yes
+    enabled              : no
     queue                : "elasticSearchFeederQueue"
   guestCleanerWorker     :
     enabled              : no # for production, workers are running as a service
