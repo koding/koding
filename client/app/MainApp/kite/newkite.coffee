@@ -147,9 +147,9 @@ class NewKite extends KDObject
   tell:(options, callback) ->
     @ready =>
       # token is needed to initiate a valid session
-      # TODO: invalidate token when something goes wrong, or if we got a new token from kontrol
       options.token = @token
       options.username  = "#{KD.nick()}"
+      # options.correlationName = "vm-100.devrim.koding.kd.io"
       @handleRequest options.method, [options, callback]
 
   send: (data) ->

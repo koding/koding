@@ -144,6 +144,8 @@ module.exports = class JUser extends jraphical.Module
           foreignId          : String
           username           : String
           token              : String
+        linkedin             :
+          foreignId          : String
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -346,7 +348,8 @@ module.exports = class JUser extends jraphical.Module
               # p.s. we could do that in workers
               JLog.log { type: "login", username: account.username, success: yes }, ->
               account.updateCounts()
-              callback null, {account, replacementToken}
+              JUser.clearOauthFromSession session, ->
+                callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
@@ -494,6 +497,8 @@ module.exports = class JUser extends jraphical.Module
     {sessionToken} = client
     JSession.one {clientId: sessionToken}, (err, session) =>
       return callback err  if err
+      return callback createKodingError "No session"  unless session
+
       kallback = (err, resp={}) ->
         {account, replacementToken} = resp
         callback err, {
@@ -503,12 +508,13 @@ module.exports = class JUser extends jraphical.Module
           replacementToken
         }
       @fetchUserByProvider provider, session, (err, user) =>
-        return callback createKodingError err.message if err
+        return callback createKodingError err.message  if err
         if isUserLoggedIn
           if user
-            callback createKodingError """
-              Account is already linked with another user.
-            """
+            @clearOauthFromSession session, ->
+              callback createKodingError """
+                Account is already linked with another user.
+              """
           else
             @fetchUser client, (err, user)=>
               @persistOauthInfo user.username, sessionToken, kallback

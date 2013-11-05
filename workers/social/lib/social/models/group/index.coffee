@@ -702,7 +702,7 @@ module.exports = class JGroup extends Module
             @customize
           }
           prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-          callback null, JGroup.render[prefix].groupHome options
+          JGroup.render[prefix].groupHome options, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -1413,13 +1413,15 @@ module.exports = class JGroup extends Module
       @fetchOrCountInvitations client, type, 'count', options, (err, result)=>
         return callback err, result?[0]?.count
 
+  _fetchMembersFromGraph:(client, options, callback)->
+    options.groupId = @getId()
+    options.client  = client
+    {Member} = require '../graph'
+    Member.fetchMemberList options, (err, results)=>
+      callback err, results
+
   fetchMembersFromGraph: permit 'list members',
-    success:(client, options, callback)->
-      options.groupId = @getId()
-      options.client = client
-      {Member} = require '../graph'
-      Member.fetchMemberList options, (err, results)=>
-        callback err, results
+    success: @::_fetchMembersFromGraph
 
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'

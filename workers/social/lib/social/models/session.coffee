@@ -34,6 +34,7 @@ module.exports = class JSession extends Model
         github      : Object
         odesk       : Object
         facebook    : Object
+        linkedin    : Object
       foreignAuthType : String
     sharedEvents    :
       instance      : [

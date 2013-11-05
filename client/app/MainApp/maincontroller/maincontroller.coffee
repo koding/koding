@@ -88,18 +88,20 @@ class MainController extends KDController
   createMainViewController:->
     @loginScreen = new LoginView
       testPath   : "landing-login"
-    KDView.appendToDOMBody @loginScreen
+    @loginScreen.appendToDomBody()
     @mainViewController  = new MainViewController
       view    : mainView = new MainView
         domId : "kdmaincontainer"
-    KDView.appendToDOMBody mainView
+    mainView.appendToDomBody()
 
   doLogout:->
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
-      $.cookie 'clientId', replacementToken if replacementToken
       @_logoutAnimation()
-      KD.utils.wait 1100, -> location.reload()
+      KD.utils.wait 1000, ->
+        $.cookie 'clientId', replacementToken  if replacementToken
+        localStorage.loggingOut = '1'
+        location.reload()
 
   _logoutAnimation:->
     mainView      = KD.getSingleton("mainView")
@@ -118,7 +120,6 @@ class MainController extends KDController
 
 
   attachListeners:->
-
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
 
@@ -131,8 +132,12 @@ class MainController extends KDController
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
-      if cookie? and cookie isnt $.cookie 'clientId'
+    @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
+      cookieMatches = cookie is ($.cookie 'clientId')
+      cookie = $.cookie 'clientId'
+      if cookie? and not cookieMatches
+        return @isLoggingIn off  if @isLoggingIn() is on
+
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         @emit "clientIdChanged"
 
@@ -145,7 +150,6 @@ class MainController extends KDController
             firstRoute = "/"
 
           window.location.pathname = firstRoute or "/"
-      cookie = $.cookie 'clientId'
 
 
 
@@ -154,6 +158,16 @@ class MainController extends KDController
   getAccount: -> KD.whoami()
 
   isUserLoggedIn: -> KD.isLoggedIn()
+
+  isLoggingIn: (isLoggingIn) ->
+    if localStorage.loggingOut is '1'
+      delete localStorage.loggingOut
+      return yes
+    if isLoggingIn?
+      @_isLoggingIn = isLoggingIn
+    else
+      @_isLoggingIn ? no
+
 
   showInstructionsBook:->
     if $.cookie 'newRegister'

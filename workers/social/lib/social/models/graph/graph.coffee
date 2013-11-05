@@ -15,12 +15,16 @@ module.exports = class Graph
   # TODO: move it to a proper place eg. trait maybe..
   @getExemptUsersClauseIfNeeded: (requestOptions, callback)->
     if not requestOptions.withExempt
-      {delegate} = requestOptions.client.connection
+      delegate = null
+
+      if requestOptions.client and requestOptions.client.connection
+        {delegate} = requestOptions.client.connection
+
       JAccount = require '../account'
       JAccount.getExemptUserIds (err, ids)=>
         if err
           return callback err, null
-        if (index = ids.indexOf(delegate.getId().toString())) > -1
+        if delegate and (index = ids.indexOf(delegate.getId().toString())) > -1
           ids.splice(index, 1)
         if ids.length > 0
           trollIds = ('"' + id + '"' for id in ids).join(',')

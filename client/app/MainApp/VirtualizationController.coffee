@@ -7,8 +7,12 @@ class VirtualizationController extends KDController
     @dialogIsOpen = no
     @resetVMData()
 
-    (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
+    KD.getSingleton('mainController')
+      .once('AppIsReady', @bound 'fetchVMs')
+      .on('AccountChanged', => @emit 'VMListChanged')
+
     @on 'VMListChanged', @bound 'resetVMData'
+
 
   run:(options, callback = noop)->
     [callback, options] = [options, callback]  unless callback
@@ -19,15 +23,14 @@ class VirtualizationController extends KDController
         withArgs : command
 
     @fetchVmName options, (err, vmName) =>
-      if vmName is "local-#{KD.whoami().profile.nickname}"
-        if /^fs\./.test options.method
-          options.kiteName = "fs"
-        else if /^webterm\./.test options.method
-          options.kiteName = "terminal"
-        else if /^vm\./.test options.method
-          options.kiteName = "fs"
-        else if /^s3\./.test options.method
-          options.kiteName = "s3"
+      if /^fs\./.test options.method
+        options.kiteName = "fs"
+      else if /^webterm\./.test options.method
+        options.kiteName = "terminal"
+      else if /^vm\./.test options.method
+        options.kiteName = "provisioning"
+      else if /^s3\./.test options.method
+        options.kiteName = "s3"
 
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
@@ -262,28 +265,14 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   fetchDiskUsage:(vmName, callback = noop)->
-    if vmName is "local-#{KD.whoami().profile.nickname}"
-      options =
-        kiteName        : "fs"
-        method          : "vm.info"
-        correlationName : "local-#{KD.whoami().profile.nickname}"
-
-      @kc.run options, (err, info) =>
-        if err or info.state isnt "RUNNING" then [max, current] = [0, 0]
-        else [max, current] = [info.diskTotal, info.diskUsage]
-        warn err  if err
-        callback
-          max     : 1024 * parseInt max, 10
-          current : 1024 * parseInt current, 10
-    else
-      command = """df | grep aufs | awk '{print $2, $3}'"""
-      @run { vmName, withArgs:command }, (err, res)->
-        if err or not res then [max, current] = [0, 0]
-        else [max, current] = res.trim().split " "
-        warn err  if err
-        callback
-          max     : 1024 * parseInt max, 10
-          current : 1024 * parseInt current, 10
+    command = """df | grep aufs | awk '{print $2, $3}'"""
+    @run { vmName, withArgs:command }, (err, res)->
+      if err or not res then [max, current] = [0, 0]
+      else [max, current] = res.trim().split " "
+      warn err  if err
+      callback
+        max     : 1024 * parseInt max, 10
+        current : 1024 * parseInt current, 10
 
   fetchRamUsage:(vmName, callback = noop)->
     @info vmName, (err, vm, info)->

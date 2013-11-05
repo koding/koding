@@ -124,9 +124,12 @@ class NotificationListItem extends KDListItemView
         height : 40
       origin   : group[0]
 
-    @interactedGroups = new options.linkGroupClass
-      itemClass : GroupLinkView
-      group     : [@snapshot.anchor.data]
+    if @snapshot.anchor.constructorName is "JGroup"
+      @interactedGroups = new options.linkGroupClass
+        itemClass : GroupLinkView
+        group     : [@snapshot.anchor.data]
+    else
+      @interactedGroups = new KDCustomHTMLView
 
     @timeAgoView = new KDTimeAgoView {}, @getLatestTimeStamp @getData().dummy
 
