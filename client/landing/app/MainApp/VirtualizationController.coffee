@@ -23,8 +23,7 @@ class VirtualizationController extends KDController
         withArgs : command
 
     @fetchVmName options, (err, vmName) =>
-      return callback err if err?
-
+      return callback err  if err?
       options.correlationName = vmName
       @fetchRegion vmName, (region)=>
         options.kiteName = "os-#{region}"
