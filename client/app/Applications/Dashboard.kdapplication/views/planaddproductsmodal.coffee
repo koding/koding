@@ -44,7 +44,9 @@ class GroupPlanAddProductsModal extends KDModalView
     @buttonField.addSubView new KDButtonView
       title     : 'Save'
       cssClass  : 'modal-clean-green'
-      callback  : => @save @bound 'destroy'
+      callback  : =>
+        @save()
+        @destroy()
 
     @buttonField.addSubView new KDButtonView
       title     : 'cancel'
@@ -57,8 +59,7 @@ class GroupPlanAddProductsModal extends KDModalView
     @addSubView @products.getView()
     @addSubView @buttonField
 
-  save: (callback) ->
-
+  save: ->
     quantities = {}
 
     @products.getItemsOrdered().forEach (item) ->
