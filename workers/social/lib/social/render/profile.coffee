@@ -47,7 +47,7 @@ module.exports = (options, callback)->
     <head>
       <title>#{encoder.XSSEncode title}</title>
       #{getStyles()}
-      #{getGraphMeta()}
+      #{getGraphMeta image: bgImg, title: title}
     </head>
     <body>
 

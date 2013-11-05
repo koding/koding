@@ -58,7 +58,7 @@ module.exports = (options, callback)->
     <head>
       <title>Koding</title>
       #{getStyles()}
-      #{getGraphMeta(title, shareUrl)}
+      #{getGraphMeta title: title, shareUrl: shareUrl}
     </head>
     <body class='koding'>
 
