@@ -58,6 +58,10 @@ type Config struct {
 		Push bool
 		Host string
 	}
+	NewKontrol struct {
+		Host string
+		Port int
+	}
 	Kontrold struct {
 		Vhost    string
 		Overview struct {

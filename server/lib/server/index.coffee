@@ -48,6 +48,8 @@ app        = express()
   error_
   error_404
   error_500
+  authTemplate
+  authCheckKey
   authenticationFailed
   findUsernameFromKey
   findUsernameFromSession
@@ -68,7 +70,7 @@ app.configure ->
   app.set 'case sensitive routing', on
   app.use express.cookieParser()
   app.use express.session {"secret":"foo"}
-  # app.use express.bodyParser()
+  app.use express.bodyParser()
   app.use express.compress()
   app.use express.static "#{projectRoot}/website/"
 
@@ -97,98 +99,75 @@ app.use (req, res, next) ->
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
-app.get "/-/kite/login", (req, res) ->
-  rabbitAPI = require 'koding-rabbit-api'
-  rabbitAPI.setMQ mq
+app.get "/-/auth/check/:key", (req, res)->
+  {key} = req.params
 
-  res.header "Content-Type", "application/json"
+  console.log "checking for key"
+  authCheckKey key, (ok, result) ->
+    if not ok
+      console.log "key is valid: #{result}" #keep up the result to us
+      res.send 401, authTemplate "Key is not valid: '#{key}'"
+      return
 
-  {username, key, name, type, version} = req.query
-
-  unless username and key and name
-    res.send
-      error: true
-      message: "Not enough parameters."
-  else
     {JKodingKey} = koding.models
-    JKodingKey.fetchByUserKey
-      username: username
+    JKodingKey.fetchKey
       key     : key
     , (err, kodingKey)=>
       if err or not kodingKey
-        console.log "ERROR - 0", err
-        res.status 401
-        res.send
-          error: true
-          message: "Koding Key not found. Error 2"
-      else
-        switch type
-          when 'webserver'
-            rabbitAPI.newProxyUser username, key, (err, data) =>
-              if err?
-                console.log "ERROR - 1", err
-                res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
+        res.send 401, authTemplate "Key doesn't exist"
+        return
+
+      res.send 200, {result: 'key is added successfully'}
+
+app.get "/-/auth/register/:hostname/:key", (req, res)->
+  {key, hostname} = req.params
+
+  authCheckKey key, (ok, result) ->
+    if not ok
+      console.log "key is not valid: #{result}" #keep up the result to us
+      res.send 401, authTemplate "Key is not valid: '#{key}'"
+      return
+
+    isLoggedIn req, res, (err, loggedIn, account)->
+      if err
+        # console.log "isLoggedIn error", err
+        res.send 401, authTemplate "Koding Auth Error - 1"
+        return
+
+      if not loggedIn
+        res.send 401, authTemplate "You are not logged in! Please log in with your Koding username and password"
+        return
+
+      findUsernameFromSession req, res, (err, notUsed, username) ->
+        if err
+          # console.log "findUsernameFromSession error", err
+          res.send 401, authTemplate "Koding Auth Error - 2"
+          return
+
+        if not username
+          res.send 401, authTemplate "Username is not defined: '#{username}'"
+          return
+
+        console.log "CREATING KEY WITH HOSTNAME: #{hostname} and KEY: #{key}"
+        {JKodingKey} = koding.models
+        JKodingKey.fetchByUserKey
+          username: username
+          key     : key
+        , (err, kodingKey)=>
+          if err or not kodingKey
+            JKodingKey.createKeyByUser
+              username : username
+              hostname : hostname
+              key      : key
+            , (err, data) =>
+              if err or not data
+                # console.log "createKeyByUser error", key, err
+                res.send 401, authTemplate "Koding Auth Error - 3"
               else
-                postData =
-                  key       : version
-                  host      : 'localhost'
-                  rabbitkey : key
+                res.send 200, authTemplate "Authentication is successfull! Using id: #{hostname}", key, hostname
 
-                apiServer   = 'kontrol.in.koding.com'
-                # local development
-                # apiServer   = 'localhost:8000'
-
-                options =
-                  method  : 'POST'
-                  uri     : "http://#{apiServer}/services/#{username}/#{name}"
-                  body    : JSON.stringify postData
-                  headers : {'content-type': 'application/json'}
-
-                require('request').post options, (error, response, body) =>
-                  if error
-                    console.log "ERROR", error
-                    res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
-                  else if response.statusCode is 200
-                    creds =
-                      protocol  : 'amqp'
-                      host      : "kontrol.in.koding.com"
-                      username  : data.username
-                      password  : data.password
-                      vhost     : "/"
-                      publicUrl : body
-                      messageBusUrl : 'koding.com:6380'
-
-                    res.header "Content-Type", "application/json"
-                    res.send JSON.stringify creds
-          when 'openservice'
-            rabbitAPI.newUser key, name, (err, data) =>
-              if err?
-                console.log "ERROR - 3", err
-                res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
-              else
-                creds =
-                  protocol  : 'amqp'
-                  host      : mq.apiAddress
-                  username  : data.username
-                  password  : data.password
-                  vhost     : mq.vhost
-                  messageBusUrl : 'koding.com:6380'
-
-                {JUserKite} = koding.models
-                JUserKite.fetchOrCreate
-                  kitename      : name
-                  latest_s3url  : "_"
-                  account_id    : kodingKey.owner
-                , (err, userkite)->
-                  if err
-                    console.log "error", err
-                    return res.send err
-                  userkite.newVersion (err)->
-                    res.send err
-                res.header "Content-Type", "application/json"
-                res.send 200, JSON.stringify creds
-
-
+          else
+            res.send 200, authTemplate "Authentication already established!"
 
 
 s3 = require('./s3') uploads.s3, findUsernameFromKey
@@ -211,22 +190,6 @@ app.post "/-/kd/upload", s3..., (req, res)->
           res.send {url:zipurl, version: userkite.latest_version, hash:req.fields.hash}
         else
           res.send err
-
-app.post "/-/kd/:command", express.bodyParser(), (req, res)->
-  switch req.params.command
-    when "register-check"
-      {username, key} = req.body
-      {JKodingKey} = koding.models
-
-      JKodingKey.fetchByUserKey
-        username: username
-        key     : key
-      , (err, kodingKey)=>
-        if err or not kodingKey
-          res.send 401
-        else
-          res.status 200
-          res.send "OK"
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
@@ -388,35 +351,6 @@ app.get "/", (req, res, next)->
         else
           # go to koding home
           JGroup.render.loggedOut.kodingHome {client, account, bongoModels}, serveSub
-
-
-###
-app.get "/-/kd/register/:key", (req, res)->
-  {clientId} = req.cookies
-  unless clientId
-    serve loggedOutPage, res
-  else
-    {JSession} = koding.models
-    JSession.one {clientId}, (err, session)=>
-      if err
-        console.error err
-        serve loggedOutPage, res
-      else
-        {username} = session.data
-        unless username
-          res.redirect 302, '/'
-        else
-          JUser.one {username, status: $ne: "blocked"}, (err, user) =>
-          if err
-            res.redirect 302, '/'
-          else unless user?
-            res.redirect 302, '/'
-          else
-            user.fetchAccount "koding", (err, account)->
-              {key} = req.params
-              JPublicKey.create {connection: {delegate: account}}, {key}, (err, publicKey)->
-                res.send "true"
-###
 
 app.get '*', (req,res)->
   {url}            = req
