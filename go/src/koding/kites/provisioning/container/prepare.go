@@ -1,6 +1,7 @@
 package container
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/provisioning/rbd"
 	"os"
@@ -17,6 +18,10 @@ import (
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
 func (c *Container) Prepare() error {
+	if c.Exist(c.Dir) {
+		return errors.New("container does exist already. please unprepare it")
+	}
+
 	err := c.CreateContainerDir()
 	if err != nil {
 		return err

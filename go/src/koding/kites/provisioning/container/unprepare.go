@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"koding/kites/provisioning/rbd"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -16,6 +17,11 @@ import (
 // etc. It doesn't remove the home folder or any newly created system files.
 // Those files will be stored in the vmroot.
 func (c *Container) Unprepare() error {
+	if !c.Exist(c.Dir) {
+		log.Printf("unprepare is called on: %s, but the folder does not exist\n", c.Name)
+		return nil // return because there is nothing to unprepare
+	}
+
 	err := c.BackupDpkg()
 	if err != nil {
 		return err
