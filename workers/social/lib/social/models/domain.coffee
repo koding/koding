@@ -209,11 +209,11 @@ module.exports = class JDomain extends jraphical.Module
       params =
         domainName         : data.domain
         years              : data.year
-        customerId         : "10073817"
-        regContactId       : "29527194"
-        adminContactId     : "29527194"
-        techContactId      : "29527194"
-        billingContactId   : "29527194"
+        customerId         : "10360936" # PROD: 10073817
+        regContactId       : "30714812" # PROD: 29527194
+        adminContactId     : "30714812" # PROD: 29527194
+        techContactId      : "30714812" # PROD: 29527194
+        billingContactId   : "30714812" # PROD: 29527194
         invoiceOption      : "KeepInvoice"
         protectPrivacy     : no
 
@@ -230,11 +230,10 @@ module.exports = class JDomain extends jraphical.Module
           return callback err  if err
 
           console.log "Transaction is done."
-          do (err = null, data = {actionstatus : 'Success',  \
-                                  entityid     : 'TEST_ID',  \
-                                  description  : data.domain})->
 
-          # domainManager.domainService.registerDomain params, (err, data)->
+          domainManager.domainService.registerDomain params, (err, data)->
+
+            console.log "ResellerAPI response:", err, data
 
             if err
               return charge.cancel client, ->
