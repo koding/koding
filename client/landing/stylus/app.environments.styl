@@ -821,8 +821,9 @@ div.environments-scene
 
   .internet
     width               100px
-    height              500px
+    height              calc(100% \- 80px)
     background          url('../images/internet.png') no-repeat
+    background-position-y 50%
     margin-left         10px
 
   .zoom-slider
@@ -894,7 +895,11 @@ div.environments-container
   border-bottom   none
   border-radius   0
   background      rgba(205,205,205,.07)
+  overflow-y      scroll
   noTextSelection()
+
+  &::-webkit-scrollbar
+    width         0
 
   .kdheaderview
     padding       14px 0
