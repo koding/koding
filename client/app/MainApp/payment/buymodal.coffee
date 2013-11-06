@@ -10,7 +10,7 @@ class BuyModal extends KDModalView
     super options, data
 
   viewAppended: ->
-    { confirmForm } = @getOptions()
-    workflow = new PaymentWorkflow { confirmForm }
+    { productForm, confirmForm } = @getOptions()
+    workflow = new PaymentWorkflow { productForm, confirmForm }
     @addSubView workflow
     @forwardEvent workflow, 'PaymentConfirmed'
