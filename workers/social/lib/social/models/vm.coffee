@@ -166,7 +166,7 @@ module.exports = class JVM extends Module
     if type is 'user'
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
-      if groupSlug is 'koding'
+      if groupSlug in ['koding', 'guests']
         aliases.push "#{nickname}.#{domain}"  if uid is 0
         aliases.push "vm-#{uid}.#{nickname}.#{domain}"
       aliases.push "vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"
