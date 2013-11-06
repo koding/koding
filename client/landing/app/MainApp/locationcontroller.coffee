@@ -12,6 +12,13 @@ class LocationController extends KDController
     JPayment.fetchCountryDataByIp ip, (err, @countries, @countryOfIp) =>
       callback err, @countries, @countryOfIp
 
-  #
-#    @fetchCountryData (err, countries, countryOfIp) =>
-#      modal.setCountryData { countries, countryOfIp }
+
+  createLocationForm: (options, data) ->
+    form = new LocationForm options, data
+
+    @fetchCountryData (err, countries, countryOfIp)->
+      return if KD.showError err
+
+      form.setCountryData { countries, countryOfIp }
+
+    return form
