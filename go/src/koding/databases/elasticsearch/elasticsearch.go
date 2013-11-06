@@ -11,8 +11,6 @@ import (
 	"github.com/mattbaird/elastigo/api"
 	"github.com/mattbaird/elastigo/core"
 	"koding/workers/neo4jfeeder/mongohelper"
-	"log"
-	"os"
 	"strings"
 )
 
@@ -147,9 +145,6 @@ func Upsert(index string, _type string, id string, data map[string]interface{}) 
 
 	body, err := api.DoCommand("POST", url, string(postData))
 	if err != nil {
-		fmt.Println(err)
-		os.Stdout.Write(body)
-		panic(err)
 		return retval, err
 	}
 	if err == nil {
@@ -176,8 +171,9 @@ func Exists(index, _type, id string) (exists bool) {
 	httpStatusCode, _, err := req.Do(&response)
 
 	if err != nil {
-		fmt.Println("error from req.Do -", err)
-		panic(err)
+		// we should not return false here
+		// instead return error
+		return false
 	}
 
 	if httpStatusCode == 200 || httpStatusCode == 304 {
@@ -209,8 +205,16 @@ func IndexNode(id string, collection string, data map[string]interface{}) map[st
 	if !exists {
 		// document doesnt exists.. lets create
 		response, err := core.Index(true, "koding", GetTypeName(collection), id, data)
-		log.Println(response)
-		log.Println("err >>>>> err >>>", err)
+
+		// we should handle responses ??
+		if false {
+			fmt.Println(response)
+		}
+
+		// we should handle errors more wisely
+		if err != nil {
+			return nil
+		}
 	} else {
 		// just update me...
 		Upsert("koding", GetTypeName(collection), id, data)
