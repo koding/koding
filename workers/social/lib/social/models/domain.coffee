@@ -275,29 +275,30 @@ module.exports = class JDomain extends jraphical.Module
               callback {message: "Domain registration failed"}
 
   @makeTransaction: (client, data, callback)->
+#
+#    {delegate} = client.connection
+#    {nickname} = delegate.profile
+#
+#    if nickname in ['devrim', 'chris', 'gokmen']
+#      console.log "#{nickname} made a test transaction for #{data.domain} (#{data.year} year/s)"
+#      console.log "we charged him $#{data.price} ...."
+#      callback null,
+#        cancel :->
+#          console.log "Payment cancelled..."
+#    else
+#      console.log message = "Transaction is not valid."
+#      callback {message}
 
-    {delegate} = client.connection
-    {nickname} = delegate.profile
-
-    if nickname in ['devrim', 'chris', 'gokmen']
-      console.log "#{nickname} made a test transaction for #{data.domain} (#{data.year} year/s)"
-      console.log "we charged him $#{data.price} ...."
-      callback null,
-        cancel :->
-          console.log "Payment cancelled..."
-    else
-      console.log message = "Transaction is not valid."
-      callback {message}
-
-    # JRecurlyCharge = require './recurly/charge'
-
-    # amount = 10 * 10 * data.years
-
-    # JRecurlyCharge.charge client,
-    #   code   : 'domain_abc'
-    #   amount : amount
-    #   desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"
-    # , callback
+    JPaymentCharge = require './payment/charge'
+    
+    amount = 10 * 10 * data.years
+    
+    JPaymentCharge.charge client,
+      code   : 'domain_abc'
+      amount : amount
+      desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"
+    , (err) ->
+      console.log { arguments }
 
   bound: require 'koding-bound'
 

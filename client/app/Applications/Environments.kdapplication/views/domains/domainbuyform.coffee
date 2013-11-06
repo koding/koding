@@ -12,7 +12,7 @@ class DomainBuyForm extends CommonDomainCreateForm
                       .setClass 'domain-list'
 
     listView = @availableDomainsList.getListView()
-    listView.on 'BuyButtonClicked', (item)->
+    listView.on 'BuyButtonClicked', (item) =>
       {price, domain} = item.getData()
       year  =  item.yearBox.getValue()
       price = (year * price).toFixed 2
@@ -20,8 +20,13 @@ class DomainBuyForm extends CommonDomainCreateForm
         domain      : domain
         confirmForm : new DomainBuyConfirmForm { domain, year, price }
 
-      modal.on 'PaymentConfirmed', (data) ->
-        data; debugger
+      modal.on 'PaymentConfirmed', ({ paymentMethodId }) =>
+        @buyDomain { domain, year, price, paymentMethodId }
+
+  buyDomain: (options) ->
+    { JPaymentCharge } = KD.remote.api
+
+    JPaymentCharge.charge options, -> debugger
 
   viewAppended:->
     tldList = []
