@@ -23,24 +23,28 @@ class LocationForm extends KDFormViewWithFields
 
     options.fields.address1 ?=
       label             : 'Address & ZIP'
-      placeholder       : 'Address (optional)'
+      placeholder       : 'Address'
+      required          : "Address is required"
       defaultValue      : data.address1
 
       nextElementFlat   :
         zip             :
-          placeholder   : 'ZIP (optional)'
+          placeholder   : 'ZIP'
           defaultValue  : data.zip
           keyup         : @bound 'handleZipCode'
+          required      : "Zip is required"
 
     options.fields.city ?=
       label             : 'City & State'
-      placeholder       : 'City (optional)'
+      placeholder       : 'City'
       defaultValue      : data.city
+      required          : "City is required"
       nextElementFlat   :
         state           :
-          placeholder   : 'State (optional)'
+          placeholder   : 'State'
           itemClass     : KDSelectBox
           defaultValue  : data.state
+          required      : "State is required"
 
     options.fields.country ?=
       label             : 'Country'
@@ -58,12 +62,16 @@ class LocationForm extends KDFormViewWithFields
       if requirePhone
         options.fields.phone.required = "Phone number is required."
 
-    options.buttons ?= {}
+    if options.buttons is no
+      delete options.buttons
 
-    options.buttons.Save ?=
-      style             : 'modal-clean-green'
-      type              : 'submit'
-      loader            : { color : '#fff', diameter : 12 }
+    else
+      options.buttons ?= {}
+
+      options.buttons.Save ?=
+        style             : 'modal-clean-green'
+        type              : 'submit'
+        loader            : { color : '#fff', diameter : 12 }
 
     return options
 
