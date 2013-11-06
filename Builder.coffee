@@ -8,6 +8,7 @@ ProgressBar       = require 'progress'
 SourceMap         = require 'source-map'
 base64VLQ         = require 'source-map/lib/source-map/base64-vlq'
 Stylus            = require 'stylus'
+# spriteGenerator   = require 'node-sprite-generator'
 UglifyJS          = require 'uglify-js'
 WebSocket         = require 'ws'
 WebSocketServer   = WebSocket.Server
@@ -50,6 +51,16 @@ module.exports = class Builder
   buildClient: (options) ->
 
     @config = require('koding-config-manager').load("main.#{options.configFile}")
+
+    # spriteGenerator
+    #   src: [
+    #       './website/assets/app/*.png'
+    #       './website/assets/framework/*.png'
+    #   ],
+    #   spritePath: './website/images/sprite.png',
+    #   stylesheetPath: './client/stylus/_sprite.styl'
+    # , (err)->
+    #   console.log 'Sprite generated!'
 
     try fs.mkdirSync ".build"
 

@@ -24,7 +24,7 @@ hat                = require 'hat'
 url                = require 'url'
 nodePath           = require 'path'
 portchecker        = require 'portchecker'
-Watcher            = require "koding-watcher"
+Watcher            = require 'koding-watcher'
 
 require 'colors'
 
@@ -118,7 +118,7 @@ task 'webserver', "Run the webserver", ({configFile}) ->
     watcher = new Watcher
       groups        :
         server      :
-          folders   : ['./server']
+          folders   : ['./server', './workers/social']
           onChange  : ->
             processes.kill "server"
 
