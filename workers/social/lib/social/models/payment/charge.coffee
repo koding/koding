@@ -18,6 +18,7 @@ module.exports = class JPaymentCharge extends jraphical.Module
       uuid         : 'unique'
     sharedMethods  :
       static       : [
+        # TODO: this is a really big WTF, and needs to be removed:
         'all', 'one', 'some',
         'getToken', 'charge', 'getCharges'
       ]
