@@ -5,7 +5,6 @@ class DomainBuyItem extends KDListItemView
 
     { price } = data
 
-    data.price = @utils.formatMoney +price
     super options, data
 
     selectOptions = \
