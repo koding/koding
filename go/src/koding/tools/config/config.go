@@ -62,6 +62,7 @@ type Config struct {
 		Host  string
 		Port  int
 		Queue string
+	}
 	NewKontrol struct {
 		Host string
 		Port int
