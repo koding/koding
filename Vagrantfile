@@ -84,6 +84,7 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # rockmongo
     default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
     default.vm.network :forwarded_port, :guest => 6379, :host => 6379 # redis
+    default.vm.network :forwarded_port, :guest => 9200, :host => 9200 # elastic search
     default.vm.hostname = "vagrant"
 
     default.vm.synced_folder ".", "/opt/koding"

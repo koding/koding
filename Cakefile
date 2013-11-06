@@ -396,6 +396,22 @@ task 'neo4jfeeder', "Run the neo4jFeeder", (options)->
         enabled      : if config.runKontrol is yes then yes else no
         startMode    : "version"
 
+
+# this is not safe to run multiple version of it
+task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)->
+  {configFile} = options
+  config       = require('koding-config-manager').load("main.#{configFile}")
+  processes.spawn
+    name    : "elasticsearchfeeder"
+    cmd     : "./go/bin/elasticsearchfeeder -c #{configFile} #{addFlags options}"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+
 task 'cacheWorker', "Run the cacheWorker", ({configFile})->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {cacheWorker} = KONFIG
@@ -480,6 +496,7 @@ run =({configFile})->
     invoke 'persistence'                      if config.runPersistence
     invoke 'proxy'                            if config.runProxy
     invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+    invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
     invoke 'authWorker'                       if config.authWorker
     invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
     invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
@@ -488,6 +505,7 @@ run =({configFile})->
     invoke 'emailWorker'                      if config.emailWorker?.run is yes
     invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'webserver'
+
 
 task 'run', (options)->
   {configFile} = options
