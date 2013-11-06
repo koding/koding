@@ -93,12 +93,12 @@ class VmBuyModal extends BuyModal
       monthlyFee = plans[index].feeAmount
 
       if limit > 0
-        credits = (limit / 100).toFixed 2
+        credits = @utils.formatMoney limit / 100
 
-        creditsMessage = "<p>This group gives you $#{credits} credits.</p>"
+        creditsMessage = "<p>This group gives you #{credits} credits.</p>"
         if balance > 0
-          spent = (balance / 100).toFixed 2
-          creditsMessage += "<p>You've spent $#{spent}.</p>"
+          spent = @utils.formatMoney balance / 100
+          creditsMessage += "<p>You've spent #{spent}.</p>"
 
         form.fields.desc.setPartial creditsMessage
         form.fields.desc.show()

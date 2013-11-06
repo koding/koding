@@ -20,7 +20,7 @@ class AccountPaymentHistoryListController extends AccountListViewController
 
       for t in trans when t.amount + t.tax > 0
         {status, createdAt, card, cardType, cardNumber, owner, refundable} = t
-        amount = ((t.amount + t.tax) / 100).toFixed(2)
+        amount = @utils.formatMoney (t.amount + t.tax) / 100
         transactions.push {
           status, cardType, cardNumber, owner, refundable, amount
           currency : 'USD'
@@ -85,7 +85,7 @@ class AccountPaymentHistoryListItem extends KDListItemView
       <span class='invoice-date'>#{dateFormat(data.createdAt, 'mmm dd, yyyy')}</span>
     </td>
     <td>
-      <strong>$#{data.amount}</strong>
+      <strong>#{data.amount}</strong>
     </td>
     <td>
       <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>

@@ -42,7 +42,7 @@ class GroupProductEditForm extends KDFormViewWithFields
       placeholder     : "0.00"
       defaultValue    :
         if data.feeAmount
-        then (data.feeAmount / 100).toFixed(2)
+        then @utils.formatMoney data.feeAmount / 100
       change          : @bound 'feeChanged'
       nextElementFlat :
 

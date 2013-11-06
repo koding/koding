@@ -26,7 +26,7 @@ class DomainBuyConfirmForm extends KDFormViewWithFields
         """
         <h3>Do you want to buy #{domain} for #{year} year#{s} ?</h3>
         <div class='modalformline'>
-          <p>You will be charged <b>$#{price}</b> for registering
+          <p>You will be charged <b>#{price}</b> for registering
           <b>#{domain}</b> domain for <b>#{year}</b> year#{s}.</p>
         </div>
         """
