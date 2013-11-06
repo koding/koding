@@ -254,7 +254,7 @@ class Authenticator
 authenticator = new Authenticator
 
 bongo = new BongoWithOnReady {
-  mongo
+  mongo : "mongodb://#{mongo}?auto_reconnect"
   root: projectRoot
   models: 'workers/social/lib/social/models'
   mq: new Broker mqOptions

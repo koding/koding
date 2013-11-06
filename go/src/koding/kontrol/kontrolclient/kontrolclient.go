@@ -194,7 +194,7 @@ func check(cmd, hostname string, pid int) error {
 }
 
 func kill(cmd, hostname string, pid int) error {
-	err := process.KillCmd(pid)
+	err := process.KillPid(pid)
 	if err != nil {
 		return err
 	}
