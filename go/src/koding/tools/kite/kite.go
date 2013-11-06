@@ -237,6 +237,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 						execHandler()
 					}
 
+					// Publish dnode messages to the broker.
 					go func() {
 						defer log.RecoverAndLog()
 						for data := range d.SendChan {
@@ -249,6 +250,7 @@ func (k *Kite) startRouting(stream <-chan amqp.Delivery, publishChannel *amqp.Ch
 
 					d.Send("ready", k.ServiceUniqueName)
 
+					// Process dnode messages coming from route.
 					pingAlreadySent := false
 					for {
 						select {

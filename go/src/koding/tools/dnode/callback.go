@@ -9,11 +9,14 @@ import (
 
 type Callback func(args ...interface{})
 
+// UnmarshalJSON marshals the callback as "nil".
+// Value of the callback is not important in dnode protocol.
 func (p *Callback) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
 type CallbackSpec struct {
+	// Path represents the callback's path in the arguments structure.
 	Path     []string
 	Callback Callback
 }
