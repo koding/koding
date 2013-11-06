@@ -13,15 +13,17 @@ class Kontrol extends KDObject
     @connect()
 
   getKites: (kitename, callback)->
-    requestData =
-      username   : "#{KD.nick()}"
-      kitename   : kitename
-      sessionID  : KD.remote.getSessionToken()
+    queryData =
+      username       : "#{KD.nick()}"
+      kitename       : kitename
+      authentication :
+        type         : "browser"
+        key          : KD.remote.getSessionToken()
 
     xhr = new XMLHttpRequest
     xhr.open "POST", kontrolEndpoint, yes
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-    xhr.send JSON.stringify requestData
+    xhr.send JSON.stringify queryData
     xhr.onload = =>
       if xhr.status is 200
         data = JSON.parse xhr.responseText
