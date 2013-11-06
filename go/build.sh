@@ -14,7 +14,6 @@ services=(
   koding/userpresence
   koding/persistence
   koding/kites/os
-  koding/kites/provisioning
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview
