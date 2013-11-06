@@ -125,7 +125,6 @@ func New(options *protocol.Options) *Kite {
 			Version:  options.Version,
 			Hostname: hostname,
 			Port:     port,
-			Kind:     options.Kind,
 
 			// PublicIP will be set by Kontrol after registering if it is not set.
 			PublicIP: options.PublicIP,
@@ -283,7 +282,6 @@ func unmarshalKiteArg(r *protocol.KontrolMessage) (kite *protocol.Kite, err erro
 		Name:     k["name"].(string),
 		Username: k["username"].(string),
 		ID:       k["id"].(string),
-		Kind:     k["kind"].(string),
 		Version:  k["version"].(string),
 		Hostname: k["hostname"].(string),
 		PublicIP: k["publicIP"].(string),
@@ -379,7 +377,9 @@ func (k *Kite) registerToKontrol() error {
 
 	switch resp.Result {
 	case protocol.AllowKite:
-		log.Info("registered to kontrol: \n  Addr\t\t: %s\n  Version\t: %s\n  Uuid\t\t: %s\n", k.Addr(), k.Version, k.ID)
+		log.Info("registered to kontrol with addr: %s version: %s uuid: %s",
+			k.Addr(), k.Version, k.ID)
+
 		k.Username = resp.Username // we know now which user that is
 
 		// Set the correct PublicIP if left empty in options.

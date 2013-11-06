@@ -113,6 +113,11 @@ config =
       watch               : 1
       cronSchedule        : 1
       usageLimitInMinutes : 1
+    elasticSearch         :
+      host                : 1
+      port                : 1
+      enabled             : 1
+      queue               : 1
     emailConfirmationCheckerWorker :
       enabled             : 1
       login               : 1

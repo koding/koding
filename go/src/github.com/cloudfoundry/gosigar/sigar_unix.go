@@ -1,8 +1,7 @@
 // Copyright (c) 2012 VMware, Inc.
+// +build darwin freebsd linux netbsd openbsd
 
 package sigar
-
-// +build darwin freebsd linux netbsd openbsd
 
 import "syscall"
 
