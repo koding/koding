@@ -127,15 +127,7 @@ class PaymentController extends KDController
 
     JPayment.setPaymentInfo paymentMethodId, paymentMethod, callback
 
-
-  createPaymentInfoModal: ->
-    modal = new PaymentFormModal
-
-    return modal
-
-  # createPaymentConfirmationModal: (options, callback)->
-  #   options.callback or= callback
-  #   return new PaymentConfirmationModal options
+  createPaymentInfoModal: -> new PaymentFormModal
 
   createDeleteConfirmationModal: (type, callback, subscription)->
     return new PaymentDeleteConfirmationModal { subscription, type, callback }
