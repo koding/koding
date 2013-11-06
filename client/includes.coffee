@@ -152,6 +152,9 @@ module.exports = [
   "app/MainApp/book/bookview.coffee",
   "app/MainApp/book/bookpage.coffee",
 
+  # LOCATION
+  "app/CommonViews/location/locationform.coffee",
+
   # PAYMENT
   "app/MainApp/payment/paymentcontroller.coffee",
   "app/MainApp/payment/paymentmethodchoice.coffee",
