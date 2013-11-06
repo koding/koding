@@ -1,5 +1,14 @@
 class LocationForm extends KDFormViewWithFields
-  constructor: (options = {}, data) ->
+
+  constructor: (options = {}, data = {}) ->
+    super (@prepareOptions options, data), data
+
+    # set up a loader for latency while we load the country list.
+    @countryLoader = new KDLoaderView
+      size        : { width: 14 }
+      showLoader  : yes
+
+  prepareOptions: (options, data) ->
 
     options.fields ?= {}
 
@@ -38,8 +47,8 @@ class LocationForm extends KDFormViewWithFields
       itemClass         : KDSelectBox
       defaultValue      : data.country or 'US'
 
-    if options.showPhone
-      { requirePhone } = options
+    if options.phone?.show or options.phone?.required
+      { required: requirePhone } = options.phone
 
       options.fields.phone ?=
         label             : 'Phone'
@@ -49,10 +58,14 @@ class LocationForm extends KDFormViewWithFields
       if requirePhone
         options.fields.phone.required = "Phone number is required."
 
-    # set up a loader for latency while we load the country list.
-    @countryLoader = new KDLoaderView
-      size        : { width: 14 }
-      showLoader  : yes
+    options.buttons ?= {}
+
+    options.buttons.Save ?=
+      style             : 'modal-clean-green'
+      type              : 'submit'
+      loader            : { color : '#fff', diameter : 12 }
+
+    return options
 
   handleZipCode:->
 
