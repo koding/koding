@@ -96,17 +96,20 @@ func main() {
 	storage = NewMongoDB()
 	dependency = NewDependency()
 
-	// Setup logging.
+	k.setupLogging()
+
+	k.Start()
+}
+
+func (k *Kontrol) setupLogging() {
 	log.Module = "Kontrol"
-	logging.SetFormatter(logging.MustStringFormatter("▶ %{level} %{message}"))
+	logging.SetFormatter(logging.MustStringFormatter("%{level:-8s} ▶ %{message}"))
 	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
 	stderrBackend.Color = true
 	syslogBackend, _ := logging.NewSyslogBackend(log.Module)
 	logging.SetBackend(stderrBackend, syslogBackend)
 
 	log.Info("started")
-
-	k.Start()
 }
 
 func (k *Kontrol) Start() {
@@ -115,7 +118,7 @@ func (k *Kontrol) Start() {
 	go k.heartBeatChecker()
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", homeHandler).Methods("GET")
-	rout.HandleFunc("/request", prepareHandler(requestHandler)).Methods("POST")
+	rout.HandleFunc("/query", errHandler(queryHandler)).Methods("POST")
 	rout.Handle(moh.DefaultReplierPath, k.Replier)
 	rout.Handle(moh.DefaultPublisherPath, k.Publisher)
 	http.Handle("/", rout)
@@ -536,7 +539,7 @@ func findUsernameFromSessionID(c *websocket.Config, r *http.Request) (string, er
 	if err != nil {
 		return "", err
 	}
-	log.Info("Websocket is authenticated as:", session.Username)
+	log.Info("Websocket is authenticated as: %s", session.Username)
 
 	return session.Username, nil
 }

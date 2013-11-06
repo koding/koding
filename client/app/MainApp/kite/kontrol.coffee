@@ -4,7 +4,7 @@ class Kontrol extends KDObject
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
-  kontrolEndpoint = "http://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/request"
+  kontrolEndpoint = "http://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/query"
 
   constructor: (options)->
     super
@@ -13,15 +13,18 @@ class Kontrol extends KDObject
     @connect()
 
   getKites: (kitename, callback)->
-    requestData =
-      username   : "#{KD.nick()}"
-      kitename   : kitename
-      sessionID  : KD.remote.getSessionToken()
+    # find kites that belongs to username.
+    queryData =
+      username       : "#{KD.nick()}"
+      name           : kitename
+      authentication :
+        type         : "browser"
+        key          : KD.remote.getSessionToken()
 
     xhr = new XMLHttpRequest
     xhr.open "POST", kontrolEndpoint, yes
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-    xhr.send JSON.stringify requestData
+    xhr.send JSON.stringify queryData
     xhr.onload = =>
       if xhr.status is 200
         data = JSON.parse xhr.responseText

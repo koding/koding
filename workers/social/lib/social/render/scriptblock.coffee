@@ -5,9 +5,10 @@ cachingTimeInMS = 30000
 
 module.exports = (options = {}, callback)->
 
-  {dash} = require 'bongo'
-  JTag   = require '../models/tag'
-  JApp   = require '../models/app'
+  {dash}  = require 'bongo'
+  JTag    = require '../models/tag'
+  JApp    = require '../models/app'
+  encoder = require 'htmlencode'
 
   options.intro   ?= no
   options.client or= {}
@@ -37,6 +38,8 @@ module.exports = (options = {}, callback)->
 
 
   createHTML = ->
+    replacer    = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
+    encodedFeed = JSON.stringify prefetchedFeeds, replacer
     """
     <script>
 
@@ -84,10 +87,9 @@ module.exports = (options = {}, callback)->
 
     <script src="https://www.dropbox.com/static/api/1/dropins.js" id="dropboxjs" data-app-key="yzye39livlcc21j"></script>
     <script>
-      KD.prefetchedFeeds = #{JSON.stringify prefetchedFeeds};
+      KD.prefetchedFeeds = #{encodedFeed};
     </script>
     """
-
 
   # while implementing profile prefetching we will need
   # a custom route for prefetched content

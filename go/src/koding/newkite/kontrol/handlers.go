@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/db/mongodb/modelhelper"
 	"koding/newkite/kodingkey"
 	"koding/newkite/protocol"
 	"koding/newkite/token"
@@ -18,70 +17,59 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Hello world - kontrol!\n")
 }
 
-// preparHandler first checks if the incoming POST request is a valid session.
-// Every request made to kontrol should be in POST with protocol.BrowserToKontrolRequest in
-// their body.
-func prepareHandler(fn func(w http.ResponseWriter, r *http.Request, msg *protocol.BrowserToKontrolRequest)) http.HandlerFunc {
+// errHandler is a convienent handler for not writing lots of duplicate http.Errro codes
+func errHandler(fn func(http.ResponseWriter, *http.Request) ([]byte, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-
-		msg, err := readBrowserRequest(r.Body)
+		kites, err := queryHandler(w, r)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-			return
+			errMsg := fmt.Sprintf("{\"err\":\"%s\"}\n", err)
+			http.Error(w, errMsg, http.StatusBadRequest)
 		}
 
-		err = validatePostRequest(msg)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-			return
-		}
-		log.Info("sessionID '%s' wants '%s'", msg.SessionID, msg.Kitename)
-
-		session, err := modelhelper.GetSession(msg.SessionID)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-			return
-		}
-		log.Info("sessionID '%s' is validated as: %s", msg.SessionID, session.Username)
-
-		// username is used for matching kites and generating tokens in requestHandler
-		msg.Username = session.Username
-
-		fn(w, r, msg)
+		w.Write([]byte(kites))
 	}
 }
 
-// we assume that the incoming JSON data is in form of protocol.BrowserToKontrolRequest. Read
-// and return a new protocol.BrowserToKontrolRequest from the POST body if succesfull.
-func readBrowserRequest(requestBody io.ReadCloser) (*protocol.BrowserToKontrolRequest, error) {
+// queryHandler sends as response a list of kites that matches kites specified
+// with the incoming KontrolQuery struct.
+func queryHandler(w http.ResponseWriter, r *http.Request) ([]byte, error) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	query, err := readBrowserRequest(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	kites, err := query.ValidateQueryAndGetKites()
+	if err != nil {
+		return nil, err
+	}
+
+	kitesJSON, err := json.Marshal(kites)
+	if err != nil {
+		return nil, err
+	}
+
+	return kitesJSON, nil
+}
+
+// we assume that the incoming JSON data is in form of protocol.KontrolQuery.
+// Read and return a new protocol.KontrolQuery from the POST body if
+// successful.
+func readBrowserRequest(requestBody io.ReadCloser) (*KontrolQuery, error) {
 	body, err := ioutil.ReadAll(requestBody)
 	if err != nil {
 		return nil, err
 	}
 	defer requestBody.Close()
 
-	var req protocol.BrowserToKontrolRequest
+	var req KontrolQuery
 	err = json.Unmarshal(body, &req)
 	if err != nil {
 		return nil, err
 	}
 
 	return &req, nil
-}
-
-// validate that incoming post request has all necessary (at least the one we
-// need) fields.
-func validatePostRequest(msg *protocol.BrowserToKontrolRequest) error {
-	if msg.SessionID == "" {
-		return errors.New("sessionID field is empty")
-	}
-
-	if msg.Kitename == "" {
-		return errors.New("kitename field is not specified")
-	}
-
-	return nil
 }
 
 // searchForKites returns a list of kites that matches the variable matchKite
@@ -118,24 +106,4 @@ func searchForKites(username, kitename string) ([]protocol.KiteWithToken, error)
 	}
 
 	return kites, nil
-}
-
-// requestHandler sends as response a list of kites that matches kites in form
-// of "username/kitename".
-// Request comes from a web browser.
-func requestHandler(w http.ResponseWriter, r *http.Request, msg *protocol.BrowserToKontrolRequest) {
-	kites, err := searchForKites(msg.Username, msg.Kitename)
-	if err != nil {
-		msg := fmt.Sprintf("{\"err\":\"%s\"}\n", err)
-		http.Error(w, msg, http.StatusBadRequest)
-		return
-	}
-
-	kitesJSON, err := json.Marshal(kites)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	w.Write([]byte(kitesJSON))
 }

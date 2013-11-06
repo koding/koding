@@ -118,7 +118,7 @@ task 'webserver', "Run the webserver", ({configFile}) ->
     watcher = new Watcher
       groups        :
         server      :
-          folders   : ['./server']
+          folders   : ['./server', './workers/social']
           onChange  : ->
             processes.kill "server"
 

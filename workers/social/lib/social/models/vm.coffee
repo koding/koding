@@ -154,7 +154,7 @@ module.exports = class JVM extends Module
     domain = 'kd.io'
     if type is 'user'
       requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
-      if groupSlug is 'koding'
+      if groupSlug in ['koding', 'guests']
         requiredDomains.push "#{nickname}.#{domain}"
     else
       requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
@@ -166,7 +166,7 @@ module.exports = class JVM extends Module
     if type is 'user'
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
-      if groupSlug is 'koding'
+      if groupSlug in ['koding', 'guests']
         aliases.push "#{nickname}.#{domain}"  if uid is 0
         aliases.push "vm-#{uid}.#{nickname}.#{domain}"
       aliases.push "vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"
@@ -526,7 +526,9 @@ module.exports = class JVM extends Module
           return console.warn "Failed to create VM for ", \
                                {users, groups, hostnameAlias}
 
-        JVM.createDomains account, hostnameAliases, hostnameAlias
+        JVM.ensureDomainSettings \
+          {account, vm, type, nickname:user.username, groupSlug}
+        # JVM.createDomains account, hostnameAliases, hostnameAlias
         target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]

@@ -18,6 +18,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
+	"os"
 	"strconv"
 	"time"
 )
@@ -33,6 +34,19 @@ var (
 	log              = kite.GetLogger()
 )
 
+func init() {
+	var err error
+	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+		log.Error("container subnet couldn't be initialized: %s", err.Error())
+		os.Exit(1)
+	}
+
+	if config.Region == "" {
+		log.Error("region is not defined. please define it with -r flag")
+		os.Exit(1)
+	}
+}
+
 func main() {
 	flag.Parse()
 
@@ -43,6 +57,8 @@ func main() {
 	options := &protocol.Options{
 		PublicIP:    "localhost",
 		Kitename:    "provisioning",
+		Environment: config.FileProfile,
+		Region:      config.Region,
 		Version:     "0.0.1",
 		Port:        *port,
 		KontrolAddr: kontrolAddr,
@@ -56,25 +72,15 @@ func main() {
 		"vm.exec":      "Exec",
 	}
 
-	initialize()
-
 	k = kite.New(options)
 	k.AddMethods(new(Provisioning), methods)
 	k.Start()
 }
 
-func initialize() {
-	var err error
-	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
-		fmt.Println(err)
-		return
-	}
-}
-
 func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		log.Error("[%s] could not fetch vm document to start '%s'. err: '%s'",
+		log.Error("[%s] could not get vm to start '%s'. err: '%s'",
 			r.Username, r.Hostname, err)
 		return errors.New("could not start vm - 1")
 	}
@@ -96,7 +102,7 @@ func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		log.Error("[%s] could not fetch vm document to stop '%s'. err: '%s'",
+		log.Error("[%s] could not get vm to stop '%s'. err: '%s'",
 			r.Username, r.Hostname, err)
 		return errors.New("could not stop vm - 1")
 	}
@@ -125,14 +131,14 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 
 	user, err := getUser(r.Username)
 	if err != nil {
-		log.Error("[%s] could not fetch user document to exec a command on '%s'. err: '%s'",
+		log.Error("[%s] could not get user to exec a command on '%s'. err: '%s'",
 			r.Username, r.Hostname, err)
 		return errors.New("could not run command - 1")
 	}
 
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		log.Error("[%s] could not fetch vm document to exec a command on '%s'. err: '%s'",
+		log.Error("[%s] could not get vm to exec a command on '%s'. err: '%s'",
 			r.Username, r.Hostname, err)
 		return errors.New("could not run command - 2")
 	}
@@ -159,7 +165,7 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		log.Error("[%s] could not fetch vm document to unprepare '%s'. err: '%s'",
+		log.Error("[%s] could not get vm to unprepare '%s'. err: '%s'",
 			r.Username, r.Hostname, err)
 		return errors.New("could not unprepare vm - 1")
 	}
@@ -309,8 +315,8 @@ func validateVM(vm *models.VM) error {
 
 	if vm.Region != config.Region {
 		time.Sleep(time.Second) // to avoid rapid cycle channel loop
-		return fmt.Errorf("VM '%s' is on wrong region. Excepted: '%s' Got: '%s'",
-			vm.HostnameAlias, vm.Region, config.Region)
+		return fmt.Errorf("VM '%s' is on wrong region. expected: '%s' Got: '%s'",
+			vm.HostnameAlias, config.Region, vm.Region)
 	}
 
 	if vm.HostKite == "(maintenance)" {
