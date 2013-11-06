@@ -21,13 +21,13 @@ class DomainBuyForm extends CommonDomainCreateForm
         productForm : new DomainProductForm
         confirmForm : new DomainBuyConfirmForm { domain, year, price }
 
-      modal.on 'PaymentConfirmed', ({ productInfo, paymentMethodId }) =>
-        @buyDomain { domain, year, price, paymentMethodId, productInfo }
+      modal.on 'PaymentConfirmed', ({ productData, paymentMethodId }) =>
+        @buyDomain { domain, year, price, paymentMethodId, productData }
 
   buyDomain: (options) ->
     { JPaymentCharge } = KD.remote.api
-
-    JPaymentCharge.charge options, -> debugger
+    debugger
+    # JPaymentCharge.charge options, -> debugger
 
   viewAppended:->
     tldList = []
