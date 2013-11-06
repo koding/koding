@@ -57,6 +57,8 @@ func main() {
 	options := &protocol.Options{
 		PublicIP:    "localhost",
 		Kitename:    "provisioning",
+		Environment: config.FileProfile,
+		Region:      config.Region,
 		Version:     "0.0.1",
 		Port:        *port,
 		KontrolAddr: kontrolAddr,
