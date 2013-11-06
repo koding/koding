@@ -52,12 +52,7 @@ module.exports = class Builder
 
     @config = require('koding-config-manager').load("main.#{options.configFile}")
 
-    sprite.sprites {path: './images'}, (err, res)->
-      appSprite       = res.app
-      frameworkSprite = res.framework
-      console.log appSprite.filename()
-      console.log frameworkSprite.filename()
-      console.log 'black-bird-128', appSprite.image('black-bird-128')
+    sprite.sprites {path: './website/sprites'}
 
     try fs.mkdirSync ".build"
 
