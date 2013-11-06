@@ -57,27 +57,9 @@ class Kontrol extends KDObject
 
       switch msg.type
         when "KITE_REGISTERED"
-          @addKite msg.args.kite, msg.args.token
+          @emit "KiteRegistered", msg.args.kite
         when "KITE_DISCONNECTED"
-          @removeKite msg.args.kite.name
-
-  addKite: (kite, token) ->
-    kite.token = token
-    kc = KD.getSingleton("kiteController")
-    correlationName = "local-#{KD.nick()}"
-    key = kc.getKiteKey kite.name, correlationName
-    kiteInstance = kc.createNewKite kite
-
-    # log "ADDING KITE #{kite.kitename} with key #{key}"
-    kc.kiteInstances[key] = kiteInstance
-
-  removeKite: (kitename) ->
-    kc = KD.getSingleton("kiteController")
-    correlationName = "local-#{KD.nick()}"
-    key = kc.getKiteKey kitename, correlationName
-
-    # log "REMOVING KITE #{kitename} with key #{key}"
-    delete kc.kiteInstances[key]
+          @emit "KiteDisconnected", msg.args.kite
 
   onError: (evt) ->
     log "kontrol: error #{evt.data}"

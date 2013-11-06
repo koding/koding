@@ -178,6 +178,15 @@ func (c *Container) Lchown(name string) error {
 	return os.Lchown(name, c.UID, c.UID)
 }
 
+// Exist returns if the given path exist
+func (c *Container) Exist(filename string) bool {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
 // PrepareDir creates a new directory with and chowns it. It's need to be
 // chained with a AsXXX() method.
 func (c *Container) PrepareDir(name string) error {
@@ -262,6 +271,10 @@ func (c *Container) Run(command string) ([]byte, error) {
 // Start starts the container. It calls lxc-start with --daemonize set to
 // true. Current binding
 func (c *Container) Start() error {
+	if !c.Exist(c.Dir) {
+		return errors.New("container does not exist. please prepare it")
+	}
+
 	out, err := exec.Command("/usr/bin/lxc-start", "--name", c.Name, "--daemon").CombinedOutput()
 	if err != nil {
 		fmt.Println("lxc-start failed", err, string(out))
@@ -273,6 +286,10 @@ func (c *Container) Start() error {
 
 // Stop stops the running container. It calls lxc-stop.
 func (c *Container) Stop() error {
+	if !c.Exist(c.Dir) {
+		return errors.New("container does not exist. please prepare it")
+	}
+
 	l := lxc.NewContainer(c.Name)
 	defer lxc.PutContainer(l)
 

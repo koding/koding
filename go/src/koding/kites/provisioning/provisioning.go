@@ -30,6 +30,7 @@ var (
 	firstContainerIP net.IP
 	containers       = make(map[string]*Info)
 	k                = &kite.Kite{}
+	log              = kite.GetLogger()
 )
 
 func main() {
@@ -48,13 +49,11 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"vm.create":    "Create",
-		"vm.destroy":   "Destroy",
 		"vm.start":     "Start",
 		"vm.stop":      "Stop",
 		"vm.prepare":   "Prepare",
 		"vm.unprepare": "Unprepare",
-		"vm.run":       "Run",
+		"vm.exec":      "Exec",
 	}
 
 	initialize()
@@ -72,168 +71,131 @@ func initialize() {
 	}
 }
 
-func (p *Provisioning) Create(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-		Template      string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Template == "" {
-		return errors.New("{ containerName: [string], template: [string] }")
-	}
-
-	fmt.Printf("creating vm '%s' with template '%s'\n",
-		params.ContainerName, params.Template)
-
-	c := container.NewContainer(params.ContainerName)
-	err := c.Create(params.Template)
-	if err != nil {
-		return err
-	}
-
-	*result = true
-	return nil
-}
-
-func (p *Provisioning) Destroy(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
-	fmt.Println("destroying", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
-	err := c.Destroy()
-	if err != nil {
-		return err
-	}
-
-	*result = true
-	return nil
-}
-
 func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
-	fmt.Println("starting", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
-	err := c.Start()
+	vm, err := getVM(r.Hostname)
 	if err != nil {
-		return err
+		log.Error("[%s] could not fetch vm document to start '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not start vm - 1")
 	}
 
+	containerName := "vm-" + vm.Id.Hex()
+
+	c := container.NewContainer(containerName)
+	err = c.Start()
+	if err != nil {
+		log.Error("[%s] could not start container: '%s'. err: '%s'", r.Username, containerName, err)
+		return errors.New("could not start vm - 2")
+	}
+
+	log.Info("[%s] started the container: '%s'", r.Username, containerName)
 	*result = true
 	return nil
 }
 
 func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
-	fmt.Println("stopping", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
-	err := c.Stop()
+	vm, err := getVM(r.Hostname)
 	if err != nil {
-		return err
+		log.Error("[%s] could not fetch vm document to stop '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not stop vm - 1")
 	}
+
+	containerName := "vm-" + vm.Id.Hex()
+
+	c := container.NewContainer(containerName)
+	err = c.Stop()
+	if err != nil {
+		log.Error("[%s] could not stop container: '%s'. err: '%s'", r.Username, containerName, err)
+		return errors.New("could not stop vm - 2")
+	}
+
+	log.Info("[%s] stopped the container: '%s'", r.Username, containerName)
 
 	*result = true
 	return nil
 }
 
-func (p *Provisioning) Run(r *protocol.KiteDnodeRequest, result *string) error {
-	var params struct {
-		ContainerName string
-		Command       string
-	}
+func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error {
+	var command string
 
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Command == "" {
-		return errors.New("{ containerName: [string], command : [string]}")
+	if r.Args.Unmarshal(&command) != nil {
+		return errors.New("{ [string] }")
 	}
 
 	user, err := getUser(r.Username)
 	if err != nil {
-		return err
+		log.Error("[%s] could not fetch user document to exec a command on '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not run command - 1")
 	}
 
-	// fmt.Printf("running '%s' on '%s'\n", params.Command, params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
+	vm, err := getVM(r.Hostname)
+	if err != nil {
+		log.Error("[%s] could not fetch vm document to exec a command on '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not run command - 2")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+
+	c := container.NewContainer(containerName)
 	c.Useruid = user.Uid
 
-	output, err := c.Run(params.Command)
+	output, err := c.Run(command)
 	if err != nil {
-		return err
+		log.Error("[%s] could not exec a command on '%s'. err: '%s'", r.Username, r.Hostname, err)
+		return errors.New("could not run command - 3")
 	}
 
-	info := GetInfo(params.ContainerName)
+	info := GetInfo(containerName)
 	info.ResetTimer()
-
-	fmt.Println("output is", string(output))
+	log.Info("[%s] did run the command '%s' on container'%s'\n", r.Username, command, containerName)
 
 	*result = string(output)
 	return nil
 }
 
 func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
 	vm, err := getVM(r.Hostname)
 	if err != nil {
-		return err
+		log.Error("[%s] could not fetch vm document to unprepare '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not unprepare vm - 1")
 	}
 
-	fmt.Printf("unpreparing container '%s'\n", params.ContainerName)
-	c := container.NewContainer(params.ContainerName)
+	containerName := "vm-" + vm.Id.Hex()
+
+	c := container.NewContainer(containerName)
 	c.IP = vm.IP // needed for removing static route and ebtables in unprepare
 
 	if c.IsRunning() {
 		err = c.Shutdown(5)
 		if err != nil {
-			return err
+			log.Error("[%s] could not shutdown vm for unprepare vm: '%s'. err: '%s'",
+				r.Username, r.Hostname, err)
+			return errors.New("could not unprepare vm - 2")
 		}
 	}
 
 	err = c.Unprepare()
 	if err != nil {
-		return err
+		log.Error("[%s] could not unprepare vm: '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not unprepare vm - 3")
 	}
 
+	log.Info("[%s] unprepared the container '%s'", r.Username, containerName)
 	*result = true
 	return nil
 }
 
 func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
-	var params struct {
-		ContainerName string
-	}
-
-	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
-		return errors.New("{ containerName: [string] }")
-	}
-
 	err := prepare(r.Username, r.Hostname)
 	if err != nil {
-		return err
+		log.Error("[%s] could not prepare vm: '%s'. err: '%s'",
+			r.Username, r.Hostname, err)
+		return errors.New("could not prepare vm")
 	}
 
 	*result = true
@@ -251,7 +213,8 @@ func prepare(username, hostname string) error {
 		return err
 	}
 
-	c := container.NewContainer(vm.Id.Hex())
+	containerName := "vm-" + vm.Id.Hex()
+	c := container.NewContainer(containerName)
 
 	if c.IsRunning() {
 		return errors.New("vm is running")
@@ -267,8 +230,8 @@ func prepare(username, hostname string) error {
 	c.Useruid = user.Uid
 	c.DiskSizeInMB = vm.DiskSizeInMB
 
-	fmt.Printf("preparing container '%s' for user '%s' with uid '%d'\n",
-		vm.Id.Hex(), user.Name, user.Uid)
+	log.Info("preparing container '%s' for user '%s' with uid '%d'",
+		containerName, user.Name, user.Uid)
 
 	err = c.Prepare()
 	if err != nil {
@@ -284,7 +247,7 @@ func prepare(username, hostname string) error {
 		return nil
 	}
 
-	info := GetInfo(vm.Id.Hex())
+	info := GetInfo(containerName)
 	info.IP = c.IP
 	info.StartTimer()
 
@@ -292,6 +255,7 @@ func prepare(username, hostname string) error {
 		info.StopTimer()
 	})
 
+	log.Info("[%s] prepared the container '%s'", username, containerName)
 	return nil
 }
 
