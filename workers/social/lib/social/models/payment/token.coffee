@@ -26,7 +26,7 @@ module.exports = class JPaymentToken extends Module
     # CAUTION: we do not ask for nor validate token for now
     return callback yes
 
-    JPaymentToken.one
+    @one
       userCode: delegate.profile.nickname
       planCode: data.planCode
     , (err, token)->
@@ -46,7 +46,7 @@ module.exports = class JPaymentToken extends Module
   @createToken = secure (client, data, callback)->
     {delegate} = client.connection
 
-    JPaymentToken.one
+    @one
       userCode: delegate.profile.nickname
       planCode: data.planCode
     , (err, token)=>
