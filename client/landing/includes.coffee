@@ -416,6 +416,7 @@ module.exports = [
   # "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaincreateform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/commondomaincreateform.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domainproductform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domainbuyform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domainbuyitem.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domainbuyconfirmform.coffee",

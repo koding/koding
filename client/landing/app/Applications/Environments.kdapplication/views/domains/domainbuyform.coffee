@@ -18,10 +18,11 @@ class DomainBuyForm extends CommonDomainCreateForm
       price = @utils.formatMoney year * price
       modal = new DomainBuyModal
         domain      : domain
+        productForm : new DomainProductForm
         confirmForm : new DomainBuyConfirmForm { domain, year, price }
 
-      modal.on 'PaymentConfirmed', ({ paymentMethodId }) =>
-        @buyDomain { domain, year, price, paymentMethodId }
+      modal.on 'PaymentConfirmed', ({ productInfo, paymentMethodId }) =>
+        @buyDomain { domain, year, price, paymentMethodId, productInfo }
 
   buyDomain: (options) ->
     { JPaymentCharge } = KD.remote.api
