@@ -1,0 +1,145 @@
+@import "./kdfn"
+@import "./client/stylus/appfn"
+@import "./client/stylus/app.fonts"
+
+/*3d loading*/
+/* logo */
+#main-loading
+  vendor               perspective, 600px
+  vendor               transform-style, preserve-3d
+
+.threed-logo
+  left                 50%
+  top                  50%;
+  size                 200px, 260px
+  margin               -130px 0 0 -100px
+  // -moz-animation       logoHeartBeat 2s infinite ease
+  abs()
+
+  &
+  & *
+    vendor             transform-style, preserve-3d
+
+  .line
+    display            block
+    position           relative
+    size               200px, 20px
+    bg                 color, #fff
+
+    &~.line
+      margin-top       20px
+
+    &:nth-child(1)
+      height           60px
+      bg               color, #ff9200
+    &:nth-child(3)
+      width            142px
+    &:nth-child(6)
+      width            122px
+
+    i
+      abs()
+      top              0
+      left             0
+      display          block
+      size             100%, 20px
+      bg               color, #eee
+      vendor           backface-visibility, hidden
+      vendor           transform, rotateX(90deg) translateZ(10px) translateY(-10px)
+
+      &:after
+        abs()
+        top            0
+        left           0
+        content        ""
+        display        block
+        size           100%, 100%
+        bg             color, #ccc
+        vendor         backface-visibility, hidden
+        vendor         transform, translateZ(-20px) rotateX(180deg)
+
+    &:nth-child(1) i
+      bg               color, #c97200
+
+      &:after
+        abs()
+        top            0
+        left           0
+        content        ""
+        display        block
+        size           100%, 100%
+        bg             color, #b86800
+        vendor         backface-visibility, hidden
+        vendor         transform, translateZ(-60px) rotateX(180deg)
+
+    &:nth-child(1)
+      vendor           animation, lineRotate 2.5s 0.01s infinite forwards ease-out /* .01s = hack for firefox :@ */
+    &:nth-child(2)
+      vendor           animation, lineRotate 2.5s .5s infinite forwards ease-out
+    &:nth-child(3)
+      vendor           animation, lineRotate 2.5s 1s infinite forwards ease-out
+    &:nth-child(4)
+      vendor           animation, lineRotate 2.5s 1.5s infinite forwards ease-out
+    &:nth-child(5)
+      vendor           animation, lineRotate 2.5s 2s infinite forwards ease-out
+    &:nth-child(6)
+      vendor           animation, lineRotate 2.5s 2.5s infinite forwards ease-out
+
+
+@-webkit-keyframes lineRotate
+  20%
+    -webkit-transform translateZ(-60px) rotateX(40deg)
+    opacity           .5
+
+@-moz-keyframes lineRotate
+  20%
+    -moz-transform translateZ(-60px) rotateX(40deg)
+    opacity           .5
+
+
+/* Logout animation (old tv turn off) */
+@-webkit-keyframes logoutTv
+  0%
+    -webkit-transform   scaleX(1) scaleY(1)
+  40%
+    -webkit-transform   scaleX(2) scaleY(0.0005)
+  100%
+    -webkit-transform   scaleX(0) scaleY(0.0005)
+
+@-webkit-keyframes logoutTvLine
+  10%
+    opacity             1
+    border-radius       100%
+  100%
+    opacity             1
+    -webkit-transform   scale(0)
+
+@-webkit-keyframes logoutTvDot
+  75%
+    opacity             1
+    -webkit-transform   scaleX(2) scaleY(2)
+  100%
+    opacity             0
+    -webkit-transform   scaleX(0) scaleY(0)
+
+@-moz-keyframes logoutTv
+  0%
+    -moz-transform   scaleX(1) scaleY(1)
+  40%
+    -moz-transform   scaleX(2) scaleY(0.0005)
+  100%
+    -moz-transform   scaleX(0) scaleY(0.0005)
+@-moz-keyframes logoutTvLine
+  10%
+    opacity             1
+    border-radius       100%
+  100%
+    opacity             1
+    -moz-transform   scale(0)
+@-moz-keyframes logoutTvDot
+  75%
+    opacity             1
+    -moz-transform      scaleX(2) scaleY(2)
+  100%
+    opacity             0
+    -moz-transform      scaleX(0) scaleY(0)
