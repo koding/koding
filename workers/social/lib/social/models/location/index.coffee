@@ -6,7 +6,12 @@ module.exports = class JLocation extends Model
 
   @set
     sharedMethods :
-      static      : [ 'importAll', 'importStates', 'one', 'fetchStatesByCountryCode' ]
+      static      : [
+        'importAll'
+        'importStates'
+        'one'
+        'fetchStatesByCountryCode'
+      ]
     schema        :
       zip         : String
       city        : String
