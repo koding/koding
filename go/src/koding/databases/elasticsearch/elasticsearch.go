@@ -86,18 +86,15 @@ func CheckIfEligible(sourceName, targetName string) bool {
 	}
 
 	if NotAllowedNames[sourceName] || NotAllowedNames[targetName] {
-		fmt.Println("in NotAllowedNames")
 		return false
 	}
 
 	for _, name := range notAllowedSuffixes {
 		if strings.HasSuffix(sourceName, name) {
-			fmt.Println("not eligible " + sourceName)
 			return false
 		}
 
 		if strings.HasSuffix(targetName, name) {
-			fmt.Println("not eligible " + targetName)
 			return false
 		}
 	}
@@ -162,7 +159,6 @@ func Upsert(index string, _type string, id string, data map[string]interface{}) 
 			return retval, jsonErr
 		}
 	}
-	fmt.Println(string(body))
 	return retval, err
 }
 
@@ -396,13 +392,10 @@ func (controller *Controller) ActionUpdateNode(data map[string]interface{}) bool
 
 	sourceContent, err := mongohelper.Fetch(sourceId, sourceName)
 	if err != nil {
-		fmt.Println("sourceContent", err)
 		return true
 	}
 
-	fmt.Println(sourceContent)
 	Upsert("koding", sourceName, sourceId, sourceContent)
-
 	return true
 }
 
@@ -454,13 +447,11 @@ func (controller *Controller) ActionCreateNode(data map[string]interface{}) bool
 
 	sourceContent, err := mongohelper.Fetch(sourceId, sourceName)
 	if err != nil {
-		fmt.Println("sourceContent", err)
 		return true
 	}
 
 	targetContent, err := mongohelper.Fetch(targetId, targetName)
 	if err != nil {
-		fmt.Println("targetContent", err)
 		return true
 	}
 
@@ -470,12 +461,10 @@ func (controller *Controller) ActionCreateNode(data map[string]interface{}) bool
 	IndexNode(targetId, targetName, targetContent)
 
 	if _, ok := data["as"]; !ok {
-		fmt.Println("as value is not set on this relationship. Discarding this record", data)
 		return true
 	}
 
 	if _, ok := data["_id"]; !ok {
-		fmt.Println("id value is not set on this relationship. Discarding this record", data)
 		return true
 	}
 
