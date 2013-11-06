@@ -1,9 +1,14 @@
 package pty
 
 import (
+	"code.google.com/p/go-charset/charset"
+	_ "code.google.com/p/go-charset/data"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"syscall"
+	"unsafe"
 )
 
 type PTY struct {
@@ -13,15 +18,114 @@ type PTY struct {
 	Slave         *os.File
 }
 
-const DefaultPtsPath = "/dev/pts"
+// see ioccom.h
+const sys_IOCPARM_MASK = 0x1fff
 
 func New(ptsPath string) *PTY {
-	panic("PTY not supported on OSX")
-	return nil
+	pty, err := os.OpenFile("/dev/ptmx", os.O_RDWR, 0)
+	if err != nil {
+		fmt.Println("open pty", err)
+	}
+
+	sname, err := ptsname(pty)
+	if err != nil {
+		fmt.Println("ptsname", err)
+	}
+
+	err = grantpt(pty)
+	if err != nil {
+		fmt.Println("grantpt", err)
+	}
+
+	err = unlockpt(pty)
+	if err != nil {
+		fmt.Println("unlockpt", err)
+	}
+
+	tty, err := os.OpenFile(sname, os.O_RDWR, 0)
+	if err != nil {
+		fmt.Println("open tty", err)
+	}
+
+	masterEncoded, err := charset.NewWriter("ISO-8859-1", pty)
+	if err != nil {
+		fmt.Println("charset err", err)
+	}
+
+	p := &PTY{
+		Master:        pty,
+		Slave:         tty,
+		No:            0,
+		MasterEncoded: masterEncoded,
+	}
+
+	return p
+}
+
+func (pty *PTY) GetSize() (int, int, error) {
+	var ws winsize
+	err := windowrect(&ws, pty.Master.Fd())
+	return int(ws.ws_row), int(ws.ws_col), err
 }
 
 func (pty *PTY) SetSize(x, y uint16) {
+	winsize := winsize{ws_col: x, ws_row: y}
+	err := windowrect(&winsize, pty.Master.Fd())
+	if err != nil {
+		fmt.Println("error setting windows size", err)
+	}
 }
 
 func (pty *PTY) Signal(sig syscall.Signal) {
+	// TODO: implement this
+}
+
+type winsize struct {
+	ws_row    uint16
+	ws_col    uint16
+	ws_xpixel uint16
+	ws_ypixel uint16
+}
+
+func windowrect(ws *winsize, fd uintptr) error {
+	_, _, errno := syscall.Syscall(
+		syscall.SYS_IOCTL,
+		fd,
+		syscall.TIOCSWINSZ,
+		uintptr(unsafe.Pointer(ws)),
+	)
+	if errno != 0 {
+		return syscall.Errno(errno)
+	}
+	return nil
+}
+
+func ptsname(f *os.File) (string, error) {
+	var n [(syscall.TIOCPTYGNAME >> 16) & sys_IOCPARM_MASK]byte
+
+	ioctl(f.Fd(), syscall.TIOCPTYGNAME, uintptr(unsafe.Pointer(&n)))
+	for i, c := range n {
+		if c == 0 {
+			return string(n[:i]), nil
+		}
+	}
+	return "", errors.New("TIOCPTYGNAME string not NUL-terminated")
+}
+
+func grantpt(f *os.File) error {
+	var u int
+	return ioctl(f.Fd(), syscall.TIOCPTYGRANT, uintptr(unsafe.Pointer(&u)))
+}
+
+func unlockpt(f *os.File) error {
+	var u int
+	return ioctl(f.Fd(), syscall.TIOCPTYUNLK, uintptr(unsafe.Pointer(&u)))
+}
+
+func ioctl(fd, cmd, ptr uintptr) error {
+	_, _, e := syscall.Syscall(syscall.SYS_IOCTL, fd, cmd, ptr)
+	if e != 0 {
+		return syscall.ENOTTY
+	}
+	return nil
 }

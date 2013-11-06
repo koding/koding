@@ -23,6 +23,25 @@ error_404 = ->
 error_500 = ->
   error_ 500, "Something wrong with the Koding servers."
 
+authTemplate = (msg)->
+  {authRegisterTemplate} = require './staticpages'
+  {template}             = require 'underscore'
+  template authRegisterTemplate, {msg}
+
+authCheckKey = (key, callback)->
+  if typeof key isnt "string"
+    return callback false, "Key is not of type string: '#{key}'"
+
+  if not key
+    return callback false, "Key is empty: '#{key}'"
+
+  key = decodeURIComponent key
+
+  if key.length isnt 64
+    return callback false, "Key does not have a len of 64 len: '#{key}'"
+
+  callback true, "key is valid"
+
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
@@ -133,6 +152,8 @@ module.exports = {
   error_
   error_404
   error_500
+  authTemplate
+  authCheckKey
   authenticationFailed
   findUsernameFromKey
   findUsernameFromSession
