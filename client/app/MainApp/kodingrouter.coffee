@@ -339,6 +339,18 @@ class KodingRouter extends KDRouter
               title: "Thanks for confirming your email address!"
           @clear()
 
+      '/:name?/InviteFriends': ->
+        if KD.isLoggedIn()
+          @handleRoute '/Activity', entryPoint: KD.config.entryPoint
+          if KD.introView
+            KD.introView.once "transitionend", ->
+              KD.utils.wait 1200, ->
+                new ReferrerModal
+          else
+            new ReferrerModal
+        else
+          @handleRoute '/Login'
+
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 

@@ -56,6 +56,7 @@ class IntroView extends JView
     options.cssClass = 'intro-view'
     options.bind     = 'scroll mousewheel wheel'
     super options, data
+    @bindTransitionEnd()
 
   setCurrentPage: (direction)->
     unless @_lock
