@@ -14,10 +14,9 @@ services=(
   koding/userpresence
   koding/persistence
   koding/kites/os
-  koding/kites/irc
+  koding/kites/provisioning
   koding/virt/vmproxy
   koding/virt/vmtool
-  koding/alice
   koding/overview
   koding/kontrol/kontrolproxy
   koding/kontrol/kontrolftp
@@ -27,7 +26,6 @@ services=(
   koding/workers/neo4jfeeder
   koding/workers/elasticsearchfeeder
   koding/workers/externals
-  koding/dns
   koding/workers/graphitefeeder
 )
 
