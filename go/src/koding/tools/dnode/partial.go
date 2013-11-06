@@ -8,7 +8,7 @@ import (
 
 type Partial struct {
 	Raw       []byte
-	callbacks []CallbackSpec
+	Callbacks []CallbackSpec
 }
 
 func (p *Partial) MarshalJSON() ([]byte, error) {
@@ -29,7 +29,7 @@ func (p *Partial) Unmarshal(v interface{}) error {
 		return err
 	}
 	value := reflect.ValueOf(v)
-	for _, callback := range p.callbacks {
+	for _, callback := range p.Callbacks {
 		err := callback.Apply(value)
 		if err != nil {
 			return err

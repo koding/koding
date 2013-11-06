@@ -104,7 +104,7 @@ func controlRouting(stream <-chan amqp.Delivery) {
 				continue
 			}
 
-			vm := virt.VM(v)
+			vm := virt.VM(*v)
 			if err := vm.Stop(); err != nil {
 				log.Err("could not stop vm '%s'", control.HostnameAlias)
 				continue
