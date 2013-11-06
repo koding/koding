@@ -129,25 +129,9 @@ class PaymentController extends KDController
 
 
   createPaymentInfoModal: ->
-
     modal = new PaymentFormModal
-#
-#    @fetchCountryData (err, countries, countryOfIp) =>
-#      modal.setCountryData { countries, countryOfIp }
 
     return modal
-
-  fetchCountryData:(callback)->
-
-    { JPayment } = KD.remote.api
-
-    if @countries or @countryOfIp
-      return @utils.defer => callback null, @countries, @countryOfIp
-
-    ip = $.cookie 'clientIPAddress'
-
-    JPayment.fetchCountryDataByIp ip, (err, @countries, @countryOfIp) =>
-      callback err, @countries, @countryOfIp
 
   # createPaymentConfirmationModal: (options, callback)->
   #   options.callback or= callback
