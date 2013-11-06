@@ -153,6 +153,7 @@ module.exports = [
   "app/MainApp/book/bookpage.coffee",
 
   # LOCATION
+  "app/MainApp/locationcontroller.coffee",
   "app/CommonViews/location/locationform.coffee",
 
   # PAYMENT

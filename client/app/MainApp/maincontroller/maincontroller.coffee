@@ -42,6 +42,7 @@ class MainController extends KDController
     KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
+    KD.registerSingleton "locationController",        new LocationController
     # KD.registerSingleton "fatih", new Fatih
 
     appManager.create 'Groups', (groupsController)->
