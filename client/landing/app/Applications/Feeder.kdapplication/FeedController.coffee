@@ -175,12 +175,12 @@ class FeedController extends KDViewController
       @emit "FilterLoaded"
       {limit}      = options
       {scrollView} = listController
-      if items?
+      if items?.length > 0
         unless err
           items = @sortByKey(items, filter.activeSort) if filter.activeSort
           listController.instantiateListItems items
           @emitCountChanged listController.itemsOrdered.length, filter.name
-          if items.length is limit and scrollView.getScrollHeight() <= scrollView.getHeight()
+          if scrollView.getScrollHeight() <= scrollView.getHeight()
             @loadFeed filter
         else
           warn err
@@ -190,10 +190,7 @@ class FeedController extends KDViewController
         filter.dataError? this, err
 
     @emitLoadStarted filter
-    if options.skip isnt 0 and options.skip < options.limit # Dont load forever
-      @emitLoadCompleted filter
-      @emit "FilterLoaded"
-    else unless feedId in USEDFEEDS
+    unless feedId in USEDFEEDS
       USEDFEEDS.push feedId
       unless prefetchedItems = KD.prefetchedFeeds[feedId]
       then @loadFeed filter
