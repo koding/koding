@@ -14,10 +14,10 @@ type Publisher struct {
 	// Modifier operations on this type is made by registrar() function.
 	filters *Filters
 
-	// Authenticate is an optional function to authenticate the user on websocket handshake.
-	// If it returns an error, the websocket connection will not be accepted.
-	// The returned username will be put in "Koding-Username" header,
-	// the connection handler can read it from there.
+	// Authenticate is an optional function to authenticate the user on
+	// websocket handshake. If it returns an error, the websocket connection
+	// will not be accepted. The returned username will be put in "Koding-
+	// Username" header, the connection handler can read it from there.
 	Authenticate func(*websocket.Config, *http.Request) (username string, err error)
 
 	// ValidateCommand is an optional function to be called on each command
