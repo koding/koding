@@ -70,6 +70,10 @@ class EnvironmentContainer extends KDDiaContainer
   mouseWheel:(e)->
     @emit "UpdateScene"
     super e
+
+  loadItems:->
+    @removeAllItems()
+
   # updateHeight:->
 
   #   @setHeight 80 + @diaCount() * 50
@@ -100,6 +104,3 @@ class EnvironmentContainer extends KDDiaContainer
 
   #   delete positions[name]
   #   @appStorage.setValue 'containerPositions', positions
-
-  loadItems:->
-    @removeAllItems()
