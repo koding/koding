@@ -115,11 +115,11 @@ class AccountSubscriptionsListItem extends KDListItemView
       else if status is 'canceled'
         dateNotice = "Plan will be available till #{dateFormat expires}"
 
-    amount = (amount / 100).toFixed 2
+    amount = @utils.formatMoney amount / 100
 
     """
     <div class='payment-details'>
-      <h4>{{#(plan.title)}} - $#{amount}</h4>
+      <h4>{{#(plan.title)}} - #{amount}</h4>
       <span class='payment-type'>#{statusNotice}</span>
       {{> @changePlan}}
       <br/>

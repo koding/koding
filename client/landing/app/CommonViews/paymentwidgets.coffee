@@ -87,7 +87,7 @@ class PaymentWidget extends KDView
     paymentController.setPaymentInfo 'user', callback
 
   confirmSubscription: (callback) ->
-    @fetchPlan (err, plan) ->
+    @fetchPlan (err, plan) =>
 
       title     = plan.title
       price     = plan.feeAmount / 100
@@ -100,7 +100,7 @@ class PaymentWidget extends KDView
 
       content = """<div>Are you sure you want to buy to this product?</div>
                   <br/>
-                  <div>#{title} - $#{price.toFixed(2)} #{description}</div>
+                  <div>#{title} - #{@utils.formatMoney price} #{description}</div>
                   <br/>
                 """
 

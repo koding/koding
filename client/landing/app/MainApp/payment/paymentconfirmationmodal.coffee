@@ -2,7 +2,7 @@ class PaymentConfirmationModal extends KDModalView
 
   paymentWarning: do->
 
-    formatMoney = (amount)-> (amount / 100).toFixed 2
+    { formatMoney } = KD.utils
     # TODO: Refactor this
     (balance, amount, subscription, type)->
       content = ""
@@ -14,14 +14,14 @@ class PaymentConfirmationModal extends KDModalView
           content += "<p>You have a canceled subscription for #{subscription.quantity} x VM(s).
                       To add a new VM, you should re-activate your subscription.</p>"
           if balance > 0
-            content += "<p>You also have $#{formatMoney balance} credited to your account.</p>"
+            content += "<p>You also have #{formatMoney balance} credited to your account.</p>"
         else if amount is 0
           content += "<p>You are already subscribed for an extra VM.</p>"
         else if balance > 0
-          content += "<p>You have $#{formatMoney balance} credited to your account.</p>"
+          content += "<p>You have #{formatMoney balance} credited to your account.</p>"
 
         if chargeAmount > 0
-          content += "<p>You will be charged $#{formatMoney chargeAmount}.</p>"
+          content += "<p>You will be charged #{formatMoney chargeAmount}.</p>"
         else
           content += "<p>You won't be charged for this VM.</p>"
       else
@@ -29,14 +29,14 @@ class PaymentConfirmationModal extends KDModalView
           content += "<p>Your group has a canceled subscription for #{subscription.quantity} x VM(s).
                       To add a new VM, you should re-activate its subscription.</p>"
           if balance > 0
-            content += "<p>Your group also has $#{formatMoney balance} credited to its account.</p>"
+            content += "<p>Your group also has #{formatMoney balance} credited to its account.</p>"
         else if amount is 0
           content += "<p>Your group is already subscribed for an extra VM.</p>"
         else if balance > 0
-          content += "<p>Your group has $#{formatMoney balance} credited to its account.</p>"
+          content += "<p>Your group has #{formatMoney balance} credited to its account.</p>"
 
         if chargeAmount > 0
-          content += "<p>Your group will be charged $#{formatMoney chargeAmount}.</p>"
+          content += "<p>Your group will be charged #{formatMoney chargeAmount}.</p>"
         else
           content += "<p>Your group won't be charged for this VM.</p>"
 

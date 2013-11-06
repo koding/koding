@@ -15,7 +15,7 @@ class DomainBuyForm extends CommonDomainCreateForm
     listView.on 'BuyButtonClicked', (item) =>
       {price, domain} = item.getData()
       year  =  item.yearBox.getValue()
-      price = (year * price).toFixed 2
+      price = @utils.formatMoney year * price
       modal = new DomainBuyModal
         domain      : domain
         confirmForm : new DomainBuyConfirmForm { domain, year, price }

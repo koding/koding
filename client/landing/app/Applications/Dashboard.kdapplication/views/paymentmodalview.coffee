@@ -67,7 +67,7 @@ class GroupPaymentHistoryListController extends KDListViewController
             continue
           transactions.push
             status     : t.status
-            amount     : ((t.amount + t.tax) / 100).toFixed(2)
+            amount     : @utils.formatMoney (t.amount + t.tax) / 100
             currency   : 'USD'
             createdAt  : t.createdAt
             paidVia    : t.card or ""
