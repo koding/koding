@@ -56,6 +56,7 @@ class PaymentWorkflow extends KDView
               chosenMethod = methodsByPaymentMethodId[paymentMethodId]
               @choiceForm.addCustomData 'paymentMethod', chosenMethod
 
+
           paymentField.addSubView select
 
   addAggregateData: (formData) ->
@@ -116,23 +117,45 @@ class PaymentWorkflow extends KDView
         confirmData.planInfo = @currentPlan
         @confirmForm.show()
 
-  viewAppended: ->
-    { @productForm } = @getOptions()
-    @addSubView @productForm  if @productForm?
+  viewAppended:-> @prepareWorkflow()
 
+  prepareWorkflow: ->
+    # "product form" can be used for collecting some product-related data
+    # before the payment method collection/selection process begins.  If you
+    # use this feature, make sure to emit the "DataCollected" event with any
+    # data that you want aggregated (that you want to be able to access from
+    # the "PaymentConfirmed" listeners).
+    { @productForm } = @getOptions()
+
+    if @productForm?
+      @addSubView @productForm
+      @productForm.on 'DataCollected', (productData) =>
+        @addAggregateData { productData }
+        @preparePaymentMethods()
+
+    # "choice form" is for choosing from existing payment methods on-file.
     @choiceForm = @createChoiceForm()
     @addSubView @choiceForm
 
+    # "entry form" is for entering a new payment method for us to file.
     @entryForm = @createEntryForm()
     @addSubView @entryForm
 
+    # "confirm form" is required.  This form should render a summary, and emit
+    # a "PaymentConfirmed" after user approval.
     { @confirmForm } = @getOptions()
     @addSubView @confirmForm
 
     @confirmForm.on 'PaymentConfirmed', =>
+      # You should listen to the "PaymentConfirmed" event from outside the
+      # workflow.  We'll forward a result like:
+      #   { paymentMethodId, productData* }
+      # * "productData" is the data that you emitted from the product form.
       @emit 'PaymentConfirmed', @aggregatedData
 
+    # if provided, show the product form, otherwise skip to payment methods.
     if @productForm?
-      @setState 'product'
-    else
-      @preparePaymentMethods()
+    then @setState 'product'
+    else @preparePaymentMethods()
+
+    return this
