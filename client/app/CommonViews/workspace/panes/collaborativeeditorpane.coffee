@@ -61,6 +61,8 @@ class CollaborativeEditorPane extends CollaborativePane
   createEditor: ->
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
+      scrollPastEnd   : yes
+      mode            : "htmlmixed"
       extraKeys       :
         "Cmd-S"       : @bound "save"
         "Ctrl-S"      : @bound "save"
@@ -89,11 +91,10 @@ class CollaborativeEditorPane extends CollaborativePane
     syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
     modeName           = null
     corrections        =
-      html             : "xml"
+      html             : "htmlmixed"
       json             : "javascript"
       js               : "javascript"
       go               : "go"
-      txt              : "text"
 
     if corrections[fileExtension]
       modeName = corrections[fileExtension]

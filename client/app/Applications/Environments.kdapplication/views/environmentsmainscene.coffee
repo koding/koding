@@ -14,6 +14,7 @@ class EnvironmentsMainScene extends JView
 
     # Domain Creation form connections
     @domainCreateForm.on 'CloseClicked', =>
+      @unsetClass 'in-progress'
       @scene.unsetClass 'out'
       @domainCreateForm.unsetClass 'opened'
       @scene.off "click"
@@ -64,6 +65,7 @@ class EnvironmentsMainScene extends JView
         new KDNotificationView
           title: "You need to have at least one VM to manage domains."
 
+      @setClass 'in-progress'
       @scene.setClass 'out'
       @domainCreateForm.setClass 'opened'
       @domainCreateForm.emit 'DomainNameShouldFocus'

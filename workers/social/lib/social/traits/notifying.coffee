@@ -35,10 +35,6 @@ module.exports = class Notifying
         JMailNotification.create {actor, receiver, event, contents}, (err)->
           console.error err if err
 
-      if receiver instanceof JAccount and receiver.type isnt 'unregistered'
-        JMailNotification.create {actor, receiver, event, contents}, (err)->
-          console.error err if err
-
     if actor? and not receiver.getId().equals actor.id
       receiver?.sendNotification? event, contents
 
@@ -46,7 +42,8 @@ module.exports = class Notifying
       # do not send mail notification for koding group
       # return if koding
       subject = contents.subject
-      return  if subject and subject.constructorName is 'JGroup' and subject.slug is "koding"
+      return  if subject and subject.constructorName is 'JGroup' \
+                         and subject.slug is "koding"
 
       do createActivity
       do sendNotification
