@@ -2,10 +2,11 @@ User-agent: *
 Disallow: /
 
 User-agent: Googlebot
+Disallow: /Account
 Disallow: /Login
 Disallow: /Logout
-Disallow: /Recover
 Disallow: /Register
+Disallow: /Recover
 Disallow: /Resend
 Disallow: /ResendToken
 Disallow: /Verify
