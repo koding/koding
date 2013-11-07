@@ -506,6 +506,17 @@ run =({configFile})->
     invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'webserver'
 
+task 'importDB', (options) ->
+  if options.configFile is 'vagrant'
+    (spawn 'bash', ['./vagrant/import.sh'])
+      .stdout
+        .on 'data', (it) ->
+          console.log "#{it}".rainbow
+        .on 'end', ->
+          console.log "Import is finished!".green
+          process.exit()
+  else
+    console.error "You should only run this task with -c vagrant".red
 
 task 'run', (options)->
   {configFile} = options
@@ -513,8 +524,11 @@ task 'run', (options)->
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
   if "vagrant" is options.configFile
-    (spawn 'bash', ['./vagrant/init.sh'])
-      .stdout.on 'data', (it) -> console.log "#{it}".rainbow
+    (spawn 'bash', ['./vagrant/needimport.sh'])
+      .stdout.on 'data', (it) ->
+        if "#{it}" is '1\n'
+          console.error "You need to run cake -c vagrant importDB".red
+          process.exit()
 
   oldIndex = nodePath.join __dirname, "website/index.html"
   if fs.existsSync oldIndex
