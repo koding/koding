@@ -605,9 +605,8 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "neelance",
-                  "fatihacet", "sent-hil", "kiwigeraint", "cihangirsavas",
-                  "fkadev", "arslan", "leventyalcin" ]
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
+                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin" ]
 
   userIsExempt: (callback)->
     console.log @isExempt, this
