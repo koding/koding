@@ -30,12 +30,11 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
 
     @paneStateRef.on "value", (snapshot) =>
       state  = snapshot.val()
-      map    = @paneVisibilityState
       return unless state
 
       for own key, value of state
         pane = @getPaneByType key
-        if value is no then @hidePane pane, key, no else @showPane pane, key, no
+        if value is no then @hidePane pane, key else @showPane pane, key
 
   click: ->
     @toggleClass "active"
@@ -57,27 +56,22 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
     @["create#{paneKey.capitalize()}Pane"]()
 
   handleLaunch: (paneKey) ->
-    pane = @[paneKey]
+    pane = @getPaneByType paneKey
     if @lastActivePaneKey is paneKey
-      @hidePane pane, paneKey
+      @lastActivePaneKey = null
+      @updatePaneVisiblityState paneKey, no
     else
-      lastActivePane = @getPaneByType @lastActivePaneKey
-      @hidePane lastActivePane, paneKey, no if lastActivePane
-      @showPane pane, paneKey
+      @lastActivePaneKey = paneKey
+      @updatePaneVisiblityState paneKey, yes
 
-  hidePane: (pane, paneKey, writeToCloud = yes) ->
+  hidePane: (pane, paneKey) ->
     pane.unsetClass "active"
-    @lastActivePaneKey = null
-    @updatePaneVisiblityState paneKey, no if writeToCloud
 
-  showPane: (pane, paneKey, writeToCloud = yes) ->
+  showPane: (pane, paneKey) ->
     if paneKey is "chat"
       @chat.dock.emit "click"
-      return @updatePaneVisiblityState "chat", yes
-
-    pane.setClass "active"
-    @lastActivePaneKey = paneKey
-    @updatePaneVisiblityState paneKey, yes  if writeToCloud
+    else
+      pane.setClass "active"
 
   updatePaneVisiblityState: (paneKey, value) ->
     map          = @paneVisibilityState
@@ -92,6 +86,7 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       floating : yes
 
     @chat.on "WorkspaceChatClosed", =>
+      @lastActivePaneKey = null
       @updatePaneVisiblityState "chat", no
 
   createTerminalPane: ->
