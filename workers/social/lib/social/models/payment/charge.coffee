@@ -63,24 +63,27 @@ module.exports = class JPaymentCharge extends jraphical.Module
     , callback
 
   @charge = secure (client, data, callback)->
-    {delegate} = client.connection
-    userCode = "user_#{delegate._id}"
 
-    JPaymentToken.checkToken client,
-      planCode: "charge_#{data.planCode}_#{data.amount}"
-      pin: data.pin
-    , (err)=>
-      return callback err  if err
-      {amount, desc} = data
+    { paymentMethodId, feeAmount } = data
+    callback null, { 'stamp', paymentMethodId, feeAmount }
+    # {delegate} = client.connection
+    # userCode = "user_#{delegate._id}"
 
-      recurly.createTransaction userCode, {amount, desc}, (err, charge)=>
-        return callback err  if err
-        {uuid, amount, status} = charge
+    # JPaymentToken.checkToken client,
+    #   planCode: "charge_#{data.planCode}_#{data.amount}"
+    #   pin: data.pin
+    # , (err)=>
+    #   return callback err  if err
+    #   {amount, desc} = data
 
-        pay = new JPaymentCharge {uuid, userCode, amount, status}
-        pay.save (err)->
-          console.log 'transaction created', arguments
-          callback err, unless err then pay
+    #   recurly.createTransaction userCode, {amount, desc}, (err, charge)=>
+    #     return callback err  if err
+    #     {uuid, amount, status} = charge
+
+    #     pay = new JPaymentCharge {uuid, userCode, amount, status}
+    #     pay.save (err)->
+    #       console.log 'transaction created', arguments
+    #       callback err, unless err then pay
 
   cancel: secure ({connection:{client}}, callback)->
     userCode = "user_#{delegate._id}"
