@@ -90,5 +90,5 @@ module.exports = class JLocation extends Model
       mongo           : @getClient()
 
     importer
-      .once 'error', callback
-      .once 'end', => @importStates client, callback
+      .once('error', callback)
+      .once('end', => @importStates client, callback)
