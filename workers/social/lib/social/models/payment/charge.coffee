@@ -63,9 +63,21 @@ module.exports = class JPaymentCharge extends jraphical.Module
     , callback
 
   @charge = secure (client, data, callback)->
+    { connection: { delegate } } = client
+    JPaymentMethod = require './method'
 
-    { paymentMethodId, feeAmount } = data
-    callback null, { 'stamp', paymentMethodId, feeAmount }
+    { paymentMethodId, description, feeAmount } = data
+
+    JPaymentMethod.one { paymentMethodId }, (err, method) ->
+      return callback err  if err
+      delegate.hasTarget method, 'payment method', (err, hasTarget) ->
+        return callback err  if err
+        return callback { message: 'Access denied!' }  unless hasTarget
+
+        recurly.createTransaction paymentMethodId,
+          amount  : feeAmount
+          desc    : description
+        , callback
     # {delegate} = client.connection
     # userCode = "user_#{delegate._id}"
 

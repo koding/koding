@@ -29,9 +29,20 @@ class DomainBuyForm extends CommonDomainCreateForm
 
     { price, paymentMethodId, productData: address, year, domain } = options
     
-    feeAmount = price * 100 # cents
+    feeAmount = year * price * 100 # cents
 
-    JPaymentCharge.charge { feeAmount, paymentMethodId }, (err) ->
+    description = 
+      """
+      Domain name — #{domain} — #{@utils.formatPlural year, 'year'}
+      """
+
+    transactionOptions = {
+      feeAmount
+      paymentMethodId
+      description
+    }
+
+    JPaymentCharge.charge transactionOptions, (err) ->
       debugger
     # JPaymentCharge.charge options, -> debugger
 
