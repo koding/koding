@@ -65,11 +65,11 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"vm.start":     "Start",
-		"vm.stop":      "Stop",
-		"vm.prepare":   "Prepare",
-		"vm.unprepare": "Unprepare",
-		"vm.exec":      "Exec",
+		"start":     "Start",
+		"stop":      "Stop",
+		"prepare":   "Prepare",
+		"unprepare": "Unprepare",
+		"exec":      "Exec",
 	}
 
 	k = kite.New(options)
@@ -80,6 +80,11 @@ func main() {
 func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not start command. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
 	}
 
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
@@ -110,6 +115,11 @@ func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not stop command. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
 	}
 
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
@@ -143,6 +153,11 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 	var params struct {
 		ContainerName string
 		Command       string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not exec command. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
 	}
 
 	if r.Args.Unmarshal(&params) != nil || (params.ContainerName == "" && params.Command == "") {
@@ -187,6 +202,11 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 		ContainerName string
 	}
 
+	if r.Args == nil {
+		log.Error("[%s] could not unprepare vm. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
 		return errors.New("{ containerName: [string] }")
 	}
@@ -227,6 +247,11 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not prepare vm. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
 	}
 
 	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
