@@ -497,9 +497,10 @@ module.exports = class JVM extends Module
     addVm = ({ account, target, user, sudo, groups, groupSlug
                type, planCode, planOwner, webHome })->
 
+      nickname = account.profile.nickname or user.username
       uid = 0
       hostnameAliases = JVM.createAliases {
-        nickname : user.username
+        nickname
         type, uid, groupSlug
       }
 
@@ -527,7 +528,7 @@ module.exports = class JVM extends Module
                                {users, groups, hostnameAlias}
 
         JVM.ensureDomainSettings \
-          {account, vm, type, nickname:user.username, groupSlug}
+          {account, vm, type, nickname, groupSlug}
         # JVM.createDomains account, hostnameAliases, hostnameAlias
         target.addVm vm, handleError
 
