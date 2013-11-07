@@ -5,6 +5,7 @@ class Kontrol extends KDObject
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
   kontrolEndpoint = "http://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/query"
+  SubscribePrefix = "kite"
 
   constructor: (options)->
     super
@@ -46,7 +47,6 @@ class Kontrol extends KDObject
     @subscribe()
 
   onClose: (evt) ->
-    log "Disconnected from #{@addr}, trying to reconnect"
     @readyState = CLOSED
 
   onMessage: (evt) ->
@@ -75,7 +75,7 @@ class Kontrol extends KDObject
     @send
       name: "subscribe"
       args:
-        key: "kite.start.#{KD.nick()}"
+        key: "#{SubscribePrefix}.#{KD.nick()}"
 
   send: (data) ->
     @ready =>
