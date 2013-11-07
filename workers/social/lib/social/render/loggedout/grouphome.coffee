@@ -1,4 +1,6 @@
 module.exports = (options, callback)->
+  {argv} = require 'optimist'
+  {uri} = require('koding-config-manager').load("main.#{argv.c}")
 
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
@@ -12,6 +14,10 @@ module.exports = (options, callback)->
     bongoModels, client
   } = options
 
+  if uri?.address and slug
+    shareUrl = uri.address + "/" + slug
+  shareUrl or= "https://koding.com"
+
   prepareHTML  = (scripts)->
     """
     <!DOCTYPE html>
@@ -19,7 +25,7 @@ module.exports = (options, callback)->
     <head>
       <title>#{encoder.XSSEncode title}</title>
       #{getStyles()}
-      #{getGraphMeta()}
+      #{getGraphMeta title: title, shareUrl: shareUrl, body: body}
     </head>
     <body class="group">
 
