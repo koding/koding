@@ -16,6 +16,15 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         if environmentManifest
           @workspaceRef.child("environmentManifest").set environmentManifest
 
+      @hidePlaygroundsButton()  unless @amIHost()
+
+      usersRef = @workspaceRef.child "users"
+
+      usersRef.on "child_added", (snapshot) =>
+        joinedUser = snapshot.name()
+        return if not joinedUser or joinedUser is KD.nick()
+        @hidePlaygroundsButton()
+
   createLoader: ->
     @container.addSubView @loader = new KDCustomHTMLView
       cssClass   : "teamwork-loader"
@@ -75,6 +84,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
   handleRun: (panel) ->
     console.warn "You should override this method."
+
+  hidePlaygroundsButton: ->
+    @getActivePanel().headerButtons.Playgrounds?.hide()
 
   showHintModal: ->
     if @markdownContent

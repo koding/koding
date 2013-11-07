@@ -157,7 +157,7 @@ module.exports = class JVM extends Module
     domain = 'kd.io'
     if type in ['user', 'expensed']
       requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
-      if groupSlug is 'koding'
+      if groupSlug in ['koding', 'guests']
         requiredDomains.push "#{nickname}.#{domain}"
     else
       requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
@@ -169,7 +169,7 @@ module.exports = class JVM extends Module
     if type in ['user', 'expensed']
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
-      if groupSlug is 'koding'
+      if groupSlug in ['koding', 'guests']
         aliases.push "#{nickname}.#{domain}"  if uid is 0
         aliases.push "vm-#{uid}.#{nickname}.#{domain}"
       aliases.push "vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"
@@ -502,9 +502,10 @@ module.exports = class JVM extends Module
     addVm = ({ account, target, user, sudo, groups, groupSlug
                type, planCode, planOwner, webHome })->
 
+      nickname = account.profile.nickname or user.username
       uid = 0
       hostnameAliases = JVM.createAliases {
-        nickname : user.username
+        nickname
         type, uid, groupSlug
       }
 
@@ -532,7 +533,9 @@ module.exports = class JVM extends Module
           return console.warn "Failed to create VM for ", \
                                {users, groups, hostnameAlias}
 
-        JVM.createDomains account, hostnameAliases, hostnameAlias
+        JVM.ensureDomainSettings \
+          {account, vm, type, nickname, groupSlug}
+        # JVM.createDomains account, hostnameAliases, hostnameAlias
         target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]

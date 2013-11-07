@@ -137,25 +137,31 @@ module.exports =
             model = models.first if models and Array.isArray models
             return res.send 404, error_404() unless model
 
-            model?.fetchRelativeComments limit:3, after:"", (error, comments)=>
 
-              queue = [0..comments.length].map (index)=>=>
-                comment = comments[index]
-                if comment?.data
-                  # Get comments authors, put comment info into commentSummaries
-                  decorateComment JAccount, comment, (commentSummary, error)=>
-                    queue.next() if error
-                    queue.commentSummaries or= []
-                    if commentSummary.body
-                      queue.commentSummaries.push commentSummary
-                    queue.next()
-                else queue.next()
-              queue.push =>
-                createActivityContent JAccount, models, \
-                  queue.commentSummaries, section, (content, error)=>
-                    queue.next() if error
-                    return res.send 200, content
-              daisy queue
+            if typeof model.fetchRelativeComments is "function"
+              model?.fetchRelativeComments? limit:3, after:"", (error, comments)=>
+                queue = [0..comments.length].map (index)=>=>
+                  comment = comments[index]
+                  if comment?.data
+                    # Get comments authors, put comment info into commentSummaries
+                    decorateComment JAccount, comment, (commentSummary, error)=>
+                      queue.next() if error
+                      queue.commentSummaries or= []
+                      if commentSummary.body
+                        queue.commentSummaries.push commentSummary
+                      queue.next()
+                  else queue.next()
+                queue.push =>
+                  createActivityContent JAccount, models, \
+                    queue.commentSummaries, section, (content, error)=>
+                      queue.next() if error
+                      return res.send 200, content
+                daisy queue
+            else
+              createActivityContent JAccount, models, \
+                {}, section, (content, error)=>
+                  queue.next() if error
+                  return res.send 200, content
       else
         return res.send 404, error_404("No section is given.")
     else
