@@ -27,26 +27,34 @@ class DomainBuyForm extends CommonDomainCreateForm
         @buyDomain { domain, year, price, paymentMethodId, productData }
 
   buyDomain: (options) ->
-    { JPaymentCharge } = KD.remote.api
+    { JDomain } = KD.remote.api
 
     { price, paymentMethodId, productData: address, year, domain } = options
     
-    feeAmount = year * price * 100 # cents
+    # warning: floating point arithmetic is not associative:
+
+    priceInCents = price * 100 # cents
+    
+    feeAmount = priceInCents * year
 
     description = 
       """
       Domain name — #{domain} — #{@utils.formatPlural year, 'year'}
       """
 
-    transactionOptions = {
-      feeAmount
-      paymentMethodId
-      description
+    options = {
+      domain
+      year
+      address
+      transaction: {
+        feeAmount
+        paymentMethodId
+        description
+      }
     }
 
-    JPaymentCharge.charge transactionOptions, (err) ->
+    JDomain.registerDomain options, (err) ->
       debugger
-    # JPaymentCharge.charge options, -> debugger
 
   viewAppended:->
     tldList = []
