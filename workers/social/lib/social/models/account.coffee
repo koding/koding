@@ -605,9 +605,8 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "neelance",
-                  "fatihacet", "sent-hil", "kiwigeraint", "cihangirsavas",
-                  "fkadev", "arslan", "leventyalcin" ]
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
+                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin" ]
 
   userIsExempt: (callback)->
     console.log @isExempt, this
@@ -1100,7 +1099,8 @@ module.exports = class JAccount extends jraphical.Module
           # so we are filtering them here.
           domainList = domains.filter (domain)->
             domainName = domain.domain
-            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
+            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and \
+            !(/(.*)\.(koding|guests)\.kd\.io$/.test domainName)
 
         callback err, domainList
 

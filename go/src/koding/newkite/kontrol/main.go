@@ -6,14 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/op/go-logging"
+	logging "github.com/op/go-logging"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/messaging/moh"
 	"koding/newkite/kodingkey"
 	"koding/newkite/protocol"
 	"koding/newkite/token"
-	"koding/newkite/utils"
 	"koding/tools/config"
 	stdlog "log"
 	"net"
@@ -80,6 +79,8 @@ var (
 	dependency Dependency
 )
 
+const SubscribePrefix = "kite."
+
 func main() {
 	hostname, _ := os.Hostname()
 
@@ -118,7 +119,7 @@ func (k *Kontrol) Start() {
 	go k.heartBeatChecker()
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", homeHandler).Methods("GET")
-	rout.HandleFunc("/request", prepareHandler(requestHandler)).Methods("POST")
+	rout.HandleFunc("/query", errHandler(queryHandler)).Methods("POST")
 	rout.Handle(moh.DefaultReplierPath, k.Replier)
 	rout.Handle(moh.DefaultPublisherPath, k.Publisher)
 	http.Handle("/", rout)
@@ -141,7 +142,7 @@ func (k *Kontrol) ping() {
 		Type: protocol.Ping,
 	}
 	msg, _ := json.Marshal(&m)
-	k.Publish("all", msg)
+	k.Publisher.Broadcast(msg)
 }
 
 // HeartBeat pool checker. Checking for kites if they are live or dead.
@@ -193,7 +194,7 @@ func (k *Kontrol) heartBeatChecker() {
 				k.Publish(c.ID, stoppedMsgBytes)
 			}
 
-			k.Publish("kite.start."+kite.Username, stoppedMsgBytes)
+			k.Publish(SubscribePrefix+kite.Username, stoppedMsgBytes)
 
 			// Am I the latest of my kind ? if yes remove me from the dependencies list
 			// and remove any tokens if I have some
@@ -305,7 +306,7 @@ func (k *Kontrol) handleRegister(httpReq *http.Request, req *protocol.KiteToKont
 	k.Publish(req.Kite.ID, msg)
 
 	// notify browser clients ...
-	k.Publish("kite.start."+kite.Username, msg)
+	k.Publish(SubscribePrefix+kite.Username, msg)
 
 	// then notify dependencies of this kite, if any available
 	k.NotifyDependencies(kite)
@@ -539,48 +540,30 @@ func findUsernameFromSessionID(c *websocket.Config, r *http.Request) (string, er
 	if err != nil {
 		return "", err
 	}
-	log.Info("Websocket is authenticated as:", session.Username)
+	log.Info("Websocket is authenticated as: %s", session.Username)
 
 	return session.Username, nil
 }
 
 func validateCommand(username string, cmd *moh.SubscriberCommand) bool {
-	if cmd.Name != "subscribe" || cmd.Name != "unsubscribe" {
+	// Return if incoming is not one of subscribe or unsubscribe
+	if cmd.Name != "subscribe" && cmd.Name != "unsubscribe" {
 		return true
 	}
 
 	key := cmd.Args["key"].(string)
 
-	if !strings.HasPrefix(key, "kite.start.") {
+	// if it has doesn't have prefix let im trough
+	if !strings.HasPrefix(key, SubscribePrefix) {
 		return true
 	}
-	if strings.TrimPrefix(key, "kite.start.") != username {
+
+	// now check if "kite.usernamefield" really is the same with the requester
+	// username. Users shouldn't be able subscribe to other people's kites.
+	// the `username` is fetched via websocket protocol authentication.
+	if strings.TrimPrefix(key, SubscribePrefix) != username {
 		return false
 	}
 
 	return true
-}
-
-func addToProxy(kite *models.Kite) {
-	err := utils.IsServerAlive(kite.Addr())
-	if err != nil {
-		log.Info("server not reachable: %s (%s)", kite.Addr(), err.Error())
-	} else {
-		log.Info("checking ok..", kite.Addr())
-	}
-
-	err = modelhelper.UpsertKey(
-		kite.Username,     // username
-		"",                // persistence, empty means disabled
-		"",                // loadbalancing mode, empty means direct
-		kite.Name,         // servicename
-		kite.Version,      // key
-		kite.Addr(),       // host
-		"FromKontrolKite", // hostdata
-		"",                // rabbitkey, not used currently
-	)
-	if err != nil {
-		log.Info("err")
-	}
-
 }

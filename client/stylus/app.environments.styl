@@ -21,6 +21,7 @@ app.environments.styl
     float              right
 
 .environment-content
+
   .domains-no-record
     text-align         center
     padding            20px
@@ -28,10 +29,13 @@ app.environments.styl
     font-size          18px
     color              #aaa
     text-shadow        0 1px 0 #fff
+
   .formline
     border              none
+
   .formline.suggestionbox
     padding-top         0
+
   .formline.domainname
     padding-left        25px
     input.text
@@ -58,6 +62,10 @@ app.environments.styl
 
       > *
         margin-right    10px
+
+  &.in-progress
+    .new-item-plus
+      display           none !important
 
   h1.kdheaderview
     z-index               2

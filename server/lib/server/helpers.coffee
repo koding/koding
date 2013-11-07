@@ -113,9 +113,10 @@ isLoggedIn = (req, res, callback)->
       return callback null, no, {}  if err or not models?.first
       user = models.last
       user.fetchAccount "koding", (err, account)->
-        if err or account.type is 'unregistered'
-        then callback err, no, account
-        else callback null, yes, account
+        if err or not account or account.type is 'unregistered'
+          return callback err, no, account
+
+        return callback null, yes, account
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback)->
   {JSession}                       = koding.models
