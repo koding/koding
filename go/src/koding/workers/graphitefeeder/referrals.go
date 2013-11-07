@@ -13,7 +13,7 @@ func init() {
 	registerAnalytic(numberOfInvitesSent)
 	registerAnalytic(numberOfReferrals)
 	registerAnalytic(numberOfReferralsToday)
-	registerAnalytic(numberOfReferralsWhoBecameMembers)
+	registerAnalytic(numberOfReferralsWhoBecameMembersToday)
 }
 
 func numberOfReferrableEmails() (string, int) {
@@ -79,13 +79,17 @@ func numberOfReferralsToday() (string, int) {
 	return identifier, count
 }
 
-func numberOfReferralsWhoBecameMembers() (string, int) {
-	var identifier string = "number_of_referrals_who_became_members"
+func numberOfReferralsWhoBecameMembersToday() (string, int) {
+	var identifier string = "number_of_referrals_who_became_members_today"
 
 	var results = make([]map[string]interface{}, 0)
 
 	var query = func(c *mgo.Collection) error {
-		var filter = bson.M{"invited": true}
+		var today = getTodayDate()
+		var filter = bson.M{"invited": true, "createdAt": bson.M{"$gte": today}}
+
+		log.Println(">>> get jReferrableEmails emails query \n", filter)
+
 		var err = c.Find(filter).All(&results)
 
 		return err
@@ -109,6 +113,9 @@ func numberOfReferralsWhoBecameMembers() (string, int) {
 				"registeredAt": bson.M{"$gte": createdAtTime},
 				"email":        item["email"].(string),
 			}
+
+			log.Println(">>> get user query", filter)
+
 			count, err = c.Find(filter).Count()
 			totalCount += count
 
