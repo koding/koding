@@ -4,7 +4,7 @@ class Kontrol extends KDObject
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
-  kontrolEndpoint = "http://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/request"
+  kontrolEndpoint = "http://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/query"
 
   constructor: (options)->
     super
@@ -13,9 +13,10 @@ class Kontrol extends KDObject
     @connect()
 
   getKites: (kitename, callback)->
+    # find kites that belongs to username.
     queryData =
       username       : "#{KD.nick()}"
-      kitename       : kitename
+      name           : kitename
       authentication :
         type         : "browser"
         key          : KD.remote.getSessionToken()
