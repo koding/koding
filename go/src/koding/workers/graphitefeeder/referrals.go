@@ -85,10 +85,10 @@ func numberOfReferralsWhoBecameMembersToday() (string, int) {
 	var results = make([]map[string]interface{}, 0)
 
 	var query = func(c *mgo.Collection) error {
-		var today = getTodayDate()
-		var filter = bson.M{"invited": true, "createdAt": bson.M{"$gte": today}}
+		var november = time.Date(2013, time.November, 1, 0, 0, 0, 0, time.Local)
+		var filter = bson.M{"invited": true, "createdAt": bson.M{"$gte": november}}
 
-		log.Println(">>> get jReferrableEmails emails query \n", filter)
+		log.Println(">>> november query", filter)
 
 		var err = c.Find(filter).All(&results)
 
@@ -113,8 +113,6 @@ func numberOfReferralsWhoBecameMembersToday() (string, int) {
 				"registeredAt": bson.M{"$gte": createdAtTime},
 				"email":        item["email"].(string),
 			}
-
-			log.Println(">>> get user query", filter)
 
 			count, err = c.Find(filter).Count()
 			totalCount += count
