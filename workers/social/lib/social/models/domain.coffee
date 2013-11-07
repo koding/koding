@@ -226,78 +226,48 @@ module.exports = class JDomain extends jraphical.Module
           return
 
         # Make transaction
-        @makeTransaction client, data, (err, charge)=>
+        @makeTransaction client, data.transaction, (err, charge)=>
           return callback err  if err
 
           console.log "Transaction is done."
 
-          domainManager.domainService.registerDomain params, (err, data)->
+          domainManager.domainService.registerDomain params, (err, response)->
 
-            console.log "ResellerAPI response:", err, data
+            console.log "ResellerAPI response:", err, response
 
             if err
               return charge.cancel client, ->
                 callback err, data
 
-            if data.actionstatus is "Success"
+            if response.actionstatus is "Success"
 
               console.log "Creating new JDomain..."
               model = new JDomain
-                domain         : data.description
+                domain         : response.description
                 hostnameAlias  : []
                 regYears       : params.years
                 orderId        :
-                  resellerClub : data.entityid
+                  resellerClub : response.entityid
                 loadBalancer   :
                   mode         : "" # "roundrobin"
                 domainType     : "new"
 
               model.save (err) ->
-
                 return callback err if err
 
-                # Why are adding this manually? ~ GG
-                account = client.connection.delegate
-                rel = new Relationship
-                  targetId    : model.getId()
-                  targetName  : 'JDomain'
-                  sourceId    : account.getId()
-                  sourceName  : 'JAccount'
-                  as          : 'owner'
+                { delegate } = client.connection
 
-                rel.save (err)->
+                delegate.addDomain model, (err) ->
                   return callback err if err
 
-                callback err, model
+                  callback err, model
 
             else
               callback {message: "Domain registration failed"}
 
-  @makeTransaction: (client, data, callback)->
-#
-#    {delegate} = client.connection
-#    {nickname} = delegate.profile
-#
-#    if nickname in ['devrim', 'chris', 'gokmen']
-#      console.log "#{nickname} made a test transaction for #{data.domain} (#{data.year} year/s)"
-#      console.log "we charged him $#{data.price} ...."
-#      callback null,
-#        cancel :->
-#          console.log "Payment cancelled..."
-#    else
-#      console.log message = "Transaction is not valid."
-#      callback {message}
-
+  @makeTransaction: secure (client, data, callback)->
     JPaymentCharge = require './payment/charge'
-    
-    amount = 10 * 10 * data.years
-    
-    JPaymentCharge.charge client,
-      code   : 'domain_abc'
-      amount : amount
-      desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"
-    , (err) ->
-      console.log { arguments }
+    JPaymentCharge.charge client, data, callback
 
   bound: require 'koding-bound'
 
