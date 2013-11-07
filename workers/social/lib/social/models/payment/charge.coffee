@@ -15,26 +15,29 @@ module.exports = class JPaymentCharge extends jraphical.Module
 
   @set
     indexes:
-      uuid         : 'unique'
-    sharedMethods  :
-      static       : [
+      uuid            : 'unique'
+    sharedMethods     :
+      static          : [
         # TODO: this is a really big WTF, and needs to be removed:
-        'all', 'one', 'some',
-        'getToken', 'charge', 'getCharges'
+        'all'
+        'one'
+        'some'
+        'charge'
+        'fetchToken'
+        'fetchCharges'
       ]
-      instance     : ['cancel']
-    schema         :
-      uuid         : String
-      userCode     : String
-      amount       : Number
-      status       : String
-      lastUpdate   : Number
+      instance        : [
+        'cancel'
+      ]
+    schema            :
+      uuid            : String
+      paymentMethodId : String
+      amount          : Number
+      status          : String
+      lastUpdate      : Number
 
-  @getCharges = secure (client, callback)->
-    {delegate} = client.connection
-    selector = userCode : "user_#{delegate._id}"
-
-    JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
+  @fetchCharges = secure (client, callback)->
+    callback { message: 'Not implemented!' }
 
   @updateCache = (selector, callback)->
     JPayment.updateCache
@@ -56,28 +59,42 @@ module.exports = class JPaymentCharge extends jraphical.Module
         charge.save stackCb
     , callback
 
-  @getToken = secure (client, data, callback)->
-    {delegate} = client.connection
-    JPaymentToken.createToken client,
-      planCode: "charge_#{data.planCode}_#{data.amount}"
-    , callback
+  @fetchToken = secure (client, data, callback)->
+    callback { message: 'Not implemented!' }
 
   @charge = secure (client, data, callback)->
     { connection: { delegate } } = client
-    JPaymentMethod = require './method'
-
+    
     { paymentMethodId, description, feeAmount } = data
 
-    JPaymentMethod.one { paymentMethodId }, (err, method) ->
+    (require './method').one { paymentMethodId }, (err, method) =>
       return callback err  if err
-      delegate.hasTarget method, 'payment method', (err, hasTarget) ->
+      return callback {
+        message: "Unknown payment method! #{paymentMethodId}"
+      }  unless method?
+
+      delegate.hasTarget method, 'payment method', (err, hasTarget) =>
         return callback err  if err
-        return callback { message: 'Access denied!' }  unless hasTarget
+        return callback {
+          message: 'You are not authorized to use this payment method!'
+        }  unless hasTarget
 
         recurly.createTransaction paymentMethodId,
           amount  : feeAmount
           desc    : description
-        , callback
+        , (err, transaction) =>
+          return callback err  if err
+
+          charge = new this {
+            uuid: transaction.uuid
+            paymentMethodId
+            amount: feeAmount
+            status: transaction.status
+          }
+          charge.save (err) ->
+            return callback err  if err
+
+            callback null, charge
     # {delegate} = client.connection
     # userCode = "user_#{delegate._id}"
 
@@ -97,10 +114,10 @@ module.exports = class JPaymentCharge extends jraphical.Module
     #       console.log 'transaction created', arguments
     #       callback err, unless err then pay
 
-  cancel: secure ({connection:{client}}, callback)->
-    userCode = "user_#{delegate._id}"
-    recurly.deleteTransaction userCode, {@uuid, @amount}, (err, charge)=>
-      return callback err  if err
+  cancel: secure ({ connection:{ client } }, callback)->
+    recurly.deleteTransaction @paymentMethodId, {@uuid, @amount},
+      (err, charge) =>
+        return callback err  if err
 
-      @status = charge.status
-      @save (err)-> callback err, this
+        @status = charge.status
+        @save (err)-> callback err, this
