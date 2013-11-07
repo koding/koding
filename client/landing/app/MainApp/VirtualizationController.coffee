@@ -363,7 +363,7 @@ class VirtualizationController extends KDController
 
       paymentInput = {}
 
-      modal = new BuyVmModal { descriptions, hostTypes, descPartial, plans }
+      modal = new VmBuyModal { descriptions, hostTypes, descPartial, plans }
 
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
