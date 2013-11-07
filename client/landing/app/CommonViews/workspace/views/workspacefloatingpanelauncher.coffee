@@ -106,11 +106,12 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       delegate   : @panel
       sessionKey : @sessionKeys.terminal
 
-    @terminalPane.webterm.on "WebTermConnected", =>
-      @keysRef.child("terminal").set
-        key    : @terminalPane.remote.session
-        host   : KD.nick()
-        vmName : KD.getSingleton("vmController").defaultVmName
+    if @workspace.amIHost()
+      @terminalPane.webterm.on "WebTermConnected", =>
+        @keysRef.child("terminal").set
+          key    : @terminalPane.remote.session
+          host   : KD.nick()
+          vmName : KD.getSingleton("vmController").defaultVmName
 
   createPreviewPane: ->
     @container.addSubView @preview = new KDView
