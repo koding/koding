@@ -511,7 +511,7 @@ task 'importDB', (options) ->
     (spawn 'bash', ['./vagrant/import.sh'])
       .stdout
         .on 'data', (it) ->
-          console.log "#{it}".rainbow
+          console.log "#{it}"
         .on 'end', ->
           console.log "Import is finished!".green
           process.exit()
