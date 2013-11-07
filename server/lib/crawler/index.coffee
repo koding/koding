@@ -41,9 +41,23 @@ decorateComment = (JAccount, comment, callback) ->
       if err
         console.error err
         callback null, err
-      commentSummary.authorName = acc.data.profile.firstName + " "
-      commentSummary.authorName += acc.data.profile.lastName
+      commentSummary.authorName = getFullName acc
       callback commentSummary, null
+
+getFullName = (account) ->
+  fullName = "A koding user"
+  if account?.data?.profile?.firstName?
+    fullName = account.data.profile.firstName + " "
+
+  if account?.data?.profile?.lastName?
+    fullName += account.data.profile.lastName
+  return fullName
+
+getUserHash = (account) ->
+  hash = ""
+  if account?.data?.profile?.hash?
+    hash = account.data.profile.hash
+  return hash
 
 createActivityContent = (JAccount, models, comments, section, callback) ->
   model = models.first if models and Array.isArray models
@@ -80,16 +94,9 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
           console.error err
           callback null, err
 
-        fullName = "A koding user"
-        if acc?.data?.profile?.firstName
-          fullName = acc.data.profile.firstName + " "
+        fullName = getFullName acc
 
-        if acc?.data?.profile?.lastName
-          fullName += acc.data.profile.lastName
-
-        hash = ""
-        if acc?.data?.profile?.hash
-          hash = acc.data.profile.hash
+        hash = getUserHash acc
 
         activityContent = {
           fullName : fullName
