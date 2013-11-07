@@ -36,6 +36,8 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
         pane = @getPaneByType key
         if value is no then @hidePane pane, key else @showPane pane, key
 
+      @resizePanes state
+
   click: ->
     @toggleClass "active"
 
@@ -127,6 +129,33 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       @keysRef.child("preview").set @previewPane.sessionKey
 
     @preview.addSubView @previewPane
+
+  resizePanes: (state) ->
+    activePanel = @workspace.getActivePanel()
+
+    unless activePanel
+      return @workspace.once "WorkspaceSyncedWithRemote", =>
+        @resizePanes state
+
+    finder = activePanel.getPaneByName "finder"
+    return unless finder
+
+    finderContainer   = finder.container
+    finderNeedsResize = no
+
+    for own key, value of state
+      if key isnt "chat" and value is yes
+        finderNeedsResize = yes
+
+    return if not finderNeedsResize and not @finderResized
+
+    if finderNeedsResize
+      return if @finderResized
+      finderContainer.setHeight finderContainer.getHeight() - 400
+      @finderResized = yes
+    else
+      finderContainer.setHeight finderContainer.getHeight() + 400
+      @finderResized = no
 
   getPaneByType: (type) ->
     return @[type] or null
