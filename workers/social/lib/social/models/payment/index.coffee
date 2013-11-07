@@ -99,11 +99,10 @@ module.exports = class JPayment extends Base
         cached = {}
         cached[cObj[keyField]] = cObj  for cObj in cachedObjs
 
-        keys    = all: Object.keys(all), cached: Object.keys(cached)
+        keys = all: Object.keys(all), cached: Object.keys(cached)
+        
         stackCb = (err) ->
-          if err
-          then callback err
-          else stack.fin()
+          stack.fin err
 
         stack =  keys.all.map (k) -> ->
           forEach k, cached[k], all[k], stackCb
