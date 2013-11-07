@@ -57,6 +57,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
     "as" : "author"
   }
 
+  return callback "", null unless typeof model.fetchTeaser is "function"
   model.fetchTeaser (error, teaser)=>
     tags = []
     if teaser?.tags?
