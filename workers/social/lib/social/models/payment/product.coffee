@@ -100,7 +100,7 @@ module.exports = class JPaymentProduct extends Module
 
       planData =
         planCode    : @planCode
-        title       : "#{ product.title } - Overage"
+        title       : "#{ @title } - Overage"
         feeAmount   : @feeAmount
         feeInterval : switch @subscriptionType
           when 'recurring' then 1
