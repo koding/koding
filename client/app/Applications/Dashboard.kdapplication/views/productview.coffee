@@ -9,7 +9,7 @@ class GroupProductView extends JView
 
     title     = product.title
     price     = @utils.formatMoney product.feeAmount / 100
-    fmtPrice  =
+    displayPrice  =
       if product.priceIsVolatile
       then '<span class="price-volatile">(price is volatile)</span>'
       else "<span class=\"price\">#{ price }</span>"
@@ -28,11 +28,11 @@ class GroupProductView extends JView
           else               "every #{ product.feeInterval } months"
       else '' # we don't support renewals by the day (yet)
 
-    { title, price, fmtPrice, subscriptionType }
+    { title, price, displayPrice, subscriptionType }
 
   pistachio: ->
-    { title, fmtPrice, subscriptionType } = @prepareData()
+    { title, displayPrice, subscriptionType } = @prepareData()
 
     """
-    #{title} — #{fmtPrice} #{subscriptionType}
+    #{title} — #{displayPrice} #{subscriptionType}
     """
