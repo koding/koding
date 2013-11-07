@@ -65,11 +65,11 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"vm.start":     "Start",
-		"vm.stop":      "Stop",
-		"vm.prepare":   "Prepare",
-		"vm.unprepare": "Unprepare",
-		"vm.exec":      "Exec",
+		"start":     "Start",
+		"stop":      "Stop",
+		"prepare":   "Prepare",
+		"unprepare": "Unprepare",
+		"exec":      "Exec",
 	}
 
 	k = kite.New(options)
@@ -78,10 +78,23 @@ func main() {
 }
 
 func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
-	vm, err := getVM(r.Hostname)
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not start command. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	vm, err := getVM(params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not get vm to start '%s'. err: '%s'",
-			r.Username, r.Hostname, err)
+			r.Username, params.ContainerName, err)
 		return errors.New("could not start vm - 1")
 	}
 
@@ -100,10 +113,23 @@ func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
 }
 
 func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
-	vm, err := getVM(r.Hostname)
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not stop command. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	vm, err := getVM(params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not get vm to stop '%s'. err: '%s'",
-			r.Username, r.Hostname, err)
+			r.Username, params.ContainerName, err)
 		return errors.New("could not stop vm - 1")
 	}
 
@@ -111,6 +137,7 @@ func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 
 	c := container.NewContainer(containerName)
 	err = c.Stop()
+
 	if err != nil {
 		log.Error("[%s] could not stop container: '%s'. err: '%s'", r.Username, containerName, err)
 		return errors.New("could not stop vm - 2")
@@ -123,23 +150,31 @@ func (p *Provisioning) Stop(r *protocol.KiteDnodeRequest, result *bool) error {
 }
 
 func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error {
-	var command string
+	var params struct {
+		ContainerName string
+		Command       string
+	}
 
-	if r.Args.Unmarshal(&command) != nil {
-		return errors.New("{ [string] }")
+	if r.Args == nil {
+		log.Error("[%s] could not exec command. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || (params.ContainerName == "" && params.Command == "") {
+		return errors.New("{ containerName: [string] , command: [string] }")
 	}
 
 	user, err := getUser(r.Username)
 	if err != nil {
 		log.Error("[%s] could not get user to exec a command on '%s'. err: '%s'",
-			r.Username, r.Hostname, err)
+			r.Username, params.ContainerName, err)
 		return errors.New("could not run command - 1")
 	}
 
-	vm, err := getVM(r.Hostname)
+	vm, err := getVM(params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not get vm to exec a command on '%s'. err: '%s'",
-			r.Username, r.Hostname, err)
+			r.Username, params.ContainerName, err)
 		return errors.New("could not run command - 2")
 	}
 
@@ -148,25 +183,38 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 	c := container.NewContainer(containerName)
 	c.Useruid = user.Uid
 
-	output, err := c.Run(command)
+	output, err := c.Run(params.Command)
 	if err != nil {
-		log.Error("[%s] could not exec a command on '%s'. err: '%s'", r.Username, r.Hostname, err)
+		log.Error("[%s] could not exec a command on '%s'. err: '%s'", r.Username, params.ContainerName, err)
 		return errors.New("could not run command - 3")
 	}
 
 	info := GetInfo(containerName)
 	info.ResetTimer()
-	log.Info("[%s] did run the command '%s' on container'%s'\n", r.Username, command, containerName)
+	log.Info("[%s] did run the command '%s' on container'%s'\n", r.Username, params.ContainerName, containerName)
 
 	*result = string(output)
 	return nil
 }
 
 func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) error {
-	vm, err := getVM(r.Hostname)
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not unprepare vm. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	vm, err := getVM(params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not get vm to unprepare '%s'. err: '%s'",
-			r.Username, r.Hostname, err)
+			r.Username, params.ContainerName, err)
 		return errors.New("could not unprepare vm - 1")
 	}
 
@@ -179,7 +227,7 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 		err = c.Shutdown(5)
 		if err != nil {
 			log.Error("[%s] could not shutdown vm for unprepare vm: '%s'. err: '%s'",
-				r.Username, r.Hostname, err)
+				r.Username, params.ContainerName, err)
 			return errors.New("could not unprepare vm - 2")
 		}
 	}
@@ -187,7 +235,7 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 	err = c.Unprepare()
 	if err != nil {
 		log.Error("[%s] could not unprepare vm: '%s'. err: '%s'",
-			r.Username, r.Hostname, err)
+			r.Username, params.ContainerName, err)
 		return errors.New("could not unprepare vm - 3")
 	}
 
@@ -197,10 +245,23 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 }
 
 func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
-	err := prepare(r.Username, r.Hostname)
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not prepare vm. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	err := prepare(r.Username, params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not prepare vm: '%s'. err: '%s'",
-			r.Username, r.Hostname, err)
+			r.Username, params.ContainerName, err)
 		return errors.New("could not prepare vm")
 	}
 

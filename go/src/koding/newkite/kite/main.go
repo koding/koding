@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/groupcache"
-	"github.com/op/go-logging"
+	logging "github.com/op/go-logging"
 	"io"
 	"koding/messaging/moh"
 	"koding/newkite/peers"
@@ -148,7 +148,6 @@ func New(options *protocol.Options) *Kite {
 
 	k.kontrolClient = moh.NewMessagingClient(options.KontrolAddr, k.handle)
 	k.kontrolClient.Subscribe(kiteID)
-	k.kontrolClient.Subscribe("all")
 
 	// Register our internal method
 	k.Methods["vm.info"] = "status.Info"
@@ -484,6 +483,10 @@ func (k *Kite) serveWS(ws *websocket.Conn) {
 	k.Server.ServeCodec(NewDnodeServerCodec(k, ws))
 }
 
+// OnDisconnect adds the given function to the list of the users callback list
+// which is called when the user is disconnected. There might be several
+// connections from one user to the kite, in that case the functions are
+// called only when all connections are closed.
 func (k *Kite) OnDisconnect(username string, f func()) {
 	addrs := k.clients.GetAddresses(username)
 	if addrs == nil {
