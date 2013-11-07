@@ -19,15 +19,15 @@ class DomainBuyConfirmForm extends KDFormViewWithFields
   viewAppended: ->
     { year, domain, price } = @getOptions()
 
-    s = if year > 1 then 's' else ''
+    yearFmt = @utils.formatPlural year, 'year', no
 
     @details = new KDView
       partial:
         """
-        <h3>Do you want to buy #{domain} for #{year} year#{s} ?</h3>
+        <h3>Do you want to buy #{domain} for #{year} #{yearFmt}?</h3>
         <div class='modalformline'>
           <p>You will be charged <b>#{price}</b> for registering
-          <b>#{domain}</b> domain for <b>#{year}</b> year#{s}.</p>
+          <b>#{domain}</b> domain for <b>#{year}</b> #{yearFmt}.</p>
         </div>
         """
 
