@@ -4,6 +4,8 @@ import (
 	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"log"
+	"time"
 )
 
 func init() {
@@ -11,6 +13,7 @@ func init() {
 	registerAnalytic(numberOfInvitesSent)
 	registerAnalytic(numberOfReferrals)
 	registerAnalytic(numberOfReferralsToday)
+	registerAnalytic(numberOfReferralsWhoBecameMembers)
 }
 
 func numberOfReferrableEmails() (string, int) {
@@ -74,4 +77,46 @@ func numberOfReferralsToday() (string, int) {
 	mongodb.Run("jReferrals", query)
 
 	return identifier, count
+}
+
+func numberOfReferralsWhoBecameMembers() (string, int) {
+	var identifier string = "number_of_referrals_who_became_members"
+
+	var results = make([]map[string]interface{}, 0)
+
+	var query = func(c *mgo.Collection) error {
+		var filter = bson.M{"invited": true}
+		var err = c.Find(filter).All(&results)
+
+		return err
+	}
+
+	mongodb.Run("jReferrableEmails", query)
+
+	var totalCount int
+	for _, item := range results {
+		var count int
+		var err error
+		var createdAtTime, ok = item["createdAt"].(time.Time)
+
+		if !ok {
+			log.Println("Unabled to get createdAtTime", item)
+			continue
+		}
+
+		query = func(c *mgo.Collection) error {
+			var filter = bson.M{
+				"registeredAt": bson.M{"$gte": createdAtTime},
+				"email":        item["email"].(string),
+			}
+			count, err = c.Find(filter).Count()
+			totalCount += count
+
+			return err
+		}
+
+		mongodb.Run("jUsers", query)
+	}
+
+	return identifier, totalCount
 }
