@@ -16,5 +16,6 @@ class PlanAdminControlsView extends ProductAdminControlsView
     {{> @clientsButton}}
     {{> @editButton}}
     {{> @addProductsButton}}
+    {{> @sortWeight}}
     {{> @embedView}}
     """

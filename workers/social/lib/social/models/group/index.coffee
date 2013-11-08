@@ -1571,9 +1571,15 @@ module.exports = class JGroup extends Module
           return callback err  if err
           callback null, paymentMethods[0]
 
-  fetchProducts$: (category, callback) ->
+  fetchProducts$: (category, options, callback) ->
+    [options, callback] = [callback, options]  unless callback
+    options ?= {}
+    { tag, tags } = options
+    if tag    then tags = [tag]
+    if tags   then selector = { tags }
+    options = targetOptions: options: sort: sortWeight: 1
     switch category
       when 'product'
-        @fetchProducts callback
+        @fetchProducts selector, options, callback
       when 'plan'
-        @fetchPlans callback
+        @fetchPlans selector, options, callback

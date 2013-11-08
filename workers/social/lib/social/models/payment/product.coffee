@@ -53,6 +53,7 @@ module.exports = class JPaymentProduct extends Module
         type          : String
         required      : yes
       tags            : (require './schema').tags
+      sortWeight      : Number
 
   @create = (group, formData, callback) ->
 

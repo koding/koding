@@ -71,6 +71,7 @@ module.exports = class JPaymentPlan extends Module
         type        : Object
         default     : -> {}
       tags          : (require './schema').tags
+      sortWeight    : Number
     relationships   :
       product       :
         targetType  : 'JPaymentProduct'
@@ -85,7 +86,7 @@ module.exports = class JPaymentPlan extends Module
 
     JGroup = require '../group'
 
-    { title, description, feeAmount, tags } = formData
+    { title, description, feeAmount, tags, sortWeight } = formData
 
     plan = new this {
       planCode    : createId()
@@ -96,6 +97,7 @@ module.exports = class JPaymentPlan extends Module
       feeInterval : 1
       group
       tags
+      sortWeight
     }
 
     plan.save (err) ->
