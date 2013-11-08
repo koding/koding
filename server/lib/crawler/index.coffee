@@ -34,15 +34,15 @@ decorateComment = (JAccount, comment, callback) ->
   Relationship.one selector, (err, rel) =>
     if err
       console.error err
-      callback null, err
+      callback err, null
     sel = { "_id" : rel.data.sourceId}
 
     JAccount.one sel, (err, acc) =>
       if err
         console.error err
-        callback null, err
+        callback err, null
       commentSummary.authorName = getFullName acc
-      callback commentSummary, null
+      callback null, commentSummary
 
 getFullName = (account) ->
   fullName = "A koding user"
@@ -62,7 +62,7 @@ getUserHash = (account) ->
 createActivityContent = (JAccount, models, comments, section, callback) ->
   model = models.first if models and Array.isArray models
   unless model
-    callback null, "JStatusUpdate cannot be found."
+    callback new Error "JStatusUpdate cannot be found.", null
   statusUpdateId = model.getId()
   jAccountId = model.data.originId
   selector =
@@ -71,7 +71,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
     "as" : "author"
   }
 
-  return callback "", null unless typeof model.fetchTeaser is "function"
+  return callback new Error "Cannot call fetchTeaser function.", null unless typeof model.fetchTeaser is "function"
   model.fetchTeaser (error, teaser)=>
     tags = []
     if teaser?.tags?
@@ -84,7 +84,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
     Relationship.one selector, (err, rel) =>
       if err
           console.error err
-          callback null, err
+          callback err, null
       sel =
       {
         "_id" : rel.data.targetId
@@ -92,7 +92,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
       JAccount.one sel, (err, acc) =>
         if err
           console.error err
-          callback null, err
+          callback err, null
 
         fullName = getFullName acc
 
@@ -112,7 +112,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
           type : model.bongo_?.constructorName
         }
         content = activity {activityContent, section, models}
-        callback content, null
+        callback null, content
 
 module.exports =
   crawl: (bongo, req, res, slug)->
@@ -152,7 +152,7 @@ module.exports =
                   comment = comments[index]
                   if comment?.data
                     # Get comments authors, put comment info into commentSummaries
-                    decorateComment JAccount, comment, (commentSummary, error)=>
+                    decorateComment JAccount, comment, (error, commentSummary)=>
                       queue.next() if error
                       queue.commentSummaries or= []
                       if commentSummary.body
@@ -161,13 +161,13 @@ module.exports =
                   else queue.next()
                 queue.push =>
                   createActivityContent JAccount, models, \
-                    queue.commentSummaries, section, (content, error)=>
+                    queue.commentSummaries, section, (error, content)=>
                       queue.next() if error
                       return res.send 200, content
                 daisy queue
             else
               createActivityContent JAccount, models, \
-                {}, section, (content, error)=>
+                {}, section, (error, content)=>
                   queue.next() if error
                   return res.send 200, content
       else
