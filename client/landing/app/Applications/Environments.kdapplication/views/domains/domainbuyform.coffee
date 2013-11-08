@@ -19,10 +19,11 @@ class DomainBuyForm extends CommonDomainCreateForm
       modal = new BuyModal
         title       : "Register <em>#{ domain }</em>"
         domain      : domain
-        productForm : new DomainProductForm
-        confirmForm : new DomainBuyConfirmForm {
-          domain, year, price: displayPrice
-        }
+        workflow    : new PaymentWorkflow
+          productForm : new DomainProductForm
+          confirmForm : new DomainBuyConfirmForm {
+            domain, year, price: displayPrice
+          }
 
       modal.on 'PaymentConfirmed', ({ productData, paymentMethodId }) =>
         @buyDomain { domain, year, price, paymentMethodId, productData }
