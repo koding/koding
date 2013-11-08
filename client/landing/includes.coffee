@@ -168,7 +168,6 @@ module.exports = [
   "app/MainApp/payment/buyvmconfirmview.coffee",
   "app/MainApp/payment/paymentworkflow.coffee",
   "app/MainApp/payment/buymodal.coffee",
-  "app/MainApp/payment/vmbuymodal.coffee",
 
   #maintabs
 
@@ -422,7 +421,6 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/domains/domainbuyconfirmform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/subdomaincreateform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
-  "app/Applications/Environments.kdapplication/views/domains/domainbuymodal.coffee",
 
   # "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   # "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",

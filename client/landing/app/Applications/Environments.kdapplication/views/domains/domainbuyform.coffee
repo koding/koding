@@ -16,7 +16,8 @@ class DomainBuyForm extends CommonDomainCreateForm
       {price, domain} = item.getData()
       year = +item.yearBox.getValue()
       displayPrice = @utils.formatMoney year * price
-      modal = new DomainBuyModal
+      modal = new BuyModal
+        title       : "Register <em>#{ domain }</em>"
         domain      : domain
         productForm : new DomainProductForm
         confirmForm : new DomainBuyConfirmForm {
