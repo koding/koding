@@ -8,7 +8,7 @@ class StartTabAppController extends AppController
     navItem      :
       title      : "Develop"
       path       : "/Develop"
-      order      : 50
+      order      : 10
     menu         : [
       { title    : "Make a new App", eventName : "makeANewApp" }
       { title    : "Refresh Apps",   eventName : "refreshApps" }
