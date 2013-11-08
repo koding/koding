@@ -1,6 +1,7 @@
 class LocationForm extends KDFormViewWithFields
 
   constructor: (options = {}, data = {}) ->
+    options.cssClass = KD.utils.curry 'location-form', options.cssClass
     super (@prepareOptions options, data), data
 
     # set up a loader for latency while we load the country list.
