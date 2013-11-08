@@ -27,7 +27,7 @@ class ActivityListHeader extends JView
 
     @liveUpdateButton = new KDOnOffSwitch
       defaultValue : off
-      title        : "Live Updates: "
+      inputLabel   : "Live Updates: "
       size         : "tiny"
       callback     : (state) =>
         @_togglePollForUpdates state
@@ -44,7 +44,7 @@ class ActivityListHeader extends JView
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch
         defaultValue : off
-        title        : "Show trolls: "
+        inputLabel   : "Show trolls: "
         size         : "tiny"
         callback     : (state) =>
           @appStorage.setValue 'showLowQualityContent', state, =>

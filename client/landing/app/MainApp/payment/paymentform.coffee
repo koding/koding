@@ -57,6 +57,7 @@ class PaymentForm extends KDFormViewWithFields
             defaultValue  : thisYear
 
     super
+      cssClass              : KD.utils.curry 'payment-form', options.cssClass
       fields                : fields
       callback              : (formData) =>
         @emit 'PaymentInfoSubmitted', @paymentMethodId, formData

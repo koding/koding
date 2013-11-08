@@ -22,14 +22,11 @@ class PaymentWorkflow extends KDView
 
       switch methods.length
 
-        when 0
-
-          @setState 'entry'
+        when 0 then @setState 'entry'
 
         when 1 then do ([method] = methods) =>
 
           paymentField.addSubView new PaymentMethodView {}, method
-
           @choiceForm.addCustomData 'paymentMethod', method
 
         else
@@ -81,7 +78,7 @@ class PaymentWorkflow extends KDView
     form.on 'PaymentMethodNotChosen', =>
       @setState 'entry'
 
-    form
+    return form
 
   createEntryForm: ->
 
@@ -94,7 +91,7 @@ class PaymentWorkflow extends KDView
 
       @selectPaymentMethod method
 
-    form
+    return form
 
   getFormNames: ->
     [
