@@ -1,27 +1,21 @@
 class DomainProductForm extends JView
 
   viewAppended: ->
+
     locationController = KD.getSingleton 'locationController'
-    
+
     @locationForm = locationController.createLocationForm
-      callback    : =>
+      callback            : =>
         @emit 'DataCollected', @locationForm.getData()
-      fields      :
-        privacyProtection:
-          label   : "Use privacy protection?"
-          itemClass: KDOnOffSwitch
-      phone       :
-        required  : yes
 
+      fields              :
+        privacyProtection :
+          label           : "Use privacy protection?"
+          itemClass       : KDOnOffSwitch
+          labels          : ['yes', 'no']
 
-    # @buttons = new KDView
-
-    # @saveBtn = new KDButtonView
-    #   title     : "Next"
-    #   style     : 'modal-clean-green fr'
-    #   callback  : @bound 'processForm'
-
-    # @buttons.addSubView @saveBtn
+      phone               :
+        required          : yes
 
     super()
 
@@ -30,8 +24,12 @@ class DomainProductForm extends JView
 
   pistachio: ->
     """
-    <p>Please enter the address information that will be associated with this
-       domain name registration.  You can choose to register this domain
-       privately for an additional fee.</p>
+    <div class='modalformline'>
+      <p>
+        Please enter the address information that will be associated with this
+        domain name registration.  You can choose to register this domain
+        privately for an additional fee.
+      </p>
+    </div>
     {{> @locationForm}}
     """
