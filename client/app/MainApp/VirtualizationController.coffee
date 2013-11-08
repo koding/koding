@@ -343,6 +343,9 @@ class VirtualizationController extends KDController
   createPaidVM:->
     return  if @dialogIsOpen
 
+    KD.whoami().fetchPlans (err, plans) ->
+      debugger
+
     vmController        = KD.getSingleton('vmController')
     paymentController   = KD.getSingleton('paymentController')
 
@@ -354,7 +357,7 @@ class VirtualizationController extends KDController
           <section>
             <p>
               <i>Good for:</i>
-              <span>#{d.meta.goodFor}</span>
+              <span>#{d.meta?.goodFor}</span>
               <cite>users</cite>
             </p>
             #{d.description}
@@ -363,7 +366,10 @@ class VirtualizationController extends KDController
 
       paymentInput = {}
 
-      modal = new VmBuyModal { descriptions, hostTypes, descPartial, plans }
+      modal = new BuyModal
+        title       : "Upgrade your Koding Account"
+        productForm : new VmProductForm
+        confirmForm : new KDView partial: 'doibndo'
 
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
@@ -528,7 +534,7 @@ class VirtualizationController extends KDController
 
     @emit "VMPlansFetchStart"
 
-    JPaymentPlan.fetchPlans prefix: 'group', category: 'vm', (err, plans) =>
+    JPaymentPlan.fetchPlans tag: 'vm', (err, plans) =>
       return warn err  if err
 
       if plans then plans.sort (a, b) -> a.feeAmount - b.feeAmount
