@@ -153,6 +153,7 @@ module.exports = class JAccount extends jraphical.Module
         'unstore'
         'isEmailVerified'
         'fetchPaymentMethods'
+        'fetchPlans'
       ]
     schema                  :
       skillTags             : [String]
@@ -1259,3 +1260,7 @@ module.exports = class JAccount extends jraphical.Module
     {delegate} = client.connection
     if delegate is this or delegate.can 'administer accounts'
       @fetchDecoratedPaymentMethods callback
+
+  fetchPlans$: secure ({connection:{ delegate }}, callback) ->
+    return callback { message: 'Access denied!' }  unless @equals delegate
+    @fetchPlans callback
