@@ -64,32 +64,24 @@ class LoginView extends KDScrollView
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
-        # TODO: not handled
-        #KD.track "Login", "SignInButtonClicked"
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
       testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
-        # TODO: not handled
-        #KD.track "Login", "RegisterButtonClicked"
         KD.mixpanel "RegisterButtonClicked"
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRedeem formData
-        # TODO: not handled
-        #KD.track "Login", "RedeemButtonClicked"
         KD.mixpanel "RedeemButtonClicked"
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRecover formData
-        # TODO: not handled
-        #KD.track "Login", "RecoverButtonClicked"
 
     @resendForm= new ResendEmailConfirmationLinkInlineForm
       cssClass : "login-form"
@@ -102,8 +94,6 @@ class LoginView extends KDScrollView
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doReset formData
-        # TODO: not handled
-        #KD.track "Login", "ResetButtonClicked"
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -265,14 +255,6 @@ class LoginView extends KDScrollView
           title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
-
-        # TODO: not handled
-        # send information to mixpanel
-        #KD.track 'UserLogin', 'UserRegistered',
-          #vendor         : 'mixpanel'
-          #extra          :
-            #'$username'  : account.profile.nickname
-            #'$loginDate' : Date.now()
 
         KD.getSingleton('router').clear()
 

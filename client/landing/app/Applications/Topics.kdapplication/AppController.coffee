@@ -120,8 +120,6 @@ class TopicsAppController extends AppController
 
   openTopic:(topic)->
     {entryPoint} = KD.config
-    # TODO: not handled
-    #KD.track "Topic", "Open", topic
     KD.getSingleton('router').handleRoute "/Topics/#{topic.slug}", {state:topic, entryPoint}
 
   updateTopic:(topicItem)->

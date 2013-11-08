@@ -77,8 +77,4 @@ class MemberFollowToggleButton extends FollowButton
     super options, data
 
   decorateState:(name, userEvent)->
-    # TODO: not handled
-    # KD.track "Members", name, @getData().profile.nickname  if userEvent
-    # This gives: ~ GG
-    # Warning: Unknown mixpanel event set ["Members", "Follow", "gokmen"]
     super

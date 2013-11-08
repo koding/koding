@@ -94,8 +94,6 @@ class GroupsAppController extends AppController
             callback null, groupName, group
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
-            # TODO: not handled
-            #KD.track "Groups", "ChangeGroup", groupName
 
   getUserArea:->
     @userArea ? group:
@@ -315,8 +313,6 @@ class GroupsAppController extends AppController
     tabs.removePane invitePane if invitePane
 
   showErrorModal:(group, err)->
-    # TODO: mixpanel not used to track errors
-    #KD.track "Groups", "GroupOpeningError", err.accessCode if err
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
       KD.getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
@@ -375,13 +371,9 @@ class GroupsAppController extends AppController
       mainController.accountChanged KD.whoami()
 
   ignoreInvitation:(group, callback)->
-    # TODO: not actionable metric
-    #KD.track "Groups", "IgnoreInvitation", group.slug
     KD.whoami().ignoreInvitation group, callback
 
   cancelGroupRequest:(group, callback)->
-    # TODO: not actionable metric
-    #KD.track "Groups", "CancelInvitation", group.slug
     KD.whoami().cancelRequest group, callback
 
   openPrivateGroup:(group)->

@@ -111,8 +111,9 @@ class KDMixpanel
   setOnce:(property, value, callback )->
     mixpanel.people.set_once property, value, callback
 
-# TODO: check if KD.config.logToExternal is true
-if mixpanel? then do ->
+if mixpanel? && KD.config.logToExternal then do ->
+  console.log "enabling mixpanel"
+
   KD.getSingleton('mainController').on "AccountChanged", (account) ->
     if KD.isLoggedIn()
       user       = KD.whoami()
@@ -120,9 +121,6 @@ if mixpanel? then do ->
       email      = user.fetchEmail (err, email)->
         {firstName, lastName} = user.profile
         {createdAt}           = user.meta
-
-        console.log "registering user to mixpanel",
-          nickname, email, firstName, lastName, createdAt
 
         # register user to mixpanel
         mixpanel.identify nickname
