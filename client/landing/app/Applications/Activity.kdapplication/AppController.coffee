@@ -7,7 +7,7 @@ class ActivityAppController extends AppController
     navItem      :
       title      : "Activity"
       path       : "/Activity"
-      order      : 10
+      order      : 20
 
 
   {dash} = Bongo
