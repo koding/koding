@@ -65,36 +65,94 @@ module.exports = class JAccount extends jraphical.Module
       ]
     sharedMethods :
       static: [
-        'one', 'some', 'cursor', 'each', 'someWithRelationship'
-        'someData', 'getAutoCompleteData', 'count'
-        'byRelevance', 'fetchVersion','reserveNames'
-        'impersonate', 'fetchBlockedUsers', 'fetchCachedUserCount'
+        'one'
+        'some'
+        'cursor'
+        'each'
+        'someWithRelationship'
+        'someData'
+        'getAutoCompleteData'
+        'count'
+        'byRelevance'
+        'fetchVersion'
+        'reserveNames'
+        'impersonate'
+        'fetchBlockedUsers'
+        'fetchCachedUserCount'
       ]
       instance: [
-        'modify','follow','unfollow','fetchFollowersWithRelationship'
-        'countFollowersWithRelationship', 'countFollowingWithRelationship'
-        'fetchFollowingWithRelationship', 'fetchTopics'
-        'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
-        'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchAppStorage','count','addTags','fetchLimit', 'fetchLikedContents'
-        'fetchFollowedTopics', 'setEmailPreferences'
-        'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
-        'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
-        'setHandle','setAbout','fetchAbout','setStaticPageTitle',
-        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-        'fetchGroupsWithPendingInvitations', 'fetchGroupsWithPendingRequests',
-        'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
-        'fetchMyGroupInvitationStatus', 'fetchMyPermissions',
-        'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
-        'fetchMyFollowersFromGraph', 'blockUser', 'unblockUser',
-        'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
-        'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
-        'unlinkOauth', 'changeUsername',
-        'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
-        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore',
-        'isEmailVerified', 'fetchEmail'
+        'modify'
+        'follow'
+        'unfollow'
+        'fetchFollowersWithRelationship'
+        'countFollowersWithRelationship'
+        'countFollowingWithRelationship'
+        'fetchFollowingWithRelationship'
+        'fetchTopics'
+        'fetchMounts'
+        'fetchActivityTeasers'
+        'fetchRepos'
+        'fetchDatabases'
+        'fetchMail'
+        'fetchNotificationsTimeline'
+        'fetchActivities'
+        'fetchAppStorage'
+        'addTags'
+        'fetchLimit'
+        'fetchLikedContents'
+        'fetchFollowedTopics'
+        'setEmailPreferences'
+        'glanceMessages'
+        'glanceActivities'
+        'fetchRole'
+        'fetchAllKites'
+        'flagAccount'
+        'unflagAccount'
+        'isFollowing'
+        'fetchFeedByTitle'
+        'updateFlags'
+        'fetchGroups'
+        'fetchGroupRoles'
+        'setStaticPageVisibility'
+        'addStaticPageType'
+        'removeStaticPageType'
+        'setHandle'
+        'setAbout'
+        'fetchAbout'
+        'setStaticPageTitle'
+        'setStaticPageAbout'
+        'addStaticBackground'
+        'setBackgroundImage'
+        'fetchGroupsWithPendingInvitations'
+        'fetchGroupsWithPendingRequests'
+        'cancelRequest'
+        'acceptInvitation'
+        'ignoreInvitation'
+        'fetchMyGroupInvitationStatus'
+        'fetchMyPermissions'
+        'fetchMyPermissionsAndRoles'
+        'fetchMyFollowingsFromGraph'
+        'fetchMyFollowersFromGraph'
+        'blockUser'
+        'unblockUser'
+        'sendEmailVMTurnOnFailureToSysAdmin'
+        'fetchRelatedTagsFromGraph'
+        'fetchRelatedUsersFromGraph'
+        'fetchDomains'
+        'fetchDomains'
+        'unlinkOauth'
+        'changeUsername'
+        'markUserAsExempt'
+        'checkFlag'
+        'userIsExempt'
+        'checkGroupMembership'
+        'getOdeskAuthorizeUrl'
+        'fetchStorage'
+        'fetchStorages'
+        'store'
+        'unstore'
+        'isEmailVerified'
+        'fetchEmail'
       ]
     schema                  :
       skillTags             : [String]
@@ -244,8 +302,7 @@ module.exports = class JAccount extends jraphical.Module
         sourceId    : group.getId()
       }, (err, relation)=>
         return callback new KodingError "An error occured!" if err
-        return callback null, no unless relation
-        return callback null, yes
+        return callback null, relation?
 
   changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options

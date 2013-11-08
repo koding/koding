@@ -30,12 +30,13 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
 
     @paneStateRef.on "value", (snapshot) =>
       state  = snapshot.val()
-      map    = @paneVisibilityState
       return unless state
 
       for own key, value of state
         pane = @getPaneByType key
-        if value is no then @hidePane pane, key, no else @showPane pane, key, no
+        if value is no then @hidePane pane, key else @showPane pane, key
+
+      @resizePanes state
 
   click: ->
     @toggleClass "active"
@@ -57,27 +58,22 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
     @["create#{paneKey.capitalize()}Pane"]()
 
   handleLaunch: (paneKey) ->
-    pane = @[paneKey]
+    pane = @getPaneByType paneKey
     if @lastActivePaneKey is paneKey
-      @hidePane pane, paneKey
+      @lastActivePaneKey = null
+      @updatePaneVisiblityState paneKey, no
     else
-      lastActivePane = @getPaneByType @lastActivePaneKey
-      @hidePane lastActivePane, paneKey, no if lastActivePane
-      @showPane pane, paneKey
+      @lastActivePaneKey = paneKey
+      @updatePaneVisiblityState paneKey, yes
 
-  hidePane: (pane, paneKey, writeToCloud = yes) ->
+  hidePane: (pane, paneKey) ->
     pane.unsetClass "active"
-    @lastActivePaneKey = null
-    @updatePaneVisiblityState paneKey, no if writeToCloud
 
-  showPane: (pane, paneKey, writeToCloud = yes) ->
+  showPane: (pane, paneKey) ->
     if paneKey is "chat"
       @chat.dock.emit "click"
-      return @updatePaneVisiblityState "chat", yes
-
-    pane.setClass "active"
-    @lastActivePaneKey = paneKey
-    @updatePaneVisiblityState paneKey, yes  if writeToCloud
+    else
+      pane.setClass "active"
 
   updatePaneVisiblityState: (paneKey, value) ->
     map          = @paneVisibilityState
@@ -92,6 +88,7 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       floating : yes
 
     @chat.on "WorkspaceChatClosed", =>
+      @lastActivePaneKey = null
       @updatePaneVisiblityState "chat", no
 
   createTerminalPane: ->
@@ -106,11 +103,12 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       delegate   : @panel
       sessionKey : @sessionKeys.terminal
 
-    @terminalPane.webterm.on "WebTermConnected", =>
-      @keysRef.child("terminal").set
-        key    : @terminalPane.remote.session
-        host   : KD.nick()
-        vmName : KD.getSingleton("vmController").defaultVmName
+    if @workspace.amIHost()
+      @terminalPane.webterm.on "WebTermConnected", =>
+        @keysRef.child("terminal").set
+          key    : @terminalPane.remote.session
+          host   : KD.nick()
+          vmName : KD.getSingleton("vmController").defaultVmName
 
   createPreviewPane: ->
     @container.addSubView @preview = new KDView
@@ -131,6 +129,33 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       @keysRef.child("preview").set @previewPane.sessionKey
 
     @preview.addSubView @previewPane
+
+  resizePanes: (statesObj) ->
+    activePanel = @workspace.getActivePanel()
+
+    unless activePanel
+      return @workspace.once "WorkspaceSyncedWithRemote", =>
+        @resizePanes statesObj
+
+    finder = activePanel.getPaneByName "finder"
+    return unless finder
+
+    finderContainer   = finder.container
+    finderNeedsResize = no
+
+    for own key, value of statesObj
+      if key isnt "chat" and value is yes
+        finderNeedsResize = yes
+
+    return if not finderNeedsResize and not @finderResized
+
+    if finderNeedsResize
+      return if @finderResized
+      finderContainer.setHeight finderContainer.getHeight() - 400
+      @finderResized = yes
+    else
+      finderContainer.setHeight finderContainer.getHeight() + 400
+      @finderResized = no
 
   getPaneByType: (type) ->
     return @[type] or null
