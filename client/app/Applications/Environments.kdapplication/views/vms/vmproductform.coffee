@@ -25,5 +25,7 @@ class VmProductForm extends JView
 
   prepareProductForm: ->
     @upgradeForm = @createUpgradeForm()
+    @upgradeForm.on 'PlanSelected', (plan) =>
+      @emit 'DataCollected', { plan }
     @addSubView @upgradeForm
     @upgradeForm.hide()
