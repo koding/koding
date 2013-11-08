@@ -62,7 +62,7 @@ getUserHash = (account) ->
 createActivityContent = (JAccount, models, comments, section, callback) ->
   model = models.first if models and Array.isArray models
   unless model
-    callback "JStatusUpdate cannot be found.", null
+    callback new Error "JStatusUpdate cannot be found.", null
   statusUpdateId = model.getId()
   jAccountId = model.data.originId
   selector =
@@ -71,7 +71,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
     "as" : "author"
   }
 
-  return callback "Cannot call fetchTeaser function.", null unless typeof model.fetchTeaser is "function"
+  return callback new Error "Cannot call fetchTeaser function.", null unless typeof model.fetchTeaser is "function"
   model.fetchTeaser (error, teaser)=>
     tags = []
     if teaser?.tags?
