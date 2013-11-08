@@ -131,3 +131,25 @@ class PaymentController extends KDController
 
   createDeleteConfirmationModal: (type, callback, subscription)->
     return new PaymentDeleteConfirmationModal { subscription, type, callback }
+
+  createUpgradeForm: (tag) ->
+
+    { dash } = Bongo
+
+    { JPaymentPlan } = KD.remote.api
+
+    form = new PlanUpgradeForm { tag }
+
+    JPaymentPlan.fetchPlans tag, (err, plans) ->
+      return  if KD.showError err
+
+      queue = plans.map (plan) ->
+        plan.fetchProducts (err, products) ->
+          return  if KD.showError err
+
+          plan.childProducts = products
+          queue.fin()
+
+      dash queue, -> form.setPlans plans
+
+    return form 
