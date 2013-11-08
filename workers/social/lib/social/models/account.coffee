@@ -1247,6 +1247,6 @@ module.exports = class JAccount extends jraphical.Module
     if isMine
       @fetchUser (err, user)->
         return callback err  if err
-        callback null, user.email
+        callback null, user?.email
     else
       callback new KodingError 'Access denied'
