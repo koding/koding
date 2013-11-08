@@ -243,8 +243,7 @@ module.exports = class JAccount extends jraphical.Module
         sourceId    : group.getId()
       }, (err, relation)=>
         return callback new KodingError "An error occured!" if err
-        return callback null, no unless relation
-        return callback null, yes
+        return callback null, relation?
 
   changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options
