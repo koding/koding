@@ -3,7 +3,6 @@ class BuyModal extends KDModalView
   constructor: (options, data) ->
     do (o = options) ->
       o.title    ?= "Payment"
-      o.cssClass ?= "group-creation-modal"
       o.height   ?= "auto"
       o.width    ?= 500
       o.overlay  ?= yes
