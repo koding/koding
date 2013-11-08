@@ -8,15 +8,20 @@ class MainView extends KDView
     @createMainPanels()
     @createMainTabView()
     @setStickyNotification()
-    @createSideBar()
-    @createChatPanel()
-    @listenWindowResize()
 
-    @utils.defer =>
-      @_windowDidResize()
-      @emit 'ready'
+    @utils.defer => @emit 'ready'
+
+    mainController = KD.getSingleton 'mainController'
+    mainController.ready @bound 'accountChanged'
+
+
+  accountChanged:->
+
+    @navController.reset()
+
 
   bindPulsingRemove:->
+
     router     = KD.getSingleton 'router'
     appManager = KD.getSingleton 'appManager'
 
@@ -36,33 +41,14 @@ class MainView extends KDView
           appView.ready removePulsing
         else removePulsing()
 
-  putAbout:->
-    # There is no about now #
-
   addBook:->
     @addSubView new BookView delegate : this
-
-  _windowDidResize:->
-
-    {winHeight} = KD.getSingleton "windowController"
-    @panelWrapper.setHeight winHeight - 51
 
   createMainPanels:->
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
       domId    : "main-panel-wrapper"
-
-    @panelWrapper.addSubView @sidebarPanel = new KDView
-      domId    : "sidebar-panel"
-    @registerSingleton "sidebarPanel", @sidebarPanel, yes
-
-    @panelWrapper.addSubView @contentPanel = new ContentPanel
-      domId    : "content-panel"
-      cssClass : "transition"
-
-    @contentPanel.on "ViewResized", (rest...)=>
-      @emit "ContentPanelResized", rest...
 
   addHeader:->
 
@@ -72,20 +58,22 @@ class MainView extends KDView
       tagName : "header"
       domId   : "main-header"
 
-    @header.getElement().innerHTML = ''
+    @header.clear()
 
     @header.addSubView wrapper = new KDView
+    @header.wrapper = wrapper
     wrapper.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type is 'group' then 'group' else ''
-      partial   : "<span></span>"
+      partial   : '<cite></cite>'
       click     : (event)=>
         KD.utils.stopDOMEvent event
         if KD.isLoggedIn()
-          KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
-        else
-          location.replace '/'
+        then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
+        else location.replace '/'
+
+    @createMainNavigation()
 
     wrapper.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
@@ -96,37 +84,50 @@ class MainView extends KDView
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute "/Login"
 
-    if entryPoint?.slug? and entryPoint.type is "group"
-      KD.remote.cacheable entryPoint.slug, (err, models)=>
-        if err then callback err
-        else if models?
-          [group] = models
-          @logo.updatePartial "<span></span>#{group.title}"
+    # REFACTOR NOTE: this put the group name next to logo
 
+    # if entryPoint?.slug? and entryPoint.type is "group"
+    #   KD.remote.cacheable entryPoint.slug, (err, models)=>
+    #     if err then callback err
+    #     else if models?
+    #       [group] = models
+    #       @logo.updatePartial "<cite></cite>#{group.title}"
+
+  createMainNavigation:->
+
+    @navController = new MainNavController
+      view           : new NavigationList
+        domId        : 'main-nav'
+        testPath     : 'navigation-list'
+        type         : 'navigation'
+        itemClass    : NavigationLink
+        testPath     : 'navigation-list'
+      wrapper        : no
+      scrollView     : no
+    ,
+      id        : "navigation"
+      title     : "navigation"
+      items     : []
+
+    @header.wrapper.addSubView @navController.getView()
 
   createMainTabView:->
-
-    @mainTabHandleHolder = new MainTabHandleHolder
-      domId    : "main-tab-handle-holder"
-      cssClass : "kdtabhandlecontainer"
-      delegate : this
 
     @appSettingsMenuButton = new AppSettingsMenuButton
     @appSettingsMenuButton.hide()
 
     @mainTabView = new MainTabView
-      domId              : "main-tab-view"
-      listenToFinder     : yes
-      delegate           : this
-      slidingPanes       : no
-      tabHandleContainer : @mainTabHandleHolder
-    ,null
+      domId               : "main-tab-view"
+      listenToFinder      : yes
+      delegate            : this
+      slidingPanes        : no
+      hideHandleContainer : yes
 
     @mainTabView.on "PaneDidShow", =>
-      appManager  = KD.getSingleton "appManager"
-      appManifest = appManager.getFrontAppManifest()
-      menu = appManifest?.menu or \
-             KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
+      appManager   = KD.getSingleton "appManager"
+      appManifest  = appManager.getFrontAppManifest()
+      forntAppName = appManager.getFrontApp().getOptions().name
+      menu         = appManifest?.menu or KD.getAppOptions(forntAppName)?.menu
       if Array.isArray menu
         menu = items: menu
       if menu?.items?.length
@@ -138,9 +139,8 @@ class MainView extends KDView
     @mainTabView.on "AllPanesClosed", ->
       KD.getSingleton('router').handleRoute "/Activity"
 
-    @contentPanel.addSubView @mainTabView
-    @contentPanel.addSubView @mainTabHandleHolder
-    @contentPanel.addSubView @appSettingsMenuButton
+    @panelWrapper.addSubView @mainTabView
+    # @contentPanel.addSubView @appSettingsMenuButton
 
   createSideBar:->
 
@@ -148,6 +148,9 @@ class MainView extends KDView
     mc                   = KD.getSingleton 'mainController'
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
+
+
+
 
   createChatPanel:->
     @addSubView @chatPanel   = new MainChatPanel
