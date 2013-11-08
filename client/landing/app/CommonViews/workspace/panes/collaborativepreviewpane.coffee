@@ -25,6 +25,10 @@ class CollaborativePreviewPane extends CollaborativePane
     value = snapshot.val()
     @previewer.openPath value.url  if value?.url
 
+  openUrl: (url) ->
+    @previewer.openPath url
+    @saveUrl yes
+
   saveUrl: (force) ->
     {path} = @previewer
     url    = unless force then path.replace(/\?.*/, "") else "#{path}?#{Date.now()}"
