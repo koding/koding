@@ -117,7 +117,7 @@ class FacebookTeamwork extends TeamworkWorkspace
     editor   = activePanel.getPaneByName "editor"
     root     = "Web/Teamwork/Facebook"
     path     = FSHelper.plainPath(editor.getActivePaneFileData().path).replace root, ""
-    nick     = if @amIHost() then KD.nick() else @getSessionOwner()
+    nick     = if @amIHost() then KD.nick() else @getHost()
     target   = "https://#{nick}.kd.io/Teamwork/Facebook"
     target  += path  unless path.indexOf("localfile") > -1
 
