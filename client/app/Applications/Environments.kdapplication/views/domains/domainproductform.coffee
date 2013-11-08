@@ -1,27 +1,21 @@
 class DomainProductForm extends JView
 
   viewAppended: ->
+
     locationController = KD.getSingleton 'locationController'
-    
+
     @locationForm = locationController.createLocationForm
-      callback    : =>
+      callback            : =>
         @emit 'DataCollected', @locationForm.getData()
-      fields      :
-        privacyProtection:
-          label   : "Use privacy protection?"
-          itemClass: KDOnOffSwitch
-      phone       :
-        required  : yes
 
+      fields              :
+        privacyProtection :
+          label           : "Use privacy protection?"
+          itemClass       : KDOnOffSwitch
+          labels          : ['yes', 'no']
 
-    # @buttons = new KDView
-
-    # @saveBtn = new KDButtonView
-    #   title     : "Next"
-    #   style     : 'modal-clean-green fr'
-    #   callback  : @bound 'processForm'
-
-    # @buttons.addSubView @saveBtn
+      phone               :
+        required          : yes
 
     super()
 
