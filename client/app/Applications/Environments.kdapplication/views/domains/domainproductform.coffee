@@ -30,8 +30,12 @@ class DomainProductForm extends JView
 
   pistachio: ->
     """
-    <p>Please enter the address information that will be associated with this
-       domain name registration.  You can choose to register this domain
-       privately for an additional fee.</p>
+    <div class='modalformline'>
+      <p>
+        Please enter the address information that will be associated with this
+        domain name registration.  You can choose to register this domain
+        privately for an additional fee.
+      </p>
+    </div>
     {{> @locationForm}}
     """
