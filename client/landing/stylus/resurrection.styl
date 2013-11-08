@@ -57,6 +57,27 @@ body
       size            30px, 30px
   &.large
     left              70px
+#main-nav
+  size              auto, 61px
+  fl()
+  > a
+    display         inline-block
+    size            61px, 61px
+    cite
+      hidden()
+    .icon
+      margin        14px 15px 15px 14px
+      display       block
+    &.selected
+      bg            color, #e2e4e5
+    &.activity .icon
+      sprite      app nav-activity
+    &.develop .icon
+      sprite      app nav-develop
+    &.topics .icon
+      sprite      app nav-topics
+    &.members .icon
+      sprite      app nav-editor
 
 
 #kdmaincontainer.logout-tv
