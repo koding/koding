@@ -133,15 +133,18 @@ module.exports = class JPaymentPlan extends Module
 #    recurly.fetchAccountDetailsByPaymentMethodId (JPayment.userCodeOf delegate), callback
 
   @fetchPlans = secure (client, options, callback) ->
-    console.log 'FETCH PLANS'
+    options = tag: options  if 'string' is typeof options
+    options.limit = Math.min options.limit ? 20, 20
+    
+    selector =
+      tags  : options.tag
+      group : client.context.group
 
-    selector = (Object.keys options)
-      .reduce( (acc, key) ->
-        acc["product.#{key}"] = options[key]
-        acc
-      , {})
+    queryOptions =
+      limit : options.limit
+      sort  : options.sort
 
-    JPayment.invalidateCacheAndLoad this, selector, force, callback
+    @some selector, queryOptions, callback
 
   @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
 
