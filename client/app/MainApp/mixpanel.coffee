@@ -96,34 +96,30 @@ class KDMixpanel
 
   #identifies user on mixpanel, by default username on koding, should be unique
   registerUser:->
-    if KD.isLoggedIn()
-      user  = KD.whoami()
-      email = user.fetchEmail (err, email)->
-        mixpanel.identify user.profile.nickname
-        mixpanel.people.set
-          "$username"   : user.profile.nickname
-          "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
-          "$joinDate"   : user.meta.createdAt
-          "$email"      : email
-        mixpanel.name_tag "#{user.profile.nickname}.kd.io"
+    return  unless KD.isLoggedIn()
+
+    user = KD.whoami()
+    mixpanel.identify user.profile.nickname
+    mixpanel.people.set
+      "$username"   : user.profile.nickname
+      "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
+      "$joinDate"   : user.meta.createdAt
+    mixpanel.name_tag "#{user.profile.nickname}.kd.io"
 
   setOnce:(property, value, callback )->
     mixpanel.people.set_once property, value, callback
 
 if mixpanel and KD.config.logToExternal then do ->
   KD.getSingleton('mainController').on "AccountChanged", (account) ->
-    if KD.isLoggedIn()
-      user       = KD.whoami()
-      {nickname} = user.profile
-      email      = user.fetchEmail (err, email)->
-        {firstName, lastName} = user.profile
-        {createdAt}           = user.meta
+    return  unless KD.isLoggedIn()
 
-        # register user to mixpanel
-        mixpanel.identify nickname
-        mixpanel.people.set
-          "$username"   : nickname
-          "name"        : "#{firstName} #{lastName}"
-          "$joinDate"   : createdAt
-          "$email"      : email
-        mixpanel.name_tag "#{nickname}.kd.io"
+    {createdAt} = account.meta
+    {firstName, lastName, nickname} = account.profile
+
+    # register user to mixpanel
+    mixpanel.identify nickname
+    mixpanel.people.set
+      "$username"   : nickname
+      "name"        : "#{firstName} #{lastName}"
+      "$joinDate"   : createdAt
+    mixpanel.name_tag "#{nickname}.kd.io"
