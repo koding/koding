@@ -143,7 +143,7 @@ class PaymentController extends KDController
     JPaymentPlan.fetchPlans tag, (err, plans) ->
       return  if KD.showError err
 
-      queue = plans.map (plan) ->
+      queue = plans.map (plan) -> ->
         plan.fetchProducts (err, products) ->
           return  if KD.showError err
 
