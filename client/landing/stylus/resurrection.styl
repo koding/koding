@@ -10,53 +10,36 @@ app.comments.styl
 }
 
 body
-  bg                  color, #e2e4e5
+  bg                color, #e2e4e5
 
 #kdmaincontainer
+  width             auto
 
-  > header
-    margin            0
-    bg                color, #313a3b
-    size              100%,61px
-    > div.kdview
-      max-width       1280px
-  > section
-    overflow          visible
-    display           block
+#main-header
+  margin            0
+  bg                color, #313a3b
+  size              100%,61px
+  z-index           1000
+  fix()
+  > div.kdview
+    max-width       1280px
 
+#main-panel-wrapper
+  overflow          visible
+  display           block
+  top               0
+  left              0
 
 #koding-logo
-  abs()
-  display             block
-  top                 10px
-  left                16px
-  size                auto,30px
-  font-family         Ubuntu
-  font-size           24px
-  vertical-align      top
-  padding             0 0 0 35px
-  line-height         30px
-  font-weight         600
-  -moz-opacity        0.99 //hack for FF bold rendering issue
-  color               #f2f2f2
-  vendor              transition, left .15s linear
-  vendor              font-smoothing, antialiased
-  vendor              text-rendering, geometricPrecision
-  text-shadow         0 1px 0 rgba(0, 0, 0, .75)
-  noTextDeco()
-  span
-    abs()
-    top               2px
-    left              0
-    size              120px, 30px
-    display           inline-block
-    bg                position, -240px -40px
-    sprite()
-  &.group
-    span
-      size            30px, 30px
-  &.large
-    left              70px
+  size              61px, 61px
+  bg                color, #505454
+  fl()
+
+  cite
+    sprite          app logo
+    margin          21px 0 0 21px
+    display         block
+
 #main-nav
   size              auto, 61px
   fl()
@@ -80,37 +63,46 @@ body
       sprite      app nav-editor
 
 
+
+
+
+
+
+
+
+
+
 #kdmaincontainer.logout-tv
-    vendor                  animation, logoutTv .5s 1 forwards ease
-    &~.turn-off-line
-      top                   50%
-      left                  0
-      size                  100%, 2px
-      background            #fff
-      opacity               0
-      z-index               1000
-      vendor                animation, logoutTvLine .3s .35s 1 forwards ease
-      abs()
-      &:after
-        content             ""
-        display             block
-        margin              -3px auto 0
-        size                50%, 6px
-        background          #fff
-        rounded             100%
-        box-shadow          0 0 20px 10px rgba(255,255,255,.6)
-    &~.turn-off-dot
-      top                   50%
-      left                  50%
-      bg                    color, #fff
-      rounded               20px
-      size                  10px, 10px
-      margin-top            -5px
-      vendor                transform, scaleX(0) scaleY(0)
-      shadow                0 0 8px #fff
-      vendor                animation, logoutTvDot .3s .6s 1 forwards ease
-      z-index               1000
-      abs()
+  vendor                  animation, logoutTv .5s 1 forwards ease
+  &~.turn-off-line
+    top                   50%
+    left                  0
+    size                  100%, 2px
+    background            #fff
+    opacity               0
+    z-index               1000
+    vendor                animation, logoutTvLine .3s .35s 1 forwards ease
+    abs()
+    &:after
+      content             ""
+      display             block
+      margin              -3px auto 0
+      size                50%, 6px
+      background          #fff
+      rounded             100%
+      box-shadow          0 0 20px 10px rgba(255,255,255,.6)
+  &~.turn-off-dot
+    top                   50%
+    left                  50%
+    bg                    color, #fff
+    rounded               20px
+    size                  10px, 10px
+    margin-top            -5px
+    vendor                transform, scaleX(0) scaleY(0)
+    shadow                0 0 8px #fff
+    vendor                animation, logoutTvDot .3s .6s 1 forwards ease
+    z-index               1000
+    abs()
 
 #kdmaincontainer.scale
     vendor            animation, shrink 1s ease-out
