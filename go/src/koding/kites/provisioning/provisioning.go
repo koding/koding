@@ -20,6 +20,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -29,7 +30,8 @@ var (
 	port             = flag.String("port", "4005", "port to bind itself")
 	containerSubnet  *net.IPNet
 	firstContainerIP net.IP
-	containers       = make(map[string]*Info)
+	states           = make(map[string]*State)
+	statesMu         sync.Mutex
 	k                = &kite.Kite{}
 	log              = kite.GetLogger()
 )
@@ -70,11 +72,42 @@ func main() {
 		"prepare":   "Prepare",
 		"unprepare": "Unprepare",
 		"exec":      "Exec",
+		"info":      "Info",
 	}
 
 	k = kite.New(options)
 	k.AddMethods(new(Provisioning), methods)
 	k.Start()
+}
+
+func (p *Provisioning) Info(r *protocol.KiteDnodeRequest, result *ContainerInfo) error {
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not get info. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	log.Info("[%s] requested info the container: '%s'", r.Username, params.ContainerName)
+
+	vm, err := getVM(params.ContainerName)
+	if err != nil {
+		log.Error("[%s] could not get vm to start '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return errors.New("could not start vm - 1")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+
+	state := GetState(containerName)
+	*result = state.ContainerInfo
+	return nil
 }
 
 func (p *Provisioning) Start(r *protocol.KiteDnodeRequest, result *bool) error {
@@ -160,7 +193,7 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 		return errors.New("withArgs is not defined")
 	}
 
-	if r.Args.Unmarshal(&params) != nil || (params.ContainerName == "" && params.Command == "") {
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.Command == "" {
 		return errors.New("{ containerName: [string] , command: [string] }")
 	}
 
@@ -189,9 +222,9 @@ func (p *Provisioning) Exec(r *protocol.KiteDnodeRequest, result *string) error 
 		return errors.New("could not run command - 3")
 	}
 
-	info := GetInfo(containerName)
-	info.ResetTimer()
-	log.Info("[%s] did run the command '%s' on container'%s'\n", r.Username, params.ContainerName, containerName)
+	state := GetState(containerName)
+	state.ResetTimer()
+	log.Info("[%s] did run the command '%s' on container %s\n", r.Username, params.Command, containerName)
 
 	*result = string(output)
 	return nil
@@ -314,12 +347,12 @@ func prepare(username, hostname string) error {
 		return nil
 	}
 
-	info := GetInfo(containerName)
-	info.IP = c.IP
-	info.StartTimer()
+	state := GetState(containerName)
+	state.IP = c.IP
+	state.StartTimer()
 
 	k.OnDisconnect(username, func() {
-		info.StopTimer()
+		state.StopTimer()
 	})
 
 	log.Info("[%s] prepared the container '%s'", username, containerName)
