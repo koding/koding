@@ -381,6 +381,7 @@ class ActivityAppController extends AppController
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
         onTimeout : @bound 'recover'
+        timeout   : 20000
 
   recover:->
     @isLoading = no
