@@ -86,9 +86,7 @@ module.exports = (options = {}, callback)->
     </script>
 
     <script src="https://www.dropbox.com/static/api/1/dropins.js" id="dropboxjs" data-app-key="yzye39livlcc21j"></script>
-    <script>
-      KD.prefetchedFeeds = #{encodedFeed};
-    </script>
+    <script>KD.prefetchedFeeds=#{encodedFeed};</script>
     """
 
   # while implementing profile prefetching we will need
