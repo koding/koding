@@ -343,36 +343,38 @@ class VirtualizationController extends KDController
   createPaidVM:->
     return  if @dialogIsOpen
 
+    # vmController        = KD.getSingleton('vmController')
+    # paymentController   = KD.getSingleton('paymentController')
+
+    # vmController.fetchVMPlans (err, plans) =>
+    #   { descriptions, hostTypes } = vmController.sanitizeVMPlansForInputs plans
+    #   descPartial = ""
+    #   for d in descriptions
+    #     descPartial += """
+    #       <section>
+    #         <p>
+    #           <i>Good for:</i>
+    #           <span>#{d.meta?.goodFor}</span>
+    #           <cite>users</cite>
+    #         </p>
+    #         #{d.description}
+    #       </section>
+    #       """
+
+    #   paymentInput = {}
+    productForm = new VmProductForm
+
     KD.whoami().fetchPlans (err, plans) ->
-      debugger
+      return  if KD.showError err
+      productForm.setCurrentPlans plans
 
-    vmController        = KD.getSingleton('vmController')
-    paymentController   = KD.getSingleton('paymentController')
+    modal = new BuyModal
+      title       : "Create a new VM"
+      productForm : productForm
+      confirmForm : new KDView partial: 'doibndo'
 
-    vmController.fetchVMPlans (err, plans) =>
-      { descriptions, hostTypes } = vmController.sanitizeVMPlansForInputs plans
-      descPartial = ""
-      for d in descriptions
-        descPartial += """
-          <section>
-            <p>
-              <i>Good for:</i>
-              <span>#{d.meta?.goodFor}</span>
-              <cite>users</cite>
-            </p>
-            #{d.description}
-          </section>
-          """
-
-      paymentInput = {}
-
-      modal = new BuyModal
-        title       : "Upgrade your Koding Account"
-        productForm : new VmProductForm
-        confirmForm : new KDView partial: 'doibndo'
-
-      @dialogIsOpen = yes
-      modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+    @dialogIsOpen = yes
+    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
   showPaymentMethodForm: (modal) ->
 
