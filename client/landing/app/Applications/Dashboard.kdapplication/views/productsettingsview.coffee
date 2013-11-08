@@ -6,9 +6,10 @@ class GroupProductSettingsView extends JView
     @setClass 'group-product-section'
 
     @productsView = new GroupProductSectionView
-      category  : 'product'
-      itemClass : GroupProductListItem
-      pistachio :
+      category      : 'product'
+      itemClass     : GroupProductListItem
+      controlsClass : ProductAdminControlsView
+      pistachio     :
         """
         <h2>Products</h2>
         {{> @createButton}}
@@ -19,9 +20,10 @@ class GroupProductSettingsView extends JView
       @emit 'EditRequested'
 
     @plansView = new GroupProductSectionView
-      category  : 'plan'
-      itemClass : GroupPlanListItem
-      pistachio :
+      category      : 'plan'
+      itemClass     : GroupPlanListItem
+      controlsClass : PlanAdminControlsView
+      pistachio     :
         """
         <h2>Plans</h2>
         <p>Plans are bundles of products.  Effectively, the quantities

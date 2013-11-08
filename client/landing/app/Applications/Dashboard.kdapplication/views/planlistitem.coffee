@@ -4,10 +4,6 @@ class GroupPlanListItem extends GroupProductListItem
 
     @planView = new GroupProductView {}, plan
 
-    @addProductsButton = new KDButtonView
-      title    : "Add products"
-      callback : => @emit 'AddProductsRequested', plan
-
     @childProducts = new KDListViewController
       view        : new KDListView
         cssClass  : 'plan-child-products'
@@ -27,13 +23,10 @@ class GroupPlanListItem extends GroupProductListItem
 
   pistachio:->
     """
-    {{> @planView}}
-    {{> @embedButton}}
-    {{> @deleteButton}}
-    {{> @clientsButton}}
-    {{> @editButton}}
-    {{> @addProductsButton}}
-    <h3>Contains:</h3>
-    {{> @childProducts.getView()}}
-    {{> @embedView}}
+    <div class="product-item">
+      {{> @planView}}
+      {{> @controls}}
+      <h3>Contains:</h3>
+      {{> @childProducts.getView()}}
+    </div>
     """
