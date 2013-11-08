@@ -89,6 +89,8 @@ class ActivityAppController extends AppController
     # so fix the teasersLoaded logic.
     return  if @isLoading
     @clearPopulateActivityBindings()
+
+    KD.mixpanel "Scrolled down feed"
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->
@@ -379,6 +381,7 @@ class ActivityAppController extends AppController
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
         onTimeout : @bound 'recover'
+        timeout   : 20000
 
   recover:->
     @isLoading = no
