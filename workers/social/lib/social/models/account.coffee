@@ -229,6 +229,10 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'payment method'
         targetType  : 'JPaymentMethod'
 
+      plan          :
+        as          : 'service plan'
+        targetType  : 'JPaymentPlan'
+
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
