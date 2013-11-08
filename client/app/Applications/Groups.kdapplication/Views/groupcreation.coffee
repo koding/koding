@@ -330,8 +330,6 @@ class GroupCreationModal extends KDModalView
     @typeSelector.submit()
     @mainSettings.submit()
     @allocation.submit()
-    # TODO: not handled
-    #KD.track "Groups", "CreateGroupLastStepOK"
 
     return unless @hostSelector.valid and @typeSelector.valid and @mainSettings.valid
 

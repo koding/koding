@@ -225,8 +225,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     appCreated    = =>
       appManager.off "AppCreated", couldntCreate
-      # TODO: not handled
-      #KD.track "Apps", "ApplicationRun", manifest.name
       @hideLoader()
 
     appManager.once "AppCouldntBeCreated", couldntCreate
@@ -286,8 +284,6 @@ class GetMoreAppsButton extends StartTabAppThumbView
 
     return if $(event.target).closest('.icon-container').length > 0
     KD.getSingleton('router').handleRoute "/Apps"
-    # TODO: not handled
-    #KD.track "Apps", "GetMoreAppsClicked"
 
 
 class AppShortcutButton extends StartTabAppThumbView
@@ -314,5 +310,3 @@ class AppShortcutButton extends StartTabAppThumbView
       @hideLoader()
       unless err
         @destroy()
-        #TODO: not actionable metric
-        #KD.track "Apps", "RemoveShortcutClicked"

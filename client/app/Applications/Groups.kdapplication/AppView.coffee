@@ -15,8 +15,6 @@ class GroupsMainView extends KDView
       style     : "cupid-green create-group-button"
       testPath  : "groups-create"
       callback  : ->
-        # TODO: not handled
-        #KD.track "Groups", "CreateNewGroupButtonClicked"
         KD.getSingleton('groupsController').showGroupSubmissionView()
 
     unless KD.isLoggedIn() then createGroupButton.hide()

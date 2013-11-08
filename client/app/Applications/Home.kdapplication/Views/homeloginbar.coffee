@@ -31,8 +31,6 @@ class HomeLoginBar extends JView
         href      : "/Register"
       click       : (event)=>
         handler.call @register, event
-        # TODO: not handled
-        #KD.track "Login", "Register"
 
     @redeem     = new CustomLinkView
       tagName     : "a"
@@ -45,8 +43,6 @@ class HomeLoginBar extends JView
         @utils.stopDOMEvent event
         requiresLogin =>
           handler.call @redeem, event
-          # TODO: not handled
-          #KD.track "Login", "Redeem", @group.slug
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -57,8 +53,6 @@ class HomeLoginBar extends JView
         href      : "/Login"
       click       : (event)=>
         handler.call @login, event
-        # TODO: not handled
-        #KD.track "Login", "AlreadyUser", @group.slug
 
     # green buttons
 
@@ -71,8 +65,6 @@ class HomeLoginBar extends JView
 
         href      : "/Join"
       click       : (event)=>
-        # TODO: not handled
-        #KD.track "Login", "RequestInvite"
         @utils.stopDOMEvent event
         requiresLogin =>
           @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
@@ -89,8 +81,6 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "#"
       click       : (event)=>
-        # TODO: this does nothing
-        #KD.track "Login", "GroupAccessRequest", @group.slug
         @utils.stopDOMEvent event
 
         if KD.isLoggedIn() then @requestAccess()
@@ -106,8 +96,6 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "#"
       click       : (event)=>
-        # TODO: this does nothing
-        #KD.track "Login", "GroupJoinRequest", @group.slug
         @utils.stopDOMEvent event
         requiresLogin (err, result) =>
           @appManager.tell 'Groups', "joinGroup", @group, (err) =>
@@ -139,9 +127,6 @@ class HomeLoginBar extends JView
                   diameter : 16
                 callback   : =>
                   modal.destroy()
-                  # TODO: not handled
-                  #KD.track "Login", "GroupJoinRequestDismiss", @group.slug
-
               Cancel       :
                 title      : 'Cancel Request'
                 style      : 'modal-clean-red'
@@ -157,8 +142,6 @@ class HomeLoginBar extends JView
                     if @policy.approvalEnabled
                     then @access.show()
                     else @request.show()
-                    # TODO: not handled
-                    #KD.track "Login", "GroupJoinRequestCancel", @group.slug unless err
 
     @invited      = new CustomLinkView
       tagName     : "a"
@@ -188,8 +171,6 @@ class HomeLoginBar extends JView
                     unless err
                       modal.destroy()
                       @hide()
-                      # TODO: not handled
-                      #KD.track "Login", "GroupInviteRequestAccept", @group.slug
 
               Ignore       :
                 style      : 'modal-clean-red'
@@ -207,8 +188,6 @@ class HomeLoginBar extends JView
                       else
                         @request.show()
                       modal.destroy()
-                      # TODO: not handled
-                      #KD.track "Login", "GroupInviteRequestIgnore", @group.slug
               Cancel       :
                 style      : "modal-cancel"
                 callback   : -> modal.destroy()
