@@ -57,6 +57,7 @@ class DeleteModalView extends KDModalViewWithForms
               if err then new KDNotificationView title : 'There was a problem, please try again!'
               else
                 new KDNotificationView title : 'Thank you for trying Koding!'
+                KD.mixpanel "Deleted account"
                 KD.utils.wait 2000, ->
                   $.cookie 'clientId', erase : yes
                   location.replace '/'
