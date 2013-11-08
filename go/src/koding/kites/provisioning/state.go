@@ -88,13 +88,13 @@ func (s *State) StartTimer() {
 		log.Info("shutdown timer is stopping the container %s", s.ContainerName)
 		err := c.Stop()
 		if err != nil {
-			fmt.Printf("ERROR: startTimer could not stop '%s'\n", err)
+			log.Warning("ERROR: startTimer could not stop '%s'", err)
 		}
 
 		log.Info("shutdown timer is unpreparing the container %s", s.ContainerName)
 		err = c.Unprepare()
 		if err != nil {
-			fmt.Printf("ERROR: startTimer could not unprepare '%s'\n", err)
+			log.Warning("ERROR: startTimer could not unprepare '%s'", err)
 		}
 	})
 }
@@ -136,10 +136,7 @@ func diskStats(containerName string) *Disk {
 
 	total := s.Blocks * uint64(s.Bsize)
 	free := s.Bfree * uint64(s.Bsize)
-	avail := s.Bavail * uint64(s.Bsize)
 	usage := total - free
-
-	fmt.Println("total, free, usage", total, free, usage, avail)
 
 	return &Disk{
 		TotalInMB: total / MegaByte,
