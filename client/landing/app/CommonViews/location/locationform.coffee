@@ -8,6 +8,8 @@ class LocationForm extends KDFormViewWithFields
       size        : { width: 14 }
       showLoader  : yes
 
+    @on 'FormValidationFailed', => @buttons.Save.hideLoader()
+
   prepareOptions: (options, data) ->
 
     options.fields ?= {}
