@@ -25,6 +25,17 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         return if not joinedUser or joinedUser is KD.nick()
         @hidePlaygroundsButton()
 
+
+      if @amIHost()
+        # currently only for host.
+        # bc of clients need to know host's vmName and active pane's file data etc.
+        {viewerHeader} = @getActivePanel().paneLauncher.previewPane.previewer
+        viewerHeader.addSubView new KDButtonView
+          cssClass : "clean-gray workspace-previewer-button"
+          title    : "View active file"
+          callback : =>
+            @previewFile()
+
   createLoader: ->
     @container.addSubView @loader = new KDCustomHTMLView
       cssClass   : "teamwork-loader"
@@ -93,3 +104,26 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @getDelegate().showMarkdownModal()
     else
       Panel::showHintModal.call @getActivePanel()
+
+  previewFile: ->
+    activePanel     = @getActivePanel()
+    editor          = activePanel.getPaneByName "editor"
+    file            = editor.getActivePaneFileData()
+    path            = FSHelper.plainPath file.path
+    error           = "File must be under Web folder"
+    isLocal         = path.indexOf("localfile") is 0
+    isNotPublic     = not FSHelper.isPublicPath path
+    {previewPane}   = activePanel.paneLauncher
+    {defaultVmName} = KD.getSingleton "vmController"
+
+    return if isLocal or isNotPublic
+      error         = "This file cannot be previewed" if isLocal
+      new KDNotificationView
+        title       : error
+        cssClass    : "error"
+        type        : "mini"
+        duration    : 2500
+        container   : previewPane
+
+    url = path.replace "/home/#{@getHost()}/Web", defaultVmName
+    previewPane.openUrl url
