@@ -271,13 +271,14 @@ class ActivityAppController extends AppController
     # we need a different approach tho, tBDL - SY
 
     # due to complex nesting of subviews, i used jQuery here. - AK
-    contentPanel     = KD.getSingleton('contentPanel')
-    scrollViewHeight = @listController.scrollView.$()[0].clientHeight
-    headerHeight     = contentPanel.$('.feeder-header')[0].offsetHeight
-    panelHeight      = contentPanel.$('.activity-content')[0].clientHeight
 
-    if scrollViewHeight + headerHeight < panelHeight
-      @continueLoadingTeasers()
+    # contentPanel     = KD.getSingleton('contentPanel')
+    # scrollViewHeight = @listController.scrollView.$()[0].clientHeight
+    # headerHeight     = contentPanel.$('.feeder-header')[0].offsetHeight
+    # panelHeight      = contentPanel.$('.activity-content')[0].clientHeight
+
+    # if scrollViewHeight + headerHeight < panelHeight
+    #   @continueLoadingTeasers()
 
   createContentDisplay:(activity, callback=->)->
     controller = switch activity.bongo_.constructorName
