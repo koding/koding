@@ -29,6 +29,15 @@ class ProductAdminControlsView extends JView
       title    : "Edit"
       callback : => @emit 'EditRequested', product
 
+    @sortWeight = new KDSelectBox
+      title         : "Sort weight"
+      defaultValue  : "#{ product.sortWeight }" ? "0"
+      selectOptions : [-100..100].map (w) ->
+        title       : "#{w}"
+        value       : "#{w}"
+      callback      : =>
+        @getData().modify { sortWeight: @sortWeight.getValue() }
+
     super()
 
   pistachio: ->
@@ -37,5 +46,6 @@ class ProductAdminControlsView extends JView
     {{> @deleteButton}}
     {{> @clientsButton}}
     {{> @editButton}}
+    {{> @sortWeight}}
     {{> @embedView}}
     """
