@@ -168,6 +168,7 @@ module.exports = [
   "app/MainApp/payment/buyvmconfirmview.coffee",
   "app/MainApp/payment/paymentworkflow.coffee",
   "app/MainApp/payment/buymodal.coffee",
+  "app/MainApp/payment/planupgradeform.coffee",
 
   #maintabs
 
