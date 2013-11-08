@@ -110,9 +110,7 @@ class KDMixpanel
   setOnce:(property, value, callback )->
     mixpanel.people.set_once property, value, callback
 
-if mixpanel? && KD.config.logToExternal then do ->
-  console.log "enabling mixpanel"
-
+if mixpanel and KD.config.logToExternal then do ->
   KD.getSingleton('mainController').on "AccountChanged", (account) ->
     if KD.isLoggedIn()
       user       = KD.whoami()

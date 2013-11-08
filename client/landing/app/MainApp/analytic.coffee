@@ -11,11 +11,9 @@ do->
   # implicit 'User' in front.
   #
   # Ex: 'Followed user'
-  KD.mixpanel = (eventName, options)->
-    mixpanel.track eventName, options
+  KD.mixpanel = mixpanel.track
 
-  KD.mixpanel.alias = (userId)->
-    mixpanel.alias userId
+  KD.mixpanel.alias = mixpanel.alias
 
   logToGoogle = (rest...)->
     category = action = rest.first
