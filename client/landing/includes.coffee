@@ -422,6 +422,9 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/domains/subdomaincreateform.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
 
+  "app/Applications/Environments.kdapplication/views/vms/vmproductform.coffee",
+
+
   # "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   # "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
   # "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
