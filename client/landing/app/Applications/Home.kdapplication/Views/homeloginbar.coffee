@@ -62,7 +62,6 @@ class HomeLoginBar extends JView
       icon        : {}
       cssClass    : "join green button"
       attributes  :
-
         href      : "/Join"
       click       : (event)=>
         @utils.stopDOMEvent event

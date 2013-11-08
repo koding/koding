@@ -5,7 +5,6 @@ class KDMixpanel
     eventData = rest[1]
     $user   = KD.nick()
 
-    # TODO: are we even sending "Login" events to mixpanel?
     if eventName is "Login" or (eventName is "Groups" and eventData is "ChangeGroup")
       # identify user on mixpanel
       #@registerUser()

@@ -243,7 +243,6 @@ class LoginView extends KDScrollView
         @registerForm.emit "SubmitFailed", message
 
       else
-        console.log ">>>> sign up", account
         KD.mixpanel.alias account.profile.nickname
 
         $.cookie 'newRegister', yes
