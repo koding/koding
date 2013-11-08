@@ -7,10 +7,20 @@ class PlanUpgradeForm extends JView
     @listController = new KDListViewController
       itemClass: GroupPlanListItem
 
+    @listView = @listController.getListView()
+
+    @listView.on 'ItemWasAdded', (item) =>
+      item.setControls new KDButtonView
+        title     : 'Upgrade'
+        callback  : =>
+          @emit 'PlanSelected', item.getData()
+
     super()
 
   pistachio: ->
     """
-    this is the plan upgrade form:
-    {{> @listController.getView()}}
+    <h2>
+      You must upgrade your plan:
+    </h2>
+    {{> @listView}}
     """
