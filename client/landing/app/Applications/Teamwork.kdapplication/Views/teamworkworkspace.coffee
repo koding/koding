@@ -29,12 +29,28 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       if @amIHost()
         # currently only for host.
         # bc of clients need to know host's vmName and active pane's file data etc.
-        {viewerHeader} = @getActivePanel().paneLauncher.previewPane.previewer
+        activePanel    = @getActivePanel()
+        {previewPane}  = activePanel.paneLauncher
+        {viewerHeader} = previewPane.previewer
         viewerHeader.addSubView new KDButtonView
-          cssClass : "clean-gray workspace-previewer-button"
+          cssClass : "clean-gray tw-previewer-button"
           title    : "View active file"
           callback : =>
             @previewFile()
+
+        viewerHeader.addSubView @autoRefreshSwitch = new KDOnOffSwitch
+          defaultValue : off
+          cssClass     : "tw-live-update"
+          title        : "Auto Refresh: "
+          size         : "tiny"
+          tooltip      :
+            title      : "If it's on, preview will be refreshed when you save a file."
+            placement  : "bottom"
+          callback     : (state) =>
+            @autoRefresh previewPane  if state
+
+        activePanel.getPaneByName("editor").on "EditorDidSave", =>
+          @autoRefresh previewPane  if @autoRefreshSwitch.getValue()
 
   createLoader: ->
     @container.addSubView @loader = new KDCustomHTMLView
@@ -80,6 +96,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       teamwork                   = new teamworkClass teamworkOptions
       @getDelegate().teamwork    = teamwork
       @addSubView teamwork
+
+  autoRefresh: (previewPane) ->
+    previewPane.previewer.emit "ViewerRefreshed"
 
   createRunButton: (panel) ->
     # panel.headerButtons.Environments.hide()
