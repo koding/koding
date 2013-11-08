@@ -130,12 +130,12 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
 
     @preview.addSubView @previewPane
 
-  resizePanes: (state) ->
+  resizePanes: (statesObj) ->
     activePanel = @workspace.getActivePanel()
 
     unless activePanel
       return @workspace.once "WorkspaceSyncedWithRemote", =>
-        @resizePanes state
+        @resizePanes statesObj
 
     finder = activePanel.getPaneByName "finder"
     return unless finder
@@ -143,7 +143,7 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
     finderContainer   = finder.container
     finderNeedsResize = no
 
-    for own key, value of state
+    for own key, value of statesObj
       if key isnt "chat" and value is yes
         finderNeedsResize = yes
 
