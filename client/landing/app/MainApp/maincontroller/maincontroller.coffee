@@ -133,9 +133,10 @@ class MainController extends KDController
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
     @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
+      cookieExists = cookie?
       cookieMatches = cookie is ($.cookie 'clientId')
       cookie = $.cookie 'clientId'
-      if cookie? and not cookieMatches
+      if cookieExists and not cookieMatches
         return @isLoggingIn off  if @isLoggingIn() is on
 
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
@@ -205,8 +206,6 @@ class MainController extends KDController
     return ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
-        KD.track "Connected to backend"
-
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
