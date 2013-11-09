@@ -47,10 +47,10 @@ class TeamworkWorkspace extends CollaborativeWorkspace
             title      : "If it's on, preview will be refreshed when you save a file."
             placement  : "bottom"
           callback     : (state) =>
-            @autoRefresh previewPane  if state
+            @refreshPreviewPane previewPane  if state
 
         activePanel.getPaneByName("editor").on "EditorDidSave", =>
-          @autoRefresh previewPane  if @autoRefreshSwitch.getValue()
+          @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
 
   createLoader: ->
     @container.addSubView @loader = new KDCustomHTMLView
@@ -97,7 +97,8 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       @getDelegate().teamwork    = teamwork
       @addSubView teamwork
 
-  autoRefresh: (previewPane) ->
+  refreshPreviewPane: (previewPane) ->
+    # emitting ViewerRefreshed event will trigger refreshing the preview via Firebase.
     previewPane.previewer.emit "ViewerRefreshed"
 
   createRunButton: (panel) ->
