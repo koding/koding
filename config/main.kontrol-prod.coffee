@@ -7,7 +7,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?replicaSet=koodingrs0'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -275,3 +275,4 @@ module.exports =
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
+  mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"

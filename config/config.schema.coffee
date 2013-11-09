@@ -289,4 +289,5 @@ config =
       secret_url    : 1
       version       : 1
       signature     : 1
+    mixpanel        : 1
 module.exports = config
