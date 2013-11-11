@@ -15,13 +15,13 @@ import (
 	"koding/newkite/protocol"
 	"koding/tools/config"
 	"koding/tools/utils"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type Provisioning struct{}
@@ -67,17 +67,54 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"start":     "Start",
-		"stop":      "Stop",
-		"prepare":   "Prepare",
-		"unprepare": "Unprepare",
-		"exec":      "Exec",
-		"info":      "Info",
+		"start":      "Start",
+		"stop":       "Stop",
+		"prepare":    "Prepare",
+		"unprepare":  "Unprepare",
+		"exec":       "Exec",
+		"info":       "Info",
+		"resizeDisk": "ResizeDisk",
 	}
 
 	k = kite.New(options)
 	k.AddMethods(new(Provisioning), methods)
 	k.Start()
+}
+
+func (p *Provisioning) ResizeDisk(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		ContainerName string
+		ResizeTo      int
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not get info. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.ResizeTo == 0 {
+		return errors.New("{ containerName: [string], resizeTo: [int] }")
+	}
+
+	log.Info("[%s] resizeDisk the container: '%s'", r.Username, params.ContainerName)
+
+	vm, err := getVM(params.ContainerName)
+	if err != nil {
+		log.Error("[%s] could not get vm to resize '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return errors.New("could not start vm - 1")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+	c := container.NewContainer(containerName)
+
+	err = c.Resize(params.ResizeTo)
+	if err != nil {
+		return err
+	}
+
+	*result = true
+	return nil
 }
 
 func (p *Provisioning) Info(r *protocol.KiteDnodeRequest, result *ContainerInfo) error {
@@ -98,9 +135,9 @@ func (p *Provisioning) Info(r *protocol.KiteDnodeRequest, result *ContainerInfo)
 
 	vm, err := getVM(params.ContainerName)
 	if err != nil {
-		log.Error("[%s] could not get vm to start '%s'. err: '%s'",
+		log.Error("[%s] could not get vm to get info about '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not start vm - 1")
+		return errors.New("could not info vm - 1")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()

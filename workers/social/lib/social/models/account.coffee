@@ -1001,7 +1001,11 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchUser:(callback)->
     JUser = require './user'
-    JUser.one {username: @profile.nickname}, callback
+    selector = { targetId: @getId(), as: 'owner', sourceName: 'JUser' }
+    Relationship.one selector, (err, rel) ->
+      return callback err   if err
+      return callback null  unless rel
+      JUser.one {_id: rel.sourceId}, callback
 
   markAllContentAsLowQuality:->
     # this is obsolete

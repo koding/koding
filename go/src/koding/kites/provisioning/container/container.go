@@ -6,14 +6,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/caglar10ur/lxc"
 	"io"
+	"koding/kites/provisioning/rbd"
 	"net"
 	"os"
 	"os/exec"
 	"strconv"
 	"sync"
 	"text/template"
+
+	"github.com/caglar10ur/lxc"
 )
 
 const (
@@ -319,6 +321,28 @@ func (c *Container) Destroy() error {
 
 	if !l.Destroy() {
 		return fmt.Errorf("could not destroy: %s\n", c.Name)
+	}
+
+	return nil
+}
+
+// Resize resizes the container to the given sizeInMB argument.
+func (c *Container) Resize(sizeInMB int) error {
+	r := rbd.NewRBD(c.Name)
+
+	out, err := r.Resize(sizeInMB)
+	if err != nil {
+		return fmt.Errorf("resize disk failed.", err, out)
+	}
+
+	out, err = exec.Command("/sbin/resize2fs", r.DevicePath).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("resize2fs failed. err: %s\n out:%s\n", err, string(out))
+	}
+
+	out, err = exec.Command("/bin/mount", "-o", "remount", c.OverlayPath("")).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("remount failed. err: %s\n out:%s\n", err, string(out))
 	}
 
 	return nil

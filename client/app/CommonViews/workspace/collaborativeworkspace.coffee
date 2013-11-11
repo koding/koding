@@ -118,7 +118,7 @@ class CollaborativeWorkspace extends Workspace
     u    = KD.utils
     return  "#{nick}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
 
-  getSessionOwner: ->
+  getHost: ->
     return @sessionKey.split("_").first
 
   amIHost: ->

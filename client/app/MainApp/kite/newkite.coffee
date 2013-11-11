@@ -8,7 +8,8 @@ class NewKite extends KDObject
 
     super options
 
-    { @addr, @name, @token, @correlationName, @publicIP, @port } = options
+    { @addr, @name, @token, @publicIP, @port } = options
+
     @localStore   = new Store
     @remoteStore  = new Store
     @tokenStore = {}
@@ -49,10 +50,10 @@ class NewKite extends KDObject
           @getKiteAddr true
       else
         # kite and token comes in seperate objects. See protocol.go.
-        first = kites[0]
-        kite = first.kite
+        first  = kites[0]
+        kite   = first.kite
         @token = first.token
-        @addr = kite.publicIP + ":" + kite.port
+        @addr  = kite.publicIP + ":" + kite.port
 
         # this should be optional
         @connectDirectly() if connect
@@ -65,13 +66,13 @@ class NewKite extends KDObject
     log "I'm connected to #{@name} at #{@addr}. Yayyy!"
     @clearBackoffTimeout()
     @readyState = READY
-    @emit 'KiteConnected', @name
+    @emit 'connected', @name
     @emit 'ready'
 
   onClose: (evt) ->
     # log "#{@name}: disconnected, trying to reconnect"
     @readyState = CLOSED
-    @emit 'KiteDisconnected', @name
+    @emit 'disconnected'
     # enable below to autoReconnect when the socket has been closed
     # if @autoReconnect
     #   KD.utils.defer => @setBackoffTimeout @bound "connect"
@@ -144,13 +145,14 @@ class NewKite extends KDObject
       scrubbed.method or= method
       callback scrubbed
 
-  tell:(options, callback) ->
+  tell:(method, args, callback) ->
     @ready =>
-      # token is needed to initiate a valid session
-      options.token = @token
-      options.username  = "#{KD.nick()}"
-      # options.correlationName = "vm-100.devrim.koding.kd.io"
-      @handleRequest options.method, [options, callback]
+      options =
+        token    : @token
+        username : "#{KD.nick()}" # this will be removed
+        withArgs : args
+
+      @handleRequest method, [options, callback]
 
   send: (data) ->
     try

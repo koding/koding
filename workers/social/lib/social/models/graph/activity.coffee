@@ -275,6 +275,7 @@ module.exports = class Activity extends Graph
         $nin: ["koding"] # we need koding even if its private
     , {}, (err, groups)=>
       return callback err if err
+      return callback null, [] unless groups?
       return callback null, [] if groups.length < 1
       secretGroups = (group.slug for group in groups)
       callback null, secretGroups

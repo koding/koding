@@ -654,7 +654,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
       =>
         @sendEmailConfirmationByUsername username, (err) =>
-          return console.error err if err
+          console.error err if err
           queue.next()
       ->
         JAccount.emit "AccountRegistered", account, referrer
@@ -896,4 +896,5 @@ Your password has been changed!  If you didn't request this change, please conta
   @sendEmailConfirmationByUsername:(username, callback)->
     @one {username}, (err, user)->
       return callback err  if err
+      return callback null unless user
       user.sendEmailConfirmation callback
