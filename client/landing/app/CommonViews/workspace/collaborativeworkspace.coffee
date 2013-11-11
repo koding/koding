@@ -1,6 +1,7 @@
 class CollaborativeWorkspace extends Workspace
 
   init: ->
+    @nickname    = KD.nick()
     @sessionData = []
     @users       = {}
     @createRemoteInstance()
@@ -37,13 +38,13 @@ class CollaborativeWorkspace extends Workspace
       if isOldSession
         @sessionData  = keys
         @createPanel()
-        @userRef = @workspaceRef.child("users").child KD.nick()
+        @userRef = @workspaceRef.child("users").child @nickname
         @userRef.set "online"
         @userRef.onDisconnect().set "offline"
       else
         @createPanel()
         @workspaceRef.set "keys": @sessionData
-        @userRef = @workspaceRef.child("users").child KD.nick()
+        @userRef = @workspaceRef.child("users").child @nickname
         @userRef.set "online"
         @userRef.onDisconnect().set "offline"
 
@@ -85,7 +86,8 @@ class CollaborativeWorkspace extends Workspace
 
     @on "KDObjectWillBeDestroyed", =>
       @forceDisconnect()
-      @workspaceRef.off eventName for eventName in ["value", "child_added", "child_removed", "child_changed"]
+      events = [ "value", "child_added", "child_removed", "child_changed" ]
+      @workspaceRef.off eventName for eventName in events
 
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -114,16 +116,15 @@ class CollaborativeWorkspace extends Workspace
     @emit "PanelCreated", newPanel
 
   createSessionKey: ->
-    nick = KD.nick()
-    u    = KD.utils
-    return  "#{nick}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
+    u = KD.utils
+    return "#{@nickname}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
 
   getHost: ->
     return @sessionKey.split("_").first
 
   amIHost: ->
     [sessionOwner] = @sessionKey.split "_"
-    return sessionOwner is KD.nick()
+    return sessionOwner is @nickname
 
   showNotActiveView: ->
     notValid = new KDView
@@ -158,8 +159,7 @@ class CollaborativeWorkspace extends Workspace
     @loader.on "viewAppended", -> loaderView.show()
     @container.addSubView @loader
 
-  isJoinedASession: ->
-    return  @getOptions().joinedASession
+  isJoinedASession: -> return @getOptions().joinedASession
 
   joinSession: (newOptions) ->
     options                = @getOptions()
@@ -292,7 +292,7 @@ class CollaborativeWorkspace extends Workspace
     }
 
   setHistory: (message = "") ->
-    user    = KD.nick()
+    user    = @nickname
     message = message.replace "$0", user
 
     @historyRef.child(Date.now()).set { message, user }
