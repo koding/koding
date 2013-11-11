@@ -1,5 +1,4 @@
-
-__utils.extend
+__utils.extend __utils,
 
   getPaymentMethodTitle: (billing)->
     # for convenience, accept either the payment method, or the billing object
