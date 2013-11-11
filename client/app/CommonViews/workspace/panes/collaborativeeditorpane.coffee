@@ -38,7 +38,7 @@ class CollaborativeEditorPane extends CollaborativePane
     isValidFile = file instanceof FSFile and file.path.indexOf("localfile") is -1
 
     if @amIHost
-      return warn "no file instance handle save as" unless isValidFile
+      return warn "no file instance to handle save as" unless isValidFile
 
       @ref.child("WaitingSaveRequest").set no
       file.save @firepad.getText(), (err, res) =>
@@ -51,6 +51,7 @@ class CollaborativeEditorPane extends CollaborativePane
       @ref.child("WaitingSaveRequest").set yes
 
     @getOptions().saveCallback? @panel, @workspace, file, @firepad.getText()
+    @emit "EditorDidSave"
 
   getValue: ->
     return @codeMirrorEditor.getValue()
@@ -61,6 +62,8 @@ class CollaborativeEditorPane extends CollaborativePane
   createEditor: ->
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
+      scrollPastEnd   : yes
+      mode            : "htmlmixed"
       extraKeys       :
         "Cmd-S"       : @bound "save"
         "Ctrl-S"      : @bound "save"
@@ -89,11 +92,10 @@ class CollaborativeEditorPane extends CollaborativePane
     syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
     modeName           = null
     corrections        =
-      html             : "xml"
+      html             : "htmlmixed"
       json             : "javascript"
       js               : "javascript"
       go               : "go"
-      txt              : "text"
 
     if corrections[fileExtension]
       modeName = corrections[fileExtension]

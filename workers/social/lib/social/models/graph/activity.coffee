@@ -122,11 +122,24 @@ module.exports = class Activity extends Graph
         # we have maximum call stack size error from bongo,
         # while sending the result back to client
         # this is a bandaid for it
-        limitCount : 3 #requestOptions.limit
+        limitCount : 5 #requestOptions.limit
         skipCount  : requestOptions.skip
 
       query = QueryRegistry.activity.profilePage {facetQuery, orderBy}
-      @fetchWithRelatedContent query, queryOptions, requestOptions, callback
+      @fetchWithRelatedContent query, queryOptions, requestOptions, (err, res)->
+        return callback err if err
+
+        # This is a workaround to get over Neo4J skip-sort feature.
+        # We are trimming items to return right resultset because Neo4J
+        # returns an additional sticky item.
+
+        # This doesn't happen when results are sorted by 'modifiedAt'.
+        if "modifiedAt" of requestOptions.sort
+          return callback err, res
+
+        if res?.length > 1
+          res = res[0..res.length-2]
+        return callback err, res
 
   # this is following feed
   @fetchFolloweeContents:(options, callback)->
@@ -262,6 +275,7 @@ module.exports = class Activity extends Graph
         $nin: ["koding"] # we need koding even if its private
     , {}, (err, groups)=>
       return callback err if err
+      return callback null, [] unless groups?
       return callback null, [] if groups.length < 1
       secretGroups = (group.slug for group in groups)
       callback null, secretGroups

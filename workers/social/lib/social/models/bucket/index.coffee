@@ -104,6 +104,8 @@ module.exports = class CBucket extends jraphical.Module
                   as       : 'activity'
                 , (err, relationship) ->
                   return callback err if err
+                  return callback message:"Relationship doesn't exist" unless relationship
+
                   emitBucketIsUpdated = (bucket, activity, callback) ->
                     bucketOptions =
                       type        : activity.constructor.name

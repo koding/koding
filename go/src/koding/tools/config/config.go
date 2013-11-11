@@ -58,6 +58,15 @@ type Config struct {
 		Push bool
 		Host string
 	}
+	ElasticSearch struct {
+		Host  string
+		Port  int
+		Queue string
+	}
+	NewKontrol struct {
+		Host string
+		Port int
+	}
 	Kontrold struct {
 		Vhost    string
 		Overview struct {

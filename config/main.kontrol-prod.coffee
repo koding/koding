@@ -7,7 +7,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=primaryPreferred'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -96,6 +96,11 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
+  elasticSearch          :
+    host                 : "localhost"
+    port                 : 9200
+    enabled              : no
+    queue                : "elasticSearchFeederQueue"
   guestCleanerWorker     :
     enabled              : no # for production, workers are running as a service
     login                : 'prod-social'
@@ -156,6 +161,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
+      newkontrol:
+        host    : 'newkontrol.sj.koding.com'
+        port    : 80
   mq            :
     host        : '172.16.3.4'
     port        : 5672
@@ -199,6 +207,9 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  newkontrol      :
+    host          : "newkontrol.sj.koding.com"
+    port          : 80
   kontrold        :
     vhost         : "/"
     overview      :
@@ -264,3 +275,4 @@ module.exports =
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
+  mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"

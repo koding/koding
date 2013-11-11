@@ -9,11 +9,14 @@ import (
 
 type Callback func(args ...interface{})
 
+// UnmarshalJSON marshals the callback as "nil".
+// Value of the callback is not important in dnode protocol.
 func (p *Callback) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
 type CallbackSpec struct {
+	// Path represents the callback's path in the arguments structure.
 	Path     []string
 	Callback Callback
 }
@@ -52,7 +55,7 @@ func (c *CallbackSpec) Apply(value reflect.Value) error {
 			value = value.Elem()
 		case reflect.Struct:
 			if innerPartial, ok := value.Addr().Interface().(*Partial); ok {
-				innerPartial.callbacks = append(innerPartial.callbacks, CallbackSpec{c.Path[i:], c.Callback})
+				innerPartial.Callbacks = append(innerPartial.Callbacks, CallbackSpec{c.Path[i:], c.Callback})
 				return nil
 			}
 			name := c.Path[i]

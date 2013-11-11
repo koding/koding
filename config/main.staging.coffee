@@ -92,6 +92,11 @@ module.exports =
     watch                : yes
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
+  elasticSearch          :
+    host                 : "localhost"
+    port                 : 9200
+    enabled              : no
+    queue                : "elasticSearchFeederQueue"
   guestCleanerWorker     :
     enabled              : yes
     login                : 'prod-social'
@@ -154,6 +159,9 @@ module.exports =
       sourceUri : "http://stage-webserver-#{version}.sj.koding.com:1337"
       github    :
         clientId: "f733c52d991ae9642365"
+      newkontrol:
+        host    : '127.0.0.1'
+        port    : 80
   mq            :
     host        : '172.16.6.14'
     port        : 5672
@@ -197,6 +205,9 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  newkontrol      :
+    host          : "127.0.0.1"
+    port          : 80
   kontrold        :
     vhost         : "/"
     overview      :
@@ -262,3 +273,4 @@ module.exports =
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
+  mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"

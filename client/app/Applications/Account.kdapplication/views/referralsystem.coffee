@@ -131,7 +131,7 @@ class AccountReferralSystemListController extends AccountListViewController
           """
       click       : ->
         appManager = KD.getSingleton "appManager"
-        appManager.tell "Account", "showReferrerTooltip",
+        appManager.tell "Account", "showReferrerModal",
           linkView    : getYourReferrerCode
           top         : 50
           left        : 35

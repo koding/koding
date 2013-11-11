@@ -118,7 +118,7 @@ task 'webserver', "Run the webserver", ({configFile}) ->
     watcher = new Watcher
       groups        :
         server      :
-          folders   : ['./server']
+          folders   : ['./server', './workers/social']
           onChange  : ->
             processes.kill "server"
 
@@ -396,6 +396,22 @@ task 'neo4jfeeder', "Run the neo4jFeeder", (options)->
         enabled      : if config.runKontrol is yes then yes else no
         startMode    : "version"
 
+
+# this is not safe to run multiple version of it
+task 'elasticsearchfeeder', "Run the Elastic Search Feeder", (options)->
+  {configFile} = options
+  config       = require('koding-config-manager').load("main.#{configFile}")
+  processes.spawn
+    name    : "elasticsearchfeeder"
+    cmd     : "./go/bin/elasticsearchfeeder -c #{configFile} #{addFlags options}"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+
 task 'cacheWorker', "Run the cacheWorker", ({configFile})->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {cacheWorker} = KONFIG
@@ -480,6 +496,7 @@ run =({configFile})->
     invoke 'persistence'                      if config.runPersistence
     invoke 'proxy'                            if config.runProxy
     invoke 'neo4jfeeder'                      if config.runNeo4jFeeder
+    invoke 'elasticsearchfeeder'              if config.elasticSearch.enabled
     invoke 'authWorker'                       if config.authWorker
     invoke 'guestCleanerWorker'               if config.guestCleanerWorker.enabled
     invoke 'emailConfirmationCheckerWorker'   if config.emailConfirmationCheckerWorker.enabled
@@ -489,14 +506,29 @@ run =({configFile})->
     invoke 'emailSender'                      if config.emailSender?.run is yes
     invoke 'webserver'
 
+task 'importDB', (options) ->
+  if options.configFile is 'vagrant'
+    (spawn 'bash', ['./vagrant/import.sh'])
+      .stdout
+        .on 'data', (it) ->
+          console.log "#{it}"
+        .on 'end', ->
+          console.log "Import is finished!".green
+          process.exit()
+  else
+    console.error "You should only run this task with -c vagrant".red
+
 task 'run', (options)->
   {configFile} = options
   options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
   if "vagrant" is options.configFile
-    (spawn 'bash', ['./vagrant/init.sh'])
-      .stdout.on 'data', (it) -> console.log "#{it}".rainbow
+    (spawn 'bash', ['./vagrant/needimport.sh'])
+      .stdout.on 'data', (it) ->
+        if "#{it}" is '1\n'
+          console.error "You need to run cake -c vagrant importDB".red
+          process.exit()
 
   oldIndex = nodePath.join __dirname, "website/index.html"
   if fs.existsSync oldIndex

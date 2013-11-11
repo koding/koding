@@ -34,21 +34,35 @@ decorateComment = (JAccount, comment, callback) ->
   Relationship.one selector, (err, rel) =>
     if err
       console.error err
-      callback null, err
+      callback err, null
     sel = { "_id" : rel.data.sourceId}
 
     JAccount.one sel, (err, acc) =>
       if err
         console.error err
-        callback null, err
-      commentSummary.authorName = acc.data.profile.firstName + " "
-      commentSummary.authorName += acc.data.profile.lastName
-      callback commentSummary, null
+        callback err, null
+      commentSummary.authorName = getFullName acc
+      callback null, commentSummary
+
+getFullName = (account) ->
+  fullName = "A koding user"
+  if account?.data?.profile?.firstName?
+    fullName = account.data.profile.firstName + " "
+
+  if account?.data?.profile?.lastName?
+    fullName += account.data.profile.lastName
+  return fullName
+
+getUserHash = (account) ->
+  hash = ""
+  if account?.data?.profile?.hash?
+    hash = account.data.profile.hash
+  return hash
 
 createActivityContent = (JAccount, models, comments, section, callback) ->
   model = models.first if models and Array.isArray models
   unless model
-    callback null, "JStatusUpdate cannot be found."
+    callback new Error "JStatusUpdate cannot be found.", null
   statusUpdateId = model.getId()
   jAccountId = model.data.originId
   selector =
@@ -57,6 +71,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
     "as" : "author"
   }
 
+  return callback new Error "Cannot call fetchTeaser function.", null unless typeof model.fetchTeaser is "function"
   model.fetchTeaser (error, teaser)=>
     tags = []
     if teaser?.tags?
@@ -69,7 +84,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
     Relationship.one selector, (err, rel) =>
       if err
           console.error err
-          callback null, err
+          callback err, null
       sel =
       {
         "_id" : rel.data.targetId
@@ -77,18 +92,11 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
       JAccount.one sel, (err, acc) =>
         if err
           console.error err
-          callback null, err
+          callback err, null
 
-        fullName = "A koding user"
-        if acc?.data?.profile?.firstName
-          fullName = acc.data.profile.firstName + " "
+        fullName = getFullName acc
 
-        if acc?.data?.profile?.lastName
-          fullName += acc.data.profile.lastName
-
-        hash = ""
-        if acc?.data?.profile?.hash
-          hash = acc.data.profile.hash
+        hash = getUserHash acc
 
         activityContent = {
           fullName : fullName
@@ -104,7 +112,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
           type : model.bongo_?.constructorName
         }
         content = activity {activityContent, section, models}
-        callback content, null
+        callback null, content
 
 module.exports =
   crawl: (bongo, req, res, slug)->
@@ -137,25 +145,31 @@ module.exports =
             model = models.first if models and Array.isArray models
             return res.send 404, error_404() unless model
 
-            model?.fetchRelativeComments limit:3, after:"", (error, comments)=>
 
-              queue = [0..comments.length].map (index)=>=>
-                comment = comments[index]
-                if comment?.data
-                  # Get comments authors, put comment info into commentSummaries
-                  decorateComment JAccount, comment, (commentSummary, error)=>
-                    queue.next() if error
-                    queue.commentSummaries or= []
-                    if commentSummary.body
-                      queue.commentSummaries.push commentSummary
-                    queue.next()
-                else queue.next()
-              queue.push =>
-                createActivityContent JAccount, models, \
-                  queue.commentSummaries, section, (content, error)=>
-                    queue.next() if error
-                    return res.send 200, content
-              daisy queue
+            if typeof model.fetchRelativeComments is "function"
+              model?.fetchRelativeComments? limit:3, after:"", (error, comments)=>
+                queue = [0..comments.length].map (index)=>=>
+                  comment = comments[index]
+                  if comment?.data
+                    # Get comments authors, put comment info into commentSummaries
+                    decorateComment JAccount, comment, (error, commentSummary)=>
+                      queue.next() if error
+                      queue.commentSummaries or= []
+                      if commentSummary.body
+                        queue.commentSummaries.push commentSummary
+                      queue.next()
+                  else queue.next()
+                queue.push =>
+                  createActivityContent JAccount, models, \
+                    queue.commentSummaries, section, (error, content)=>
+                      queue.next() if error
+                      return res.send 200, content
+                daisy queue
+            else
+              createActivityContent JAccount, models, \
+                {}, section, (error, content)=>
+                  queue.next() if error
+                  return res.send 200, content
       else
         return res.send 404, error_404("No section is given.")
     else

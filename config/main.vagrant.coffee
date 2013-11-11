@@ -83,6 +83,11 @@ module.exports =
     watch                : yes
     cronSchedule         : '0 * * * * *'
     usageLimitInMinutes  : 60
+  elasticSearch          :
+    host                 : "localhost"
+    port                 : 9200
+    enabled              : no
+    queue                : "elasticSearchFeederQueue"
   guestCleanerWorker     :
     enabled              : yes
     login                : 'prod-social'
@@ -149,6 +154,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
+      newkontrol:
+        host    : '127.0.0.1'
+        port    : 4000
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -204,6 +212,9 @@ module.exports =
     interval      : 60000
   haproxy         :
     webPort       : 3020
+  newkontrol      :
+    host          : "127.0.0.1"
+    port          : 4000
   kontrold        :
     vhost         : "/"
     overview      :
@@ -280,3 +291,4 @@ module.exports =
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
+  mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"

@@ -32,7 +32,7 @@ class StartTabMainView extends JView
         callback      : (cb)=>
           @serverContainer.setHeight 500
           @serverContainerToggle.setClass 'on-top'
-          @utils.wait 260, => @serverContainer.scene.updateScene()
+          @utils.wait 460, => @serverContainer.scene.updateScene()
           cb()
       ,
         title         : "Hide environments"
