@@ -210,6 +210,9 @@ class ApplicationManager extends KDObject
     @utils.defer =>
       return @emit "AppCouldntBeCreated"  unless appInstance
       @emit "AppCreated", appInstance
+
+      KD.mixpanel "User Installed Application", name
+
       if appOptions.thirdParty
         KD.getSingleton("kodingAppsController").putAppResources appInstance, callback
       callback? appInstance
