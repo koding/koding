@@ -6,8 +6,7 @@ class VmProductView extends JView
     """
     <h3>{{ #(title) }}</h3>
     <div>
-      <span class="dollar">$</span>
-      {span{ @utils.formatMoney #(feeAmount) }}
+      {span{ @utils.formatMoney #(feeAmount) / 100 }}
       <span class="per-month">/ mo</span>
     </div>
     """
