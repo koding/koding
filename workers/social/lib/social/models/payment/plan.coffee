@@ -138,6 +138,8 @@ module.exports = class JPaymentPlan extends Module
     options = tag: options  if 'string' is typeof options
     options.limit = Math.min options.limit ? 20, 20
     
+    options.sort ?= feeAmount: 1
+
     selector =
       tags  : options.tag
       group : client.context.group
