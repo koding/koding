@@ -42,7 +42,8 @@ module.exports = class JUser extends jraphical.Module
                      'fucker','admin','postfix','puppet','main','invite',
                      'administrator','members','register','activate','shared',
                      'groups','blogs','forums','topics','develop','terminal',
-                     'term','twitter','facebook','google','framework', 'kite']
+                     'term','twitter','facebook','google','framework', 'kite'
+                     'landing']
 
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
