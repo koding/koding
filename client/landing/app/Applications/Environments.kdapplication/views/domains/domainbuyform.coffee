@@ -21,7 +21,7 @@ class DomainBuyForm extends CommonDomainCreateForm
         domain      : domain
         workflow    : new PaymentWorkflow
           productForm : new DomainProductForm
-          confirmForm : new DomainBuyConfirmForm {
+          confirmForm : new DomainPaymentConfirmForm {
             domain, year, price: displayPrice
           }
 

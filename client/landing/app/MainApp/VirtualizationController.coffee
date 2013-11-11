@@ -372,7 +372,7 @@ class VirtualizationController extends KDController
       title       : "Create a new VM"
       workflow    : new PaymentWorkflow
         productForm : productForm
-        confirmForm : new KDView partial: 'doibndo'
+        confirmForm : new VmPaymentConfirmForm
 
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
