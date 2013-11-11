@@ -368,11 +368,18 @@ class VirtualizationController extends KDController
       return  if KD.showError err
       productForm.setCurrentPlans plans
 
+    workflow = new PaymentWorkflow
+      productForm : productForm
+      confirmForm : new VmPaymentConfirmForm
+    
     modal = new BuyModal
       title       : "Create a new VM"
-      workflow    : new PaymentWorkflow
-        productForm : productForm
-        confirmForm : new VmPaymentConfirmForm
+      workflow    : workflow
+
+    workflow.on 'PaymentConfirmed', (formData) ->
+      { paymentMethodId, productData:{ plan }} = formData
+      plan.subscribe paymentMethodId, (err, res) ->
+        console.log {err, res}
 
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no

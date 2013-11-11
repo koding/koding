@@ -11,4 +11,3 @@ class BuyModal extends KDModalView
   viewAppended: ->
     { workflow } = @getOptions()
     @addSubView workflow
-    @forwardEvent workflow, 'PaymentConfirmed'
