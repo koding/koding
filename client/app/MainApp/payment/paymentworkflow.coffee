@@ -111,7 +111,7 @@ class PaymentWorkflow extends KDView
       when 'entry'      then @entryForm.show()
       when 'confirm'
         confirmData = @utils.extend {}, @aggregatedData
-        confirmData.planInfo = @currentPlan
+        @confirmForm.setData confirmData
         @confirmForm.show()
 
   viewAppended:-> @prepareWorkflow()
