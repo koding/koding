@@ -47,12 +47,13 @@ func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
 func (p *Producer) connect() error {
 
 	var err error
+	// get connection
 	p.conn, err = amqp.Dial(getConnectionString())
 	if err != nil {
 		return err
 	}
 	handleErrors(p.conn)
-	// got Connection, getting Channel
+	// getting channel
 	p.channel, err = p.conn.Channel()
 	if err != nil {
 		return err
@@ -79,15 +80,28 @@ func (p *Producer) Publish(publishing amqp.Publishing) error {
 		po.Mandatory, // mandatory, if no queue than err
 		po.Immediate, // immediate, if no consumer than err
 		publishing,
-		// amqp.Publishing{
-		// 	Headers:         amqp.Table{},
-		// 	ContentType:     "text/plain",
-		// 	ContentEncoding: "",
-		// 	Body:            []byte(body),
-		// 	DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
-		// 	Priority:        0,              // 0-9
-		// 	// a bunch of application/implementation-specific fields
-		// },
+		// amqp.Publishing {
+		//        // Application or exchange specific fields,
+		//        // the headers exchange will inspect this field.
+		//        Headers Table
+
+		//        // Properties
+		//        ContentType     string    // MIME content type
+		//        ContentEncoding string    // MIME content encoding
+		//        DeliveryMode    uint8     // Transient (0 or 1) or Persistent (2)
+		//        Priority        uint8     // 0 to 9
+		//        CorrelationId   string    // correlation identifier
+		//        ReplyTo         string    // address to to reply to (ex: RPC)
+		//        Expiration      string    // message expiration spec
+		//        MessageId       string    // message identifier
+		//        Timestamp       time.Time // message timestamp
+		//        Type            string    // message type name
+		//        UserId          string    // creating user id - ex: "guest"
+		//        AppId           string    // creating application id
+
+		//        // The application specific payload of the message
+		//        Body []byte
+		// }
 	)
 
 	return err
@@ -95,6 +109,7 @@ func (p *Producer) Publish(publishing amqp.Publishing) error {
 
 func (p *Producer) Shutdown() error {
 	err := shutdown(p.conn, p.channel, p.tag)
+	// change fmt => log
 	defer fmt.Println("Producer shutdown OK")
 	return err
 }
