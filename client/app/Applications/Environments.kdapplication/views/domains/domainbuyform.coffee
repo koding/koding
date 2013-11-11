@@ -16,16 +16,18 @@ class DomainBuyForm extends CommonDomainCreateForm
       {price, domain} = item.getData()
       year = +item.yearBox.getValue()
       displayPrice = @utils.formatMoney year * price
+      
+      workflow = new PaymentWorkflow
+        productForm : new DomainProductForm
+        confirmForm : new DomainPaymentConfirmForm {
+          domain, year, price: displayPrice
+        }
+      
       modal = new BuyModal
         title       : "Register <em>#{ domain }</em>"
-        domain      : domain
-        workflow    : new PaymentWorkflow
-          productForm : new DomainProductForm
-          confirmForm : new DomainPaymentConfirmForm {
-            domain, year, price: displayPrice
-          }
+        workflow    : workflow
 
-      modal.on 'PaymentConfirmed', ({ productData, paymentMethodId }) =>
+      workflow.on 'PaymentConfirmed', ({ productData, paymentMethodId }) =>
         @buyDomain { domain, year, price, paymentMethodId, productData }
 
   buyDomain: (options) ->
