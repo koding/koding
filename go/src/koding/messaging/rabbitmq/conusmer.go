@@ -43,10 +43,6 @@ func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*C
 		return nil, err
 	}
 
-	// go func() {
-	//  fmt.Printf("closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
-	// }()
-
 	return c, nil
 }
 
@@ -59,12 +55,13 @@ func (c *Consumer) connect() error {
 
 	var err error
 
+	// getting Connection
 	c.conn, err = amqp.Dial(getConnectionString())
 	if err != nil {
 		return err
 	}
 	handleErrors(c.conn)
-	// got Connection, getting Channel
+	// getting Channel
 	c.channel, err = c.conn.Channel()
 	if err != nil {
 		return err
@@ -123,6 +120,7 @@ func (c *Consumer) connect() error {
 		return err
 	}
 
+	// should we stop streaming, in order not to consume from server?
 	c.deliveries = deliveries
 
 	return nil
@@ -130,9 +128,12 @@ func (c *Consumer) connect() error {
 
 func (c *Consumer) Consume(handler func(deliveries <-chan amqp.Delivery)) {
 	c.handler = handler
-	// handle all consumer errors, if required re-connect
 
+	// handle all consumer errors, if required re-connect
+	// there are problems with reconnection logic
 	handler(c.deliveries)
+
+	// change fmt -> log
 	fmt.Println("handle: deliveries channel closed")
 	c.done <- nil
 }
@@ -142,6 +143,7 @@ func (c *Consumer) Shutdown() error {
 	if err != nil {
 		return nil
 	}
+	// change fmt -> log
 	defer fmt.Println("Consumer shutdown OK")
 	fmt.Println("Waiting for handler to exit")
 	return <-c.done
