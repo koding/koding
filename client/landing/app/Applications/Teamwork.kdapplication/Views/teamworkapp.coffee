@@ -194,6 +194,9 @@ class TeamworkApp extends KDObject
       @teamwork.container.setClass environment
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         {contentDetails} = @teamwork.getOptions()
+
+        KD.mixpanel "User Changed Playground", environment
+
         if contentDetails.type is "zip"
           appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
           appStorage.fetchStorage (storage) =>
