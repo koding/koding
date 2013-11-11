@@ -96,11 +96,12 @@ class MainController extends KDController
 
   doLogout:->
     KD.logout()
+    storage = new LocalStorage 'Koding'
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       @_logoutAnimation()
       KD.utils.wait 1000, ->
         $.cookie 'clientId', replacementToken  if replacementToken
-        localStorage.loggingOut = '1'
+        storage.setValue 'loggingOut', '1'
         location.reload()
 
   _logoutAnimation:->
@@ -152,8 +153,6 @@ class MainController extends KDController
 
           window.location.pathname = firstRoute or "/"
 
-
-
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
@@ -161,14 +160,15 @@ class MainController extends KDController
   isUserLoggedIn: -> KD.isLoggedIn()
 
   isLoggingIn: (isLoggingIn) ->
-    if localStorage.loggingOut is '1'
-      delete localStorage.loggingOut
+
+    storage = new LocalStorage 'Koding'
+    if storage.getValue('loggingOut') is '1'
+      storage.unsetKey 'loggingOut'
       return yes
     if isLoggingIn?
       @_isLoggingIn = isLoggingIn
     else
       @_isLoggingIn ? no
-
 
   showInstructionsBook:->
     if $.cookie 'newRegister'
