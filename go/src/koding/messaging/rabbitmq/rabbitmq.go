@@ -125,7 +125,6 @@ func registerSignalHandler(c Closer) {
 			signal := <-signals
 			switch signal {
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGSTOP:
-				fmt.Println("hede")
 				err := c.Shutdown()
 				if err != nil {
 					panic(err)
