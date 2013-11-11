@@ -1,6 +1,12 @@
 class LocalStorage extends AppStorage
 
-  storage = window.localStorage
+  # This is necessary to check if its allowed to use window.localStorage
+  # otherwise it crashes the rest of the code
+  try
+    storage = window.localStorage
+  catch e
+    warn "#{e.name} occured while getting localStorage:", e.message
+    storage = {}
 
   fetchStorage:->
     KD.utils.defer => @emit "ready"
