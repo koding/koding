@@ -86,6 +86,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     editor.on "OpenedAFile", (file, content) =>
       @emit "OpenedAFile", file, content
 
+    editor.on "EditorDidSave", =>
+      @emit "EditorDidSave"
+
     pane.addSubView editor
     @editors.push editor
     @tabView.addPane pane

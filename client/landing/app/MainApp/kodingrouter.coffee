@@ -339,6 +339,18 @@ class KodingRouter extends KDRouter
               title: "Thanks for confirming your email address!"
           @clear()
 
+      '/:name?/InviteFriends': ->
+        if KD.isLoggedIn()
+          @handleRoute '/Activity', entryPoint: KD.config.entryPoint
+          if KD.introView
+            KD.introView.once "transitionend", ->
+              KD.utils.wait 1200, ->
+                new ReferrerModal
+          else
+            new ReferrerModal
+        else
+          @handleRoute '/Login'
+
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
@@ -369,65 +381,6 @@ class KodingRouter extends KDRouter
                   style    : 'modal-clean-gray'
                   callback : -> modal.destroy()
             @clear()
-
-      # REFACTOR HERE! PUBLIC KEY SHOULDN'T BE SENT, TRY WITH A TOKEN
-      '/:name?/KD/Register/:hostname/:key':
-        ({params:{key, hostname}})->
-          key = decodeURIComponent key
-          hostname = decodeURIComponent hostname
-
-          showModal = (title, content)=>
-            modal = new KDModalView
-              title        : title
-              overlay      : yes
-              cssClass     : "new-kdmodal"
-              content      : "<div class='modalformline'>#{content}</div>"
-              buttons      :
-                "Close"    :
-                  style    : "modal-clean-gray"
-                  callback : (event)->
-                    modal.destroy()
-            @clear()
-
-          if key.length isnt 64
-            title = "Key is not valid!"
-            content = """
-            <p>
-            You provided an invalid Koding Key. Please try with another one.
-            You can renew your Koding key using <code>$ kd register renew</code> on command
-            line interface.
-            </p>
-            """
-            return showModal title, content
-
-          KD.remote.api.JKodingKey.fetchByKey
-            key: key
-          , (err, kodingKey) =>
-            console.log "err", err, kodingKey
-            unless kodingKey?.length
-              KD.remote.api.JKodingKey.create {hostname, key}, (err, data)=>
-                if err or not data
-                  title   = 'An error occured'
-                  content = """
-                  <p>You provided an invalid Koding Key. Please try with another one.
-                  You can renew your Koding key using <code>$ kd register renew</code> on command
-                  line interface.</p>
-                  """
-                  log err
-                else
-                  title   = 'Host Connected!'
-                  content = """
-                  <p>You've connected your Koding Key! It will help you to use Koding command line interface
-                  with more features!</p>
-                  """
-                showModal title, content
-            else
-              title   = "You've already connected the host!"
-              content = """
-              <p>You've already connected to Koding. If you want to renew your Koding key, you should
-              run <code>$ kd register renew</code> on command line interface.</p>
-              """
-              showModal title, content
 
       # top level names
       '/:name':do->

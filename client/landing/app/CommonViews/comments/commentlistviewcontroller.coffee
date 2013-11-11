@@ -66,6 +66,8 @@ class CommentListViewController extends KDListViewController
           listView.emit "OwnCommentWasSubmitted"
         listView.emit "BackgroundActivityFinished"
 
+      KD.mixpanel "Commented on activity"
+
   fetchCommentsByRange:(from,to,callback)->
     [to,callback] = [callback,to] unless callback
     query = {from,to}
