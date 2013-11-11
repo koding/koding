@@ -9,7 +9,7 @@ class CollaborativePreviewPane extends CollaborativePane
     {@previewer} = @previewPane
 
     if @isJoinedASession
-      @workspaceRef.once "value", (snapshot) => @openPath snapshot
+      @workspaceRef.once "value", (snapshot) => @openPathFromSnapshot snapshot
     else
       @previewer.on "ready", => @saveUrl()
 
@@ -17,13 +17,17 @@ class CollaborativePreviewPane extends CollaborativePane
 
     @previewer.on "ViewerRefreshed",       => @saveUrl yes
 
-    @workspaceRef.on "value", (snapshot)   => @openPath snapshot
+    @workspaceRef.on "value", (snapshot)   => @openPathFromSnapshot snapshot
 
     @workspaceRef.onDisconnect().remove() if @amIHost
 
-  openPath: (snapshot) ->
+  openPathFromSnapshot: (snapshot) ->
     value = snapshot.val()
     @previewer.openPath value.url  if value?.url
+
+  openUrl: (url) ->
+    @previewer.openPath url
+    @saveUrl yes
 
   saveUrl: (force) ->
     {path} = @previewer

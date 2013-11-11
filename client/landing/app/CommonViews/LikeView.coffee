@@ -124,6 +124,8 @@ class LikeView extends KDView
           @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
           @_lastUpdatedCount = -1
 
+          KD.mixpanel "Liked activity"
+
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
 
