@@ -6,7 +6,33 @@ module.exports = (options = {}, callback)->
   prefetcher = require '../prefetcher'
   encoder    = require 'htmlencode'
 
+  options.intro   ?= no
+  options.landing ?= no
+  options.client or= {}
+  options.client.context or= {}
+  options.client.context.group or= "koding"
+
+
   prefetchedFeeds = {}
+  {bongoModels, client, intro, landing} = options
+
+  fetchMembersFromGraph = (cb)->
+    return cb null, [] unless bongoModels
+    {JGroup}  = bongoModels
+    groupName = client?.context?.group or 'koding'
+    JGroup.one slug: groupName, (err, group)->
+      return cb null, [] if err
+      group._fetchMembersFromGraph client, {}, cb
+
+  fetchActivityFromGraph = (cb)->
+    return cb null, [] unless bongoModels
+    {CActivity} = bongoModels
+    options = facets : "Everything"
+
+    CActivity._fetchPublicActivityFeed client, options, (err, data)->
+      return cb null, [] if err
+      return cb null, data
+
 
   createHTML = ->
     replacer    = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
@@ -37,7 +63,9 @@ module.exports = (options = {}, callback)->
       require(["order!/js/highlightjs/highlight.pack.js",
                "order!/js/kd.#{KONFIG.version}.js",
                #{if intro then '"order!/js/introapp.'+KONFIG.version+'.js",' else ''}
-               "order!/js/koding.#{KONFIG.version}.js"]);
+               "order!/js/koding.#{KONFIG.version}.js",
+               #{if landing then '"order!/js/landingapp.'+KONFIG.version+'.js",' else ''}
+              ]);
     </script>
 
     <script>(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==
