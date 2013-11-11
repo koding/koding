@@ -10,29 +10,40 @@ GROUPPERPAGE = 5
 module.exports = class SitemapGeneratorWorker extends EventEmitter
   constructor: (@bongo, @options = {}) ->
 
-  generateSitemapString: (urls, isMain=false)->
-
-    # sitemap.XML beginning and ending parts
+  generateSitemapString: (urls)->
+    # sitemap.xml beginning and ending parts
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>
-      <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
-      xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" 
+      <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
       xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
     sitemapFooter = '</urlset>'
 
     # while generating main sitemap, we don't need hashbang in the url.
     for url in urls
-      if isMain
-        sitemap += "<url><loc>#{@options.uri.address}/#{url}</loc></url>"
-      else
-        sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
+      sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
     sitemap += sitemapFooter
+    return sitemap
+
+  generateSitemapIndexString: (sitemapNames)->
+    # sitemapindex.xml beginning and ending parts
+    sitemap = '<?xml version="1.0" encoding="UTF-8"?>
+      <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    sitemapFooter = '</sitemapindex>'
+
+    # while generating main sitemap, we don't need hashbang in the url.
+    for sitemapURL in sitemapNames
+      url = "<sitemap><loc>#{@options.uri.address}/#{sitemapURL}</loc></sitemap>"
+      console.log url
+      sitemap += "<sitemap><loc>#{@options.uri.address}/#{sitemapURL}</loc></sitemap>"
+    sitemap += sitemapFooter
+    return sitemap
 
   generateSitemapName: (groupPageNumber, skip)->
     return  "sitemap_" + groupPageNumber + "_" + skip + "_" + (skip + NAMEPERPAGE) + ".xml"
 
   saveSitemap: (name, content)->
     {JSitemap} = @bongo.models
-    JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)-> 
+    JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)->
       console.log err if err
 
   generate:=>
@@ -41,10 +52,9 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     groupSelector = {
       privacy:'public'
     }
-
-    generateMainSitemap = (sitemapNames)=> 
+    generateSitemapIndex = (sitemapNames)=>
       name = "sitemap.xml"
-      content = @generateSitemapString sitemapNames, true
+      content = @generateSitemapIndexString sitemapNames
       @saveSitemap name, content
 
     JGroup.count groupSelector, (err, groupCount)=>
@@ -72,7 +82,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
             'slugs.group': { $in: publicGroups }
           }
 
-          # Empty the group, it'll be filled in next cycle.
+          # Empty the group, it'll be filled in next iteration.
           publicGroups = []
 
           JName.count selector, (err, count)=>
@@ -85,7 +95,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
               }
               JName.some selector, option, (err, names)=>
                 if names
-                  urls = (name.name for name in names) 
+                  urls = (name.name for name in names)
                   sitemapName =  @generateSitemapName groupPageNumber, skip
                   content = @generateSitemapString urls
                   @saveSitemap sitemapName, content
@@ -95,9 +105,9 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
                 queue.next()
             queue.push => groupQueue.next()
             daisy queue
-            
 
-      groupQueue.push => generateMainSitemap(groupQueue.sitemapNames)
+
+      groupQueue.push => generateSitemapIndex(groupQueue.sitemapNames)
       daisy groupQueue
 
 
