@@ -56,23 +56,36 @@ class CodesnipActivityItemView extends ActivityItemChild
 
   pistachio:->
     """
-    {{> @settingsButton}}
-    <span class="avatar">{{> @avatar}}</span>
-    <div class='activity-item-right-col'>
-      {h3{#(title)}}
-      <p class='context'>{{@utils.applyTextExpansions #(body), yes}}</p>
-      {{> @codeSnippetView}}
-      <footer class='clearfix'>
-        <div class='type-and-time'>
-          <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
-          {time{$.timeago #(meta.createdAt)}}
-          {{> @tags}}
-        </div>
+      {{> @avatar}}
+      <div class="activity-item-right-col">
+        <span class="author-name">{{> @author}}</span>
+        <p class="status-body">{{@utils.applyTextExpansions #(body), yes}}</p>
+        {{> @codeSnippetView}}
+      </div>
+      <footer>
         {{> @actionLinks}}
       </footer>
       {{> @commentBox}}
-    </div>
     """
+
+    # """
+    # {{> @settingsButton}}
+    # <span class="avatar">{{> @avatar}}</span>
+    # <div class='activity-item-right-col'>
+    #   {h3{#(title)}}
+    #   <p class='context'>{{@utils.applyTextExpansions #(body), yes}}</p>
+    #   {{> @codeSnippetView}}
+    #   <footer class='clearfix'>
+    #     <div class='type-and-time'>
+    #       <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
+    #       {time{$.timeago #(meta.createdAt)}}
+    #       {{> @tags}}
+    #     </div>
+    #     {{> @actionLinks}}
+    #   </footer>
+    #   {{> @commentBox}}
+    # </div>
+    # """
 
 class CodeSnippetView extends KDCustomHTMLView
 

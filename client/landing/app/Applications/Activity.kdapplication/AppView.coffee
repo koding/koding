@@ -26,6 +26,7 @@ class ActivityAppView extends KDScrollView
     @header           = new HomeKonstructor
     @widget           = new ActivityUpdateWidget
     @widgetController = new ActivityUpdateWidgetController view : @widget
+    @rightBlock       = new ActivityRightBlock
     @mainController   = KD.getSingleton("mainController")
 
     @mainController.on "AccountChanged", @bound "decorate"
@@ -54,6 +55,7 @@ class ActivityAppView extends KDScrollView
     @addSubView @header
     @addSubView @widget
     @addSubView @innerNav
+    @addSubView @rightBlock
     @addSubView @feedWrapper
 
   decorate:->

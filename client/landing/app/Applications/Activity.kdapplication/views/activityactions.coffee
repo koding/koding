@@ -39,7 +39,8 @@ class ActivityActionsView extends KDView
     activity = @getData()
 
     @commentLink  = new ActivityActionLink
-      partial : "Comment"
+      partial : ""
+      cssClass: "comment-icon"
 
     @commentCount = new ActivityCommentCount
       tooltip     :
@@ -50,7 +51,8 @@ class ActivityActionsView extends KDView
     , activity
 
     @shareLink    = new ActivityActionLink
-      partial         : "Share"
+      partial         : ""
+      cssClass        : "share-icon"
       click           :(event)=>
         shareUrl      = "#{KD.config.mainUri}/Activity/#{@getData().slug}"
         contextMenu   = new JContextMenu
@@ -69,7 +71,9 @@ class ActivityActionsView extends KDView
           parent      : KD.singletons.mainView.mainTabView.activePane
           transparent : yes
 
-    @likeView     = new LikeView {}, activity
+    @likeView     = new LikeView
+      cssClass    : "logged-in action-container"
+    , activity
     @loader       = new KDLoaderView size : width : 14
 
     # unless KD.isLoggedIn()
@@ -93,16 +97,12 @@ class ActivityActionsView extends KDView
 
     """
     {{> @loader}}
-    <span class='logged-in'>
-    {{> @commentLink}}{{> @commentCount}}
-    </span>
-    <i> · </i>
-    <span class='optional'>
-    {{> @shareLink}}
-    </span>
-    <i> · </i>
-    <span class='logged-in'>
     {{> @likeView}}
+    <span class='logged-in action-container'>
+      {{> @commentLink}}{{> @commentCount}}
+    </span>
+    <span class='optional action-container'>
+      {{> @shareLink}}
     </span>
     """
 
@@ -126,10 +126,9 @@ class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
       tagName   : "a"
-      cssClass  : "action-link"
+      cssClass  : "action-link like-icon"
       attributes:
         href    : "#"
-      partial   : "Like"
     , options
     super options,data
 
