@@ -28,6 +28,15 @@ class GroupPackEditForm extends KDFormViewWithFields
       placeholder     : options.placeholders?.description or "(optional)"
       defaultValue    : data.decoded 'description'
 
+    options.fields.tags ?=
+      label         : "Tags"
+      defaultValue  : data.tags?.join ', '
+      change        : @bound 'tagsChanged'
+
     super options, data
 
   getProductData: @::getData
+  
+  tagsChanged: ->
+    { tags } = @inputs
+    tags.setValue (@utils.splitTrim tags.getValue()).join ', '
