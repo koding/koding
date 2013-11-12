@@ -1,6 +1,6 @@
 {Module} = require 'jraphical'
 
-class JPaymentPack extends Module
+module.exports = class JPaymentPack extends Module
 
   { permit } = require '../group/permissionset'
 
