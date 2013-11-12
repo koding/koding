@@ -1,0 +1,60 @@
+@import "./kdfn"
+@import "./client/stylus/appfn"
+@import "./client/stylus/app.fonts"
+
+.feeder-header
+.common-inner-nav
+.activity-update-widget-wrapper
+  display               none
+
+.content-page.activity
+  max-width             1146px
+  margin                0 auto
+  padding               0 20px
+  font-family           "Open sans"
+
+  .activity-content
+    width               70%
+
+  .kdlistitemview-activity
+    background          #fff
+    border              1px solid #e1e1e4
+    margin              16px 0 0 78px
+    border-radius       6px 6px 0 0
+    position            relative
+    borderBox()
+
+    footer
+      size              auto, 38px
+      background        #f8f8f9
+      border            1px solid #e5e5e7
+      border-top        1px solid #e1e1e4
+      margin            0 -1px -1px
+
+    .avatarview.author-avatar
+      size              65px, 65px
+      display           block
+      border-radius     3px
+      border            1px solid #cbc6c6
+      left              -78px
+      top               1px
+      abs()
+      borderBox()
+
+    .author-name
+      display           block
+      margin            24px 24px 0
+      a.profile
+        color           #91979b
+        font-size       15px
+        font-weight     400
+        noTextDeco()
+
+    .status
+      .status-body
+        font-size       16px
+        font-weight     200
+        line-height     22px
+        color           #485259
+        margin          20px 24px 24px
+

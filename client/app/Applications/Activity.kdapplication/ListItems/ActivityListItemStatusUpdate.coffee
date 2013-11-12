@@ -142,20 +142,31 @@ class StatusActivityItemView extends ActivityItemChild
       """
     else
       """
-      {{> @settingsButton}}
-      <span class="avatar">{{> @avatar}}</span>
-      <div class='activity-item-right-col'>
-        <h3 class='hidden'></h3>
-        <p class="status-body">{{@applyTextExpansions #(body)}}</p>
-        {{> @embedBox}}
-        <footer class='clearfix'>
-          <div class='type-and-time'>
-            <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
-            {{> @timeAgoView}}
-            {{> @tags}}
-          </div>
-          {{> @actionLinks}}
+        {{> @avatar}}
+        <div class="activity-item-right-col">
+          <span class="author-name">{{> @author}}</span>
+          <p class="status-body">{{@applyTextExpansions #(body)}}</p>
+        </div>
+        <footer>
         </footer>
-        {{> @commentBox}}
-      </div>
       """
+
+      # """
+      # {{> @settingsButton}}
+      # <span class="avatar">{{> @avatar}}</span>
+      # <div class='activity-item-right-col'>
+      #   <h3 class='hidden'></h3>
+      #   <p class="status-body">{{@applyTextExpansions #(body)}}</p>
+      #   {{> @embedBox}}
+      #   <footer class='clearfix'>
+      #     <div class='type-and-time'>
+      #       <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
+      #       {{> @timeAgoView}}
+      #       {{> @tags}}
+      #     </div>
+      #     {{> @actionLinks}}
+      #   </footer>
+      #   {{> @commentBox}}
+      # </div>
+      # """
+
