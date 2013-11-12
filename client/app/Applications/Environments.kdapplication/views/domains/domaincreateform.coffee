@@ -166,9 +166,10 @@ class DomainCreateForm extends KDCustomHTMLView
       warn "Failed to update domains:", err  if err
       domainList = []
 
-      for domain in userDomains
-        if not domain.regYears > 0
-          domainList.push {title:".#{domain.domain}", value:domain.domain}
+      if userDomains
+        for domain in userDomains
+          if not domain.regYears > 0
+            domainList.push {title:".#{domain.domain}", value:domain.domain}
 
       {domains, domainName} = @subDomainEntryForm.inputs
 
