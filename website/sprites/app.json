@@ -1,7 +1,7 @@
 {
   "name": "app",
-  "checksum": "5a77a5ba3203778c11497bddecd1555a",
-  "shortsum": "5a77a",
+  "checksum": "2516b085b3015521fdab4d38bd14c117",
+  "shortsum": "2516b",
   "images": [
     {
       "name": "blogpost-icon",
@@ -22,13 +22,22 @@
       "positionY": 23
     },
     {
+      "name": "cog-icon",
+      "filename": "cog-icon.png",
+      "checksum": "f0342348e65df0625fc75b473c480433",
+      "width": 15,
+      "height": 15,
+      "positionX": 0,
+      "positionY": 42
+    },
+    {
       "name": "comment-icon",
       "filename": "comment-icon.png",
       "checksum": "57f3e1f4a2df6ceecd18271d0c870591",
       "width": 43,
       "height": 36,
       "positionX": 0,
-      "positionY": 42
+      "positionY": 59
     },
     {
       "name": "like-icon",
@@ -37,7 +46,7 @@
       "width": 43,
       "height": 36,
       "positionX": 0,
-      "positionY": 80
+      "positionY": 97
     },
     {
       "name": "logo",
@@ -46,7 +55,7 @@
       "width": 19,
       "height": 19,
       "positionX": 0,
-      "positionY": 118
+      "positionY": 135
     },
     {
       "name": "nav-activity",
@@ -55,7 +64,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 139
+      "positionY": 156
     },
     {
       "name": "nav-develop",
@@ -64,7 +73,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 173
+      "positionY": 190
     },
     {
       "name": "nav-editor",
@@ -73,7 +82,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 207
+      "positionY": 224
     },
     {
       "name": "nav-search",
@@ -82,7 +91,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 241
+      "positionY": 258
     },
     {
       "name": "nav-terminal",
@@ -91,7 +100,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 275
+      "positionY": 292
     },
     {
       "name": "nav-topics",
@@ -100,7 +109,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 309
+      "positionY": 326
     },
     {
       "name": "share-icon",
@@ -109,7 +118,7 @@
       "width": 43,
       "height": 36,
       "positionX": 0,
-      "positionY": 343
+      "positionY": 360
     },
     {
       "name": "update-icon",
@@ -118,7 +127,7 @@
       "width": 19,
       "height": 19,
       "positionX": 0,
-      "positionY": 381
+      "positionY": 398
     }
   ]
 }

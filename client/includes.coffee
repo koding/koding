@@ -347,6 +347,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/link.coffee",
+  "app/Applications/Activity.kdapplication/ContentDisplays/ActivityRightBlockView.coffee",
 
   # Activity content displays commons
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayAuthorAvatar.coffee",

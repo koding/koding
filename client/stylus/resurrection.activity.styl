@@ -14,7 +14,7 @@
   background            #fff
   border-radius         0 0 6px 6px
   border                1px solid #e1e1e4
-  margin                0 30% 0 78px
+  margin                0 28% 0 78px
   position              relative
   borderBox()
 
@@ -28,6 +28,7 @@
     div
       display           inline-block
       margin            0 20px 0 0
+      cursor            pointer
 
       &.update
         sprite          app update-icon
@@ -43,7 +44,7 @@
       display           block
 
     .small-input input
-      width             70%
+      width             72%
       height            68px
       line-height       68px
       font-size         16px
@@ -60,8 +61,8 @@
   padding               0 20px
   font-family           "Open sans"
 
-  .activity-content
-    width               70%
+  .listview-wrapper
+    width               72%
 
   .kdlistitemview-activity
     background          #fff
@@ -163,6 +164,68 @@
           line-height   20px
           color         #485259
           margin        20px 24px 24px
+
+  .activity-right-block
+    width               28%
+    height              300px
+    borderBox()
+    fr()
+
+    .activity-right-box
+      background        #fff
+      border-radius     6px
+      border            1px solid #e1e1e4
+      margin            16px 0 0 16px
+      padding           19px 19px 8px
+      borderBox()
+
+      h3
+        display         block
+        margin          0
+        padding         0
+        font-size       16px
+        font-weight     400
+        color           #485259
+        margin          0 0 15px 0
+
+        .cog-icon
+          display       block
+          sprite        app cog-icon
+          fr()
+
+      .activity
+      .friend
+        height          44px
+        border-top      1px solid #eeeef2
+        .avatarview
+          margin        8px 10px 8px 0
+          fl()
+
+        .activity-content
+        .friend-name
+          line-height   44px
+          color         #485259
+          font-size     14px
+          font-weight   200
+          fl()
+
+          a
+            font-weight   400
+            color         #485259
+            noTextDeco()
+
+      .friend
+        cursor            pointer
+        i
+          size            10px, 10px
+          border-radius   100%
+          background      #cfcfcf
+          margin          17px 6px 0 0
+          fr()
+
+        &.online
+          i
+            background    #2eb398
 
 
 
