@@ -127,6 +127,8 @@ class LikeView extends KDView
 
           @_lastUpdatedCount = -1
 
+          KD.mixpanel "Liked activity"
+
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
 

@@ -21,6 +21,7 @@ app.environments.styl
     float              right
 
 .environment-content
+
   .domains-no-record
     text-align         center
     padding            20px
@@ -28,10 +29,13 @@ app.environments.styl
     font-size          18px
     color              #aaa
     text-shadow        0 1px 0 #fff
+
   .formline
     border              none
+
   .formline.suggestionbox
     padding-top         0
+
   .formline.domainname
     padding-left        25px
     input.text
@@ -58,6 +62,10 @@ app.environments.styl
 
       > *
         margin-right    10px
+
+  &.in-progress
+    .new-item-plus
+      display           none !important
 
   h1.kdheaderview
     z-index               2
@@ -819,12 +827,6 @@ div.environments-scene
   bg                image, url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAHElEQVQYV2M8fPhwmq2t7SwGHIARlwRMfHgoAAAWpAQJz4XcBAAAAABJRU5ErkJggg==")
   background-color  white
 
-  .internet
-    width               100px
-    height              500px
-    background          url('../images/internet.png') no-repeat
-    margin-left         10px
-
   .zoom-slider
     right               50px
     bottom              0
@@ -894,7 +896,11 @@ div.environments-container
   border-bottom   none
   border-radius   0
   background      rgba(205,205,205,.07)
+  overflow-y      scroll
   noTextSelection()
+
+  &::-webkit-scrollbar
+    width         0
 
   .kdheaderview
     padding       14px 0
@@ -968,7 +974,7 @@ div.environments-item
     sprite()
 
   &:hover
-    gradient      rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
+    gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
     span.chevron
       display     block
 
@@ -992,8 +998,11 @@ div.environments-item
       background  none
 
   &.highlight
-    gradient      white, rgba(244, 244, 244, 1.0)
-    shadow        0 0 6px rgba(125,190,241,.7)
+    gradient      white, white // rgba(244, 244, 244, 1.0)
+    shadow        0 0 6px #eee
+    border-top    1px solid #aaa
+    border-right  1px solid #aaa
+    border-bottom 1px solid #aaa
 
   h3
     margin-top    -2px

@@ -30,7 +30,9 @@ class FacebookTeamwork extends TeamworkWorkspace
     @on "WorkspaceSyncedWithRemote", =>
       @getAppInfo()  if @amIHost()
 
-    @getDelegate().on "TeamworkToolsModalIsReady", (modal) =>
+    @getDelegate().once "TeamworkToolsModalIsReady", (modal) =>
+      return if @revokeViewReady
+
       modal.addSubView header = new KDCustomHTMLView
         cssClass : "teamwork-modal-header"
         partial  : """
@@ -61,6 +63,8 @@ class FacebookTeamwork extends TeamworkWorkspace
         callback : =>
           modal.destroy()
           @showInstructions()
+
+      @revokeViewReady = yes
 
   showInstructions: ->
     d = @getDelegate()
@@ -113,7 +117,7 @@ class FacebookTeamwork extends TeamworkWorkspace
     editor   = activePanel.getPaneByName "editor"
     root     = "Web/Teamwork/Facebook"
     path     = FSHelper.plainPath(editor.getActivePaneFileData().path).replace root, ""
-    nick     = if @amIHost() then KD.nick() else @getSessionOwner()
+    nick     = if @amIHost() then KD.nick() else @getHost()
     target   = "https://#{nick}.kd.io/Teamwork/Facebook"
     target  += path  unless path.indexOf("localfile") > -1
 

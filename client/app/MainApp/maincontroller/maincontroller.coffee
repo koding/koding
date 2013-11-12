@@ -96,29 +96,15 @@ class MainController extends KDController
     mainView.appendToDomBody()
 
   doLogout:->
+    mainView = KD.getSingleton("mainView")
     KD.logout()
+    storage = new LocalStorage 'Koding'
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
-      @_logoutAnimation()
+      mainView._logoutAnimation()
       KD.utils.wait 1000, ->
         $.cookie 'clientId', replacementToken  if replacementToken
-        localStorage.loggingOut = '1'
+        storage.setValue 'loggingOut', '1'
         location.reload()
-
-  _logoutAnimation:->
-    mainView      = KD.getSingleton("mainView")
-    {body}        = document
-
-    turnOffLine   = new KDCustomHTMLView
-      cssClass    : "turn-off-line"
-    turnOffDot    = new KDCustomHTMLView
-      cssClass    : "turn-off-dot"
-
-    turnOffLine.appendToDomBody()
-    turnOffDot.appendToDomBody()
-
-    body.style.background = "#000"
-    mainView.setClass       "logout-tv"
-
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
@@ -134,9 +120,10 @@ class MainController extends KDController
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
     @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
+      cookieExists = cookie?
       cookieMatches = cookie is ($.cookie 'clientId')
       cookie = $.cookie 'clientId'
-      if cookie? and not cookieMatches
+      if cookieExists and not cookieMatches
         return @isLoggingIn off  if @isLoggingIn() is on
 
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
@@ -152,8 +139,6 @@ class MainController extends KDController
 
           window.location.pathname = firstRoute or "/"
 
-
-
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
@@ -161,14 +146,15 @@ class MainController extends KDController
   isUserLoggedIn: -> KD.isLoggedIn()
 
   isLoggingIn: (isLoggingIn) ->
-    if localStorage.loggingOut is '1'
-      delete localStorage.loggingOut
+
+    storage = new LocalStorage 'Koding'
+    if storage.getValue('loggingOut') is '1'
+      storage.unsetKey 'loggingOut'
       return yes
     if isLoggingIn?
       @_isLoggingIn = isLoggingIn
     else
       @_isLoggingIn ? no
-
 
   showInstructionsBook:->
     if $.cookie 'newRegister'
@@ -206,8 +192,6 @@ class MainController extends KDController
     return ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
-        KD.track "Connected to backend"
-
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."

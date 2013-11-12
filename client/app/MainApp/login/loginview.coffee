@@ -64,26 +64,24 @@ class LoginView extends KDScrollView
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
-        KD.track "Login", "SignInButtonClicked"
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
       testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
-        KD.track "Login", "RegisterButtonClicked"
+        KD.mixpanel "RegisterButtonClicked"
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRedeem formData
-        KD.track "Login", "RedeemButtonClicked"
+        KD.mixpanel "RedeemButtonClicked"
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRecover formData
-        KD.track "Login", "RecoverButtonClicked"
 
     @resendForm= new ResendEmailConfirmationLinkInlineForm
       cssClass : "login-form"
@@ -96,7 +94,6 @@ class LoginView extends KDScrollView
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doReset formData
-        KD.track "Login", "ResetButtonClicked"
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -131,6 +128,8 @@ class LoginView extends KDScrollView
 
             else
               @afterLoginCallback err, {account, replacementToken}
+
+          KD.mixpanel "Authenticated oauth", {provider}
 
   viewAppended:->
 
@@ -178,8 +177,7 @@ class LoginView extends KDScrollView
       <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
       <p class='resend-confirmation-link'>Didn't receive confirmation email? {{> @goToResendMailConfirmationLink}}</p>
-      <p><a href="/tos.html" target="_blank">Terms of service</a></p>
-      <p><a href="/privacy.html" target="_blank">Privacy policy</a></p>
+      <p><a href="/tos.html" target="_blank">Terms of service</a> / <a href="/privacy.html" target="_blank">Privacy policy</a></p>
     </div>
     """
 
@@ -244,6 +242,7 @@ class LoginView extends KDScrollView
         @registerForm.emit "SubmitFailed", message
 
       else
+        KD.mixpanel.alias account.profile.nickname
 
         $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
@@ -255,13 +254,6 @@ class LoginView extends KDScrollView
           # content   : 'Successfully registered!'
           duration  : 2000
 
-        # send information to mixpanel
-        KD.track 'UserLogin', 'UserRegistered',
-          vendor         : 'mixpanel'
-          extra          :
-            '$username'  : account.profile.nickname
-            '$loginDate' : Date.now()
-
         KD.getSingleton('router').clear()
 
         setTimeout =>
@@ -269,9 +261,6 @@ class LoginView extends KDScrollView
           @registerForm.reset()
           @registerForm.button.hideLoader()
         , 1000
-
-        # log to external / TODO: sending account optional if non of track tools use, just delete it
-        KD.track "userSignedUp", account
 
   doLogin:(credentials)->
     (KD.getSingleton 'mainController').isLoggingIn on
@@ -327,6 +316,8 @@ class LoginView extends KDScrollView
       @loginForm.reset()
 
       @hide()
+
+      KD.mixpanel "Logged in"
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
@@ -387,6 +378,8 @@ class LoginView extends KDScrollView
     unless @hidden then do cb
     else @once "transitionend", cb
 
+    KD.mixpanel "Cancelled Login/Register"
+
   show:(callback)->
 
     @utils.killWait @hideTimer
@@ -434,6 +427,8 @@ class LoginView extends KDScrollView
             else
               @registerForm.disabledNotice.hide()
               @registerForm.$('.main-part').removeClass 'hidden'
+
+          KD.mixpanel "Opened register form"
         when "home"
           parent.notification?.destroy()
           if @headBannerMsg?

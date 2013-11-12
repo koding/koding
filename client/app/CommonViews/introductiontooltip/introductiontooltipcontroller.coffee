@@ -21,8 +21,9 @@ class IntroductionTooltipController extends KDController
     KD.remote.api.JIntroSnippet.fetchAll (err, snippets) =>
       return log err if err # TODO: error handling
 
-      @introductionTooltipStatusStorage = new AppStorage "IntroductionTooltipStatus"
-      @introductionTooltipStatusStorage.fetchStorage (storage) =>
+      appStorages = KD.getSingleton 'appStorageController'
+      @appStorage = appStorages.storage "IntroductionTooltipStatus", "1.0"
+      @appStorage.fetchStorage (storage) =>
         @introSnippets = snippets
 
         for snippet in snippets
@@ -89,7 +90,7 @@ class IntroductionTooltipController extends KDController
     return no unless data # we know introId but we have no JIntroSnippet for this view, should return
 
     {introId} = data # we have an intro view and data for this view, go on!
-    @storage  = @introductionTooltipStatusStorage # to store tooltip status
+    @storage  = @appStorage # to store tooltip status
     return no if @shouldNotDisplay introId # user has already closed this introduction before, so don't show it again
 
     parentView = parentView or @getParentView data # we came from db query and don't know the view, should find

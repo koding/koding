@@ -576,7 +576,6 @@ module.exports = [
   # COLLABORATIVE WORKSPACE
   # i know it's a CommonView and should include at the top but it have to
   # wait for NFinderTreeController etc., so included at the bottom
-  "libs/firebase/firebase.all.js",
   "libs/codemirror/lib/codemirror.js",
   "libs/codemirror/addon/mode/loadmode.js",
   "libs/codemirror/mode/javascript/javascript.js",

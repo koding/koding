@@ -192,7 +192,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @experimentalView = new KDView
 
   appDeleteCall:(manifest)->
-    KD.track "Apps", "ApplicationDelete", manifest.name
     appPath   = @appsController.getAppPath manifest.path, yes
     appFolder = FSHelper.createFileFromPath appPath, 'folder'
     appFolder.remove (err, res) =>
@@ -202,6 +201,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
       @deleteModal.destroy()
       @destroy()  unless err
+
+      KD.mixpanel "User Deleted Application", manifest.name
 
   viewAppended:->
 
@@ -225,7 +226,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     appCreated    = =>
       appManager.off "AppCreated", couldntCreate
-      KD.track "Apps", "ApplicationRun", manifest.name
       @hideLoader()
 
     appManager.once "AppCouldntBeCreated", couldntCreate
@@ -285,7 +285,6 @@ class GetMoreAppsButton extends StartTabAppThumbView
 
     return if $(event.target).closest('.icon-container').length > 0
     KD.getSingleton('router').handleRoute "/Apps"
-    KD.track "Apps", "GetMoreAppsClicked"
 
 
 class AppShortcutButton extends StartTabAppThumbView
@@ -312,4 +311,3 @@ class AppShortcutButton extends StartTabAppThumbView
       @hideLoader()
       unless err
         @destroy()
-        KD.track "Apps", "RemoveShortcutClicked"

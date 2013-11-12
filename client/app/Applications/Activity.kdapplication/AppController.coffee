@@ -89,6 +89,8 @@ class ActivityAppController extends AppController
     # so fix the teasersLoaded logic.
     return  if @isLoading
     @clearPopulateActivityBindings()
+
+    KD.mixpanel "Scrolled down feed"
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->
@@ -335,8 +337,10 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
+  lastTo : null
+
   fetchActivitiesProfilePage:(options,callback)->
-    options.to = options.to or Date.now()
+    options.to = options.to or @lastTo or Date.now()
     if KD.checkFlag 'super-admin'
       appStorage = new AppStorage 'Activity', '1.0'
       appStorage.fetchStorage (storage)=>
@@ -351,6 +355,10 @@ class ActivityAppController extends AppController
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
+
+      if activities?.length > 0
+        lastOne = activities.last.meta.createdAt
+        @lastTo = (new Date(lastOne)).getTime()
       callback err, activities
 
   unhideNewItems: ->
@@ -374,6 +382,7 @@ class ActivityAppController extends AppController
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
         onTimeout : @bound 'recover'
+        timeout   : 20000
 
   recover:->
     @isLoading = no

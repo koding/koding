@@ -1,13 +1,10 @@
 package kite
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/golang/groupcache"
-	"github.com/op/go-logging"
 	"io"
 	"koding/messaging/moh"
 	"koding/newkite/peers"
@@ -23,6 +20,9 @@ import (
 	"runtime"
 	"sync"
 	"time"
+	"code.google.com/p/go.net/websocket"
+	"github.com/golang/groupcache"
+	logging "github.com/op/go-logging"
 )
 
 var (
@@ -97,7 +97,15 @@ func New(options *protocol.Options) *Kite {
 
 	// some simple validations for config
 	if options.Kitename == "" {
-		log.Fatal("error: options data is not set properly")
+		log.Fatal("ERROR: options.Kitename field is not set")
+	}
+
+	if options.Region == "" {
+		log.Fatal("ERROR: options.Region field is not set")
+	}
+
+	if options.Environment == "" {
+		log.Fatal("ERROR: options.Environment field is not set")
 	}
 
 	hostname, _ := os.Hostname()
@@ -119,12 +127,14 @@ func New(options *protocol.Options) *Kite {
 
 	k := &Kite{
 		Kite: protocol.Kite{
-			Name:     options.Kitename,
-			Username: options.Username,
-			ID:       kiteID,
-			Version:  options.Version,
-			Hostname: hostname,
-			Port:     port,
+			Name:        options.Kitename,
+			Username:    options.Username,
+			ID:          kiteID,
+			Version:     options.Version,
+			Hostname:    hostname,
+			Port:        port,
+			Environment: options.Environment,
+			Region:      options.Region,
 
 			// PublicIP will be set by Kontrol after registering if it is not set.
 			PublicIP: options.PublicIP,
@@ -138,7 +148,11 @@ func New(options *protocol.Options) *Kite {
 
 	k.kontrolClient = moh.NewMessagingClient(options.KontrolAddr, k.handle)
 	k.kontrolClient.Subscribe(kiteID)
-	k.kontrolClient.Subscribe("all")
+
+	// Needed to receive batch messages that are intended to kites only.
+	// Everyone (like browser clients) also can connect to kontrol, that means
+	// if we want to notify all kites we have to distinguish them from others.
+	k.kontrolClient.Subscribe(protocol.KitesSubscribePrefix)
 
 	// Register our internal method
 	k.Methods["vm.info"] = "status.Info"
@@ -474,6 +488,10 @@ func (k *Kite) serveWS(ws *websocket.Conn) {
 	k.Server.ServeCodec(NewDnodeServerCodec(k, ws))
 }
 
+// OnDisconnect adds the given function to the list of the users callback list
+// which is called when the user is disconnected. There might be several
+// connections from one user to the kite, in that case the functions are
+// called only when all connections are closed.
 func (k *Kite) OnDisconnect(username string, f func()) {
 	addrs := k.clients.GetAddresses(username)
 	if addrs == nil {

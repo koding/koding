@@ -291,3 +291,4 @@ module.exports =
     secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
     version      : "1.0"
     signature    : "HMAC-SHA1"
+  mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"

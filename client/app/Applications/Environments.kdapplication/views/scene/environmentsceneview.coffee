@@ -118,7 +118,7 @@ class EnvironmentScene extends KDDiaScene
         container.loadItems()
 
   addContainer:(container, pos)->
-    pos ?= x: 100 + @containers.length * 260, y: 0
+    pos ?= x: 10 + @containers.length * 260, y: 0
     super container, pos
 
     {name} = container.constructor

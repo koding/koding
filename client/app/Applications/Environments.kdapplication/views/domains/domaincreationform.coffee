@@ -149,9 +149,12 @@ class DomainCreationForm extends KDCustomHTMLView
     KD.whoami().fetchDomains (err, userDomains)=>
       warn err  if err
       domainList = []
-      for domain in userDomains
-        if not domain.regYears > 0
-          domainList.push {title:".#{domain.domain}", value:domain.domain}
+
+      if userDomains
+        for domain in userDomains
+          if not domain.regYears > 0
+            domainList.push {title:".#{domain.domain}", value:domain.domain}
+
       {domains, domainName} = @form.inputs
       domainName.setValue ""
       domains.removeSelectOptions()
