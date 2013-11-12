@@ -5,6 +5,7 @@ class ReferrerModal extends KDModalViewWithForms
     options.overlay       ?= yes
     options.title          = "Get free disk space!"
     options.url          or= "#{location.origin}/R/#{KD.nick()}"
+    options.onlyInviteTab ?= no
     options.tabs           =
       navigable            : no
       goToNextFormOnSubmit : no
@@ -17,6 +18,8 @@ class ReferrerModal extends KDModalViewWithForms
             you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total."
         invite             :
           customView       : KDCustomHTMLView
+
+    options.cssClass = KD.utils.curry "hidden", options.cssClass if options.onlyInviteTab
 
     super options, data
 
@@ -137,9 +140,11 @@ class ReferrerModal extends KDModalViewWithForms
       else if contacts.length is 0
         new KDNotificationView
           title: "Your all contacts are already invited. Thanks!"
-        @modalTabs.showPaneByName "share"
+        if @getOptions().onlyInviteTab then @destroy()
+        else @modalTabs.showPaneByName "share"
       else
         @setTitle "Invite your friends from Gmail"
+        @show()
         @modalTabs.showPaneByName "invite"
         listController.instantiateListItems contacts
 
