@@ -82,7 +82,7 @@ module.exports = class JPaymentPlan extends Module
   #   data that is orthogonal to the recurly API in our own database,
   #   the way we're doing with JPaymentProduct C.T.
 
-  @create = (group, formData, callback) ->
+  @create = (groupSlug, formData, callback) ->
 
     JGroup = require '../group'
 
@@ -95,7 +95,7 @@ module.exports = class JPaymentPlan extends Module
       feeAmount
       feeInitial  : 0
       feeInterval : 1
-      group
+      group       : groupSlug
       tags
       sortWeight
     }
@@ -106,7 +106,7 @@ module.exports = class JPaymentPlan extends Module
       recurly.createPlan plan, (err) ->
         return callback err  if err
 
-        JGroup.one slug: group, (err, group) ->
+        JGroup.one slug: groupSlug, (err, group) ->
           return callback err  if err
 
           group.addPlan plan, (err) ->
