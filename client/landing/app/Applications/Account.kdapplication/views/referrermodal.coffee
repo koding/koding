@@ -43,13 +43,13 @@ class ReferrerModal extends KDModalViewWithForms
       attributes                         : readonly:"true"
       click                              :-> @selectAll()
 
-    leftColumn.addSubView shareLinkIcons = new KDCustomHTMLView
-      cssClass                           : "share-link-icons"
+    leftColumn.addSubView shareLinks = new KDCustomHTMLView
+      cssClass                           : "share-links"
       partial                            : "<span>Share your code on</span>"
 
-    shareLinkIcons.addSubView new TwitterShareLink  url: options.url
-    shareLinkIcons.addSubView new FacebookShareLink url: options.url
-    shareLinkIcons.addSubView new LinkedInShareLink url: options.url
+    shareLinks.addSubView new TwitterShareLink  url: options.url
+    shareLinks.addSubView new FacebookShareLink url: options.url
+    shareLinks.addSubView new LinkedInShareLink url: options.url
 
     rightColumn.addSubView gmail    = new KDButtonView
       title                         : "Invite Gmail Contacs"
