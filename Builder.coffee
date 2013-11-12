@@ -49,6 +49,7 @@ checkFileCase = (fileName) ->
 module.exports = class Builder
 
   spritePath   = './website/sprites'
+  spriteHelper = null
 
   buildClient: (options) ->
 
@@ -58,14 +59,21 @@ module.exports = class Builder
       path     : spritePath
       watch    : yes
 
-    try fs.mkdirSync ".build"
+    sprite.stylus
+      path     : spritePath
+      httpPath : '/sprites'
+      retina   : '@2x'
+    , (err, helper)=>
+      spriteHelper = helper
 
-    if @config.client.runtimeOptions.precompiledApi
-      exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
+      try fs.mkdirSync ".build"
+
+      if @config.client.runtimeOptions.precompiledApi
+        exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
+          @buildAndWatchClient options
+      else
+        fs.writeFileSync '.build/api.js', '', 'utf-8'
         @buildAndWatchClient options
-    else
-      fs.writeFileSync '.build/api.js', '', 'utf-8'
-      @buildAndWatchClient options
 
   buildAndWatchClient: (options) ->
 
@@ -324,20 +332,14 @@ module.exports = class Builder
 
         rootPath = path.dirname(file.sourcePath)
 
-        sprite.stylus
-          path     : spritePath
-          httpPath : '/sprites'
-          retina   : '@2x'
-        , (err, helper)->
-          stylus = Stylus(source)
-            .set('compress',true)
-            .set('paths', [rootPath])
-            .define('sprite', helper.fn )
-            .use(nib())
-            .render (err, css)=> # callback is synchronous
-              console.log ">>>>>>>>>>>>>>>>>>>>>>>>> GOKMEN FIX ME!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-              log.error "error with styl file at #{file.includePath}:\n #{err}"  if err
-              file.content = css
+        stylus = Stylus(source)
+          .set('compress',true)
+          .set('paths', [rootPath])
+          .define('sprite', spriteHelper.fn )
+          .use(nib())
+          .render (err, css)=> # callback is synchronous
+            log.error "error with styl file at #{file.includePath}:\n #{err}"  if err
+            file.content = css
 
       when ".css"
         file.content = source
