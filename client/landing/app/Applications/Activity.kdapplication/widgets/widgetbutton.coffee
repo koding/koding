@@ -42,13 +42,13 @@ class WidgetButton extends KDCustomHTMLView
   viewAppended:->
     {items, delegate} = @getOptions()
 
-    for title, content of items
+    for own title, content of items
       @addSubView icon = new KDCustomHTMLView
         cssClass       : "#{@utils.slugify(content.type)}"
-        _type          : content.type
-        _title         : title
+        type          : content.type
+        title         : title
         click          : ->
-          delegate.changeTab @getOption("_type"), @getOption("_title")
+          delegate.changeTab @getOption("type"), @getOption("title")
 
       icon.setClass "hidden" if content.disabled
 
