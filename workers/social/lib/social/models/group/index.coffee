@@ -249,6 +249,9 @@ module.exports = class JGroup extends Module
       product       :
         targetType  : 'JPaymentProduct'
         as          : 'product'
+      pack          :
+        targetType  : 'JPaymentPack'
+        as          : 'product pack'
       plan          :
         targetType  : 'JPaymentPlan'
         as          : 'group plan'
@@ -1579,5 +1582,7 @@ module.exports = class JGroup extends Module
     switch category
       when 'product'
         @fetchProducts selector, options, callback
+      when 'pack'
+        @fetchPacks selector, options, callback
       when 'plan'
         @fetchPlans selector, options, callback

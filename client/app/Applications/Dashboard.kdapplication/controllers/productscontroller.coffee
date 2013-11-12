@@ -6,6 +6,7 @@ class GroupProductsController extends KDController
     super options, data
 
     @productsView = @prepareProductView 'product'
+    @packsView    = @prepareProductView 'pack'
     @plansView    = @prepareProductView 'plan'
 
   prepareProductView: (category) ->
@@ -82,11 +83,13 @@ class GroupProductsController extends KDController
   showEditModal = (options, data, callback) ->
     productType = options.productType ? 'product'
 
+    formConstructor = options.formClass ? GroupProductEditForm
+
     modal = new KDModalView
       overlay       : yes
       title         : "Create #{ productType }"
 
-    createForm = new GroupProductEditForm options, data
+    createForm = new formConstructor options, data
 
     modal.addSubView createForm
 
@@ -109,6 +112,17 @@ class GroupProductsController extends KDController
         showSoldAlone       : yes
         showPriceIsVolatile : yes
 
+      when 'pack'
+        productType         : 'pack'
+        formClass           : GroupPackEditForm
+        isRecurOptional     : no
+        showOverage         : no
+        showSoldAlone       : no
+        showPriceIsVolatile : no
+        placeholders        :
+          title             : "VM — extra large"
+          description       : "4 cores, 4 GB RAM, 8 GB disk"
+
       when 'plan'
         productType         : 'plan'
         isRecurOptional     : no
@@ -119,8 +133,13 @@ class GroupProductsController extends KDController
           title             : 'e.g. "Gold Plan"'
           description       : 'e.g. "2 VMs, and a tee shirt"'
 
-  getConstructor = (category) ->
-    KD.remote.api["JPayment#{ category.capitalize() }"]
+  getConstructor = (category) -> switch category
+    when 'product'
+      KD.remote.api.JPaymentProduct
+    when 'pack'
+      KD.remote.api.JPaymentPack
+    when 'plan'
+      KD.remote.api.JPaymentPlan
 
   fetchProducts: (category, callback) ->
     KD.getGroup().fetchProducts category, (err, products) ->
