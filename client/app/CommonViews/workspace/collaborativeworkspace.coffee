@@ -30,7 +30,7 @@ class CollaborativeWorkspace extends Workspace
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
-        unless snapshot.val()
+        unless snapshot.val()?.keys
           @showNotActiveView()
           return false
 
