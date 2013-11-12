@@ -659,6 +659,7 @@ module.exports = [
   "stylus/appfn.styl",
   "stylus/resurrection.styl",
   "stylus/resurrection.activity.styl",
+  "stylus/resurrection.account.dropdown.styl",
   "stylus/resurrection.anims.styl",
   # "stylus/app.styl",
   # "stylus/app.bottom.styl",
