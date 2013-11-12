@@ -25,6 +25,7 @@ class CollaborativeWorkspace extends Workspace
     @sessionKey   = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef = @firepadRef.child @sessionKey
     @historyRef   = @workspaceRef.child "history"
+    @broadcastRef = @workspaceRef.child "broadcast"
 
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -63,11 +64,22 @@ class CollaborativeWorkspace extends Workspace
 
       @emit "WorkspaceSyncedWithRemote"
 
+      @broadcastRef.on "value", (snapshot) =>
+        message = snapshot.val()
+        return if not message or not message.data or message.data.sender is @nickname
+        @displayBroadcastMessage message.data
+
     @workspaceRef.child("users").on "child_added", (snapshot) =>
       @fetchUsers()
 
     @workspaceRef.child("users").on "child_changed", (snapshot) =>
-      @setHistory "#{snapshot.name()} is disconnected."
+      name = snapshot.name()
+      if @amIHost() and snapshot.val() is "offline"
+        @setHistory "#{name} is disconnected."
+        @broadcastMessage
+          title     : "#{name} has left the session"
+          cssClass  : "error"
+          sender    : name
 
     @workspaceRef.on "child_removed", (snapshot) =>
       return  if @disconnectedModal
@@ -78,6 +90,10 @@ class CollaborativeWorkspace extends Workspace
       KD.utils.wait 1500, =>
         @workspaceRef.once "value", (snapshot) =>
           @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
+
+    @broadcastMessage
+      title     : "#{@nickname} has joined the session"
+      sender    : @nickname
 
     @on "AllPanesAddedToPanel", (panel, panes) ->
       paneSessionKeys = []
@@ -290,6 +306,28 @@ class CollaborativeWorkspace extends Workspace
       container : @userListContainer
       delegate  : @
     }
+
+  broadcastMessage: (details) ->
+    @broadcastRef.set
+      data       :
+        title    : details.title    or ""
+        cssClass : details.cssClass  ? "success"
+        duration : details.duration or 4200
+        origin   : details.origin   or "users"
+        sender   : details.sender   or @nickname
+
+  displayBroadcastMessage: (options) ->
+    # simple broadcast message is
+    # { !title, duration=, origin=, sender=, cssClass= }
+    return unless options.title
+
+    {broadcastItem} = @getActivePanel()
+    broadcastItem.updatePartial options.title
+    broadcastItem.unsetClass "success"
+    broadcastItem.unsetClass "error"
+    broadcastItem.setClass options.cssClass
+    broadcastItem.show()
+    KD.utils.wait options.duration, -> broadcastItem.hide()
 
   setHistory: (message = "") ->
     user    = @nickname
