@@ -4,18 +4,61 @@
 
 .feeder-header
 .common-inner-nav
-.activity-update-widget-wrapper
 .system-message
 .comment-container
+.activity-status-context
   display               none
+
+.activity-update-widget-wrapper
+  min-height            68px
+  background            #fff
+  border-radius         0 0 6px 6px
+  border                1px solid #e1e1e4
+  margin                0 30% 0 78px
+  position              relative
+  borderBox()
+
+  .update-type-select-icons
+    right               0
+    bottom              0
+    height              68px
+    line-height         68px
+    abs()
+
+    div
+      display           inline-block
+      margin            0 20px 0 0
+
+      &.update
+        sprite          app update-icon
+      &.blogpost
+        sprite          app blogpost-icon
+      &.codesnip
+        sprite          app codesnip-icon
+
+  .kdtabpaneview
+    display             none
+
+    &.active
+      display           block
+
+    .small-input input
+      width             70%
+      height            68px
+      line-height       68px
+      font-size         16px
+      color             #7a868d
+      font-weight       200
+      background        none
+      border            none
+      padding           0 0 0 24px
+      borderBox()
 
 .content-page.activity
   max-width             1146px
   margin                0 auto
   padding               0 20px
   font-family           "Open sans"
-
-  /* General */
 
   .activity-content
     width               70%
