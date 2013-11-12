@@ -13,7 +13,7 @@ class StartTabMainView extends JView
 
     # Main view elements
 
-    @loader = new KDLoaderView size : width : 16
+    @loader = new KDLoaderView size : width : 12
 
     @appItemContainer = new StartTabAppItemContainer
       cssClass : 'app-item-container'
@@ -179,18 +179,15 @@ class StartTabMainView extends JView
   showLoader:->
 
     @loader.show()
-    @$('h1.loaded, h2.loaded').addClass "hidden"
-    @$('h2.loader').removeClass "hidden"
-    @serverContainerToggle.unsetClass 'in'
-    @serverContainer.unsetClass 'in'
+    @$('h2.application-loader').removeClass "hidden"
+
+    @serverContainerToggle.setClass 'in'
+    @serverContainer.setClass 'in'
 
   hideLoader:->
 
     @loader.hide()
-    @$('h2.loader').addClass "hidden"
-    @$('h1.loaded, h2.loaded').removeClass "hidden"
-    @serverContainerToggle.setClass 'in'
-    @serverContainer.setClass 'in'
+    @$('h2.application-loader').addClass "hidden"
 
   viewAppended:->
 
@@ -205,12 +202,12 @@ class StartTabMainView extends JView
     """
     <div class='app-list-wrapper'>
       <header>
-        <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
-        <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
-        <h2 class="loader">{{> @loader}} Loading applications...</h1>
+        <h1 class="start-tab-header loaded">This is your Development Area</h1>
+        <h2 class="loaded">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
       </header>
       {{> @serverContainerToggle}}
       {{> @serverContainer}}
+      <h2 class="application-loader">{{> @loader}} Loading applications...</h2>
       {{> @appItemContainer}}
     </div>
     """

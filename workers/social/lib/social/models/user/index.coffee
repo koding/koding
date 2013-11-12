@@ -497,7 +497,7 @@ module.exports = class JUser extends jraphical.Module
     {sessionToken} = client
     JSession.one {clientId: sessionToken}, (err, session) =>
       return callback err  if err
-      return callback createKodingError "No session"  unless session
+      return callback createKodingError "Couldn't restore your session."  unless session
 
       kallback = (err, resp={}) ->
         {account, replacementToken} = resp
@@ -851,6 +851,8 @@ Your password has been changed!  If you didn't request this change, please conta
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
       return callback err  if err
       return callback()    unless foreignAuthInfo
+      return callback()    unless session
+
       @saveOauthToUser foreignAuthInfo, username, (err)=>
         return callback err  if err
         @clearOauthFromSession session, (err)=>
@@ -860,6 +862,7 @@ Your password has been changed!  If you didn't request this change, please conta
   @extractOauthFromSession: (clientId, callback)->
     JSession.one {clientId: clientId}, (err, session)->
       return callback err  if err
+      return callback()    unless session
 
       {foreignAuth, foreignAuthType} = session
       if foreignAuth and foreignAuthType

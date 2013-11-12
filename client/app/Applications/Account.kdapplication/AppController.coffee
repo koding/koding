@@ -178,7 +178,7 @@ class AccountAppController extends AppController
       """
 
     modal = new KDModalView
-      title            : "You must confirm your email address!"
+      title            : "Please confirm your email to continue…"
       width            : 500
       overlay          : yes
       cssClass         : "new-kdmodal"
