@@ -5,6 +5,7 @@ package container
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"koding/kites/provisioning/rbd"
 	"os"
 	"os/exec"
@@ -19,7 +20,7 @@ import (
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (c *Container) Prepare() error {
+func (c *Container) Prepare(reinitialize bool) error {
 	if c.Exist(c.Dir) {
 		return errors.New("container does exist already. please unprepare it")
 	}
@@ -32,6 +33,13 @@ func (c *Container) Prepare() error {
 	err = c.MountRBD()
 	if err != nil {
 		return err
+	}
+
+	if reinitialize {
+		err = c.Reinitialize()
+		if err != nil {
+			return err
+		}
 	}
 
 	err = c.CreateOverlay()
@@ -204,6 +212,24 @@ func (c *Container) CheckExt4(device string) error {
 	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
 		return fmt.Errorf("fsck.ext4 could not automatically repair FS for %s. err '%s', out: '%s;",
 			c.HostnameAlias, err, string(out))
+	}
+
+	return nil
+}
+
+func (c *Container) Reinitialize() error {
+	entries, err := ioutil.ReadDir(c.OverlayPath("/"))
+	if err != nil {
+		return err
+	}
+
+	// Remove all except /home on reinitialize
+	for _, entry := range entries {
+		if entry.Name() == "home" {
+			continue
+		}
+
+		os.RemoveAll(c.OverlayPath("/" + entry.Name()))
 	}
 
 	return nil
