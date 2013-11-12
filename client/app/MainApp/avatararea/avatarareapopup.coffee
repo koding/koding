@@ -1,14 +1,13 @@
 class AvatarPopup extends KDView
 
+
   constructor:->
+
     super
 
-    @sidebar = @getDelegate()
-    @sidebar.on "NavigationPanelWillCollapse", => @hide() if @hasClass "active"
+    @on 'ReceivedClickElsewhere', @bound 'hide'
 
-    @on 'ReceivedClickElsewhere', => @hide()
-
-    mainController = KD.getSingleton("mainController")
+    mainController = KD.getSingleton "mainController"
     mainController.on "accountChanged.to.loggedIn", @bound 'accountChanged'
 
     @_windowController = KD.getSingleton('windowController')
