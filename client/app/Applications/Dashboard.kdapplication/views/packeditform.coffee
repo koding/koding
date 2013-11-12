@@ -30,13 +30,9 @@ class GroupPackEditForm extends KDFormViewWithFields
 
     options.fields.tags ?=
       label         : "Tags"
-      defaultValue  : data.tags?.join ', '
-      change        : @bound 'tagsChanged'
+      itemClass     : KDDelimitedInputView
+      defaultValue  : data.tags
 
     super options, data
 
-  getProductData: @::getData
-  
-  tagsChanged: ->
-    { tags } = @inputs
-    tags.setValue (@utils.splitTrim tags.getValue()).join ', '
+  getProductData: @::getFormData
