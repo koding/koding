@@ -22,8 +22,6 @@ class EnvironmentsMainScene extends JView
     # Main scene for DIA
     @addSubView @scene = new EnvironmentScene
 
-    @scene.addSubView new KDCustomHTMLView cssClass : 'internet'
-
     if KD.checkFlag 'nostradamus'
       # Rules Container
       rulesContainer = new EnvironmentRuleContainer
