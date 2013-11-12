@@ -153,7 +153,7 @@ module.exports = class JAccount extends jraphical.Module
         'unstore'
         'isEmailVerified'
         'fetchPaymentMethods'
-        'fetchPlans'
+        'fetchPlansAndSubscriptions'
       ]
     schema                  :
       skillTags             : [String]
@@ -288,9 +288,9 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'payment method'
         targetType  : 'JPaymentMethod'
 
-      plan          :
-        as          : 'service plan'
-        targetType  : 'JPaymentPlan'
+      subscription  :
+        as          : 'service subscription'
+        targetType  : 'JPaymentSubscription'
 
   constructor:->
     super
@@ -1265,6 +1265,17 @@ module.exports = class JAccount extends jraphical.Module
     if delegate is this or delegate.can 'administer accounts'
       @fetchDecoratedPaymentMethods callback
 
-  fetchPlans$: secure ({connection:{ delegate }}, callback) ->
+  fetchPlansAndSubscriptions: secure ({connection:{ delegate }}, callback) ->
+    JPaymentPlan = require './payment/plan'
+
     return callback { message: 'Access denied!' }  unless @equals delegate
-    @fetchPlans callback
+    
+    @fetchSubscriptions (err, subscriptions) ->
+      return callback err  if err
+
+      planCodes = (s.planCode for s in subscriptions)
+
+      JPaymentPlan.all { planCode: $in: planCodes }, (err, plans) ->
+        return callback err  if err
+
+        callback null, { subscriptions, plans }

@@ -135,10 +135,11 @@ module.exports = class JPaymentPlan extends Module
 #    recurly.fetchAccountDetailsByPaymentMethodId (JPayment.userCodeOf delegate), callback
 
   @fetchPlans = secure (client, options, callback) ->
+    # TODO: this method seems redundant/confusing/unnecessary C.T.
     options = tag: options  if 'string' is typeof options
     options.limit = Math.min options.limit ? 20, 20
     
-    options.sort ?= feeAmount: 1
+    options.sort ?= sortWeight: 1
 
     selector =
       tags  : options.tag
@@ -174,12 +175,15 @@ module.exports = class JPaymentPlan extends Module
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @planCode, callback
 
-  subscribe: (paymentMethodId, data, callback) ->
-    data.multiple ?= no
+  subscribe: (paymentMethodId, options, callback) ->
+    [callback, options] = [options, callback]  unless callback
+
+    options ?= {}
+    options.multiple ?= no
 
     JPaymentSubscription.fetchAllSubscriptions {
       paymentMethodId
-      planCode  : @planCode
+      @planCode
       $or       : [
         {status : 'active'}
         {status : 'canceled'}
@@ -187,37 +191,57 @@ module.exports = class JPaymentPlan extends Module
     }, (err, [sub]) =>
       return callback err  if err
 
-      if sub
-        return callback 'Already subscribed.'  unless data.multiple
+      if sub?
+        return callback 'Already subscribed.'  unless options.multiple
 
-        quantity = (sub.quantity ? 1) + 1
+        quantity = sub.quantity + 1
 
-        recurly.updateSubscription paymentMethodId,
-          quantity : quantity
-          plan     : @planCode
-          uuid     : sub.uuid
-        , (err) =>
+        update = {
+          @planCode
+          quantity
+          uuid: sub.uuid
+        }
+
+        recurly.updateSubscription paymentMethodId, update, (err) =>
           return callback err  if err
           sub.update $set: { quantity }, (err)->
             if err
             then callback err
             else callback null, sub
+
       else
-        recurly.createSubscription paymentMethodId, plan: @planCode, (err, result) ->
+        recurly.createSubscription paymentMethodId, { @planCode }, (err, result) ->
           return callback err  if err
-          console.log { err, result }
+
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
-            amount } = result
+            feeAmount } = result
+
           sub = new JPaymentSubscription {
-            planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt, amount
+            planCode
+            uuid
+            quantity
+            status
+            activatedAt
+            expiresAt
+            renewAt
+            feeAmount
           }
-          console.log sub
+
           sub.save (err)->
-            console.log { err, sub }
-            callback err, sub
+            return callback err  if err
+
+            callback null, sub
 
   subscribe$: secure ({connection:{delegate}}, paymentMethodId, data, callback) ->
-    @subscribe paymentMethodId, data, callback
+    @subscribe paymentMethodId, data, (err, subscription) ->
+      return callback err  if err
+
+      delegate.addSubscription subscription, (err) ->
+        return callback err  if err
+
+        callback null, subscription
+
+
 
   # subscribeGroup: (group, data, callback)->
   #   doSubscribe "group_#{group._id}", data, callback

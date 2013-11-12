@@ -11,13 +11,13 @@ class VmProductForm extends JView
       when 'upgrade'  then @upgradeForm.show()
       when 'choice'   then console.log 'they need to choose their plan'
 
-  setCurrentPlans: (plans) ->
-    @currentPlans = plans
-    switch plans.length
+  setCurrentSubscriptions: (subscriptions) ->
+    @currentSubscriptions = subscriptions
+    switch subscriptions.length
       when 0
         @setState 'upgrade'
       when 1
-        @checkUsageLimits plans[0]
+        @checkUsageLimits subscriptions[0]
       else
         @setState 'choice'
 

@@ -24,12 +24,14 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       uuid         : String
       planCode     : String
       userCode     : String
-      quantity     : Number
+      quantity     :
+        type       : Number
+        default    : 1
       status       : String
       activatedAt  : Date
       expiresAt    : Date
       renewAt      : Date
-      amount       : Number
+      feeAmount    : Number
       lastUpdate   : Number
 
   @fetchUserSubscriptions = secure ({ connection:{ delegate }}, callback) ->
