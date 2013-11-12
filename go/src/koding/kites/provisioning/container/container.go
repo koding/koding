@@ -314,6 +314,15 @@ func (c *Container) Shutdown(timeout int) error {
 	return nil
 }
 
+// State returns the container's state. A state defines if a given container
+// is running, stopping, aborting and so on.
+func (c *Container) State() string {
+	l := lxc.NewContainer(c.Name)
+	defer lxc.PutContainer(l)
+
+	return l.State().String()
+}
+
 // Destroy detroys the given container. It calls lxc-destroy.
 func (c *Container) Destroy() error {
 	l := lxc.NewContainer(c.Name)
