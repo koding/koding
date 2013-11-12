@@ -12,9 +12,16 @@ class AccountSubscriptionsListController extends AccountListViewController
     @removeAllItems()
     @showLazyLoader no
 
-    KD.remote.api.JPaymentSubscription.fetchUserSubscriptionsWithPlan (err, subs=[])=>
+    paymentController = KD.getSingleton 'paymentController'
+
+#    KD.remote.api.JPaymentSubscription.fetchUserSubscriptionsWithPlan (err, subs=[])=>
+    KD.whoami().fetchPlansAndSubscriptions (err, plansAndSubscriptions) =>
       warn err  if err
-      subscriptions = (sub  for sub in subs when sub.expired isnt 'expired')
+      
+      { subscriptions } = paymentController.groupPlansBySubscription plansAndSubscriptions
+      
+      subscriptions = subscriptions.filter (s) -> s.expired isnt 'expired'
+      
       @instantiateListItems subscriptions
       @hideLazyLoader()
 
@@ -99,14 +106,19 @@ class AccountSubscriptionsListItem extends KDListItemView
 
   viewAppended: JView::viewAppended
 
+  describeSubscription: (quantity, verbPhrase) ->
+    """
+    Subscription for #{ @utils.formatPlural quantity, 'plan' } #{verbPhrase}
+    """
+
   pistachio:->
-    {quantity,plan,status,renew,expires,amount} = @getData()
+    { quantity, plan, status, renew, expires, feeAmount } = @getData()
 
     statusNotice = ''
     if status in ['active', 'modified']
-      statusNotice = "Subscription for #{quantity} product(s) is active"
+      statusNotice = @describeSubscription quantity, "is active"
     else if status is 'canceled'
-      statusNotice = "Subscription for #{quantity} product(s) will end soon"
+      statusNotice = @describeSubscription quantity, "will end soon"
 
     dateNotice = ''
     if plan.type isnt 'single'
@@ -115,11 +127,11 @@ class AccountSubscriptionsListItem extends KDListItemView
       else if status is 'canceled'
         dateNotice = "Plan will be available till #{dateFormat expires}"
 
-    amount = @utils.formatMoney amount / 100
+    displayAmount = @utils.formatMoney feeAmount / 100
 
     """
     <div class='payment-details'>
-      <h4>{{#(plan.title)}} - #{amount}</h4>
+      <h4>{{#(plan.title)}} - #{displayAmount}</h4>
       <span class='payment-type'>#{statusNotice}</span>
       {{> @changePlan}}
       <br/>

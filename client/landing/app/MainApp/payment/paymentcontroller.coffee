@@ -152,4 +152,19 @@ class PaymentController extends KDController
 
       dash queue, -> form.setPlans plans
 
-    return form 
+    return form
+
+  groupPlansBySubscription: (plansAndSubscriptions = {}) ->
+    
+    { plans, subscriptions } = plansAndSubscriptions
+
+    plansByCode = plans.reduce( (memo, plan) ->
+      memo[plan.planCode] = plan
+      memo
+    , {})
+    
+    for subscription in subscriptions
+      subscription.plan = plansByCode[subscription.planCode]
+    
+    { plans, subscriptions }
+
