@@ -1,6 +1,6 @@
-{Module, Relationship} = require 'jraphical'
+JPaymentBase = require './base'
 
-module.exports = class JPaymentPlan extends Module
+module.exports = class JPaymentPlan extends JPaymentBase
 
   force =
     forceRefresh  : yes
@@ -9,15 +9,17 @@ module.exports = class JPaymentPlan extends Module
   recurly = require 'koding-payment'
   createId = require 'hat'
 
-  {secure, dash}       = require 'bongo'
-  {difference, extend} = require 'underscore'
+  {Relationship}        = require 'jraphical'
 
-  {permit}             = require '../group/permissionset'
+  {secure, dash}        = require 'bongo'
+  {difference, extend}  = require 'underscore'
 
-  JUser                = require '../user'
-  JPayment             = require './index'
-  JPaymentToken        = require './token'
-  JPaymentSubscription = require './subscription'
+  {permit}              = require '../group/permissionset'
+
+  JUser                 = require '../user'
+  JPayment              = require './index'
+  JPaymentToken         = require './token'
+  JPaymentSubscription  = require './subscription'
 
   @share()
 
@@ -118,18 +120,6 @@ module.exports = class JPaymentPlan extends Module
     success: (client, formData, callback) ->
       @create client.context.group, formData, callback
 
-  @removeByCode = (planCode, callback) ->
-    @one { planCode }, (err, plan) ->
-      return callback err  if err
-
-      unless plan?
-        return callback { message: 'Unrecognized plan code', planCode }
-
-      plan.remove callback
-
-  @removeByCode$ = permit 'manage products',
-    success: (client, planCode, callback) -> @removeByCode planCode, callback
-
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
     console.error 'needs to be reimplemented'
 #    recurly.fetchAccountDetailsByPaymentMethodId (JPayment.userCodeOf delegate), callback
@@ -152,25 +142,6 @@ module.exports = class JPaymentPlan extends Module
     @some selector, queryOptions, callback
 
   @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
-
-  remove: (callback) ->
-    { planCode } = this
-    super (err) ->
-      if err
-        callback err
-      else if planCode?
-        recurly.deletePlan { planCode }, callback
-      else
-        callback null
-
-  remove$: permit 'manage products',
-    success: (client, callback) -> @remove callback
-
-  modify: (formData, callback) ->
-    @update $set: formData, callback
-
-  modify$: permit 'manage products',
-    success: (client, formData, callback) -> @modify formData, callback
 
   fetchToken: secure (client, data, callback) ->
     JPaymentToken.createToken client, planCode: @planCode, callback

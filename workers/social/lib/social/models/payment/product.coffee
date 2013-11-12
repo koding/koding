@@ -1,6 +1,6 @@
-{ Module } = require 'jraphical'
+JPaymentBase = require './base'
 
-module.exports = class JPaymentProduct extends Module
+module.exports = class JPaymentProduct extends JPaymentBase
 
   createId = require 'hat'
   recurly = require 'koding-payment'
@@ -110,33 +110,3 @@ module.exports = class JPaymentProduct extends Module
       recurly.createPlan planData, callback
 
     else process.nextTick -> callback null
-
-  @removeByCode = (planCode, callback) ->
-    @one { planCode }, (err, product) ->
-      return callback err  if err
-
-      unless product?
-        return callback { message: 'Unrecognized product code', planCode }
-
-      product.remove callback
-
-  @removeByCode$ = permit 'manage products',
-    success: (client, planCode, callback) -> @removeByCode planCode, callback
-
-  remove: (callback) ->
-    { planCode, overageEnabled } = this
-    super (err) ->
-      if err
-        callback err
-      else if code? and overageEnabled
-        recurly.deletePlan { planCode }, callback
-      else
-        callback null
-
-  remove$: permit 'manage products',
-    success: (client, callback) -> @remove callback
-
-  modify: (formData, callback) -> @update $set: formData, callback
-
-  modify$: permit 'manage products',
-    success: (client, formData, callback) -> @modify formData, callback

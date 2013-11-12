@@ -1,6 +1,6 @@
-{Module} = require 'jraphical'
+JPaymentBase = require './base'
 
-module.exports = class JPaymentPack extends Module
+module.exports = class JPaymentPack extends JPaymentBase
 
   { permit } = require '../group/permissionset'
 
@@ -10,13 +10,18 @@ module.exports = class JPaymentPack extends Module
     sharedMethods   :
       static        : [
         'create'
+        'removeByCode'
       ]
       instance      : [
         'modify'
+        'remove'
         'fetchProducts'
         'updateProducts'
       ]
     schema          :
+      planCode      :
+        type        : String
+        default     : require 'hat'
       title         :
         type        : String
         required    : yes
@@ -61,9 +66,5 @@ module.exports = class JPaymentPack extends Module
   @create$ = permit 'manage products',
     success: (client, formData, callback) ->
       @create client.context.group, formData, callback
-
-  modify:->
-
-  fetchProducts:->
 
   updateProducts:->
