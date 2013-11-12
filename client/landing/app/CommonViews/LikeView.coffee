@@ -35,10 +35,7 @@ class LikeView extends KDView
     # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore and KD.isLoggedIn()
       data.checkIfLikedBefore (err, likedBefore)=>
-        if likedBefore
-          @setClass   "liked"
-        else
-          @unSetClass "liked"
+        if likedBefore then @setClass "liked" else @unsetClass "liked"
         @_currentState = likedBefore
 
   fetchLikeInfo:->
@@ -126,10 +123,7 @@ class LikeView extends KDView
         unless err
           @_currentState = not @_currentState
 
-          if @_currentState is yes
-            @setClass   "liked"
-          else
-            @unSetClass "liked"
+          if @_currentState then @setClass "liked" else @unSetClass "liked"
 
           @_lastUpdatedCount = -1
 
