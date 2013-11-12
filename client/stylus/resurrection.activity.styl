@@ -5,6 +5,8 @@
 .feeder-header
 .common-inner-nav
 .activity-update-widget-wrapper
+.system-message
+.comment-container
   display               none
 
 .content-page.activity
@@ -12,6 +14,8 @@
   margin                0 auto
   padding               0 20px
   font-family           "Open sans"
+
+  /* General */
 
   .activity-content
     width               70%
@@ -24,12 +28,50 @@
     position            relative
     borderBox()
 
+    .status-body
+      font-size       16px
+      font-weight     200
+      line-height     22px
+      color           #485259
+      margin          20px 24px 24px
+
     footer
       size              auto, 38px
+      line-height       36px
       background        #f8f8f9
       border            1px solid #e5e5e7
       border-top        1px solid #e1e1e4
       margin            0 -1px -1px
+
+      .action-container
+        height          36px
+        min-width       36px
+        text-align      center
+        border-right    1px solid #e5e5e7
+        fl()
+
+        &:last-of-type
+          border-right none
+          border-left  1px solid #e5e5e7
+          fr()
+
+        a
+          fl()
+          noTextDeco()
+
+          &.share-icon
+            sprite     app share-icon
+
+          &.like-icon
+            sprite     app like-icon
+
+          &.comment-icon
+            sprite     app comment-icon
+
+          &.count
+            margin     0 14px 0 -5px
+            font-size  12px
+            color      #7a868d
 
     .avatarview.author-avatar
       size              65px, 65px
@@ -44,17 +86,67 @@
     .author-name
       display           block
       margin            24px 24px 0
+
       a.profile
         color           #91979b
         font-size       15px
         font-weight     400
         noTextDeco()
 
-    .status
-      .status-body
-        font-size       16px
-        font-weight     200
-        line-height     22px
-        color           #485259
+    .codesnip
+      .code-container
         margin          20px 24px 24px
+
+        pre
+          margin        0
+          padding       0
+
+        code
+          padding       20px
+          max-height    400px
+          overflow      scroll
+
+    .blog-post
+      .blog-post-title
+        margin          20px 24px 0
+
+        a
+          color         #91979b
+          font-weight   normal
+
+      .body
+          font-size     14px
+          font-weight   200
+          line-height   20px
+          color         #485259
+          margin        20px 24px 24px
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
