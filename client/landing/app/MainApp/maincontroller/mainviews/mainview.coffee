@@ -37,6 +37,21 @@ class MainView extends KDView
   addBook:->
     @addSubView new BookView delegate : this
 
+  _logoutAnimation:->
+    {body}        = document
+
+    turnOffLine   = new KDCustomHTMLView
+      cssClass    : "turn-off-line"
+    turnOffDot    = new KDCustomHTMLView
+      cssClass    : "turn-off-dot"
+
+    turnOffLine.appendToDomBody()
+    turnOffDot.appendToDomBody()
+
+    body.style.background = "#000"
+    @setClass               "logout-tv"
+
+
   createMainPanels:->
 
     @addSubView @panelWrapper = new KDView

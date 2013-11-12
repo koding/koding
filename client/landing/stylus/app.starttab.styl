@@ -26,6 +26,24 @@ app.starttab.styl
     size                  100%, 100%
     overflow              auto
 
+    .environment-content
+      left                      0
+      border-top                1px solid #ccc
+      border-bottom             1px solid #ccc
+      width                     100%
+      margin                    0 auto
+      text-align                left
+
+      &.animated
+        vendor                    transition, opacity 1.5s ease-in \, height .3s ease-in-out
+        opacity                   0
+        &.in
+          opacity                 1
+
+      .environments-scene
+        .internet
+          height                  500px
+
   .app-button-holder
     height                33px
     left                  5px
@@ -75,6 +93,12 @@ app.starttab.styl
     font-weight           normal
     padding-top           5px
 
+.app-list-wrapper
+  .application-loader
+    font-weight           300
+    font-size             13px
+    margin-top            30px
+
 .app-item-container
   margin-top              20px
   appThumbStyl()
@@ -106,20 +130,6 @@ app.starttab.styl
     opacity                 1
   &.on-top
     top                     -5px
-
-.environment-content
-  left                      0
-  border-top                1px solid #ccc
-  border-bottom             1px solid #ccc
-  width                     100%
-  margin                    0 auto
-  text-align                left
-
-  &.animated
-    vendor                    transition, opacity 1.5s ease-in \, height .3s ease-in-out
-    opacity                   0
-    &.in
-      opacity                 1
 
 .start-tab-recent-container
   abs()

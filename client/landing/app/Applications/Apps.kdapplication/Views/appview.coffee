@@ -19,7 +19,7 @@ class AppView extends KDView
             callback  : =>
               app.follow (err)->
                 cb? err
-                KD.track "Apps", "Follow", app.title unless err
+                KD.mixpanel "Followed app", title:app.title  unless err
 
             onFailMsg : "Login required to follow Apps"
             tryAgain  : yes
@@ -28,7 +28,7 @@ class AppView extends KDView
         callback      : (callback)->
           app.unfollow (err)->
             callback? err
-            KD.track "Apps", "Unfollow", app.title unless err
+            KD.mixpanel "Unfollowed app", title:app.title  unless err
       ]
     , app
 
@@ -43,7 +43,6 @@ class AppView extends KDView
             callback  : =>
               app.like (err)->
                 cb? err
-                KD.track "Apps", "Like", app.title unless err
             onFailMsg : "Login required to like Apps"
             tryAgain  : yes
       ,
@@ -51,7 +50,6 @@ class AppView extends KDView
         callback      : (callback)->
           app.like (err)->
             callback? err
-            KD.track "Apps", "Unlike", app.title unless err
       ]
     , app
 
@@ -158,8 +156,8 @@ class AppView extends KDView
       title     : "Run"
       style     : "clean-gray"
       callback  : =>
-        KD.track "Apps", "OpenApplication", app.title
         @appManager.open app.title
+        KD.mixpanel "Opened app", name:app.title
 
     @runButton.hide()
 
