@@ -4,7 +4,9 @@ class WebTermController extends AppController
     name         : "WebTerm"
     title        : "Terminal"
     navItem      :
-      title      : "Develop"
+      title      : "Terminal"
+      order      : 41
+      path       : "/Develop/Terminal"
     route        :
       slug       : "/:name?/Develop/Terminal"
       handler    : ({params:{name}, query})->

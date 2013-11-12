@@ -5,6 +5,9 @@ class NavigationLink extends KDListItemView
     data.type        or= ''
     options.tagName  or= 'a'
     options.type     or= 'main-nav'
+    options.draggable  = yes
+      # containment      : 'parent', 'window'
+      #   subViewName       : 'naci'
     options.attributes =
       href             : '#'
     options.cssClass   = KD.utils.curry @utils.slugify(data.title), options.cssClass
@@ -12,6 +15,12 @@ class NavigationLink extends KDListItemView
     super options,data
 
     @name = data.title
+
+    @on "DragStarted", @bound 'dragStarted'
+
+    @on "DragInAction", @bound 'dragInAction'
+
+    @on "DragFinished", @bound 'dragFinished'
 
   click:(event)->
     {appPath, title, path, type, topLevel} = @getData()
@@ -30,3 +39,13 @@ class NavigationLink extends KDListItemView
 
   partial:(data)->
     "<span class='icon'></span><cite>#{data.title}</cite>"
+
+  dragInAction: (x, y)-> #log x, y
+
+  dragStarted: (event, dragState)->
+
+    log KD.getNavItems().indexOf @getData()
+    @setClass 'no-anim'
+
+  dragFinished: (event, dragState)->
+    @unsetClass 'no-anim'

@@ -4,7 +4,7 @@ class AvatarAreaIconMenu extends JView
 
     super
 
-    @setClass "actions"
+    @setClass "account-menu"
 
     sidebar  = @getDelegate()
 
@@ -34,15 +34,27 @@ class AvatarAreaIconMenu extends JView
       delegate   : @messagesPopup
 
     @groupsSwitcherIcon = new AvatarAreaIconLink
-      cssClass   : 'group-switcher'
+      cssClass   : 'group-switcher hidden'
       attributes :
         title    : 'Your groups'
       delegate   : @groupSwitcherPopup
 
+    @accountIcon = new KDCustomHTMLView
+      tagName    : "a"
+      cssClass   : 'account'
+      attributes :
+        title    : 'Account Settings'
+        href     : "#"
+      click      : (event)->
+        KD.utils.stopDOMEvent event
+        KD.getSingleton('router').handleRoute '/Account'
+      partial    : "<span class='count'><cite></cite></span><span class='icon'></span>"
+
   pistachio:->
     """
-    {{> @notificationsIcon}}
+    {{> @accountIcon}}
     {{> @messagesIcon}}
+    {{> @notificationsIcon}}
     {{> @groupsSwitcherIcon}}
     """
 
