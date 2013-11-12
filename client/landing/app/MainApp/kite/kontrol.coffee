@@ -14,7 +14,7 @@ class Kontrol extends KDObject
     @readyState = NOTREADY
     @addr = "ws://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/_moh_/pub" #kontrol addr
     @kites = {}
-    @connect()
+    # @connect()
 
   getKites: (options, callback)->
     # find kites that belongs to username.
