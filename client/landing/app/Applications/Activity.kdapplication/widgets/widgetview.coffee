@@ -8,7 +8,6 @@ class ActivityUpdateWidget extends KDView
     super options, data
 
     @windowController = KD.getSingleton('windowController')
-    @listenWindowResize()
 
   setMainSections:->
     @updatePartial ''
@@ -42,8 +41,6 @@ class ActivityUpdateWidget extends KDView
     @changeTab "update", "Status Update"
     @mainInputTabs.emit "MainInputTabsReset", isHardReset
 
-    @_windowDidResize()
-
   addWidgetPane:(options)->
 
     {paneName,mainContent} = options
@@ -56,7 +53,6 @@ class ActivityUpdateWidget extends KDView
   changeTab:(tabName, title)->
 
     @showPane tabName
-    @_windowDidResize()
     @emit "WidgetTabChanged", tabName
 
   showPane:(paneName)->
