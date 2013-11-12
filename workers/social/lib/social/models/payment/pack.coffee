@@ -36,13 +36,14 @@ module.exports = class JPaymentPack extends Module
 
   @create = (groupSlug, formData, callback) ->
 
-    { title, description } = formData
+    { title, description, tags } = formData
 
     JGroup = require '../group'
 
     pack = new this {
       title
       description
+      tags
       group       : groupSlug
     }
 
