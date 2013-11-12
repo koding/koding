@@ -168,8 +168,6 @@ class FeedController extends KDViewController
     selector   = @getFeedSelector()
     {itemClass, feedId}  = @getOptions()
 
-    log "feedId :", feedId
-
     kallback = (err, items, rest...)=>
       listController = @emitLoadCompleted filter
       @emit "FilterLoaded"
@@ -197,9 +195,6 @@ class FeedController extends KDViewController
       USEDFEEDS.push feedId
       unless prefetchedItems = KD.prefetchedFeeds[feedId]
       then @loadFeed filter
-      else
-        log "exhausting feed:", feedId
-        log "buyur dayi feed var, burdan yukle."
-        kallback null, (KD.remote.revive item for item in prefetchedItems)
+      else kallback null, (KD.remote.revive item for item in prefetchedItems)
     else
       filter.dataSource selector, options, kallback
