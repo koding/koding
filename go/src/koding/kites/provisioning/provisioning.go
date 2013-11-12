@@ -99,16 +99,22 @@ func (p *Provisioning) State(r *protocol.KiteDnodeRequest, result *string) error
 	log.Info("[%s] requested state for the container: '%s'", r.Username, params.ContainerName)
 
 	vm, err := getVM(params.ContainerName)
-	if err != nil {
-		log.Error("[%s] could not get vm to resize '%s'. err: '%s'",
-			r.Username, params.ContainerName, err)
-		return errors.New("could not start vm - 1")
+	if err == nil {
+		containerName := "vm-" + vm.Id.Hex()
+		c := container.NewContainer(containerName)
+		*result = c.State()
+		return nil
 	}
 
-	containerName := "vm-" + vm.Id.Hex()
-	c := container.NewContainer(containerName)
+	// the vm could be in a maintenance mode, if yes return the state as "MAINTENANCE"
+	_, ok := err.(*UnderMaintenanceError)
+	if !ok {
+		log.Error("[%s] could not get vm to state '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return errors.New("could not state vm - 1")
+	}
 
-	*result = c.State()
+	*result = "MAINTENANCE"
 	return nil
 }
 
@@ -463,6 +469,18 @@ func getVM(hostnameAlias string) (*models.VM, error) {
 	return vm, nil
 }
 
+type UnderMaintenanceError struct{}
+
+func (err *UnderMaintenanceError) Error() string {
+	return "VM is under maintenance."
+}
+
+type AccessDeniedError struct{}
+
+func (err *AccessDeniedError) Error() string {
+	return "Vm is banned"
+}
+
 func validateVM(vm *models.VM) error {
 	// applyDefaults
 	if vm.NumCPUs == 0 {
@@ -482,11 +500,13 @@ func validateVM(vm *models.VM) error {
 	}
 
 	if vm.HostKite == "(maintenance)" {
-		return fmt.Errorf("VM '%s' is under maintenance", vm.HostnameAlias)
+		log.Info("VM '%s' is under maintenance", vm.HostnameAlias)
+		return new(UnderMaintenanceError)
 	}
 
 	if vm.HostKite == "(banned)" {
-		return fmt.Errorf("VM '%s' is banned", vm.HostnameAlias)
+		log.Info("VM '%s' is banned", vm.HostnameAlias)
+		return new(AccessDeniedError)
 	}
 
 	if vm.IP == nil {
