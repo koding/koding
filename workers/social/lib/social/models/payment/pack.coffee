@@ -34,20 +34,28 @@ class JPaymentPack extends Module
         targetType  : 'JPaymentProduct'
         as          : 'plan product'
 
-  @create = (group, formData, callback) ->
+  @create = (groupSlug, formData, callback) ->
 
     { title, description } = formData
+
+    JGroup = require '../group'
 
     pack = new this {
       title
       description
-      group
+      group       : groupSlug
     }
 
     pack.save (err) ->
       return callback err  if err
 
-      callback null, pack
+      JGroup.one slug: groupSlug, (err, group) ->
+        return callback err  if err
+
+        group.addPack pack, (err) ->
+          return callback err  if err
+
+          callback null, pack
 
   @create$ = permit 'manage products',
     success: (client, formData, callback) ->
