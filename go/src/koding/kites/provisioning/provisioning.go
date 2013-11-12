@@ -73,12 +73,43 @@ func main() {
 		"unprepare":  "Unprepare",
 		"exec":       "Exec",
 		"info":       "Info",
+		"state":      "State",
 		"resizeDisk": "ResizeDisk",
 	}
 
 	k = kite.New(options)
 	k.AddMethods(new(Provisioning), methods)
 	k.Start()
+}
+
+func (p *Provisioning) State(r *protocol.KiteDnodeRequest, result *string) error {
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not get state. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	log.Info("[%s] requested state for the container: '%s'", r.Username, params.ContainerName)
+
+	vm, err := getVM(params.ContainerName)
+	if err != nil {
+		log.Error("[%s] could not get vm to resize '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return errors.New("could not start vm - 1")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+	c := container.NewContainer(containerName)
+
+	*result = c.State()
+	return nil
 }
 
 func (p *Provisioning) ResizeDisk(r *protocol.KiteDnodeRequest, result *bool) error {
@@ -131,7 +162,7 @@ func (p *Provisioning) Info(r *protocol.KiteDnodeRequest, result *ContainerInfo)
 		return errors.New("{ containerName: [string] }")
 	}
 
-	log.Info("[%s] requested info the container: '%s'", r.Username, params.ContainerName)
+	log.Info("[%s] requested info for the container: '%s'", r.Username, params.ContainerName)
 
 	vm, err := getVM(params.ContainerName)
 	if err != nil {
