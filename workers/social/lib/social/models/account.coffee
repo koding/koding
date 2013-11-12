@@ -971,7 +971,7 @@ module.exports = class JAccount extends jraphical.Module
     @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
       if err then callback err
       else unless storage?
-        log.info 'Creating new storage:', appId, version, @profile.nickname
+        # log.info 'Creating new storage:', appId, version, @profile.nickname
         newStorage = new JAppStorage {appId, version}
         newStorage.save (err) =>
           if err then callback err
