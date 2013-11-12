@@ -6,9 +6,6 @@ class AvatarAreaIconLink extends KDCustomHTMLView
       partial     : """
         <span class='count'>
           <cite></cite>
-          <span class='arrow-wrap'>
-            <span class='arrow'></span>
-          </span>
         </span>
         <span class='icon'></span>
       """
