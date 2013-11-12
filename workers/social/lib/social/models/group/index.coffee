@@ -468,14 +468,12 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
+    return  unless groupSlug
     if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
         console.error err  if err
         unless group
-          # console.trace()
-          # At some point this error happens with groupSlug as 'undefined'
-          # Tried to trace but failed, maybe its important ~ GG
-          console.error "unknown group #{groupSlug}"
+          console.error "No such group with slug: '#{groupSlug}'"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
           unless event is "MemberJoinedGroup" or event is "FollowHappened"
             @oldBroadcast.call this, "koding", event, message
