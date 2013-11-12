@@ -237,6 +237,7 @@ module.exports = [
   "app/MainApp/maincontroller/mainviews/mainview.coffee",
   "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
+  "app/MainApp/maincontroller/dockcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
 
   # --- Applications ---

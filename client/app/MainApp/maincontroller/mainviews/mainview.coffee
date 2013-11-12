@@ -4,21 +4,14 @@ class MainView extends KDView
 
     @bindPulsingRemove()
     @bindTransitionEnd()
-    @addHeader()
+    @createHeader()
+    @createDock()
+    @createAccountArea()
     @createMainPanels()
     @createMainTabView()
     @setStickyNotification()
 
     @utils.defer => @emit 'ready'
-
-    mainController = KD.getSingleton 'mainController'
-    mainController.ready @bound 'accountChanged'
-
-
-  accountChanged:->
-
-    @navController.reset()
-
 
   bindPulsingRemove:->
 
@@ -50,7 +43,7 @@ class MainView extends KDView
       tagName  : "section"
       domId    : "main-panel-wrapper"
 
-  addHeader:->
+  createHeader:->
 
     {entryPoint} = KD.config
 
@@ -60,9 +53,7 @@ class MainView extends KDView
 
     @header.clear()
 
-    @header.addSubView wrapper = new KDView
-    @header.wrapper = wrapper
-    wrapper.addSubView @logo = new KDCustomHTMLView
+    @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type is 'group' then 'group' else ''
@@ -73,16 +64,16 @@ class MainView extends KDView
         then KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
         else location.replace '/'
 
-    @createMainNavigation()
+    # REFACTOR NOTE: login link
 
-    wrapper.addSubView loginLink = new CustomLinkView
-      domId       : 'header-sign-in'
-      title       : 'Login'
-      attributes  :
-        href      : '/Login'
-      click       : (event)->
-        KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute "/Login"
+    # wrapper.addSubView loginLink = new CustomLinkView
+    #   domId       : 'header-sign-in'
+    #   title       : 'Login'
+    #   attributes  :
+    #     href      : '/Login'
+    #   click       : (event)->
+    #     KD.utils.stopDOMEvent event
+    #     KD.getSingleton('router').handleRoute "/Login"
 
     # REFACTOR NOTE: this put the group name next to logo
 
@@ -93,23 +84,28 @@ class MainView extends KDView
     #       [group] = models
     #       @logo.updatePartial "<cite></cite>#{group.title}"
 
-  createMainNavigation:->
+  createDock:->
 
-    @navController = new MainNavController
-      view           : new NavigationList
-        domId        : 'main-nav'
-        testPath     : 'navigation-list'
-        type         : 'navigation'
-        itemClass    : NavigationLink
-        testPath     : 'navigation-list'
-      wrapper        : no
-      scrollView     : no
-    ,
-      id        : "navigation"
-      title     : "navigation"
-      items     : []
+    dockController = @getSingleton "dockController"
+    @header.addSubView dockController.getView()
 
-    @header.wrapper.addSubView @navController.getView()
+
+  createAccountArea:->
+
+    @header.addSubView @accountArea = new KDCustomHTMLView cssClass : 'account-area'
+    @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
+    @accountArea.addSubView @avatarArea = new AvatarArea {}, KD.whoami()
+    @accountArea.addSubView @searchIcon = new KDCustomHTMLView
+      domId      : 'fatih-launcher'
+      tagName    : 'a'
+      attributes :
+        title    : 'Search'
+        href     : '#'
+      click      : (event)->
+        KD.utils.stopDOMEvent event
+        log 'run fatih'
+      partial    : "<span class='icon'></span>"
+
 
   createMainTabView:->
 

@@ -89,6 +89,7 @@ class MainController extends KDController
     @loginScreen = new LoginView
       testPath   : "landing-login"
     @loginScreen.appendToDomBody()
+    KD.registerSingleton "dockController", new DockController
     @mainViewController  = new MainViewController
       view    : mainView = new MainView
         domId : "kdmaincontainer"
