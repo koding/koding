@@ -11,7 +11,9 @@ class AceAppController extends AppController
     hiddenHandle  : no
     openWith      : "lastActive"
     navItem       :
-      title       : "Develop"
+      title       : "Editor"
+      path        : "/Develop/Ace"
+      order       : 42
     route         :
       slug        : "/:name?/Develop/Ace"
       handler     : ({params:{name}, query})->

@@ -5,10 +5,10 @@ class StartTabAppController extends AppController
     route        : "/:name?/Develop"
     behavior     : "application"
     multiple     : no
-    navItem      :
-      title      : "Develop"
-      path       : "/Develop"
-      order      : 10
+    # navItem      :
+    #   title      : "Develop"
+    #   path       : "/Develop"
+    #   order      : 10
     menu         : [
       { title    : "Make a new App", eventName : "makeANewApp" }
       { title    : "Refresh Apps",   eventName : "refreshApps" }

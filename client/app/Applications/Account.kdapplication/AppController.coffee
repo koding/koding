@@ -5,12 +5,12 @@ class AccountAppController extends AppController
     route        : "/:name?/Account"
     behavior     : "hideTabs"
     hiddenHandle : yes
-    navItem      :
-      title      : "Account"
-      path       : "/Account"
-      order      : 70
-      type       : "account"
-      loggedIn   : yes
+    # navItem      :
+    #   title      : "Account"
+    #   path       : "/Account"
+    #   order      : 70
+    #   type       : "account"
+    #   loggedIn   : yes
 
   items =
     personal :
