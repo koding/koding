@@ -148,7 +148,9 @@ class StatusActivityItemView extends ActivityItemChild
           <p class="status-body">{{@applyTextExpansions #(body)}}</p>
         </div>
         <footer>
+          {{> @actionLinks}}
         </footer>
+        {{> @commentBox}}
       """
 
       # """
