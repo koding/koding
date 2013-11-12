@@ -200,6 +200,7 @@ module.exports = [
   "app/MainApp/fs/appswatcher.coffee",
 
   # avatararea
+  "app/MainApp/avatararea/avatararea.coffee",
   "app/MainApp/avatararea/avatarareapopup.coffee",
   "app/MainApp/avatararea/avatarareapopuplist.coffee",
   "app/MainApp/avatararea/avatarareagroupswitcherpopup.coffee",
@@ -237,6 +238,7 @@ module.exports = [
   "app/MainApp/maincontroller/mainviews/mainview.coffee",
   "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
+  "app/MainApp/maincontroller/dockcontroller.coffee",
   "app/MainApp/maincontroller/maincontroller.coffee",
 
   # --- Applications ---
@@ -657,6 +659,7 @@ module.exports = [
   "stylus/kdfn.styl",
   "stylus/appfn.styl",
   "stylus/resurrection.styl",
+  "stylus/resurrection.activity.styl",
   "stylus/resurrection.anims.styl",
   "stylus/resurrection.activity.styl",
   # "stylus/app.styl",

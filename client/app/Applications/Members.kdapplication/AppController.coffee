@@ -4,10 +4,10 @@ class MembersAppController extends AppController
     name         : "Members"
     route        : "/:name?/Members"
     hiddenHandle : yes
-    navItem      :
-      title      : "Members"
-      path       : "/Members"
-      order      : 30
+    # navItem      :
+    #   title      : "Members"
+    #   path       : "/Members"
+    #   order      : 30
 
   @externalProfiles = externalProfiles =
     github          :

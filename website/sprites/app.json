@@ -1,5 +1,6 @@
 {
   "name": "app",
+<<<<<<< HEAD
   "checksum": "2516b085b3015521fdab4d38bd14c117",
   "shortsum": "2516b",
   "images": [
@@ -9,10 +10,22 @@
       "checksum": "d563b89cb77296f1bbbe4fc19f4dea8f",
       "width": 21,
       "height": 21,
+=======
+  "checksum": "8aa8a0f50706848313cd5ad2d83aaedc",
+  "shortsum": "8aa8a",
+  "images": [
+    {
+      "name": "account-cog",
+      "filename": "account-cog.png",
+      "checksum": "d409b6dc8aaf084894af9d5a961e03a4",
+      "width": 20,
+      "height": 20,
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
       "positionX": 0,
       "positionY": 0
     },
     {
+<<<<<<< HEAD
       "name": "codesnip-icon",
       "filename": "codesnip-icon.png",
       "checksum": "8be90cd8bfc548abafc1e434a2213d3c",
@@ -47,6 +60,33 @@
       "height": 36,
       "positionX": 0,
       "positionY": 97
+=======
+      "name": "account-messages",
+      "filename": "account-messages.png",
+      "checksum": "de9e1df33dcda0117641198a9db3c33f",
+      "width": 20,
+      "height": 20,
+      "positionX": 0,
+      "positionY": 22
+    },
+    {
+      "name": "account-notifications",
+      "filename": "account-notifications.png",
+      "checksum": "b86b1e394e7de20f11ff77cf74a67473",
+      "width": 20,
+      "height": 20,
+      "positionX": 0,
+      "positionY": 44
+    },
+    {
+      "name": "account-search",
+      "filename": "account-search.png",
+      "checksum": "c0de01a3168f850643a7af9345060362",
+      "width": 20,
+      "height": 20,
+      "positionX": 0,
+      "positionY": 66
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
     },
     {
       "name": "logo",
@@ -55,7 +95,11 @@
       "width": 19,
       "height": 19,
       "positionX": 0,
+<<<<<<< HEAD
       "positionY": 135
+=======
+      "positionY": 88
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
     },
     {
       "name": "nav-activity",
@@ -64,7 +108,11 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
+<<<<<<< HEAD
       "positionY": 156
+=======
+      "positionY": 109
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
     },
     {
       "name": "nav-develop",
@@ -73,7 +121,11 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
+<<<<<<< HEAD
       "positionY": 190
+=======
+      "positionY": 143
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
     },
     {
       "name": "nav-editor",
@@ -82,7 +134,11 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
+<<<<<<< HEAD
       "positionY": 224
+=======
+      "positionY": 177
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
     },
     {
       "name": "nav-search",
@@ -91,7 +147,11 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
+<<<<<<< HEAD
       "positionY": 258
+=======
+      "positionY": 211
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
     },
     {
       "name": "nav-terminal",
@@ -100,7 +160,11 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
+<<<<<<< HEAD
       "positionY": 292
+=======
+      "positionY": 245
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
     },
     {
       "name": "nav-topics",
@@ -109,6 +173,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
+<<<<<<< HEAD
       "positionY": 326
     },
     {
@@ -128,6 +193,9 @@
       "height": 19,
       "positionX": 0,
       "positionY": 398
+=======
+      "positionY": 279
+>>>>>>> 214e287b17f88d4d6dab5899ba4de2140524bd4e
     }
   ]
 }
