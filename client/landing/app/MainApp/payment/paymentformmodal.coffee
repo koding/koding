@@ -26,7 +26,7 @@ class PaymentFormModal extends KDModalView
         @emit 'PaymentMethodSelected', paymentMethodId
       else
         @useExistingView.hide()
-        @modalTabs.show()
+        @paymentForm.show()
 
     @addSubView @useExistingView
 
