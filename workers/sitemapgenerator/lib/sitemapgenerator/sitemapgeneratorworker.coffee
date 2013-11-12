@@ -32,8 +32,6 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
     # while generating main sitemap, we don't need hashbang in the url.
     for sitemapURL in sitemapNames
-      url = "<sitemap><loc>#{@options.uri.address}/#{sitemapURL}</loc></sitemap>"
-      console.log url
       sitemap += "<sitemap><loc>#{@options.uri.address}/#{sitemapURL}</loc></sitemap>"
     sitemap += sitemapFooter
     return sitemap
