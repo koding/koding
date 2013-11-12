@@ -354,6 +354,7 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
+		Reinitialize  bool
 	}
 
 	if r.Args == nil {
@@ -365,7 +366,7 @@ func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error
 		return errors.New("{ containerName: [string] }")
 	}
 
-	err := prepare(r.Username, params.ContainerName)
+	err := prepare(params.Reinitialize, r.Username, params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not prepare vm: '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
@@ -376,13 +377,13 @@ func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error
 	return nil
 }
 
-func prepare(username, hostname string) error {
+func prepare(reinitialize bool, username, vmName string) error {
 	user, err := getUser(username)
 	if err != nil {
 		return err
 	}
 
-	vm, err := getVM(hostname)
+	vm, err := getVM(vmName)
 	if err != nil {
 		return err
 	}
@@ -404,10 +405,10 @@ func prepare(username, hostname string) error {
 	c.Useruid = user.Uid
 	c.DiskSizeInMB = vm.DiskSizeInMB
 
-	log.Info("preparing container '%s' for user '%s' with uid '%d'",
-		containerName, user.Name, user.Uid)
+	log.Info("preparing container '%s' for user '%s' with uid '%d' (reinitializing: %t)",
+		containerName, user.Name, user.Uid, reinitialize)
 
-	err = c.Prepare()
+	err = c.Prepare(reinitialize)
 	if err != nil {
 		return err
 	}
