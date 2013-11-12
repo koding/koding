@@ -1,8 +1,26 @@
 {
   "name": "app",
-  "checksum": "464281d8ac624b54adea562beed3fdb6",
-  "shortsum": "46428",
+  "checksum": "5a77a5ba3203778c11497bddecd1555a",
+  "shortsum": "5a77a",
   "images": [
+    {
+      "name": "blogpost-icon",
+      "filename": "blogpost-icon.png",
+      "checksum": "d563b89cb77296f1bbbe4fc19f4dea8f",
+      "width": 21,
+      "height": 21,
+      "positionX": 0,
+      "positionY": 0
+    },
+    {
+      "name": "codesnip-icon",
+      "filename": "codesnip-icon.png",
+      "checksum": "8be90cd8bfc548abafc1e434a2213d3c",
+      "width": 26,
+      "height": 17,
+      "positionX": 0,
+      "positionY": 23
+    },
     {
       "name": "comment-icon",
       "filename": "comment-icon.png",
@@ -10,7 +28,7 @@
       "width": 43,
       "height": 36,
       "positionX": 0,
-      "positionY": 0
+      "positionY": 42
     },
     {
       "name": "like-icon",
@@ -19,7 +37,7 @@
       "width": 43,
       "height": 36,
       "positionX": 0,
-      "positionY": 38
+      "positionY": 80
     },
     {
       "name": "logo",
@@ -28,7 +46,7 @@
       "width": 19,
       "height": 19,
       "positionX": 0,
-      "positionY": 76
+      "positionY": 118
     },
     {
       "name": "nav-activity",
@@ -37,7 +55,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 97
+      "positionY": 139
     },
     {
       "name": "nav-develop",
@@ -46,7 +64,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 131
+      "positionY": 173
     },
     {
       "name": "nav-editor",
@@ -55,7 +73,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 165
+      "positionY": 207
     },
     {
       "name": "nav-search",
@@ -64,7 +82,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 199
+      "positionY": 241
     },
     {
       "name": "nav-terminal",
@@ -73,7 +91,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 233
+      "positionY": 275
     },
     {
       "name": "nav-topics",
@@ -82,7 +100,7 @@
       "width": 32,
       "height": 32,
       "positionX": 0,
-      "positionY": 267
+      "positionY": 309
     },
     {
       "name": "share-icon",
@@ -91,7 +109,16 @@
       "width": 43,
       "height": 36,
       "positionX": 0,
-      "positionY": 301
+      "positionY": 343
+    },
+    {
+      "name": "update-icon",
+      "filename": "update-icon.png",
+      "checksum": "49148d8322ddd0b0ef1884a0b038fc04",
+      "width": 19,
+      "height": 19,
+      "positionX": 0,
+      "positionY": 381
     }
   ]
 }

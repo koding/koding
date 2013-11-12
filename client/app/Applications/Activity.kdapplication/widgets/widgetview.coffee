@@ -56,7 +56,6 @@ class ActivityUpdateWidget extends KDView
   changeTab:(tabName, title)->
 
     @showPane tabName
-    @widgetButton.decorateButton tabName, title
     @_windowDidResize()
     @emit "WidgetTabChanged", tabName
 
@@ -74,29 +73,17 @@ class ActivityUpdateWidget extends KDView
     @$('.form-headline, form.status-update-input').width width - 185
 
   widgetOptions:->
-
-    title             : "Status Update"
-    style             : "activity-status-context"
-    icon              : yes
-    iconClass         : "update"
     delegate          : @
-
-    menu              :
+    items             :
       "Status Update" :
         type          : "update"
-        callback      : (treeItem, event)=> @changeTab "update", treeItem.getData().title
-      "Blog Post":
+      "Blog Post"     :
         type          : "blogpost"
-        callback      : (treeItem, event)=> @changeTab "blogpost", treeItem.getData().title
       "Code Snip"     :
         type          : "codesnip"
-        callback      : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
       "Discussion"    :
         type          : "discussion"
-        disabled      : no
-        callback      : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
+        disabled      : yes
       "Tutorial"      :
         type          : "tutorial"
-        disabled      : no
-        callback      : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
-    callback          : =>
+        disabled      : yes
