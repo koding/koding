@@ -13,26 +13,29 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   @share()
 
   @set
-    indexes:
-      uuid         : 'unique'
-    sharedMethods  :
-      static       : [
+    indexes         :
+      uuid          : 'unique'
+    sharedMethods   :
+      static        : [
         'fetchUserSubscriptions', 'fetchUserSubscriptionsWithPlan', 'checkUserSubscription'
       ]
-      instance     : ['cancel', 'resume', 'calculateRefund']
-    schema         :
-      uuid         : String
-      planCode     : String
-      userCode     : String
-      quantity     :
-        type       : Number
-        default    : 1
-      status       : String
-      activatedAt  : Date
-      expiresAt    : Date
-      renewAt      : Date
-      feeAmount    : Number
-      lastUpdate   : Number
+      instance      : ['cancel', 'resume', 'calculateRefund', 'spend']
+    schema          :
+      uuid          : String
+      planCode      : String
+      userCode      : String
+      quantity      :
+        type        : Number
+        default     : 1
+      status        : String
+      activatedAt   : Date
+      expiresAt     : Date
+      renewAt       : Date
+      feeAmount     : Number
+      lastUpdate    : Number
+      usage         :
+        type        : Object # "usage" is designed to mirror "quantities" from JPaymentPlan
+        default     : {}
 
   @fetchUserSubscriptions = secure ({ connection:{ delegate }}, callback) ->
     delegate.fetchPaymentMethods (err, paymentMethods) =>
@@ -152,3 +155,26 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     payment.reactivateUserSubscription @userCode, {@uuid}, (err, sub)=>
       return callback err  if err
       update_ sub, callback
+
+  spend: secure (client, options, callback) ->
+    JPaymentPlan = require './plan'
+
+    { delegate } = client.connection
+
+    delegate.hasTarget this, 'service subscription', (err, hasTarget) =>
+      return callback err  if err
+      return callback { message: 'Access denied!' }  unless hasTarget
+
+      JPaymentPlan.one { @planCode }, (err, plan) =>
+        return callback err  if err
+
+        incOp = {}
+        for own key, val of options
+          if not (@usage.hasOwnProperty key) or plan[key] - @usage[key] - val < 0
+            return callback { message: 'Quota exceeded', planCode: key }
+          incOp["usage.#{ key }"] = val
+
+        @update op, (err) =>
+          return callback err  if err
+          
+          callback null, @usage
