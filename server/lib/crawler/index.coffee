@@ -101,15 +101,15 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
         activityContent = {
           fullName : fullName
           hash : hash
-          title : if model.title then model.title else model.body or ""
-          body : if model.body  then model.body  else ""
+          title : if model?.title? then model.title else model.body or ""
+          body : if model?.body?  then model.body  else ""
           codeSnippet : htmlEncode codeSnippet
-          createdAt : formatDate(model.data?.meta?.createdAt)
+          createdAt : formatDate(model?.data?.meta?.createdAt)
           numberOfComments : teaser.repliesCount or 0
           numberOfLikes : model?.data?.meta?.likes or 0
           comments : comments
           tags : tags
-          type : model.bongo_?.constructorName
+          type : model?.bongo_?.constructorName
         }
         content = activity {activityContent, section, models}
         callback null, content
@@ -145,12 +145,11 @@ module.exports =
             model = models.first if models and Array.isArray models
             return res.send 404, error_404() unless model
 
-
             if typeof model.fetchRelativeComments is "function"
               model?.fetchRelativeComments? limit:3, after:"", (error, comments)=>
                 queue = [0..comments.length].map (index)=>=>
                   comment = comments[index]
-                  if comment?.data
+                  if comment?.data?
                     # Get comments authors, put comment info into commentSummaries
                     decorateComment JAccount, comment, (error, commentSummary)=>
                       queue.next() if error
@@ -160,16 +159,13 @@ module.exports =
                       queue.next()
                   else queue.next()
                 queue.push =>
-                  createActivityContent JAccount, models, \
-                    queue.commentSummaries, section, (error, content)=>
-                      queue.next() if error
-                      return res.send 200, content
+                  createActivityContent JAccount, models, queue.commentSummaries, section, (error, content)=>
+                    queue.next() if error
+                    return res.send 200, content
                 daisy queue
             else
-              createActivityContent JAccount, models, \
-                {}, section, (error, content)=>
-                  queue.next() if error
-                  return res.send 200, content
+              createActivityContent JAccount, models, {}, section, (error, content)=>
+                return res.send 200, content
       else
         return res.send 404, error_404("No section is given.")
     else
