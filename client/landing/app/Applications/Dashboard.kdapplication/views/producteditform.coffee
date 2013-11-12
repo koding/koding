@@ -72,8 +72,8 @@ class GroupProductEditForm extends KDFormViewWithFields
 
     options.fields.tags ?=
       label         : "Tags"
-      defaultValue  : data.tags?.join ', '
-      change        : @bound 'tagsChanged'
+      itemClass     : KDDelimitedInputView
+      defaultValue  : data.tags
 
     super options, data
 
@@ -97,7 +97,7 @@ class GroupProductEditForm extends KDFormViewWithFields
       overageEnabled  = i.overageEnabled?.getValue()
       soldAlone       = i.soldAlone?.getValue()
       priceIsVolatile = i.priceIsVolatile?.getValue()
-      tags            = @utils.splitTrim i.tags?.getValue()
+      tags            = i.tags.getValue()
       feeAmount       =
         unless priceIsVolatile
         then i.feeAmount.getValue() * 100
@@ -150,7 +150,4 @@ class GroupProductEditForm extends KDFormViewWithFields
   priceVolatilityChanged: ->
     enabled = @inputs.priceIsVolatile.getValue()
     do @fields.feeAmount[if enabled then 'hide' else 'show']
-
-  tagsChanged: ->
-    { tags } = @inputs
-    tags.setValue (@utils.splitTrim tags.getValue()).join ', '
+    
