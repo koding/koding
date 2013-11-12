@@ -200,6 +200,7 @@ module.exports = [
   "app/MainApp/fs/appswatcher.coffee",
 
   # avatararea
+  "app/MainApp/avatararea/avatararea.coffee",
   "app/MainApp/avatararea/avatarareapopup.coffee",
   "app/MainApp/avatararea/avatarareapopuplist.coffee",
   "app/MainApp/avatararea/avatarareagroupswitcherpopup.coffee",
