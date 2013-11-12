@@ -4,25 +4,32 @@
 
 @css {
 /*
-COMMENTS stylesheet
-app.comments.styl
+MAIN APP stylesheet
+resurrection.styl
 */
 }
 
 body
-  bg                color, #e2e4e5
+  font-family       'Helvetica Neue'
+  bg                color, #EEEEEF
+
+.no-anim
+  noAnim()
 
 #kdmaincontainer
   width             auto
 
 #main-header
   margin            0
-  bg                color, #313a3b
+  bg                color, #111617
   size              100%,61px
   z-index           1000
   fix()
-  > div.kdview
-    max-width       1280px
+
+#dock
+  size              auto, auto
+  margin-right      380px
+
 
 #main-panel-wrapper
   overflow          visible
@@ -32,7 +39,6 @@ body
 
 #koding-logo
   size              61px, 61px
-  bg                color, #505454
   fl()
 
   cite
@@ -46,23 +52,79 @@ body
   > a
     display         inline-block
     size            61px, 61px
+    vendor          transition, top .2s linear\,\
+                                left .2s linear
     cite
       hidden()
     .icon
       margin        14px 15px 15px 14px
       display       block
     &.selected
-      bg            color, #e2e4e5
+      bg            color, #EEEEEF
     &.activity .icon
       sprite      app nav-activity
     &.develop .icon
       sprite      app nav-develop
     &.topics .icon
       sprite      app nav-topics
-    &.members .icon
+    &.editor .icon
       sprite      app nav-editor
+    &.terminal .icon
+      sprite      app nav-terminal
 
+.account-area
+  abs()
+  size              370px, 100%
+  top               0
+  right             0
+  > div
+    display         inline-block
+    width           auto
+    vertical-align  top
 
+#fatih-launcher
+.account-menu > a
+  size            45px, 61px
+  display         inline-block
+  .icon
+    margin        20px 12px 21px 13px
+    size          20px, 20px
+    display       block
+  &.account .icon
+    sprite        app account-cog
+  &.notifications .icon
+    sprite        app account-notifications
+  &.messages .icon
+    sprite        app account-messages
+#fatih-launcher .icon
+  sprite          app account-search
+
+.avatar-area
+  bg                color, #445053
+  padding           10px 12px
+  height            61px
+  min-width         180px
+  borderBox()
+  .avatarview
+    margin-right    10px
+    fl()
+  section
+    width           auto
+    display         block
+    overflow        hidden
+    h2, h3
+      margin        0
+      line-height   20px
+    h2
+      font-size     13px
+      font-weight   400
+      a
+        color       rgba(255, 255, 255, .8)
+        noTextDeco()
+    h3
+      color         rgba(255, 255, 255, .5)
+      font-size     12px
+      font-weight   300
 
 
 
