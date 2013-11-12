@@ -28,7 +28,8 @@ class ActivityItemChild extends KDView
       id               : data.originId
 
     @avatar = new AvatarView {
-      size        : {width: 40, height: 40}
+      size        : {width: 65, height: 65}
+      cssClass    : "author-avatar"
       origin
       showStatus  : yes
     }

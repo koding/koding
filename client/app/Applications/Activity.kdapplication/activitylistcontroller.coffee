@@ -119,7 +119,7 @@ class ActivityListController extends KDListViewController
       for activity in @getListView().items when activity.data.getId().toString() in likedIds
         likeView = activity.subViews.first.actionLinks?.likeView
         if likeView
-          likeView.likeLink.updatePartial 'Unlike'
+          likeView.setClass "liked"
           likeView._currentState = yes
 
   getLastItemTimeStamp: ->

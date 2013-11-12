@@ -35,7 +35,7 @@ class LikeView extends KDView
     # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore and KD.isLoggedIn()
       data.checkIfLikedBefore (err, likedBefore)=>
-        @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
+        if likedBefore then @setClass "liked" else @unsetClass "liked"
         @_currentState = likedBefore
 
   fetchLikeInfo:->
@@ -45,8 +45,9 @@ class LikeView extends KDView
     return if @_lastUpdatedCount is data.meta.likes
     @likeCount.getTooltip().update title: "Loading..."
 
+
     if data.meta.likes is 0
-      @likeLink.updatePartial "Like"
+      @unSetClass "liked"
       return
 
     data.fetchLikedByes {},
@@ -121,7 +122,9 @@ class LikeView extends KDView
 
         unless err
           @_currentState = not @_currentState
-          @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
+
+          if @_currentState then @setClass "liked" else @unSetClass "liked"
+
           @_lastUpdatedCount = -1
 
   pistachio:->

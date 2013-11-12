@@ -349,6 +349,7 @@ module.exports = [
   "app/Applications/Activity.kdapplication/ContentDisplays/blogpost.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee",
   "app/Applications/Activity.kdapplication/ContentDisplays/link.coffee",
+  "app/Applications/Activity.kdapplication/ContentDisplays/ActivityRightBlockView.coffee",
 
   # Activity content displays commons
   "app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayAuthorAvatar.coffee",
@@ -661,6 +662,7 @@ module.exports = [
   "stylus/resurrection.activity.styl",
   "stylus/resurrection.account.dropdown.styl",
   "stylus/resurrection.anims.styl",
+  "stylus/resurrection.activity.styl",
   # "stylus/app.styl",
   # "stylus/app.bottom.styl",
   # "stylus/app.splitlayout.styl",
