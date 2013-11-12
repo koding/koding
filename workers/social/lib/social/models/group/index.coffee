@@ -1577,7 +1577,10 @@ module.exports = class JGroup extends Module
     options ?= {}
     { tag, tags } = options
     if tag    then tags = [tag]
-    if tags   then selector = { tags }
+    selector =
+      if tags
+      then { tags }
+      else {}
     options = targetOptions: options: sort: sortWeight: 1
     switch category
       when 'product'
