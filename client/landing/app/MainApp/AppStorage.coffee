@@ -28,8 +28,8 @@ class AppStorage extends KDObject
   fetchValue: (key, callback, group = 'bucket')->
 
     @reset()
-    @fetchStorage (storage)=>
-      callback if storage[group]?[key] then storage[group][key]
+    @fetchStorage (storage)->
+      callback  if storage[group]?[key] then storage[group][key]
 
   getValue: (key, group = 'bucket')->
 
@@ -44,7 +44,7 @@ class AppStorage extends KDObject
     @_storageData[group] = {}  unless @_storageData[group]?
     @_storageData[group][key] = value
 
-    @fetchStorage (storage)=>
+    @fetchStorage (storage)->
       storage.update {
         $set: pack
       }, -> callback?()
