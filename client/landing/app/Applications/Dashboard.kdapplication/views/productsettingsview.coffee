@@ -16,8 +16,18 @@ class GroupProductSettingsView extends JView
         {{> @list}}
         """
 
-    @productsView.on 'CreateRequested', =>
-      @emit 'EditRequested'
+    @packsView = new GroupProductSectionView
+      category      : 'pack'
+      itemClass     : GroupPlanListItem
+      controlsClass : PlanAdminControlsView
+      pistachio     :
+        """
+        <h2>Packs</h2>
+        <p>Packs are bundles of products, used for representing larger
+           products, for instance, a VM with 1 GB of RAM and 2 cores.</p>
+        {{> @createButton}}
+        {{> @list}}
+        """
 
     @plansView = new GroupProductSectionView
       category      : 'plan'
@@ -32,11 +42,13 @@ class GroupProductSettingsView extends JView
         {{> @list}}
         """
 
-    @plansView.on 'CreateRequested', =>
-      @emit 'EditRequested'
+    ['product', 'pack', 'plan'].forEach (category) =>
+      categoryView = @getCategoryView category
+      
+      categoryView.on 'CreateRequested', =>
+        @emit 'EditRequested'
 
-    ['product', 'plan'].forEach (category) =>
-      @forwardEvents (@getCategoryView category), [
+      @forwardEvents categoryView, [
         'DeleteRequested'
         'EditRequested'
         'AddProductsRequested'
@@ -52,5 +64,6 @@ class GroupProductSettingsView extends JView
   pistachio: ->
     """
     {{> @productsView}}
+    {{> @packsView}}
     {{> @plansView}}
     """

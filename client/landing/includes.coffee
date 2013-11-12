@@ -588,6 +588,7 @@ module.exports = [
   "app/Applications/Dashboard.kdapplication/views/productsettingsview.coffee",
   "app/Applications/Dashboard.kdapplication/views/productsectionview.coffee",
   "app/Applications/Dashboard.kdapplication/views/producteditform.coffee",
+  "app/Applications/Dashboard.kdapplication/views/packeditform.coffee",
   "app/Applications/Dashboard.kdapplication/views/embedcodeview.coffee",
   "app/Applications/Dashboard.kdapplication/views/productview.coffee",
   "app/Applications/Dashboard.kdapplication/views/productadmincontrols.coffee",
