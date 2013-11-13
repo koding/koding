@@ -14,13 +14,16 @@ class Kontrol extends KDObject
     @readyState = NOTREADY
     @addr = "ws://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/_moh_/pub" #kontrol addr
     @kites = {}
-    @connect()
+    # @connect()
 
-  getKites: (kitename, callback)->
+  getKites: (options, callback)->
     # find kites that belongs to username.
+    {name, region} = options
+
     queryData =
       username       : "#{KD.nick()}"
-      name           : kitename
+      name           : name
+      region         : region
       authentication :
         type         : "browser"
         key          : KD.remote.getSessionToken()
@@ -36,12 +39,12 @@ class Kontrol extends KDObject
       else
         callback xhr.responseText, null
 
-  getKite: (kiteName, callback)->
-    kite = @kites[kiteName]
+  getKite: (options, callback)->
+    kite = @kites[options.name]
     return callback null, kite if kite?
 
     # no kites are available, ask kontrol server if any available
-    @getKites name, (err, kites) =>
+    @getKites options, (err, kites) =>
       if err
         log "kontrol request error", err
         callback err, null

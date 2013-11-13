@@ -666,7 +666,7 @@ module.exports = class JAccount extends jraphical.Module
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin" ]
 
   userIsExempt: (callback)->
-    console.log @isExempt, this
+    # console.log @isExempt, this
     callback null, @isExempt
 
   # returns troll users ids
@@ -937,7 +937,7 @@ module.exports = class JAccount extends jraphical.Module
       return callback new KodingError "Attempt to remove unauthorized storage"
 
     @fetchStorage { 'data.name' : name }, (err, storage)=>
-      console.log err, storage
+      console.error err, storage  if err
       return callback err  if err
       unless storage
         return callback new KodingError "No such storage"
@@ -971,7 +971,7 @@ module.exports = class JAccount extends jraphical.Module
     @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
       if err then callback err
       else unless storage?
-        log.info 'creating new storage for application', appId, version
+        # log.info 'Creating new storage:', appId, version, @profile.nickname
         newStorage = new JAppStorage {appId, version}
         newStorage.save (err) =>
           if err then callback err

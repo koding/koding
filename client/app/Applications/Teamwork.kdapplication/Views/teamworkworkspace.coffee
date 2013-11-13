@@ -46,8 +46,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           tooltip      :
             title      : "If it's on, preview will be refreshed when you save a file."
             placement  : "bottom"
-          callback     : (state) =>
-            @refreshPreviewPane previewPane  if state
 
         activePanel.getPaneByName("editor").on "EditorDidSave", =>
           @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
@@ -60,6 +58,8 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         src      : "#{KD.apiUri}/images/teamwork/loading.gif"
 
   startNewSession: (options) ->
+    KD.mixpanel "User Started Teamwork session"
+
     @destroySubViews()
     unless options
       options = @getOptions()
