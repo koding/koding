@@ -98,6 +98,8 @@ module.exports = [
 
   "app/CommonViews/CommonVMUsageBar.coffee",
 
+  "app/CommonViews/formworkflow.coffee",
+  
   # FATIH
   # "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
   # "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
