@@ -10,6 +10,9 @@ module.exports = class CBucket extends jraphical.Module
 
   @set
     broadcastable   : yes
+    sharedEvents    :
+      instance      : ['ItemWasAdded']
+      static        : []
     schema          :
       anchor        : ObjectRef
       group         : [ObjectRef]

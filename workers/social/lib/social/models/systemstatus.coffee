@@ -8,24 +8,26 @@ module.exports = class JSystemStatus extends Model
   @set
     sharedMethods    :
       static         : ['getCurrentSystemStatus','create'
-                        , 'stopCurrentSystemStatus','forceReload']
+                        'stopCurrentSystemStatus','forceReload']
+    sharedEvents     :
+      static         : ['forceReload']
+      instance       : ['restartCanceled', 'restartScheduled']
+
     schema           :
-      title : String
-      content : String
+      title          : String
+      content        : String
       scheduledAt    : Date
-      meta          : require 'bongo/bundles/meta'
+      meta           : require 'bongo/bundles/meta'
       status         :
         type         : String
         default      : 'active'
         enum         : ['Invalid status',
           ['active','stopped','paused']
         ]
-      type         :
+      type           :
         type         : String
         default      : 'restart'
-        enum         : ['Invalid type',
-          ['restart','info','reload']
-        ]
+        enum         : ['Invalid type', ['restart','info','reload']]
 
   createKodingError =(err)->
     if 'string' is typeof err

@@ -12,6 +12,9 @@ module.exports = class JMail extends Model
       status         : 'sparse'
     sharedMethods    :
       static         : ['unsubscribeWithId']
+    sharedEvents     :
+      instance       : []
+      static         : []
     schema           :
       dateIssued     :
         type         : Date

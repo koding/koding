@@ -136,7 +136,7 @@ module.exports = (options = {}, callback)->
 
   # This is not koding specific so we can return this to every group
   queue.push ->
-    JApp.some {}, defaultOptions, (err, apps)->
+    JApp.some {"approved": true}, defaultOptions, (err, apps)->
       prefetchedFeeds['apps.main'] = apps  if apps
       queue.fin()
 
