@@ -1,5 +1,4 @@
-
-__utils.extend
+__utils.extend __utils,
 
   proxifyUrl:(url="", options={})->
 
