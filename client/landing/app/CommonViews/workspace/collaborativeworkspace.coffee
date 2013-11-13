@@ -1,6 +1,7 @@
 class CollaborativeWorkspace extends Workspace
 
   init: ->
+    @nickname    = KD.nick()
     @sessionData = []
     @users       = {}
     @createRemoteInstance()
@@ -24,11 +25,12 @@ class CollaborativeWorkspace extends Workspace
     @sessionKey   = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef = @firepadRef.child @sessionKey
     @historyRef   = @workspaceRef.child "history"
+    @broadcastRef = @workspaceRef.child "broadcast"
 
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
-        unless snapshot.val()
+        unless snapshot.val()?.keys
           @showNotActiveView()
           return false
 
@@ -37,13 +39,13 @@ class CollaborativeWorkspace extends Workspace
       if isOldSession
         @sessionData  = keys
         @createPanel()
-        @userRef = @workspaceRef.child("users").child KD.nick()
+        @userRef = @workspaceRef.child("users").child @nickname
         @userRef.set "online"
         @userRef.onDisconnect().set "offline"
       else
         @createPanel()
         @workspaceRef.set "keys": @sessionData
-        @userRef = @workspaceRef.child("users").child KD.nick()
+        @userRef = @workspaceRef.child("users").child @nickname
         @userRef.set "online"
         @userRef.onDisconnect().set "offline"
 
@@ -62,11 +64,22 @@ class CollaborativeWorkspace extends Workspace
 
       @emit "WorkspaceSyncedWithRemote"
 
+      @broadcastRef.on "value", (snapshot) =>
+        message = snapshot.val()
+        return if not message or not message.data or message.data.sender is @nickname
+        @displayBroadcastMessage message.data
+
     @workspaceRef.child("users").on "child_added", (snapshot) =>
       @fetchUsers()
 
     @workspaceRef.child("users").on "child_changed", (snapshot) =>
-      @setHistory "#{snapshot.name()} is disconnected."
+      name = snapshot.name()
+      if @amIHost() and snapshot.val() is "offline"
+        @setHistory "#{name} is disconnected."
+        @broadcastMessage
+          title     : "#{name} has left the session"
+          cssClass  : "error"
+          sender    : name
 
     @workspaceRef.on "child_removed", (snapshot) =>
       return  if @disconnectedModal
@@ -78,6 +91,10 @@ class CollaborativeWorkspace extends Workspace
         @workspaceRef.once "value", (snapshot) =>
           @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
 
+    @broadcastMessage
+      title     : "#{@nickname} has joined the session"
+      sender    : @nickname
+
     @on "AllPanesAddedToPanel", (panel, panes) ->
       paneSessionKeys = []
       paneSessionKeys.push pane.sessionKey for pane in panes
@@ -85,7 +102,8 @@ class CollaborativeWorkspace extends Workspace
 
     @on "KDObjectWillBeDestroyed", =>
       @forceDisconnect()
-      @workspaceRef.off eventName for eventName in ["value", "child_added", "child_removed", "child_changed"]
+      events = [ "value", "child_added", "child_removed", "child_changed" ]
+      @workspaceRef.off eventName for eventName in events
 
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -114,16 +132,15 @@ class CollaborativeWorkspace extends Workspace
     @emit "PanelCreated", newPanel
 
   createSessionKey: ->
-    nick = KD.nick()
-    u    = KD.utils
-    return  "#{nick}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
+    u = KD.utils
+    return "#{@nickname}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
 
   getHost: ->
     return @sessionKey.split("_").first
 
   amIHost: ->
     [sessionOwner] = @sessionKey.split "_"
-    return sessionOwner is KD.nick()
+    return sessionOwner is @nickname
 
   showNotActiveView: ->
     notValid = new KDView
@@ -158,8 +175,7 @@ class CollaborativeWorkspace extends Workspace
     @loader.on "viewAppended", -> loaderView.show()
     @container.addSubView @loader
 
-  isJoinedASession: ->
-    return  @getOptions().joinedASession
+  isJoinedASession: -> return @getOptions().joinedASession
 
   joinSession: (newOptions) ->
     options                = @getOptions()
@@ -291,8 +307,30 @@ class CollaborativeWorkspace extends Workspace
       delegate  : @
     }
 
+  broadcastMessage: (details) ->
+    @broadcastRef.set
+      data       :
+        title    : details.title    or ""
+        cssClass : details.cssClass  ? "success"
+        duration : details.duration or 4200
+        origin   : details.origin   or "users"
+        sender   : details.sender   or @nickname
+
+  displayBroadcastMessage: (options) ->
+    # simple broadcast message is
+    # { !title, duration=, origin=, sender=, cssClass= }
+    return unless options.title
+
+    {broadcastItem} = @getActivePanel()
+    broadcastItem.updatePartial options.title
+    broadcastItem.unsetClass "success"
+    broadcastItem.unsetClass "error"
+    broadcastItem.setClass options.cssClass
+    broadcastItem.show()
+    KD.utils.wait options.duration, -> broadcastItem.hide()
+
   setHistory: (message = "") ->
-    user    = KD.nick()
+    user    = @nickname
     message = message.replace "$0", user
 
     @historyRef.child(Date.now()).set { message, user }
