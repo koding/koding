@@ -28,14 +28,19 @@ module.exports = class CActivity extends jraphical.Capsule
       'sorts.repliesCount'  : 'sparse'
       'sorts.likesCount'    : 'sparse'
       'sorts.followerCount' : 'sparse'
-      createdAt             : 'sparse'
-      modifiedAt            : 'sparse'
-      group                 : 'sparse'
+      createdAt       : 'sparse'
+      modifiedAt      : 'sparse'
+      group           : 'sparse'
 
-    permissions             :
-      'read activity'       :
-        public              : ['guest','member','moderator']
-        private             : ['member','moderator']
+    permissions       :
+      'read activity' :
+        public        : ['guest','member','moderator']
+        private       : ['member','moderator']
+
+    sharedEvents      :
+      instance        : []
+      static          : ['BucketIsUpdated', 'cacheWorker', 'ActivityIsCreated']
+
     sharedMethods     :
       static          : [
         'fetchFolloweeContents'
@@ -46,6 +51,7 @@ module.exports = class CActivity extends jraphical.Capsule
         'fetchLastActivityTimestamp',
       ]
       instance        : ['fetchTeaser']
+
     schema            :
       # teaserSnapshot  : Object
       sorts           :
