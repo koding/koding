@@ -19,6 +19,7 @@ resurrection.activity.styl
   display               none
 
 .activity-update-widget-wrapper
+  size                  auto, auto
   min-height            68px
   background            #fff
   border-radius         0 0 6px 6px
@@ -67,18 +68,24 @@ resurrection.activity.styl
 .content-page.activity
   max-width             1146px
   margin                0 auto
-  padding               0 20px
+  padding               61px 20px 0
 
-  .listview-wrapper
+  .activity-content
     width               72%
 
   .kdlistitemview-activity
+    size                auto, auto
     background          #fff
     border              1px solid #e1e1e4
     margin              16px 0 0 78px
     border-radius       6px 6px 0 0
     position            relative
+    overflow            visible
     borderBox()
+
+    .activity-item
+      overflow          visible
+      position          static
 
     .status-body
       font-size       16px
@@ -96,7 +103,7 @@ resurrection.activity.styl
       margin            0 -1px -1px
 
       .action-container
-        height          36px
+        size            auto, 36px
         min-width       36px
         text-align      center
         border-right    1px solid #e5e5e7
@@ -161,6 +168,7 @@ resurrection.activity.styl
     .blog-post
       .blog-post-title
         margin          20px 24px 0
+        font-size       16px
 
         a
           color         #91979b
@@ -174,12 +182,12 @@ resurrection.activity.styl
           margin        20px 24px 24px
 
   .activity-right-block
-    width               28%
-    height              300px
+    size                28%, auto
     borderBox()
     fr()
 
     .activity-right-box
+      size              auto, auto
       background        #fff
       border-radius     6px
       border            1px solid #e1e1e4
