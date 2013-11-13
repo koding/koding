@@ -13,7 +13,7 @@ func init() {
 	registerAnalytic(numberOfInvitesSent)
 	registerAnalytic(numberOfReferrals)
 	registerAnalytic(numberOfReferralsToday)
-	registerAnalytic(numberOfReferralsWhoBecameMembersToday)
+	registerAnalytic(numberOfMembersFromReferrableEmailsToday)
 }
 
 func numberOfReferrableEmails() (string, int) {
@@ -79,16 +79,16 @@ func numberOfReferralsToday() (string, int) {
 	return identifier, count
 }
 
-func numberOfReferralsWhoBecameMembersToday() (string, int) {
-	var identifier string = "number_of_referrals_who_became_members_today"
+func numberOfMembersFromReferrableEmailsToday() (string, int) {
+	var identifier string = "number_of_members_from_referrable_emails_today"
 
 	var results = make([]map[string]interface{}, 0)
 
-	var query = func(c *mgo.Collection) error {
-		var november = time.Date(2013, time.November, 1, 0, 0, 0, 0, time.Local)
-		var filter = bson.M{"invited": true, "createdAt": bson.M{"$gte": november}}
+	var currentYear, currentMonth, _ = time.Now().Date()
 
-		log.Println(">>> november query", filter)
+	var query = func(c *mgo.Collection) error {
+		var thisMonth = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.Local)
+		var filter = bson.M{"invited": true, "createdAt": bson.M{"$gte": thisMonth}}
 
 		var err = c.Find(filter).All(&results)
 
