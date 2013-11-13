@@ -14,6 +14,8 @@ func init() {
 	registerAnalytic(numberOfReferrals)
 	registerAnalytic(numberOfReferralsToday)
 	registerAnalytic(numberOfMembersFromReferrableEmailsToday)
+	registerAnalytic(numberOfMembersFromReferrableEmailsThisMonth)
+	registerAnalytic(numberOfMembersFromReferrableEmails)
 }
 
 func numberOfReferrableEmails() (string, int) {
@@ -79,16 +81,36 @@ func numberOfReferralsToday() (string, int) {
 	return identifier, count
 }
 
-func numberOfMembersFromReferrableEmailsToday() (string, int) {
-	var identifier string = "number_of_members_from_referrable_emails_today"
+func numberOfMembersFromReferrableEmails() (string, int) {
+	var identifier = "number_of_members_from_referrable_emails"
+	var unixEpochDate = time.Date(1970, time.January, 1, 0, 0, 0, 0, time.Local)
 
+	return identifier, numberOfMembersFromReferrableEmailsByTime(unixEpochDate)
+}
+
+func numberOfMembersFromReferrableEmailsThisMonth() (string, int) {
+	var identifier = "number_of_members_from_referrable_emails_this_month"
+	var currentYear, currentMonth, _ = time.Now().Date()
+	var currentMonthDate = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.Local)
+
+	return identifier, numberOfMembersFromReferrableEmailsByTime(currentMonthDate)
+}
+
+func numberOfMembersFromReferrableEmailsToday() (string, int) {
+	var identifier = "number_of_members_from_referrable_emails_today"
+	var today = getTodayDate()
+
+	return identifier, numberOfMembersFromReferrableEmailsByTime(today)
+}
+
+func numberOfMembersFromReferrableEmailsByTime(greaterThanDate time.Time) int {
 	var results = make([]map[string]interface{}, 0)
 
-	var currentYear, currentMonth, _ = time.Now().Date()
-
 	var query = func(c *mgo.Collection) error {
-		var thisMonth = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.Local)
-		var filter = bson.M{"invited": true, "createdAt": bson.M{"$gte": thisMonth}}
+		var filter = bson.M{
+			"invited":   true,
+			"createdAt": bson.M{"$gte": greaterThanDate},
+		}
 
 		var err = c.Find(filter).All(&results)
 
@@ -123,5 +145,5 @@ func numberOfMembersFromReferrableEmailsToday() (string, int) {
 		mongodb.Run("jUsers", query)
 	}
 
-	return identifier, totalCount
+	return totalCount
 }
