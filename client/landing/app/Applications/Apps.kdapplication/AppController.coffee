@@ -33,6 +33,7 @@ class AppsAppController extends AppController
       feedId                : 'apps.main'
       itemClass             : AppsListItemView
       limitPerPage          : 10
+      useHeaderNav          : yes
       filter                :
         allApps             :
           title             : "All Apps"
