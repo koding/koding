@@ -192,25 +192,35 @@ class TeamworkApp extends KDObject
         KD.mixpanel "User Changed Playground", playground
 
         if contentDetails.type is "zip"
-          appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
-          appStorage.fetchStorage (storage) =>
-            version  = appStorage.getValue "#{playground}AppVersion"
-            if KD.utils.versionCompare manifest.version, "gt", version
-              FSHelper.exists "Web/Teamwork/#{playground}", KD.getSingleton("vmController").defaultVmName, (err, res) =>
-                return @setVMRoot "Web/Teamwork/#{playground}"  if res
-                if contentDetails.url
-                  @teamwork.importInProgress = yes
-                  @showImportWarning contentDetails.url, =>
-                    appStorage.setValue "#{playground}AppVersion", manifest.version
-                    @teamwork.emit "ContentImportDone"
-                    @teamwork.importModalContent = no
-                else
-                  warn "Missing url parameter to import zip file for #{name}"
-            else
-              KD.singletons.vmController.fetchVMs (err, res) =>
-                @setVMRoot "Web/Teamwork/#{playground}"
+          root            = "Web/Teamwork/#{playground}"
+          folder          = FSHelper.createFileFromPath root, "folder"
+          contentUrl      = contentDetails.url
+          manifestVersion = manifest.version
+
+          folder.exists (err, exists) =>
+            return @setUpImport contentUrl, manifestVersion, playground  unless exists
+
+            appStorage  = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
+            appStorage.fetchStorage (storage) =>
+              currentVersion  = appStorage.getValue "#{playground}PlaygroundVersion"
+              hasNewVersion   = KD.utils.versionCompare manifestVersion, "gt", currentVersion
+              if hasNewVersion
+                @setUpImport contentUrl, manifestVersion, playground
+              else
+                @setVMRoot root
         else
           warn "Unhandled content type for #{name}"
+
+  setUpImport: (url, version, playground) ->
+    unless url
+      return warn "Missing url parameter to import zip file for #{playground}"
+
+    @teamwork.importInProgress = yes
+    @showImportWarning url, =>
+      @teamwork.emit "ContentImportDone"
+      @teamwork.importModalContent = no
+      appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
+      appStorage.setValue "#{playground}PlaygroundVersion", version
 
   doCurlRequest: (path, callback = noop) ->
     KD.getSingleton("vmController").run "curl -kLs #{path}", (err, contents) =>
