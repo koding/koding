@@ -49,8 +49,9 @@ class Kontrol extends KDObject
         log "kontrol request error", err
         callback err, null
       else
-        # result might be multiple kites, but we only use one for now
-        kite = @createKite kites[0].kite
+        # result might be multiple kites, but we only use the first time for now
+        kite = @createKite kites.first.kite
+        kite.token = kites.first.token
         @addKite kite
         callback null, kite
 
