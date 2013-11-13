@@ -45,7 +45,7 @@ class CollaborativeEditorPane extends CollaborativePane
         new KDNotificationView
           type     : "mini"
           cssClass : "success"
-          title    : "File has been saved"
+          title    : "File is saved"
           duration : 4000
     else
       @ref.child("WaitingSaveRequest").set yes
