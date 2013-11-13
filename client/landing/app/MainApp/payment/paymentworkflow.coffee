@@ -1,4 +1,4 @@
-class PaymentWorkflow extends KDView
+class PaymentWorkflow extends FormWorkflow
 
   constructor: (options = {}, data) ->
     unless options.confirmForm
@@ -13,7 +13,9 @@ class PaymentWorkflow extends KDView
 
     paymentController = KD.getSingleton 'paymentController'
 
-    paymentField = @choiceForm.fields['Payment method']
+    choiceForm = @getForm 'choice'
+
+    paymentField = choiceForm.fields['Payment method']
 
     paymentController.fetchPaymentMethods (err, paymentMethods) =>
       return if KD.showError err
@@ -27,7 +29,7 @@ class PaymentWorkflow extends KDView
         when 1 then do ([method] = methods) =>
 
           paymentField.addSubView new PaymentMethodView {}, method
-          @choiceForm.addCustomData 'paymentMethod', method
+          choiceForm.addCustomData 'paymentMethod', method
 
         else
 
@@ -41,7 +43,7 @@ class PaymentWorkflow extends KDView
 
           defaultMethod = methodsByPaymentMethodId[defaultPaymentMethod]
 
-          @choiceForm.addCustomData 'paymentMethod', defaultMethod
+          choiceForm.addCustomData 'paymentMethod', defaultMethod
 
           select = new KDSelectBox
             defaultValue  : defaultPaymentMethod
@@ -49,9 +51,9 @@ class PaymentWorkflow extends KDView
             selectOptions : methods.map (method) ->
               title       : KD.utils.getPaymentMethodTitle method
               value       : method.paymentMethodId
-            callback      : (paymentMethodId) =>
+            callback      : (paymentMethodId) ->
               chosenMethod = methodsByPaymentMethodId[paymentMethodId]
-              @choiceForm.addCustomData 'paymentMethod', chosenMethod
+              choiceForm.addCustomData 'paymentMethod', chosenMethod
 
 
           paymentField.addSubView select
@@ -65,7 +67,7 @@ class PaymentWorkflow extends KDView
   selectPaymentMethod: (method) ->
     { paymentMethodId } = method
     @addAggregateData { paymentMethodId }
-    @confirmForm.setPaymentMethod? method
+    (@getForm 'confirm').setPaymentMethod? method
     @setState 'confirm'
 
   createChoiceForm: ->
@@ -93,26 +95,11 @@ class PaymentWorkflow extends KDView
 
     return form
 
-  getFormNames: ->
-    [
-      'productForm'
-      'choiceForm'
-      'entryForm'
-      'confirmForm'
-    ]
-
-  hideForms: (forms = @getFormNames()) -> @[form]?.hide() for form in forms
-
   setState: (state) ->
-    @hideForms()
-    switch state
-      when 'product'    then @productForm.show()
-      when 'choice'     then @choiceForm.show()
-      when 'entry'      then @entryForm.show()
-      when 'confirm'
-        confirmData = @utils.extend {}, @aggregatedData
-        @confirmForm.setData confirmData
-        @confirmForm.show()
+    @showForm state
+    if state is 'confirm'
+      confirmData = @utils.extend {}, @aggregatedData
+      (@getForm 'confirm').setData confirmData
 
   viewAppended:-> @prepareWorkflow()
 
@@ -122,28 +109,26 @@ class PaymentWorkflow extends KDView
     # use this feature, make sure to emit the "DataCollected" event with any
     # data that you want aggregated (that you want to be able to access from
     # the "PaymentConfirmed" listeners).
-    { @productForm } = @getOptions()
+    { productForm } = @getOptions()
 
-    if @productForm?
-      @addSubView @productForm
-      @productForm.on 'DataCollected', (productData) =>
+    if productForm?
+      @addForm 'product', productForm
+      productForm.on 'DataCollected', (productData) =>
         @addAggregateData { productData }
         @preparePaymentMethods()
 
     # "choice form" is for choosing from existing payment methods on-file.
-    @choiceForm = @createChoiceForm()
-    @addSubView @choiceForm
+    @addForm 'choice', @createChoiceForm()
 
     # "entry form" is for entering a new payment method for us to file.
-    @entryForm = @createEntryForm()
-    @addSubView @entryForm
+    @addForm 'entry', @createEntryForm()
 
     # "confirm form" is required.  This form should render a summary, and emit
     # a "PaymentConfirmed" after user approval.
-    { @confirmForm } = @getOptions()
-    @addSubView @confirmForm
+    { confirmForm } = @getOptions()
+    @addForm 'confirm', confirmForm
 
-    @confirmForm.on 'PaymentConfirmed', =>
+    confirmForm.on 'PaymentConfirmed', =>
       # You should listen to the "PaymentConfirmed" event from outside the
       # workflow.  We'll forward a result like:
       #   { paymentMethodId, productData* }
@@ -151,7 +136,7 @@ class PaymentWorkflow extends KDView
       @emit 'PaymentConfirmed', @aggregatedData
 
     # if provided, show the product form, otherwise skip to payment methods.
-    if @productForm?
+    if productForm?
     then @setState 'product'
     else @preparePaymentMethods()
 
