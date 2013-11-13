@@ -92,10 +92,6 @@ module.exports = class JPaymentProduct extends JPaymentBase
 
             callback null, product
 
-  @create$ = permit 'manage products',
-    success: (client, formData, callback) ->
-      @create client.context.group, formData, callback
-
   savePlanToRecurly: (callback) ->
     if not @priceIsVolatile and @overageEnabled or @soldAlone
 

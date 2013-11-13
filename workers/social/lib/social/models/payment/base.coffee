@@ -2,9 +2,17 @@
 
 module.exports = class JPaymentBase extends Module
 
+  { dash }  = require 'bongo'
+  recurly   = require 'koding-payment'
+
+  { Relationship } = require 'jraphical'
+
   { permit } = require '../group/permissionset'
 
-  recurly = require 'koding-payment'
+  @create$ = permit 'manage products',
+    success: (client, formData, callback) ->
+      @create client.context.group, formData, callback
+
 
   @removeByCode = (planCode, callback) ->
     @one { planCode }, (err, product) ->
@@ -24,7 +32,10 @@ module.exports = class JPaymentBase extends Module
       if err
         callback err
       else if planCode?
-        recurly.deletePlan { planCode }, callback
+        recurly.deletePlan { planCode }, (err) ->
+          return callback err  if err and err.short isnt "not_found"
+          
+          callback null
       else
         callback null
 
@@ -36,3 +47,42 @@ module.exports = class JPaymentBase extends Module
 
   modify$: permit 'manage products',
     success: (client, formData, callback) -> @modify formData, callback
+
+  updateProducts: (quantities, callback) ->
+    JPaymentProduct = require './product'
+
+    planCodes = Object.keys quantities
+    productSelector = planCode: $in: planCodes
+
+    JPaymentProduct.some productSelector, { limit: 20 }, (err, products) =>
+      return callback err  if err
+
+      if products.length isnt planCodes.length
+        planCodesMap = planCodes.reduce( (acc, planCode) ->
+          acc[planCode] = yes
+          acc
+        , {})
+        products.forEach (product) ->
+          if planCodesMap.hasOwnProperty product.planCode
+            delete planCodesMap[product.planCode]
+        return callback {
+          message           : 'Unknown plan codes!'
+          unknownPlanCodes  : Object.keys planCodesMap
+        }
+
+      Relationship.remove {
+        sourceId    : @getId()
+        targetName  : 'JPaymentProduct'
+      }, (err) =>
+        return callback err  if err
+
+        queue = products.map (product) => =>
+          @addProduct product, (err) -> queue.fin err
+
+        dash queue, (err) =>
+          return callback err  if err
+          @modify { quantities }, (err) -> callback err
+
+  updateProducts$: permit 'manage products',
+    success: (client, quantities, callback) ->
+      @updateProducts quantities, callback

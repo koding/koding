@@ -62,9 +62,3 @@ module.exports = class JPaymentPack extends JPaymentBase
           return callback err  if err
 
           callback null, pack
-
-  @create$ = permit 'manage products',
-    success: (client, formData, callback) ->
-      @create client.context.group, formData, callback
-
-  updateProducts:->

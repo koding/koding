@@ -9,8 +9,6 @@ module.exports = class JPaymentPlan extends JPaymentBase
   recurly = require 'koding-payment'
   createId = require 'hat'
 
-  {Relationship}        = require 'jraphical'
-
   {secure, dash}        = require 'bongo'
   {difference, extend}  = require 'underscore'
 
@@ -115,10 +113,6 @@ module.exports = class JPaymentPlan extends JPaymentBase
             return callback err  if err
 
             callback null, plan
-
-  @create$ = permit 'manage products',
-    success: (client, formData, callback) ->
-      @create client.context.group, formData, callback
 
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
     console.error 'needs to be reimplemented'
@@ -242,45 +236,6 @@ module.exports = class JPaymentPlan extends JPaymentBase
       JGroup = require '../group'
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
-
-  updateProducts: (quantities, callback) ->
-    JPaymentProduct = require './product'
-
-    planCodes = Object.keys quantities
-    productSelector = planCode: $in: planCodes
-
-    JPaymentProduct.some productSelector, { limit: 20 }, (err, products) =>
-      return callback err  if err
-
-      if products.length isnt planCodes.length
-        planCodesMap = planCodes.reduce( (acc, planCode) ->
-          acc[planCode] = yes
-          acc
-        , {})
-        products.forEach (product) ->
-          if planCodesMap.hasOwnProperty product.planCode
-            delete planCodesMap[product.planCode]
-        return callback {
-          message           : 'Unknown plan codes!'
-          unknownPlanCodes  : Object.keys planCodesMap
-        }
-
-      Relationship.remove {
-        sourceId    : @getId()
-        targetName  : 'JPaymentProduct'
-      }, (err) =>
-        return callback err  if err
-
-        queue = products.map (product) => =>
-          @addProduct product, (err) -> queue.fin err
-
-        dash queue, (err) =>
-          return callback err  if err
-          @modify { quantities }, (err) -> callback err
-
-  updateProducts$: permit 'manage products',
-    success: (client, quantities, callback) ->
-      @updateProducts quantities, callback
 
   @updateCache = (selector, callback)->
     # TODO: what on earth is the point of this? C
