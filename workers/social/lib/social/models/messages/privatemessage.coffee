@@ -15,13 +15,16 @@ module.exports = class JPrivateMessage extends JPost
   @share()
 
   @set
-    sharedMethods     :
-      static          : ['create','on']
-      instance        : [
+    sharedMethods :
+      static      : ['create','on']
+      instance    : [
         'reply','restComments','commentsByRange','like',
         'fetchLikedByes','disown','mark',
         'unmark','fetchRelativeComments'
       ]
+    sharedEvents  :
+      static      : []
+      instance    : ['updateInstance']
     schema        : jraphical.Message.schema
     # TODO: copying and pasting this for now...
     # We need an abstract interface "commentable" or something like that)

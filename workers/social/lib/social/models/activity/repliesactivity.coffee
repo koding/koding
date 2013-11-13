@@ -12,6 +12,7 @@ module.exports = class CRepliesActivity extends CActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedEvents    : CActivity.sharedEvents
     relationships   :
       subject       :
         targetType  : Relationship
