@@ -30,6 +30,9 @@ module.exports = class JReferral extends jraphical.Message
     sharedMethods     :
       static          : ['redeem', 'fetchRedeemableReferrals', 'fetchReferredAccounts' ]
       instance        : [ ]
+    sharedEvents      :
+      static          : []
+      instance        : []
     schema            : schema
     relationships     :
       redeemedOn      :
