@@ -4,18 +4,18 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     super options, data
 
-    {environment, environmentManifest} = @getOptions()
+    {playground, playgroundManifest} = @getOptions()
     @avatars = {}
 
     @on "PanelCreated", (panel) =>
-      @createRunButton panel  if environment
+      @createRunButton panel  if playground
 
     @on "WorkspaceSyncedWithRemote", =>
-      if environment and @amIHost()
-        @workspaceRef.child("environment").set environment
+      if playground and @amIHost()
+        @workspaceRef.child("playground").set playground
 
-        if environmentManifest
-          @workspaceRef.child("environmentManifest").set environmentManifest
+        if playgroundManifest
+          @workspaceRef.child("playgroundManifest").set playgroundManifest
 
       @hidePlaygroundsButton()  unless @amIHost()
 
@@ -79,7 +79,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       options = @getOptions()
       delete options.sessionKey
 
-    workspaceClass          = @getEnvironmentClass options.environment
+    workspaceClass          = @getPlaygroundClass options.playground
     teamwork                = new workspaceClass options
     @getDelegate().teamwork = teamwork
     @addSubView teamwork
@@ -94,16 +94,16 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @forceDisconnect()
     @firepadRef.child(sessionKey).once "value", (snapshot) =>
       value = snapshot.val()
-      {environment, environmentManifest} = value  if value
+      {playground, playgroundManifest} = value  if value
 
       teamworkClass     = TeamworkWorkspace
       teamworkOptions   = options
 
-      if environment
-        teamworkClass   = @getEnvironmentClass environment
+      if playground
+        teamworkClass   = @getPlaygroundClass playground
 
-      if environmentManifest
-        teamworkOptions = @getDelegate().mergeEnvironmentOptions environmentManifest
+      if playgroundManifest
+        teamworkOptions = @getDelegate().mergePlaygroundOptions playgroundManifest
 
       teamworkOptions.sessionKey = newOptions.sessionKey
 
@@ -116,13 +116,12 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     previewPane.previewer.emit "ViewerRefreshed"
 
   createRunButton: (panel) ->
-    # panel.headerButtons.Environments.hide()
     panel.header.addSubView new KDButtonView
       title      : "Run"
       callback   : => @handleRun panel
 
-  getEnvironmentClass: (environment) ->
-    switch environment
+  getPlaygroundClass: (playground) ->
+    switch playground
       when "Facebook" then FacebookTeamwork
       when "GoLang"   then GoLangTeamwork
       else TeamworkWorkspace
@@ -148,7 +147,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     isLocal         = path.indexOf("localfile") is 0
     isNotPublic     = not FSHelper.isPublicPath path
     {previewPane}   = activePanel.paneLauncher
-    {defaultVmName} = KD.getSingleton "vmController"
 
     return if isLocal or isNotPublic
       error         = "This file cannot be previewed" if isLocal
@@ -159,7 +157,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         duration    : 2500
         container   : previewPane
 
-    url = path.replace "/home/#{@getHost()}/Web", defaultVmName
+    url = path.replace "/home/#{@getHost()}/Web", "https://#{KD.nick()}.kd.io"
     previewPane.openUrl url
 
   manageUserAvatars: (userStatus) ->
