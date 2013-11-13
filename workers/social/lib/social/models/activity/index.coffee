@@ -39,8 +39,8 @@ module.exports = class CActivity extends jraphical.Capsule
 
     sharedEvents      :
       instance        : []
-      static          : ['BucketIsUpdated', 'cacheWorker', 'ActivityIsCreated']
-
+      static          : ['BucketIsUpdated', 'cacheWorker'
+                         'ActivityIsCreated', 'feed-new']
     sharedMethods     :
       static          : [
         'fetchFolloweeContents'
