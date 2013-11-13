@@ -836,20 +836,13 @@ module.exports = class JAccount extends jraphical.Module
           sourceId    :
             $ne       : delegate.getId()
 
-        jraphical.Relationship.cursor query, {}, (err, cursor)->
-
+        jraphical.Relationship.cursor query, (err, cursor)->
           return callback err  if err
-
           message.participants = []
-          cursor.nextObject (err, rel)->
-            if err
-              # console.log "Cursor.each failed:", err
-              callback err
-              fin()
-            else if rel
-              message.participants.push rel  if register.sign rel.sourceId
+          cursor.each (err, rel)->
+            unless rel then fin()
             else
-              fin()
+              message.participants.push rel  if register.sign rel.sourceId
 
       , callback
 
