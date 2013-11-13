@@ -20,37 +20,37 @@ class LandingView extends JView
             @enable()
           KD.requireMembership()
 
-    @inviteGmailContacts      = new KDButtonView
-      style                   : "invite-button gmail"
-      title                   : "Invite <strong>Gmail</strong> contacts"
-      icon                    : yes
-      callback                : ->
-        modal                 = new ReferrerModal
-          overlay             : no
-          onlyInviteTab       : yes
+    @inviteGmailContacts = new KDButtonView
+      style              : "invite-button gmail"
+      title              : "Invite <strong>Gmail</strong> contacts"
+      icon               : yes
+      callback           : ->
+        modal            = new ReferrerModal
+          overlay        : no
+          onlyInviteTab  : yes
         modal.checkGoogleLinkStatus()
 
-    @emailAddressInput    = new KDInputView
-      type                : "textarea"
-      autogrow            : yes
-      placeholder         : "Type one email address per line"
+    @emailAddressInput = new KDInputView
+      type        : "textarea"
+      autogrow    : yes
+      placeholder : "Type one email address per line"
 
-    @emailAddressSubmit   = new KDButtonView
-      style               : "submit-email-addresses"
-      title               : "Send"
-      loader              : yes
-      callback            : @bound "submitEmailAddresses"
+    @emailAddressSubmit = new KDButtonView
+      style    : "submit-email-addresses"
+      title    : "Send"
+      loader   : yes
+      callback : @bound "submitEmailAddresses"
 
     @invitationSentButton = new KDButtonView
-      style               : "invitations-sent hidden"
-      title               : "Sent!"
+      style : "invitations-sent hidden"
+      title : "Sent!"
 
-    @errorMessage         = new KDCustomHTMLView
-      cssClass            : "error-message hidden"
+    @errorMessage = new KDCustomHTMLView
+      cssClass    : "error-message hidden"
 
-    @shareLinks           = new KDCustomHTMLView
-      tagName             : "span"
-      cssClass            : "share-links"
+    @shareLinks = new KDCustomHTMLView
+      tagName   : "span"
+      cssClass  : "share-links"
 
     @shareLinks.addSubView @twitter  = new TwitterShareLink  {url, disabled}
     @shareLinks.addSubView @facebook = new FacebookShareLink {url, disabled}

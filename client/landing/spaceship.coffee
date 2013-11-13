@@ -10,12 +10,12 @@ class SpaceshipLandingPage extends LandingView
       partial: "Other ways to <strong>share:</strong>"
 
     @share.addSubView @referrerUrlInput = new KDInputView
-      cssClass                          : "referrer-url"
-      attributes                        : readonly: "true"
-      defaultValue                      : @getReferralUrl @username if @username
-      placeholder                       : "Login to see your referrer URL"
-      disabled                          : !!@username?
-      click                             :-> @selectAll()
+      cssClass     : "referrer-url"
+      attributes   : readonly: "true"
+      defaultValue : @getReferralUrl @username if @username
+      placeholder  : "Login to see your referrer URL"
+      disabled     : !!@username?
+      click        :-> @selectAll()
 
     @share.addSubView @shareLinks
 
