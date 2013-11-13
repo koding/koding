@@ -6,12 +6,12 @@ class FeederTabView extends KDTabView
 
     super options, data
 
-    @listenWindowResize()
+    # @listenWindowResize()
     @unsetClass "kdscrollview"
 
-  _windowDidResize:->
-    super
-    h = @getHeight()
-    for pane in @panes
-      {listWrapper, listHeader} = pane
-      listWrapper.setHeight h - listHeader.getHeight()
+  # _windowDidResize:->
+  #   super
+  #   h = @getHeight()
+  #   for pane in @panes
+  #     {listWrapper, listHeader} = pane
+  #     listWrapper.setHeight h - listHeader.getHeight()

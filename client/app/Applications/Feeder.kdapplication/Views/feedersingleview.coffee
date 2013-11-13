@@ -1,4 +1,4 @@
-class FeederSingleView extends KDView
+class FeederSingleView extends KDCustomHTMLView
 
   constructor:(options = {})->
 
@@ -6,17 +6,17 @@ class FeederSingleView extends KDView
 
     @listenWindowResize()
 
-    @on "viewAppended", =>
-      siblings        = @parent.getSubViews()
-      index           = siblings.indexOf @
-      @_olderSiblings = siblings.slice 0,index
+    # @on "viewAppended", =>
+    #   siblings        = @parent.getSubViews()
+    #   index           = siblings.indexOf @
+    #   @_olderSiblings = siblings.slice 0,index
 
   _windowDidResize:->
 
-    offset = 0
-    offset += olderSibling.getHeight() for olderSibling in @_olderSiblings
-    newH = @parent.getHeight() - offset
-    @setHeight newH
+    # offset = 0
+    # offset += olderSibling.getHeight() for olderSibling in @_olderSiblings
+    # newH = @parent.getHeight() - offset
+    # @setHeight newH
 
     width = @getWidth()
     @unsetClass "extra-wide wide medium narrow extra-narrow"
