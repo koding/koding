@@ -31,7 +31,7 @@ class ProductAdminControlsView extends JView
 
     @sortWeight = new KDSelectBox
       title         : "Sort weight"
-      defaultValue  : "#{ product.sortWeight }" ? "0"
+      defaultValue  : "#{ product.sortWeight ? 0 }"
       selectOptions : [-100..100].map (w) ->
         title       : "#{w}"
         value       : "#{w}"
