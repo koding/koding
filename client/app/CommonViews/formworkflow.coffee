@@ -25,6 +25,6 @@ class FormWorkflow extends KDView
     @forms[form]?.hide() for form in forms
 
   showForm: (form) ->
-    form = @getForm form
     @hideForms()
+    form = @getForm form
     form.show()
