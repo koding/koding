@@ -129,7 +129,7 @@ module.exports = class AuthWorker extends EventEmitter
     clientsByExchange.push client
 
   rejectClient:(routingKey, message)->
-    console.log 'rejecting', routingKey
+    # console.log 'rejecting', routingKey
     return console.trace()  unless routingKey?
     @bongo.respondToClient routingKey,
       method    : 'error'
