@@ -4,18 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/streadway/amqp"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/slog"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"strconv"
 	"strings"
 	"time"
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type IncomingMessage struct {
@@ -372,7 +372,7 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 				"status": bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
 			}
 
-			reason = "workers with same names: "
+			reason = fmt.Sprintf("you are in mode '%s' and they are workers with the same name running: ", option)
 		}
 
 		// version is like one, but it's allow only workers of the same name
@@ -388,25 +388,38 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 				"status":  bson.M{"$in": []int{int(models.Started), int(models.Waiting)}},
 			}
 
-			reason = "workers with different versions: "
+			reason = fmt.Sprintf("you are in mode '%s' and they are workers with different name and versions running: ", option)
 		}
-
-		worker.ObjectId = bson.NewObjectId()
-		worker.Status = models.Started
 
 		// If the query above for 'one' and 'version' doesn't match anything,
 		// then add our new worker. Apply() is atomic and uses findAndModify.
 		// Adding it causes no err, therefore the worker get 'start' message.
 		// However if the query matches, then the 'upsert' will fail (means
 		// that there is some workers that are running).
+		worker.ObjectId = bson.NewObjectId()
+		worker.Status = models.Started
 		change := mgo.Change{
 			Update: worker,
 			Upsert: true,
 		}
 
-		result := models.Worker{}
+		resultOfApply := new(models.Worker)
+
+		// this is the worker that matches the query, that means a worker
+		// cannot be added in mode one or version because of this worker that
+		// is still alive.
+		aliveWorker := new(models.Worker)
+
 		err := mongodb.Run("jKontrolWorkers", func(c *mgo.Collection) error {
-			_, err := c.Find(query).Apply(change, &result)
+			// worst fucking syntax ever I saw in my life that is doing
+			// fucking gazillion things with one fucking method called fucking
+			// apply. fuck you mgo
+			_, err := c.Find(query).Apply(change, resultOfApply)
+
+			// this is needed because of the fucking syntax above that doesn't
+			// return the old document even when it MATCHES the fucking query!!!.
+			// again fuck you mgo
+			c.Find(query).One(aliveWorker)
 			return err
 		})
 
@@ -417,9 +430,8 @@ func handleAdd(worker models.Worker) (workerconfig.WorkerResponse, error) {
 			return response, nil
 		}
 
-		reason = reason + fmt.Sprintf("\n version: %d (pid: %d) at %s", result.Version, result.Pid, result.Hostname)
-		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "noPermission", denyLog)
+		reasonLog := reason + fmt.Sprintf("version: %d (pid: %d) at %s", aliveWorker.Version, aliveWorker.Pid, aliveWorker.Hostname)
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "noPermission", reasonLog)
 		return response, nil // contains start or noPermission
 
 	case "many":
