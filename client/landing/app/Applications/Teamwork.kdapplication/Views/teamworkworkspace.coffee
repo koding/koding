@@ -5,6 +5,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     super options, data
 
     {environment, environmentManifest} = @getOptions()
+    @avatars = {}
 
     @on "PanelCreated", (panel) =>
       @createRunButton panel  if environment
@@ -46,6 +47,22 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
         activePanel.getPaneByName("editor").on "EditorDidSave", =>
           @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
+
+      @getActivePanel().header.addSubView @avatarsView = new KDCustomHTMLView
+        cssClass : "tw-user-avatars"
+
+    @on "WorkspaceUsersFetched", =>
+      @workspaceRef.child("users").once "value", (snapshot) =>
+        userStatus = snapshot.val()
+        return unless userStatus
+        @manageUserAvatars userStatus
+
+  displayBroadcastMessage: (options) ->
+    super options
+
+    if options.origin is "users"
+      KD.utils.wait 500, => # prevent double triggered firebase event.
+        @fetchUsers()
 
   createLoader: ->
     @container.addSubView @loader = new KDCustomHTMLView
@@ -144,3 +161,38 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     url = path.replace "/home/#{@getHost()}/Web", defaultVmName
     previewPane.openUrl url
+
+  manageUserAvatars: (userStatus) ->
+    for own nickname, status of userStatus
+      if status is "online"
+        unless @avatars[nickname]
+          @createUserAvatar @users[nickname]
+      else
+        if @avatars[nickname]
+          @removeUserAvatar nickname
+
+  createUserAvatar: (jAccount) ->
+    return unless jAccount
+
+    userNickname = jAccount.profile.nickname
+    return if userNickname is KD.nick()
+
+    tooltipTitle = userNickname
+    avatarView   = new AvatarStaticView
+      size       :
+        width    : 25
+        height   : 25
+      tooltip    :
+        title    : tooltipTitle
+    , jAccount
+
+    @avatars[userNickname] = avatarView
+    @avatarsView.addSubView avatarView
+    avatarView.bindTransitionEnd()
+
+  removeUserAvatar: (nickname) ->
+    avatarView = @avatars[nickname]
+    avatarView.setClass "fade-out"
+    avatarView.once "transitionend", =>
+      avatarView.destroy()
+      delete @avatars[nickname]
