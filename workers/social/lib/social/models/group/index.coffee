@@ -1580,7 +1580,11 @@ module.exports = class JGroup extends Module
       if tags
       then { tags }
       else {}
-    options = targetOptions: options: sort: sortWeight: 1
+    
+    options.targetOptions ?= {}
+    options.targetOptions.options ?= {}
+    options.targetOptions.options.sort ?= sortWeight: 1
+
     switch category
       when 'product'
         @fetchProducts selector, options, callback

@@ -36,6 +36,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       usage         :
         type        : Object # "usage" is designed to mirror "quantities" from JPaymentPlan
         default     : {}
+      tags          : (require './schema').tags
 
   @fetchUserSubscriptions = secure ({ connection:{ delegate }}, callback) ->
     delegate.fetchPaymentMethods (err, paymentMethods) =>

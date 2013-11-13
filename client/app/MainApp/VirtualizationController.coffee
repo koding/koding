@@ -366,12 +366,19 @@ class VirtualizationController extends KDController
 
     paymentController = KD.getSingleton 'paymentController'
 
-    KD.whoami().fetchPlansAndSubscriptions (err, plansAndSubscriptions) =>
+    KD.whoami().fetchPlansAndSubscriptions ['vm'], (err, plansAndSubscriptions) =>
       return  if KD.showError err
       
       { subscriptions } = paymentController.groupPlansBySubscription plansAndSubscriptions
 
       productForm.setCurrentSubscriptions subscriptions
+
+    productForm.on 'PackOfferingRequested', ->
+      options = targetOptions: selector: tags: 'vm'
+      KD.getGroup().fetchProducts 'pack', options, (err, packs) ->
+        return  if KD.showError err
+        
+        productForm.setPacks packs
 
     workflow = new PaymentWorkflow
       productForm : productForm

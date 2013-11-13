@@ -1268,12 +1268,14 @@ module.exports = class JAccount extends jraphical.Module
     if delegate is this or delegate.can 'administer accounts'
       @fetchDecoratedPaymentMethods callback
 
-  fetchPlansAndSubscriptions: secure ({connection:{ delegate }}, callback) ->
+  fetchPlansAndSubscriptions: secure ({connection:{ delegate }}, tags, callback) ->
     JPaymentPlan = require './payment/plan'
 
     return callback { message: 'Access denied!' }  unless @equals delegate
     
-    @fetchSubscriptions (err, subscriptions) ->
+    options = targetOptions: selector: tags: $in: tags
+
+    @fetchSubscriptions {}, options, (err, subscriptions) ->
       return callback err  if err
 
       planCodes = (s.planCode for s in subscriptions)

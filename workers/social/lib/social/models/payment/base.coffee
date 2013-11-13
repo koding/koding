@@ -86,3 +86,24 @@ module.exports = class JPaymentBase extends Module
   updateProducts$: permit 'manage products',
     success: (client, quantities, callback) ->
       @updateProducts quantities, callback
+
+  fetchProducts$: ->
+    switch arguments.length
+      when 1
+        [callback] = arguments
+      when 2
+        [selector, callback] = arguments
+      when 3
+        [selector, options, callback] = arguments
+
+    selector ?= {}
+    options ?= {}
+
+    if options.targetOptions
+      { options, targetOptions } = options
+
+    targetOptions ?= {}
+    targetOptions.options ?= {}
+    targetOptions.options.sort ?= sortWeight: 1
+
+    @fetchProducts selector, { options, targetOptions }, callback

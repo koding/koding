@@ -175,7 +175,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
             else callback null, sub
 
       else
-        recurly.createSubscription paymentMethodId, { @planCode }, (err, result) ->
+        recurly.createSubscription paymentMethodId, { @planCode }, (err, result) =>
           return callback err  if err
 
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
@@ -190,6 +190,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
             expiresAt
             renewAt
             feeAmount
+            tags      : @tags
           }
 
           sub.save (err)->
@@ -197,7 +198,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
             callback null, sub
 
-  subscribe$: secure ({connection:{delegate}}, paymentMethodId, data, callback) ->
+  subscribe$: secure (client, paymentMethodId, data, callback) ->
+    { connection:{ delegate } } = client
     @subscribe paymentMethodId, data, (err, subscription) ->
       return callback err  if err
 
@@ -205,7 +207,6 @@ module.exports = class JPaymentPlan extends JPaymentBase
         return callback err  if err
 
         callback null, subscription
-
 
 
   # subscribeGroup: (group, data, callback)->
