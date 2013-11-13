@@ -54,6 +54,15 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       if group?.slug isnt "koding"
         backToKodingView.updatePartial "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
 
+    @avatarPopupContent.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '#'
+      cssClass   : 'logout'
+      partial    : 'Logout'
+      click      : (event)->
+        KD.utils.stopDOMEvent event
+        KD.getSingleton('router').handleRoute '/Logout'
+
 
   populatePendingGroups:->
     @listControllerPending.removeAllItems()
