@@ -54,7 +54,11 @@ class ActivityActionsView extends KDView
       partial         : ""
       cssClass        : "share-icon"
       click           :(event)=>
-        shareUrl      = "#{KD.config.mainUri}/Activity/#{@getData().slug}"
+        data = @getData()
+        if data?.group? and data.group isnt "koding"
+          shareUrl = "#{KD.config.mainUri}/#!/#{data.group}/Activity/#{data.slug}"
+        else
+          shareUrl      = "#{KD.config.mainUri}/#!/Activity/#{data.slug}"
         contextMenu   = new JContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
