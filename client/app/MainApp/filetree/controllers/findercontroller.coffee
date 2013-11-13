@@ -63,15 +63,15 @@ class NFinderController extends KDViewController
 
     @reset()  if @getOptions().loadFilesOnInit
 
-    # temp hack, if page opens in develop section.
-    @utils.wait 2500, =>
-      KD.getSingleton("mainView").sidebar._windowDidResize()
-
   reset:->
     if @getOptions().useStorage
       @appStorage.ready => @loadVms()
     else
       @utils.defer => @loadVms()
+
+    # temp hack, if page opens in develop section.
+    @utils.wait 2500, =>
+      KD.getSingleton("mainView").sidebar._windowDidResize()
 
   mountVms: (vms) ->
     return  unless Array.isArray vms
