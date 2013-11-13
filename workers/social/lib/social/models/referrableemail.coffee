@@ -22,7 +22,7 @@ module.exports = class JReferrableEmail extends jraphical.Module
         type      : Date
         get       : -> new Date
     sharedMethods :
-      static      : ["getUninvitedEmails", "deleteEmailsForAccount"]
+      static      : ["invite", "getUninvitedEmails", "deleteEmailsForAccount"]
       instance    : ["invite"]
 
   @create: (clientId, {email, title}, callback)->
@@ -68,3 +68,10 @@ module.exports = class JReferrableEmail extends jraphical.Module
     email.save (err)=>
       return callback err  if err
       @update $set: invited: true, callback
+
+  @invite: secure (client, email, callback) ->
+    {connection: {delegate: {profile: {nickname}}}} = client
+    r = new JReferrableEmail {email, username: nickname}
+    r.save (err) ->
+      return  callback err if err
+      r.invite client, callback
