@@ -37,8 +37,8 @@ module.exports = class JReferrableEmail extends jraphical.Module
         r.save callback
 
   @getUninvitedEmails: secure (client, callback)->
-    query =
-      username : client.context.user
+    query      =
+      username : client.connection.delegate.profile.nickname
       invited  : false
     JReferrableEmail.some query, {}, callback
 
