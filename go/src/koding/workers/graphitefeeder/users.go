@@ -10,6 +10,7 @@ import (
 func init() {
 	registerAnalytic(numberOfAccounts)
 	registerAnalytic(numberOfUsersWhoLinkedOauth)
+	registerAnalytic(numberOfUsersWhoLinkedOauthGithub)
 	registerAnalytic(numberOfReferrableEmails)
 	registerAnalytic(numberOfInvitesSent)
 	registerAnalytic(numberOfUsersWhoJoinedToday)
@@ -53,7 +54,7 @@ func numberOfUsersWhoLinkedOauth() (string, int) {
 	return identifier, count
 }
 
-func numberOfUsersWhoLinkedOauth() (string, int) {
+func numberOfUsersWhoLinkedOauthGithub() (string, int) {
 	var identifier string = "number_of_users_who_linked_github"
 	var count int
 	var err error
