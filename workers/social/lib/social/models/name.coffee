@@ -15,6 +15,9 @@ module.exports = class JName extends Model
     sharedMethods     :
       static          : ['one','claimNames','migrateAllOldNames']
       instance        : ['migrateOldName']
+    sharedEvents      :
+      instance        : []
+      static          : []
     indexes           :
       name            : ['unique']
     schema            :
