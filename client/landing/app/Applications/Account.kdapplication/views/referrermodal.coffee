@@ -36,41 +36,41 @@ class ReferrerModal extends KDModalViewWithForms
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
 
-    leftColumn.addSubView urlLabel       = new KDLabelView
-      cssClass                           : "share-url-label"
-      title                              : "Here is your invite code"
+    leftColumn.addSubView urlLabel = new KDLabelView
+      cssClass : "share-url-label"
+      title    : "Here is your invite code"
 
-    leftColumn.addSubView urlInput       = new KDInputView
-      defaultValue                       : options.url
-      cssClass                           : "share-url-input"
-      attributes                         : readonly:"true"
-      click                              :-> @selectAll()
+    leftColumn.addSubView urlInput = new KDInputView
+      defaultValue : options.url
+      cssClass     : "share-url-input"
+      attributes   : readonly:"true"
+      click        :-> @selectAll()
 
     leftColumn.addSubView shareLinks = new KDCustomHTMLView
-      cssClass                           : "share-links"
-      partial                            : "<span>Share your code on</span>"
+      cssClass : "share-links"
+      partial  : "<span>Share your code on</span>"
 
     shareLinks.addSubView new TwitterShareLink  url: options.url
     shareLinks.addSubView new FacebookShareLink url: options.url
     shareLinks.addSubView new LinkedInShareLink url: options.url
 
-    rightColumn.addSubView gmail    = new KDButtonView
-      title                         : "Invite Gmail Contacs"
-      style                         : "invite-button gmail"
-      icon                          : yes
-      callback                      : @bound "checkGoogleLinkStatus"
+    rightColumn.addSubView gmail = new KDButtonView
+      title    : "Invite Gmail Contacs"
+      style    : "invite-button gmail"
+      icon     : yes
+      callback : @bound "checkGoogleLinkStatus"
 
     rightColumn.addSubView facebook = new KDButtonView
-      title                         : "Invite Facebook Friends"
-      style                         : "invite-button facebook hidden"
-      disabled                      : yes
-      icon                          : yes
+      title    : "Invite Facebook Friends"
+      style    : "invite-button facebook hidden"
+      disabled : yes
+      icon     : yes
 
-    rightColumn.addSubView twitter  = new KDButtonView
-      title                         : "Invite Twitter Friends"
-      style                         : "invite-button twitter hidden"
-      disabled                      : yes
-      icon                          : yes
+    rightColumn.addSubView twitter = new KDButtonView
+      title    : "Invite Twitter Friends"
+      style    : "invite-button twitter hidden"
+      disabled : yes
+      icon     : yes
 
     KD.getSingleton("mainController").once "ForeignAuthSuccess.google", (data) =>
       @showGmailContactsList data
