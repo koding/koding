@@ -9,12 +9,8 @@ class AccountSshKeyListController extends AccountListViewController
     @getListView().on "UpdatedItems", =>
       @newItem = no
       newKeys = @getItemsOrdered().map (item)-> item.getData()
-      if newKeys.length is 0
-        @addCustomItem "<cite>You have no SSH keys.</cite>"
-      else
-        @customItem?.destroy()
-      KD.remote.api.JUser.setSSHKeys newKeys, ->
-        console.log "Saved keys."
+      unless newKeys.length is 0 then @customItem?.destroy()
+      KD.remote.api.JUser.setSSHKeys newKeys, -> log "Saved keys."
 
     @getListView().on "RemoveItem", (item)=>
       @newItem = no
