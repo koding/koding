@@ -550,9 +550,7 @@ module.exports = class JVM extends Module
         counterName : 'uid'
         offset      : 1e6
       }
-
-      uidFactory.reset (err, lastId)->
-        console.log "UID counter is reset: %s", lastId
+      uidFactory.initialize()
 
     JUser.on 'UserCreated', (user)->
       uidFactory.next (err, uid)->
