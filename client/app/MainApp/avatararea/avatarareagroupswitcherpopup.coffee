@@ -40,12 +40,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView @listControllerPending.getView()
 
-    @avatarPopupContent.addSubView @switchToTitle = new KDView
-      height   : "auto"
-      cssClass : "sublink top"
-      partial  : "Switch to:"
-
-    @switchToTitle.addSubView new KDCustomHTMLView
+    @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'span'
       cssClass   : 'icon help'
       tooltip    :
@@ -53,34 +48,12 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView @listController.getView()
 
-    seeAllView = new KDView
-      cssClass : "split sublink"
-    #   height   : "auto"
-    #   partial  : "<a href='#'>See all groups...</a>"
-    #   click    : =>
-    #     KD.getSingleton('router').handleRoute '/Groups'
-    #     @hide()
-
     groupsController = KD.getSingleton("groupsController")
     groupsController.once 'GroupChanged', () =>
       group =  groupsController.getCurrentGroup()
       if group?.slug isnt "koding"
         backToKodingView.updatePartial "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
 
-    backToKodingView = new KDView
-      height   : "auto"
-      cssClass : "split sublink right"
-      click    : =>
-        @hide()
-
-    split = new SplitView
-      domId     : "avatararea-bottom-split-view"
-      height    : "37px"
-      sizes     : [130,null]
-      views     : [seeAllView,backToKodingView]
-      resizable : no
-
-    @avatarPopupContent.addSubView split
 
   populatePendingGroups:->
     @listControllerPending.removeAllItems()
