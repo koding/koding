@@ -15,7 +15,7 @@ class GroupAddProductListItem extends KDListItemView
   pistachio:->
     """
     {strong{ #(title) }}
-    {{ @utils.formatMoney #(feeAmount) }}
+    {{ @utils.formatMoney #(feeAmount) / 100 }}
     <div class="fr">
       <strong>QTY:</strong>
       {{> @qtyView}}
