@@ -105,6 +105,7 @@ class CollaborativeWorkspace extends Workspace
       events = [ "value", "child_added", "child_removed", "child_changed" ]
       @workspaceRef.off eventName for eventName in events
 
+  # TODO: Be sure we don't query if we have user data
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
       val = snapshot.val()
@@ -321,13 +322,20 @@ class CollaborativeWorkspace extends Workspace
     # { !title, duration=, origin=, sender=, cssClass= }
     return unless options.title
 
-    {broadcastItem} = @getActivePanel()
+    activePanel     = @getActivePanel()
+    {broadcastItem} = activePanel
+    activePanel.setClass "broadcasting"
     broadcastItem.updatePartial options.title
+
     broadcastItem.unsetClass "success"
     broadcastItem.unsetClass "error"
     broadcastItem.setClass options.cssClass
+
     broadcastItem.show()
-    KD.utils.wait options.duration, -> broadcastItem.hide()
+    KD.utils.wait options.duration, =>
+      broadcastItem.hide()
+      activePanel.unsetClass "broadcasting"
+      @emit "MessageBroadcasted"
 
   setHistory: (message = "") ->
     user    = @nickname

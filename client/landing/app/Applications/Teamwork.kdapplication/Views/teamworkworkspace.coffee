@@ -18,13 +18,10 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
       @hidePlaygroundsButton()  unless @amIHost()
 
-      usersRef = @workspaceRef.child "users"
-
-      usersRef.on "child_added", (snapshot) =>
+      @workspaceRef.child("users").on "child_added", (snapshot) =>
         joinedUser = snapshot.name()
         return if not joinedUser or joinedUser is KD.nick()
         @hidePlaygroundsButton()
-
 
       if @amIHost()
         # currently only for host.
