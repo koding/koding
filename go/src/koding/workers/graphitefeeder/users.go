@@ -53,6 +53,21 @@ func numberOfUsersWhoLinkedOauth() (string, int) {
 	return identifier, count
 }
 
+func numberOfUsersWhoLinkedOauth() (string, int) {
+	var identifier string = "number_of_users_who_linked_github"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		count, err = c.Find(bson.M{"foreignAuth.github": bson.M{"$exists": true}}).Count()
+
+		return err
+	}
+
+	mongodb.Run("jUsers", query)
+
+	return identifier, count
+}
+
 func numberOfUsersWhoJoinedToday() (string, int) {
 	var identifier string = "number_of_users_who_joined_today"
 	var count int
