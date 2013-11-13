@@ -14,8 +14,7 @@ resurrection.account.dropdown.styl
   border                none
   abs()
   overflow              visible
-  top                   153px
-  left                  0
+  top                   59px
   z-index               1000
   width                 280px
   visibility            hidden
@@ -33,63 +32,39 @@ resurrection.account.dropdown.styl
     margin              0
   .tab
     cursor              pointer
-    border              1px solid #d2d2d2
     border-bottom       none
     rel()
-    top                 -26px
+    top                 -59px
     text-align          center
     z-index             1
-    rounded        3px,3px,0,0
-    size                52px,28px
+    size                45px, 60px
     bg                  color,white
     span
-      margin-top        4px
-      size              20px,20px
-      // sprite()
+      margin-top        21px
+      size              20px, 20px
       blockMid()
   .content
-    border              1px solid #d2d2d2
-    margin-top          -27px
+    margin-top          -59px
     shadow              0 0 21px 10px rgba(0,0,0,0.18)
-    rounded             0 3px 3px 3px
-    size                280px,auto
-    bg                  color,white
+    size                280px, auto
+    bg                  color, white
     borderBox()
 
-  &.status-update
-    left                  105px
-    .tab
-      span
-        bg                position, -100px -540px
-    .content
-      height              99px !important
-      .hitenterview
-        border-width      0!important
-        size              100%,100%
-        padding           10px
-        color             #5a5a5a
-        font-size         10px
-        borderBox()
-
   &.notifications
-    left                -1px
+    right               -8px
     .tab span
-      bg                position, -120px -540px
+      margin-top        20px
+      sprite            app account-notifications-active
 
   &.messages
-    left                52px
+    right               42px
     .tab span
-      bg                position,-140px -540px
-
-  &.friends-followers
-    left                162px
-    .tab span
-      bg                position, -140px -540px
+      sprite            app account-messages-active
 
   &.group-switcher
-    left                105px
+    right               200px
     .tab span
-      bg                position, -200px -540px
+      sprite            app account-notifications-active
     .avatararea-popup-list
       li
         span.avatar
