@@ -3,7 +3,7 @@ jraphical = require 'jraphical'
 CActivity = require '../../activity'
 
 module.exports = class CCommentActivity extends CActivity
-  
+
   {Relationship} = jraphical
 
   @trait __dirname, '../../../traits/grouprelated'
@@ -13,10 +13,12 @@ module.exports = class CCommentActivity extends CActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedEvents    : CActivity.sharedEvents
     relationships   :
       subject       :
         targetType  : jraphical.Relationship
         as          : 'comment'
+
   @init = ->
     Relationship.on ['feed','*'], (relationships)=>
       relationships.forEach (relationship)=>

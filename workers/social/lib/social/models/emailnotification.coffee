@@ -19,6 +19,9 @@ module.exports = class JMailNotification extends Model
       contentId      : 'sparse'
     sharedMethods    :
       static         : ['unsubscribeWithId']
+    sharedEvents     :
+      static         : []
+      instance       : []
     schema           :
       dateIssued     :
         type         : Date

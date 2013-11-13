@@ -27,6 +27,9 @@ module.exports = class JInvitation extends jraphical.Module
     sharedMethods   :
       instance      : ['modifyMultiuse', 'remove']
       static        : ['inviteFriend', 'byCode', 'suggestCode', 'createMultiuse']
+    sharedEvents    :
+      static        : []
+      instance      : []
     schema          :
       code          :
         type        : String

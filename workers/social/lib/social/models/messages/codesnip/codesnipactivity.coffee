@@ -12,6 +12,7 @@ module.exports = class CCodeSnipActivity extends CActivity
     slugifyFrom     : 'title'
     encapsulatedBy  : CActivity
     sharedMethods   : CActivity.sharedMethods
+    sharedEvents    : CActivity.sharedEvents
     schema          : CActivity.schema
     relationships   :
       subject       :
