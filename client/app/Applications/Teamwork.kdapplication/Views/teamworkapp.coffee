@@ -28,10 +28,7 @@ class TeamworkApp extends KDObject
           title           : "Playgrounds"
           itemClass       : KDButtonViewWithMenu
           cssClass        : "clean-gray playgrounds-button"
-          menu            :
-            Facebook      :
-              callback    : (panel, workspace) =>
-                @handlePlaygroundSelection "Facebook"
+          menu            : []
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
@@ -52,6 +49,25 @@ class TeamworkApp extends KDObject
 
     if options.playground
       @handlePlaygroundSelection options.playground
+    else
+      @teamwork.on "PanelCreated", =>
+        @doCurlRequest "https://raw.github.com/koding/Teamwork/master/Playgrounds/manifest.json", (err, manifest) =>
+          @populatePlaygroundsButton manifest
+
+  populatePlaygroundsButton: (playgrounds) ->
+    button   = @teamwork.getActivePanel().headerButtons.Playgrounds
+    menu     = []
+
+    playgrounds.forEach (playground) =>
+      item   = {}
+      {name} = playground
+      item[name] = {}
+      item[name].callback = =>
+        @handlePlaygroundSelection name, playground.manifestUrl
+
+      menu.push item
+
+    button.setOption "menu", menu
 
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
@@ -181,9 +197,8 @@ class TeamworkApp extends KDObject
 
     return rawOptions
 
-  handlePlaygroundSelection: (playground) ->
-    manifestPath = "https://raw.github.com/fatihacet/TeamworkPlaygrounds/master/#{playground}.json"
-    @doCurlRequest manifestPath, (err, manifest) =>
+  handlePlaygroundSelection: (playground, manifestUrl) ->
+    @doCurlRequest manifestUrl, (err, manifest) =>
       @teamwork.startNewSession @mergePlaygroundOptions manifest, playground
       @teamwork.container.setClass playground
       @teamwork.on "WorkspaceSyncedWithRemote", =>
