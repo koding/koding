@@ -46,8 +46,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           tooltip      :
             title      : "If it's on, preview will be refreshed when you save a file."
             placement  : "bottom"
-          callback     : (state) =>
-            @refreshPreviewPane previewPane  if state
 
         activePanel.getPaneByName("editor").on "EditorDidSave", =>
           @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
