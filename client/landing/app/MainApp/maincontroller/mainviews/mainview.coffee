@@ -112,6 +112,7 @@ class MainView extends KDView
     @accountArea.addSubView @avatarArea = new AvatarArea {}, KD.whoami()
     @accountArea.addSubView @searchIcon = new KDCustomHTMLView
       domId      : 'fatih-launcher'
+      cssClass   : 'search acc-dropdown-icon'
       tagName    : 'a'
       attributes :
         title    : 'Search'
