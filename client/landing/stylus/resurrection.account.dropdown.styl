@@ -10,63 +10,95 @@ resurrection.account.dropdown.styl
 }
 
 .avatararea-popup
-  height                auto
-  border                none
-  abs()
-  overflow              visible
-  top                   59px
-  z-index               1000
-  width                 280px
-  visibility            hidden
-  opacity               0
-  transition            opacity ease-out .2s, visibility ease-out .2s
-  transform             scale(0.01) skew(89deg) translate(100px,-100px)
-  transform-origin      left top
+  height                    auto
+  border                    none
+  overflow                  visible
+  top                       59px
+  z-index                   1000
+  width                     280px
+  visibility                hidden
+  opacity                   0
+  transition                opacity ease-out .2s, visibility ease-out .2s
+  transform                 scale(0.01) skew(89deg) translate(100px,-100px)
+  transform-origin          left top
+  fix()
   &.active
-    visibility          visible
-    opacity             1
-    transform           scale(1) skew(0deg)
-    transition-delay    0s
+    visibility              visible
+    opacity                 1
+    transform               scale(1) skew(0deg)
+    transition-delay        0s
 
   .kdview.kdlistview
-    margin              0
+    margin                  0
   .tab
-    cursor              pointer
-    border-bottom       none
+    cursor                  pointer
+    border-bottom           none
     rel()
-    top                 -59px
-    text-align          center
-    z-index             1
-    size                45px, 60px
-    bg                  color,white
+    top                     -59px
+    text-align              center
+    z-index                 1
+    size                    45px, 60px
+    bg                      color,white
     span
-      margin-top        21px
-      size              20px, 20px
+      margin-top            21px
+      size                  20px, 20px
       blockMid()
   .content
-    margin-top          -59px
-    shadow              0 0 21px 10px rgba(0,0,0,0.18)
-    size                280px, auto
-    bg                  color, white
+    margin-top              -59px
+    shadow                  0 0 21px 10px rgba(0,0,0,0.18)
+    size                    100%, auto
+    bg                      color, white
+    rounded                 0 0 5px 5px
     borderBox()
 
   &.notifications
-    right               -8px
+    right                   -8px
     .tab span
-      margin-top        20px
-      sprite            app account-notifications-active
+      margin-top            20px
+      sprite                app account-notifications-active
 
   &.messages
-    right               42px
+    right                   42px
     .tab span
-      sprite            app account-messages-active
+      sprite                app account-messages-active
 
   &.group-switcher
-    right               200px
-    .tab span
-      sprite            app account-notifications-active
+    right                   47px
+    width                   180px
+    rounded                 0 0 5px 5px
+    .tab
+      hidden()
+    .content
+      margin-top            2px
+      bg                    color, #445053
+      color                 rgba(255, 255, 255, .8)
+      shadow                none
+
+    a.logout
+      border-top           1px solid #3c4647
+
+    .avatararea-popup-list li a
+    a.logout
+      display               block
+      padding               10px 12px
+      color                 white
+      font-size             13px
+      font-weight           300
+      text-decoration       none
+      &:hover
+        text-decoration     underline
+      span
+        font-weight         300
+        color               white
+
     .avatararea-popup-list
       li
+        padding             0
+        border-bottom       none
+        a.fr
+          abs()
+          top               7px
+          right             10px
         span.avatar
           border            1px solid #e3e3e3
           margin-right      10px
@@ -80,9 +112,9 @@ resurrection.account.dropdown.styl
         .buttons
           fr()
           button span.accept
-            bg                position, -80px -500px
+            bg              position, -80px -500px
           button span.ignore
-            bg                position, -80px -480px
+            bg              position, -80px -480px
 
   .sublink
     border-top            1px solid #e0e0df
@@ -165,7 +197,7 @@ resurrection.account.dropdown.styl
       display           block
       bg                size, cover
       bg                position, center
-      size(40px,40px)
+      size              40px, 40px
       fl()
     &.unread
       background          rgba(250, 239, 223, .5)
