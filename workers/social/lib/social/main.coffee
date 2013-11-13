@@ -89,7 +89,7 @@ koding = new Bongo {
         callback {sessionToken, context, connection:delegate:account}
       else
         console.log "this is not a proper account".red, { account }
-        koding.emit 'error', message: 'this is not a proper account'
+        # koding.emit 'error', message: 'this is not a proper account'
 }
 
 koding.on 'authenticateUser', (client, callback)->
