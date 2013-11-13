@@ -93,9 +93,9 @@ class FacebookTeamwork extends TeamworkWorkspace
       callback err, res
 
   startImport: ->
-    {contentDetails, environmentManifest} = @getOptions()
+    {contentDetails, playgroundManifest} = @getOptions()
     @getDelegate().showImportWarning contentDetails.url, =>
-      @appStorage.setValue "FacebookAppVersion", environmentManifest.version
+      @appStorage.setValue "FacebookAppVersion", playgroundManifest.version
       @emit "ContentImportDone"
 
   createRunButton: (panel) ->

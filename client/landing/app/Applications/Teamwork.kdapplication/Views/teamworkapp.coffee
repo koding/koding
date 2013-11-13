@@ -15,7 +15,7 @@ class TeamworkApp extends KDObject
       firebaseInstance    : options.firebaseInstance    or instanceName
       sessionKey          : options.sessionKey
       delegate            : this
-      environment         : options.environment         or null
+      playground          : options.playground          or null
       panels              : options.panels              or [
         title             : "Teamwork"
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
@@ -31,8 +31,7 @@ class TeamworkApp extends KDObject
           menu            :
             Facebook      :
               callback    : (panel, workspace) =>
-                @handleEnvironmentSelection "Facebook"
-                # @showEnvironmentsModal panel, workspace
+                @handlePlaygroundSelection "Facebook"
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
@@ -51,8 +50,8 @@ class TeamworkApp extends KDObject
           ]
       ]
 
-    if options.environment
-      @handleEnvironmentSelection options.environment
+    if options.playground
+      @handlePlaygroundSelection options.playground
 
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
@@ -162,58 +161,69 @@ class TeamworkApp extends KDObject
 
     finderController.mountVm "#{defaultVmName}:#{path}"
 
-  showEnvironmentsModal: ->
-    new TeamworkEnvironmentsModal delegate: this
+  showPlaygroundsModal: ->
+    new TeamworkPlaygroundsModal delegate: this
 
-  mergeEnvironmentOptions: (manifest, environment) ->
+  mergePlaygroundOptions: (manifest, playground) ->
     {rawOptions}                    = @teamwork
     {name}                          = manifest
     firstPanel                      = rawOptions.panels.first
     firstPanel.title                = name
-    rawOptions.environment          = environment
+    rawOptions.playground           = playground
     rawOptions.name                 = name
     firstPanel.headerStyling        = manifest.styling
     rawOptions.examples             = manifest.examples
     rawOptions.contentDetails       = manifest.content
-    rawOptions.environmentManifest  = manifest
+    rawOptions.playgroundManifest   = manifest
 
     if manifest.importModalContent
       rawOptions.importModalContent = manifest.importModalContent
 
     return rawOptions
 
-  handleEnvironmentSelection: (environment) ->
-    manifestPath = "https://raw.github.com/fatihacet/TeamworkPlaygrounds/master/#{environment}.json"
-    KD.getSingleton("vmController").run "curl -kLs #{manifestPath}", (err, contents) =>
-      try
-        manifest = JSON.parse contents
-      catch err
-        return warn "Manifest file is broken for #{environment}"
-
-      @teamwork.startNewSession @mergeEnvironmentOptions manifest, environment
-      @teamwork.container.setClass environment
+  handlePlaygroundSelection: (playground) ->
+    manifestPath = "https://raw.github.com/fatihacet/TeamworkPlaygrounds/master/#{playground}.json"
+    @doCurlRequest manifestPath, (err, manifest) =>
+      @teamwork.startNewSession @mergePlaygroundOptions manifest, playground
+      @teamwork.container.setClass playground
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         {contentDetails} = @teamwork.getOptions()
 
-        KD.mixpanel "User Changed Playground", environment
+        KD.mixpanel "User Changed Playground", playground
 
         if contentDetails.type is "zip"
           appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
           appStorage.fetchStorage (storage) =>
-            version  = appStorage.getValue "#{environment}AppVersion"
+            version  = appStorage.getValue "#{playground}AppVersion"
             if KD.utils.versionCompare manifest.version, "gt", version
-              FSHelper.exists "Web/Teamwork/#{environment}", KD.getSingleton("vmController").defaultVmName, (err, res) =>
-                return @setVMRoot "Web/Teamwork/#{environment}"  if res
+              FSHelper.exists "Web/Teamwork/#{playground}", KD.getSingleton("vmController").defaultVmName, (err, res) =>
+                return @setVMRoot "Web/Teamwork/#{playground}"  if res
                 if contentDetails.url
                   @teamwork.importInProgress = yes
                   @showImportWarning contentDetails.url, =>
-                    appStorage.setValue "#{environment}AppVersion", manifest.version
+                    appStorage.setValue "#{playground}AppVersion", manifest.version
                     @teamwork.emit "ContentImportDone"
                     @teamwork.importModalContent = no
                 else
                   warn "Missing url parameter to import zip file for #{name}"
             else
               KD.singletons.vmController.fetchVMs (err, res) =>
-                @setVMRoot "Web/Teamwork/#{environment}"
+                @setVMRoot "Web/Teamwork/#{playground}"
         else
           warn "Unhandled content type for #{name}"
+
+  doCurlRequest: (path, callback = noop) ->
+    KD.getSingleton("vmController").run "curl -kLs #{path}", (err, contents) =>
+      extension = FSItem.getFileExtension path
+      error     = null
+
+      switch extension
+        when "json"
+          try
+            manifest = JSON.parse contents
+          catch err
+            error    = "Manifest file is broken for #{path}"
+
+          callback error, manifest
+        when "md"
+          callback errorMessage, KD.utils.applyMarkdown error, contents
