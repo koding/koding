@@ -15,6 +15,9 @@ module.exports = class JVerificationToken extends Module
   @share()
 
   @set
+    sharedEvents  :
+      static      : []
+      instance    : []
     schema        :
       username    : String
       email       :

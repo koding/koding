@@ -8,6 +8,6 @@ module.exports = class CFollowerBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
-    sharedEvents    : CActivity.sharedEvents
     sharedMethods   : CActivity.sharedMethods
+    sharedEvents    : CBucketActivity.sharedEvents
     relationships   : CBucketActivity.relationships
