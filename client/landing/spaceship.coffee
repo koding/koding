@@ -31,13 +31,10 @@ class SpaceshipLandingPage extends LandingView
 
   decorateEmailAddressError: (emails) ->
     @emailAddressInput.setClass "error"
-    lines = ("<li>" + email + "</li>" for email in emails)
-
-    @errorMessage.updatePartial """
-    Errors occurred with following email addresses:
-    <ul class="email-list">#{lines.join ""}</ul>
-    """
-
+    lines = '<ul class="email-list">Errors occurred with following email addresses:'
+    lines += "<li>" + email + "</li>" for email in emails
+    lines += "</ul>"
+    @errorMessage.updatePartial lines
     @errorMessage.show()
 
   pistachio: ->
