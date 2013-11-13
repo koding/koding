@@ -6,42 +6,28 @@ class AvatarAreaIconMenu extends JView
 
     @setClass "account-menu"
 
-    sidebar  = @getDelegate()
-
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
-      delegate : sidebar
 
     @messagesPopup = new AvatarPopupMessages
       cssClass : "messages"
-      delegate : sidebar
-
-    @groupSwitcherPopup = new AvatarPopupGroupSwitcher
-      cssClass : "group-switcher"
-      delegate : sidebar
 
     @notificationsIcon = new AvatarAreaIconLink
-      cssClass   : 'notifications'
+      cssClass   : 'notifications acc-dropdown-icon'
       attributes :
         title    : 'Notifications'
       delegate   : @notificationsPopup
 
     @messagesIcon = new AvatarAreaIconLink
-      cssClass   : 'messages'
+      cssClass   : 'messages acc-dropdown-icon'
       testPath   : "avatararea-messages-icon"
       attributes :
         title    : 'Messages'
       delegate   : @messagesPopup
 
-    @groupsSwitcherIcon = new AvatarAreaIconLink
-      cssClass   : 'group-switcher hidden'
-      attributes :
-        title    : 'Your groups'
-      delegate   : @groupSwitcherPopup
-
     @accountIcon = new KDCustomHTMLView
       tagName    : "a"
-      cssClass   : 'account'
+      cssClass   : 'account acc-dropdown-icon'
       attributes :
         title    : 'Account Settings'
         href     : "#"
@@ -50,13 +36,14 @@ class AvatarAreaIconMenu extends JView
         KD.getSingleton('router').handleRoute '/Account'
       partial    : "<span class='count'><cite></cite></span><span class='icon'></span>"
 
+
   pistachio:->
     """
     {{> @accountIcon}}
     {{> @messagesIcon}}
     {{> @notificationsIcon}}
-    {{> @groupsSwitcherIcon}}
     """
+
 
   viewAppended:->
 
@@ -66,9 +53,9 @@ class AvatarAreaIconMenu extends JView
 
     mainView.addSubView @notificationsPopup
     mainView.addSubView @messagesPopup
-    mainView.addSubView @groupSwitcherPopup
 
     @attachListeners()
+
 
   attachListeners:->
     KD.getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
@@ -93,22 +80,13 @@ class AvatarAreaIconMenu extends JView
       else @messagesPopup.noMessage.show()
       @messagesIcon.updateCount count
 
-    @groupSwitcherPopup.listControllerPending.on 'PendingGroupsCountDidChange', (count)=>
-      if count > 0
-        @groupSwitcherPopup.invitesHeader.show()
-        @groupSwitcherPopup.switchToTitle.unsetClass 'top'
-      else
-        @groupSwitcherPopup.invitesHeader.hide()
-        @groupSwitcherPopup.switchToTitle.setClass 'top'
-      @groupsSwitcherIcon.updateCount count
 
   accountChanged:(account)->
 
-    {notificationsPopup, messagesPopup, groupSwitcherPopup} = @
+    {notificationsPopup, messagesPopup} = this
 
     messagesPopup.listController.removeAllItems()
     notificationsPopup.listController.removeAllItems()
-    groupSwitcherPopup.listController.removeAllItems()
 
     if KD.isLoggedIn()
 
@@ -118,8 +96,3 @@ class AvatarAreaIconMenu extends JView
 
       # Fetch Private Messages
       messagesPopup.listController.fetchMessages()
-
-      # Fetch Groups
-      groupSwitcherPopup.populateGroups()
-      groupSwitcherPopup.populatePendingGroups()
-
