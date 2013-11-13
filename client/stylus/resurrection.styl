@@ -84,8 +84,7 @@ body
     width           auto
     vertical-align  top
 
-#fatih-launcher
-.account-menu > a
+.acc-dropdown-icon
   size            45px, 61px
   display         inline-block
   .count
@@ -101,8 +100,16 @@ body
     sprite        app account-notifications
   &.messages .icon
     sprite        app account-messages
-#fatih-launcher .icon
-  sprite          app account-search
+  &.search .icon
+    sprite        app account-search
+  &.groups
+    abs()
+    top           20px
+    right         10px
+    size          20px, 20px
+    .icon
+      margin      0
+      sprite      app '20-chevron-gray'
 
 .avatar-area
   bg                color, #445053
@@ -110,6 +117,7 @@ body
   height            61px
   min-width         180px
   borderBox()
+  rel()
   .avatarview
     margin-right    10px
     fl()
