@@ -6,3 +6,4 @@ module.exports = class CGroupLeaverBucket extends CBucket
 
   @set
     schema          : CBucket.schema
+    sharedEvents    : CBucket.sharedEvents

@@ -14,7 +14,7 @@ class Kontrol extends KDObject
     @readyState = NOTREADY
     @addr = "ws://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/_moh_/pub" #kontrol addr
     @kites = {}
-    @connect()
+    # @connect()
 
   getKites: (options, callback)->
     # find kites that belongs to username.
@@ -49,8 +49,9 @@ class Kontrol extends KDObject
         log "kontrol request error", err
         callback err, null
       else
-        # result might be multiple kites, but we only use one for now
-        kite = @createKite kites[0].kite
+        # result might be multiple kites, but we only use the first time for now
+        kite = @createKite kites.first.kite
+        kite.token = kites.first.token
         @addKite kite
         callback null, kite
 

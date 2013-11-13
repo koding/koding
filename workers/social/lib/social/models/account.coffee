@@ -825,24 +825,27 @@ module.exports = class JAccount extends jraphical.Module
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
   fetchMail:do ->
+
     collectParticipants = (messages, delegate, callback)->
       fetchParticipants = race (i, message, fin)->
         register = new Register # a register per message...
-        jraphical.Relationship.all
-          targetName  : 'JPrivateMessage',
-          targetId    : message.getId(),
+
+        query =
+          targetName  : 'JPrivateMessage'
+          targetId    : message.getId()
           sourceId    :
             $ne       : delegate.getId()
-        , (err, rels)->
-          if err
-            callback err
-          else unless rels?.length
-            message.participants = []
-          else
-            # only include unique participants.
-            message.participants = (rel for rel in rels when register.sign rel.sourceId)
-          fin()
+
+        jraphical.Relationship.cursor query, (err, cursor)->
+          return callback err  if err
+          message.participants = []
+          cursor.each (err, rel)->
+            unless rel then fin()
+            else
+              message.participants.push rel  if register.sign rel.sourceId
+
       , callback
+
       fetchParticipants(message) for message in messages when message?
 
     secure ({connection:{delegate}}, options, callback)->
