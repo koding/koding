@@ -31,7 +31,7 @@ fetchActivityFromGraph = (bongoModels, client, cb)->
 # a custom route for prefetched content
 getRoute = (options)-> return "scriptblock"
 
-prefetchedItems = (options, client, callback) ->
+prefetchAll = (options, client, callback) ->
 
   {bongoModels, client, intro} = options
 
@@ -80,16 +80,16 @@ prefetchedItems = (options, client, callback) ->
     callback null, prefetchedFeeds
 
 
-activityFetcher = ->
+repeatFetchingItems = ->
   return console.log "interval options are not valid" unless intervalOptions
   {client} = intervalOptions
-  prefetchedItems intervalOptions, client, (err, data)->
+  prefetchAll intervalOptions, client, (err, data)->
     if err
       return console.log "An error occured while fetching in interval", err
     else
       console.log "updating in interval"
 
-intervalFetcher = setInterval activityFetcher, 25000
+intervalFetcher = setInterval repeatFetchingItems, 25000
 
 module.exports = (options = {}, callback)->
 
@@ -107,4 +107,4 @@ module.exports = (options = {}, callback)->
       prefetchedFeeds = cachedRoutes[route]
       return callback null, prefetchedFeeds
 
-  return prefetchedItems options, client, callback
+  return prefetchAll options, client, callback

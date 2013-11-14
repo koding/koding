@@ -3,7 +3,7 @@ module.exports = (options = {}, callback)->
   {intro} = options
   intro ?= no
 
-  prefechter = require '../prefetcher'
+  prefetcher = require '../prefetcher'
   encoder    = require 'htmlencode'
 
   prefetchedFeeds = {}
@@ -67,7 +67,7 @@ module.exports = (options = {}, callback)->
     html = createHTML()
     return callback null, html
 
-  prefechter options, (err, data)->
+  prefetcher options, (err, data)->
     # this is updating the prefetchedFeeds property
     prefetchedFeeds = data
     # we can generate html here
