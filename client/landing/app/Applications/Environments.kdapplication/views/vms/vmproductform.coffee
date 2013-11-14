@@ -1,15 +1,20 @@
-class VmProductForm extends JView
+class VmProductForm extends FormWorkflow
 
   createUpgradeForm: ->
     (KD.getSingleton 'paymentController').createUpgradeForm 'vm'
 
-  checkUsageLimits: (plan) ->
+  checkUsageLimits: (pack, callback) ->
+    { subscription } = @collectedData
+    subscription.checkUsage pack, (err, usage) ->
+      
     console.log 'we need to check the usage limits for this plan', plan
 
+  createPackChoiceForm: -> new PackChoiceForm
+    title     : 'Choose your VM'
+    itemClass : VmProductView
+
   setState: (state) ->
-    switch state
-      when 'upgrade'  then @upgradeForm.show()
-      when 'choice'   then console.log 'they need to choose their plan'
+    @showForm state
 
   setCurrentSubscriptions: (subscriptions) ->
     @currentSubscriptions = subscriptions
@@ -17,15 +22,31 @@ class VmProductForm extends JView
       when 0
         @setState 'upgrade'
       when 1
-        @checkUsageLimits subscriptions[0]
+        [subscription] = subscriptions
+        @collectData { subscription }
+        @emit 'PackOfferingRequested', subscription
       else
         @setState 'choice'
+
+  setContents: (packs) ->
+    @setState 'pack choice'
+    (@getForm 'pack choice').setContents packs
 
   viewAppended: -> @prepareProductForm()
 
   prepareProductForm: ->
-    @upgradeForm = @createUpgradeForm()
-    @upgradeForm.on 'PlanSelected', (plan) =>
-      @emit 'DataCollected', { plan }
-    @addSubView @upgradeForm
-    @upgradeForm.hide()
+
+    @requireData ['plan', 'subscription', 'pack']
+
+    upgradeForm = @createUpgradeForm()
+    upgradeForm.on 'PlanSelected', (plan) =>
+      @collectData { plan }
+    @addForm 'upgrade', upgradeForm
+
+    packChoiceForm = @createPackChoiceForm()
+    packChoiceForm.on 'PackSelected', (pack) =>
+      @checkUsageLimits pack, (err, usage) ->
+        debugger
+      # @collectData { pack }
+
+    @addForm 'pack choice', packChoiceForm
