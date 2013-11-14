@@ -14,6 +14,6 @@ class LandingAppView extends KDView
 
 do ->
   landingAppView = new LandingAppView
-    pageClass    : LandingAppView.classMap[landingOptions.page]
+    pageClass    : LandingAppView.classMap[KD.landingOptions.page]
 
   landingAppView.appendToDomBody()
