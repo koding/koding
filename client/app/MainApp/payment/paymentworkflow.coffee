@@ -55,7 +55,6 @@ class PaymentWorkflow extends FormWorkflow
               chosenMethod = methodsByPaymentMethodId[paymentMethodId]
               choiceForm.addCustomData 'paymentMethod', chosenMethod
 
-
           paymentField.addSubView select
 
   addAggregateData: (formData) ->
