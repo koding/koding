@@ -54,6 +54,9 @@ module.exports = class JPaymentBase extends Module
     planCodes = Object.keys quantities
     productSelector = planCode: $in: planCodes
 
+    for planCode in planCodes
+      quantities[planCode] = +quantities[planCode]
+
     JPaymentProduct.some productSelector, { limit: 20 }, (err, products) =>
       return callback err  if err
 
