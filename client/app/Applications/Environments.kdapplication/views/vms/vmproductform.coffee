@@ -5,9 +5,12 @@ class VmProductForm extends FormWorkflow
 
   checkUsageLimits: (pack, callback) ->
     { subscription } = @collectedData
-    subscription.checkUsage pack, (err, usage) ->
-      
-    console.log 'we need to check the usage limits for this plan', plan
+    subscription.checkUsage pack, (err, usage) =>
+      if err
+        @clearData 'subscription'
+        @setState 'upgrade'
+      else
+        @collectData { pack }
 
   createPackChoiceForm: -> new PackChoiceForm
     title     : 'Choose your VM'
@@ -36,11 +39,12 @@ class VmProductForm extends FormWorkflow
 
   prepareProductForm: ->
 
-    @requireData ['plan', 'subscription', 'pack']
+    @requireData ['subscription', 'pack']
 
     upgradeForm = @createUpgradeForm()
     upgradeForm.on 'PlanSelected', (plan) =>
       @collectData { plan }
+
     @addForm 'upgrade', upgradeForm
 
     packChoiceForm = @createPackChoiceForm()
