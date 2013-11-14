@@ -52,6 +52,13 @@ class LandingView extends JView
       tagName   : "span"
       cssClass  : "share-links"
 
+    @referrerUrlInput = new KDInputView
+      cssClass        : "referrer-url"
+      attributes      : readonly: "true"
+      defaultValue    : url if url
+      placeholder     : "Login to see your referrer URL"
+      click           : -> @selectAll()
+
     @shareLinks.addSubView @twitter  = new TwitterShareLink  {url, disabled}
     @shareLinks.addSubView @facebook = new FacebookShareLink {url, disabled}
     @shareLinks.addSubView @linkedin = new LinkedInShareLink {url, disabled}
