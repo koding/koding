@@ -2,7 +2,7 @@ cachedRoutes    = {}
 cachedRouteTTL  = {}
 cachingTimeInMS = 30000
 
-prefetchedFeeds = null
+prefetchedFeeds = {}
 
 intervalOptions = {}
 
@@ -38,7 +38,6 @@ prefetchAll = (options, client, callback) ->
   # set interval options for later use
   intervalOptions = options
 
-  prefetchedFeeds = {}
   queue          = []
   defaultOptions =
     limit : 20
