@@ -29,9 +29,10 @@ class LandingView extends JView
       placeholder : "Type one email address per line"
 
     @emailAddressSubmit = new KDButtonView
-      style    : "submit-email-addresses"
-      title    : "Send"
-      loader   : yes
+      style       : "submit-email-addresses"
+      title       : "Send"
+      loader      :
+        diameter  : 24
       callback    : =>
         @emailAddressSubmit.hideLoader()
         if @emailAddressInput.getValue() is ""
@@ -80,12 +81,16 @@ class LandingView extends JView
       @requireLogin cb
 
   submitEmailAddresses: ->
-    @emailAddressSubmit.showLoader()
     emails = @emailAddressInput.getValue().split "\n"
     emails = emails.filter (email) -> email.length > 0
 
+    unless emails.length
+      @emailAddressSubmit.hideLoader()
+      return
+
     fails = []
 
+    @emailAddressSubmit.showLoader()
     async.map emails, (email, callback) ->
       KD.remote.api.JReferrableEmail.invite email, (err) ->
         fails.push email if err
@@ -93,9 +98,13 @@ class LandingView extends JView
     , =>
       @errorMessage.hide()
       @emailAddressSubmit.hideLoader()
-      @emailAddressSubmit.hide()
-      @invitationSentButton.show()
-      @decorateEmailAddressError fails if fails.length
+
+      if fails.length
+        @decorateEmailAddressError fails
+      else
+        @emailAddressSubmit.hide()
+        @invitationSentButton.show()
+
 
   enable: ->
     return  unless KD.isLoggedIn()
