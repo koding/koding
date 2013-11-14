@@ -1,8 +1,4 @@
 module.exports = (options = {}, callback)->
-
-  {intro} = options
-  intro ?= no
-
   prefetcher = require '../prefetcher'
   encoder    = require 'htmlencode'
 
@@ -12,27 +8,8 @@ module.exports = (options = {}, callback)->
   options.client.context or= {}
   options.client.context.group or= "koding"
 
-
   prefetchedFeeds = {}
-  {bongoModels, client, intro, landing} = options
-
-  fetchMembersFromGraph = (cb)->
-    return cb null, [] unless bongoModels
-    {JGroup}  = bongoModels
-    groupName = client?.context?.group or 'koding'
-    JGroup.one slug: groupName, (err, group)->
-      return cb null, [] if err
-      group._fetchMembersFromGraph client, {}, cb
-
-  fetchActivityFromGraph = (cb)->
-    return cb null, [] unless bongoModels
-    {CActivity} = bongoModels
-    options = facets : "Everything"
-
-    CActivity._fetchPublicActivityFeed client, options, (err, data)->
-      return cb null, [] if err
-      return cb null, data
-
+  {client, intro, landing} = options
 
   createHTML = ->
     replacer    = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
@@ -41,8 +18,10 @@ module.exports = (options = {}, callback)->
     landingOptions =
       page         : landing
 
-    {delegate} = client.connection
-    landingOptions.username = delegate.profile.nickname if delegate?.type is "registered"
+    if client.connection?.delegate?.profile?.nickname
+      {connection: {delegate}} = client
+      {profile   : {nickname}} = delegate
+      landingOptions.username  = nickname if delegate.type is "registered"
 
     landingOptions = JSON.stringify landingOptions
     """
