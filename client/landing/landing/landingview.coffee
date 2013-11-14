@@ -15,20 +15,13 @@ class LandingView extends JView
         tagName  : "span"
         cssClass : "login"
         partial  : "Login"
-        click    : (event) =>
-          KD.getSingleton("mainController").once "AccountChanged", =>
-            @enable()
-          KD.requireMembership()
+        click    : -> KD.requireMembership()
 
     @inviteGmailContacts = new KDButtonView
       style              : "invite-button gmail"
       title              : "Invite <strong>Gmail</strong> contacts"
       icon               : yes
-      callback           : ->
-        modal            = new ReferrerModal
-          overlay        : no
-          onlyInviteTab  : yes
-        modal.checkGoogleLinkStatus()
+      callback           : @bound "showReferralModal"
 
     @emailAddressInput = new KDInputView
       type        : "textarea"
@@ -39,7 +32,12 @@ class LandingView extends JView
       style    : "submit-email-addresses"
       title    : "Send"
       loader   : yes
-      callback : @bound "submitEmailAddresses"
+      callback    : =>
+        @emailAddressSubmit.hideLoader()
+        if @emailAddressInput.getValue() is ""
+          return
+        else
+          @requireLogin @bound "submitEmailAddresses"
 
     @invitationSentButton = new KDButtonView
       style : "invitations-sent hidden"
@@ -63,6 +61,24 @@ class LandingView extends JView
     @shareLinks.addSubView @facebook = new FacebookShareLink {url, disabled}
     @shareLinks.addSubView @linkedin = new LinkedInShareLink {url, disabled}
 
+    KD.getSingleton("mainController").on "AccountChanged", @bound "enable"
+
+  requireLogin: (fn) ->
+    if KD.isLoggedIn() then fn()
+    else
+      KD.getSingleton("mainController").once "AccountChanged", fn
+      KD.requireMembership()
+
+  showReferralModal: do ->
+    cb = ->
+      modal            = new ReferrerModal
+        overlay        : no
+        onlyInviteTab  : yes
+      modal.checkGoogleLinkStatus()
+
+    ->
+      @requireLogin cb
+
   submitEmailAddresses: ->
     @emailAddressSubmit.showLoader()
     emails = @emailAddressInput.getValue().split "\n"
@@ -82,6 +98,7 @@ class LandingView extends JView
       @decorateEmailAddressError fails if fails.length
 
   enable: ->
+    return  unless KD.isLoggedIn()
     @login.hide()
 
   pistachio: -> ""
