@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -245,12 +246,18 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+var resetRegex = regexp.MustCompile("/_resetcache_/")
+
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
+	}
+
+	if resetRegex.MatchString(req.URL.String()) {
+		return p.resetCacheHandler(filepath.Base(req.URL.String()))
 	}
 
 	go hitCounter(req.Host)
@@ -342,6 +349,28 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 			req.URL.Scheme = target.Scheme
 		},
 	}
+}
+
+// resetCacheHandler is reseting the cache transport for the given host.
+func (p *Proxy) resetCacheHandler(host string) http.Handler {
+	var result string
+
+	p.RLock()
+	_, ok := p.CacheTransports[host]
+	p.RUnlock()
+	if !ok {
+		result = "there is no caching enabled for " + host
+	} else {
+		p.Lock()
+		delete(p.CacheTransports, host)
+		p.Unlock()
+		result = "cache is resetted for " + host
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(result))
+	})
+
 }
 
 // securePageHandler is used currently for the securepage feature of our

@@ -18,12 +18,16 @@ type Cache interface {
 	Delete(key string)
 }
 
+// CacheTransport implements the http.RoundTripper interface. It uses the
+// Cache interface for storing the content of requests according to the
+// suffixes set.
 type CacheTransport struct {
 	cache     Cache
 	transport http.RoundTripper
 	suffixes  *goset.Set
 }
 
+// NewCacheTransport returns a new CacheTransport with in-memory cache.
 func NewCacheTransport(suffixes string) http.RoundTripper {
 	set := goset.New()
 
@@ -38,6 +42,7 @@ func NewCacheTransport(suffixes string) http.RoundTripper {
 	}
 }
 
+// RoundTrip implements the RoundTripper interface.
 func (c *CacheTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if !c.cacheableRequest(req) {
 		return c.transport.RoundTrip(req)
@@ -85,12 +90,12 @@ func (c *CacheTransport) cacheableRequest(req *http.Request) bool {
 }
 
 // cacheableResponse defines whether a response is cacheable or not.We only
-// cache responses with 200. 301 and 302 are not cached currently.
+// cache responses with 200 and 304. 301 and 302 are not cached currently.
 func (c *CacheTransport) cacheableResponse(resp *http.Response) bool {
 	return resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNotModified
 }
 
-// load prepares the response of a request by loading its body from cache.
+// load prepares the response of a request by loading the response from the cache
 func (c *CacheTransport) load(req *http.Request) (*http.Response, error) {
 	key := c.cacheKey(req)
 	cachedResp, ok := c.cache.Get(key)
@@ -102,7 +107,7 @@ func (c *CacheTransport) load(req *http.Request) (*http.Response, error) {
 	return http.ReadResponse(bufio.NewReader(b), req)
 }
 
-// save saves the body of a response corresponding to a request.
+// save saves the whole response into the cache
 func (c *CacheTransport) save(req *http.Request, resp *http.Response) error {
 	key := c.cacheKey(req)
 	respBytes, err := httputil.DumpResponse(resp, true)
