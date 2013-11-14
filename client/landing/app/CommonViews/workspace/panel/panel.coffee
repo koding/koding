@@ -32,6 +32,8 @@ class Panel extends JView
       """
 
     @header.addSubView @headerTitle
+    @header.addSubView @headerButtonsContainer = new KDCustomHTMLView
+      cssClass     : "tw-header-buttons"
 
     {headerStyling} = @getOptions()
     @applyHeaderStyling headerStyling if headerStyling
@@ -49,7 +51,7 @@ class Panel extends JView
         buttonView = new KDButtonView buttonOptions
 
       @headerButtons[buttonOptions.title] = buttonView
-      @header.addSubView buttonView
+      @headerButtonsContainer.addSubView buttonView
 
   createHeaderHint: ->
     @header.addSubView @headerHint = new KDCustomHTMLView
