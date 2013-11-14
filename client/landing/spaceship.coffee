@@ -14,6 +14,7 @@ class SpaceshipLandingPage extends LandingView
 
   enable: ->
     super
+    return  unless KD.isLoggedIn()
     url = KD.getReferralUrl KD.nick()
     @referrerUrlInput.setValue url
     @referrerUrlInput.makeEnabled()
