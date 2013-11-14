@@ -3,7 +3,7 @@ class LandingView extends JView
     options.cssClass = KD.utils.curry "landing-view", options.cssClass
     super options, data
 
-    {landingOptions: {@username}} = window
+    {landingOptions: {@username}} = KD
 
     if @username
       disabled   = no
