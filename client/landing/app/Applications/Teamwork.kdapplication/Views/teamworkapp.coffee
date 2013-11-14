@@ -7,9 +7,21 @@ class TeamworkApp extends KDObject
 
     super options, data
 
+    @createTeamwork()
+
+    if options.playground
+      @doCurlRequest playgroundsManifest, (err, manifests) =>
+        for manifest in manifests when manifest.name is options.playground
+          url = manifest.manifestUrl
+        @handlePlaygroundSelection options.playground, url
+    else
+      @teamwork.on "PanelCreated", =>
+        @doCurlRequest playgroundsManifest, (err, manifest) =>
+          @populatePlaygroundsButton manifest
+
+  createTeamwork: ->
     options               = @getOptions()
     instanceName          = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
-
     @teamwork             = new TeamworkWorkspace
       name                : options.name                or "Teamwork"
       joinModalTitle      : options.joinModalTitle      or "Join a coding session"
@@ -49,13 +61,6 @@ class TeamworkApp extends KDObject
             }
           ]
       ]
-
-    if options.playground
-      @handlePlaygroundSelection options.playground
-    else
-      @teamwork.on "PanelCreated", =>
-        @doCurlRequest "https://raw.github.com/koding/Teamwork/master/Playgrounds/manifest.json", (err, manifest) =>
-          @populatePlaygroundsButton manifest
 
   populatePlaygroundsButton: (playgrounds) ->
     button   = @teamwork.getActivePanel().headerButtons.Playgrounds
