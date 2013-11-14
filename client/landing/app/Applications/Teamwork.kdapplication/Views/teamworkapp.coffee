@@ -1,5 +1,8 @@
 class TeamworkApp extends KDObject
 
+  filename            = if location.hostname is "localhost" then "manifest-dev" else "manifest"
+  playgroundsManifest = "https://raw.github.com/koding/Teamwork/master/Playgrounds/#{filename}.json"
+
   constructor: (options = {}, data) ->
 
     super options, data
