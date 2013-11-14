@@ -16,24 +16,6 @@ module.exports = (options = {}, callback)->
   prefetchedFeeds = {}
   {bongoModels, client, intro, landing} = options
 
-  fetchMembersFromGraph = (cb)->
-    return cb null, [] unless bongoModels
-    {JGroup}  = bongoModels
-    groupName = client?.context?.group or 'koding'
-    JGroup.one slug: groupName, (err, group)->
-      return cb null, [] if err
-      group._fetchMembersFromGraph client, {}, cb
-
-  fetchActivityFromGraph = (cb)->
-    return cb null, [] unless bongoModels
-    {CActivity} = bongoModels
-    options = facets : "Everything"
-
-    CActivity._fetchPublicActivityFeed client, options, (err, data)->
-      return cb null, [] if err
-      return cb null, data
-
-
   createHTML = ->
     replacer    = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
     encodedFeed = JSON.stringify prefetchedFeeds, replacer
