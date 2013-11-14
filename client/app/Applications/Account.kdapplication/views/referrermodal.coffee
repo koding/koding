@@ -4,7 +4,7 @@ class ReferrerModal extends KDModalViewWithForms
     options.width          = 570
     options.overlay       ?= yes
     options.title          = "Get free disk space!"
-    options.url          or= "#{location.origin}/R/#{KD.nick()}"
+    options.url          or= KD.getReferralUrl KD.nick()
     options.onlyInviteTab ?= no
     options.tabs           =
       navigable            : no

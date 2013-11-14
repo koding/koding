@@ -151,6 +151,9 @@ KD.extend
 
   runningInFrame: -> window.top isnt window.self
 
+  getReferralUrl: (username) ->
+    "#{location.origin}/R/#{username}"
+
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
