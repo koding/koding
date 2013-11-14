@@ -23,7 +23,7 @@ projects      =
     sourceMapRoot : "Bongo/"
 
   KDMainApp   :
-    files     : "client/includes.coffee"
+    files     : "client/Main/includes.coffee"
     style     : "website/css/kdapp.#{KODING_VERSION}.css"
     script    : "website/js/kdapp.#{KODING_VERSION}.js"
 
@@ -33,7 +33,7 @@ projects      =
     script    : "website/js/testapp.js"
 
   HomeIntro   :
-    files     : "client/introapp/includes.coffee"
+    files     : "client/Intro/includes.coffee"
     style     : "website/css/introapp.#{KODING_VERSION}.css"
     script    : "website/js/introapp.#{KODING_VERSION}.js"
 
