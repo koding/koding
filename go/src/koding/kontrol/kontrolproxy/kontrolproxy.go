@@ -256,14 +256,13 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
 	}
 
-	if resetRegex.MatchString(req.URL.String()) {
+	// remove cache for static files. It should be in form of _/resetcache_/koding.com
+	if resetRegex.MatchString(req.URL.String()) && req.Host == proxyName {
+		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", req.Host, req.URL.String()))
 		return p.resetCacheHandler(filepath.Base(req.URL.String()))
 	}
 
-	go hitCounter(req.Host)
-
 	userIP, userCountry := getIPandCountry(req.RemoteAddr)
-
 	target, err := resolver.GetMemTarget(req.Host)
 	if err != nil {
 		if err == resolver.ErrGone {
