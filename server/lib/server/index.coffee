@@ -280,8 +280,17 @@ app.get "/-/oauth/google/callback"    , require "./google_callback"
 app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
 
-app.all '/:name/:section?*', (req, res, next)->
+app.get "/landing/:page", (req, res, next) ->
+  {page}      = req.params
+  bongoModels = koding.models
+  {JGroup}    = bongoModels
 
+  generateFakeClient req, res, (err, client) ->
+    isLoggedIn req, res, (err, loggedIn, account) ->
+      JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
+        serve body, res
+
+app.all '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']

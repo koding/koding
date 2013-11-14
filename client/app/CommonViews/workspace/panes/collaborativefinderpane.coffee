@@ -45,7 +45,7 @@ class CollaborativeFinderPane extends CollaborativePane
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
-    @finderController.reset()  unless @workspace.getOptions().environment
+    @finderController.reset()  unless @workspace.getOptions().playground
 
   syncContent: (files) ->
     @workspaceRef.set { files }
