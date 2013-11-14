@@ -1,38 +1,38 @@
-class TeamworkEnvironmentsModal extends KDModalView
+class TeamworkPlaygroundsModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.title       = "Teamwork Environments"
-    options.cssClass    = "tw-environments-modal clean-gray"
+    options.title       = "Teamwork Playgrounds"
+    options.cssClass    = "tw-playgrounds-modal clean-gray"
     options.overlay     = yes
     options.width       = 800
 
     super options, data
 
-    environments        = [ "Python", "Ruby", "MongoDB", "HTML5", "Facebook", "NodeJS" ]
-    @addSubView wrapper = new KDCustomHTMLView cssClass: "tw-environments-wrapper"
+    playgrounds         = [ "Python", "Ruby", "MongoDB", "HTML5", "Facebook", "NodeJS" ]
+    @addSubView wrapper = new KDCustomHTMLView cssClass: "tw-playgrounds-wrapper"
 
-    environments.forEach (environment) =>
-      wrapper.addSubView new TeamworkEnvironmentFlipWidget
-        cssClass        : "tw-#{environment.toLowerCase()}"
+    playgrounds.forEach (playground) =>
+      wrapper.addSubView new TeamworkPlaygroundFlipWidget
+        cssClass        : "tw-#{playground.toLowerCase()}"
         content         : """
           <p>Facebook</p>
           <span>
             Start discovering all about the Facebook App Development.
-            This environment is designed to solve app login and permission problems.
+            This playground is designed to solve app login and permission problems.
             Also we will show you how you can easily implement FB Like, Share and Comment widgets for your site.
           </span>
         """
         callback        : =>
-          @handleEnvironmentSelection environment
+          @handlePlaygroundSelection playground
           @destroy()
 
-  handleEnvironmentSelection: (environment) ->
-    @getDelegate().handleEnvironmentSelection environment
+  handlePlaygroundSelection: (playground) ->
+    @getDelegate().handlePlaygroundSelection playground
 
 
 
-class TeamworkEnvironmentFlipWidget extends JView
+class TeamworkPlaygroundFlipWidget extends JView
 
   constructor: (options = {}, data) ->
 
