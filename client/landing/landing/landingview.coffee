@@ -8,7 +8,7 @@ class LandingView extends JView
     if @username
       disabled   = no
       @login     = new KDCustomHTMLView
-      url        = @getReferralUrl @username
+      url        = KD.getReferralUrl @username
     else
       disabled   = yes
       @login     = new KDCustomHTMLView
@@ -55,9 +55,6 @@ class LandingView extends JView
     @shareLinks.addSubView @twitter  = new TwitterShareLink  {url, disabled}
     @shareLinks.addSubView @facebook = new FacebookShareLink {url, disabled}
     @shareLinks.addSubView @linkedin = new LinkedInShareLink {url, disabled}
-
-  getReferralUrl: (username) ->
-    "#{location.origin}/R/#{username}"
 
   submitEmailAddresses: ->
     @emailAddressSubmit.showLoader()

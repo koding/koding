@@ -12,7 +12,7 @@ class SpaceshipLandingPage extends LandingView
     @share.addSubView @referrerUrlInput = new KDInputView
       cssClass     : "referrer-url"
       attributes   : readonly: "true"
-      defaultValue : @getReferralUrl @username if @username
+      defaultValue : KD.getReferralUrl @username if @username
       placeholder  : "Login to see your referrer URL"
       disabled     : !!@username?
       click        :-> @selectAll()
@@ -21,7 +21,7 @@ class SpaceshipLandingPage extends LandingView
 
   enable: ->
     super
-    url = @getReferralUrl KD.nick()
+    url = KD.getReferralUrl KD.nick()
     @referrerUrlInput.setValue url
     @referrerUrlInput.makeEnabled()
 
