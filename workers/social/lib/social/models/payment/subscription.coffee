@@ -166,13 +166,33 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       update_ sub, callback
 
   checkUsage: (product, callback) ->
+    JPaymentPlan = require './plan'
+
     { quantities } = product
 
     unless quantities?
       quantities = {}
       quantities[product.planCode] = 1
 
-    callback { message: 'this needs to be implemented' }, quantities
+    results = [[],[]]
+    partition = (code, qty) -> results[+(qty > 0)].push code
+
+    JPaymentPlan.fetchPlanByCode @planCode, (err, plan) =>
+      return callback err  if err
+      return callback { message: 'unknown plan code', @planCode }  unless plan
+
+      for own planCode, quantity of quantities
+        planSize = plan.quantities[planCode]
+        usageAmount = @usage[planCode] ? 0
+        spendAmount = product.quantities[planCode] ? 0
+
+        total = planSize - usageAmount - spendAmount
+
+        partition planCode, total
+
+      if results[0].length > 0
+      then callback { message: 'quota exceeded' }, results[0]
+      else callback null
 
   spend: secure (client, options, callback) ->
     JPaymentPlan = require './plan'
