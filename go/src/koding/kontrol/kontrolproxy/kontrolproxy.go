@@ -44,10 +44,11 @@ type Proxy struct {
 	// Combined Log Format.
 	LogDestination io.Writer
 
-	EnableCache     bool
+	// CacheTransports is used to enable cache based roundtrips for certaing
+	// request hosts, such as koding.com.
 	CacheTransports map[string]http.RoundTripper
 
-	sync.Mutex
+	sync.RWMutex
 }
 
 // Client is used to register incoming request with an 1 hour cache. After that
@@ -154,7 +155,6 @@ func startProxy() {
 
 	reverseProxy := &Proxy{
 		EnableFirewall:  false,
-		EnableCache:     true,
 		CacheTransports: make(map[string]http.RoundTripper),
 		LogDestination:  logOutput,
 	}
@@ -309,15 +309,18 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	var transport http.RoundTripper
-	if p.EnableCache {
-		var ok bool
+	var ok bool
+
+	if target.CacheEnabled && target.CacheSuffixes != "" {
+		p.RLock()
 		transport, ok = p.CacheTransports[req.Host]
+		p.RUnlock()
 		if !ok {
-			transport = cache.NewCacheTransport()
+			transport = cache.NewCacheTransport(target.CacheSuffixes)
+			p.Lock()
 			p.CacheTransports[req.Host] = transport
+			p.Unlock()
 		}
-	} else {
-		transport = http.DefaultTransport
 	}
 
 	return reverseProxyHandler(transport, target.Url)
@@ -329,7 +332,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 // future
 func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Handler {
 	return &httputil.ReverseProxy{
-		Transport: transport,
+		Transport: transport, // if nil, http.DefaultTransport is used.
 		Director: func(req *http.Request) {
 			if !utils.HasPort(target.Host) {
 				req.URL.Host = utils.AddPort(target.Host, "80")

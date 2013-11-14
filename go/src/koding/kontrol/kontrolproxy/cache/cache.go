@@ -19,12 +19,14 @@ type Cache interface {
 type CacheTransport struct {
 	cache     Cache
 	transport http.RoundTripper
+	suffixes  string
 }
 
-func NewCacheTransport() http.RoundTripper {
+func NewCacheTransport(suffixes string) http.RoundTripper {
 	return &CacheTransport{
 		cache:     NewMemoryCache(),
 		transport: http.DefaultTransport,
+		suffixes:  suffixes,
 	}
 }
 
