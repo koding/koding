@@ -12,7 +12,8 @@ class LandingAppView extends KDView
   @classMap:
     spaceship: SpaceshipLandingPage
 
-KD.landingAppView = new LandingAppView
-  pageClass       : LandingAppView.classMap[window.landingOptions.page]
+do ->
+  landingAppView = new LandingAppView
+    pageClass    : LandingAppView.classMap[landingOptions.page]
 
-KD.landingAppView.appendToDomBody()
+  landingAppView.appendToDomBody()
