@@ -172,6 +172,7 @@ module.exports = [
   "app/MainApp/payment/buymodal.coffee",
   "app/MainApp/payment/planupgradeform.coffee",
   "app/MainApp/payment/paymentconfirmform.coffee",
+  "app/MainApp/payment/packchoiceform.coffee",
 
   #maintabs
 
