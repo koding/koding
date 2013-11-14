@@ -202,8 +202,7 @@ class VirtualizationController extends KDController
       if @vms.length
         return @utils.defer => callback null, @vms
 
-      if not force and (waiting.push callback) > 1
-        return  callback null, []
+      return if not force and (waiting.push callback) > 1
 
       KD.remote.api.JVM.fetchVms (err, vms)=>
         @vms = vms  unless err
