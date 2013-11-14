@@ -4,37 +4,13 @@ cachingTimeInMS = 30000
 
 module.exports = (options = {}, callback)->
 
-  {dash}  = require 'bongo'
-  JTag    = require '../models/tag'
-  JApp    = require '../models/app'
-  encoder = require 'htmlencode'
+  intro = {options}
+  intro ?= no
 
-  options.intro   ?= no
-  options.client or= {}
-  options.client.context or= {}
-  options.client.context.group or= "koding"
-
+  prefechter = require '../prefetcher'
+  encoder    = require 'htmlencode'
 
   prefetchedFeeds = {}
-  {bongoModels, client, intro} = options
-
-  fetchMembersFromGraph = (cb)->
-    return cb null, [] unless bongoModels
-    {JGroup}  = bongoModels
-    groupName = client?.context?.group or 'koding'
-    JGroup.one slug: groupName, (err, group)->
-      return cb null, [] if err
-      group._fetchMembersFromGraph client, {}, cb
-
-  fetchActivityFromGraph = (cb)->
-    return cb null, [] unless bongoModels
-    {CActivity} = bongoModels
-    options = facets : "Everything"
-
-    CActivity._fetchPublicActivityFeed client, options, (err, data)->
-      return cb null, [] if err
-      return cb null, data
-
 
   createHTML = ->
     replacer    = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
@@ -91,68 +67,12 @@ module.exports = (options = {}, callback)->
     </script>
     """
 
-  # while implementing profile prefetching we will need
-  # a custom route for prefetched content
-  getRoute =-> return "scriptblock"
-
-  queue          = []
-  defaultOptions =
-    limit : 20
-    skip  : 0
-    sort  : 'counts.followers' : -1
-
   generateScript = ->
     html = createHTML()
     return callback null, html
 
-  route = getRoute()
-  if cachedRoutes[route]
-    if (Date.now() - (cachedRouteTTL[route] || 0)  < cachingTimeInMS)
-      console.log "#{route} cache is still valid"
-      prefetchedFeeds = cachedRoutes[route]
-      return generateScript()
-
-  # todo  - implement this prefetching for all groups
-
-  # do not fetch activity feed for unregistered users
-  # do fetch them for better ux for the ones who are gonna sign up or sign in.
-  # return generateScript()  if client?.connection?.delegate?.type isnt "registered"
-
-
-  # fetch members function returns only members of the given group(context)
-  # we can return this result also
-
-  # debugger
-
-  queue.push ->
-    fetchMembersFromGraph (err, members)->
-      prefetchedFeeds['members.main'] = members  if members
-      queue.fin()
-
-  # Modified this function to fetch groups' tags
-  # also we can return topics for all groups
-  queue.push ->
-    JTag._some client, {}, defaultOptions, (err, topics)->
-      prefetchedFeeds['topics.main'] = topics  if topics
-      queue.fin()
-
-  # This is not koding specific so we can return this to every group
-  queue.push ->
-    JApp.some {"approved": true}, defaultOptions, (err, apps)->
-      prefetchedFeeds['apps.main'] = apps  if apps
-      queue.fin()
-
-  # we are fetching group activity, so again we can return this one for all groups
-  queue.push ->
-    fetchActivityFromGraph (err, activity)->
-      prefetchedFeeds['activity.main'] = activity  if activity
-      queue.fin()
-
-  queue.push ->
-    route = getRoute()
-    cachedRoutes[route] = prefetchedFeeds
-    cachedRouteTTL[route] = Date.now()
-    console.log "#{route} cache is updated"
-    queue.fin()
-
-  dash queue, generateScript
+  prefechter options, (err, data)->
+    # this is updating the prefetchedFeeds property
+    prefetchedFeeds = data
+    # we can generate html here
+    return generateScript()
