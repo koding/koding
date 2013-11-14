@@ -18,7 +18,7 @@ module.exports = (options = {}, callback)->
     landingOptions =
       page         : landing
 
-    if client.connection?.delegate?
+    if client.connection?.delegate?.profile?.nickname
       {connection: {delegate}} = client
       {profile   : {nickname}} = delegate
       landingOptions.username  = nickname if delegate.type is "registered"
