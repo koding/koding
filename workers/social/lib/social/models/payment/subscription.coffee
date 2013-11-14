@@ -17,9 +17,17 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       uuid          : 'unique'
     sharedMethods   :
       static        : [
-        'fetchUserSubscriptions', 'fetchUserSubscriptionsWithPlan', 'checkUserSubscription'
+        'fetchUserSubscriptions'
+        'fetchUserSubscriptionsWithPlan'
+        'checkUserSubscription'
       ]
-      instance      : ['cancel', 'resume', 'calculateRefund', 'spend']
+      instance      : [
+        'cancel'
+        'resume'
+        'calculateRefund'
+        'spend'
+        'checkUsage'
+      ]
     schema          :
       uuid          : String
       planCode      : String
@@ -156,6 +164,15 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     payment.reactivateUserSubscription @userCode, {@uuid}, (err, sub)=>
       return callback err  if err
       update_ sub, callback
+
+  checkUsage: (product, callback) ->
+    { quantities } = product
+
+    unless quantities?
+      quantities = {}
+      quantities[product.planCode] = 1
+
+    callback { message: 'this needs to be implemented' }, quantities
 
   spend: secure (client, options, callback) ->
     JPaymentPlan = require './plan'
