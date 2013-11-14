@@ -264,19 +264,13 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 	if p.EnableFirewall {
 		_, err = validate(userIP, userCountry, req.Host)
+		if err == ErrSecurePage {
+			return securePageHandler(userIP)
+		}
+
 		if err != nil {
-			if err == ErrSecurePage {
-				sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, userIP)
-				session, _ := store.Get(req, sessionName)
-				session.Options = &sessions.Options{MaxAge: 20} //seconds
-				_, ok := session.Values["securePage"]
-				if !ok {
-					return sessionHandler("securePage", userIP)
-				}
-			} else {
-				logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
-				return templateHandler("quotaExceeded.html", req.Host, 509)
-			}
+			logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
+			return templateHandler("quotaExceeded.html", req.Host, 509)
 		}
 	}
 
@@ -326,13 +320,17 @@ func reverseProxyHandler(target *url.URL) http.Handler {
 	}
 }
 
-// sessionHandler is used currently for the securepage feature of our
+// securePageHandler is used currently for the securepage feature of our
 // validator/firewall. It is used to setup cookies to invalidate users visits.
-func sessionHandler(val, userIP string) http.Handler {
+func securePageHandler(userIP string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
 		session, _ := store.Get(r, sessionName)
-		session.Values[val] = time.Now().String()
+		session.Options = &sessions.Options{MaxAge: 20} //seconds
+		_, ok := session.Values["securePage"]
+		if !ok {
+			session.Values["securePage"] = time.Now().String()
+		}
 		session.Save(r, w)
 		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
 		if err != nil {
