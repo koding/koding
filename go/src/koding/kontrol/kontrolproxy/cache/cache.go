@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/fatih/goset"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"sync"
 )
 
@@ -19,14 +21,20 @@ type Cache interface {
 type CacheTransport struct {
 	cache     Cache
 	transport http.RoundTripper
-	suffixes  string
+	suffixes  *goset.Set
 }
 
 func NewCacheTransport(suffixes string) http.RoundTripper {
+	set := goset.New()
+
+	for _, suffix := range strings.Split(suffixes, ",") {
+		set.Add(strings.TrimSpace(suffix))
+	}
+
 	return &CacheTransport{
 		cache:     NewMemoryCache(),
 		transport: http.DefaultTransport,
-		suffixes:  suffixes,
+		suffixes:  set,
 	}
 }
 
