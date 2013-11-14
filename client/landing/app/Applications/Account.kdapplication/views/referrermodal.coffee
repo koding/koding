@@ -1,10 +1,11 @@
 class ReferrerModal extends KDModalViewWithForms
   constructor: (options = {}, data) ->
-    options.cssClass       = "referrer-modal"
+    options.cssClass       = KD.utils.curry "referrer-modal", options.cssClass
     options.width          = 570
-    options.overlay        = yes
+    options.overlay       ?= yes
     options.title          = "Get free disk space!"
-    options.url          or= "#{location.origin}/R/#{KD.nick()}"
+    options.url          or= KD.getReferralUrl KD.nick()
+    options.onlyInviteTab ?= no
     options.tabs           =
       navigable            : no
       goToNextFormOnSubmit : no
@@ -17,6 +18,8 @@ class ReferrerModal extends KDModalViewWithForms
             you'll get <strong>250 MB</strong> free disk space for your VM, up to <strong>16 GB</strong> total."
         invite             :
           customView       : KDCustomHTMLView
+
+    options.cssClass = KD.utils.curry "hidden", options.cssClass if options.onlyInviteTab
 
     super options, data
 
@@ -33,41 +36,41 @@ class ReferrerModal extends KDModalViewWithForms
     @share.addSubView leftColumn  = new KDCustomHTMLView cssClass : "left-column"
     @share.addSubView rightColumn = new KDCustomHTMLView cssClass : "right-column"
 
-    leftColumn.addSubView urlLabel       = new KDLabelView
-      cssClass                           : "share-url-label"
-      title                              : "Here is your invite code"
+    leftColumn.addSubView urlLabel = new KDLabelView
+      cssClass : "share-url-label"
+      title    : "Here is your invite code"
 
-    leftColumn.addSubView urlInput       = new KDInputView
-      defaultValue                       : options.url
-      cssClass                           : "share-url-input"
-      attributes                         : readonly:"true"
-      click                              :-> @selectAll()
+    leftColumn.addSubView urlInput = new KDInputView
+      defaultValue : options.url
+      cssClass     : "share-url-input"
+      attributes   : readonly:"true"
+      click        :-> @selectAll()
 
-    leftColumn.addSubView shareLinkIcons = new KDCustomHTMLView
-      cssClass                           : "share-link-icons"
-      partial                            : "<span>Share your code on</span>"
+    leftColumn.addSubView shareLinks = new KDCustomHTMLView
+      cssClass : "share-links"
+      partial  : "<span>Share your code on</span>"
 
-    shareLinkIcons.addSubView new TwitterShareLink  url: options.url
-    shareLinkIcons.addSubView new FacebookShareLink url: options.url
-    shareLinkIcons.addSubView new LinkedInShareLink url: options.url
+    shareLinks.addSubView new TwitterShareLink  url: options.url
+    shareLinks.addSubView new FacebookShareLink url: options.url
+    shareLinks.addSubView new LinkedInShareLink url: options.url
 
-    rightColumn.addSubView gmail    = new KDButtonView
-      title                         : "Invite Gmail Contacs"
-      style                         : "invite-button gmail"
-      icon                          : yes
-      callback                      : @bound "checkGoogleLinkStatus"
+    rightColumn.addSubView gmail = new KDButtonView
+      title    : "Invite Gmail Contacs"
+      style    : "invite-button gmail"
+      icon     : yes
+      callback : @bound "checkGoogleLinkStatus"
 
     rightColumn.addSubView facebook = new KDButtonView
-      title                         : "Invite Facebook Friends"
-      style                         : "invite-button facebook hidden"
-      disabled                      : yes
-      icon                          : yes
+      title    : "Invite Facebook Friends"
+      style    : "invite-button facebook hidden"
+      disabled : yes
+      icon     : yes
 
-    rightColumn.addSubView twitter  = new KDButtonView
-      title                         : "Invite Twitter Friends"
-      style                         : "invite-button twitter hidden"
-      disabled                      : yes
-      icon                          : yes
+    rightColumn.addSubView twitter = new KDButtonView
+      title    : "Invite Twitter Friends"
+      style    : "invite-button twitter hidden"
+      disabled : yes
+      icon     : yes
 
     KD.getSingleton("mainController").once "ForeignAuthSuccess.google", (data) =>
       @showGmailContactsList data
@@ -137,9 +140,11 @@ class ReferrerModal extends KDModalViewWithForms
       else if contacts.length is 0
         new KDNotificationView
           title: "Your all contacts are already invited. Thanks!"
-        @modalTabs.showPaneByName "share"
+        if @getOptions().onlyInviteTab then @destroy()
+        else @modalTabs.showPaneByName "share"
       else
         @setTitle "Invite your friends from Gmail"
+        @show()
         @modalTabs.showPaneByName "invite"
         listController.instantiateListItems contacts
 
