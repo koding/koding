@@ -124,8 +124,9 @@ module.exports = class JVM extends Module
         regYears      : 0
         loadBalancer  : { persistance: 'disabled' }
       domainObj.save (err)->
-        return console.log err  if err
-        updateRelationship domainObj
+        if err
+        then console.error err  unless err.code is 11000
+        else updateRelationship domainObj
 
   @fixUserDomains = permit 'change bundle',
     success: (client, callback)->
@@ -556,9 +557,7 @@ module.exports = class JVM extends Module
         counterName : 'uid'
         offset      : 1e6
       }
-
-      uidFactory.reset (err, lastId)->
-        console.log "UID counter is reset: %s", lastId
+      uidFactory.initialize()
 
     JUser.on 'UserCreated', (user)->
       uidFactory.next (err, uid)->

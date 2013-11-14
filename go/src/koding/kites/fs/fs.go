@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/howeyc/fsnotify"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 	"koding/tools/dnode"
@@ -13,6 +12,7 @@ import (
 	"os"
 	"path"
 	"sync"
+	"github.com/howeyc/fsnotify"
 )
 
 type Fs struct{}
@@ -29,9 +29,11 @@ var (
 func main() {
 	flag.Parse()
 	options := &protocol.Options{
-		Kitename: "fs",
-		Version:  "0.0.1",
-		Port:     *port,
+		Kitename:    "fs",
+		Version:     "0.0.1",
+		Port:        *port,
+		Region:      "vagrant",
+		Environment: "vagrant",
 		// KontrolAddr: "newkontrol.sj.koding.com:80",
 	}
 
