@@ -1,8 +1,4 @@
 module.exports = (options = {}, callback)->
-
-  {intro} = options
-  intro ?= no
-
   prefetcher = require '../prefetcher'
   encoder    = require 'htmlencode'
 
@@ -12,9 +8,8 @@ module.exports = (options = {}, callback)->
   options.client.context or= {}
   options.client.context.group or= "koding"
 
-
   prefetchedFeeds = {}
-  {bongoModels, client, intro, landing} = options
+  {client, intro, landing} = options
 
   createHTML = ->
     replacer    = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
