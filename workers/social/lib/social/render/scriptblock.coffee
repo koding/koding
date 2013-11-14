@@ -1,10 +1,6 @@
-cachedRoutes    = {}
-cachedRouteTTL  = {}
-cachingTimeInMS = 30000
-
 module.exports = (options = {}, callback)->
 
-  intro = {options}
+  {intro} = options
   intro ?= no
 
   prefechter = require '../prefetcher'
