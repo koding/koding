@@ -23,8 +23,10 @@ module.exports = (options = {}, callback)->
     landingOptions =
       page         : landing
 
-    {delegate} = client.connection
-    landingOptions.username = delegate.profile.nickname if delegate?.type is "registered"
+    if client.connection?.delegate?
+      {connection: {delegate}} = client
+      {profile   : {nickname}} = delegate
+      landingOptions.username  = nickname if delegate.type is "registered"
 
     landingOptions = JSON.stringify landingOptions
     """
