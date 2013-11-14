@@ -95,12 +95,14 @@ class FacebookTeamwork extends TeamworkWorkspace
       @emit "ContentImportDone"
 
   createRunButton: (panel) ->
-    panel.header.addSubView @runButton = new KDButtonViewWithMenu
+    @runButton = new KDButtonViewWithMenu
       title               : "Run"
       menu                :
         "Run on Facebook" :
           callback        : => @runOnFB()
       callback            : => @run()
+
+    panel.headerButtonsContainer.addSubView @runButton
 
   run: ->
     activePanel    = @getActivePanel()

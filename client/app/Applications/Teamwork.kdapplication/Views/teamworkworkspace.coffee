@@ -116,7 +116,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     previewPane.previewer.emit "ViewerRefreshed"
 
   createRunButton: (panel) ->
-    panel.header.addSubView new KDButtonView
+    panel.headerButtonsContainer.addSubView new KDButtonView
       title      : "Run"
       callback   : => @handleRun panel
 
