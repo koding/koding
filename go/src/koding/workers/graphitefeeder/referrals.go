@@ -83,7 +83,7 @@ func numberOfReferralsToday() (string, int) {
 
 func numberOfMembersFromReferrableEmails() (string, int) {
 	var identifier = "number_of_members_from_referrable_emails"
-	var unixEpochDate = time.Date(1970, time.January, 1, 0, 0, 0, 0, time.Local)
+	var unixEpochDate = time.Date(1970, time.January, 1, 0, 0, 0, 0, currentTimeLocation)
 
 	return identifier, numberOfMembersFromReferrableEmailsByTime(unixEpochDate)
 }
@@ -91,7 +91,7 @@ func numberOfMembersFromReferrableEmails() (string, int) {
 func numberOfMembersFromReferrableEmailsThisMonth() (string, int) {
 	var identifier = "number_of_members_from_referrable_emails_this_month"
 	var currentYear, currentMonth, _ = time.Now().Date()
-	var currentMonthDate = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.Local)
+	var currentMonthDate = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentTimeLocation)
 
 	return identifier, numberOfMembersFromReferrableEmailsByTime(currentMonthDate)
 }

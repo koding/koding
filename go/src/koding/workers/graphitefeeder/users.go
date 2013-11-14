@@ -4,7 +4,6 @@ import (
 	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 func init() {
@@ -186,9 +185,4 @@ func numberOfGuestAccounts() (string, int) {
 	mongodb.Run("jAccounts", query)
 
 	return identifier, count
-}
-
-func getTodayDate() time.Time {
-	year, month, day := time.Now().Date()
-	return time.Date(year, month, day, 0, 0, 0, 0, time.Local)
 }
