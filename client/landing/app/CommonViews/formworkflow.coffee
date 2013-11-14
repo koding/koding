@@ -22,6 +22,11 @@ class FormWorkflow extends KDView
     @emit 'DataCollected', @collectedData
     return this
 
+  clearData: (key) ->
+    @requiredData[key] = no
+    delete @collectedData[key]
+    return this
+
   addForm: (formName, form) ->
     @forms[formName] = form
     @addSubView form
