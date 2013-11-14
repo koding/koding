@@ -14,7 +14,6 @@ resurrection.activity.styl
 .feeder-header
 .common-inner-nav
 .system-message
-.comment-container
 .activity-status-context
   display               none
 
@@ -71,24 +70,73 @@ resurrection.activity.styl
 
   .kdlistitemview-activity
     size                auto, auto
-    background          #fff
-    border              1px solid #e1e1e4
     margin              16px 0 0 78px
-    border-radius       6px 6px 0 0
     position            relative
     overflow            visible
     borderBox()
 
     .activity-item
+      background        #fff
+      border            1px solid #e1e1e4
+      border-radius     6px 6px 0 0
       overflow          visible
       position          static
+      borderBox()
 
     .status-body
       font-size       16px
-      font-weight     200
+      font-weight     400
       line-height     22px
       color           #485259
       margin          20px 24px 24px
+
+    .comment-container
+      size            auto, auto
+
+      .kdlistitemview-comment
+        padding         20px
+        font-size       14px
+        color           #485259
+        line-height     18px
+        font-weight     400
+        border-top      1px solid #eeeeef
+        position        relative
+        borderBox()
+
+        .avatar
+          size          28px, 28px
+          left          20px
+          top           20px
+          abs()
+          fl()
+
+          a
+            display     block
+
+        .comment-contents
+          padding         0 0 0 40px
+
+          a.profile
+            margin        0 0 12px 0
+            display       block
+            font-size     12px
+            color         #485259
+            noTextDeco()
+
+      .item-add-comment-form
+        border-top      1px solid #dfdfe2
+        background      #f8f8f9
+        size            auto, auto
+        padding         10px
+
+        textarea
+          display             block
+          border-radius       0
+          border              1px solid #e1e1e4
+          size                100%, 40px
+          font-size           12px
+          color               #7a868d
+          borderBox()
 
     footer
       size              auto, 38px
@@ -157,8 +205,9 @@ resurrection.activity.styl
           padding       0
 
         code
+          border-radius 6px
           padding       20px
-          max-height    400px
+          max-height    240px
           overflow      scroll
 
     .blog-post
@@ -172,7 +221,7 @@ resurrection.activity.styl
 
       .body
           font-size     14px
-          font-weight   200
+          font-weight   400
           line-height   20px
           color         #485259
           margin        20px 24px 24px
