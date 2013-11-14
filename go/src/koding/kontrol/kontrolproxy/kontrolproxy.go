@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
+	"koding/kontrol/kontrolproxy/cache"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
@@ -42,6 +43,11 @@ type Proxy struct {
 	// LogDestination specifies the destination of requests logs in the
 	// Combined Log Format.
 	LogDestination io.Writer
+
+	EnableCache     bool
+	CacheTransports map[string]http.RoundTripper
+
+	sync.Mutex
 }
 
 // Client is used to register incoming request with an 1 hour cache. After that
@@ -147,8 +153,10 @@ func startProxy() {
 	}
 
 	reverseProxy := &Proxy{
-		EnableFirewall: false,
-		LogDestination: logOutput,
+		EnableFirewall:  false,
+		EnableCache:     true,
+		CacheTransports: make(map[string]http.RoundTripper),
+		LogDestination:  logOutput,
 	}
 
 	startHTTPS(reverseProxy) // non-blocking
@@ -300,15 +308,28 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return websocketHandler(target.Url.Host)
 	}
 
-	return reverseProxyHandler(target.Url)
+	var transport http.RoundTripper
+	if p.EnableCache {
+		var ok bool
+		transport, ok = p.CacheTransports[req.Host]
+		if !ok {
+			transport = cache.NewCacheTransport()
+			p.CacheTransports[req.Host] = transport
+		}
+	} else {
+		transport = http.DefaultTransport
+	}
+
+	return reverseProxyHandler(transport, target.Url)
 }
 
 // reverseProxyHandler is the main handler that is used for copy the response
 // back and forth to the request iniator. We use Go's main
 // httputil.ReverseProxy but can easily switch to any custom handler in the
 // future
-func reverseProxyHandler(target *url.URL) http.Handler {
+func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Handler {
 	return &httputil.ReverseProxy{
+		Transport: transport,
 		Director: func(req *http.Request) {
 			if !utils.HasPort(target.Host) {
 				req.URL.Host = utils.AddPort(target.Host, "80")
