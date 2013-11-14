@@ -41,7 +41,6 @@ class Panel extends JView
     @getOptions().buttons.forEach (buttonOptions) =>
       if buttonOptions.itemClass
         Klass = buttonOptions.itemClass
-        delete buttonOptions.itemClass
         buttonOptions.callback = buttonOptions.callback?.bind this, this, @getDelegate()
 
         buttonView = new Klass buttonOptions
