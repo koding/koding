@@ -268,6 +268,7 @@ class KodingRouter extends KDRouter
       '/About' : createSectionHandler 'Activity'
 
       '/landing/:page': noop
+      '/R/:username'  : noop
 
       # verbs
       '/:name?/Login'        : ({params:{name}})->
