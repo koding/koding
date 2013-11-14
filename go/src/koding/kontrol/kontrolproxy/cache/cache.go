@@ -7,6 +7,7 @@ import (
 	"github.com/fatih/goset"
 	"net/http"
 	"net/http/httputil"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -44,9 +45,7 @@ func (c *CacheTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	cache, err := c.load(req)
-	fmt.Println("err", err)
 	if err == nil {
-		fmt.Printf("==== GET CACHE ====: '%s'\n", c.cacheKey(req))
 		return cache, nil
 	}
 
@@ -73,6 +72,16 @@ func (c *CacheTransport) cacheableRequest(req *http.Request) bool {
 		return false
 	}
 
+	suffix := filepath.Ext(req.URL.String())
+	if suffix == "" {
+		return false
+	}
+
+	// filepath.Ext returns .js for sample.js, therefore remove the dot
+	if !c.suffixes.Has(suffix[1:]) {
+		return false
+	}
+
 	return true
 }
 
@@ -85,7 +94,6 @@ func (c *CacheTransport) cacheableResponse(resp *http.Response) bool {
 // load prepares the response of a request by loading its body from cache.
 func (c *CacheTransport) load(req *http.Request) (*http.Response, error) {
 	key := c.cacheKey(req)
-	fmt.Println("loading from cache key", key)
 	cachedResp, ok := c.cache.Get(key)
 	if !ok {
 		return nil, fmt.Errorf("cache is not available for: %s", key)
@@ -103,7 +111,6 @@ func (c *CacheTransport) save(req *http.Request, resp *http.Response) error {
 		return err
 	}
 
-	fmt.Printf("==== SAVE CACHE ====: '%s'\n", key)
 	c.cache.Set(key, respBytes)
 	return nil
 }
