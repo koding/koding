@@ -72,7 +72,6 @@ prefetchAll = (options, client, callback) ->
     route = getRoute options
     cachedRoutes[route] = prefetchedFeeds
     cachedRouteTTL[route] = Date.now()
-    console.log "#{route} cache is updated"
     queue.fin()
 
   dash queue, ()->
@@ -85,8 +84,6 @@ repeatFetchingItems = ->
   prefetchAll intervalOptions, client, (err, data)->
     if err
       return console.log "An error occured while fetching in interval", err
-    else
-      console.log "updating in interval"
 
 intervalFetcher = setInterval repeatFetchingItems, 25000
 
@@ -102,7 +99,6 @@ module.exports = (options = {}, callback)->
   route = getRoute options
   if cachedRoutes[route]
     if (Date.now() - (cachedRouteTTL[route] || 0)  < cachingTimeInMS)
-      console.log "#{route} cache is still valid"
       prefetchedFeeds = cachedRoutes[route]
       return callback null, prefetchedFeeds
 
