@@ -156,10 +156,11 @@ class TeamworkApp extends KDObject
               @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url, callback
 
   showMarkdownModal: (rawContent) ->
-    @teamwork.markdownContent = KD.utils.applyMarkdown rawContent  if rawContent
-    modal                     = new TeamworkMarkdownModal
-      content                 : @teamwork.markdownContent
-      targetEl                : @teamwork.getActivePanel().headerHint
+    t = @teamwork
+    t.markdownContent = KD.utils.applyMarkdown rawContent  if rawContent
+    modal = @mdModal  = new TeamworkMarkdownModal
+      content         : t.markdownContent
+      targetEl        : t.getActivePanel().headerHint
 
   handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url, callback = noop) ->
     vmController.run "rm -rf #{root}/#{folderName} ; mv #{path}/#{folderName} #{root}", (err, res) =>
@@ -168,13 +169,56 @@ class TeamworkApp extends KDObject
       vmController.run "rm -rf #{path}"
       notification.destroy()
       folderPath = "#{root}/#{folderName}"
-      readMeFile = "#{folderPath}/README.md"
+      mdPath     = "#{folderPath}/README.md"
+      shPath     = "#{folderPath}/install.sh"
+      mdFile     = FSHelper.createFileFromPath mdPath
+      shFile     = FSHelper.createFileFromPath shPath
       @setVMRoot folderPath
       callback()
-      FSHelper.exists readMeFile, vmController.defaultVmName, (err, res) =>
-        return unless res
-        file  = FSHelper.createFileFromPath readMeFile
-        file.fetchContents (err, readMeContent) => @showMarkdownModal readMeContent
+
+      mdFile.exists (err, mdExists) =>
+        if mdExists
+          mdFile.fetchContents (err, mdContent) =>
+            @showMarkdownModal mdContent
+            @mdModal.once "KDObjectWillBeDestroyed", =>
+              @checkShFile shFile
+        else
+          @checkShFile shFile
+
+  checkShFile: (shFile) ->
+    shFile.exists (err, fileExist) =>
+      return unless fileExist
+      shFile.fetchContents (err, shContent) =>
+        modal          = new KDModalView
+          title        : "Installation Script"
+          cssClass     : "modal-with-text"
+          width        : 600
+          content      : """
+            <p>This Playground wants to execute the following install script. Do you want to continue?</p>
+            <p>
+              <pre>#{shContent}</pre>
+            </p>
+          """
+          buttons      :
+            Install    :
+              title    : "Install Script"
+              cssClass : "modal-clean-green"
+              callback : => @runShFile shFile, modal
+            Cancel     :
+              title    : "Cancel"
+              cssClass : "modal-cancel"
+              callback : -> modal.destroy()
+
+  runShFile: (shFile, modal) ->
+    modal.destroy()
+    {paneLauncher} = @teamwork.getActivePanel()
+    vmController   = KD.getSingleton "vmController"
+    unless paneLauncher.paneVisibilityState.terminal
+      paneLauncher.handleLaunch "terminal"
+
+    vmController.run "chmod 777 #{shFile.path}", (err, res) =>
+      paneLauncher.terminalPane.runCommand "./#{shFile.path}", =>
+        vmController.run "cd #{shFile.parentPath}; mv install.sh install#{Date.now()}.sh", ->
 
   setVMRoot: (path) ->
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
