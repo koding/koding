@@ -36,7 +36,7 @@ func main() {
 }
 
 func handleConnection(localConn net.Conn) {
-	listener, err := net.Listen("tcp4", ":7000")
+	listener, err := net.Listen("tcp4", ":0")
 	if err != nil {
 		log.Println("listen public err", err)
 	}
