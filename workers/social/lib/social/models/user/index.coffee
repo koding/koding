@@ -216,7 +216,7 @@ module.exports = class JUser extends jraphical.Module
                 isRegistration : false
                 username
               }
-              @logout client, callback
+              user.unlinkOAuths => @logout client, callback
 
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences = require '../registrationpreferences'
@@ -848,6 +848,9 @@ Your password has been changed!  If you didn't request this change, please conta
       JUser.emit "UserUnblocked", @
       return callback err
 
+  unlinkOAuths: (callback)->
+    @update $unset: {foreignAuth:1, foreignAuthType:1}, callback
+
   @persistOauthInfo: (username, clientId, callback)->
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
       return callback err  if err
@@ -878,7 +881,7 @@ Your password has been changed!  If you didn't request this change, please conta
     @update {username}, $set: query, callback
 
   @clearOauthFromSession: (session, callback)->
-    session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
+    session.update $unset: {foreignAuth:1, foreignAuthType:1}, callback
 
   @copyPublicOauthToAccount: (username, {foreignAuth, foreignAuthType}, callback)->
     JAccount.one {"profile.nickname":username}, (err, account)->
