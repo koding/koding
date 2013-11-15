@@ -4,13 +4,12 @@ class VmProductForm extends FormWorkflow
     (KD.getSingleton 'paymentController').createUpgradeForm 'vm'
 
   checkUsageLimits: (pack, callback) ->
-    { subscription } = @collectedData
+    { subscription } = @collector.data
     subscription.checkUsage pack, (err, usage) =>
       if err
         @clearData 'subscription'
         @setState 'upgrade'
-      else
-        @collectData { pack }
+      @collectData { pack }
 
   createPackChoiceForm: -> new PackChoiceForm
     title     : 'Choose your VM'
@@ -27,7 +26,7 @@ class VmProductForm extends FormWorkflow
       when 1
         [subscription] = subscriptions
         @collectData { subscription }
-        @emit 'PackOfferingRequested', subscription
+        # @emit 'PackOfferingRequested', subscription
       else
         @setState 'choice'
 
@@ -37,9 +36,16 @@ class VmProductForm extends FormWorkflow
 
   viewAppended: -> @prepareProductForm()
 
+  createChoiceForm: -> new KDView partial: 'this is a plan choice form'
+
   prepareProductForm: ->
 
-    @requireData ['subscription', 'pack']
+    @requireData [
+      
+      @any('subscription', 'plan')
+
+      'pack'
+    ]
 
     upgradeForm = @createUpgradeForm()
     upgradeForm.on 'PlanSelected', (plan) =>
@@ -54,3 +60,6 @@ class VmProductForm extends FormWorkflow
       # @collectData { pack }
 
     @addForm 'pack choice', packChoiceForm
+
+    choiceForm = @createChoiceForm()
+    
