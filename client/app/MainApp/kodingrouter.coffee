@@ -267,6 +267,9 @@ class KodingRouter extends KDRouter
       # '/Home'  : handleRoot
       '/About' : createSectionHandler 'Activity'
 
+      '/landing/:page': noop
+      '/R/:username'  : noop
+
       # verbs
       '/:name?/Login'        : ({params:{name}})->
         requireLogout -> animateToForm 'login'

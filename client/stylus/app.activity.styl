@@ -2741,31 +2741,6 @@ div.kdtooltip
         border                    1px solid #c7c7c7
         borderBox()
 
-      .share-link-icons
-        height                    30px
-        line-height               30px
-        margin-top                25px
-        .share-icon
-          border                  none
-          size                    30px, 30px
-          padding                 0
-          margin                  0 0 0 8px
-          background              none
-          .icon
-            size                  30px, 30px
-            padding               0
-            margin                0
-            sprite()
-          &.twitter
-            .icon
-              bg                  position, -662px -116px
-          &.facebook
-            .icon
-              bg                  position, -695px -116px
-          &.linkedin
-            .icon
-              bg                  position, -729px -116px
-
       button.invite-button
         size                      245px, 50px
         line-height               50px
@@ -2918,6 +2893,31 @@ div.kdtooltip
 
       .kdbutton
         margin-right                10px
+
+.share-links
+  height                            30px
+  line-height                       30px
+  margin-top                        25px
+  button.kdbutton.share-icon.icon-only
+    border                          none
+    size                            30px, 30px
+    padding                         0
+    margin                          0 0 0 8px
+    background                      none
+    .icon
+      size                          30px, 30px
+      padding                       0
+      margin                        0
+      sprite()
+    &.twitter
+      .icon
+        bg                          position, -662px -116px
+    &.facebook
+      .icon
+        bg                          position, -695px -116px
+    &.linkedin
+      .icon
+        bg                          position, -729px -116px
 
 @-webkit-keyframes inviteConfirmAnimation
   to
