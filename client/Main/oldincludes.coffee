@@ -1,5 +1,4 @@
 "Applications/Members.kdapplication/AppController.coffee",
-"Applications/Account.kdapplication/AppController.coffee",
 "Applications/Activity.kdapplication/AppController.coffee",
 "Applications/Topics.kdapplication/AppController.coffee",
 "Applications/Feeder.kdapplication/AppController.coffee",
@@ -223,31 +222,6 @@
 # DEMO VIEWS
 "Applications/Demos.kdapplication/AppView.coffee",
 
-# ACCOUNT CONTROLLERS
-"Applications/Account.kdapplication/controllers/accountnavigationcontroller.coffee",
-"Applications/Account.kdapplication/controllers/accountcontentwrappercontroller.coffee",
-"Applications/Account.kdapplication/controllers/accountsidebarcontroller.coffee",
-"Applications/Account.kdapplication/controllers/accountlistcontroller.coffee",
-
-# ACCOUNT VIEWS
-"Applications/Account.kdapplication/views/password.coffee",
-"Applications/Account.kdapplication/views/username.coffee",
-"Applications/Account.kdapplication/views/linkedaccts.coffee",
-"Applications/Account.kdapplication/views/emailnotifications.coffee",
-# "Applications/Account.kdapplication/views/devdatabases.coffee",
-"Applications/Account.kdapplication/views/editors.coffee",
-"Applications/Account.kdapplication/views/mounts.coffee",
-"Applications/Account.kdapplication/views/repos.coffee",
-"Applications/Account.kdapplication/views/sshkeys.coffee",
-"Applications/Account.kdapplication/views/kodingkeys.coffee",
-"Applications/Account.kdapplication/views/paymenthistory.coffee",
-"Applications/Account.kdapplication/views/paymentmethods.coffee",
-"Applications/Account.kdapplication/views/subscriptions.coffee",
-"Applications/Account.kdapplication/views/referralsystem.coffee",
-"Applications/Account.kdapplication/views/deleteaccountview.coffee",
-"Applications/Account.kdapplication/views/gmailcontact.coffee",
-"Applications/Account.kdapplication/views/referrermodal.coffee",
-"Applications/Account.kdapplication/AppView.coffee",
 
 # GROUP DASHBOARD
 "Applications/Dashboard.kdapplication/AppController.coffee",

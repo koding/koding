@@ -44,10 +44,16 @@ projects      =
     script    : "website/js/app.groups.#{KODING_VERSION}.js"
     sourceMapRoot : "Groups/"
 
+  Account     :
+    files     : "client/Account/includes.coffee"
+    style     : "website/css/app.account.#{KODING_VERSION}.css"
+    script    : "website/js/app.account.#{KODING_VERSION}.js"
+    sourceMapRoot : "Account/"
+
 bundles       =
 
   Koding      :
-    projects  : ['KDBackend', 'KDMainApp'] #, 'Groups']
+    projects  : ['KDBackend', 'KDMainApp', 'Account'] #, 'Groups']
     style     : "website/css/koding.#{KODING_VERSION}.css"
     script    : "website/js/koding.#{KODING_VERSION}.js"
 
