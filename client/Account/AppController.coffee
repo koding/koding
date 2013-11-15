@@ -103,30 +103,31 @@ class AccountAppController extends AppController
       </div>
       """
 
-    # SET UP SPLIT VIEW AND TOGGLERS
-    mainView.addSubView @split = split = new SplitView
-      domId     : "account-split-view"
-      sizes     : [188, null]
-      views     : [navView, wrapperView]
-      minimums  : [null, null]
-      resizable : yes
+    # # SET UP SPLIT VIEW AND TOGGLERS
+    # mainView.addSubView @split = split = new SplitView
+    #   domId     : "account-split-view"
+    #   sizes     : [188, null]
+    #   views     : [navView, wrapperView]
+    #   minimums  : [null, null]
+    #   resizable : yes
 
-    [panel0, panel1] = split.panels
+    mainView.addSubView navView
+    mainView.addSubView wrapperView
 
-    panel1.on "scroll", (event)=> @contentScrolled panel1, event
+    # panel1.on "scroll", (event)=> @contentScrolled panel1, event
 
-    panel0.addSubView @leftToggler = new KDView
-      cssClass : "account-sidebar-toggler left"
-      click    : => @toggleSidebar show:no
+    # panel0.addSubView @leftToggler = new KDView
+    #   cssClass : "account-sidebar-toggler left"
+    #   click    : => @toggleSidebar show:no
 
-    split.addSubView @rightToggler = new KDView
-      cssClass : "account-sidebar-toggler right hidden"
-      click    : => @toggleSidebar show:yes
+    # split.addSubView @rightToggler = new KDView
+    #   cssClass : "account-sidebar-toggler right hidden"
+    #   click    : => @toggleSidebar show:yes
 
     @_windowDidResize()
     KD.getSingleton("windowController").registerWindowResizeListener @
 
-    @utils.wait => @split._windowDidResize()
+    # @utils.wait => @split._windowDidResize()
 
   contentScrolled:(pubInst,event)->
     @__lastScrollTop or= 0
@@ -147,19 +148,19 @@ class AccountAppController extends AppController
   showReferrerModal:->
     new ReferrerModal
 
-  toggleSidebar:(options)->
-    {show} = options
-    controller = @
+  # toggleSidebar:(options)->
+  #   {show} = options
+  #   controller = @
 
-    split = @split
-    if show
-      split.showPanel 0, ->
-        controller.rightToggler.hide()
-        controller.leftToggler.show()
-    else
-      split.hidePanel 0, ->
-        controller.rightToggler.show()
-        controller.leftToggler.hide()
+  #   split = @split
+  #   if show
+  #     split.showPanel 0, ->
+  #       controller.rightToggler.hide()
+  #       controller.leftToggler.show()
+  #   else
+  #     split.hidePanel 0, ->
+  #       controller.rightToggler.show()
+  #       controller.leftToggler.hide()
 
   indexOfItem:(item)->
     @itemsOrdered.indexOf item

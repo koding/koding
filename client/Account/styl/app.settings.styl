@@ -1,6 +1,6 @@
-@import "./kdfn"
-@import "./client/stylus/appfn"
-@import "nib/gradients"
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
 
 
 
@@ -35,25 +35,6 @@ positiveGreen = rgba(58,200,2,1)
   a
     text-decoration     none
 
-#account-split-view
-  .account-sidebar-toggler
-    abs()
-    right             4px
-    top               4px
-    z-index           100
-    size              11px,11px
-    cursor            pointer
-    border            1px solid rgba(255,255,255,.1)
-    sprite()
-    bg                position,-102px -320px
-    rounded           2px
-    &.right
-      abs()
-      left            4px
-      bg              position,-118px -320px
-  >.kdview.kdsplitview-resizer
-    hidden()
-
 #account-nav
   border-left       1px solid rgba(7,6,6,.2)
   bg                color,rgba(0,0,0,.2)
@@ -76,7 +57,7 @@ positiveGreen = rgba(58,200,2,1)
       a:hover
         text-decoration underline
       a span.icon
-        sprite()
+        //sprite()
         size            20px, 20px
         bg              position, -180px -520px
         display         inline-block
@@ -148,7 +129,7 @@ positiveGreen = rgba(58,200,2,1)
       border-bottom       1px solid rgba(0,0,0,.2)
       borderBox()
       .icon
-        sprite()
+        //sprite()
         size              24px, 24px
         opacity           .5
         vendor            transition, opacity     .3s ease \,\
@@ -199,7 +180,7 @@ positiveGreen = rgba(58,200,2,1)
           size            20px, 20px
           bg              position, -40px -420px
           blockMid()
-          sprite()
+          //sprite()
 
 
 .settings-list-wrapper
@@ -272,7 +253,7 @@ positiveGreen = rgba(58,200,2,1)
     size                20px,20px
     opacity             .6
     cursor              pointer
-    sprite()
+    //sprite()
     bg(position,-60px -240px)
     &.no
       hidden()
@@ -555,7 +536,7 @@ positiveGreen = rgba(58,200,2,1)
     abs()
 
     span.icon
-      sprite()
+      //sprite()
       bg(position,20px 20px)
       rel()
 
@@ -589,7 +570,7 @@ positiveGreen = rgba(58,200,2,1)
 .editor-settings
   span.icon
     margin-right          10px
-    sprite()
+    //sprite()
     size(36px,30px)
     blockMid()
   .aceeditor.icon
@@ -745,7 +726,7 @@ button.kdbutton.account-header-second-button
     fl()
     size            20px,20px
     margin          0 auto
-    sprite()
+    //sprite()
     bg              position,20px 20px
     &.plus
       bg            position,-120px -460px
