@@ -1,5 +1,112 @@
 class FormWorkflow extends KDView
 
+  make = ->
+    fw = new FormWorkflow
+    fw.on 'DataCollected', -> log arguments
+    fw
+
+  assert = (truth) ->
+    unless !!truth
+      
+
+      { stack } = new Error
+
+      debugger
+
+      throw {
+        message: "Assertion error!", stack
+      }
+
+  tests = [
+    ->
+      @requireData [
+        'foo'
+        'bar'
+      ]
+      
+      @collectData { foo: 42 }
+      
+      assert not @isSatisfied()
+      
+      @collectData { bar: 0 }
+      
+      assert @isSatisfied()
+    
+    ->
+      @requireData @all(
+        'foo'
+        'bar'
+      )
+      
+      @collectData { foo: 42 }
+      
+      assert not @isSatisfied()
+      
+      @collectData { bar: 0 }
+      
+      assert @isSatisfied()
+
+    ->
+      @requireData @any(
+        'foo'
+        'bar'
+      )
+      
+      @collectData { foo: 42 }
+      
+      assert @isSatisfied()
+      
+      @collectData { bar: 0 }
+      
+      assert @isSatisfied()
+
+      @clearData 'foo'
+
+      assert @isSatisfied()
+
+      @clearData 'bar'
+
+      assert not @isSatisfied()
+    ->
+      @requireData @all(
+        'foo'
+        'bar'
+        @any('baz', 'qux')
+      )
+      
+      @collectData { foo: 42 }
+      
+      assert not @isSatisfied()
+      
+      @collectData { bar: 0 }
+      
+      assert not @isSatisfied()
+
+      @collectData { baz: 16 }
+
+      assert @isSatisfied()
+
+      @clearData 'baz'
+
+      assert not @isSatisfied()
+
+      @collectData { qux: -88 }
+
+      assert @isSatisfied()
+
+      @clearData 'bar'
+
+      assert not @isSatisfied()
+
+
+  ]
+
+  @runTests = ->
+    test.call make()  for test in tests
+
+    return this
+
+
   constructor: (options = {}, data) ->
     super options, data
     @forms = {}
@@ -17,6 +124,11 @@ class FormWorkflow extends KDView
     @collector.addRequirement gate
 
     return this
+
+  getData: -> @data
+
+  isSatisfied: -> 
+    @collector.gate.isSatisfied()
 
   collectData: (data) ->
     @collector.collectData data
@@ -78,7 +190,7 @@ class FormWorkflow extends KDView
   all: (fields...) -> new All fields
   any: (fields...) -> new Any fields
 
-  class Collector extends KDEventEmitter
+  @Collector = class Collector extends KDEventEmitter
 
     constructor: (@gate = new Gate) ->
       super
@@ -86,12 +198,12 @@ class FormWorkflow extends KDView
       @gate.on 'report', (state) => switch state
         when 'Satisfied'
           @emit 'DataCollected', @data
-        when 'Dissatisfied' then #ignore
+        when 'Dissatisfied' then # ignore
 
     addRequirement: (requirement) ->
       @gate.addField requirement
 
-    getData: -> @gate.getData()
+    getData: -> @data
 
     collectData: (data) ->
       @defineKey key, val  for own key, val of data
@@ -104,7 +216,7 @@ class FormWorkflow extends KDView
       @data[key] = value
       @gate.satisfy key
 
-  class Satisfier extends KDEventEmitter
+  @Satisfier = class Satisfier extends KDEventEmitter
 
     isSatisfied: -> @satisfied ?= no
 
@@ -153,8 +265,8 @@ class FormWorkflow extends KDView
           when 'Satisfied'
             @emit 'RequirementSatisfied', field
             satisfier.satisfy()
-          when 'Canceled'
-            satisfier.cancel()
+          when 'Canceled' then # ignore
+            # satisfier.cancel()
 
       return this
 
@@ -187,18 +299,18 @@ class FormWorkflow extends KDView
 
       return this
 
-    signal: -> @compliment no
+    kill: -> @compliment no
 
     compliment: (value) -> value
 
     isSatisfied: ->
       for own _, field of @fields
-        return @signal()  unless @compliment field.isSatisfied()
+        return @kill()  unless @compliment field.isSatisfied()
 
       for child in @children
-        return @signal()  unless @compliment child.isSatisfied()
+        return @kill()  unless @compliment child.isSatisfied()
 
-      return !@signal()
+      return !@kill()
 
     toString: -> "gate-#{@id}"
 
@@ -212,4 +324,4 @@ class FormWorkflow extends KDView
     compliment: (value) -> !value
 
     # Any#createSatisfier returns a singleton satisfier :)
-    createSatisfier: -> @safisfier ?= super()
+    createSatisfier: -> @satisfier ?= super()
