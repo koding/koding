@@ -848,7 +848,7 @@ Your password has been changed!  If you didn't request this change, please conta
       return callback err
 
   unlinkOAuths: (callback)->
-    @update $unset: {foreignAuth:"", foreignAuthType:""}, callback
+    @update $unset: {foreignAuth:1, foreignAuthType:1}, callback
 
   @persistOauthInfo: (username, clientId, callback)->
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
@@ -880,7 +880,7 @@ Your password has been changed!  If you didn't request this change, please conta
     @update {username}, $set: query, callback
 
   @clearOauthFromSession: (session, callback)->
-    session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
+    session.update $unset: {foreignAuth:1, foreignAuthType:1}, callback
 
   @copyPublicOauthToAccount: (username, {foreignAuth, foreignAuthType}, callback)->
     JAccount.one {"profile.nickname":username}, (err, account)->
