@@ -28,10 +28,10 @@ class KodingAppsController extends KDController
     @appStorage     = KD.getSingleton('appStorageController').storage 'Finder', '1.1'
     @watcher        = new AppsWatcher
 
-    @fetchApps =>
-      @getPublishedApps()
-      @createExtensionToAppMap()
-      @fetchUserDefaultAppConfig()
+    # @fetchApps =>
+    #   @getPublishedApps()
+    #   @createExtensionToAppMap()
+    #   @fetchUserDefaultAppConfig()
 
     @on "UpdateDefaultAppConfig", (extension, appName) =>
       @updateDefaultAppConfig extension, appName

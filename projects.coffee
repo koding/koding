@@ -26,6 +26,7 @@ projects      =
     files     : "client/Main/includes.coffee"
     style     : "website/css/kdapp.#{KODING_VERSION}.css"
     script    : "website/js/kdapp.#{KODING_VERSION}.js"
+    sourceMapRoot : "Main/"
 
   TestApp     :
     files     : "client/Testapp/includes.coffee"
@@ -37,10 +38,16 @@ projects      =
     style     : "website/css/introapp.#{KODING_VERSION}.css"
     script    : "website/js/introapp.#{KODING_VERSION}.js"
 
+  Groups      :
+    files     : "client/Groups/includes.coffee"
+    style     : "website/css/app.groups.#{KODING_VERSION}.css"
+    script    : "website/js/app.groups.#{KODING_VERSION}.js"
+    sourceMapRoot : "Groups/"
+
 bundles       =
 
   Koding      :
-    projects  : ['KDBackend', 'KDMainApp']
+    projects  : ['KDBackend', 'KDMainApp'] #, 'Groups']
     style     : "website/css/koding.#{KODING_VERSION}.css"
     script    : "website/js/koding.#{KODING_VERSION}.js"
 

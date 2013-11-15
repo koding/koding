@@ -235,11 +235,13 @@ module.exports = [
   # "bottompanels/chat/chatuseritem.coffee",
   # "bottompanels/terminal/terminalpanel.coffee",
 
+  "maincontroller/groupdata.coffee",
   "maincontroller/mainviews/appsettingsmenubutton.coffee",
   "maincontroller/mainviews/mainview.coffee",
   "maincontroller/mainviews/contentpanel.coffee",
   "maincontroller/mainviewcontroller.coffee",
   "maincontroller/dockcontroller.coffee",
+  "maincontroller/groupscontroller.coffee",
   "maincontroller/maincontroller.coffee",
 
   # --- Applications ---
@@ -312,7 +314,6 @@ module.exports = [
 
   # STYLES
 
-  "styl/kdfn.styl",
   "styl/appfn.styl",
   "styl/resurrection.styl",
   # "styl/resurrection.activity.styl",
