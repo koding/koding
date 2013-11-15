@@ -339,7 +339,7 @@ app.get "/", (req, res, next)->
 
   if req.query._escaped_fragment_?
     slug = req.query._escaped_fragment_
-    res.send 200, staticHome() if slug is ""
+    return res.send 200, staticHome() if slug is ""
 
     return Crawler.crawl koding, req, res, slug
   else
