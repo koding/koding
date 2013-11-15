@@ -30,9 +30,7 @@ class FacebookTeamwork extends TeamworkWorkspace
     @on "WorkspaceSyncedWithRemote", =>
       @getAppInfo()  if @amIHost()
 
-    @getDelegate().once "TeamworkToolsModalIsReady", (modal) =>
-      return if @revokeViewReady
-
+    @getDelegate().on "TeamworkToolsModalIsReady", (modal) =>
       modal.addSubView header = new KDCustomHTMLView
         cssClass : "teamwork-modal-header"
         partial  : """
@@ -64,8 +62,6 @@ class FacebookTeamwork extends TeamworkWorkspace
           modal.destroy()
           @showInstructions()
 
-      @revokeViewReady = yes
-
   showInstructions: ->
     d = @getDelegate()
     d.instructionsModal?.destroy()
@@ -93,9 +89,9 @@ class FacebookTeamwork extends TeamworkWorkspace
       callback err, res
 
   startImport: ->
-    {contentDetails, environmentManifest} = @getOptions()
+    {contentDetails, playgroundManifest} = @getOptions()
     @getDelegate().showImportWarning contentDetails.url, =>
-      @appStorage.setValue "FacebookAppVersion", environmentManifest.version
+      @appStorage.setValue "FacebookAppVersion", playgroundManifest.version
       @emit "ContentImportDone"
 
   createRunButton: (panel) ->
