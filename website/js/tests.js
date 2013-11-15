@@ -1,0 +1,1 @@
+../../test/browser/bundle.js

@@ -8,6 +8,8 @@ module.exports = (options = {}, callback)->
   options.client.context or= {}
   options.client.context.group or= "koding"
 
+  {argv} = require 'optimist'
+
   prefetchedFeeds = {}
   {client, intro, landing} = options
 
@@ -78,6 +80,7 @@ module.exports = (options = {}, callback)->
     <script>
       KD.prefetchedFeeds = #{encodedFeed};
     </script>
+    #{if argv.t then "<script src=\"/js/tests.js\"></script>" else ''}
     """
 
   generateScript = ->

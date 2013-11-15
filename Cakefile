@@ -8,6 +8,8 @@ option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only bro
 option '-f', '--file [file]', 'run tests with just one file'
 option '-l', '--location [location]', 'run tests with this base url'
 
+option '-t', '--tests', 'require test suite'
+
 {spawn, exec} = require 'child_process'
 
 log =
@@ -81,14 +83,14 @@ task 'deleteNeo4j', "Drop all entries in the local Neo4j database", ({configFile
 task 'compileGo', "Compile the local go binaries", ({configFile})->
   compileGoBinaries configFile,->
 
-task 'webserver', "Run the webserver", ({configFile}) ->
+task 'webserver', "Run the webserver", ({configFile, tests}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver,sourceServer} = KONFIG
 
   runServer = (config, port, index) ->
     processes.fork
       name              : "server"
-      cmd               : __dirname + "/server/index -c #{config} -p #{port}"
+      cmd               : __dirname + "/server/index -c #{config} -p #{port}#{if tests then ' -t' else ''}"
       restart           : yes
       restartTimeout    : 100
       kontrol           :
@@ -544,6 +546,9 @@ task 'run', (options)->
       queue.next()
   queue.push -> run options
   daisy queue
+
+task 'buildTests', "Build the client-side tests", (options) ->
+
 
 task 'buildClient', "Build the static web pages for webserver", (options)->
   (new (require('./Builder'))).buildClient options
