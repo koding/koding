@@ -42,17 +42,15 @@ class MainController extends KDController
     KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
+    KD.registerSingleton "groupsController",          new GroupsController
     # KD.registerSingleton "fatih", new Fatih
 
-    appManager.create 'Groups', (groupsController)->
-      KD.registerSingleton "groupsController", groupsController
-
-    appManager.create 'Chat', (chatController)->
-      KD.registerSingleton "chatController", chatController
+    # appManager.create 'Chat', (chatController)->
+    #   KD.registerSingleton "chatController", chatController
 
     @ready =>
       router.listen()
-      KD.registerSingleton "activityController",      new ActivityController
+      # KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       KD.registerSingleton "kontrol",                 new Kontrol
