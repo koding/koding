@@ -28,7 +28,7 @@ projects      =
     script    : "website/js/kdapp.#{KODING_VERSION}.js"
 
   TestApp     :
-    files     : "client/testapp/includes.coffee"
+    files     : "client/Testapp/includes.coffee"
     style     : "website/css/testapp.css"
     script    : "website/js/testapp.js"
 
