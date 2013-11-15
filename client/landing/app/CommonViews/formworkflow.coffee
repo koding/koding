@@ -1,112 +1,5 @@
 class FormWorkflow extends KDView
 
-  make = ->
-    fw = new FormWorkflow
-    fw.on 'DataCollected', -> log arguments
-    fw
-
-  assert = (truth) ->
-    unless !!truth
-      
-
-      { stack } = new Error
-
-      debugger
-
-      throw {
-        message: "Assertion error!", stack
-      }
-
-  tests = [
-    ->
-      @requireData [
-        'foo'
-        'bar'
-      ]
-      
-      @collectData { foo: 42 }
-      
-      assert not @isSatisfied()
-      
-      @collectData { bar: 0 }
-      
-      assert @isSatisfied()
-    
-    ->
-      @requireData @all(
-        'foo'
-        'bar'
-      )
-      
-      @collectData { foo: 42 }
-      
-      assert not @isSatisfied()
-      
-      @collectData { bar: 0 }
-      
-      assert @isSatisfied()
-
-    ->
-      @requireData @any(
-        'foo'
-        'bar'
-      )
-      
-      @collectData { foo: 42 }
-      
-      assert @isSatisfied()
-      
-      @collectData { bar: 0 }
-      
-      assert @isSatisfied()
-
-      @clearData 'foo'
-
-      assert @isSatisfied()
-
-      @clearData 'bar'
-
-      assert not @isSatisfied()
-    ->
-      @requireData @all(
-        'foo'
-        'bar'
-        @any('baz', 'qux')
-      )
-      
-      @collectData { foo: 42 }
-      
-      assert not @isSatisfied()
-      
-      @collectData { bar: 0 }
-      
-      assert not @isSatisfied()
-
-      @collectData { baz: 16 }
-
-      assert @isSatisfied()
-
-      @clearData 'baz'
-
-      assert not @isSatisfied()
-
-      @collectData { qux: -88 }
-
-      assert @isSatisfied()
-
-      @clearData 'bar'
-
-      assert not @isSatisfied()
-
-
-  ]
-
-  @runTests = ->
-    test.call make()  for test in tests
-
-    return this
-
-
   constructor: (options = {}, data) ->
     super options, data
     @forms = {}
@@ -218,14 +111,18 @@ class FormWorkflow extends KDView
 
   @Satisfier = class Satisfier extends KDEventEmitter
 
-    isSatisfied: -> @satisfied ?= no
+    constructor: ->
+      super()
+      @satisfied = 0
+
+    isSatisfied: -> Boolean @satisfied
 
     satisfy: ->
-      @satisfied = yes
+      @satisfied++
       @emit 'Satisfied'
 
     cancel: ->
-      @satisfied = no
+      @satisfied--
       @emit 'Canceled'
 
   @Gate = class Gate extends KDObject
