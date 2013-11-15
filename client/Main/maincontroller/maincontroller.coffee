@@ -33,16 +33,17 @@ class MainController extends KDController
 
     KD.registerSingleton "mainController",            this
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
-    KD.registerSingleton "kiteController",            new KiteController
-    KD.registerSingleton "vmController",              new VirtualizationController
-    KD.registerSingleton "contentDisplayController",  new ContentDisplayController
     KD.registerSingleton "notificationController",    new NotificationController
-    KD.registerSingleton "paymentController",         new PaymentController
     KD.registerSingleton "linkController",            new LinkController
+    KD.registerSingleton "contentDisplayController",  new ContentDisplayController
+    KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
+
+    # KD.registerSingleton "vmController",              new VirtualizationController
+    # KD.registerSingleton "paymentController",         new PaymentController
     # KD.registerSingleton "fatih", new Fatih
 
     # appManager.create 'Chat', (chatController)->
@@ -51,9 +52,11 @@ class MainController extends KDController
     @ready =>
       router.listen()
       # KD.registerSingleton "activityController",      new ActivityController
+      # KD.registerSingleton "kodingAppsController",    new KodingAppsController
+
       KD.registerSingleton "appStorageController",    new AppStorageController
-      KD.registerSingleton "kodingAppsController",    new KodingAppsController
       KD.registerSingleton "kontrol",                 new Kontrol
+
       @showInstructionsBook()
       @emit 'AppIsReady'
 
