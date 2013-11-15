@@ -72,6 +72,15 @@ class ApplicationManager extends KDObject
       defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
       kodingAppsController = KD.getSingleton("kodingAppsController")
 
+      # InternalApps Fetcher
+
+      if (name.toLowerCase() in KD.config.allowedApps) and (name not in Object.keys KD.appClasses)
+        return KodingAppsController.putAppScript name, (err)=>
+          return warn err  if err
+          @open name, options, callback
+
+      # -------
+
       # If app has a preCondition then first check condition in it
       # if it returns true then continue, otherwise call failure
       # method of preCondition if exists
