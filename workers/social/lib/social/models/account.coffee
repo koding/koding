@@ -139,7 +139,6 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedTagsFromGraph'
         'fetchRelatedUsersFromGraph'
         'fetchDomains'
-        'fetchDomains'
         'unlinkOauth'
         'changeUsername'
         'markUserAsExempt'
