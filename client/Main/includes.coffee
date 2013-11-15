@@ -314,7 +314,6 @@ module.exports = [
 
   # STYLES
 
-  "styl/kdfn.styl",
   "styl/appfn.styl",
   "styl/resurrection.styl",
   # "styl/resurrection.activity.styl",
