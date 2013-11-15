@@ -452,6 +452,14 @@ task 'checkConfig', "Check the local config files for errors", ({configFile})->
   require('koding-config-manager').load("kite.applications.#{configFile}")
   require('koding-config-manager').load("kite.databases.#{configFile}")
 
+task 'runGraphiteFeeder', "Collect analytics from database and feed to grahpite", ({configFile})->
+  console.log "Running Graphite feeder"
+  processes.spawn
+    name    : 'graphiteFeeder'
+    cmd     : "./go/bin/graphitefeeder -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
 
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
