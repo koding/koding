@@ -103,6 +103,14 @@ class PaymentWorkflow extends FormWorkflow
   viewAppended:-> @prepareWorkflow()
 
   prepareWorkflow: ->
+
+    @requireData [
+      'productData'
+
+      @any('paymentMethod', 'subscription')
+      
+      'userConfirmation'
+    ]
     # "product form" can be used for collecting some product-related data
     # before the payment method collection/selection process begins.  If you
     # use this feature, make sure to emit the "DataCollected" event with any
@@ -111,21 +119,21 @@ class PaymentWorkflow extends FormWorkflow
     { productForm } = @getOptions()
 
     if productForm?
-      @addForm 'product', productForm
+      @addForm 'product', productForm, ['productData', 'subscription']
       productForm.on 'DataCollected', (productData) =>
         @addAggregateData { productData }
         @preparePaymentMethods()
 
     # "choice form" is for choosing from existing payment methods on-file.
-    @addForm 'choice', @createChoiceForm()
+    @addForm 'choice', @createChoiceForm(), ['paymentMethod']
 
     # "entry form" is for entering a new payment method for us to file.
-    @addForm 'entry', @createEntryForm()
+    @addForm 'entry', @createEntryForm(), ['paymentMethod']
 
     # "confirm form" is required.  This form should render a summary, and emit
     # a "PaymentConfirmed" after user approval.
     { confirmForm } = @getOptions()
-    @addForm 'confirm', confirmForm
+    @addForm 'confirm', confirmForm, ['userConfirmation']
 
     confirmForm.on 'PaymentConfirmed', =>
       # You should listen to the "PaymentConfirmed" event from outside the
