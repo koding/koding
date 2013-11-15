@@ -335,9 +335,12 @@ app.all '/:name/:section?*', (req, res, next)->
         else next()
 
 app.get "/", (req, res, next)->
+  staticHome = require "../crawler/staticpages/kodinghome"
 
   if slug = req.query._escaped_fragment_
     return Crawler.crawl koding, req, res, slug
+  else if (req.headers["user-agent"].indexOf "Googlebot") isnt -1
+    res.send 200, staticHome()
   else
     serveSub = (err, subPage)->
       return next()  if err
