@@ -166,49 +166,6 @@
 # "Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"
 # "Applications/Environments.kdapplication/Controllers/DNSRecordListController.coffee"
 
-# GROUPS
-
-# groups controllers
-"Applications/Groups.kdapplication/groupdata.coffee"
-"Applications/Groups.kdapplication/AppController.coffee",
-"Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
-
-# groups views
-"Applications/Home.kdapplication/ContentDisplays/AboutView.coffee"
-"Applications/Home.kdapplication/Views/grouphomeview.coffee",
-"Applications/Home.kdapplication/Views/homeloginbar.coffee",
-"Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
-"Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
-"Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
-"Applications/Groups.kdapplication/Views/groupsinvitationview.coffee",
-"Applications/Groups.kdapplication/Views/groupsinvitationtabview.coffee",
-"Applications/Groups.kdapplication/Views/groupsinvitationtabpaneview.coffee",
-"Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
-"Applications/Groups.kdapplication/Views/groupsinvitationcodelistitemview.coffee",
-"Applications/Groups.kdapplication/Views/GroupsListItemView.coffee",
-"Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
-"Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
-"Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee",
-"Applications/Groups.kdapplication/Views/groupsdangermodalview.coffee",
-"Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
-"Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
-"Applications/Groups.kdapplication/Views/groupsbundleview.coffee",
-"Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
-"Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
-"Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
-"Applications/Groups.kdapplication/Views/groupview.coffee",
-"Applications/Groups.kdapplication/Views/joinbutton.coffee",
-"Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
-"Applications/Groups.kdapplication/Views/permissionview.coffee",
-"Applications/Groups.kdapplication/Views/readmeview.coffee",
-"Applications/Groups.kdapplication/Views/groupcreation.coffee",
-"Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
-"Applications/Groups.kdapplication/Views/blockedusersview.coffee",
-"Applications/Groups.kdapplication/Views/blockeduserslistitemview.coffee",
-
-# app
-"Applications/Groups.kdapplication/AppView.coffee",
-
 # APPS VIEWS
 "Applications/Apps.kdapplication/AppView.coffee",
 
@@ -369,9 +326,6 @@
 # "stylus/app.starttab.styl",
 # "stylus/app.viewer.styl",
 # "stylus/app.book.styl",
-# "stylus/app.group.general.styl",
-# "stylus/app.group.dashboard.styl",
-# "stylus/app.group.creation.styl",
 # "stylus/app.user.styl",
 # "stylus/app.markdown.styl",
 # "stylus/app.classroom.styl",
