@@ -237,7 +237,7 @@ module.exports = class Builder
           if file.sourcePath in @blackList
             @blackList.splice (@blackList.indexOf file.sourcePath), 1
           else if not checkFileCase file.sourcePath
-            log.error "File name case is wrong: #{ includePath }"
+            log.error "File name case is wrong: #{ file.sourcePath }"
             process.exit 1
 
           switch file.extension
