@@ -4,6 +4,48 @@ class KodingAppsController extends KDController
     name       : "KodingAppsController"
     background : yes
 
+  @putAppScript = (name, callback = noop)->
+
+    name = __utils.slugify name
+
+    unless name in KD.config.allowedApps
+      warn message = "#{name} is not available to run!"
+      return callback {message}
+
+    if name.capitalize() in Object.keys KD.appClasses
+      warn "#{name} is already imported"
+      return callback null
+
+    # Remove app from head if exists, just for sure
+    $("head .internal-app-#{name}").remove()
+
+    getScriptUrl = (name)->
+      "http://localhost:3020/js/app.#{name}.#{KD.config.version}.js"
+
+    getStyleUrl = (name)->
+      "http://localhost:3020/css/app.#{name}.#{KD.config.version}.css"
+
+    style        = new KDCustomHTMLView
+      tagName    : "link"
+      cssClass   : "internal-app-#{name}"
+      attributes :
+        rel      : "stylesheet"
+        href     : getStyleUrl name
+        onload   : KD.utils.defer ->
+          log "Style loaded? for #{name} # don't trust this ..."
+
+    style.appendToSelector 'head'
+
+    script       = new KDCustomHTMLView
+      tagName    : "script"
+      cssClass   : "internal-app-#{name}"
+      attributes :
+        type     : "text/javascript"
+        src      : getScriptUrl name
+        onload   : KD.utils.defer -> callback null
+
+    script.appendToSelector 'head'
+
   @manifests = {}
 
   @getManifestFromPath = getManifestFromPath = (path)->
