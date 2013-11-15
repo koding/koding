@@ -10,7 +10,7 @@ class FormWorkflow extends KDView
 
   requireData: (fields) ->
     gate =
-      if (fields.hasBrand? 'all') or (fields.hasBrand? 'any')
+      if fields.isGate
       then fields
       else @all fields...
 
@@ -80,16 +80,18 @@ class FormWorkflow extends KDView
 
   class Collector extends KDEventEmitter
 
-    constructor: (@gate = new All) ->
+    constructor: (@gate = new Gate) ->
       super
       @data = {}
-      @gate.on 'Satisfied', => @emit 'DataCollected', @data
+      @gate.on 'report', (state) => switch state
+        when 'Satisfied'
+          @emit 'DataCollected', @data
+        when 'Dissatisfied' then #ignore
 
     addRequirement: (requirement) ->
       @gate.addField requirement
 
-    satisfyRequirement: (key) ->
-      @gate.satisfy key
+    getData: -> @gate.getData()
 
     collectData: (data) ->
       @defineKey key, val  for own key, val of data
@@ -100,7 +102,7 @@ class FormWorkflow extends KDView
 
     defineKey: (key, value) ->
       @data[key] = value
-      @satisfyRequirement key
+      @gate.satisfy key
 
   class Satisfier extends KDEventEmitter
 
@@ -114,18 +116,9 @@ class FormWorkflow extends KDView
       @satisfied = no
       @emit 'Canceled'
 
-  class Gate extends KDObject
+  @Gate = class Gate extends KDObject
 
-    makeError = (message, brand) ->
-      { stack } = new Error
-      {
-        message, brand, stack
-      }
-
-    constructor: (@brand, fields = []) ->
-      unless @brand in ['any', 'all']
-        throw makeError 'Unrecognized brand!', @brand
-
+    constructor: (fields = []) ->
       super()
 
       @id = @createId()
@@ -135,6 +128,8 @@ class FormWorkflow extends KDView
 
     createId: do (i = 0) -> -> i++
 
+    isGate: yes
+
     getFields: -> Object.keys @fields
 
     addChild: (child) ->
@@ -142,25 +137,24 @@ class FormWorkflow extends KDView
       return this
 
     removeChild: (child) ->
-      i = @children.indexOf child
-      @children.splice i  if i > -1
+      @children.splice i, 0  while (i = @children.indexOf child) > -1
       return this
 
     addField: (field) ->
-      satisfier = @getSatisfier()
+      satisfier = @createSatisfier()
       
       @fields[field] = satisfier
 
-      unless 'string' is typeof field
+      if field.isGate
+
         @addChild field
         
-        field.on 'Satisfied', =>
-          debugger
-          @emit 'RequirementSatisfied', field
-          satisfier.satisfy()
-
-        field.on 'Canceled', ->
-          satisfier.cancel()
+        field.on 'report', (state) => switch state
+          when 'Satisfied'
+            @emit 'RequirementSatisfied', field
+            satisfier.satisfy()
+          when 'Canceled'
+            satisfier.cancel()
 
       return this
 
@@ -169,6 +163,7 @@ class FormWorkflow extends KDView
         @fields[key].cancel()
       else
         child.removeKey key  for child in @children
+
       return this
 
     satisfy: (field) ->
@@ -176,14 +171,7 @@ class FormWorkflow extends KDView
         satisfier.satisfy()
       else
         child.satisfy field  for child in @children
-      return this
 
-    getSatisfier: -> switch @brand
-      when 'any'  then @satisfier ?= @createSatisfier()
-      when 'all'  then @createSatisfier()
-
-    report: ->
-      @emit if @isSatisfied() then 'Satisfied' else 'Dissatisfied'
       return this
 
     createSatisfier: ->
@@ -194,27 +182,34 @@ class FormWorkflow extends KDView
 
       return satisfier
 
-    hasBrand: (brand) -> brand is @brand
+    report: ->
+      @emit 'report', if @isSatisfied() then 'Satisfied' else 'Dissatisfied'
 
-    getSignal: -> @compliment no
+      return this
 
-    compliment: (value) -> switch @brand
-      when 'all' then value
-      when 'any' then !value
+    signal: -> @compliment no
+
+    compliment: (value) -> value
 
     isSatisfied: ->
       for own _, field of @fields
-        return @getSignal()  unless @compliment field.isSatisfied()
+        return @signal()  unless @compliment field.isSatisfied()
 
       for child in @children
-        return @getSignal()  unless @compliment child.isSatisfied()
+        return @signal()  unless @compliment child.isSatisfied()
 
-      return !@getSignal()
+      return !@signal()
 
     toString: -> "gate-#{@id}"
 
-  class All extends Gate
-    constructor: (fields) -> super 'all', fields
+  @All = class All extends Gate
+    # All is like Gate.
 
-  class Any extends Gate
-    constructor: (fields) -> super 'any', fields
+  @Any = class Any extends Gate
+    # Any is like Gate, with a couple tweaks.
+
+    # Any#compliment negates the value :)
+    compliment: (value) -> !value
+
+    # Any#createSatisfier returns a singleton satisfier :)
+    createSatisfier: -> @safisfier ?= super()
