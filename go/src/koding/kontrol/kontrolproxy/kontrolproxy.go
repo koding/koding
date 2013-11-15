@@ -49,7 +49,7 @@ type Proxy struct {
 	// request hosts, such as koding.com.
 	CacheTransports map[string]http.RoundTripper
 
-	sync.RWMutex
+	sync.Mutex
 }
 
 // Client is used to register incoming request with an 1 hour cache. After that
@@ -318,15 +318,13 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	var ok bool
 
 	if target.CacheEnabled && target.CacheSuffixes != "" {
-		p.RLock()
+		p.Lock()
 		transport, ok = p.CacheTransports[req.Host]
-		p.RUnlock()
 		if !ok {
 			transport = cache.NewCacheTransport(target.CacheSuffixes)
-			p.Lock()
 			p.CacheTransports[req.Host] = transport
-			p.Unlock()
 		}
+		p.Unlock()
 	}
 
 	return reverseProxyHandler(transport, target.Url)
@@ -354,15 +352,14 @@ func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Hand
 func (p *Proxy) resetCacheHandler(host string) http.Handler {
 	var result string
 
-	p.RLock()
+	p.Lock()
+	defer p.Unlock()
+
 	_, ok := p.CacheTransports[host]
-	p.RUnlock()
 	if !ok {
 		result = "there is no caching enabled for " + host
 	} else {
-		p.Lock()
 		delete(p.CacheTransports, host)
-		p.Unlock()
 		result = "cache is resetted for " + host
 	}
 
