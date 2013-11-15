@@ -28,17 +28,17 @@ positiveGreen = rgba(58,200,2,1)
       border-color        #b51700 #b51700 #333 #b51700
 
 .kdview.content-area-pane.account
-  bg(color, #393630)
-  bg(image,url(../images/koding-bg.png))
-  bg(repeat,repeat-x)
-  bg(position,-16px -52px)
+  bg                    color, #393630
   a
     text-decoration     none
+
 
 #account-nav
   border-left       1px solid rgba(7,6,6,.2)
   bg                color,rgba(0,0,0,.2)
   padding           25px 18px 0 18px
+  width             200px
+  fix()
   borderBox()
   .kdtreeview
     padding         0 9px
@@ -81,8 +81,9 @@ positiveGreen = rgba(58,200,2,1)
 
 #account-content-wrapper
   border-left       1px solid rgba(7,6,6,.4)
-  height            auto
+  size              auto auto
   color             white
+  margin-left       200px
   // bg(color,rgba(255,0,0,.2))
   borderBox()
   h2.kdheaderview
@@ -265,21 +266,21 @@ positiveGreen = rgba(58,200,2,1)
   margin-left           8px
   top                   3px
 
-.login-email,
-.password-security,
+.login-email
+.password-security
 .linked-accounts
   text-shadow         0 -1px 1px rgba(0,0,0,.6)
 
-.payment-methods,
-.your-subscriptions,
-.pending-invitations,
+.payment-methods
+.your-subscriptions
+.pending-invitations
 .koding-keys
-.billing-history,
-.editor-settings,
-.repository-settings,
-.manage-mounts,
-.ssh-keys,
-.koding-keys,
+.billing-history
+.editor-settings
+.repository-settings
+.manage-mounts
+.ssh-keys
+.koding-keys
 .database-settings
   text-shadow         0 -1px 1px rgba(0,0,0,.6)
 
