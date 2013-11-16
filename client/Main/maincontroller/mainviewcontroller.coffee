@@ -6,10 +6,10 @@ class MainViewController extends KDViewController
 
     {repeat, killRepeat} = KD.utils
 
-    mainView       = @getView()
-    mainController = KD.getSingleton 'mainController'
-    appManager     = KD.getSingleton 'appManager'
-    @registerSingleton 'mainViewController', @, yes
+    mainView         = @getView()
+    mainController   = KD.getSingleton 'mainController'
+    appManager       = KD.getSingleton 'appManager'
+    @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
 
     mainController.on 'accountChanged.to.loggedIn', (account)=>
@@ -27,6 +27,25 @@ class MainViewController extends KDViewController
     then $('body').addClass 'super'
     else $('body').removeClass 'super'
 
+    mainViewController = this
+    window.onscroll = do ->
+      lastRatio = 0
+      threshold = 50
+      (event)->
+        el = document.body
+        {scrollHeight, scrollTop} = el
+
+        dynamicThreshold = if threshold > 1
+        then (scrollHeight - threshold) / scrollHeight
+        else threshold
+
+        ratio = (scrollTop + window.innerHeight) / scrollHeight
+
+        if dynamicThreshold < ratio > lastRatio
+          mainViewController.emit 'LazyLoadThresholdReached', {ratio}
+          log 'firlatingen', ratio
+
+        lastRatio = ratio
 
 
   loadView:(mainView)->
