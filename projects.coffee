@@ -68,6 +68,12 @@ projects      =
     script        : "website/js/app.account.#{KODING_VERSION}.js"
     sourceMapRoot : "Account/"
 
+  Terminal        :
+    files         : "client/Terminal/includes.coffee"
+    style         : "website/css/app.terminal.#{KODING_VERSION}.css"
+    script        : "website/js/app.terminal.#{KODING_VERSION}.js"
+    sourceMapRoot : "Terminal/"
+
 bundles       =
 
   # Social      :
