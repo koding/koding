@@ -69,7 +69,7 @@ class MainTabHandleHolder extends KDView
             contextMenu.destroy()
         'Terminal'             :
           callback             : (source, event) ->
-            appManager.open "WebTerm", forceNew : yes
+            appManager.open "Terminal", forceNew : yes
             contextMenu.destroy()
         'Teamwork'             :
           callback             : ->

@@ -14,7 +14,7 @@ class FatihOpenAppPlugin extends FatihPluginAbstract
 
   generateIndex: ->
     KD.getSingleton("kodingAppsController").fetchApps (err, res = {}) =>
-      res.Terminal = name : "WebTerm"
+      res.Terminal = name : "Terminal"
       res.Ace      = name : "Ace"
       @index       = res
 

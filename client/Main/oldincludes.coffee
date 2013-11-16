@@ -42,19 +42,6 @@
 'app/Applications/Viewer.kdapplication/AppController.coffee',
 'app/Applications/Viewer.kdapplication/AppView.coffee',
 
-# webterm
-"Applications/WebTerm.kdapplication/AppController.coffee",
-"Applications/WebTerm.kdapplication/AppView.coffee",
-"Applications/WebTerm.kdapplication/webtermappview.coffee",
-"Applications/WebTerm.kdapplication/webtermsettingsview.coffee",
-"Applications/WebTerm.kdapplication/webtermsettings.coffee",
-"Applications/WebTerm.kdapplication/src/ControlCodeReader.coffee",
-"Applications/WebTerm.kdapplication/src/Cursor.coffee",
-"Applications/WebTerm.kdapplication/src/InputHandler.coffee",
-"Applications/WebTerm.kdapplication/src/ScreenBuffer.coffee",
-"Applications/WebTerm.kdapplication/src/StyledText.coffee",
-"Applications/WebTerm.kdapplication/src/Terminal.coffee",
-
 # --- ApplicationPageViews ---
 "Applications/Activity.kdapplication/activitylistcontroller.coffee",
 
@@ -307,13 +294,6 @@
 # "stylus/app.teamwork.styl",
 # "stylus/app.predefined.styl",
 # "stylus/app.envsettings.styl",
-
-# WebTerm Themes
-"Applications/WebTerm.kdapplication/themes/green-on-black.styl",
-"Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
-"Applications/WebTerm.kdapplication/themes/black-on-white.styl",
-"Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
-"Applications/WebTerm.kdapplication/themes/solarized-light.styl",
 
 # mediaqueries should stay at the bottom
 # "stylus/app.1024.styl",

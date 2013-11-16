@@ -32,7 +32,7 @@ class EnvironmentMachineItem extends EnvironmentItem
           @destroy()
       'Open VM Terminal' :
         callback         : ->
-          KD.getSingleton("appManager").open "WebTerm", params: {vmName}, forceNew: yes
+          KD.getSingleton("appManager").open "Terminal", params: {vmName}, forceNew: yes
           @destroy()
         separator        : yes
       'Delete'           :

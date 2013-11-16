@@ -31,7 +31,7 @@ class ApplicationManager extends KDObject
     # set unload listener
     windowController = @getSingleton 'windowController'
     windowController.addUnloadListener 'window', =>
-      for own app of @appControllers when app in ['Ace', 'WebTerm']
+      for own app of @appControllers when app in ['Ace', 'Terminal']
         safeToUnload = no
         break
       return safeToUnload ? yes

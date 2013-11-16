@@ -6,7 +6,7 @@ class WebTerm.StyledText
     @style = style
     @spanForced = false
     @node = null
-  
+
   getNode: ->
     if not @node?
       if not @style.isDefault() or @spanForced
@@ -16,7 +16,7 @@ class WebTerm.StyledText
       else
         @node = document.createTextNode @text
     @node
-  
+
   updateNode: ->
     @node.attr @style.getAttributes()
 
@@ -28,17 +28,17 @@ class WebTerm.StyledText
       @inverse = false
       @textColor = null
       @backgroundColor = null
-    
+
     isDefault: ->
       not @bold and not @underlined and not @inverse and @textColor is null and @backgroundColor is null
-    
+
     equals: (other) ->
       @bold is other.bold and @underlined is other.underlined and @inverse is other.inverse and @textColor is other.textColor and @backgroundColor is other.backgroundColor
-    
+
     getAttributes: ->
       classes = []
       styles = []
-  
+
       classes.push "bold" if @bold
       classes.push "underlined" if @underlined
       classes.push "outlined" if @outlined
@@ -57,7 +57,7 @@ class WebTerm.StyledText
           styles.push "background-color: #{@getColor(@backgroundColor - 16)}"
         else if @backgroundColor < 256
           styles.push "background-color: #{@getGrey(@backgroundColor - 232)}"
-      
+
       {
         class: classes.join(" ")
         style: styles.join("; ")
@@ -75,5 +75,5 @@ class WebTerm.StyledText
     getGrey: (index) ->
       l = index * 10 + 8
       return "rgb(#{l}, #{l}, #{l})"
-  
+
   @DEFAULT_STYLE = new Style

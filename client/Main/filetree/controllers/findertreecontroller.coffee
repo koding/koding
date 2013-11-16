@@ -87,7 +87,7 @@ class NFinderTreeController extends JTreeViewController
 
   openVmTerminal:(nodeView)->
     {vmName} = nodeView.data
-    @appManager.open "WebTerm", params: {vmName}, forceNew: yes
+    @appManager.open "Terminal", params: {vmName}, forceNew: yes
 
   setDotFiles:(nodeView, show=yes)->
     {vmName, path} = nodeView.getData()
@@ -449,7 +449,7 @@ class NFinderTreeController extends JTreeViewController
         @notify "Download failed!", "error", err
 
   openTerminalFromHere: (nodeView) ->
-    @appManager.open "WebTerm", (appInstance) =>
+    @appManager.open "Terminal", (appInstance) =>
       path          = nodeView.getData().path
       {webTermView} = @appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
 
