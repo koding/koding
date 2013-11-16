@@ -6,10 +6,10 @@ class VmProductForm extends FormWorkflow
   checkUsageLimits: (pack, callback) ->
     { subscription } = @collector.data
     subscription.checkUsage pack, (err, usage) =>
-      if err
-        @clearData 'subscription'
-        @setState 'upgrade'
-      @collectData { pack }
+      @clearData 'subscription'  if err
+
+      callback err, usage
+
 
   createPackChoiceForm: -> new PackChoiceForm
     title     : 'Choose your VM'
@@ -26,7 +26,7 @@ class VmProductForm extends FormWorkflow
       when 1
         [subscription] = subscriptions
         @collectData { subscription }
-        # @emit 'PackOfferingRequested', subscription
+        @emit 'PackOfferingRequested', subscription
       else
         @setState 'choice'
 
@@ -39,7 +39,6 @@ class VmProductForm extends FormWorkflow
   createChoiceForm: -> new KDView partial: 'this is a plan choice form'
 
   prepareProductForm: ->
-
     @requireData [
       
       @any('subscription', 'plan')
@@ -51,15 +50,17 @@ class VmProductForm extends FormWorkflow
     upgradeForm.on 'PlanSelected', (plan) =>
       @collectData { plan }
 
-    @addForm 'upgrade', upgradeForm
+    @addForm 'upgrade', upgradeForm, ['plan', 'subscription']
 
     packChoiceForm = @createPackChoiceForm()
+    @forwardEvent packChoiceForm, 'PackOfferingRequested'
     packChoiceForm.on 'PackSelected', (pack) =>
-      @checkUsageLimits pack, (err, usage) ->
-        debugger
-      # @collectData { pack }
+      @checkUsageLimits pack, (err, usage) =>
+        @collectData { pack }  unless err
 
-    @addForm 'pack choice', packChoiceForm
+    @addForm 'pack choice', packChoiceForm, ['pack']
 
     choiceForm = @createChoiceForm()
     
+    console.log @getFields yes
+
