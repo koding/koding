@@ -28,23 +28,25 @@ class KodingAppsController extends KDController
     style        = new KDCustomHTMLView
       tagName    : "link"
       cssClass   : "internal-app-#{name}"
+      bind       : 'load'
+      load       : ->
+        log "Style loaded? for #{name} # don't trust this ..."
       attributes :
         rel      : "stylesheet"
         href     : getStyleUrl name
-        onload   : KD.utils.defer ->
-          log "Style loaded? for #{name} # don't trust this ..."
 
-    style.appendToSelector 'head'
+    $('head')[0].appendChild style.getElement()
 
     script       = new KDCustomHTMLView
       tagName    : "script"
       cssClass   : "internal-app-#{name}"
+      bind       : 'load'
+      load       : -> callback null
       attributes :
         type     : "text/javascript"
         src      : getScriptUrl name
-        onload   : KD.utils.defer -> callback null
 
-    script.appendToSelector 'head'
+    $('head')[0].appendChild script.getElement()
 
   @manifests = {}
 
