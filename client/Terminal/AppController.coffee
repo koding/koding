@@ -1,7 +1,7 @@
 class WebTermController extends AppController
 
   KD.registerAppClass this,
-    name         : "WebTerm"
+    name         : "Terminal"
     title        : "Terminal"
     navItem      :
       title      : "Terminal"
@@ -12,8 +12,8 @@ class WebTermController extends AppController
       handler    : ({params:{name}, query})->
         KD.utils.wait 800, ->
           router = KD.getSingleton 'router'
-          warn "webterm handling itself", name, query, arguments
-          router.openSection "WebTerm", name, query
+          warn "terminal handling itself", name, query, arguments
+          router.openSection "Terminal", name, query
     multiple     : yes
     hiddenHandle : no
     menu         :
@@ -37,9 +37,10 @@ class WebTermController extends AppController
             unless KD.isGuest()
               KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
           , 2500
+
       failure     : (options, cb)->
         KD.getSingleton("vmController").askToTurnOn
-          appName : 'WebTerm'
+          appName : 'Terminal'
           vmName  : options.vmName
           state   : options.info.state
         , cb
