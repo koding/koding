@@ -387,10 +387,11 @@ class VirtualizationController extends KDController
       title       : "Create a new VM"
       workflow    : workflow
 
-    workflow.on 'PaymentConfirmed', (formData) ->
-      { paymentMethodId, productData:{ plan }} = formData
-      plan.subscribe paymentMethodId, (err, res) ->
-        console.log {err, res}
+    workflow.on 'DataCollected', -> debugger
+     #(formData) ->
+#      { paymentMethodId, productData:{ plan }} = formData
+#      plan.subscribe paymentMethodId, (err, res) ->
+#        console.log {err, res}
 
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no

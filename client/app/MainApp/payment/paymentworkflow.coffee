@@ -6,8 +6,6 @@ class PaymentWorkflow extends FormWorkflow
 
     super options, data
 
-    @aggregatedData = {}
-
   preparePaymentMethods: (formData) ->
     @setState 'choice'
 
@@ -57,17 +55,11 @@ class PaymentWorkflow extends FormWorkflow
 
           paymentField.addSubView select
 
-  addAggregateData: (formData) ->
-    for own key, val of formData
-      if @aggregatedData[key]?
-        console.warn "Duplicate form data property: #{key}"
-      @aggregatedData[key] = val
 
-  selectPaymentMethod: (method) ->
-    { paymentMethodId } = method
-    @addAggregateData { paymentMethodId }
-    (@getForm 'confirm').setPaymentMethod? method
-    @setState 'confirm'
+  selectPaymentMethod: (paymentMethod) ->
+    @collectData { paymentMethod }
+    # (@getForm 'confirm').setPaymentMethod? method
+    # @setState 'confirm'
 
   createChoiceForm: ->
 
@@ -96,9 +88,9 @@ class PaymentWorkflow extends FormWorkflow
 
   setState: (state) ->
     @showForm state
-    if state is 'confirm'
-      confirmData = @utils.extend {}, @aggregatedData
-      (@getForm 'confirm').setData confirmData
+    # if state is 'confirm'
+    #   confirmData = @utils.extend {}, @aggregatedData
+    #   (@getForm 'confirm').setData confirmData
 
   viewAppended:-> @prepareWorkflow()
 
@@ -121,8 +113,9 @@ class PaymentWorkflow extends FormWorkflow
     if productForm?
       @addForm 'product', productForm, ['productData', 'subscription']
       productForm.on 'DataCollected', (productData) =>
-        @addAggregateData { productData }
-        @preparePaymentMethods()
+        @collectData { productData }
+        { subscription } = productData
+        @collectData { subscription }  if subscription
 
     # "choice form" is for choosing from existing payment methods on-file.
     @addForm 'choice', @createChoiceForm(), ['paymentMethod']
@@ -136,15 +129,8 @@ class PaymentWorkflow extends FormWorkflow
     @addForm 'confirm', confirmForm, ['userConfirmation']
 
     confirmForm.on 'PaymentConfirmed', =>
-      # You should listen to the "PaymentConfirmed" event from outside the
-      # workflow.  We'll forward a result like:
-      #   { paymentMethodId, productData* }
-      # * "productData" is the data that you emitted from the product form.
-      @emit 'PaymentConfirmed', @aggregatedData
+      @collectData { userConfirmation: yes }
 
-    # if provided, show the product form, otherwise skip to payment methods.
-    if productForm?
-    then @setState 'product'
-    else @preparePaymentMethods()
+    @nextForm()
 
     return this
