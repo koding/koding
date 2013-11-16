@@ -51,8 +51,7 @@ class MainController extends KDController
 
     @ready =>
       router.listen()
-      # KD.registerSingleton "activityController",      new ActivityController
-
+      KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       KD.registerSingleton "kontrol",                 new Kontrol
