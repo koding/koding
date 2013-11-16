@@ -20,7 +20,5 @@ module.exports = (options = {})->
   <meta property="og:type" content="website" />
   <meta property="og:image" content="#{options.image}"/>
   <meta property="og:image:secure_url" content="#{options.image}"/>
-  <meta property="og:image:type" content="JPG">
-  <meta property="og:image:width" content="160">
-  <meta property="og:image:height" content="160">
+  <meta property="og:image:type" content="image/jpeg">
   """
