@@ -42,18 +42,6 @@ class GroupsAppController extends AppController
     KD.getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
-    @utils.defer @bound 'init'
-
-  init:->
-    mainController = KD.getSingleton 'mainController'
-    router         = KD.getSingleton 'router'
-    {entryPoint}   = KD.config
-    mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
-      return unless pageInfo.path
-      if pageInfo.topLevel
-      then router.handleRoute "#{pageInfo.path}"
-      else router.handleRoute "#{pageInfo.path}", {entryPoint}
-
   onboardingText =
     everything : """
       <h3 class='title'>Koding groups are a simple way to connect and interact with people who share
