@@ -29,8 +29,8 @@ class ApplicationManager extends KDObject
     # @on 'AnInstanceIsShown', @bound "setMissingRoute"
 
     # set unload listener
-    windowController = @getSingleton 'windowController'
-    windowController.addUnloadListener 'window', =>
+    wc = @getSingleton 'windowController'
+    wc.addUnloadListener 'window', =>
       for own app of @appControllers when app in ['Ace', 'Terminal']
         safeToUnload = no
         break
@@ -71,8 +71,6 @@ class ApplicationManager extends KDObject
       appParams            = options.params or {}
       defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
       kodingAppsController = KD.getSingleton("kodingAppsController")
-
-      # -------
 
       # If app has a preCondition then first check condition in it
       # if it returns true then continue, otherwise call failure
@@ -129,8 +127,7 @@ class ApplicationManager extends KDObject
       else do defaultCallback
 
   openFileWithApplication: (appName, file) ->
-    @open appName, =>
-      @utils.defer => @getFrontApp().openFile file
+    @open appName, => @utils.defer => @getFrontApp().openFile file
 
   fetchManifests:(appName, callback)->
 
@@ -185,8 +182,6 @@ class ApplicationManager extends KDObject
   tell:(name, command, rest...)->
 
     return warn "ApplicationManager::tell called without an app name!"  unless name
-
-    # log "::: Telling #{command} to #{name}"
 
     app = @get name
     cb  = (appInstance)-> appInstance?[command]? rest...
