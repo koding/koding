@@ -51,7 +51,4 @@ class NavigationActivityLink extends KDCustomHTMLView
     @setTemplate @pistachio()
     @template.update()
 
-  pistachio: ->
-    """
-      {{> @count}} {{> @icon}} #{@getData().title}
-    """
+  pistachio: -> "{{> @count}} {{> @icon}} #{@getData().title}"

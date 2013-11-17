@@ -44,8 +44,8 @@ class NavigationLink extends KDListItemView
 
   dragStarted: (event, dragState)->
 
-    log KD.getNavItems().indexOf @getData()
     @setClass 'no-anim'
 
   dragFinished: (event, dragState)->
+
     @unsetClass 'no-anim'

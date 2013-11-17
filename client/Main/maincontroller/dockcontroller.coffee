@@ -38,8 +38,6 @@ class DockController extends KDViewController
 
       return @emit 'ready'  unless usersNavItems
 
-      log usersNavItems
-
       usersNavObj   = createHash usersNavItems
 
       # reset default items' orders if user has customized them
