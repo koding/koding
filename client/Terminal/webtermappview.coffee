@@ -4,8 +4,6 @@ class WebTermAppView extends JView
 
     super options, data
 
-    @listenWindowResize()
-
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate: this
 
@@ -107,15 +105,9 @@ class WebTermAppView extends JView
 
     @addSubView new ChromeTerminalBanner
 
-  _windowDidResize:->
-    # 10px being the application page's padding
-    @tabView.setHeight @getHeight() - @tabHandleContainer.getHeight() - 10
-
   viewAppended: ->
     super
     @addNewTab()
-    @utils.defer =>
-      @_windowDidResize()
 
   addNewTab: ->
     webTermView = new WebTermView
