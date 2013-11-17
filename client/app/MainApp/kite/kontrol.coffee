@@ -5,19 +5,25 @@ class Kontrol extends KDObject
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
   kontrolEndpoint = "http://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/query"
-  SubscribePrefix = "kite"
+  SubscribePrefix = "client"
 
   constructor: (options)->
+
     super
+
     @readyState = NOTREADY
     @addr = "ws://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/_moh_/pub" #kontrol addr
-    @connect()
+    @kites = {}
+    # @connect()
 
-  getKites: (kitename, callback)->
+  getKites: (options, callback)->
     # find kites that belongs to username.
+    {name, region} = options
+
     queryData =
       username       : "#{KD.nick()}"
-      name           : kitename
+      name           : name
+      region         : region
       authentication :
         type         : "browser"
         key          : KD.remote.getSessionToken()
@@ -32,6 +38,37 @@ class Kontrol extends KDObject
         callback null, data
       else
         callback xhr.responseText, null
+
+  getKite: (options, callback)->
+    kite = @kites[options.name]
+    return callback null, kite if kite?
+
+    # no kites are available, ask kontrol server if any available
+    @getKites options, (err, kites) =>
+      if err
+        log "kontrol request error", err
+        callback err, null
+      else
+        # result might be multiple kites, but we only use the first time for now
+        kite = @createKite kites.first.kite
+        kite.token = kites.first.token
+        @addKite kite
+        callback null, kite
+
+  createKite: (kite)->
+    kite = new NewKite
+      name     : kite.name
+      token    : kite.token
+      port     : kite.port
+      publicIP : kite.publicIP
+
+    return kite
+
+  addKite: (kite) ->
+    @kites[kite.name] = kite
+
+  removeKite: (kite) ->
+    delete @kites[kite.name]
 
   connect:->
     @ws = new WebSocket @addr, KD.remote.getSessionToken()
@@ -60,8 +97,13 @@ class Kontrol extends KDObject
 
       switch msg.type
         when "KITE_REGISTERED"
+          log "kite registered"
+          kite = @createKite msg.args.kite
+          @addKite kite
           @emit "KiteRegistered", msg.args.kite
         when "KITE_DISCONNECTED"
+          log "kite disconnected"
+          @removeKite msg.args.kite
           @emit "KiteDisconnected", msg.args.kite
 
   onError: (evt) ->

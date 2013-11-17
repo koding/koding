@@ -42,7 +42,8 @@ module.exports = class JUser extends jraphical.Module
                      'fucker','admin','postfix','puppet','main','invite',
                      'administrator','members','register','activate','shared',
                      'groups','blogs','forums','topics','develop','terminal',
-                     'term','twitter','facebook','google','framework', 'kite']
+                     'term','twitter','facebook','google','framework', 'kite'
+                     'landing']
 
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
@@ -215,7 +216,7 @@ module.exports = class JUser extends jraphical.Module
                 isRegistration : false
                 username
               }
-              @logout client, callback
+              user.unlinkOAuths => @logout client, callback
 
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences = require '../registrationpreferences'
@@ -497,7 +498,7 @@ module.exports = class JUser extends jraphical.Module
     {sessionToken} = client
     JSession.one {clientId: sessionToken}, (err, session) =>
       return callback err  if err
-      return callback createKodingError "No session"  unless session
+      return callback createKodingError "Couldn't restore your session."  unless session
 
       kallback = (err, resp={}) ->
         {account, replacementToken} = resp
@@ -847,10 +848,15 @@ Your password has been changed!  If you didn't request this change, please conta
       JUser.emit "UserUnblocked", @
       return callback err
 
+  unlinkOAuths: (callback)->
+    @update $unset: {foreignAuth:1, foreignAuthType:1}, callback
+
   @persistOauthInfo: (username, clientId, callback)->
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
       return callback err  if err
       return callback()    unless foreignAuthInfo
+      return callback()    unless session
+
       @saveOauthToUser foreignAuthInfo, username, (err)=>
         return callback err  if err
         @clearOauthFromSession session, (err)=>
@@ -860,6 +866,7 @@ Your password has been changed!  If you didn't request this change, please conta
   @extractOauthFromSession: (clientId, callback)->
     JSession.one {clientId: clientId}, (err, session)->
       return callback err  if err
+      return callback()    unless session
 
       {foreignAuth, foreignAuthType} = session
       if foreignAuth and foreignAuthType
@@ -874,7 +881,7 @@ Your password has been changed!  If you didn't request this change, please conta
     @update {username}, $set: query, callback
 
   @clearOauthFromSession: (session, callback)->
-    session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
+    session.update $unset: {foreignAuth:1, foreignAuthType:1}, callback
 
   @copyPublicOauthToAccount: (username, {foreignAuth, foreignAuthType}, callback)->
     JAccount.one {"profile.nickname":username}, (err, account)->

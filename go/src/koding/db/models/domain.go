@@ -68,6 +68,15 @@ type ProxyTable struct {
 	// fullurl. It should be in HOST form, means no scheme should be used.
 	// Example: www.google.com, arslan.io, koding.com
 	FullUrl string `bson:"fullurl" json:"fullUrl,omitempty"`
+
+	// CacheEnabled is used to enable caching for HTTP requests. It only
+	// caches the files that ends with the suffixes defined in
+	// CacheSuffixes field"
+	CacheEnabled bool `bson:"cacheEnabled" json:"fullUrl,omitempty"`
+
+	// CacheSuffixes is a comma delimited string that defines which files
+	// are going to be cached. An example value might be: "jpg,ttf,js,css"
+	CacheSuffixes string `bson:"cacheSuffixes" json:"cacheSuffixes,omitempty"`
 }
 
 type LoadBalancer struct {

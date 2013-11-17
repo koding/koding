@@ -139,7 +139,6 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedTagsFromGraph'
         'fetchRelatedUsersFromGraph'
         'fetchDomains'
-        'fetchDomains'
         'unlinkOauth'
         'changeUsername'
         'markUserAsExempt'
@@ -663,10 +662,11 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
-                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin" ]
+                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
+                  "samet" ]
 
   userIsExempt: (callback)->
-    console.log @isExempt, this
+    # console.log @isExempt, this
     callback null, @isExempt
 
   # returns troll users ids
@@ -825,24 +825,27 @@ module.exports = class JAccount extends jraphical.Module
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
   fetchMail:do ->
+
     collectParticipants = (messages, delegate, callback)->
       fetchParticipants = race (i, message, fin)->
         register = new Register # a register per message...
-        jraphical.Relationship.all
-          targetName  : 'JPrivateMessage',
-          targetId    : message.getId(),
+
+        query =
+          targetName  : 'JPrivateMessage'
+          targetId    : message.getId()
           sourceId    :
             $ne       : delegate.getId()
-        , (err, rels)->
-          if err
-            callback err
-          else unless rels?.length
-            message.participants = []
-          else
-            # only include unique participants.
-            message.participants = (rel for rel in rels when register.sign rel.sourceId)
-          fin()
+
+        jraphical.Relationship.cursor query, (err, cursor)->
+          return callback err  if err
+          message.participants = []
+          cursor.each (err, rel)->
+            unless rel then fin()
+            else
+              message.participants.push rel  if register.sign rel.sourceId
+
       , callback
+
       fetchParticipants(message) for message in messages when message?
 
     secure ({connection:{delegate}}, options, callback)->
@@ -937,7 +940,7 @@ module.exports = class JAccount extends jraphical.Module
       return callback new KodingError "Attempt to remove unauthorized storage"
 
     @fetchStorage { 'data.name' : name }, (err, storage)=>
-      console.log err, storage
+      console.error err, storage  if err
       return callback err  if err
       unless storage
         return callback new KodingError "No such storage"
@@ -971,7 +974,7 @@ module.exports = class JAccount extends jraphical.Module
     @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
       if err then callback err
       else unless storage?
-        log.info 'creating new storage for application', appId, version
+        # log.info 'Creating new storage:', appId, version, @profile.nickname
         newStorage = new JAppStorage {appId, version}
         newStorage.save (err) =>
           if err then callback err

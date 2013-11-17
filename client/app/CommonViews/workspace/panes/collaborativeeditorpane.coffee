@@ -12,11 +12,10 @@ class CollaborativeEditorPane extends CollaborativePane
       @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
       @firepad.on "ready", =>
+        @firepad.setText " " # fix for a firepad bug
+        @codeMirrorEditor.scrollTo 0, 0
         {file, content} = @getOptions()
         return @openFile file, content  if file
-        if @firepad.isHistoryEmpty()
-          @firepad.setText "" # fix for a firepad bug
-          @codeMirrorEditor.scrollTo 0, 0
 
       @ref.on "value", (snapshot) =>
         value = snapshot.val()
@@ -45,7 +44,7 @@ class CollaborativeEditorPane extends CollaborativePane
         new KDNotificationView
           type     : "mini"
           cssClass : "success"
-          title    : "File has been saved"
+          title    : "File is saved"
           duration : 4000
     else
       @ref.child("WaitingSaveRequest").set yes

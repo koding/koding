@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
+	"koding/kontrol/kontrolproxy/cache"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
@@ -20,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -42,6 +44,12 @@ type Proxy struct {
 	// LogDestination specifies the destination of requests logs in the
 	// Combined Log Format.
 	LogDestination io.Writer
+
+	// CacheTransports is used to enable cache based roundtrips for certaing
+	// request hosts, such as koding.com.
+	CacheTransports map[string]http.RoundTripper
+
+	sync.Mutex
 }
 
 // Client is used to register incoming request with an 1 hour cache. After that
@@ -147,8 +155,9 @@ func startProxy() {
 	}
 
 	reverseProxy := &Proxy{
-		EnableFirewall: false,
-		LogDestination: logOutput,
+		EnableFirewall:  false,
+		CacheTransports: make(map[string]http.RoundTripper),
+		LogDestination:  logOutput,
 	}
 
 	startHTTPS(reverseProxy) // non-blocking
@@ -237,6 +246,8 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+var resetRegex = regexp.MustCompile("/_resetcache_/")
+
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
@@ -245,10 +256,13 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
 	}
 
-	go hitCounter(req.Host)
+	// remove cache for static files. It should be in form of _/resetcache_/koding.com
+	if resetRegex.MatchString(req.URL.String()) && req.Host == proxyName {
+		logs.Debug(fmt.Sprintf("resetCache is invoked %s - %s\n", req.Host, req.URL.String()))
+		return p.resetCacheHandler(filepath.Base(req.URL.String()))
+	}
 
 	userIP, userCountry := getIPandCountry(req.RemoteAddr)
-
 	target, err := resolver.GetMemTarget(req.Host)
 	if err != nil {
 		if err == resolver.ErrGone {
@@ -264,19 +278,13 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 	if p.EnableFirewall {
 		_, err = validate(userIP, userCountry, req.Host)
+		if err == ErrSecurePage {
+			return securePageHandler(userIP)
+		}
+
 		if err != nil {
-			if err == ErrSecurePage {
-				sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, userIP)
-				session, _ := store.Get(req, sessionName)
-				session.Options = &sessions.Options{MaxAge: 20} //seconds
-				_, ok := session.Values["securePage"]
-				if !ok {
-					return sessionHandler("securePage", userIP)
-				}
-			} else {
-				logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
-				return templateHandler("quotaExceeded.html", req.Host, 509)
-			}
+			logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
+			return templateHandler("quotaExceeded.html", req.Host, 509)
 		}
 	}
 
@@ -306,15 +314,29 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return websocketHandler(target.Url.Host)
 	}
 
-	return reverseProxyHandler(target.Url)
+	var transport http.RoundTripper
+	var ok bool
+
+	if target.CacheEnabled && target.CacheSuffixes != "" {
+		p.Lock()
+		transport, ok = p.CacheTransports[req.Host]
+		if !ok {
+			transport = cache.NewCacheTransport(target.CacheSuffixes)
+			p.CacheTransports[req.Host] = transport
+		}
+		p.Unlock()
+	}
+
+	return reverseProxyHandler(transport, target.Url)
 }
 
 // reverseProxyHandler is the main handler that is used for copy the response
 // back and forth to the request iniator. We use Go's main
 // httputil.ReverseProxy but can easily switch to any custom handler in the
 // future
-func reverseProxyHandler(target *url.URL) http.Handler {
+func reverseProxyHandler(transport http.RoundTripper, target *url.URL) http.Handler {
 	return &httputil.ReverseProxy{
+		Transport: transport, // if nil, http.DefaultTransport is used.
 		Director: func(req *http.Request) {
 			if !utils.HasPort(target.Host) {
 				req.URL.Host = utils.AddPort(target.Host, "80")
@@ -326,13 +348,38 @@ func reverseProxyHandler(target *url.URL) http.Handler {
 	}
 }
 
-// sessionHandler is used currently for the securepage feature of our
+// resetCacheHandler is reseting the cache transport for the given host.
+func (p *Proxy) resetCacheHandler(host string) http.Handler {
+	var result string
+
+	p.Lock()
+	defer p.Unlock()
+
+	_, ok := p.CacheTransports[host]
+	if !ok {
+		result = "there is no caching enabled for " + host
+	} else {
+		delete(p.CacheTransports, host)
+		result = "cache is resetted for " + host
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(result))
+	})
+
+}
+
+// securePageHandler is used currently for the securepage feature of our
 // validator/firewall. It is used to setup cookies to invalidate users visits.
-func sessionHandler(val, userIP string) http.Handler {
+func securePageHandler(userIP string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
 		session, _ := store.Get(r, sessionName)
-		session.Values[val] = time.Now().String()
+		session.Options = &sessions.Options{MaxAge: 20} //seconds
+		_, ok := session.Values["securePage"]
+		if !ok {
+			session.Values["securePage"] = time.Now().String()
+		}
 		session.Save(r, w)
 		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
 		if err != nil {

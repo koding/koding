@@ -9,6 +9,7 @@ module.exports = class CLinkActivity extends CActivity
   @set
     encapsulatedBy  : CActivity
     sharedMethods   : CActivity.sharedMethods
+    sharedEvents    : CActivity.sharedEvents
     schema          : CActivity.schema
     relationships   :
       subject       :

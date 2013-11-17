@@ -5,6 +5,7 @@ package container
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"koding/kites/provisioning/rbd"
 	"os"
 	"os/exec"
@@ -19,7 +20,7 @@ import (
 // templating), instead of we use this method which basically let us do things
 // more efficient. It creates the home directory, generates files like lxc.conf
 // and mounts the necessary filesystems.
-func (c *Container) Prepare() error {
+func (c *Container) Prepare(reinitialize bool) error {
 	if c.Exist(c.Dir) {
 		return errors.New("container does exist already. please unprepare it")
 	}
@@ -32,6 +33,13 @@ func (c *Container) Prepare() error {
 	err = c.MountRBD()
 	if err != nil {
 		return err
+	}
+
+	if reinitialize {
+		err = c.Reinitialize()
+		if err != nil {
+			return err
+		}
 	}
 
 	err = c.CreateOverlay()
@@ -88,7 +96,7 @@ func (c *Container) CreateContainerDir() error {
 func (c *Container) MountRBD() error {
 	r := rbd.NewRBD(c.Name)
 
-	out, err := r.Info(c.Name)
+	out, err := r.Info()
 	if err != nil {
 		return err
 	}
@@ -96,22 +104,22 @@ func (c *Container) MountRBD() error {
 	makeFileSystem := false
 	// means image doesn't exist, create new one
 	if out == nil {
-		out, err := r.Create(c.Name, c.DiskSizeInMB)
+		out, err := r.Create(c.DiskSizeInMB)
 		if err != nil {
-			return fmt.Errorf("mountrbd create failed.", err, out)
+			return fmt.Errorf("mountrbd create failed.", err, string(out))
 		}
 
 		makeFileSystem = true
 	}
 
-	out, err = r.Map(c.Name)
+	out, err = r.Map()
 	if err != nil {
-		return fmt.Errorf("mountrbd map failed.", err, out)
+		return fmt.Errorf("mountrbd map failed.", err, string(out))
 	}
 
 	timeout := time.Now().Add(30 * time.Second)
 	for {
-		_, err := os.Stat(r.Device)
+		_, err := os.Stat(r.DevicePath)
 		if err == nil {
 			break
 		}
@@ -121,7 +129,7 @@ func (c *Container) MountRBD() error {
 		time.Sleep(time.Second / 2)
 
 		if time.Now().After(timeout) {
-			return fmt.Errorf("timeout. rbd device '%s' does not exist", r.Device)
+			return fmt.Errorf("timeout. rbd device '%s' does not exist", r.DevicePath)
 		}
 	}
 
@@ -130,14 +138,14 @@ func (c *Container) MountRBD() error {
 	defer c.Unlock()
 
 	if makeFileSystem {
-		if out, err := exec.Command("/sbin/mkfs.ext4", r.Device).CombinedOutput(); err != nil {
-			return fmt.Errorf("mkfs.ext4 failed.", err, out)
+		if out, err := exec.Command("/sbin/mkfs.ext4", r.DevicePath).CombinedOutput(); err != nil {
+			return fmt.Errorf("mkfs.ext4 failed.", err, string(out))
 		}
 	}
 
 	mountDir := c.OverlayPath("")
 
-	err = c.CheckExt4(r.Device)
+	err = c.CheckExt4(r.DevicePath)
 	if err != nil {
 		return err
 	}
@@ -155,7 +163,7 @@ func (c *Container) MountRBD() error {
 		return nil
 	}
 
-	if out, err := exec.Command("/bin/mount", "-t", "ext4", r.Device, mountDir).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "-t", "ext4", r.DevicePath, mountDir).CombinedOutput(); err != nil {
 		os.Remove(mountDir)
 		return fmt.Errorf("mount rbd failed. err: %s\nout:%s\n", err, string(out))
 	}
@@ -204,6 +212,24 @@ func (c *Container) CheckExt4(device string) error {
 	if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
 		return fmt.Errorf("fsck.ext4 could not automatically repair FS for %s. err '%s', out: '%s;",
 			c.HostnameAlias, err, string(out))
+	}
+
+	return nil
+}
+
+func (c *Container) Reinitialize() error {
+	entries, err := ioutil.ReadDir(c.OverlayPath("/"))
+	if err != nil {
+		return err
+	}
+
+	// Remove all except /home on reinitialize
+	for _, entry := range entries {
+		if entry.Name() == "home" {
+			continue
+		}
+
+		os.RemoveAll(c.OverlayPath("/" + entry.Name()))
 	}
 
 	return nil

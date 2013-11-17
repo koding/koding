@@ -556,6 +556,8 @@ class KodingAppsController extends KDController
                 KodingError : 'Failed to fetch app creator info'
               return callback? err  if err
 
+              KD.mixpanel "User Installed Application", app.manifest.identifier
+
               @vmController.run
                 method       : "app.install"
                 withArgs     :
