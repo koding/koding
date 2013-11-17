@@ -6,13 +6,12 @@ class WebTermController extends AppController
     navItem      :
       title      : "Terminal"
       order      : 41
-      path       : "/Develop/Terminal"
+      path       : "/Terminal"
     route        :
-      slug       : "/:name?/Develop/Terminal"
+      slug       : "/:name?/Terminal"
       handler    : ({params:{name}, query})->
         KD.utils.wait 800, ->
           router = KD.getSingleton 'router'
-          warn "terminal handling itself", name, query, arguments
           router.openSection "Terminal", name, query
     multiple     : yes
     hiddenHandle : no
