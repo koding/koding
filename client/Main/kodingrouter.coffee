@@ -45,6 +45,21 @@ class KodingRouter extends KDRouter
       console.warn "Contract warning: shared route #{route} is not implemented."
 
   handleRoute:(route, options={})->
+
+    # InternalApps Fetcher
+    appManager = KD.getSingleton 'appManager'
+    frags      = route.split '/'
+    name       = frags[1] or ''
+    name       = if name is 'Develop' and frags.length > 2 then frags[2] else name
+
+    log 'handlingRoute', route, 'for the', name, 'app'
+    if (name.toLowerCase() in KD.config.allowedApps) and (name not in Object.keys KD.appClasses)
+      log 'couldn\'t found', name
+      return KodingAppsController.putAppScript name, (err)=>
+        log 'loaded', name
+        return warn err  if err
+        KD.utils.defer => @handleRoute route, options
+
     {entryPoint} = options
     if entryPoint?.slug? and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
