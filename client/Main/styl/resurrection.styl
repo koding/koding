@@ -9,6 +9,15 @@ resurrection.styl
 */
 }
 
+// When app class is added to html tag
+// layout becomes 100% width and height
+// so that apps can control their own
+// scrollviews and add their chrome frames
+html.app
+  height            100%
+  body
+    height          100%
+
 body
   font-family       'Helvetica Neue'
   bg                color, #EEEEEF

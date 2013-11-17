@@ -43,7 +43,6 @@ class MainViewController extends KDViewController
 
         if dynamicThreshold < ratio > lastRatio
           mainViewController.emit 'LazyLoadThresholdReached', {ratio}
-          log 'firlatingen', ratio
 
         lastRatio = ratio
 
@@ -55,9 +54,9 @@ class MainViewController extends KDViewController
 
   mainTabPaneChanged:(mainView, pane)->
 
-    cdController    = KD.getSingleton("contentDisplayController")
-    dockController  = KD.getSingleton("dockController")
-    appManager      = KD.getSingleton('appManager')
+    cdController    = KD.getSingleton 'contentDisplayController'
+    dockController  = KD.getSingleton 'dockController'
+    appManager      = KD.getSingleton 'appManager'
     app             = appManager.getFrontApp()
     {mainTabView}   = mainView
     {navController} = dockController
@@ -80,10 +79,15 @@ class MainViewController extends KDViewController
     (options = {})->
 
       {behavior, name} = options
-      mainView = @getView()
-      {contentPanel, mainTabView, sidebar} = mainView
-      o = { name }
+      html             = document.getElementsByTagName('html')[0]
+      body             = document.body
+      mainView         = @getView()
+      { contentPanel
+        mainTabView
+        sidebar }      = mainView
+      o                = {name}
 
+      KDView.setElementClass html, 'remove', 'app'
       switch behavior
         when 'hideTabs'
           o.hideTabs = yes
@@ -91,6 +95,7 @@ class MainViewController extends KDViewController
         when 'application'
           o.hideTabs = no
           o.type     = 'develop'
+          KDView.setElementClass html, 'add', 'app'
         else
           o.hideTabs = no
           o.type     = 'social'
@@ -100,8 +105,8 @@ class MainViewController extends KDViewController
       # if options.name is 'Activity'
       # if KD.introView
 
-      $('body').removeClass 'intro'
-      $('#kdmaincontainer').removeClass 'home'
+      KDView.setElementClass body, 'remove', 'intro'
+      mainView.unsetClass 'home'
       KD.introView?.unsetClass 'in'
       KD.introView?.setClass 'out'
 

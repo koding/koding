@@ -8,6 +8,7 @@ class ApplicationTabView extends KDTabView
     options.closeAppWhenAllTabsClosed   ?= yes
     options.saveSession                 ?= no
     options.sessionName                or= ""
+    options.cssClass = KD.utils.curry 'application-tabview', options.cssClass
 
     super options, data
 
