@@ -9,8 +9,17 @@ class GroupsController extends KDController
     @utils.defer @bound 'init'
 
   init:->
-    @groups = {}
+    mainController    = KD.getSingleton 'mainController'
+    router            = KD.getSingleton 'router'
+    {entryPoint}      = KD.config
+    @groups           = {}
     @currentGroupData = new GroupData
+
+    mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
+      return unless pageInfo.path
+      if pageInfo.topLevel
+      then router.handleRoute "#{pageInfo.path}"
+      else router.handleRoute "#{pageInfo.path}", {entryPoint}
 
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
