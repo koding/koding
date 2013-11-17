@@ -25,8 +25,6 @@ class ApplicationManager extends KDObject
       sound : "Viewer"
 
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
-    @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
-    # @on 'AnInstanceIsShown', @bound "setMissingRoute"
 
     # set unload listener
     wc = @getSingleton 'windowController'
@@ -36,15 +34,18 @@ class ApplicationManager extends KDObject
         break
       return safeToUnload ? yes
 
-  setMissingRoute:(appController, appView, appOptions)->
-    router       = KD.getSingleton('router')
-    {entryPoint} = KD.config
+    # @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
+    # @on 'AnInstanceIsShown', @bound "setMissingRoute"
 
-    route = appOptions.route.slug.replace /:\w+.?\//g, ''
-    comparedRoute = router.getCurrentPath().split('?').first
-    if route isnt comparedRoute
-      missingRoute = appController.getOption('initialRoute') or route
-      router.handleRoute missingRoute, { suppressListeners : yes, entryPoint }
+  # setMissingRoute:(appController, appView, appOptions)->
+  #   router       = KD.getSingleton('router')
+  #   {entryPoint} = KD.config
+
+  #   route = appOptions.route.slug.replace /:\w+.?\//g, ''
+  #   comparedRoute = router.getCurrentPath().split('?').first
+  #   if route isnt comparedRoute
+  #     missingRoute = appController.getOption('initialRoute') or route
+  #     router.handleRoute missingRoute, { suppressListeners : yes, entryPoint }
 
 
   open: do ->
