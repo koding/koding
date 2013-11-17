@@ -2,9 +2,8 @@ class KodingRouter extends KDRouter
 
   @registerStaticEmitter()
 
-  nicenames = {
+  nicenames =
     StartTab  : 'Develop'
-  }
 
   getSectionName =(model)->
     sectionName = nicenames[model.bongo_.constructorName]
@@ -262,39 +261,25 @@ class KodingRouter extends KDRouter
 
     routes =
 
-      '/'      : handleRoot
-      ''       : handleRoot
-      # '/Home'  : handleRoot
-      '/About' : createSectionHandler 'Activity'
-
+      '/'                      : handleRoot
+      ''                       : handleRoot
+      '/About'                 : createSectionHandler 'Activity'
       # verbs
-      '/:name?/Login'        : ({params:{name}})->
-        requireLogout -> animateToForm 'login'
-      '/:name?/Logout'       : ({params:{name}})->
-        requireLogin  -> mainController.doLogout()
-      '/:name?/Redeem'       : ({params:{name}})->
-        requireLogin  -> animateToForm 'redeem'
-      '/:name?/Register'     : ({params:{name}})->
-        requireLogout -> animateToForm 'register'
-      '/:name?/Recover'      : ({params:{name}})->
-        requireLogout -> animateToForm 'recover'
-      '/:name?/ResendToken'  : ({params:{name}})->
-        requireLogout -> animateToForm 'resendEmail'
-
-      # apps
-      '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
-
+      '/:name?/Login'          : ({params:{name}})-> requireLogout -> animateToForm 'login'
+      '/:name?/Logout'         : ({params:{name}})-> requireLogin  -> mainController.doLogout()
+      '/:name?/Redeem'         : ({params:{name}})-> requireLogin  -> animateToForm 'redeem'
+      '/:name?/Register'       : ({params:{name}})-> requireLogout -> animateToForm 'register'
+      '/:name?/Recover'        : ({params:{name}})-> requireLogout -> animateToForm 'recover'
+      '/:name?/ResendToken'    : ({params:{name}})-> requireLogout -> animateToForm 'resendEmail'
       # content
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
       '/:name?/Activity/:slug' : createContentHandler 'Activity'
       '/:name?/Apps/:slug'     : createContentHandler 'Apps'
 
       '/:name/Groups'          : createSectionHandler 'Groups'
-
       '/:name/Followers'       : createContentHandler 'Members', yes
       '/:name/Following'       : createContentHandler 'Members', yes
       '/:name/Likes'           : createContentHandler 'Members', yes
-
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
@@ -384,7 +369,9 @@ class KodingRouter extends KDRouter
 
       # top level names
       '/:name':do->
-        open =(routeInfo, model)->
+
+        open = (routeInfo, model)->
+
           switch model?.bongo_?.constructorName
             when 'JAccount'
               (createContentHandler 'Members') routeInfo, [model]
@@ -393,7 +380,7 @@ class KodingRouter extends KDRouter
             else
               @handleNotFound routeInfo.params.name
 
-        nameHandler =(routeInfo, state, route)->
+        (routeInfo, state, route)->
 
           if state?
             open.call this, routeInfo, state
