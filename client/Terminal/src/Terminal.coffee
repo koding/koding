@@ -208,7 +208,7 @@ class WebTerm.Terminal
   isScrolledToBottom: ->
     @container.scrollTop() + @container.prop("clientHeight") >= @container.prop("scrollHeight") - 3
 
-  scrollToBottom: (animate=yes) ->
+  scrollToBottom: (animate=no) ->
     return if @isScrolledToBottom()
     @container.stop()
     if animate
