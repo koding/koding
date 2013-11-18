@@ -1,4 +1,4 @@
-package conn
+package join
 
 import (
 	"io"
@@ -11,19 +11,19 @@ func Join(local, remote net.Conn) {
 	var wg sync.WaitGroup
 
 	pipe := func(to, from net.Conn) {
-		defer to.Close()
-		defer from.Close()
+		defer local.Close()
+		defer remote.Close()
 		defer wg.Done()
 
 		_, err := io.Copy(to, from)
-		log.Println(err)
+		log.Printf("copying from %s to %s, err: %s\n", from.RemoteAddr().String(), to.RemoteAddr().String(), err)
 	}
 
 	wg.Add(2)
 	go pipe(local, remote)
-	go pipe(remote, local)
+	pipe(remote, local)
 	wg.Wait()
 
-	log.Println("finished")
+	log.Println("join finished")
 	return
 }
