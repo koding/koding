@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/howeyc/fsnotify"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 	"koding/tools/dnode"
@@ -12,7 +13,6 @@ import (
 	"os"
 	"path"
 	"sync"
-	"github.com/howeyc/fsnotify"
 )
 
 type Fs struct{}
@@ -52,7 +52,7 @@ func main() {
 
 	k := kite.New(options)
 	k.AddMethods(new(Fs), methods)
-	k.Start()
+	k.Run()
 }
 
 func (Fs) ReadDirectory(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {
