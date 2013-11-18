@@ -37,7 +37,6 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
       placeholder   : "What's new #{decodedName}?"
       name          : 'body'
       style         : 'input-with-extras'
-      autogrow      : yes
       validate      :
         rules       :
           required  : yes
@@ -166,7 +165,7 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
   switchToSmallView:->
 
     @parent.setClass "no-shadow" if @parent # monkeypatch when loggedout this was giving an error
-    @largeInput.setHeight 33
+    @largeInput.setHeight 68
     @$('>div.large-input, >div.formline').hide()
     @smallInput.show()
     @smallInput.setValue @lastestStatusMessage
@@ -179,10 +178,10 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
 
     @utils.defer =>
       @largeInput.$().trigger "focus"
-      @largeInput.setHeight 72
+      @largeInput.setHeight 140
       @largeInput.setValue @lastestStatusMessage
 
-    # Do we really need this? Without that it works great.
+    #Â Do we really need this? Without that it works great.
     # yes we need this but with an improved implementation
     # it shouldn't reset non-submitted inputs
     # check widgetview.coffee:23-27-33
@@ -276,26 +275,19 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
       {{> @inputLinkInfoBox}}
       {{> @embedUnhideLinkWrapper}}
     </div>
-    <div class="formline">
-    {{> @embedBox}}
-    </div>
-    <div class="formline">
-      {{> @labelAddTags}}
-      <div>
-        {{> @selectedItemWrapper}}
-        {{> @tagAutoComplete}}
-      </div>
-    </div>
-    <div class="formline submit">
-      <div class='formline-wrapper'>
-        <div class="submit-box fr">
-          {{> @submitBtn}}
-          {{> @cancelBtn}}
-        </div>
-        {{> @heartBox}}
-      </div>
-    </div>
     """
+    # <div class="formline">
+    #   {{> @embedBox}}
+    # </div>
+    # <div class="formline submit">
+    #   <div class='formline-wrapper'>
+    #     <div class="submit-box fr">
+    #       {{> @submitBtn}}
+    #       {{> @cancelBtn}}
+    #     </div>
+    #     {{> @heartBox}}
+    #   </div>
+    # </div>
 
 class InfoBox extends KDView
   constructor:->

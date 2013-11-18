@@ -12,8 +12,8 @@ class NewCommentForm extends KDView
 
     @addSubView commenterAvatar = new AvatarStaticView
       size    :
-        width : 30
-        height: 30
+        width : 28
+        height: 28
     , KD.whoami()
 
     @addSubView commentFormWrapper = new KDView
@@ -38,7 +38,7 @@ class NewCommentForm extends KDView
 
   attachListeners:->
     @commentInput.on "blur", @bound "commentInputReceivedBlur"
-    @commentInput.on "focus", => 
+    @commentInput.on "focus", =>
       @getDelegate().emit "commentInputReceivedFocus"
 
   makeCommentFieldActive:->
