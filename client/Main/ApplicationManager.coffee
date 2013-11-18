@@ -1,9 +1,6 @@
-# √ uncomplicate this - Sinan 7/2012
-# √ rewriting this - Sinan 2/2013
+KD.config.allowedApps = ['account', 'topics', 'terminal', 'ace', 'activity']
 
 class ApplicationManager extends KDObject
-
-  manifestsFetched = no
 
   ###
 
@@ -11,6 +8,12 @@ class ApplicationManager extends KDObject
     - AppCreated                  [appController]
     - AppManagerWantsToShowAnApp  [appController, appView, appOptions]
   ###
+
+  manifestsFetched = no
+
+  @checkAppAvailability = (name='')->
+    return (name.toLowerCase() in KD.config.allowedApps) and\
+           (name not in Object.keys KD.appClasses)
 
   constructor:->
 
@@ -72,6 +75,14 @@ class ApplicationManager extends KDObject
       appParams            = options.params or {}
       defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
       kodingAppsController = KD.getSingleton("kodingAppsController")
+
+      log 'AppManager: opening an app', name
+      if ApplicationManager.checkAppAvailability name
+        log 'AppManager: couldn\'t found', name
+        return KodingAppsController.putAppScript name, (err)=>
+          log 'AppManager: loaded', name
+          return warn err  if err
+          KD.utils.defer => @open name, options, callback
 
       # If app has a preCondition then first check condition in it
       # if it returns true then continue, otherwise call failure
