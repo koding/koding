@@ -99,6 +99,10 @@
           border-color          #4CAE4C
           cursor                default
 
+        hr
+          max-width             550px
+          margin                10px auto
+
         .share
           width                 100%
           max-width             550px
@@ -164,19 +168,28 @@
           h2
             font-size           28px
 
-          .invite-by-email
+          .invite-button
             max-width           550px
 
+          .invite-by-email
             textarea
               width             50%
+              max-width         270px
 
             .submit-email-addresses, .invitations-sent
               fr()
-              max-width         230px
+              width             50%
+              max-width         270px
+
+          hr
+            width               550px
 
           .share
             .referrer-url
-              max-width         430px
+              max-width         435px
+
+            .share-links
+              display           inline-block
 
 @media only screen and (min-width: 992px)
   .landingapp-view
@@ -199,8 +212,12 @@
           .invite-by-email
             max-width           550px
 
+            textarea
+              max-width         240px
+
             .submit-email-addresses, .invitations-sent
-              max-width         230px
+              width             50%
+              max-width         240px
 
           .share
             .referrer-url
@@ -217,10 +234,10 @@
             size                auto, auto
 
         .right
-          .invite-by-email
+          .invite-button, .invite-by-email, hr, .share
             max-width           485px
 
           .share
             .referrer-url
-              max-width         436px
+              max-width         370px
 
