@@ -121,7 +121,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       callback   : => @handleRun panel
 
   getPlaygroundClass: (playground) ->
-    return if playground is "FacebookBook" then FacebookTeamwork else PlaygroundTeamwork
+    return if playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
 
   handleRun: (panel) ->
     console.warn "You should override this method."
