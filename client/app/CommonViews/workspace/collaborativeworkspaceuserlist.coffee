@@ -80,7 +80,7 @@ class CollaborativeWorkspaceUserList extends JView
           <p>#{user.profile.nickname}</p>
         """
 
-    [sessionOwner] = @sessionKey.split ":"
+    [sessionOwner] = @sessionKey.split "_"
     if user.profile.nickname is sessionOwner
       userView.addSubView new KDView
         cssClass : "host-badge"
@@ -171,7 +171,7 @@ class CollaborativeWorkspaceUserList extends JView
 
     return if to is nickname
 
-    KD.remote.api.JPrivateMessage.create { to, subject, body }
+    KD.remote.api.JPrivateMessage.create { to, subject, body }, noop
 
     new KDNotificationView
       title    : "Invitation sent to #{to}"

@@ -21,7 +21,7 @@ class CollaborativePanel extends Panel
         title  : "Show Users"
       click    : => @getDelegate().showUsers()
 
-  createPane: (paneOptions, targetContainer) ->
+  createPane: (paneOptions) ->
     PaneClass = @getPaneClass paneOptions
     paneOptions.sessionKey = @getOptions().sessionKeys[@panes.length]  if @getOptions().sessionKeys
     isJoinedASession       = !!paneOptions.sessionKey and not @getDelegate().amIHost()
@@ -53,6 +53,16 @@ class CollaborativePanel extends Panel
         else length++
 
       return length
+
+  viewAppended: ->
+    super
+
+    @header.addSubView container = new KDCustomHTMLView
+      cssClass    : "workspace-broadcast-container"
+
+    container.addSubView @broadcastItem = new KDCustomHTMLView
+      tagName     : "span"
+      cssClass    : "workspace-broadcast pulsing hidden"
 
   EditorPaneClass       : CollaborativeEditorPane
   TerminalPaneClass     : SharableTerminalPane

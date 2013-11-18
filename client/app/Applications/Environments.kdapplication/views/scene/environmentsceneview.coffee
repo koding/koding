@@ -1,9 +1,14 @@
 class EnvironmentScene extends KDDiaScene
 
   containerMap =
+    EnvironmentRuleContainer    : 'rules'
+    EnvironmentExtraContainer   : 'extras'
     EnvironmentDomainContainer  : 'domains'
     EnvironmentMachineContainer : 'machines'
+
   itemMap      =
+    EnvironmentRuleItem         : 'rule'
+    EnvironmentExtraItem        : 'extra'
     EnvironmentDomainItem       : 'domain'
     EnvironmentMachineItem      : 'machine'
 
@@ -25,31 +30,43 @@ class EnvironmentScene extends KDDiaScene
     {source, target} = targetConnection
 
     items = parseItems source, target
-    {domain, machine} = items
-    return unless domain or machine
+    return  if Object.keys(items).length < 2
+    {domain, machine, rule, extra} = items
 
     modal = @createApproveModal items, 'delete'
     modal.once 'Approved', =>
-      jDomain = domain.dia.getData().domain # JDomain
-      vmName  = machine.dia.getData().title # JVM.hostnameAlias
-      jDomain.unbindVM hostnameAlias: vmName, (err)=>
-        modal.destroy()
-        return KD.showError err  if err
-        jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
+      if domain and machine
+        jDomain = domain.dia.getData().domain # JDomain
+        vmName  = machine.dia.getData().title # JVM.hostnameAlias
+        jDomain.unbindVM hostnameAlias: vmName, (err)=>
+          modal.destroy()
+          return KD.showError err  if err
+          jDomain.hostnameAlias.splice jDomain.hostnameAlias.indexOf(vmName), 1
+          removeConnection()
+      else if domain and rule
         removeConnection()
+        modal.destroy()
+      else if machine and extra
+        removeConnection()
+        modal.destroy()
 
   connect:(source, target, internal = no)->
 
     createConnection = => KDDiaScene::connect.call this, source, target
     return createConnection()  if internal
 
-    items = parseItems source, target
-    {domain, machine} = items
-    return unless domain or machine
-
-    if domain.dia.getData().domain.hostnameAlias.length > 0
+    if not @allowedToConnect source, target
       return new KDNotificationView
-        title : "A domain name can only be bound to one VM."
+        title : "It's not allowed connect this two item."
+
+    items = parseItems source, target
+    return  if Object.keys(items).length < 2
+    {domain, machine, rule, extra} = items
+
+    if domain and machine and not KD.checkFlag 'nostradamus'
+      if domain.dia.getData().domain.hostnameAlias.length > 0
+        return new KDNotificationView
+          title : "A domain name can only be bound to one VM."
 
     @addFakeConnection {
       source, target,
@@ -62,13 +79,20 @@ class EnvironmentScene extends KDDiaScene
     modal = @createApproveModal items, 'create'
     modal.once "KDObjectWillBeDestroyed", @bound 'resetScene'
     modal.once 'Approved', =>
-      jDomain = domain.dia.getData().domain # JDomain
-      vmName  = machine.dia.getData().title # JVM.hostnameAlias
-      jDomain.bindVM hostnameAlias: vmName, (err)=>
-        modal.destroy()
-        return KD.showError err  if err
-        jDomain.hostnameAlias.push vmName
+      if domain and machine
+        jDomain = domain.dia.getData().domain # JDomain
+        vmName  = machine.dia.getData().title # JVM.hostnameAlias
+        jDomain.bindVM hostnameAlias: vmName, (err)=>
+          modal.destroy()
+          return KD.showError err  if err
+          jDomain.hostnameAlias.push vmName
+          createConnection()
+      else if domain and rule
         createConnection()
+        modal.destroy()
+      else if machine and extra
+        createConnection()
+        modal.destroy()
 
   updateConnections:->
     for _mkey, machine of @boxes.machines.dias
@@ -91,10 +115,10 @@ class EnvironmentScene extends KDDiaScene
         container.once "DataLoaded", ->
           if counter is 1 then do callback
           counter--
-        container.refreshItems()
+        container.loadItems()
 
   addContainer:(container, pos)->
-    pos ?= x: 40 + @containers.length * 300, y: 40
+    pos ?= x: 10 + @containers.length * 260, y: 0
     super container, pos
 
     {name} = container.constructor
@@ -114,69 +138,88 @@ class EnvironmentScene extends KDDiaScene
   viewAppended:->
     super
 
-    @addSubView @slider = new KDSliderBarView
-      cssClass   : 'zoom-slider'
-      minValue   : 0.3
-      maxValue   : 1.0
-      interval   : 0.1
-      width      : 120
-      snap       : no
-      snapOnDrag : no
-      drawBar    : yes
-      showLabels : no
-      handles    : [1]
+    # @addSubView @slider = new KDSliderBarView
+    #   cssClass   : 'zoom-slider'
+    #   minValue   : 0.3
+    #   maxValue   : 1.0
+    #   interval   : 0.1
+    #   width      : 120
+    #   snap       : no
+    #   snapOnDrag : no
+    #   drawBar    : yes
+    #   showLabels : no
+    #   handles    : [1]
 
-    handle   = @slider.handles.first
+    # handle   = @slider.handles.first
 
-    @addSubView zoomControls = new KDCustomHTMLView
-      cssClass   : "zoom-controls"
+    # @addSubView zoomControls = new KDCustomHTMLView
+    #   cssClass   : "zoom-controls"
 
-    zoomControls.addSubView zoomOut = new KDCustomHTMLView
-      tagName    : "a"
-      cssClass   : "zoom-control zoomout"
-      partial    : "-"
-      click      : -> handle.setValue handle.value-0.1
+    # zoomControls.addSubView zoomOut = new KDCustomHTMLView
+    #   tagName    : "a"
+    #   cssClass   : "zoom-control zoomout"
+    #   partial    : "-"
+    #   click      : -> handle.setValue handle.value-0.1
 
-    zoomControls.addSubView zoomIn = new KDCustomHTMLView
-      tagName    : "a"
-      cssClass   : "zoom-control zoomin"
-      partial    : "+"
-      click      : -> handle.setValue handle.value+0.1
+    # zoomControls.addSubView zoomIn = new KDCustomHTMLView
+    #   tagName    : "a"
+    #   cssClass   : "zoom-control zoomin"
+    #   partial    : "+"
+    #   click      : -> handle.setValue handle.value+0.1
 
-    @slider.on 'ValueIsChanging', (value)=>
-      do _.throttle => @setScale value
+    # @slider.on 'ValueIsChanging', (value)=>
+    #   do _.throttle => @setScale value
 
-    @slider.on 'ValueChanged', (handle)=>
-      @appStorage.setValue 'zoomLevel', handle.value
+    # @slider.on 'ValueChanged', (handle)=>
+    #   @appStorage.setValue 'zoomLevel', handle.value
 
-    @addSubView resetView = new KDButtonView
-      cssClass   : "reset-view"
-      title      : "Reset layout"
-      icon       : yes
-      callback   : @bound 'resetLayout'
+    # @addSubView resetView = new KDButtonView
+    #   cssClass   : "reset-view"
+    #   title      : "Reset layout"
+    #   icon       : yes
+    #   callback   : @bound 'resetLayout'
 
-    @appStorage.ready =>
-      zoomLevel = @appStorage.getValue 'zoomLevel'
-      @slider.setValue zoomLevel  if zoomLevel
+    # @appStorage.ready =>
+    #   zoomLevel = @appStorage.getValue 'zoomLevel'
+    #   @slider.setValue zoomLevel  if zoomLevel
 
-  resetLayout:->
-    box.resetPosition()  for _key, box of @boxes
-    @slider.setValue 1
+  # resetLayout:->
+  #   box.resetPosition()  for _key, box of @boxes
+  #   @slider.setValue 1
 
 class EnvironmentApprovalModal extends KDModalView
 
-  getContentFor = ({domain, machine}, action)->
+  getContentFor = (items, action)->
     content     = 'God knows.'
 
-    domainTitle  = domain.dia.getData().title
-    machineTitle = machine.dia.getData().title
+    titles = {}
+    for title in ['domain', 'machine', 'rule', 'extra']
+      titles[title] = items[title].dia.getData().title  if items[title]
 
     if action is 'create'
-      content = """Do you want to assign <b>#{domainTitle}</b>
-                   to <b>#{machineTitle}</b> machine?"""
+
+      if titles.domain? and titles.machine?
+        content = """Do you want to assign <b>#{titles.domain}</b>
+                     to <b>#{titles.machine}</b> machine?"""
+      else if titles.domain? and titles.rule?
+        content = """Do you want to enable <b>#{titles.rule}</b> rule
+                     for <b>#{titles.domain}</b> domain?"""
+      else if titles.machine? and titles.extra?
+        content = """Do you want to add <b>#{titles.extra}</b>
+                     to <b>#{titles.machine}</b> machine?"""
+
     else if action is 'delete'
-      content = """Do you want to remove <b>#{domainTitle}</b>
-                   domain from <b>#{machineTitle}</b> machine?"""
+
+      if titles.domain? and titles.machine?
+        content = """Do you want to remove <b>#{titles.domain}</b>
+                     domain from <b>#{titles.machine}</b> machine?"""
+      else if titles.domain? and titles.rule?
+        content = """Do you want to disable <b>#{titles.rule}</b> rule
+                     for <b>#{titles.domain}</b> domain?"""
+      else if titles.machine? and titles.extra?
+        content = """Do you want to remove <b>#{titles.extra}</b>
+                     from <b>#{titles.machine}</b> machine?"""
+
     return "<div class='modalformline'><p>#{content}</p></div>"
 
   constructor:(options={}, data)->

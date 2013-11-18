@@ -19,10 +19,11 @@ class LoginView extends KDScrollView
       stop event
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
-    homeHandler       = handler.bind null, '/'
-    loginHandler      = handler.bind null, '/Login'
-    registerHandler   = handler.bind null, '/Register'
-    recoverHandler    = handler.bind null, '/Recover'
+    homeHandler                   = handler.bind null, '/'
+    loginHandler                  = handler.bind null, '/Login'
+    registerHandler               = handler.bind null, '/Register'
+    recoverHandler                = handler.bind null, '/Recover'
+    resendMailConfirmationHandler = handler.bind null, '/ResendToken'
 
     @logo = new KDCustomHTMLView
       tagName     : "div"
@@ -46,6 +47,11 @@ class LoginView extends KDScrollView
       partial     : "Register an account"
       click       : registerHandler
 
+    @goToResendMailConfirmationLink = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Resend"
+      click       : resendMailConfirmationHandler
+
     @loginOptions = new LoginOptions
       cssClass : "login-options-holder log"
 
@@ -58,33 +64,36 @@ class LoginView extends KDScrollView
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
-        KD.track "Login", "SignInButtonClicked"
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
       testPath : "register-form"
       callback : (formData)=>
         @doRegister formData
-        KD.track "Login", "RegisterButtonClicked"
+        KD.mixpanel "RegisterButtonClicked"
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRedeem formData
-        KD.track "Login", "RedeemButtonClicked"
+        KD.mixpanel "RedeemButtonClicked"
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRecover formData
-        KD.track "Login", "RecoverButtonClicked"
+
+    @resendForm= new ResendEmailConfirmationLinkInlineForm
+      cssClass : "login-form"
+      callback : (formData)=>
+        @resendEmailConfirmationToken formData
+        KD.track "Login", "ResendEmailConfirmationTokenButtonClicked"
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doReset formData
-        KD.track "Login", "ResetButtonClicked"
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -119,6 +128,8 @@ class LoginView extends KDScrollView
 
             else
               @afterLoginCallback err, {account, replacementToken}
+
+          KD.mixpanel "Authenticated oauth", {provider}
 
   viewAppended:->
 
@@ -157,11 +168,16 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
+      <div class="login-form-holder resend-confirmation-form">
+        {{> @resendForm}}
+      </div>
     </div>
     <div class="login-footer">
       <p class='regLink'>Not a member? {{> @goToRegisterLink}}</p>
       <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
+      <p class='resend-confirmation-link'>Didn't receive confirmation email? {{> @goToResendMailConfirmationLink}}</p>
+      <p><a href="/tos.html" target="_blank">Terms of service</a> / <a href="/privacy.html" target="_blank">Privacy policy</a></p>
     </div>
     """
 
@@ -187,7 +203,23 @@ class LoginView extends KDScrollView
           content   : "We've sent you a password recovery token."
           duration  : 4500
 
+  resendEmailConfirmationToken:(formData)->
+    KD.remote.api.JEmailConfirmation.resetToken formData['username-or-email'], (err)=>
+      @resendForm.button.hideLoader()
+      if err
+        new KDNotificationView
+          title : "An error occurred: #{err.message}"
+      else
+        @resendForm.reset()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute '/Login', {entryPoint}
+        new KDNotificationView
+          title     : "Check your email"
+          content   : "We've sent you a confirmation mail."
+          duration  : 4500
+
   doRegister:(formData)->
+    (KD.getSingleton 'mainController').isLoggingIn on
     formData.agree = 'on'
     formData.referrer = $.cookie 'referrer'
     @registerForm.notificationsDisabled = yes
@@ -210,6 +242,7 @@ class LoginView extends KDScrollView
         @registerForm.emit "SubmitFailed", message
 
       else
+        KD.mixpanel.alias account.profile.nickname
 
         $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
@@ -221,13 +254,6 @@ class LoginView extends KDScrollView
           # content   : 'Successfully registered!'
           duration  : 2000
 
-        # send information to mixpanel
-        KD.track 'UserLogin', 'UserRegistered',
-          vendor         : 'mixpanel'
-          extra          :
-            '$username'  : account.profile.nickname
-            '$loginDate' : Date.now()
-
         KD.getSingleton('router').clear()
 
         setTimeout =>
@@ -236,12 +262,10 @@ class LoginView extends KDScrollView
           @registerForm.button.hideLoader()
         , 1000
 
-        # log to external / TODO: sending account optional if non of track tools use, just delete it
-        KD.track "userSignedUp", account
-
   doLogin:(credentials)->
+    (KD.getSingleton 'mainController').isLoggingIn on
     credentials.username = credentials.username.toLowerCase().trim()
-    KD.remote.api.JUser.login credentials, @afterLoginCallback.bind this
+    KD.remote.api.JUser.login credentials, @bound 'afterLoginCallback'
 
   runExternal = (token)->
     KD.getSingleton("kiteController").run
@@ -270,7 +294,13 @@ class LoginView extends KDScrollView
       mainView.show()
       mainView.$().css "opacity", 1
 
-      KD.getSingleton('router').handleRoute KD.singletons.router.visitedRoutes.first or '/Activity', {replaceState: yes, entryPoint}
+      firstRoute = KD.getSingleton("router").visitedRoutes.first
+
+      if firstRoute and /^\/Verify/.test firstRoute
+        firstRoute = "/"
+
+      KD.getSingleton('appManager').quitAll()
+      KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView
           cssClass  : "login"
@@ -286,6 +316,8 @@ class LoginView extends KDScrollView
       @loginForm.reset()
 
       @hide()
+
+      KD.mixpanel "Logged in"
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
@@ -346,6 +378,8 @@ class LoginView extends KDScrollView
     unless @hidden then do cb
     else @once "transitionend", cb
 
+    KD.mixpanel "Cancelled Login/Register"
+
   show:(callback)->
 
     @utils.killWait @hideTimer
@@ -371,7 +405,7 @@ class LoginView extends KDScrollView
             if entryPoint?.type is 'group' and entryPoint.slug
             then route.replace "/#{entryPoint.slug}", ''
             else route
-          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover']
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover', '/ResendToken']
             router.handleRoute route
             routed = yes
             break
@@ -393,13 +427,15 @@ class LoginView extends KDScrollView
             else
               @registerForm.disabledNotice.hide()
               @registerForm.$('.main-part').removeClass 'hidden'
+
+          KD.mixpanel "Opened register form"
         when "home"
           parent.notification?.destroy()
           if @headBannerMsg?
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "register recover login reset home"
+      @unsetClass "register recover login reset home resendEmail"
       @emit "LoginViewAnimated", name
       @setClass name
 
@@ -412,6 +448,8 @@ class LoginView extends KDScrollView
           @loginForm.username.input.setFocus()
         when "recover"
           @recoverForm.usernameOrEmail.input.setFocus()
+        when "resendEmail"
+          @resendForm.usernameOrEmail.input.setFocus()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
@@ -421,18 +459,18 @@ class LoginView extends KDScrollView
       return "/#{route}"
 
   showError = (err)->
-    if err.message.length > 50
+
+    if err.message is "CONFIRMATION_WAITING"
+      {name, nickname}  = err.data
+      KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname
+
+    else if err.message.length > 50
       new KDModalView
         title        : "Something is wrong!"
         width        : 500
         overlay      : yes
         cssClass     : "new-kdmodal"
-        content      :
-          """
-            <div class='modalformline'>
-              #{err.message}
-            </div>
-          """
+        content      : "<div class='modalformline'>" + err.message + "</div>"
     else
       new KDNotificationView
         title   : err.message

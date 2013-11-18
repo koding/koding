@@ -2,7 +2,8 @@ class ChatPane extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "workspace-chat"
+    floatingCssClass = if options.floating then "floating" else ""
+    options.cssClass = KD.utils.curry "workspace-chat", floatingCssClass
 
     super options, data
 
@@ -18,6 +19,7 @@ class ChatPane extends JView
         @toggle.toggleClass "active"
         @unreadCount = 0
         @title.updatePartial "Chat"
+        @emit "WorkspaceChatClosed"  unless @isVisible()
 
     @title       = new KDCustomHTMLView
       tagName    : "span"
@@ -43,7 +45,7 @@ class ChatPane extends JView
     @dock.addSubView @title
 
     @chatRef.on "child_added", (snapshot) =>
-      unless @isVisible()
+      unless @isVisible() or @getOptions().floating
         @title.updatePartial "Chat (#{++@unreadCount})"
         @dock.setClass "pulsing"
 

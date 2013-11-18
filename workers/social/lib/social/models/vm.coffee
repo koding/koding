@@ -121,8 +121,9 @@ module.exports = class JVM extends Module
         regYears      : 0
         loadBalancer  : { persistance: 'disabled' }
       domainObj.save (err)->
-        return console.log err  if err
-        updateRelationship domainObj
+        if err
+        then console.error err  unless err.code is 11000
+        else updateRelationship domainObj
 
   @fixUserDomains = permit 'change bundle',
     success: (client, callback)->
@@ -154,7 +155,7 @@ module.exports = class JVM extends Module
     domain = 'kd.io'
     if type is 'user'
       requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
-      if groupSlug is 'koding'
+      if groupSlug in ['koding', 'guests']
         requiredDomains.push "#{nickname}.#{domain}"
     else
       requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
@@ -166,7 +167,7 @@ module.exports = class JVM extends Module
     if type is 'user'
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
-      if groupSlug is 'koding'
+      if groupSlug in ['koding', 'guests']
         aliases.push "#{nickname}.#{domain}"  if uid is 0
         aliases.push "vm-#{uid}.#{nickname}.#{domain}"
       aliases.push "vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"
@@ -206,16 +207,19 @@ module.exports = class JVM extends Module
       return callback err  if err
       account.fetchUser (err, user)=>
         return callback err  if err
+        return callback new Error "user is not defined"  unless user
 
         # We are keeping this names just for counter
         planOwner   = "group_#{group._id}"
         counterName = "#{groupSlug}~"
         webHome     = groupSlug
 
+        nickname = account.profile.nickname
+
         if type is 'user'
           planOwner   = "user_#{account._id}"
-          counterName = "#{groupSlug}~#{user.username}~"
-          webHome     = user.username
+          counterName = "#{groupSlug}~#{nickname}~"
+          webHome     = nickname
 
         nameFactory = (require 'koding-counter') {
           db     : JVM.getClient()
@@ -226,7 +230,6 @@ module.exports = class JVM extends Module
         nameFactory.next (err, uid)=>
           return callback err  if err
 
-          nickname = user.username
           hostnameAliases = JVM.createAliases {
             nickname, type, uid, groupSlug
           }
@@ -267,14 +270,14 @@ module.exports = class JVM extends Module
       return callback err  if err
       members.forEach (member)->
         member.fetchUser (err, user)->
-          if err then callback err
-          else
-            member.checkPermission group, 'sudoer', (err, hasPermission)->
-              if err then handleError err
-              else
-                vm.update {
-                  $addToSet: users: { id: user.getId(), sudo: hasPermission }
-                }, callback
+          return callback err if err
+          return callback new Error "user not found" unless user
+          member.checkPermission group, 'sudoer', (err, hasPermission)->
+            if err then handleError err
+            else
+              vm.update {
+                $addToSet: users: { id: user.getId(), sudo: hasPermission }
+              }, callback
 
   # @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
 
@@ -302,6 +305,7 @@ module.exports = class JVM extends Module
 
     delegate.fetchUser (err, user) ->
       return callback err  if err
+      return callback new Error "user not found" unless user
 
       JVM.one
         hostnameAlias : hostnameAlias
@@ -326,6 +330,8 @@ module.exports = class JVM extends Module
     {delegate} = client.connection
     delegate.fetchUser (err, user) ->
       return callback err  if err
+      return callback new Error "user not found" unless user
+
       JGroup = require './group'
       JGroup.one slug:'koding', (err, fetchedGroup)=>
         return callback err  if err
@@ -345,6 +351,7 @@ module.exports = class JVM extends Module
 
     account.fetchUser (err, user) ->
       return callback err  if err
+      return callback new Error "user not found" unless user
 
       selector.users = $elemMatch: id: user.getId()
 
@@ -394,6 +401,7 @@ module.exports = class JVM extends Module
 
     delegate.fetchUser (err, user) ->
       return callback err  if err
+      return callback new Error "user not found" unless user
 
       selector =
         hostnameAlias : hostnameAlias
@@ -463,6 +471,7 @@ module.exports = class JVM extends Module
 
     delegate.fetchUser (err, user)=>
       return callback err  if err
+      return callback new Error "user not found" unless user
 
       selector =
         hostnameAlias : hostnameAlias
@@ -496,9 +505,11 @@ module.exports = class JVM extends Module
     addVm = ({ account, target, user, sudo, groups, groupSlug
                type, planCode, planOwner, webHome })->
 
+      return handleError new Error "user is not defined"  unless user
+      nickname = account.profile.nickname or user.username
       uid = 0
       hostnameAliases = JVM.createAliases {
-        nickname : user.username
+        nickname
         type, uid, groupSlug
       }
 
@@ -525,7 +536,9 @@ module.exports = class JVM extends Module
           return console.warn "Failed to create VM for ", \
                                {users, groups, hostnameAlias}
 
-        JVM.createDomains account, hostnameAliases, hostnameAlias
+        JVM.ensureDomainSettings \
+          {account, vm, type, nickname, groupSlug}
+        # JVM.createDomains account, hostnameAliases, hostnameAlias
         target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
@@ -538,9 +551,7 @@ module.exports = class JVM extends Module
         counterName : 'uid'
         offset      : 1e6
       }
-
-      uidFactory.reset (err, lastId)->
-        console.log "UID counter is reset: %s", lastId
+      uidFactory.initialize()
 
     JUser.on 'UserCreated', (user)->
       uidFactory.next (err, uid)->
@@ -548,6 +559,7 @@ module.exports = class JVM extends Module
         else user.update { $set: { uid } }, handleError
 
     JUser.on "UserBlocked", (user)->
+      return handleError new Error "user not found" unless user
       selector =
         'users.id'    : user.getId()
         'users.owner' : yes
@@ -562,6 +574,7 @@ module.exports = class JVM extends Module
             console.error err if err
 
     JUser.on "UserUnblocked", (user)->
+      return handleError new Error "user not found" unless user
       selector =
         'users.id'    : user.getId()
         'users.owner' : yes
@@ -630,8 +643,10 @@ module.exports = class JVM extends Module
 
     JGroup.on 'MemberAdded', ({group, member})->
       member.fetchUser (err, user)->
-        if err then handleError err
-        else if group.slug is 'guests'
+        return handleError err  if err
+        return handleError new Error "user not defined" unless user
+
+        if group.slug is 'guests'
           # Following is just here to register this name in the counters collection
           ((require 'koding-counter') {
             db          : JVM.getClient()
@@ -649,7 +664,7 @@ module.exports = class JVM extends Module
             planCode  : 'free'
             planOwner : "user_#{member._id}"
             groupSlug : group.slug
-            webHome   : user.username
+            webHome   : member.profile.nickname
             groups    : wrapGroup group
           }
         else if group.slug is 'koding'
@@ -671,10 +686,12 @@ module.exports = class JVM extends Module
 
     JGroup.on 'MemberRemoved', ({group, member})->
       member.fetchUser (err, user)->
-        if err then handleError err
+        return handleError err  if err
+        return handleError new Error "user not found" unless user
+
         # Do we need to take care guests here? Like when guests ends up session
         # Do we also need to remove their vms? ~ GG
-        else if group.slug is 'koding'
+        if group.slug is 'koding'
           member.fetchVms (err, vms)->
             if err then handleError err
             else vms.forEach (vm)->
@@ -692,18 +709,19 @@ module.exports = class JVM extends Module
     JGroup.on 'MemberRolesChanged', ({group, member})->
       return  if group.slug 'koding'  # TODO: remove this special case
       member.fetchUser (err, user)->
-        if err then handleError err
-        else
-          member.checkPermission group, 'sudoer', (err, hasPermission)->
-            if err then handleError err
-            else if hasPermission
-              member.fetchVms (err, vms)->
-                if err then handleError err
-                else
-                  vms.forEach (vm)->
-                    vm.update {
-                      $set: users: vm.users.map (userRecord)->
-                        isMatch = userRecord.id.equals user.getId()
-                        return userRecord  unless isMatch
-                        return { id, sudo: hasPermission }
-                    }, handleError
+        return handleError err  if err
+        return handleError new Error "user not found"  unless user
+
+        member.checkPermission group, 'sudoer', (err, hasPermission)->
+          if err then handleError err
+          else if hasPermission
+            member.fetchVms (err, vms)->
+              if err then handleError err
+              else
+                vms.forEach (vm)->
+                  vm.update {
+                    $set: users: vm.users.map (userRecord)->
+                      isMatch = userRecord.id.equals user.getId()
+                      return userRecord  unless isMatch
+                      return { id, sudo: hasPermission }
+                  }, handleError

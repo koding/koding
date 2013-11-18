@@ -11,8 +11,10 @@ type User struct {
 	Email         string        `bson:"email" json:"email"`
 	LastLoginDate time.Time     `bson:"lastLoginDate" json:"lastLoginDate"`
 	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
-	// TODO left like this for consistency, but should be converted into Username
-	Name     string `bson:"username" json:"username"`
+
+	// TODO left this for consistency, but should be converted into Username
+	Name string `bson:"username" json:"username"`
+
 	OldName  string `bson:"oldUsername" json:"oldUserName"`
 	Password string `bson:"password" json:"password"`
 	Status   string `bson:"status" json:"status"`

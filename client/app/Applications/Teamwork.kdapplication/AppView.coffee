@@ -17,6 +17,9 @@ class TeamworkAppView extends KDView
       @addSubView teamwork
       teamwork.on "WorkspaceSyncedWithRemote", =>
         teamworkApp.showImportWarning query.import
+    else if query.playground
+      teamworkApp = new TeamworkApp playground: query.playground
+      @addSubView teamworkApp.teamwork
     else
       teamworkApp = new TeamworkApp sessionKey: query.sessionKey
       @addSubView teamworkApp.teamwork

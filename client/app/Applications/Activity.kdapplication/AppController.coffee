@@ -9,7 +9,10 @@ class ActivityAppController extends AppController
       path       : "/Activity"
       order      : 10
 
+
   {dash} = Bongo
+
+  USEDFEEDS = []
 
   activityTypes = [
     'Everything'
@@ -86,6 +89,8 @@ class ActivityAppController extends AppController
     # so fix the teasersLoaded logic.
     return  if @isLoading
     @clearPopulateActivityBindings()
+
+    KD.mixpanel "Scrolled down feed"
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->
@@ -194,21 +199,32 @@ class ActivityAppController extends AppController
   listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>
       @extractCacheTimeStamps sanitizedCache
-      @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, yes
+      @listController.listActivitiesFromCache sanitizedCache
       callback sanitizedCache
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
-    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+
+    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
+      prefetchedActivity = KD.prefetchedFeeds["activity.main"]
+      if prefetchedActivity and ('activities.main' not in USEDFEEDS) and prefetchedActivity.activities
+        log "exhausting feed:", "activity.main"
+        USEDFEEDS.push 'activities.main'
+        return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
+
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
       return @emit "activitiesCouldntBeFetched", err  if err
+      @prepareCacheForListing  cache
 
-      cache.overview.reverse()  if cache.overview
+  prepareCacheForListing: (cache)->
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      @sanitizeCache cache, (err, sanitizedCache)=>
-        if err
-        then @emit "activitiesCouldntBeFetched", err
-        else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
+    cache.overview.reverse()  if cache.overview
+
+    @sanitizeCache cache, (err, sanitizedCache)=>
+      if err
+      then @emit "activitiesCouldntBeFetched", err
+      else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
 
 
   fetchFollowingActivities:(options = {})->
@@ -320,8 +336,10 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
+  lastTo : null
+
   fetchActivitiesProfilePage:(options,callback)->
-    options.to = options.to or Date.now()
+    options.to = options.to or @lastTo or Date.now()
     if KD.checkFlag 'super-admin'
       appStorage = new AppStorage 'Activity', '1.0'
       appStorage.fetchStorage (storage)=>
@@ -336,6 +354,10 @@ class ActivityAppController extends AppController
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
+
+      if activities?.length > 0
+        lastOne = activities.last.meta.createdAt
+        @lastTo = (new Date(lastOne)).getTime()
       callback err, activities
 
   unhideNewItems: ->
@@ -359,6 +381,7 @@ class ActivityAppController extends AppController
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
         onTimeout : @bound 'recover'
+        timeout   : 20000
 
   recover:->
     @isLoading = no

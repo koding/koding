@@ -113,6 +113,19 @@ config =
       watch               : 1
       cronSchedule        : 1
       usageLimitInMinutes : 1
+    elasticSearch         :
+      host                : 1
+      port                : 1
+      enabled             : 1
+      queue               : 1
+    emailConfirmationCheckerWorker :
+      enabled             : 1
+      login               : 1
+      queueName           : 1
+      numberOfWorkers     : 1
+      watch               : 1
+      cronSchedule        : 1
+      usageLimitInMinutes : 1
     sitemapWorker         :
       enabled             : 1
       login               : 1
@@ -165,6 +178,9 @@ config =
         appsUri       : 1
         uploadsUri    : 1
         sourceUri     : 1
+        newkontrol    :
+          host        : 1
+          port        : 1
         # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1
@@ -205,6 +221,9 @@ config =
       batchSize       : 1
       cleanupCron     : 1
     pidFile       : 1
+    newkontrol      :
+      host          : 1
+      port          : 1
     kontrold        :
       vhost         : 1
       overview      :
@@ -239,6 +258,12 @@ config =
     odesk           :
       key           : 1
       secret        : 1
+      request_url   : 1
+      access_url    : 1
+      secret_url    : 1
+      version       : 1
+      signature     : 1
+      redirect_uri  : 1
     facebook        :
       clientId      : 1
       clientSecret  : 1
@@ -251,4 +276,18 @@ config =
       use           : 1
       ip            : 1
       port          : 1
+    linkedin        :
+      client_id     : 1
+      client_secret : 1
+      redirect_uri  : 1
+    twitter         :
+      key           : 1
+      secret        : 1
+      redirect_uri  : 1
+      request_url   : 1
+      access_url    : 1
+      secret_url    : 1
+      version       : 1
+      signature     : 1
+    mixpanel        : 1
 module.exports = config

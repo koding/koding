@@ -7,7 +7,7 @@ projectRoot = nodePath.join __dirname, '..'
 
 mongo = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
 
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?readPreference=nearest&replicaSet=koodingrs0'
+mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.3/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
 
 socialQueueName = "koding-social-#{version}"
 
@@ -88,15 +88,27 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
-  guestCleanerWorker     :
-    enabled              : no # for production, workers are running as a service
-    login                : 'prod-guestcleanerworker'
-    queueName            : socialQueueName+'guestcleaner'
-    numberOfWorkers      : 2
+  emailConfirmationCheckerWorker :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 1
     watch                : yes
     cronSchedule         : '00 * * * * *'
     usageLimitInMinutes  : 60
-    watch                : no
+  elasticSearch          :
+    host                 : "localhost"
+    port                 : 9200
+    enabled              : no
+    queue                : "elasticSearchFeederQueue"
+  guestCleanerWorker     :
+    enabled              : no # for production, workers are running as a service
+    login                : 'prod-social'
+    queueName            : socialQueueName+'guestcleaner'
+    numberOfWorkers      : 1
+    watch                : yes
+    cronSchedule         : '00 * * * * *'
+    usageLimitInMinutes  : 60
   sitemapWorker          :
     enabled              : yes
     login                : 'prod-social'
@@ -149,6 +161,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : "http://webserver-#{version}a.sj.koding.com:1337"
+      newkontrol:
+        host    : 'newkontrol.sj.koding.com'
+        port    : 80
   mq            :
     host        : '172.16.3.4'
     port        : 5672
@@ -192,6 +207,9 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  newkontrol      :
+    host          : "newkontrol.sj.koding.com"
+    port          : 80
   kontrold        :
     vhost         : "/"
     overview      :
@@ -226,6 +244,12 @@ module.exports =
   odesk          :
     key          : "9ed4e3e791c61a1282c703a42f6e10b7"
     secret       : "1df959f971cb437c"
+    request_url  : "https://www.odesk.com/api/auth/v1/oauth/token/request"
+    access_url   : "https://www.odesk.com/api/auth/v1/oauth/token/access"
+    secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
+    version      : "1.0"
+    signature    : "HMAC-SHA1"
+    redirect_uri : "https://koding.com/-/oauth/odesk/callback"
   facebook       :
     clientId     : "434245153353814"
     clientSecret : "84b024e0d627d5e80ede59150a2b251e"
@@ -238,3 +262,17 @@ module.exports =
     use          : true
     ip           : "172.168.2.7"
     port         : 8125
+  linkedin       :
+    client_id    : "aza9cks1zb3d"
+    client_secret: "zIMa5kPYbZjHfOsq"
+    redirect_uri : "https://koding.com/-/oauth/linkedin/callback"
+  twitter        :
+    key          : "tvkuPsOd7qzTlFoJORwo6w"
+    secret       : "48HXyTkCYy4hvUuRa7t4vvhipv4h04y6Aq0n5wDYmA"
+    redirect_uri : "https://koding.com/-/oauth/twitter/callback"
+    request_url  : "https://twitter.com/oauth/request_token"
+    access_url   : "https://twitter.com/oauth/access_token"
+    secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
+    version      : "1.0"
+    signature    : "HMAC-SHA1"
+  mixpanel       : "113c2731b47a5151f4be44ddd5af0e7a"

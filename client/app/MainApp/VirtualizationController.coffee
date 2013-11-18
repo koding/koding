@@ -7,8 +7,12 @@ class VirtualizationController extends KDController
     @dialogIsOpen = no
     @resetVMData()
 
-    (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
+    KD.getSingleton('mainController')
+      .once('AppIsReady', @bound 'fetchVMs')
+      .on('AccountChanged', => @emit 'VMListChanged')
+
     @on 'VMListChanged', @bound 'resetVMData'
+
 
   run:(options, callback = noop)->
     [callback, options] = [options, callback]  unless callback
@@ -198,8 +202,7 @@ class VirtualizationController extends KDController
       if @vms.length
         return @utils.defer => callback null, @vms
 
-      if not force and (waiting.push callback) > 1
-        return  callback null, []
+      return if not force and (waiting.push callback) > 1
 
       KD.remote.api.JVM.fetchVms (err, vms)=>
         @vms = vms  unless err

@@ -1,19 +1,18 @@
 class CollaborativeWorkspace extends Workspace
 
   init: ->
+    @nickname    = KD.nick()
     @sessionData = []
     @users       = {}
     @createRemoteInstance()
     @createLoader()
     @fetchUsers()
     @createUserListContainer()
-    @createChat()
+    @createChat()  if @getOptions().enableChat
     @bindRemoteEvents()
 
   createChat: ->
-    return unless @getOptions().enableChat
-    @container.addSubView @chatView = new ChatPane
-      delegate: this
+    @container.addSubView @chatView = new ChatPane delegate: this
     @chatView.hide()
 
   createRemoteInstance: ->
@@ -26,11 +25,12 @@ class CollaborativeWorkspace extends Workspace
     @sessionKey   = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef = @firepadRef.child @sessionKey
     @historyRef   = @workspaceRef.child "history"
+    @broadcastRef = @workspaceRef.child "broadcast"
 
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
-        unless snapshot.val()
+        unless snapshot.val()?.keys
           @showNotActiveView()
           return false
 
@@ -39,13 +39,13 @@ class CollaborativeWorkspace extends Workspace
       if isOldSession
         @sessionData  = keys
         @createPanel()
-        @userRef = @workspaceRef.child("users").child KD.nick()
+        @userRef = @workspaceRef.child("users").child @nickname
         @userRef.set "online"
         @userRef.onDisconnect().set "offline"
       else
         @createPanel()
         @workspaceRef.set "keys": @sessionData
-        @userRef = @workspaceRef.child("users").child KD.nick()
+        @userRef = @workspaceRef.child("users").child @nickname
         @userRef.set "online"
         @userRef.onDisconnect().set "offline"
 
@@ -64,20 +64,36 @@ class CollaborativeWorkspace extends Workspace
 
       @emit "WorkspaceSyncedWithRemote"
 
+      @broadcastRef.on "value", (snapshot) =>
+        message = snapshot.val()
+        return if not message or not message.data or message.data.sender is @nickname
+        @displayBroadcastMessage message.data
+
     @workspaceRef.child("users").on "child_added", (snapshot) =>
       @fetchUsers()
 
     @workspaceRef.child("users").on "child_changed", (snapshot) =>
-      @setHistory "#{snapshot.name()} is disconnected."
+      name = snapshot.name()
+      if @amIHost() and snapshot.val() is "offline"
+        @setHistory "#{name} is disconnected."
+        @broadcastMessage
+          title     : "#{name} has left the session"
+          cssClass  : "error"
+          sender    : name
 
     @workspaceRef.on "child_removed", (snapshot) =>
       return  if @disconnectedModal
-      # we are protecting root node to write. however when someone call remove method
-      # on root node it triggers disconnect event once which is a really wrong behaviour
-      # we have to be sure client is really disconnected by checking it's value again.
+      # root node is write protected. however when someone try to remove root node
+      # firebase will trigger disconnect event for once, which is a really wrong behaviour.
+      # to be sure it's a real disconnection, trying to get node value again.
+      # if we can't get the node value then it means user really disconnected.
       KD.utils.wait 1500, =>
         @workspaceRef.once "value", (snapshot) =>
           @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
+
+    @broadcastMessage
+      title     : "#{@nickname} has joined the session"
+      sender    : @nickname
 
     @on "AllPanesAddedToPanel", (panel, panes) ->
       paneSessionKeys = []
@@ -86,8 +102,10 @@ class CollaborativeWorkspace extends Workspace
 
     @on "KDObjectWillBeDestroyed", =>
       @forceDisconnect()
-      @workspaceRef.off eventName for eventName in ["value", "child_added", "child_removed", "child_changed"]
+      events = [ "value", "child_added", "child_removed", "child_changed" ]
+      @workspaceRef.off eventName for eventName in events
 
+  # TODO: Be sure we don't query if we have user data
   fetchUsers: ->
     @workspaceRef.once "value", (snapshot) =>
       val = snapshot.val()
@@ -115,13 +133,15 @@ class CollaborativeWorkspace extends Workspace
     @emit "PanelCreated", newPanel
 
   createSessionKey: ->
-    nick = KD.nick()
-    u    = KD.utils
-    return  "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
+    u = KD.utils
+    return "#{@nickname}_#{u.generatePassword(4)}_#{u.getRandomNumber(100)}"
+
+  getHost: ->
+    return @sessionKey.split("_").first
 
   amIHost: ->
-    [sessionOwner] = @sessionKey.split ":"
-    return sessionOwner is KD.nick()
+    [sessionOwner] = @sessionKey.split "_"
+    return sessionOwner is @nickname
 
   showNotActiveView: ->
     notValid = new KDView
@@ -135,7 +155,8 @@ class CollaborativeWorkspace extends Workspace
     notValid.addSubView new KDButtonView
       cssClass : "cupid-green"
       title    : "Start New Session"
-      callback : @bound "startNewSession"
+      callback : =>
+        @startNewSession()
 
     @container.addSubView notValid
     @loader.hide()
@@ -155,15 +176,17 @@ class CollaborativeWorkspace extends Workspace
     @loader.on "viewAppended", -> loaderView.show()
     @container.addSubView @loader
 
-  joinSession: (sessionKey) ->
-    {parent}           = @
-    options            = @getOptions()
-    options.sessionKey = sessionKey.trim()
-    @destroy()
+  isJoinedASession: -> return @getOptions().joinedASession
+
+  joinSession: (newOptions) ->
+    options                = @getOptions()
+    options.sessionKey     = newOptions.sessionKey.trim()
+    options.joinedASession = yes
+    @destroySubViews()
 
     @forceDisconnect()
 
-    parent.addSubView new CollaborativeWorkspace options
+    @addSubView new CollaborativeWorkspace options
 
   forceDisconnect: ->
     return  unless @amIHost()
@@ -183,34 +206,41 @@ class CollaborativeWorkspace extends Workspace
       content = "It seems, host is disconnected from Firebase server. You cannot continue this session."
 
     @disconnectedModal = new KDBlockingModalView
-      title        : title
-      content      : "<p>#{content}</p>"
-      cssClass     : "host-disconnected-modal"
-      overlay      : yes
-      buttons      :
-        Start      :
-          title    : "Start New Session"
-          callback : =>
+      title            : title
+      appendToDomBody  : no
+      content          : "<p>#{content}</p>"
+      cssClass         : "host-disconnected-modal"
+      overlay          : no
+      buttons          :
+        Start          :
+          title        : "Start New Session"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
             @startNewSession()
-        Join       :
-          title    : "Join Another Session"
-          callback : =>
+        Join           :
+          title        : "Join Another Session"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
-            @showSessionModal (modal) ->
-              modal.modalTabs.showPaneByIndex(1)
-        Exit       :
-          title    : "Exit App"
-          cssClass : "modal-cancel"
-          callback : =>
+            @showJoinModal()
+        Exit           :
+          title        : "Exit App"
+          cssClass     : "modal-cancel"
+          callback     : =>
             @disconnectedModal.destroy()
-            delete @disconnectedModal
-            appManager = KD.getSingleton("appManager")
+            appManager = KD.getSingleton "appManager"
             appManager.quit appManager.frontApp
 
-  showJoinModal: (callback = noop) ->
+    @disconnectedModal.on "KDObjectWillBeDestroyed", =>
+      delete @disconnectedModal
+      @disconnectOverlay.destroy()
+
+    @disconnectOverlay = new KDOverlayView
+      parent           : KD.singletons.mainView.mainTabView.activePane
+      isRemovable      : no
+
+    @container.getDomElement().append @disconnectedModal.getDomElement()
+
+  showJoinModal: ->
     options        = @getOptions()
     modal          = new KDModalView
       title        : options.joinModalTitle   or "Join New Session"
@@ -233,11 +263,9 @@ class CollaborativeWorkspace extends Workspace
       placeholder  : "Paste new session key and hit enter to join"
       callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
 
-    callback modal
-
   handleJoinASessionFromModal: (sessionKey, modal) ->
     return unless sessionKey
-    @joinSession sessionKey
+    @joinSession { sessionKey }
     modal.destroy()
 
   showShareView: (panel, workspace, event) ->
@@ -280,8 +308,37 @@ class CollaborativeWorkspace extends Workspace
       delegate  : @
     }
 
+  broadcastMessage: (details) ->
+    @broadcastRef.set
+      data       :
+        title    : details.title    or ""
+        cssClass : details.cssClass  ? "success"
+        duration : details.duration or 4200
+        origin   : details.origin   or "users"
+        sender   : details.sender   or @nickname
+
+  displayBroadcastMessage: (options) ->
+    # simple broadcast message is
+    # { !title, duration=, origin=, sender=, cssClass= }
+    return unless options.title
+
+    activePanel     = @getActivePanel()
+    {broadcastItem} = activePanel
+    activePanel.setClass "broadcasting"
+    broadcastItem.updatePartial options.title
+
+    broadcastItem.unsetClass "success"
+    broadcastItem.unsetClass "error"
+    broadcastItem.setClass options.cssClass
+
+    broadcastItem.show()
+    KD.utils.wait options.duration, =>
+      broadcastItem.hide()
+      activePanel.unsetClass "broadcasting"
+      @emit "MessageBroadcasted"
+
   setHistory: (message = "") ->
-    user    = KD.nick()
+    user    = @nickname
     message = message.replace "$0", user
 
     @historyRef.child(Date.now()).set { message, user }

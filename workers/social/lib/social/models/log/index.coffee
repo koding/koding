@@ -4,7 +4,8 @@ module.exports = class JLog extends Module
 
   {secure, daisy} = Bongo = require 'bongo'
 
-  @share()
+  # no need to share for now
+  # @share()
 
 
   TRY_LIMIT_FOR_BLOCKING = 5
@@ -14,35 +15,38 @@ module.exports = class JLog extends Module
     softDelete      : yes
     sharedMethods   :
       instance      : []
-      static        : [ 'some', 'log', 'checkLoginBruteForce' ]
-    indexes:
-      username : 1
-      ip       : 1
-    schema                :
-      type                :
-        type              : String
-        required          : yes
-        set               : (value)-> value.toLowerCase()
-      ip                  :
-        type              : String
-        required          : yes
-        default           : "127.0.0.1"
-      username            :
-        type              : String
-        required          : yes
-        default           : "guest"
-      createdAt           :
-        type              : Date
-        default           : -> new Date
-      success             :
-        type              : Boolean
-        default           : true
-      severity            :
-        type              : Number
-        default           : 5
-      payload             :
-        type              : String
-        required          : no
+      static        : []
+    sharedEvents    :
+      static        : []
+      instance      : []
+    indexes         :
+      username      : 1
+      ip            : 1
+    schema          :
+      type          :
+        type        : String
+        required    : yes
+        set         : (value)-> value.toLowerCase()
+      ip            :
+        type        : String
+        required    : yes
+        default     : "127.0.0.1"
+      username      :
+        type        : String
+        required    : yes
+        default     : "guest"
+      createdAt     :
+        type        : Date
+        default     : -> new Date
+      success       :
+        type        : Boolean
+        default     : true
+      severity      :
+        type        : Number
+        default     : 5
+      payload       :
+        type        : String
+        required    : no
 
   @log = (data, callback)->
     log = new JLog data
@@ -67,8 +71,8 @@ module.exports = class JLog extends Module
     # - 2 - false
     headUntil = (list, condition)->
       head = []
-      for i in list 
-        return head if condition(i) 
+      for i in list
+        return head if condition(i)
         head.push i
       return head
 

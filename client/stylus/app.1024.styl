@@ -6,11 +6,6 @@
   #kdmaincontainer.home > header
     bg              position, 45% -211px
 
-  div#home-intro
-    min-width       768px
-    size            100%, 526px
-    bg              position, 45% -261px
-
   .content-area-pane.activity
     #content-page-activity
       &.fixed
@@ -18,68 +13,6 @@
           .kdtabpaneview
             kalc            width, 100% \- 50px
 
-  .content-area-pane.home
-    // min-width            850px
-
-    .content-page.home
-      min-width             768px
-
-      .slide
-        .introtext
-          width             90%
-          margin            65px auto 0 auto
-          min-width         90%
-          max-width         1024px
-
-        .mainright
-          .mainlink
-            font-size       26px
-            height          60px
-            line-height     60px
-            padding         0
-            text-indent     25px
-            &.magic
-              margin-top    -60px
-              &.anim
-                width       250px
-
-      .widget-holder
-        max-width             1024px
-        height                600px
-        width                 90%
-        margin                0 auto
-        shadow                0 0 20px rgba(0, 0, 0, 0.19)
-        section
-          size                100%,auto
-          min-width           100%
-          max-width           100%
-          border-bottom       4px solid #999
-          shadow              none
-
-        aside
-          abs()
-          size                50%,auto
-          min-width           50%
-          max-width           50%
-          top                 300px
-          border-left         1px solid #CCCCCC
-          borderBox()
-          &:last-child
-            right             0
-            border-right      1px solid #CCCCCC
-
   .kdview.login-screen.home
     .flex-wrapper
       margin-bottom       30px
-
-  #home-counter-bar
-    text-align      left
-    padding         20px 8%
-  figure.counter
-    width           45%
-    margin-right    10%
-    &:nth-child(2n)
-      margin-right  0
-    > div
-      clear         right
-      fr()

@@ -65,35 +65,92 @@ module.exports = class JAccount extends jraphical.Module
       ]
     sharedMethods :
       static: [
-        'one', 'some', 'cursor', 'each', 'someWithRelationship'
-        'someData', 'getAutoCompleteData', 'count'
-        'byRelevance', 'fetchVersion','reserveNames'
-        'impersonate', 'fetchBlockedUsers', 'fetchCachedUserCount'
+        'one'
+        'some'
+        'cursor'
+        'each'
+        'someWithRelationship'
+        'someData'
+        'getAutoCompleteData'
+        'count'
+        'byRelevance'
+        'fetchVersion'
+        'reserveNames'
+        'impersonate'
+        'fetchBlockedUsers'
+        'fetchCachedUserCount'
       ]
       instance: [
-        'modify','follow','unfollow','fetchFollowersWithRelationship'
-        'countFollowersWithRelationship', 'countFollowingWithRelationship'
-        'fetchFollowingWithRelationship', 'fetchTopics'
-        'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
-        'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchAppStorage','count','addTags','fetchLimit', 'fetchLikedContents'
-        'fetchFollowedTopics', 'setEmailPreferences'
-        'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
-        'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
-        'setHandle','setAbout','fetchAbout','setStaticPageTitle',
-        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-        'fetchGroupsWithPendingInvitations', 'fetchGroupsWithPendingRequests',
-        'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
-        'fetchMyGroupInvitationStatus', 'fetchMyPermissions',
-        'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
-        'fetchMyFollowersFromGraph', 'blockUser', 'unblockUser',
-        'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
-        'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
-        'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
-        'markUserAsExempt', 'checkFlag', 'userIsExempt', 'checkGroupMembership',
-        'getOdeskAuthorizeUrl', 'fetchStorage', 'fetchStorages', 'store', 'unstore'
+        'modify'
+        'follow'
+        'unfollow'
+        'fetchFollowersWithRelationship'
+        'countFollowersWithRelationship'
+        'countFollowingWithRelationship'
+        'fetchFollowingWithRelationship'
+        'fetchTopics'
+        'fetchMounts'
+        'fetchActivityTeasers'
+        'fetchRepos'
+        'fetchDatabases'
+        'fetchMail'
+        'fetchNotificationsTimeline'
+        'fetchActivities'
+        'fetchAppStorage'
+        'addTags'
+        'fetchLimit'
+        'fetchLikedContents'
+        'fetchFollowedTopics'
+        'setEmailPreferences'
+        'glanceMessages'
+        'glanceActivities'
+        'fetchRole'
+        'fetchAllKites'
+        'flagAccount'
+        'unflagAccount'
+        'isFollowing'
+        'fetchFeedByTitle'
+        'updateFlags'
+        'fetchGroups'
+        'fetchGroupRoles'
+        'setStaticPageVisibility'
+        'addStaticPageType'
+        'removeStaticPageType'
+        'setHandle'
+        'setAbout'
+        'fetchAbout'
+        'setStaticPageTitle'
+        'setStaticPageAbout'
+        'addStaticBackground'
+        'setBackgroundImage'
+        'fetchGroupsWithPendingInvitations'
+        'fetchGroupsWithPendingRequests'
+        'cancelRequest'
+        'acceptInvitation'
+        'ignoreInvitation'
+        'fetchMyGroupInvitationStatus'
+        'fetchMyPermissions'
+        'fetchMyPermissionsAndRoles'
+        'fetchMyFollowingsFromGraph'
+        'fetchMyFollowersFromGraph'
+        'blockUser'
+        'unblockUser'
+        'sendEmailVMTurnOnFailureToSysAdmin'
+        'fetchRelatedTagsFromGraph'
+        'fetchRelatedUsersFromGraph'
+        'fetchDomains'
+        'unlinkOauth'
+        'changeUsername'
+        'markUserAsExempt'
+        'checkFlag'
+        'userIsExempt'
+        'checkGroupMembership'
+        'getOdeskAuthorizeUrl'
+        'fetchStorage'
+        'fetchStorages'
+        'store'
+        'unstore'
+        'isEmailVerified'
       ]
     schema                  :
       skillTags             : [String]
@@ -148,6 +205,7 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+      referrerUsername      : String
       isExempt              : # is a troll ?
         type                : Boolean
         default             : false
@@ -228,13 +286,6 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
 
-  fetchOldKodingDownloadLink : secure (client,callback)->
-    crypto = require 'crypto'
-    {delegate}    = client.connection
-    user      = delegate.profile.nickname
-    userhash  = crypto.createHash('md5').update("#{user}+salty\n").digest("hex")
-    link      = "http://old.koding.s3.amazonaws.com/koding.old/#{user}-#{userhash}.tgz"
-    callback null,link
 
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection
@@ -249,8 +300,7 @@ module.exports = class JAccount extends jraphical.Module
         sourceId    : group.getId()
       }, (err, relation)=>
         return callback new KodingError "An error occured!" if err
-        return callback null, no unless relation
-        return callback null, yes
+        return callback null, relation?
 
   changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options
@@ -344,10 +394,12 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:(account, callback)->
 
-    callback null, JAccount.renderHomepage
+    JAccount.renderHomepage
       renderedAccount : account
       account         : this
       isLoggedIn      : account.type is 'unregistered'
+    , callback
+
 
   setHandle: secure (client, data, callback)->
     {delegate}      = client.connection
@@ -609,12 +661,12 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "neelance",
-                  "fatihacet", "sent-hil", "kiwigeraint", "cihangirsavas",
-                  "fkadev", "arslan", "leventyalcin" ]
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
+                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
+                  "samet" ]
 
   userIsExempt: (callback)->
-    console.log @isExempt, this
+    # console.log @isExempt, this
     callback null, @isExempt
 
   # returns troll users ids
@@ -624,6 +676,11 @@ module.exports = class JAccount extends jraphical.Module
         if err
           return callback err, null
         callback null, (i._id for i in data)
+
+  isEmailVerified: (callback)->
+    @fetchUser (err, user)->
+      return callback err if err
+      callback null, (user.status is "confirmed")
 
   markUserAsExempt: secure (client, exempt, callback)->
     {delegate} = client.connection
@@ -768,24 +825,27 @@ module.exports = class JAccount extends jraphical.Module
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
   fetchMail:do ->
+
     collectParticipants = (messages, delegate, callback)->
       fetchParticipants = race (i, message, fin)->
         register = new Register # a register per message...
-        jraphical.Relationship.all
-          targetName  : 'JPrivateMessage',
-          targetId    : message.getId(),
+
+        query =
+          targetName  : 'JPrivateMessage'
+          targetId    : message.getId()
           sourceId    :
             $ne       : delegate.getId()
-        , (err, rels)->
-          if err
-            callback err
-          else unless rels?.length
-            message.participants = []
-          else
-            # only include unique participants.
-            message.participants = (rel for rel in rels when register.sign rel.sourceId)
-          fin()
+
+        jraphical.Relationship.cursor query, (err, cursor)->
+          return callback err  if err
+          message.participants = []
+          cursor.each (err, rel)->
+            unless rel then fin()
+            else
+              message.participants.push rel  if register.sign rel.sourceId
+
       , callback
+
       fetchParticipants(message) for message in messages when message?
 
     secure ({connection:{delegate}}, options, callback)->
@@ -821,6 +881,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
 
   fetchActivityTeasers : secure ({connection}, selector, options, callback)->
+
     unless @equals connection.delegate
       callback new KodingError 'Access denied'
     else
@@ -879,7 +940,7 @@ module.exports = class JAccount extends jraphical.Module
       return callback new KodingError "Attempt to remove unauthorized storage"
 
     @fetchStorage { 'data.name' : name }, (err, storage)=>
-      console.log err, storage
+      console.error err, storage  if err
       return callback err  if err
       unless storage
         return callback new KodingError "No such storage"
@@ -913,7 +974,7 @@ module.exports = class JAccount extends jraphical.Module
     @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
       if err then callback err
       else unless storage?
-        log.info 'creating new storage for application', appId, version
+        # log.info 'Creating new storage:', appId, version, @profile.nickname
         newStorage = new JAppStorage {appId, version}
         newStorage.save (err) =>
           if err then callback err
@@ -933,7 +994,11 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchUser:(callback)->
     JUser = require './user'
-    JUser.one {username: @profile.nickname}, callback
+    selector = { targetId: @getId(), as: 'owner', sourceName: 'JUser' }
+    Relationship.one selector, (err, rel) ->
+      return callback err   if err
+      return callback null  unless rel
+      JUser.one {_id: rel.sourceId}, callback
 
   markAllContentAsLowQuality:->
     # this is obsolete
@@ -1098,7 +1163,8 @@ module.exports = class JAccount extends jraphical.Module
           # so we are filtering them here.
           domainList = domains.filter (domain)->
             domainName = domain.domain
-            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
+            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and \
+            !(/(.*)\.(koding|guests)\.kd\.io$/.test domainName)
 
         callback err, domainList
 

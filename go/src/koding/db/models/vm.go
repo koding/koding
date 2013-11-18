@@ -10,6 +10,7 @@ type VM struct {
 	HostnameAlias string        `bson:"hostnameAlias"`
 	WebHome       string        `bson:"webHome"`
 	Users         []Permissions `bson:"users"`
+	Groups        []Permissions `bson:"groups"`
 	LdapPassword  string        `bson:"ldapPassword"`
 	NumCPUs       int           `bson:"numCPUs"`
 	MaxMemoryInMB int           `bson:"maxMemoryInMB"`
@@ -25,6 +26,7 @@ type VM struct {
 }
 
 type Permissions struct {
-	Id   bson.ObjectId `bson:"id"`
-	Sudo bool          `bson:"sudo"`
+	Id    bson.ObjectId `bson:"id"`
+	Sudo  bool          `bson:"sudo"`
+	Owner bool          `bson:"owner"`
 }

@@ -13,21 +13,23 @@ class MembersMainView extends KDView
     @header.setSearchInput()  if 'list members' in KD.config.permissions
 
 class MembersListItemView extends KDListItemView
-  constructor:(options, data)->
 
-    options = options ? {}
-    options.type = "members"
+  constructor:(options = {}, data)->
+
+    options.type          = "members"
     options.avatarSizes or= [60, 60] # [width, height]
 
-    super options,data
+    super options, data
 
     memberData = @getData()
     options    = @getOptions()
 
     @avatar = new AvatarView
-      size:
-        width: options.avatarSizes[0]
-        height: options.avatarSizes[1]
+      size           :
+        width        : options.avatarSizes[0]
+        height       : options.avatarSizes[1]
+      showStatus     : yes
+      statusDiameter : 5
     , memberData
 
     if (memberData.profile.nickname is KD.whoami().profile.nickname) or \
@@ -132,10 +134,11 @@ class MembersLikedContentDisplayView extends KDView
       tagName  : "h2"
       cssClass : 'sub-header'
 
-    subHeader.addSubView backLink = new KDCustomHTMLView
+    backLink = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : => contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
+    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     @listenWindowResize()
 
@@ -164,12 +167,14 @@ class MembersContentDisplayView extends KDView
       tagName  : "h2"
       cssClass : 'sub-header'
 
-    subHeader.addSubView backLink = new KDCustomHTMLView
+    backLink = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : (event)=>
         event.preventDefault()
         event.stopPropagation()
         KD.getSingleton('contentDisplayController').emit "ContentDisplayWantsToBeHidden", @
+
+    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     @listenWindowResize()

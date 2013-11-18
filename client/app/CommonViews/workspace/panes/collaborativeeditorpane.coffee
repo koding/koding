@@ -12,11 +12,10 @@ class CollaborativeEditorPane extends CollaborativePane
       @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
       @firepad.on "ready", =>
+        @firepad.setText " " # fix for a firepad bug
+        @codeMirrorEditor.scrollTo 0, 0
         {file, content} = @getOptions()
         return @openFile file, content  if file
-        if @firepad.isHistoryEmpty()
-          @firepad.setText "" # fix for a firepad bug
-          @codeMirrorEditor.scrollTo 0, 0
 
       @ref.on "value", (snapshot) =>
         value = snapshot.val()
@@ -38,26 +37,32 @@ class CollaborativeEditorPane extends CollaborativePane
     isValidFile = file instanceof FSFile and file.path.indexOf("localfile") is -1
 
     if @amIHost
-      return warn "no file instance handle save as" unless isValidFile
+      return warn "no file instance to handle save as" unless isValidFile
 
       @ref.child("WaitingSaveRequest").set no
       file.save @firepad.getText(), (err, res) =>
         new KDNotificationView
           type     : "mini"
           cssClass : "success"
-          title    : "File has been saved"
+          title    : "File is saved"
           duration : 4000
     else
       @ref.child("WaitingSaveRequest").set yes
 
     @getOptions().saveCallback? @panel, @workspace, file, @firepad.getText()
+    @emit "EditorDidSave"
 
   getValue: ->
     return @codeMirrorEditor.getValue()
 
+  setValue: (value) ->
+    @codeMirrorEditor.setValue value
+
   createEditor: ->
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
+      scrollPastEnd   : yes
+      mode            : "htmlmixed"
       extraKeys       :
         "Cmd-S"       : @bound "save"
         "Ctrl-S"      : @bound "save"
@@ -86,11 +91,10 @@ class CollaborativeEditorPane extends CollaborativePane
     syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
     modeName           = null
     corrections        =
-      html             : "xml"
+      html             : "htmlmixed"
       json             : "javascript"
       js               : "javascript"
       go               : "go"
-      txt              : "text"
 
     if corrections[fileExtension]
       modeName = corrections[fileExtension]

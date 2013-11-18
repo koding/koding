@@ -21,7 +21,7 @@
     "coffee-script"   : "1.6.2",
     "colors"          : "0.6.0-1",
     "commander"       : "1.0.4",
-    "cron"            : "0.3.4",
+    "cron"            : "1.0.1",
     "csv"             : "0.2.9",
     "dateformat"      : "1.0.2-1.2.3",
     "embedly"         : "1.0.1",
@@ -48,6 +48,7 @@
     "source-map"      : "0.1.9",
     "sqwish"          : "0.2.0",
     "stylus"          : "0.37.0",
+    "traverse"        : "0.6.6",
     "portchecker"     : "0.1.1",
     "uglify-js"       : "2.3.6",
     "underscore"      : "1.2.3",
@@ -58,7 +59,8 @@
     "xml2js"          : "0.2.6",
     "nesh"            : "1.2.0",
     "htmlencode"      : "0.0.3",
-    "node-odesk"      : "0.0.7"
+    "node-odesk"      : "0.0.7",
+    "oauth"           : "0.9.10"
   },
   "devDependencies": {},
   "optionalDependencies": {},

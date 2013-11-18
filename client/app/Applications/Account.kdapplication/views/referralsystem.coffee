@@ -131,7 +131,7 @@ class AccountReferralSystemListController extends AccountListViewController
           """
       click       : ->
         appManager = KD.getSingleton "appManager"
-        appManager.tell "Account", "showReferrerTooltip",
+        appManager.tell "Account", "showReferrerModal",
           linkView    : getYourReferrerCode
           top         : 50
           left        : 35
@@ -159,7 +159,14 @@ class AccountReferralSystemListItem extends KDListItemView
     super options, data
 
   viewAppended: ->
-    super
+    @getData().isEmailVerified (err, status)=>
+      unless (err or status)
+        @addSubView editLink = new KDCustomHTMLView
+           tagName      : "a"
+           partial      : "Mail Verification Waiting"
+           cssClass     : "action-link"
+
+      super
 
   partial: (data)->
     """

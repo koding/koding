@@ -27,6 +27,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       instance     : [
         'getToken', 'subscribe'
       ]
+    sharedEvents   :
+      static       : []
+      instance     : []
     schema         :
       code         : String
       title        : String
@@ -43,7 +46,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   @setUserAccount = secure (client, data, callback)->
     {delegate}    = client.connection
 
-    data.username  = delegate.profile.nickname 
+    data.username  = delegate.profile.nickname
     data.ipAddress = '0.0.0.0'
     data.firstName = delegate.profile.firstName
     data.lastName  = delegate.profile.lastName
@@ -285,7 +288,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           charged += parseInt adj.amount, 10
 
         callback null, spent-charged
-      
+
   @getUserBalance = secure (client, callback)->
     {delegate} = client.connection
     userCode      = "user_#{delegate._id}"
@@ -295,5 +298,5 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   @getGroupBalance = secure (client, group, callback)->
     {delegate} = client.connection
     userCode      = "group_#{group._id}"
-    
+
     @getAccountBalance userCode, callback

@@ -57,6 +57,7 @@ class DeleteModalView extends KDModalViewWithForms
               if err then new KDNotificationView title : 'There was a problem, please try again!'
               else
                 new KDNotificationView title : 'Thank you for trying Koding!'
+                KD.mixpanel "Deleted account"
                 KD.utils.wait 2000, ->
                   $.cookie 'clientId', erase : yes
                   location.replace '/'
@@ -98,4 +99,4 @@ class DeleteModalView extends KDModalViewWithForms
       @modalTabs.forms.dangerForm.buttons.confirmButton.enable()
     else
       @modalTabs.forms.dangerForm.buttons.confirmButton.disable()
-      input.setValidationResult 'keyupCheck', 'Sorry, entered value does not match vm name!', showError
+      input.setValidationResult 'keyupCheck', 'Sorry, entered value does not match your username!', showError

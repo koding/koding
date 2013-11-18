@@ -75,6 +75,19 @@ module.exports =
     authAllExchange: authAllExchange
     numberOfWorkers: 1
     watch       : yes
+  emailConfirmationCheckerWorker :
+    enabled              : yes
+    login                : 'prod-social'
+    queueName            : socialQueueName+'emailConfirmationCheckerWorker'
+    numberOfWorkers      : 1
+    watch                : yes
+    cronSchedule         : '0 * * * * *'
+    usageLimitInMinutes  : 60
+  elasticSearch          :
+    host                 : "localhost"
+    port                 : 9200
+    enabled              : no
+    queue                : "elasticSearchFeederQueue"
   guestCleanerWorker     :
     enabled              : yes
     login                : 'prod-social'
@@ -141,6 +154,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       uploadsUri: 'https://koding-uploads.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
+      newkontrol:
+        host    : '127.0.0.1'
+        port    : 4000
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -196,6 +212,9 @@ module.exports =
     interval      : 60000
   haproxy         :
     webPort       : 3020
+  newkontrol      :
+    host          : "127.0.0.1"
+    port          : 4000
   kontrold        :
     vhost         : "/"
     overview      :
@@ -227,7 +246,7 @@ module.exports =
   #     b = decipher.final('utf-8')
   #     return b
   recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding-test.recurly.com
+    apiKey      : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
   embedly       :
     apiKey      : embedlyApiKey
   opsview       :
@@ -241,6 +260,12 @@ module.exports =
   odesk          :
     key          : "639ec9419bc6500a64a2d5c3c29c2cf8"
     secret       : "549b7635e1e4385e"
+    request_url  : "https://www.odesk.com/api/auth/v1/oauth/token/request"
+    access_url   : "https://www.odesk.com/api/auth/v1/oauth/token/access"
+    secret_url   : "https://www.odesk.com/services/api/auth?oauth_token="
+    version      : "1.0"
+    signature    : "HMAC-SHA1"
+    redirect_uri : "http://localhost:3020/-/oauth/odesk/callback"
   facebook       :
     clientId     : "475071279247628"
     clientSecret : "65cc36108bb1ac71920dbd4d561aca27"
@@ -253,3 +278,17 @@ module.exports =
     use          : false
     ip           : "localhost"
     port         : 8125
+  linkedin       :
+    client_id    : "f4xbuwft59ui"
+    client_secret: "fBWSPkARTnxdfomg"
+    redirect_uri : "http://localhost:3020/-/oauth/linkedin/callback"
+  twitter        :
+    key          : "aFVoHwffzThRszhMo2IQQ"
+    secret       : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E"
+    redirect_uri : "http://127.0.0.1:3020/-/oauth/twitter/callback"
+    request_url  : "https://twitter.com/oauth/request_token"
+    access_url   : "https://twitter.com/oauth/access_token"
+    secret_url   : "https://twitter.com/oauth/authenticate?oauth_token="
+    version      : "1.0"
+    signature    : "HMAC-SHA1"
+  mixpanel       : "a57181e216d9f713e19d5ce6d6fb6cb3"

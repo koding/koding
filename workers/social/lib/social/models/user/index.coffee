@@ -42,7 +42,8 @@ module.exports = class JUser extends jraphical.Module
                      'fucker','admin','postfix','puppet','main','invite',
                      'administrator','members','register','activate','shared',
                      'groups','blogs','forums','topics','develop','terminal',
-                     'term','twitter','facebook','google','framework', 'kite']
+                     'term','twitter','facebook','google','framework', 'kite'
+                     'landing']
 
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
@@ -144,6 +145,8 @@ module.exports = class JUser extends jraphical.Module
           foreignId          : String
           username           : String
           token              : String
+        linkedin             :
+          foreignId          : String
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -204,9 +207,16 @@ module.exports = class JUser extends jraphical.Module
             globalFlags           : ['deleted']
             onlineStatus          : 'offline'
           }
-          delegate.update $set: accountValues, (err) =>
+          delegate.update $set: accountValues, (err)=>
             return callback err  if err?
-            @logout client, callback
+            JName.release confirmUsername, (err)=>
+              return callback err  if err?
+              JAccount.emit "UsernameChanged", {
+                oldUsername    : confirmUsername
+                isRegistration : false
+                username
+              }
+              user.unlinkOAuths => @logout client, callback
 
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences = require '../registrationpreferences'
@@ -297,34 +307,50 @@ module.exports = class JUser extends jraphical.Module
             JLog.log { type: "login", username: username, success: no }, ->
               callback createKodingError 'Access denied!'
           else
-            JLog.log { type: "login", username: username, success: yes }, ->
-              afterLogin connection, user, clientId, session, callback
+            afterLogin connection, user, clientId, session, callback
 
-  afterLogin = (connection, user, clientId, session, callback)->
+  checkUserStatus = (user, account, callback)->
+    if user.status is 'unconfirmed' and KONFIG.emailConfirmationCheckerWorker.enabled
+      error = createKodingError "CONFIRMATION_WAITING"
+      error.code = 403
+      error.data or= {}
+      error.data.name = account.profile.firstName or account.profile.nickname
+      error.data.nickname = account.profile.nickname
+      return callback error
+    return callback null
+
+
+  checkLoginConstraints = (user, account, callback)->
     checkBlockedStatus user, (err)->
       return callback err  if err
-      replacementToken = createId()
-      session.update {
-        $set            :
-          username      : user.username
-          clientId      : replacementToken
-        $unset:
-          guestId       : 1
-      }, (err)->
-          return callback err  if err
-          user.update { $set: lastLoginDate: new Date }, (err) ->
-            return callback err  if err
-            
-            user.fetchOwnAccount (err, account)->
-              return callback err  if err
+      checkUserStatus user, account, callback
 
+  afterLogin = (connection, user, clientId, session, callback)->
+    user.fetchOwnAccount (err, account)->
+      if err then return callback err
+      checkLoginConstraints user, account, (err)->
+        if err then return callback err
+        replacementToken = createId()
+        session.update {
+          $set            :
+            username      : user.username
+            lastLoginDate : new Date
+            clientId      : replacementToken
+          $unset:
+            guestId       : 1
+        }, (err)->
+            return callback err  if err
+            user.update { $set: lastLoginDate: new Date }, (err) ->
+              return callback err  if err
               connection.delegate = account
               JAccount.emit "AccountAuthenticated", account
               # This should be called after login and this
               # is not correct place to do it, FIXME GG
               # p.s. we could do that in workers
+              JLog.log { type: "login", username: account.username, success: yes }, ->
               account.updateCounts()
-              callback null, {account, replacementToken}
+              JUser.clearOauthFromSession session, ->
+                callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
@@ -472,6 +498,8 @@ module.exports = class JUser extends jraphical.Module
     {sessionToken} = client
     JSession.one {clientId: sessionToken}, (err, session) =>
       return callback err  if err
+      return callback createKodingError "Couldn't restore your session."  unless session
+
       kallback = (err, resp={}) ->
         {account, replacementToken} = resp
         callback err, {
@@ -481,28 +509,26 @@ module.exports = class JUser extends jraphical.Module
           replacementToken
         }
       @fetchUserByProvider provider, session, (err, user) =>
-        if err
-          callback createKodingError err.message
-        else
-          if isUserLoggedIn
-            if user
+        return callback createKodingError err.message  if err
+        if isUserLoggedIn
+          if user
+            @clearOauthFromSession session, ->
               callback createKodingError """
                 Account is already linked with another user.
               """
-            else
-              @fetchUser client, (err, user)=>
-                {username} = user
-                @persistOauthInfo user.username, sessionToken, kallback
           else
-            if user
-              afterLogin client.connection, user, sessionToken, session, kallback
-            else
-              info = session.foreignAuth[provider]
-              {username, email, firstName, lastName} = info
-              callback null, {
-                isNewUser : true,
-                userInfo  : {username, email, firstName, lastName}
-              }
+            @fetchUser client, (err, user)=>
+              @persistOauthInfo user.username, sessionToken, kallback
+        else
+          if user
+            afterLogin client.connection, user, sessionToken, session, kallback
+          else
+            info = session.foreignAuth[provider]
+            {username, email, firstName, lastName} = info
+            callback null, {
+              isNewUser : true,
+              userInfo  : {username, email, firstName, lastName}
+            }
 
   @validateAll = (userFormData, callback) =>
 
@@ -629,7 +655,7 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
       =>
         @sendEmailConfirmationByUsername username, (err) =>
-          return console.error err if err
+          console.error err if err
           queue.next()
       ->
         JAccount.emit "AccountRegistered", account, referrer
@@ -792,13 +818,13 @@ Your password has been changed!  If you didn't request this change, please conta
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require '../emailconfirmation'
-    JEmailConfirmation.create @, (err, confirmation)->
-      if err
-        callback err
-      else
-        confirmation.send callback
+    JEmailConfirmation.createAndSendEmail @, callback
 
-  confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
+  confirmEmail: (callback)->
+    @update {$set: status: 'confirmed'}, (err, res)=>
+      return callback err if err
+      JUser.emit "EmailConfirmed", @
+      return callback null
 
   block:(blockedUntil, callback)->
     unless blockedUntil then return callback createKodingError "Blocking date is not defined"
@@ -822,10 +848,15 @@ Your password has been changed!  If you didn't request this change, please conta
       JUser.emit "UserUnblocked", @
       return callback err
 
+  unlinkOAuths: (callback)->
+    @update $unset: {foreignAuth:1, foreignAuthType:1}, callback
+
   @persistOauthInfo: (username, clientId, callback)->
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
       return callback err  if err
       return callback()    unless foreignAuthInfo
+      return callback()    unless session
+
       @saveOauthToUser foreignAuthInfo, username, (err)=>
         return callback err  if err
         @clearOauthFromSession session, (err)=>
@@ -835,6 +866,7 @@ Your password has been changed!  If you didn't request this change, please conta
   @extractOauthFromSession: (clientId, callback)->
     JSession.one {clientId: clientId}, (err, session)->
       return callback err  if err
+      return callback()    unless session
 
       {foreignAuth, foreignAuthType} = session
       if foreignAuth and foreignAuthType
@@ -849,7 +881,7 @@ Your password has been changed!  If you didn't request this change, please conta
     @update {username}, $set: query, callback
 
   @clearOauthFromSession: (session, callback)->
-    session.update $unset: {foreignAuth: "", foreignAuthType:""}, callback
+    session.update $unset: {foreignAuth:1, foreignAuthType:1}, callback
 
   @copyPublicOauthToAccount: (username, {foreignAuth, foreignAuthType}, callback)->
     JAccount.one {"profile.nickname":username}, (err, account)->
@@ -871,4 +903,5 @@ Your password has been changed!  If you didn't request this change, please conta
   @sendEmailConfirmationByUsername:(username, callback)->
     @one {username}, (err, user)->
       return callback err  if err
+      return callback null unless user
       user.sendEmailConfirmation callback

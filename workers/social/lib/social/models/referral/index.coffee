@@ -1,6 +1,7 @@
 jraphical = require 'jraphical'
 
 JAccount = require '../account'
+JUser = require '../user'
 JVM = require '../vm'
 KodingError = require '../../error'
 
@@ -29,6 +30,9 @@ module.exports = class JReferral extends jraphical.Message
     sharedMethods     :
       static          : ['redeem', 'fetchRedeemableReferrals', 'fetchReferredAccounts' ]
       instance        : [ ]
+    sharedEvents      :
+      static          : []
+      instance        : []
     schema            : schema
     relationships     :
       redeemedOn      :
@@ -147,24 +151,8 @@ module.exports = class JReferral extends jraphical.Message
       totalStep--
 
   @fetchReferredAccounts = secure (client, query, options, callback)->
-    @fetchOwnReferralsIds client, query, options, (err, allReferalIds) ->
-      return callback err if err
-
-      referredSelector = {
-        sourceName  : 'JAccount',
-        targetId    : { $in: allReferalIds },
-        targetName  : 'JReferral',
-        as          : 'referred'
-      }
-
-      # no need to add limit here, because in fetchOwnReferralsIds method there is limit,
-      # this is a subset of it, so this will be lte than ownReferralsIds
-      Relationship.some referredSelector, {}, (err, relationships)=>
-        return callback err if err
-
-        accSelector = { _id: $in: relationships.map (rel) -> rel.sourceId }
-        JAccount.some accSelector, {}, callback
-
+    username = client.connection.delegate.profile.nickname
+    JAccount.some { referrerUsername : username }, options, callback
 
   @redeem = secure (client, data, callback)->
     {vmName, size, type} = data
@@ -257,20 +245,32 @@ module.exports = class JReferral extends jraphical.Message
       if me.profile.nickname is referrerCode
           return console.error "#{me.profile.nickname} - User tried to refer themself"
 
-      # get referrer
-      JAccount.one {'profile.nickname': referrerCode}, (err, referrer)->
-        # if error occured than do nothing and return
-        return console.error "Error while fetching referrer", err if err
-        # if referrer not fonud then do nothing and return
-        return console.error "Referrer couldnt found" if not referrer
+      me.update { $set : 'referrerUsername' :  referrerCode }, (err)->
+        return console.error err if err
+        console.log "referal saved successfully for #{me.profile.nickname} from #{referrerCode}"
 
-        referral = new JReferral { type: "disk", unit: "MB", amount: 250 }
-        referral.save (err) ->
-          return console.error err if err
-          #add referrer as referrer to the referral system
-          referrer.addReferrer referral, (err)->
+    JUser.on 'EmailConfirmed', (user)->
+      return console.log "User is not defined in event" unless user
+
+      user.fetchOwnAccount (err, me)->
+        return console.error err if err
+        # if account not fonud then do nothing and return
+        return console.error "Account couldnt found" unless me
+        referrerUsername = me.referrerUsername
+        return console.log "User doesn't have any referrer" unless referrerUsername
+        # get referrer
+        JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
+          # if error occured than do nothing and return
+          return console.error "Error while fetching referrer", err if err
+          # if referrer not fonud then do nothing and return
+          return console.error "Referrer couldnt found" if not referrer
+          referral = new JReferral { type: "disk", unit: "MB", amount: 250 }
+          referral.save (err) ->
             return console.error err if err
-            # add me as referred to the referral system
-            me.addReferred referral, (err)->
+            #add referrer as referrer to the referral system
+            referrer.addReferrer referral, (err)->
               return console.error err if err
-              console.log "referal saved successfully for #{me.profile.nickname} from #{referrerCode}"
+              # add me as referred to the referral system
+              me.addReferred referral, (err)->
+                return console.error err if err
+                console.log "referal saved successfully for #{me.profile.nickname} from #{referrerUsername}"

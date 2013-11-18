@@ -8,9 +8,6 @@ app.login-signup.styl
 */
 }
 
-.old-login-screen
-  background-image: url("../images/koding-new-bg.png");
-
 // swapping views for views
 .kdview.login-screen
   z-index            100
@@ -42,18 +39,16 @@ app.login-signup.styl
   .regLink
   .recLink
   .logLink
+  .resend-confirmation-link
   >section
     hidden()
 
   &.join
-    // margin-top            -200px !important
-
     .logLink
     .regLink
       visible()
     .flex-wrapper
       overflow            visible
-      //size                400px, 335px
       height              235px
       &.expanded
         width             400px
@@ -80,6 +75,7 @@ app.login-signup.styl
     .lf
     .regLink
     .recLink
+    .resend-confirmation-link
     .login-options-holder.log
       visible()
 
@@ -107,8 +103,10 @@ app.login-signup.styl
     .rcf
     .logLink
       visible()
+    .rcf > form
+      margin-top          15px
     .flex-wrapper
-      height              183px
+      height              198px
     .rcf .kdnotification.mini.register
       top                 174px!important
 
@@ -120,6 +118,15 @@ app.login-signup.styl
       hidden()
     .flex-wrapper
       height              254px
+
+  &.resendEmail
+    .resend-confirmation-form
+    .logLink
+      visible()
+    .resend-confirmation-form > form
+      margin-top          15px
+    .flex-wrapper
+      height              198px
 
   &.home
     .flex-wrapper

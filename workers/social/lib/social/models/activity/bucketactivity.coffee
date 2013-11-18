@@ -13,18 +13,27 @@ module.exports = class CBucketActivity extends CActivity
   @trait __dirname, '../../traits/flaggable'
   @trait __dirname, '../../traits/grouprelated'
 
+  @set
+    sharedEvents  :
+      instance    : []
+      static      : ['feed-new']
+
   @setRelationships
     subject       :
       targetType  : [
-        'CFollowerBucket'
-        'CFolloweeBucket'
-        'CNewMemberBucket'
         'CLikerBucket'
         'CLikeeBucket'
         'CReplierBucket'
         'CReplieeBucket'
+        'CFollowerBucket'
+        'CFolloweeBucket'
+        'CNewMemberBucket'
         'CInstallerBucket'
         'CInstalleeBucket'
+        'CGroupJoinerBucket'
+        'CGroupJoineeBucket'
+        'CGroupLeaverBucket'
+        'CGroupLeaveeBucket'
       ]
       as          : 'content'
 

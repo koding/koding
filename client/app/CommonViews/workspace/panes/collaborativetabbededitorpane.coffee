@@ -83,6 +83,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       content
     }
 
+    @forwardEvent editor, 'EditorDidSave'
+    @forwardEvent editor, 'OpenedAFile'
+
     pane.addSubView editor
     @editors.push editor
     @tabView.addPane pane
@@ -116,6 +119,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
   openFile: CollaborativeTabbedEditorPane::createEditorInstance
 
   handlePaneResized: ->
+    return unless @parent
     @tabView.setHeight @parent.getHeight() - 22
     for pane in @tabView.panes
       pane.subViews[0].codeMirrorEditor.refresh()

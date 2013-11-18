@@ -21,10 +21,10 @@ class MembersAppController extends AppController
       urlLocation   : 'link'
     google          :
       nicename      : 'Google'
-    # twitter         :
-    #   nicename      : 'Twitter'
-    # linkedin        :
-    #   nicename      : 'linkedIn'
+    linkedin        :
+      nicename      : 'LinkedIn'
+    twitter         :
+      nicename      : 'Twitter'
     # bitbucket       :
     #   nicename      : 'BitBucket'
 
@@ -41,6 +41,7 @@ class MembersAppController extends AppController
 
   createFeed:(view, loadFeed = no)->
     @appManager.tell 'Feeder', 'createContentFeedController', {
+      feedId                : 'members.main'
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       useHeaderNav          : no
@@ -109,10 +110,13 @@ class MembersAppController extends AppController
         if @_searchValue and filter is 'everything'
           @setCurrentViewHeader count
 
+      KD.mixpanel "Loaded member list"
+
   createFeedForContentDisplay:(view, account, followersOrFollowing, callback)->
 
     @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
+      feedId                : "members.#{account.profile.username}"
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10

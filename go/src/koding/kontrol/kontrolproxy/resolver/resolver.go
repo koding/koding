@@ -39,6 +39,10 @@ type Target struct {
 	// CacheTimeout is used to invalidate the target. If no timeout is given,
 	// it caches it forever (works only if UseCache is true).
 	CacheTimeout time.Duration
+
+	// See struct models.Domain.Proxy
+	CacheEnabled  bool
+	CacheSuffixes string `bson:"cacheSuffixes"`
 }
 
 func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
@@ -99,10 +103,26 @@ func GetMemTarget(host string) (*Target, error) {
 // arslan.kd.io -> "http://10.128.2.25:80", mode:vm
 // y.koding.com -> "http://localhost/maintenance", mode:maintenance
 func GetTarget(host string) (*Target, error) {
-	var err error
-	var port string
+	domain, err := targetDomain(host)
+	if err != nil {
+		return nil, err
+	}
 
+	target, err := targetMode(host, domain)
+	if err != nil {
+		return nil, err
+	}
+
+	target.CacheEnabled = domain.Proxy.CacheEnabled
+	target.CacheSuffixes = domain.Proxy.CacheSuffixes
+	return target, nil
+}
+
+func targetMode(host string, domain *models.Domain) (*Target, error) {
 	// split host and port and also check if incoming host has a port
+	var port string
+	var err error
+
 	if !utils.HasPort(host) {
 		port = "80"
 	} else {
@@ -112,12 +132,8 @@ func GetTarget(host string) (*Target, error) {
 		}
 	}
 
-	domain, err := targetDomain(host)
-	if err != nil {
-		return nil, err
-	}
-
 	mode := domain.Proxy.Mode
+
 	switch mode {
 	case "maintenance":
 		// for avoiding nil pointer referencing
@@ -135,7 +151,7 @@ func GetTarget(host string) (*Target, error) {
 		return internalTarget(host, port, domain)
 	}
 
-	return nil, fmt.Errorf("ERROR: proxy mode is not supported: %s", domain.Proxy.Mode)
+	return nil, fmt.Errorf("ERROR: proxy mode is not supported: %s", mode)
 }
 
 func targetDomain(host string) (*models.Domain, error) {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -56,6 +57,15 @@ type Config struct {
 	Opsview struct {
 		Push bool
 		Host string
+	}
+	ElasticSearch struct {
+		Host  string
+		Port  int
+		Queue string
+	}
+	NewKontrol struct {
+		Host string
+		Port int
 	}
 	Kontrold struct {
 		Vhost    string
@@ -113,46 +123,13 @@ func init() {
 	flag.StringVar(&Region, "r", "", "Region")
 	flag.IntVar(&Skip, "s", 0, "Define how far to skip ahead")
 	flag.IntVar(&Count, "l", 1000, "Count for items to process")
-
 	flag.BoolVar(&VMProxies, "v", false, "Enable ports for VM users (1024-10000)")
 
 	flag.Parse()
-	if flag.NArg() != 0 {
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-	if FileProfile == "" && PillarProfile == "" {
-		fmt.Println("Please specify a configuration profile via -c or -p.")
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-	if FileProfile != "" && PillarProfile != "" {
-		fmt.Println("The flags -c and -p are exclusive.")
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-	var configCommand *exec.Cmd
-	if FileProfile != "" {
-		Profile = FileProfile
-		configCommand = exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+FileProfile+"')")
-	}
-	if PillarProfile != "" {
-		Profile = PillarProfile
-		configCommand = exec.Command("salt-call", "pillar.get", PillarProfile, "--output=json", "--log-level=warning")
-	}
 
-	configJSON, err := configCommand.CombinedOutput()
+	err := readConfig()
 	if err != nil {
-		fmt.Printf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n", err.Error(), configJSON)
-		os.Exit(1)
-	}
-
-	err = json.Unmarshal(configJSON, &Current)
-	if err == nil && (Current == Config{}) {
-		err = fmt.Errorf("Empty configuration.")
-	}
-	if err != nil {
-		fmt.Printf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n", err.Error(), configJSON)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
@@ -165,4 +142,83 @@ func init() {
 		}
 	}()
 
+}
+
+// readConfig reads and unmarshalls the appropriate config into the Config
+// struct (which is used in many applications). It either reads the config
+// from the koding-config-manager or from salt-pillar with command line flag
+// -c and -p. They are exclusive, which means you only can use one. If there
+// is no flag specified it tries to get the config from the environment
+// variable "CONFIG".
+func readConfig() error {
+	if flag.NArg() != 0 {
+		return errors.New("You passed extra unused arguments.")
+	}
+
+	if FileProfile == "" && PillarProfile == "" {
+		// this is needed also if you can't pass a flag into other packages, like testing.
+		// otherwise it's impossible to inject the config paramater. For example:
+		// this doesn't work  : go test -c "vagrant"
+		// but this will work : CONFIG="vagrant" go test
+		envProfile := os.Getenv("CONFIG")
+		if envProfile == "" {
+			return errors.New("Please specify a configuration profile via -c or -p or set a CONFIG environment.")
+		}
+
+		FileProfile = envProfile
+	}
+
+	if FileProfile != "" && PillarProfile != "" {
+		return errors.New("The flags -c and -p are exclusive.")
+	}
+
+	if FileProfile != "" {
+		Profile = FileProfile
+		err := readConfigManager(FileProfile)
+		if err != nil {
+			return err
+		}
+	}
+
+	if PillarProfile != "" {
+		Profile = PillarProfile
+		err := readPillar(PillarProfile)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
+func readConfigManager(profile string) error {
+	cmd := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')")
+	return initializeConfig(cmd)
+}
+
+func readPillar(profile string) error {
+	cmd := exec.Command("salt-call", "pillar.get", profile, "--output=json", "--log-level=warning")
+	return initializeConfig(cmd)
+}
+
+func initializeConfig(cmd *exec.Cmd) error {
+	config, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
+			err.Error(), config)
+	}
+
+	err = json.Unmarshal(config, &Current)
+	if err == nil && (Current == Config{}) {
+		err = fmt.Errorf("Empty configuration.")
+	}
+
+	if err != nil {
+		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
+			err.Error(), config)
+	}
+
+	// successfully unmarshalled into Current
+	return nil
 }

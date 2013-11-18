@@ -61,10 +61,10 @@ class KodingRouter extends KDRouter
     unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
       {entryPoint} = KD.config
-      # if KD.isLoggedIn()
-      @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
-      # else
-      #   @handleRoute @getDefaultRoute(), {entryPoint}
+      if KD.isLoggedIn()
+        @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
+      else
+        @handleRoute @getDefaultRoute(), {entryPoint}
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -76,7 +76,7 @@ class KodingRouter extends KDRouter
       if err then new KDNotificationView title: err.message
       else
         # temp fix for not showing homepage to loggedin users
-        app = 'Activity' if app is 'Home' and KD.isLoggedIn()
+        # app = 'Activity' if app is 'Home' and KD.isLoggedIn()
 
         @setPageTitle nicenames[app] ? app
         appManager  = KD.getSingleton "appManager"
@@ -101,7 +101,7 @@ class KodingRouter extends KDRouter
       if err or not target? then status_404()
       else status_301 target
 
-  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/Home'
+  getDefaultRoute:-> if KD.isLoggedIn() then '/Activity' else '/'
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
@@ -213,15 +213,35 @@ class KodingRouter extends KDRouter
   clear:(route, replaceState=yes)->
     unless route
       {entryPoint} = KD.config
-      if entryPoint?.type is 'group' and entryPoint?.slug?
-        route = "/#{KD.config.entryPoint?.slug}"
-      else
-        route = '/'
+      route =
+        if KD.isLoggedIn() and entryPoint?.type is 'group' and entryPoint?.slug?
+           "/#{KD.config.entryPoint?.slug}"
+        else '/'
     super route, replaceState
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
     clear = @bound 'clear'
+
+    getAction = (formName) -> switch formName
+      when 'login'    then 'log in'
+      when 'register' then 'register'
+
+    animateToForm = (formName, force = no) ->
+      { mainTabView } = KD.getSingleton 'mainView'
+      appsAreOpen = mainTabView.getVisibleHandles?().length > 0
+      if not force and formName in ['login', 'register'] and appsAreOpen
+        ok = no
+        modal = KDModalView.confirm
+          title: "Are you sure you want to #{getAction formName}?"
+          description: "You will lose your work"
+          ok: callback: ->
+            ok = yes
+            modal.destroy()
+            animateToForm formName, yes
+        modal.once 'KDObjectWillBeDestroyed', -> clear()  if not ok
+      else
+        mainController.loginScreen.animateToForm formName
 
     requireLogin =(fn)->
       mainController.ready ->
@@ -244,20 +264,25 @@ class KodingRouter extends KDRouter
 
       '/'      : handleRoot
       ''       : handleRoot
-      # '/About' : createStaticContentHandler 'Home', yes
+      # '/Home'  : handleRoot
       '/About' : createSectionHandler 'Activity'
 
+      '/Landing/:page': noop
+      '/R/:username'  : noop
+
       # verbs
-      '/:name?/Login'     : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'login'
-      '/:name?/Logout'    : ({params:{name}})->
+      '/:name?/Login'        : ({params:{name}})->
+        requireLogout -> animateToForm 'login'
+      '/:name?/Logout'       : ({params:{name}})->
         requireLogin  -> mainController.doLogout()
-      '/:name?/Redeem'    : ({params:{name}})->
-        requireLogin  -> mainController.loginScreen.animateToForm 'redeem'
-      '/:name?/Register'  : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'register'
-      '/:name?/Recover'   : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'recover'
+      '/:name?/Redeem'       : ({params:{name}})->
+        requireLogin  -> animateToForm 'redeem'
+      '/:name?/Register'     : ({params:{name}})->
+        requireLogout -> animateToForm 'register'
+      '/:name?/Recover'      : ({params:{name}})->
+        requireLogout -> animateToForm 'recover'
+      '/:name?/ResendToken'  : ({params:{name}})->
+        requireLogout -> animateToForm 'resendEmail'
 
       # apps
       '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
@@ -281,14 +306,15 @@ class KodingRouter extends KDRouter
         {JPasswordRecovery} = KD.remote.api
         JPasswordRecovery.validate recoveryToken, (err, isValid)=>
           if err or !isValid
-            new KDNotificationView
-              title   : 'Something went wrong.'
-              content : err?.message or """
-                That doesn't seem to be a valid recovery token!
-                """
+            unless KD.isLoggedIn()
+              new KDNotificationView
+                title   : 'Something went wrong.'
+                content : err?.message or """
+                  That doesn't seem to be a valid recovery token!
+                  """
           else
             mainController.loginScreen.headBannerShowRecovery recoveryToken
-          @clear()
+          @clear "/"
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
         inviteCode = decodeURIComponent inviteCode
@@ -297,25 +323,36 @@ class KodingRouter extends KDRouter
           @handleRoute '/', entryPoint: KD.config.entryPoint
         else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
-            if err then error err
-            new KDNotificationView
-              title: 'Invalid invitation code!'
+            unless KD.isLoggedIn()
+              if err then error err
+              new KDNotificationView
+                title: 'Invalid invitation code!'
           else
             mainController.loginScreen.headBannerShowInvitation invite
-          @clear()
+          @clear "/"
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
-          location.replace '#'
           if err
             error err
-            new KDNotificationView
-              title: "Something went wrong, please try again later!"
+            KD.showError err
           else
             new KDNotificationView
               title: "Thanks for confirming your email address!"
           @clear()
+
+      '/:name?/InviteFriends': ->
+        if KD.isLoggedIn()
+          @handleRoute '/Activity', entryPoint: KD.config.entryPoint
+          if KD.introView
+            KD.introView.once "transitionend", ->
+              KD.utils.wait 1200, ->
+                new ReferrerModal
+          else
+            new ReferrerModal
+        else
+          @handleRoute '/Login'
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
@@ -347,65 +384,6 @@ class KodingRouter extends KDRouter
                   style    : 'modal-clean-gray'
                   callback : -> modal.destroy()
             @clear()
-
-      # REFACTOR HERE! PUBLIC KEY SHOULDN'T BE SENT, TRY WITH A TOKEN
-      '/:name?/KD/Register/:hostname/:key':
-        ({params:{key, hostname}})->
-          key = decodeURIComponent key
-          hostname = decodeURIComponent hostname
-
-          showModal = (title, content)=>
-            modal = new KDModalView
-              title        : title
-              overlay      : yes
-              cssClass     : "new-kdmodal"
-              content      : "<div class='modalformline'>#{content}</div>"
-              buttons      :
-                "Close"    :
-                  style    : "modal-clean-gray"
-                  callback : (event)->
-                    modal.destroy()
-            @clear()
-
-          if key.length isnt 64
-            title = "Key is not valid!"
-            content = """
-            <p>
-            You provided an invalid Koding Key. Please try with another one.
-            You can renew your Koding key using <code>$ kd register renew</code> on command
-            line interface.
-            </p>
-            """
-            return showModal title, content
-
-          KD.remote.api.JKodingKey.fetchByKey
-            key: key
-          , (err, kodingKey) =>
-            console.log "err", err, kodingKey
-            unless kodingKey?.length
-              KD.remote.api.JKodingKey.create {hostname, key}, (err, data)=>
-                if err or not data
-                  title   = 'An error occured'
-                  content = """
-                  <p>You provided an invalid Koding Key. Please try with another one.
-                  You can renew your Koding key using <code>$ kd register renew</code> on command
-                  line interface.</p>
-                  """
-                  log err
-                else
-                  title   = 'Host Connected!'
-                  content = """
-                  <p>You've connected your Koding Key! It will help you to use Koding command line interface
-                  with more features!</p>
-                  """
-                showModal title, content
-            else
-              title   = "You've already connected the host!"
-              content = """
-              <p>You've already connected to Koding. If you want to renew your Koding key, you should
-              run <code>$ kd register renew</code> on command line interface.</p>
-              """
-              showModal title, content
 
       # top level names
       '/:name':do->

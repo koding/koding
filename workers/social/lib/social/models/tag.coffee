@@ -47,6 +47,7 @@ module.exports = class JTag extends jraphical.Module
       title         : 'sparse'
       # group         : 'sparse'
     sharedEvents    :
+      static        : ['FollowHappened', 'UnfollowHappened']
       instance      : [
         { name: 'updateInstance' }
       ]
@@ -276,10 +277,11 @@ module.exports = class JTag extends jraphical.Module
       uniqueSelector.group = makeGroupSelector client.context.group
       @one uniqueSelector, options, callback
 
-  @some$ = permit 'read tags',
-    success:(client, selector, options, callback)->
-      selector.group = makeGroupSelector client.context.group
-      @some selector, options, callback
+  @_some = (client, selector, options, callback)->
+    selector.group = makeGroupSelector client.context.group
+    @some selector, options, callback
+
+  @some$ = permit 'read tags', success: @_some
 
   # fix: having read activity permission here may lead to obscurity - SY
   @fetchCount = permit 'read activity',

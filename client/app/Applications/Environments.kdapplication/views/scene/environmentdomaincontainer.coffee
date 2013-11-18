@@ -11,15 +11,28 @@ class EnvironmentDomainContainer extends EnvironmentContainer
       if err or domains.length is 0
         @emit "DataLoaded"
         return warn "Failed to fetch domains", err  if err
-      addedCount = 0
-      @removeAllItems()
 
-      domains.forEach (domain)=>
-        @addItem
-          title       : domain.domain
-          description : $.timeago domain.createdAt
-          activated   : yes
-          aliases     : domain.hostnameAlias
-          domain      : domain
-        addedCount++
-        @emit "DataLoaded"  if addedCount is domains.length
+      addedCount = 0
+
+      KD.singletons.vmController.fetchGroupVMs (err, vms)=>
+
+        @removeAllItems()
+
+        domains.forEach (domain)=>
+
+          if KD.checkFlag('nostradamus') and not err
+            for vm in domain.hostnameAlias
+              if vm not in vms
+                domain = null
+                break
+
+          if domain
+            @addItem
+              title       : domain.domain
+              description : $.timeago domain.createdAt
+              activated   : yes
+              aliases     : domain.hostnameAlias
+              domain      : domain
+
+          addedCount++
+          @emit "DataLoaded"  if addedCount is domains.length

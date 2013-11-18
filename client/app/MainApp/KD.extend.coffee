@@ -74,6 +74,7 @@ KD.extend
 
   logout:->
     mainController = KD.getSingleton('mainController')
+    mainController.isLoggingIn on
     delete mainController?.userAccount
 
   isGuest:-> not KD.isLoggedIn()
@@ -147,6 +148,11 @@ KD.extend
       else ""
 
     return "#{if secure then 'https' else 'http'}://#{subdomain}#{vmName}/#{publicPath}"
+
+  runningInFrame: -> window.top isnt window.self
+
+  getReferralUrl: (username) ->
+    "#{location.origin}/R/#{username}"
 
 Object.defineProperty KD, "defaultSlug",
   get:->

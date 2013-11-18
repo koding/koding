@@ -1,4 +1,3 @@
-
 jraphical = require 'jraphical'
 CActivity = require './activity'
 JAccount  = require './account'
@@ -63,6 +62,38 @@ module.exports = class JKodingKey extends jraphical.Module
           owner : account._id
         , (err, key)->
           callback err, key
+
+  @fetchKey = (options, callback)->
+    JKodingKey.one
+      key   : options.key
+    , (err, key)->
+      callback err, key
+
+  @fetchByKeyAndHostname = (options, callback)->
+    JKodingKey.one
+      owner : delegate.getId()
+      key   : options.key
+      hostname: options.hostname
+    , (err, keys)->
+      callback err, keys
+
+  @createKeyByUser = (options, callback)->
+    JAccount.one
+      'profile.nickname': options.username
+    , (err, account)->
+      if err then callback err
+      else if not account
+        callback null, null
+      else
+        key = new JKodingKey
+          key     : options.key
+          hostname: options.hostname
+          owner   : account._id
+        key.save (err)->
+          if err
+            callback err
+          else
+            callback null, key
 
   revoke: secure ({connection:{delegate}}, callback)->
     JKodingKey.one

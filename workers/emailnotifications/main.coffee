@@ -51,6 +51,12 @@ flags =
   groupApproved        :
     template           : template.instantMail
     definition         : "group membership request approved"
+  groupJoined          :
+    template           : template.instantMail
+    definition         : "a member has joind group"
+  groupLeft            :
+    template           : template.instantMail
+    definition         : "a member has left group"
 
 sendDailyEmail = (details, content)->
   unless content or details.email
@@ -131,7 +137,8 @@ fetchSubjectContentLink = (content, type, callback)->
       if err then callback err
       else
         if relatedContent.slug? or constructorName in ['JReview']
-          callback null, contentTypeLinkMap(relatedContent.slug, relatedContent.group)[type]
+          callback null, \
+            contentTypeLinkMap(relatedContent.slug, relatedContent.group)[type]
         else
           constructor = \
             Base.constructors[relatedContent.bongo_.constructorName]
@@ -219,20 +226,15 @@ instantEmails = ->
                           dateIssued : { $gte: yesterday } }, \
                          {limit      : 300,                   \
                           sort       : { dateIssued: 1} }, (err, emails)->
-    if err or not emails
-      log "Could not load email queue!"
-    else
-      if emails.length > 0
-        currentIds = [email._id for email in emails][0]
-        JMailNotification.update {_id: $in: currentIds}, \
-          {$set: status: 'sending'}, {multi: yes}, (err)->
-          unless err
-            log "Sending #{emails.length} e-mail(s)..."
-            for email in emails
-              prepareEmail email, no, sendInstantEmail, (err)->
-                console.log err
-          else
-            log "An error occured: #{err}"
+    return log "Could not load email queue!"  if err or not emails
+    return unless emails.length > 0
+    currentIds = (email._id for email in emails)
+    JMailNotification.update {_id: $in: currentIds}, \
+      {$set: status: 'sending'}, {multi: yes}, (err)->
+        return log "An error occured: #{err}" if err
+        log "Sending #{emails.length} e-mail(s)..."
+        for email in emails
+          prepareEmail email, no, sendInstantEmail, (err)-> log err  if err
 
 prepareDailyEmail = (emails, index, data, callback)->
 
@@ -263,28 +265,24 @@ dailyEmails = ->
   yesterday = today
 
   JUser.each {"emailFrequency.daily": true}, {}, (err, user)->
-    if err then console.error err
-    else
-      if user
-        user.fetchOwnAccount (err, account)->
-          if err then console.error err
-          else
-            notifications = []
-            JMailNotification.each {receiver   : account.getId(),  \
-                                    dateIssued : $gte: yesterday}, \
-                                   {sort       : dateIssued: 1},
-            (err, email)->
-              if err then console.error err
-              else
-                if email
-                  notifications.push email
-                else if notifications.length > 0
-                  prepareDailyEmail notifications, 0, (emailContent)->
-                    if emailContent.length > 0
-                      content = ''
-                      for email in emailContent
-                        content += template.singleEvent email
-                      sendDailyEmail emailContent[0], content
+    return console.error err if err
+    return unless user
+    user.fetchOwnAccount (err, account)->
+      return console.error err  if err
+      notifications = []
+      JMailNotification.each {receiver   : account.getId(),  \
+                              dateIssued : $gte: yesterday}, \
+                             {sort       : dateIssued: 1},
+      (err, email)->
+        return console.error if err
+        if email then notifications.push email
+        else if notifications.length > 0
+          prepareDailyEmail notifications, 0, (emailContent)->
+            return unless emailContent.length > 0
+            content = ''
+            for email in emailContent
+              content += template.singleEvent email
+            sendDailyEmail emailContent[0], content
 
 instantEmailsCron = new CronJob emailWorker.cronInstant, instantEmails
 log "Instant Emails CronJob started with #{emailWorker.cronInstant}"
@@ -294,4 +292,5 @@ dailyEmailsCron = new CronJob emailWorker.cronDaily, dailyEmails
 log "Daily Emails CronJob started with #{emailWorker.cronDaily}"
 dailyEmailsCron.start()
 
-log "All e-mail notifications will be send to #{emailWorker.forcedRecipient}" if emailWorker.forcedRecipient
+if emailWorker.forcedRecipient
+  log "All e-mail notifications will be send to #{emailWorker.forcedRecipient}"

@@ -55,7 +55,8 @@ class MainController extends KDController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
-      @showInstructionsBookIfNeeded()
+      KD.registerSingleton "kontrol",                 new Kontrol
+      @showInstructionsBook()
       @emit 'AppIsReady'
 
       console.timeEnd "Koding.com loaded"
@@ -73,7 +74,6 @@ class MainController extends KDController
 
       @createMainViewController()  unless @mainViewController
 
-      @decorateBodyTag()
       @emit 'ready'
 
       # this emits following events
@@ -88,24 +88,24 @@ class MainController extends KDController
   createMainViewController:->
     @loginScreen = new LoginView
       testPath   : "landing-login"
-    KDView.appendToDOMBody @loginScreen
+    @loginScreen.appendToDomBody()
     @mainViewController  = new MainViewController
       view    : mainView = new MainView
         domId : "kdmaincontainer"
-    KDView.appendToDOMBody mainView
+    mainView.appendToDomBody()
 
   doLogout:->
-
+    mainView = KD.getSingleton("mainView")
     KD.logout()
+    storage = new LocalStorage 'Koding'
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
-      $.cookie 'clientId', replacementToken if replacementToken
-      location.reload()
-
-    # fixme: make a old tv switch off animation and reload
-    # $('body').addClass "turn-off"
+      mainView._logoutAnimation()
+      KD.utils.wait 1000, ->
+        $.cookie 'clientId', replacementToken  if replacementToken
+        storage.setValue 'loggingOut', '1'
+        location.reload()
 
   attachListeners:->
-
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
     #   log "pageLoaded", @isUserLoggedIn()
 
@@ -118,20 +118,25 @@ class MainController extends KDController
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
-    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
-      if cookie? and cookie isnt $.cookie 'clientId'
+    @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
+      cookieExists = cookie?
+      cookieMatches = cookie is ($.cookie 'clientId')
+      cookie = $.cookie 'clientId'
+      if cookieExists and not cookieMatches
+        return @isLoggingIn off  if @isLoggingIn() is on
+
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         @emit "clientIdChanged"
 
         # window location path is set to last route to ensure visitor is not
         # redirected to another page
-        @utils.defer -> window.location.pathname = KD.getSingleton("router").visitedRoutes.first or "/"
-      cookie = $.cookie 'clientId'
+        @utils.defer ->
+          firstRoute = KD.getSingleton("router").visitedRoutes.first
 
+          if firstRoute and /^\/Verify/.test firstRoute
+            firstRoute = "/"
 
-
-  # some day we'll have this :)
-  hashDidChange:(params,query)->
+          window.location.pathname = firstRoute or "/"
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
@@ -139,20 +144,26 @@ class MainController extends KDController
 
   isUserLoggedIn: -> KD.isLoggedIn()
 
-  showInstructionsBookIfNeeded:->
+  isLoggingIn: (isLoggingIn) ->
+
+    storage = new LocalStorage 'Koding'
+    if storage.getValue('loggingOut') is '1'
+      storage.unsetKey 'loggingOut'
+      return yes
+    if isLoggingIn?
+      @_isLoggingIn = isLoggingIn
+    else
+      @_isLoggingIn ? no
+
+  showInstructionsBook:->
     if $.cookie 'newRegister'
       @emit "ShowInstructionsBook", 9
       $.cookie 'newRegister', erase: yes
     else if @isUserLoggedIn()
       BookView::getNewPages (pages)=>
-        if pages.length
-          BookView.navigateNewPages = yes
-          @emit "ShowInstructionsBook", pages.first.index
-
-  decorateBodyTag:->
-    if KD.checkFlag 'super-admin'
-    then $('body').addClass 'super'
-    else $('body').removeClass 'super'
+        return unless pages.length
+        BookView.navigateNewPages = yes
+        @emit "ShowInstructionsBook", pages.first.index
 
   setFailTimer: do->
     modal = null
@@ -180,8 +191,6 @@ class MainController extends KDController
     return ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
-        KD.track "Connected to backend"
-
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."

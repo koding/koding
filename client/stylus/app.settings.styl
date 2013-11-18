@@ -151,7 +151,8 @@ positiveGreen = rgba(58,200,2,1)
         sprite()
         size              24px, 24px
         opacity           .5
-        vendor            transition, opacity .3s ease
+        vendor            transition, opacity     .3s ease \,\
+                                      background  .3s ease
       .title
         width             296px
         line-height       22px
@@ -160,19 +161,21 @@ positiveGreen = rgba(58,200,2,1)
           color           rgba(255,255,255,.4)
           font-size       13px
           margin-left     16px
+
       &.github .icon
-        bg                position, -40px -340px
+        bg              position, -100px -890px
       &.odesk .icon
-        bg                position, -240px -368px
+        bg              position, -125px -890px
       &.facebook .icon
-        bg                position, -40px -368px
+        bg              position, 0 -890px
       &.twitter .icon
-        bg                position, -69px -340px
+        bg              position, -25px -890px
       &.google .icon
-        bg                position, -69px -368px
+        bg              position, -75px -890px
       &.linked
         .icon
-          opacity           1
+          background-position-y   -860px !important
+          opacity                 1
         .delete-icon
           visible()
         .status
@@ -777,3 +780,24 @@ button.kdbutton.account-header-second-button
   a
     color           #888
     clear           both
+a.action-link.verify-email
+    right             50px
+    top               6px
+    color             #858788
+    font-weight       600
+    span
+      display         inline-block
+      size            80px, 24px
+      line-height     24px
+      text-align      center
+      rounded         3px
+      gradient        #ec9a48, #e78a42
+      color           #fff
+      margin-left     10px
+      border          1px solid #af7541
+      shadow          0 0 1px 1px rgba(0,0,0,0.1) \,\
+                      inset 0 1px 0 1px #faa54a
+      font-size       12px
+      borderBox()
+
+

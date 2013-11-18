@@ -15,6 +15,9 @@ module.exports = class JName extends Model
     sharedMethods     :
       static          : ['one','claimNames','migrateAllOldNames']
       instance        : ['migrateOldName']
+    sharedEvents      :
+      instance        : []
+      static          : []
     indexes           :
       name            : ['unique']
     schema            :
@@ -117,9 +120,11 @@ module.exports = class JName extends Model
     fetchModels = (name, callback)->
       if 'string' is typeof name
         @one {name}, (err, nameObj)->
-          if err then next err
-          else unless nameObj? then callback null
-          else fetchByNameObject nameObj, callback
+          if err then callback err
+          else if nameObj?
+            fetchByNameObject nameObj, callback
+          else
+            callback null
       else
         fetchByNameObject name, callback
 

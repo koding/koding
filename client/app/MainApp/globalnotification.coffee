@@ -70,7 +70,7 @@ class GlobalNotification extends KDView
       globalSticky.adjustTimer @getOptions().duration
 
     else
-      KDView.appendToDOMBody @
+      @appendToDomBody()
       KD.getSingleton('windowController').stickyNotification = @
 
   destroy:->

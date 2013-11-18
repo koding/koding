@@ -4,10 +4,15 @@ module.exports = class CBucket extends jraphical.Module
 
   {Base, Model, ObjectRef, ObjectId, dash, daisy} = require 'bongo'
 
+  {Relationship} = require 'jraphical'
+
   @trait __dirname, '../../traits/notifying'
 
   @set
     broadcastable   : yes
+    sharedEvents    :
+      instance      : ['ItemWasAdded']
+      static        : []
     schema          :
       anchor        : ObjectRef
       group         : [ObjectRef]
@@ -34,14 +39,18 @@ module.exports = class CBucket extends jraphical.Module
   fetchTeaser:(callback)-> callback null, @
 
   getBucketConstructor =(groupName, role)->
-    CFolloweeBucket   = require './followeebucket'
-    CFollowerBucket   = require './followerbucket'
-    CLikeeBucket      = require './likeebucket'
-    CLikerBucket      = require './likerbucket'
-    CReplieeBucket    = require './replieebucket'
-    CReplierBucket    = require './replierbucket'
-    CInstallerBucket  = require './installerbucket'
-    CInstalleeBucket  = require './installeebucket'
+    CFolloweeBucket     = require './followeebucket'
+    CFollowerBucket     = require './followerbucket'
+    CLikeeBucket        = require './likeebucket'
+    CLikerBucket        = require './likerbucket'
+    CReplieeBucket      = require './replieebucket'
+    CReplierBucket      = require './replierbucket'
+    CInstallerBucket    = require './installerbucket'
+    CInstalleeBucket    = require './installeebucket'
+    CGroupJoineeBucket  = require './groupjoineebucket'
+    CGroupJoinerBucket  = require './groupjoinerbucket'
+    CGroupLeaveeBucket  = require './groupleaveebucket'
+    CGroupLeaverBucket  = require './groupleaverbucket'
 
     switch role
       when 'follower'
@@ -60,6 +69,16 @@ module.exports = class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CInstalleeBucket
           when 'target' then CInstallerBucket
+      when 'GroupJoined'
+        switch groupName
+          when 'source' then CGroupJoineeBucket
+          when 'target' then CGroupJoinerBucket
+      when 'GroupLeft'
+        switch groupName
+          when 'source' then CGroupLeaveeBucket
+          when 'target' then CGroupLeaverBucket
+
+
 
   addToBucket = do ->
     # @helper
@@ -69,7 +88,7 @@ module.exports = class CBucket extends jraphical.Module
         if err
           callback err
         else
-          jraphical.Relationship.one {
+          Relationship.one {
             targetId: bucket.getId()
             sourceName: bucket.constructor.name + 'Activity'
             as: 'content'
@@ -80,23 +99,40 @@ module.exports = class CBucket extends jraphical.Module
             else if rel
               konstructor = Base.constructors[rel.sourceName]
               konstructor.one _id: rel.sourceId, (err, activity)->
-                if err
-                  callback err
-                else if isOwn
-                  callback null, bucket
-                else
-                  anchor.assureActivity activity, (err)->
-                    if err
-                      callback err
-                    else
+                return callback err if err
+                return callback null, bucket if isOwn
+                Relationship.one
+                  sourceId : anchor.getId()
+                  targetId : activity.getId()
+                  as       : 'activity'
+                , (err, relationship) ->
+                  return callback err if err
+                  return callback message:"Relationship doesn't exist" unless relationship
 
-                      bucketOptions =
-                        type        : activity.constructor.name
-                        teaserId    : bucket.getId()
-                        createdAt   : bucket.meta.createdAt
+                  emitBucketIsUpdated = (bucket, activity, callback) ->
+                    bucketOptions =
+                      type        : activity.constructor.name
+                      teaserId    : bucket.getId()
+                      createdAt   : bucket.meta.createdAt
 
-                      CActivity.emit 'BucketIsUpdated', bucketOptions
-                      callback null, bucket
+                    CActivity.emit 'BucketIsUpdated', bucketOptions
+                    callback null, bucket
+
+                  if relationship?
+                    relationship.update
+                      $set :
+                        data:
+                          flags:
+                            glanced: false
+                        timestamp: new Date
+                    , (err)->
+                        return callback err if err
+                        emitBucketIsUpdated bucket, activity, callback
+                  else
+                    anchor.addActivity activity, (err)->
+                      return callback err if err
+                      emitBucketIsUpdated bucket, activity, callback
+
             else
               CBucketActivity = require '../activity/bucketactivity'
               activity = CBucketActivity.create bucket
@@ -130,7 +166,7 @@ module.exports = class CBucket extends jraphical.Module
                               CActivity.emit 'ActivityIsCreated', activity
                               callback null, bucket
 
-    (groupName, relationship, item, anchor, callback)->
+    (groupName, relationship, item, anchor, notificationRecipient, callback)->
       today = $gte: new Date Date.now() - 1000*60*60*12 # 12 hours
       bucketConstructor = getBucketConstructor(
         groupName, relationship.getAt('as')
@@ -141,7 +177,11 @@ module.exports = class CBucket extends jraphical.Module
         'anchor.id' : relationship[groupName+'Id']
         'meta.createdAt'   : today
       }
+
       bucketConstructor.one existingBucketSelector, (err, bucket)->
+        if anchor.bongo_?.constructorName isnt 'JAccount' and notificationRecipient
+          anchor = notificationRecipient
+
         if err then callback err
         else if bucket
           addIt bucket, anchor, item, groupName, callback
@@ -161,7 +201,7 @@ module.exports = class CBucket extends jraphical.Module
     -> ObjectRef.populate items, (err, populated)-> callback err, populated
 
   # @implementation
-  @addActivities =(relationship, source, target, callback)->
+  @addActivities =(relationship, source, target, notificationRecipient, callback)->
     queue = []
     next = -> queue.next()
     # TODO: it can be horribly inefficient to convert things to and from objectrefs
@@ -174,8 +214,8 @@ module.exports = class CBucket extends jraphical.Module
       queue.push getPopulator target, (err, populated)->
         [target] = populated
         queue.next(err)
-    queue.push -> addToBucket 'source', relationship, target, source, next
-    queue.push -> addToBucket 'target', relationship, source, target, next
+    queue.push -> addToBucket 'source', relationship, target, source, notificationRecipient, next
+    queue.push -> addToBucket 'target', relationship, source, target, notificationRecipient, next
     queue.push -> callback null
     daisy queue
 

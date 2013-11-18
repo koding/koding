@@ -19,6 +19,9 @@ module.exports = class JMailNotification extends Model
       contentId      : 'sparse'
     sharedMethods    :
       static         : ['unsubscribeWithId']
+    sharedEvents     :
+      static         : []
+      instance       : []
     schema           :
       dateIssued     :
         type         : Date
@@ -72,6 +75,14 @@ module.exports = class JMailNotification extends Model
       eventType          : ['Approved']
       contentTypes       : ['JGroup'],
       definition         : "when user's group membership has been approved"
+    groupJoined          :
+      eventType          : ['GroupJoined']
+      contentTypes       : ['JGroup'],
+      definition         : "when a member joins your group"
+    groupLeft            :
+      eventType          : ['GroupLeft']
+      contentTypes       : ['JGroup'],
+      definition         : "when a member leaves your group"
 
   @checkEmailChoice = (options, callback)->
 

@@ -12,7 +12,9 @@ class MainView extends KDView
     @createChatPanel()
     @listenWindowResize()
 
-    @utils.defer => @_windowDidResize()
+    @utils.defer =>
+      @_windowDidResize()
+      @emit 'ready'
 
   bindPulsingRemove:->
     router     = KD.getSingleton 'router'
@@ -25,7 +27,8 @@ class MainView extends KDView
       {title, name, appEmitsReady} = options
       routeArr = location.pathname.split('/')
       routeArr.shift()
-      checkedRoute = if routeArr.first is "Develop" then routeArr.last else routeArr.first
+      checkedRoute = if routeArr.first is "Develop" \
+                     then routeArr.last else routeArr.first
 
       if checkedRoute is name or checkedRoute is title
         if appEmitsReady
@@ -34,38 +37,7 @@ class MainView extends KDView
         else removePulsing()
 
   putAbout:->
-
-    KDView.appendToDOMBody overlay = new KDView
-      cssClass : 'about-overlay'
-    overlay.bindTransitionEnd()
-
-    logo = new KDCustomHTMLView
-      cssClass : 'main-loading'
-      partial  : '<ul><li/><li/><li/><li/><li/><li/></ul>'
-
-    overlay.once 'transitionend', ->
-      overlay.addSubView logo
-      KD.utils.defer -> logo.$('>ul').addClass 'in'
-      KD.utils.wait 4000, -> about.setClass 'in'
-
-    @utils.defer -> overlay.setClass 'in'
-
-    {winHeight} = KD.getSingleton('windowController')
-
-    offset = if winHeight > 400 then (winHeight - 400) / 2 else 0
-
-    KDView.appendToDOMBody about = new AboutView
-      domId   : 'about-text'
-      click   : =>
-        about.once 'transitionend', ->
-          about.destroy()
-          overlay.once 'transitionend', ->
-            overlay.destroy()
-          overlay.unsetClass 'in'
-        about.unsetClass 'in'
-
-    about.setY offset
-    about.bindTransitionEnd()
+    # There is no about now #
 
   addBook:->
     @addSubView new BookView delegate : this
@@ -75,10 +47,22 @@ class MainView extends KDView
     {winHeight} = KD.getSingleton "windowController"
     @panelWrapper.setHeight winHeight - 51
 
-  createMainPanels:->
+  _logoutAnimation:->
+    {body}        = document
 
-    klass = if KD.isLoggedIn() then KDCustomHTMLView else HomeIntroView
-    @addSubView @homeIntro = new klass
+    turnOffLine   = new KDCustomHTMLView
+      cssClass    : "turn-off-line"
+    turnOffDot    = new KDCustomHTMLView
+      cssClass    : "turn-off-dot"
+
+    turnOffLine.appendToDomBody()
+    turnOffDot.appendToDomBody()
+
+    body.style.background = "#000"
+    @setClass               "logout-tv"
+
+
+  createMainPanels:->
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
@@ -92,7 +76,8 @@ class MainView extends KDView
       domId    : "content-panel"
       cssClass : "transition"
 
-    @contentPanel.on "ViewResized", (rest...)=> @emit "ContentPanelResized", rest...
+    @contentPanel.on "ViewResized", (rest...)=>
+      @emit "ContentPanelResized", rest...
 
   addHeader:->
 
@@ -112,15 +97,14 @@ class MainView extends KDView
       partial   : "<span></span>"
       click     : (event)=>
         KD.utils.stopDOMEvent event
-        homeRoute = if KD.isLoggedIn() then "/Activity" else "/Home"
-        KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
+        if KD.isLoggedIn()
+          KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
+        else
+          location.replace '/'
 
     wrapper.addSubView loginLink = new CustomLinkView
       domId       : 'header-sign-in'
-      title       : 'Already a user? Sign in.'
-      icon        :
-        placement : 'right'
-      cssClass    : 'login'
+      title       : 'Login'
       attributes  :
         href      : '/Login'
       click       : (event)->
@@ -156,7 +140,8 @@ class MainView extends KDView
     @mainTabView.on "PaneDidShow", =>
       appManager  = KD.getSingleton "appManager"
       appManifest = appManager.getFrontAppManifest()
-      menu = appManifest?.menu or KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
+      menu = appManifest?.menu or \
+             KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
       if Array.isArray menu
         menu = items: menu
       if menu?.items?.length

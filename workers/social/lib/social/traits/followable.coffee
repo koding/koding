@@ -174,7 +174,7 @@ module.exports = class Followable
               else
                 emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
                 if emitActivity
-                  CBucket.addActivities relationship, @, follower, (err)->
+                  CBucket.addActivities relationship, @, follower, null, (err)->
                     console.log "An Error occured: #{err}" if err
 
   unfollow: secure (client,callback)->

@@ -162,7 +162,8 @@ func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})
 	vm.MergeGroupFile(logWarning)
 	vm.MergeDpkgDatabase()
 
-	// mount overlay
+	// mount "/var/lib/lxc/vm-{id}/overlay" (rw) and "/var/lib/lxc/vmroot" (ro)
+	// under "/var/lib/lxc/vm-{id}/rootfs"
 	prepareDir(vm.File("rootfs"), RootIdOffset)
 	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
 	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), vm.LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {

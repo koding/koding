@@ -9,7 +9,6 @@ class ContentDisplayControllerMember extends KDViewController
     "JOpinion"
     "JDiscussion"
     "JCodeSnip"
-    "JCodeShare"
   ]
 
   constructor:(options={}, data)->
@@ -31,7 +30,7 @@ class ContentDisplayControllerMember extends KDViewController
       cssClass  : 'sub-header'
       domId     : 'members-sub-header' if lazy
 
-    subHeader.addSubView backLink = new KDCustomHTMLView
+    backLink = new KDCustomHTMLView
       domId   : 'members-back-link' if lazy
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
@@ -41,10 +40,7 @@ class ContentDisplayControllerMember extends KDViewController
         contentDisplayController = KD.getSingleton "contentDisplayController"
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
         no
-
-
-
-
+    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     # FIX THIS GG
 
@@ -77,8 +73,6 @@ class ContentDisplayControllerMember extends KDViewController
     @addActivityView member
 
   addProfileView:(member)->
-    KD.track "Members", "OwnProfileView", member.profile.nickname
-
     options      =
       cssClass   : "profilearea clearfix"
       domId      : 'profilearea' unless @revivedContentDisplay

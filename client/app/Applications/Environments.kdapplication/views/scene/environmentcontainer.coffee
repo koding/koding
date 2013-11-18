@@ -3,7 +3,8 @@ class EnvironmentContainer extends KDDiaContainer
   constructor:(options={}, data)->
 
     options.cssClass   = 'environments-container'
-    options.draggable  = yes
+    options.bind       = 'scroll mousewheel wheel'
+    # options.draggable  = yes
 
     super options, data
 
@@ -13,12 +14,15 @@ class EnvironmentContainer extends KDDiaContainer
     @itemHeight = options.itemHeight ? 40
 
     @on "DataLoaded", => @_dataLoaded = yes
-    @on "DragFinished", @bound 'savePosition'
+    # @on "DragFinished", @bound 'savePosition'
 
     @newItemPlus = new KDCustomHTMLView
       cssClass   : 'new-item-plus'
       partial    : "<i></i><span>Add new</span>"
-      click      : => @emit 'PlusButtonClicked'
+      click      : =>
+        @once 'transitionend', @emit 'PlusButtonClicked'
+
+    @newItemPlus.bindTransitionEnd()
 
     @loader = new KDLoaderView
       cssClass   : 'new-item-loader hidden'
@@ -34,7 +38,7 @@ class EnvironmentContainer extends KDDiaContainer
     @header.addSubView @loader
 
     {@appStorage} = @parent
-    @appStorage.ready @bound 'loadPosition'
+    # @appStorage.ready @bound 'loadPosition'
 
   showLoader: ->
     @newItemPlus.hide()
@@ -50,7 +54,7 @@ class EnvironmentContainer extends KDDiaContainer
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
     diaObj.on "KDObjectWillBeDestroyed", => @emit "itemRemoved"
-    @updateHeight()
+    # @updateHeight()
 
   updatePositions:->
 
@@ -59,44 +63,44 @@ class EnvironmentContainer extends KDDiaContainer
       dia.setX 20
       dia.setY 60 + index * 50
       index++
-    @updateHeight()
+    # @updateHeight()
 
   diaCount:-> Object.keys(@dias).length
 
-  updateHeight:->
+  mouseWheel:(e)->
+    @emit "UpdateScene"
+    super e
 
-    @setHeight 80 + @diaCount() * 50
-    @emit 'UpdateScene'
+  loadItems:->
+    @removeAllItems()
 
-  savePosition:->
+  # updateHeight:->
 
-    name      = @constructor.name
-    bounds    = x: @getRelativeX(), y: @getRelativeY()
-    positions = (@appStorage.getValue 'containerPositions') or {}
-    positions[name] = bounds
-    @appStorage.setValue 'containerPositions', positions
+  #   @setHeight 80 + @diaCount() * 50
+  #   @emit 'UpdateScene'
 
-  loadPosition:->
+  # savePosition:->
 
-    name     = @constructor.name
-    position = ((@appStorage.getValue 'containerPositions') or {})[name]
-    return  unless position
-    @setX position.x; @setY position.y
+  #   name      = @constructor.name
+  #   bounds    = x: @getRelativeX(), y: @getRelativeY()
+  #   positions = (@appStorage.getValue 'containerPositions') or {}
+  #   positions[name] = bounds
+  #   @appStorage.setValue 'containerPositions', positions
 
-  resetPosition:->
+  # loadPosition:->
 
-    @setX @_initialPosition.x
-    @setY @_initialPosition.y
+  #   name     = @constructor.name
+  #   position = ((@appStorage.getValue 'containerPositions') or {})[name]
+  #   return  unless position
+  #   @setX position.x; @setY position.y
 
-    name      = @constructor.name
-    positions = (@appStorage.getValue 'containerPositions') or {}
+  # resetPosition:->
 
-    delete positions[name]
-    @appStorage.setValue 'containerPositions', positions
+  #   @setX @_initialPosition.x
+  #   @setY @_initialPosition.y
 
-  refreshItems:->
-    for key, dia of @dias
-      dia.destroy()
-    @loadItems()
+  #   name      = @constructor.name
+  #   positions = (@appStorage.getValue 'containerPositions') or {}
 
-  loadItems:-> yes
+  #   delete positions[name]
+  #   @appStorage.setValue 'containerPositions', positions

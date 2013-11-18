@@ -1,23 +1,46 @@
 koding = require './bongo'
 
 error_messages =
-  404: "Page not found."
+  404: "Page not found"
   500: "Something wrong."
 
 error_ = (code, message)->
   # Refactor this to use pistachio instead of underscore template engine - FKA
-  {errorTemplate} = require './staticpages'
+  staticpages     = require './staticpages'
   {template}      = require 'underscore'
-  messageHTML = message.split('\n')
+  messageHTML     = message.split('\n')
     .map((line)-> "<p>#{line}</p>")
     .join '\n'
+
+  {errorTemplate} = staticpages
+  errorTemplate   = staticpages.notFoundTemplate if code is 404
+
   template errorTemplate, {code, error_messages, messageHTML}
 
 error_404 = ->
-  error_ 404, "This webpage is not available."
+  error_ 404, "Return to Koding home"
 
 error_500 = ->
   error_ 500, "Something wrong with the Koding servers."
+
+authTemplate = (msg)->
+  {authRegisterTemplate} = require './staticpages'
+  {template}             = require 'underscore'
+  template authRegisterTemplate, {msg}
+
+authCheckKey = (key, callback)->
+  if typeof key isnt "string"
+    return callback false, "Key is not of type string: '#{key}'"
+
+  if not key
+    return callback false, "Key is empty: '#{key}'"
+
+  key = decodeURIComponent key
+
+  if key.length isnt 64
+    return callback false, "Key does not have a len of 64 len: '#{key}'"
+
+  callback true, "key is valid"
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -87,12 +110,13 @@ isLoggedIn = (req, res, callback)->
   findUsernameFromSession req, res, (err, isLoggedIn, username)->
     return callback null, no, {}  unless username
     JName.fetchModels username, (err, models)->
-      return callback null, no, {}  if err or not models.first
+      return callback null, no, {}  if err or not models?.first
       user = models.last
       user.fetchAccount "koding", (err, account)->
-        if err or account.type is 'unregistered'
-        then callback err, no, account
-        else callback null, yes, account
+        if err or not account or account.type is 'unregistered'
+          return callback err, no, account
+
+        return callback null, yes, account
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback)->
   {JSession}                       = koding.models
@@ -129,6 +153,8 @@ module.exports = {
   error_
   error_404
   error_500
+  authTemplate
+  authCheckKey
   authenticationFailed
   findUsernameFromKey
   findUsernameFromSession
