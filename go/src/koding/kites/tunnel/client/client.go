@@ -29,28 +29,11 @@ func main() {
 	}
 	defer remoteConn.Close()
 
-	remoteAddr := fmt.Sprintf("http://%s%s", serverAddr, protocol.RegisterPath)
-	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
+	err = register(remoteConn)
 	if err != nil {
-		log.Println("connect err", err)
+		log.Println(err)
 		return
 	}
-
-	req.Header.Set("Username", "fatih")
-	req.Write(remoteConn)
-
-	resp, err := http.ReadResponse(bufio.NewReader(remoteConn), req)
-	if err != nil {
-		log.Println("read response err", resp)
-		return
-	}
-	resp.Body.Close()
-
-	if resp.StatusCode != 200 && resp.Status != protocol.Connected {
-		err = fmt.Errorf("Non-200 response from proxy server: %s", resp.Status)
-		return
-	}
-	fmt.Println(resp.Status)
 
 	localConn, err := net.Dial("tcp", localAddr)
 	if err != nil {
@@ -81,4 +64,28 @@ func main() {
 		server.Write(req, resp)
 
 	}
+}
+
+func register(remoteConn net.Conn) error {
+	remoteAddr := fmt.Sprintf("http://%s%s", serverAddr, protocol.RegisterPath)
+	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
+	if err != nil {
+		return fmt.Errorf("CONNECT", err)
+	}
+
+	req.Header.Set("Username", "fatih")
+	req.Write(remoteConn)
+
+	resp, err := http.ReadResponse(bufio.NewReader(remoteConn), req)
+	if err != nil {
+		return fmt.Errorf("read response", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 && resp.Status != protocol.Connected {
+		return fmt.Errorf("Non-200 response from proxy server: %s", resp.Status)
+	}
+
+	fmt.Println(resp.Status)
+	return nil
 }
