@@ -104,56 +104,12 @@ class TeamworkApp extends KDObject
           loader    :
             color   : "#FFFFFF"
             diameter: 14
-          callback  : => @importContent url, modal, callback
+          callback  : =>
+            new TeamworkImporter { url, modal, callback, delegate: this }
         DontImport  :
           title     : "Don't import anything"
           cssClass  : "modal-cancel"
           callback  : -> modal.destroy()
-
-  importContent: (url, modal, callback) ->
-    fileName     = "file#{Date.now()}.zip"
-    root         = "Web/Teamwork"
-    path         = "#{root}/tmp"
-    vmController = KD.getSingleton "vmController"
-    vmName       = vmController.defaultVmName
-    notification = new KDNotificationView
-      type       : "mini"
-      title      : "Fetching zip file..."
-      duration   : 200000
-
-    vmController.run "mkdir -p #{path}; cd #{path} ; wget -O #{fileName} #{url}", (err, res) =>
-      return warn err if err
-      notification.notificationSetTitle "Extracting zip file..."
-      vmController.run "cd #{path} ; unzip #{fileName} ; rm #{fileName} ; rm -rf __MACOSX", (err, res) =>
-        return warn err if err
-        notification.notificationSetTitle "Checking folders..."
-        FSHelper.glob "#{path}/*", vmName, (err, folders) =>
-          #TODO: fatihacet - multiple folders
-          folderName = FSHelper.getFileNameFromPath folders[0]
-          FSHelper.exists "#{root}/#{folderName}", vmName, (err, res) =>
-            if res is yes
-              modal.destroy()
-              modal          = new KDModalView
-                title        : "Folder Exists"
-                cssClass     : "modal-with-text"
-                overlay      : yes
-                content      : "<p>There is already a folder with the same name. Do you want to overwrite it?</p>"
-                buttons      :
-                  Confirm    :
-                    title    : "Overwrite"
-                    cssClass : "modal-clean-red"
-                    callback : =>
-                      @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url, callback
-                  Cancel     :
-                    title    : "Cancel"
-                    cssClass : "modal-cancel"
-                    callback : =>
-                      modal.destroy()
-                      vmController.run "rm -rf #{path}"
-                      notification.destroy()
-                      @setVMRoot "#{root}/#{folderName}"
-            else
-              @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url, callback
 
   showMarkdownModal: (rawContent) ->
     t = @teamwork
@@ -161,64 +117,6 @@ class TeamworkApp extends KDObject
     modal = @mdModal  = new TeamworkMarkdownModal
       content         : t.markdownContent
       targetEl        : t.getActivePanel().headerHint
-
-  handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url, callback = noop) ->
-    vmController.run "rm -rf #{root}/#{folderName} ; mv #{path}/#{folderName} #{root}", (err, res) =>
-      return warn err if err
-      modal.destroy()
-      vmController.run "rm -rf #{path}"
-      notification.destroy()
-      folderPath = "#{root}/#{folderName}"
-      mdPath     = "#{folderPath}/README.md"
-      shPath     = "#{folderPath}/install.sh"
-      mdFile     = FSHelper.createFileFromPath mdPath
-      shFile     = FSHelper.createFileFromPath shPath
-      @setVMRoot folderPath
-      callback()
-
-      mdFile.exists (err, mdExists) =>
-        if mdExists
-          mdFile.fetchContents (err, mdContent) =>
-            @showMarkdownModal mdContent
-            @mdModal.once "KDObjectWillBeDestroyed", =>
-              @checkShFile shFile
-        else
-          @checkShFile shFile
-
-  checkShFile: (shFile) ->
-    shFile.exists (err, fileExist) =>
-      return unless fileExist
-      shFile.fetchContents (err, shContent) =>
-        modal          = new KDModalView
-          title        : "Installation Script"
-          cssClass     : "modal-with-text"
-          width        : 600
-          content      : """
-            <p>This Playground wants to execute the following install script. Do you want to continue?</p>
-            <p>
-              <pre>#{shContent}</pre>
-            </p>
-          """
-          buttons      :
-            Install    :
-              title    : "Install Script"
-              cssClass : "modal-clean-green"
-              callback : => @runShFile shFile, modal
-            Cancel     :
-              title    : "Cancel"
-              cssClass : "modal-cancel"
-              callback : -> modal.destroy()
-
-  runShFile: (shFile, modal) ->
-    modal.destroy()
-    {paneLauncher} = @teamwork.getActivePanel()
-    vmController   = KD.getSingleton "vmController"
-    unless paneLauncher.paneVisibilityState.terminal
-      paneLauncher.handleLaunch "terminal"
-
-    vmController.run "chmod 777 #{shFile.path}", (err, res) =>
-      paneLauncher.terminalPane.runCommand "./#{shFile.path}", =>
-        vmController.run "cd #{shFile.parentPath}; mv install.sh install#{Date.now()}.sh", ->
 
   setVMRoot: (path) ->
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
