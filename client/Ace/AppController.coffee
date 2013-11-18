@@ -12,10 +12,10 @@ class AceAppController extends AppController
     openWith      : "lastActive"
     navItem       :
       title       : "Editor"
-      path        : "/Develop/Ace"
+      path        : "/Ace"
       order       : 42
     route         :
-      slug        : "/:name?/Develop/Ace"
+      slug        : "/:name?/Ace"
       handler     : ({params:{name}, query})->
         router = KD.getSingleton 'router'
         warn "ace handling itself", name, query, arguments
