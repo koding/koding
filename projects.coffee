@@ -50,11 +50,11 @@ projects      =
   #   script        : "website/js/app.members.#{KODING_VERSION}.js"
   #   sourceMapRoot : "Members/"
 
-  # Topics          :
-  #   files         : "client/Topics/includes.coffee"
-  #   style         : "website/css/app.topics.#{KODING_VERSION}.css"
-  #   script        : "website/js/app.topics.#{KODING_VERSION}.js"
-  #   sourceMapRoot : "Topics/"
+  Topics          :
+    files         : "client/Social/Topics/includes.coffee"
+    style         : "website/css/app.topics.#{KODING_VERSION}.css"
+    script        : "website/js/app.topics.#{KODING_VERSION}.js"
+    sourceMapRoot : "Topics/"
 
   # Groups          :
   #   files         : "client/Groups/includes.coffee"
