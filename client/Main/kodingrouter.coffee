@@ -54,7 +54,7 @@ class KodingRouter extends KDRouter
 
     log 'Router: handlingRoute', route, 'for the', name, 'app'
     if ApplicationManager.checkAppAvailability name
-      log 'Router: couldn\'t found', name
+      log 'Router: couldn\'t find', name
       return KodingAppsController.putAppScript name, (err)=>
         log 'Router: loaded', name
         return warn err  if err

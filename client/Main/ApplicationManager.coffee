@@ -78,7 +78,7 @@ class ApplicationManager extends KDObject
 
       log 'AppManager: opening an app', name
       if ApplicationManager.checkAppAvailability name
-        log 'AppManager: couldn\'t found', name
+        log 'AppManager: couldn\'t find', name
         return KodingAppsController.putAppScript name, (err)=>
           log 'AppManager: loaded', name
           return warn err  if err
