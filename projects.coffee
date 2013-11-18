@@ -74,6 +74,12 @@ projects      =
     script        : "website/js/app.terminal.#{KODING_VERSION}.js"
     sourceMapRoot : "Terminal/"
 
+  Ace             :
+    files         : "client/Ace/includes.coffee"
+    style         : "website/css/app.ace.#{KODING_VERSION}.css"
+    script        : "website/js/app.ace.#{KODING_VERSION}.js"
+    sourceMapRoot : "Ace/"
+
 bundles       =
 
   # Social      :
