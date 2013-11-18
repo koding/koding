@@ -27,16 +27,6 @@
 "Applications/Chat.kdapplication/Views/mainchatheader.coffee",
 "Applications/Chat.kdapplication/Views/mainchatpanel.coffee",
 
-# new ace
-"Applications/Ace.kdapplication/AppController.coffee",
-"Applications/Ace.kdapplication/AppView.coffee",
-"Applications/Ace.kdapplication/aceapplicationtabview.coffee",
-"Applications/Ace.kdapplication/aceappview.coffee",
-"Applications/Ace.kdapplication/ace.coffee",
-"Applications/Ace.kdapplication/acesettingsview.coffee",
-"Applications/Ace.kdapplication/acesettings.coffee",
-"Applications/Ace.kdapplication/acefindandreplaceview.coffee",
-
 # viewer
 'app/Applications/Viewer.kdapplication/topbar.coffee',
 'app/Applications/Viewer.kdapplication/AppController.coffee',
