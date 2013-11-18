@@ -10,7 +10,7 @@ class MainTabView extends KDTabView
     @router                     = KD.getSingleton 'router'
     @appManager                 = KD.getSingleton("appManager")
 
-    @appManager.on 'AppManagerWantsToShowAnApp', (controller, view, options)=>
+    @appManager.on 'AppIsBeingShown', (controller, view, options)=>
       if view.parent
       then @showPane view.parent
       else @createTabPane options, view

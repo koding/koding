@@ -24,7 +24,7 @@ class ActivityController extends KDObject
 
     @setPageTitleForActivities()
 
-    KD.getSingleton("appManager").on "AppManagerWantsToShowAnApp", (appController, appView, appOptions) =>
+    KD.getSingleton("appManager").on "AppIsBeingShown", (appController, appView, appOptions) =>
       @clearNewItemsCount()  if appOptions.name is "Activity"
 
   blockUser:(accountId, duration, callback)->

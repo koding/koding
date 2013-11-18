@@ -6,7 +6,7 @@ class ApplicationManager extends KDObject
 
   * EMITTED EVENTS
     - AppCreated                  [appController]
-    - AppManagerWantsToShowAnApp  [appController, appView, appOptions]
+    - AppIsBeingShown  [appController, appView, appOptions]
   ###
 
   manifestsFetched = no
@@ -27,7 +27,7 @@ class ApplicationManager extends KDObject
       image : "Viewer"
       sound : "Viewer"
 
-    @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
+    @on 'AppIsBeingShown', @bound "setFrontApp"
 
     # set unload listener
     wc = @getSingleton 'windowController'
@@ -37,8 +37,7 @@ class ApplicationManager extends KDObject
         break
       return safeToUnload ? yes
 
-    # @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
-    # @on 'AnInstanceIsShown', @bound "setMissingRoute"
+    # @on 'AppIsBeingShown', @bound "setMissingRoute"
 
   # setMissingRoute:(appController, appView, appOptions)->
   #   router       = KD.getSingleton('router')
@@ -232,7 +231,7 @@ class ApplicationManager extends KDObject
     appView     = appInstance.getView?()
     return unless appView
 
-    @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
+    @emit 'AppIsBeingShown', appInstance, appView, appOptions
     @setLastActiveIndex appInstance
     @utils.defer -> callback? appInstance
 
@@ -243,13 +242,9 @@ class ApplicationManager extends KDObject
 
     return if appOptions.background
 
-    # if KD.isLoggedIn()
-    @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
-    @emit 'AnInstanceIsShown', appInstance, appView, appOptions
+    @emit 'AppIsBeingShown', appInstance, appView, appOptions
     @setLastActiveIndex appInstance
     @utils.defer -> callback? appInstance
-    # else
-    #   KD.getSingleton('router').clear()
 
   quit:(appInstance, callback = noop)->
     view = appInstance.getView?()
