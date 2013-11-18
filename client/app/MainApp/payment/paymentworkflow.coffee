@@ -7,7 +7,6 @@ class PaymentWorkflow extends FormWorkflow
     super options, data
 
   preparePaymentMethods: (formData) ->
-    @setState 'choice'
 
     paymentController = KD.getSingleton 'paymentController'
 
@@ -21,8 +20,6 @@ class PaymentWorkflow extends FormWorkflow
       { preferredPaymentMethod, methods, appStorage } = paymentMethods
 
       switch methods.length
-
-        when 0 then @setState 'entry'
 
         when 1 then do ([method] = methods) =>
 
@@ -55,21 +52,18 @@ class PaymentWorkflow extends FormWorkflow
 
           paymentField.addSubView select
 
-
-  selectPaymentMethod: (paymentMethod) ->
-    @collectData { paymentMethod }
-    # (@getForm 'confirm').setPaymentMethod? method
-    # @setState 'confirm'
-
   createChoiceForm: ->
 
     form = new PaymentChoiceForm
 
-    form.on 'PaymentMethodChosen', (method) =>
-      @selectPaymentMethod method
+    form.on 'Activated', =>
+      @preparePaymentMethods()
+
+    form.on 'PaymentMethodChosen', (paymentMethod) =>
+      @collectData { paymentMethod }
 
     form.on 'PaymentMethodNotChosen', =>
-      @setState 'entry'
+      @clearData 'paymentMethod'
 
     return form
 
