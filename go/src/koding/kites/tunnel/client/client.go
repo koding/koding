@@ -7,26 +7,16 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"os"
 )
-
-var serverAddr = "127.0.0.1:7000"
-var localAddr = "127.0.0.1:5000"
-var registerPath = "_kdtunnel_"
-
-func init() {
-	log.SetOutput(os.Stdout)
-	log.SetPrefix("tunnel-client ")
-	log.SetFlags(log.Lmicroseconds)
-}
 
 type TunnelClient struct {
 	remoteConn *httputil.ServerConn
 	localConn  *httputil.ClientConn
-	registered bool
 }
 
-func NewTunnelClient(localAddr string) *TunnelClient {
+// NewTunnelClient creates a new tunnel that is established between the
+// serverAddr and localAddr.
+func NewTunnelClient(serverAddr, localAddr string) *TunnelClient {
 	remoteConn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
 		log.Fatalln("dial remote err: %s", err)
@@ -52,10 +42,14 @@ func NewTunnelClient(localAddr string) *TunnelClient {
 }
 
 func main() {
-	tunnel := NewTunnelClient(localAddr)
+	var serverAddr = "127.0.0.1:7000"
+	var localAddr = "127.0.0.1:5000"
+	tunnel := NewTunnelClient(serverAddr, localAddr)
 	tunnel.Start()
 }
 
+// Start starts the tunnel between the remote and local server. It's a
+// blocking function. Every requst is handled in a separete goroutine.
 func (t *TunnelClient) Start() {
 	for {
 		req, err := t.remoteConn.Read()
@@ -82,7 +76,7 @@ func (t *TunnelClient) handleReq(req *http.Request) {
 func (t *TunnelClient) Register() error {
 	conn, buffer := t.remoteConn.Hijack()
 
-	remoteAddr := fmt.Sprintf("http://%s%s", serverAddr, protocol.RegisterPath)
+	remoteAddr := fmt.Sprintf("http://%s%s", conn.RemoteAddr(), protocol.RegisterPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
 		return fmt.Errorf("CONNECT", err)
@@ -104,6 +98,5 @@ func (t *TunnelClient) Register() error {
 	// hijack detaches the server, after doing raw tcp communication
 	// attach it again to our tunnelclient
 	t.remoteConn = httputil.NewServerConn(conn, nil)
-	t.registered = true
 	return nil
 }
