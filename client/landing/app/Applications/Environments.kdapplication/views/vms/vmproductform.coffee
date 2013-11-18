@@ -56,11 +56,8 @@ class VmProductForm extends FormWorkflow
     @forwardEvent packChoiceForm, 'PackOfferingRequested'
     packChoiceForm.on 'PackSelected', (pack) =>
       @checkUsageLimits pack, (err, usage) =>
-        @collectData { pack }  unless err
+        @collectData { pack }
 
     @addForm 'pack choice', packChoiceForm, ['pack']
 
     choiceForm = @createChoiceForm()
-    
-    console.log @getFields yes
-

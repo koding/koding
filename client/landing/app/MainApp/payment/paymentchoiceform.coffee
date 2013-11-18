@@ -31,3 +31,5 @@ class PaymentChoiceForm extends KDFormViewWithFields
       callback          : => @emit 'PaymentMethodNotChosen'
 
     super options, data
+
+  activate: -> @emit 'Activated'
