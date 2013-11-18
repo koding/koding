@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"koding/kites/tunnel/protocol"
 	"log"
@@ -21,52 +20,64 @@ func init() {
 	log.SetFlags(log.Lmicroseconds)
 }
 
-func main() {
+type TunnelClient struct {
+	remoteConn *httputil.ServerConn
+	localConn  *httputil.ClientConn
+	registered bool
+}
+
+func NewTunnelClient(localAddr string) *TunnelClient {
 	remoteConn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
-		log.Println("dial remote err: %s", err)
-		return
+		log.Fatalln("dial remote err: %s", err)
 	}
-	defer remoteConn.Close()
 
-	err = register(remoteConn)
+	localConn, err := net.Dial("tcp", localAddr)
+	if err != nil {
+		log.Fatalln("dial local err: %s", err)
+	}
+
+	return &TunnelClient{
+		remoteConn: httputil.NewServerConn(remoteConn, nil),
+		localConn:  httputil.NewClientConn(localConn, nil),
+	}
+}
+
+func main() {
+	tunnel := NewTunnelClient(localAddr)
+	err := tunnel.Register()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	localConn, err := net.Dial("tcp", localAddr)
-	if err != nil {
-		log.Printf("dial local err: %s\n", err)
-		return
-	}
-	defer localConn.Close()
-
-	server := httputil.NewServerConn(remoteConn, nil)
-	clientConn := httputil.NewClientConn(localConn, nil)
-
 	for {
-		req, err := server.Read()
+		req, err := tunnel.remoteConn.Read()
 		if err != nil {
 			fmt.Println("Server read", err)
 			return
 		}
 
-		fmt.Println(req.RemoteAddr, req.URL.String(), req.Host, req.RequestURI)
-
-		resp, err := clientConn.Do(req)
-		if err != nil {
-			fmt.Println("coudlnt do request")
-		}
-
-		fmt.Println("resp status", resp.Status, resp.Header)
-
-		server.Write(req, resp)
-
+		go tunnel.handleReq(req)
 	}
 }
 
-func register(remoteConn net.Conn) error {
+func (t *TunnelClient) handleReq(req *http.Request) {
+	fmt.Println(req.RemoteAddr, req.URL.String(), req.Host, req.RequestURI)
+
+	resp, err := t.localConn.Do(req)
+	if err != nil {
+		fmt.Println("could not do request")
+	}
+
+	t.remoteConn.Write(req, resp)
+}
+
+// Register registered the tunnel client to the TunnelServer via an CONNECT request.
+// It returns an error if the connect request is not successful.
+func (t *TunnelClient) Register() error {
+	conn, buffer := t.remoteConn.Hijack()
+
 	remoteAddr := fmt.Sprintf("http://%s%s", serverAddr, protocol.RegisterPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
@@ -74,9 +85,9 @@ func register(remoteConn net.Conn) error {
 	}
 
 	req.Header.Set("Username", "fatih")
-	req.Write(remoteConn)
+	req.Write(conn)
 
-	resp, err := http.ReadResponse(bufio.NewReader(remoteConn), req)
+	resp, err := http.ReadResponse(buffer, req)
 	if err != nil {
 		return fmt.Errorf("read response", err)
 	}
@@ -87,5 +98,10 @@ func register(remoteConn net.Conn) error {
 	}
 
 	fmt.Println(resp.Status)
+
+	// hijack detaches the server, after doing raw tcp communication
+	// attach it again to our tunnelclient
+	t.remoteConn = httputil.NewServerConn(conn, nil)
+	t.registered = true
 	return nil
 }
