@@ -10,9 +10,9 @@ class WebTermController extends AppController
     route        :
       slug       : "/:name?/Terminal"
       handler    : ({params:{name}, query})->
-        KD.utils.wait 800, ->
-          router = KD.getSingleton 'router'
-          router.openSection "Terminal", name, query
+        # KD.utils.wait 800, ->
+        router = KD.getSingleton 'router'
+        router.openSection "Terminal", name, query
     multiple     : yes
     hiddenHandle : no
     menu         :
