@@ -22,7 +22,7 @@ class TopicsAppController extends AppController
     @controllers = {}
 
   createFeed:(view, loadFeed = no)->
-    JTag = new KD.remote.api.JTag()
+    {JTag} = KD.remote.api.JTag
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       feedId                : 'topics.main'
       itemClass             : @listItemClass
