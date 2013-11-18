@@ -1,5 +1,11 @@
 class DockController extends KDViewController
 
+  defaultItems = [
+    { title : "Activity",  path : "/Activity", order : 10, type :"" }
+    { title : "Topics",    path : "/Topics",   order : 20, type :"" }
+    { title : "Terminal",  path : "/Terminal", order : 30, type :"" }
+    { title : "Editor",    path : "/Ace",      order : 40, type :"" }
+  ]
 
   createHash = (arr)->
 
@@ -33,15 +39,20 @@ class DockController extends KDViewController
     @storage.fetchStorage (err, storage)=>
 
       usersNavItems = @storage.getValue 'navItems'
-      ourNavItems   = KD.getNavItems()
+      ourNavItems   = defaultItems
       ourNavObj     = createHash ourNavItems
+      KD.setNavItems ourNavItems
 
-      return @emit 'ready'  unless usersNavItems
+      unless usersNavItems
 
-      usersNavObj   = createHash usersNavItems
+        @navController.reset()
+        log ourNavItems, 'ready'
+        return @emit 'ready'
+
+      usersNavObj = createHash usersNavItems
 
       # reset default items' orders if user has customized them
-      for ourItem in KD.getNavItems()
+      for ourItem in ourNavItems
         continue unless usersItem = usersNavObj[ourItem.title]
         log 'changing order for:', ourItem.title
         ourItem.order = usersItem.order
@@ -50,7 +61,6 @@ class DockController extends KDViewController
       for usersItem in usersNavItems
         continue if ourNavObj[usersItem.title]
         KD.registerNavItem usersItem
-
 
       # re-sort the navitems
       KD.setNavItems KD.getNavItems()
