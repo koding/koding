@@ -5,7 +5,7 @@ import (
 )
 
 type MemoryCache struct {
-	sync.RWMutex
+	sync.Mutex
 	items map[string][]byte
 }
 
@@ -16,8 +16,8 @@ func NewMemoryCache() *MemoryCache {
 }
 
 func (c *MemoryCache) Get(key string) ([]byte, bool) {
-	c.RLock()
-	defer c.RUnlock()
+	c.Lock()
+	defer c.Unlock()
 
 	value, ok := c.items[key]
 	return value, ok

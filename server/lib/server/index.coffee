@@ -72,7 +72,8 @@ app.configure ->
   app.use express.session {"secret":"foo"}
   app.use express.bodyParser()
   app.use express.compress()
-  app.use express.static "#{projectRoot}/website/"
+  # 86400000 == one day
+  app.use express.static( "#{projectRoot}/website/", { maxAge: 86400000 })
 
 # disable express default header
 app.disable 'x-powered-by'
@@ -280,7 +281,7 @@ app.get "/-/oauth/google/callback"    , require "./google_callback"
 app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
 
-app.get "/landing/:page", (req, res, next) ->
+app.get "/Landing/:page", (req, res, next) ->
   {page}      = req.params
   bongoModels = koding.models
   {JGroup}    = bongoModels
