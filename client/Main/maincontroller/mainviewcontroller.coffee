@@ -83,8 +83,7 @@ class MainViewController extends KDViewController
       html             = document.getElementsByTagName('html')[0]
       body             = document.body
       mainView         = @getView()
-      { contentPanel
-        mainTabView
+      { mainTabView
         sidebar }      = mainView
       o                = {name}
 
