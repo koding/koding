@@ -192,17 +192,16 @@ class MainView extends KDView
           type       : systemStatus.type
 
   enableFullscreen: ->
-    @contentPanel.$().addClass "fullscreen no-anim"
+    @setClass "fullscreen no-anim"
     @emit "fullscreen", yes
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
   disableFullscreen: ->
-    @contentPanel.$().removeClass "fullscreen no-anim"
+    @unsetClass "fullscreen no-anim"
     @emit "fullscreen", no
     KD.getSingleton("windowController").notifyWindowResizeListeners()
 
-  isFullscreen: ->
-    @contentPanel.$().is ".fullscreen"
+  isFullscreen: -> @hasClass "fullscreen"
 
   toggleFullscreen: ->
     if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
