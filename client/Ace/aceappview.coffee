@@ -34,9 +34,9 @@ class AceAppView extends JView
       ace.focus()
 
       title = FSHelper.minimizePath(ace.data.path).replace /^localfile:\//, ''
-      if KD.getSingleton("finderController").vms.length > 1
-        vm    = FSHelper.getVMNameFromPath ace.data.path
-        title = "#{title} on #{vm}"  if vm
+      # if KD.getSingleton("finderController").vms.length > 1
+      #   vm    = FSHelper.getVMNameFromPath ace.data.path
+      #   title = "#{title} on #{vm}"  if vm
 
       pane.tabHandle.setTitle title
       ace.on "AceDidSaveAs", (name, parentPath) =>

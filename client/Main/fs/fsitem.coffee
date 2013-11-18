@@ -169,9 +169,6 @@ class FSItem extends KDObject
 
     super
 
-    @treeController = KD.getSingleton('finderController').treeController
-    @vmController   = KD.getSingleton('vmController')
-
   getExtension:-> FSItem.getFileExtension @name
 
   isHidden:-> FSItem.isHidden @name
@@ -184,7 +181,7 @@ class FSItem extends KDObject
 
   remove:(callback, recursive=no)->
     @emit "fs.delete.started"
-    @vmController.run
+    KD.getSingleton('vmController').run
       method      : "fs.remove"
       vmName      : @vmName
       withArgs    :
@@ -207,7 +204,7 @@ class FSItem extends KDObject
         warn err
         callback? err, response
       else
-        @vmController.run
+        KD.getSingleton('vmController').run
           method    : "fs.rename"
           vmName    : @vmName
           withArgs  :
@@ -228,7 +225,7 @@ class FSItem extends KDObject
     return callback? "no permissions passed" unless permissions?
     @emit "fs.job.started"
 
-    @vmController.run
+    KD.getSingleton('vmController').run
       method      : "fs.setPermissions"
       vmName      : @vmName
       withArgs    :
