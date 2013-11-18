@@ -1,7 +1,6 @@
-@import "./kdfn"
-@import "./client/stylus/appfn"
-@import "nib/gradients"
-
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
 
 
 @css {
@@ -96,7 +95,7 @@ app.aceeditor.styl
 .ace-find-replace-view
   display                 block
   bottom                  20px
-  gradient                 #f9f9f9,#e7e7e7
+  gradient                #f9f9f9 #e7e7e7
   color                   #282828
   border                  1px solid #e2e2e2
   border-top-color        #dadada
@@ -144,7 +143,7 @@ app.aceeditor.styl
       text-indent         -10000px
       size                26px, 24px
       borderBox()
-      sprite()
+      kdfsprite()
       &.multiple-choice-case-sensitive
         bg                position, -197px -459px
         &.active
@@ -212,7 +211,7 @@ app.aceeditor.styl
         display           block
         size              14px,18px
         bg                position, -82px -420px
-        sprite()
+        kdfsprite()
       input.terminal
         border-width      0
         font-size         10px
