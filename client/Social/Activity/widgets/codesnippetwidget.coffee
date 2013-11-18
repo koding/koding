@@ -70,7 +70,8 @@ class ActivityCodeSnippetWidget extends ActivityWidgetFormView
 
     @syntaxSelect = new KDSelectBox
       name          : "syntax"
-      selectOptions : __aceSettings.getSyntaxOptions()
+      selectOptions : []
+      # selectOptions : __aceSettings.getSyntaxOptions()
       defaultValue  : "javascript"
       callback      : (value) => @emit "codeSnip.changeSyntax", value
 

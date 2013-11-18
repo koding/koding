@@ -107,7 +107,11 @@ class CodeSnippetView extends KDCustomHTMLView
     # @codeView.on 'sizes.height.change', ({height}) =>
     #   @$('.wrapper').height height
 
-    hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
+    hjsSyntax = []
+    __aceSettings =
+      syntaxAssociations :
+        javascript       : []
+    # hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
     @codeView = new KDCustomHTMLView
       cssClass  : ''

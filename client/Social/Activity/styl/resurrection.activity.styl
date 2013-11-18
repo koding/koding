@@ -1,6 +1,5 @@
-@import "./kdfn"
-@import "./client/stylus/appfn"
-@import "./client/stylus/app.fonts"
+@import "../../../Framework/themes/default/kdfn"
+@import "../../../Main/styl/appfn"
 
 
 @css {
@@ -14,7 +13,7 @@ resurrection.activity.styl
 .feeder-header
 .common-inner-nav
 .system-message
-.comment-container
+.button-bar
 .activity-status-context
   display               none
 
@@ -29,23 +28,7 @@ resurrection.activity.styl
   borderBox()
 
   .update-type-select-icons
-    right               0
-    bottom              0
-    height              68px
-    line-height         68px
-    abs()
-
-    div
-      display           inline-block
-      margin            0 20px 0 0
-      cursor            pointer
-
-      &.update
-        sprite          app update-icon
-      &.blogpost
-        sprite          app blogpost-icon
-      &.codesnip
-        sprite          app codesnip-icon
+    display             none
 
   .kdtabpaneview
     display             none
@@ -53,17 +36,29 @@ resurrection.activity.styl
     &.active
       display           block
 
+    .large-input textarea
     .small-input input
-      width             72%
+      width             100%
       height            68px
       line-height       68px
       font-size         16px
-      color             #7a868d
+      color             #a0abb2
       font-weight       200
       background        none
       border            none
-      padding           0 0 0 24px
+      padding           0 0 0 20px
       borderBox()
+      vendor            transition, height .3s ease \,\
+                                    line-height .3s ease \,\
+                                    padding .3s ease
+
+      &:focus
+        padding         20px
+        color           #7a868d
+        height          140px
+        line-height     18px
+
+
 
 .content-page.activity
   .activity-content
@@ -71,24 +66,87 @@ resurrection.activity.styl
 
   .kdlistitemview-activity
     size                auto, auto
-    background          #fff
-    border              1px solid #e1e1e4
     margin              16px 0 0 78px
-    border-radius       6px 6px 0 0
     position            relative
     overflow            visible
     borderBox()
 
     .activity-item
+      background        #fff
+      border            1px solid #e1e1e4
+      border-radius     6px 6px 0 0
       overflow          visible
       position          static
+      borderBox()
 
     .status-body
       font-size       16px
-      font-weight     200
+      font-weight     400
       line-height     22px
       color           #485259
       margin          20px 24px 24px
+
+    .comment-container
+      size            auto, auto
+
+      .kdlistitemview-comment
+        padding         20px
+        font-size       14px
+        color           #485259
+        line-height     18px
+        font-weight     400
+        border-top      1px solid #eeeeef
+        position        relative
+        borderBox()
+
+        .avatar
+          size          28px, 28px
+          left          20px
+          top           20px
+          abs()
+          fl()
+
+          a
+            display     block
+
+        .comment-contents
+          padding         0 0 0 40px
+
+          a.profile
+            margin        0 0 10px 0
+            display       block
+            font-size     12px
+            color         #91979b
+            noTextDeco()
+
+      .item-add-comment-box
+        .avatarview
+          z-index       10
+          display       block
+          top           15px
+          left          12px
+          border-radius 2px
+          abs()
+
+        .item-add-comment-form
+          border-top      1px solid #dfdfe2
+          background      #f8f8f9
+          size            auto, auto
+          padding         10px 10px 10px 48px
+          position        relative
+          z-index         9
+
+          textarea
+            display             block
+            border-radius       0
+            border              1px solid #e1e1e4
+            size                100%, 37px
+            padding             10px 0 10px 20px
+            line-height         16px
+            font-size           12px
+            color               #7a868d
+            vendor              transition, height .3s ease
+            borderBox()
 
     footer
       size              auto, 38px
@@ -128,6 +186,9 @@ resurrection.activity.styl
             font-size  12px
             color      #7a868d
 
+        &.liked a.like-icon
+          sprite       app like-icon-liked
+
     .avatarview.author-avatar
       size              65px, 65px
       display           block
@@ -150,7 +211,7 @@ resurrection.activity.styl
 
     .codesnip
       .code-container
-        margin          20px 24px 24px
+        position        relative
 
         pre
           margin        0
@@ -158,8 +219,16 @@ resurrection.activity.styl
 
         code
           padding       20px
-          max-height    400px
+          max-height    240px
+          font-size     12px
           overflow      scroll
+
+        >strong
+          bottom        10px
+          right         10px
+          color         #7a868d
+          font-size     12px
+          abs()
 
     .blog-post
       .blog-post-title
@@ -172,7 +241,7 @@ resurrection.activity.styl
 
       .body
           font-size     14px
-          font-weight   200
+          font-weight   400
           line-height   20px
           color         #485259
           margin        20px 24px 24px
@@ -238,33 +307,3 @@ resurrection.activity.styl
         &.online
           i
             background    #2eb398
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -38,11 +38,11 @@ projects      =
     style     : "website/css/introapp.#{KODING_VERSION}.css"
     script    : "website/js/introapp.#{KODING_VERSION}.js"
 
-  # Activity        :
-  #   files         : "client/Activity/includes.coffee"
-  #   style         : "website/css/app.activity.#{KODING_VERSION}.css"
-  #   script        : "website/js/app.activity.#{KODING_VERSION}.js"
-  #   sourceMapRoot : "Activity/"
+  Activity        :
+    files         : "client/Social/Activity/includes.coffee"
+    style         : "website/css/app.activity.#{KODING_VERSION}.css"
+    script        : "website/js/app.activity.#{KODING_VERSION}.js"
+    sourceMapRoot : "Activity/"
 
   # Members         :
   #   files         : "client/Members/includes.coffee"
