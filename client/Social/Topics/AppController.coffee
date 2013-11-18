@@ -22,7 +22,7 @@ class TopicsAppController extends AppController
     @controllers = {}
 
   createFeed:(view, loadFeed = no)->
-    {JTag} = KD.remote.api
+    {JTag} = KD.remote.api.JTag
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       feedId                : 'topics.main'
       itemClass             : @listItemClass
@@ -98,9 +98,9 @@ class TopicsAppController extends AppController
       @emit 'ready'
 
       KD.mixpanel "Loaded topic list"
+      log "loaded"
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
-
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
