@@ -29,7 +29,6 @@ class AceAppView extends JView
 
     @tabView.on "PaneDidShow", (pane) =>
       {ace} = pane.getOptions().aceView
-      @_windowDidResize()
       ace.on "ace.ready", -> ace.focus()
       ace.focus()
 
@@ -60,12 +59,6 @@ class AceAppView extends JView
       KD.getSingleton("mainView").disableFullscreen()
 
     @bindAppMenuEvents()
-
-    @listenWindowResize()
-
-  _windowDidResize:->
-    # 10px being the application page's padding
-    @tabView.setHeight @getHeight() - @tabHandleContainer.getHeight() - 10
 
   createSessionData: (openPanes, data = {}) ->
     paths     = []
