@@ -21,7 +21,7 @@ func Join(local, remote net.Conn) {
 
 	wg.Add(2)
 	go pipe(local, remote)
-	pipe(remote, local)
+	go pipe(remote, local)
 	wg.Wait()
 
 	log.Println("join finished")

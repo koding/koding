@@ -3,11 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"koding/kites/tunnel/join"
 	"koding/kites/tunnel/protocol"
 	"log"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"os"
 )
 
@@ -28,9 +28,6 @@ func main() {
 		return
 	}
 	defer remoteConn.Close()
-
-	// _, err = remoteConn.Write([]byte("fatih"))
-	// fmt.Println(err)
 
 	remoteAddr := fmt.Sprintf("http://%s%s", serverAddr, protocol.RegisterPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
@@ -55,12 +52,6 @@ func main() {
 	}
 	fmt.Println(resp.Status)
 
-	// buffer := make([]byte, 256)
-	// log.Println("waiting for read")
-
-	// _, err = remoteConn.Read(buffer)
-	// log.Println("got buffer", string(buffer))
-
 	localConn, err := net.Dial("tcp", localAddr)
 	if err != nil {
 		log.Printf("dial local err: %s\n", err)
@@ -68,6 +59,26 @@ func main() {
 	}
 	defer localConn.Close()
 
-	join.Join(localConn, remoteConn)
+	server := httputil.NewServerConn(remoteConn, nil)
+	clientConn := httputil.NewClientConn(localConn, nil)
 
+	for {
+		req, err := server.Read()
+		if err != nil {
+			fmt.Println("Server read", err)
+			return
+		}
+
+		fmt.Println(req.RemoteAddr, req.URL.String(), req.Host, req.RequestURI)
+
+		resp, err := clientConn.Do(req)
+		if err != nil {
+			fmt.Println("coudlnt do request")
+		}
+
+		fmt.Println("resp status", resp.Status, resp.Header)
+
+		server.Write(req, resp)
+
+	}
 }
