@@ -37,34 +37,38 @@ func NewTunnelClient(localAddr string) *TunnelClient {
 		log.Fatalln("dial local err: %s", err)
 	}
 
-	return &TunnelClient{
+	tunnel := &TunnelClient{
 		remoteConn: httputil.NewServerConn(remoteConn, nil),
 		localConn:  httputil.NewClientConn(localConn, nil),
 	}
+
+	err = tunnel.Register()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Printf("Tunnel established from %s to %s\n", remoteConn.RemoteAddr(), localConn.RemoteAddr())
+	return tunnel
 }
 
 func main() {
 	tunnel := NewTunnelClient(localAddr)
-	err := tunnel.Register()
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	tunnel.Start()
+}
 
+func (t *TunnelClient) Start() {
 	for {
-		req, err := tunnel.remoteConn.Read()
+		req, err := t.remoteConn.Read()
 		if err != nil {
 			fmt.Println("Server read", err)
 			return
 		}
 
-		go tunnel.handleReq(req)
+		go t.handleReq(req)
 	}
 }
 
 func (t *TunnelClient) handleReq(req *http.Request) {
-	fmt.Println(req.RemoteAddr, req.URL.String(), req.Host, req.RequestURI)
-
 	resp, err := t.localConn.Do(req)
 	if err != nil {
 		fmt.Println("could not do request")
@@ -96,8 +100,6 @@ func (t *TunnelClient) Register() error {
 	if resp.StatusCode != 200 && resp.Status != protocol.Connected {
 		return fmt.Errorf("Non-200 response from proxy server: %s", resp.Status)
 	}
-
-	fmt.Println(resp.Status)
 
 	// hijack detaches the server, after doing raw tcp communication
 	// attach it again to our tunnelclient
