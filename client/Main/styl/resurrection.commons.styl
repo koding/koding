@@ -22,7 +22,40 @@ resurrection.commons.styl
   borderBox()
 
 .application-tabview
-  kalc                      height, 100% \- 41px
+  kalc                      height, 100% \- 40px
+  bg                        color, #1b2224
+
+.kdtabhandlecontainer.application-tab-handle-holder
+  bg                        color, #252E30
+  border-bottom             none
+  padding-top               3px
+  height                    40px
+  borderBox()
+  .kdtabhandle
+    border                  none
+    height                  37px
+    line-height             37px
+    font-size               14px
+    font-family             'Proxima Nova'
+    font-weight             300
+    color                   #5e7074
+    &.plus
+      bg                    color, transparent
+      border-left           2px solid #1b2224
+      width                 37px
+      padding               0
+      .icon
+        sprite              app '20-tab-plus'
+        margin              8px 9px 9px 8px
+        display             block
+    &.active
+      bg                    color, #1b2224
+      color                 #eeeeee
+      span.close-tab
+        top                 8px
+        right               8px
+        bg                  color, transparent
+        sprite              app '20-close-tab'
 
 .header-facets
   right                     0
