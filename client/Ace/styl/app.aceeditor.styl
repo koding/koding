@@ -160,70 +160,29 @@ app.aceeditor.styl
         border-color      #cfcfcf !important
 
 .editor-bottom-bar
-  color                   #282828
-  border                  1px solid #e2e2e2
-  border-top-color        #dadada
-  gradient                #f9f9f9,#e7e7e7
-  abs()
-  size                    100%,20px
+  bg                      color, #252E30
+  color                   #5e7074
+  size                    100% 20px
   z-index                 1000
   borderBox()
+  abs()
   &.clearfix
     bottom                0
-
-  .kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
-    border-left           1px solid #e2e2e2
-    fr()
-
-  button.kdbutton
-    span.icon.cog-white
-      bg                  position,-82px -301px
 
   .section
     padding               3px
     font-size             10px
     line-height           12px
-    color                 #282828
-    size                  auto,12px
+    color                 #5e7074
+    size                  auto 12px
     fl()
     &.caret-position
       width               48px
       text-align          center
-      color               #333
+      color               #5e7074
       margin              0
       span
         margin            0 2px
-    &.command-line
-      padding             0px
-      size                50%,18px
-      gradient            #e7e7e7, #f9f9f9
-      border              1px solid #e2e2e2
-      border-width        0 1px
-      &.focus
-        span.icon
-          bg              position, -82px -400px
-        input.terminal
-          color           green
-      span.icon
-        abs()
-        top               0
-        left              0
-        display           block
-        size              14px,18px
-        bg                position, -82px -420px
-        kdfsprite()
-      input.terminal
-        border-width      0
-        font-size         10px
-        size              100%, 18px
-        line-height       1
-        padding           2px 2px 2px 12px
-        line-height       1
-        color             #777
-        bg                color,transparent
-        rounded           0
-        borderBox()
-
 
 .editor-search-wrapper
   border                  1px solid #ddd
