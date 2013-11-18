@@ -70,9 +70,10 @@ class MainViewController extends KDViewController
 
     {title} = app.getOption('navItem')
 
-    return unless title
+    if title
+    then navController.selectItemByName title
+    else navController.deselectAllItems()
 
-    navController.selectItemByName title
 
   setViewState: do ->
 
