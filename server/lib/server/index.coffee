@@ -291,12 +291,17 @@ app.get "/Landing/:page", (req, res, next) ->
       JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
         serve body, res
 
+# Handles all internal pages
+# /USER || /SECTION || /GROUP[/SECTION] || /APP
+#
 app.all '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
 
+  # Checks if its an internal request like /Activity, /Terminal ...
+  #
   if firstLetter.toUpperCase() is firstLetter
     unless section
     then next()
@@ -310,6 +315,7 @@ app.all '/:name/:section?*', (req, res, next)->
             return next()  if err
             serve subPage, res
 
+          # No need to use Develop anymore FIXME ~ GG
           if name is "Develop"
             options = {account, name, section, client, bongoModels}
             return JGroup.render[prefix].subPage options, serveSub
@@ -323,6 +329,8 @@ app.all '/:name/:section?*', (req, res, next)->
               options = {account, name, section, models, client, bongoModels}
               JGroup.render[prefix].subPage options, serveSub
 
+  # Checks if its a User or Group from JName collection
+  #
   else
     isLoggedIn req, res, (err, loggedIn, account)->
       JName.fetchModels name, (err, models)->
@@ -335,20 +343,27 @@ app.all '/:name/:section?*', (req, res, next)->
             else res.send 500, error_500()
         else next()
 
+# Main Handler for Koding.com
+#
 app.get "/", (req, res, next)->
 
+  # Handle crawler request
+  #
   if req.query._escaped_fragment_?
     staticHome = require "../crawler/staticpages/kodinghome"
     slug = req.query._escaped_fragment_
     return res.send 200, staticHome() if slug is ""
     return Crawler.crawl koding, req, res, slug
+
+  # User requests
+  #
   else
+
     serveSub = (err, subPage)->
       return next()  if err
       serve subPage, res
 
-    {JGroup} = koding.models
-    bongoModels = koding.models
+    {JGroup} = bongoModels = koding.models
 
     generateFakeClient req, res, (err, client)->
       if err or not client
@@ -362,6 +377,8 @@ app.get "/", (req, res, next)->
                              else JGroup.render.loggedOut
         render.kodingHome {client, account, bongoModels}, serveSub
 
+# Forwards to /
+#
 app.get '*', (req,res)->
   {url}            = req
   queryIndex       = url.indexOf '?'
