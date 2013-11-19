@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/kites/tunnel/join"
 	"koding/kites/tunnel/protocol"
 	"log"
 	"net"
@@ -43,9 +44,9 @@ func NewTunnelClient(serverAddr, localAddr string) *TunnelClient {
 
 func main() {
 	var serverAddr = "127.0.0.1:7000"
-	var localAddr = "127.0.0.1:5000"
+	var localAddr = "127.0.0.1:3020"
 	tunnel := NewTunnelClient(serverAddr, localAddr)
-	tunnel.Start()
+	tunnel.Proxy()
 }
 
 // Start starts the tunnel between the remote and local server. It's a
@@ -60,6 +61,15 @@ func (t *TunnelClient) Start() {
 
 		go t.handleReq(req)
 	}
+}
+
+// Proxy is like Start() but it joins (proxies) the remote tcp connection with
+// the local one, that means all de handling is done via those two connection.
+func (t *TunnelClient) Proxy() {
+	remote, _ := t.remoteConn.Hijack()
+	local, _ := t.localConn.Hijack()
+
+	join.Join(local, remote)
 }
 
 func (t *TunnelClient) handleReq(req *http.Request) {

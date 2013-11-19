@@ -8,25 +8,34 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"os"
 	"strings"
 	"sync"
 	"time"
 )
 
 var serverAddr = "127.0.0.1:7000"
+var serverMade bool
 
-func init() {
-	log.SetOutput(os.Stdout)
-	log.SetPrefix("tunnel-server ")
-	log.SetFlags(log.Lmicroseconds)
+type Server struct {
+	tunnels *Tunnels
+	sync.Mutex
+}
+
+func NewServer() *Server {
+	if serverMade {
+		panic("tunnelserver: NewServer must be called only once")
+	}
+
+	serverMade = true
+	s := &Server{tunnels: NewTunnels()}
+	http.HandleFunc(protocol.RegisterPath, s.registerHandler)
+	return s
 }
 
 func main() {
 	server := NewServer()
 
-	http.HandleFunc(protocol.RegisterPath, server.registerHandler)
-	http.HandleFunc("/", server.tunnelHandler)
+	http.HandleFunc("/", server.TunnelHandler)
 
 	log.Println(http.ListenAndServe(serverAddr, nil))
 }
@@ -50,9 +59,13 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 	s.tunnels.addTunnel("127.0.0.1:7000", NewTunnel(conn))
 }
 
-func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("tunnel Handler invoked", r.URL.String())
 	host := strings.ToLower(r.Host)
+
+	s.Lock()
+	defer s.Unlock()
+
 	tunnel, ok := s.tunnels.getTunnel(host)
 	if !ok {
 		err := fmt.Sprintf("no such tunnel: %s", host)
@@ -62,7 +75,7 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := tunnel.clientConn.Do(r)
 	if err != nil {
-		errString := fmt.Sprintf("clientConn req", err.Error())
+		errString := fmt.Sprintf("clientConn req %s", err.Error())
 		http.Error(w, errString, 404)
 		return
 	}
@@ -117,16 +130,6 @@ func copyHeader(dst, src http.Header) {
 		for _, v := range vv {
 			dst.Add(k, v)
 		}
-	}
-}
-
-type Server struct {
-	tunnels *Tunnels
-}
-
-func NewServer() *Server {
-	return &Server{
-		tunnels: NewTunnels(),
 	}
 }
 
