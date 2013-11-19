@@ -12,16 +12,15 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
 
-    mainController.on 'accountChanged.to.loggedIn', (account)=>
+    mainController.on 'accountChanged.to.loggedIn', (account)->
       mainController.loginScreen.hide()
 
-    mainController.on "ShowInstructionsBook", (index)=>
+    mainController.on "ShowInstructionsBook", (index)->
       book = mainView.addBook()
       book.fillPage index
       book.checkBoundaries()
 
-    mainController.on "ToggleChatPanel", =>
-      mainView.chatPanel.toggle()
+    mainController.on "ToggleChatPanel", -> mainView.chatPanel.toggle()
 
     if KD.checkFlag 'super-admin'
     then $('body').addClass 'super'
