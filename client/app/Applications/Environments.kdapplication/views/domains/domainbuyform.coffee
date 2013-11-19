@@ -23,9 +23,12 @@ class DomainBuyForm extends CommonDomainCreateForm
           domain, year, price: displayPrice
         }
       
-      modal = new BuyModal
-        title       : "Register <em>#{ domain }</em>"
-        workflow    : workflow
+      modal = new KDModalView
+        title   : "Register <em>#{ domain }</em>"
+        view    : workflow
+        height  : "auto"
+        width   : 500
+        overlay : yes
 
       workflow.enter()
 
