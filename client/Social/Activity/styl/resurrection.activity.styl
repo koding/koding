@@ -13,7 +13,6 @@ resurrection.activity.styl
 .feeder-header
 .common-inner-nav
 .system-message
-.button-bar
 .activity-status-context
   display               none
 
@@ -113,40 +112,26 @@ resurrection.activity.styl
           padding         0 0 0 40px
 
           a.profile
-            margin        0 0 10px 0
+            margin        0 0 12px 0
             display       block
             font-size     12px
-            color         #91979b
+            color         #485259
             noTextDeco()
 
-      .item-add-comment-box
-        .avatarview
-          z-index       10
-          display       block
-          top           15px
-          left          12px
-          border-radius 2px
-          abs()
+      .item-add-comment-form
+        border-top      1px solid #dfdfe2
+        background      #f8f8f9
+        size            auto, auto
+        padding         10px
 
-        .item-add-comment-form
-          border-top      1px solid #dfdfe2
-          background      #f8f8f9
-          size            auto, auto
-          padding         10px 10px 10px 48px
-          position        relative
-          z-index         9
-
-          textarea
-            display             block
-            border-radius       0
-            border              1px solid #e1e1e4
-            size                100%, 37px
-            padding             10px 0 10px 20px
-            line-height         16px
-            font-size           12px
-            color               #7a868d
-            vendor              transition, height .3s ease
-            borderBox()
+        textarea
+          display             block
+          border-radius       0
+          border              1px solid #e1e1e4
+          size                100%, 40px
+          font-size           12px
+          color               #7a868d
+          borderBox()
 
     footer
       size              auto, 38px
@@ -218,9 +203,9 @@ resurrection.activity.styl
           padding       0
 
         code
+          border-radius 6px
           padding       20px
           max-height    240px
-          font-size     12px
           overflow      scroll
 
         >strong
