@@ -80,6 +80,10 @@ projects      =
     script        : "website/js/app.ace.#{KODING_VERSION}.js"
     sourceMapRoot : "Ace/"
 
+  PostOperations  :
+    files         : "client/PostOperations/includes.coffee"
+    script        : "website/js/client.post.#{KODING_VERSION}.js"
+
 bundles       =
 
   # Social      :
@@ -88,7 +92,7 @@ bundles       =
   #   script    : "website/js/social.#{KODING_VERSION}.js"
 
   Koding      :
-    projects  : ['KDBackend', 'KDMainApp']
+    projects  : ['KDBackend', 'KDMainApp', 'PostOperations']
     style     : "website/css/koding.#{KODING_VERSION}.css"
     script    : "website/js/koding.#{KODING_VERSION}.js"
 
