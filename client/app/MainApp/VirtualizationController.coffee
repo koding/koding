@@ -371,6 +371,7 @@ class VirtualizationController extends KDController
       overlay : yes
 
     workflow.on 'DataCollected', -> debugger
+    workflow.on 'Cancel', -> modal.destroy()
 
     workflow.enter()
 
