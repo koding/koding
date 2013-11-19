@@ -336,17 +336,17 @@ app.all '/:name/:section?*', (req, res, next)->
         else next()
 
 app.get "/", (req, res, next)->
-  staticHome = require "../crawler/staticpages/kodinghome"
 
   if req.query._escaped_fragment_?
+    staticHome = require "../crawler/staticpages/kodinghome"
     slug = req.query._escaped_fragment_
     return res.send 200, staticHome() if slug is ""
-
     return Crawler.crawl koding, req, res, slug
   else
     serveSub = (err, subPage)->
       return next()  if err
       serve subPage, res
+
     {JGroup} = koding.models
     bongoModels = koding.models
 
