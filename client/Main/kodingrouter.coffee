@@ -53,7 +53,7 @@ class KodingRouter extends KDRouter
     name       = if name is 'Develop' and frags.length > 2 then frags[2] else name
 
     log 'handlingRoute', route, 'for the', name, 'app'
-    if KD.config.apps[name] and (name not in Object.keys KD.appClasses)
+    if appManager.checkAppAvailability name
       log 'couldn\'t found', name
       return KodingAppsController.putAppScript name, (err)=>
         log 'Router: loaded', name
