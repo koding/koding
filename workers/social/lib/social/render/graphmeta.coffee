@@ -4,7 +4,7 @@ encoder      = require 'htmlencode'
 module.exports = (options = {})->
   options.title ?= "A new way for developers to work."
   options.shareUrl ?= "https://koding.com"
-  options.image ?= "https://koding.com/images/kd-fluid-icon512.png"
+  options.image ?= "https://koding.com/images/koding_share.jpg"
   options.body ?= "Koding is a developer community and cloud development environment where developers come together and code in the browser – with a real development server to run their code. Developers can work, collaborate, write and run apps without jumping through hoops and spending unnecessary money."
 
   """
@@ -20,7 +20,5 @@ module.exports = (options = {})->
   <meta property="og:type" content="website" />
   <meta property="og:image" content="#{options.image}"/>
   <meta property="og:image:secure_url" content="#{options.image}"/>
-  <meta property="og:image:type" content="JPG">
-  <meta property="og:image:width" content="160">
-  <meta property="og:image:height" content="160">
+  <meta property="og:image:type" content="image/jpeg">
   """
