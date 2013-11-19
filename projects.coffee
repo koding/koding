@@ -100,7 +100,7 @@ projects      =
 bundles       =
 
   Social      :
-    projects  : ['Activity', 'Topics', 'Feeder']
+    projects  : ['Activity', 'Topics']
     style     : "website/css/social.#{KODING_VERSION}.css"
     script    : "website/js/social.#{KODING_VERSION}.js"
 
