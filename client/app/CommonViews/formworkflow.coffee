@@ -2,19 +2,21 @@ class FormWorkflow extends KDView
 
   constructor: (options = {}, data) ->
     super options, data
-    @forms = {}
+
     @collector = new Collector
-    @collector.on 'Pending', => @nextForm()
+    @collector.on 'Pending', @bound 'nextForm'
     @forwardEvent @collector, 'DataCollected'
-    @providers = {}
 
-  enter: -> @ready => @nextForm()
+    @forms      = {}
+    @providers  = {}
 
-  requireData: (fields) ->
+  enter: -> @ready @bound 'nextForm'
+
+  requireData: (fields, mode = 'all') ->
     gate =
       if fields.isGate
       then fields
-      else @all fields...
+      else @[mode] fields...
 
     @collector.addRequirement gate
 
@@ -24,8 +26,7 @@ class FormWorkflow extends KDView
 
   getData: -> @collector.data
 
-  isSatisfied: -> 
-    @collector.gate.isSatisfied()
+  isSatisfied: -> @collector.gate.isSatisfied()
 
   collectData: (data) ->
     @collector.collectData data
@@ -37,8 +38,8 @@ class FormWorkflow extends KDView
 
     return this
 
-  provideData: (form, provides) ->
-    for field in provides
+  provideData: (form, providers) ->
+    for field in providers
       @providers[field] ?= []
       @providers[field].push(
         if 'string' is typeof form
@@ -46,20 +47,27 @@ class FormWorkflow extends KDView
         else form
       )
 
+    return this
+
   nextForm: ->
     requirement = @nextRequirement()
     return  unless requirement?
+    
     provider = @nextProvider requirement
+    return  unless provider?
+
     @showForm provider
 
-  nextRequirement: ->
-    @collector.nextRequirement()
+    return provider
+
+  nextRequirement: -> @collector.nextRequirement()
 
   nextProvider: (key, from) ->
     providers = @providers[key]
     providers.i = from ? providers.i ? 0
     provider = providers[providers.i++]
-    return provider  if provider
+    return provider  if provider?
+
     try @nextProvider key, 0
 
   addForm: (formName, form, provides = []) ->
@@ -174,36 +182,36 @@ class FormWorkflow extends KDView
       else
         (key for own key of @fields when not (key of @children))
 
-    nextFieldName: ->
-      (Object.keys @fields)[@indexes.fields]
-
     nextNode: ->
-      field = @ordered[@index]
+      node = @ordered[@index]
 
-      unless field?
+      unless node? #cycle
         @index = 0
 
-        return @nextNode()
+        return @nextNode() 
 
-      if field.isGate
-        if field.isSatisfied()
+      if node.isGate #fork
+
+        if node.isSatisfied() #skip
           @index++
 
           return @nextNode()
-        else
 
-          return field.nextNode()
+        else #propagate
+          return node.nextNode()
 
-      @index++
+      @index++ #continue
 
-      return field
+      return node
 
     addChild: (child) ->
       @children[child] = child
+
       return this
 
     removeChild: (child) ->
       delete @children[child]
+
       return this
 
     addField: (field) ->
@@ -217,7 +225,7 @@ class FormWorkflow extends KDView
 
         @addChild field
 
-        field.on 'status', (isSatisfied) =>
+        field.on 'status', (isSatisfied) ->
           if isSatisfied
           then satisfier.satisfy()
           else satisfier.cancel()
@@ -234,8 +242,7 @@ class FormWorkflow extends KDView
       return this
 
     satisfy: (field) ->
-      if (satisfier = @fields[field])?
-        satisfier.satisfy()
+      satisfier.satisfy()  if (satisfier = @fields[field])?
 
       child.satisfy field  for own _, child of @children
 
@@ -259,11 +266,11 @@ class FormWorkflow extends KDView
     compliment: (value) -> value
 
     isSatisfied: ->
-      for collection in [@fields, @children]
-        for own _, field of collection
-          return @kill()  unless @compliment field.isSatisfied()
+      for category in [@fields, @children]
+        for own _, node of category when not @compliment node.isSatisfied()
+          return @kill()
 
-      return !@kill()
+      return not @kill()
 
     toString: -> "gate-#{@id}"
 
