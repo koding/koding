@@ -15,6 +15,9 @@ class PackChoiceForm extends JView
 
     super()
 
+  activate: (activator) ->
+    @emit 'Activated', activator
+
   setContents: (contents) ->
     @listController.instantiateListItems contents
 
