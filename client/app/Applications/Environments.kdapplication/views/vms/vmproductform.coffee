@@ -24,13 +24,12 @@ class VmProductForm extends FormWorkflow
       when 1
         [subscription] = subscriptions
         @collectData { subscription }
-        @emit 'PackOfferingRequested', subscription
       else
         @showForm 'choice'
 
-  setContents: (packs) ->
-    @showForm 'pack choice'
-    (@getForm 'pack choice').setContents packs
+  setContents: (type, contents) -> switch type
+    when 'packs'
+      (@getForm 'pack choice').setContents contents
 
   createChoiceForm: -> new KDView partial: 'this is a plan choice form'
 
@@ -49,7 +48,8 @@ class VmProductForm extends FormWorkflow
     @addForm 'upgrade', upgradeForm, ['plan', 'subscription']
 
     packChoiceForm = @createPackChoiceForm()
-    @forwardEvent packChoiceForm, 'PackOfferingRequested'
+    packChoiceForm.on 'Activated', => @emit 'PackOfferingRequested'
+
     packChoiceForm.on 'PackSelected', (pack) =>
       @checkUsageLimits pack, (err, usage) =>
         @collectData { pack }
