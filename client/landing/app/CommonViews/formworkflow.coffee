@@ -74,6 +74,7 @@ class FormWorkflow extends KDView
     @forms[formName] = form
     @addSubView form
     form.hide()
+    @forwardEvent form, 'Cancel'
     @provideData formName, provides
     return this
 
