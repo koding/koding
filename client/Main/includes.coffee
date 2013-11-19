@@ -213,19 +213,6 @@ module.exports = [
   "avatararea/avatarareapopupnotificationslistitem.coffee",
   "avatararea/avatarareasharestatuspopup.coffee",
 
-
-  # LOGIN VIEWS
-  "login/loginview.coffee",
-  "login/loginform.coffee",
-  "login/logininputs.coffee",
-  "login/loginoptions.coffee",
-  "login/registeroptions.coffee",
-  "login/resendmailconfirmationform.coffee"
-  "login/registerform.coffee",
-  "login/recoverform.coffee",
-  "login/resetform.coffee",
-  "login/redeemform.coffee",
-
   # BOTTOM PANEL
   # "bottompanels/bottompanelcontroller.coffee",
   # "bottompanels/bottompanel.coffee",
