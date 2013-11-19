@@ -113,19 +113,22 @@ func (vm *VM) ApplyDefaults() {
 	if vm.DiskSizeInMB == 0 {
 		vm.DiskSizeInMB = 1200
 	}
+	if vm.VMRoot == "" {
+		vm.VMRoot = "/var/lib/lxc/vmroot/"
+	}
 }
 
 func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
 	vm.Unprepare()
 
 	var err error
-	vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
-	if err != nil {
-		vm.VMRoot = "/var/lib/lxc/vmroot/"
-	}
-	if vm.VMRoot[0] != '/' {
-		vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
-	}
+	//vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
+	//if err != nil {
+	//	vm.VMRoot = "/var/lib/lxc/vmroot/"
+	//}
+	//if vm.VMRoot[0] != '/' {
+	//	vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
+	//}
 
 	// write LXC files
 	prepareDir(vm.File(""), 0)
