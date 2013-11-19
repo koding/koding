@@ -354,17 +354,13 @@ app.get "/", (req, res, next)->
       if err or not client
         console.log err
         return next()
-
       isLoggedIn req, res, (err, loggedIn, account)->
         if err
           res.send 500, error_500()
-          console.error err
-        else if loggedIn
-          # go to koding activity
-          JGroup.render.loggedIn.kodingHome {client, account, bongoModels}, serveSub
-        else
-          # go to koding home
-          JGroup.render.loggedOut.kodingHome {client, account, bongoModels}, serveSub
+          return console.error err
+        render = if loggedIn then JGroup.render.loggedIn \
+                             else JGroup.render.loggedOut
+        render.kodingHome {client, account, bongoModels}, serveSub
 
 app.get '*', (req,res)->
   {url}            = req
