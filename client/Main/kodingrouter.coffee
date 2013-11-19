@@ -241,21 +241,23 @@ class KodingRouter extends KDRouter
       when 'login'    then 'log in'
       when 'register' then 'register'
 
-    animateToForm = (formName, force = no) ->
-      { mainTabView } = KD.getSingleton 'mainView'
-      appsAreOpen = mainTabView.getVisibleHandles?().length > 0
-      if not force and formName in ['login', 'register'] and appsAreOpen
-        ok = no
-        modal = KDModalView.confirm
-          title: "Are you sure you want to #{getAction formName}?"
-          description: "You will lose your work"
-          ok: callback: ->
-            ok = yes
-            modal.destroy()
-            animateToForm formName, yes
-        modal.once 'KDObjectWillBeDestroyed', -> clear()  if not ok
-      else
-        mainController.loginScreen.animateToForm formName
+    # FIXME ~ GG
+    # animateToForm = (formName, force = no) ->
+    #   { mainTabView } = KD.getSingleton 'mainView'
+    #   appsAreOpen = mainTabView.getVisibleHandles?().length > 0
+    #   if not force and formName in ['login', 'register'] and appsAreOpen
+    #     ok = no
+    #     modal = KDModalView.confirm
+    #       title: "Are you sure you want to #{getAction formName}?"
+    #       description: "You will lose your work"
+    #       ok: callback: ->
+    #         ok = yes
+    #         modal.destroy()
+    #         animateToForm formName, yes
+    #     modal.once 'KDObjectWillBeDestroyed', -> clear()  if not ok
+    #   else
+    #     warn "FIXME Add tell to Login app ~ GG @ kodingrouter", formName
+    #     # mainController.loginScreen.animateToForm formName
 
     requireLogin =(fn)->
       mainController.ready ->
