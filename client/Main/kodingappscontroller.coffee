@@ -1,3 +1,5 @@
+# KD.config.allowedApps = ['account', 'terminal', 'ace', 'activity']
+
 class KodingAppsController extends KDController
 
   KD.registerAppClass this,
@@ -6,9 +8,7 @@ class KodingAppsController extends KDController
 
   @putAppScript = (name, callback = noop)->
 
-    name = __utils.slugify name
-
-    unless name in KD.config.allowedApps
+    unless KD.config.apps[name]
       warn message = "#{name} is not available to run!"
       return callback {message}
 
@@ -16,35 +16,31 @@ class KodingAppsController extends KDController
       warn "#{name} is already imported"
       return callback null
 
+    app = KD.config.apps[name]
+
     # Remove app from head if exists, just for sure
-    $("head .internal-app-#{name}").remove()
-
-    getScriptUrl = (name)->
-      "http://localhost:3020/js/app.#{name}.#{KD.config.version}.js"
-
-    getStyleUrl = (name)->
-      "http://localhost:3020/css/app.#{name}.#{KD.config.version}.css"
+    $("head .internal-#{app.identifier}").remove()
 
     style        = new KDCustomHTMLView
       tagName    : "link"
-      cssClass   : "internal-app-#{name}"
+      cssClass   : "internal-#{app.identifier}"
       bind       : 'load'
       load       : ->
         log "Style loaded? for #{name} # don't trust this ..."
       attributes :
         rel      : "stylesheet"
-        href     : getStyleUrl name
+        href     : app.style
 
     $('head')[0].appendChild style.getElement()
 
     script       = new KDCustomHTMLView
       tagName    : "script"
-      cssClass   : "internal-app-#{name}"
+      cssClass   : "internal-#{app.identifier}"
       bind       : 'load'
       load       : -> callback null
       attributes :
         type     : "text/javascript"
-        src      : getScriptUrl name
+        src      : app.script
 
     $('head')[0].appendChild script.getElement()
 
