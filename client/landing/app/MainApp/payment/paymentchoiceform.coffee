@@ -32,4 +32,4 @@ class PaymentChoiceForm extends KDFormViewWithFields
 
     super options, data
 
-  activate: -> @emit 'Activated'
+  activate: (activator) -> @emit 'Activated', activator
