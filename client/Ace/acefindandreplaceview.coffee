@@ -38,12 +38,12 @@ class AceFindAndReplaceView extends JView
 
     @replaceButton = new KDButtonView
       title        : "Replace"
-      cssClass     : "ace-replace-button clean-gray"
+      cssClass     : "ace-replace-button"
       callback     : => @replace()
 
     @replaceAllButton = new KDButtonView
       title        : "Replace All"
-      cssClass     : "ace-replace-button clean-gray"
+      cssClass     : "ace-replace-button"
       callback     : => @replaceAll()
 
     @closeButton = new KDCustomHTMLView
@@ -76,7 +76,7 @@ class AceFindAndReplaceView extends JView
     @emit "FindAndReplaceViewClosed"
 
   setViewHeight: (isReplaceMode) ->
-    height = if isReplaceMode then 60 else 32
+    height = if isReplaceMode then 60 else 31
     @$().css { height }
     @resizeEditor height
     @show()
