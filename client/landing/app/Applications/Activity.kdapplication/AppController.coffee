@@ -159,7 +159,7 @@ class ActivityAppController extends AppController
         group      :
           slug     : groupObj?.slug or "koding"
           id       : groupObj.getId()
-        limit      : 20
+        limit      : 50
         facets     : @getActivityFilter()
         withExempt : no
 
@@ -202,15 +202,34 @@ class ActivityAppController extends AppController
       @listController.listActivitiesFromCache sanitizedCache
       callback sanitizedCache
 
+
+  FETCHING_ATTEMPT = 0
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
 
     if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
       prefetchedActivity = KD.prefetchedFeeds["activity.main"]
-      if prefetchedActivity and ('activities.main' not in USEDFEEDS) and prefetchedActivity.activities
+      if prefetchedActivity and prefetchedActivity.activities and ('activities.main' not in USEDFEEDS)
         log "exhausting feed:", "activity.main"
-        USEDFEEDS.push 'activities.main'
-        return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
+
+        if FETCHING_ATTEMPT > 0 then USEDFEEDS.push 'activities.main'
+
+        activity = $.extend {}, KD.prefetchedFeeds["activity.main"]
+        overview = activity.overview
+        firstCount = 25
+        secondCount = 50
+
+        switch ++FETCHING_ATTEMPT
+          when 1
+            firstCount = -24
+            secondCount = 50
+          when 2
+            firstCount = -50
+            secondCount = 25
+
+        overview = overview[firstCount..secondCount]
+        activity.overview = overview
+        return @prepareCacheForListing activity
 
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
       return @emit "activitiesCouldntBeFetched", err  if err
