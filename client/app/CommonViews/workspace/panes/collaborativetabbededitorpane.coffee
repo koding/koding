@@ -55,16 +55,15 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       closeAppWhenAllTabsClosed : no
       tabHandleContainer        : @tabHandleContainer
 
-    @tabView.on "PaneAdded", (pane) =>
-      {tabHandle} = pane
-      tabHandle.on "click", =>
-        activeTab = @getActivePane()
-        newIndex  = @tabView.getPaneIndex activeTab
-        return  if newIndex is @activeTabIndex
+    @tabView.on "PaneDidShow", =>
+      activeTab = @getActivePane()
+      newIndex  = @tabView.getPaneIndex activeTab
+      return  if newIndex is @activeTabIndex
 
-        @workspaceRef.child("ActiveTabIndex").set newIndex
-        @activeTabIndex = newIndex
-        @workspace.setHistory "$0 switched to #{activeTab.getOptions().name}"
+      @indexRef.set newIndex
+      @activeTabIndex = newIndex
+      @workspace.setHistory "$0 switched to #{activeTab.getOptions().name}"
+
 
   createEditorInstance: (file, content, sessionKey) ->
     if file
