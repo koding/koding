@@ -4,7 +4,6 @@ class VirtualizationController extends KDController
     super
 
     @kc = KD.getSingleton("kiteController")
-    @dialogIsOpen = no
     @resetVMData()
 
     KD.getSingleton('mainController')
@@ -340,27 +339,7 @@ class VirtualizationController extends KDController
             modal.destroy()
 
   createPaidVM:->
-    return  if @dialogIsOpen
 
-    # vmController        = KD.getSingleton('vmController')
-    # paymentController   = KD.getSingleton('paymentController')
-
-    # vmController.fetchVMPlans (err, plans) =>
-    #   { descriptions, hostTypes } = vmController.sanitizeVMPlansForInputs plans
-    #   descPartial = ""
-    #   for d in descriptions
-    #     descPartial += """
-    #       <section>
-    #         <p>
-    #           <i>Good for:</i>
-    #           <span>#{d.meta?.goodFor}</span>
-    #           <cite>users</cite>
-    #         </p>
-    #         #{d.description}
-    #       </section>
-    #       """
-
-    #   paymentInput = {}
     productForm = new VmProductForm
 
     paymentController = KD.getSingleton 'paymentController'
@@ -368,7 +347,8 @@ class VirtualizationController extends KDController
     KD.whoami().fetchPlansAndSubscriptions ['vm'], (err, plansAndSubscriptions) =>
       return  if KD.showError err
       
-      { subscriptions } = paymentController.groupPlansBySubscription plansAndSubscriptions
+      { subscriptions } = paymentController
+                            .groupPlansBySubscription plansAndSubscriptions
 
       productForm.setCurrentSubscriptions subscriptions
 
@@ -377,22 +357,22 @@ class VirtualizationController extends KDController
       KD.getGroup().fetchProducts 'pack', options, (err, packs) ->
         return  if KD.showError err
         
-        productForm.setContents packs
+        productForm.setContents 'packs', packs
 
     workflow = new PaymentWorkflow
       productForm : productForm
       confirmForm : new VmPaymentConfirmForm
     
-    modal = new BuyModal
-      title       : "Create a new VM"
-      workflow    : workflow
-
-    workflow.enter()
+    modal = new KDModalView
+      title   : "Create a new VM"
+      view    : workflow
+      height  : "auto"
+      width   : 500
+      overlay : yes
 
     workflow.on 'DataCollected', -> debugger
 
-    @dialogIsOpen = yes
-    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+    workflow.enter()
 
   showPaymentMethodForm: (modal) ->
 
@@ -443,8 +423,6 @@ class VirtualizationController extends KDController
       else
         return callback yes
 
-    return  if @dialogIsOpen
-
     modal = new KDModalView
       title          : "Approval required"
       content        : "<div class='modalformline'>#{content}</div>"
@@ -464,18 +442,10 @@ class VirtualizationController extends KDController
             modal.destroy()
             callback no
 
-    modal.once 'KDModalViewDestroyed', =>
-      @dialogIsOpen = no
-      callback no
-
-    @dialogIsOpen = yes
-
   askToTurnOn:(options, callback)->
 
     [options, callback] = [callback, options]  if typeof options is "function"
     {appName, vmName, state} = options
-
-    return  if @dialogIsOpen
 
     title   = "Your VM is turned off"
     content = """To #{if appName then 'run' else 'do this'} <b>#{appName}</b>
@@ -542,9 +512,6 @@ class VirtualizationController extends KDController
       , yes
 
     modal.once 'KDModalViewDestroyed', -> callback? destroy: yes
-
-    @dialogIsOpen = yes
-    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
   # there may be a better place for these who methods below - SY
 
