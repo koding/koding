@@ -13,19 +13,28 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @createEditorTabs()
     @createEditorInstance()  unless @isJoinedASession
 
-    @workspaceRef.on "value", (snapshot) =>
-      val  = snapshot.val()
-      return unless val
+    @tabsRef.on "child_added", (snapshot) =>
+      data = snapshot.val()
+      return unless data
 
-      if val.ActiveTabIndex?
-        @tabView.showPaneByIndex val.ActiveTabIndex
-        return @workspaceRef.child("ActiveTabIndex").remove()
+      if data.path and @openedFiles.indexOf(data.path) is -1
+        file = FSHelper.createFileFromPath data.path
+        @createEditorInstance file, null, data.sessionKey
 
-      if val.tabs?
-        for own key, data of val.tabs
-          if data.path and @openedFiles.indexOf(data.path) is -1
-            file = FSHelper.createFileFromPath data.path
-            @createEditorInstance file, null, data.sessionKey
+    @tabsRef.on "child_removed", (snapshot) =>
+      return  unless snapshot.val()
+      basePath  = snapshot.val().path
+      filePath  = if @amIHost then basePath else FSHelper.plainPath basePath
+      fileIndex = @openedFiles.indexOf filePath
+      fileTab   = @tabView.getPaneByIndex fileIndex
+
+      return unless fileTab
+      @tabView.removePane fileTab
+      @indexRef.set @tabView.getPaneIndex @tabView.getActivePane()
+
+    @indexRef.on "value", (snapshot) =>
+      return if snapshot.val() is null
+      @tabView.showPaneByIndex snapshot.val()
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
