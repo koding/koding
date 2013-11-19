@@ -21,8 +21,8 @@ class NewKite extends KDObject
     @initBackoff options  if @autoReconnect
 
     @handlers =
-      log   : (options, callback)-> log options.withArgs
-      alert : (options, callback)-> alert options.withArgs
+      log   : (options, cb)-> log options.withArgs
+      alert : (options, cb)-> alert options.withArgs
 
     @proto = proto @handlers
     @proto.on 'request', (req)=>
@@ -48,19 +48,19 @@ class NewKite extends KDObject
     @ws.close()
 
   # Call a method on the connected Kite.
-  tell: (method, args, callback) ->
+  tell: (method, args, cb) ->
     options =
       authentication : @authentication
       withArgs       : args
 
     # Normally the request is made with the following statement:
-    #   @proto.request method, [options, callback]
+    #   @proto.request method, [options, cb]
     # However, we are making a single request/response call and
     # there is no point to hold the callback function because it
     # will never be called again. That's why we are deleting to
     # free the memory with the code below.
 
-    scrub = @proto.scrubber.scrub [options, callback]
+    scrub = @proto.scrubber.scrub [options, cb]
 
     @proto.emit 'request',
         method    : method
@@ -70,7 +70,7 @@ class NewKite extends KDObject
 
     # Remove the handler from proto when callback is called.
     # This is required to prevent unused callbacks to consume memory.
-    if callback
+    if cb
       # id of the last callback function
       id = Number(Object.keys(scrub.callbacks).last)
       # original handler
@@ -125,6 +125,6 @@ class NewKite extends KDObject
       else
         @emit "connectionFailed"
 
-  ready: (callback)->
-    return KD.utils.defer callback  if @readyState
-    @once 'ready', callback
+  ready: (cb)->
+    return KD.utils.defer cb  if @readyState
+    @once 'ready', cb
