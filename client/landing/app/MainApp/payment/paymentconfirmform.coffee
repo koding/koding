@@ -1,17 +1,14 @@
-class PaymentConfirmForm extends KDFormViewWithFields
+class PaymentConfirmForm extends JView
 
   constructor: (options = {}, data) ->
-
-    options.buttons ?= {}
-
-    options.buttons.Buy ?=
-      cssClass  : "modal-clean-green"
-      callback  : => @emit 'PaymentConfirmed'
-
-    options.buttons.cancel ?=
-      cssClass  : "modal-cancel"
-
     super options, data
 
-  setPaymentMethod: (method) ->
-    @details.addSubView new PaymentMethodView {}, method
+    @buttonBar = new KDButtonBar
+      buttons       :
+        Buy         :
+          cssClass  : "modal-clean-green"
+          callback  : => @emit 'PaymentConfirmed'
+        cancel      :
+          title     : "cancel"
+          cssClass  : "modal-cancel"
+          callback  : => @emit 'Cancel'

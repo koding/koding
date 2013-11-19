@@ -36,7 +36,7 @@ class VmPaymentConfirmForm extends PaymentConfirmForm
         <p>This purchase will be charge to this payment method.</p>
         """
 
-    JView::viewAppended.call this
+    super()
 
   activate: (activator) -> @setData activator.getData()
 
@@ -77,4 +77,5 @@ class VmPaymentConfirmForm extends PaymentConfirmForm
     {{> @plan}}
     {{> @subscription}}
     {{> @payment}}
+    {{> @buttonBar}}
     """
