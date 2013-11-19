@@ -1,5 +1,3 @@
-KD.config.allowedApps = ['account', 'topics', 'terminal', 'ace', 'activity']
-
 class ApplicationManager extends KDObject
 
   ###
@@ -10,10 +8,6 @@ class ApplicationManager extends KDObject
   ###
 
   manifestsFetched = no
-
-  @checkAppAvailability = (name='')->
-    return (name.toLowerCase() in KD.config.allowedApps) and\
-           (name not in Object.keys KD.appClasses)
 
   constructor:->
 
@@ -49,6 +43,9 @@ class ApplicationManager extends KDObject
   #     missingRoute = appController.getOption('initialRoute') or route
   #     router.handleRoute missingRoute, { suppressListeners : yes, entryPoint }
 
+  checkAppAvailability : (name='')->
+    return KD.config.apps[name] and (name not in Object.keys KD.appClasses)
+
 
   open: do ->
 
@@ -74,14 +71,6 @@ class ApplicationManager extends KDObject
       appParams            = options.params or {}
       defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
       kodingAppsController = KD.getSingleton("kodingAppsController")
-
-      log 'AppManager: opening an app', name
-      if ApplicationManager.checkAppAvailability name
-        log 'AppManager: couldn\'t find', name
-        return KodingAppsController.putAppScript name, (err)=>
-          log 'AppManager: loaded', name
-          return warn err  if err
-          KD.utils.defer => @open name, options, callback
 
       # If app has a preCondition then first check condition in it
       # if it returns true then continue, otherwise call failure
@@ -214,6 +203,15 @@ class ApplicationManager extends KDObject
         @emit "AppCouldntBeCreated", appInstance
         @utils.defer => @quitByName appOptions.name, yes
         return no
+
+    log 'AppManager: opening an app', name
+    if @checkAppAvailability name
+      log 'AppManager: couldn\'t find', name
+      return KodingAppsController.putAppScript name, (err)=>
+        log 'AppManager: loaded', name
+        return warn err  if err
+        KD.utils.defer => @create name, params, callback
+
 
     @utils.defer =>
       return @emit "AppCouldntBeCreated"  unless appInstance
