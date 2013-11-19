@@ -7,6 +7,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @openedFiles      = []
     @editors          = []
     @activeTabIndex   = 0
+    @tabsRef          = @workspaceRef.child "tabs"
+    @indexRef         = @workspaceRef.child "ActiveTabIndex"
 
     @createEditorTabs()
     @createEditorInstance()  unless @isJoinedASession
@@ -83,8 +85,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       content
     }
 
-    @forwardEvent editor, 'EditorDidSave'
-    @forwardEvent editor, 'OpenedAFile'
+    @forwardEvent editor, "EditorDidSave"
+    @forwardEvent editor, "OpenedAFile"
 
     pane.addSubView editor
     @editors.push editor
@@ -98,7 +100,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       workspaceRefData.path = file.path
       @openedFiles.push file.path
 
-    @workspaceRef.child("tabs").push workspaceRefData  unless sessionKey
+    @tabsRef.push workspaceRefData  unless sessionKey
 
     pane.on "KDTabPaneDestroy", =>
       removedPaneIndex = @tabView.getPaneIndex pane
