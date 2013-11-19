@@ -25,21 +25,8 @@ class AvatarAreaIconMenu extends JView
         title    : 'Messages'
       delegate   : @messagesPopup
 
-    @accountIcon = new KDCustomHTMLView
-      tagName    : "a"
-      cssClass   : 'account acc-dropdown-icon'
-      attributes :
-        title    : 'Account Settings'
-        href     : "#"
-      click      : (event)->
-        KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute '/Account'
-      partial    : "<span class='count'><cite></cite></span><span class='icon'></span>"
-
-
   pistachio:->
     """
-    {{> @accountIcon}}
     {{> @messagesIcon}}
     {{> @notificationsIcon}}
     """
