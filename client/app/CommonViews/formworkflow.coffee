@@ -8,6 +8,8 @@ class FormWorkflow extends KDView
     @forwardEvent @collector, 'DataCollected'
     @providers = {}
 
+  enter: -> @ready => @nextForm()
+
   requireData: (fields) ->
     gate =
       if fields.isGate
@@ -199,9 +201,6 @@ class FormWorkflow extends KDView
     addChild: (child) ->
       @children[child] = child
       return this
-
-    # addNode: (node) ->
-    #   @pending.nodes.push node
 
     removeChild: (child) ->
       delete @children[child]
