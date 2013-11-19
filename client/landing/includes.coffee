@@ -430,7 +430,7 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/vms/vmproductform.coffee",
   "app/Applications/Environments.kdapplication/views/vms/vmpaymentconfirmform.coffee",
   "app/Applications/Environments.kdapplication/views/vms/vmproductview.coffee",
-
+  "app/Applications/Environments.kdapplication/views/vms/vmplanview.coffee",
 
   # "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   # "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
