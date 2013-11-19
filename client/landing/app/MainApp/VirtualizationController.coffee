@@ -375,22 +375,6 @@ class VirtualizationController extends KDController
 
     workflow.enter()
 
-  showPaymentMethodForm: (modal) ->
-
-    paymentForm1 = modal.modalTabs.forms['Payment method']
-    paymentForm2 = modal.modalTabs.forms['Payment method 2']
-
-    unless modal.paymentForm
-      modal.paymentForm = new PaymentForm
-
-      paymentController = KD.getSingleton 'paymentController'
-      paymentController.observePaymentSave modal.paymentForm, (err, paymentMethod) ->
-        paymentForm1.addCustomData paymentMethodId: paymentMethod.paymentMethodId
-
-      paymentForm2.addSubView modal.paymentForm
-
-    modal.modalTabs.showNextPane()
-
   askForApprove:(command, callback)->
 
     switch command
