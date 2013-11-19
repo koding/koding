@@ -5,42 +5,38 @@ class VmProductForm extends FormWorkflow
 
   checkUsageLimits: (pack, callback) ->
     { subscription } = @collector.data
+    return callback { message: 'no subscription' }  unless subscription?
     subscription.checkUsage pack, (err, usage) =>
+      @collectData oldSubscription: subscription
       @clearData 'subscription'  if err
 
       callback err, usage
-
 
   createPackChoiceForm: -> new PackChoiceForm
     title     : 'Choose your VM'
     itemClass : VmProductView
 
-  setState: (state) ->
-    @showForm state
-
   setCurrentSubscriptions: (subscriptions) ->
     @currentSubscriptions = subscriptions
     switch subscriptions.length
       when 0
-        @setState 'upgrade'
+        @showForm 'upgrade'
       when 1
         [subscription] = subscriptions
         @collectData { subscription }
         @emit 'PackOfferingRequested', subscription
       else
-        @setState 'choice'
+        @showForm 'choice'
 
   setContents: (packs) ->
-    @setState 'pack choice'
+    @showForm 'pack choice'
     (@getForm 'pack choice').setContents packs
-
-  viewAppended: -> @prepareProductForm()
 
   createChoiceForm: -> new KDView partial: 'this is a plan choice form'
 
-  prepareProductForm: ->
+  prepareWorkflow: ->
     @requireData [
-      
+
       @any('subscription', 'plan')
 
       'pack'
