@@ -9,12 +9,11 @@ import (
 
 func Join(local, remote net.Conn) {
 	var wg sync.WaitGroup
+	defer local.Close()
+	defer remote.Close()
 
 	pipe := func(to, from net.Conn) {
-		defer local.Close()
-		defer remote.Close()
 		defer wg.Done()
-
 		_, err := io.Copy(to, from)
 		log.Printf("copying from %s to %s, err: %s\n", from.RemoteAddr().String(), to.RemoteAddr().String(), err)
 	}
