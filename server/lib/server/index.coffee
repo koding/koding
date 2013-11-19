@@ -72,7 +72,8 @@ app.configure ->
   app.use express.session {"secret":"foo"}
   app.use express.bodyParser()
   app.use express.compress()
-  app.use express.static "#{projectRoot}/website/"
+  # 86400000 == one day
+  app.use express.static( "#{projectRoot}/website/", { maxAge: 86400000 })
 
 # disable express default header
 app.disable 'x-powered-by'
@@ -280,8 +281,17 @@ app.get "/-/oauth/google/callback"    , require "./google_callback"
 app.get "/-/oauth/linkedin/callback"  , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"   , require "./twitter_callback"
 
-app.all '/:name/:section?*', (req, res, next)->
+app.get "/Landing/:page", (req, res, next) ->
+  {page}      = req.params
+  bongoModels = koding.models
+  {JGroup}    = bongoModels
 
+  generateFakeClient req, res, (err, client) ->
+    isLoggedIn req, res, (err, loggedIn, account) ->
+      JGroup.render.landing {account, page, client, bongoModels}, (err, body) ->
+        serve body, res
+
+app.all '/:name/:section?*', (req, res, next)->
   {JName, JGroup} = koding.models
   {name, section} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
@@ -326,8 +336,12 @@ app.all '/:name/:section?*', (req, res, next)->
         else next()
 
 app.get "/", (req, res, next)->
+  staticHome = require "../crawler/staticpages/kodinghome"
 
-  if slug = req.query._escaped_fragment_
+  if req.query._escaped_fragment_?
+    slug = req.query._escaped_fragment_
+    return res.send 200, staticHome() if slug is ""
+
     return Crawler.crawl koding, req, res, slug
   else
     serveSub = (err, subPage)->

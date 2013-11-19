@@ -12,16 +12,15 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
 
-    mainController.on 'accountChanged.to.loggedIn', (account)=>
+    mainController.on 'accountChanged.to.loggedIn', (account)->
       mainController.loginScreen.hide()
 
-    mainController.on "ShowInstructionsBook", (index)=>
+    mainController.on "ShowInstructionsBook", (index)->
       book = mainView.addBook()
       book.fillPage index
       book.checkBoundaries()
 
-    mainController.on "ToggleChatPanel", =>
-      mainView.chatPanel.toggle()
+    mainController.on "ToggleChatPanel", -> mainView.chatPanel.toggle()
 
     if KD.checkFlag 'super-admin'
     then $('body').addClass 'super'
@@ -42,7 +41,11 @@ class MainViewController extends KDViewController
         ratio = (scrollTop + window.innerHeight) / scrollHeight
 
         if dynamicThreshold < ratio > lastRatio
-          mainViewController.emit 'LazyLoadThresholdReached', {ratio}
+          # mainViewController.emit 'LazyLoadThresholdReached', {ratio}
+          app = appManager.getFrontApp()
+          if app.feedController
+            log 'fix: fake loading feed for', app.getOption('name'), ratio, lastRatio
+            # app.feedController.loadFeed()
 
         lastRatio = ratio
 

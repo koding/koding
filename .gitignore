@@ -47,18 +47,22 @@ website/js/testapp.js
 website/css/testapp.css
 website/css/koding.*.css
 website/css/introapp.*.css
+website/css/landingapp.*.css
 website/js/bongo.*.js
 website/js/koding.*.js
 website/js/introapp.*.js
+website/js/landingapp.*.js
 website/default.html
 website/index.html
 kontrolUUID-*
 
-/website/sprites/app.json
-/website/sprites/app-*.png
-/website/sprites/framework.json
-/website/sprites/framework-*.png
+website/sprites/app.json
+website/sprites/app-*.png
+website/sprites/framework.json
+website/sprites/framework-*.png
 
-website/css/app.*.css
 website/js/app.*.js
+website/js/social.*.js
 website/js/client.*.js
+website/css/app.*.css
+website/css/social.*.css
