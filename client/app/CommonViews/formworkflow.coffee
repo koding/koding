@@ -87,12 +87,16 @@ class FormWorkflow extends KDView
   showForm: (form) ->
     @hideForms()
     form = @getForm form
-    form.activate?()
+    form.activate? this
     form.show()
     return this
 
   all: (fields...) -> new All fields
   any: (fields...) -> new Any fields
+
+  viewAppended:->
+    @prepareWorkflow?()
+    @emit 'ready'
 
   @Collector = class Collector extends KDEventEmitter
 

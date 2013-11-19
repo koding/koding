@@ -73,20 +73,12 @@ class PaymentWorkflow extends FormWorkflow
 
     paymentController = KD.getSingleton 'paymentController'
 
-    paymentController.observePaymentSave form, (err, method) =>
+    paymentController.observePaymentSave form, (err, paymentMethod) =>
       return if KD.showError err
 
-      @selectPaymentMethod method
+      @collectData { paymentMethod }
 
     return form
-
-  setState: (state) ->
-    @showForm state
-    # if state is 'confirm'
-    #   confirmData = @utils.extend {}, @aggregatedData
-    #   (@getForm 'confirm').setData confirmData
-
-  viewAppended:-> @prepareWorkflow()
 
   prepareWorkflow: ->
 
@@ -124,7 +116,5 @@ class PaymentWorkflow extends FormWorkflow
 
     confirmForm.on 'PaymentConfirmed', =>
       @collectData { userConfirmation: yes }
-
-    @nextForm()
 
     return this
