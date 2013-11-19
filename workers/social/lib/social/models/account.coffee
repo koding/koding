@@ -1273,7 +1273,12 @@ module.exports = class JAccount extends jraphical.Module
 
     return callback { message: 'Access denied!' }  unless @equals delegate
     
-    options = targetOptions: selector: tags: $in: tags
+    [callback, tags] = [tags, callback]  unless callback
+    
+    options =
+      if tags?
+      then targetOptions: selector: tags: $in: tags
+      else {}
 
     @fetchSubscriptions {}, options, (err, subscriptions) ->
       return callback err  if err
