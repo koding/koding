@@ -121,7 +121,7 @@ func (vm *VM) ApplyDefaults() {
 func (vm *VM) Prepare(reinitialize bool, logWarning func(string, ...interface{})) {
 	vm.Unprepare()
 
-	var err error
+	//var err error
 	//vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
 	//if err != nil {
 	//	vm.VMRoot = "/var/lib/lxc/vmroot/"
