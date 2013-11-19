@@ -78,7 +78,7 @@ module.exports = class Activity extends Graph
     queryOptions =
       groupId : groupId
       to  : startDate
-      limitCount : 20
+      limitCount : 50
 
     facetQuery = groupFilter = ""
 

@@ -70,7 +70,7 @@ module.exports =
           WHERE r.createdAtEpoch < {to}
           RETURN members
           ORDER BY r.createdAtEpoch DESC
-          LIMIT 20
+          LIMIT 50
         """
       newInstallations :
         """
@@ -80,7 +80,7 @@ module.exports =
           AND r.createdAtEpoch < {to}
           RETURN users, apps, r
           ORDER BY r.createdAtEpoch DESC
-          LIMIT 20
+          LIMIT 50
         """
       newUserFollows :
         """
@@ -90,7 +90,7 @@ module.exports =
           AND r.createdAtEpoch < {to}
           RETURN r,followees, follower
           ORDER BY r.createdAtEpoch DESC
-          LIMIT 20
+          LIMIT 50
         """
       newTagFollows :
         """
@@ -101,7 +101,7 @@ module.exports =
             AND r.createdAtEpoch < {to}
           RETURN r,followees, follower
           ORDER BY r.createdAtEpoch DESC
-          LIMIT 20
+          LIMIT 50
         """
     activity    :
       public :(facetQuery="",groupFilter="", exemptClause="")->
