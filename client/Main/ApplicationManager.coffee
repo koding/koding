@@ -92,6 +92,12 @@ class ApplicationManager extends KDObject
       # that's why it should be run via kodingAppsController
 
       if not appOptions? and not options.avoidRecursion?
+
+        if @checkAppAvailability name
+          return KodingAppsController.putAppScript name, (err)=>
+            return warn err  if err
+            KD.utils.defer => @open name, options, callback
+
         return @fetchManifests name, (err)=>
           options.avoidRecursion = yes
           unless err
