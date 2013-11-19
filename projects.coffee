@@ -56,6 +56,12 @@ projects      =
     script        : "website/js/app.topics.#{KODING_VERSION}.js"
     sourceMapRoot : "Topics/"
 
+  Feeder          :
+    files         : "client/Social/Feeder/includes.coffee"
+    style         : "website/css/app.feeder.#{KODING_VERSION}.css"
+    script        : "website/js/app.feeder.#{KODING_VERSION}.js"
+    sourceMapRoot : "Feeder/"
+
   # Groups          :
   #   files         : "client/Groups/includes.coffee"
   #   style         : "website/css/app.groups.#{KODING_VERSION}.css"
@@ -86,10 +92,10 @@ projects      =
 
 bundles       =
 
-  # Social      :
-  #   projects  : ['Activity', 'Members', 'Topics', 'Groups', 'Apps']
-  #   style     : "website/css/social.#{KODING_VERSION}.css"
-  #   script    : "website/js/social.#{KODING_VERSION}.js"
+  Social      :
+    projects  : ['Activity', 'Topics', 'Feeder']
+    style     : "website/css/social.#{KODING_VERSION}.css"
+    script    : "website/js/social.#{KODING_VERSION}.js"
 
   Koding      :
     projects  : ['KDBackend', 'KDMainApp', 'PostOperations']

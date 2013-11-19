@@ -1,7 +1,6 @@
 "Applications/Members.kdapplication/AppController.coffee",
 "Applications/Activity.kdapplication/AppController.coffee",
 "Applications/Topics.kdapplication/AppController.coffee",
-"Applications/Feeder.kdapplication/AppController.coffee",
 "Applications/Environments.kdapplication/AppController.coffee",
 "Applications/Apps.kdapplication/AppController.coffee",
 "Applications/Inbox.kdapplication/AppController.coffee",
@@ -182,19 +181,6 @@
 "Applications/Inbox.kdapplication/Views/InboxMessageDetail.coffee",
 "Applications/Inbox.kdapplication/Views/InboxReplyForm.coffee",
 "Applications/Inbox.kdapplication/Views/InboxReplyView.coffee",
-
-# FEED CONTROLLERS
-"Applications/Feeder.kdapplication/FeedController.coffee",
-"Applications/Feeder.kdapplication/Controllers/FeederFacetsController.coffee",
-"Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee",
-"Applications/Feeder.kdapplication/Controllers/feederheaderfacetscontroller.coffee",
-"Applications/Feeder.kdapplication/Controllers/headernavigationcontroller.coffee",
-
-# FEED VIEWS
-"Applications/Feeder.kdapplication/Views/FeederSplitView.coffee",
-"Applications/Feeder.kdapplication/Views/feedersingleview.coffee",
-"Applications/Feeder.kdapplication/Views/FeederTabView.coffee",
-"Applications/Feeder.kdapplication/Views/feederonboardingview.coffee",
 
 # DEMO VIEWS
 "Applications/Demos.kdapplication/AppView.coffee",
