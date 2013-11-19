@@ -139,7 +139,6 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedTagsFromGraph'
         'fetchRelatedUsersFromGraph'
         'fetchDomains'
-        'fetchDomains'
         'unlinkOauth'
         'changeUsername'
         'markUserAsExempt'
@@ -663,7 +662,8 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
-                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin" ]
+                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
+                  "samet" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
