@@ -12,7 +12,7 @@ class CollaborativeEditorPane extends CollaborativePane
       @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
       @firepad.on "ready", =>
-        @firepad.setText " " # fix for a firepad bug
+        @firepad.setText " " if @firepad.isHistoryEmpty() # fix for a firepad bug
         @codeMirrorEditor.scrollTo 0, 0
         {file, content} = @getOptions()
         return @openFile file, content  if file
