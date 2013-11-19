@@ -27,9 +27,9 @@ class DomainBuyForm extends CommonDomainCreateForm
         title       : "Register <em>#{ domain }</em>"
         workflow    : workflow
 
+      workflow.enter()
+
       workflow.on 'DataCollected', -> debugger 
-#      ({ productData, paymentMethodId }) =>
-#        @buyDomain { domain, year, price, paymentMethodId, productData }
 
   buyDomain: (options) ->
     { JDomain } = KD.remote.api
