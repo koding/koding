@@ -98,7 +98,7 @@ class TopicsAppController extends AppController
       @emit 'ready'
 
       KD.mixpanel "Loaded topic list"
-      log "loaded"
+
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
     if firstRun
