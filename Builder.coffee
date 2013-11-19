@@ -292,6 +292,11 @@ module.exports = class Builder
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
 
+            # EXCEPTION FOR POSTOPERATIONS
+            if /^client\/PostOperations/.test file.sourcePath
+              js += "KD.config.apps=#{@getProjects()}\n"
+            # END OF EXCEPTION
+
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
             spawn.apply null, ["say", ["coffeescript error"]]
@@ -439,3 +444,31 @@ module.exports = class Builder
     process.stdout.write "#{filepath}\n - Includes #{project.files[ptype].length} #{ptype}, filesize is #{formatByte size} #{oldSize} \n"
     @fileSizes[filepath] = size
 
+  getProjects:->
+
+    rp = (address)=>
+      address?.replace /^website/, @config.uri.address
+
+    apps = {}
+    {projects, bundles} = require './projects'
+
+    # Build the apps dictionary
+    for own title, project of projects
+      apps[title] =
+        style      : rp project.style
+        script     : rp project.script
+        identifier : "app.#{title.toLowerCase()}"
+
+    # Override the information based on bundles
+    for own title, bundle of bundles
+      for project in bundle.projects
+        apps[project] =
+          style      : rp bundle.style
+          script     : rp bundle.script
+          identifier : "app.#{title.toLowerCase()}"
+
+    # Remove internals
+    for internal in ['PostOperations', 'KDBackend', 'KDFramework', 'KDMainApp']
+      delete apps[internal]
+
+    return JSON.stringify apps
