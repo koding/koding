@@ -37,6 +37,13 @@ projects      =
     files     : "client/Intro/includes.coffee"
     style     : "website/css/introapp.#{KODING_VERSION}.css"
     script    : "website/js/introapp.#{KODING_VERSION}.js"
+    sourceMapRoot : "introapp/"
+
+  Landing     :
+    files     : "client/landing/includes.coffee"
+    style     : "website/css/landingapp.#{KODING_VERSION}.css"
+    script    : "website/js/landingapp.#{KODING_VERSION}.js"
+    sourceMapRoot : "landing/"
 
   Activity        :
     files         : "client/Social/Activity/includes.coffee"

@@ -278,7 +278,12 @@ class KodingRouter extends KDRouter
 
       '/'                      : handleRoot
       ''                       : handleRoot
+      # '/Home'                : handleRoot
       '/About'                 : createSectionHandler 'Activity'
+
+      '/Landing/:page'         : noop
+      '/R/:username'           : noop
+
       # verbs
       '/:name?/Login'          : ({params:{name}})-> requireLogout -> animateToForm 'login'
       '/:name?/Logout'         : ({params:{name}})-> requireLogin  -> mainController.doLogout()
@@ -286,6 +291,7 @@ class KodingRouter extends KDRouter
       '/:name?/Register'       : ({params:{name}})-> requireLogout -> animateToForm 'register'
       '/:name?/Recover'        : ({params:{name}})-> requireLogout -> animateToForm 'recover'
       '/:name?/ResendToken'    : ({params:{name}})-> requireLogout -> animateToForm 'resendEmail'
+
       # content
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
       '/:name?/Activity/:slug' : createContentHandler 'Activity'

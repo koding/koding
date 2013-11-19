@@ -22,7 +22,7 @@ type VM struct {
 	IP            net.IP        `bson:"ip"`
 	Region        string        `bson:"region"`
 	HostKite      string        `bson:"hostKite"`
-	VMRoot        string        `bson:"-"`
+	VMRoot        string        `bson:"vmRoot"`
 }
 
 type Permissions struct {
