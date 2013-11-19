@@ -61,3 +61,4 @@ kontrolUUID-*
 
 website/css/app.*.css
 website/js/app.*.js
+website/js/client.*.js

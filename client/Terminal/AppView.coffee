@@ -1,3 +1,51 @@
+# FIXME - Move this in a seperate file ~ GG
+
+class VmListItem extends KDListItemView
+
+  click: ->
+    @getDelegate().emit 'VMSelected', @getData()
+
+  viewAppended: ->
+    JView::viewAppended.call this
+
+  pistachio: ->
+    """
+      <div class="vm-info">
+        <cite></cite>
+        #{@getData()}
+      </div>
+    """
+
+class VMSelection extends KDBlockingModalView
+
+  constructor:(options={}, data)->
+
+    super
+      width           : 300
+      title           : "Select VM"
+      overlay         : yes
+      cssClass        : KD.utils.curry 'vm-selection', options.cssClass
+      draggable       : no
+      cancellable     : no
+      appendToDomBody : yes
+    , data
+
+    @listController   = new KDListViewController
+      view            : new KDListView
+        type          : "vm"
+        cssClass      : "vm-list"
+        itemClass     : VmListItem
+
+  viewAppended:->
+    @unsetClass 'kdmodal'
+    @addSubView view = @listController.getView()
+
+    @listController.getListView().on 'VMSelected', (vm)=>
+      @emit "VMSelected", vm
+      @destroy()
+
+    @listController.instantiateListItems KD.getSingleton('vmController').vms
+
 class WebTermView extends KDView
 
   constructor: (options = {}, data) ->
@@ -6,8 +54,9 @@ class WebTermView extends KDView
     @initBackoff()
 
   viewAppended: ->
+
     @container = new KDView
-      cssClass : "console ubuntu-mono black-on-white"
+      cssClass : "console ubuntu-mono green-on-black"
       bind     : "scroll"
     @container.on "scroll", =>
       @container.$().scrollLeft 0
@@ -63,7 +112,21 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
-    @appStorage = new AppStorage 'WebTerm', '1.0'
+    @utils.defer =>
+
+      vmc = KD.getSingleton 'vmController'
+      if vmc.vms.length > 1
+        vmselection = new VMSelection
+        vmselection.once 'VMSelected', (vm)=>
+          @_vmName = vm
+          do @connectToTerminal
+      else
+        @_vmName = vmc.vms.first
+        do @connectToTerminal
+
+  connectToTerminal:->
+
+    @appStorage = KD.getSingleton('appStorageController').storage 'WebTerm', '1.0'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
       @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
@@ -77,7 +140,7 @@ class WebTermView extends KDView
 
       KD.getSingleton("vmController").run
         method        : "webterm.connect",
-        vmName        : delegateOptions.vmName
+        vmName        : @_vmName or delegateOptions.vmName
         withArgs      :
           remote      : @terminal.clientInterface
           sizeX       : @terminal.sizeX
@@ -104,7 +167,7 @@ class WebTermView extends KDView
       {code, serviceGenericName} = err
 
       if code is 503 and serviceGenericName.indexOf("kite-os") is 0
-        @reconnectAttemptFailed serviceGenericName, @getDelegate().getOption "vmName"
+        @reconnectAttemptFailed serviceGenericName, @_vmName or @getDelegate().getOption "vmName"
 
     kiteController = KD.getSingleton "kiteController"
     kiteController.on "KiteError", kiteErrorCallback
@@ -137,7 +200,7 @@ class WebTermView extends KDView
     vmController = KD.getSingleton "vmController"
     hasResponse  = no
 
-    vmController.info @getDelegate().getOption("vmName"), (err, res) =>
+    vmController.info @_vmName or @getDelegate().getOption("vmName"), (err, res) =>
       hasResponse = yes
       @handleReconnect()
       @clearConnectionAttempts()
