@@ -148,19 +148,3 @@ func (t *Tunnels) addTunnel(url string, tunnel *Tunnel) {
 
 	t.tunnels[url] = tunnel
 }
-
-func copyHeader(dst, src http.Header) {
-	for k, vv := range src {
-		for _, v := range vv {
-			dst.Add(k, v)
-		}
-	}
-}
-
-func isWebsocket(req *http.Request) bool {
-	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
-		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
-		return false
-	}
-	return true
-}

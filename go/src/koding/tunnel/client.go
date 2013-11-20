@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"time"
 )
@@ -37,20 +36,6 @@ func NewClient(serverAddr, localAddr string) *Client {
 		remoteConn.RemoteAddr(), localConn.RemoteAddr())
 
 	return tunnel
-}
-
-func dialTCP(addr string) *net.TCPConn {
-	serverTcpAddr, err := net.ResolveTCPAddr("tcp4", addr)
-	if err != nil {
-		log.Fatalf("server addr %s\n", err)
-	}
-
-	conn, err := net.DialTCP("tcp", nil, serverTcpAddr)
-	if err != nil {
-		log.Fatalf("remote %s\n", err)
-	}
-
-	return conn
 }
 
 // Proxy is like Start() but it joins (proxies) the remote tcp connection with
