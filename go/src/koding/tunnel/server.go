@@ -23,6 +23,7 @@ func NewServer() *Server {
 	return s
 }
 
+// registerHandler is used to register tunnel clients.
 func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("register Handler invoked", r.URL.String())
 	if r.Method != "CONNECT" {
@@ -39,11 +40,51 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
+	conn.SetDeadline(time.Time{})
 	s.tunnels.addTunnel("127.0.0.1:7000", NewTunnel(conn))
 }
 
-func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("tunnel Handler invoked", r.URL.String())
+// WebsocketTunnelHandler is a tunnel that creates a websocket tunnel
+func (s *Server) WebsocketTunnelHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("websocket tunnel jandler invoked", r.URL.String())
+	if !isWebsocket(r) {
+		http.Error(w, "405 must websocket upgrade", 404)
+		return
+	}
+
+	host := strings.ToLower(r.Host)
+	tunnel, ok := s.tunnels.getTunnel(host)
+	if !ok {
+		err := fmt.Sprintf("no such tunnel: %s", host)
+		http.Error(w, err, 404)
+		return
+	}
+
+	// write back initial public request of client to the tunnelClient
+	err := tunnel.clientConn.Write(r)
+	if err != nil {
+		log.Println("write clientConn ", err)
+		return
+	}
+
+	clientConn, _ := tunnel.clientConn.Hijack()
+
+	// hijack detaches the conn from clientConn, attach it again to our client
+	s.tunnels.addTunnel(host, NewTunnel(clientConn))
+
+	publicConn, _, err := w.(http.Hijacker).Hijack()
+	if err != nil {
+		log.Println("rpc hijacking ", err)
+		return
+	}
+	defer publicConn.Close()
+
+	join(clientConn, publicConn)
+}
+
+// HTTPTunnelHAndler is a tunnel that creates an http tunnel.
+func (s *Server) HTTPTunnelHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("http tunnel handler invoked", r.URL.String())
 	host := strings.ToLower(r.Host)
 
 	s.Lock()
@@ -116,44 +157,10 @@ func copyHeader(dst, src http.Header) {
 	}
 }
 
-// IMPORTANT: left for future reference, this is doing bare tcp connection, need some work
-// func (s *Server) proxyHandler(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Println("proxy Handler invoked", r.URL.String())
-// 	host := strings.ToLower(r.Host)
-// 	tunnel, ok := s.tunnels.getTunnel(host)
-// 	if !ok {
-// 		err := fmt.Sprintf("no such tunnel: %s", host)
-// 		http.Error(w, err, 404)
-// 		return
-// 	}
-
-// 	// write back initial public request of client to the tunnelClient
-// 	err := r.Write(tunnel.conn)
-// 	if err != nil {
-// 		fmt.Printf("error copying request to target: %v", err)
-// 		http.NotFound(w, r)
-// 		return
-// 	}
-
-// 	publicConn, _, err := w.(http.Hijacker).Hijack()
-// 	if err != nil {
-// 		log.Println("rpc hijacking ", r.RemoteAddr, ": ", err.Error())
-// 		return
-// 	}
-
-// 	errc := make(chan error, 2)
-// 	cp := func(dst io.Writer, src io.Reader) {
-// 		count++
-// 		_, err := io.Copy(dst, src)
-// 		fmt.Println("err copy", count, err)
-// 		errc <- err
-// 	}
-
-// 	tunnel.conn.SetDeadline(time.Time{})
-
-// 	go cp(publicConn, tunnel.conn)
-// 	go cp(tunnel.conn, publicConn)
-// 	<-errc
-
-// 	join.Join(publicConn, tunnel.conn)
-// }
+func isWebsocket(req *http.Request) bool {
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
+		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
+		return false
+	}
+	return true
+}

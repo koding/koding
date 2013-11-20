@@ -42,40 +42,40 @@ func NewClient(serverAddr, localAddr string) *Client {
 
 // Start starts the tunnel between the remote and local server. It's a
 // blocking function. Every requst is handled in a separete goroutine.
-func (t *Client) Start() {
+func (c *Client) Start() {
 	for {
-		req, err := t.remoteConn.Read()
+		req, err := c.remoteConn.Read()
 		if err != nil {
 			fmt.Println("Server read", err)
 			return
 		}
 
-		go t.handleReq(req)
+		go c.handleReq(req)
 	}
 }
 
 // Proxy is like Start() but it joins (proxies) the remote tcp connection with
 // the local one, that means all de handling is done via those two connection.
-func (t *Client) Proxy() {
-	remote, _ := t.remoteConn.Hijack()
-	local, _ := t.localConn.Hijack()
+func (c *Client) Proxy() {
+	remote, _ := c.remoteConn.Hijack()
+	local, _ := c.localConn.Hijack()
 
 	join(local, remote)
 }
 
-func (t *Client) handleReq(req *http.Request) {
-	resp, err := t.localConn.Do(req)
+func (c *Client) handleReq(req *http.Request) {
+	resp, err := c.localConn.Do(req)
 	if err != nil {
 		fmt.Println("could not do request")
 	}
 
-	t.remoteConn.Write(req, resp)
+	c.remoteConn.Write(req, resp)
 }
 
 // Register registered the tunnel client to the TunnelServer via an CONNECT request.
 // It returns an error if the connect request is not successful.
-func (t *Client) Register() error {
-	conn, buffer := t.remoteConn.Hijack()
+func (c *Client) Register() error {
+	conn, buffer := c.remoteConn.Hijack()
 
 	remoteAddr := fmt.Sprintf("http://%s%s", conn.RemoteAddr(), RegisterPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
@@ -98,6 +98,6 @@ func (t *Client) Register() error {
 
 	// hijack detaches the server, after doing raw tcp communication
 	// attach it again to our client
-	t.remoteConn = httputil.NewServerConn(conn, nil)
+	c.remoteConn = httputil.NewServerConn(conn, nil)
 	return nil
 }
