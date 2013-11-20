@@ -37,7 +37,7 @@ body
 
 #dock
   size              auto, auto
-  margin-right      380px
+  fl()
 
 
 #main-panel-wrapper
@@ -66,7 +66,7 @@ body
     cite
       hidden()
     .icon
-      margin        14px 15px 15px 14px
+      margin        14px 17px 15px 12px
       display       block
     &.selected
       bg            color, #EEEEEF
@@ -87,76 +87,123 @@ body
       sprite      app nav-apps
 
 .account-area
-  abs()
-  size              321px 100%
-  top               0
-  right             0
+  vendor            transform-style, preserve-3d
+  vendor            perspective, 300px
+  vendor            transition, margin-right .5s ease
+  fr()
   > div
     display         inline-block
     width           auto
     vertical-align  top
 
-.acc-dropdown-icon
-  size            45px, 61px
-  display         inline-block
-  .count
-    cite
-      display     none
-  .icon
-    margin        20px 12px 21px 13px
-    size          20px, 20px
-    display       block
-  &.account .icon
-    sprite        app account-cog
-  &.notifications .icon
-    sprite        app account-notifications
-  &.messages .icon
-    sprite        app account-messages
-  &.search .icon
-    sprite        app account-search
-  &.groups
-    abs()
-    top           20px
-    right         10px
-    size          20px, 20px
+  .acc-dropdown-icon
+    size            45px, 61px
+    display         inline-block
+    .count
+      cite
+        display     none
     .icon
-      margin      0
-      sprite      app '20-chevron-gray'
+      margin        20px 12px 21px 13px
+      size          20px, 20px
+      display       block
+    &.account .icon
+      sprite        app account-cog
+    &.notifications .icon
+      sprite        app account-notifications
+    &.messages .icon
+      sprite        app account-messages
+    &.search .icon
+      sprite        app account-search
+    &.groups
+      abs()
+      top           20px
+      right         10px
+      size          20px, 20px
+      .icon
+        margin      0
+        sprite      app '20-chevron-gray'
 
-.avatar-area
-  bg                color, #445053
-  padding           10px 12px
-  height            61px
-  min-width         180px
-  borderBox()
-  rel()
-  .avatarview
-    margin-right    10px
-    fl()
-  section
-    width           auto
-    display         block
-    overflow        hidden
-    h2, h3
-      margin        0
-      line-height   20px
-    h2
-      font-size     13px
-      font-weight   400
-      a
-        color       rgba(255, 255, 255, .8)
-        noTextDeco()
-    h3
-      color         rgba(255, 255, 255, .5)
-      font-size     12px
-      font-weight   300
+  .search-form-container
+    bg                 color, #445053
+    size               400px, 61px
+    opacity            0
+    vendor             transform, rotateY(90deg)
+    vendor             transform-origin-x, 0
+    vendor             backface-visibility, hidden
+    -webkit-transition -webkit-transform .5s ease \,\
+                       opacity .5s ease
+    top                0
+    left               100%
+    abs()
+    borderBox()
 
+    .kdinput
+      size             100%, 61px
+      border           none
+      shadow           none
+      text-indent      14px
+      bg               color, transparent
+      color            #9caeb3
+      font-size        16px
 
+      &:hover
+        border         none
 
+      &:focus
+        shadow         none
+        border         none
 
+  .account-menu
+    vendor             transform-origin-x, 274px
+    vendor             backface-visibility, hidden
+    -webkit-transition -webkit-transform .5s ease \,\
+                       opacity .5s ease
 
+  .avatar-area
+    bg                 color, #445053
+    padding            10px 12px
+    height             61px
+    min-width          180px
+    opacity            1
+    vendor             transform-origin-x, 100%
+    vendor             backface-visibility, hidden
+    -webkit-transition -webkit-transform .5s ease \,\
+                       opacity .5s ease
+    borderBox()
+    rel()
 
+    .avatarview
+      margin-right    10px
+      fl()
+    section
+      width           auto
+      display         block
+      overflow        hidden
+      h2, h3
+        margin        0
+        line-height   20px
+      h2
+        font-size     13px
+        font-weight   400
+        a
+          color       rgba(255, 255, 255, .8)
+          noTextDeco()
+      h3
+        color         rgba(255, 255, 255, .5)
+        font-size     12px
+        font-weight   300
 
+  &.search-open
+    margin-right      400px
+
+    .account-menu
+    .avatar-area
+      vendor          transform, rotateY(-90deg)
+      opacity         0
+
+    .search-form-container
+      vendor          transform, rotateY(0deg)
+      opacity         1
 
 
 #kdmaincontainer.logout-tv

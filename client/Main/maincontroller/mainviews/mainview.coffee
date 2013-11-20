@@ -110,6 +110,7 @@ class MainView extends KDView
     @header.addSubView @accountArea = new KDCustomHTMLView cssClass : 'account-area'
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
     @accountArea.addSubView @avatarArea = new AvatarArea {}, KD.whoami()
+
     @accountArea.addSubView @searchIcon = new KDCustomHTMLView
       domId      : 'fatih-launcher'
       cssClass   : 'search acc-dropdown-icon'
@@ -117,11 +118,24 @@ class MainView extends KDView
       attributes :
         title    : 'Search'
         href     : '#'
-      click      : (event)->
+      click      : (event)=>
         KD.utils.stopDOMEvent event
-        log 'run fatih'
+        # log 'run fatih'
+
+        @accountArea.setClass "search-open"
+        @searchInput.setFocus()
+
+        KD.getSingleton("windowController").addLayer @searchInput
+
+        @searchInput.once "ReceivedClickElsewhere", =>
+          @accountArea.unsetClass "search-open"
+
       partial    : "<span class='icon'></span>"
 
+    @accountArea.addSubView @searchForm = new KDCustomHTMLView
+      cssClass   : "search-form-container"
+    @searchForm.addSubView @searchInput = new KDInputView
+      placeholder: "Search here..."
 
   createMainTabView:->
 
