@@ -91,6 +91,9 @@ func (p *Producer) Publish(publishing amqp.Publishing) error {
 	return err
 }
 
+// NotifyReturn captures a messge when a Publishing is unable to be
+// delivered either due to the `mandatory` flag set
+// and no route found, or `immediate` flag set and no free consumer.
 func (p *Producer) NotifyReturn(notifier func(message amqp.Return)) {
 	go func() {
 		for res := range p.channel.NotifyReturn(make(chan amqp.Return)) {
