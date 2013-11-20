@@ -3,13 +3,17 @@ package rabbitmq
 import (
 	"errors"
 	"fmt"
+	logging "github.com/op/go-logging"
 	"github.com/streadway/amqp"
 	"koding/tools/config"
+	stdlog "log"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 )
+
+var log = logging.MustGetLogger("RabbitMQ")
 
 // Durable    :
 // 		Durable exchanges will survive server restarts and
@@ -106,17 +110,26 @@ func (r *RabbitMQ) QOS(messageCount int) error {
 	return r.channel.Qos(messageCount, 0, false)
 }
 
+func configureLogger(tag string) {
+	log.Module = tag
+	logging.SetFormatter(logging.MustStringFormatter("%{level:-8s} ▶ %{message}"))
+	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
+	stderrBackend.Color = true
+	logging.SetBackend(stderrBackend)
+}
+
 // Opens a connection and a channel to RabbitMq
 // In order to prevent developers from misconfiguration
 // And using same channel for publishing and consuming
 func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
-
 	if tag == "" {
 		return nil, errors.New("Tag is not defined in consumer options")
 	}
 
-	rmq := &RabbitMQ{}
+	// set logger with our tag
+	configureLogger(tag)
 
+	rmq := &RabbitMQ{}
 	rmq.tag = tag
 
 	var err error
@@ -156,7 +169,7 @@ func handleErrors(conn *amqp.Connection) {
 			// if the computer sleeps then wakes longer than a heartbeat interval,
 			// the connection will be closed by the client.
 			// https://github.com/streadway/amqp/issues/82
-			fmt.Println(amqpErr)
+			log.Fatal(amqpErr)
 
 			if strings.Contains(amqpErr.Error(), "NOT_FOUND") {
 				// do not continue
