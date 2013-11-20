@@ -89,15 +89,19 @@ class PaymentWorkflow extends FormWorkflow
       
       'userConfirmation'
     ]
-    # "product form" can be used for collecting some product-related data
+    # - "product form" can be used for collecting some product-related data
     # before the payment method collection/selection process begins.  If you
     # use this feature, make sure to emit the "DataCollected" event with any
     # data that you want aggregated (that you want to be able to access from
     # the "PaymentConfirmed" listeners).
-    { productForm } = @getOptions()
+    # - "confirm form" is required.  This form should render a summary, and 
+    # emit a "PaymentConfirmed" after user approval.
+    { productForm, confirmForm } = @getOptions()
 
     if productForm?
+      
       @addForm 'product', productForm, ['productData', 'subscription']
+
       productForm.on 'DataCollected', (productData) =>
         @collectData { productData }
         { subscription } = productData
@@ -109,12 +113,8 @@ class PaymentWorkflow extends FormWorkflow
     # "entry form" is for entering a new payment method for us to file.
     @addForm 'entry', @createEntryForm(), ['paymentMethod']
 
-    # "confirm form" is required.  This form should render a summary, and emit
-    # a "PaymentConfirmed" after user approval.
-    { confirmForm } = @getOptions()
     @addForm 'confirm', confirmForm, ['userConfirmation']
 
-    confirmForm.on 'PaymentConfirmed', =>
-      @collectData { userConfirmation: yes }
+    confirmForm.on 'PaymentConfirmed', => @collectData userConfirmation: yes
 
     return this
