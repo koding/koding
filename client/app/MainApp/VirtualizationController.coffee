@@ -362,8 +362,8 @@ class VirtualizationController extends KDController
     workflow = new PaymentWorkflow
       productForm : productForm
       confirmForm : new VmPaymentConfirmForm
-    
-    modal = new KDModalView
+
+    modal = new FormWorkflowModal
       title   : "Create a new VM"
       view    : workflow
       height  : "auto"
