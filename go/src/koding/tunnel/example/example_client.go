@@ -1,13 +1,16 @@
 package main
 
 import (
+	"flag"
 	"koding/tunnel"
 )
 
 var serverAddr = "127.0.0.1:7000"
-var localAddr = "127.0.0.1:5000"
+
+var port = flag.String("port", "5000", "port to bind to local server")
 
 func main() {
-	client := tunnel.NewClient(serverAddr, localAddr)
+	flag.Parse()
+	client := tunnel.NewClient(serverAddr, ":"+*port)
 	client.Proxy()
 }
