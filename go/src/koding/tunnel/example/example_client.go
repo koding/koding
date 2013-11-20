@@ -11,6 +11,7 @@ var port = flag.String("port", "5000", "port to bind to local server")
 
 func main() {
 	flag.Parse()
+
 	client := tunnel.NewClient(serverAddr, ":"+*port)
-	client.Proxy()
+	client.Run()
 }

@@ -2,6 +2,7 @@ package tunnel
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -18,15 +19,21 @@ type Server struct {
 	sync.Mutex
 }
 
+type Clients struct {
+}
+
 func NewServer() *Server {
-	s := &Server{tunnels: NewTunnels()}
-	http.HandleFunc(RegisterPath, s.registerHandler)
+	s := &Server{
+		tunnels: NewTunnels(),
+	}
+
+	http.HandleFunc(ControlPath, s.controlHandler)
+	http.HandleFunc(TunnelPath, s.tunnelHandler)
 	return s
 }
 
-// registerHandler is used to register tunnel clients.
-func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("register Handler invoked", r.URL.String())
+func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("tunnel Handler invoked", r.URL.String())
 	if r.Method != "CONNECT" {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -42,7 +49,54 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 
 	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
 	conn.SetDeadline(time.Time{})
+
 	s.AddTunnel("127.0.0.1:7000", NewTunnel(conn))
+}
+
+// controlHandler is used to register tunnel clients.
+func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("control asdksa Handler invoked", r.URL.String())
+	if r.Method != "CONNECT" {
+		fmt.Println("asdkasjdkljsakl")
+		fmt.Println("r.Method", r.Method)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		io.WriteString(w, "405 must CONNECT\n")
+		return
+	}
+
+	conn, _, err := w.(http.Hijacker).Hijack()
+	if err != nil {
+		log.Println("register hijacking ", r.RemoteAddr, ": ", err.Error())
+		return
+	}
+
+	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
+	conn.SetDeadline(time.Time{})
+
+	d := json.NewDecoder(conn)
+	e := json.NewEncoder(conn)
+
+	for {
+		var msg ClientMsg
+		err := d.Decode(&msg)
+		if err != nil {
+			fmt.Println("decode", err)
+			return
+		}
+
+		if msg.Action == "tunnel" {
+			msg := &ServerMsg{Action: "allowed"}
+			err := e.Encode(msg)
+			if err != nil {
+				fmt.Println("encode", err)
+				return
+			}
+
+		}
+
+		fmt.Println("msg from client", msg)
+	}
 }
 
 // ServeHTTP is a tunnel that creates an http/websocket tunnel between a
@@ -53,7 +107,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("tunnel handler invoked", r.URL.String())
+	log.Println("http handler invoked", r.URL.String())
 	host := strings.ToLower(r.Host)
 
 	s.Lock()

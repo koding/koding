@@ -2,8 +2,6 @@ package tunnel
 
 import (
 	"io"
-	"log"
-	"net"
 	"net/http"
 	"strings"
 )
@@ -20,20 +18,6 @@ func join(local, remote io.ReadWriteCloser) chan error {
 	go copy(remote, local)
 
 	return errc
-}
-
-func dialTCP(addr string) *net.TCPConn {
-	serverTcpAddr, err := net.ResolveTCPAddr("tcp4", addr)
-	if err != nil {
-		log.Fatalf("server addr %s\n", err)
-	}
-
-	conn, err := net.DialTCP("tcp", nil, serverTcpAddr)
-	if err != nil {
-		log.Fatalf("remote %s\n", err)
-	}
-
-	return conn
 }
 
 func copyHeader(dst, src http.Header) {
