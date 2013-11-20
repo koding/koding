@@ -128,7 +128,8 @@ class MainView extends KDView
         KD.getSingleton("windowController").addLayer @searchInput
 
         @searchInput.once "ReceivedClickElsewhere", =>
-          @accountArea.unsetClass "search-open"
+          if not @searchInput.getValue()
+            @accountArea.unsetClass "search-open"
 
       partial    : "<span class='icon'></span>"
 
@@ -136,6 +137,9 @@ class MainView extends KDView
       cssClass   : "search-form-container"
     @searchForm.addSubView @searchInput = new KDInputView
       placeholder: "Search here..."
+      keyup      :
+        "esc"    : =>
+          @accountArea.unsetClass "search-open"
 
   createMainTabView:->
 
