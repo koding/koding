@@ -1,7 +1,6 @@
 package rabbitmq
 
 import (
-	"fmt"
 	"github.com/streadway/amqp"
 )
 
@@ -109,7 +108,7 @@ func (p *Producer) Shutdown() error {
 
 	// Since publishing is asynchronous this can happen
 	// instantly without waiting for a done message.
-	defer fmt.Println("Producer shutdown OK")
+	defer log.Info("Producer shutdown OK")
 	return err
 }
 

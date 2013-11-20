@@ -1,7 +1,6 @@
 package rabbitmq
 
 import (
-	"fmt"
 	"github.com/streadway/amqp"
 )
 
@@ -123,7 +122,7 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 	}
 
 	// change fmt -> log
-	fmt.Println("handle: deliveries channel closed")
+	log.Info("handle: deliveries channel closed")
 	c.done <- nil
 }
 
@@ -137,8 +136,8 @@ func (c *Consumer) Shutdown() error {
 		return nil
 	}
 	// change fmt -> log
-	defer fmt.Println("Consumer shutdown OK")
-	fmt.Println("Waiting for handler to exit")
+	defer log.Info("Consumer shutdown OK")
+	log.Info("Waiting for handler to exit")
 
 	// this channel is here for finishing the consumer's ranges of
 	// delivery chans.  We need every delivery to be processed, here make
