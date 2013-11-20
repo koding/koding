@@ -68,13 +68,13 @@ func (c *Client) handleReq(req *http.Request) {
 
 	resp, err := http.ReadResponse(bufio.NewReader(c.localConn), req)
 	if err != nil {
-		fmt.Println("read response")
+		fmt.Println("read response", err)
 		return
 	}
 
 	err = resp.Write(c.remoteConn)
 	if err != nil {
-		fmt.Println("resp.write")
+		fmt.Println("resp.write", err)
 		return
 	}
 }
