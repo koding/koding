@@ -1,9 +1,8 @@
-package main
+package tunnel
 
 import (
 	"fmt"
 	"io"
-	"koding/kites/tunnel/protocol"
 	"log"
 	"net"
 	"net/http"
@@ -13,31 +12,15 @@ import (
 	"time"
 )
 
-var serverAddr = "127.0.0.1:7000"
-var serverMade bool
-
 type Server struct {
 	tunnels *Tunnels
 	sync.Mutex
 }
 
 func NewServer() *Server {
-	if serverMade {
-		panic("tunnelserver: NewServer must be called only once")
-	}
-
-	serverMade = true
 	s := &Server{tunnels: NewTunnels()}
-	http.HandleFunc(protocol.RegisterPath, s.registerHandler)
+	http.HandleFunc(RegisterPath, s.registerHandler)
 	return s
-}
-
-func main() {
-	server := NewServer()
-
-	http.HandleFunc("/", server.TunnelHandler)
-
-	log.Println(http.ListenAndServe(serverAddr, nil))
 }
 
 func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +38,7 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	io.WriteString(conn, "HTTP/1.1 "+protocol.Connected+"\n\n")
+	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
 	s.tunnels.addTunnel("127.0.0.1:7000", NewTunnel(conn))
 }
 

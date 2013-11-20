@@ -1,34 +1,32 @@
-package main
+package tunnel
 
 import (
 	"fmt"
-	"koding/kites/tunnel/join"
-	"koding/kites/tunnel/protocol"
 	"log"
 	"net"
 	"net/http"
 	"net/http/httputil"
 )
 
-type TunnelClient struct {
+type Client struct {
 	remoteConn *httputil.ServerConn
 	localConn  *httputil.ClientConn
 }
 
 // NewTunnelClient creates a new tunnel that is established between the
 // serverAddr and localAddr.
-func NewTunnelClient(serverAddr, localAddr string) *TunnelClient {
+func NewClient(serverAddr, localAddr string) *Client {
 	remoteConn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
-		log.Fatalln("dial remote err: %s", err)
+		log.Fatalf("remote %s\n", err)
 	}
 
 	localConn, err := net.Dial("tcp", localAddr)
 	if err != nil {
-		log.Fatalln("dial local err: %s", err)
+		log.Fatalf("local %s\n", err)
 	}
 
-	tunnel := &TunnelClient{
+	tunnel := &Client{
 		remoteConn: httputil.NewServerConn(remoteConn, nil),
 		localConn:  httputil.NewClientConn(localConn, nil),
 	}
@@ -42,16 +40,9 @@ func NewTunnelClient(serverAddr, localAddr string) *TunnelClient {
 	return tunnel
 }
 
-func main() {
-	var serverAddr = "127.0.0.1:7000"
-	var localAddr = "127.0.0.1:3020"
-	tunnel := NewTunnelClient(serverAddr, localAddr)
-	tunnel.Proxy()
-}
-
 // Start starts the tunnel between the remote and local server. It's a
 // blocking function. Every requst is handled in a separete goroutine.
-func (t *TunnelClient) Start() {
+func (t *Client) Start() {
 	for {
 		req, err := t.remoteConn.Read()
 		if err != nil {
@@ -65,14 +56,14 @@ func (t *TunnelClient) Start() {
 
 // Proxy is like Start() but it joins (proxies) the remote tcp connection with
 // the local one, that means all de handling is done via those two connection.
-func (t *TunnelClient) Proxy() {
+func (t *Client) Proxy() {
 	remote, _ := t.remoteConn.Hijack()
 	local, _ := t.localConn.Hijack()
 
-	join.Join(local, remote)
+	join(local, remote)
 }
 
-func (t *TunnelClient) handleReq(req *http.Request) {
+func (t *Client) handleReq(req *http.Request) {
 	resp, err := t.localConn.Do(req)
 	if err != nil {
 		fmt.Println("could not do request")
@@ -83,10 +74,10 @@ func (t *TunnelClient) handleReq(req *http.Request) {
 
 // Register registered the tunnel client to the TunnelServer via an CONNECT request.
 // It returns an error if the connect request is not successful.
-func (t *TunnelClient) Register() error {
+func (t *Client) Register() error {
 	conn, buffer := t.remoteConn.Hijack()
 
-	remoteAddr := fmt.Sprintf("http://%s%s", conn.RemoteAddr(), protocol.RegisterPath)
+	remoteAddr := fmt.Sprintf("http://%s%s", conn.RemoteAddr(), RegisterPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
 		return fmt.Errorf("CONNECT", err)
@@ -101,12 +92,12 @@ func (t *TunnelClient) Register() error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 && resp.Status != protocol.Connected {
+	if resp.StatusCode != 200 && resp.Status != Connected {
 		return fmt.Errorf("Non-200 response from proxy server: %s", resp.Status)
 	}
 
 	// hijack detaches the server, after doing raw tcp communication
-	// attach it again to our tunnelclient
+	// attach it again to our client
 	t.remoteConn = httputil.NewServerConn(conn, nil)
 	return nil
 }

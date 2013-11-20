@@ -1,4 +1,4 @@
-package protocol
+package tunnel
 
 const RegisterPath = "/_kdtunnel_/"
 
