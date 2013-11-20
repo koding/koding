@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+// Server satisfies the http.Handler interface. It is responsible of tracking
+// tunnels and creating tunnels between remote and local connection.
 type Server struct {
 	tunnels *Tunnels
 	sync.Mutex
@@ -43,8 +45,9 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 	s.AddTunnel("127.0.0.1:7000", NewTunnel(conn))
 }
 
-// Tunnelhandler is a tunnel that creates an http tunnel.
-func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) {
+// ServeHTTP is a tunnel that creates an http/websocket tunnel between a
+// public connection and the client connection.
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if isWebsocket(r) {
 		s.websocketHandleFunc(w, r)
 		return
@@ -65,7 +68,8 @@ func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := r.Write(tunnel.conn)
 	if err != nil {
-		log.Println("write to tunnel conn ", err)
+		err := fmt.Sprintf("write to tunnel %s", err)
+		http.Error(w, err, 404)
 		return
 	}
 
@@ -75,6 +79,7 @@ func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errString, 404)
 		return
 	}
+
 	defer resp.Body.Close()
 
 	copyHeader(w.Header(), resp.Header)
@@ -96,7 +101,8 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 	err := r.Write(tunnel.conn)
 	if err != nil {
-		log.Println("write to tunnel conn ", err)
+		err := fmt.Sprintf("write to tunnel %s", err)
+		http.Error(w, err, 404)
 		return
 	}
 

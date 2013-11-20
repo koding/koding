@@ -11,7 +11,7 @@ var serverAddr = "127.0.0.1:7000"
 func main() {
 	server := tunnel.NewServer()
 
-	http.HandleFunc("/", server.TunnelHandler)
+	http.Handle("/", server)
 
 	log.Println("server started at", serverAddr)
 	err := http.ListenAndServe(serverAddr, nil)
