@@ -16,6 +16,7 @@ func EchoServer(ws *websocket.Conn) {
 }
 
 func MainServer(ws *websocket.Conn) {
+	fmt.Println("connected", ws.RemoteAddr())
 	for {
 		var msg string
 		if err := websocket.Message.Receive(ws, &msg); err != nil {

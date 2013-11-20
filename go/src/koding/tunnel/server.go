@@ -44,41 +44,14 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 	s.tunnels.addTunnel("127.0.0.1:7000", NewTunnel(conn))
 }
 
-// WebsocketTunnelHandler is a tunnel that creates a websocket tunnel
-func (s *Server) WebsocketTunnelHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("websocket tunnel jandler invoked", r.URL.String())
-	if !isWebsocket(r) {
-		http.Error(w, "405 must websocket upgrade", 404)
+// Tunnelhandler is a tunnel that creates an http tunnel.
+func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) {
+	if isWebsocket(r) {
+		s.websocketHandleFunc(w, r)
 		return
 	}
 
-	host := strings.ToLower(r.Host)
-	tunnel, ok := s.tunnels.getTunnel(host)
-	if !ok {
-		err := fmt.Sprintf("no such tunnel: %s", host)
-		http.Error(w, err, 404)
-		return
-	}
-
-	err := r.Write(tunnel.conn)
-	if err != nil {
-		log.Println("write clientConn ", err)
-		return
-	}
-
-	publicConn, _, err := w.(http.Hijacker).Hijack()
-	if err != nil {
-		log.Println("rpc hijacking ", err)
-		return
-	}
-	defer publicConn.Close()
-
-	join(tunnel.conn, publicConn)
-}
-
-// HTTPTunnelHAndler is a tunnel that creates an http tunnel.
-func (s *Server) HTTPTunnelHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("http tunnel handler invoked", r.URL.String())
+	log.Println("tunnel handler invoked", r.URL.String())
 	host := strings.ToLower(r.Host)
 
 	s.Lock()
@@ -109,6 +82,34 @@ func (s *Server) HTTPTunnelHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 
 	io.Copy(w, resp.Body)
+}
+
+func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
+	log.Println("websocket handler invoked", r.URL.String())
+
+	host := strings.ToLower(r.Host)
+	tunnel, ok := s.tunnels.getTunnel(host)
+	if !ok {
+		err := fmt.Sprintf("no such tunnel: %s", host)
+		http.Error(w, err, 404)
+		return
+	}
+
+	err := r.Write(tunnel.conn)
+	if err != nil {
+		log.Println("write clientConn ", err)
+		return
+	}
+
+	publicConn, _, err := w.(http.Hijacker).Hijack()
+	if err != nil {
+		log.Println("rpc hijacking ", err)
+		return
+	}
+	defer publicConn.Close()
+
+	err = <-join(tunnel.conn, publicConn)
+	log.Println(err)
 }
 
 type Tunnel struct {
