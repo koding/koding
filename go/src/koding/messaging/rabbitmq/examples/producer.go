@@ -28,6 +28,10 @@ func main() {
 		Body: []byte("2"),
 	}
 
+	publisher.NotifyReturn(func(message amqp.Return) {
+		fmt.Println(message)
+	})
+
 	for i := 0; i < 10; i++ {
 		err = publisher.Publish(msg)
 		if err != nil {
