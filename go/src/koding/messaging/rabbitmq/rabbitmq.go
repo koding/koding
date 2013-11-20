@@ -75,6 +75,7 @@ func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
 	var err error
 
 	// get connection
+	// Connects opens an AMQP connection from the credentials in the URL.
 	rmq.conn, err = amqp.Dial(getConnectionString())
 	if err != nil {
 		return nil, err
@@ -99,6 +100,9 @@ type Session struct {
 func handleErrors(conn *amqp.Connection) {
 	go func() {
 		for amqpErr := range conn.NotifyClose(make(chan *amqp.Error)) {
+			// if the computer sleeps then wakes longer than a heartbeat interval,
+			// the connection will be closed by the client.
+			// https://github.com/streadway/amqp/issues/82
 			fmt.Println(amqpErr)
 
 			if strings.Contains(amqpErr.Error(), "NOT_FOUND") {
@@ -113,6 +117,18 @@ func handleErrors(conn *amqp.Connection) {
 			}
 		}
 	}()
+	// Commenting out this for now, since our package is not up-to-date
+	// and the extension is not enabled yet in prodcution
+	// We should also update our go amqp package
+	// go func() {
+	// 	for b := range conn.NotifyBlocked(make(chan amqp.Blocking)) {
+	// 		if b.Active {
+	// 			fmt.Println("TCP blocked: %q", b.Reason)
+	// 		} else {
+	// 			fmt.Println("TCP unblocked")
+	// 		}
+	// 	}
+	// }()
 }
 
 func (c *Consumer) reconnect() {
@@ -135,6 +151,9 @@ type Closer interface {
 
 func shutdown(conn *amqp.Connection, channel *amqp.Channel, tag string) error {
 	// will close() the channel
+	// This waits for a server acknowledgment which means the sockets will have
+	// flushed all outbound publishings prior to returning.  It's important to
+	// block on Close to not lose any publishings.
 	if err := channel.Cancel(tag, true); err != nil {
 		if amqpError, isAmqpError := err.(*amqp.Error); isAmqpError && amqpError.Code != 504 {
 			return fmt.Errorf("AMQP connection close error: %s", err)
