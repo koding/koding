@@ -16,11 +16,12 @@ class Kontrol extends KDObject
       key      : KD.remote.getSessionToken()
 
     @kite = new NewKite kite, authentication
-    @kite.connect()
-    @watchKites {}, (kite)=>
-      @emit "kiteRegistered", kite
-    , (error)->
-      log "Cannot watch Kites:", error
+    # DISABLED TEMPORARILY UNTIL KONTROL IS DEPLOYED
+    # @kite.connect()
+    # @watchKites {}, (kite)=>
+    #   @emit "kiteRegistered", kite
+    # , (error)->
+    #   log "Cannot watch Kites:", error
 
 
   # Calls the callback function with the list of NewKite instances.

@@ -27,10 +27,10 @@ projects      =
     style     : "website/css/kdapp.#{KODING_VERSION}.css"
     script    : "website/js/kdapp.#{KODING_VERSION}.js"
 
-  TestApp     :
-    files     : "client/testapp/includes.coffee"
-    style     : "website/css/testapp.css"
-    script    : "website/js/testapp.js"
+  # TestApp     :
+  #   files     : "client/testapp/includes.coffee"
+  #   style     : "website/css/testapp.css"
+  #   script    : "website/js/testapp.js"
 
   HomeIntro   :
     files     : "client/introapp/includes.coffee"
