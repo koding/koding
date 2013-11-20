@@ -286,13 +286,7 @@ class KodingRouter extends KDRouter
       '/Landing/:page'         : noop
       '/R/:username'           : noop
 
-      # verbs
-      '/:name?/Login'          : ({params:{name}})-> requireLogout -> animateToForm 'login'
-      '/:name?/Logout'         : ({params:{name}})-> requireLogin  -> mainController.doLogout()
-      '/:name?/Redeem'         : ({params:{name}})-> requireLogin  -> animateToForm 'redeem'
-      '/:name?/Register'       : ({params:{name}})-> requireLogout -> animateToForm 'register'
-      '/:name?/Recover'        : ({params:{name}})-> requireLogout -> animateToForm 'recover'
-      '/:name?/ResendToken'    : ({params:{name}})-> requireLogout -> animateToForm 'resendEmail'
+      '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
       # content
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
