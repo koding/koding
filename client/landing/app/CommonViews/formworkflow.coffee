@@ -49,20 +49,11 @@ class FormWorkflow extends KDView
 
     return this
 
-  nextForm: ->
-    requirement = @nextRequirement()
-    return  unless requirement?
-    
-    provider = @nextProvider requirement
-    return  unless provider?
-
-    @showForm provider
-
-    return provider
+  nextForm: -> try @showForm @nextProvider()
 
   nextRequirement: -> @collector.nextRequirement()
 
-  nextProvider: (key, from) ->
+  nextProvider: (key = @nextRequirement(), from) ->
     providers = @providers[key]
     providers.i = from ? providers.i ? 0
     provider = providers[providers.i++]
@@ -93,6 +84,7 @@ class FormWorkflow extends KDView
 
   hideForms: (forms = @getFormNames()) ->
     @forms[form]?.hide() for form in forms
+
     return this
 
   showForm: (form) ->
@@ -100,6 +92,7 @@ class FormWorkflow extends KDView
     form = @getForm form
     form.activate? this
     form.show()
+    
     return this
 
   all: (fields...) -> new All fields
@@ -112,8 +105,9 @@ class FormWorkflow extends KDView
   @Collector = class Collector extends KDEventEmitter
 
     constructor: (@gate = new Gate) ->
-      super
-      @data = {}
+      super()
+
+      @data = @utils.dict()
 
       @gate.on 'status', (isSatisfied) =>
         if isSatisfied
@@ -171,7 +165,7 @@ class FormWorkflow extends KDView
 
       @addField field  for field in fields
 
-    createId: do (i = 0) -> -> i++
+    createId: KD.utils.createCounter()
 
     isGate: yes
 
@@ -180,8 +174,8 @@ class FormWorkflow extends KDView
         fields = @getFields()
         fields.push (child.getFields yes)... for own _, child of @children
         return fields
-      else
-        (key for own key of @fields when not (key of @children))
+
+      (key for own key of @fields when not (key of @children))
 
     nextNode: ->
       node = @ordered[@index]
