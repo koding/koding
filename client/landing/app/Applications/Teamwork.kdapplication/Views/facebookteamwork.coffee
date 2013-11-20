@@ -85,7 +85,8 @@ class FacebookTeamwork extends TeamworkWorkspace
           @startImport()  unless res
 
   checkFiles: (callback = noop) ->
-    FSHelper.exists "Web/Teamwork/Facebook", KD.getSingleton("vmController").defaultVmName, (err, res) =>
+    path = "/home/#{@getHost()}/Web/Teamwork/Facebook"
+    FSHelper.exists path, KD.getSingleton("vmController").defaultVmName, (err, res) =>
       callback err, res
 
   startImport: ->
@@ -112,7 +113,7 @@ class FacebookTeamwork extends TeamworkWorkspace
     paneLauncher.handleLaunch "preview"
 
     editor   = activePanel.getPaneByName "editor"
-    root     = "Web/Teamwork/Facebook"
+    root     = "/home/#{@getHost()}/Web/Teamwork/Facebook"
     path     = FSHelper.plainPath(editor.getActivePaneFileData().path).replace root, ""
     nick     = if @amIHost() then KD.nick() else @getHost()
     target   = "https://#{nick}.kd.io/Teamwork/Facebook"
@@ -148,7 +149,7 @@ class FacebookTeamwork extends TeamworkWorkspace
 
     markup = @examplesPageMarkup markup
 
-    file = FSHelper.createFileFromPath "Web/Teamwork/Facebook/index.html"
+    file = FSHelper.createFileFromPath "/home/#{@getHost()}/Web/Teamwork/Facebook/index.html"
     file.save markup, (err, res) =>
       return warn err  if err
 
