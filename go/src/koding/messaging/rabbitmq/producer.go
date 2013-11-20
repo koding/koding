@@ -29,7 +29,6 @@ type PublishingOptions struct {
 // This is part of AMQP being a programmable messaging model.
 // But as said above, we are not preferring
 func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
-
 	rmq, err := newRabbitMQConnection(po.Tag)
 	if err != nil {
 		return nil, err
@@ -92,6 +91,15 @@ func (p *Producer) Publish(publishing amqp.Publishing) error {
 	return err
 }
 
+func (p *Producer) NotifyReturn(notifier func(message amqp.Return)) {
+	go func() {
+		for res := range p.channel.NotifyReturn(make(chan amqp.Return)) {
+			notifier(res)
+		}
+	}()
+
+}
+
 func (p *Producer) Shutdown() error {
 	err := shutdown(p.conn, p.channel, p.tag)
 	// change fmt => log
@@ -102,6 +110,7 @@ func (p *Producer) Shutdown() error {
 	return err
 }
 
+// implement interface
 func (p *Producer) RegisterSignalHandler() {
 	registerSignalHandler(p)
 }
