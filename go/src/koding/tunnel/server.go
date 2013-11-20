@@ -1,12 +1,12 @@
 package tunnel
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"log"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"strings"
 	"sync"
 	"time"
@@ -60,17 +60,11 @@ func (s *Server) WebsocketTunnelHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// write back initial public request of client to the tunnelClient
-	err := tunnel.clientConn.Write(r)
+	err := r.Write(tunnel.conn)
 	if err != nil {
 		log.Println("write clientConn ", err)
 		return
 	}
-
-	clientConn, _ := tunnel.clientConn.Hijack()
-
-	// hijack detaches the conn from clientConn, attach it again to our client
-	s.tunnels.addTunnel(host, NewTunnel(clientConn))
 
 	publicConn, _, err := w.(http.Hijacker).Hijack()
 	if err != nil {
@@ -79,7 +73,7 @@ func (s *Server) WebsocketTunnelHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	defer publicConn.Close()
 
-	join(clientConn, publicConn)
+	join(tunnel.conn, publicConn)
 }
 
 // HTTPTunnelHAndler is a tunnel that creates an http tunnel.
@@ -97,7 +91,13 @@ func (s *Server) HTTPTunnelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := tunnel.clientConn.Do(r)
+	err := r.Write(tunnel.conn)
+	if err != nil {
+		log.Println("write clientConn ", err)
+		return
+	}
+
+	resp, err := http.ReadResponse(bufio.NewReader(tunnel.conn), r)
 	if err != nil {
 		errString := fmt.Sprintf("clientConn req %s", err.Error())
 		http.Error(w, errString, 404)
@@ -112,14 +112,14 @@ func (s *Server) HTTPTunnelHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Tunnel struct {
-	clientConn *httputil.ClientConn
-	start      time.Time
+	conn  net.Conn
+	start time.Time
 }
 
 func NewTunnel(conn net.Conn) *Tunnel {
 	return &Tunnel{
-		clientConn: httputil.NewClientConn(conn, nil),
-		start:      time.Now(),
+		conn:  conn,
+		start: time.Now(),
 	}
 }
 

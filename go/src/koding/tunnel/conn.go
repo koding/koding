@@ -3,6 +3,7 @@ package tunnel
 import (
 	"errors"
 	"io"
+	"log"
 	"net"
 	"strings"
 	"time"
@@ -78,8 +79,10 @@ func (r *reconnectConn) reconnect() {
 	var err error
 
 	for {
+		log.Println("reconnecting to", r.RemoteAddr().String())
 		conn, err = r.dial()
 		if err == nil {
+			log.Println("reconnected")
 			break
 		}
 

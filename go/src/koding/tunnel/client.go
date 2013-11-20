@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/http/httputil"
 	"time"
 )
 
@@ -64,27 +63,35 @@ func (c *Client) Proxy() {
 // Start starts the tunnel between the remote and local server. It's a
 // blocking function. Every requst is handled in a separete goroutine.
 func (c *Client) Start() {
-	serverconn := httputil.NewServerConn(c.remoteConn, nil)
-
 	for {
-		req, err := serverconn.Read()
+		req, err := http.ReadRequest(bufio.NewReader(c.remoteConn))
 		if err != nil {
 			fmt.Println("Server read", err)
 			return
 		}
 
-		go c.handleReq(serverconn, req)
+		go c.handleReq(req)
 	}
 }
 
-func (c *Client) handleReq(serverconn *httputil.ServerConn, req *http.Request) {
-	clientconn := httputil.NewClientConn(c.localConn, nil)
-	resp, err := clientconn.Do(req)
+func (c *Client) handleReq(req *http.Request) {
+	err := req.Write(c.localConn)
 	if err != nil {
-		fmt.Println("could not do request")
+		log.Println("write clientConn ", err)
+		return
 	}
 
-	serverconn.Write(req, resp)
+	resp, err := http.ReadResponse(bufio.NewReader(c.localConn), req)
+	if err != nil {
+		fmt.Println("read response")
+		return
+	}
+
+	err = resp.Write(c.remoteConn)
+	if err != nil {
+		fmt.Println("resp.write")
+		return
+	}
 }
 
 // Register registered the tunnel client to the TunnelServer via an CONNECT
