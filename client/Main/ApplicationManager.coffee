@@ -4,7 +4,7 @@ class ApplicationManager extends KDObject
 
   * EMITTED EVENTS
     - AppCreated                  [appController]
-    - AppIsBeingShown  [appController, appView, appOptions]
+    - AppIsBeingShown             [appController, appView, appOptions]
   ###
 
   manifestsFetched = no
