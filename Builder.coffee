@@ -223,7 +223,7 @@ module.exports = class Builder
         changed |= project.changed
         for includePath in CoffeeScript.eval(fs.readFileSync(project.includes, "utf-8"))
 
-          cachePath = ".build/#{includePath.replace /\//g, "_" }"
+          cachePath = ".build/#{project.title}_#{includePath.replace /\//g, "_" }"
 
           file =
             sourceMapPath : cachePath + ".map"
