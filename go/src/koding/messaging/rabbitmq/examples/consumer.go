@@ -31,7 +31,10 @@ func main() {
 		return
 	}
 	defer consumer.Shutdown()
-	consumer.QOS(3)
+	err = consumer.QOS(3)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println("Elasticsearch Feeder worker started")
 	consumer.RegisterSignalHandler()
 	consumer.Consume(handler)
