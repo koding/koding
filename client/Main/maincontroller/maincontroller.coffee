@@ -86,9 +86,6 @@ class MainController extends KDController
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
   createMainViewController:->
-    @loginScreen = new LoginView
-      testPath   : "landing-login"
-    @loginScreen.appendToDomBody()
     KD.registerSingleton "dockController", new DockController
     @mainViewController  = new MainViewController
       view    : mainView = new MainView
