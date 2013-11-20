@@ -13,7 +13,7 @@ class FacebookTeamwork extends TeamworkWorkspace
         editor.getActivePaneEditor().setValue content
         @createRunButton panel  unless @runButton
 
-    @on "ContentImportDone", =>
+    @on "ContentIsReady", =>
       @createIndexFile()
 
       unless @appId and @appNamespace and @appCanvasUrl
@@ -92,7 +92,7 @@ class FacebookTeamwork extends TeamworkWorkspace
     {contentDetails, playgroundManifest} = @getOptions()
     @getDelegate().showImportWarning contentDetails.url, =>
       @appStorage.setValue "FacebookAppVersion", playgroundManifest.version
-      @emit "ContentImportDone"
+      @emit "ContentIsReady"
 
   createRunButton: (panel) ->
     @runButton = new KDButtonViewWithMenu

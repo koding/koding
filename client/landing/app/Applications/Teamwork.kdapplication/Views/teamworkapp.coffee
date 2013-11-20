@@ -173,6 +173,7 @@ class TeamworkApp extends KDObject
                 @setUpImport contentUrl, manifestVersion, playground
               else
                 @setVMRoot root
+                @teamwork.emit "ContentIsReady"
         else
           warn "Unhandled content type for #{name}"
 
@@ -182,7 +183,7 @@ class TeamworkApp extends KDObject
 
     @teamwork.importInProgress = yes
     @showImportWarning url, =>
-      @teamwork.emit "ContentImportDone"
+      @teamwork.emit "ContentIsReady"
       @teamwork.importModalContent = no
       appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
       appStorage.setValue "#{playground}PlaygroundVersion", version
