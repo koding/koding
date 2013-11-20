@@ -3,17 +3,10 @@ class BidirectionalNavigation extends KDView
   viewAppended: ->
     @setClass 'navigation'
 
-    @backButton = new KDButtonView
-      cssClass  : 'back' 
-      title     : 'Back'
-      callback  : => @emit 'Back'
+    @addSubView @createButton 'Back'
+    @addSubView @createButton 'Next'
 
-    @forwardButton = new KDButtonView
-      cssClass  : 'next' 
-      title     : 'Next'
-      callback  : => @emit 'Forward'
-
-    @addSubView @backButton
-    @addSubView @forwardButton
-
-      
+  createButton: (action) -> new KDButtonView
+    cssClass  : action.toLowerCase()
+    title     : action
+    callback  : => @emit action
