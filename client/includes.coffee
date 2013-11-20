@@ -612,6 +612,7 @@ module.exports = [
   # KITE CONTROLLER
   "app/MainApp/kite/kite.coffee",
   "app/MainApp/kite/kitecontroller.coffee",
+  "libs/dnode-protocol.js"
   "app/MainApp/kite/newkite.coffee"
   "app/MainApp/kite/kontrol.coffee"
   # Virtualization CONTROLLER
