@@ -112,14 +112,23 @@ class KDMixpanel
 if mixpanel and KD.config.logToExternal then do ->
   KD.getSingleton('mainController').on "AccountChanged", (account) ->
     return  unless KD.isLoggedIn()
+    return  unless account
 
-    {createdAt} = account.meta
-    {firstName, lastName, nickname} = account.profile
+    account.fetchEmail (err, email)->
+      console.log err  if err
 
-    # register user to mixpanel
-    mixpanel.identify nickname
-    mixpanel.people.set
-      "$username"   : nickname
-      "name"        : "#{firstName} #{lastName}"
-      "$joinDate"   : createdAt
-    mixpanel.name_tag "#{nickname}.kd.io"
+      {type, meta, profile} = account
+      {createdAt} = meta
+      {firstName, lastName, nickname} = profile
+
+      # register user to mixpanel
+      mixpanel.identify nickname
+      mixpanel.people.set
+        "$username"     : nickname
+        "$first_name"   : firstName
+        "$last_name"    : lastName
+        "$email"        : email
+        "$created"      : createdAt
+        "Status"        : type
+        "Randomizer"    : Math.floor((Math.random()*4)+1)
+      mixpanel.name_tag "#{nickname}.kd.io"
