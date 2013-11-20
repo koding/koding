@@ -112,7 +112,7 @@ func handlePresence(
 
 	for d := range deliveries {
 		action, username := d.Headers["action"].(string), d.Headers["key"].(string)
-		log.Printf("%v %v", action, username)
+		// log.Printf("%v %v", action, username)
 		var err error
 		switch action {
 		case "bind":
