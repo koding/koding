@@ -29,9 +29,11 @@ var (
 func main() {
 	flag.Parse()
 	options := &protocol.Options{
-		Kitename: "fs",
-		Version:  "0.0.1",
-		Port:     *port,
+		Kitename:    "fs",
+		Version:     "0.0.1",
+		Port:        *port,
+		Region:      "vagrant",
+		Environment: "vagrant",
 		// KontrolAddr: "newkontrol.sj.koding.com:80",
 	}
 
@@ -50,7 +52,7 @@ func main() {
 
 	k := kite.New(options)
 	k.AddMethods(new(Fs), methods)
-	k.Start()
+	k.Run()
 }
 
 func (Fs) ReadDirectory(r *protocol.KiteDnodeRequest, result *map[string]interface{}) error {

@@ -16,34 +16,37 @@ module.exports = class JLog extends Module
     sharedMethods   :
       instance      : []
       static        : []
-    indexes:
-      username : 1
-      ip       : 1
-    schema                :
-      type                :
-        type              : String
-        required          : yes
-        set               : (value)-> value.toLowerCase()
-      ip                  :
-        type              : String
-        required          : yes
-        default           : "127.0.0.1"
-      username            :
-        type              : String
-        required          : yes
-        default           : "guest"
-      createdAt           :
-        type              : Date
-        default           : -> new Date
-      success             :
-        type              : Boolean
-        default           : true
-      severity            :
-        type              : Number
-        default           : 5
-      payload             :
-        type              : String
-        required          : no
+    sharedEvents    :
+      static        : []
+      instance      : []
+    indexes         :
+      username      : 1
+      ip            : 1
+    schema          :
+      type          :
+        type        : String
+        required    : yes
+        set         : (value)-> value.toLowerCase()
+      ip            :
+        type        : String
+        required    : yes
+        default     : "127.0.0.1"
+      username      :
+        type        : String
+        required    : yes
+        default     : "guest"
+      createdAt     :
+        type        : Date
+        default     : -> new Date
+      success       :
+        type        : Boolean
+        default     : true
+      severity      :
+        type        : Number
+        default     : 5
+      payload       :
+        type        : String
+        required    : no
 
   @log = (data, callback)->
     log = new JLog data

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/streadway/amqp"
 	"koding/kontrol/kontroldaemon/handler"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/slog"
+	"github.com/streadway/amqp"
 )
 
 func init() {

@@ -192,7 +192,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @experimentalView = new KDView
 
   appDeleteCall:(manifest)->
-    KD.track "Apps", "ApplicationDelete", manifest.name
     appPath   = @appsController.getAppPath manifest.path, yes
     appFolder = FSHelper.createFileFromPath appPath, 'folder'
     appFolder.remove (err, res) =>
@@ -202,6 +201,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
       @deleteModal.destroy()
       @destroy()  unless err
+
+      KD.mixpanel "User Deleted Application", manifest.name
 
   viewAppended:->
 

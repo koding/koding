@@ -4,27 +4,25 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     super options, data
 
-    {environment, environmentManifest} = @getOptions()
+    {playground, playgroundManifest} = @getOptions()
+    @avatars = {}
 
     @on "PanelCreated", (panel) =>
-      @createRunButton panel  if environment
+      @createRunButton panel  if playground
 
     @on "WorkspaceSyncedWithRemote", =>
-      if environment and @amIHost()
-        @workspaceRef.child("environment").set environment
+      if playground and @amIHost()
+        @workspaceRef.child("playground").set playground
 
-        if environmentManifest
-          @workspaceRef.child("environmentManifest").set environmentManifest
+        if playgroundManifest
+          @workspaceRef.child("playgroundManifest").set playgroundManifest
 
       @hidePlaygroundsButton()  unless @amIHost()
 
-      usersRef = @workspaceRef.child "users"
-
-      usersRef.on "child_added", (snapshot) =>
+      @workspaceRef.child("users").on "child_added", (snapshot) =>
         joinedUser = snapshot.name()
         return if not joinedUser or joinedUser is KD.nick()
         @hidePlaygroundsButton()
-
 
       if @amIHost()
         # currently only for host.
@@ -46,11 +44,25 @@ class TeamworkWorkspace extends CollaborativeWorkspace
           tooltip      :
             title      : "If it's on, preview will be refreshed when you save a file."
             placement  : "bottom"
-          callback     : (state) =>
-            @refreshPreviewPane previewPane  if state
 
         activePanel.getPaneByName("editor").on "EditorDidSave", =>
           @refreshPreviewPane previewPane  if @autoRefreshSwitch.getValue()
+
+      @getActivePanel().header.addSubView @avatarsView = new KDCustomHTMLView
+        cssClass : "tw-user-avatars"
+
+    @on "WorkspaceUsersFetched", =>
+      @workspaceRef.child("users").once "value", (snapshot) =>
+        userStatus = snapshot.val()
+        return unless userStatus
+        @manageUserAvatars userStatus
+
+  displayBroadcastMessage: (options) ->
+    super options
+
+    if options.origin is "users"
+      KD.utils.wait 500, => # prevent double triggered firebase event.
+        @fetchUsers()
 
   createLoader: ->
     @container.addSubView @loader = new KDCustomHTMLView
@@ -60,12 +72,14 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         src      : "#{KD.apiUri}/images/teamwork/loading.gif"
 
   startNewSession: (options) ->
+    KD.mixpanel "User Started Teamwork session"
+
     @destroySubViews()
     unless options
       options = @getOptions()
       delete options.sessionKey
 
-    workspaceClass          = @getEnvironmentClass options.environment
+    workspaceClass          = @getPlaygroundClass options.playground
     teamwork                = new workspaceClass options
     @getDelegate().teamwork = teamwork
     @addSubView teamwork
@@ -80,16 +94,16 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @forceDisconnect()
     @firepadRef.child(sessionKey).once "value", (snapshot) =>
       value = snapshot.val()
-      {environment, environmentManifest} = value  if value
+      {playground, playgroundManifest} = value  if value
 
       teamworkClass     = TeamworkWorkspace
       teamworkOptions   = options
 
-      if environment
-        teamworkClass   = @getEnvironmentClass environment
+      if playground
+        teamworkClass   = @getPlaygroundClass playground
 
-      if environmentManifest
-        teamworkOptions = @getDelegate().mergeEnvironmentOptions environmentManifest
+      if playgroundManifest
+        teamworkOptions = @getDelegate().mergePlaygroundOptions playgroundManifest
 
       teamworkOptions.sessionKey = newOptions.sessionKey
 
@@ -102,13 +116,12 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     previewPane.previewer.emit "ViewerRefreshed"
 
   createRunButton: (panel) ->
-    # panel.headerButtons.Environments.hide()
     panel.header.addSubView new KDButtonView
       title      : "Run"
       callback   : => @handleRun panel
 
-  getEnvironmentClass: (environment) ->
-    switch environment
+  getPlaygroundClass: (playground) ->
+    switch playground
       when "Facebook" then FacebookTeamwork
       when "GoLang"   then GoLangTeamwork
       else TeamworkWorkspace
@@ -134,7 +147,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     isLocal         = path.indexOf("localfile") is 0
     isNotPublic     = not FSHelper.isPublicPath path
     {previewPane}   = activePanel.paneLauncher
-    {defaultVmName} = KD.getSingleton "vmController"
 
     return if isLocal or isNotPublic
       error         = "This file cannot be previewed" if isLocal
@@ -145,5 +157,40 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         duration    : 2500
         container   : previewPane
 
-    url = path.replace "/home/#{@getHost()}/Web", defaultVmName
+    url = path.replace "/home/#{@getHost()}/Web", "https://#{KD.nick()}.kd.io"
     previewPane.openUrl url
+
+  manageUserAvatars: (userStatus) ->
+    for own nickname, status of userStatus
+      if status is "online"
+        unless @avatars[nickname]
+          @createUserAvatar @users[nickname]
+      else
+        if @avatars[nickname]
+          @removeUserAvatar nickname
+
+  createUserAvatar: (jAccount) ->
+    return unless jAccount
+
+    userNickname = jAccount.profile.nickname
+    return if userNickname is KD.nick()
+
+    tooltipTitle = userNickname
+    avatarView   = new AvatarStaticView
+      size       :
+        width    : 25
+        height   : 25
+      tooltip    :
+        title    : tooltipTitle
+    , jAccount
+
+    @avatars[userNickname] = avatarView
+    @avatarsView.addSubView avatarView
+    avatarView.bindTransitionEnd()
+
+  removeUserAvatar: (nickname) ->
+    avatarView = @avatars[nickname]
+    avatarView.setClass "fade-out"
+    avatarView.once "transitionend", =>
+      avatarView.destroy()
+      delete @avatars[nickname]

@@ -15,13 +15,13 @@ import (
 	"koding/newkite/protocol"
 	"koding/tools/config"
 	"koding/tools/utils"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type Provisioning struct{}
@@ -67,17 +67,91 @@ func main() {
 	}
 
 	methods := map[string]string{
-		"start":     "Start",
-		"stop":      "Stop",
-		"prepare":   "Prepare",
-		"unprepare": "Unprepare",
-		"exec":      "Exec",
-		"info":      "Info",
+		"start":      "Start",
+		"stop":       "Stop",
+		"prepare":    "Prepare",
+		"unprepare":  "Unprepare",
+		"exec":       "Exec",
+		"info":       "Info",
+		"state":      "State",
+		"resizeDisk": "ResizeDisk",
 	}
 
 	k = kite.New(options)
 	k.AddMethods(new(Provisioning), methods)
 	k.Start()
+}
+
+func (p *Provisioning) State(r *protocol.KiteDnodeRequest, result *string) error {
+	var params struct {
+		ContainerName string
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not get state. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" {
+		return errors.New("{ containerName: [string] }")
+	}
+
+	log.Info("[%s] requested state for the container: '%s'", r.Username, params.ContainerName)
+
+	vm, err := getVM(params.ContainerName)
+	if err == nil {
+		containerName := "vm-" + vm.Id.Hex()
+		c := container.NewContainer(containerName)
+		*result = c.State()
+		return nil
+	}
+
+	// the vm could be in a maintenance mode, if yes return the state as "MAINTENANCE"
+	_, ok := err.(*UnderMaintenanceError)
+	if !ok {
+		log.Error("[%s] could not get vm to state '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return errors.New("could not state vm - 1")
+	}
+
+	*result = "MAINTENANCE"
+	return nil
+}
+
+func (p *Provisioning) ResizeDisk(r *protocol.KiteDnodeRequest, result *bool) error {
+	var params struct {
+		ContainerName string
+		ResizeTo      int
+	}
+
+	if r.Args == nil {
+		log.Error("[%s] could not get info. withArgs is not defined.", r.Username)
+		return errors.New("withArgs is not defined")
+	}
+
+	if r.Args.Unmarshal(&params) != nil || params.ContainerName == "" || params.ResizeTo == 0 {
+		return errors.New("{ containerName: [string], resizeTo: [int] }")
+	}
+
+	log.Info("[%s] resizeDisk the container: '%s'", r.Username, params.ContainerName)
+
+	vm, err := getVM(params.ContainerName)
+	if err != nil {
+		log.Error("[%s] could not get vm to resize '%s'. err: '%s'",
+			r.Username, params.ContainerName, err)
+		return errors.New("could not start vm - 1")
+	}
+
+	containerName := "vm-" + vm.Id.Hex()
+	c := container.NewContainer(containerName)
+
+	err = c.Resize(params.ResizeTo)
+	if err != nil {
+		return err
+	}
+
+	*result = true
+	return nil
 }
 
 func (p *Provisioning) Info(r *protocol.KiteDnodeRequest, result *ContainerInfo) error {
@@ -94,13 +168,13 @@ func (p *Provisioning) Info(r *protocol.KiteDnodeRequest, result *ContainerInfo)
 		return errors.New("{ containerName: [string] }")
 	}
 
-	log.Info("[%s] requested info the container: '%s'", r.Username, params.ContainerName)
+	log.Info("[%s] requested info for the container: '%s'", r.Username, params.ContainerName)
 
 	vm, err := getVM(params.ContainerName)
 	if err != nil {
-		log.Error("[%s] could not get vm to start '%s'. err: '%s'",
+		log.Error("[%s] could not get vm to get info about '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
-		return errors.New("could not start vm - 1")
+		return errors.New("could not info vm - 1")
 	}
 
 	containerName := "vm-" + vm.Id.Hex()
@@ -280,6 +354,7 @@ func (p *Provisioning) Unprepare(r *protocol.KiteDnodeRequest, result *bool) err
 func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error {
 	var params struct {
 		ContainerName string
+		Reinitialize  bool
 	}
 
 	if r.Args == nil {
@@ -291,7 +366,7 @@ func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error
 		return errors.New("{ containerName: [string] }")
 	}
 
-	err := prepare(r.Username, params.ContainerName)
+	err := prepare(params.Reinitialize, r.Username, params.ContainerName)
 	if err != nil {
 		log.Error("[%s] could not prepare vm: '%s'. err: '%s'",
 			r.Username, params.ContainerName, err)
@@ -302,13 +377,13 @@ func (p *Provisioning) Prepare(r *protocol.KiteDnodeRequest, result *bool) error
 	return nil
 }
 
-func prepare(username, hostname string) error {
+func prepare(reinitialize bool, username, vmName string) error {
 	user, err := getUser(username)
 	if err != nil {
 		return err
 	}
 
-	vm, err := getVM(hostname)
+	vm, err := getVM(vmName)
 	if err != nil {
 		return err
 	}
@@ -330,10 +405,10 @@ func prepare(username, hostname string) error {
 	c.Useruid = user.Uid
 	c.DiskSizeInMB = vm.DiskSizeInMB
 
-	log.Info("preparing container '%s' for user '%s' with uid '%d'",
-		containerName, user.Name, user.Uid)
+	log.Info("preparing container '%s' for user '%s' with uid '%d' (reinitializing: %t)",
+		containerName, user.Name, user.Uid, reinitialize)
 
-	err = c.Prepare()
+	err = c.Prepare(reinitialize)
 	if err != nil {
 		return err
 	}
@@ -395,6 +470,18 @@ func getVM(hostnameAlias string) (*models.VM, error) {
 	return vm, nil
 }
 
+type UnderMaintenanceError struct{}
+
+func (err *UnderMaintenanceError) Error() string {
+	return "VM is under maintenance."
+}
+
+type AccessDeniedError struct{}
+
+func (err *AccessDeniedError) Error() string {
+	return "Vm is banned"
+}
+
 func validateVM(vm *models.VM) error {
 	// applyDefaults
 	if vm.NumCPUs == 0 {
@@ -414,11 +501,13 @@ func validateVM(vm *models.VM) error {
 	}
 
 	if vm.HostKite == "(maintenance)" {
-		return fmt.Errorf("VM '%s' is under maintenance", vm.HostnameAlias)
+		log.Info("VM '%s' is under maintenance", vm.HostnameAlias)
+		return new(UnderMaintenanceError)
 	}
 
 	if vm.HostKite == "(banned)" {
-		return fmt.Errorf("VM '%s' is banned", vm.HostnameAlias)
+		log.Info("VM '%s' is banned", vm.HostnameAlias)
+		return new(AccessDeniedError)
 	}
 
 	if vm.IP == nil {

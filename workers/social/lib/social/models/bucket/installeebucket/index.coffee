@@ -6,3 +6,4 @@ module.exports = class CInstalleeBucket extends CBucket
 
   @set
     schema          : CBucket.schema
+    sharedEvents    : CBucket.sharedEvents

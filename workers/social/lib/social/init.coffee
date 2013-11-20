@@ -56,7 +56,7 @@ exports.init = (koding) ->
   #   db          : koding.getClient()
   #   counterName : 'dbinit'
   # }
-  # counter.reset -> counter.count (err, count) ->
+  # counter.initizalize -> counter.count (err, count) ->
   #   throw err  if err
   #   if count is 0
   #     counter.next (err, seq) ->

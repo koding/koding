@@ -9,4 +9,5 @@ module.exports = class CGroupJoineeActivity extends CBucketActivity
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
     sharedMethods   : CActivity.sharedMethods
+    sharedEvents    : CBucketActivity.sharedEvents
     relationships   : CBucketActivity.relationships

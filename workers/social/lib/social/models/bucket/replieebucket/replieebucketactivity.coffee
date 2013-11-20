@@ -7,4 +7,5 @@ module.exports = class CReplieeBucketActivity extends CBucketActivity
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
     sharedMethods   : CActivity.sharedMethods
+    sharedEvents    : CBucketActivity.sharedEvents
     relationships   : CBucketActivity.relationships
