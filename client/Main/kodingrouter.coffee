@@ -312,13 +312,15 @@ class KodingRouter extends KDRouter
                   That doesn't seem to be a valid recovery token!
                   """
           else
-            mainController.loginScreen.headBannerShowRecovery recoveryToken
+            warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
+            # mainController.loginScreen.headBannerShowRecovery recoveryToken
           @clear "/"
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
         inviteCode = decodeURIComponent inviteCode
         if KD.isLoggedIn()
-          mainController.loginScreen.doRedeem {inviteCode}
+          warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
+          # mainController.loginScreen.doRedeem {inviteCode}
           @handleRoute '/', entryPoint: KD.config.entryPoint
         else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
@@ -327,7 +329,8 @@ class KodingRouter extends KDRouter
               new KDNotificationView
                 title: 'Invalid invitation code!'
           else
-            mainController.loginScreen.headBannerShowInvitation invite
+            warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
+            # mainController.loginScreen.headBannerShowInvitation invite
           @clear "/"
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
