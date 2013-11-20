@@ -58,8 +58,8 @@ type RabbitMQ struct {
 	tag     string
 }
 
-func (r *RabbitMQ) QOS(messageCount int) {
-	r.channel.Qos(messageCount, 0, false)
+func (r *RabbitMQ) QOS(messageCount int) error {
+	return r.channel.Qos(messageCount, 0, false)
 }
 
 func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
