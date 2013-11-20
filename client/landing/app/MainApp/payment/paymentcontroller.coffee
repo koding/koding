@@ -68,19 +68,16 @@ class PaymentController extends KDController
         JPaymentSubscription.fetchUserSubscriptions (err, subs) ->
           findActiveSubscription subs, planCode, callback
 
-  confirmPayment: ->
-    console.error 'confirm payment is removed'
-
   makePayment: (paymentMethodId, plan, amount) ->
     vmController = KD.getSingleton('vmController')
 
-    if 'string' is typeof plan
-      @fetchPlanByCode plan, (err, planObj) =>
-        return console.error err  if err
-        @makePayment paymentMethodId, planObj, amount
+    if amount is 0
+      vmController.createGroupVM type, plan.code or plan
 
-    else if amount is 0
-      vmController.createGroupVM type, plan.code
+    else if 'string' is typeof plan
+      @fetchPlanByCode plan, (err, planObj) =>
+        return  if KD.showError err
+        @makePayment paymentMethodId, planObj, amount
 
     # else if type in ['group', 'expensed']
     #   paymentMethod = { plan: plan.code, multiple: yes }
