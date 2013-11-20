@@ -429,6 +429,7 @@ class LoginView extends KDScrollView
               @registerForm.$('.main-part').removeClass 'hidden'
 
           KD.mixpanel "Opened register form"
+
         when "home"
           parent.notification?.destroy()
           if @headBannerMsg?

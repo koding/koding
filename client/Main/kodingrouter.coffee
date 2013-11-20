@@ -241,21 +241,23 @@ class KodingRouter extends KDRouter
       when 'login'    then 'log in'
       when 'register' then 'register'
 
-    animateToForm = (formName, force = no) ->
-      { mainTabView } = KD.getSingleton 'mainView'
-      appsAreOpen = mainTabView.getVisibleHandles?().length > 0
-      if not force and formName in ['login', 'register'] and appsAreOpen
-        ok = no
-        modal = KDModalView.confirm
-          title: "Are you sure you want to #{getAction formName}?"
-          description: "You will lose your work"
-          ok: callback: ->
-            ok = yes
-            modal.destroy()
-            animateToForm formName, yes
-        modal.once 'KDObjectWillBeDestroyed', -> clear()  if not ok
-      else
-        mainController.loginScreen.animateToForm formName
+    # FIXME ~ GG
+    # animateToForm = (formName, force = no) ->
+    #   { mainTabView } = KD.getSingleton 'mainView'
+    #   appsAreOpen = mainTabView.getVisibleHandles?().length > 0
+    #   if not force and formName in ['login', 'register'] and appsAreOpen
+    #     ok = no
+    #     modal = KDModalView.confirm
+    #       title: "Are you sure you want to #{getAction formName}?"
+    #       description: "You will lose your work"
+    #       ok: callback: ->
+    #         ok = yes
+    #         modal.destroy()
+    #         animateToForm formName, yes
+    #     modal.once 'KDObjectWillBeDestroyed', -> clear()  if not ok
+    #   else
+    #     warn "FIXME Add tell to Login app ~ GG @ kodingrouter", formName
+    #     # mainController.loginScreen.animateToForm formName
 
     requireLogin =(fn)->
       mainController.ready ->
@@ -284,13 +286,7 @@ class KodingRouter extends KDRouter
       '/Landing/:page'         : noop
       '/R/:username'           : noop
 
-      # verbs
-      '/:name?/Login'          : ({params:{name}})-> requireLogout -> animateToForm 'login'
-      '/:name?/Logout'         : ({params:{name}})-> requireLogin  -> mainController.doLogout()
-      '/:name?/Redeem'         : ({params:{name}})-> requireLogin  -> animateToForm 'redeem'
-      '/:name?/Register'       : ({params:{name}})-> requireLogout -> animateToForm 'register'
-      '/:name?/Recover'        : ({params:{name}})-> requireLogout -> animateToForm 'recover'
-      '/:name?/ResendToken'    : ({params:{name}})-> requireLogout -> animateToForm 'resendEmail'
+      '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
       # content
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
@@ -316,13 +312,15 @@ class KodingRouter extends KDRouter
                   That doesn't seem to be a valid recovery token!
                   """
           else
-            mainController.loginScreen.headBannerShowRecovery recoveryToken
+            warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
+            # mainController.loginScreen.headBannerShowRecovery recoveryToken
           @clear "/"
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
         inviteCode = decodeURIComponent inviteCode
         if KD.isLoggedIn()
-          mainController.loginScreen.doRedeem {inviteCode}
+          warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
+          # mainController.loginScreen.doRedeem {inviteCode}
           @handleRoute '/', entryPoint: KD.config.entryPoint
         else KD.remote.api.JInvitation.byCode inviteCode, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
@@ -331,7 +329,8 @@ class KodingRouter extends KDRouter
               new KDNotificationView
                 title: 'Invalid invitation code!'
           else
-            mainController.loginScreen.headBannerShowInvitation invite
+            warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
+            # mainController.loginScreen.headBannerShowInvitation invite
           @clear "/"
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
