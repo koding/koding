@@ -148,7 +148,7 @@ class TeamworkApp extends KDObject
         KD.mixpanel "User Changed Playground", playground
 
         if contentDetails.type is "zip"
-          root            = "Web/Teamwork/#{playground}"
+          root            = "/home/#{@teamwork.getHost()}/Web/Teamwork/#{playground}"
           folder          = FSHelper.createFileFromPath root, "folder"
           contentUrl      = contentDetails.url
           manifestVersion = manifest.version

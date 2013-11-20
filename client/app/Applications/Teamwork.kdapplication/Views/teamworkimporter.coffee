@@ -2,7 +2,7 @@ class TeamworkImporter extends KDObject
 
   constructor: (options = {}, data) ->
 
-    options.rootPath or= "Web/Teamwork"
+    options.rootPath or= "/home/#{KD.nick()}/Web/Teamwork"
 
     super options, data
 

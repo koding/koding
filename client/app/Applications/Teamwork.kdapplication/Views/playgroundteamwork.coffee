@@ -70,7 +70,7 @@ class PlaygroundTeamwork extends TeamworkWorkspace
     editor = @getActivePanel().getPaneByName "editor"
 
     for path in files
-      filePath = "Web/Teamwork/#{@getOptions().playground}/#{path.replace /^.\//, ''}"
+      filePath = "/home/#{KD.nick()}/Web/Teamwork/#{@getOptions().playground}/#{path.replace /^.\//, ''}"
       file     = FSHelper.createFileFromPath filePath
 
       file.fetchContents (err, contents) =>
