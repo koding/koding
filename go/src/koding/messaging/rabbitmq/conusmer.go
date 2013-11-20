@@ -34,7 +34,7 @@ func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*C
 			BindingOptions:  bo,
 		},
 	}
-	err := c.connect()
+	err = c.connect()
 	if err != nil {
 		return nil, err
 	}
@@ -122,12 +122,14 @@ func (c *Consumer) connect() error {
 	return nil
 }
 
-func (c *Consumer) Consume(handler func(deliveries <-chan amqp.Delivery)) {
+func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 	c.handler = handler
 
 	// handle all consumer errors, if required re-connect
-	// there are problems with reconnection logic
-	handler(c.deliveries)
+	// there are problems with reconnection logic for now
+	for delivery := range c.deliveries {
+		handler(delivery)
+	}
 
 	// change fmt -> log
 	fmt.Println("handle: deliveries channel closed")
