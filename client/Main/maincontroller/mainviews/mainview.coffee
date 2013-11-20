@@ -108,10 +108,31 @@ class MainView extends KDView
   createAccountArea:->
 
     @header.addSubView @accountArea = new KDCustomHTMLView cssClass : 'account-area'
-    @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
-    @accountArea.addSubView @avatarArea = new AvatarArea {}, KD.whoami()
 
-    @accountArea.addSubView @searchIcon = new KDCustomHTMLView
+    unless KD.isLoggedIn()
+      @loginLink = new CustomLinkView
+        domId       : 'header-sign-in'
+        title       : 'Login'
+        attributes  :
+          href      : '/Login'
+        click       : (event)->
+          KD.utils.stopDOMEvent event
+          KD.getSingleton('router').handleRoute "/Login"
+      @accountArea.addSubView @loginLink
+
+      mc = KD.getSingleton "mainController"
+      mc.on "accountChanged.to.loggedIn", =>
+        @loginLink.destroy()
+        @createLoggedInAccountArea()
+
+      return
+
+    @createLoggedInAccountArea()
+
+  createLoggedInAccountArea:->
+    @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
+    @accountArea.addSubView @avatarArea  = new AvatarArea {}, KD.whoami()
+    @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
       domId      : 'fatih-launcher'
       cssClass   : 'search acc-dropdown-icon'
       tagName    : 'a'
