@@ -11,6 +11,13 @@ type Producer struct {
 	session Session
 }
 
+// RoutingKey:
+// 		The key that when publishing a message to a exchange/queue will be only delivered to
+//		given routing key listeners
+// Mandatory :
+// 		Queue should be on the server/broker
+// Immediate :
+// 		Consumer should be bound to server
 type PublishingOptions struct {
 	RoutingKey, Tag      string
 	Mandatory, Immediate bool
