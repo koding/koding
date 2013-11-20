@@ -98,7 +98,7 @@ module.exports = [
 
   "app/CommonViews/CommonVMUsageBar.coffee",
 
-  "app/CommonViews/formworkflow.coffee",
+  "app/CommonViews/bidirectionalnavigation.coffee",
 
   "app/CommonViews/formworkflow/formworkflow.coffee",
   "app/CommonViews/formworkflow/gate.coffee",
