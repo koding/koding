@@ -1,5 +1,5 @@
-@import "./kdfn"
-@import "./client/stylus/appfn"
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
 
 @css {
 /*
@@ -17,7 +17,8 @@ app.login-signup.styl
   top                -100%
   text-align         center
   vendor             transition, top .3s ease-in-out
-  abs()
+  position           fixed
+  // abs()
   borderBox()
   &.shown
     top              0
@@ -223,7 +224,7 @@ app.login-signup.styl
     right                 -3px
     size                  64px,38px
     bg                    position,-400px -120px
-    sprite()
+    // sprite()
     abs()
     z-index               20002
   .logo
@@ -232,7 +233,7 @@ app.login-signup.styl
     margin-left           1px
     cursor                pointer
     blockMid()
-    sprite()
+    // sprite()
     bg(position,-400px 0)
   a.back-to-login
     font-size             11px
@@ -275,7 +276,7 @@ app.login-signup.styl
   li.github
     bg(position,-400px -40px)
   li
-    sprite()
+    // sprite()
     size          32px,32px
     border        1px solid rgba(0, 0, 0, 0.2)
     margin        0 5px
@@ -391,7 +392,7 @@ app.login-signup.styl
     bg                  position, -80px -480px
     // vendor              transition, opacity .15s ease-out
     opacity             0
-    sprite()
+    // sprite()
 
   .kdloader.input-loader
     abs()
@@ -432,7 +433,7 @@ app.login-signup.styl
       size              40px, 20px
       margin            8px 0 0 2px
       fl()
-      sprite()
+      // sprite()
     .wrapper
       width             48.5%
       fr()
@@ -475,7 +476,7 @@ p.login-tip
     display             inline-block
     margin-right        5px
     vertical-align      middle
-    sprite()
+    // sprite()
 
 // .recovery
 //   .kdnotification.mini

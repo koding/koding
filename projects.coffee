@@ -81,6 +81,12 @@ projects      =
     script        : "website/js/app.account.#{KODING_VERSION}.js"
     sourceMapRoot : "Account/"
 
+  Login           :
+    files         : "client/Login/includes.coffee"
+    style         : "website/css/app.Login.#{KODING_VERSION}.css"
+    script        : "website/js/app.Login.#{KODING_VERSION}.js"
+    sourceMapRoot : "Login/"
+
   Terminal        :
     files         : "client/Terminal/includes.coffee"
     style         : "website/css/app.terminal.#{KODING_VERSION}.css"
@@ -97,17 +103,17 @@ projects      =
     files         : "client/PostOperations/includes.coffee"
     script        : "website/js/client.post.#{KODING_VERSION}.js"
 
-bundles       =
+bundles           =
 
-  Social      :
-    projects  : ['Activity', 'Topics']
-    style     : "website/css/social.#{KODING_VERSION}.css"
-    script    : "website/js/social.#{KODING_VERSION}.js"
+  Social          :
+    projects      : ['Activity', 'Topics']
+    style         : "website/css/social.#{KODING_VERSION}.css"
+    script        : "website/js/social.#{KODING_VERSION}.js"
 
-  Koding      :
-    projects  : ['KDBackend', 'KDMainApp', 'PostOperations']
-    style     : "website/css/koding.#{KODING_VERSION}.css"
-    script    : "website/js/koding.#{KODING_VERSION}.js"
+  Koding          :
+    projects      : ['KDBackend', 'KDMainApp', 'Login', 'PostOperations']
+    style         : "website/css/koding.#{KODING_VERSION}.css"
+    script        : "website/js/koding.#{KODING_VERSION}.js"
 
 
 module.exports  = {projects, bundles}

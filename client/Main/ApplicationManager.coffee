@@ -46,7 +46,6 @@ class ApplicationManager extends KDObject
   checkAppAvailability : (name='')->
     return KD.config.apps[name] and (name not in Object.keys KD.appClasses)
 
-
   open: do ->
 
     createOrShow = (appOptions = {}, appParams, callback = noop)->
