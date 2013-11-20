@@ -101,9 +101,11 @@ module.exports = [
   "app/CommonViews/bidirectionalnavigation.coffee",
 
   "app/CommonViews/formworkflow/formworkflow.coffee",
+  "app/CommonViews/formworkflow/history.coffee",
   "app/CommonViews/formworkflow/gate.coffee",
   "app/CommonViews/formworkflow/collector.coffee",
   "app/CommonViews/formworkflow/satisfier.coffee",
+  "app/CommonViews/formworkflow/modal.coffee",
   
   # FATIH
   # "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
