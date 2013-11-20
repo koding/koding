@@ -4,7 +4,7 @@ class ApplicationManager extends KDObject
 
   * EMITTED EVENTS
     - AppCreated                  [appController]
-    - AppIsBeingShown  [appController, appView, appOptions]
+    - AppIsBeingShown             [appController, appView, appOptions]
   ###
 
   manifestsFetched = no
@@ -247,6 +247,7 @@ class ApplicationManager extends KDObject
     return if appOptions.background
 
     @emit 'AppIsBeingShown', appInstance, appView, appOptions
+    appInstance.appIsShown?()
     @setLastActiveIndex appInstance
     @utils.defer -> callback? appInstance
 
