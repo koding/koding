@@ -56,7 +56,7 @@ class PaymentWorkflow extends FormWorkflow
 
     form = new PaymentChoiceForm
 
-    form.on 'Activated', =>
+    form.once 'Activated', =>
       @preparePaymentMethods()
 
     form.on 'PaymentMethodChosen', (paymentMethod) =>

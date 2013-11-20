@@ -48,7 +48,7 @@ class VmProductForm extends FormWorkflow
     @addForm 'upgrade', upgradeForm, ['plan', 'subscription']
 
     packChoiceForm = @createPackChoiceForm()
-    packChoiceForm.on 'Activated', => @emit 'PackOfferingRequested'
+    packChoiceForm.once 'Activated', => @emit 'PackOfferingRequested'
 
     packChoiceForm.on 'PackSelected', (pack) =>
       @checkUsageLimits pack, (err, usage) =>
