@@ -20,7 +20,6 @@ func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 // This is a constructor for consumer creation
 // Accepts Exchange, Queue, BindingOptions and ConsumerOptions
 func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*Consumer, error) {
-
 	rmq, err := newRabbitMQConnection(co.Tag)
 	if err != nil {
 		return nil, err
@@ -36,6 +35,7 @@ func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*C
 			BindingOptions:  bo,
 		},
 	}
+
 	err = c.connect()
 	if err != nil {
 		return nil, err
@@ -45,7 +45,6 @@ func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*C
 }
 
 func (c *Consumer) connect() error {
-
 	e := c.session.Exchange
 	q := c.session.Queue
 	bo := c.session.BindingOptions
@@ -53,7 +52,7 @@ func (c *Consumer) connect() error {
 
 	var err error
 
-	// got channel, declaring Exchange
+	// declaring Exchange
 	if err = c.channel.ExchangeDeclare(
 		e.Name,       // name of the exchange
 		e.Type,       // type
@@ -79,7 +78,7 @@ func (c *Consumer) connect() error {
 		return err
 	}
 
-	// declared Queue, binding to Exchange
+	// binding Exchange to Queue
 	if err = c.channel.QueueBind(
 		// bind to real queue
 		queue.Name,    // name of the queue
@@ -91,7 +90,7 @@ func (c *Consumer) connect() error {
 		return err
 	}
 
-	// Queue bound to Exchange, starting Consume
+	// Exchange bound to Queue, starting Consume
 	deliveries, err := c.channel.Consume(
 		// consume from real queue
 		queue.Name,   // name
@@ -112,6 +111,8 @@ func (c *Consumer) connect() error {
 	return nil
 }
 
+// Accepts a handler function for every message streamed from RabbitMq
+// will be called within this handler func
 func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 	c.handler = handler
 
@@ -126,7 +127,11 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 	c.done <- nil
 }
 
+// Gracefully close all connections and wait
+// for handler to finish its, messages
 func (c *Consumer) Shutdown() error {
+	// to-do
+	// first stop streaming then close connections
 	err := shutdown(c.conn, c.channel, c.tag)
 	if err != nil {
 		return nil
@@ -142,6 +147,7 @@ func (c *Consumer) Shutdown() error {
 	return <-c.done
 }
 
+// implementing closer interface
 func (c *Consumer) RegisterSignalHandler() {
 	registerSignalHandler(c)
 }
