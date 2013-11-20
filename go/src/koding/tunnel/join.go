@@ -2,10 +2,9 @@ package tunnel
 
 import (
 	"io"
-	"net"
 )
 
-func join(local, remote net.Conn) {
+func join(local, remote io.ReadWriteCloser) {
 	done := make(chan bool, 2)
 
 	copy := func(dst io.Writer, src io.Reader) {
