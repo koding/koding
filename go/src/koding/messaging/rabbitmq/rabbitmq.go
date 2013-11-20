@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
 	"koding/tools/config"
@@ -51,8 +52,36 @@ func getConnectionString() string {
 	}.String()
 }
 
-func CreateConnection(name string) {
+type RabbitMQ struct {
+	conn    *amqp.Connection
+	channel *amqp.Channel
+	tag     string
+}
 
+func newRabbitMQ(tag string) (*RabbitMQ, error) {
+
+	if tag == "" {
+		return nil, errors.New("Tag is not defined in consumer options")
+	}
+
+	rmq := &RabbitMQ{}
+
+	rmq.tag = tag
+
+	var err error
+
+	// get connection
+	rmq.conn, err = amqp.Dial(getConnectionString())
+	if err != nil {
+		return nil, err
+	}
+	handleErrors(rmq.conn)
+	// getting channel
+	rmq.channel, err = rmq.conn.Channel()
+	if err != nil {
+		return nil, err
+	}
+	return rmq, nil
 }
 
 type Session struct {
