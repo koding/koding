@@ -130,5 +130,5 @@ if mixpanel and KD.config.logToExternal then do ->
         "$email"        : email
         "$created"      : createdAt
         "Status"        : type
-        "Randomizer"    : Math.floor((Math.random()*4)+1)
+        "Randomizer"    : KD.utils.getRandomNumber 4
       mixpanel.name_tag "#{nickname}.kd.io"
