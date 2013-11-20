@@ -17,7 +17,7 @@ class TeamworkApp extends KDObject
     else
       @teamwork.on "PanelCreated", =>
         @doCurlRequest playgroundsManifest, (err, manifest) =>
-          @populatePlaygroundsButton manifest
+          @playgroundsManifest = manifest
 
   createTeamwork: ->
     options               = @getOptions()
@@ -41,9 +41,9 @@ class TeamworkApp extends KDObject
             callback      : => @showToolsModal @teamwork.getActivePanel(), @teamwork
           }
           title           : "Playgrounds"
-          itemClass       : KDButtonViewWithMenu
+          itemClass       : KDButtonView
           cssClass        : "clean-gray playgrounds-button"
-          menu            : []
+          callback        : => @showPlaygroundsModal()
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
@@ -61,21 +61,6 @@ class TeamworkApp extends KDObject
             }
           ]
       ]
-
-  populatePlaygroundsButton: (playgrounds) ->
-    button   = @teamwork.getActivePanel().headerButtons.Playgrounds
-    menu     = []
-
-    playgrounds.forEach (playground) =>
-      item   = {}
-      {name} = playground
-      item[name] = {}
-      item[name].callback = =>
-        @handlePlaygroundSelection name, playground.manifestUrl
-
-      menu.push item
-
-    button.setOption "menu", menu
 
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
@@ -128,7 +113,9 @@ class TeamworkApp extends KDObject
     finderController.mountVm "#{defaultVmName}:#{path}"
 
   showPlaygroundsModal: ->
-    new TeamworkPlaygroundsModal delegate: this
+    new TeamworkPlaygroundsModal
+      delegate    : this
+      playgrounds : @playgroundsManifest
 
   mergePlaygroundOptions: (manifest, playground) ->
     {rawOptions}                    = @teamwork
@@ -148,6 +135,10 @@ class TeamworkApp extends KDObject
     return rawOptions
 
   handlePlaygroundSelection: (playground, manifestUrl) ->
+    unless manifestUrl
+      for manifest in @playgroundsManifest when playground is manifest.name
+        {manifestUrl} = manifest
+
     @doCurlRequest manifestUrl, (err, manifest) =>
       @teamwork.startNewSession @mergePlaygroundOptions manifest, playground
       @teamwork.container.setClass playground
