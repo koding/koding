@@ -46,6 +46,7 @@ func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
 	return p, nil
 }
 
+// Publish sends a Publishing from the client to an exchange on the server.
 func (p *Producer) Publish(publishing amqp.Publishing) error {
 	e := p.session.Exchange
 	q := p.session.Queue
