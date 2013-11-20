@@ -17,6 +17,8 @@ func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 	return c.deliveries
 }
 
+// This is a constructor for consumer creation
+// Accepts Exchange, Queue, BindingOptionsa and ConsumerOptions
 func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*Consumer, error) {
 
 	rmq, err := newRabbitMQConnection(co.Tag)
@@ -132,6 +134,11 @@ func (c *Consumer) Shutdown() error {
 	// change fmt -> log
 	defer fmt.Println("Consumer shutdown OK")
 	fmt.Println("Waiting for handler to exit")
+
+	// this channel is here for finishing the consumer's ranges of
+	// delivery chans.  We need every delivery to be processed, here make
+	// sure to wait for all consumers goroutines to finish before exiting our
+	// process.
 	return <-c.done
 }
 
