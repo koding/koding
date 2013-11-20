@@ -24,16 +24,21 @@ class LoginAppsController extends AppController
 
     super options, data
 
-  handleQuery: (query) ->
+  appIsShown: (params)->
+    @handleRoute "/#{params.label}"
 
+  handleQuery: (label)->
     {currentPath} = KD.getSingleton 'router'
-    form = 'login'
+    @handleRoute currentPath
 
-    s = (exp, tf)-> if currentPath.match exp then form = tf
+  handleRoute: (route)->
+    form = 'login'
+    s = (exp, tf)-> if route.match exp then form = tf
     s /\/Login$/       , 'login'
     s /\/Redeem$/      , 'redeem'
     s /\/Register$/    , 'register'
     s /\/Recover$/     , 'recover'
     s /\/ResendToken$/ , 'resendEmail'
 
-    @getView().animateToForm form
+    @utils.defer =>
+      @getView().animateToForm form
