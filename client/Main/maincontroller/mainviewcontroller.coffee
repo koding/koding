@@ -12,8 +12,9 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
 
-    mainController.on 'accountChanged.to.loggedIn', (account)->
-      mainController.loginScreen.hide()
+    warn "FIXME Add tell to Login app ~ GG @ kodingrouter (if needed)"
+    # mainController.on 'accountChanged.to.loggedIn', (account)->
+    #   mainController.loginScreen.hide()
 
     mainController.on "ShowInstructionsBook", (index)->
       book = mainView.addBook()

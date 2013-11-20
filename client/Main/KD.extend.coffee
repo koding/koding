@@ -78,7 +78,7 @@ KD.extend
     delete mainController?.userAccount
 
   isGuest:-> not KD.isLoggedIn()
-  isLoggedIn:-> KD.whoami().type isnt 'unregistered'
+  isLoggedIn:-> KD.whoami()?.type isnt 'unregistered'
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
 
