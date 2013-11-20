@@ -121,6 +121,9 @@ if mixpanel and KD.config.logToExternal then do ->
       {createdAt} = meta
       {firstName, lastName, nickname} = profile
 
+      params     = KD.utils.parseQuery(window.location.search.slice(1))
+      {campaign} = params
+
       # register user to mixpanel
       mixpanel.identify nickname
       mixpanel.people.set
@@ -131,4 +134,5 @@ if mixpanel and KD.config.logToExternal then do ->
         "$created"      : createdAt
         "Status"        : type
         "Randomizer"    : KD.utils.getRandomNumber 4
+        "Campaign"      : campaign
       mixpanel.name_tag "#{nickname}.kd.io"
