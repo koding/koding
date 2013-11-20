@@ -18,7 +18,7 @@ func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 }
 
 // This is a constructor for consumer creation
-// Accepts Exchange, Queue, BindingOptionsa and ConsumerOptions
+// Accepts Exchange, Queue, BindingOptions and ConsumerOptions
 func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*Consumer, error) {
 
 	rmq, err := newRabbitMQConnection(co.Tag)
