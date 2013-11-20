@@ -125,8 +125,9 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       delegate   : @panel
       sessionKey : @sessionKeys.preview
 
-    @workspace.on "WorkspaceSyncedWithRemote", =>
-      @keysRef.child("preview").set @previewPane.sessionKey
+    if @workspace.amIHost()
+      @workspace.on "WorkspaceSyncedWithRemote", =>
+        @keysRef.child("preview").set @previewPane.sessionKey
 
     @preview.addSubView @previewPane
 
