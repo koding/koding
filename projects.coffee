@@ -49,25 +49,25 @@ projects      =
     files         : "client/Social/Activity/includes.coffee"
     style         : "website/css/app.activity.#{KODING_VERSION}.css"
     script        : "website/js/app.activity.#{KODING_VERSION}.js"
-    sourceMapRoot : "Activity/"
+    sourceMapRoot : "Social/Activity/"
 
   # Members         :
   #   files         : "client/Members/includes.coffee"
   #   style         : "website/css/app.members.#{KODING_VERSION}.css"
   #   script        : "website/js/app.members.#{KODING_VERSION}.js"
-  #   sourceMapRoot : "Members/"
+  #   sourceMapRoot : "Social/Members/"
 
   Topics          :
     files         : "client/Social/Topics/includes.coffee"
     style         : "website/css/app.topics.#{KODING_VERSION}.css"
     script        : "website/js/app.topics.#{KODING_VERSION}.js"
-    sourceMapRoot : "Topics/"
+    sourceMapRoot : "Social/Topics/"
 
   Feeder          :
     files         : "client/Social/Feeder/includes.coffee"
     style         : "website/css/app.feeder.#{KODING_VERSION}.css"
     script        : "website/js/app.feeder.#{KODING_VERSION}.js"
-    sourceMapRoot : "Feeder/"
+    sourceMapRoot : "Social/Feeder/"
 
   # Groups          :
   #   files         : "client/Groups/includes.coffee"
