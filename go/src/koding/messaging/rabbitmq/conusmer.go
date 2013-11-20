@@ -1,17 +1,14 @@
 package rabbitmq
 
 import (
-	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
 )
 
 type Consumer struct {
-	conn       *amqp.Connection
-	channel    *amqp.Channel
+	*RabbitMQ
 	deliveries <-chan amqp.Delivery
-	tag        string
-	handler    func(deliveries <-chan amqp.Delivery)
+	handler    func(amqp.Delivery)
 	done       chan error
 	session    Session
 }
@@ -22,15 +19,14 @@ func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 
 func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*Consumer, error) {
 
-	if co.Tag == "" {
-		return nil, errors.New("Tag is not defined in consumer options")
+	rmq, err := newRabbitMQ(co.Tag)
+	if err != nil {
+		return nil, err
 	}
 
 	c := &Consumer{
-		conn:    nil,
-		channel: nil,
-		tag:     co.Tag,
-		done:    make(chan error),
+		RabbitMQ: rmq,
+		done:     make(chan error),
 		session: Session{
 			Exchange:        e,
 			Queue:           q,
