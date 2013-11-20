@@ -4,17 +4,16 @@ import (
 	"io"
 )
 
-func join(local, remote io.ReadWriteCloser) {
-	done := make(chan bool, 2)
+func join(local, remote io.ReadWriteCloser) chan error {
+	errc := make(chan error, 2)
 
 	copy := func(dst io.Writer, src io.Reader) {
-		// don't care about errors here
-		io.Copy(dst, src)
-		done <- true
+		_, err := io.Copy(dst, src)
+		errc <- err
 	}
 
 	go copy(local, remote)
 	go copy(remote, local)
 
-	<-done
+	return errc
 }

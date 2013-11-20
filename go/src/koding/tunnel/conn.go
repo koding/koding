@@ -1,11 +1,14 @@
 package tunnel
 
 import (
-	"fmt"
-	// "io"
+	"errors"
+	"io"
 	"net"
+	"strings"
 	"time"
 )
+
+var ErrSocketClosed = errors.New("socket closed")
 
 // reconnectConn satisfies the net.conn interface. It reconnects when the
 // connection is closed.
@@ -17,7 +20,14 @@ type reconnectConn struct {
 }
 
 func newReconnectConn(conn net.Conn, interval time.Duration) *reconnectConn {
-	return &reconnectConn{conn: conn}
+	if interval == 0 {
+		interval = time.Second * 3
+	}
+
+	return &reconnectConn{
+		conn:     conn,
+		interval: interval,
+	}
 }
 
 func (r *reconnectConn) Read(buf []byte) (int, error) {
@@ -26,13 +36,11 @@ func (r *reconnectConn) Read(buf []byte) (int, error) {
 		return n, err
 	}
 
-	fmt.Println("read", err)
-
-	errReconnect := r.reconnect()
-	if errReconnect != nil {
-		fmt.Println("reconnect", errReconnect)
+	if !r.socketClosed(err) {
 		return n, err
 	}
+
+	r.reconnect()
 
 	return n, nil
 }
@@ -65,12 +73,38 @@ func (r *reconnectConn) SetWriteDeadline(t time.Time) error {
 	return r.conn.SetWriteDeadline(t)
 }
 
-func (r *reconnectConn) reconnect() error {
-	conn, err := net.Dial("tcp", r.RemoteAddr().String())
-	if err != nil {
-		return err
+func (r *reconnectConn) reconnect() {
+	var conn net.Conn
+	var err error
+
+	for {
+		conn, err = r.dial()
+		if err == nil {
+			break
+		}
+
+		time.Sleep(r.interval)
 	}
 
 	r.conn = conn
-	return nil
+}
+
+func (r *reconnectConn) dial() (net.Conn, error) {
+	return net.Dial(r.RemoteAddr().Network(), r.RemoteAddr().String())
+}
+
+func (r *reconnectConn) socketClosed(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	errString := err.Error()
+	if err == io.EOF ||
+		strings.HasSuffix(errString, "use of closed network connection") ||
+		strings.HasSuffix(errString, "broken pipe") ||
+		strings.HasSuffix(errString, "connection reset by peer") {
+		return true
+	}
+
+	return false
 }

@@ -34,7 +34,9 @@ func NewClient(serverAddr, localAddr string) *Client {
 		log.Fatalln(err)
 	}
 
-	fmt.Printf("Tunnel established from %s to %s\n", remoteConn.RemoteAddr(), localConn.RemoteAddr())
+	fmt.Printf("Tunnel established from %s to %s\n",
+		remoteConn.RemoteAddr(), localConn.RemoteAddr())
+
 	return tunnel
 }
 
@@ -55,7 +57,8 @@ func dialTCP(addr string) *net.TCPConn {
 // Proxy is like Start() but it joins (proxies) the remote tcp connection with
 // the local one, that means all de handling is done via those two connection.
 func (c *Client) Proxy() {
-	join(c.localConn, c.remoteConn)
+	err := <-join(c.localConn, c.remoteConn)
+	log.Println(err)
 }
 
 // Start starts the tunnel between the remote and local server. It's a
@@ -84,8 +87,8 @@ func (c *Client) handleReq(serverconn *httputil.ServerConn, req *http.Request) {
 	serverconn.Write(req, resp)
 }
 
-// Register registered the tunnel client to the TunnelServer via an CONNECT request.
-// It returns an error if the connect request is not successful.
+// Register registered the tunnel client to the TunnelServer via an CONNECT
+// request. It returns an error if the connect request is not successful.
 func (c *Client) Register() error {
 	remoteAddr := fmt.Sprintf("http://%s%s", c.remoteConn.RemoteAddr(), RegisterPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
