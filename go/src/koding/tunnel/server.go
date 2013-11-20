@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -35,13 +34,13 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 
 	conn, _, err := w.(http.Hijacker).Hijack()
 	if err != nil {
-		log.Println("rpc hijacking ", r.RemoteAddr, ": ", err.Error())
+		log.Println("register hijacking ", r.RemoteAddr, ": ", err.Error())
 		return
 	}
 
 	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
 	conn.SetDeadline(time.Time{})
-	s.tunnels.addTunnel("127.0.0.1:7000", NewTunnel(conn))
+	s.AddTunnel("127.0.0.1:7000", NewTunnel(conn))
 }
 
 // Tunnelhandler is a tunnel that creates an http tunnel.
@@ -57,7 +56,7 @@ func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) {
 	s.Lock()
 	defer s.Unlock()
 
-	tunnel, ok := s.tunnels.getTunnel(host)
+	tunnel, ok := s.GetTunnel(host)
 	if !ok {
 		err := fmt.Sprintf("no such tunnel: %s", host)
 		http.Error(w, err, 404)
@@ -66,13 +65,13 @@ func (s *Server) TunnelHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := r.Write(tunnel.conn)
 	if err != nil {
-		log.Println("write clientConn ", err)
+		log.Println("write to tunnel conn ", err)
 		return
 	}
 
 	resp, err := http.ReadResponse(bufio.NewReader(tunnel.conn), r)
 	if err != nil {
-		errString := fmt.Sprintf("clientConn req %s", err.Error())
+		errString := fmt.Sprintf("read from tunnel.con %s", err.Error())
 		http.Error(w, errString, 404)
 		return
 	}
@@ -88,7 +87,7 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 	log.Println("websocket handler invoked", r.URL.String())
 
 	host := strings.ToLower(r.Host)
-	tunnel, ok := s.tunnels.getTunnel(host)
+	tunnel, ok := s.GetTunnel(host)
 	if !ok {
 		err := fmt.Sprintf("no such tunnel: %s", host)
 		http.Error(w, err, 404)
@@ -97,13 +96,13 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 	err := r.Write(tunnel.conn)
 	if err != nil {
-		log.Println("write clientConn ", err)
+		log.Println("write to tunnel conn ", err)
 		return
 	}
 
 	publicConn, _, err := w.(http.Hijacker).Hijack()
 	if err != nil {
-		log.Println("rpc hijacking ", err)
+		log.Println("websocket hijacking ", err)
 		return
 	}
 	defer publicConn.Close()
@@ -112,40 +111,10 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 	log.Println(err)
 }
 
-type Tunnel struct {
-	conn  net.Conn
-	start time.Time
+func (s *Server) AddTunnel(url string, tunnel *Tunnel) {
+	s.tunnels.addTunnel(url, tunnel)
 }
 
-func NewTunnel(conn net.Conn) *Tunnel {
-	return &Tunnel{
-		conn:  conn,
-		start: time.Now(),
-	}
-}
-
-type Tunnels struct {
-	sync.Mutex
-	tunnels map[string]*Tunnel
-}
-
-func NewTunnels() *Tunnels {
-	return &Tunnels{
-		tunnels: make(map[string]*Tunnel),
-	}
-}
-
-func (t *Tunnels) getTunnel(url string) (*Tunnel, bool) {
-	t.Lock()
-	defer t.Unlock()
-
-	tunnel, ok := t.tunnels[url]
-	return tunnel, ok
-}
-
-func (t *Tunnels) addTunnel(url string, tunnel *Tunnel) {
-	t.Lock()
-	defer t.Unlock()
-
-	t.tunnels[url] = tunnel
+func (s *Server) GetTunnel(url string) (*Tunnel, bool) {
+	return s.tunnels.getTunnel(url)
 }
