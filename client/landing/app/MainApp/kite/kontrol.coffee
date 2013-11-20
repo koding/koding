@@ -1,133 +1,67 @@
+# Kontrol is a class for communicating with the Kontrol Kite.
+# In our application, there is only one instance of this and it can be
+# reachable from KD.getSingleton("kontrol").
 class Kontrol extends KDObject
 
-  bound: Bongo.bound
+  constructor: (options={})->
+    super options
 
-  [NOTREADY, READY, CLOSED] = [0,1,3]
+    kite =
+      name     : "kontrol"
+      publicIP : "#{KD.config.newkontrol.host}"
+      port     : "#{KD.config.newkontrol.port}"
 
-  kontrolEndpoint = "http://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/query"
-  SubscribePrefix = "client"
+    authentication =
+      type     : "sessionID"
+      key      : KD.remote.getSessionToken()
 
-  constructor: (options)->
+    @kite = new NewKite kite, authentication
+    @kite.connect()
+    @watchKites {}, (kite)=>
+      @emit "kiteRegistered", kite
+    , (error)->
+      log "Cannot watch Kites:", error
 
-    super
 
-    @readyState = NOTREADY
-    @addr = "ws://#{KD.config.newkontrol.host}:#{KD.config.newkontrol.port}/_moh_/pub" #kontrol addr
-    @kites = {}
-    # @connect()
+  # Calls the callback function with the list of NewKite instances.
+  # The returned kites are not connected. You must connect with NewKite.connect().
+  #
+  # Query parameters are below from general to specific:
+  #
+  #   username    string
+  #   environment string
+  #   name        string
+  #   version     string
+  #   region      string
+  #   hostname    string
+  #   id          string
+  #
+  getKites: (query, onKites, onError)->
+    if not query.username
+      query.username = "#{KD.nick()}"
 
-  getKites: (options, callback)->
-    # find kites that belongs to username.
-    {name, region} = options
-
-    queryData =
-      username       : "#{KD.nick()}"
-      name           : name
-      region         : region
-      authentication :
-        type         : "browser"
-        key          : KD.remote.getSessionToken()
-
-    xhr = new XMLHttpRequest
-    xhr.open "POST", kontrolEndpoint, yes
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-    xhr.send JSON.stringify queryData
-    xhr.onload = =>
-      if xhr.status is 200
-        data = JSON.parse xhr.responseText
-        callback null, data
-      else
-        callback xhr.responseText, null
-
-  getKite: (options, callback)->
-    kite = @kites[options.name]
-    return callback null, kite if kite?
-
-    # no kites are available, ask kontrol server if any available
-    @getKites options, (err, kites) =>
+    @kite.tell "getKites", query, (err, kites)=>
+      log "getKites result: ", {err}, {kites}
       if err
-        log "kontrol request error", err
-        callback err, null
+        onError err
       else
-        # result might be multiple kites, but we only use the first time for now
-        kite = @createKite kites.first.kite
-        kite.token = kites.first.token
-        @addKite kite
-        callback null, kite
+        onKites (@_createKite k for k in kites)
 
-  createKite: (kite)->
-    kite = new NewKite
-      name     : kite.name
-      token    : kite.token
-      port     : kite.port
-      publicIP : kite.publicIP
+  # Takes the same query parameters as getKites but calls the callback function
+  # when a Kite matching the query is registered.
+  watchKites: (query, onKite, onError)->
+    if not query.username
+      query.username = "#{KD.nick()}"
 
-    return kite
+    @kite.tell "watchKites", [query, (kite)=>
+      log "watchKites kite: ", {kite}
+      onKite @_createKite kite
+    ], (err, result)=>
+      log "watchKites result: ", {err}, {result}
+      if err
+        onError err
 
-  addKite: (kite) ->
-    @kites[kite.name] = kite
-
-  removeKite: (kite) ->
-    delete @kites[kite.name]
-
-  connect:->
-    @ws = new WebSocket @addr, KD.remote.getSessionToken()
-    @ws.onopen    = @bound 'onOpen'
-    @ws.onclose   = @bound 'onClose'
-    @ws.onmessage = @bound 'onMessage'
-    @ws.onerror   = @bound 'onError'
-
-  onOpen:->
-    log "I'm connected to #{@addr}. Yayyy!"
-    @readyState = READY
-    @emit 'ready'
-    @subscribe()
-
-  onClose: (evt) ->
-    @readyState = CLOSED
-
-  onMessage: (evt) ->
-    @blobToString evt.data, (msg) =>
-      try
-        msg = JSON.parse msg
-        log "Message from Kontrol", {msg}
-      catch e
-        log "json parse error: ", e, msg
-        return
-
-      switch msg.type
-        when "KITE_REGISTERED"
-          log "kite registered"
-          kite = @createKite msg.args.kite
-          @addKite kite
-          @emit "KiteRegistered", msg.args.kite
-        when "KITE_DISCONNECTED"
-          log "kite disconnected"
-          @removeKite msg.args.kite
-          @emit "KiteDisconnected", msg.args.kite
-
-  onError: (evt) ->
-    log "kontrol: error #{evt.data}"
-
-  ready: (callback)->
-    return KD.utils.defer callback  if @readyState
-    @once 'ready', callback
-
-  subscribe: ->
-    @send
-      name: "subscribe"
-      args:
-        key: "#{SubscribePrefix}.#{KD.nick()}"
-
-  send: (data) ->
-    @ready =>
-      try @ws.send JSON.stringify data
-      catch e then log e
-
-  blobToString: (blob, callback) ->
-    reader = new FileReader()
-    reader.readAsText(blob)
-    reader.onloadend = ->
-      callback reader.result
-
-
+  # Returns a new NewKite instance from Kite data structure coming from
+  # getKites() and watchKites() methods.
+  _createKite: (k)->
+    return new NewKite k.kite, {type: "token", key: k.token}

@@ -1,107 +1,110 @@
+# NewKite is a class for communicating with a remote Kite.
+# It is analogous to RemoteKite class in go/koding/newkite/kite/remote.go file.
 class NewKite extends KDObject
-
-  { Scrubber, Store } = Bongo.dnodeProtocol
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
-  constructor: (options)->
+  # includes from: libs/dnode-protocol.js
+  # made it with: http://browserify.org
+  # downloaded from: http://wzrd.in/bundle/dnode-protocol@latest
+  proto = require "dnode-protocol"
 
+  constructor: (kite, authentication, options={})->
     super options
 
-    { @addr, @name, @token, @publicIP, @port } = options
+    @kite = kite
+    @authentication = authentication
 
-    @localStore   = new Store
-    @remoteStore  = new Store
-    @tokenStore = {}
-    @autoReconnect = true
     @readyState = NOTREADY
+    @autoReconnect = true
 
-    # addr is shortcut for IP and port.
-    # It is not present in Kite structure sent from Kontrol.
-    @addr or= ""
-    if options.publicIP and options.port
-      @addr = options.publicIP + ":" + options.port
-
-    @token or= ""
     @initBackoff options  if @autoReconnect
-    @connect()
 
-  connect:->
-    if @addr
-    then @connectDirectly()
-    else @getKiteAddr(true)
+    @handlers =
+      log   : (options, cb)-> log options.withArgs
+      alert : (options, cb)-> alert options.withArgs
 
-  bound: Bongo.bound
+    @proto = proto @handlers
+    @proto.on 'request', (req)=>
+      log "proto request", {req}
+      @ready =>
+        @ws.send JSON.stringify req
+    @proto.on 'fail', (err)=>
+      log "proto fail", {err}
+    @proto.on 'error', (err)=>
+      log "proto error", {err}
 
-  connectDirectly:->
-    log "trying to connect to #{@addr}"
-    @ws = new WebSocket "ws://#{@addr}/sock"
+  connect: ->
+    addr = @kite.publicIP + ":" + @kite.port
+    log "Trying to connect to #{addr}"
+    @ws = new WebSocket "ws://#{addr}/dnode"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
     @ws.onmessage = @bound 'onMessage'
     @ws.onerror   = @bound 'onError'
 
-  getKiteAddr : (connect=no)->
-    KD.getSingleton("kontrol").getKites @name, (err, kites) =>
-      if err
-        log "kontrol request error", err
-        # Make a request again if we could not get the addres, use backoff for that
-        KD.utils.defer => @setBackoffTimeout =>
-          @getKiteAddr true
-      else
-        # kite and token comes in seperate objects. See protocol.go.
-        first  = kites[0]
-        kite   = first.kite
-        @token = first.token
-        @addr  = kite.publicIP + ":" + kite.port
-
-        # this should be optional
-        @connectDirectly() if connect
-
-  disconnect:(reconnect=true)->
+  disconnect: (reconnect=true)->
     @autoReconnect = !!reconnect  if reconnect?
     @ws.close()
 
-  onOpen:->
-    log "I'm connected to #{@name} at #{@addr}. Yayyy!"
+  # Call a method on the connected Kite.
+  tell: (method, args, cb) ->
+    options =
+      authentication : @authentication
+      withArgs       : args
+
+    # Normally the request is made with the following statement:
+    #   @proto.request method, [options, cb]
+    # However, we are making a single request/response call and
+    # there is no point to hold the callback function because it
+    # will never be called again. That's why we are deleting to
+    # free the memory with the code below.
+
+    scrub = @proto.scrubber.scrub [options, cb]
+
+    @proto.emit 'request',
+        method    : method
+        arguments : scrub.arguments
+        callbacks : scrub.callbacks
+        links     : scrub.links
+
+    # Remove the handler from proto when callback is called.
+    # This is required to prevent unused callbacks to consume memory.
+    if cb
+      # id of the last callback function
+      id = Number(Object.keys(scrub.callbacks).last)
+      # original handler
+      fn = @proto.callbacks.local[id]
+      # replace the handler. when called it will remove the handler.
+      @proto.callbacks.local[id] = ()=>
+        delete @proto.callbacks.local[id]
+        @proto.apply fn, arguments
+
+  onOpen: ->
+    log "Connected to Kite: #{@kite.name}"
     @clearBackoffTimeout()
     @readyState = READY
     @emit 'connected', @name
     @emit 'ready'
 
-  onClose: (evt) ->
-    # log "#{@name}: disconnected, trying to reconnect"
+  onClose: (evt)->
+    log "#{@kite.name}: disconnected, trying to reconnect..."
     @readyState = CLOSED
     @emit 'disconnected'
     # enable below to autoReconnect when the socket has been closed
-    # if @autoReconnect
-    #   KD.utils.defer => @setBackoffTimeout @bound "connect"
+    if @autoReconnect
+      KD.utils.defer => @setBackoffTimeout @bound "connect"
 
-  onMessage: (evt) ->
-    try
-      args = JSON.parse evt.data
-    catch e
-      log "json parse error: ", e, evt.data
+  onMessage: (evt)->
+    data = evt.data
+    log "onMessage", data
+    req = JSON.parse data
+    @proto.handle(req)
 
-    if args and not e
-      err = args.arguments[0]
-      {method} = args
-      callback = switch method
-        when 'ping'             then @bound 'handlePing'
-        else (@localStore.get method) ? ->
+  onError: (evt)->
+    log "#{@kite.name} error: #{evt.data}"
 
-      callback.apply this, @unscrub args
-
-  onError: (evt) ->
-    # log "#{@name}: error #{evt.data}"
-
-  handlePing: ->
-    @send JSON.stringify
-      method      : 'pong'
-      arguments   : []
-      callbacks   : {}
-
-  initBackoff:(options)->
+  initBackoff: (options)->
     backoff = options.backoff ? {}
     totalReconnectAttempts = 0
     initalDelayMs = backoff.initialDelayMs ? 700
@@ -122,44 +125,6 @@ class NewKite extends KDObject
       else
         @emit "connectionFailed"
 
-  ready: (callback)->
-    return KD.utils.defer callback  if @readyState
-    @once 'ready', callback
-
-  unscrub: (args) ->
-    scrubber = new Scrubber @localStore
-    return scrubber.unscrub args, (callbackId) =>
-      unless @remoteStore.has callbackId
-        @remoteStore.add callbackId, (rest...) =>
-          @handleRequest callbackId, rest
-      @remoteStore.get callbackId
-
-  handleRequest: (method, args) ->
-    @scrub method, args, (scrubbed) =>
-      @ready => @send scrubbed
-
-  scrub: (method, args, callback) ->
-    scrubber = new Scrubber @localStore
-    scrubber.scrub args, =>
-      scrubbed = scrubber.toDnodeProtocol()
-      scrubbed.method or= method
-      callback scrubbed
-
-  tell:(method, args, callback) ->
-    @ready =>
-      options =
-        token    : @token
-        username : "#{KD.nick()}" # this will be removed
-        withArgs : args
-
-      @handleRequest method, [options, callback]
-
-  send: (data) ->
-    try
-      if @readyState is READY
-        @ws.send JSON.stringify data
-      else
-        # log "slow down ... I'm still trying to reconnect!"
-    catch e
-      @disconnect()
-
+  ready: (cb)->
+    return KD.utils.defer cb  if @readyState
+    @once 'ready', cb
