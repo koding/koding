@@ -19,7 +19,7 @@ func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 
 func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*Consumer, error) {
 
-	rmq, err := newRabbitMQ(co.Tag)
+	rmq, err := newRabbitMQConnection(co.Tag)
 	if err != nil {
 		return nil, err
 	}
@@ -50,18 +50,6 @@ func (c *Consumer) connect() error {
 	co := c.session.ConsumerOptions
 
 	var err error
-
-	// getting Connection
-	c.conn, err = amqp.Dial(getConnectionString())
-	if err != nil {
-		return err
-	}
-	handleErrors(c.conn)
-	// getting Channel
-	c.channel, err = c.conn.Channel()
-	if err != nil {
-		return err
-	}
 
 	// got channel, declaring Exchange
 	if err = c.channel.ExchangeDeclare(

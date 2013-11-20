@@ -18,7 +18,7 @@ type PublishingOptions struct {
 
 func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
 
-	rmq, err := newRabbitMQ(po.Tag)
+	rmq, err := newRabbitMQConnection(po.Tag)
 	if err != nil {
 		return nil, err
 	}
@@ -31,30 +31,7 @@ func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
 			PublishingOptions: po,
 		},
 	}
-
-	err = p.connect()
-	if err != nil {
-		return nil, err
-	}
 	return p, nil
-}
-
-func (p *Producer) connect() error {
-
-	var err error
-	// get connection
-	p.conn, err = amqp.Dial(getConnectionString())
-	if err != nil {
-		return err
-	}
-	handleErrors(p.conn)
-	// getting channel
-	p.channel, err = p.conn.Channel()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (p *Producer) Publish(publishing amqp.Publishing) error {

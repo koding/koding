@@ -62,7 +62,7 @@ func (r *RabbitMQ) QOS(messageCount int) {
 	r.channel.Qos(messageCount, 0, false)
 }
 
-func newRabbitMQ(tag string) (*RabbitMQ, error) {
+func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
 
 	if tag == "" {
 		return nil, errors.New("Tag is not defined in consumer options")
