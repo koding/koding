@@ -236,6 +236,8 @@ class ApplicationManager extends KDObject
     return unless appView
 
     @emit 'AppIsBeingShown', appInstance, appView, appOptions
+    appInstance.appIsShown? appParams
+
     @setLastActiveIndex appInstance
     @utils.defer -> callback? appInstance
 
