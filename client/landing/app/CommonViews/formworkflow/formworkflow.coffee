@@ -10,7 +10,29 @@ class FormWorkflow extends KDView
     @forms      = {}
     @providers  = {}
 
+    @active = null
+
+    @history = new FormWorkflow.History
+
+  isWorkflow: yes
+
   enter: -> @ready @bound 'nextForm'
+
+  go: (direction) ->
+
+    provider = do @history[direction]
+
+    if provider.isWorkflow
+      if (provider is @active and direction is 'back') or
+         (direction is 'next')
+
+        provider.go direction 
+
+    @showForm provider, no
+
+  next: -> @go 'next'
+
+  back: -> @go 'back'
 
   requireData: (fields, mode = 'all') ->
     gate =
@@ -67,6 +89,7 @@ class FormWorkflow extends KDView
     form.hide()
     @forwardEvent form, 'Cancel'
     @provideData formName, provides
+
     return this
 
   removeForm: (form) ->
@@ -87,11 +110,15 @@ class FormWorkflow extends KDView
 
     return this
 
-  showForm: (form) ->
+  showForm: (form, shouldPushState = yes) ->
     @hideForms()
     form = @getForm form
     form.activate? this
     form.show()
+
+    @active = form
+
+    @history.push form  if shouldPushState
     
     return this
 
