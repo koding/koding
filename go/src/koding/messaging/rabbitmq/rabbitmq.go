@@ -58,6 +58,10 @@ type RabbitMQ struct {
 	tag     string
 }
 
+func (r *RabbitMQ) QOS(messageCount int) {
+	r.channel.Qos(messageCount, 0, false)
+}
+
 func newRabbitMQ(tag string) (*RabbitMQ, error) {
 
 	if tag == "" {
