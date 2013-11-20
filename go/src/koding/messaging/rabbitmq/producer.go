@@ -1,19 +1,14 @@
 package rabbitmq
 
 import (
-	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
 )
 
 type Producer struct {
-	conn       *amqp.Connection
-	channel    *amqp.Channel
-	deliveries <-chan amqp.Delivery
-	tag        string
-	handler    func(deliveries <-chan amqp.Delivery)
-	done       chan error
-	session    Session
+	*RabbitMQ
+	done    chan error
+	session Session
 }
 
 type PublishingOptions struct {
@@ -22,14 +17,14 @@ type PublishingOptions struct {
 }
 
 func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
-	if po.Tag == "" {
-		return nil, errors.New("Tag is not defined in consumer options")
+
+	rmq, err := newRabbitMQ(po.Tag)
+	if err != nil {
+		return nil, err
 	}
 
 	p := &Producer{
-		conn:    nil,
-		channel: nil,
-		tag:     po.Tag,
+		RabbitMQ: rmq,
 		session: Session{
 			Exchange:          e,
 			Queue:             q,
@@ -37,7 +32,7 @@ func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
 		},
 	}
 
-	err := p.connect()
+	err = p.connect()
 	if err != nil {
 		return nil, err
 	}
