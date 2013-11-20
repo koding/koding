@@ -87,7 +87,7 @@ module.exports = class JVM extends Module
         default         : no
       diskSizeInMB      :
         type            : Number
-        default         : 3072
+        default         : 1200
 
   suspend: (callback)->
     @update { $set: { hostKite: '(banned)' } }, (err)=>
