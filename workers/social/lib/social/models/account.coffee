@@ -152,6 +152,7 @@ module.exports = class JAccount extends jraphical.Module
         'store'
         'unstore'
         'isEmailVerified'
+        'fetchEmail'
       ]
     schema                  :
       skillTags             : [String]
@@ -1243,3 +1244,13 @@ module.exports = class JAccount extends jraphical.Module
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
+
+  fetchEmail: secure (client, callback)->
+    {delegate} = client.connection
+    isMine     = @equals delegate
+    if isMine
+      @fetchUser (err, user)->
+        return callback err  if err
+        callback null, user?.email
+    else
+      callback new KodingError 'Access denied'
