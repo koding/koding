@@ -68,6 +68,7 @@ class ApplicationManager extends KDObject
       options            or= {}
       appOptions           = KD.getAppOptions name
       appParams            = options.params or {}
+      appParams.label      = name
       defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
       kodingAppsController = KD.getSingleton("kodingAppsController")
 
