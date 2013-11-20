@@ -38,10 +38,8 @@ func main() {
 
 }
 
-var handler = func(deliveries <-chan amqp.Delivery) {
-	for msg := range deliveries {
-		message := string(msg.Body)
-		fmt.Println(message)
-		msg.Ack(false)
-	}
+var handler = func(delivery amqp.Delivery) {
+	message := string(delivery.Body)
+	fmt.Println(message)
+	delivery.Ack(false)
 }
