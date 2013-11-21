@@ -1497,7 +1497,7 @@ module.exports = class JGroup extends Module
   createVM: secure ({connection:{delegate}}, data, callback)->
     @checkVmType data, (err) =>
       return callback err  if err
-      @fetchOrCreateBundle (err, bundle)->
+      @fetchOrCreateBundle (err, bundle) =>
         return callback err  if err
         bundle.createVM delegate, this, data, callback
 
