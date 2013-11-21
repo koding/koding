@@ -21,6 +21,8 @@ class PaymentWorkflow extends FormWorkflow
 
       switch methods.length
 
+        when 0 then @clearData 'paymentMethod'
+
         when 1 then do ([method] = methods) =>
 
           paymentField.addSubView new PaymentMethodView {}, method
