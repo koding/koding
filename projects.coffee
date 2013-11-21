@@ -28,10 +28,10 @@ projects      =
     script    : "website/js/kdapp.#{KODING_VERSION}.js"
     sourceMapRoot : "Main/"
 
-  TestApp     :
-    files     : "client/Testapp/includes.coffee"
-    style     : "website/css/testapp.css"
-    script    : "website/js/testapp.js"
+  # TestApp     :
+  #   files     : "client/Testapp/includes.coffee"
+  #   style     : "website/css/testapp.css"
+  #   script    : "website/js/testapp.js"
 
   HomeIntro   :
     files     : "client/Intro/includes.coffee"
