@@ -3,14 +3,10 @@ package kite
 import (
 	"flag"
 	"fmt"
-	"github.com/golang/groupcache"
 	logging "github.com/op/go-logging"
 	"koding/newkite/dnode"
 	"koding/newkite/dnode/rpc"
-	"koding/newkite/kodingkey"
-	"koding/newkite/peers"
 	"koding/newkite/protocol"
-	"koding/newkite/token"
 	"koding/newkite/utils"
 	stdlog "log"
 	"net"
@@ -40,18 +36,6 @@ type Kite struct {
 	// KodingKey is used for authenticate to Kontrol.
 	KodingKey string
 
-	// Registered is true if the Kite is registered to kontrol itself
-	Registered bool
-
-	// other kites that needs to be run, in order to run this one
-	Dependencies string
-
-	// in-memory hash table for kites of same types
-	peers *peers.Kites
-
-	// roundrobin load balancing helpers
-	balance *Balancer
-
 	// Points to the Kontrol instance if enabled
 	Kontrol *Kontrol
 
@@ -61,18 +45,17 @@ type Kite struct {
 	// Wheter we want to register our Kite to Kontrol, true by default.
 	RegisterToKontrol bool
 
-	// method map for shared methods
-	Handlers map[string]HandlerFunc
-
-	// implements the Clients interface
-	clients *clients
-
-	// GroupCache variables
-	Pool  *groupcache.HTTPPool
-	Group *groupcache.Group
+	// method map for exported methods
+	handlers map[string]HandlerFunc
 
 	// Dnode rpc server
-	Server *rpc.Server
+	server *rpc.Server
+
+	// Handlers to call when a Kite opens a connection to this Kite.
+	onConnectHandlers []func(*RemoteKite)
+
+	// Handlers to call when a client has disconnected.
+	onDisconnectHandlers []func(*RemoteKite)
 
 	// Contains different functions for authenticating user from request.
 	// Keys are the authentication types (options.authentication.type).
@@ -136,15 +119,21 @@ func New(options *protocol.Options) *Kite {
 			PublicIP: options.PublicIP,
 		},
 		KodingKey:         kodingKey,
-		Server:            rpc.NewServer(),
+		server:            rpc.NewServer(),
 		KontrolEnabled:    true,
 		RegisterToKontrol: true,
-		clients:           NewClients(),
-		peers:             peers.New(),
-		balance:           NewBalancer(),
 		Authenticators:    make(map[string]func(*CallOptions) error),
-		Handlers:          make(map[string]HandlerFunc),
+		handlers:          make(map[string]HandlerFunc),
 	}
+
+	k.Kontrol = k.NewKontrol(options.KontrolAddr)
+
+	// Call registered handlers when a client has disconnected.
+	k.server.OnDisconnect(func(c *rpc.Client) {
+		if r, ok := c.Properties()["remoteKite"]; ok {
+			k.notifyRemoteKiteDisconnected(r.(*RemoteKite))
+		}
+	})
 
 	// Every kite should be able to authenticate the user from token.
 	k.Authenticators["token"] = k.AuthenticateFromToken
@@ -152,14 +141,36 @@ func New(options *protocol.Options) *Kite {
 	k.Authenticators["kodingKey"] = k.AuthenticateFromKodingKey
 
 	// Register our internal methods
-	k.Handlers["vm.info"] = new(Status).Info
-	k.Handlers["heartbeat"] = k.handleHeartbeat
-	k.Handlers["log"] = k.handleLog
-
-	// Delegate method handling to our kite
-	k.Server.Delegate = k
+	k.HandleFunc("systemInfo", new(Status).Info)
+	k.HandleFunc("heartbeat", k.handleHeartbeat)
+	k.HandleFunc("log", k.handleLog)
 
 	return k
+}
+
+func (k *Kite) HandleFunc(method string, handler HandlerFunc) {
+	k.server.HandleFunc(method, func(msg *dnode.Message, tr dnode.Transport) {
+		request, responseCallback, err := k.parseRequest(msg, tr)
+		if err != nil {
+			log.Notice("Did not understand request: %s", err)
+			return
+		}
+
+		result, err := handler(request)
+		if responseCallback == nil {
+			return
+		}
+
+		if err != nil {
+			err = responseCallback(err.Error(), result)
+		} else {
+			err = responseCallback(nil, result)
+		}
+
+		if err != nil {
+			log.Error(err.Error())
+		}
+	})
 }
 
 // Run is a blocking method. It runs the kite server and then accepts requests
@@ -181,8 +192,19 @@ func (k *Kite) handleHeartbeat(r *Request) (interface{}, error) {
 		return nil, err
 	}
 
-	seconds := args[0].(float64)
-	ping := args[1].(dnode.Function)
+	if len(args) != 2 {
+		return nil, fmt.Errorf("Invalid args: %s", string(r.Args.Raw))
+	}
+
+	seconds, ok := args[0].(float64)
+	if !ok {
+		return nil, fmt.Errorf("Invalid interval: %s", args[0])
+	}
+
+	ping, ok := args[1].(dnode.Function)
+	if !ok {
+		return nil, fmt.Errorf("Invalid callback: %s", args[1])
+	}
 
 	go func() {
 		for {
@@ -196,6 +218,7 @@ func (k *Kite) handleHeartbeat(r *Request) (interface{}, error) {
 	return nil, nil
 }
 
+// handleLog prints a log message to stdout.
 func (k *Kite) handleLog(r *Request) (interface{}, error) {
 	s, err := r.Args.String()
 	if err != nil {
@@ -204,51 +227,6 @@ func (k *Kite) handleLog(r *Request) (interface{}, error) {
 
 	log.Info(fmt.Sprintf("%s: %s", r.RemoteKite.Name, s))
 	return nil, nil
-}
-
-func (k *Kite) authenticateUser(options *CallOptions) error {
-	f := k.Authenticators[options.Authentication.Type]
-	if f == nil {
-		return fmt.Errorf("Unknown authentication type: %s", options.Authentication.Type)
-	}
-
-	return f(options)
-}
-
-// AuthenticateFromToken is the default Authenticator for Kite.
-func (k *Kite) AuthenticateFromToken(options *CallOptions) error {
-	key, err := kodingkey.FromString(k.KodingKey)
-	if err != nil {
-		return fmt.Errorf("Invalid Koding Key: %s", k.KodingKey)
-	}
-
-	tkn, err := token.DecryptString(options.Authentication.Key, key)
-	if err != nil {
-		return fmt.Errorf("Invalid token: %s", options.Authentication.Key)
-	}
-
-	if !tkn.IsValid(k.ID) {
-		return fmt.Errorf("Invalid token: %s", tkn)
-	}
-
-	options.Kite.Username = tkn.Username
-
-	return nil
-}
-
-// AuthenticateFromToken authenticates user from Koding Key.
-// Kontrol makes requests with a Koding Key.
-func (k *Kite) AuthenticateFromKodingKey(options *CallOptions) error {
-	if options.Authentication.Key != k.KodingKey {
-		return fmt.Errorf("Invalid Koding Key")
-	}
-
-	// Set the username if missing.
-	if options.Kite.Username == "" && k.Username != "" {
-		options.Kite.Username = k.Username
-	}
-
-	return nil
 }
 
 // setupLogging is used to setup the logging format, destination and level.
@@ -281,7 +259,7 @@ var _ = flag.Bool("debug", false, "print debug logs")
 func (k *Kite) parseVersionFlag() {
 	for _, flag := range os.Args {
 		if flag == "-version" {
-			log.Info(k.Version)
+			fmt.Println(k.Version)
 			os.Exit(0)
 		}
 	}
@@ -297,25 +275,6 @@ func (k *Kite) hasDebugFlag() bool {
 	return false
 }
 
-// DISABLED TEMPORARILY
-// // AddKite is executed when a protocol.AddKite message has been received
-// // trough the handler.
-// func (k *Kite) AddKite(kite protocol.Kite) {
-// 	k.peers.Add(&kite)
-
-// 	// Groupache settings, enable when ready
-// 	// k.SetPeers(k.PeersAddr()...)
-
-// 	log.Info("[added] -> known peers -> %v", k.PeersAddr())
-// }
-
-// // RemoveKite is executed when a protocol.AddKite message has been received
-// // trough the handler.
-// func (k *Kite) RemoveKite(kite protocol.Kite) {
-// 	k.peers.Remove(kite.ID)
-// 	log.Info("[removec] -> known peers -> %v", k.PeersAddr())
-// }
-
 // listenAndServe starts our rpc server with the given addr.
 func (k *Kite) listenAndServe() error {
 	listener, err := net.Listen("tcp4", ":"+k.Port)
@@ -330,20 +289,14 @@ func (k *Kite) listenAndServe() error {
 
 	// We must connect to Kontrol after starting to listen on port
 	if k.KontrolEnabled {
-		k.Kontrol = k.NewKontrol()
-
 		if k.RegisterToKontrol {
-			k.Kontrol.RemoteKite.Client.OnConnect(k.registerToKontrol)
+			k.Kontrol.RemoteKite.OnConnect(k.registerToKontrol)
 		}
 
 		k.Kontrol.DialForever()
 	}
 
-	// GroupCache settings, enable it when ready
-	// k.newPool(k.Addr) // registers to http.DefaultServeMux
-	// k.newGroup()
-
-	return http.Serve(listener, k.Server)
+	return http.Serve(listener, k.server)
 }
 
 func (k *Kite) registerToKontrol() {
@@ -355,67 +308,29 @@ func (k *Kite) registerToKontrol() {
 	log.Info("Registered to Kontrol successfully")
 }
 
-// DISABLED TEMPORARILY
-// OnDisconnect adds the given function to the list of the users callback list
-// which is called when the user is disconnected. There might be several
-// connections from one user to the kite, in that case the functions are
-// called only when all connections are closed.
-// func (k *Kite) OnDisconnect(username string, f func()) {
-// 	addrs := k.clients.GetAddresses(username)
-// 	if addrs == nil {
-// 		return
-// 	}
-
-// 	for _, addr := range addrs {
-// 		client := k.clients.GetClient(addr)
-// 		client.onDisconnect = append(client.onDisconnect, f)
-// 		k.clients.AddClient(addr, client)
-// 	}
-// }
-
-/******************************************
-
-GroupCache
-
-******************************************/
-func (k *Kite) newPool(addr string) {
-	k.Pool = groupcache.NewHTTPPool(addr)
+// OnConnect registers a function to run when a Kite connects to this Kite.
+func (k *Kite) OnConnect(handler func(*RemoteKite)) {
+	k.onConnectHandlers = append(k.onConnectHandlers, handler)
 }
 
-func (k *Kite) newGroup() {
-	k.Group = groupcache.NewGroup(k.Name, 64<<20, groupcache.GetterFunc(
-		func(ctx groupcache.Context, key string, dest groupcache.Sink) error {
-			dest.SetString("fatih")
-			return nil
-		}))
+// OnDisconnect registers a function to run when a connected Kite is disconnected.
+func (k *Kite) OnDisconnect(handler func(*RemoteKite)) {
+	k.onDisconnectHandlers = append(k.onDisconnectHandlers, handler)
 }
 
-func (k *Kite) GetString(name, key string) (result string) {
-	if k.Group == nil {
-		return
+// notifyRemoteKiteConnected runs the registered handlers with OnConnect().
+func (k *Kite) notifyRemoteKiteConnected(r *RemoteKite) {
+	log.Info("Client has connected: %s", r.Addr())
+
+	for _, handler := range k.onConnectHandlers {
+		go handler(r)
 	}
-
-	k.Group.Get(nil, key, groupcache.StringSink(&result))
-	return
 }
 
-func (k *Kite) GetByte(name, key string) (result []byte) {
-	if k.Group == nil {
-		return
+func (k *Kite) notifyRemoteKiteDisconnected(r *RemoteKite) {
+	log.Info("Client has disconnected: %s", r.Addr())
+
+	for _, handler := range k.onDisconnectHandlers {
+		go handler(r)
 	}
-
-	k.Group.Get(nil, key, groupcache.AllocatingByteSliceSink(&result))
-	return
-}
-
-func (k *Kite) SetPeers(peers ...string) {
-	k.Pool.Set(peers...)
-}
-
-func (k *Kite) PeersAddr() []string {
-	list := make([]string, 0)
-	for _, kite := range k.peers.List() {
-		list = append(list, kite.Addr())
-	}
-	return list
 }

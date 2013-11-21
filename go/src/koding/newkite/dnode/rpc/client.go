@@ -31,13 +31,10 @@ type Client struct {
 	Conn *websocket.Conn
 
 	// Dnode message processor.
-	Dnode *dnode.Dnode
-
-	// Implements dnode.Transport interface
-	tr *wsTransport
+	dnode *dnode.Dnode
 
 	// A space for saving/reading extra properties about this client.
-	Properties map[string]interface{}
+	properties map[string]interface{}
 
 	// Dialled URL, used to re-connect again.
 	url string
@@ -55,15 +52,11 @@ type Client struct {
 // NewClient returns a pointer to new Client.
 // You need to call Dial() before interacting with the Server.
 func NewClient() *Client {
-	p := make(map[string]interface{})
-	tr := &wsTransport{properties: p}
 	c := &Client{
-		Properties:     p,
-		tr:             tr,
-		Dnode:          dnode.New(tr),
+		properties:     make(map[string]interface{}),
 		redialDuration: redialDurationStart,
 	}
-	tr.client = c
+	c.dnode = dnode.New(c)
 	return c
 }
 
@@ -92,13 +85,12 @@ func (c *Client) dial() error {
 
 	// We are connected
 	c.Conn = ws
-	c.tr.conn = ws
 
 	// Reset the wait time.
 	c.redialDuration = redialDurationStart
 
 	// Must be run in a goroutine because a handler may wait a response from server.
-	go c.connected()
+	go c.callOnConnectHandlers()
 
 	return nil
 }
@@ -125,8 +117,8 @@ func (c *Client) dialForever() {
 func (c *Client) run() (err error) {
 	for {
 	running:
-		err = c.Dnode.Run()
-		c.disconnected()
+		err = c.dnode.Run()
+		c.callOnDisconnectHandlers()
 	dialAgain:
 		if !c.Reconnect {
 			break
@@ -148,6 +140,7 @@ func (c *Client) run() (err error) {
 // Each time it is called the redialDuration is incremented.
 func (c *Client) sleep() {
 	time.Sleep(c.redialDuration)
+
 	c.redialDuration *= 2
 	if c.redialDuration > redialDurationMax {
 		c.redialDuration = redialDurationMax
@@ -159,9 +152,38 @@ func (c *Client) Close() {
 	c.Conn.Close()
 }
 
+func (c *Client) Send(msg []byte) error {
+	println("Sending...", string(msg))
+	return websocket.Message.Send(c.Conn, string(msg))
+}
+
+func (c *Client) Receive() ([]byte, error) {
+	println("Receiving...")
+	var msg []byte
+	err := websocket.Message.Receive(c.Conn, &msg)
+	println("Received:", string(msg))
+	return msg, err
+}
+
+func (c *Client) RemoveCallback(id uint64) {
+	c.dnode.RemoveCallback(id)
+}
+
+// RemoteAddr returns the host:port as string if server connection.
+func (c *Client) RemoteAddr() string {
+	if c.Conn.IsServerConn() {
+		return c.Conn.Request().RemoteAddr
+	}
+	return ""
+}
+
+func (c *Client) Properties() map[string]interface{} {
+	return c.properties
+}
+
 // Call calls a method with args on the dnode server.
 func (c *Client) Call(method string, args ...interface{}) (map[string]dnode.Path, error) {
-	return c.Dnode.Call(method, args...)
+	return c.dnode.Call(method, args...)
 }
 
 // OnConnect registers a function to run on client connect.
@@ -174,56 +196,16 @@ func (c *Client) OnDisconnect(handler func()) {
 	c.onDisconnectHandlers = append(c.onDisconnectHandlers, handler)
 }
 
-// connected runs the registered connect handlers.
-func (c *Client) connected() {
+// callOnConnectHandlers runs the registered connect handlers.
+func (c *Client) callOnConnectHandlers() {
 	for _, handler := range c.onConnectHandlers {
 		go handler()
 	}
 }
 
-// disconnected runs the registered disconnect handlers.
-func (c *Client) disconnected() {
+// callOnDisconnectHandlers runs the registered disconnect handlers.
+func (c *Client) callOnDisconnectHandlers() {
 	for _, handler := range c.onDisconnectHandlers {
 		go handler()
 	}
-}
-
-// ------------
-// Transport
-// ------------
-
-// wsTransport implements dnode.Transport interface.
-type wsTransport struct {
-	client     *Client
-	conn       *websocket.Conn
-	properties map[string]interface{}
-}
-
-func (t *wsTransport) Send(msg []byte) error {
-	println("Sending...", string(msg))
-	return websocket.Message.Send(t.conn, string(msg))
-}
-
-func (t *wsTransport) Receive() ([]byte, error) {
-	println("Receiving...")
-	var msg []byte
-	err := websocket.Message.Receive(t.conn, &msg)
-	println("Received:", string(msg))
-	return msg, err
-}
-
-// RemoteAddr returns the host:port as string if server connection.
-func (t *wsTransport) RemoteAddr() string {
-	if t.conn.IsServerConn() {
-		return t.conn.Request().RemoteAddr
-	}
-	return ""
-}
-
-func (t *wsTransport) Properties() map[string]interface{} {
-	return t.properties
-}
-
-func (t *wsTransport) Client() interface{} {
-	return t.client
 }
