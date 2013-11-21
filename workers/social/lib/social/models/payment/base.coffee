@@ -13,7 +13,6 @@ module.exports = class JPaymentBase extends Module
     success: (client, formData, callback) ->
       @create client.context.group, formData, callback
 
-
   @removeByCode = (planCode, callback) ->
     @one { planCode }, (err, product) ->
       return callback err  if err
