@@ -4,7 +4,8 @@ class PlaygroundTeamwork extends TeamworkWorkspace
 
     super options, data
 
-    @container.setClass options.playground
+    @on "PanelCreated", =>
+      @getActivePanel().header.unsetClass "teamwork"
 
     @on "ContentIsReady", =>
       return unless @amIHost()
