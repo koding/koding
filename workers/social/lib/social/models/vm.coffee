@@ -39,10 +39,18 @@ module.exports = class JVM extends Module
       ]
     sharedMethods       :
       static            : [
-                           'fetchVms','fetchVmsByContext', 'fetchVmInfo'
-                           'fetchDomains', 'removeByHostname', 'someData'
-                           'count', 'fetchDefaultVm', 'fetchVmRegion' #'calculateUsage'
-                          ]
+          'fetchVms'
+          'fetchVmsByContext'
+          'fetchVmInfo'
+          'fetchDomains'
+          'removeByHostname'
+          'someData'
+          'count'
+          'fetchDefaultVm'
+          'fetchVmRegion'
+          'createVmByNonce'
+          #'calculateUsage'
+        ]
       instance          : []
     schema              :
       ip                :
@@ -74,25 +82,25 @@ module.exports = class JVM extends Module
         default         : 'user'
       users             : Array
       groups            : Array
-      usage             : # TODO: usage seems like the wrong term for this.
-        cpu             :
-          type          : Number
-          default       : 1
-        ram             :
-          type          : Number
-          default       : 0.25
-        disk            :
-          type          : Number
-          default       : 0.5
       isEnabled         :
         type            : Boolean
         default         : yes
       shouldDelete      :
         type            : Boolean
         default         : no
+      pinnedToHost      : String
+      alwaysOn          :
+        type            : Boolean
+        default         : no
+      maxMemoryInMB     :
+        type            : Number
+        default         : 1024
       diskSizeInMB      :
         type            : Number
         default         : 1200
+      numCPUs           :
+        type            : Number
+        default         : 1
 
   suspend: (callback)->
     @update { $set: { hostKite: '(banned)' } }, (err)=>
@@ -206,8 +214,51 @@ module.exports = class JVM extends Module
         return {groupSlug, prefix, nickname, uid, type:'user', alias}
     return null
 
+  vmProductMap =
+    "f34ba4e35041fea7e519dc20a96d3e1b": { core  : 1 }
+    "04d5a80edbde8c2b4be2c4fc0da4d527": { ram   : 1024 }
+    "7029c74b6f16ed328cd1c41a454c02f3": { disk  : 1200 }
 
-  @createVmByNonce
+  @createVmByNonce = secure (client, nonce, callback) ->
+    JPaymentFulfillmentNonce  = require './payment/nonce'
+    JPaymentPack              = require './payment/pack'
+
+    JPaymentFulfillmentNonce.one { nonce }, (err, nonceObject) =>
+      return callback err  if err
+      return { message: "Unrecognized nonce!", nonce }  unless nonceObject
+
+      { planCode } = nonceObject
+
+      JPaymentPack.one { planCode }, (err, pack) =>
+        return callback err  if err
+
+        pack.fetchProducts (err, products) =>
+          return callback err  if err
+
+          { delegate: account } = client.connection
+          { group: groupSlug } = client.context
+
+          attributes = products
+            .map (product) ->
+              vmProductMap[product.planCode]
+            .reduce( (memo, attr) ->
+              memo[key] = val  for own key, val of attr
+              memo
+            , {})
+
+          @createVm {
+            account
+            groupSlug
+            planCode
+            type          : 'user'
+            maxMemoryInMB : attributes.ram
+            diskSizeInMB  : attributes.disk
+            numCPUs       : attributes.core
+          }, (err, vm) ->
+            return callback err  if err
+
+            callback null, vm
+
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
   @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
