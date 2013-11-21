@@ -370,12 +370,15 @@ class VirtualizationController extends KDController
       overlay : yes
 
     workflow
-      .on('DataCollected', @bound 'provisionVm')
+      .on 'DataCollected', (data) =>
+        @provisionVm data
+        modal.destroy()
+
       .on('Cancel', modal.bound 'destroy')
+
       .enter()
 
   provisionVm: ({ subscription, paymentMethod, productData })->
-
     { JVM } = KD.remote.api
 
     { plan, pack } = productData
@@ -387,13 +390,14 @@ class VirtualizationController extends KDController
 
         @provisionVm { subscription, productData }
 
-    subscription.debit pack, (err, nonce) ->
+    subscription.debit pack, (err, nonce) =>
       return  if KD.showError err
 
-      JVM.createVmByNonce nonce, (err, vm) ->
+      JVM.createVmByNonce nonce, (err, vm) =>
         return  if KD.showError err
 
-        debugger
+        @emit 'VMListChanged'
+        @showVMDetails vm
 
   askForApprove:(command, callback)->
 
