@@ -27,15 +27,13 @@ class Sidebar extends JView
 
     # Main Navigations
     @navController = new MainNavController
-      view           : new NavigationList
-        testPath     : 'navigation-list'
+      view           : new KDListView
         type         : "navigation"
         itemClass    : NavigationLink
         testPath     : "navigation-list"
       wrapper        : no
       scrollView     : no
     ,
-      id        : "navigation"
       title     : "navigation"
       items     : []
 
