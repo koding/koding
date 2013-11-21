@@ -273,7 +273,6 @@ class VirtualizationController extends KDController
     KD.remote.api.JVM.fetchDefaultVm callback
 
   createDefaultVM: (callback)->
-
     @hasDefaultVM (err, state)->
       return warn 'Default VM already exists.'  if state
 
@@ -342,18 +341,18 @@ class VirtualizationController extends KDController
 
     productForm = new VmProductForm
 
-    paymentController = KD.getSingleton 'paymentController'
+    pay = KD.getSingleton 'paymentController'
 
-    KD.whoami().fetchPlansAndSubscriptions ['vm'], (err, plansAndSubscriptions) =>
+    KD.whoami().fetchPlansAndSubscriptions ['vm'], (err, plansAndSubs) =>
       return  if KD.showError err
       
-      { subscriptions } = paymentController
-                            .groupPlansBySubscription plansAndSubscriptions
+      { subscriptions } = pay.groupPlansBySubscription plansAndSubs
 
       productForm.setCurrentSubscriptions subscriptions
 
     productForm.on 'PackOfferingRequested', (subscription) ->
       options = targetOptions: selector: tags: 'vm'
+
       KD.getGroup().fetchProducts 'pack', options, (err, packs) ->
         return  if KD.showError err
         
@@ -370,28 +369,31 @@ class VirtualizationController extends KDController
       width   : 500
       overlay : yes
 
-    workflow.on 'DataCollected', @bound 'provisionVm'
-
-    workflow.on 'Cancel', -> modal.destroy()
-
-    workflow.enter()
+    workflow
+      .on('DataCollected', @bound 'provisionVm')
+      .on('Cancel', modal.bound 'destroy')
+      .enter()
 
   provisionVm: ({ subscription, paymentMethod, productData })->
+
+    { JVM } = KD.remote.api
+
     { plan, pack } = productData
       
     if paymentMethod and not subscription
 
-      plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
+      return plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
         return  if KD.showError err
 
         @provisionVm { subscription, productData }
 
-    subscription.debit pack, (err, blah) ->
-      debugger
-      
+    subscription.debit pack, (err, nonce) ->
       return  if KD.showError err
 
-      debugger
+      JVM.createVmByNonce nonce, (err, vm) ->
+        return  if KD.showError err
+
+        debugger
 
   askForApprove:(command, callback)->
 
