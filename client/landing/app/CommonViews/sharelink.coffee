@@ -8,10 +8,10 @@ class ShareLink extends KDButtonView
   click: (event) ->
     KD.utils.stopDOMEvent event
 
-    {provider, url} = @getOptions()
+    {provider} = @getOptions()
 
     window.open(
-      url,
+      @getUrl(),
       "#{provider}-share-dialog",
       "width=626,height=436,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
     )
@@ -21,27 +21,29 @@ class ShareLink extends KDButtonView
 class TwitterShareLink extends ShareLink
   constructor: (options = {}, data) ->
     options.provider = "twitter"
-    options.url      = @getURL options.url
     super options, data
 
-  getURL: (shareLink) ->
-    text = "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareLink}"
+  getUrl: () ->
+    {url} = @getOptions()
+    text  = "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{url}"
     return "https://twitter.com/intent/tweet?text=#{encodeURIComponent text}&via=koding&source=koding"
 
 class FacebookShareLink extends ShareLink
   constructor: (options = {}, data) ->
     options.provider = "facebook"
-    options.url      = "https://www.facebook.com/sharer/sharer.php?u=#{encodeURIComponent options.url}"
     super options, data
+
+  getUrl: ->
+    "https://www.facebook.com/sharer/sharer.php?u=#{encodeURIComponent @getOptions().url}"
 
 class LinkedInShareLink extends ShareLink
   constructor: (options = {}, data) ->
     options.provider = "linkedin"
-    options.url      = @getURL options.url
     super options, data
 
-  getURL: (shareLink) ->
-    text = "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{shareLink}"
-    return "http://www.linkedin.com/shareArticle?mini=true&url=#{encodeURIComponent shareLink}&title=#{encodeURIComponent @title}&summary=#{encodeURIComponent text}&source=#{location.origin}"
+  getUrl: () ->
+    {url} = @getOptions()
+    text  = "Learn, code and deploy together to powerful VMs - @koding, the dev environment from the future! #{url}"
+    return "http://www.linkedin.com/shareArticle?mini=true&url=#{encodeURIComponent url}&title=#{encodeURIComponent @title}&summary=#{encodeURIComponent text}&source=#{location.origin}"
 
   title: "Join me @koding!"
