@@ -167,9 +167,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Lock()
-	defer s.Unlock()
-
 	err := r.Write(tunnel.conn)
 	if err != nil {
 		err := fmt.Sprintf("write to tunnel %s", err)
@@ -184,6 +181,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.Lock()
+	defer s.Unlock()
+
 	defer resp.Body.Close()
 
 	copyHeader(w.Header(), resp.Header)
@@ -192,7 +192,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, resp.Body)
 }
 
-// requestTunnels makes a request to the control connection
+// requestTunnels makes a request to the control connection to get a new
+// tunnel from the client. It sends the request of a new tunnel directly to
+// the client, which then opens a new tunnel to be used.
 func (s *Server) requestTunnels(protocol, host string) (*Tunnels, error) {
 	fmt.Println("no tunnel getting control")
 	// get the user associated with this user
