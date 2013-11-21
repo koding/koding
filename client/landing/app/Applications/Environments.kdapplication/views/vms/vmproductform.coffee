@@ -7,8 +7,9 @@ class VmProductForm extends FormWorkflow
     { subscription } = @collector.data
     return callback { message: 'no subscription' }  unless subscription?
     subscription.checkUsage pack, (err, usage) =>
-      @collectData oldSubscription: subscription
-      @clearData 'subscription'  if err
+      if err
+        @collectData oldSubscription: subscription
+        @clearData 'subscription'
 
       callback err, usage
 
