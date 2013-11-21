@@ -26,7 +26,10 @@ class VmProductForm extends FormWorkflow
         [subscription] = subscriptions
         @collectData { subscription }
       else
-        @showForm 'choice'
+        [subscription] = subscriptions
+        @collectData { subscription }
+        console.warn { message: 'User has multiple subscriptions', subscriptions }
+        # @showForm 'choice'
 
   setContents: (type, contents) -> switch type
     when 'packs'
