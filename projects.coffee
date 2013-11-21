@@ -51,11 +51,11 @@ projects      =
     script        : "website/js/app.activity.#{KODING_VERSION}.js"
     sourceMapRoot : "Social/Activity/"
 
-  # Members         :
-  #   files         : "client/Members/includes.coffee"
-  #   style         : "website/css/app.members.#{KODING_VERSION}.css"
-  #   script        : "website/js/app.members.#{KODING_VERSION}.js"
-  #   sourceMapRoot : "Social/Members/"
+  Members         :
+    files         : "client/Social/Members/includes.coffee"
+    style         : "website/css/app.members.#{KODING_VERSION}.css"
+    script        : "website/js/app.members.#{KODING_VERSION}.js"
+    sourceMapRoot : "Social/Members/"
 
   Topics          :
     files         : "client/Social/Topics/includes.coffee"
@@ -112,7 +112,7 @@ projects      =
 bundles           =
 
   Social          :
-    projects      : ['Activity', 'Topics']
+    projects      : ['Activity', 'Members', 'Topics']
     style         : "website/css/social.#{KODING_VERSION}.css"
     script        : "website/js/social.#{KODING_VERSION}.js"
 
