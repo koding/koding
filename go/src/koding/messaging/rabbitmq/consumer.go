@@ -121,7 +121,6 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 		handler(delivery)
 	}
 
-	// change fmt -> log
 	log.Info("handle: deliveries channel closed")
 	c.done <- nil
 }
@@ -135,7 +134,7 @@ func (c *Consumer) Shutdown() error {
 	if err != nil {
 		return nil
 	}
-	// change fmt -> log
+
 	defer log.Info("Consumer shutdown OK")
 	log.Info("Waiting for handler to exit")
 
