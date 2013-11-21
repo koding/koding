@@ -166,7 +166,8 @@ class CollaborativeWorkspace extends Workspace
     @loader.on "viewAppended", -> loaderView.show()
     @container.addSubView @loader
 
-  isJoinedASession: -> return @getOptions().joinedASession
+  isJoinedASession: ->
+    return @getHost() isnt KD.nick()
 
   joinSession: (newOptions) ->
     options                = @getOptions()
