@@ -48,4 +48,5 @@ class FSFolder extends FSFile
   registerWatcher:(response)->
     {@stopWatching} = response
     finder = KD.getSingleton 'finderController'
+    return unless finder
     finder.registerWatcher @path, @stopWatching  if @stopWatching
