@@ -9,6 +9,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @on "PanelCreated", (panel) =>
       @createRunButton panel  if playground
+      @getActivePanel().header.setClass "teamwork"
 
     @on "WorkspaceSyncedWithRemote", =>
       if playground and @amIHost()
