@@ -70,7 +70,7 @@ func parseHost(url string) (*host, error) {
 }
 
 // randomID generates a random string of the given length
-func randonmID(length int) string {
+func randomID(length int) string {
 	r := make([]byte, length*6/8)
 	rand.Read(r)
 	return base64.URLEncoding.EncodeToString(r)

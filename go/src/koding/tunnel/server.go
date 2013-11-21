@@ -2,6 +2,7 @@ package tunnel
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -150,45 +151,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tunnels, ok := s.GetTunnels(host)
 	if !ok {
-		fmt.Println("no tunnel getting control")
-
-		// get the user associated with this user
-		username, ok := s.GetUsername(host)
-		if !ok {
-			errHttp := fmt.Sprintf("no control available for %s", host)
-			http.Error(w, errHttp, 404)
+		var err error
+		tunnels, err = s.requestTunnels("http", host)
+		if err != nil {
+			http.Error(w, err.Error(), 404)
 			return
 		}
-
-		// then grab the control connection that is associated with this username
-		control, ok := s.GetControl(username)
-		if !ok {
-			errHttp := fmt.Sprintf("no control available for %s", host)
-			http.Error(w, errHttp, 404)
-			return
-		}
-		fmt.Println("got control preparing request")
-
-		// create an unique id to used with that tunnel
-		tunnelID := randonmID(32)
-
-		// request a new http tunnel
-		control.SendMsg("http", tunnelID)
-
-		// now wait until our tunnel is established if the tunnel has the
-		// right ID it will send a message to this channel, which releases the
-		// blocking channel. then we wait, until we got our done channel.
-		fmt.Println("waiting for tunnel")
-		s.tunnelChan[tunnelID] = make(chan *Tunnels)
-		tunnels = <-s.tunnelChan[tunnelID]
-
-		// remove it because we don't need it anymore
-		delete(s.tunnelChan, tunnelID)
-
-		// tunnels, _ = s.GetTunnels(host)
 	}
 
-	log.Println("Waiting for gettunnel http")
 	// for http one single conn is enough
 	tunnel, ok := tunnels.getTunnel("http")
 	if !ok {
@@ -196,6 +166,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err, 404)
 		return
 	}
+
+	s.Lock()
+	defer s.Unlock()
 
 	err := r.Write(tunnel.conn)
 	if err != nil {
@@ -217,6 +190,46 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 
 	io.Copy(w, resp.Body)
+}
+
+// requestTunnels makes a request to the control connection
+func (s *Server) requestTunnels(protocol, host string) (*Tunnels, error) {
+	fmt.Println("no tunnel getting control")
+	// get the user associated with this user
+	username, ok := s.GetUsername(host)
+	if !ok {
+		return nil, fmt.Errorf("no control available for %s", host)
+	}
+
+	// then grab the control connection that is associated with this username
+	control, ok := s.GetControl(username)
+	if !ok {
+		return nil, fmt.Errorf("no control available for %s", host)
+	}
+	fmt.Println("got control preparing request")
+
+	// create an unique id to used with that tunnel
+	tunnelID := randomID(32)
+
+	// request a new http tunnel
+	control.SendMsg(protocol, tunnelID)
+
+	// now wait until our tunnel is established if the tunnel has the
+	// right ID it will send a message to this channel, which releases the
+	// blocking channel. then we wait, until we got our done channel.
+	fmt.Println("waiting for tunnel")
+	s.tunnelChan[tunnelID] = make(chan *Tunnels)
+
+	select {
+	case tunnels := <-s.tunnelChan[tunnelID]:
+		// remove and close it because we don't need it anymore
+		close(s.tunnelChan[tunnelID])
+		delete(s.tunnelChan, tunnelID)
+
+		return tunnels, nil
+	case <-time.After(time.Second * 10):
+		return nil, errors.New("timeout")
+	}
 }
 
 func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
