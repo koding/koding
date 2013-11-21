@@ -25,8 +25,8 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         'cancel'
         'resume'
         'calculateRefund'
-        'spend'
         'checkUsage'
+        'debit'
       ]
     schema          :
       uuid          : String
@@ -194,7 +194,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       then callback { message: 'quota exceeded' }, results[0]
       else callback null
 
-  spend: secure (client, options, callback) ->
+  debit: secure (client, pack, callback) ->
     JPaymentPlan = require './plan'
 
     { delegate } = client.connection
@@ -207,7 +207,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         return callback err  if err
 
         incOp = {}
-        for own key, val of options
+        for own key, val of pack.quantities
           if not (@usage.hasOwnProperty key) or plan[key] - @usage[key] - val < 0
             return callback { message: 'Quota exceeded', planCode: key }
           incOp["usage.#{ key }"] = val
