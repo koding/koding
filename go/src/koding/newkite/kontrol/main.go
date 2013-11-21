@@ -124,17 +124,6 @@ func (k *Kontrol) removeDeadKites() {
 	}
 }
 
-func (k *Kontrol) updateKite(id string) error {
-	kite := k.storage.Get(id)
-	if kite == nil {
-		return errors.New("Kite not registered")
-	}
-
-	kite.UpdatedAt = time.Now().UTC().Add(HEARTBEAT_INTERVAL)
-	k.storage.Add(kite)
-	return nil
-}
-
 func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 	log.Info("Register request from: %#v", r.RemoteKite.Kite)
 
@@ -189,7 +178,7 @@ func (k *Kontrol) addKite(r *kite.Request) *models.Kite {
 	}
 
 	// Deregister the Kite on disconnect.
-	r.RemoteKite.Client.OnDisconnect(func() {
+	r.RemoteKite.OnDisconnect(func() {
 		log.Info("Deregistering Kite: %s", r.RemoteKite.ID)
 		k.storage.Remove(r.RemoteKite.ID)
 
@@ -205,7 +194,11 @@ func (k *Kontrol) addKite(r *kite.Request) *models.Kite {
 
 func (k *Kontrol) requestHeartbeat(kite *protocol.Kite, remote *kite.RemoteKite) error {
 	updateKite := func(p *dnode.Partial) {
-		k.updateKite(kite.ID)
+		err := k.updateKite(kite.ID)
+		if err != nil {
+			log.Warning("Came heartbeat but the Kite is not registered. Dropping it's connection to prevent bad things happening. It may be an indication that the heartbeat delay is too short.")
+			remote.Close()
+		}
 	}
 	heartbeatArgs := []interface{}{
 		HEARTBEAT_INTERVAL / time.Second,
@@ -213,6 +206,17 @@ func (k *Kontrol) requestHeartbeat(kite *protocol.Kite, remote *kite.RemoteKite)
 	}
 	_, err := remote.Call("heartbeat", heartbeatArgs)
 	return err
+}
+
+func (k *Kontrol) updateKite(id string) error {
+	kite := k.storage.Get(id)
+	if kite == nil {
+		return errors.New("Kite not registered")
+	}
+
+	kite.UpdatedAt = time.Now().UTC().Add(HEARTBEAT_INTERVAL)
+	k.storage.Add(kite)
+	return nil
 }
 
 func (k *Kontrol) handleGetKites(r *kite.Request) (interface{}, error) {
