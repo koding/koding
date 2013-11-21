@@ -149,8 +149,8 @@ class MembersAppController extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView controller.getView()
-      contentDisplayController = KD.getSingleton "contentDisplayController"
-      contentDisplayController.emit "ContentDisplayWantsToBeShown", view
+      # contentDisplayController = KD.getSingleton "contentDisplayController"
+      # contentDisplayController.emit "ContentDisplayWantsToBeShown", view
       callback view, controller
       if controller.facetsController?.filterController?
         controller.emit 'ready'
@@ -209,8 +209,8 @@ class MembersAppController extends AppController
           direction       : 1
     }, (controller)=>
       view.addSubView controller.getView()
-      contentDisplayController = KD.getSingleton "contentDisplayController"
-      contentDisplayController.emit "ContentDisplayWantsToBeShown", view
+      # contentDisplayController = KD.getSingleton "contentDisplayController"
+      # contentDisplayController.emit "ContentDisplayWantsToBeShown", view
       callback view, controller
 
       if controller.facetsController?.filterController?
@@ -271,8 +271,8 @@ class MembersAppController extends AppController
         @createLikedContentDisplay model, kallback
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = KD.getSingleton "contentDisplayController"
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    # contentDisplayController = KD.getSingleton "contentDisplayController"
+    # contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
   setCurrentViewNumber:(type, count)->
