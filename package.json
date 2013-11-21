@@ -60,8 +60,7 @@
     "nesh"            : "1.2.0",
     "htmlencode"      : "0.0.3",
     "node-odesk"      : "0.0.7",
-    "oauth"           : "0.9.10",
-    "dnode": "latest"
+    "oauth"           : "0.9.10"
   },
   "devDependencies": {},
   "optionalDependencies": {},
