@@ -24,7 +24,6 @@ class CollaborativeWorkspace extends Workspace
     @firepadRef   = new Firebase "https://#{instanceName}.firebaseIO.com/"
     @sessionKey   = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef = @firepadRef.child @sessionKey
-    @historyRef   = @workspaceRef.child "history"
     @broadcastRef = @workspaceRef.child "broadcast"
 
   bindRemoteEvents: ->
@@ -56,12 +55,6 @@ class CollaborativeWorkspace extends Workspace
       @loader.destroy()
       @chatView?.show()
 
-      initialMessage   = "$0 started a #{@getOptions().name} session. Session key is, #{@sessionKey}"
-      if isOldSession
-        initialMessage = "$0 joined."
-
-      @setHistory initialMessage
-
       @emit "WorkspaceSyncedWithRemote"
 
       @broadcastRef.on "value", (snapshot) =>
@@ -75,7 +68,6 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef.child("users").on "child_changed", (snapshot) =>
       name = snapshot.name()
       if @amIHost() and snapshot.val() is "offline"
-        @setHistory "#{name} is disconnected."
         @broadcastMessage
           title     : "#{name} has left the session"
           cssClass  : "error"
@@ -336,9 +328,3 @@ class CollaborativeWorkspace extends Workspace
       broadcastItem.hide()
       activePanel.unsetClass "broadcasting"
       @emit "MessageBroadcasted"
-
-  setHistory: (message = "") ->
-    user    = @nickname
-    message = message.replace "$0", user
-
-    @historyRef.child(Date.now()).set { message, user }

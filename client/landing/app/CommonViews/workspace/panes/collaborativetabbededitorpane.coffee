@@ -71,8 +71,6 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
       @indexRef.set newIndex
       @activeTabIndex = newIndex
-      @workspace.setHistory "$0 switched to #{activeTab.getOptions().name}"
-
 
   createEditorInstance: (file, content, sessionKey) ->
     if file
@@ -120,7 +118,6 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
           fileName = FSHelper.getFileNameFromPath tabs[key].path
           delete tabs[key]
         @workspaceRef.set { tabs }
-        @workspace.setHistory "$0 closed #{fileName}"
 
       @openedFiles.splice @openedFiles.indexOf(file.path), 1
 
