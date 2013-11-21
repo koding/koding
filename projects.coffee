@@ -27,15 +27,22 @@ projects      =
     style     : "website/css/kdapp.#{KODING_VERSION}.css"
     script    : "website/js/kdapp.#{KODING_VERSION}.js"
 
-  TestApp     :
-    files     : "client/testapp/includes.coffee"
-    style     : "website/css/testapp.css"
-    script    : "website/js/testapp.js"
+  # TestApp     :
+  #   files     : "client/testapp/includes.coffee"
+  #   style     : "website/css/testapp.css"
+  #   script    : "website/js/testapp.js"
 
   HomeIntro   :
     files     : "client/introapp/includes.coffee"
     style     : "website/css/introapp.#{KODING_VERSION}.css"
     script    : "website/js/introapp.#{KODING_VERSION}.js"
+    sourceMapRoot : "introapp/"
+
+  Landing     :
+    files     : "client/landing/includes.coffee"
+    style     : "website/css/landingapp.#{KODING_VERSION}.css"
+    script    : "website/js/landingapp.#{KODING_VERSION}.js"
+    sourceMapRoot : "landing/"
 
 bundles       =
 

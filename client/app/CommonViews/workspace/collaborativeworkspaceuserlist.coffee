@@ -171,7 +171,7 @@ class CollaborativeWorkspaceUserList extends JView
 
     return if to is nickname
 
-    KD.remote.api.JPrivateMessage.create { to, subject, body }
+    KD.remote.api.JPrivateMessage.create { to, subject, body }, noop
 
     new KDNotificationView
       title    : "Invitation sent to #{to}"

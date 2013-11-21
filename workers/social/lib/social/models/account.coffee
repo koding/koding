@@ -139,7 +139,6 @@ module.exports = class JAccount extends jraphical.Module
         'fetchRelatedTagsFromGraph'
         'fetchRelatedUsersFromGraph'
         'fetchDomains'
-        'fetchDomains'
         'unlinkOauth'
         'changeUsername'
         'markUserAsExempt'
@@ -152,6 +151,7 @@ module.exports = class JAccount extends jraphical.Module
         'store'
         'unstore'
         'isEmailVerified'
+        'fetchEmail'
       ]
     schema                  :
       skillTags             : [String]
@@ -663,7 +663,8 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
-                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin" ]
+                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
+                  "samet" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -1246,3 +1247,13 @@ module.exports = class JAccount extends jraphical.Module
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
+
+  fetchEmail: secure (client, callback)->
+    {delegate} = client.connection
+    isMine     = @equals delegate
+    if isMine
+      @fetchUser (err, user)->
+        return callback err  if err
+        callback null, user?.email
+    else
+      callback new KodingError 'Access denied'

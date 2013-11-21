@@ -208,7 +208,7 @@ module.exports = class Builder
         changed |= project.changed
         for includePath in CoffeeScript.eval(fs.readFileSync(project.includes, "utf-8"))
 
-          cachePath = ".build/#{includePath.replace /\//g, "_" }"
+          cachePath = ".build/#{project.title}_#{includePath.replace /\//g, "_" }"
 
           file =
             sourceMapPath : cachePath + ".map"
@@ -222,7 +222,7 @@ module.exports = class Builder
           if file.sourcePath in @blackList
             @blackList.splice (@blackList.indexOf file.sourcePath), 1
           else if not checkFileCase file.sourcePath
-            log.error "File name case is wrong: #{ includePath }"
+            log.error "File name case is wrong: #{ file.sourcePath }"
             process.exit 1
 
           switch file.extension
