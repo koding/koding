@@ -64,20 +64,17 @@ module.exports = class JGroupBundle extends JBundle
       subs.forEach (sub) ->
         paidVMs = sub.quantity
 
-      createdVMs = 0
-      JVM.someData
-        planOwner: paymentMethodId
-        planCode : planCode
-      ,
-        name     : 1
-      , {}, (err, cursor)=>
-        cursor.toArray (err, arr)=>
-          return callback err  if err
-          createdVMs = arr.length or 0
-          firstVM = group.slug in ['koding','guests'] and \
-                    createdVMs == 0 and planCode is 'free'
+      selector    =
+        planOwner : paymentMethodId
+        planCode  : planCode
 
-          callback null, paidVMs > createdVMs or firstVM
+      JVM.count selector, (err, count = 0) -> 
+        return callback err  if err
+
+        firstVM = group.slug in ['koding','guests'] and
+                  count is 0 and planCode is 'free'
+
+        callback null, paidVMs > count or firstVM
 
 
   createVM: (account, group, data, callback) ->
