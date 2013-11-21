@@ -30,7 +30,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
       return unless fileTab
       @tabView.removePane fileTab
-      @indexRef.set @tabView.getPaneIndex @tabView.getActivePane()
+      @workspaceRef.once "value", (snapshot) =>
+        if snapshot.val()?.keys
+          @indexRef.set @tabView.getPaneIndex @tabView.getActivePane()
 
     @indexRef.on "value", (snapshot) =>
       return if snapshot.val() is null
