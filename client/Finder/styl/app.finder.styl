@@ -1,8 +1,6 @@
-@import "./kdfn"
-@import "./client/stylus/appfn"
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
 @import "nib/gradients"
-
-
 
 active-color = rgb(246,162,32)
 finderDimmedColor1 = #cccccc
@@ -13,6 +11,9 @@ FINDER stylesheet
 app.finder.styl
 */
 }
+
+.kdview.finder-app
+  padding-top       60px
 
 selectedNeighbor()
   background        finderSelectedColor1
@@ -83,7 +84,7 @@ dimmedNeighbor()
     display           none
     size              22px,22px
     margin            0
-    sprite()
+    kdfsprite()
     bg                position,-180px -360px
 
   &.selected
@@ -169,7 +170,7 @@ dimmedNeighbor()
     bg              position, -82px -222px
     right           5px
     top             3px
-    sprite()
+    kdfsprite()
     &:focus
     &:active
       bg            position, -62px -242px
@@ -207,7 +208,7 @@ dimmedNeighbor()
       fr()
 
     .arrow
-      sprite()
+      kdfsprite()
       fl()
 
     .kdloader
@@ -295,7 +296,7 @@ dimmedNeighbor()
       bg              position, -55px -173px
       top             0
       right           0
-      sprite()
+      kdfsprite()
 
   .kdnotification.filetree.mini
     shadow              0 1px 3px rgba(0, 0, 0, 0.3)
@@ -375,7 +376,7 @@ dimmedNeighbor()
     display                 block
     margin                  0 auto
     margin-top              12px
-    sprite()
+    kdfsprite()
     bg                      position,-60px -160px
 
   .finder-bottom-pin
@@ -410,7 +411,7 @@ dimmedNeighbor()
       // &:hover
       //   color               linkColor1
       // span:not(.title)
-      //   sprite()
+      //   kdfsprite()
       // span.terminal
       //   bg(position,-100px -300px)
       // span.resources
@@ -563,7 +564,7 @@ div.led-wrapper
         bg          color, #323232
     .icon.file
       fl()
-      sprite()
+      kdfsprite()
       width         30px
       height        30px
       bg            position, -194px 0px
@@ -601,7 +602,7 @@ div.led-wrapper
     .user-nickname
       margin-top    3px
   .fatih-pref-icon
-    sprite()
+    kdfsprite()
     width           16px
     height          16px
     abs()
@@ -630,7 +631,7 @@ div.led-wrapper
     bg              position, -85px -542px
     pointer()
     abs()
-    sprite()
+    kdfsprite()
   .fatih-user-actions
     padding         10px 0
     .avatarview
@@ -673,7 +674,7 @@ div.led-wrapper
 
   .icon
   .arrow
-    sprite()
+    kdfsprite()
     fl()
 
   .kdloader
@@ -709,7 +710,7 @@ div.led-wrapper
 
     span.icon
     span.arrow
-      sprite()
+      kdfsprite()
       fl()
 
     span.icon
@@ -746,7 +747,7 @@ div.led-wrapper
       right         22px
       display       none
       bg            position, -220px -540px
-      sprite()
+      kdfsprite()
       abs()
 
     span.vm-info
@@ -877,7 +878,7 @@ div.led-wrapper
         width         16px !important
         height        16px !important
         top           12px
-        sprite()
+        kdfsprite()
         bg            position,-300px -140px
       &.selected
         background      linear-gradient(top, #aaa 0%, #bbb 50%)
@@ -899,7 +900,7 @@ div.led-wrapper
       margin          0
       opacity         0.6
       abs()
-      sprite()
+      kdfsprite()
       bg              position,-260px -160px
 
     .vm-info
@@ -931,7 +932,7 @@ div.led-wrapper
       border          0px
       opacity         0.6
       bg              position, -100px -300px
-      sprite()
+      kdfsprite()
       abs()
       &:hover
         opacity       1
@@ -943,7 +944,7 @@ div.led-wrapper
       top             15px
       opacity         1
       abs()
-      sprite()
+      kdfsprite()
       bg              position, -180px -320px
 
 .vm-toggle-menu
@@ -1039,7 +1040,7 @@ div.led-wrapper
 //       display       none
 //       size          16px,16px
 //       margin        0
-//       sprite()
+//       kdfsprite()
 //       bg            position,-180px -360px
 
 //     &.selected

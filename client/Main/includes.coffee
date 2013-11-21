@@ -46,13 +46,10 @@ module.exports = [
   "CommonViews/VideoPopup.coffee",
   "CommonViews/LikeView.coffee",
   "CommonViews/ShowMoreDataModalView.coffee",
-  "CommonViews/Tags/TagViews.coffee",
-  "CommonViews/Tags/TagAutoCompleteController.coffee",
   "CommonViews/SkillTagFormView.coffee",
   "CommonViews/SkillTagAutoCompleteController.coffee",
   "CommonViews/SkillTagAutoCompletedItem.coffee",
   "CommonViews/messagesList.coffee",
-  "CommonViews/CommonInputWithButton.coffee",
   "CommonViews/SplitViewWithOlderSiblings.coffee",
   "CommonViews/ContentPageSplitBelowHeader.coffee",
   "CommonViews/CommonListHeader.coffee",
@@ -66,17 +63,6 @@ module.exports = [
 
   # "CommonViews/remotesmodal.coffee",
   # "CommonViews/databasesmodal.coffee",
-
-  "CommonViews/comments/commentview.coffee",
-  "CommonViews/comments/commentlistviewcontroller.coffee",
-  "CommonViews/comments/commentviewheader.coffee",
-  "CommonViews/comments/commentlistitemview.coffee",
-  "CommonViews/comments/newcommentform.coffee",
-
-  "CommonViews/reviews/reviewview.coffee",
-  "CommonViews/reviews/reviewlistviewcontroller.coffee",
-  "CommonViews/reviews/reviewlistitemview.coffee",
-  "CommonViews/reviews/newreviewform.coffee",
 
   "CommonViews/opinions/opinionview.coffee",
   "CommonViews/opinions/discussionactivityopinionview.coffee",
@@ -114,7 +100,6 @@ module.exports = [
   "CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   "CommonViews/ModalViewWithTerminal.coffee",
-  "CommonViews/DNDUploader.coffee",
   "CommonViews/clonerepomodal.coffee",
 
   "kodingappcontroller.coffee",
@@ -161,45 +146,6 @@ module.exports = [
   # global notifications
   "globalnotification.coffee",
 
-  #Finder Modals
-  "filetree/modals/openwith/openwithmodalitem.coffee",
-  "filetree/modals/openwith/openwithmodal.coffee",
-  "filetree/modals/vmdangermodalview.coffee",
-
-  # SINANS FINDER
-  "filetree/controllers/findercontroller.coffee",
-  "filetree/controllers/findertreecontroller.coffee",
-  "filetree/controllers/findercontextmenucontroller.coffee",
-
-  "filetree/itemviews/finderitem.coffee",
-  "filetree/itemviews/fileitem.coffee",
-  "filetree/itemviews/folderitem.coffee",
-  "filetree/itemviews/mountitem.coffee",
-  "filetree/itemviews/brokenlinkitem.coffee",
-  "filetree/itemviews/sectionitem.coffee",
-  "filetree/itemviews/vmitem.coffee",
-
-  "filetree/itemsubviews/finderitemdeleteview.coffee",
-  "filetree/itemsubviews/finderitemdeletedialog.coffee",
-  "filetree/itemsubviews/finderitemrenameview.coffee",
-  "filetree/itemsubviews/setpermissionsview.coffee",
-  "filetree/itemsubviews/vmtogglebuttonview.coffee",
-  "filetree/itemsubviews/mounttogglebuttonview.coffee",
-  "filetree/itemsubviews/copyurlview.coffee",
-
-  "filetree/helpers/dropboxuploader.coffee",
-
-  # fs representation
-  "fs/fshelper.coffee",
-  "fs/fswatcher.coffee",
-  "fs/fsitem.coffee",
-  "fs/fsfile.coffee",
-  "fs/fsfolder.coffee",
-  "fs/fsmount.coffee",
-  "fs/fsbrokenlink.coffee",
-  "fs/fsvm.coffee",
-  "fs/appswatcher.coffee",
-
   # avatararea
   "avatararea/avatararea.coffee",
   "avatararea/avatarareapopup.coffee",
@@ -212,15 +158,6 @@ module.exports = [
   "avatararea/avatarareapopupmessageslistitem.coffee",
   "avatararea/avatarareapopupnotificationslistitem.coffee",
   "avatararea/avatarareasharestatuspopup.coffee",
-
-  # BOTTOM PANEL
-  # "bottompanels/bottompanelcontroller.coffee",
-  # "bottompanels/bottompanel.coffee",
-  # "bottompanels/chat/chatpanel.coffee",
-  # "bottompanels/chat/chatroom.coffee",
-  # "bottompanels/chat/chatsidebar.coffee",
-  # "bottompanels/chat/chatuseritem.coffee",
-  # "bottompanels/terminal/terminalpanel.coffee",
 
   "maincontroller/groupdata.coffee",
   "maincontroller/mainviews/appsettingsmenubutton.coffee",

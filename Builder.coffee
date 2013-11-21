@@ -447,7 +447,7 @@ module.exports = class Builder
   getProjects:->
 
     rp = (address)=>
-      address?.replace /^website/, @config.uri.address
+      address?.replace /^website\//, '' #@config.uri.address
 
     apps = {}
     {projects, bundles} = require './projects'

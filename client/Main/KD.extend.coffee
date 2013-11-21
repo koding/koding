@@ -154,6 +154,8 @@ KD.extend
   getReferralUrl: (username) ->
     "#{location.origin}/R/#{username}"
 
+  tell: (rest...)-> KD.getSingleton('appManager').tell rest...
+
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
