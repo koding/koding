@@ -5,7 +5,11 @@ class FinderController extends AppController
     route        : "/Finder"
     hiddenHandle : no
 
-  constructor:->
-    super
+  constructor:(options, data)->
+
+    options.view    = new FinderView
+    options.appInfo = name : "Finder"
+
+    super options, data
 
   createFileFromPath:(rest...)-> FSHelper.createFileFromPath rest...
