@@ -71,5 +71,3 @@ class CollaborativeClientTreeViewController extends JTreeViewController
       path   : nodeData.path
       type   : nodeData.type
       vmName : nodeData.vmName
-
-    @getOptions().workspace.setHistory "$0 toggled #{nodeData.path}"

@@ -16,8 +16,6 @@ class CollaborativeFinderPane extends CollaborativePane
       useStorage          : no
       treeControllerClass : CollaborativeFinderTreeController
 
-    @finderController.treeController.workspace = @workspace
-
     @container?.destroy()
     @finder = @container = @finderController.getView()
 
@@ -56,13 +54,6 @@ class CollaborativeFinderTreeController extends NFinderTreeController
   addNodes: (nodes) ->
     super nodes
     @syncInteraction()
-
-  dblClick: (nodeView, e) ->
-    super nodeView, e
-    nodeData = nodeView.getData()
-    action   = if nodeData.type is "folder" then "toggled" else "opened"
-
-    @workspace.setHistory "$0 #{action} #{FSHelper.plainPath nodeData.path}"
 
   getSnapshot: ->
     snapshot = []
