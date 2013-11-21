@@ -202,6 +202,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
   subscribe$: secure (client, paymentMethodId, data, callback) ->
     { connection:{ delegate } } = client
+    [data, callback] = [callback, data]  unless callback
     @subscribe paymentMethodId, data, (err, subscription) ->
       return callback err  if err
 
