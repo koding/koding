@@ -1,6 +1,7 @@
 package tunnel
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -34,4 +35,34 @@ func isWebsocket(req *http.Request) bool {
 		return false
 	}
 	return true
+}
+
+type host struct {
+	kite     string
+	version  string
+	username string
+}
+
+// parse host into service, version and username. Example:
+// webserver-917-fatih.kd.io, returns a host struct with kitename, version and
+// username.
+func parseHost(url string) (*host, error) {
+	// input: xxxxx.kd.io, output: [xxxxx kd.io]
+	h := strings.SplitN(url, ".", 2)
+
+	if len(h) != 2 {
+		return nil, fmt.Errorf("not valid host '%s'", url)
+	}
+
+	if h[1] != "kd.io" {
+		return nil, fmt.Errorf("invalid domain: %s", h[1])
+	}
+
+	// input: kitename-key-username, output: [service key username]
+	s := strings.Split(h[0], "-")
+	return &host{
+		kite:     s[0],
+		version:  s[1],
+		username: s[2],
+	}, nil
 }

@@ -10,7 +10,7 @@ import (
 type Client struct {
 	controlConn net.Conn
 	localConns  map[string]net.Conn
-	sendChan    chan string
+	sendChan    chan ClientMsg
 	serverAddr  string
 	localAddr   string
 }
@@ -18,25 +18,19 @@ type Client struct {
 // NewTunnelClient creates a new tunnel that is established between the
 // serverAddr and localAddr.
 func NewClient(serverAddr, localAddr string) *Client {
-	controlConn := NewTunnelConn(serverAddr)
-	err := controlConn.Connect(ControlPath)
-	if err != nil {
-		log.Fatalln("NewClient", err)
-	}
-
 	tunnel := &Client{
-		controlConn: controlConn,
+		controlConn: NewControlConn(serverAddr, "fatih"),
 		localConns:  make(map[string]net.Conn),
 		serverAddr:  serverAddr,
 		localAddr:   localAddr,
-		sendChan:    make(chan string),
+		sendChan:    make(chan ClientMsg),
 	}
 
 	return tunnel
 }
 
 func (c *Client) AddTunnel() {
-	c.SendMsg("tunnel")
+	c.sendMsg("tunnel")
 }
 
 func (c *Client) Run() {
@@ -46,18 +40,16 @@ func (c *Client) Run() {
 	c.Decoder()
 }
 
-func (c *Client) SendMsg(msg string) {
-	c.sendChan <- msg
+func (c *Client) sendMsg(msg string) {
+	c.sendChan <- ClientMsg{Action: msg}
 }
 
 func (c *Client) Encoder() {
 	e := json.NewEncoder(c.controlConn)
 
-	for m := range c.sendChan {
-		fmt.Println("got msg, sending to control chan", m)
-		msg := &ClientMsg{Action: m}
-
-		err := e.Encode(msg)
+	for msg := range c.sendChan {
+		fmt.Println("got msg, sending to control chan", msg)
+		err := e.Encode(&msg)
 		if err != nil {
 			log.Println("encode", err)
 			return
@@ -79,24 +71,26 @@ func (c *Client) Decoder() {
 
 		fmt.Printf("got msg from control chan %#v\n", msg)
 
-		if msg.Action == "allowed" {
-			go c.Proxy()
+		switch msg.Protocol {
+		case "http":
+			log.Println("creating a new http connection to tunnel server")
+
+			go c.Proxy("http", msg.TunnelID)
+		case "websocket":
+			log.Println("creating a new websocket connection to tunnel server")
+
+			go c.Proxy("websocket", msg.TunnelID)
 		}
 	}
 }
 
 // Proxy is like Start() but it joins (proxies) the remote tcp connection with
 // the local one, that means all de handling is done via those two connection.
-func (c *Client) Proxy() {
-	remote := NewTunnelConn(c.serverAddr)
-	err := remote.Connect(TunnelPath)
-	if err != nil {
-		log.Println("proxy", err)
-	}
+func (c *Client) Proxy(protocol, tunnelID string) {
+	remote := NewTunnelConn(c.serverAddr, protocol, tunnelID)
+	local := NewClientConn(c.localAddr)
 
-	local := NewTunnelConn(c.localAddr)
-
-	err = <-join(local, remote)
+	err := <-join(local, remote)
 	log.Println(err)
 }
 

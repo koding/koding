@@ -29,17 +29,17 @@ func NewTunnels() *Tunnels {
 	}
 }
 
-func (t *Tunnels) getTunnel(url string) (*Tunnel, bool) {
+func (t *Tunnels) getTunnel(protocol string) (*Tunnel, bool) {
 	t.Lock()
 	defer t.Unlock()
 
-	tunnel, ok := t.tunnels[url]
+	tunnel, ok := t.tunnels[protocol]
 	return tunnel, ok
 }
 
-func (t *Tunnels) addTunnel(url string, tunnel *Tunnel) {
+func (t *Tunnels) addTunnel(protocol string, tunnel *Tunnel) {
 	t.Lock()
 	defer t.Unlock()
 
-	t.tunnels[url] = tunnel
+	t.tunnels[protocol] = tunnel
 }
