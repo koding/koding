@@ -39,6 +39,8 @@ class MembersAppController extends AppController
 
     super options, data
 
+    @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
+
   createFeed:(view, loadFeed = no)->
     @appManager.tell 'Feeder', 'createContentFeedController', {
       feedId                : 'members.main'

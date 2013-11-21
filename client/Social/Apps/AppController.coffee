@@ -18,6 +18,8 @@ class AppsAppController extends AppController
 
     super options, data
 
+    @on "LazyLoadThresholdReached", => @feedController.loadFeed()
+
     @appsController = KD.getSingleton "kodingAppsController"
 
     @appsController.on "AnAppHasBeenUpdated", @bound "updateApps"
