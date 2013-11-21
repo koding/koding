@@ -9,4 +9,4 @@ module.exports = class JPaymentFulfillmentNonce extends Model
       nonce     :
         type    : String
         default : require 'hat'
-      productId : ObjectId
+      planCode  : String
