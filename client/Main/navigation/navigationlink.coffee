@@ -7,11 +7,13 @@ class NavigationLink extends KDListItemView
     data.type        or= ''
     options.tagName  or= 'a'
     options.type     or= 'main-nav'
-    options.draggable  = yes
+    # options.draggable  =
+    #   axis             : 'x'
+    #   containment      : 'parent' #KD.getSingleton('DockController').getView()
     options.attributes = {href}
     options.cssClass   = KD.utils.curry @utils.slugify(data.title), options.cssClass
 
-    super options,data
+    super options, data
 
     @name = data.title
 
@@ -40,7 +42,8 @@ class NavigationLink extends KDListItemView
   partial:(data)->
     "<span class='icon'></span><cite>#{data.title}</cite>"
 
-  dragInAction: (x, y)-> #log x, y
+  dragInAction: (x, y)->
+    # log x, y
 
   dragStarted: (event, dragState)->
 
