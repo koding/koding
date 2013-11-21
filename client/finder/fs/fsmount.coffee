@@ -1,0 +1,1 @@
+class FSMount extends FSFolder
