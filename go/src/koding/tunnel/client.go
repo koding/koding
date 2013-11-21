@@ -19,7 +19,7 @@ type Client struct {
 // serverAddr and localAddr.
 func NewClient(serverAddr, localAddr string) *Client {
 	tunnel := &Client{
-		controlConn: NewControlConn(serverAddr, "fatih"),
+		controlConn: NewControlConn(serverAddr, "arslan"),
 		localConns:  make(map[string]net.Conn),
 		serverAddr:  serverAddr,
 		localAddr:   localAddr,
@@ -29,14 +29,8 @@ func NewClient(serverAddr, localAddr string) *Client {
 	return tunnel
 }
 
-func (c *Client) AddTunnel() {
-	c.sendMsg("tunnel")
-}
-
 func (c *Client) Run() {
 	go c.Encoder()
-	go c.AddTunnel()
-
 	c.Decoder()
 }
 

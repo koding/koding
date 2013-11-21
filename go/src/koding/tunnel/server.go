@@ -17,6 +17,7 @@ type Server struct {
 	tunnels    map[string]*Tunnels
 	tunnelChan map[string]chan bool
 	controls   *Controls
+	hosts      *Hosts
 	sync.Mutex
 }
 
@@ -25,6 +26,7 @@ func NewServer() *Server {
 		tunnels:    make(map[string]*Tunnels),
 		tunnelChan: make(map[string]chan bool),
 		controls:   NewControls(),
+		hosts:      newHosts(),
 	}
 
 	http.HandleFunc(ControlPath, s.controlHandler)
@@ -52,7 +54,8 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 
 	// set by control channel
 	protocol := r.Header.Get("protocol")
-	tunnelID := r.Header.Get("id")
+	tunnelID := r.Header.Get("tunnelID")
+	log.Println("protocol and tunnelID is", protocol, tunnelID)
 
 	done, ok := s.tunnelChan[tunnelID]
 	if !ok {
@@ -86,9 +89,22 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := r.Header.Get("id")
+	username := r.Header.Get("username")
+	if username == "" {
+		log.Printf("empty username is connected")
+		http.Error(w, "username is not set", 405)
+		return
+	}
 
-	_, ok := s.GetControl(username)
+	_, ok := s.hosts.getHost(username)
+	if !ok {
+		log.Printf("no host is associated for username %s. please use server.AddHost()",
+			username)
+		http.Error(w, "there is no host defined for this username", 405)
+		return
+	}
+
+	_, ok = s.GetControl(username)
 	if ok {
 		log.Printf("control conn for %s already exist\n", username)
 		http.Error(w, "only one control connection is allowed", 405)
@@ -111,10 +127,12 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 
 	// delete and close the conn when the control connection is being closed
 	defer func() {
+		log.Println("closing control for", username)
 		control.Close()
 		s.DeleteControl(username)
 	}()
 
+	log.Println("control has started for", username)
 	// blocking function
 	control.run()
 }
@@ -127,20 +145,29 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("http handler invoked", r.URL.String())
+	log.Println("http handler invoked", r.Host, r.URL.String())
 	host := strings.ToLower(r.Host)
-
-	s.Lock()
-	defer s.Unlock()
 
 	tunnels, ok := s.GetTunnels(host)
 	if !ok {
-		// there is no tunnel available, go and get one via our control conn
-		control, ok := s.GetControl(host)
+		fmt.Println("no tunnel getting control")
+
+		// get the user associated with this user
+		username, ok := s.GetHost(host)
 		if !ok {
-			fmt.Println("no control availabiel for", host)
+			errHttp := fmt.Sprintf("no control available for %s", host)
+			http.Error(w, errHttp, 404)
 			return
 		}
+
+		// then grab the control connection that is associated with this username
+		control, ok := s.GetControl(username)
+		if !ok {
+			errHttp := fmt.Sprintf("no control available for %s", host)
+			http.Error(w, errHttp, 404)
+			return
+		}
+		fmt.Println("got control preparing request")
 
 		// create an unique id to used with that tunnel
 		tunnelID := "1234567890"
@@ -153,13 +180,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// blocking channel. First we create the channel for this id.
 		s.tunnelChan[tunnelID] = make(chan bool)
 
+		fmt.Println("waiting for tunnel")
 		// then we wait, until we got our done channel
 		<-s.tunnelChan[tunnelID]
 
 		// remove it because we don't need it anymore
 		delete(s.tunnelChan, tunnelID)
+
+		tunnels, _ = s.GetTunnels(host)
 	}
 
+	log.Println("Waiting for gettunnel http")
 	// for http one single conn is enough
 	tunnel, ok := tunnels.getTunnel("http")
 	if !ok {
@@ -226,19 +257,19 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 	log.Println(err)
 }
 
-func (s *Server) GetTunnels(username string) (*Tunnels, bool) {
+func (s *Server) GetTunnels(host string) (*Tunnels, bool) {
 	s.Lock()
 	defer s.Unlock()
 
-	tunnels, ok := s.tunnels[username]
+	tunnels, ok := s.tunnels[host]
 	return tunnels, ok
 }
 
-func (s *Server) AddTunnels(username string, tunnels *Tunnels) {
+func (s *Server) AddTunnels(host string, tunnels *Tunnels) {
 	s.Lock()
 	defer s.Unlock()
 
-	s.tunnels[username] = tunnels
+	s.tunnels[host] = tunnels
 }
 
 func (s *Server) AddControl(username string, conn *Control) {
@@ -251,4 +282,17 @@ func (s *Server) GetControl(username string) (*Control, bool) {
 
 func (s *Server) DeleteControl(username string) {
 	s.controls.deleteControl(username)
+}
+
+func (s *Server) AddHost(host, username string) {
+	s.hosts.addHost(host, username)
+}
+
+func (s *Server) DeleteHost(host, username string) {
+	s.hosts.deleteHost(host)
+}
+
+func (s *Server) GetHost(host string) (string, bool) {
+	username, ok := s.hosts.getUsername(host)
+	return username, ok
 }
