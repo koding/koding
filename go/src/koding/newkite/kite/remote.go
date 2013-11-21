@@ -7,6 +7,7 @@ import (
 	"koding/newkite/dnode/rpc"
 	"koding/newkite/protocol"
 	"strconv"
+	"sync"
 )
 
 // RemoteKite is the client for communicating with another Kite.
@@ -22,9 +23,9 @@ type RemoteKite struct {
 	Authentication callAuthentication
 
 	// dnode RPC client that processes messages.
-	Client *rpc.Client
+	client *rpc.Client
 
-	// A channel to notify waiters on Call() or Go() when we disconnect.
+	// To signal waiters of Go() on disconnect.
 	disconnect chan bool
 }
 
@@ -36,11 +37,18 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth callAuthentication) *Remot
 		Kite:           kite,
 		localKite:      k,
 		Authentication: auth,
-		Client:         k.Server.NewClientWithHandlers(),
+		client:         k.server.NewClientWithHandlers(),
 		disconnect:     make(chan bool),
 	}
 
-	r.Client.OnDisconnect(r.notifyDisconnect)
+	var m sync.Mutex
+	r.OnDisconnect(func() {
+		m.Lock()
+		close(r.disconnect)
+		r.disconnect = make(chan bool)
+		m.Unlock()
+	})
+
 	return r
 }
 
@@ -50,32 +58,36 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth callAuthentication) *Remot
 // on other side.
 func (k *Kite) newRemoteKiteWithClient(kite protocol.Kite, auth callAuthentication, client *rpc.Client) *RemoteKite {
 	r := k.NewRemoteKite(kite, auth)
-	r.Client = client
-	r.Client.OnDisconnect(r.notifyDisconnect)
+	r.client = client
 	return r
-}
-
-// notifyDisconnect unblocks the caller of Call() on disconnect.
-func (r *RemoteKite) notifyDisconnect() {
-	// Unblocking send.
-	select {
-	case r.disconnect <- true:
-	default:
-	}
 }
 
 // Dial connects to the remote Kite. Returns error if it can't.
 func (r *RemoteKite) Dial() (err error) {
 	addr := r.Kite.Addr()
-	log.Info("Dialling %s", addr)
-	return r.Client.Dial("ws://" + addr + "/dnode")
+	log.Info("Dialing %s", addr)
+	return r.client.Dial("ws://" + addr + "/dnode")
 }
 
 // Dial connects to the remote Kite. If it can't connect, it retries indefinitely.
 func (r *RemoteKite) DialForever() {
 	addr := r.Kite.Addr()
-	log.Info("Dialling %s", addr)
-	r.Client.DialForever("ws://" + addr + "/dnode")
+	log.Info("Dialing %s", addr)
+	r.client.DialForever("ws://" + addr + "/dnode")
+}
+
+func (r *RemoteKite) Close() {
+	r.client.Close()
+}
+
+// OnConnect registers a function to run on client connect.
+func (r *RemoteKite) OnConnect(handler func()) {
+	r.client.OnConnect(handler)
+}
+
+// OnDisconnect registers a function to run on client disconnect.
+func (r *RemoteKite) OnDisconnect(handler func()) {
+	r.client.OnDisconnect(handler)
 }
 
 // CallOptions is the type of first argument in the dnode message.
@@ -119,36 +131,78 @@ type response struct {
 }
 
 // Call makes a blocking method call to the server.
-// Send a callback function and waits until it is called or connection drops.
-// Returns the result and the error as the other side sends.
+// Waits until the callback function is called by the other side and
+// returns the result and the error.
 func (r *RemoteKite) Call(method string, args interface{}) (result *dnode.Partial, err error) {
 	response := <-r.Go(method, args)
 	return response.Result, response.Err
 }
 
 // Go makes an unblocking method call to the server.
+// It returns a channel that the caller can wait on it to get the response.
 func (r *RemoteKite) Go(method string, args interface{}) chan *response {
 	// We will return this channel to the caller.
 	// It can wait on this channel to get the response.
 	responseChan := make(chan *response, 1)
 
-	// The response value that will be sent to the returned channel.
-	theResponse := new(response)
+	r.send(method, args, responseChan)
 
-	// Buffered channel for waiting response from server.
-	// Strobes when response callback is called.
-	done := make(chan bool, 1)
+	return responseChan
+}
 
+// send sends the method with callback to the server.
+func (r *RemoteKite) send(method string, args interface{}, responseChan chan *response) {
 	// To clean the sent callback after response is received.
 	// Send/Receive in a channel to prevent race condition because
 	// the callback is run in a separate goroutine.
 	removeCallback := make(chan uint64, 1)
 
-	// This is the callback function sent to the server.
-	// The caller of the Call() is blocked until the server calls this callback function.
-	// This function does not return anything but sets "result" and "err" variables
-	// in upper scope.
-	responseCallback := func(arguments *dnode.Partial) {
+	// When a callback is called it will send the response to this channel.
+	doneChan := make(chan *response, 1)
+
+	opts := r.makeOptions(args)
+	cb := r.makeResponseCallback(doneChan, removeCallback)
+
+	callbacks, err := r.client.Call(method, opts, cb)
+	if err != nil {
+		responseChan <- &response{nil, err}
+		return
+	}
+
+	// Waits until the response has came or the connection has disconnected.
+	go func() {
+		select {
+		case <-r.disconnect:
+			responseChan <- &response{nil, errors.New("Client disconnected")}
+		case resp := <-doneChan:
+			responseChan <- resp
+		}
+	}()
+
+	sendCallbackID(callbacks, removeCallback)
+}
+
+// sendCallbackID send the callback number to be deleted after response is received.
+func sendCallbackID(callbacks map[string]dnode.Path, ch chan uint64) {
+	if len(callbacks) > 0 {
+		max := uint64(0)
+		for id, _ := range callbacks {
+			i, _ := strconv.ParseUint(id, 10, 64)
+			if i > max {
+				max = i
+			}
+		}
+		ch <- max
+	} else {
+		close(ch)
+	}
+}
+
+// makeResponseCallback prepares and returns a callback function sent to the server.
+// The caller of the Call() is blocked until the server calls this callback function.
+// Sets theResponse and notifies the caller by sending to done channel.
+func (r *RemoteKite) makeResponseCallback(doneChan chan *response, removeCallback <-chan uint64) dnode.Callback {
+	return dnode.Callback(func(arguments *dnode.Partial) {
 		var (
 			// Arguments to our response callback It is a slice of length 2.
 			// The first argument is the error string,
@@ -163,18 +217,13 @@ func (r *RemoteKite) Go(method string, args interface{}) chan *response {
 		)
 
 		// Notify that the callback is finished.
-		defer func() {
-			// Sets the response from outer scope.
-			theResponse.Result = result
-			theResponse.Err = err
-
-			done <- true
-		}()
+		defer func() { doneChan <- &response{result, err} }()
 
 		// Remove the callback function from the map so we do not
 		// consume memory for unused callbacks.
-		id := <-removeCallback
-		r.Client.RemoveCallback(id)
+		if id, ok := <-removeCallback; ok {
+			r.client.RemoveCallback(id)
+		}
 
 		err = arguments.Unmarshal(&responseArgs)
 		if err != nil {
@@ -187,7 +236,7 @@ func (r *RemoteKite) Go(method string, args interface{}) chan *response {
 			return
 		}
 
-		// The second argument is the our result, set it on upper scope.
+		// The second argument is our result.
 		result = responseArgs[1]
 
 		// This is error argument. Unmarshal panics if it is null.
@@ -195,6 +244,7 @@ func (r *RemoteKite) Go(method string, args interface{}) chan *response {
 			return
 		}
 
+		// Read the error argument in response.
 		var errorString string
 		err = responseArgs[0].Unmarshal(&errorString)
 		if err != nil {
@@ -203,33 +253,5 @@ func (r *RemoteKite) Go(method string, args interface{}) chan *response {
 		if errorString != "" {
 			err = errors.New(errorString)
 		}
-	}
-
-	// Send the method with callback to the server.
-	callbacks, err := r.Client.Call(method, r.makeOptions(args), dnode.Callback(responseCallback))
-	if err != nil {
-		responseChan <- &response{nil, err}
-	}
-
-	// Find the callback number to be deleted after response is received.
-	var max uint64 = 0
-	for id, _ := range callbacks {
-		i, _ := strconv.ParseUint(id, 10, 64)
-		if i > max {
-			max = i
-		}
-	}
-	removeCallback <- max
-
-	// Waits until the response callback is finished or connection is disconnected.
-	go func() {
-		select {
-		case <-done:
-			responseChan <- theResponse
-		case <-r.disconnect:
-			responseChan <- &response{nil, errors.New("Client disconnected")}
-		}
-	}()
-
-	return responseChan
+	})
 }

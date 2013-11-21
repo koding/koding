@@ -36,9 +36,6 @@ type Kite struct {
 	// KodingKey is used for authenticate to Kontrol.
 	KodingKey string
 
-	// Registered is true if the Kite is registered to kontrol itself
-	Registered bool
-
 	// Points to the Kontrol instance if enabled
 	Kontrol *Kontrol
 
@@ -52,16 +49,22 @@ type Kite struct {
 	handlers map[string]HandlerFunc
 
 	// Dnode rpc server
-	Server *rpc.Server
+	server *rpc.Server
+
+	// Handlers to call when a Kite opens a connection to this Kite.
+	onConnectHandlers []func(*RemoteKite)
+
+	// Handlers to call when a client has disconnected.
+	onDisconnectHandlers []func(*RemoteKite)
 
 	// Contains different functions for authenticating user from request.
 	// Keys are the authentication types (options.authentication.type).
 	Authenticators map[string]func(*CallOptions) error
 }
 
-// New creates, initialize and then returns a new Kite instance. It accept
-// three  arguments. options is a config struct that needs to be filled with
-// several informations like Name, Port, IP and so on.
+// New creates, initialize and then returns a new Kite instance. It accepts
+// a single options argument that is a config struct that needs to be filled
+// with several informations like Name, Port, IP and so on.
 func New(options *protocol.Options) *Kite {
 	var err error
 	if options == nil {
@@ -116,13 +119,22 @@ func New(options *protocol.Options) *Kite {
 			PublicIP: options.PublicIP,
 		},
 		KodingKey:         kodingKey,
-		Server:            rpc.NewServer(),
+		server:            rpc.NewServer(),
 		KontrolEnabled:    true,
 		RegisterToKontrol: true,
 		Authenticators:    make(map[string]func(*CallOptions) error),
 		handlers:          make(map[string]HandlerFunc),
 	}
+
 	k.Kontrol = k.NewKontrol(options.KontrolAddr)
+
+	// Call registered handlers when a client has disconnected.
+	k.server.OnDisconnect(func(c *rpc.Client) {
+		if r, ok := c.Properties()["remoteKite"]; ok {
+			// Run OnDisconnect handlers.
+			k.notifyRemoteKiteDisconnected(r.(*RemoteKite))
+		}
+	})
 
 	// Every kite should be able to authenticate the user from token.
 	k.Authenticators["token"] = k.AuthenticateFromToken
@@ -130,7 +142,7 @@ func New(options *protocol.Options) *Kite {
 	k.Authenticators["kodingKey"] = k.AuthenticateFromKodingKey
 
 	// Register our internal methods
-	k.HandleFunc("status", new(Status).Info)
+	k.HandleFunc("systemInfo", new(Status).Info)
 	k.HandleFunc("heartbeat", k.handleHeartbeat)
 	k.HandleFunc("log", k.handleLog)
 
@@ -138,7 +150,7 @@ func New(options *protocol.Options) *Kite {
 }
 
 func (k *Kite) HandleFunc(method string, handler HandlerFunc) {
-	k.Server.HandleFunc(method, func(msg *dnode.Message, tr dnode.Transport) {
+	k.server.HandleFunc(method, func(msg *dnode.Message, tr dnode.Transport) {
 		request, responseCallback, err := k.parseRequest(msg, tr)
 		if err != nil {
 			log.Notice("Did not understand request: %s", err)
@@ -279,13 +291,13 @@ func (k *Kite) listenAndServe() error {
 	// We must connect to Kontrol after starting to listen on port
 	if k.KontrolEnabled {
 		if k.RegisterToKontrol {
-			k.Kontrol.RemoteKite.Client.OnConnect(k.registerToKontrol)
+			k.Kontrol.RemoteKite.OnConnect(k.registerToKontrol)
 		}
 
 		k.Kontrol.DialForever()
 	}
 
-	return http.Serve(listener, k.Server)
+	return http.Serve(listener, k.server)
 }
 
 func (k *Kite) registerToKontrol() {
@@ -297,17 +309,29 @@ func (k *Kite) registerToKontrol() {
 	log.Info("Registered to Kontrol successfully")
 }
 
-// DISABLED TEMPORARILY
-// OnDisconnect adds the given function to the list of the users callback list
-// which is called when the user is disconnected. There might be several
-// connections from one user to the kite, in that case the functions are
-// called only when all connections are closed.
-// func (k *Kite) OnDisconnect(username string, f func()) {
-// 	if addrs == nil {
-// 		return
-// 	}
+// OnConnect registers a function to run when a Kite connects to this Kite.
+func (k *Kite) OnConnect(handler func(*RemoteKite)) {
+	k.onConnectHandlers = append(k.onConnectHandlers, handler)
+}
 
-// 	for _, addr := range addrs {
-// 		client.onDisconnect = append(client.onDisconnect, f)
-// 	}
-// }
+// OnDisconnect registers a function to run when a connected Kite is disconnected.
+func (k *Kite) OnDisconnect(handler func(*RemoteKite)) {
+	k.onDisconnectHandlers = append(k.onDisconnectHandlers, handler)
+}
+
+// notifyRemoteKiteConnected runs the registered handlers with OnConnect().
+func (k *Kite) notifyRemoteKiteConnected(r *RemoteKite) {
+	log.Info("Client has connected: %s", r.Addr())
+
+	for _, handler := range k.onConnectHandlers {
+		go handler(r)
+	}
+}
+
+func (k *Kite) notifyRemoteKiteDisconnected(r *RemoteKite) {
+	log.Info("Client has disconnected: %s", r.Addr())
+
+	for _, handler := range k.onDisconnectHandlers {
+		go handler(r)
+	}
+}
