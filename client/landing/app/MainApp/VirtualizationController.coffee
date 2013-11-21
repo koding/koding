@@ -360,8 +360,8 @@ class VirtualizationController extends KDController
         productForm.setContents 'packs', packs
 
     workflow = new PaymentWorkflow
-      productForm : productForm
-      confirmForm : new VmPaymentConfirmForm
+      productForm: productForm
+      confirmForm: new VmPaymentConfirmForm
 
     modal = new FormWorkflowModal
       title   : "Create a new VM"
@@ -370,10 +370,28 @@ class VirtualizationController extends KDController
       width   : 500
       overlay : yes
 
-    workflow.on 'DataCollected', -> debugger
+    workflow.on 'DataCollected', @bound 'provisionVm'
+
     workflow.on 'Cancel', -> modal.destroy()
 
     workflow.enter()
+
+  provisionVm: ({ subscription, paymentMethod, productData })->
+    { plan, pack } = productData
+      
+    if paymentMethod and not subscription
+
+      plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
+        return  if KD.showError err
+
+        @provisionVm { subscription, productData }
+
+    subscription.debit pack, (err, blah) ->
+      debugger
+      
+      return  if KD.showError err
+
+      debugger
 
   askForApprove:(command, callback)->
 
