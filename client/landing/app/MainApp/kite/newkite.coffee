@@ -7,7 +7,7 @@ class NewKite extends KDObject
   # includes from: libs/dnode-protocol.js
   # made it with: http://browserify.org
   # downloaded from: http://wzrd.in/bundle/dnode-protocol@latest
-  proto = require "dnode-protocol"
+  proto = require 'dnode-protocol'
 
   constructor: (kite, authentication, options={})->
     super options
@@ -36,7 +36,7 @@ class NewKite extends KDObject
 
   connect: ->
     addr = @kite.publicIP + ":" + @kite.port
-    log "Trying to connect to #{addr}"
+    # log "Trying to connect to #{addr}"
     @ws = new WebSocket "ws://#{addr}/dnode"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
@@ -81,14 +81,14 @@ class NewKite extends KDObject
         @proto.apply fn, arguments
 
   onOpen: ->
-    log "Connected to Kite: #{@kite.name}"
+    # log "Connected to Kite: #{@kite.name}"
     @clearBackoffTimeout()
     @readyState = READY
     @emit 'connected', @name
     @emit 'ready'
 
   onClose: (evt)->
-    log "#{@kite.name}: disconnected, trying to reconnect..."
+    # log "#{@kite.name}: disconnected, trying to reconnect..."
     @readyState = CLOSED
     @emit 'disconnected'
     # enable below to autoReconnect when the socket has been closed
