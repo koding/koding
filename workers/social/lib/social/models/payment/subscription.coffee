@@ -132,38 +132,26 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback null, ref.percent  if usage < ref.uplimit
       callback yes, 0
 
-  update_ = (subscription, callback)->
-    {status, activatedAt, expiresAt, plan, quantity, renewAt, amount} = subscription
-    @setData extend @getData(), {
-      status, activatedAt, expiresAt, plan, quantity, renewAt, amount
-    }
-    @save (err)-> callback err, this
+  # terminate: (callback)->
+  #   payment.terminateSubscription @userCode, {@uuid, refund : 'none'}, (err, sub)=>
+  #     return callback err  if err
 
-  update: (quantity, callback)->
-    payment.updateSubscription @userCode, {@uuid, plan: @planCode, quantity}, (err, sub)=>
-      return callback err  if err
-      update_ sub, callback
+  #     @calculateRefund (err, percent)=>
+  #       unless err
+  #         @refund percent, ->
+  #           console.log "Refunding #{percent}% of subscription #{@uuid}."
 
-  terminate: (callback)->
-    payment.terminateSubscription @userCode, {@uuid, refund : 'none'}, (err, sub)=>
-      return callback err  if err
+  #     update_ sub, callback
 
-      @calculateRefund (err, percent)=>
-        unless err
-          @refund percent, ->
-            console.log "Refunding #{percent}% of subscription #{@uuid}."
+  # cancel: (callback)->
+  #   payment.cancelSubscription @userCode, {@uuid}, (err, sub)=>
+  #     return callback err  if err
+  #     update_ sub, callback
 
-      update_ sub, callback
-
-  cancel: (callback)->
-    payment.cancelSubscription @userCode, {@uuid}, (err, sub)=>
-      return callback err  if err
-      update_ sub, callback
-
-  resume: (callback)->
-    payment.reactivateUserSubscription @userCode, {@uuid}, (err, sub)=>
-      return callback err  if err
-      update_ sub, callback
+  # resume: (callback)->
+  #   payment.reactivateUserSubscription @userCode, {@uuid}, (err, sub)=>
+  #     return callback err  if err
+  #     update_ sub, callback
 
   checkUsage: (product, callback) ->
     JPaymentPlan = require './plan'
@@ -194,6 +182,14 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       then callback { message: 'quota exceeded' }, results[0]
       else callback null
 
+  createFulfillmentNonce: (pack, callback) ->
+    JFulfillmentNonce = require './nonce'
+
+    nonce = new JFulfillmentNonce { productId: pack.getId() }, (err) ->
+      return callback err  if err
+
+      callback null, nonce.nonce
+
   debit: secure (client, pack, callback) ->
     JPaymentPlan = require './plan'
 
@@ -203,16 +199,20 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback err  if err
       return callback { message: 'Access denied!' }  unless hasTarget
 
-      JPaymentPlan.one { @planCode }, (err, plan) =>
+      @checkUsage pack, (err, usage) =>
         return callback err  if err
 
-        incOp = {}
-        for own key, val of pack.quantities
-          if not (@usage.hasOwnProperty key) or plan[key] - @usage[key] - val < 0
-            return callback { message: 'Quota exceeded', planCode: key }
-          incOp["usage.#{ key }"] = val
+        { quantities } = pack
+
+        op = $set: (Object.keys quantities)
+          .reduce( (memo, key) =>
+            memo["usage.#{ key }"] = (@usage[key] ? 0) + quantities[key]
+            memo
+          , {})
 
         @update op, (err) =>
           return callback err  if err
-          
-          callback null, @usage
+
+          console.log { pack, c: pack.constructor }
+
+          @createFulfillmentNonce pack, callback

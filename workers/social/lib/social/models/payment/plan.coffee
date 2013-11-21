@@ -146,6 +146,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
     options ?= {}
     options.multiple ?= no
 
+    console.log { paymentMethodId, options, callback }
+
     JPaymentSubscription.fetchAllSubscriptions {
       paymentMethodId
       @planCode
