@@ -170,7 +170,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("got control preparing request")
 
 		// create an unique id to used with that tunnel
-		tunnelID := "1234567890"
+		tunnelID := randonmID(32)
 
 		// request a new http tunnel
 		control.SendMsg("http", tunnelID)

@@ -1,6 +1,8 @@
 package tunnel
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -65,4 +67,11 @@ func parseHost(url string) (*host, error) {
 		version:  s[1],
 		username: s[2],
 	}, nil
+}
+
+// randomID generates a random string of the given length
+func randonmID(length int) string {
+	r := make([]byte, length*6/8)
+	rand.Read(r)
+	return base64.URLEncoding.EncodeToString(r)
 }
