@@ -99,6 +99,12 @@ projects      =
     script        : "website/js/app.ace.#{KODING_VERSION}.js"
     sourceMapRoot : "Ace/"
 
+  Finder          :
+    files         : "client/Finder/includes.coffee"
+    style         : "website/css/app.finder.#{KODING_VERSION}.css"
+    script        : "website/js/app.finder.#{KODING_VERSION}.js"
+    sourceMapRoot : "Finder/"
+
   PostOperations  :
     files         : "client/PostOperations/includes.coffee"
     script        : "website/js/client.post.#{KODING_VERSION}.js"
@@ -111,7 +117,7 @@ bundles           =
     script        : "website/js/social.#{KODING_VERSION}.js"
 
   Koding          :
-    projects      : ['KDBackend', 'KDMainApp', 'Login', 'PostOperations']
+    projects      : ['KDBackend', 'KDMainApp', 'Finder', 'Login', 'PostOperations']
     style         : "website/css/koding.#{KODING_VERSION}.css"
     script        : "website/js/koding.#{KODING_VERSION}.js"
 

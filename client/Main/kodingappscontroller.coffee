@@ -774,8 +774,6 @@ class KodingAppsController extends KDController
   # HELPERS
   # #
 
-  escapeFilePath = FSHelper.escapeFilePath
-
   putStyleSheets = (manifest)->
     {name, devMode, version, identifier} = manifest
     {stylesheets} = manifest.source if manifest.source
