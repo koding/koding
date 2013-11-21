@@ -33,6 +33,11 @@ class FSHelper
 
   @folderOnChange = (vm, path, change, treeController)->
     # log "THEY CHANGED:", vm, path, change, treeController
+    treeController or= KD.getSingleton('finderController')?.treeController
+    unless treeController
+      warn "No treeController to update."
+      return
+
     file = @parseWatcher(vm, path, change.file).first
     switch change.event
       when "added"
