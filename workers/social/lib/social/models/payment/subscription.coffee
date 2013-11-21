@@ -82,11 +82,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       ]
     }, callback
 
-  @getGroupSubscriptions = (group, callback)->
-    @fetchSubscriptions "group_#{group._id}", callback
-
-  @fetchSubscriptions = (paymentMethodId, callback) ->
-    @fetchAllSubscriptions { paymentMethodId }, callback
+  @fetchSubscriptions = (selector, callback) ->
+    selector = { paymentMethodId: selector }  if 'string' is typeof selector
+    @fetchAllSubscriptions selec, callback
 
   @fetchAllSubscriptions = (selector, callback, rest...) ->
     JPayment.invalidateCacheAndLoad this, selector, {forceRefresh, forceInterval}, callback
@@ -96,7 +94,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       constructor   : this
       selector      : { paymentMethodId: selector.paymentMethodId }
       method        : 'fetchSubscriptions'
-      methodOptions : selector.paymentMethodId
+      methodOptions : selector
       keyField      : 'uuid'
       message       : 'user subscriptions'
       forEach       : (uuid, cached, sub, stackCb)=>
@@ -182,10 +180,12 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       then callback { message: 'quota exceeded' }, results[0]
       else callback null
 
-  createFulfillmentNonce: (pack, callback) ->
+  createFulfillmentNonce: ({ planCode }, callback) ->
     JFulfillmentNonce = require './nonce'
 
-    nonce = new JFulfillmentNonce { productId: pack.getId() }, (err) ->
+    nonce = new JFulfillmentNonce { planCode }
+
+    nonce.save (err) ->
       return callback err  if err
 
       callback null, nonce.nonce
@@ -212,7 +212,5 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
         @update op, (err) =>
           return callback err  if err
-
-          console.log { pack, c: pack.constructor }
 
           @createFulfillmentNonce pack, callback
