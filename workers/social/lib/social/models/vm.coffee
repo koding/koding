@@ -51,7 +51,9 @@ module.exports = class JVM extends Module
       ldapPassword      :
         type            : String
         default         : -> null
-      hostnameAlias     : String
+      hostnameAlias     :
+        type            : String
+        required        : yes
       hostKite          :
         type            : String
         default         : -> null
@@ -65,7 +67,7 @@ module.exports = class JVM extends Module
                           ]]
         default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
-      planOwner         : String
+      # planOwner         : String
       planCode          : String
       vmType            :
         type            : String
@@ -167,6 +169,8 @@ module.exports = class JVM extends Module
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
     aliases      = []
+    type        ?= 'user'
+
     if type in ['user', 'expensed']
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
@@ -202,6 +206,8 @@ module.exports = class JVM extends Module
         return {groupSlug, prefix, nickname, uid, type:'user', alias}
     return null
 
+
+  @createVmByNonce
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
   @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
@@ -215,11 +221,7 @@ module.exports = class JVM extends Module
         # We are keeping this names just for counter
         webHome     = groupSlug
 
-        {nickame} = account.profile
-
-        planOwner   = switch type
-          when 'user'     then "user_#{account._id}"
-          when 'expensed' then "group_#{group._id}"
+        {nickname} = account.profile
 
         counterName = "#{groupSlug}~#{nickname}~"
         webHome     = nickname
@@ -243,7 +245,6 @@ module.exports = class JVM extends Module
 
           vm = new JVM {
             hostnameAlias
-            planOwner
             planCode
             webHome
             groups
@@ -255,7 +256,6 @@ module.exports = class JVM extends Module
           vm.save (err) =>
 
             if err
-              console.error err
               return console.warn "Failed to create VM for ", \
                                    {users, groups, hostnameAlias}
 
@@ -380,8 +380,8 @@ module.exports = class JVM extends Module
       @fetchAccountVmsBySelector delegate, selector, options, callback
 
   @fetchVms = secure (client, options, callback) ->
-      {delegate} = client.connection
-      @fetchAccountVmsBySelector delegate, {}, options, callback
+    {delegate} = client.connection
+    @fetchAccountVmsBySelector delegate, {}, options, callback
 
     # TODO: let's implement something like this:
     # failure: (client, callback) ->
@@ -489,10 +489,9 @@ module.exports = class JVM extends Module
         if vm.planOwner.indexOf("user_") > -1
           @deleteVM vm, callback
         else
-          groupID = vm.planOwner.split('_')[1]
-
+          [{ id: groupId }] = vm.groups
           JGroup = require './group'
-          JGroup.one {_id: groupID}, (err, group)=>
+          JGroup.one { _id: groupId }, (err, group)=>
             return callback err  if err
             JPermissionSet.checkPermission client, "delete vms", group,
             (err, hasPermission)=>
