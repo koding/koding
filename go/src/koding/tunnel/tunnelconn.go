@@ -13,7 +13,7 @@ type TunnelConn struct {
 	ClientConn
 }
 
-func NewTunnelConn(addr, protocol, tunnelID string) *TunnelConn {
+func NewTunnelConn(addr string, serverMsg *ServerMsg) *TunnelConn {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		log.Fatalf("NewTunnelConn %s\n", err)
@@ -23,7 +23,7 @@ func NewTunnelConn(addr, protocol, tunnelID string) *TunnelConn {
 	t.conn = conn
 	t.interval = time.Second * 3
 
-	err = t.connect(protocol, tunnelID)
+	err = t.connect(serverMsg)
 	if err != nil {
 		log.Fatalln("NewTunnelConn", err)
 	}
@@ -31,15 +31,16 @@ func NewTunnelConn(addr, protocol, tunnelID string) *TunnelConn {
 	return t
 }
 
-func (c *TunnelConn) connect(protocol, tunnelID string) error {
+func (c *TunnelConn) connect(serverMsg *ServerMsg) error {
 	remoteAddr := fmt.Sprintf("http://%s%s", c.conn.RemoteAddr(), TunnelPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
 		return fmt.Errorf("CONNECT", err)
 	}
 
-	req.Header.Set("protocol", protocol)
-	req.Header.Set("tunnelID", tunnelID)
+	req.Header.Set("protocol", serverMsg.Protocol)
+	req.Header.Set("tunnelID", serverMsg.TunnelID)
+	req.Header.Set("username", serverMsg.Username)
 	req.Write(c.conn)
 
 	resp, err := http.ReadResponse(bufio.NewReader(c.conn), req)

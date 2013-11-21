@@ -22,8 +22,12 @@ func NewControl(conn net.Conn) *Control {
 	}
 }
 
-func (c *Control) SendMsg(protocol, id string) {
-	c.sendChan <- ServerMsg{Protocol: protocol, TunnelID: id}
+func (c *Control) SendMsg(protocol, id, username string) {
+	c.sendChan <- ServerMsg{
+		Protocol: protocol,
+		TunnelID: id,
+		Username: username,
+	}
 }
 
 func (c *Control) run() {
@@ -37,21 +41,18 @@ func (c *Control) decoder() {
 		var msg ClientMsg
 		err := d.Decode(&msg)
 		if err != nil {
-			log.Println("decode", err)
+			log.Println("control decode", err)
 			return
 		}
-
-		log.Println("got msg", msg)
 	}
 }
 
 func (c *Control) encoder() {
 	e := json.NewEncoder(c.conn)
 	for msg := range c.sendChan {
-		log.Println("got msg, sending to control chan", msg)
 		err := e.Encode(msg)
 		if err != nil {
-			log.Println("encode", err)
+			log.Println("control encode", err)
 			return
 		}
 	}

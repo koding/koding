@@ -55,9 +55,9 @@ func (c *Client) Decoder() {
 	d := json.NewDecoder(c.controlConn)
 
 	for {
-		var msg ServerMsg
+		msg := new(ServerMsg)
 		fmt.Println("waiting for msg from control chan")
-		err := d.Decode(&msg)
+		err := d.Decode(msg)
 		if err != nil {
 			log.Println("decode", err)
 			return
@@ -65,23 +65,24 @@ func (c *Client) Decoder() {
 
 		fmt.Printf("got msg from control chan %#v\n", msg)
 
-		switch msg.Protocol {
-		case "http":
-			log.Println("creating a new http connection to tunnel server")
-
-			go c.Proxy("http", msg.TunnelID)
-		case "websocket":
-			log.Println("creating a new websocket connection to tunnel server")
-
-			go c.Proxy("websocket", msg.TunnelID)
+		if msg.Protocol == "" || msg.TunnelID == "" || msg.Username == "" {
+			log.Printf("protocol or tunnelID should not be empty")
+			continue
 		}
+
+		if msg.Protocol != "http" && msg.Protocol != "websocket" {
+			log.Printf("protocol is not valid %s", msg.Protocol)
+			continue
+		}
+
+		go c.Proxy(msg)
 	}
 }
 
 // Proxy is like Start() but it joins (proxies) the remote tcp connection with
 // the local one, that means all de handling is done via those two connection.
-func (c *Client) Proxy(protocol, tunnelID string) {
-	remote := NewTunnelConn(c.serverAddr, protocol, tunnelID)
+func (c *Client) Proxy(serverMsg *ServerMsg) {
+	remote := NewTunnelConn(c.serverAddr, serverMsg)
 	local := NewClientConn(c.localAddr)
 
 	err := <-join(local, remote)

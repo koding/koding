@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -53,10 +54,11 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
 	conn.SetDeadline(time.Time{})
 
-	// set by control channel
 	protocol := r.Header.Get("protocol")
 	tunnelID := r.Header.Get("tunnelID")
-	log.Println("protocol and tunnelID is", protocol, tunnelID)
+	username := r.Header.Get("username")
+	log.Printf("we have a new tunnel. protocol %s, tunnelID %s and username %s\n",
+		protocol, tunnelID, username)
 
 	done, ok := s.tunnelChan[tunnelID]
 	if !ok {
@@ -64,7 +66,11 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	host := strings.ToLower(r.Host)
+	host, ok := s.GetHost(username)
+	if !ok {
+		log.Printf("no host is associated for username %s. please use server.AddHost()", username)
+		return
+	}
 
 	tunnels, ok := s.GetTunnels(host)
 	if !ok {
@@ -97,10 +103,9 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := s.hosts.getHost(username)
+	_, ok := s.GetHost(username)
 	if !ok {
-		log.Printf("no host is associated for username %s. please use server.AddHost()",
-			username)
+		log.Printf("no host is associated for username %s. please use server.AddHost()", username)
 		http.Error(w, "there is no host defined for this username", 405)
 		return
 	}
@@ -128,12 +133,12 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 
 	// delete and close the conn when the control connection is being closed
 	defer func() {
-		log.Println("closing control for", username)
+		log.Println("closing control connection for", username)
 		control.Close()
 		s.DeleteControl(username)
 	}()
 
-	log.Println("control has started for", username)
+	log.Println("control connection has been established for", username)
 	// blocking function
 	control.run()
 }
@@ -149,42 +154,29 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println("http handler invoked", r.Host, r.URL.String())
 	host := strings.ToLower(r.Host)
 
-	tunnels, ok := s.GetTunnels(host)
-	if !ok {
-		var err error
-		tunnels, err = s.requestTunnels("http", host)
-		if err != nil {
-			http.Error(w, err.Error(), 404)
-			return
-		}
-	}
-
-	// for http one single conn is enough
-	tunnel, ok := tunnels.getTunnel("http")
-	if !ok {
-		err := fmt.Sprintf("no http tunnel: %s", host)
-		http.Error(w, err, 404)
+	tunnelConn, err := s.httpTunnelConn(host)
+	if err != nil {
+		http.Error(w, err.Error(), 404)
 		return
 	}
 
-	err := r.Write(tunnel.conn)
+	err = r.Write(tunnelConn)
 	if err != nil {
 		err := fmt.Sprintf("write to tunnel %s", err)
 		http.Error(w, err, 404)
 		return
 	}
 
-	resp, err := http.ReadResponse(bufio.NewReader(tunnel.conn), r)
+	resp, err := http.ReadResponse(bufio.NewReader(tunnelConn), r)
 	if err != nil {
 		errString := fmt.Sprintf("read from tunnel.con %s", err.Error())
 		http.Error(w, errString, 404)
 		return
 	}
+	defer resp.Body.Close()
 
 	s.Lock()
 	defer s.Unlock()
-
-	defer resp.Body.Close()
 
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
@@ -192,11 +184,31 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, resp.Body)
 }
 
+func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
+	var err error
+	tunnels, ok := s.GetTunnels(host)
+	if !ok {
+		tunnels, err = s.requestTunnels("http", host)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// for http one single conn is enough
+	tunnel, ok := tunnels.getTunnel("http")
+	if !ok {
+		return nil, fmt.Errorf("no http tunnel: %s", host)
+	}
+
+	return tunnel.conn, nil
+}
+
 // requestTunnels makes a request to the control connection to get a new
 // tunnel from the client. It sends the request of a new tunnel directly to
 // the client, which then opens a new tunnel to be used.
 func (s *Server) requestTunnels(protocol, host string) (*Tunnels, error) {
-	fmt.Println("no tunnel getting control")
+	log.Printf("no tunnel available for %s protocol %s. getting one via control",
+		protocol, host)
 	// get the user associated with this user
 	username, ok := s.GetUsername(host)
 	if !ok {
@@ -208,18 +220,19 @@ func (s *Server) requestTunnels(protocol, host string) (*Tunnels, error) {
 	if !ok {
 		return nil, fmt.Errorf("no control available for %s", host)
 	}
-	fmt.Println("got control preparing request")
+
+	log.Printf("got control for %s, preparing tunnel request", host)
 
 	// create an unique id to used with that tunnel
 	tunnelID := randomID(32)
 
 	// request a new http tunnel
-	control.SendMsg(protocol, tunnelID)
+	control.SendMsg(protocol, tunnelID, username)
 
 	// now wait until our tunnel is established if the tunnel has the
 	// right ID it will send a message to this channel, which releases the
 	// blocking channel. then we wait, until we got our done channel.
-	fmt.Println("waiting for tunnel")
+	log.Printf("tunnel request send for %s, waiting for tunnel...\n", host)
 	s.tunnelChan[tunnelID] = make(chan *Tunnels)
 
 	select {
@@ -236,23 +249,16 @@ func (s *Server) requestTunnels(protocol, host string) (*Tunnels, error) {
 
 func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 	log.Println("websocket handler invoked", r.URL.String())
-
 	host := strings.ToLower(r.Host)
-	tunnels, ok := s.GetTunnels(host)
-	if !ok {
-		err := fmt.Sprintf("no such tunnel: %s", host)
-		http.Error(w, err, 404)
+
+	tunnelConn, err := s.websocketTunnelConn(host)
+	if err != nil {
+		fmt.Println("err", err)
+		http.Error(w, err.Error(), 404)
 		return
 	}
 
-	tunnel, ok := tunnels.getTunnel("websocket")
-	if !ok {
-		err := fmt.Sprintf("no such tunnel: %s", host)
-		http.Error(w, err, 404)
-		return
-	}
-
-	err := r.Write(tunnel.conn)
+	err = r.Write(tunnelConn)
 	if err != nil {
 		err := fmt.Sprintf("write to tunnel %s", err)
 		http.Error(w, err, 404)
@@ -266,8 +272,27 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	defer publicConn.Close()
 
-	err = <-join(tunnel.conn, publicConn)
+	err = <-join(tunnelConn, publicConn)
 	log.Println(err)
+}
+
+func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
+	var err error
+	tunnels, ok := s.GetTunnels(host)
+	if !ok {
+		tunnels, err = s.requestTunnels("websocket", host)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// for websocket one single conn is enough
+	tunnel, ok := tunnels.getTunnel("websocket")
+	if !ok {
+		return nil, fmt.Errorf("no websocket tunnel: %s", host)
+	}
+
+	return tunnel.conn, nil
 }
 
 func (s *Server) GetTunnels(host string) (*Tunnels, bool) {
@@ -308,4 +333,9 @@ func (s *Server) DeleteHost(host, username string) {
 func (s *Server) GetUsername(host string) (string, bool) {
 	username, ok := s.hosts.getUsername(host)
 	return username, ok
+}
+
+func (s *Server) GetHost(username string) (string, bool) {
+	host, ok := s.hosts.getHost(username)
+	return host, ok
 }
