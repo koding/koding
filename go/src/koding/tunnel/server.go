@@ -15,7 +15,7 @@ import (
 // tunnels and creating tunnels between remote and local connection.
 type Server struct {
 	tunnels    map[string]*Tunnels
-	tunnelChan map[string]chan bool
+	tunnelChan map[string]chan *Tunnels
 	controls   *Controls
 	hosts      *Hosts
 	sync.Mutex
@@ -24,7 +24,7 @@ type Server struct {
 func NewServer() *Server {
 	s := &Server{
 		tunnels:    make(map[string]*Tunnels),
-		tunnelChan: make(map[string]chan bool),
+		tunnelChan: make(map[string]chan *Tunnels),
 		controls:   NewControls(),
 		hosts:      newHosts(),
 	}
@@ -75,8 +75,8 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	s.AddTunnels(host, tunnels)
 
 	// let any channel associated with this tunnel let know that we passed everything and
-	// that our tunnel is now ready
-	done <- true
+	// that our tunnel is now ready, also pass it back
+	done <- tunnels
 }
 
 // controlHandler is used to register tunnel clients.
@@ -153,7 +153,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("no tunnel getting control")
 
 		// get the user associated with this user
-		username, ok := s.GetHost(host)
+		username, ok := s.GetUsername(host)
 		if !ok {
 			errHttp := fmt.Sprintf("no control available for %s", host)
 			http.Error(w, errHttp, 404)
@@ -175,19 +175,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// request a new http tunnel
 		control.SendMsg("http", tunnelID)
 
-		// now wait until our tunnel is estabhlised if the tunnel has the
+		// now wait until our tunnel is established if the tunnel has the
 		// right ID it will send a message to this channel, which releases the
-		// blocking channel. First we create the channel for this id.
-		s.tunnelChan[tunnelID] = make(chan bool)
-
+		// blocking channel. then we wait, until we got our done channel.
 		fmt.Println("waiting for tunnel")
-		// then we wait, until we got our done channel
-		<-s.tunnelChan[tunnelID]
+		s.tunnelChan[tunnelID] = make(chan *Tunnels)
+		tunnels = <-s.tunnelChan[tunnelID]
 
 		// remove it because we don't need it anymore
 		delete(s.tunnelChan, tunnelID)
 
-		tunnels, _ = s.GetTunnels(host)
+		// tunnels, _ = s.GetTunnels(host)
 	}
 
 	log.Println("Waiting for gettunnel http")
@@ -292,7 +290,7 @@ func (s *Server) DeleteHost(host, username string) {
 	s.hosts.deleteHost(host)
 }
 
-func (s *Server) GetHost(host string) (string, bool) {
+func (s *Server) GetUsername(host string) (string, bool) {
 	username, ok := s.hosts.getUsername(host)
 	return username, ok
 }
