@@ -33,10 +33,14 @@ body
   bg                color, #111617
   size              100%,61px
   z-index           1000
+  overflow          visible
   fix()
 
 #dock
   size              auto, auto
+  kalc              width, 100% \- 380px
+  overflow          visible
+  position          relative
   fl()
 
 
@@ -56,10 +60,12 @@ body
     display         block
 
 #main-nav
-  size              auto, 61px
+  size              100%, 61px
+  overflow          visible
   fl()
   > a
-    display         inline-block
+    abs()
+    display         block
     size            61px, 61px
     vendor          transition, top .2s linear\,\
                                 left .2s linear

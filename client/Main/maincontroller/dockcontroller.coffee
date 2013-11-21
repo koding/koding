@@ -17,7 +17,7 @@ class DockController extends KDViewController
 
   constructor:(options = {}, data)->
 
-    options.view or= new KDView domId : 'dock'
+    options.view or= new KDCustomHTMLView domId : 'dock'
 
     super options, data
 
