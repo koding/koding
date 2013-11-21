@@ -24,15 +24,28 @@ module.exports = class JPaymentMethod extends Module
 
   @decoratePaymentMethods = (paymentMethods, callback) ->
     paymentData = []
+    badMethods = []
 
     queue = paymentMethods.map (paymentMethod, i) -> ->
       if paymentMethod
         paymentMethod.fetchAssociatedPaymentData (err, associatedData) ->
-          return callback err  if err
+          if err?[0].short is 'not_found'
+            paymentData[i] = null
+            badMethods.push paymentMethod
+
+          else if err then return callback err, []
+
           paymentData[i] = associatedData
+
           queue.fin()
       else queue.fin()
-    dash queue, -> callback null, paymentData
+
+    dash queue, ->
+      cleanupQueue = badMethods.map (badMethod) -> ->
+        badMethod.remove (err) -> cleanupQueue.fin err
+
+      dash cleanupQueue, ->
+        callback null, paymentData.filter Boolean
 
   @removePaymentMethod = secure (client, paymentMethodId, callback) ->
 
