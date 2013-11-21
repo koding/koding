@@ -38,15 +38,13 @@ class CollaborativeWorkspace extends Workspace
       if isOldSession
         @sessionData  = keys
         @createPanel()
-        @userRef = @workspaceRef.child("users").child @nickname
-        @userRef.set "online"
-        @userRef.onDisconnect().set "offline"
       else
         @createPanel()
         @workspaceRef.set "keys": @sessionData
-        @userRef = @workspaceRef.child("users").child @nickname
-        @userRef.set "online"
-        @userRef.onDisconnect().set "offline"
+
+      @userRef = @workspaceRef.child("users").child @nickname
+      @userRef.set "online"
+      @userRef.onDisconnect().set "offline"
 
       if @amIHost()
         @workspaceRef.onDisconnect().remove()
