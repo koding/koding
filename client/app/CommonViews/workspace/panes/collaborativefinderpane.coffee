@@ -28,6 +28,7 @@ class CollaborativeFinderPane extends CollaborativePane
         nodeView.user    = clientData.user
 
         treeController.openItem nodeView
+        @finderController.treeController.syncInteraction()
 
     @finderController.on "FileTreeInteractionDone", (files) =>
       @syncContent files
