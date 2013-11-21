@@ -13,7 +13,7 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
     @workspace           = @panel.getDelegate()
     @container           = new KDView cssClass: "workspace-floating-panes"
     {workspaceRef}       = @workspace
-    @isJoinedASession    = @workspace.getOptions().joinedASession
+    @isJoinedASession    = @workspace.isJoinedASession()
     @lastActivePaneKey   = null
     @keysRef             = workspaceRef.child "floatingPaneKeys"
     @paneStateRef        = workspaceRef.child "floatingPaneState"
