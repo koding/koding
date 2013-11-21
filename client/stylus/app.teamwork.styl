@@ -17,10 +17,12 @@ app.teamwork.styl
     .title
       text-indent               0
     .icon
-      background                url(/images/teamwork/icon.128.png) 3px -2px no-repeat
-      background-size           37px 37px
+      background-size           37px 37px !important
       size                      37px 37px
       fl()
+    &.teamwork
+      .icon
+        background              url(/images/teamwork/icon.128.png) 3px 0 no-repeat
   .finder-pane
     .file-container
       vendor                    box-shadow, -3px 0px 3px rgba(0,0,0,0.2) inset
@@ -364,3 +366,6 @@ app.teamwork.styl
 .tw-sh-preview
   max-height            210px
   overflow              auto
+
+.teamwork.inner-header
+  text-shadow           0px 1px 0px #fff
