@@ -75,12 +75,10 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       @activeTabIndex = newIndex
 
   createEditorInstance: (file, content, sessionKey) ->
-    if file
-      fileIndexInOpenedFiles = @openedFiles.indexOf(file.path)
-      if fileIndexInOpenedFiles > -1
-        return  @tabView.showPaneByIndex fileIndexInOpenedFiles
-    else
-      file = FSHelper.createFileFromPath "localfile:/untitled.txt"
+    file      = FSHelper.createFileFromPath "localfile:/untitled.txt"  unless file
+    plainPath = FSHelper.plainPath file.path
+    index     = @openedFiles.indexOf plainPath
+    return @tabView.showPaneByIndex index  if index > -1
 
     pane   = new KDTabPaneView
       name : file.name
@@ -104,9 +102,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     workspaceRefData =
       sessionKey : editor.sessionKey
 
-    if file
-      workspaceRefData.path = file.path
-      @openedFiles.push file.path
+    workspaceRefData.path = plainPath
+    @openedFiles.push plainPath
 
     @tabsRef.push workspaceRefData  unless sessionKey
 
@@ -121,7 +118,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
           delete tabs[key]
         @workspaceRef.set { tabs }
 
-      @openedFiles.splice @openedFiles.indexOf(file.path), 1
+      @openedFiles.splice @openedFiles.indexOf(plainPath), 1
 
     return yes # return something instead of workspaceRef.child
 
