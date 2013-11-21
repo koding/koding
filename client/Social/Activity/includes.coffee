@@ -17,6 +17,20 @@ module.exports = [
   "views/embedboxviews.coffee",
   "views/newmemberbucket.coffee",
 
+  "views/tags/TagViews.coffee",
+  "views/tags/TagAutoCompleteController.coffee",
+
+  "views/comments/commentview.coffee",
+  "views/comments/commentlistviewcontroller.coffee",
+  "views/comments/commentviewheader.coffee",
+  "views/comments/commentlistitemview.coffee",
+  "views/comments/newcommentform.coffee",
+
+  "views/reviews/reviewview.coffee",
+  "views/reviews/reviewlistviewcontroller.coffee",
+  "views/reviews/reviewlistitemview.coffee",
+  "views/reviews/newreviewform.coffee",
+
   "widgets/widgetcontroller.coffee",
   "widgets/widgetview.coffee",
   "widgets/widgetbutton.coffee",

@@ -1,3 +1,4 @@
+# FIXME ~ GG Don't know who is using this.
 class DropboxDownloadItemView extends JView
 
   constructor: (options = {}, data) ->
