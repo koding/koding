@@ -113,30 +113,67 @@ resurrection.activity.styl
             vertical-align  text-top
 
             &.like-icon
-              margin-top   1px
-              sprite  app, like-icon
+              margin-top    1px
+              sprite        app, like-icon
 
             &.comment-icon
-              margin-top   2px
-              sprite  app, comment-icon
+              margin-top    2px
+              sprite        app, comment-icon
 
             &.share-icon
-              sprite  app, share-icon
+              sprite        app, share-icon
 
           .action-container
-            size        auto, 20px
-            margin      10px 0 0 22px
+            size            auto, 20px
+            margin          10px 0 0 22px
             fl()
 
             &.liked .like-icon
-              sprite    app, like-icon-liked
+              sprite        app, like-icon-liked
 
           .count
-            display     inline-block
-            color       #697576
-            font-size   14px
-            margin      0 0 0 12px
+            display         inline-block
+            color           #697576
+            font-size       14px
+            margin          0 0 0 12px
             noTextDeco()
+
+        .comment-container.commented
+          border-top    2px solid #e9e7e1
+
+        .kdlistitemview-comment
+          padding           20px
+          borderBox()
+
+          .avatarview
+            size            43px, 43px
+            top             20px
+            left            20px
+            abs()
+
+          .comment-contents
+            size            auto, auto
+            margin          0 0 0 61px
+            font-size       14px
+            font-weight     400
+            color           #50595a
+
+            .profile
+              display       block
+              color         #50595a
+              font-weight   500
+              margin        0 0 14px 0
+              noTextDeco()
+
+          &~.kdlistitemview-comment
+            padding-top     0
+
+            .avatarview
+              top           12px
+
+            .comment-contents
+              padding-top   12px
+              border-top    1px solid #eeeeef
 
         .item-add-comment-box
           bg            color, #f7f7f8

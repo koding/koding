@@ -18,8 +18,8 @@ class CommentListItemView extends KDListItemView
 
     @avatar = new AvatarView {
       size        :
-        width       : options.avatarWidth or 30
-        height      : options.avatarHeight or 30
+        width       : options.avatarWidth or 43
+        height      : options.avatarHeight or 43
       origin
       showStatus  : yes
     }
@@ -138,8 +138,7 @@ class CommentListItemView extends KDListItemView
 
   pistachio:->
     """
-    <div class='item-content-comment clearfix'>
-      <span class='avatar'>{{> @avatar}}</span>
+      {{> @avatar}}
       <div class='comment-contents clearfix'>
         <p class='comment-body'>
           {{> @author}}
@@ -149,7 +148,6 @@ class CommentListItemView extends KDListItemView
         {{> @likeView}}
         {{> @replyView}}
       </div>
-    </div>
     """
 
     # {{> @timeAgoView}}
