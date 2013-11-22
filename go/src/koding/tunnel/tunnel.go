@@ -29,17 +29,24 @@ func newTunnels() *tunnels {
 	}
 }
 
-func (t *tunnels) getTunnel(protocol string) (*tunnel, bool) {
+func (t *tunnels) getTunnel(host string) (*tunnel, bool) {
 	t.Lock()
 	defer t.Unlock()
 
-	tunnel, ok := t.tunnels[protocol]
+	tunnel, ok := t.tunnels[host]
 	return tunnel, ok
 }
 
-func (t *tunnels) addTunnel(protocol string, tunnel *tunnel) {
+func (t *tunnels) addTunnel(host string, tunnel *tunnel) {
 	t.Lock()
 	defer t.Unlock()
 
-	t.tunnels[protocol] = tunnel
+	t.tunnels[host] = tunnel
+}
+
+func (t *tunnels) deleteTunnel(host string) {
+	t.Lock()
+	defer t.Unlock()
+
+	delete(t.tunnels, host)
 }

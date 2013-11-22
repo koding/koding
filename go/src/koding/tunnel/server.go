@@ -16,17 +16,31 @@ import (
 // Server satisfies the http.Handler interface. It is responsible of tracking
 // tunnels and creating tunnels between remote and local connection.
 type Server struct {
-	tunnels      map[string]*tunnels
-	tunnelChan   map[string]chan *tunnels
-	controls     *controls
+	// protects the following fields
+	mu sync.Mutex
+
+	// pending contains the channel that is associated with each new tunnel request
+	pending map[string]chan *tunnel
+
+	// httpTunnels is used to store established tunnel connections used for
+	// http connections. Currently for each virtual hosts one single http
+	// connection is stored.
+	httpTunnels *tunnels
+
+	// controls contains the control connection from the client to the server
+	controls *controls
+
+	// virtualHosts is used to map public hosts to remote clients
 	virtualHosts *virtualHosts
-	sync.Mutex
 }
 
+// NewServer returns a new Server instance. It registers by default two new
+// http handlers to the default.Mux which is uses for establishing control
+// connections and creating tunnels.
 func NewServer() *Server {
 	s := &Server{
-		tunnels:      make(map[string]*tunnels),
-		tunnelChan:   make(map[string]chan *tunnels),
+		pending:      make(map[string]chan *tunnel),
+		httpTunnels:  newTunnels(),
 		controls:     newControls(),
 		virtualHosts: newVirtualHosts(),
 	}
@@ -36,6 +50,8 @@ func NewServer() *Server {
 	return s
 }
 
+// tunnelHandler is used to capture incoming tunnel connect requests into raw
+// tunnel tcp connections.
 func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("--- tunnel Handler invoked", r.URL.String())
 	if r.Method != "CONNECT" {
@@ -60,33 +76,25 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("we have a new tunnel. protocol %s, tunnelID %s and username %s\n",
 		protocol, tunnelID, username)
 
-	done, ok := s.tunnelChan[tunnelID]
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	tunnelRequester, ok := s.pending[tunnelID]
 	if !ok {
 		log.Println("tunnelID channel does not exist")
 		return
 	}
 
-	host, ok := s.GetHost(username)
-	if !ok {
-		log.Printf("no host is associated for username %s. please use server.AddHost()", username)
-		return
-	}
-
-	tunnels, ok := s.getTunnels(host)
-	if !ok {
-		// first time, create it
-		tunnels = newTunnels()
-	}
-
-	tunnels.addTunnel(protocol, newTunnel(conn))
-	s.addTunnels(host, tunnels)
-
-	// let any channel associated with this tunnel let know that we passed everything and
-	// that our tunnel is now ready, also pass it back
-	done <- tunnels
+	// we now have an encapsulated connection. send it back to the requester
+	// the request can either store the conn for reusage (like http) or can
+	// use it only for one session (like websocket)
+	tunnelRequester <- newTunnel(conn)
 }
 
-// controlHandler is used to register tunnel clients.
+// controlHandler is used to capture incoming control connect requests into
+// raw control tcp connection. After capturing the the connection, the control
+// connection starts to read and write to the control connection until the
+// connection is closed. Currently only one control connection per user is allowed.
 func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("--- control Handler invoked", r.URL.String())
 	if r.Method != "CONNECT" {
@@ -137,7 +145,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("closing control connection for", username)
 		control.close()
 		s.deleteControl(username)
-		s.deleteTunnels(host)
+		s.deleteTunnel(host)
 	}()
 
 	log.Println("control connection has been established for", username)
@@ -177,8 +185,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	s.Lock()
-	defer s.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
@@ -187,74 +195,20 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
+	// for http one single conn is enough
 	var err error
-	tunnels, ok := s.getTunnels(host)
+	tunnel, ok := s.getTunnel(host)
 	if !ok {
-		tunnels, err = s.requestTunnels("http", host)
+		// get a tunnel from client
+		tunnel, err = s.requestTunnel("http", host)
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	// for http one single conn is enough
-	tunnel, ok := tunnels.getTunnel("http")
-	if !ok {
-		return nil, fmt.Errorf("no http tunnel: %s", host)
+		s.addTunnel(host, tunnel)
 	}
 
 	return tunnel.conn, nil
-}
-
-// requestTunnels makes a request to the control connection to get a new
-// tunnel from the client. It sends the request of a new tunnel directly to
-// the client, which then opens a new tunnel to be used.
-func (s *Server) requestTunnels(protocol, host string) (*tunnels, error) {
-	log.Printf("no tunnel available for %s protocol %s. getting one via control",
-		protocol, host)
-	// get the user associated with this user
-	username, ok := s.GetUsername(host)
-	if !ok {
-		return nil, fmt.Errorf("no control available for %s", host)
-	}
-
-	// then grab the control connection that is associated with this username
-	control, ok := s.getControl(username)
-	if !ok {
-		return nil, fmt.Errorf("no control available for %s", host)
-	}
-
-	log.Printf("got control for %s, preparing tunnel request", host)
-
-	// create an unique id to used with that tunnel
-	tunnelID := randomID(32)
-
-	// request a new http tunnel
-
-	msg := ServerMsg{
-		Protocol: protocol,
-		TunnelID: tunnelID,
-		Username: username,
-		Host:     host,
-	}
-
-	control.send(msg)
-
-	// now wait until our tunnel is established if the tunnel has the
-	// right ID it will send a message to this channel, which releases the
-	// blocking channel. then we wait, until we got our done channel.
-	log.Printf("tunnel request send for %s, waiting for tunnel...\n", host)
-	s.tunnelChan[tunnelID] = make(chan *tunnels)
-
-	select {
-	case tunnels := <-s.tunnelChan[tunnelID]:
-		// remove and close it because we don't need it anymore
-		close(s.tunnelChan[tunnelID])
-		delete(s.tunnelChan, tunnelID)
-
-		return tunnels, nil
-	case <-time.After(time.Second * 10):
-		return nil, errors.New("timeout")
-	}
 }
 
 func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
@@ -290,44 +244,78 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
-	var err error
-	tunnels, ok := s.getTunnels(host)
-	if !ok {
-		tunnels, err = s.requestTunnels("websocket", host)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// for websocket one single conn is enough
-	tunnel, ok := tunnels.getTunnel("websocket")
-	if !ok {
-		return nil, fmt.Errorf("no websocket tunnel: %s", host)
+	tunnel, err := s.requestTunnel("websocket", host)
+	if err != nil {
+		return nil, err
 	}
 
 	return tunnel.conn, nil
 }
 
-func (s *Server) getTunnels(host string) (*tunnels, bool) {
-	s.Lock()
-	defer s.Unlock()
+// requestTunnel makes a request to the control connection to get a new
+// tunnel from the client. It sends the request of a new tunnel directly to
+// the client, which then opens a new tunnel to be used.
+func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
+	log.Printf("no tunnel available for %s protocol %s. getting one via control",
+		protocol, host)
+	// get the user associated with this user
+	username, ok := s.GetUsername(host)
+	if !ok {
+		return nil, fmt.Errorf("no control available for %s", host)
+	}
 
-	tunnels, ok := s.tunnels[host]
-	return tunnels, ok
+	// then grab the control connection that is associated with this username
+	control, ok := s.getControl(username)
+	if !ok {
+		return nil, fmt.Errorf("no control available for %s", host)
+	}
+
+	log.Printf("got control for %s, preparing tunnel request", host)
+
+	// create an unique id to used with that tunnel
+	tunnelID := randomID(32)
+
+	// request a new http tunnel
+	msg := ServerMsg{
+		Protocol: protocol,
+		TunnelID: tunnelID,
+		Username: username,
+		Host:     host,
+	}
+
+	control.send(msg)
+
+	// now wait until our tunnel is established. if the tunnel has the
+	// right ID it will send a message to this channel, which releases the
+	// blocking channel. If we don't get it in 10 seconds we will timeout
+	log.Printf("tunnel request send for %s, waiting for tunnel...\n", host)
+	s.pending[tunnelID] = make(chan *tunnel)
+
+	// remove and close it because we don't need it anymore
+	defer func() {
+		close(s.pending[tunnelID])
+		delete(s.pending, tunnelID)
+	}()
+
+	select {
+	case tunnel := <-s.pending[tunnelID]:
+		return tunnel, nil
+	case <-time.After(time.Second * 10):
+		return nil, errors.New("timeout")
+	}
 }
 
-func (s *Server) addTunnels(host string, tunnels *tunnels) {
-	s.Lock()
-	defer s.Unlock()
-
-	s.tunnels[host] = tunnels
+func (s *Server) getTunnel(host string) (*tunnel, bool) {
+	tunnel, ok := s.httpTunnels.getTunnel(host)
+	return tunnel, ok
 }
 
-func (s *Server) deleteTunnels(host string) {
-	s.Lock()
-	defer s.Unlock()
+func (s *Server) addTunnel(host string, tunnel *tunnel) {
+	s.httpTunnels.addTunnel(host, tunnel)
+}
 
-	delete(s.tunnels, host)
+func (s *Server) deleteTunnel(host string) {
+	s.httpTunnels.deleteTunnel(host)
 }
 
 func (s *Server) addControl(username string, conn *control) {
