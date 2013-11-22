@@ -1,11 +1,11 @@
-# KD.config.allowedApps = ['account', 'terminal', 'ace', 'activity']
-
 class KodingAppsController extends KDController
 
   KD.registerAppClass this,
     name       : "KodingAppsController"
     background : yes
 
+  # This is the most important method to put & run additional apps on Koding
+  # Please make sure about your changes on it.
   @putAppScript = (name, callback = noop)->
 
     unless KD.config.apps[name]
@@ -43,6 +43,8 @@ class KodingAppsController extends KDController
         src      : app.script
 
     $('head')[0].appendChild script.getElement()
+
+  ###
 
   @manifests = {}
 
@@ -927,3 +929,5 @@ class KodingAppsController extends KDController
       description : 'Koding\'s official collaboration app'
       author      : 'Koding'
       route       : '/Develop/Teamwork'
+
+  ###
