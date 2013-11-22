@@ -4,8 +4,6 @@ cachingTimeInMS = 30000
 
 prefetchedFeeds = {}
 
-intervalOptions = {}
-
 {dash}  = require 'bongo'
 JTag    = require './models/tag'
 JApp    = require './models/app'
@@ -78,14 +76,22 @@ prefetchAll = (options, client, callback) ->
     callback null, prefetchedFeeds
 
 
-repeatFetchingItems = ->
-  return console.log "interval options are not valid" unless intervalOptions
-  {client} = intervalOptions
-  prefetchAll intervalOptions, client, (err, data)->
+inProgress = no
+repeatFetchingItems= (options)->
+  return  if inProgress
+  inProgress = yes
+
+  timer = setTimeout ->
+    inProgress = no
+    console.log "timeout reached, setting inProgress to false"
+  , 120000
+
+  {client} = options
+  prefetchAll options, client, (err, data)->
+    clearTimeout timer
+    inProgress = no
     if err
       return console.log "An error occured while fetching in interval", err
-
-intervalFetcher = setInterval repeatFetchingItems, 25000
 
 module.exports = (options = {}, callback)->
 
@@ -98,8 +104,10 @@ module.exports = (options = {}, callback)->
 
   route = getRoute options
   if cachedRoutes[route]
-    if (Date.now() - (cachedRouteTTL[route] || 0)  < cachingTimeInMS)
-      prefetchedFeeds = cachedRoutes[route]
-      return callback null, prefetchedFeeds
-
-  return prefetchAll options, client, callback
+    prefetchedFeeds = cachedRoutes[route]
+    callback null, prefetchedFeeds
+    if (Date.now() - (cachedRouteTTL[route] || 0)  > cachingTimeInMS)
+      repeatFetchingItems options
+  else
+    repeatFetchingItems options
+    callback null, {}
