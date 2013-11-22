@@ -5,7 +5,7 @@ class OpenWithModal extends KDObject
     super options, data
 
     {nodeView,apps} = @getData()
-    appsController  = KD.getSingleton "kodingAppsController"
+    # appsController  = KD.getSingleton "kodingAppsController"
     appManager      = KD.getSingleton "appManager"
     fileName        = FSHelper.getFileNameFromPath nodeView.getData().path
     fileExtension   = FSItem.getFileExtension fileName
@@ -20,10 +20,10 @@ class OpenWithModal extends KDObject
           title     : "Open"
           style     : "modal-clean-green"
           callback  : =>
-            appName = modal.selectedApp.getData().name
+            appName = modal.selectedApp.getData()
 
-            if @alwaysOpenWith.getValue()
-              appsController.emit "UpdateDefaultAppConfig", fileExtension, appName
+            # if @alwaysOpenWith.getValue()
+            #   appsController.emit "UpdateDefaultAppConfig", fileExtension, appName
 
             appManager.openFileWithApplication appName, nodeView.getData()
             modal.destroy()
@@ -32,14 +32,15 @@ class OpenWithModal extends KDObject
           style    : "modal-cancel"
           callback : => modal.destroy()
 
-    {extensionToApp} = appsController
-    supportedApps    = extensionToApp[fileExtension] or extensionToApp.txt
+    # {extensionToApp} = appsController
+    # supportedApps    = extensionToApp[fileExtension] or extensionToApp.txt
+    supportedApps = ["Ace"]
 
     for appName in supportedApps
       modal.addSubView new OpenWithModalItem
         supported : yes
         delegate  : modal
-      , if appName is "Ace" then KD.getAppOptions("Ace") else apps[appName]
+      , appName
 
     modal.addSubView new KDView
       cssClass     : "separator"

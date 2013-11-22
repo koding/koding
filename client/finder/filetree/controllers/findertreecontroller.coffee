@@ -372,35 +372,35 @@ class NFinderTreeController extends JTreeViewController
         @refreshFolder @nodes[file.parentPath], =>
           @selectNode @nodes[response.path]
 
-  compileApp:(nodeView, callback)->
+  # compileApp:(nodeView, callback)->
 
-    folder = nodeView.getData()
-    folder.emit "fs.job.started"
-    kodingAppsController = KD.getSingleton('kodingAppsController')
+  #   folder = nodeView.getData()
+  #   folder.emit "fs.job.started"
+  #   kodingAppsController = KD.getSingleton('kodingAppsController')
 
-    manifest = KodingAppsController.getManifestFromPath folder.path
+  #   manifest = KodingAppsController.getManifestFromPath folder.path
 
-    kodingAppsController.compileApp manifest.name, (err)=>
-      folder.emit "fs.job.finished"
-      if not err
-        @notify "App compiled!", "success"
-        @utils.wait 500, =>
-          @refreshFolder nodeView, =>
-            @utils.defer =>
-              @selectNode @nodes["#{folder.path}/index.js"]
-      callback? err
+  #   kodingAppsController.compileApp manifest.name, (err)=>
+  #     folder.emit "fs.job.finished"
+  #     if not err
+  #       @notify "App compiled!", "success"
+  #       @utils.wait 500, =>
+  #         @refreshFolder nodeView, =>
+  #           @utils.defer =>
+  #             @selectNode @nodes["#{folder.path}/index.js"]
+  #     callback? err
 
-  runApp:(nodeView, callback)->
+  # runApp:(nodeView, callback)->
 
-    folder = nodeView.getData()
-    folder.emit "fs.job.started"
-    kodingAppsController = KD.getSingleton 'kodingAppsController'
+  #   folder = nodeView.getData()
+  #   folder.emit "fs.job.started"
+  #   kodingAppsController = KD.getSingleton 'kodingAppsController'
 
-    manifest = KodingAppsController.getManifestFromPath folder.path
+  #   manifest = KodingAppsController.getManifestFromPath folder.path
 
-    KD.getSingleton("appManager").open manifest.name, =>
-      folder.emit "fs.job.finished"
-      callback?()
+  #   KD.getSingleton("appManager").open manifest.name, =>
+  #     folder.emit "fs.job.finished"
+  #     callback?()
 
   cloneRepo: (nodeView) ->
     folder   = nodeView.getData()
@@ -409,44 +409,44 @@ class NFinderTreeController extends JTreeViewController
       path   : folder.path
     modal.on "RepoClonedSuccessfully", => @notify "Repo cloned successfully.", "success"
 
-  publishApp:(nodeView)->
+  # publishApp:(nodeView)->
 
-    folder = nodeView.getData()
+  #   folder = nodeView.getData()
 
-    folder.emit "fs.job.started"
-    KD.getSingleton('kodingAppsController').publishApp folder.path, (err)=>
-      folder.emit "fs.job.finished"
-      unless err
-        @notify "App published!", "success"
-      else
-        @notify "Publish failed!", "error", err
-        message = err.message or err
-        modal = new KDModalView
-          title        : "Publish failed!"
-          overlay      : yes
-          cssClass     : "new-kdmodal"
-          content      : "<div class='modalformline'>#{message}</div>"
-          buttons      :
-            "Close"    :
-              style    : "modal-clean-gray"
-              callback : (event)->
-                modal.destroy()
+  #   folder.emit "fs.job.started"
+  #   KD.getSingleton('kodingAppsController').publishApp folder.path, (err)=>
+  #     folder.emit "fs.job.finished"
+  #     unless err
+  #       @notify "App published!", "success"
+  #     else
+  #       @notify "Publish failed!", "error", err
+  #       message = err.message or err
+  #       modal = new KDModalView
+  #         title        : "Publish failed!"
+  #         overlay      : yes
+  #         cssClass     : "new-kdmodal"
+  #         content      : "<div class='modalformline'>#{message}</div>"
+  #         buttons      :
+  #           "Close"    :
+  #             style    : "modal-clean-gray"
+  #             callback : (event)->
+  #               modal.destroy()
 
-  makeNewApp:(nodeView)->
-    KD.getSingleton('kodingAppsController').makeNewApp()
+  # makeNewApp:(nodeView)->
+  #   KD.getSingleton('kodingAppsController').makeNewApp()
 
-  downloadAppSource:(nodeView)->
+  # downloadAppSource:(nodeView)->
 
-    folder = nodeView.getData()
+  #   folder = nodeView.getData()
 
-    folder.emit "fs.job.started"
-    KD.getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
-      folder.emit "fs.job.finished"
-      @refreshFolder @nodes[folder.parentPath]
-      unless err
-        @notify "Source downloaded!", "success"
-      else
-        @notify "Download failed!", "error", err
+  #   folder.emit "fs.job.started"
+  #   KD.getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
+  #     folder.emit "fs.job.finished"
+  #     @refreshFolder @nodes[folder.parentPath]
+  #     unless err
+  #       @notify "Source downloaded!", "success"
+  #     else
+  #       @notify "Download failed!", "error", err
 
   openTerminalFromHere: (nodeView) ->
     @appManager.open "Terminal", (appInstance) =>
@@ -482,17 +482,17 @@ class NFinderTreeController extends JTreeViewController
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
-  cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
-  cmRunApp:        (nodeView, contextMenuItem)-> @runApp nodeView
-  cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
-  cmDownloadApp:   (nodeView, contextMenuItem)-> @downloadAppSource nodeView
+  # cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
+  # cmRunApp:        (nodeView, contextMenuItem)-> @runApp nodeView
+  # cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
+  # cmDownloadApp:   (nodeView, contextMenuItem)-> @downloadAppSource nodeView
+  # cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
-  cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
   cmDropboxSaver:  (nodeView, contextMenuItem)-> __saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
-  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
@@ -752,11 +752,8 @@ class NFinderTreeController extends JTreeViewController
     @refreshFolder @nodes["/home/#{nickname}"], => @emit "fs.retry.success"
 
   showOpenWithModal: (nodeView) ->
-    KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
-      new OpenWithModal {}, {
-        nodeView
-        apps
-      }
+    # KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
+    new OpenWithModal {}, {nodeView, apps: []}
 
   chooseFromDropbox: (nodeView) ->
     fileItemViews     = []
