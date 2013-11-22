@@ -17,10 +17,12 @@ app.teamwork.styl
     .title
       text-indent               0
     .icon
-      background                url(/images/teamwork/icon.128.png) 3px -2px no-repeat
-      background-size           37px 37px
+      background-size           37px 37px !important
       size                      37px 37px
       fl()
+    &.teamwork
+      .icon
+        background              url(/images/teamwork/icon.128.png) 3px 0 no-repeat
   .finder-pane
     .file-container
       vendor                    box-shadow, -3px 0px 3px rgba(0,0,0,0.2) inset
@@ -256,23 +258,6 @@ app.teamwork.styl
       line-height               14px
       color                     #646464
 
-.kdbuttonwithmenu-wrapper.playgrounds-button
-  margin                        7px 10px 0 0
-  fr()
-
-.tw-python .front
-  bg                            image, url("../images/teamwork/environments/python.jpg")
-.tw-ruby .front
-  bg                            image, url("../images/teamwork/environments/ruby.jpg")
-.tw-mongodb .front
-  bg                            image, url("../images/teamwork/environments/mongodb.jpg")
-.tw-html5 .front
-  bg                            image, url("../images/teamwork/environments/html5.jpg")
-.tw-facebook .front
-  bg                            image, url("../images/teamwork/environments/facebook.jpg")
-.tw-nodejs .front
-  bg                            image, url("../images/teamwork/environments/nodejs.jpg")
-
 .workspace.Facebook
   .user-list-container
     .inner-header
@@ -289,15 +274,11 @@ app.teamwork.styl
       top                       10px
       left                      10px
       position                  relative
-  .users
-    left                        -68px
   .kdbuttonwithmenu-wrapper
     fr()
     margin                      7px 10px 0 0
-    left                        56px
   .help
     display                     block
-    left                        -67px
 
 .tw-modal-image
   size                          663px, 210px
@@ -320,7 +301,7 @@ app.teamwork.styl
 .tw-modal-image.step-general
   left                          0
 
-.workspace.go-lang
+.workspace.GoLang
   .inner-header
     .title
       background                none !important
@@ -371,3 +352,20 @@ app.teamwork.styl
     vendor              transition, opacity .6s ease-in-out
     &.fade-out
       opacity           0
+
+.tw-terminal-splash
+  background            #FFF
+  p
+    font-size           22px
+    text-align          center
+    height              30px
+    position            relative
+    top                 50%
+    margin-top          -15px
+
+.tw-sh-preview
+  max-height            210px
+  overflow              auto
+
+.teamwork.inner-header
+  text-shadow           0px 1px 0px #fff
