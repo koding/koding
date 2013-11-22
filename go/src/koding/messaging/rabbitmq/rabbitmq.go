@@ -104,7 +104,7 @@ type BindingOptions struct {
 	Args amqp.Table
 }
 
-// type Table amqp.Table
+// getConnectionString builds connection string
 func getConnectionString() string {
 	return amqp.URI{
 		Scheme:   "amqp",
@@ -117,9 +117,14 @@ func getConnectionString() string {
 }
 
 type RabbitMQ struct {
-	conn    *amqp.Connection
+	// The connection between client and the server
+	conn *amqp.Connection
+
+	// The communication channel over connection
 	channel *amqp.Channel
-	tag     string
+
+	// Client's tag for current connection
+	tag string
 }
 
 // Controls how many messages the server will try to keep on
@@ -129,6 +134,7 @@ func (r *RabbitMQ) QOS(messageCount int) error {
 	return r.channel.Qos(messageCount, 0, false)
 }
 
+// configureLogger confugires logging options
 func configureLogger(tag string) {
 	log.Module = tag
 	logging.SetFormatter(logging.MustStringFormatter("%{level:-8s} ▶ %{message}"))
@@ -137,9 +143,10 @@ func configureLogger(tag string) {
 	logging.SetBackend(stderrBackend)
 }
 
-// Opens a connection and a channel to RabbitMq
+// newRabbitMQConnection opens a connection and a channel to RabbitMq
 // In order to prevent developers from misconfiguration
-// And using same channel for publishing and consuming
+// and using same channel for publishing and consuming it opens a new channel for
+// every connection
 func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
 	if tag == "" {
 		return nil, errors.New("Tag is not defined in consumer options")
@@ -216,6 +223,7 @@ func handleErrors(conn *amqp.Connection) {
 	// }()
 }
 
+// reconnect re-connects to rabbitmq after a disconnection
 func (c *Consumer) reconnect() {
 
 	err := c.Shutdown()
@@ -234,7 +242,7 @@ type Closer interface {
 	Shutdown() error
 }
 
-// A general closer function for handling close gracefully
+// shutdown is a general closer function for handling close gracefully
 // Mostly here for both consumers and producers
 // After a reconnection scenerio we are gonna call shutdown before connection
 func shutdown(conn *amqp.Connection, channel *amqp.Channel, tag string) error {
@@ -256,7 +264,7 @@ func shutdown(conn *amqp.Connection, channel *amqp.Channel, tag string) error {
 	return nil
 }
 
-// helper function for stopping consumer or producer from
+// registerSignalHandler helper function for stopping consumer or producer from
 // operating further
 // Watchs for SIGINT, SIGTERM, SIGQUIT, SIGSTOP and closes connection
 func registerSignalHandler(c Closer) {

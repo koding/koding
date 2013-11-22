@@ -99,7 +99,7 @@ func (p *Producer) Publish(publishing amqp.Publishing) error {
 	return err
 }
 
-// NotifyReturn captures a messge when a Publishing is unable to be
+// NotifyReturn captures a message when a Publishing is unable to be
 // delivered either due to the `mandatory` flag set
 // and no route found, or `immediate` flag set and no free consumer.
 func (p *Producer) NotifyReturn(notifier func(message amqp.Return)) {
@@ -111,6 +111,7 @@ func (p *Producer) NotifyReturn(notifier func(message amqp.Return)) {
 
 }
 
+// Shutdown gracefully closes all connections
 func (p *Producer) Shutdown() error {
 	err := shutdown(p.conn, p.channel, p.tag)
 	// change fmt => log
@@ -121,7 +122,8 @@ func (p *Producer) Shutdown() error {
 	return err
 }
 
-// implement interface
+// RegisterSignalHandler watchs for interrupt signals
+// and gracefully closes consumer
 func (p *Producer) RegisterSignalHandler() {
 	registerSignalHandler(p)
 }

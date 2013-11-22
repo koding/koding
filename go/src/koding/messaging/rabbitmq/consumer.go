@@ -53,6 +53,8 @@ func NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*C
 	return c, nil
 }
 
+// connect internally declares the exchanges and queues
+// and starts to stream from given queue
 func (c *Consumer) connect() error {
 	e := c.session.Exchange
 	q := c.session.Queue
@@ -120,7 +122,7 @@ func (c *Consumer) connect() error {
 	return nil
 }
 
-// Accepts a handler function for every message streamed from RabbitMq
+// Consume accepts a handler function for every message streamed from RabbitMq
 // will be called within this handler func
 func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 	c.handler = handler
@@ -135,8 +137,8 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) {
 	c.done <- nil
 }
 
-// Gracefully close all connections and wait
-// for handler to finish its, messages
+// Shutdown gracefully closes all connections and waits
+// for handler to finish its messages
 func (c *Consumer) Shutdown() error {
 	// to-do
 	// first stop streaming then close connections
@@ -155,7 +157,8 @@ func (c *Consumer) Shutdown() error {
 	return <-c.done
 }
 
-// implementing closer interface
+// RegisterSignalHandler watchs for interrupt signals
+// and gracefully closes consumer
 func (c *Consumer) RegisterSignalHandler() {
 	registerSignalHandler(c)
 }
