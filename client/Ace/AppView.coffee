@@ -117,16 +117,16 @@ class AceView extends JView
     {vmName, path} = @getData()
     KD.getSingleton("appManager").open "Viewer", params: {path, vmName}
 
-  compileAndRun: ->
-    manifest = KodingAppsController.getManifestFromPath @getData().path
-    return @ace.notify "Not found an app to compile", null, yes unless manifest?.name
+  # compileAndRun: ->
+  #   manifest = KodingAppsController.getManifestFromPath @getData().path
+  #   return @ace.notify "Not found an app to compile", null, yes unless manifest?.name
 
-    appManager = KD.getSingleton "appManager"
-    appManager.quitByName manifest.name
+  #   appManager = KD.getSingleton "appManager"
+  #   appManager.quitByName manifest.name
 
-    KD.getSingleton("kodingAppsController").compileApp manifest.name, (err) =>
-      @ace.notify "Trying to run old version..." if err
-      appManager.open manifest.name
+  #   KD.getSingleton("kodingAppsController").compileApp manifest.name, (err) =>
+  #     @ace.notify "Trying to run old version..." if err
+  #     appManager.open manifest.name
 
   toggleFullscreen: ->
     mainView = KD.getSingleton "mainView"

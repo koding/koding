@@ -1,9 +1,9 @@
 class AceAppController extends AppController
 
-  canCompile = (view)->
-    ace      = view.getActiveAceView()
-    manifest = KodingAppsController.getManifestFromPath ace.getData().path
-    return if manifest then yes else no
+  # canCompile = (view)->
+  #   ace      = view.getActiveAceView()
+  #   manifest = KodingAppsController.getManifestFromPath ace.getData().path
+  #   return if manifest then yes else no
 
   KD.registerAppClass this,
     name          : "Ace"
@@ -29,8 +29,8 @@ class AceAppController extends AppController
       { title     : "Find and Replace",    eventName : "findAndReplace" }
       { title     : "Goto line",           eventName : "gotoLine" }
       { type      : "separator" }
-      { title     : "Compile and Run",     eventName : "compileAndRun", condition: canCompile}
-      { type      : "separator",                                        condition: canCompile}
+      # { title     : "Compile and Run",     eventName : "compileAndRun", condition: canCompile}
+      # { type      : "separator",                                        condition: canCompile}
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
       { title     : "Advanced Settings",   id        : "advancedSettings" }
