@@ -12,7 +12,7 @@ app.aceeditor.styl
 .ace .application-page
 
   aside
-    width                 260px
+    width                 247px
     kalc                  height, 100% \- 61px
     bg                    color, #252E30
     top                   61px
@@ -22,14 +22,11 @@ app.aceeditor.styl
     borderBox()
     .file-container
       bg                  color, #1B2224
-      .kdlistitemview-finderitem
-        color             #5e7074
-        // .file-container .file span.icon
 
   section
     height                100%
-    kalc                  width, 100% \- 260px
-    margin-left           260px
+    kalc                  width, 100% \- 247px
+    margin-left           247px
 
 
 
@@ -186,7 +183,6 @@ app.aceeditor.styl
                           background        .1s ease
       text-indent         -10000px
       borderBox()
-      kdfsprite()
 
       &:nth-child(1)
       &:nth-child(2)
@@ -196,19 +192,19 @@ app.aceeditor.styl
         border-right-color      #374447
 
       &.multiple-choice-case-sensitive
-        bg                position, -197px -459px
+        sprite            ace '26-search-case'
         &.active
-          bg              position, -217px -459px
+          sprite          ace '26-search-case-active'
       &.multiple-choice-regex
-        bg                position, -198px -479px
+        sprite            ace '26-search-regex'
         &.active
-          bg              position, -218px -479px
+          sprite          ace '26-search-regex-active'
       &.multiple-choice-whole-word
-        bg                position, -198px -498px
+        sprite            ace '26-search-whole'
         &.active
-          bg              position, -218px -498px
+          sprite          ace '26-search-whole-active'
       &.active
-        border-color      #cfcfcf !important
+        border-color      #374447 !important
 
 .editor-bottom-bar
   bg                      color, #252E30
