@@ -8,11 +8,7 @@ class PaymentMethodView extends JView
       cssClass    : 'fr'
 
     @paymentMethodInfo = new KDCustomHTMLView
-      tagName   : 'a'
       cssClass  : 'billing-link'
-      click     : (e) =>
-        e.preventDefault()
-        @emit 'PaymentMethodEditRequested'
 
     @paymentMethodInfo.hide()
 
