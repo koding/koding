@@ -12,6 +12,9 @@ type MemoryCache struct {
 	ttl    time.Duration
 }
 
+// NewMemoryCache creates an inmemory cache system
+// Which everytime will return the true values about a cache hit
+// and never will leak memory
 func NewMemoryCache(ttl, gcInterval time.Duration) *MemoryCache {
 
 	memoryCache := &MemoryCache{
@@ -45,6 +48,8 @@ func (r *MemoryCache) Get(key string) (interface{}, bool) {
 	return value, ok
 }
 
+// Set will persist a value to the cache or
+// override existing one with the new one
 func (r *MemoryCache) Set(key string, resp interface{}) {
 	r.Lock()
 	defer r.Unlock()
@@ -52,6 +57,7 @@ func (r *MemoryCache) Set(key string, resp interface{}) {
 	r.setAts[key] = time.Now()
 }
 
+// Delete deletes a given key if exists
 func (r *MemoryCache) Delete(key string) {
 	r.Lock()
 	defer r.Unlock()

@@ -177,11 +177,23 @@ func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
 	return rmq, nil
 }
 
+// Session is holding the current Exchange, Queue,
+// Binding Consuming and Publishing settings for enclosed
+// rabbitmq connection
 type Session struct {
-	Exchange          Exchange
-	Queue             Queue
-	BindingOptions    BindingOptions
-	ConsumerOptions   ConsumerOptions
+	// Exchange declaration settings
+	Exchange Exchange
+
+	// Queue declaration settings
+	Queue Queue
+
+	// Binding options for current exchange to queue binding
+	BindingOptions BindingOptions
+
+	// Consumer options for a queue or exchange
+	ConsumerOptions ConsumerOptions
+
+	// Publishing options for a queue or exchange
 	PublishingOptions PublishingOptions
 }
 
