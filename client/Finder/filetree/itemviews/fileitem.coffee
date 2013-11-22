@@ -22,10 +22,6 @@ class NFileItemView extends KDCustomHTMLView
         speed       : 1.5
         FPS         : 24
 
-    @arrow = new KDCustomHTMLView
-      tagName   : "span"
-      cssClass  : "arrow"
-
     @icon = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "icon"
@@ -81,7 +77,6 @@ class NFileItemView extends KDCustomHTMLView
     path = FSHelper.plainPath data.path
     name = Encoder.XSSEncode data.name
     """
-      {{> @arrow}}
       {{> @icon}}
       {{> @loader}}
       <span class='title' title="#{path}">#{name}</span>

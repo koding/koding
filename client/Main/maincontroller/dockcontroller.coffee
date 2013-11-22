@@ -5,7 +5,8 @@ class DockController extends KDViewController
     { title : "Topics",    path : "/Topics",   order : 20, type :"" }
     { title : "Terminal",  path : "/Terminal", order : 30, type :"" }
     { title : "Editor",    path : "/Ace",      order : 40, type :"" }
-    { title : "Finder",    path : "/Finder",   order : 50, type :"" }
+    { title : "Apps",      path : "/Apps",     order : 50, type :"" }
+    { title : "Finder",    path : "/Finder",   order : 60, type :"" }
   ]
 
   createHash = (arr)->

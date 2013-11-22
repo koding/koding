@@ -9,7 +9,32 @@ ACE STYLES
 app.aceeditor.styl
 */
 }
+.ace .application-page
 
+  aside
+    width                 260px
+    kalc                  height, 100% \- 61px
+    bg                    color, #252E30
+    top                   61px
+    left                  0
+    padding               3px
+    abs()
+    borderBox()
+    .file-container
+      bg                  color, #1B2224
+      .kdlistitemview-finderitem
+        color             #5e7074
+        // .file-container .file span.icon
+
+  section
+    height                100%
+    kalc                  width, 100% \- 260px
+    margin-left           260px
+
+
+
+// OLD STYLES
+// BURAK CLEANUP PLEASE
 .ace_editor
   size                    100%, 100%
 
@@ -43,36 +68,13 @@ app.aceeditor.styl
   borderBox()
   &.save-as-dialog
     border                1px solid #bbb
+
 .save-as-dialog
   .kddialog-buttons
     .modal-clean-gray
       margin              10px 10px 10px 0
     .modal-cancel
       margin              9px 5px 0 0
-
-.split-placeholder
-  background              #5C5853
-  background              -webkit-radial-gradient(circle, #5C5853, #3B3631)
-  background              -moz-radial-gradient(circle, #5C5853, #3B3631)
-  background              -ms-radial-gradient(circle, #5C5853, #3B3631)
-  > div
-    abs()
-    size                  100%,auto
-    top                   50%
-    margin                0
-    padding               0 50px
-    color                 #8d8880
-    font-size             16px
-    text-align            center
-    line-height           24px
-    text-shadow           0 1px 0 rgba(0,0,0,.32)
-    borderBox()
-    a
-      color               #f99200
-      noTextDeco()
-      &.close
-        font-size         13px
-        opacity           .6
 
 .editor-main
   bg                      color, #161616
@@ -88,9 +90,6 @@ app.aceeditor.styl
   &.not-editable
     .ace_cursor.ace_hidden
       display             none
-
-.mini-code-wrapper
-  size                    100%, 100%
 
 .ace-find-replace-view
   display                 block
@@ -273,15 +272,6 @@ app.aceeditor.styl
       bg                  image,url("/images/blinking-cursor.gif")
       bg                  repeat,no-repeat
 
-.kdview.shell-output
-  color                   #28fe14
-  font-family             mono
-  white-space             pre
-  bg                      color, black
-  size                    auto, auto
-
-.recent-files-menu .arrow
-  top                     8px
 
 .kdmodal.goto
   .close-icon

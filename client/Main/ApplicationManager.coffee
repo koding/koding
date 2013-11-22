@@ -55,7 +55,7 @@ class ApplicationManager extends KDObject
 
       appInstance = @get name
       cb = if appParams.background or appOptions.background
-      then -> KD.utils.defer callback
+      then (appInst)-> KD.utils.defer -> callback appInst
       else @show.bind this, name, appParams, callback
 
       if appInstance then cb() else @create name, appParams, cb
