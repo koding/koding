@@ -6,30 +6,30 @@ import (
 	"time"
 )
 
-type Tunnel struct {
+type tunnel struct {
 	conn  net.Conn
 	start time.Time
 }
 
-func NewTunnel(conn net.Conn) *Tunnel {
-	return &Tunnel{
+func newTunnel(conn net.Conn) *tunnel {
+	return &tunnel{
 		conn:  conn,
 		start: time.Now(),
 	}
 }
 
-type Tunnels struct {
+type tunnels struct {
 	sync.Mutex
-	tunnels map[string]*Tunnel
+	tunnels map[string]*tunnel
 }
 
-func NewTunnels() *Tunnels {
-	return &Tunnels{
-		tunnels: make(map[string]*Tunnel),
+func newTunnels() *tunnels {
+	return &tunnels{
+		tunnels: make(map[string]*tunnel),
 	}
 }
 
-func (t *Tunnels) getTunnel(protocol string) (*Tunnel, bool) {
+func (t *tunnels) getTunnel(protocol string) (*tunnel, bool) {
 	t.Lock()
 	defer t.Unlock()
 
@@ -37,7 +37,7 @@ func (t *Tunnels) getTunnel(protocol string) (*Tunnel, bool) {
 	return tunnel, ok
 }
 
-func (t *Tunnels) addTunnel(protocol string, tunnel *Tunnel) {
+func (t *tunnels) addTunnel(protocol string, tunnel *tunnel) {
 	t.Lock()
 	defer t.Unlock()
 

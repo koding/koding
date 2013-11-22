@@ -9,29 +9,29 @@ import (
 	"time"
 )
 
-type ControlConn struct {
-	ClientConn
+type controlConn struct {
+	clientConn
 }
 
-func NewControlConn(addr, username string) *ControlConn {
+func newControlConn(addr, username string) *controlConn {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Fatalf("NewControlConn %s\n", err)
+		log.Fatalf("newControlConn %s\n", err)
 	}
 
-	c := &ControlConn{}
+	c := &controlConn{}
 	c.conn = conn
 	c.interval = time.Second * 3
 
 	err = c.connect(username)
 	if err != nil {
-		log.Fatalln("NewControlConn", err)
+		log.Fatalln("newControlConn", err)
 	}
 
 	return c
 }
 
-func (c *ControlConn) connect(username string) error {
+func (c *controlConn) connect(username string) error {
 	remoteAddr := fmt.Sprintf("http://%s%s", c.conn.RemoteAddr(), ControlPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {

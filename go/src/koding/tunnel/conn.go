@@ -11,9 +11,9 @@ import (
 
 var ErrSocketClosed = errors.New("socket closed")
 
-// ClientConn satisfies the net.conn interface. It reconnects when the
+// clientConn satisfies the net.conn interface. It reconnects when the
 // connection is closed.
-type ClientConn struct {
+type clientConn struct {
 	conn net.Conn
 
 	// interval defines the reconnect interval when the connection is closed
@@ -22,19 +22,19 @@ type ClientConn struct {
 	// kind defines how to
 }
 
-func NewClientConn(addr string) *ClientConn {
+func newClientConn(addr string) *clientConn {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Fatalf("NewClientConn %s\n", err)
+		log.Fatalf("newClientConn %s\n", err)
 	}
 
-	return &ClientConn{
+	return &clientConn{
 		conn:     conn,
 		interval: time.Second * 3,
 	}
 }
 
-func (c *ClientConn) Read(buf []byte) (int, error) {
+func (c *clientConn) Read(buf []byte) (int, error) {
 	n, err := c.conn.Read(buf)
 	if err == nil {
 		return n, err
@@ -49,35 +49,35 @@ func (c *ClientConn) Read(buf []byte) (int, error) {
 	return n, nil
 }
 
-func (c *ClientConn) Write(buf []byte) (int, error) {
+func (c *clientConn) Write(buf []byte) (int, error) {
 	return c.conn.Write(buf)
 }
 
-func (c *ClientConn) Close() error {
+func (c *clientConn) Close() error {
 	return c.conn.Close()
 }
 
-func (c *ClientConn) LocalAddr() net.Addr {
+func (c *clientConn) LocalAddr() net.Addr {
 	return c.conn.LocalAddr()
 }
 
-func (c *ClientConn) RemoteAddr() net.Addr {
+func (c *clientConn) RemoteAddr() net.Addr {
 	return c.conn.RemoteAddr()
 }
 
-func (c *ClientConn) SetDeadline(t time.Time) error {
+func (c *clientConn) SetDeadline(t time.Time) error {
 	return c.conn.SetDeadline(t)
 }
 
-func (c *ClientConn) SetReadDeadline(t time.Time) error {
+func (c *clientConn) SetReadDeadline(t time.Time) error {
 	return c.conn.SetReadDeadline(t)
 }
 
-func (c *ClientConn) SetWriteDeadline(t time.Time) error {
+func (c *clientConn) SetWriteDeadline(t time.Time) error {
 	return c.conn.SetWriteDeadline(t)
 }
 
-func (c *ClientConn) reconnect() {
+func (c *clientConn) reconnect() {
 	var conn net.Conn
 	var err error
 
@@ -95,11 +95,11 @@ func (c *ClientConn) reconnect() {
 	c.conn = conn
 }
 
-func (c *ClientConn) dial() (net.Conn, error) {
+func (c *clientConn) dial() (net.Conn, error) {
 	return net.Dial(c.RemoteAddr().Network(), c.RemoteAddr().String())
 }
 
-func (c *ClientConn) socketClosed(err error) bool {
+func (c *clientConn) socketClosed(err error) bool {
 	if err == nil {
 		return false
 	}

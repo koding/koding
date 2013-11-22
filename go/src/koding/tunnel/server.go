@@ -16,19 +16,19 @@ import (
 // Server satisfies the http.Handler interface. It is responsible of tracking
 // tunnels and creating tunnels between remote and local connection.
 type Server struct {
-	tunnels    map[string]*Tunnels
-	tunnelChan map[string]chan *Tunnels
-	controls   *Controls
-	hosts      *Hosts
+	tunnels      map[string]*tunnels
+	tunnelChan   map[string]chan *tunnels
+	controls     *controls
+	virtualHosts *virtualHosts
 	sync.Mutex
 }
 
 func NewServer() *Server {
 	s := &Server{
-		tunnels:    make(map[string]*Tunnels),
-		tunnelChan: make(map[string]chan *Tunnels),
-		controls:   NewControls(),
-		hosts:      newHosts(),
+		tunnels:      make(map[string]*tunnels),
+		tunnelChan:   make(map[string]chan *tunnels),
+		controls:     newControls(),
+		virtualHosts: newVirtualHosts(),
 	}
 
 	http.HandleFunc(ControlPath, s.controlHandler)
@@ -37,7 +37,7 @@ func NewServer() *Server {
 }
 
 func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("tunnel Handler invoked", r.URL.String())
+	log.Println("--- tunnel Handler invoked", r.URL.String())
 	if r.Method != "CONNECT" {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -72,14 +72,14 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tunnels, ok := s.GetTunnels(host)
+	tunnels, ok := s.getTunnels(host)
 	if !ok {
 		// first time, create it
-		tunnels = NewTunnels()
+		tunnels = newTunnels()
 	}
 
-	tunnels.addTunnel(protocol, NewTunnel(conn))
-	s.AddTunnels(host, tunnels)
+	tunnels.addTunnel(protocol, newTunnel(conn))
+	s.addTunnels(host, tunnels)
 
 	// let any channel associated with this tunnel let know that we passed everything and
 	// that our tunnel is now ready, also pass it back
@@ -88,7 +88,7 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 
 // controlHandler is used to register tunnel clients.
 func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("control Handler invoked", r.URL.String())
+	log.Println("--- control Handler invoked", r.URL.String())
 	if r.Method != "CONNECT" {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -103,14 +103,14 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := s.GetHost(username)
+	host, ok := s.GetHost(username)
 	if !ok {
 		log.Printf("no host is associated for username %s. please use server.AddHost()", username)
 		http.Error(w, "there is no host defined for this username", 405)
 		return
 	}
 
-	_, ok = s.GetControl(username)
+	_, ok = s.getControl(username)
 	if ok {
 		log.Printf("control conn for %s already exist\n", username)
 		http.Error(w, "only one control connection is allowed", 405)
@@ -128,14 +128,16 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 	conn.SetDeadline(time.Time{})
 
 	// create a new control struct and add it
-	control := NewControl(conn)
-	s.AddControl(username, control)
+	control := newControl(conn)
+	s.addControl(username, control)
 
 	// delete and close the conn when the control connection is being closed
+	// also delete all tunnels
 	defer func() {
 		log.Println("closing control connection for", username)
-		control.Close()
-		s.DeleteControl(username)
+		control.close()
+		s.deleteControl(username)
+		s.deleteTunnels(host)
 	}()
 
 	log.Println("control connection has been established for", username)
@@ -186,7 +188,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
 	var err error
-	tunnels, ok := s.GetTunnels(host)
+	tunnels, ok := s.getTunnels(host)
 	if !ok {
 		tunnels, err = s.requestTunnels("http", host)
 		if err != nil {
@@ -206,7 +208,7 @@ func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
 // requestTunnels makes a request to the control connection to get a new
 // tunnel from the client. It sends the request of a new tunnel directly to
 // the client, which then opens a new tunnel to be used.
-func (s *Server) requestTunnels(protocol, host string) (*Tunnels, error) {
+func (s *Server) requestTunnels(protocol, host string) (*tunnels, error) {
 	log.Printf("no tunnel available for %s protocol %s. getting one via control",
 		protocol, host)
 	// get the user associated with this user
@@ -216,7 +218,7 @@ func (s *Server) requestTunnels(protocol, host string) (*Tunnels, error) {
 	}
 
 	// then grab the control connection that is associated with this username
-	control, ok := s.GetControl(username)
+	control, ok := s.getControl(username)
 	if !ok {
 		return nil, fmt.Errorf("no control available for %s", host)
 	}
@@ -227,13 +229,21 @@ func (s *Server) requestTunnels(protocol, host string) (*Tunnels, error) {
 	tunnelID := randomID(32)
 
 	// request a new http tunnel
-	control.SendMsg(protocol, tunnelID, username)
+
+	msg := ServerMsg{
+		Protocol: protocol,
+		TunnelID: tunnelID,
+		Username: username,
+		Host:     host,
+	}
+
+	control.send(msg)
 
 	// now wait until our tunnel is established if the tunnel has the
 	// right ID it will send a message to this channel, which releases the
 	// blocking channel. then we wait, until we got our done channel.
 	log.Printf("tunnel request send for %s, waiting for tunnel...\n", host)
-	s.tunnelChan[tunnelID] = make(chan *Tunnels)
+	s.tunnelChan[tunnelID] = make(chan *tunnels)
 
 	select {
 	case tunnels := <-s.tunnelChan[tunnelID]:
@@ -258,6 +268,7 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("write request back to websocket")
 	err = r.Write(tunnelConn)
 	if err != nil {
 		err := fmt.Sprintf("write to tunnel %s", err)
@@ -265,6 +276,7 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("get publicconn hijack")
 	publicConn, _, err := w.(http.Hijacker).Hijack()
 	if err != nil {
 		log.Println("websocket hijacking ", err)
@@ -272,13 +284,14 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	defer publicConn.Close()
 
+	log.Println("copy websocket.......")
 	err = <-join(tunnelConn, publicConn)
 	log.Println(err)
 }
 
 func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
 	var err error
-	tunnels, ok := s.GetTunnels(host)
+	tunnels, ok := s.getTunnels(host)
 	if !ok {
 		tunnels, err = s.requestTunnels("websocket", host)
 		if err != nil {
@@ -295,7 +308,7 @@ func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
 	return tunnel.conn, nil
 }
 
-func (s *Server) GetTunnels(host string) (*Tunnels, bool) {
+func (s *Server) getTunnels(host string) (*tunnels, bool) {
 	s.Lock()
 	defer s.Unlock()
 
@@ -303,39 +316,46 @@ func (s *Server) GetTunnels(host string) (*Tunnels, bool) {
 	return tunnels, ok
 }
 
-func (s *Server) AddTunnels(host string, tunnels *Tunnels) {
+func (s *Server) addTunnels(host string, tunnels *tunnels) {
 	s.Lock()
 	defer s.Unlock()
 
 	s.tunnels[host] = tunnels
 }
 
-func (s *Server) AddControl(username string, conn *Control) {
+func (s *Server) deleteTunnels(host string) {
+	s.Lock()
+	defer s.Unlock()
+
+	delete(s.tunnels, host)
+}
+
+func (s *Server) addControl(username string, conn *control) {
 	s.controls.addControl(username, conn)
 }
 
-func (s *Server) GetControl(username string) (*Control, bool) {
+func (s *Server) getControl(username string) (*control, bool) {
 	return s.controls.getControl(username)
 }
 
-func (s *Server) DeleteControl(username string) {
+func (s *Server) deleteControl(username string) {
 	s.controls.deleteControl(username)
 }
 
 func (s *Server) AddHost(host, username string) {
-	s.hosts.addHost(host, username)
+	s.virtualHosts.addHost(host, username)
 }
 
 func (s *Server) DeleteHost(host, username string) {
-	s.hosts.deleteHost(host)
+	s.virtualHosts.deleteHost(host)
 }
 
 func (s *Server) GetUsername(host string) (string, bool) {
-	username, ok := s.hosts.getUsername(host)
+	username, ok := s.virtualHosts.getUsername(host)
 	return username, ok
 }
 
 func (s *Server) GetHost(username string) (string, bool) {
-	host, ok := s.hosts.getHost(username)
+	host, ok := s.virtualHosts.getHost(username)
 	return host, ok
 }

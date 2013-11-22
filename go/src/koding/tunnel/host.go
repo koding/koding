@@ -4,43 +4,43 @@ import (
 	"sync"
 )
 
-type Host struct {
+type virtualHost struct {
 	username string
 }
 
-// Hosts is used for mapping host to users example: host
+// virtualHosts is used for mapping host to users example: host
 // "fs-1-fatih.kd.io" belongs to user "arslan"
-type Hosts struct {
-	mapping map[string]*Host
+type virtualHosts struct {
+	mapping map[string]*virtualHost
 	sync.Mutex
 }
 
-func newHosts() *Hosts {
-	return &Hosts{
-		mapping: make(map[string]*Host),
+func newVirtualHosts() *virtualHosts {
+	return &virtualHosts{
+		mapping: make(map[string]*virtualHost),
 	}
 }
 
-func (h *Hosts) addHost(host, username string) {
-	h.Lock()
-	defer h.Unlock()
+func (v *virtualHosts) addHost(host, username string) {
+	v.Lock()
+	defer v.Unlock()
 
-	h.mapping[host] = &Host{username: username}
+	v.mapping[host] = &virtualHost{username: username}
 }
 
-func (h *Hosts) deleteHost(host string) {
-	h.Lock()
-	defer h.Unlock()
+func (v *virtualHosts) deleteHost(host string) {
+	v.Lock()
+	defer v.Unlock()
 
-	delete(h.mapping, host)
+	delete(v.mapping, host)
 }
 
 // getUsername returns the username associated with the given host
-func (h *Hosts) getUsername(host string) (string, bool) {
-	h.Lock()
-	defer h.Unlock()
+func (v *virtualHosts) getUsername(host string) (string, bool) {
+	v.Lock()
+	defer v.Unlock()
 
-	ht, ok := h.mapping[host]
+	ht, ok := v.mapping[host]
 	if !ok {
 		return "", false
 	}
@@ -49,11 +49,11 @@ func (h *Hosts) getUsername(host string) (string, bool) {
 }
 
 // getHost returns the host associated with the given username
-func (h *Hosts) getHost(username string) (string, bool) {
-	h.Lock()
-	defer h.Unlock()
+func (v *virtualHosts) getHost(username string) (string, bool) {
+	v.Lock()
+	defer v.Unlock()
 
-	for hostname, hst := range h.mapping {
+	for hostname, hst := range v.mapping {
 		if hst.username == username {
 			return hostname, true
 		}

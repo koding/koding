@@ -19,7 +19,7 @@ type Client struct {
 // serverAddr and localAddr.
 func NewClient(serverAddr, localAddr string) *Client {
 	tunnel := &Client{
-		controlConn: NewControlConn(serverAddr, "arslan"),
+		controlConn: newControlConn(serverAddr, "arslan"),
 		localConns:  make(map[string]net.Conn),
 		serverAddr:  serverAddr,
 		localAddr:   localAddr,
@@ -30,15 +30,15 @@ func NewClient(serverAddr, localAddr string) *Client {
 }
 
 func (c *Client) Run() {
-	go c.Encoder()
-	c.Decoder()
+	go c.encoder()
+	c.decoder()
 }
 
 func (c *Client) sendMsg(msg string) {
 	c.sendChan <- ClientMsg{Action: msg}
 }
 
-func (c *Client) Encoder() {
+func (c *Client) encoder() {
 	e := json.NewEncoder(c.controlConn)
 
 	for msg := range c.sendChan {
@@ -51,19 +51,17 @@ func (c *Client) Encoder() {
 	}
 }
 
-func (c *Client) Decoder() {
+func (c *Client) decoder() {
 	d := json.NewDecoder(c.controlConn)
 
 	for {
 		msg := new(ServerMsg)
-		fmt.Println("waiting for msg from control chan")
+		log.Println("waiting msg from control connection")
 		err := d.Decode(msg)
 		if err != nil {
 			log.Println("decode", err)
 			return
 		}
-
-		fmt.Printf("got msg from control chan %#v\n", msg)
 
 		if msg.Protocol == "" || msg.TunnelID == "" || msg.Username == "" {
 			log.Printf("protocol or tunnelID should not be empty")
@@ -75,15 +73,16 @@ func (c *Client) Decoder() {
 			continue
 		}
 
-		go c.Proxy(msg)
+		go c.proxy(msg)
 	}
 }
 
-// Proxy is like Start() but it joins (proxies) the remote tcp connection with
+// proxy is like Start() but it joins (proxies) the remote tcp connection with
 // the local one, that means all de handling is done via those two connection.
-func (c *Client) Proxy(serverMsg *ServerMsg) {
-	remote := NewTunnelConn(c.serverAddr, serverMsg)
-	local := NewClientConn(c.localAddr)
+func (c *Client) proxy(serverMsg *ServerMsg) {
+	log.Printf("starting a proxy %+v\n", *serverMsg)
+	remote := newTunnelConn(c.serverAddr, serverMsg)
+	local := newClientConn(c.localAddr)
 
 	err := <-join(local, remote)
 	log.Println(err)

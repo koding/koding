@@ -13,4 +13,5 @@ type ServerMsg struct {
 	Protocol string `json:"action"`
 	TunnelID string `json:"tunnelID"`
 	Username string `json:"username"`
+	Host     string `json:"host"`
 }

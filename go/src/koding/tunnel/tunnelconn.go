@@ -9,29 +9,29 @@ import (
 	"time"
 )
 
-type TunnelConn struct {
-	ClientConn
+type tunnelConn struct {
+	clientConn
 }
 
-func NewTunnelConn(addr string, serverMsg *ServerMsg) *TunnelConn {
+func newTunnelConn(addr string, serverMsg *ServerMsg) *tunnelConn {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Fatalf("NewTunnelConn %s\n", err)
+		log.Fatalf("newTunnelConn %s\n", err)
 	}
 
-	t := &TunnelConn{}
+	t := &tunnelConn{}
 	t.conn = conn
 	t.interval = time.Second * 3
 
 	err = t.connect(serverMsg)
 	if err != nil {
-		log.Fatalln("NewTunnelConn", err)
+		log.Fatalln("newTunnelConn", err)
 	}
 
 	return t
 }
 
-func (c *TunnelConn) connect(serverMsg *ServerMsg) error {
+func (c *tunnelConn) connect(serverMsg *ServerMsg) error {
 	remoteAddr := fmt.Sprintf("http://%s%s", c.conn.RemoteAddr(), TunnelPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
