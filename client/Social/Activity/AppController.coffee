@@ -78,7 +78,7 @@ class ActivityAppController extends AppController
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   bindLazyLoad:->
-    @getView().once 'LazyLoadThresholdReached', @bound "continueLoadingTeasers"
+    @once 'LazyLoadThresholdReached', @bound "continueLoadingTeasers"
     @listController.once 'teasersLoaded', @bound "teasersLoaded"
 
   continueLoadingTeasers:->
