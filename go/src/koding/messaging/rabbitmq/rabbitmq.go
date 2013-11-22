@@ -240,6 +240,9 @@ func (c *Consumer) reconnect() {
 	c.Consume(c.handler)
 }
 
+// Closer interface is for handling reconnection logic in a sane way
+// Every reconnection supported struct should implement those methods
+// in order to work properly
 type Closer interface {
 	RegisterSignalHandler()
 	Shutdown() error
