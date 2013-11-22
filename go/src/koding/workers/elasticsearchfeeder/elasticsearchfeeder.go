@@ -84,7 +84,6 @@ var handler = func(deliveries <-chan amqp.Delivery) {
 }
 
 func startConsuming() {
-
 	exchange := rabbitmq.Exchange{
 		Name:    EXCHANGE_NAME,
 		Type:    "fanout",

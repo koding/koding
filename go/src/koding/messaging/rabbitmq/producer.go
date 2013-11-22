@@ -24,7 +24,7 @@ type PublishingOptions struct {
 	Tag string
 
 	// Queue should be on the server/broker
-	Mandatory string
+	Mandatory bool
 
 	// Consumer should be bound to server
 	Immediate bool
@@ -42,15 +42,14 @@ func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
 		return nil, err
 	}
 
-	p := &Producer{
+	return &Producer{
 		RabbitMQ: rmq,
 		session: Session{
 			Exchange:          e,
 			Queue:             q,
 			PublishingOptions: po,
 		},
-	}
-	return p, nil
+	}, nil
 }
 
 // Publish sends a Publishing from the client to an exchange on the server.

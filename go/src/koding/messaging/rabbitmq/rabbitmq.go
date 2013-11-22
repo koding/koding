@@ -23,15 +23,15 @@ type Exchange struct {
 	Type string
 
 	// Durable exchanges will survive server restarts
-	Durable string
+	Durable bool
 
 	// Will remain declared when there are no remaining bindings.
-	AutoDelete string
+	AutoDelete bool
 
 	// Exchanges declared as `internal` do not accept accept publishings.Internal
 	// exchanges are useful for when you wish to implement inter-exchange topologies
 	// that should not be exposed to users of the broker.
-	Internal string
+	Internal bool
 
 	// When noWait is true, declare without waiting for a confirmation from the server.
 	NoWait bool
@@ -166,12 +166,14 @@ func newRabbitMQConnection(tag string) (*RabbitMQ, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	handleErrors(rmq.conn)
 	// getting channel
 	rmq.channel, err = rmq.conn.Channel()
 	if err != nil {
 		return nil, err
 	}
+
 	return rmq, nil
 }
 
@@ -200,40 +202,41 @@ func handleErrors(conn *amqp.Connection) {
 			if strings.Contains(amqpErr.Error(), "NOT_FOUND") {
 				// do not continue
 			}
+
 			if amqpErr.Code == 501 {
 				// reconnect
 			}
+
 			if amqpErr.Code == 320 {
 				// fmt.Println("tryin to reconnect")
 				// c.reconnect()
 			}
+
 		}
 	}()
-	// Commenting out this for now, since our package is not up-to-date
-	// and the extension is not enabled yet in prodcution
-	// We should also update our go amqp package
-	// go func() {
-	// 	for b := range conn.NotifyBlocked(make(chan amqp.Blocking)) {
-	// 		if b.Active {
-	// 			fmt.Println("TCP blocked: %q", b.Reason)
-	// 		} else {
-	// 			fmt.Println("TCP unblocked")
-	// 		}
-	// 	}
-	// }()
+	go func() {
+		for b := range conn.NotifyBlocked(make(chan amqp.Blocking)) {
+			if b.Active {
+				log.Info("TCP blocked: %q", b.Reason)
+			} else {
+				log.Info("TCP unblocked")
+			}
+		}
+	}()
 }
 
 // reconnect re-connects to rabbitmq after a disconnection
 func (c *Consumer) reconnect() {
-
 	err := c.Shutdown()
 	if err != nil {
 		panic(err)
 	}
+
 	err = c.connect()
 	if err != nil {
 		panic(err)
 	}
+
 	c.Consume(c.handler)
 }
 
