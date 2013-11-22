@@ -117,7 +117,7 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
-    numberOfWorkers: 2
+    numberOfWorkers: 4
   social        :
     login       : 'prod-social'
     numberOfWorkers: 7

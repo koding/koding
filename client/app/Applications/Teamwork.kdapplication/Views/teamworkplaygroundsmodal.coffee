@@ -9,27 +9,20 @@ class TeamworkPlaygroundsModal extends KDModalView
 
     super options, data
 
-    playgrounds         = [ "Python", "Ruby", "MongoDB", "HTML5", "Facebook", "NodeJS" ]
     @addSubView wrapper = new KDCustomHTMLView cssClass: "tw-playgrounds-wrapper"
 
-    playgrounds.forEach (playground) =>
+    @getOptions().playgrounds.forEach (playground) =>
+      {name, description} = playground
       wrapper.addSubView new TeamworkPlaygroundFlipWidget
-        cssClass        : "tw-#{playground.toLowerCase()}"
-        content         : """
-          <p>Facebook</p>
-          <span>
-            Start discovering all about the Facebook App Development.
-            This playground is designed to solve app login and permission problems.
-            Also we will show you how you can easily implement FB Like, Share and Comment widgets for your site.
-          </span>
-        """
+        cssClass        : "tw-#{name.toLowerCase()}"
+        coverPath       : playground.icon
+        content         : """<p>#{name}</p><span>#{description}</span>"""
         callback        : =>
-          @handlePlaygroundSelection playground
+          @getDelegate().handlePlaygroundSelection name
           @destroy()
 
   handlePlaygroundSelection: (playground) ->
     @getDelegate().handlePlaygroundSelection playground
-
 
 
 class TeamworkPlaygroundFlipWidget extends JView
@@ -49,11 +42,11 @@ class TeamworkPlaygroundFlipWidget extends JView
   pistachio: ->
     """
       <div class="flipper">
-        <div class="front"></div>
+        <div class="front">
+          <img src="#{@getOptions().coverPath}" />
+        </div>
         <div class="back">
           {{> @backSide}}
         </div>
       </div>
     """
-
-
