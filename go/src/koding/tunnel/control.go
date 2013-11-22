@@ -9,14 +9,24 @@ import (
 )
 
 type control struct {
-	conn     net.Conn
-	start    time.Time
+	// underlying tcp connection
+	conn net.Conn
+
+	// start time of the control connection
+	start time.Time
+
+	// owner of the control connection
+	owner string
+
+	// sendChan is used to encode ServerMsg and send them over the wire in
+	// JSON format to the client that initiatet the control connection.
 	sendChan chan ServerMsg
 }
 
-func newControl(conn net.Conn) *control {
+func newControl(conn net.Conn, owner string) *control {
 	return &control{
 		conn:     conn,
+		owner:    owner,
 		start:    time.Now(),
 		sendChan: make(chan ServerMsg),
 	}
@@ -37,7 +47,8 @@ func (c *control) decoder() {
 		var msg ClientMsg
 		err := d.Decode(&msg)
 		if err != nil {
-			log.Println("control decode", err)
+			log.Printf("control connection from %s is closed: decode '%s\n",
+				c.owner, err)
 			return
 		}
 	}
@@ -48,7 +59,8 @@ func (c *control) encoder() {
 	for msg := range c.sendChan {
 		err := e.Encode(msg)
 		if err != nil {
-			log.Println("control encode", err)
+			log.Printf("control connection from %s is closed: encode '%s\n",
+				c.owner, err)
 			return
 		}
 	}

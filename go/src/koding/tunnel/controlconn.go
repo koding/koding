@@ -22,11 +22,20 @@ func newControlConn(addr, username string) *controlConn {
 	c := &controlConn{}
 	c.conn = conn
 	c.interval = time.Second * 3
+	c.reconnectEnabled = true
 
-	err = c.connect(username)
-	if err != nil {
-		log.Fatalln("newControlConn", err)
+	connect := func() {
+		err = c.connect(username)
+		if err != nil {
+			log.Fatalln("newControlConn", err)
+		}
 	}
+
+	// first call connect to establish the control connection
+	connect()
+
+	// and then store it. it get called after each succesfull reconnection.
+	c.onReconnect(connect)
 
 	return c
 }

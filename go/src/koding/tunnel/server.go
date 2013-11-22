@@ -23,8 +23,8 @@ type Server struct {
 	pending map[string]chan *tunnel
 
 	// httpTunnels is used to store established tunnel connections used for
-	// http connections. Currently for each virtual hosts one single http
-	// connection is stored.
+	// http. Currently for each virtual host one single http connection is
+	// stored.
 	httpTunnels *tunnels
 
 	// controls contains the control connection from the client to the server
@@ -136,11 +136,11 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 	conn.SetDeadline(time.Time{})
 
 	// create a new control struct and add it
-	control := newControl(conn)
+	control := newControl(conn, username)
 	s.addControl(username, control)
 
-	// delete and close the conn when the control connection is being closed
-	// also delete all tunnels
+	// delete and close all tunnels and control connection when there is a
+	// disconnection
 	defer func() {
 		log.Println("closing control connection for", username)
 		control.close()
@@ -329,6 +329,8 @@ func (s *Server) getControl(username string) (*control, bool) {
 func (s *Server) deleteControl(username string) {
 	s.controls.deleteControl(username)
 }
+
+// virtual hosts methods are exposed
 
 func (s *Server) AddHost(host, username string) {
 	s.virtualHosts.addHost(host, username)

@@ -77,12 +77,12 @@ func (c *Client) decoder() {
 	}
 }
 
-// proxy is like Start() but it joins (proxies) the remote tcp connection with
-// the local one, that means all de handling is done via those two connection.
+// proxy joins (proxies) the remote tcp connection with the local one.
+// the data between the two connections are copied vice versa.
 func (c *Client) proxy(serverMsg *ServerMsg) {
 	log.Printf("starting a proxy %+v\n", *serverMsg)
 	remote := newTunnelConn(c.serverAddr, serverMsg)
-	local := newClientConn(c.localAddr)
+	local := newClientConn(c.localAddr, true)
 
 	err := <-join(local, remote)
 	log.Println(err)

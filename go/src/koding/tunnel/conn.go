@@ -11,32 +11,42 @@ import (
 
 var ErrSocketClosed = errors.New("socket closed")
 
-// clientConn satisfies the net.conn interface. It reconnects when the
-// connection is closed.
+// clientConn satisfies the net.conn interface. If reconnectEnabled is true,
+// it reconnects when the connection is closed.
 type clientConn struct {
 	conn net.Conn
 
 	// interval defines the reconnect interval when the connection is closed
 	interval time.Duration
 
-	// kind defines how to
+	// onDisconnectFunc is called after a successfull reconnect
+	onReconnectFunc func()
+
+	// reconnectEnabled is a trigger that enables reconnection when the
+	// established connection is close.
+	reconnectEnabled bool
 }
 
-func newClientConn(addr string) *clientConn {
+func newClientConn(addr string, reconnect bool) *clientConn {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		log.Fatalf("newClientConn %s\n", err)
 	}
 
 	return &clientConn{
-		conn:     conn,
-		interval: time.Second * 3,
+		conn:             conn,
+		interval:         time.Second * 3,
+		reconnectEnabled: reconnect,
 	}
 }
 
 func (c *clientConn) Read(buf []byte) (int, error) {
 	n, err := c.conn.Read(buf)
 	if err == nil {
+		return n, err
+	}
+
+	if !c.reconnectEnabled {
 		return n, err
 	}
 
@@ -77,6 +87,9 @@ func (c *clientConn) SetWriteDeadline(t time.Time) error {
 	return c.conn.SetWriteDeadline(t)
 }
 
+// reconnect tries to reconnect in intervals defined by clientConn.interval.
+// It is blocking and tries to reconnect forever. After a successfull
+// reconnection clientConn
 func (c *clientConn) reconnect() {
 	var conn net.Conn
 	var err error
@@ -93,6 +106,16 @@ func (c *clientConn) reconnect() {
 	}
 
 	c.conn = conn
+
+	if c.onReconnectFunc != nil {
+		// call it when there is a function available
+		c.onReconnectFunc()
+	}
+}
+
+// onReconnect calls the given function f for each successfull reconnection.
+func (c *clientConn) onReconnect(f func()) {
+	c.onReconnectFunc = f
 }
 
 func (c *clientConn) dial() (net.Conn, error) {
