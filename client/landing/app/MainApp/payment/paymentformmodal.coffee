@@ -15,39 +15,25 @@ class PaymentFormModal extends KDModalView
     @mainLoader = new KDLoaderView
       showLoader  : yes
       size        : { width: 14 }
-
     @addSubView @mainLoader
 
-    @useExistingView = new PaymentMethodChoiceView
+    @useExistingView = new PaymentChoiceForm
     @useExistingView.hide()
-
-    @useExistingView.on 'PaymentMethodSelected', (paymentMethodId) =>
-      if paymentMethodId
-        @emit 'PaymentMethodSelected', paymentMethodId
-      else
-        @useExistingView.hide()
-        @paymentForm.show()
-
     @addSubView @useExistingView
+
+    @useExistingView.on 'PaymentMethodNotChosen', =>
+      @useExistingView.hide()
+      @paymentForm.show()
+
+    @forwardEvent @useExistingView, 'PaymentMethodChosen'
 
     @paymentForm = new PaymentMethodEntryForm
     @paymentForm.hide()
-
-    @forwardEvent @paymentForm, 'PaymentInfoSubmitted'
     @addSubView @paymentForm
 
+    @forwardEvent @paymentForm, 'PaymentInfoSubmitted'
+
     super()
-
-  # showLoader:->
-  #   @mainLoader.show()
-
-  # hideLoader:->
-  #   @mainLoader.hide()
-
-  createSelectPersonalView: (paymentMethods) ->
-    @useExistingView.show()
-    paymentMethods.forEach (paymentMethod) =>
-      @useExistingView.addPaymentMethod paymentMethod
 
   setState: (state, data) ->
     @mainLoader.hide()
@@ -56,7 +42,8 @@ class PaymentFormModal extends KDModalView
         @paymentForm.setPaymentInfo data
         @paymentForm.show()
       when 'selectPersonal'
-        @createSelectPersonalView data
+        @useExistingView.setPaymentMethods data
+        @useExistingView.show()
       else
         @paymentForm.show()
 
