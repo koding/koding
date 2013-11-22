@@ -42,6 +42,7 @@ class BlogPostActivityItemView extends ActivityItemChild
       </div>
       <footer>
         {{> @actionLinks}}
+        <time>{{$.timeago #(meta.createdAt)}}</time>
       </footer>
       {{> @commentBox}}
     """

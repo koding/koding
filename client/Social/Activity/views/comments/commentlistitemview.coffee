@@ -147,7 +147,6 @@ class CommentListItemView extends KDListItemView
         {{> @deleteLink}}
         {{> @likeView}}
         {{> @replyView}}
+        {{> @timeAgoView}}
       </div>
     """
-
-    # {{> @timeAgoView}}

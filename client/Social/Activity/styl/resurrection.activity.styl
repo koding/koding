@@ -105,6 +105,18 @@ resurrection.activity.styl
           margin        22px 0 0 0
           borderBox()
 
+          time
+            width       auto
+            line-height 42px
+            font-size   12px
+            color       #b3b1ab
+            padding     0 22px 0 0
+            fr()
+
+          .activity-actions
+            width       auto
+            fl()
+
           .action-link
           .comment-icon
           .share-icon
@@ -167,13 +179,14 @@ resurrection.activity.styl
 
             .like-view
             .reply-link
+            time
+              font-size         12px
               display           inline-block
               margin            16px 20px 0 0
               width             auto
 
             .like-view a
             .reply-link
-              font-size       12px
               color           #697576
               noTextDeco()
 
@@ -181,6 +194,9 @@ resurrection.activity.styl
                 display       inline-block
                 margin        0 0 0 9px
                 font-weight   500
+
+            time
+              color           #a5acad
 
           &~.kdlistitemview-comment
             padding-top     0
