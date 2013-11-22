@@ -26,6 +26,10 @@ class AceAppView extends JView
       @finderController = finderApp.create()
       @finderWrapper.addSubView @finderController.getView()
       @finderController.reset()
+      @finderController.on 'FileNeedsToBeOpened', (file)=>
+        @openFile file, yes
+
+
 
 
   attachEvents:->
