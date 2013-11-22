@@ -71,7 +71,7 @@ class PaymentWorkflow extends FormWorkflow
 
   createEntryForm: (options, data) ->
 
-    form = new PaymentForm options, data
+    form = new PaymentMethodEntryForm options, data
 
     pay = KD.getSingleton 'paymentController'
 

@@ -1,4 +1,4 @@
-class PaymentForm extends KDFormViewWithFields
+class PaymentMethodEntryForm extends KDFormViewWithFields
   constructor: (options = {}, data) ->
     thisYear = (new Date).getFullYear()
 
