@@ -135,15 +135,9 @@ class LikeView extends KDView
 class LikeViewClean extends LikeView
 
   constructor:->
-
-    @seperator = new KDCustomHTMLView "span"
     super
-
-    @seperator.updatePartial if @getData().meta.likes then ' · ' else ''
-
-    @likeCount.on "countChanged", (count) =>
-      @seperator.updatePartial if count then ' · ' else ''
+    @likeLink.updatePartial "Like"
 
   pistachio:->
-    """<span class='comment-actions'>{{> @likeLink}}{{> @seperator}}{{> @likeCount}}</span>"""
+    """<span class='comment-actions'>{{> @likeLink}}{{> @likeCount}}</span>"""
 

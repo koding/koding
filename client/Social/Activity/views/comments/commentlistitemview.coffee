@@ -48,7 +48,7 @@ class CommentListItemView extends KDListItemView
     if loggedInId isnt data.originId
       @replyView = new ActivityActionLink
         cssClass : "action-link reply-link"
-        partial  : "Reply"
+        partial  : "Mention"
         click    : =>
           KD.remote.cacheable data.originType, data.originId, (err, res) =>
             @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
