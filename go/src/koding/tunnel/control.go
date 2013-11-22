@@ -19,7 +19,7 @@ type control struct {
 	owner string
 
 	// sendChan is used to encode ServerMsg and send them over the wire in
-	// JSON format to the client that initiatet the control connection.
+	// JSON format to the client that initiated the control connection.
 	sendChan chan ServerMsg
 }
 

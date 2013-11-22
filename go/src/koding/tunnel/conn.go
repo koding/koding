@@ -19,7 +19,7 @@ type clientConn struct {
 	// interval defines the reconnect interval when the connection is closed
 	interval time.Duration
 
-	// onDisconnectFunc is called after a successfull reconnect
+	// onReconnectFunc is called after a successfull reconnect
 	onReconnectFunc func()
 
 	// reconnectEnabled is a trigger that enables reconnection when the
@@ -89,7 +89,7 @@ func (c *clientConn) SetWriteDeadline(t time.Time) error {
 
 // reconnect tries to reconnect in intervals defined by clientConn.interval.
 // It is blocking and tries to reconnect forever. After a successfull
-// reconnection clientConn
+// reconnection, clientConn invokies c.onReconnectFunc if any set.
 func (c *clientConn) reconnect() {
 	var conn net.Conn
 	var err error

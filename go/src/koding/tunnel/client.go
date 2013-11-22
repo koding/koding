@@ -7,28 +7,40 @@ import (
 	"net"
 )
 
+// Client is responsible for creating a control connection to a tunnel server,
+// creating new tunnels and proxy them to tunnel server.
 type Client struct {
+	// underlying tcp connection responsible for sending/receiving control messages
 	controlConn net.Conn
-	localConns  map[string]net.Conn
-	sendChan    chan ClientMsg
-	serverAddr  string
-	localAddr   string
+
+	// sendChan is used to encode ClientMsg and send them over the wire in
+	// JSON format to the server.
+	sendChan chan ClientMsg
+
+	// serverAddr is the address of the tunnel-server
+	serverAddr string
+
+	// localAddr is the address of a local server that will be tunneled to the
+	// public. Currently only one server is supported.
+	localAddr string
 }
 
-// NewTunnelClient creates a new tunnel that is established between the
-// serverAddr and localAddr.
+// NewClient creates a new tunnel that is established between the serverAddr
+// and localAddr. It exits if it can't create a new control connection to the
+// server.
 func NewClient(serverAddr, localAddr string) *Client {
-	tunnel := &Client{
+	client := &Client{
 		controlConn: newControlConn(serverAddr, "arslan"),
-		localConns:  make(map[string]net.Conn),
 		serverAddr:  serverAddr,
 		localAddr:   localAddr,
 		sendChan:    make(chan ClientMsg),
 	}
 
-	return tunnel
+	return client
 }
 
+// Run starts the client begins to listen for control messages coming from the
+// server. Run is blocking.
 func (c *Client) Run() {
 	go c.encoder()
 	c.decoder()
