@@ -33,3 +33,45 @@ class PaymentChoiceForm extends KDFormViewWithFields
     super options, data
 
   activate: (activator) -> @emit 'Activated', activator
+
+  setPaymentMethods: (paymentMethods) ->
+
+    { preferredPaymentMethod, methods, appStorage } = paymentMethods
+
+    paymentField = @fields['Payment method']
+
+    switch methods.length
+
+      when 0 then break
+
+      when 1 then do ([method] = methods) =>
+        paymentField.addSubView new PaymentMethodView {}, method
+        @addCustomData 'paymentMethod', method
+
+      else
+
+        methodsByPaymentMethodId =
+          methods.reduce( (acc, method) ->
+            acc[method.paymentMethodId] = method
+            acc
+          , {})
+
+        defaultPaymentMethod = preferredPaymentMethod ? methods[0].paymentMethodId
+
+        defaultMethod = methodsByPaymentMethodId[defaultPaymentMethod]
+
+        choiceForm.addCustomData 'paymentMethod', defaultMethod
+
+        select = new KDSelectBox
+          defaultValue  : defaultPaymentMethod
+          name          : 'paymentMethodId'
+          selectOptions : methods.map (method) ->
+            title       : KD.utils.getPaymentMethodTitle method
+            value       : method.paymentMethodId
+          callback      : (paymentMethodId) ->
+            chosenMethod = methodsByPaymentMethodId[paymentMethodId]
+            choiceForm.addCustomData 'paymentMethod', chosenMethod
+
+        paymentField.addSubView select
+
+    return this
