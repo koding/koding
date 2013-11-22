@@ -141,15 +141,37 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
   #     update_ sub, callback
 
-  # cancel: (callback)->
-  #   payment.cancelSubscription @userCode, {@uuid}, (err, sub)=>
-  #     return callback err  if err
-  #     update_ sub, callback
+  updateStatus: (status, callback) ->
+    @update $set: { status }, callback
 
-  # resume: (callback)->
-  #   payment.reactivateUserSubscription @userCode, {@uuid}, (err, sub)=>
-  #     return callback err  if err
-  #     update_ sub, callback
+  invokeMethod: (method, options, callback) ->
+    [callback, options] = [options, callback]  unless callback
+    options ?= { @uuid }
+    payment[method] options, (err, sub) =>
+      return callback err  if err
+
+      @updateStatus sub.status, (err) ->
+        return callback err  if err
+
+        callback null
+
+  cancel: (callback) ->
+    @invokeMethod 'cancelSubscription', callback
+
+  terminate: (callback) ->
+    @invokeMethod 'terminateSubscription', (err) ->
+      return callback err  if err
+
+      callback null  # dunno why we're calling bacjk early C.T.
+
+      @calculateRefund (err, percent)=>
+        unless err
+          @refund percent, (err) ->
+            console.error err  if err
+            console.log "Refunding #{percent}% of subscription #{@uuid}."
+
+  resume: (callback) ->
+    @invokeMethod 'reactivateSubscription', callback
 
   checkUsage: (product, callback) ->
     JPaymentPlan = require './plan'
