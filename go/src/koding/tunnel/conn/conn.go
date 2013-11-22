@@ -17,10 +17,10 @@ type Conn struct {
 	interval time.Duration
 
 	// onReconnectFunc is called after a successfull reconnect
-	onReconnectFunc func()
+	onReconnectHandlers []func()
 
-	// onDisconnectFunc is called after a successfull reconnect
-	onDisconnectFunc func()
+	// onDisconnectFunc is called after a socket disconnection
+	onDisconnectHandlers []func()
 
 	// reconnectEnabled is a trigger that enables reconnection when the
 	// established connection is close.
@@ -46,31 +46,16 @@ func Dial(addr string, reconnect bool) *Conn {
 
 func (c *Conn) Read(buf []byte) (int, error) {
 	n, err := c.nc.Read(buf)
-	if err == nil {
-		return n, err
-	}
+	errCheck := c.check(err)
 
-	if !c.socketClosed(err) {
-		return n, err
-	}
-
-	// we are disconnected, invoke any onDisconnect handler if any available.
-	if c.onDisconnectFunc != nil {
-		c.onDisconnectFunc()
-	}
-
-	// return if we don't want to reconnect
-	if !c.reconnectEnabled {
-		return n, err
-	}
-
-	c.reconnect()
-	return n, nil
+	return n, errCheck
 }
 
 func (c *Conn) Write(buf []byte) (int, error) {
 	n, err := c.nc.Write(buf)
-	return n, err
+	errCheck := c.check(err)
+
+	return n, errCheck
 }
 
 func (c *Conn) Close() error {
@@ -97,6 +82,30 @@ func (c *Conn) SetWriteDeadline(t time.Time) error {
 	return c.nc.SetWriteDeadline(t)
 }
 
+// check checks whether the error is a socketClosed err. If yes it calls the
+// stored OnDisconnect functions and tries to reconnect if reconnect is
+// enabled.
+func (c *Conn) check(err error) error {
+	if err == nil {
+		return err
+	}
+
+	if !c.socketClosed(err) {
+		return err
+	}
+
+	c.callOnDisconnectHandlers()
+
+	// return if we don't want to reconnect
+	if !c.reconnectEnabled {
+		return err
+	}
+
+	c.reconnect()
+	return nil
+
+}
+
 // reconnect tries to reconnect in intervals defined by Conn.interval.
 // It is blocking and tries to reconnect forever. After a successfull
 // reconnection, Conn invokies c.onReconnectFunc if any set.
@@ -116,26 +125,45 @@ func (c *Conn) reconnect() {
 	}
 
 	c.nc = conn
+	c.callOnReconnectHandlers()
+}
 
-	if c.onReconnectFunc != nil {
-		// call it when there is a function available
-		c.onReconnectFunc()
+// OnReconnect registers the given handler to be invoked for each successfull
+// reconnection.
+func (c *Conn) OnReconnect(handler func()) {
+	c.onReconnectHandlers = append(c.onReconnectHandlers, handler)
+}
+
+// OnDisconnect registers the given handler to be invoked after a socket
+// disconnection.
+func (c *Conn) OnDisconnect(handler func()) {
+	c.onDisconnectHandlers = append(c.onDisconnectHandlers, handler)
+}
+
+// callOnReconnectHandlers runs the registered reconnect handlers
+func (c *Conn) callOnReconnectHandlers() {
+	for _, handler := range c.onReconnectHandlers {
+		// don't start them in a go routine, it can mess up the underlying tcp
+		// connection.
+		handler()
 	}
 }
 
-// onReconnect calls the given function f for each successfull reconnection.
-func (c *Conn) OnReconnect(f func()) {
-	c.onReconnectFunc = f
-}
-
-func (c *Conn) OnDisconnect(f func()) {
-	c.onDisconnectFunc = f
+// callOnDisconnectHandlers runs the registered disconnect handlers
+func (c *Conn) callOnDisconnectHandlers() {
+	for _, handler := range c.onDisconnectHandlers {
+		// don't start them in a go routine, it can mess up the underlying tcp
+		// connection.
+		handler()
+	}
 }
 
 func (c *Conn) dial() (net.Conn, error) {
 	return net.Dial(c.RemoteAddr().Network(), c.RemoteAddr().String())
 }
 
+// socketClosed is an convenient helper to check if the underlying socket
+// connection is closed.
 func (c *Conn) socketClosed(err error) bool {
 	if err == nil {
 		return false

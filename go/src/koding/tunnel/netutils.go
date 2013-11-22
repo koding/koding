@@ -14,7 +14,6 @@ func join(local, remote io.ReadWriteCloser) chan error {
 
 	copy := func(dst io.Writer, src io.Reader) {
 		_, err := io.Copy(dst, src)
-		fmt.Println("join err", err)
 		errc <- err
 	}
 

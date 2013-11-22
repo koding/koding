@@ -11,6 +11,6 @@ type local struct {
 
 func newLocalDial(addr string) *local {
 	l := &local{}
-	l.Conn = conn.Dial(addr, true)
+	l.Conn = conn.Dial(addr, false)
 	return l
 }

@@ -166,23 +166,24 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	tunnelConn, err := s.httpTunnelConn(host)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), 404)
 		return
 	}
 
-	fmt.Println("write to tunnel")
 	err = r.Write(tunnelConn)
 	if err != nil {
 		err := fmt.Sprintf("write to tunnel %s", err)
+		log.Println(err)
 		http.Error(w, err, 404)
 		return
 	}
 
-	fmt.Println("readresponse")
 	resp, err := http.ReadResponse(bufio.NewReader(tunnelConn), r)
 	if err != nil {
-		errString := fmt.Sprintf("read from tunnel.con %s", err.Error())
-		http.Error(w, errString, 404)
+		err := fmt.Sprintf("read from tunnel.con %s", err.Error())
+		log.Println(err)
+		http.Error(w, err, 404)
 		return
 	}
 	defer resp.Body.Close()
@@ -190,12 +191,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	fmt.Println("copy begin")
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
 
-	_, err = io.Copy(w, resp.Body)
-	fmt.Println("copy err", err)
+	io.Copy(w, resp.Body)
 }
 
 func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
@@ -206,9 +205,12 @@ func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
 		// get a tunnel from client
 		tunnel, err = s.requestTunnel("http", host)
 		if err != nil {
-			log.Println(err)
 			return nil, err
 		}
+
+		// delete the tunnel if there is a disconnection this will trigger
+		// another requestTunnel call on the next http connection.
+		tunnel.OnDisconnect(func() { s.deleteTunnel(host) })
 
 		s.addTunnel(host, tunnel)
 	}

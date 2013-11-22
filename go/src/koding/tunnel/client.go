@@ -100,8 +100,7 @@ func (c *Client) proxy(serverMsg *ServerMsg) {
 	// by closing the remote tunnel, the server side will create a new one.
 	local.OnDisconnect(func() { remote.Close() })
 
-	err := <-join(local, remote)
-	log.Println(err)
+	<-join(local, remote)
 }
 
 // Start starts the tunnel between the remote and local server. It's a
