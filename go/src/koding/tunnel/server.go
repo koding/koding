@@ -202,6 +202,7 @@ func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
 		// get a tunnel from client
 		tunnel, err = s.requestTunnel("http", host)
 		if err != nil {
+			log.Println(err)
 			return nil, err
 		}
 
@@ -256,12 +257,12 @@ func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
 // tunnel from the client. It sends the request of a new tunnel directly to
 // the client, which then opens a new tunnel to be used.
 func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
-	log.Printf("no tunnel available for %s protocol %s. getting one via control",
-		protocol, host)
+	log.Printf("no tunnel available for (%s) %s. request one", protocol, host)
+
 	// get the user associated with this user
 	username, ok := s.GetUsername(host)
 	if !ok {
-		return nil, fmt.Errorf("no control available for %s", host)
+		return nil, fmt.Errorf("no virtual host available for %s", host)
 	}
 
 	// then grab the control connection that is associated with this username
