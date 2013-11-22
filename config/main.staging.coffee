@@ -162,6 +162,7 @@ module.exports =
       newkontrol:
         host    : '127.0.0.1'
         port    : 80
+      fileFetchTimeout: 15 * 1000 # seconds
   mq            :
     host        : '172.16.6.14'
     port        : 5672
