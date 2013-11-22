@@ -100,6 +100,38 @@ resurrection.activity.styl
           margin        22px 0 0 0
           borderBox()
 
+          .action-link
+          .comment-icon
+          .share-icon
+            size            20px, 20px
+            display         inline-block
+            vertical-align  text-top
+
+            &.like-icon
+              margin-top   1px
+              sprite  app, like-icon
+
+            &.comment-icon
+              margin-top   2px
+              sprite  app, comment-icon
+
+            &.share-icon
+              sprite  app, share-icon
+
+          .action-container
+            size        auto, 20px
+            margin      10px 0 0 22px
+            fl()
+
+            &.liked .like-icon
+              sprite    app, like-icon-liked
+
+          .count
+            display     inline-block
+            color       #697576
+            font-size   14px
+            margin      0 0 0 12px
+            noTextDeco()
 
   .activity-right-block
     size                302px, auto

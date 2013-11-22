@@ -47,7 +47,7 @@ class LikeView extends KDView
 
 
     if data.meta.likes is 0
-      @unSetClass "liked"
+      @unsetClass "liked"
       return
 
     data.fetchLikedByes {},
@@ -123,7 +123,7 @@ class LikeView extends KDView
         unless err
           @_currentState = not @_currentState
 
-          if @_currentState then @setClass "liked" else @unSetClass "liked"
+          if @_currentState then @setClass "liked" else @unsetClass "liked"
 
           @_lastUpdatedCount = -1
 
