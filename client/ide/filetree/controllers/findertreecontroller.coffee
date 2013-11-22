@@ -20,7 +20,7 @@ class NFinderTreeController extends JTreeViewController
 
   addNode:(nodeData, index)->
 
-    fc = KD.getSingleton 'finderController'
+    fc = @getDelegate()
     return if @getOption('foldersOnly') and nodeData.type is "file"
     return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
     item = super nodeData, index
@@ -83,7 +83,7 @@ class NFinderTreeController extends JTreeViewController
 
   unmountVm:(nodeView)->
     {vmName} = nodeView.data
-    KD.getSingleton('finderController').unmountVm vmName
+    @getDelegate().unmountVm vmName
 
   openVmTerminal:(nodeView)->
     {vmName} = nodeView.data
@@ -91,13 +91,13 @@ class NFinderTreeController extends JTreeViewController
 
   setDotFiles:(nodeView, show=yes)->
     {vmName, path} = nodeView.getData()
-    finder = KD.getSingleton 'finderController'
+    finder = @getDelegate()
     unless show then finder.hideDotFiles vmName
     else finder.showDotFiles vmName
 
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
-    finder = KD.getSingleton 'finderController'
+    finder = @getDelegate()
     finder.updateVMRoot vmName, FSHelper.plainPath path
 
   refreshFolder:(nodeView, callback)->
@@ -797,6 +797,6 @@ class NFinderTreeController extends JTreeViewController
           fileItemViews.push fileItemView
 
   uploadFile: (nodeView)->
-    finderController = KD.getSingleton "finderController"
+    finderController = @getDelegate()
     {path} = nodeView.data
     finderController.uploadTo path  if path
