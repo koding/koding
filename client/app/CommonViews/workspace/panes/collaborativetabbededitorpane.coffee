@@ -7,23 +7,36 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @openedFiles      = []
     @editors          = []
     @activeTabIndex   = 0
+    @tabsRef          = @workspaceRef.child "tabs"
+    @indexRef         = @workspaceRef.child "ActiveTabIndex"
 
     @createEditorTabs()
     @createEditorInstance()  unless @isJoinedASession
 
-    @workspaceRef.on "value", (snapshot) =>
-      val  = snapshot.val()
-      return unless val
+    @tabsRef.on "child_added", (snapshot) =>
+      data = snapshot.val()
+      return unless data
 
-      if val.ActiveTabIndex?
-        @tabView.showPaneByIndex val.ActiveTabIndex
-        return @workspaceRef.child("ActiveTabIndex").remove()
+      if data.path and @openedFiles.indexOf(data.path) is -1
+        file = FSHelper.createFileFromPath data.path
+        @createEditorInstance file, null, data.sessionKey
 
-      if val.tabs?
-        for own key, data of val.tabs
-          if data.path and @openedFiles.indexOf(data.path) is -1
-            file = FSHelper.createFileFromPath data.path
-            @createEditorInstance file, null, data.sessionKey
+    @tabsRef.on "child_removed", (snapshot) =>
+      return  unless snapshot.val()
+      basePath  = snapshot.val().path
+      filePath  = if @amIHost then basePath else FSHelper.plainPath basePath
+      fileIndex = @openedFiles.indexOf filePath
+      fileTab   = @tabView.getPaneByIndex fileIndex
+
+      return unless fileTab
+      @tabView.removePane fileTab
+      @workspaceRef.once "value", (snapshot) =>
+        if snapshot.val()?.keys
+          @indexRef.set @tabView.getPaneIndex @tabView.getActivePane()
+
+    @indexRef.on "value", (snapshot) =>
+      return if snapshot.val() is null
+      @tabView.showPaneByIndex snapshot.val()
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
@@ -53,24 +66,19 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       closeAppWhenAllTabsClosed : no
       tabHandleContainer        : @tabHandleContainer
 
-    @tabView.on "PaneAdded", (pane) =>
-      {tabHandle} = pane
-      tabHandle.on "click", =>
-        activeTab = @getActivePane()
-        newIndex  = @tabView.getPaneIndex activeTab
-        return  if newIndex is @activeTabIndex
+    @tabView.on "PaneDidShow", =>
+      activeTab = @getActivePane()
+      newIndex  = @tabView.getPaneIndex activeTab
+      return  if newIndex is @activeTabIndex
 
-        @workspaceRef.child("ActiveTabIndex").set newIndex
-        @activeTabIndex = newIndex
-        @workspace.setHistory "$0 switched to #{activeTab.getOptions().name}"
+      @indexRef.set newIndex
+      @activeTabIndex = newIndex
 
   createEditorInstance: (file, content, sessionKey) ->
-    if file
-      fileIndexInOpenedFiles = @openedFiles.indexOf(file.path)
-      if fileIndexInOpenedFiles > -1
-        return  @tabView.showPaneByIndex fileIndexInOpenedFiles
-    else
-      file = FSHelper.createFileFromPath "localfile:/untitled.txt"
+    file      = FSHelper.createFileFromPath "localfile:/untitled.txt"  unless file
+    plainPath = FSHelper.plainPath file.path
+    index     = @openedFiles.indexOf plainPath
+    return @tabView.showPaneByIndex index  if index > -1
 
     pane   = new KDTabPaneView
       name : file.name
@@ -83,8 +91,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       content
     }
 
-    @forwardEvent editor, 'EditorDidSave'
-    @forwardEvent editor, 'OpenedAFile'
+    @forwardEvent editor, "EditorDidSave"
+    @forwardEvent editor, "OpenedAFile"
 
     pane.addSubView editor
     @editors.push editor
@@ -94,11 +102,10 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     workspaceRefData =
       sessionKey : editor.sessionKey
 
-    if file
-      workspaceRefData.path = file.path
-      @openedFiles.push file.path
+    workspaceRefData.path = plainPath
+    @openedFiles.push plainPath
 
-    @workspaceRef.child("tabs").push workspaceRefData  unless sessionKey
+    @tabsRef.push workspaceRefData  unless sessionKey
 
     pane.on "KDTabPaneDestroy", =>
       removedPaneIndex = @tabView.getPaneIndex pane
@@ -110,9 +117,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
           fileName = FSHelper.getFileNameFromPath tabs[key].path
           delete tabs[key]
         @workspaceRef.set { tabs }
-        @workspace.setHistory "$0 closed #{fileName}"
 
-      @openedFiles.splice @openedFiles.indexOf(file.path), 1
+      @openedFiles.splice @openedFiles.indexOf(plainPath), 1
 
     return yes # return something instead of workspaceRef.child
 
