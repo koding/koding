@@ -16,26 +16,29 @@ type MemoryCache struct {
 // Which everytime will return the true values about a cache hit
 // and never will leak memory
 func NewMemoryCache(ttl, gcInterval time.Duration) *MemoryCache {
-
 	memoryCache := &MemoryCache{
 		items:  map[string]interface{}{},
 		setAts: map[string]time.Time{},
 		ttl:    ttl,
 	}
 
-	go func(memoryCache *MemoryCache) {
-		for _ = range time.Tick(gcInterval) {
-			for key, _ := range memoryCache.items {
-				if !memoryCache.isValid(key) {
-					memoryCache.Delete(key)
-				}
-			}
-		}
-	}(memoryCache)
+	go memoryCache.invalidator(ttl, gcInterval)
 
 	return memoryCache
 }
 
+func (r *MemoryCache) invalidator(ttl, gcInterval time.Duration) {
+	for _ = range time.Tick(gcInterval) {
+		for key, _ := range r.items {
+			if !r.isValid(key) {
+				r.Delete(key)
+			}
+		}
+	}
+}
+
+// Get returns a value of a given key if it exists
+// and valid for the time being
 func (r *MemoryCache) Get(key string) (interface{}, bool) {
 	r.RLock()
 	defer r.RUnlock()
