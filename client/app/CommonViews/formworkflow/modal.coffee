@@ -10,5 +10,5 @@ class FormWorkflowModal extends KDModalView
 
     { view: workflow } = @getOptions()
 
-    nav.on 'Back', -> workflow.back()
-    nav.on 'Next', -> workflow.next()
+    nav.on 'Back', workflow.bound 'back'
+    nav.on 'Next', workflow.bound 'next'
