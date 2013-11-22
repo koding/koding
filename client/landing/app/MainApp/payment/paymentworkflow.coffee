@@ -12,47 +12,13 @@ class PaymentWorkflow extends FormWorkflow
 
     choiceForm = @getForm 'choice'
 
-    paymentField = choiceForm.fields['Payment method']
-
     paymentController.fetchPaymentMethods (err, paymentMethods) =>
       return if KD.showError err
 
-      { preferredPaymentMethod, methods, appStorage } = paymentMethods
-
-      switch methods.length
-
-        when 0 then @clearData 'paymentMethod'
-
-        when 1 then do ([method] = methods) =>
-
-          paymentField.addSubView new PaymentMethodView {}, method
-          choiceForm.addCustomData 'paymentMethod', method
-
-        else
-
-          methodsByPaymentMethodId =
-            methods.reduce( (acc, method) ->
-              acc[method.paymentMethodId] = method
-              acc
-            , {})
-
-          defaultPaymentMethod = preferredPaymentMethod ? methods[0].paymentMethodId
-
-          defaultMethod = methodsByPaymentMethodId[defaultPaymentMethod]
-
-          choiceForm.addCustomData 'paymentMethod', defaultMethod
-
-          select = new KDSelectBox
-            defaultValue  : defaultPaymentMethod
-            name          : 'paymentMethodId'
-            selectOptions : methods.map (method) ->
-              title       : KD.utils.getPaymentMethodTitle method
-              value       : method.paymentMethodId
-            callback      : (paymentMethodId) ->
-              chosenMethod = methodsByPaymentMethodId[paymentMethodId]
-              choiceForm.addCustomData 'paymentMethod', chosenMethod
-
-          paymentField.addSubView select
+      if paymentMethods.methods.length > 0
+        choiceForm.setPaymentMethods paymentMethods
+      else
+        @clearData 'paymentMethod'
 
   createChoiceForm: (options, data) ->
 
