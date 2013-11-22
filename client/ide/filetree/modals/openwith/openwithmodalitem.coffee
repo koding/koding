@@ -19,5 +19,5 @@ class OpenWithModalItem extends JView
   pistachio: ->
     """
       {{> @img }}
-      {div.app-name{ #(name)}}
+      <div class='app-name'>#{@getData()}</div>
     """
