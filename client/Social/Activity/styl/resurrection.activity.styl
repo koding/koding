@@ -14,6 +14,7 @@ resurrection.activity.styl
 .common-inner-nav
 .system-message
 .activity-status-context
+.comment-container.no-comment
   display               none
 
 .content-page.activity
@@ -41,7 +42,64 @@ resurrection.activity.styl
         font-size       16px
         color           #9d998e
         line-height     16px
+        vendor          transition, height .2s ease
+        rounded         3px
         borderBox()
+
+      .large-input textarea
+        color           #536067
+
+      button[type=submit]
+        bottom          0
+        right           0
+        abs()
+
+    .activity-content
+      size              auto, auto
+      margin            0 0 0 100px
+      font-size         16px
+      overflow          visible
+
+      .kdview
+        overflow        visible
+
+      .activity-item
+        background      #fff
+        rounded         3px
+        overflow        visible
+        position        relative
+        margin          30px 0 0 0
+        borderBox()
+
+        .author-avatar
+          display       block
+          size          86px, 86px
+          rounded       3px
+          top           0
+          right         100%
+          margin        0 14px 0 0
+          abs()
+
+        .author-name
+        .status-body
+          display       block
+          padding       22px 22px 0
+          color         #50595a
+          font-weight   400
+
+        .author-name a
+          color         #50595a
+          font-weight   500
+          noTextDeco()
+
+        footer
+          size          100%, 42px
+          rounded       0 0 3px 3px
+          bg            color, #f8f8f6
+          border-top    2px solid #e9e7e1
+          margin        22px 0 0 0
+          borderBox()
+
 
   .activity-right-block
     size                302px, auto
