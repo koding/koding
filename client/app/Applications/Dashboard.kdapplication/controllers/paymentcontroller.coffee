@@ -70,12 +70,12 @@ class GroupPaymentController extends KDController
         modal.setState 'editExisting', groupPaymentMethod
 
       else
-        KD.whoami().fetchPaymentMethods (err, personalPaymentMethods) =>
+        paymentController.fetchPaymentMethods (err, personalPaymentMethods) =>
           return  if KD.showError err
 
-          if personalPaymentMethods.length
+          if personalPaymentMethods.methods.length > 0
             modal.setState 'selectPersonal', personalPaymentMethods
-            modal.on 'PaymentMethodSelected', (paymentMethodId) =>
+            modal.on 'PaymentMethodChosen', ({ paymentMethodId }) =>
 
               group.linkPaymentMethod paymentMethodId, (err) =>
                 return  if KD.showError err
