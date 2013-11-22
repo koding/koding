@@ -56,10 +56,8 @@ website/default.html
 website/index.html
 kontrolUUID-*
 
-website/sprites/app.json
-website/sprites/app-*.png
-website/sprites/framework.json
-website/sprites/framework-*.png
+website/sprites/*.json
+website/sprites/*-*.png
 
 website/js/app.*.js
 website/js/social.*.js
