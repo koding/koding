@@ -12,6 +12,23 @@ class AceAppView extends JView
       tabHandleContainer : @tabHandleContainer
       saveSession        : yes
       sessionName        : "AceTabHistory"
+    @finderWrapper       = new KDCustomHTMLView
+      tagName            : 'aside'
+
+    @embedFinder()
+    @attachEvents()
+    @attachAppMenuEvents()
+
+
+  embedFinder:->
+
+    @appManager.open 'Finder', (finderApp)=>
+      @finderController = finderApp.create()
+      @finderWrapper.addSubView @finderController.getView()
+      @finderController.reset()
+
+
+  attachEvents:->
 
     @on "SessionDataCreated", (@sessionData) =>
 
@@ -58,7 +75,6 @@ class AceAppView extends JView
     @on "KDObjectWillBeDestroyed", ->
       KD.getSingleton("mainView").disableFullscreen()
 
-    @bindAppMenuEvents()
 
   createSessionData: (openPanes, data = {}) ->
     paths     = []
@@ -159,7 +175,7 @@ class AceAppView extends JView
     file = view.getData()
     delete @aceViews[file.path]
 
-  bindAppMenuEvents: ->
+  attachAppMenuEvents: ->
     @on "saveMenuItemClicked", => @getActiveAceView().ace.requestSave()
 
     @on "saveAsMenuItemClicked", => @getActiveAceView().ace.requestSaveAs()
@@ -214,6 +230,9 @@ class AceAppView extends JView
 
   pistachio: ->
     """
+      {{> @finderWrapper}}
+      <section>
       {{> @tabHandleContainer}}
       {{> @tabView}}
+      </section>
     """
