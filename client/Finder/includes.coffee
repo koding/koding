@@ -43,6 +43,7 @@ module.exports = [
   "fs/appswatcher.coffee",
 
   # Styles
-  "styl/app.finder.styl"
+  # "styl/app.finder.styl"
+  "styl/resurrection.finder.styl"
 
 ]
