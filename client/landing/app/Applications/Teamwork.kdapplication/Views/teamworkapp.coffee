@@ -17,7 +17,7 @@ class TeamworkApp extends KDObject
     else
       @teamwork.on "PanelCreated", =>
         @doCurlRequest playgroundsManifest, (err, manifest) =>
-          @populatePlaygroundsButton manifest
+          @playgroundsManifest = manifest
 
   createTeamwork: ->
     options               = @getOptions()
@@ -41,9 +41,9 @@ class TeamworkApp extends KDObject
             callback      : => @showToolsModal @teamwork.getActivePanel(), @teamwork
           }
           title           : "Playgrounds"
-          itemClass       : KDButtonViewWithMenu
+          itemClass       : KDButtonView
           cssClass        : "clean-gray playgrounds-button"
-          menu            : []
+          callback        : => @showPlaygroundsModal()
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
@@ -61,21 +61,6 @@ class TeamworkApp extends KDObject
             }
           ]
       ]
-
-  populatePlaygroundsButton: (playgrounds) ->
-    button   = @teamwork.getActivePanel().headerButtons.Playgrounds
-    menu     = []
-
-    playgrounds.forEach (playground) =>
-      item   = {}
-      {name} = playground
-      item[name] = {}
-      item[name].callback = =>
-        @handlePlaygroundSelection name, playground.manifestUrl
-
-      menu.push item
-
-    button.setOption "menu", menu
 
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
@@ -104,77 +89,19 @@ class TeamworkApp extends KDObject
           loader    :
             color   : "#FFFFFF"
             diameter: 14
-          callback  : => @importContent url, modal, callback
+          callback  : =>
+            new TeamworkImporter { url, modal, callback, delegate: this }
         DontImport  :
           title     : "Don't import anything"
           cssClass  : "modal-cancel"
           callback  : -> modal.destroy()
 
-  importContent: (url, modal, callback) ->
-    fileName     = "file#{Date.now()}.zip"
-    root         = "Web/Teamwork"
-    path         = "#{root}/tmp"
-    vmController = KD.getSingleton "vmController"
-    vmName       = vmController.defaultVmName
-    notification = new KDNotificationView
-      type       : "mini"
-      title      : "Fetching zip file..."
-      duration   : 200000
-
-    vmController.run "mkdir -p #{path}; cd #{path} ; wget -O #{fileName} #{url}", (err, res) =>
-      return warn err if err
-      notification.notificationSetTitle "Extracting zip file..."
-      vmController.run "cd #{path} ; unzip #{fileName} ; rm #{fileName} ; rm -rf __MACOSX", (err, res) =>
-        return warn err if err
-        notification.notificationSetTitle "Checking folders..."
-        FSHelper.glob "#{path}/*", vmName, (err, folders) =>
-          #TODO: fatihacet - multiple folders
-          folderName = FSHelper.getFileNameFromPath folders[0]
-          FSHelper.exists "#{root}/#{folderName}", vmName, (err, res) =>
-            if res is yes
-              modal.destroy()
-              modal          = new KDModalView
-                title        : "Folder Exists"
-                cssClass     : "modal-with-text"
-                overlay      : yes
-                content      : "<p>There is already a folder with the same name. Do you want to overwrite it?</p>"
-                buttons      :
-                  Confirm    :
-                    title    : "Overwrite"
-                    cssClass : "modal-clean-red"
-                    callback : =>
-                      @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url, callback
-                  Cancel     :
-                    title    : "Cancel"
-                    cssClass : "modal-cancel"
-                    callback : =>
-                      modal.destroy()
-                      vmController.run "rm -rf #{path}"
-                      notification.destroy()
-                      @setVMRoot "#{root}/#{folderName}"
-            else
-              @handleZipImportDone_ vmController, root, folderName, path, modal, notification, url, callback
-
   showMarkdownModal: (rawContent) ->
-    @teamwork.markdownContent = KD.utils.applyMarkdown rawContent  if rawContent
-    modal                     = new TeamworkMarkdownModal
-      content                 : @teamwork.markdownContent
-      targetEl                : @teamwork.getActivePanel().headerHint
-
-  handleZipImportDone_: (vmController, root, folderName, path, modal, notification, url, callback = noop) ->
-    vmController.run "rm -rf #{root}/#{folderName} ; mv #{path}/#{folderName} #{root}", (err, res) =>
-      return warn err if err
-      modal.destroy()
-      vmController.run "rm -rf #{path}"
-      notification.destroy()
-      folderPath = "#{root}/#{folderName}"
-      readMeFile = "#{folderPath}/README.md"
-      @setVMRoot folderPath
-      callback()
-      FSHelper.exists readMeFile, vmController.defaultVmName, (err, res) =>
-        return unless res
-        file  = FSHelper.createFileFromPath readMeFile
-        file.fetchContents (err, readMeContent) => @showMarkdownModal readMeContent
+    t = @teamwork
+    t.markdownContent = KD.utils.applyMarkdown rawContent  if rawContent
+    modal = @mdModal  = new TeamworkMarkdownModal
+      content         : t.markdownContent
+      targetEl        : t.getActivePanel().headerHint
 
   setVMRoot: (path) ->
     {finderController} = @teamwork.getActivePanel().getPaneByName "finder"
@@ -186,7 +113,9 @@ class TeamworkApp extends KDObject
     finderController.mountVm "#{defaultVmName}:#{path}"
 
   showPlaygroundsModal: ->
-    new TeamworkPlaygroundsModal delegate: this
+    new TeamworkPlaygroundsModal
+      delegate    : this
+      playgrounds : @playgroundsManifest
 
   mergePlaygroundOptions: (manifest, playground) ->
     {rawOptions}                    = @teamwork
@@ -206,6 +135,10 @@ class TeamworkApp extends KDObject
     return rawOptions
 
   handlePlaygroundSelection: (playground, manifestUrl) ->
+    unless manifestUrl
+      for manifest in @playgroundsManifest when playground is manifest.name
+        {manifestUrl} = manifest
+
     @doCurlRequest manifestUrl, (err, manifest) =>
       @teamwork.startNewSession @mergePlaygroundOptions manifest, playground
       @teamwork.container.setClass playground
@@ -215,7 +148,7 @@ class TeamworkApp extends KDObject
         KD.mixpanel "User Changed Playground", playground
 
         if contentDetails.type is "zip"
-          root            = "Web/Teamwork/#{playground}"
+          root            = "/home/#{@teamwork.getHost()}/Web/Teamwork/#{playground}"
           folder          = FSHelper.createFileFromPath root, "folder"
           contentUrl      = contentDetails.url
           manifestVersion = manifest.version
@@ -231,6 +164,7 @@ class TeamworkApp extends KDObject
                 @setUpImport contentUrl, manifestVersion, playground
               else
                 @setVMRoot root
+                @teamwork.emit "ContentIsReady"
         else
           warn "Unhandled content type for #{name}"
 
@@ -240,7 +174,7 @@ class TeamworkApp extends KDObject
 
     @teamwork.importInProgress = yes
     @showImportWarning url, =>
-      @teamwork.emit "ContentImportDone"
+      @teamwork.emit "ContentIsReady"
       @teamwork.importModalContent = no
       appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
       appStorage.setValue "#{playground}PlaygroundVersion", version

@@ -596,14 +596,15 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # TEAMWORK
-  "app/Applications/Teamwork.kdapplication/Views/teamworkenvironmentsmodal.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/teamworkplaygroundsmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/facebookteamworkinstructionsmodal.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/teamworkimporter.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
   "app/Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
   "app/Applications/Teamwork.kdapplication/Views/facebookteamwork.coffee",
-  "app/Applications/Teamwork.kdapplication/Views/golangteamwork.coffee",
+  "app/Applications/Teamwork.kdapplication/Views/playgroundteamwork.coffee",
   "app/Applications/Teamwork.kdapplication/AppView.coffee",
   "app/Applications/Teamwork.kdapplication/AppController.coffee",
 
