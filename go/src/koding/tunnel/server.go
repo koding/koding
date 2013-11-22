@@ -77,9 +77,8 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 		protocol, tunnelID, username)
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	tunnelRequester, ok := s.pending[tunnelID]
+	s.mu.Unlock()
 	if !ok {
 		log.Println("tunnelID channel does not exist")
 		return
@@ -171,6 +170,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// This is needed because we are sending the request over a singe http conn
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -199,10 +199,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
 	// for http one single conn is enough
-	var err error
 	tunnel, ok := s.getTunnel(host)
 	if !ok {
 		// get a tunnel from client
+		var err error
 		tunnel, err = s.requestTunnel("http", host)
 		if err != nil {
 			return nil, err
@@ -296,7 +296,9 @@ func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 	// right ID it will send a message to this channel, which releases the
 	// blocking channel. If we don't get it in 10 seconds we will timeout
 	log.Printf("tunnel request send for %s, waiting for tunnel...\n", host)
+	s.mu.Lock()
 	s.pending[tunnelID] = make(chan *tunnel)
+	s.mu.Unlock()
 
 	// remove and close it because we don't need it anymore
 	defer func() {
