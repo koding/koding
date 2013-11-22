@@ -1,22 +1,27 @@
 package main
 
 import (
+	"flag"
 	"koding/tunnel"
 	"log"
 	"net/http"
 )
 
-var serverAddr = "127.0.0.1:7000"
+var port = flag.String("port", "7000", "port to bind to itself")
 
 func main() {
+	flag.Parse()
+
 	server := tunnel.NewServer()
 
-	// tunnel 127.0.0.1 addresses to the user arslan
+	// tunnel these addresses to the user arslan
 	server.AddHost("127.0.0.1:7000", "arslan")
+	server.AddHost("fatih.test.arslan.kd.io", "arslan")
 
-	log.Println("server started at", serverAddr)
+	log.Printf("server started at localhost:%s\n", *port)
 	http.Handle("/", server)
-	err := http.ListenAndServe(serverAddr, nil)
+
+	err := http.ListenAndServe(":"+*port, nil)
 	if err != nil {
 		log.Println(err)
 	}
