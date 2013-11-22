@@ -171,6 +171,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	err = r.Write(tunnelConn)
 	if err != nil {
 		err := fmt.Sprintf("write to tunnel %s", err)
@@ -187,9 +190,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
