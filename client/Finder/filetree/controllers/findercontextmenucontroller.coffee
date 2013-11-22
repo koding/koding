@@ -27,6 +27,7 @@ class NFinderContextMenuController extends KDController
       @contextMenu = new JContextMenu
         event    : event
         delegate : fileView
+        cssClass : 'finder'
       , items
       @contextMenu.on "ContextMenuItemReceivedClick", (contextMenuItem)=>
         @handleContextMenuClick fileView, contextMenuItem
@@ -47,10 +48,10 @@ class NFinderContextMenuController extends KDController
 
     items =
       'Open File'                 :
-        action                    : 'openFile'
-      'Open with...'              :
         separator                 : yes
-        children                  : @getOpenWithMenuItems fileView
+        action                    : 'openFile'
+      # 'Open with...'              :
+      #   children                  : @getOpenWithMenuItems fileView
       Delete                      :
         action                    : 'delete'
         separator                 : yes
@@ -377,27 +378,27 @@ class NFinderContextMenuController extends KDController
 
     return items
 
-  getOpenWithMenuItems: (fileView) ->
-    items            = {}
-    reWebHome        = ///
-      ^/home/#{KD.nick()}/Web/
-    ///
-    {path}           = fileView.getData()
-    plainPath        = FSHelper.plainPath path
-    fileExtension    = FSItem.getFileExtension path
-    appsController   = @getSingleton "kodingAppsController"
-    {extensionToApp} = appsController
-    possibleApps     = (extensionToApp[fileExtension] or extensionToApp.txt) or []
-    for appName in possibleApps
-      items[appName] = action: "openFileWithApp"
+  # getOpenWithMenuItems: (fileView) ->
+  #   items            = {}
+  #   reWebHome        = ///
+  #     ^/home/#{KD.nick()}/Web/
+  #   ///
+  #   {path}           = fileView.getData()
+  #   plainPath        = FSHelper.plainPath path
+  #   fileExtension    = FSItem.getFileExtension path
+  #   appsController   = @getSingleton "kodingAppsController"
+  #   {extensionToApp} = appsController
+  #   possibleApps     = (extensionToApp[fileExtension] or extensionToApp.txt) or []
+  #   for appName in possibleApps
+  #     items[appName] = action: "openFileWithApp"
 
-    items["Viewer"]               = action   : "previewFile"  if plainPath.match reWebHome
-    items["separator"]            = type     : "separator"
-    items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
-    items["Search the App Store"] = disabled : yes
-    items["Contribute an Editor"] = disabled : yes
+  #   items["Viewer"]               = action   : "previewFile"  if plainPath.match reWebHome
+  #   items["separator"]            = type     : "separator"
+  #   items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
+  #   items["Search the App Store"] = disabled : yes
+  #   items["Contribute an Editor"] = disabled : yes
 
-    return items
+  #   return items
 
 # this is shorter but needs coffee script update
 
