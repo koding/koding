@@ -5,11 +5,21 @@ import (
 )
 
 type Consumer struct {
+	// Base struct for Producer
 	*RabbitMQ
+
+	// All deliveries from server will send to this channel
 	deliveries <-chan amqp.Delivery
-	handler    func(amqp.Delivery)
-	done       chan error
-	session    Session
+
+	// This handler will be called when a
+	handler func(amqp.Delivery)
+
+	// A notifiyng channel for publishings
+	// will be used for sync. between close channel and consume handler
+	done chan error
+
+	// Current producer connection settings
+	session Session
 }
 
 func (c *Consumer) Deliveries() <-chan amqp.Delivery {
