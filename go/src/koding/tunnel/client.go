@@ -1,10 +1,12 @@
 package tunnel
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 )
 
 // Client is responsible for creating a control connection to a tunnel server,
@@ -103,36 +105,40 @@ func (c *Client) proxy(serverMsg *ServerMsg) {
 	<-join(local, remote)
 }
 
-// Start starts the tunnel between the remote and local server. It's a
-// blocking function. Every requst is handled in a separete goroutine.
-// func (c *Client) Start() {
-// 	for {
-// 		req, err := http.ReadRequest(bufio.NewReader(c.controlConn))
-// 		if err != nil {
-// 			fmt.Println("Server read", err)
-// 			return
-// 		}
+// start starts the tunnel between the remote and local server. It's a
+// blocking function. Every requst is handled in a separete goroutine. It's
+// like proxy() but the steps are more explicit.
+func (c *Client) start(serverMsg *ServerMsg) {
+	remote := newTunnelDial(c.serverAddr, serverMsg)
+	for {
+		req, err := http.ReadRequest(bufio.NewReader(remote))
+		if err != nil {
+			fmt.Println("Server read", err)
+			return
+		}
 
-// 		go c.handleReq(req)
-// 	}
-// }
+		go c.handleReq(req, remote)
+	}
+}
 
-// func (c *Client) handleReq(req *http.Request) {
-// 	err := req.Write(c.localConn)
-// 	if err != nil {
-// 		log.Println("write clientConn ", err)
-// 		return
-// 	}
+func (c *Client) handleReq(req *http.Request, remote net.Conn) {
+	local := newLocalDial(c.localAddr)
 
-// 	resp, err := http.ReadResponse(bufio.NewReader(c.localConn), req)
-// 	if err != nil {
-// 		fmt.Println("read response", err)
-// 		return
-// 	}
+	err := req.Write(local)
+	if err != nil {
+		log.Println("write clientConn ", err)
+		return
+	}
 
-// 	err = resp.Write(c.controlConn)
-// 	if err != nil {
-// 		fmt.Println("resp.write", err)
-// 		return
-// 	}
-// }
+	resp, err := http.ReadResponse(bufio.NewReader(local), req)
+	if err != nil {
+		fmt.Println("read response", err)
+		return
+	}
+
+	err = resp.Write(remote)
+	if err != nil {
+		fmt.Println("resp.write", err)
+		return
+	}
+}
