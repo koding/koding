@@ -68,16 +68,7 @@ class PaymentController extends KDController
         JPaymentSubscription.fetchUserSubscriptions (err, subs) ->
           findActiveSubscription subs, planCode, callback
 
-  deleteVM: (vmInfo, callback) ->
-    type  =
-      if (vmInfo.planOwner.indexOf 'user_') > -1 then 'user'
-      else if vmInfo.type is 'expensed'          then 'expensed'
-      else 'group'
-
-    @fetchSubscription getGroup(), type, vmInfo.planCode, (err, subscription) =>
-      console.error err  if err
-      @createDeleteConfirmationModal type, callback, subscription
-
+  deleteVM: (vmInfo, callback) -> debugger
   # views
 
   fetchPlanByCode: (planCode, callback) ->
@@ -103,9 +94,6 @@ class PaymentController extends KDController
     JPayment.setPaymentInfo paymentMethodId, paymentMethod, callback
 
   createPaymentInfoModal: -> new PaymentFormModal
-
-  createDeleteConfirmationModal: (type, callback, subscription)->
-    return new PaymentDeleteConfirmationModal { subscription, type, callback }
 
   createUpgradeForm: (tag) ->
 

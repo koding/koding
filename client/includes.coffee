@@ -170,7 +170,6 @@ module.exports = [
   "app/MainApp/payment/paymentmethodchoice.coffee",
   "app/MainApp/payment/paymentmethodentryform.coffee",
   "app/MainApp/payment/paymentchoiceform.coffee",
-  "app/MainApp/payment/paymentdeleteconfirmationmodal.coffee",
   "app/MainApp/payment/paymentformmodal.coffee",
   "app/MainApp/payment/vmproductview.coffee",
   "app/MainApp/payment/paymentworkflow.coffee",
