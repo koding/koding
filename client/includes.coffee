@@ -166,7 +166,11 @@ module.exports = [
   "app/CommonViews/location/locationform.coffee",
 
   # PAYMENT
+  # controller
   "app/MainApp/payment/paymentcontroller.coffee",
+  # views
+  "app/MainApp/payment/paymentmethodview.coffee",
+  "app/MainApp/payment/subscriptionview.coffee",
   "app/MainApp/payment/paymentmethodentryform.coffee",
   "app/MainApp/payment/paymentchoiceform.coffee",
   "app/MainApp/payment/paymentformmodal.coffee",
@@ -582,7 +586,6 @@ module.exports = [
 
   # Group Dashboard Views:
   "app/Applications/Dashboard.kdapplication/views/paymentmodalview.coffee",
-  "app/Applications/Dashboard.kdapplication/views/paymentmethodview.coffee",
   "app/Applications/Dashboard.kdapplication/views/linkablepaymentmethodview.coffee",
   "app/Applications/Dashboard.kdapplication/views/paymentsettingsview.coffee",
 
