@@ -30,11 +30,12 @@ type PublishingOptions struct {
 	Immediate bool
 }
 
-// We are not declaring our topology on both the publisher and consumer
+// NewProducer is a constructor function for producer creation
+// Accepts Exchange, Queue, PublishingOptions. On the other hand
+// we are not declaring our topology on both the publisher and consumer
 // to be able to change the settings only in one place.
-// Yes we can declare those settings on both place to ensure they are same.
-// This is part of AMQP being a programmable messaging model.
-// But as said above, we are not preferring
+// We can declare those settings on both place to ensure they are same. But this
+// package will not support it.
 func NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
 	rmq, err := newRabbitMQConnection(po.Tag)
 	if err != nil {
