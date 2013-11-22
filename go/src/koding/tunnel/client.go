@@ -30,7 +30,7 @@ type Client struct {
 // server.
 func NewClient(serverAddr, localAddr string) *Client {
 	client := &Client{
-		controlConn: newControlConn(serverAddr, "arslan"),
+		controlConn: newControlDial(serverAddr, "arslan"),
 		serverAddr:  serverAddr,
 		localAddr:   localAddr,
 		sendChan:    make(chan ClientMsg),
@@ -92,9 +92,13 @@ func (c *Client) decoder() {
 // proxy joins (proxies) the remote tcp connection with the local one.
 // the data between the two connections are copied vice versa.
 func (c *Client) proxy(serverMsg *ServerMsg) {
-	log.Printf("starting a proxy %+v\n", *serverMsg)
-	remote := newTunnelConn(c.serverAddr, serverMsg)
-	local := newClientConn(c.localAddr, true)
+	log.Printf("starting a proxy to	%s\n", serverMsg.Host)
+	remote := newTunnelDial(c.serverAddr, serverMsg)
+	local := newLocalDial(c.localAddr)
+
+	// because we want to establish a new tunnel between the remote an local
+	// by closing the remote tunnel, the server side will create a new one.
+	local.OnDisconnect(func() { remote.Close() })
 
 	err := <-join(local, remote)
 	log.Println(err)

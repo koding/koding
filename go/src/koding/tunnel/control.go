@@ -1,16 +1,20 @@
 package tunnel
 
 import (
+	"bufio"
 	"encoding/json"
+	"fmt"
+	"koding/tunnel/conn"
 	"log"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 )
 
 type control struct {
 	// underlying tcp connection
-	conn net.Conn
+	*conn.Conn
 
 	// start time of the control connection
 	start time.Time
@@ -23,13 +27,57 @@ type control struct {
 	sendChan chan ServerMsg
 }
 
-func newControl(conn net.Conn, owner string) *control {
-	return &control{
-		conn:     conn,
+func newControl(nc net.Conn, owner string) *control {
+	c := &control{
 		owner:    owner,
-		start:    time.Now(),
 		sendChan: make(chan ServerMsg),
 	}
+
+	c.Conn = conn.New(nc, false)
+	return c
+}
+
+func newControlDial(addr, username string) *control {
+	c := &control{}
+	c.Conn = conn.Dial(addr, true)
+
+	request := func() {
+		err := c.connect(username)
+		if err != nil {
+			log.Fatalln("newControlConn", err)
+		}
+	}
+
+	// first call CONNECT request to establish the control connection
+	request()
+
+	// and then store it. it get called after each succesfull reconnection.
+	c.OnReconnect(request)
+
+	return c
+}
+
+func (c *control) connect(username string) error {
+	remoteAddr := fmt.Sprintf("http://%s%s", c.RemoteAddr(), ControlPath)
+	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
+	if err != nil {
+		return fmt.Errorf("CONNECT", err)
+	}
+
+	req.Header.Set("username", username)
+	req.Write(c)
+
+	resp, err := http.ReadResponse(bufio.NewReader(c), req)
+	if err != nil {
+		return fmt.Errorf("read response", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 && resp.Status != Connected {
+		return fmt.Errorf("Non-200 response from proxy server: %s", resp.Status)
+	}
+
+	return nil
 }
 
 func (c *control) send(msg ServerMsg) {
@@ -42,7 +90,7 @@ func (c *control) run() {
 }
 
 func (c *control) decoder() {
-	d := json.NewDecoder(c.conn)
+	d := json.NewDecoder(c)
 	for {
 		var msg ClientMsg
 		err := d.Decode(&msg)
@@ -55,7 +103,7 @@ func (c *control) decoder() {
 }
 
 func (c *control) encoder() {
-	e := json.NewEncoder(c.conn)
+	e := json.NewEncoder(c)
 	for msg := range c.sendChan {
 		err := e.Encode(msg)
 		if err != nil {
@@ -65,10 +113,6 @@ func (c *control) encoder() {
 		}
 	}
 
-}
-
-func (c *control) close() {
-	c.conn.Close()
 }
 
 type controls struct {

@@ -143,7 +143,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 	// disconnection
 	defer func() {
 		log.Println("closing control connection for", username)
-		control.close()
+		control.Close()
 		s.deleteControl(username)
 		s.deleteTunnel(host)
 	}()
@@ -170,6 +170,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("write to tunnel")
 	err = r.Write(tunnelConn)
 	if err != nil {
 		err := fmt.Sprintf("write to tunnel %s", err)
@@ -177,6 +178,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("readresponse")
 	resp, err := http.ReadResponse(bufio.NewReader(tunnelConn), r)
 	if err != nil {
 		errString := fmt.Sprintf("read from tunnel.con %s", err.Error())
@@ -188,10 +190,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	fmt.Println("copy begin")
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
 
-	io.Copy(w, resp.Body)
+	_, err = io.Copy(w, resp.Body)
+	fmt.Println("copy err", err)
 }
 
 func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
@@ -209,7 +213,7 @@ func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
 		s.addTunnel(host, tunnel)
 	}
 
-	return tunnel.conn, nil
+	return tunnel, nil
 }
 
 func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
@@ -250,7 +254,7 @@ func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
 		return nil, err
 	}
 
-	return tunnel.conn, nil
+	return tunnel, nil
 }
 
 // requestTunnel makes a request to the control connection to get a new
