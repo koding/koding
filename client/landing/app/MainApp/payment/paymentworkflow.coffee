@@ -54,9 +54,9 @@ class PaymentWorkflow extends FormWorkflow
 
           paymentField.addSubView select
 
-  createChoiceForm: ->
+  createChoiceForm: (options, data) ->
 
-    form = new PaymentChoiceForm
+    form = new PaymentChoiceForm options, data
 
     form.once 'Activated', =>
       @preparePaymentMethods()
@@ -69,13 +69,13 @@ class PaymentWorkflow extends FormWorkflow
 
     return form
 
-  createEntryForm: ->
+  createEntryForm: (options, data) ->
 
-    form = new PaymentForm
+    form = new PaymentForm options, data
 
-    paymentController = KD.getSingleton 'paymentController'
+    pay = KD.getSingleton 'paymentController'
 
-    paymentController.observePaymentSave form, (err, paymentMethod) =>
+    pay.observePaymentSave form, (err, paymentMethod) =>
       return if KD.showError err
 
       @collectData { paymentMethod }
