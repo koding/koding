@@ -8,6 +8,18 @@ class AccountSubscriptionsListController extends AccountListViewController
     @getListView().on 'Reload', @bound 'loadItems'
     @loadItems()
 
+    list = @getListView()
+
+    list.on 'ItemWasAdded', (item) =>
+      item.on 'UnsubscribeRequested', ->
+        modal = KDModalView.confirm
+          title       : 'Are you sure?'
+          description : 'Are you sure you want to cancel your subscription?'
+          ok          :
+            title     : 'Unsubscribe'
+
+      item.on 'PlanChangeRequested', -> debugger
+
   loadItems:->
     @removeAllItems()
     @showLazyLoader no
@@ -53,56 +65,48 @@ class AccountSubscriptionsListItem extends KDListItemView
 
     super options, data
 
-    # listView = @getDelegate()
-    # if data.status is 'canceled'
-    #   title     = 'Renew Next Month'
-    #   iconClass = 'canceled'
-    # else if data.status in ['active', 'modified']
-    #   title     = "Don't Renew Next Month"
-    #   iconClass = 'active'
+    listView = @getDelegate()
 
-    @changePlan = new KDButtonView
-    #   style       : 'clean-gray'
-    #   cssClass    : 'edit-plan'
-    #   icon        : yes
-    #   iconOnly    : yes
-    #   iconClass   : iconClass
-    #   tooltip     :
-    #     title     : title
-    #     placement : 'left'
-    #   loader      :
-    #     color     : '#666'
-    #     diameter  : 16
-    #   callback    : =>
-    #     if data.status in ['active', 'modified', 'canceled']
-    #       @editPlan listView, data
-    #       @changePlan.hideLoader()
+    @subscription = new SubscriptionView {}, @getData()
 
-  confirmOperation: (message, cb)->
-    modal = new KDModalView
-      title        : 'Warning'
-      content      : "<div class='modalformline'>#{message}</div>"
-      height       : 'auto'
-      overlay      : yes
-      buttons      :
-        Continue   :
-          loader   :
-            color  : '#ffffff'
-            diameter : 16
-          style    : 'modal-clean-gray'
-          callback : ->
-            modal.destroy()
-            cb?()
+    @changeLink = new CustomLinkView
+      title     : 'change plan'
+      click     : (e) =>
+        e.preventDefault()
+        @emit 'PlanChangeRequested'
 
-  editPlan: (listView, data)->
-    cb = (err)-> listView.emit 'Reload'  unless err
+    @unsubscribeLink = new CustomLinkView
+      title     : 'unsubscribe'
+      click     : (e) =>
+        e.preventDefault()
+        @emit 'UnsubscribeRequested'
 
-    if data.status is 'canceled'
-      @confirmOperation 'Are you sure you want to resume your subscription?', ->
-        data.resume cb
-    else
-      @confirmOperation 'Are you sure you want to cancel your subscription?', ->
-        data.cancel cb
+
+  # confirmOperation: (message, cb)->
+  #   modal = new KDModalView
+  #     title        : 'Warning'
+  #     content      : "<div class='modalformline'>#{message}</div>"
+  #     height       : 'auto'
+  #     overlay      : yes
+  #     buttons      :
+  #       Continue   :
+  #         loader   :
+  #           color  : '#ffffff'
+  #           diameter : 16
+  #         style    : 'modal-clean-gray'
+  #         callback : ->
+  #           modal.destroy()
+  #           cb?()
+
+  # editPlan: (listView, data)->
+  #   cb = (err)-> listView.emit 'Reload'  unless err
+
+  #   if data.status is 'canceled'
+  #     @confirmOperation 'Are you sure you want to resume your subscription?', ->
+  #       data.resume cb
+  #   else
+  #     @confirmOperation 'Are you sure you want to cancel your subscription?', ->
+  #       data.cancel cb
 
   viewAppended: JView::viewAppended
 
@@ -112,7 +116,9 @@ class AccountSubscriptionsListItem extends KDListItemView
     """
 
   pistachio:->
-    { quantity, plan, status, renew, expires, feeAmount } = @getData()
+    { quantity, plan, status, renew, expires } = @getData()
+
+    { feeAmount } = plan
 
     statusNotice = ''
     if status in ['active', 'modified']
@@ -131,10 +137,7 @@ class AccountSubscriptionsListItem extends KDListItemView
 
     """
     <div class='payment-details'>
-      <h4>{{#(plan.title)}} - #{displayAmount}</h4>
-      <span class='payment-type'>#{statusNotice}</span>
-      {{> @changePlan}}
-      <br/>
-      <p>#{dateNotice}</p>
+      {{> @subscription}}
+      <div class="controls">{{> @changeLink}} | {{> @unsubscribeLink}}</div>
     </div>
     """
