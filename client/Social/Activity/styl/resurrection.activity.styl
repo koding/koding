@@ -14,7 +14,7 @@ resurrection.activity.styl
 .common-inner-nav
 .system-message
 .activity-status-context
-.comment-container.no-comment
+// .comment-container.no-comment
   display               none
 
 .content-page.activity
@@ -45,6 +45,11 @@ resurrection.activity.styl
         vendor          transition, height .2s ease
         rounded         3px
         borderBox()
+
+        &::-webkit-input-placeholder
+          color     #9d998e
+        &::-moz-placeholder
+          color     #9d998e
 
       .large-input textarea
         color           #536067
@@ -132,6 +137,45 @@ resurrection.activity.styl
             font-size   14px
             margin      0 0 0 12px
             noTextDeco()
+
+        .item-add-comment-box
+          bg            color, #f7f7f8
+          border-top    2px solid #e9e7e1
+          padding       20px
+          borderBox()
+
+          .avatarview
+            size        43px, 43px
+            display     block
+            left        20px
+            top         20px
+            abs()
+
+          .item-add-comment-form
+            size        auto, auto
+            margin      0 0 0 43px
+
+            textarea
+              size        100%, 43px
+              border      1px solid #d1d3d3
+              border-left none
+              box-shadow  none
+              background  #fff
+              line-height 43px
+              padding     0 0 0 17px
+              color       #50595a
+              font-size   14px
+              rounded     0
+              vendor      transition, line-height .2s ease
+              borderBox()
+
+              &::-webkit-input-placeholder
+                color     #50595a
+              &::-moz-placeholder
+                color     #50595a
+
+              &:focus
+                line-height     24px
 
   .activity-right-block
     size                302px, auto

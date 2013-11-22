@@ -12,8 +12,8 @@ class NewCommentForm extends KDView
 
     @addSubView commenterAvatar = new AvatarStaticView
       size    :
-        width : 28
-        height: 28
+        width : 43
+        height: 43
     , KD.whoami()
 
     @addSubView commentFormWrapper = new KDView
@@ -25,7 +25,7 @@ class NewCommentForm extends KDView
       type          : "textarea"
       delegate      : @
       placeholder   : "Type your #{itemTypeString} and hit enter..."
-      autogrow      : yes
+      # autogrow      : yes
       validate      :
         rules       :
           required  : yes
