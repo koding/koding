@@ -21,6 +21,8 @@ class TopicsAppController extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
+    @on "LazyLoadThresholdReached", => @feedController.loadFeed()
+
   createFeed:(view, loadFeed = no)->
     {JTag} = KD.remote.api
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
