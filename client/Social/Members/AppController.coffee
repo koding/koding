@@ -46,7 +46,7 @@ class MembersAppController extends AppController
       feedId                : 'members.main'
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
-      useHeaderNav          : no
+      useHeaderNav          : yes
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
       help                  :
