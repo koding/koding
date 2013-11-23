@@ -13,6 +13,12 @@ class AccountSubscriptionsListController extends AccountListViewController
     list.on 'ItemWasAdded', (item) =>
       subscription = item.getData()
 
+      if subscription.status is 'active'
+        subscription.plan.fetchProducts (err, products) ->
+          KD.showError err  if err
+
+          item.setProductComponents subscription, products
+
       item
         .on 'UnsubscribeRequested', =>
           @confirm 'cancel', subscription
@@ -100,6 +106,12 @@ class AccountSubscriptionsListItem extends KDListItemView
     ]
 
   viewAppended: JView::viewAppended
+
+  setProductComponents: (subscription, components) ->
+    @addSubView new SubscriptionUsageView {
+      subscription
+      components
+    }
 
   pistachio:->
     """
