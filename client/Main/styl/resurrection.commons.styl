@@ -39,14 +39,15 @@ resurrection.commons.styl
     font-family             'Proxima Nova'
     font-weight             300
     color                   #5e7074
+    &:hover
+      span.close-tab
+        opacity             1
     span.close-tab
       top                   8px
       right                 8px
       bg                    color, transparent
       sprite                app '20-close-tab'
       opacity               0
-      &:hover
-        opacity             1
 
     &.plus
       bg                    color, transparent
@@ -126,3 +127,35 @@ resurrection.commons.styl
   .vm-list
     .kdlistitemview
       padding         10px
+
+
+div.copy-url-wrapper
+  width 320px
+  padding 2px 5px 2px 10px
+
+  div.public-url-warning
+    color black
+
+  label.public-url-label
+    display inline-block
+    vertical-align bottom
+    font-size 12px
+    font-weight 400
+    margin-bottom 1px
+    color black
+
+  input.kdinput.public-url-input
+    borderBox()
+    // text-align center
+    // margin 10px
+    display inline-block
+    min-width 233px
+
+  .icon-link
+    abs                     4px, 4px
+    .icon.new-page
+      opacity               .4
+      background-position   -180px -280px
+      &:hover
+        opacity             1
+        background-position -180px -260px
