@@ -13,13 +13,14 @@ class AccountSubscriptionsListController extends AccountListViewController
     list.on 'ItemWasAdded', (item) =>
       subscription = item.getData()
 
-      item.on 'UnsubscribeRequested', =>
-        @confirm 'cancel', subscription
+      item
+        .on 'UnsubscribeRequested', =>
+          @confirm 'cancel', subscription
 
-      item.on 'ReactivateRequested', =>
-        @confirm 'resume', subscription
+        .on 'ReactivateRequested', =>
+          @confirm 'resume', subscription
 
-      item.on 'PlanChangeRequested', -> debugger
+        .on 'PlanChangeRequested', -> debugger
 
   getConfirmationText = (action, subscription) -> switch action
     when 'cancel'
@@ -38,7 +39,8 @@ class AccountSubscriptionsListController extends AccountListViewController
       subView     : new SubscriptionView {}, subscription
       ok          :
         title     : getConfirmationButtonText action, subscription
-        callback  : callback ? => subscription[action] =>
+        callback  : callback ? => subscription[action] (err) =>
+          KD.showError err
           modal.destroy()
           @loadItems()
 
