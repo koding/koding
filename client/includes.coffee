@@ -171,6 +171,8 @@ module.exports = [
   # views
   "app/MainApp/payment/paymentmethodview.coffee",
   "app/MainApp/payment/subscriptionview.coffee",
+  "app/MainApp/payment/subscriptionusageview.coffee",
+  "app/MainApp/payment/subscriptiongaugeitem.coffee",
   "app/MainApp/payment/paymentmethodentryform.coffee",
   "app/MainApp/payment/paymentchoiceform.coffee",
   "app/MainApp/payment/paymentformmodal.coffee",

@@ -6,7 +6,7 @@ class SubscriptionView extends JView
     """
 
   pistachio:->
-    { quantity, plan, status, renew, expires } = @getData()
+    { quantity, plan, status, renew, expires, usage } = @getData()
 
     { feeAmount } = plan
 
