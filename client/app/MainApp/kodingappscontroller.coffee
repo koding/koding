@@ -146,6 +146,7 @@ class KodingAppsController extends KDController
       KD.logToExternal msg  unless KD.isGuest()
       callback() for callback in @_fetchQueue
       @_fetchQueue = []
+    , KD.config.fileFetchTimeout
 
   fetchAppsFromDb:(callback)->
 
