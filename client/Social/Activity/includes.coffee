@@ -67,7 +67,6 @@ module.exports = [
   "ListItems/ActivityListItemDiscussion.coffee",
   "ListItems/ActivityListItemFollow.coffee",
   "ListItems/ActivityListItemLink.coffee",
-  "ListItems/ActivityListItemQuestion.coffee",
   "ListItems/ActivityListItemTutorial.coffee",
   "ListItems/ActivityListItemBlogPost.coffee",
 
