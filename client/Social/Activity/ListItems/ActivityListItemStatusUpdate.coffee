@@ -149,6 +149,7 @@ class StatusActivityItemView extends ActivityItemChild
         </div>
         <footer>
           {{> @actionLinks}}
+          {{> @timeAgoView}}
         </footer>
         {{> @commentBox}}
       """

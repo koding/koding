@@ -18,8 +18,8 @@ class CommentListItemView extends KDListItemView
 
     @avatar = new AvatarView {
       size        :
-        width       : options.avatarWidth or 30
-        height      : options.avatarHeight or 30
+        width       : options.avatarWidth or 43
+        height      : options.avatarHeight or 43
       origin
       showStatus  : yes
     }
@@ -48,7 +48,7 @@ class CommentListItemView extends KDListItemView
     if loggedInId isnt data.originId
       @replyView = new ActivityActionLink
         cssClass : "action-link reply-link"
-        partial  : "Reply"
+        partial  : "Mention"
         click    : =>
           KD.remote.cacheable data.originType, data.originId, (err, res) =>
             @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
@@ -138,8 +138,7 @@ class CommentListItemView extends KDListItemView
 
   pistachio:->
     """
-    <div class='item-content-comment clearfix'>
-      <span class='avatar'>{{> @avatar}}</span>
+      {{> @avatar}}
       <div class='comment-contents clearfix'>
         <p class='comment-body'>
           {{> @author}}
@@ -148,8 +147,6 @@ class CommentListItemView extends KDListItemView
         {{> @deleteLink}}
         {{> @likeView}}
         {{> @replyView}}
+        {{> @timeAgoView}}
       </div>
-    </div>
     """
-
-    # {{> @timeAgoView}}

@@ -64,6 +64,7 @@ class CodesnipActivityItemView extends ActivityItemChild
       </div>
       <footer>
         {{> @actionLinks}}
+        {time{$.timeago #(meta.createdAt)}}
       </footer>
       {{> @commentBox}}
     """
