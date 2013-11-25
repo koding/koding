@@ -123,6 +123,7 @@ class MembersAppController extends AppController
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       noItemFoundText       : "There is no member."
+      useHeaderNav          : yes
       # singleDataSource      : (selector, options, callback)=>
         # filterFunc selector, options, callback
       help                  :
