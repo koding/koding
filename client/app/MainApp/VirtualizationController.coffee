@@ -62,46 +62,56 @@ class VirtualizationController extends KDController
   reinitialize:(vm, callback)->
     @_runWrapper 'vm.reinitialize', vm, callback
 
-  remove: do->
+  fetchVmInfo: (vm, callback) ->
+    { JVM } = KD.remote.api
 
-    deleteVM = (vm, cb)->
-      KD.remote.api.JVM.removeByHostname vm, (err)->
-        return cb err  if err
-        KD.getSingleton("finderController").unmountVm vm
-        KD.getSingleton("vmController").emit 'VMListChanged'
-        cb null
+    JVM.fetchVmInfo vm, callback
 
-    (vm, callback=noop)->
-      KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
-        if vmInfo
+  confirmVmDeletion: (vmInfo, callback = (->)) ->
+    { hostnameAlias } = vmInfo
+    
+    vmPrefix = (@parseAlias hostnameAlias)?.prefix or hostnameAlias
 
-          if vmInfo.underMaintenance is yes
-            message = "Your VM is under maintenance, not allowed to delete."
-            new KDNotificationView title : message
-            callback {message}
+    modal = new VmDangerModalView
+      name     : vmInfo.hostnameAlias
+      title    : "Destroy '#{hostnameAlias}'"
+      action   : "Destroy my VM"
+      callback : =>
+        @deleteVmByHostname hostnameAlias, callback
+        new KDNotificationView title:'Successfully destroyed!'
+        modal.destroy()
+    , vmPrefix
 
-          else if vmInfo.planCode is 'free'
-            {hostnameAlias} = vmInfo
-            vmPrefix = (@parseAlias hostnameAlias)?.prefix or hostnameAlias
+  deleteVmByHostname: (hostnameAlias, callback) ->
+    { JVM } = KD.remote.api
 
-            modal = new VmDangerModalView
-              name     : vmInfo.hostnameAlias
-              title    : "Destroy '#{hostnameAlias}'"
-              action   : "Destroy my VM"
-              callback : =>
-                deleteVM vm, callback
-                new KDNotificationView title:'Successfully destroyed!'
-                modal.destroy()
-            , vmPrefix
-          else
-            paymentController = KD.getSingleton('paymentController')
-            paymentController.deleteVM vmInfo, (state)->
-              return callback null  unless state
-              deleteVM vm, callback
+    JVM.removeByHostname hostnameAlias, (err)->
+      return callback err  if err
+
+      KD.getSingleton("finderController").unmountVm hostnameAlias
+      KD.getSingleton("vmController").emit 'VMListChanged'
+      callback null
+
+  remove: (vm, callback=noop)->
+    @fetchVmInfo vm, (err, vmInfo)=>
+      return  if KD.showError err
+
+      if vmInfo
+
+        if vmInfo.underMaintenance is yes
+          message = "Your VM is under maintenance, not allowed to delete."
+          new KDNotificationView title: message
+          callback { message }
+
+        else if vmInfo.planCode is 'free'
+          @confirmVmDeletion vmInfo
+
         else
-          new KDNotificationView
-            title: 'Failed to remove!'
-          callback message: "No such VM!"
+          @confirmVmDeletion vmInfo, -> debugger
+
+      else
+        new KDNotificationView title: 'Failed to remove!'
+        callback { message: "No such VM!" }
 
   info:(vm, callback)->
     [callback, vm] = [vm, callback]  if 'function' is typeof vm
@@ -193,24 +203,24 @@ class VirtualizationController extends KDController
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
 
-  fetchVMs: do (waiting = []) ->
-    (force, callback)->
-      [callback, force] = [force, callback]  unless callback?
-      return  unless callback?
+  fetchVMs: do (waiting = []) -> (force, callback)->
+    [callback, force] = [force, callback]  unless callback?
 
-      if @vms.length
-        return @utils.defer => callback null, @vms
+    return  unless callback?
 
-      return if not force and (waiting.push callback) > 1
+    if @vms.length
+      @utils.defer => callback null, @vms
+      return
 
-      KD.remote.api.JVM.fetchVms (err, vms)=>
-        @vms = vms  unless err
-        if force
-        then callback err, vms
-        else
-          cb err, vms  for cb in waiting
-          waiting = []
+    return  if not force and (waiting.push callback) > 1
 
+    KD.remote.api.JVM.fetchVms (err, vms)=>
+      @vms = vms  unless err
+      if force
+      then callback err, vms
+      else
+        cb err, vms  for cb in waiting
+        waiting = []
 
   fetchGroupVMs:(callback = noop)->
     if @groupVms.length > 0
@@ -341,13 +351,9 @@ class VirtualizationController extends KDController
 
     productForm = new VmProductForm
 
-    pay = KD.getSingleton 'paymentController'
+    payment = KD.getSingleton 'paymentController'
 
-    KD.whoami().fetchPlansAndSubscriptions ['vm'], (err, plansAndSubs) =>
-      return  if KD.showError err
-      
-      { subscriptions } = pay.groupPlansBySubscription plansAndSubs
-
+    payment.fetchSubscriptionsWithPlans ['vm'], (err, subscriptions) ->
       productForm.setCurrentSubscriptions subscriptions
 
     productForm.on 'PackOfferingRequested', (subscription) ->
@@ -382,15 +388,19 @@ class VirtualizationController extends KDController
     { JVM } = KD.remote.api
 
     { plan, pack } = productData
-      
+
+    payment = KD.getSingleton 'paymentController'
+
     if paymentMethod and not subscription
 
-      return plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
+      plan.subscribe paymentMethod.paymentMethodId, (err, subscription) =>
         return  if KD.showError err
 
         @provisionVm { subscription, productData }
 
-    subscription.debit pack, (err, nonce) =>
+      return
+
+    payment.debitSubscription subscription, pack, (err, nonce) =>
       return  if KD.showError err
 
       JVM.createVmByNonce nonce, (err, vm) =>
@@ -543,8 +553,8 @@ class VirtualizationController extends KDController
     # fix this one on radios value cannot have some chars and that's why i keep index as the value
     descriptions = plans.map (plan) -> plan.description
     hostTypes    = plans.map (plan, i)->
-      title       : plan.description.title
-      value       : i
+      title      : plan.description.title
+      value      : i
       feeAmount  : (plan.feeAmount / 100).toFixed 0
 
     { descriptions, hostTypes }
