@@ -102,7 +102,7 @@ class PaymentController extends KDController
 
     return form
 
-  debitSubscription: ->
+  debitSubscription: (subscription, pack, callback) ->
     subscription.debit pack, (err, nonce) =>
       return  if KD.showError err
 
