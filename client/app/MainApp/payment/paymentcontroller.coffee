@@ -1,24 +1,12 @@
 class PaymentController extends KDController
 
-  getGroup = ->
-    KD.getSingleton('groupsController').getCurrentGroup()
-
-  getBalance: (type, callback)->
-
-    { JPaymentPlan } = KD.remote.api
-
-    if type is 'user'
-      JPaymentPlan.getUserBalance callback
-    else
-      JPaymentPlan.getGroupBalance callback
-
   fetchPaymentMethods: (callback) ->
 
     { dash } = Bongo
 
-    methods       = null
+    methods = null
     preferredPaymentMethod = null
-    appStorage    = new AppStorage 'Account', '1.0'
+    appStorage = new AppStorage 'Account', '1.0'
     queue = [
 
       -> appStorage.fetchStorage (err) ->
@@ -62,14 +50,11 @@ class PaymentController extends KDController
       { JPaymentSubscription } = KD.remote.api
 
       if type is 'group'
-        getGroup().checkPayment (err, subs) =>
+        KD.getGroup().checkPayment (err, subs) =>
           findActiveSubscription subs, planCode, callback
       else
         JPaymentSubscription.fetchUserSubscriptions (err, subs) ->
           findActiveSubscription subs, planCode, callback
-
-  deleteVM: (vmInfo, callback) -> debugger
-  # views
 
   fetchPlanByCode: (planCode, callback) ->
 
@@ -83,7 +68,7 @@ class PaymentController extends KDController
 
     switch type
       when 'group', 'expensed'
-        getGroup().fetchPaymentInfo callback
+        KD.getGroup().fetchPaymentInfo callback
       when 'user'
         JPaymentPlan.fetchAccountDetails callback
 
@@ -117,6 +102,24 @@ class PaymentController extends KDController
 
     return form
 
+  debitSubscription: ->
+    subscription.debit pack, (err, nonce) =>
+      return  if KD.showError err
+
+      @emit 'SubscriptionDebited', subscription
+
+      callback null, nonce
+
+  fetchSubscriptionsWithPlans: (tags, callback) ->
+    [callback, tags] = [tags, callback]  unless callback
+
+    KD.whoami().fetchPlansAndSubscriptions tags, (err, plansAndSubs) =>
+      return callback err  if err
+      
+      { subscriptions } = @groupPlansBySubscription plansAndSubs
+
+      callback null, subscriptions
+
   groupPlansBySubscription: (plansAndSubscriptions = {}) ->
     
     { plans, subscriptions } = plansAndSubscriptions
@@ -130,4 +133,3 @@ class PaymentController extends KDController
       subscription.plan = plansByCode[subscription.planCode]
     
     { plans, subscriptions }
-
