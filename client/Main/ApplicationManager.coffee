@@ -94,7 +94,7 @@ class ApplicationManager extends KDObject
       if not appOptions? and not options.avoidRecursion?
 
         if @checkAppAvailability name
-          return KodingAppsController.putAppScript name, (err)=>
+          return KodingAppsController.loadInternalApp name, (err)=>
             return warn err  if err
             KD.utils.defer => @open name, options, callback
 
@@ -213,7 +213,7 @@ class ApplicationManager extends KDObject
     log 'AppManager: opening an app', name
     if @checkAppAvailability name
       log 'AppManager: couldn\'t find', name
-      return KodingAppsController.putAppScript name, (err)=>
+      return KodingAppsController.loadInternalApp name, (err)=>
         log 'AppManager: loaded', name
         return warn err  if err
         KD.utils.defer => @create name, params, callback

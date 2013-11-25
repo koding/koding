@@ -7,6 +7,7 @@ class KodingAppsController extends KDController
   # This is the most important method to put & run additional apps on Koding
   # Please make sure about your changes on it.
   @putAppScript = (name, callback = noop)->
+  @loadInternalApp = (name, callback)->
 
     unless KD.config.apps[name]
       warn message = "#{name} is not available to run!"
@@ -17,6 +18,11 @@ class KodingAppsController extends KDController
       return callback null
 
     app = KD.config.apps[name]
+    @putAppScript app, callback
+
+  # This is the most important method to put & run additional apps on Koding
+  # Please make sure about your changes on it.
+  @putAppScript = (app, callback = noop)->
 
     # Remove app from head if exists, just for sure
     $("head .internal-#{app.identifier}").remove()
