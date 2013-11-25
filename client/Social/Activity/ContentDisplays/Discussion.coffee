@@ -207,7 +207,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
-                KD.getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
+                KD.singleton('display').emit 'ContentDisplayWantsToBeHidden', @
                 @utils.wait 2000, =>
                   @destroy()
 

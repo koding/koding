@@ -226,8 +226,8 @@ class TopicsAppController extends AppController
     @utils.defer -> callback contentDisplay
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = KD.getSingleton "contentDisplayController"
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+
+    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 

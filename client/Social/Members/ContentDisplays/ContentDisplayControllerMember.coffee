@@ -13,7 +13,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   constructor:(options={}, data)->
 
-    {@revivedContentDisplay} = KD.getSingleton("contentDisplayController")
+    {@revivedContentDisplay} = KD.singleton('display')
 
     options = $.extend
       view : mainView = new KDView
@@ -37,8 +37,7 @@ class ContentDisplayControllerMember extends KDViewController
       click   : (event)->
         event.stopPropagation()
         event.preventDefault()
-        contentDisplayController = KD.getSingleton "contentDisplayController"
-        contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
+        KD.singleton('display').emit "ContentDisplayWantsToBeHidden", mainView
         no
     subHeader.addSubView backLink  if KD.isLoggedIn()
 
@@ -51,16 +50,16 @@ class ContentDisplayControllerMember extends KDViewController
     #   view : @updateWidget
 
     # mainView.addSubView @updateWidget
-
-    # if not contentDisplayController._updateController
-    #   contentDisplayController._updateController = {}
-    #   contentDisplayController._updateController.updateWidget = new ActivityUpdateWidget
+    # cdc = KD.singleton('display')
+    # if not cdc._updateController
+    #   cdc._updateController = {}
+    #   cdc._updateController.updateWidget = new ActivityUpdateWidget
     #     cssClass: 'activity-update-widget-wrapper-folded'
 
-    #   contentDisplayController._updateController.updateWidgetController = new ActivityUpdateWidgetController
-    #     view : contentDisplayController._updateController.updateWidget
+    #   cdc._updateController.updateWidgetController = new ActivityUpdateWidgetController
+    #     view : cdc._updateController.updateWidget
 
-    # mainView.addSubView contentDisplayController._updateController.updateWidget
+    # mainView.addSubView cdc._updateController.updateWidget
 
     @addProfileView member
 

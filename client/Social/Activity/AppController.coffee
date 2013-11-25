@@ -293,8 +293,8 @@ class ActivityAppController extends AppController
     @utils.defer -> callback controller
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = KD.getSingleton "contentDisplayController"
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+
+    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->

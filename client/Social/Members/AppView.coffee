@@ -34,7 +34,6 @@ class MembersLikedContentDisplayView extends KDView
 
     name = KD.utils.getFullnameFromAccount account
 
-    contentDisplayController = KD.getSingleton "contentDisplayController"
     headerTitle              = "Activities which #{name} liked"
 
     @addSubView header = new HeaderViewSection
@@ -48,7 +47,7 @@ class MembersLikedContentDisplayView extends KDView
     backLink = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
-      click   : => contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
+      click   : => KD.singleton('display').emit "ContentDisplayWantsToBeHidden", this
     subHeader.addSubView backLink  if KD.isLoggedIn()
 
     @listenWindowResize()
@@ -84,7 +83,7 @@ class MembersContentDisplayView extends KDView
       click   : (event)=>
         event.preventDefault()
         event.stopPropagation()
-        KD.getSingleton('contentDisplayController').emit "ContentDisplayWantsToBeHidden", @
+        KD.singleton('display').emit "ContentDisplayWantsToBeHidden", @
 
     subHeader.addSubView backLink  if KD.isLoggedIn()
 
