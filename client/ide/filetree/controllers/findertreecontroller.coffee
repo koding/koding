@@ -62,16 +62,17 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
         @setBlurState()
 
-  openFileWithApp: (nodeView, contextMenuItem) ->
-    return warn "no app passed to open this file"  unless contextMenuItem
-    app = contextMenuItem.getData().title
-    KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
+  # openFileWithApp: (nodeView, contextMenuItem) ->
+  #   return warn "no app passed to open this file"  unless contextMenuItem
+  #   app = contextMenuItem.getData().title
+  #   KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
 
   openFile:(nodeView)->
 
     return unless nodeView
     file = nodeView.getData()
-    @appManager.openFile file
+    # @appManager.openFile file
+    @getDelegate().emit "FileNeedsToBeOpened", file
 
   previewFile:(nodeView)->
     {vmName, path} = nodeView.getData()
@@ -492,7 +493,8 @@ class NFinderTreeController extends JTreeViewController
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
   cmDropboxSaver:  (nodeView, contextMenuItem)-> __saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
-  cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
+  # cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
+  # cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
@@ -751,9 +753,12 @@ class NFinderTreeController extends JTreeViewController
     {nickname} = KD.whoami().profile
     @refreshFolder @nodes["/home/#{nickname}"], => @emit "fs.retry.success"
 
-  showOpenWithModal: (nodeView) ->
-    # KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
-    new OpenWithModal {}, {nodeView, apps: []}
+  # showOpenWithModal: (nodeView) ->
+  #   KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
+  #     new OpenWithModal {}, {
+  #       nodeView
+  #       apps
+  #     }
 
   chooseFromDropbox: (nodeView) ->
     fileItemViews     = []
