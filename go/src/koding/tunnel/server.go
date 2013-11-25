@@ -1,7 +1,6 @@
 package tunnel
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -16,15 +15,12 @@ import (
 // Server satisfies the http.Handler interface. It is responsible of tracking
 // tunnels and creating tunnels between remote and local connection.
 type Server struct {
-	// protects the following fields
-	mu sync.Mutex
-
 	// pending contains the channel that is associated with each new tunnel request
-	pending map[string]chan *tunnel
+	pending   map[string]chan *tunnel
+	pendingMu sync.Mutex // protects the pending map
 
 	// httpTunnels is used to store established tunnel connections used for
-	// http. Currently for each virtual host one single http connection is
-	// stored.
+	// http protocol.
 	httpTunnels *tunnels
 
 	// controls contains the control connection from the client to the server
@@ -53,7 +49,6 @@ func NewServer() *Server {
 // tunnelHandler is used to capture incoming tunnel connect requests into raw
 // tunnel tcp connections.
 func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("--- tunnel Handler invoked", r.URL.String())
 	if r.Method != "CONNECT" {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -73,21 +68,24 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	protocol := r.Header.Get("protocol")
 	tunnelID := r.Header.Get("tunnelID")
 	username := r.Header.Get("username")
-	log.Printf("we have a new tunnel. protocol %s, tunnelID %s and username %s\n",
+	log.Printf("tunnel with protocol %s, tunnelID %s and username %s\n",
 		protocol, tunnelID, username)
 
-	s.mu.Lock()
+	s.pendingMu.Lock()
 	tunnelRequester, ok := s.pending[tunnelID]
-	s.mu.Unlock()
 	if !ok {
-		log.Println("tunnelID channel does not exist")
+		s.pendingMu.Unlock()
+		log.Println("tunnel not available for id", tunnelID)
 		return
 	}
+	s.pendingMu.Unlock()
 
 	// we now have an encapsulated connection. send it back to the requester
 	// the request can either store the conn for reusage (like http) or can
 	// use it only for one session (like websocket)
 	tunnelRequester <- newTunnel(conn)
+
+	delete(s.pending, tunnelID)
 }
 
 // controlHandler is used to capture incoming control connect requests into
@@ -95,7 +93,6 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 // connection starts to read and write to the control connection until the
 // connection is closed. Currently only one control connection per user is allowed.
 func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("--- control Handler invoked", r.URL.String())
 	if r.Method != "CONNECT" {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -144,12 +141,11 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("closing control connection for", username)
 		control.Close()
 		s.deleteControl(username)
-		s.deleteTunnel(host)
+		s.deleteTunnels(host)
 	}()
 
 	log.Println("control connection has been established for", username)
-	// blocking function
-	control.run()
+	control.run() // blocking function
 }
 
 // ServeHTTP is a tunnel that creates an http/websocket tunnel between a
@@ -160,46 +156,34 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("http handler invoked", r.Host, r.URL.String())
 	host := strings.ToLower(r.Host)
 
-	tunnelConn, err := s.httpTunnelConn(host)
+	var remoteHost string
+	remoteHost, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		log.Println("splithostport for remote failed, using r.remoteAddr", err)
+		remoteHost = r.RemoteAddr
+	}
+
+	log.Printf("http from %s to %s  -- path: %s\n", remoteHost, r.Host, r.URL.String())
+
+	tunnel, err := s.httpTunnelConn(host, remoteHost)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), 404)
 		return
 	}
 
-	// This is needed because we are sending the request over a singe http conn
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	err = r.Write(tunnelConn)
+	err = tunnel.proxy(w, r)
 	if err != nil {
-		err := fmt.Sprintf("write to tunnel %s", err)
 		log.Println(err)
-		http.Error(w, err, 404)
+		http.Error(w, err.Error(), 404)
 		return
 	}
-
-	resp, err := http.ReadResponse(bufio.NewReader(tunnelConn), r)
-	if err != nil {
-		err := fmt.Sprintf("read from tunnel.con %s", err.Error())
-		log.Println(err)
-		http.Error(w, err, 404)
-		return
-	}
-	defer resp.Body.Close()
-
-	copyHeader(w.Header(), resp.Header)
-	w.WriteHeader(resp.StatusCode)
-
-	io.Copy(w, resp.Body)
 }
 
-func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
-	// for http one single conn is enough
-	tunnel, ok := s.getTunnel(host)
+func (s *Server) httpTunnelConn(host, remoteAddr string) (*tunnel, error) {
+	tunnel, ok := s.getTunnel(host, remoteAddr)
 	if !ok {
 		// get a tunnel from client
 		var err error
@@ -210,9 +194,11 @@ func (s *Server) httpTunnelConn(host string) (net.Conn, error) {
 
 		// delete the tunnel if there is a disconnection this will trigger
 		// another requestTunnel call on the next http connection.
-		tunnel.OnDisconnect(func() { s.deleteTunnel(host) })
+		tunnel.OnDisconnect(func() {
+			s.deleteTunnel(host, remoteAddr)
+		})
 
-		s.addTunnel(host, tunnel)
+		s.addTunnel(host, remoteAddr, tunnel)
 	}
 
 	return tunnel, nil
@@ -263,8 +249,6 @@ func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
 // tunnel from the client. It sends the request of a new tunnel directly to
 // the client, which then opens a new tunnel to be used.
 func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
-	log.Printf("no tunnel available for (%s) %s. request one", protocol, host)
-
 	// get the user associated with this user
 	username, ok := s.GetUsername(host)
 	if !ok {
@@ -277,8 +261,6 @@ func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 		return nil, fmt.Errorf("no control available for %s", host)
 	}
 
-	log.Printf("got control for %s, preparing tunnel request", host)
-
 	// create an unique id to used with that tunnel
 	tunnelID := randomID(32)
 
@@ -290,41 +272,46 @@ func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 		Host:     host,
 	}
 
+	s.pendingMu.Lock()
+
+	pendingTunnel := make(chan *tunnel)
+	s.pending[tunnelID] = pendingTunnel
+
+	// send this after creating the pendingTunnel, otherwise we could get a
+	// deadlock when a the tunnelHandler is invoked before we create this
+	// channel.
 	control.send(msg)
+
+	s.pendingMu.Unlock()
 
 	// now wait until our tunnel is established. if the tunnel has the
 	// right ID it will send a message to this channel, which releases the
 	// blocking channel. If we don't get it in 10 seconds we will timeout
-	log.Printf("tunnel request send for %s, waiting for tunnel...\n", host)
-	s.mu.Lock()
-	s.pending[tunnelID] = make(chan *tunnel)
-	s.mu.Unlock()
-
-	// remove and close it because we don't need it anymore
-	defer func() {
-		close(s.pending[tunnelID])
-		delete(s.pending, tunnelID)
-	}()
-
 	select {
-	case tunnel := <-s.pending[tunnelID]:
+	case tunnel := <-pendingTunnel:
 		return tunnel, nil
 	case <-time.After(time.Second * 10):
+		delete(s.pending, tunnelID)
 		return nil, errors.New("timeout")
 	}
 }
 
-func (s *Server) getTunnel(host string) (*tunnel, bool) {
-	tunnel, ok := s.httpTunnels.getTunnel(host)
+func (s *Server) getTunnel(host, remoteAddr string) (*tunnel, bool) {
+	tunnel, ok := s.httpTunnels.getTunnel(host, remoteAddr)
 	return tunnel, ok
 }
 
-func (s *Server) addTunnel(host string, tunnel *tunnel) {
-	s.httpTunnels.addTunnel(host, tunnel)
+func (s *Server) addTunnel(host, remoteAddr string, tunnel *tunnel) {
+	s.httpTunnels.addTunnel(host, remoteAddr, tunnel)
 }
 
-func (s *Server) deleteTunnel(host string) {
-	s.httpTunnels.deleteTunnel(host)
+func (s *Server) deleteTunnel(host, remoteAddr string) {
+	fmt.Println("deleting tunnel", host, remoteAddr)
+	s.httpTunnels.deleteTunnel(host, remoteAddr)
+}
+
+func (s *Server) deleteTunnels(host string) {
+	s.httpTunnels.deleteTunnels(host)
 }
 
 func (s *Server) addControl(username string, conn *control) {
