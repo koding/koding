@@ -42,14 +42,9 @@ class MainViewController extends KDViewController
         ratio = (scrollTop + window.innerHeight) / scrollHeight
 
         if dynamicThreshold < ratio > lastRatio
-          # mainViewController.emit 'LazyLoadThresholdReached', {ratio}
-          app = appManager.getFrontApp()
-          if app.feedController
-            log 'fix: fake loading feed for', app.getOption('name'), ratio, lastRatio
-            # app.feedController.loadFeed()
+          appManager.getFrontApp()?.emit "LazyLoadThresholdReached"
 
         lastRatio = ratio
-
 
   loadView:(mainView)->
 

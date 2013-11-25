@@ -191,7 +191,7 @@ class MainView extends KDView
       KD.getSingleton('router').handleRoute "/Activity"
 
     @panelWrapper.addSubView @mainTabView
-    # @contentPanel.addSubView @appSettingsMenuButton
+    @panelWrapper.addSubView @appSettingsMenuButton
 
   createSideBar:->
 

@@ -18,6 +18,8 @@ class AppsAppController extends AppController
 
     super options, data
 
+    @on "LazyLoadThresholdReached", => @feedController.loadFeed()
+
     @appsController = KD.getSingleton "kodingAppsController"
 
     @appsController.on "AnAppHasBeenUpdated", @bound "updateApps"
@@ -131,10 +133,12 @@ class AppsAppController extends AppController
     @utils.wait 100, => @feedController?.changeActiveSort "meta.modifiedAt"
 
   createContentDisplay:(app, callback)->
+    return
     contentDisplay = @showContentDisplay app
     @utils.defer => callback contentDisplay
 
   showContentDisplay:(content)->
+    return
     contentDisplayController = KD.getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()

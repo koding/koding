@@ -20,7 +20,7 @@ class NFinderTreeController extends JTreeViewController
 
   addNode:(nodeData, index)->
 
-    fc = KD.getSingleton 'finderController'
+    fc = @getDelegate()
     return if @getOption('foldersOnly') and nodeData.type is "file"
     return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
     item = super nodeData, index
@@ -62,16 +62,17 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
         @setBlurState()
 
-  openFileWithApp: (nodeView, contextMenuItem) ->
-    return warn "no app passed to open this file"  unless contextMenuItem
-    app = contextMenuItem.getData().title
-    KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
+  # openFileWithApp: (nodeView, contextMenuItem) ->
+  #   return warn "no app passed to open this file"  unless contextMenuItem
+  #   app = contextMenuItem.getData().title
+  #   KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
 
   openFile:(nodeView)->
 
     return unless nodeView
     file = nodeView.getData()
-    @appManager.openFile file
+    # @appManager.openFile file
+    @getDelegate().emit "FileNeedsToBeOpened", file
 
   previewFile:(nodeView)->
     {vmName, path} = nodeView.getData()
@@ -83,7 +84,7 @@ class NFinderTreeController extends JTreeViewController
 
   unmountVm:(nodeView)->
     {vmName} = nodeView.data
-    KD.getSingleton('finderController').unmountVm vmName
+    @getDelegate().unmountVm vmName
 
   openVmTerminal:(nodeView)->
     {vmName} = nodeView.data
@@ -91,13 +92,13 @@ class NFinderTreeController extends JTreeViewController
 
   setDotFiles:(nodeView, show=yes)->
     {vmName, path} = nodeView.getData()
-    finder = KD.getSingleton 'finderController'
+    finder = @getDelegate()
     unless show then finder.hideDotFiles vmName
     else finder.showDotFiles vmName
 
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
-    finder = KD.getSingleton 'finderController'
+    finder = @getDelegate()
     finder.updateVMRoot vmName, FSHelper.plainPath path
 
   refreshFolder:(nodeView, callback)->
@@ -491,8 +492,8 @@ class NFinderTreeController extends JTreeViewController
   cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
   cmDropboxSaver:  (nodeView, contextMenuItem)-> __saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
-  cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
-  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
+  # cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
+  # cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
@@ -751,12 +752,12 @@ class NFinderTreeController extends JTreeViewController
     {nickname} = KD.whoami().profile
     @refreshFolder @nodes["/home/#{nickname}"], => @emit "fs.retry.success"
 
-  showOpenWithModal: (nodeView) ->
-    KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
-      new OpenWithModal {}, {
-        nodeView
-        apps
-      }
+  # showOpenWithModal: (nodeView) ->
+  #   KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
+  #     new OpenWithModal {}, {
+  #       nodeView
+  #       apps
+  #     }
 
   chooseFromDropbox: (nodeView) ->
     fileItemViews     = []
@@ -800,6 +801,6 @@ class NFinderTreeController extends JTreeViewController
           fileItemViews.push fileItemView
 
   uploadFile: (nodeView)->
-    finderController = KD.getSingleton "finderController"
+    finderController = @getDelegate()
     {path} = nodeView.data
     finderController.uploadTo path  if path

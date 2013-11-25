@@ -39,12 +39,14 @@ class MembersAppController extends AppController
 
     super options, data
 
+    @on "LazyLoadThresholdReached", => @feedController?.loadFeed()
+
   createFeed:(view, loadFeed = no)->
     @appManager.tell 'Feeder', 'createContentFeedController', {
       feedId                : 'members.main'
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
-      useHeaderNav          : no
+      useHeaderNav          : yes
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
       help                  :
