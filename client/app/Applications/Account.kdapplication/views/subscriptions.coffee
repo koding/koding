@@ -52,7 +52,7 @@ class AccountSubscriptionsListController extends AccountListViewController
 
     payment = KD.getSingleton 'paymentController'
 
-    payment.on 'SubscriptionDebited', @bound 'loadItems'
+    payment.once 'SubscriptionDebited', @bound 'loadItems'
 
     payment.fetchSubscriptionsWithPlans (err, subscriptions) =>
       @instantiateListItems subscriptions.filter (s) ->
