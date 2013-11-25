@@ -49,7 +49,6 @@ module.exports = class JVM extends Module
           'fetchDefaultVm'
           'fetchVmRegion'
           'createVmByNonce'
-          #'calculateUsage'
         ]
       instance          : []
     schema              :
@@ -75,8 +74,8 @@ module.exports = class JVM extends Module
                           ]]
         default         : if argv.c is 'vagrant' then 'vagrant' else 'sj'
       webHome           : String
-      # planOwner         : String
       planCode          : String
+      subscriptionCode  : String
       vmType            :
         type            : String
         default         : 'user'
@@ -227,7 +226,7 @@ module.exports = class JVM extends Module
       return callback err  if err
       return { message: "Unrecognized nonce!", nonce }  unless nonceObject
 
-      { planCode } = nonceObject
+      { planCode, subscriptionCode } = nonceObject
 
       JPaymentPack.one { planCode }, (err, pack) =>
         return callback err  if err
@@ -250,6 +249,7 @@ module.exports = class JVM extends Module
             account
             groupSlug
             planCode
+            subscriptionCode
             type          : 'user'
             maxMemoryInMB : attributes.ram
             diskSizeInMB  : attributes.disk
@@ -261,10 +261,11 @@ module.exports = class JVM extends Module
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
+  @createVm = ({account, type, groupSlug, usage, planCode, subscriptionCode}, callback)->
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
+      
       account.fetchUser (err, user)=>
         return callback err  if err
         return callback new Error "user is not defined"  unless user
@@ -276,7 +277,6 @@ module.exports = class JVM extends Module
 
         counterName = "#{groupSlug}~#{nickname}~"
         webHome     = nickname
-
 
         nameFactory = (require 'koding-counter') {
           db     : JVM.getClient()
@@ -297,6 +297,7 @@ module.exports = class JVM extends Module
           vm = new JVM {
             hostnameAlias
             planCode
+            subscriptionCode
             webHome
             groups
             users
@@ -335,27 +336,6 @@ module.exports = class JVM extends Module
                 $addToSet: users: { id: user.getId(), sudo: hasPermission }
               }, callback
 
-  # @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
-
-  # @calculateUsage = (account, groupSlug, callback)->
-  #   nickname =
-  #     if 'string' is typeof account then account
-  #     else account.profile.nickname
-
-  #   @all { name: ///$#{groupSlug}~#{nickname}~/// }, (err, vms) =>
-  #     return callback err  if err?
-  #     callback null, vms
-  #       .map((vm) -> vm.usage)
-  #       .reduce (acc, usage) ->
-  #         for own field, val of usage
-  #           acc[field] += val
-  #           return acc
-  #       , @getUsageTemplate()
-
-  # @calculateUsage$ = secure (client, groupSlug, callback)->
-  #     {delegate} = client.connection
-  #     @calculateUsage delegate, groupSlug, callback
-
   @fetchVmInfo = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
 
@@ -371,7 +351,6 @@ module.exports = class JVM extends Module
         return callback null, null  unless vm
         callback null,
           planCode         : vm.planCode
-          planOwner        : vm.planOwner
           hostnameAlias    : vm.hostnameAlias
           underMaintenance : vm.hostKite is "(maintenance)"
           region           : vm.region or 'sj'
@@ -497,59 +476,58 @@ module.exports = class JVM extends Module
     if vm.planCode is 'free'
       vm.remove callback
     else
-      JPaymentSubscription.fetchAllSubscriptions vm.planOwner,
-        userCode : vm.planOwner
-        planCode : vm.planCode
+      JPaymentSubscription.fetchAllSubscriptions
+        planCode : vm.subscriptionCode
         $or      : [
           {status: 'active'}
           {status: 'canceled'}
         ]
       , (err, subs)->
-        if err
-          return callback new KodingError 'Unable to update subscription.'
-        subs.forEach (sub)->
-          if sub.status is 'canceled'
+        if err or not subscriptions?.length
+          return callback { message: 'Unable to update subscription.' }
+
+        [subscription] = subscriptions
+
+        if subscription.status is 'canceled'
+          vm.remove callback
+        else
+          subscription.credit  (err) ->
+            return callback err  if err
+
             vm.remove callback
-          else if sub.quantity > 1
-            sub.update sub.quantity - 1, (err, sub)->
-              if err
-                return callback new KodingError 'Unable to update subscription.'
-              vm.remove callback
-          else
-            sub.terminate (err, newSub)->
-              if err
-                return callback new KodingError 'Unable to terminate payment'
-              else
-                vm.remove callback
 
   @removeByHostname = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
 
-    delegate.fetchUser (err, user)=>
+    delegate.fetchUser (err, user) =>
       return callback err  if err
-      return callback new Error "user not found" unless user
+      return callback { message: "user not found" }  unless user
 
       selector =
         hostnameAlias : hostnameAlias
         users         : { $elemMatch: id: user.getId(), owner: yes }
 
-      JVM.one selector, (err, vm)=>
+      JVM.one selector, (err, vm) =>
         return callback err  if err
         return callback new KodingError 'No such VM'  unless vm
 
-        if vm.planOwner.indexOf("user_") > -1
-          @deleteVM vm, callback
-        else
-          [{ id: groupId }] = vm.groups
-          JGroup = require './group'
-          JGroup.one { _id: groupId }, (err, group)=>
-            return callback err  if err
-            JPermissionSet.checkPermission client, "delete vms", group,
-            (err, hasPermission)=>
-              return callback err  if err
-              if hasPermission
-                @deleteVM vm, callback
+        delegate.hasTarget vm, 'owner', (err, hasTarget) =>
+          return callback err  if err
 
+          if hasTarget
+            @deleteVM vm, callback
+          else
+            [{ id: groupId }] = vm.groups
+
+            JGroup = require './group'
+            JGroup.one { _id: groupId }, (err, group)=>
+              return callback err  if err
+
+              JPermissionSet.checkPermission client, "delete vms", group,
+              (err, hasPermission)=>
+                return callback err  if err
+                
+                @deleteVM vm, callback  if hasPermission
 
   do ->
 

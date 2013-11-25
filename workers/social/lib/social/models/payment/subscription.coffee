@@ -96,10 +96,9 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
   @fetchSubscriptions = (selector, callback) ->
     selector = { paymentMethodId: selector }  if 'string' is typeof selector
-    @fetchAllSubscriptions selec, callback
+    @fetchAllSubscriptions selector, callback
 
   @fetchAllSubscriptions = (selector, callback) ->
-    console.log { selector }
     JPayment.invalidateCacheAndLoad this, selector, {
       forceRefresh
       forceInterval
@@ -110,7 +109,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       constructor   : this
       selector      : { paymentMethodId: selector.paymentMethodId }
       method        : 'fetchSubscriptions'
-      methodOptions : selector
+      methodOptions : selector.paymentMethodId
       keyField      : 'uuid'
       message       : 'user subscriptions'
       forEach       : (uuid, cached, sub, stackCb)=>
@@ -259,6 +258,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback { message: 'Access denied!' }  unless hasTarget
 
       @debit pack, callback, multiplyFactor
-  
+
   credit$: secure (client, pack, callback) ->
     @debit$ client, pack, callback, -1
