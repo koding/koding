@@ -4,18 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/streadway/amqp"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/slog"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"strconv"
 	"strings"
 	"time"
-	"github.com/streadway/amqp"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 )
 
 type IncomingMessage struct {
@@ -37,7 +37,8 @@ func Startup() {
 		slog.Printf("clientExchange exchange.declare: %s\n", err)
 	}
 
-	runHelperFunctions()
+	go heartBeatChecker()
+	go deploymentCleaner()
 
 	slog.Println("handler is initialized")
 }
@@ -417,101 +418,101 @@ func normalizeName(name string) string {
 	return name
 }
 
-// runHelperFunctions contains several independent helper functions that do
-// certain tasks.
-func runHelperFunctions() {
-	// HeartBeat checker for workers
-	tickerWorker := time.NewTicker(workerconfig.HEARTBEAT_INTERVAL)
-	go func() {
-		queryFunc := func(c *mgo.Collection) error {
-			worker := models.Worker{}
-			iter := c.Find(nil).Iter()
-			for iter.Next(&worker) {
-				if worker.Status == models.Dead {
-					continue // already dead, nothing to do
-				}
+// heartBeathChecker checks if a worker is alive or not. If it's alive it's
+// just continues to the next one until it finds a worker that didn't get an
+// hearbeat. If that worker didn't get three heartbeats in a series we are
+// removing it from the DB.
+func heartBeatChecker() {
+	// counting the hearbeats for each individiual worker
+	countWorkers := make(map[string]uint64)
 
-				if time.Now().Before(worker.Timestamp.Add(workerconfig.HEARTBEAT_DELAY)) {
-					continue // still alive, pick up the next one
-				}
+	queryFunc := func(c *mgo.Collection) error {
+		worker := models.Worker{}
 
-				slog.Printf("[%s (%d)] no activity at '%s' - '%s' (pid: %d). marking them as dead\n",
+		iter := c.Find(nil).Iter()
+		for iter.Next(&worker) {
+			if worker.Status == models.Dead {
+				continue // already dead, nothing to do
+			}
+
+			if time.Now().Before(worker.Timestamp.Add(workerconfig.HEARTBEAT_DELAY)) {
+				countWorkers[worker.Uuid] = 0 // reset counter because it's alive now
+				continue                      // pick up the next one
+			}
+
+			if countWorkers[worker.Uuid] != 3 {
+				slog.Printf("[%s (%d)] inactive hearbeat (%d) '%s' - '%s' (pid: %d).\n",
 					worker.Name,
 					worker.Version,
+					countWorkers[worker.Uuid],
 					worker.Hostname,
 					worker.Uuid,
 					worker.Pid,
 				)
-
-				worker.Status = models.Dead
-				worker.Monitor.Mem = models.MemData{}
-				worker.Monitor.Uptime = 0
-				modelhelper.UpdateIDWorker(worker)
+				countWorkers[worker.Uuid]++
+				continue
 			}
 
-			if err := iter.Close(); err != nil {
-				return err
+			slog.Printf("[%s (%d)] deleting after three inactive heartbeats '%s' - '%s' (pid: %d).\n",
+				worker.Name,
+				worker.Version,
+				worker.Hostname,
+				worker.Uuid,
+				worker.Pid,
+			)
+
+			modelhelper.DeleteWorker(worker.Uuid)
+		}
+
+		if err := iter.Close(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	for {
+		mongodb.Run("jKontrolWorkers", queryFunc)
+		time.Sleep(workerconfig.HEARTBEAT_INTERVAL)
+	}
+}
+
+// Cleanup dead deployments at intervals. This goroutine will lookup at
+// each information if a deployment has running workers. If workers for a
+// certain deployment is not running anymore, then it will remove the
+// deployment information .
+func deploymentCleaner() {
+	for {
+		slog.Println("cleaner started to remove unused deployments and dead workers")
+		infos := modelhelper.GetClients()
+		for _, info := range infos {
+			var numberOfWorkers int
+
+			version, _ := strconv.Atoi(info.BuildNumber)
+
+			query := func(c *mgo.Collection) error {
+				numberOfWorkers, _ = c.Find(bson.M{
+					"version": version,
+					"status":  int(models.Started)},
+				).Count()
+
+				return nil
 			}
 
-			return nil
-		}
+			mongodb.Run("jKontrolWorkers", query)
 
-		for _ = range tickerWorker.C {
-			mongodb.Run("jKontrolWorkers", queryFunc)
-		}
-	}()
-
-	// Cleanup dead deployments at intervals. This goroutine will lookup at
-	// each information if a deployment has running workers. If workers for a
-	// certain deployment is not running anymore, then it will remove the
-	// deployment information and all workers associated with that deployment
-	// build.
-	tickerDeployment := time.NewTicker(time.Hour * 1)
-	go func() {
-		for _ = range tickerDeployment.C {
-			slog.Println("cleaner started to remove unused deployments and dead workers")
-			infos := modelhelper.GetClients()
-			for _, info := range infos {
-				version, _ := strconv.Atoi(info.BuildNumber)
-
-				// look if any workers are running for a certain version
-				foundWorker := false
-				query := func(c *mgo.Collection) error {
-					iter := c.Find(bson.M{"version": version, "status": int(models.Started)}).Iter()
-					worker := models.Worker{}
-					for iter.Next(&worker) {
-						foundWorker = true
-					}
-
-					if err := iter.Close(); err != nil {
-						return err
-					}
-
-					return nil
-				}
-
-				mongodb.Run("jKontrolWorkers", query)
-
-				// ... if not remove deployment information and dead workers of that version
-				if !foundWorker {
-					slog.Printf("removing deployment info for build number %s\n", info.BuildNumber)
-					err := modelhelper.DeleteClient(info.BuildNumber)
-					if err != nil {
-						slog.Println(err)
-					}
-
-					slog.Printf("removing dead workers for build number %s\n", info.BuildNumber)
-					query := func(c *mgo.Collection) error {
-						_, err := c.RemoveAll(bson.M{"version": version, "status": int(models.Dead)})
-						return err
-					}
-
-					err = mongodb.Run("jKontrolWorkers", query)
-					if err != nil {
-						slog.Println(err)
-					}
+			// remove deployment information only if there is no worker alive for that version
+			if numberOfWorkers == 0 {
+				slog.Printf("removing deployment info for build number %s\n", info.BuildNumber)
+				err := modelhelper.DeleteClient(info.BuildNumber)
+				if err != nil {
+					slog.Println(err)
 				}
 			}
 		}
-	}()
+
+		// check 12 hours later again
+		time.Sleep(time.Hour * 12)
+	}
+
 }
