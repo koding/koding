@@ -131,6 +131,21 @@ module.exports =
           LIMIT {limitCount}
         """
 
+      followingnew:(exemptClause="", type="JStatusUpdate")->
+        """
+          START member=node:koding(id={userId})
+          MATCH member<-[:follower]-members-[:author]-content
+          WHERE members.name="JAccount"
+          AND content.group = {groupName}
+          AND content.name = "#{type}"
+          #{exemptClause}
+          RETURN content.id as id
+          ORDER BY content.`meta.createdAtEpoch` DESC
+          SKIP {skipCount}
+          LIMIT {limitCount}
+
+        """
+
       profilePage: (options)->
         """
           START member=node:koding(id={userId})
