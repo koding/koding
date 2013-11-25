@@ -6,7 +6,6 @@ class FinderController extends KDController
 
   constructor:(options, data)->
 
-    # options.view    = new FinderView
     options.appInfo = name : "Finder"
 
     super options, data
