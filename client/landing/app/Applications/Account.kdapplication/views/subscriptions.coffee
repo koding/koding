@@ -5,19 +5,15 @@ class AccountSubscriptionsListController extends AccountListViewController
 
     super options, data
 
-    @getListView().on 'Reload', @bound 'loadItems'
     @loadItems()
 
-    list = @getListView()
-
-    list.on 'ItemWasAdded', (item) =>
+    @getListView().on 'ItemWasAdded', (item) =>
       subscription = item.getData()
 
-      if subscription.status is 'active'
-        subscription.plan.fetchProducts (err, products) ->
-          KD.showError err  if err
+      subscription.plan.fetchProducts (err, products) ->
+        KD.showError err  if err
 
-          item.setProductComponents subscription, products
+        item.setProductComponents subscription, products
 
       item
         .on 'UnsubscribeRequested', =>
@@ -54,17 +50,13 @@ class AccountSubscriptionsListController extends AccountListViewController
     @removeAllItems()
     @showLazyLoader no
 
-    paymentController = KD.getSingleton 'paymentController'
+    payment = KD.getSingleton 'paymentController'
 
-#    KD.remote.api.JPaymentSubscription.fetchUserSubscriptionsWithPlan (err, subs=[])=>
-    KD.whoami().fetchPlansAndSubscriptions (err, plansAndSubscriptions) =>
-      warn err  if err
-      
-      { subscriptions } = paymentController.groupPlansBySubscription plansAndSubscriptions
-      
-      subscriptions = subscriptions.filter (s) -> s.expired isnt 'expired'
-      
-      @instantiateListItems subscriptions
+    payment.on 'SubscriptionDebited', @bound 'loadItems'
+
+    payment.fetchSubscriptionsWithPlans (err, subscriptions) =>
+      @instantiateListItems subscriptions.filter (s) ->
+        s.status isnt 'expired'
       @hideLazyLoader()
 
   loadView:->
@@ -76,7 +68,7 @@ class AccountSubscriptionsListController extends AccountListViewController
       icon      : yes
       iconOnly  : yes
       iconClass : 'refresh'
-      callback  : @getListView().emit.bind @getListView(), 'Reload'
+      callback  : @bound 'loadItems'
 
 class AccountSubscriptionsList extends KDListView
 
@@ -95,9 +87,11 @@ class AccountSubscriptionsListItem extends KDListItemView
 
     listView = @getDelegate()
 
-    @subscription = new SubscriptionView {}, @getData()
+    subscription = @getData()
 
-    @controls = new SubscriptionControls {}, @getData()
+    @subscription = new SubscriptionView {}, subscription
+
+    @controls = new SubscriptionControls {}, subscription
 
     @forwardEvents @controls, [
       'PlanChangeRequested'
