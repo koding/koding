@@ -99,27 +99,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     @fetchAllSubscriptions selector, callback
 
   @fetchAllSubscriptions = (selector, callback) ->
-    JPayment.invalidateCacheAndLoad this, selector, {
-      forceRefresh
-      forceInterval
-    }, callback
-
-  @updateCache = (selector, callback)->
-    JPayment.updateCache
-      constructor   : this
-      selector      : { paymentMethodId: selector.paymentMethodId }
-      method        : 'fetchSubscriptions'
-      methodOptions : selector.paymentMethodId
-      keyField      : 'uuid'
-      message       : 'user subscriptions'
-      forEach       : (uuid, cached, sub, stackCb)=>
-        {plan, quantity, status, activatedAt, expiresAt, renewAt, amount} = sub
-        cached.setData extend cached.getData(), {
-          userCode, plan, quantity, status, activatedAt, expiresAt, renewAt, amount
-        }
-        cached.lastUpdate = Date.now()
-        cached.save stackCb
-    , callback
+    
 
   refund: (percent, callback)->
     JPaymentPlan = require './plan'

@@ -39,26 +39,6 @@ module.exports = class JPaymentCharge extends jraphical.Module
   @fetchCharges = secure (client, callback)->
     callback { message: 'Not implemented!' }
 
-  @updateCache = (selector, callback)->
-    JPayment.updateCache
-      constructor   : this
-      selector      : selector
-      method        : 'fetchTransactions'
-      methodOptions : selector.paymentMethodId
-      keyField      : 'uuid'
-      message       : 'user transactions'
-      forEach       : (k, cached, transaction, stackCb)->
-        {uuid, amount, status} = transaction
-
-        charge.setData extend charge.getData(), {
-          paymentMethodId: selector.paymentMethodId
-          amount
-          status
-        }
-        charge.lastUpdate = Date.now()
-        charge.save stackCb
-    , callback
-
   @fetchToken = secure (client, data, callback)->
     callback { message: 'Not implemented!' }
 

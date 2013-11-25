@@ -67,63 +67,6 @@ module.exports = class JPayment extends Base
 #    {delegate} = client.connection
 #    @getBalance_ (userCodeOf delegate), callback
 
-  @invalidateCacheAndLoad: (constructor, selector, options, callback)->
-    cb = -> constructor.all selector, callback
-    return cb()  unless options.forceRefresh
-
-    constructor.one selector, sort:lastUpdate:1, (err, obj)=>
-      return constructor.updateCache selector, cb  if err or not obj
-      obj.lastUpdate ?= 0
-      now = Date.now()
-      if now - obj.lastUpdate > 1000 * options.forceInterval
-        constructor.updateCache selector, cb
-      else
-        cb()
-
-  @updateCache = (options, callback)->
-    {constructor, selector, method, methodOptions, keyField, message, forEach} = options
-    selector ?= {}
-
-    console.log "Updating #{message}..."
-
-    cb = (err, objs) ->
-      return callback err  if err
-
-      all = {}
-      all[obj[keyField]] = obj  for obj in objs
-
-      constructor.all selector, (err, cachedObjs) ->
-
-        return callback err  if err
-
-        cached = {}
-        cached[cObj[keyField]] = cObj  for cObj in cachedObjs
-
-        keys = all: Object.keys(all), cached: Object.keys(cached)
-        
-        stackCb = (err) ->
-          stack.fin err
-
-        stack =  keys.all.map (k) -> ->
-          forEach k, cached[k], all[k], stackCb
-
-        # remove obsolete plans in mongo
-        difference(keys.cached, keys.all).forEach (k) ->
-          stack.push -> cached[k].remove stackCb
-
-        # create new JPaymentPlan models for new plans from Recurly
-        difference(keys.all, keys.cached).forEach (k) ->
-          cached[k] = new constructor
-          cached[k][keyField] = all[k][keyField]
-
-        dash stack, ->
-          console.log "Updated #{message}!"
-          callback()
-
-    if methodOptions
-    then recurly[method] methodOptions, cb
-    else recurly[method] cb
-
   @fetchCountryDataByIp = (ip, callback)->
     countries = require './countries.json'
     {sortBy}  = require 'underscore'
