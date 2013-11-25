@@ -14,8 +14,8 @@ resurrection.finder.styl
 
 .kdlistitemview-finderitem
   height              auto
-  min-height          22px
-  font-size           11px
+  min-height          28px
+  font-size           13px
   color               #5e7074
   noTextSelection()
 
@@ -24,30 +24,27 @@ resurrection.finder.styl
 
   .chevron
     abs()
-    top               0
+    top               7px
     right             4px
     z-index           2
     float             none
     display           none
-    size              22px,22px
     margin            0
-    kdfsprite()
-    bg                position,-180px -360px
+    size              22px 22px
 
   &.selected
-    color             white
+    color             #ddd
     text-shadow       0 -1px 0 rgba(0,0,0,0.22)
-    // background        linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
     bg                color, finderSelectedColor1
 
     // I'll find a better place for it ~ GG
     .vm
       span.path-select
-        display     block
-        bg          position, -220px -520px
+        display       block
+        bg            position, -220px -520px
     .title
-      color white
-      text-shadow none
+      color           #ddd
+      text-shadow     none
     &+.selected
       selectedNeighbor()
     &+.jtreeview
@@ -68,8 +65,7 @@ resurrection.finder.styl
 
   &.selected
     span.chevron
-      display       block
-      bg            position,-180px -380px
+      sprite            finder '16-chevron-white'
 
   &:hover
     span.chevron
@@ -79,7 +75,7 @@ resurrection.finder.styl
   &.expanded
     > div
       span.icon
-        sprite      app '16-folder-expanded'
+        sprite      finder '16-folder-expanded'
 
 
   &.being-inline-edited
@@ -121,7 +117,7 @@ resurrection.finder.styl
       bg            position, -62px -242px
 
   > div
-    line-height       22px
+    line-height       28px
     height            100%
     width             auto
     .title
@@ -138,10 +134,10 @@ resurrection.finder.styl
 
     input.kdinput.text
       margin          2px 5px 0 0
-      height          17px
+      height          23px
       line-height     1em
       border          none
-      shadow          inset 0 1px 1px rgba(0,0,0,.44)
+      shadow          none
       rounded         2px
       fl()
 
@@ -153,18 +149,20 @@ resurrection.finder.styl
       fr()
 
     .kdloader
-      margin        2px 3px
+      margin        5px
       fl()
 
     &.rename-container
-      height        22px
+      height        28px
       padding-right 25px
       input.hitenterview
         bg          image, none
         width       100%
         margin      2px 0
       a.cancel
-        bg          position, -62px -242px
+        top         6px
+        right       4px
+        sprite      finder '16-close-white'
 
   .progressbar-container
     hidden()
@@ -203,77 +201,72 @@ resurrection.finder.styl
   .folder
   .broken
   .section
-    font-size       11px
+    font-size       13px
 
     span.icon
-    span.arrow
-      kdfsprite()
       fl()
 
     span.icon
     span.path-select
-      margin        2px 3px
-      size          16px,16px
-    span.arrow
-      margin        3px 3px
-      margin-left   0
-      size          10px,16px
-      bg            position, -1000px -1000px
+      margin            5px
+      size              16px 16px
 
   .vm
-    margin-left     0 !important
-    height          32px
-    padding-top     1px
-    padding-bottom  3px
+    margin-left         0 !important
+    height              32px
+    padding-top         1px
+    padding-bottom      3px
 
-    &.online
-      span.icon
-        bg          position, -20px -140px !important
-
-    span.arrow
-      width         0
+    &.online span.icon
+      bg                color, #4cd449
 
     span.icon
-      bg            position, 0px -140px !important
+      margin            0 16px 0 0
+      width             5px !important
+      height            36px !important
+      bg                color, #bdbdbd
+      bg                image, none !important
     span.chevron
-      top           3px
+      top               3px
 
     span.path-select
-      top           0
-      size          18px,18px
-      right         22px
-      display       none
-      bg            position, -220px -540px
+      top               0
+      size              18px,18px
+      right             22px
+      display           none
+      bg                position, -220px -540px
       kdfsprite()
       abs()
 
     span.vm-info
-      top           20px
-      left          22px
-      font-size     10px
-      font-style    italic
-      opacity       .7
-      line-height   10px
+      top               20px
+      left              22px
+      font-size         10px
+      font-style        italic
+      opacity           .7
+      line-height       10px
+      color             #aaa
       abs()
       a
+        color           #ccc
         text-decoration none
 
     div.vm-toggle
-      top           3px
-      right         20px
+      top               3px
+      right             20px
       abs()
 
   .folder
   .mount
     span.icon
-      sprite        app '16-folder'
+      sprite        finder '16-folder'
     span.icon.application
-      sprite      app '16-app'
+      sprite        finder '16-app'
 
   .folder
     span.icon
       &.app
-        sprite      app '16-app'
+        sprite      finder '16-app'
 
   .broken
     span.icon
@@ -281,7 +274,7 @@ resurrection.finder.styl
 
   .file
     span.icon
-      sprite        app '16-file'
+      sprite        finder '16-file'
       // &.code
       //   bg          position, -40px -180px
       // &.image
@@ -296,3 +289,87 @@ resurrection.finder.styl
       //   bg          position, -40px -280px
       // &.text
       //   bg          position, -40px -300px
+
+
+
+.set-permissions-wrapper
+  margin-left     0
+  line-height     28px
+  min-width       273px
+  font-size       11px
+  size            auto auto
+
+  header
+    border-bottom 1px solid rgb(213,213,213)
+    padding-left  72px
+    span
+      width       65px
+      text-align  center
+      fl()
+
+  aside
+    width         60px
+    text-align    right
+    margin-right  12px
+    padding-top   3px
+    line-height   33px
+
+    fl()
+
+  section
+    display       block
+    overflow      hidden
+
+  footer
+    margin-top    5px
+    padding-left  72px
+    margin-right  10px
+
+    p.old
+      color       #666
+      em
+        color     #888
+    p
+      width       65px
+      fl()
+      em
+        font-style  normal
+        color       k-orange
+
+    button
+      width       auto
+      padding     3px 8px
+      margin      3px 3px 0 0
+      fr()
+
+    label
+      margin-right 2px
+
+    .on-off
+      margin      0 2px 0 0
+      fr()
+
+  .switcher-group-mask
+    size        200px, 100px
+    background  #fff
+    opacity     0.6
+    position    absolute
+    &.can-set-recursive
+      height    135px
+
+  .new-mode-label
+    margin-left 203px
+    float       left
+
+  .new-mode-input
+    position    relative
+    top         -2px
+    width       30px
+
+  .switcher-group
+    width         65px
+    fl()
+
+  .on-off
+    margin        6px 5px 0 0
+    fl()
