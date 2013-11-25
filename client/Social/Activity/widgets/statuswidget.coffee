@@ -178,7 +178,7 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
 
     @utils.defer =>
       @largeInput.$().trigger "focus"
-      @largeInput.setHeight 140
+      @largeInput.setHeight 109
       @largeInput.setValue @lastestStatusMessage
 
     #Â Do we really need this? Without that it works great.
@@ -275,6 +275,7 @@ class ActivityStatusUpdateWidget extends ActivityWidgetFormView
       {{> @inputLinkInfoBox}}
       {{> @embedUnhideLinkWrapper}}
     </div>
+    {{> @submitBtn}}
     """
     # <div class="formline">
     #   {{> @embedBox}}
