@@ -8,7 +8,6 @@ class WebTermController extends AppController
     route        :
       slug       : "/:name?/Develop/Terminal"
       handler    : ({params:{name}, query})->
-        KD.mixpanel "Click open Webterm", name
         KD.utils.wait 800, ->
           router = KD.getSingleton 'router'
           warn "webterm handling itself", name, query, arguments
@@ -23,6 +22,7 @@ class WebTermController extends AppController
     behavior     : "application"
     preCondition :
       condition  : (options, cb)->
+        KD.mixpanel "Click open Webterm", name
 
         {vmName} = options
         vmController = KD.getSingleton 'vmController'
@@ -32,9 +32,8 @@ class WebTermController extends AppController
           vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)->
             cb  info?.state is 'RUNNING', {vmName, info}
           , ->
-            cb yes
+            cb no
             KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
-            KD.mixpanel "Can't open Webterm", {vmName}
           , 2500
       failure     : (options, cb)->
         {vmName} = options
