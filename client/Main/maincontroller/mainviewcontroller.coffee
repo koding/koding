@@ -59,14 +59,14 @@ class MainViewController extends KDViewController
     {mainTabView}   = mainView
     {navController} = dockController
 
-    KD.singleton('display').emit "ContentDisplaysShouldBeHidden"
+    # KD.singleton('display').emit "ContentDisplaysShouldBeHidden"
     # temp fix
     # until fixing the original issue w/ the dnd this should be kept here
     if pane
     then @setViewState pane.getOptions()
     else mainTabView.getActivePane().show()
 
-    {title} = app.getOption('navItem')
+    {title} = app?.getOption('navItem')
 
     if title
     then navController.selectItemByName title

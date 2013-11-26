@@ -132,13 +132,15 @@ class AppsAppController extends AppController
   updateApps:->
     @utils.wait 100, => @feedController?.changeActiveSort "meta.modifiedAt"
 
+
   createContentDisplay:(app, callback)->
-    return
+
     contentDisplay = @showContentDisplay app
     @utils.defer => callback contentDisplay
 
+
   showContentDisplay:(content)->
-    return
+
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()
     KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay

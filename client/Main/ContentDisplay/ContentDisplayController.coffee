@@ -6,74 +6,61 @@ class ContentDisplayController extends KDController
 
     @displays = {}
     @attachListeners()
-    @revivedContentDisplay = no
 
 
   attachListeners:->
 
-    @on "ContentDisplayWantsToBeShown",  (view)=> @showContentDisplay view
-    @on "ContentDisplayWantsToBeHidden", (view)=> @hideContentDisplay view
-    @on "ContentDisplaysShouldBeHidden",       => @hideAllContentDisplays()
-    KD.getSingleton("appManager").on "ApplicationShowedAView",    => @hideAllContentDisplays()
+    mc         = KD.singleton 'mainController'
+    appManager = KD.singleton 'appManager'
+    @on "ContentDisplayWantsToBeShown",  (view)=> mc.ready => @showDisplay view
+    @on "ContentDisplayWantsToBeHidden", (view)=> mc.ready => @hideDisplay view
+    @on "ContentDisplaysShouldBeHidden",       => mc.ready => @hideAllDisplays()
+    appManager.on "ApplicationShowedAView",    => mc.ready => @hideAllDisplays()
 
 
-  showContentDisplay:(view)->
+  showDisplay:(view)->
 
-    contentPanel       = KD.getSingleton "contentPanel"
-    mainView           = KD.getSingleton "mainView"
-    mainViewController = KD.getSingleton "mainViewController"
-    wrapper            = new ContentDisplay
-      domId : "content-display-wrapper"  if not @revivedContentDisplay
+    {@mainTabView} = KD.singleton "mainView"
+    tabPane = new ContentDisplay
+      name  : 'content-display'
+      type  : 'social'
 
-    wrapper.bindTransitionEnd()
     @displays[view.id] = view
-    wrapper.addSubView view
-    contentPanel.addSubView wrapper
-    @slideWrapperIn wrapper
-    @revivedContentDisplay = yes
-    mainView.sidebar.navController.deselectAllItems()
+    tabPane.addSubView view
+    @mainTabView.addPane tabPane
 
-    # KD.utils.defer -> mainViewController.setViewState()
+    KD.singleton('dock').navController.selectItemByName 'Activity'
 
-    return wrapper
+    tabPane.on 'KDTabPaneInactive', => @hideDisplay view
 
-
-  hideContentDisplay:(view)-> KD.getSingleton('router').back()
+    return tabPane
 
 
-  hideAllContentDisplays:(exceptFor)->
+  hideDisplay:(view)->
+
+    # KD.getSingleton('router').back()
+    tabPane = view.parent
+    @destroyView view
+    @mainTabView.removePane tabPane  if tabPane
+
+
+  hideAllDisplays:(exceptFor)->
 
     displayIds =\
       if exceptFor?
-        (id for own id,display of @displays when exceptFor isnt display)
-      else
-        (id for own id,display of @displays)
+      then (id for own id,display of @displays when exceptFor isnt display)
+      else (id for own id,display of @displays)
 
     return if displayIds.length is 0
 
     lastId = displayIds.pop()
-    for id in displayIds
-      @destroyView @displays[id]
+    @destroyView @displays[id] for id in displayIds
 
-    @slideWrapperOut @displays[lastId]
-
-
-  slideWrapperIn:(wrapper)->
-
-    wrapper.setClass 'in'
-
-
-  slideWrapperOut:(view)->
-
-    wrapper = view.parent
-    wrapper.once 'transitionend', => @destroyView view
-    wrapper.unsetClass 'in'
+    @hideDisplay @displays[lastId]
 
 
   destroyView:(view)->
 
-    wrapper = view.parent
     @emit 'DisplayIsDestroyed', view
     delete @displays[view.id]
     view.destroy()
-    wrapper?.destroy()

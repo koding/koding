@@ -237,18 +237,22 @@ class MembersAppController extends AppController
       mainView.createCommons()
     @createFeed mainView, loadFeed
 
-  # showMemberContentDisplay:({content})->
-  #   controller = new ContentDisplayControllerMember null, content
-  #   contentDisplay = controller.getView()
-  #   KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
+  showMemberContentDisplay:({content})->
+
+    controller = new ContentDisplayControllerMember null, content
+    contentDisplay = controller.getView()
+    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
+
 
   createContentDisplay:(account, callback)->
+
     controller     = new ContentDisplayControllerMember null, account
     contentDisplay = controller.getView()
     contentDisplay.on 'handleQuery', (query)=>
       controller.ready -> controller.feedController?.handleQuery? query
     @showContentDisplay contentDisplay
     @utils.defer -> callback contentDisplay
+
 
   createContentDisplayWithOptions:(options, callback)->
     {model, route, query} = options
@@ -272,7 +276,7 @@ class MembersAppController extends AppController
 
   showContentDisplay:(contentDisplay)->
 
-    # KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
+    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
   setCurrentViewNumber:(type, count)->
