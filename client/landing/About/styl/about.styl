@@ -1,0 +1,50 @@
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
+
+@css {
+/*
+About Koding stylesheet
+about.styl
+*/
+}
+
+h1.team-title
+  font-size         64px
+  line-height       128px
+  height            128px
+  text-align        center
+  font-weight       300
+  border-bottom     none
+
+.kdlistitemview-team
+  fl()
+  size              190px auto
+  text-align        center
+
+  figure
+    margin          0 auto
+    rounded         4px
+    size            160px 160px
+    display         block
+    sprite          app 'default.avatar.160'
+
+  .avatarimage
+    rounded         4px
+    size            160px 160px
+    display         block
+    opacity         0
+    vendor          transition, opacity .3s .3s ease
+    &.in
+      opacity       1
+
+  figcaption
+    margin          15px 0
+
+  a.profile
+    text-decoration none
+    color           #333
+    display         block
+  cite
+    font-size       12px
+    color           #999
