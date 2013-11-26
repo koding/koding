@@ -1,5 +1,7 @@
 class ActivityListController extends KDListViewController
 
+  {dash} = Bongo
+
   constructor:(options={}, data)->
 
     viewOptions = options.viewOptions or {}
@@ -64,55 +66,26 @@ class ActivityListController extends KDListViewController
     @hideLazyLoader()
     return  unless activities.length > 0
     activityIds = []
-    for activity in activities when activity
-      @addItem activity
-      activityIds.push activity._id
+    queue = []
 
-    @checkIfLikedBefore activityIds
+    activities.forEach (activity)=>
+      queue.push =>
+        @addItem activity
+        activityIds.push activity._id
+        queue.fin()
 
-    @lastItemTimeStamp or= Date.now()
+    dash queue, =>
 
-    for obj in activities
-      objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
-      if objectTimestamp < @lastItemTimeStamp
-        @lastItemTimeStamp = objectTimestamp
+      @checkIfLikedBefore activityIds
 
-    @emit "teasersLoaded"
+      @lastItemTimeStamp or= Date.now()
 
-  listActivitiesFromCache:(cache, index, animation)->
-    @hideLazyLoader()
-    return  unless cache.overview?.length > 0
-    activityIds = []
-    for overviewItem in cache.overview when overviewItem
-      if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
-        group = []
-        for id in overviewItem.ids
-          if cache.activities[id].teaser?
-            group.push cache.activities[id].teaser.anchor
-          else
-            KD.logToExternal msg:'no teaser for activity', activityId:id
+      for obj in activities
+        objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
+        if objectTimestamp < @lastItemTimeStamp
+          @lastItemTimeStamp = objectTimestamp
 
-        @addItem new NewMemberBucketData
-          type                : "CNewMemberBucketActivity"
-          group               : group
-          count               : overviewItem.count
-          createdAtTimestamps : overviewItem.createdAt
-      else
-        activity = cache.activities[overviewItem.ids.first]
-        if activity?.teaser
-          activity.teaser.createdAtTimestamps = overviewItem.createdAt
-          view = @addHiddenItem activity.teaser, index, animation
-          view.setClass 'no-anim'
-          view.unsetClass 'hidden-item'
-          KD.utils.defer -> view.unsetClass 'no-anim'
-          @removeFromHiddenItems view
-          activityIds.push activity.teaser._id
-
-    @checkIfLikedBefore activityIds
-
-    @lastItemTimeStamp = cache.from
-
-    @emit "teasersLoaded"
+      @emit "teasersLoaded"
 
   checkIfLikedBefore:(activityIds)->
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
@@ -121,19 +94,6 @@ class ActivityListController extends KDListViewController
         if likeView
           likeView.setClass "liked"
           likeView._currentState = yes
-
-  getLastItemTimeStamp: ->
-
-    if item = @hiddenItems.first
-      item.getData().createdAt or item.getData().createdAtTimestamps.last
-    else
-      @lastItemTimeStamp
-
-  followedActivityArrived: (activity) ->
-
-    if @_state is 'private'
-      view = @addHiddenItem activity, 0
-      @activityHeader?.newActivityArrived()
 
   logNewActivityArrived:(activity)->
     id = activity.getId?()

@@ -112,12 +112,12 @@ module.exports = class JStatusUpdate extends JPost
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-  # done
   @fetchGroupActivity = secure (client, options, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
-
-      selector = {}
+      {to} = options
+      to = if to then new Date(to)  else new Date()
+      selector = {'meta.createdAt' : "$lt" : to }
 
       options.sort = 'meta.createdAt' : -1
       options.limit or= 20
@@ -125,7 +125,6 @@ module.exports = class JStatusUpdate extends JPost
         return callback err if err
         @decorateResults data, callback
 
-  # done
   @fetchProfileFeed = secure (client, options, callback)->
     {connection:{delegate}, context:{group}} = client
 
@@ -139,7 +138,6 @@ module.exports = class JStatusUpdate extends JPost
       return callback err if err
       @decorateResults data, callback
 
-  # done
   @fetchTopicFeed = secure (client, selector={}, options={}, callback)->
     topicId = selector.tagId or "526ee3ef5647f9bb44000040"
     {context:{group}} = client
