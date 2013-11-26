@@ -1,12 +1,22 @@
 class KodingAppsController extends KDController
 
-  KD.registerAppClass this,
-    name       : "KodingAppsController"
-    background : yes
+  name    = "KodingAppsController"
+  version = "0.1"
 
-  # This is the most important method to put & run additional apps on Koding
-  # Please make sure about your changes on it.
-  @putAppScript = (name, callback = noop)->
+  KD.registerAppClass this, {name, version, background: yes}
+
+  constructor:->
+    super
+
+    appStorage = KD.getSingleton 'appStorageController'
+    @storage   = appStorage.storage "Applications", version
+
+    @storage.fetchStorage (storage)=>
+      @apps = @storage.getValue('installed') or {}
+      @apps or= {}
+
+      @emit 'ready'
+
   @loadInternalApp = (name, callback)->
 
     unless KD.config.apps[name]
@@ -32,7 +42,7 @@ class KodingAppsController extends KDController
       cssClass   : "internal-#{app.identifier}"
       bind       : 'load'
       load       : ->
-        log "Style loaded? for #{name} # don't trust this ..."
+        log "Style loaded? for #{app.identifier} # don't trust this ..."
       attributes :
         rel      : "stylesheet"
         href     : app.style
@@ -49,6 +59,16 @@ class KodingAppsController extends KDController
         src      : app.script
 
     $('head')[0].appendChild script.getElement()
+
+
+  installApp: (appUrl)->
+
+    # Add security here check if appUrl is in safe urls list ~ GG
+
+    # @storage.setValue
+
+
+
 
   ###
 

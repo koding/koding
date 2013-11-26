@@ -109,6 +109,7 @@ module.exports =
           START group=node:koding(id={groupId})
           MATCH group-[:member]->members<-[:author]-content
           WHERE content.`meta.createdAtEpoch` < {to}
+          AND content.name <> "JApp"
           #{facetQuery}
           #{groupFilter}
           #{exemptClause}
