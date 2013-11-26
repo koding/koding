@@ -198,20 +198,6 @@ class ActivityAppController extends AppController
 
 
   fetchPublicActivities:(options = {})->
-    {CStatusActivity} = KD.remote.api
-
-    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
-      log KD.prefetchedFeeds
-      prefetchedActivity = KD.prefetchedFeeds["activity.main"]
-      if prefetchedActivity and ('activities.main' not in USEDFEEDS) and prefetchedActivity.activities
-        log "exhausting feed:", "activity.main"
-        USEDFEEDS.push 'activities.main'
-        return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
-
-    CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
-      return @emit "activitiesCouldntBeFetched", err  if err
-      @prepareCacheForListing  cache
-
   prepareCacheForListing: (cache)->
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
