@@ -99,7 +99,7 @@ class FormWorkflow extends KDView
   getFormNames: -> Object.keys @forms
 
   hideForms: (forms = @getFormNames()) ->
-    @forms[form]?.hide() for form in forms
+    @forms[form]?.hide()  for form in forms
 
     return this
 

@@ -117,7 +117,13 @@ class PaymentController extends KDController
       productForm: upgradeForm
       confirmForm: new KDView partial: 'howdy'
 
-    workflow.enter()
+    upgradeForm.on 'PlanSelected', (plan) =>
+      workflow.collectData { plan }
+
+    workflow
+      .on('DataCollected', -> debugger)
+    
+      .enter()
 
     workflow
 
