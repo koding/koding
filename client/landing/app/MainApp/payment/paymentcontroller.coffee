@@ -80,7 +80,7 @@ class PaymentController extends KDController
 
   createPaymentInfoModal: -> new PaymentFormModal
 
-  createUpgradeForm: (tag) ->
+  createUpgradeForm: (tag, forceUpgrade = no) ->
 
     { dash } = Bongo
 
@@ -98,7 +98,15 @@ class PaymentController extends KDController
           plan.childProducts = products
           queue.fin()
 
-      dash queue, -> form.setPlans plans
+      subscription = null
+      queue.push ->
+        KD.whoami().fetchSubscriptions ['vm'], (err, [subscription_]) ->
+          subscription = subscription_
+          queue.fin()
+
+      dash queue, ->
+        form.setPlans plans
+        form.setCurrentSubscription subscription, forceUpgrade
 
     return form
 
