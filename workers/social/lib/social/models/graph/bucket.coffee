@@ -3,14 +3,17 @@ QueryRegistry = require './queryregistry'
 
 module.exports = class Bucket extends Graph
 
+  @activityFetchCount = KONFIG.client.runtimeOptions.activityFetchCount
+
   ###############################################
   ##############  new members  ##################
   ###############################################
   @fetchNewMembers:(group, to, callback)->
     {groupName, groupId} = group
     options =
-      groupId : groupId
-      to      : to
+      groupId     : groupId
+      to          : to
+      limitCount  : @activityFetchCount
 
     query = QueryRegistry.bucket.newMembers
     @queryMembers query, options, callback
@@ -37,8 +40,9 @@ module.exports = class Bucket extends Graph
   @fetchNewInstalledApps:(group, to, callback)->
     {groupName, groupId} = group
     options =
-      groupId : groupId
-      to      : to
+      groupId     : groupId
+      to          : to
+      limitCount  : @activityFetchCount
 
     query = QueryRegistry.bucket.newInstallations
     @fetch query, options, (err, results) =>
@@ -65,8 +69,10 @@ module.exports = class Bucket extends Graph
   @fetchMemberFollows:(group, to, callback)->
     {groupId} = group
     options =
-      groupId : groupId
-      to      : to
+      groupId     : groupId
+      to          : to
+      limitCount  : @activityFetchCount
+
     query = QueryRegistry.bucket.newUserFollows
     @fetchFollows query, options, callback
 
@@ -76,9 +82,10 @@ module.exports = class Bucket extends Graph
   @fetchTagFollows:(group, to, callback)->
     {groupId, groupName} = group
     options =
-      groupId   : groupId
-      groupName : groupName
-      to        : to
+      groupId     : groupId
+      groupName   : groupName
+      to          : to
+      limitCount  : @activityFetchCount
 
     query = QueryRegistry.bucket.newTagFollows
     @fetchFollows query, options, callback
