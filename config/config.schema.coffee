@@ -158,6 +158,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        activityFetchCount : 1
         precompiledApi: 1
         authExchange  : 1
         github        :
