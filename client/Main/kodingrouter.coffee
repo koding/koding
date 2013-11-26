@@ -277,8 +277,6 @@ class KodingRouter extends KDRouter
 
       '/'                      : handleRoot
       ''                       : handleRoot
-      # '/Home'                : handleRoot
-      '/About'                 : createSectionHandler 'Activity'
 
       '/Landing/:page'         : noop
       '/R/:username'           : noop
