@@ -12,7 +12,10 @@ class FormWorkflow.Collector extends KDEventEmitter
         @emit 'Pending'
 
   addRequirement: (requirement) ->
-    @gate.addField requirement
+    @gate.addField \
+      if requirement.isJunction
+      then requirement
+      else Junction.all requirement...
 
   nextRequirement: -> @gate.nextNode()
 

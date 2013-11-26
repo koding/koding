@@ -34,10 +34,7 @@ class FormWorkflow extends KDView
   back: -> @go 'back'
 
   requireData: (fields) ->
-    @collector.addRequirement \
-      if fields.isJunction
-      then fields
-      else Junction.all fields...
+    @collector.addRequirement fields
 
     return this
 
