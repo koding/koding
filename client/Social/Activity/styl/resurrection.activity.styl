@@ -91,6 +91,7 @@ resurrection.activity.styl
           padding       22px 22px 0
           color         #50595a
           font-weight   400
+          word-break    break-all
 
         .author-name a
           color         #50595a
@@ -313,3 +314,34 @@ resurrection.activity.styl
         &.online
           i
             background    #2eb398
+
+
+span.collapsedtext
+  borderBox()
+  vendor              transition, font-size .2s linear
+  a.more-link
+  a.less-link
+    font-size         11px
+    font-weight       400
+    // padding           0 5px
+    margin-left       5px
+    color             linkColor1
+    vendor            transition, font-size .2s linear
+    // bg                color, linkColor1
+    // rounded           8px
+
+  &.hide
+    font-size         0!important
+    *
+      visibility      hidden
+      display         none
+    a.more-link
+      font-size       11px!important
+      visibility      visible
+      display         inline
+
+  &.show
+    a.more-link
+      font-size       0
+      margin-left     0
+      padding         0
