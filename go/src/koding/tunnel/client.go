@@ -102,8 +102,6 @@ func (c *Client) proxy(serverMsg *ServerMsg) {
 		remote.Close()
 	})
 
-	// time.AfterFunc(time.Second*10, func() { local.Close() })
-
 	<-join(local, remote)
 }
 

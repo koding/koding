@@ -102,31 +102,33 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := s.handleControl(w, r)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "client could not establish connection to tunnel server", 502)
+		return
+	}
+}
+
+func (s *Server) handleControl(w http.ResponseWriter, r *http.Request) error {
 	username := r.Header.Get("username")
 	if username == "" {
-		log.Printf("empty username is connected")
-		http.Error(w, "username is not set", 405)
-		return
+		return fmt.Errorf("empty username is connected")
 	}
 
 	host, ok := s.GetHost(username)
 	if !ok {
-		log.Printf("no host is associated for username %s. please use server.AddHost()", username)
-		http.Error(w, "there is no host defined for this username", 405)
-		return
+		return fmt.Errorf("no host associated for username %s. please use server.AddHost()", username)
 	}
 
 	_, ok = s.getControl(username)
 	if ok {
-		log.Printf("control conn for %s already exist\n", username)
-		http.Error(w, "only one control connection is allowed", 405)
-		return
+		return fmt.Errorf("control conn for %s already exist\n", username)
 	}
 
 	conn, _, err := w.(http.Hijacker).Hijack()
 	if err != nil {
-		log.Println("register hijacking ", r.RemoteAddr, ": ", err.Error())
-		return
+		return fmt.Errorf("control hijacking %s: %s", r.RemoteAddr, err)
 	}
 
 	// ok, everthing is ready
@@ -138,7 +140,7 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 	s.addControl(username, control)
 
 	// delete and close all tunnels and control connection when there is a
-	// disconnection
+	// disconnection.
 	defer func() {
 		control.Close()
 		s.deleteControl(username)
@@ -148,6 +150,8 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("control connection has been established for", username)
 	control.run() // blocking function
+
+	return nil
 }
 
 // ServeHTTP is a tunnel that creates an http/websocket tunnel between a
