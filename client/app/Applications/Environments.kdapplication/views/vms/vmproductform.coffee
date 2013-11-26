@@ -1,7 +1,7 @@
 class VmProductForm extends FormWorkflow
 
   createUpgradeForm: ->
-    (KD.getSingleton 'paymentController').createUpgradeForm 'vm'
+    (KD.getSingleton 'paymentController').createUpgradeForm 'vm', yes
 
   checkUsageLimits: (pack, callback) ->
     { subscription } = @collector.data
