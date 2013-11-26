@@ -119,8 +119,6 @@ class Junction extends KDObject
   @All = class All extends this
     # All is like Junction.
 
-  @all = (fields...) -> new All fields
-
   @Any = class Any extends this
     # Any is like Junction, with a couple tweaks.
 
@@ -129,5 +127,7 @@ class Junction extends KDObject
 
     # Any#createSatisfier returns a singleton satisfier :)
     createSatisfier: -> @satisfier ?= super
+
+  @all = (fields...) -> new All fields
 
   @any = (fields...) -> new Any fields 
