@@ -42,7 +42,7 @@ class PlanUpgradeForm extends JView
   pistachio: ->
     """
     <h2>
-      You must upgrade your plan:
+      Upgrade your plan:
     </h2>
     {{> @listView}}
     """
