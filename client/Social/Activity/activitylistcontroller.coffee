@@ -83,40 +83,12 @@ class ActivityListController extends KDListViewController
 
       @lastItemTimeStamp or= Date.now()
 
-  listActivitiesFromCache:(cache, index, animation)->
-    @hideLazyLoader()
-    return  unless cache.overview?.length > 0
-    activityIds = []
-    for overviewItem in cache.overview when overviewItem
-      if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
-        group = []
-        for id in overviewItem.ids
-          if cache.activities[id].teaser?
-            group.push cache.activities[id].teaser.anchor
-          else
-            KD.logToExternal msg:'no teaser for activity', activityId:id
+      for obj in activities
+        objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
+        if objectTimestamp < @lastItemTimeStamp
+          @lastItemTimeStamp = objectTimestamp
 
-        @addItem new NewMemberBucketData
-          type                : "CNewMemberBucketActivity"
-          group               : group
-          count               : overviewItem.count
-          createdAtTimestamps : overviewItem.createdAt
-      else
-        activity = cache.activities[overviewItem.ids.first]
-        if activity?.teaser
-          activity.teaser.createdAtTimestamps = overviewItem.createdAt
-          view = @addHiddenItem activity.teaser, index, animation
-          view.setClass 'no-anim'
-          view.unsetClass 'hidden-item'
-          KD.utils.defer -> view.unsetClass 'no-anim'
-          @removeFromHiddenItems view
-          activityIds.push activity.teaser._id
-
-    @checkIfLikedBefore activityIds
-
-    @lastItemTimeStamp = cache.from
-
-    @emit "teasersLoaded"
+      @emit "teasersLoaded"
 
   checkIfLikedBefore:(activityIds)->
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
