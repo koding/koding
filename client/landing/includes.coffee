@@ -50,6 +50,7 @@ module.exports = [
   "app/CommonViews/SkillTagFormView.coffee",
   "app/CommonViews/SkillTagAutoCompleteController.coffee",
   "app/CommonViews/SkillTagAutoCompletedItem.coffee",
+  "app/CommonViews/BadgeList.coffee",
   "app/CommonViews/messagesList.coffee",
   "app/CommonViews/CommonInputWithButton.coffee",
   "app/CommonViews/SplitViewWithOlderSiblings.coffee",
@@ -126,6 +127,9 @@ module.exports = [
   "app/MainApp/sidebar/modals/introductiontooltip/introductionchilditem.coffee",
   "app/MainApp/sidebar/modals/introductiontooltip/introductionadminform.coffee",
   "app/MainApp/sidebar/modals/introductiontooltip/introductionadmin.coffee",
+  "app/MainApp/sidebar/modals/badges/badgeadmin.coffee",
+  "app/MainApp/sidebar/modals/badges/badgelistitem.coffee",
+  "app/MainApp/sidebar/modals/badges/badgemodals.coffee",
   "app/MainApp/sidebar/modals/adminmodal.coffee",
   "app/MainApp/sidebar/modals/kiteselector.coffee",
 
