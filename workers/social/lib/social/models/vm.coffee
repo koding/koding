@@ -12,6 +12,7 @@ module.exports = class JVM extends Module
   KodingError = require '../error'
 
   JPaymentSubscription = require './payment/subscription'
+  JPaymentPack         = require './payment/pack'
   JPermissionSet       = require './group/permissionset'
   @share()
 
@@ -476,25 +477,26 @@ module.exports = class JVM extends Module
     if vm.planCode is 'free'
       vm.remove callback
     else
-      JPaymentSubscription.fetchAllSubscriptions
+      JPaymentSubscription.one
         planCode : vm.subscriptionCode
         $or      : [
           {status: 'active'}
           {status: 'canceled'}
         ]
-      , (err, subs)->
-        if err or not subscriptions?.length
+      , (err, subscription)->
+        if err or not subscription
           return callback { message: 'Unable to update subscription.' }
-
-        [subscription] = subscriptions
 
         if subscription.status is 'canceled'
           vm.remove callback
         else
-          subscription.credit  (err) ->
+          JPaymentPack.one { planCode: vm.planCode }, (err, pack) ->
             return callback err  if err
 
-            vm.remove callback
+            subscription.credit pack, (err) ->
+              return callback err  if err
+
+              vm.remove callback
 
   @removeByHostname = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
