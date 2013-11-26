@@ -4,6 +4,7 @@ class AppsAppController extends AppController
     name         : "Apps"
     route        : "/:name?/Apps"
     hiddenHandle : yes
+    version      : "1.0"
     navItem      :
       title      : "Apps"
       path       : "/Apps"
