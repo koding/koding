@@ -77,8 +77,9 @@ class VirtualizationController extends KDController
       title    : "Destroy '#{hostnameAlias}'"
       action   : "Destroy my VM"
       callback : =>
-        @deleteVmByHostname hostnameAlias, callback
-        new KDNotificationView title:'Successfully destroyed!'
+        @deleteVmByHostname hostnameAlias, (err) ->
+          return if KD.showError err
+          new KDNotificationView title:'Successfully destroyed!'
         modal.destroy()
     , vmPrefix
 
@@ -103,11 +104,8 @@ class VirtualizationController extends KDController
           new KDNotificationView title: message
           callback { message }
 
-        else if vmInfo.planCode is 'free'
-          @confirmVmDeletion vmInfo
-
         else
-          @confirmVmDeletion vmInfo, -> debugger
+          @confirmVmDeletion vmInfo
 
       else
         new KDNotificationView title: 'Failed to remove!'
