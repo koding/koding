@@ -380,6 +380,9 @@ class ProfileView extends JView
       {callback, inputValue, blacklist} = event
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
+
+    @createBadges()
+
     avatarOptions  =
       showStatus      : yes
       size            :
@@ -489,7 +492,6 @@ class ProfileView extends JView
     super
 
     @createExternalProfiles()
-    @createBadges()
 
   uploadAvatar: (avatarData, callback)->
     FSHelper.s3.upload "avatar.png", avatarData, (err, url)=>
@@ -516,6 +518,8 @@ class ProfileView extends JView
       @addSubView view, '.external-profiles'
 
   createBadges:->
+    @badgeView = new BadgeList {@memberData}
+    log "@badgeView", @badgeView
 
   setEditingMode: (state) ->
     @editingMode = state
@@ -662,9 +666,9 @@ class ProfileView extends JView
           <div class="liks">{{> @likes}}</div>
           <div class='contact'>{{> @sendMessageLink}}</div>
         </div>
-        <div class="badges"></div>
         <div class="profilebio">{{> @bio }}</div>
         <div class="personal-skilltags">{{> @skillTagView}}</div>
+        <div class="badge-proflelist">{{> @badgeView}}</div>
       </div>
     </section>
     """

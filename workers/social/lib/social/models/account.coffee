@@ -21,6 +21,7 @@ module.exports = class JAccount extends jraphical.Module
   CActivity        = require './activity'
   Graph            = require "./graph/graph"
   JName            = require './name'
+  JBadge           = require './badge'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -281,6 +282,10 @@ module.exports = class JAccount extends jraphical.Module
       invitationRequest :
         as          : 'owner'
         targetType  : 'JInvitationRequest'
+
+      badge         :
+        as          : 'badge'
+        targetType  : 'JBadge'
 
   constructor:->
     super

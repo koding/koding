@@ -79,6 +79,9 @@ class AdminModal extends KDModalViewWithForms
                               modal.destroy()
                           else
                             modal.destroy()
+              Badges          :
+                label         : "Badges"
+                itemClass     : UserBadgeListView
 
           "Broadcast Message" :
             buttons           :
@@ -204,6 +207,8 @@ class AdminModal extends KDModalViewWithForms
                     partial   : 'This will show a timer.'
           "Introduction":
             fields            : {}
+          "Badges":
+            fields            : {}
 
     super options, data
 
@@ -214,6 +219,7 @@ class AdminModal extends KDModalViewWithForms
 
     @initIntroductionTab()
     @createUserAutoComplete()
+    @initBadgesTab()
 
   createUserAutoComplete:->
     {fields, inputs, buttons} = @modalTabs.forms["User Details"]
@@ -237,7 +243,9 @@ class AdminModal extends KDModalViewWithForms
       if accounts.length > 0
         account = accounts[0]
         inputs.Flags.setValue account.globalFlags?.join(',')
+        {inputs} = @modalTabs.forms["User Details"]
         userRequestLineEdit.hide()
+        inputs.Badges.setAccount account
         @showConnectedFields()
       else
         userRequestLineEdit.show()
@@ -251,6 +259,7 @@ class AdminModal extends KDModalViewWithForms
     buttons.Update.hide()
     fields.Flags.hide()
     fields.Block.hide()
+    fields.Badges.hide()
     inputs.Flags.setValue ''
 
   showConnectedFields:->
@@ -258,8 +267,13 @@ class AdminModal extends KDModalViewWithForms
     fields.Impersonate.show()
     fields.Flags.show()
     fields.Block.show()
+    fields.Badges.show()
     buttons.Update.show()
 
   initIntroductionTab: ->
     parentView = @modalTabs.forms["Introduction"]
     parentView.addSubView new IntroductionAdmin { parentView }
+
+  initBadgesTab: ->
+    parentView = @modalTabs.forms["Badges"]
+    parentView.addSubView new BadgeAdmin { parentView }
