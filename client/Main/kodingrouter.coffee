@@ -14,8 +14,7 @@ class KodingRouter extends KDRouter
     @defaultRoute or= location.pathname + location.search
     @openRoutes     = {}
     @openRoutesById = {}
-    KD.getSingleton('contentDisplayController')
-      .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
+    KD.singleton('display').on 'DisplayIsDestroyed', @bound 'cleanupRoute'
     @ready = no
     KD.getSingleton('mainController').once 'AccountChanged', =>
       @ready = yes
@@ -73,7 +72,7 @@ class KodingRouter extends KDRouter
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment
     unless location.hash.length
-      KD.getSingleton("contentDisplayController").hideAllContentDisplays()
+      KD.singleton('display').hideAllContentDisplays()
       {entryPoint} = KD.config
       if KD.isLoggedIn()
         @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
@@ -206,7 +205,7 @@ class KodingRouter extends KDRouter
       route = name unless route
       contentDisplay = @openRoutes[route.split('?')[0]]
       if contentDisplay?
-        KD.getSingleton("contentDisplayController")
+        KD.singleton('display')
           .hideAllContentDisplays contentDisplay
         contentDisplay.emit 'handleQuery', query
       else if models?
@@ -219,7 +218,7 @@ class KodingRouter extends KDRouter
 
       contentDisplay = @openRoutes[route]
       if contentDisplay?
-        KD.getSingleton("contentDisplayController")
+        KD.singleton('display')
           .hideAllContentDisplays contentDisplay
       else
         @openContent null, section, models, route, null, passOptions

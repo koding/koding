@@ -283,7 +283,7 @@ class MainView extends KDView
 
         return if KD.isLoggedIn()
 
-        cdc      = KD.getSingleton 'contentDisplayController'
+        cdc      = KD.singleton('display')
         mainView = KD.getSingleton 'mainView'
 
         return unless Object.keys(cdc.displays).length

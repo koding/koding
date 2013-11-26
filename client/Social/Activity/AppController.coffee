@@ -174,19 +174,19 @@ class ActivityAppController extends AppController
       group   = groupObj?.slug
 
       if @getFeedFilter() is "Public"
-        @once "publicFeedFetched_#{eventSuffix}", (cache)=>
+        @once "publicFeedFetched_#{eventSuffix}", (messages)=>
           reset()
-          @extractCacheTimeStamps cache
-          @listController.listActivitiesFromCache cache
-          callback cache
+          @extractMessageTimeStamps messages
+          @listController.listActivities messages
+          callback messages
 
         @fetchPublicActivities options
       else
         @once "followingFeedFetched_#{eventSuffix}", (activities)=>
           reset()
-          @extractTeasersTimeStamps activities
-          @listController.listActivities activities
-          callback activities
+          @extractMessageTimeStamps messages
+          @listController.listActivities messages
+          callback messages
 
         @fetchFollowingActivities options
 
@@ -196,42 +196,21 @@ class ActivityAppController extends AppController
     then fetch()
     else groupsController.once 'GroupChanged', fetch
 
-  listActivities:(activities, callback)->
-    @sanitizeCache activities, (err, sanitizedCache)=>
-      @extractCacheTimeStamps sanitizedCache
-      @listController.listActivitiesFromCache sanitizedCache
-      callback sanitizedCache
 
   fetchPublicActivities:(options = {})->
-    {CStatusActivity} = KD.remote.api
-
-    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
-      log KD.prefetchedFeeds
-      prefetchedActivity = KD.prefetchedFeeds["activity.main"]
-      if prefetchedActivity and ('activities.main' not in USEDFEEDS) and prefetchedActivity.activities
-        log "exhausting feed:", "activity.main"
-        USEDFEEDS.push 'activities.main'
-        return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
-
-    CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
-      return @emit "activitiesCouldntBeFetched", err  if err
-      @prepareCacheForListing  cache
-
-  prepareCacheForListing: (cache)->
+    options.to = @lastTo
+    {JStatusUpdate} = KD.remote.api
+    # todo - implement prefetched feed
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-
-    cache.overview.reverse()  if cache.overview
-
-    @sanitizeCache cache, (err, sanitizedCache)=>
-      if err
-      then @emit "activitiesCouldntBeFetched", err
-      else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
+    JStatusUpdate.fetchGroupActivity options, (err, messages)=>
+      return @emit "activitiesCouldntBeFetched", err  if err
+      @emit "publicFeedFetched_#{eventSuffix}", messages
 
 
   fetchFollowingActivities:(options = {})->
-    {CActivity} = KD.remote.api
+    {JStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    CActivity.fetchFolloweeContents options, (err, activities) =>
+    CActivity.fetchFollowingFeed options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err
       else @emit "followingFeedFetched_#{eventSuffix}", activities
@@ -246,8 +225,11 @@ class ActivityAppController extends AppController
       @reachedEndOfActivities = yes
 
   # Store first & last cache activity timestamp.
-  extractCacheTimeStamps: (cache)->
-    @setLastTimestamps (new Date cache.from).getTime(), (new Date cache.to).getTime()
+  extractMessageTimeStamps: (messages)->
+    return  if messages.length is 0
+    from = new Date(messages.last.meta.createdAt).getTime()
+    to   = new Date(messages.first.meta.createdAt).getTime()
+    @setLastTimestamps to, from #from, to
 
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
@@ -293,8 +275,8 @@ class ActivityAppController extends AppController
     @utils.defer -> callback controller
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = KD.getSingleton "contentDisplayController"
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+
+    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->

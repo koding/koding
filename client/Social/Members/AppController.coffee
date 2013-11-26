@@ -123,6 +123,7 @@ class MembersAppController extends AppController
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       noItemFoundText       : "There is no member."
+      useHeaderNav          : yes
       # singleDataSource      : (selector, options, callback)=>
         # filterFunc selector, options, callback
       help                  :
@@ -151,8 +152,7 @@ class MembersAppController extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView controller.getView()
-      # contentDisplayController = KD.getSingleton "contentDisplayController"
-      # contentDisplayController.emit "ContentDisplayWantsToBeShown", view
+      # KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
       callback view, controller
       if controller.facetsController?.filterController?
         controller.emit 'ready'
@@ -211,8 +211,7 @@ class MembersAppController extends AppController
           direction       : 1
     }, (controller)=>
       view.addSubView controller.getView()
-      # contentDisplayController = KD.getSingleton "contentDisplayController"
-      # contentDisplayController.emit "ContentDisplayWantsToBeShown", view
+      # KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
       callback view, controller
 
       if controller.facetsController?.filterController?
@@ -239,10 +238,9 @@ class MembersAppController extends AppController
     @createFeed mainView, loadFeed
 
   # showMemberContentDisplay:({content})->
-  #   contentDisplayController = KD.getSingleton "contentDisplayController"
   #   controller = new ContentDisplayControllerMember null, content
   #   contentDisplay = controller.getView()
-  #   contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+  #   KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createContentDisplay:(account, callback)->
     controller     = new ContentDisplayControllerMember null, account
@@ -273,8 +271,8 @@ class MembersAppController extends AppController
         @createLikedContentDisplay model, kallback
 
   showContentDisplay:(contentDisplay)->
-    # contentDisplayController = KD.getSingleton "contentDisplayController"
-    # contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+
+    # KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
   setCurrentViewNumber:(type, count)->

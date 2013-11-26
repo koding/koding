@@ -140,8 +140,7 @@ class AppsAppController extends AppController
 
   showContentDisplay:(content)->
     return
-    contentDisplayController = KD.getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay

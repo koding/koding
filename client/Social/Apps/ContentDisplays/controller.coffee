@@ -19,11 +19,9 @@ class ContentDisplayControllerApps extends KDViewController
       click       : (event)->
         event.stopPropagation()
         event.preventDefault()
-        contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
+        KD.singleton('display').emit "ContentDisplayWantsToBeHidden", mainView
 
     subHeader.addSubView backLink  if KD.isLoggedIn()
-
-    contentDisplayController = KD.getSingleton "contentDisplayController"
 
     # mainView.addSubView wrapperView = new AppViewMainPanel {}, app
 

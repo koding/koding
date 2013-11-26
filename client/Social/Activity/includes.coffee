@@ -16,6 +16,7 @@ module.exports = [
   "views/embedbox.coffee",
   "views/embedboxviews.coffee",
   "views/newmemberbucket.coffee",
+  "views/activitytickeritem.coffee",
 
   "views/tags/TagViews.coffee",
   "views/tags/TagAutoCompleteController.coffee",
@@ -50,7 +51,7 @@ module.exports = [
   "ContentDisplays/blogpost.coffee",
   "ContentDisplays/QA.coffee",
   "ContentDisplays/link.coffee",
-  "ContentDisplays/ActivityRightBlockView.coffee",
+  "ContentDisplays/ActivityTicker.coffee",
 
   # Activity content displays commons
   "ContentDisplays/ContentDisplayAuthorAvatar.coffee",
@@ -67,7 +68,6 @@ module.exports = [
   "ListItems/ActivityListItemDiscussion.coffee",
   "ListItems/ActivityListItemFollow.coffee",
   "ListItems/ActivityListItemLink.coffee",
-  "ListItems/ActivityListItemQuestion.coffee",
   "ListItems/ActivityListItemTutorial.coffee",
   "ListItems/ActivityListItemBlogPost.coffee",
 

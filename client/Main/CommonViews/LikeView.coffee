@@ -47,7 +47,7 @@ class LikeView extends KDView
 
 
     if data.meta.likes is 0
-      @unSetClass "liked"
+      @unsetClass "liked"
       return
 
     data.fetchLikedByes {},
@@ -123,7 +123,7 @@ class LikeView extends KDView
         unless err
           @_currentState = not @_currentState
 
-          if @_currentState then @setClass "liked" else @unSetClass "liked"
+          if @_currentState then @setClass "liked" else @unsetClass "liked"
 
           @_lastUpdatedCount = -1
 
@@ -135,15 +135,9 @@ class LikeView extends KDView
 class LikeViewClean extends LikeView
 
   constructor:->
-
-    @seperator = new KDCustomHTMLView "span"
     super
-
-    @seperator.updatePartial if @getData().meta.likes then ' · ' else ''
-
-    @likeCount.on "countChanged", (count) =>
-      @seperator.updatePartial if count then ' · ' else ''
+    @likeLink.updatePartial "Like"
 
   pistachio:->
-    """<span class='comment-actions'>{{> @likeLink}}{{> @seperator}}{{> @likeCount}}</span>"""
+    """<span class='comment-actions'>{{> @likeLink}}{{> @likeCount}}</span>"""
 

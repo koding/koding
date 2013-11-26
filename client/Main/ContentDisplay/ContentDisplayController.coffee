@@ -73,7 +73,7 @@ class ContentDisplayController extends KDController
   destroyView:(view)->
 
     wrapper = view.parent
-    @emit 'ContentDisplayIsDestroyed', view
+    @emit 'DisplayIsDestroyed', view
     delete @displays[view.id]
     view.destroy()
     wrapper?.destroy()

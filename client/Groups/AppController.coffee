@@ -424,8 +424,8 @@ class GroupsAppController extends AppController
 
 
   showContentDisplay:(groupView)->
-    contentDisplayController = KD.getSingleton "contentDisplayController"
-    contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
+
+    KD.singleton('display').emit "ContentDisplayWantsToBeShown", groupView
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 

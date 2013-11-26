@@ -35,7 +35,7 @@ class MainController extends KDController
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "notificationController",    new NotificationController
     KD.registerSingleton "linkController",            new LinkController
-    KD.registerSingleton "contentDisplayController",  new ContentDisplayController
+    KD.registerSingleton "display",                   new ContentDisplayController
     KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton "localStorageController",    new LocalStorageController

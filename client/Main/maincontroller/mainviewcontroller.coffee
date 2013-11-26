@@ -53,14 +53,13 @@ class MainViewController extends KDViewController
 
   mainTabPaneChanged:(mainView, pane)->
 
-    cdController    = KD.getSingleton 'contentDisplayController'
     dockController  = KD.getSingleton 'dockController'
     appManager      = KD.getSingleton 'appManager'
     app             = appManager.getFrontApp()
     {mainTabView}   = mainView
     {navController} = dockController
 
-    cdController.emit "ContentDisplaysShouldBeHidden"
+    KD.singleton('display').emit "ContentDisplaysShouldBeHidden"
     # temp fix
     # until fixing the original issue w/ the dnd this should be kept here
     if pane

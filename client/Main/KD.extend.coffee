@@ -1,8 +1,9 @@
 # this class will register itself just before application starts loading, right after framework is ready
 KD.extend
 
-  apiUri  : KD.config.apiUri
-  appsUri : KD.config.appsUri
+  apiUri    : KD.config.apiUri
+  appsUri   : KD.config.appsUri
+  singleton : KD.getSingleton.bind KD
 
   impersonate : (username)->
     KD.remote.api.JAccount.impersonate username, (err)->

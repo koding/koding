@@ -107,8 +107,6 @@ class ActivityItemChild extends KDView
     data.watch 'repliesCount', (count)=>
       @commentBox.decorateCommentedState() if count >= 0
 
-    @contentDisplayController = KD.getSingleton "contentDisplayController"
-
     KD.remote.cacheable data.originType, data.originId, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
 

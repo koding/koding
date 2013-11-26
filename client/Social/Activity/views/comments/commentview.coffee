@@ -91,7 +91,6 @@ class CommentView extends KDView
     @setClass "commented"
 
   decorateActiveCommentState:->
-    @unsetClass "commented"
     @unsetClass "no-comment"
     @setClass "active-comment"
 
