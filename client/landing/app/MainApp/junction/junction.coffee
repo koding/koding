@@ -116,10 +116,10 @@ class Junction extends KDObject
 
   toString: -> "junction-#{@id}"
 
-  @All = class All extends this
+  @All = class All extends Junction
     # All is like Junction.
 
-  @Any = class Any extends this
+  @Any = class Any extends Junction
     # Any is like Junction, with a couple tweaks.
 
     # Any#compliment negates the value :)
