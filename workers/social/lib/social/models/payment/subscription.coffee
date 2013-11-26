@@ -86,20 +86,11 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         callback null, subs
 
   @checkUserSubscription = secure ({connection:{delegate}}, planCode, callback)->
-    @fetchAllSubscriptions {
-      planCode
-      $or: [
-        {status: 'active'}
-        {status: 'canceled'}
-      ]
-    }, callback
+    throw Error 'reimplement this!'
 
   @fetchSubscriptions = (selector, callback) ->
     selector = { paymentMethodId: selector }  if 'string' is typeof selector
     @fetchAllSubscriptions selector, callback
-
-  @fetchAllSubscriptions = (selector, callback) ->
-    
 
   refund: (percent, callback)->
     JPaymentPlan = require './plan'
@@ -124,17 +115,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     refundMap.every (ref)=>
       return callback null, ref.percent  if usage < ref.uplimit
       callback yes, 0
-
-  # terminate: (callback)->
-  #   payment.terminateSubscription @userCode, {@uuid, refund : 'none'}, (err, sub)=>
-  #     return callback err  if err
-
-  #     @calculateRefund (err, percent)=>
-  #       unless err
-  #         @refund percent, ->
-  #           console.log "Refunding #{percent}% of subscription #{@uuid}."
-
-  #     update_ sub, callback
 
   updateStatus: (status, callback) ->
     @update $set: { status }, callback
@@ -168,8 +148,12 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   resume: (callback) ->
     @invokeMethod 'reactivateSubscription', callback
 
-  checkUsage: (product, callback) ->
+  checkUsage: (product, multiplyFactor, callback) ->
     JPaymentPlan = require './plan'
+
+    [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
+
+    multiplyFactor ?= 1
 
     { quantities } = product
 
@@ -184,7 +168,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       usages = for own planCode, quantity of quantities
         planSize = plan.quantities[planCode]
         usageAmount = @usage[planCode] ? 0
-        spendAmount = product.quantities[planCode] ? 0
+        spendAmount = (product.quantities[planCode] ? 0) * multiplyFactor
 
         total = planSize - usageAmount - spendAmount
 
@@ -210,8 +194,11 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
       callback null, nonce.nonce
 
-  debit: (pack, callback, multiplyFactor = 1) ->
-    @checkUsage pack, (err, usage) =>
+  debit: (pack, multiplyFactor, callback) ->
+    [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
+    multiplyFactor ?= 1
+
+    @checkUsage pack, multiplyFactor, (err, usage) =>
       return callback err  if err
 
       { quantities } = pack
@@ -228,7 +215,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
         @createFulfillmentNonce pack, (multiplyFactor > 0), callback
 
-  debit$: secure (client, pack, callback, multiplyFactor) ->
+  debit$: secure (client, pack, multiplyFactor, callback) ->
     JPaymentPlan = require './plan'
 
     { delegate } = client.connection
@@ -239,5 +226,8 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
       @debit pack, callback, multiplyFactor
 
+  credit: (pack, callback) ->
+    @debit pack, -1, callback
+
   credit$: secure (client, pack, callback) ->
-    @debit$ client, pack, callback, -1
+    @debit$ client, pack, -1, callback
