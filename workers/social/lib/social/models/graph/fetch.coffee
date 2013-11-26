@@ -103,7 +103,8 @@ module.exports = class FetchAllActivityParallel
 
     # TODO: we're throwing away results if more than 20, ideally we'll only
     # get the right number of results
-    overview = overview[-50..overview.length]
+    activityFetchCount = KONFIG.client.runtimeOptions.activityFetchCount
+    overview = overview[-activityFetchCount..overview.length]
 
     allTimes = _.map(overview, (activity)-> activity.createdAt.first)
     allTimes = _.flatten allTimes
