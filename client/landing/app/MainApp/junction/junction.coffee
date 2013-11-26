@@ -1,4 +1,4 @@
-class FormWorkflow.Gate extends KDObject
+class Junction extends KDObject
 
   constructor: (fields = []) ->
     super()
@@ -14,12 +14,12 @@ class FormWorkflow.Gate extends KDObject
 
   createId: KD.utils.createCounter()
 
-  isGate: yes
+  isJunction: yes
 
   getFields: (isDeep) ->
     if isDeep
       fields = @getFields()
-      fields.push (child.getFields yes)... for own _, child of @children
+      fields.push (child.getFields isDeep)... for own _, child of @children
       return fields
 
     (key for own key of @fields when not (key of @children))
@@ -32,7 +32,7 @@ class FormWorkflow.Gate extends KDObject
 
       return @nextNode() 
 
-    if node.isGate #fork
+    if node.isJunction #fork
 
       if node.isSatisfied() #skip
         @index++
@@ -63,7 +63,7 @@ class FormWorkflow.Gate extends KDObject
     
     @fields[field] = satisfier
 
-    if field.isGate
+    if field.isJunction
 
       @addChild field
 
@@ -91,10 +91,10 @@ class FormWorkflow.Gate extends KDObject
     return this
 
   createSatisfier: ->
-    satisfier = new FormWorkflow.Gate.Satisfier
+    satisfier = new Junction.Satisfier
 
     satisfier.on 'Satisfied', @bound 'report'
-    satisfier.on 'Canceled', @bound 'report'
+    satisfier.on 'Canceled',  @bound 'report'
 
     return satisfier
 
@@ -114,17 +114,20 @@ class FormWorkflow.Gate extends KDObject
 
     return not @kill()
 
-  toString: -> "gate-#{@id}"
-
+  toString: -> "junction-#{@id}"
 
   @All = class All extends this
-    # All is like Gate.
+    # All is like Junction.
+
+  @all = (fields...) -> new All fields
 
   @Any = class Any extends this
-    # Any is like Gate, with a couple tweaks.
+    # Any is like Junction, with a couple tweaks.
 
     # Any#compliment negates the value :)
     compliment: (value) -> !value
 
     # Any#createSatisfier returns a singleton satisfier :)
     createSatisfier: -> @satisfier ?= super
+
+  @any = (fields...) -> new Any fields 

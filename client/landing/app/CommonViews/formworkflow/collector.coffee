@@ -1,6 +1,6 @@
 class FormWorkflow.Collector extends KDEventEmitter
 
-  constructor: (@gate = new FormWorkflow.Gate) ->
+  constructor: (@gate = new Junction) ->
     super()
 
     @data = KD.utils.dict()

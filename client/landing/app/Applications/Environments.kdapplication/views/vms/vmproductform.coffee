@@ -38,12 +38,15 @@ class VmProductForm extends FormWorkflow
   createChoiceForm: -> new KDView partial: 'this is a plan choice form'
 
   prepareWorkflow: ->
-    @requireData [
 
-      @any('subscription', 'plan')
+    { all, any } = Junction
+
+    @requireData all(
+
+      any('subscription', 'plan')
 
       'pack'
-    ]
+    )
 
     upgradeForm = @createUpgradeForm()
     upgradeForm.on 'PlanSelected', (plan) =>

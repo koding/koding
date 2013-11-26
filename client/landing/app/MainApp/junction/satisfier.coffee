@@ -1,4 +1,4 @@
-class FormWorkflow.Gate.Satisfier extends KDEventEmitter
+class Junction.Satisfier extends KDEventEmitter
 
   constructor: ->
     super()

@@ -10,13 +10,11 @@ class PaymentWorkflow extends FormWorkflow
 
     paymentController = KD.getSingleton 'paymentController'
 
-    choiceForm = @getForm 'choice'
-
     paymentController.fetchPaymentMethods (err, paymentMethods) =>
       return if KD.showError err
 
       if paymentMethods.methods.length > 0
-        choiceForm.setPaymentMethods paymentMethods
+        (@getForm 'choice').setPaymentMethods paymentMethods
       else
         @clearData 'paymentMethod'
 
@@ -39,9 +37,9 @@ class PaymentWorkflow extends FormWorkflow
 
     form = new PaymentMethodEntryForm options, data
 
-    pay = KD.getSingleton 'paymentController'
+    payment = KD.getSingleton 'paymentController'
 
-    pay.observePaymentSave form, (err, paymentMethod) =>
+    payment.observePaymentSave form, (err, paymentMethod) =>
       return if KD.showError err
 
       @collectData { paymentMethod }
@@ -50,13 +48,15 @@ class PaymentWorkflow extends FormWorkflow
 
   prepareWorkflow: ->
 
-    @requireData [
+    { all, any } = Junction
+
+    @requireData all(
       'productData'
 
-      @any('paymentMethod', 'subscription')
+      any('paymentMethod', 'subscription')
       
       'userConfirmation'
-    ]
+    )
     # - "product form" can be used for collecting some product-related data
     # before the payment method collection/selection process begins.  If you
     # use this feature, make sure to emit the "DataCollected" event with any
