@@ -196,11 +196,6 @@ class ActivityAppController extends AppController
     then fetch()
     else groupsController.once 'GroupChanged', fetch
 
-  listActivities:(activities, callback)->
-    @sanitizeCache activities, (err, sanitizedCache)=>
-      @extractCacheTimeStamps sanitizedCache
-      @listController.listActivitiesFromCache sanitizedCache
-      callback sanitizedCache
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
