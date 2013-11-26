@@ -174,19 +174,19 @@ class ActivityAppController extends AppController
       group   = groupObj?.slug
 
       if @getFeedFilter() is "Public"
-        @once "publicFeedFetched_#{eventSuffix}", (cache)=>
+        @once "publicFeedFetched_#{eventSuffix}", (messages)=>
           reset()
-          @extractCacheTimeStamps cache
-          @listController.listActivitiesFromCache cache
-          callback cache
+          @extractCacheTimeStamps messages
+          @listController.listActivities messages
+          callback messages
 
         @fetchPublicActivities options
       else
         @once "followingFeedFetched_#{eventSuffix}", (activities)=>
           reset()
-          @extractTeasersTimeStamps activities
-          @listController.listActivities activities
-          callback activities
+          @extractCacheTimeStamps messages
+          @listController.listActivities messages
+          callback messages
 
         @fetchFollowingActivities options
 
