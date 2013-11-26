@@ -151,6 +151,7 @@ module.exports = class JAccount extends jraphical.Module
         'store'
         'unstore'
         'isEmailVerified'
+        'fetchEmail'
       ]
     schema                  :
       skillTags             : [String]
@@ -569,6 +570,16 @@ module.exports = class JAccount extends jraphical.Module
         for doc in docs
           results.push doc.profile.fullname
         callback err, results
+
+  # I wrote it and decided that it is not necessary, feel free to remove ~ GG
+  #
+  # @filterUsernames = permit 'list members',
+  #   success: (client, nick, options, callback)->
+  #     [callback, options] = [options, callback]  unless callback
+  #     options or= {}
+  #     options.limit = 10
+  #     query = 'profile.nickname' : ///^#{nick}///
+  #     @some query, options, callback
 
   setEmailPreferences: (user, prefs, callback)->
     current = user.getAt('emailFrequency') or {}
@@ -1246,3 +1257,13 @@ module.exports = class JAccount extends jraphical.Module
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
+
+  fetchEmail: secure (client, callback)->
+    {delegate} = client.connection
+    isMine     = @equals delegate
+    if isMine
+      @fetchUser (err, user)->
+        return callback err  if err
+        callback null, user?.email
+    else
+      callback new KodingError 'Access denied'
