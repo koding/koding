@@ -1,5 +1,7 @@
 class ActivityListController extends KDListViewController
 
+  {dash} = Bongo
+
   constructor:(options={}, data)->
 
     viewOptions = options.viewOptions or {}
@@ -69,15 +71,17 @@ class ActivityListController extends KDListViewController
       activityIds.push activity._id
 
     @checkIfLikedBefore activityIds
+    activities.forEach (activity)=>
+      queue.push =>
+        @addItem activity
+        activityIds.push activity._id
+        queue.fin()
 
-    @lastItemTimeStamp or= Date.now()
+    dash queue, =>
 
-    for obj in activities
-      objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
-      if objectTimestamp < @lastItemTimeStamp
-        @lastItemTimeStamp = objectTimestamp
+      @checkIfLikedBefore activityIds
 
-    @emit "teasersLoaded"
+      @lastItemTimeStamp or= Date.now()
 
   listActivitiesFromCache:(cache, index, animation)->
     @hideLazyLoader()
