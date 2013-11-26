@@ -22,7 +22,12 @@ class AccountSubscriptionsListController extends AccountListViewController
         .on 'ReactivateRequested', =>
           @confirm 'resume', subscription
 
-        .on 'PlanChangeRequested', -> debugger
+        .on 'PlanChangeRequested', ->
+          payment = KD.getSingleton 'paymentController'
+          form = payment.createUpgradeForm 'vm'
+          new KDModalView
+            view    : form
+            overlay : yes
 
   getConfirmationText = (action, subscription) -> switch action
     when 'cancel'
