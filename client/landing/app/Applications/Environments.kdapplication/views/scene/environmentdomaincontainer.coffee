@@ -38,6 +38,3 @@ class EnvironmentDomainContainer extends EnvironmentContainer
 
           if addedCount is domains.length
             @emit "DataLoaded"
-
-            # REMOVE AFTER IMPLEMENTATION IS DONE ~ GG
-            @emit "PlusButtonClicked"
