@@ -6,42 +6,49 @@ import (
 )
 
 type MemoryCache struct {
-	sync.RWMutex
-	items  map[string]interface{}
+	// Mutex is used for handling the concurrent
+	// read/write requests for cache
+	sync.Mutex
+	// items holds the cache data
+	items map[string]interface{}
+	// setAts holds the time that related item's set at
 	setAts map[string]time.Time
-	ttl    time.Duration
+	// ttl is a duration for a cache key to expire
+	ttl time.Duration
+	// gcInterval is a duration for garbage collection
+	gcInterval time.Duration
 }
 
 // NewMemoryCache creates an inmemory cache system
 // Which everytime will return the true values about a cache hit
 // and never will leak memory
-func NewMemoryCache(ttl, gcInterval time.Duration) *MemoryCache {
-	memoryCache := &MemoryCache{
+func NewMemoryCache(ttl time.Duration) *MemoryCache {
+	return &MemoryCache{
 		items:  map[string]interface{}{},
 		setAts: map[string]time.Time{},
 		ttl:    ttl,
 	}
-
-	go memoryCache.invalidator(ttl, gcInterval)
-
-	return memoryCache
 }
 
-func (r *MemoryCache) invalidator(ttl, gcInterval time.Duration) {
-	for _ = range time.Tick(gcInterval) {
-		for key, _ := range r.items {
-			if !r.isValid(key) {
-				r.Delete(key)
+// StartGC starts the garbage collection process in a go routine
+func (r *MemoryCache) StartGC(gcInterval time.Duration) {
+	r.gcInterval = gcInterval
+	go func() {
+		for _ = range time.Tick(gcInterval) {
+			for key, _ := range r.items {
+				if !r.isValid(key) {
+					r.Delete(key)
+				}
 			}
 		}
-	}
+	}()
 }
 
 // Get returns a value of a given key if it exists
 // and valid for the time being
 func (r *MemoryCache) Get(key string) (interface{}, bool) {
-	r.RLock()
-	defer r.RUnlock()
+	r.Lock()
+	defer r.Unlock()
 
 	if !r.isValid(key) {
 		r.delete(key)
