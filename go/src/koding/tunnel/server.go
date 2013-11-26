@@ -32,7 +32,7 @@ type Server struct {
 }
 
 // NewServer returns a new Server instance. It registers by default two new
-// http handlers to the default.Mux which is used for establishing control
+// HTTP handlers to the default.Mux which is used for establishing control
 // connections and creating tunnels between public and local clients.
 func NewServer() *Server {
 	s := &Server{
@@ -48,7 +48,7 @@ func NewServer() *Server {
 }
 
 // tunnelHandler is used to capture incoming tunnel connect requests into raw
-// tunnel tcp connections.
+// tunnel TCP connections.
 func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "CONNECT" {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -84,14 +84,14 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	s.pendingMu.Unlock()
 
 	// we now have an encapsulated connection. send it back to the requester
-	// the request can either store the conn for reusage (like http) or can
+	// the request can either store the conn for re-usage (like http) or can
 	// use it only for one session (like websocket)
 	tunnelRequester <- newTunnel(conn)
 
 }
 
 // controlHandler is used to capture incoming control connect requests into
-// raw control tcp connection. After capturing the the connection, the control
+// raw control TCP connection. After capturing the the connection, the control
 // connection starts to read and write to the control connection until the
 // connection is closed. Currently only one control connection per user is allowed.
 func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
@@ -140,12 +140,10 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 	// delete and close all tunnels and control connection when there is a
 	// disconnection
 	defer func() {
-		log.Println("closing control connection for", username)
 		control.Close()
 		s.deleteControl(username)
-
-		s.closePool(host)
 		s.deletePool(host)
+		log.Println("control connection has been closed for", username)
 	}()
 
 	log.Println("control connection has been established for", username)
@@ -160,41 +158,63 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := s.makeRequest(w, r)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "tunnel server-client disconnection.", 502)
+		return
+	}
+}
+
+// makeRequest makes an HTTP request from the public connection to the client
+// on top of the tunnel connection. It's a recursive function, that if the
+// request on a certain tunnel fails, it goes and applies the request to the
+// next one.
+func (s *Server) makeRequest(w http.ResponseWriter, r *http.Request) error {
 	host := strings.ToLower(r.Host)
 	log.Printf("http from %s to %s  -- path: %s\n", r.RemoteAddr, r.Host, r.URL.String())
 
 	tunn, err := s.tunnelFromPool(host)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, err.Error(), 404)
-		return
+		return err
 	}
+
+	// fmt.Println("recursiveIteration is", recursiveIteration)
+	// if recursiveIteration > s.capacityOfPool(host) {
+	// 	return errors.New("maximum recursive iteration has been reached. aborting")
+	// }
 
 	err = tunn.proxy(w, r)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, err.Error(), 404)
-		return
+		// this is mostly due to closing of tunnel connection via local
+		// client. Therefore go and get the next tunnel conn from the pool. If
+		// all the tunnels are closed, tunnelFromPool will create new tunnels
+		// that eventually will finish this request.
+		log.Println("making another request")
+		return s.makeRequest(w, r)
 	}
 
 	// only put it back when the tunnel connection is still alive
 	s.putConn(host, tunn)
+	return nil
 }
 
+// tunnelFromPool picks up the next tunnel from the connection pool. It also
+// creates a new pool when the pool for the given host doesn't exist.
 func (s *Server) tunnelFromPool(host string) (*tunnel, error) {
 	p, ok := s.getPool(host)
 	if !ok {
 		var err error
-		// create a new pool for this host with inital 5 tunnel requests and a
+		factory := func() (net.Conn, error) {
+			tunn, err := s.requestTunnel("http", host)
+			return tunn, err
+		}
+
+		// create a new pool for this host with initial 5 tunnel requests and a
 		// maximum of 30 connections (this parameters should be tweaked in the
 		// future). This is just for performance and allows us to connect to
 		// the client immediately instead of requesting tunnel for the first
 		// request.
-
-		factory := func() (net.Conn, error) {
-			return s.requestTunnel("http", host)
-		}
-
 		p, err = pool.New(5, 30, factory)
 		if err != nil {
 			return nil, err
@@ -204,12 +224,16 @@ func (s *Server) tunnelFromPool(host string) (*tunnel, error) {
 	}
 
 	conn, err := p.Get()
-	tunn, ok := conn.(*tunnel)
-	if !ok {
-		return nil, fmt.Errorf("failed to type assert of conn to tunnel", err)
+	if err != nil {
+		return nil, err
 	}
 
-	return tunn, err
+	tunn, ok := conn.(*tunnel)
+	if !ok {
+		return nil, fmt.Errorf("failed to type assert net.Conn to tunnel", err)
+	}
+
+	return tunn, nil
 }
 
 func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
@@ -245,7 +269,7 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
-	// don't use a connection from the pool, becasue websocket connections are
+	// don't use a connection from the pool, because websocket connections are
 	// persistent and not reusable.
 	tunnel, err := s.requestTunnel("websocket", host)
 	if err != nil {
@@ -313,13 +337,6 @@ func (s *Server) deletePool(host string) {
 	delete(s.pools, host)
 }
 
-func (s *Server) closePool(host string) {
-	s.poolsMu.RLock()
-	defer s.poolsMu.RUnlock()
-
-	s.pools[host].Close()
-}
-
 func (s *Server) getPool(host string) (*pool.Pool, bool) {
 	s.poolsMu.RLock()
 	defer s.poolsMu.RUnlock()
@@ -333,6 +350,11 @@ func (s *Server) addPool(host string, p *pool.Pool) {
 	defer s.poolsMu.Unlock()
 
 	s.pools[host] = p
+}
+
+func (s *Server) capacityOfPool(host string) int {
+	p, _ := s.getPool(host)
+	return p.MaximumCapacity()
 }
 
 func (s *Server) putConn(host string, c net.Conn) {

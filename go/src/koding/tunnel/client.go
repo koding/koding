@@ -99,7 +99,10 @@ func (c *Client) proxy(serverMsg *ServerMsg) {
 	local := newLocalDial(c.localAddr)
 	local.OnDisconnect(func() {
 		log.Println("local connection is closed")
+		remote.Close()
 	})
+
+	// time.AfterFunc(time.Second*10, func() { local.Close() })
 
 	<-join(local, remote)
 }

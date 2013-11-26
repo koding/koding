@@ -34,7 +34,7 @@ func New(initialCap, maxCap int, factory Factory) (*Pool, error) {
 	for i := 0; i < initialCap; i++ {
 		conn, err := factory()
 		if err != nil {
-			return nil, fmt.Errorf("WARNING: factory is not able to fill the pool: ", err)
+			return nil, fmt.Errorf("WARNING: factory is not able to fill the pool: %s", err)
 		}
 
 		p.conns <- conn
