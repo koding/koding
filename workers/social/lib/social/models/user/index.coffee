@@ -216,6 +216,11 @@ module.exports = class JUser extends jraphical.Module
                 isRegistration : false
                 username
               }
+              ((require 'koding-counter') {
+                db          : JAccount.getClient()
+                counterName : "koding~#{confirmUsername}~"
+                offset      : 0
+              }).reinitialize ->
               user.unlinkOAuths => @logout client, callback
 
   @isRegistrationEnabled =(callback)->
