@@ -158,7 +158,7 @@ class NFinderTreeController extends JTreeViewController
         @hideNotification()
       else
         failCallback err
-    , failCallback, 10000), no
+    , failCallback, KD.config.fileFetchTimeout), no
 
   collapseFolder:(nodeView, callback, silence=no)->
 

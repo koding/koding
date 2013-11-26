@@ -164,6 +164,7 @@ module.exports =
       newkontrol:
         host    : 'newkontrol.sj.koding.com'
         port    : 80
+      fileFetchTimeout: 15 * 1000 # seconds
   mq            :
     host        : '172.16.3.4'
     port        : 5672
