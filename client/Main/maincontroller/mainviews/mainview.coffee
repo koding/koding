@@ -101,8 +101,7 @@ class MainView extends KDView
 
   createDock:->
 
-    dockController = @getSingleton "dockController"
-    @header.addSubView dockController.getView()
+    @header.addSubView KD.singleton('dock').getView()
 
 
   createAccountArea:->

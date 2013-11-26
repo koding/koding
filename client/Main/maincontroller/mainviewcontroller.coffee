@@ -53,11 +53,10 @@ class MainViewController extends KDViewController
 
   mainTabPaneChanged:(mainView, pane)->
 
-    dockController  = KD.getSingleton 'dockController'
     appManager      = KD.getSingleton 'appManager'
     app             = appManager.getFrontApp()
     {mainTabView}   = mainView
-    {navController} = dockController
+    {navController} = KD.singleton 'dock'
 
     # KD.singleton('display').emit "ContentDisplaysShouldBeHidden"
     # temp fix
@@ -78,11 +77,10 @@ class MainViewController extends KDViewController
     (options = {})->
 
       {behavior, name} = options
+      {body}           = document
       html             = document.getElementsByTagName('html')[0]
-      body             = document.body
       mainView         = @getView()
-      { mainTabView
-        sidebar }      = mainView
+      {mainTabView}    = mainView
       o                = {name}
 
       KDView.setElementClass html, 'remove', 'app'

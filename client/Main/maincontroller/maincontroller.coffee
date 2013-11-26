@@ -12,8 +12,7 @@ class MainController extends KDController
 
   ###
 
-  connectedState =
-    connected   : no
+  connectedState = connected : no
 
   constructor:(options = {}, data)->
 
@@ -41,7 +40,6 @@ class MainController extends KDController
     KD.registerSingleton "localStorageController",    new LocalStorageController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
-
     KD.registerSingleton "vmController",              new VirtualizationController
     # KD.registerSingleton "paymentController",         new PaymentController
     # KD.registerSingleton "fatih", new Fatih
@@ -86,7 +84,7 @@ class MainController extends KDController
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
   createMainViewController:->
-    KD.registerSingleton "dockController", new DockController
+    KD.registerSingleton "dock", new DockController
     @mainViewController  = new MainViewController
       view    : mainView = new MainView
         domId : "kdmaincontainer"
