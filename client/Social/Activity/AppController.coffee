@@ -96,17 +96,11 @@ class ActivityAppController extends AppController
   attachEvents:(controller)->
     activityController = KD.getSingleton('activityController')
     appView            = @getView()
-    {widgetController} = appView
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
     @listController = controller
     @bindLazyLoad()
-
-    widgetController.on "FakeActivityHasArrived", (activity)->
-      controller.fakeActivityArrived activity
-
-    widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
     appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"

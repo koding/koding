@@ -25,38 +25,34 @@ resurrection.activity.styl
   position              relative
 
   .activity-left-block
-    size                auto, auto
-    margin              0 337px 0 0
+    size                  auto, auto
+    margin                0 337px 0 0
 
-    .activity-update-widget-wrapper
-      size              auto, auto
-      margin            0 0 0 100px
+    .input-wrapper
+        size              auto auto
+        margin            0 0 0 100px
 
-      .small-input input
-      .large-input textarea
-        size            100%, 55px
-        border          none
-        border-top      1px solid #cdccc2
-        margin          0
-        padding         0 0 0 22px
-        font-size       16px
-        color           #9d998e
-        line-height     56px
-        vendor          transition, height .2s ease
-        rounded         3px
+      .input-view
+        color             #9D998E
+        border            none
+        border-top        1px solid #CDCCC2
+        rounded           3px
         borderBox()
 
-        &::-webkit-input-placeholder
-          color     #9d998e
-        &::-moz-placeholder
-          color     #9d998e
+        > div
+          size            100% auto
+          line-height     16px
+          font-size       16px
+          padding-left    20px
+          color           #536067
+          padding         22px
+          background      white
+          vendor          transition, height .2s ease
+          borderBox()
 
-      .large-input textarea
-        color           #536067
-
-        &:focus
-          line-height   16px
-          padding       20px 22px 22px 22px
+        &.placeholder
+          > div
+            color         #9D998E
 
       button[type=submit]
         bottom          0
