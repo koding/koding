@@ -66,7 +66,7 @@ func (t *tunnel) connect(serverMsg *ServerMsg) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 && resp.Status != Connected {
-		return fmt.Errorf("Non-200 response from proxy server: %s", resp.Status)
+		return fmt.Errorf("tunnel server response: %s", resp.Status)
 	}
 
 	return nil
@@ -93,56 +93,4 @@ func (t *tunnel) proxy(w http.ResponseWriter, r *http.Request) error {
 	io.Copy(w, resp.Body)
 
 	return nil
-}
-
-type tunnels struct {
-	sync.Mutex
-	tunnels map[string]map[string]*tunnel
-}
-
-func newTunnels() *tunnels {
-	return &tunnels{
-		tunnels: make(map[string]map[string]*tunnel),
-	}
-}
-
-func (t *tunnels) getTunnel(host, remoteAddr string) (*tunnel, bool) {
-	t.Lock()
-	defer t.Unlock()
-
-	hostTunnels, ok := t.tunnels[host]
-	if !ok {
-		return nil, false
-	}
-
-	singleTunnel, ok := hostTunnels[remoteAddr]
-	return singleTunnel, ok
-}
-
-func (t *tunnels) addTunnel(host, remoteAddr string, singleTunnel *tunnel) {
-	t.Lock()
-	defer t.Unlock()
-
-	t.tunnels[host] = make(map[string]*tunnel)
-	t.tunnels[host][remoteAddr] = singleTunnel
-}
-
-func (t *tunnels) deleteTunnel(host, remoteAddr string) {
-	t.Lock()
-	defer t.Unlock()
-
-	hostTunnels, ok := t.tunnels[host]
-	if !ok {
-		return
-	}
-
-	delete(hostTunnels, remoteAddr)
-	t.tunnels[host] = hostTunnels
-}
-
-func (t *tunnels) deleteTunnels(host string) {
-	t.Lock()
-	defer t.Unlock()
-
-	delete(t.tunnels, host)
 }

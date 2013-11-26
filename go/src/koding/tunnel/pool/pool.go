@@ -3,6 +3,7 @@ package pool
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net"
 )
@@ -19,9 +20,9 @@ type Pool struct {
 // New returns a new pool with an initial capacity and maximum capacity.
 // Factory is used when initial capacity is greater then zero to fill the
 // pool.
-func New(initialCap, maxCap int, factory Factory) *Pool {
+func New(initialCap, maxCap int, factory Factory) (*Pool, error) {
 	if initialCap <= 0 || maxCap <= 0 || initialCap > maxCap {
-		panic("Invalid/out of range capacity")
+		return nil, errors.New("invalid capacity settings")
 	}
 
 	p := &Pool{
@@ -33,15 +34,13 @@ func New(initialCap, maxCap int, factory Factory) *Pool {
 	for i := 0; i < initialCap; i++ {
 		conn, err := factory()
 		if err != nil {
-			log.Println("WARNING: factory is not able to fill the pool", err)
+			return nil, fmt.Errorf("WARNING: factory is not able to fill the pool: ", err)
 		}
 
 		p.conns <- conn
 	}
 
-	log.Println("number of pools", p.UsedCapacity(), p.MaximumCapacity())
-
-	return p
+	return p, nil
 }
 
 // Get returns a new connection from the pool. After using the connection it
@@ -62,13 +61,14 @@ func (p *Pool) Get() (net.Conn, error) {
 	}
 }
 
-// Put puts a new connection into the pull
+// Put puts a new connection into the pool. If the pool is full, conn is
+// discarded and a warning is output to stderr.
 func (p *Pool) Put(conn net.Conn) {
 	select {
 	case p.conns <- conn:
 		log.Println("put number of pools", p.UsedCapacity(), p.MaximumCapacity())
 	default:
-		panic("attempt to put into a full pool")
+		log.Println("WARNING: attempt to put into a full pool")
 	}
 
 }

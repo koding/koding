@@ -20,12 +20,9 @@ type Server struct {
 	pending   map[string]chan *tunnel
 	pendingMu sync.Mutex // protects the pending map
 
-	// httpTunnels is used to store established tunnel connections used for
-	// http protocol.
-	httpTunnels *tunnels
-
 	// pools is containing a connection pool for each virtual host.
-	pools map[string]*pool.Pool
+	pools   map[string]*pool.Pool
+	poolsMu sync.RWMutex // protects the pools map
 
 	// controls contains the control connection from the client to the server
 	controls *controls
@@ -40,7 +37,6 @@ type Server struct {
 func NewServer() *Server {
 	s := &Server{
 		pending:      make(map[string]chan *tunnel),
-		httpTunnels:  newTunnels(),
 		pools:        make(map[string]*pool.Pool),
 		controls:     newControls(),
 		virtualHosts: newVirtualHosts(),
@@ -147,7 +143,9 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("closing control connection for", username)
 		control.Close()
 		s.deleteControl(username)
-		s.deleteTunnels(host)
+
+		s.closePool(host)
+		s.deletePool(host)
 	}()
 
 	log.Println("control connection has been established for", username)
@@ -163,46 +161,46 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	host := strings.ToLower(r.Host)
+	log.Printf("http from %s to %s  -- path: %s\n", r.RemoteAddr, r.Host, r.URL.String())
 
-	var remoteHost string
-	remoteHost, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		log.Println("splithostport for remote failed, using r.remoteAddr", err)
-		remoteHost = r.RemoteAddr
-	}
-
-	log.Printf("http from %s to %s  -- path: %s\n", remoteHost, r.Host, r.URL.String())
-
-	tunnel, err := s.tunnelFromPool(host)
+	tunn, err := s.tunnelFromPool(host)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), 404)
 		return
 	}
 
-	err = tunnel.proxy(w, r)
+	err = tunn.proxy(w, r)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), 404)
 		return
 	}
 
-	s.pools[host].Put(tunnel)
+	// only put it back when the tunnel connection is still alive
+	s.putConn(host, tunn)
 }
 
 func (s *Server) tunnelFromPool(host string) (*tunnel, error) {
-	p, ok := s.pools[host]
+	p, ok := s.getPool(host)
 	if !ok {
+		var err error
 		// create a new pool for this host with inital 5 tunnel requests and a
 		// maximum of 30 connections (this parameters should be tweaked in the
 		// future). This is just for performance and allows us to connect to
 		// the client immediately instead of requesting tunnel for the first
 		// request.
-		p = pool.New(5, 30, func() (net.Conn, error) {
-			return s.requestTunnel("http", host)
-		})
 
-		s.pools[host] = p
+		factory := func() (net.Conn, error) {
+			return s.requestTunnel("http", host)
+		}
+
+		p, err = pool.New(5, 30, factory)
+		if err != nil {
+			return nil, err
+		}
+
+		s.addPool(host, p)
 	}
 
 	conn, err := p.Get()
@@ -212,28 +210,6 @@ func (s *Server) tunnelFromPool(host string) (*tunnel, error) {
 	}
 
 	return tunn, err
-}
-
-func (s *Server) httpTunnelConn(host, remoteAddr string) (*tunnel, error) {
-	tunnel, ok := s.getTunnel(host, remoteAddr)
-	if !ok {
-		// get a tunnel from client
-		var err error
-		tunnel, err = s.requestTunnel("http", host)
-		if err != nil {
-			return nil, err
-		}
-
-		// delete the tunnel if there is a disconnection this will trigger
-		// another requestTunnel call on the next http connection.
-		tunnel.OnDisconnect(func() {
-			s.deleteTunnel(host, remoteAddr)
-		})
-
-		s.addTunnel(host, remoteAddr, tunnel)
-	}
-
-	return tunnel, nil
 }
 
 func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
@@ -247,7 +223,6 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("write request back to websocket")
 	err = r.Write(tunnelConn)
 	if err != nil {
 		err := fmt.Sprintf("write to tunnel %s", err)
@@ -255,7 +230,6 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("get publicconn hijack")
 	publicConn, _, err := w.(http.Hijacker).Hijack()
 	if err != nil {
 		log.Println("websocket hijacking ", err)
@@ -263,10 +237,8 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	defer publicConn.Close()
 
-	log.Println("copy websocket.......")
-	err = <-join(tunnelConn, publicConn)
+	<-join(tunnelConn, publicConn)
 
-	log.Println(err)
 	// close tunnel and public connection if the websocket connection is closed
 	tunnelConn.Close()
 	publicConn.Close()
@@ -334,22 +306,40 @@ func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 	}
 }
 
-func (s *Server) getTunnel(host, remoteAddr string) (*tunnel, bool) {
-	tunnel, ok := s.httpTunnels.getTunnel(host, remoteAddr)
-	return tunnel, ok
+func (s *Server) deletePool(host string) {
+	s.poolsMu.Lock()
+	defer s.poolsMu.Unlock()
+
+	delete(s.pools, host)
 }
 
-func (s *Server) addTunnel(host, remoteAddr string, tunnel *tunnel) {
-	s.httpTunnels.addTunnel(host, remoteAddr, tunnel)
+func (s *Server) closePool(host string) {
+	s.poolsMu.RLock()
+	defer s.poolsMu.RUnlock()
+
+	s.pools[host].Close()
 }
 
-func (s *Server) deleteTunnel(host, remoteAddr string) {
-	fmt.Println("deleting tunnel", host, remoteAddr)
-	s.httpTunnels.deleteTunnel(host, remoteAddr)
+func (s *Server) getPool(host string) (*pool.Pool, bool) {
+	s.poolsMu.RLock()
+	defer s.poolsMu.RUnlock()
+
+	p, ok := s.pools[host]
+	return p, ok
 }
 
-func (s *Server) deleteTunnels(host string) {
-	s.httpTunnels.deleteTunnels(host)
+func (s *Server) addPool(host string, p *pool.Pool) {
+	s.poolsMu.Lock()
+	defer s.poolsMu.Unlock()
+
+	s.pools[host] = p
+}
+
+func (s *Server) putConn(host string, c net.Conn) {
+	s.poolsMu.RLock()
+	defer s.poolsMu.RUnlock()
+
+	s.pools[host].Put(c)
 }
 
 func (s *Server) addControl(username string, conn *control) {

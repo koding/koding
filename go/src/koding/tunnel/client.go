@@ -97,10 +97,9 @@ func (c *Client) proxy(serverMsg *ServerMsg) {
 	log.Printf("starting a proxy to	%s\n", serverMsg.Host)
 	remote := newTunnelDial(c.serverAddr, serverMsg)
 	local := newLocalDial(c.localAddr)
-
-	// because we want to establish a new tunnel between the remote an local
-	// by closing the remote tunnel, the server side will create a new one.
-	local.OnDisconnect(func() { remote.Close() })
+	local.OnDisconnect(func() {
+		log.Println("local connection is closed")
+	})
 
 	<-join(local, remote)
 }
