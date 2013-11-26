@@ -176,7 +176,7 @@ class ActivityAppController extends AppController
       if @getFeedFilter() is "Public"
         @once "publicFeedFetched_#{eventSuffix}", (messages)=>
           reset()
-          @extractCacheTimeStamps messages
+          @extractMessageTimeStamps messages
           @listController.listActivities messages
           callback messages
 
@@ -184,7 +184,7 @@ class ActivityAppController extends AppController
       else
         @once "followingFeedFetched_#{eventSuffix}", (activities)=>
           reset()
-          @extractCacheTimeStamps messages
+          @extractMessageTimeStamps messages
           @listController.listActivities messages
           callback messages
 
@@ -225,8 +225,11 @@ class ActivityAppController extends AppController
       @reachedEndOfActivities = yes
 
   # Store first & last cache activity timestamp.
-  extractCacheTimeStamps: (cache)->
-    @setLastTimestamps (new Date cache.from).getTime(), (new Date cache.to).getTime()
+  extractMessageTimeStamps: (messages)->
+    return  if messages.length is 0
+    from = new Date(messages.last.meta.createdAt).getTime()
+    to   = new Date(messages.first.meta.createdAt).getTime()
+    @setLastTimestamps to, from #from, to
 
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
