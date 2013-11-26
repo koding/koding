@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-	cache := memorycache.NewMemoryCache(2*time.Second, 1*time.Second)
+	cache := memorycache.NewMemoryCache(2 * time.Second)
+	cache.StartGC(time.Millisecond * 10)
 	cache.Set("test_key", "test_data")
 	data, valid := cache.Get("test_key")
 	if !valid {
@@ -23,5 +24,4 @@ func main() {
 		panic("data found")
 	}
 	fmt.Println(data)
-
 }
