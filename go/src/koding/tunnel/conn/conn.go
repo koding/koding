@@ -1,3 +1,6 @@
+// Conn satisfies the net.conn interface. It has support for reconnection and
+// has callback  functions that are called when a reconnect or disconnect
+// happens.
 package conn
 
 import (
@@ -8,8 +11,6 @@ import (
 	"time"
 )
 
-// Conn satisfies the net.conn interface. If reconnectEnabled is true,
-// it reconnects when the connection is closed.
 type Conn struct {
 	nc net.Conn
 

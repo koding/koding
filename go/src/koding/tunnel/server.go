@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"koding/tunnel/pool"
 	"log"
 	"net"
 	"net/http"
@@ -23,6 +24,9 @@ type Server struct {
 	// http protocol.
 	httpTunnels *tunnels
 
+	// pools is containing a connection pool for each virtual host.
+	pools map[string]*pool.Pool
+
 	// controls contains the control connection from the client to the server
 	controls *controls
 
@@ -31,12 +35,13 @@ type Server struct {
 }
 
 // NewServer returns a new Server instance. It registers by default two new
-// http handlers to the default.Mux which is uses for establishing control
-// connections and creating tunnels.
+// http handlers to the default.Mux which is used for establishing control
+// connections and creating tunnels between public and local clients.
 func NewServer() *Server {
 	s := &Server{
 		pending:      make(map[string]chan *tunnel),
 		httpTunnels:  newTunnels(),
+		pools:        make(map[string]*pool.Pool),
 		controls:     newControls(),
 		virtualHosts: newVirtualHosts(),
 	}
@@ -78,6 +83,8 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("tunnel not available for id", tunnelID)
 		return
 	}
+
+	delete(s.pending, tunnelID)
 	s.pendingMu.Unlock()
 
 	// we now have an encapsulated connection. send it back to the requester
@@ -85,7 +92,6 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	// use it only for one session (like websocket)
 	tunnelRequester <- newTunnel(conn)
 
-	delete(s.pending, tunnelID)
 }
 
 // controlHandler is used to capture incoming control connect requests into
@@ -167,7 +173,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("http from %s to %s  -- path: %s\n", remoteHost, r.Host, r.URL.String())
 
-	tunnel, err := s.httpTunnelConn(host, remoteHost)
+	tunnel, err := s.tunnelFromPool(host)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), 404)
@@ -180,6 +186,32 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 404)
 		return
 	}
+
+	s.pools[host].Put(tunnel)
+}
+
+func (s *Server) tunnelFromPool(host string) (*tunnel, error) {
+	p, ok := s.pools[host]
+	if !ok {
+		// create a new pool for this host with inital 5 tunnel requests and a
+		// maximum of 30 connections (this parameters should be tweaked in the
+		// future). This is just for performance and allows us to connect to
+		// the client immediately instead of requesting tunnel for the first
+		// request.
+		p = pool.New(5, 30, func() (net.Conn, error) {
+			return s.requestTunnel("http", host)
+		})
+
+		s.pools[host] = p
+	}
+
+	conn, err := p.Get()
+	tunn, ok := conn.(*tunnel)
+	if !ok {
+		return nil, fmt.Errorf("failed to type assert of conn to tunnel", err)
+	}
+
+	return tunn, err
 }
 
 func (s *Server) httpTunnelConn(host, remoteAddr string) (*tunnel, error) {
@@ -233,10 +265,16 @@ func (s *Server) websocketHandleFunc(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("copy websocket.......")
 	err = <-join(tunnelConn, publicConn)
+
 	log.Println(err)
+	// close tunnel and public connection if the websocket connection is closed
+	tunnelConn.Close()
+	publicConn.Close()
 }
 
 func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
+	// don't use a connection from the pool, becasue websocket connections are
+	// persistent and not reusable.
 	tunnel, err := s.requestTunnel("websocket", host)
 	if err != nil {
 		return nil, err
