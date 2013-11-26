@@ -46,7 +46,7 @@ fetchLastStatusUpdatesOfUser = (daisy, account, Relationship, JStatusUpdate, cal
 
   Relationship.some selector, limit: 3, (err, relationships)->
     return callback err, null if err
-    return callback null, null unless relationships
+    return callback null, null unless relationships?.length > 0
     queue = [0..relationships.length - 1].map (index)=>=>
       rel = relationships[index]
       queue.next unless rel
@@ -123,7 +123,7 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
 module.exports =
   crawl: (bongo, req, res, slug)->
     {Base, race, dash, daisy} = require "bongo"
-    {JName, JAccount, JStatusUpdate} = bongo.models
+    {JName, JAccount} = bongo.models
     {Relationship} = require 'jraphical'
 
     unless slug[0] is "/"

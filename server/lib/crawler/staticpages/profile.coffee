@@ -35,7 +35,7 @@ createLinkToUserProfile = (fullName, nickname) ->
 
 getStatusUpdates = (statusUpdates, authorFullName, authorNickname) ->
   linkToProfile = createLinkToUserProfile authorFullName, authorNickname
-  if statusUpdates.length > 0
+  if statusUpdates?.length > 0
     updates = (createStatusUpdateNode(statusUpdate, authorFullName, authorNickname) for statusUpdate in statusUpdates)
     updatesContent = "<h4>Last status updates from #{linkToProfile}:</h4>"
     updatesContent += "<ol>"
