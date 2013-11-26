@@ -72,9 +72,6 @@ module.exports = (options, callback)->
             <span class="line"><i></i></span>
             <span class="line"><i></i></span>
             <span class="line"><i></i></span>
-            <span class="line"><i></i></span>
-            <span class="line"><i></i></span>
-            <span class="line"><i></i></span>
           </figure>
         #{putSplash(name, section, model)}
       </div>

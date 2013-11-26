@@ -253,3 +253,109 @@ body
     vendor            animation-iteration-count, 1
     vendor            transform-style, preserve-3d
     vendor            transform, scale(0)
+
+
+/*3d loading*/
+/* logo */
+#main-loading
+  vendor               perspective, 600px
+  vendor               transform-style, preserve-3d
+  abs()
+  top                 0
+  left                0
+  z-index             10000
+  bg                  color, #111617
+  vendor              transition, opacity .75s ease-in-out
+  opacity             1
+  overflow            hidden
+  &.out
+    opacity           0
+
+  figure.splash
+    // max-width         40%
+    // margin            0 auto
+    text-align        center
+    text-shadow       0 1px 0 rgba(0,0,0,.5)
+    padding           20px
+    // bg                color, rgba(0, 0, 0, .05)
+    // border            1px solid rgba(0, 0, 0, .1)
+    top               50px
+    rel()
+    .splash-title
+      font-weight     300
+      font-size       18px
+      padding         0 0 20px
+      color           #eee
+    .splash-name
+      bg              color, rgba(0, 0, 0, .05)
+      display         inline-block
+      font-weight     300
+      font-size       24px
+      color           linkColor1
+      padding         5px 10px
+    .splash-body
+      font-weight     300
+      margin          0 auto
+      max-width       400px
+      max-height      100px
+      font-size       14px
+      color           #ccc
+
+.threed-logo
+  left                 50%
+  top                  50%;
+  size                 200px, 260px
+  margin               -130px 0 0 -100px
+  // -moz-animation       logoHeartBeat 2s infinite ease
+  abs()
+
+  &
+  & *
+    vendor             transform-style, preserve-3d
+
+  .line
+    display            block
+    position           relative
+    size               200px, 60px
+    bg                 color, #fff
+
+    &~.line
+      margin-top       20px
+
+    &:nth-child(1)
+      bg               color, #ff9200
+    &:nth-child(2)
+      width            142px
+
+    i
+      abs()
+      top              0
+      left             0
+      display          block
+      size             100%, 20px
+      bg               color, #eee
+      vendor           backface-visibility, hidden
+      vendor           transform, rotateX(90deg) translateZ(10px) translateY(-10px)
+
+      &:after
+        abs()
+        top            0
+        left           0
+        content        ""
+        display        block
+        bg             color, #ccc
+        size           100%, 100%
+        vendor         backface-visibility, hidden
+        vendor         transform, translateZ(-60px) rotateX(180deg)
+
+    &:nth-child(1) i
+      bg               color, #c97200
+      &:after
+        bg             color, #b86800
+
+    &:nth-child(1)
+      vendor           animation, lineRotate 2.5s 0.01s infinite forwards ease-out /* .01s = hack for firefox :@ */
+    &:nth-child(2)
+      vendor           animation, lineRotate 2.5s .5s infinite forwards ease-out
+    &:nth-child(3)
+      vendor           animation, lineRotate 2.5s 1s infinite forwards ease-out
