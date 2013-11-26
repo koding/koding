@@ -175,6 +175,8 @@ module.exports = class JUser extends jraphical.Module
       email = "#{username}@koding.com"
       @fetchUser client, (err, user) =>
         return callback err  if err?
+        return callback createKodingError "User not found #{username}"  unless user
+
         userValues = {
           username
           email
