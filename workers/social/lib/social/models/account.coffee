@@ -582,6 +582,16 @@ module.exports = class JAccount extends jraphical.Module
           results.push doc.profile.fullname
         callback err, results
 
+  # I wrote it and decided that it is not necessary, feel free to remove ~ GG
+  #
+  # @filterUsernames = permit 'list members',
+  #   success: (client, nick, options, callback)->
+  #     [callback, options] = [options, callback]  unless callback
+  #     options or= {}
+  #     options.limit = 10
+  #     query = 'profile.nickname' : ///^#{nick}///
+  #     @some query, options, callback
+
   setEmailPreferences: (user, prefs, callback)->
     current = user.getAt('emailFrequency') or {}
     Object.keys(prefs).forEach (granularity)->
