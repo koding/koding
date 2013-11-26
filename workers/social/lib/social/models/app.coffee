@@ -25,6 +25,7 @@ module.exports = class JApp extends jraphical.Module
 
     softDelete          : yes
     slugifyFrom         : 'name'
+    slugTemplate        : 'Apps/#{slug}'
 
     indexes             :
       slug              : 'unique'
@@ -37,7 +38,7 @@ module.exports = class JApp extends jraphical.Module
 
     sharedMethods       :
       instance          : [
-        'approve'
+        'approve', 'fetchRelativeReviews'
         # 'approve', 'review', 'delete', 'install'
         # 'follow', 'unfollow', 'delete', 'review',
         # 'like', 'checkIfLikedBefore', 'fetchLikedByes',
@@ -46,7 +47,7 @@ module.exports = class JApp extends jraphical.Module
         # 'fetchRelativeReviews', 'approve'
       ]
       static            : [
-        'create', 'someWithRelationship'
+        'create', 'someWithRelationship', 'one'
         # , 'someWithRelationship', 'updateAllSlugs'
         # 'some', 'each', 'fetchAllAppsData'
       ]
@@ -59,6 +60,8 @@ module.exports = class JApp extends jraphical.Module
       'delete apps'     : []
 
     schema              :
+
+      authorNick        : String
       identifier        :
         type            : String
         set             : (value)-> value?.trim()
@@ -91,10 +94,14 @@ module.exports = class JApp extends jraphical.Module
       approved          :
         type            : Boolean
         default         : false
+
       repliesCount      :
         type            : Number
         default         : 0
-      slug              : String
+
+      slug              :
+        type            : String
+        default         : (value)-> Inflector.slugify @name.toLowerCase()
       slug_             : String
 
     relationships       :
@@ -148,12 +155,15 @@ module.exports = class JApp extends jraphical.Module
         manifest    : data.manifest
         identifier  : data.identifier
         version     : data.manifest.version
+        authorNick  : data.manifest.authorNick
 
       app.save (err)->
         return callback err  if err
         app.addCreator delegate, (err)->
           return callback err  if err
-          callback null, app
+          app.updateSlug (err, slug)=>
+            return callback err  if err
+            callback null, app
 
   approve: permit 'approve apps',
 
@@ -376,20 +386,20 @@ module.exports = class JApp extends jraphical.Module
   #         @update ($set: approved: state), (err)=>
   #           callback err
 
-  # # Do not return not approved apps
-  # @one$ = secure (client, selector, options, callback)->
-  #   {delegate} = client.connection
-  #   [options, callback] = [callback, options] unless callback
-  #   @one selector, options, (err, app)->
-  #     if err or not app
-  #       return callback err
-  #     else unless app.approved
-  #       if (delegate.checkFlag 'super-admin') or   \
-  #          (delegate.checkFlag 'app-publisher' and \
-  #           delegate.getId().equals app.originId)
-  #         return callback null, app
-  #       return callback new KodingError 'No such application.'
-  #     callback null, app
+  # Do not return not approved apps
+  @one$ = secure (client, selector, options, callback)->
+    {delegate} = client.connection
+    [options, callback] = [callback, options] unless callback
+    @one selector, options, (err, app)->
+      if err or not app
+        return callback err
+      else unless app.approved
+        if (delegate.checkFlag 'super-admin') or   \
+           (delegate.checkFlag 'app-publisher' and \
+            delegate.getId().equals app.originId)
+          return callback null, app
+        return callback new KodingError 'No such application.'
+      callback null, app
 
   getDefaultSelector = (client, selector)->
     {delegate} = client.connection
@@ -509,20 +519,20 @@ module.exports = class JApp extends jraphical.Module
   #                             @follow client, emitActivity: no, (err)->
   #                             @addParticipant delegate, 'reviewer', (err)-> #TODO: what should we do with this error?
 
-  # fetchRelativeReviews:({offset, limit, before, after}, callback)->
-  #   limit  ?= 10
-  #   offset ?= 0
-  #   if before? and after?
-  #     callback new KodingError "Don't use before and after together."
-  #   selector = timestamp:
-  #     if before? then  $lt: before
-  #     else if after? then $gt: after
-  #   options = {sort: timestamp: -1}
-  #   if limit > 0
-  #     options.limit = limit
-  #   if offset > 0
-  #     options.skip = offset
-  #   @fetchReviews selector, options, callback
+  fetchRelativeReviews:({offset, limit, before, after}, callback)->
+    limit  ?= 10
+    offset ?= 0
+    if before? and after?
+      callback new KodingError "Don't use before and after together."
+    selector = timestamp:
+      if before? then  $lt: before
+      else if after? then $gt: after
+    options = {sort: timestamp: -1}
+    if limit > 0
+      options.limit = limit
+    if offset > 0
+      options.skip = offset
+    @fetchReviews selector, options, callback
 
 
   # # modify: permit
