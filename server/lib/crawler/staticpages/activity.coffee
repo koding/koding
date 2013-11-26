@@ -1,4 +1,7 @@
 # account and models will be removed.
+{argv} = require 'optimist'
+{uri} = require('koding-config-manager').load("main.#{argv.c}")
+
 module.exports = ({activityContent, account, section, models})->
   {Relationship} = require 'jraphical'
   getStyles  = require './styleblock'
@@ -29,7 +32,7 @@ createCommentNode = (comment)->
     <li itemtype="http://schema.org/Comment" itemscope itemprop="comment">
         <span itemprop="commentText">#{comment.body}</span> - at
         <span itemprop="commentTime">#{comment.createdAt}</span> by
-        <span itemprop="name">#{comment.authorName}</span>
+        <a href="#{uri.address}/#!/#{comment.authorNickname}"><span itemprop="name">#{comment.authorName}</span></a>
     </li>
     """
   return commentContent
@@ -54,6 +57,9 @@ createCommentsCount = (numberOfComments)->
 createLikesCount = (numberOfLikes)->
   return "<span>#{numberOfLikes}</span> likes."
 
+createAuthor = (accountName, nickname)->
+  return "<a href=\"#{uri.address}/#!/#{nickname}\"><span itemprop=\"name\">#{accountName}</span></a>"
+
 createCodeSnippet = (code)->
   codeSnippet = ""
   if code
@@ -68,11 +74,13 @@ createUserInteractionMeta = (numberOfLikes, numberOfComments)->
 putContent = (activityContent, section, model)->
 
   body = activityContent.body
+  nickname = activityContent.nickname
   accountName = createAccountName activityContent.fullName
   avatarImage = createAvatarImage activityContent.hash
   createdAt = createCreationDate activityContent.createdAt
   commentsCount = createCommentsCount activityContent.numberOfComments
   likesCount = createLikesCount activityContent.numberOfLikes
+  author = createAuthor accountName, nickname
 
   userInteractionMeta = createUserInteractionMeta \
     activityContent.numberOfLikes, activityContent.numberOfComments
@@ -96,18 +104,19 @@ putContent = (activityContent, section, model)->
 
   content  =
     """
+        <a href="#{uri.address}">Koding</a><br />
         <header itemprop="headline"><h1>#{title}</h1></header>
         #{body} #{codeSnippet}
         <hr>
         <figure itemscope itemtype="http://schema.org/person" title="#{accountName}">
           #{avatarImage}
           <figcaption>
-            Author: <span itemprop="name">#{accountName}</span>
+            Author: #{author}
           </figcaption>
         </figure>
         <footer>
           #{userInteractionMeta}
-          #{createdAt} by <span itemprop='author'>#{accountName}</span>
+          #{createdAt} by #{author}
           <br>
           #{tags}
           <hr>
