@@ -18,6 +18,9 @@ class TeamworkApp extends KDObject
       @teamwork.on "PanelCreated", =>
         @doCurlRequest playgroundsManifest, (err, manifest) =>
           @playgroundsManifest = manifest
+          @dashboard = new TeamworkDashboard
+            delegate : this
+          @teamwork.addSubView @dashboard, null, yes
 
   createTeamwork: ->
     options               = @getOptions()
@@ -36,14 +39,9 @@ class TeamworkApp extends KDObject
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
         buttons           : [
           {
-            title         : "Tools"
-            cssClass      : "clean-gray tw-tools-button"
-            callback      : => @showToolsModal @teamwork.getActivePanel(), @teamwork
+            title         : "Share"
+            cssClass      : "clean-gray"
           }
-          title           : "Playgrounds"
-          itemClass       : KDButtonView
-          cssClass        : "clean-gray playgrounds-button"
-          callback        : => @showPlaygroundsModal()
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
@@ -61,6 +59,9 @@ class TeamworkApp extends KDObject
             }
           ]
       ]
+
+  showDashboard: ->
+    @dashboard.setClass "active"
 
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
