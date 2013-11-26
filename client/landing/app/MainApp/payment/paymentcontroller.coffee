@@ -110,6 +110,17 @@ class PaymentController extends KDController
 
     return form
 
+  createUpgradeWorkflow: (tag, forceUpgrade = no) ->
+    upgradeForm = @createUpgradeForm tag, forceUpgrade
+
+    workflow = new PaymentWorkflow
+      productForm: upgradeForm
+      confirmForm: new KDView partial: 'howdy'
+
+    workflow.enter()
+
+    workflow
+
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit pack, (err, nonce) =>
       return  if KD.showError err
