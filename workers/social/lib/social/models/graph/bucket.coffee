@@ -3,7 +3,7 @@ QueryRegistry = require './queryregistry'
 
 module.exports = class Bucket extends Graph
 
-  @activityFetchCount = KONFIG.client.runtimeOptions.activityFetchCount
+  @activityFetchCount =-> KONFIG.client.runtimeOptions.activityFetchCount
 
   ###############################################
   ##############  new members  ##################
@@ -13,7 +13,7 @@ module.exports = class Bucket extends Graph
     options =
       groupId     : groupId
       to          : to
-      limitCount  : @activityFetchCount
+      limitCount  : @activityFetchCount()
 
     query = QueryRegistry.bucket.newMembers
     @queryMembers query, options, callback
@@ -42,7 +42,7 @@ module.exports = class Bucket extends Graph
     options =
       groupId     : groupId
       to          : to
-      limitCount  : @activityFetchCount
+      limitCount  : @activityFetchCount()
 
     query = QueryRegistry.bucket.newInstallations
     @fetch query, options, (err, results) =>
@@ -71,7 +71,7 @@ module.exports = class Bucket extends Graph
     options =
       groupId     : groupId
       to          : to
-      limitCount  : @activityFetchCount
+      limitCount  : @activityFetchCount()
 
     query = QueryRegistry.bucket.newUserFollows
     @fetchFollows query, options, callback
@@ -85,7 +85,7 @@ module.exports = class Bucket extends Graph
       groupId     : groupId
       groupName   : groupName
       to          : to
-      limitCount  : @activityFetchCount
+      limitCount  : @activityFetchCount()
 
     query = QueryRegistry.bucket.newTagFollows
     @fetchFollows query, options, callback
