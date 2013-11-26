@@ -198,21 +198,19 @@ class ActivityAppController extends AppController
 
 
   fetchPublicActivities:(options = {})->
-  prepareCacheForListing: (cache)->
+    options.to = @lastTo
+    {JStatusUpdate} = KD.remote.api
+    # todo - implement prefetched feed
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-
-    cache.overview.reverse()  if cache.overview
-
-    @sanitizeCache cache, (err, sanitizedCache)=>
-      if err
-      then @emit "activitiesCouldntBeFetched", err
-      else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
+    JStatusUpdate.fetchGroupActivity options, (err, messages)=>
+      return @emit "activitiesCouldntBeFetched", err  if err
+      @emit "publicFeedFetched_#{eventSuffix}", messages
 
 
   fetchFollowingActivities:(options = {})->
-    {CActivity} = KD.remote.api
+    {JStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    CActivity.fetchFolloweeContents options, (err, activities) =>
+    CActivity.fetchFollowingFeed options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err
       else @emit "followingFeedFetched_#{eventSuffix}", activities
