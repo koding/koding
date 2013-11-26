@@ -52,34 +52,32 @@ func jsonDecode(data string) (*Message, error) {
 	return source, nil
 }
 
-var handler = func(deliveries <-chan amqp.Delivery) {
-	for msg := range deliveries {
-		message, err := jsonDecode(string(msg.Body))
-		if err != nil {
-			fmt.Println("Wrong message format", err, message)
-			msg.Ack(false)
-			return
-		}
+var handler = func(msg amqp.Delivery) {
+	message, err := jsonDecode(string(msg.Body))
+	if err != nil {
+		fmt.Println("Wrong message format", err, message)
+		msg.Ack(false)
+		return
+	}
 
-		if len(message.Payload) < 1 {
-			fmt.Println("Wrong message format; payload should be an Array", message)
-			msg.Ack(false)
-			return
-		}
-		data := message.Payload[0]
+	if len(message.Payload) < 1 {
+		fmt.Println("Wrong message format; payload should be an Array", message)
+		msg.Ack(false)
+		return
+	}
+	data := message.Payload[0]
 
-		controller := elasticsearch.Controller{}
+	controller := elasticsearch.Controller{}
 
-		actionFn := RoutingTable[message.Event]
-		if actionFn != nil {
-			if actionFn(&controller, data) {
-				// always use late ack
-				msg.Ack(false)
-			}
-		} else {
-			fmt.Println("Unknown event received ", message.Event)
+	actionFn := RoutingTable[message.Event]
+	if actionFn != nil {
+		if actionFn(&controller, data) {
+			// always use late ack
 			msg.Ack(false)
 		}
+	} else {
+		fmt.Println("Unknown event received ", message.Event)
+		msg.Ack(false)
 	}
 }
 
