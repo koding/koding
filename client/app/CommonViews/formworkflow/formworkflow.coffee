@@ -9,7 +9,6 @@ class FormWorkflow extends KDView
 
     @forms      = {}
     @providers  = {}
-
     @active = null
 
     @history = new FormWorkflow.History
@@ -34,13 +33,11 @@ class FormWorkflow extends KDView
 
   back: -> @go 'back'
 
-  requireData: (fields, mode = 'all') ->
-    gate =
-      if fields.isGate
+  requireData: (fields) ->
+    @collector.addRequirement \
+      if fields.isJunction
       then fields
-      else @[mode] fields...
-
-    @collector.addRequirement gate
+      else Junction.all fields...
 
     return this
 
@@ -63,11 +60,10 @@ class FormWorkflow extends KDView
   provideData: (form, providers) ->
     for field in providers
       @providers[field] ?= []
-      @providers[field].push(
+      @providers[field].push \
         if 'string' is typeof form
         then @forms[form]
         else form
-      )
 
     return this
 
@@ -121,9 +117,6 @@ class FormWorkflow extends KDView
     @history.push form  if shouldPushState
     
     return this
-
-  all: (fields...) -> new FormWorkflow.Gate.All fields
-  any: (fields...) -> new FormWorkflow.Gate.Any fields
 
   viewAppended:->
     @prepareWorkflow?()
