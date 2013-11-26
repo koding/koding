@@ -199,7 +199,7 @@ module.exports = class Slugifiable
   updateSlug:(callback)->
     @createSlug (err, slug)=>
       if err then callback err
-      else @update $set:{slug, slug_:slug}, (err)->
+      else @update $set:{slug:slug.slug, slug_:slug.slug}, (err)->
         callback err, unless err then slug
 
   createSlug:(callback)->
