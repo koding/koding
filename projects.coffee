@@ -111,6 +111,12 @@ projects      =
     script        : "website/js/app.finder.#{KODING_VERSION}.js"
     sourceMapRoot : "Finder/"
 
+  About           :
+    files         : "client/About/includes.coffee"
+    style         : "website/css/app.about.#{KODING_VERSION}.css"
+    script        : "website/js/app.about.#{KODING_VERSION}.js"
+    sourceMapRoot : "About/"
+
   PostOperations  :
     files         : "client/PostOperations/includes.coffee"
     script        : "website/js/client.post.#{KODING_VERSION}.js"
