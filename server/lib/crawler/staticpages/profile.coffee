@@ -50,11 +50,8 @@ module.exports = ({account, statusUpdates})->
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
   {
-    forceTwoDigits
     formatDate
     getFullName
-    getNickname
-    getUserHash
   }          = require '../helpers'
 
   {profile:{nickname}} = account if account
