@@ -24,9 +24,9 @@ class AccountSubscriptionsListController extends AccountListViewController
 
         .on 'PlanChangeRequested', ->
           payment = KD.getSingleton 'paymentController'
-          form = payment.createUpgradeForm 'vm'
+          workflow = payment.createUpgradeWorkflow 'vm'
           new KDModalView
-            view    : form
+            view    : workflow
             overlay : yes
 
   getConfirmationText = (action, subscription) -> switch action
