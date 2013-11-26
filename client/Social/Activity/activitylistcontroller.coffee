@@ -66,11 +66,8 @@ class ActivityListController extends KDListViewController
     @hideLazyLoader()
     return  unless activities.length > 0
     activityIds = []
-    for activity in activities when activity
-      @addItem activity
-      activityIds.push activity._id
+    queue = []
 
-    @checkIfLikedBefore activityIds
     activities.forEach (activity)=>
       queue.push =>
         @addItem activity
@@ -97,19 +94,6 @@ class ActivityListController extends KDListViewController
         if likeView
           likeView.setClass "liked"
           likeView._currentState = yes
-
-  getLastItemTimeStamp: ->
-
-    if item = @hiddenItems.first
-      item.getData().createdAt or item.getData().createdAtTimestamps.last
-    else
-      @lastItemTimeStamp
-
-  followedActivityArrived: (activity) ->
-
-    if @_state is 'private'
-      view = @addHiddenItem activity, 0
-      @activityHeader?.newActivityArrived()
 
   logNewActivityArrived:(activity)->
     id = activity.getId?()
