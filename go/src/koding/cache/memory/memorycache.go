@@ -22,6 +22,7 @@ type MemoryCache struct {
 // NewMemoryCache creates an inmemory cache system
 // Which everytime will return the true values about a cache hit
 // and never will leak memory
+// ttl is used for expiration of a key from cache
 func NewMemoryCache(ttl time.Duration) *MemoryCache {
 	return &MemoryCache{
 		items:  map[string]interface{}{},
