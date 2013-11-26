@@ -252,3 +252,208 @@ finderSelectedColor2 = #3AAAAB
       bg                position, -200px -560px
     &.left
       bg                position, -260px -560px
+
+
+/* Activity items */
+.activity-item
+  background      #fff
+  rounded         3px
+  overflow        visible
+  position        relative
+  margin          30px 0 0 0
+  borderBox()
+
+  .author-avatar
+    display       block
+    size          86px, 86px
+    rounded       3px
+    top           0
+    right         100%
+    margin        0 14px 0 0
+    abs()
+
+  .author-name
+  .status-body
+    display       block
+    padding       22px 22px 0
+    color         #50595a
+    font-weight   400
+
+  .author-name a
+    color         #50595a
+    font-weight   500
+    noTextDeco()
+
+  footer
+    size          100%, 42px
+    rounded       0 0 3px 3px
+    bg            color, #f8f8f6
+    border-top    2px solid #e9e7e1
+    margin        22px 0 0 0
+    borderBox()
+
+    time
+      width       auto
+      line-height 42px
+      font-size   12px
+      color       #b3b1ab
+      padding     0 22px 0 0
+      fr()
+
+    .activity-actions
+      width       auto
+      fl()
+
+    .action-link
+    .comment-icon
+    .share-icon
+      size            20px, 20px
+      display         inline-block
+      vertical-align  text-top
+
+      &.like-icon
+        margin-top    1px
+        sprite        activity, like-icon
+
+      &.comment-icon
+        margin-top    2px
+        sprite        activity, comment-icon
+
+      &.share-icon
+        sprite        activity, share-icon
+
+    .action-container
+      size            auto, 20px
+      margin          10px 0 0 22px
+      fl()
+
+      &.liked .like-icon
+        sprite        activity, like-icon-liked
+
+    .count
+      display         inline-block
+      color           #697576
+      font-size       14px
+      margin          0 0 0 12px
+      noTextDeco()
+
+  .comment-container.commented
+    border-top    2px solid #e9e7e1
+
+  .kdlistitemview-comment
+    padding           20px
+    borderBox()
+
+    .avatarview
+      size            43px, 43px
+      top             20px
+      left            20px
+      abs()
+
+    .comment-contents
+      size            auto, auto
+      margin          0 0 0 61px
+      font-size       14px
+      font-weight     400
+      color           #50595a
+
+      .profile
+        display       block
+        color         #50595a
+        font-weight   500
+        margin        0 0 14px 0
+        noTextDeco()
+
+      .like-view
+      .reply-link
+      time
+        font-size         12px
+        display           inline-block
+        margin            16px 20px 0 0
+        width             auto
+
+      .like-view a
+      .reply-link
+        color           #697576
+        noTextDeco()
+
+        &.count
+          display       inline-block
+          margin        0 0 0 9px
+          font-weight   500
+
+      time
+        color           #a5acad
+
+    &~.kdlistitemview-comment
+      padding-top     0
+
+      .avatarview
+        top           12px
+
+      .comment-contents
+        padding-top   12px
+        border-top    1px solid #eeeeef
+
+  .item-add-comment-box
+    bg            color, #f7f7f8
+    border-top    2px solid #e9e7e1
+    padding       20px
+    borderBox()
+
+    .avatarview
+      size        43px, 43px
+      display     block
+      left        20px
+      top         20px
+      abs()
+
+    .item-add-comment-form
+      size        auto, auto
+      margin      0 0 0 43px
+
+      textarea
+        size        100%, 43px
+        border      1px solid #d1d3d3
+        border-left none
+        box-shadow  none
+        background  #fff
+        line-height 43px
+        padding     0 0 0 17px
+        color       #50595a
+        font-size   14px
+        rounded     0
+        vendor      transition, line-height .2s ease
+        borderBox()
+
+        &::-webkit-input-placeholder
+          color     #50595a
+        &::-moz-placeholder
+          color     #50595a
+
+        &:focus
+          line-height     24px
+
+
+/* Activity and profile right block's box style */
+
+.profile-right-block
+.activity-right-block
+    size                302px, auto
+    right               0
+    top                 0
+    borderBox()
+    abs()
+
+  .right-block-box
+    size              auto, auto
+    background        #fff
+    border-radius     6px
+    border            1px solid #e1e1e4
+    margin            0 0 0 0
+    padding           18px 18px 10px
+    borderBox()
+
+    &~.right-block-box
+      margin-top      29px
+

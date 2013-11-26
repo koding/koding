@@ -638,33 +638,39 @@ class ProfileView extends JView
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
-    <div class="profileleft">
-    <span>{{> @avatar}}</span>
-    {{> @followButton}}
-    {cite{ @putNick #(profile.nickname)}}
-    </div>
+      <div class="right-block-box users-profile">
 
-    {{> @trollSwitch}}
-
-    <section>
-      <div class="profileinfo">
-        <div class="action-wrapper">{{> @editLink}}{{> @cancelButton}}{{> @saveButton}}</div>
-        <h3 class="profilename">{{> @firstName}}{{> @lastName}}</h3>
-        <div class="external-profiles"></div>
-        <h4 class="profilelocation">{{> @location}}</h4>
-        <h5>
-          {{> @userHomeLink}}
-          <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
-        </h5>
-        <div class="profilestats">
-          <div class="fers">{{> @followers}}</div>
-          <div class="fing">{{> @following}}</div>
-          <div class="liks">{{> @likes}}</div>
-          <div class='contact'>{{> @sendMessageLink}}</div>
-        </div>
-        <div class="badges"></div>
-        <div class="profilebio">{{> @bio }}</div>
-        <div class="personal-skilltags">{{> @skillTagView}}</div>
       </div>
-    </section>
     """
+
+    # """
+    # <div class="profileleft">
+    # <span>{{> @avatar}}</span>
+    # {{> @followButton}}
+    # {cite{ @putNick #(profile.nickname)}}
+    # </div>
+
+    # {{> @trollSwitch}}
+
+    # <section>
+    #   <div class="profileinfo">
+    #     <div class="action-wrapper">{{> @editLink}}{{> @cancelButton}}{{> @saveButton}}</div>
+    #     <h3 class="profilename">{{> @firstName}}{{> @lastName}}</h3>
+    #     <div class="external-profiles"></div>
+    #     <h4 class="profilelocation">{{> @location}}</h4>
+    #     <h5>
+    #       {{> @userHomeLink}}
+    #       <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
+    #     </h5>
+    #     <div class="profilestats">
+    #       <div class="fers">{{> @followers}}</div>
+    #       <div class="fing">{{> @following}}</div>
+    #       <div class="liks">{{> @likes}}</div>
+    #       <div class='contact'>{{> @sendMessageLink}}</div>
+    #     </div>
+    #     <div class="badges"></div>
+    #     <div class="profilebio">{{> @bio }}</div>
+    #     <div class="personal-skilltags">{{> @skillTagView}}</div>
+    #   </div>
+    # </section>
+    # """

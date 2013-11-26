@@ -19,7 +19,7 @@ class ActivityTicker extends JView
 
   pistachio:
     """
-    <div class="activity-ticker">
+    <div class="activity-ticker right-block-box">
       <h3>Activity Feed <i class="cog-icon"></i></h3>
       {{> @listView}}
     </div>

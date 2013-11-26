@@ -25,21 +25,6 @@ class ContentDisplayControllerMember extends KDViewController
   loadView:(mainView)->
     member = @getData()
     {lazy} = mainView
-    mainView.addSubView subHeader = new KDCustomHTMLView
-      tagName   : "h2"
-      cssClass  : 'sub-header'
-      domId     : 'members-sub-header' if lazy
-
-    backLink = new KDCustomHTMLView
-      domId   : 'members-back-link' if lazy
-      tagName : "a"
-      partial : "<span>&laquo;</span> Back"
-      click   : (event)->
-        event.stopPropagation()
-        event.preventDefault()
-        KD.singleton('display').emit "ContentDisplayWantsToBeHidden", mainView
-        no
-    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     # FIX THIS GG
 
@@ -73,7 +58,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
     options      =
-      cssClass   : "profilearea clearfix"
+      cssClass   : "profilearea profile-right-block clearfix"
       domId      : 'profilearea' unless @revivedContentDisplay
       delegate   : @getView()
 
