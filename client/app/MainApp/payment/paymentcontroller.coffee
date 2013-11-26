@@ -106,7 +106,7 @@ class PaymentController extends KDController
 
       dash queue, ->
         form.setPlans plans
-        form.setCurrentSubscription subscription, forceUpgrade
+        form.setCurrentSubscription subscription, forceUpgrade  if subscription
 
     return form
 
