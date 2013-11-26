@@ -53,20 +53,19 @@ class MainViewController extends KDViewController
 
   mainTabPaneChanged:(mainView, pane)->
 
-    dockController  = KD.getSingleton 'dockController'
     appManager      = KD.getSingleton 'appManager'
     app             = appManager.getFrontApp()
     {mainTabView}   = mainView
-    {navController} = dockController
+    {navController} = KD.singleton 'dock'
 
-    KD.singleton('display').emit "ContentDisplaysShouldBeHidden"
+    # KD.singleton('display').emit "ContentDisplaysShouldBeHidden"
     # temp fix
     # until fixing the original issue w/ the dnd this should be kept here
     if pane
     then @setViewState pane.getOptions()
     else mainTabView.getActivePane().show()
 
-    {title} = app.getOption('navItem')
+    {title} = app?.getOption('navItem')
 
     if title
     then navController.selectItemByName title
@@ -78,11 +77,10 @@ class MainViewController extends KDViewController
     (options = {})->
 
       {behavior, name} = options
+      {body}           = document
       html             = document.getElementsByTagName('html')[0]
-      body             = document.body
       mainView         = @getView()
-      { mainTabView
-        sidebar }      = mainView
+      {mainTabView}    = mainView
       o                = {name}
 
       KDView.setElementClass html, 'remove', 'app'

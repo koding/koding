@@ -101,8 +101,7 @@ class MainView extends KDView
 
   createDock:->
 
-    dockController = @getSingleton "dockController"
-    @header.addSubView dockController.getView()
+    @header.addSubView KD.singleton('dock').getView()
 
 
   createAccountArea:->
@@ -176,6 +175,9 @@ class MainView extends KDView
 
     @mainTabView.on "PaneDidShow", =>
       appManager   = KD.getSingleton "appManager"
+
+      return  unless appManager.getFrontApp()
+
       appManifest  = appManager.getFrontAppManifest()
       forntAppName = appManager.getFrontApp().getOptions().name
       menu         = appManifest?.menu or KD.getAppOptions(forntAppName)?.menu
