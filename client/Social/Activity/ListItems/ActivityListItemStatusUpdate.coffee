@@ -27,9 +27,49 @@ class StatusActivityItemView extends ActivityItemChild
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
+    @tags = @getTokenMap(data.tags) or {}
 
+  getTokenMap: (tokens) ->
+    return  unless tokens
+    map = {}
+    tokens.forEach (token) -> map[token.getId()] = token
+    return  map
 
+  expandTokens: (str = "") ->
+    return  str  unless tokenMatches = str.match /\|.+?\|/g
 
+    data = @getData()
+
+    viewParams = []
+    for tokenString in tokenMatches
+      [prefix, constructorName, id] = @decodeToken tokenString
+
+      switch prefix
+        when "#"
+          token     = @tags[id]
+        else
+          continue
+
+      continue  unless token
+
+      domId = @utils.getUniqueId()
+      str   = str.replace tokenString, TokenView.getPlaceholder domId
+      viewParams.push {options: {domId, itemClass: tokenClassMap[prefix]}, token}
+
+      @utils.defer ->
+        for params in viewParams
+          {options, token} = params
+          new TokenView options, token
+
+    return  str
+
+  decodeToken: (str) ->
+    return  match[1].split /:/g  if match = str.match /^\|(.+)\|$/
+
+  formatContent: (str = "")->
+    str = @utils.applyTextExpansions str, yes
+    str = @expandTokens str
+    return  str
 
   viewAppended:->
     return if @getData().constructor is KD.remote.api.CStatusActivity
@@ -79,13 +119,11 @@ class StatusActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       <span class="avatar">{{> @avatar}}</span>
       <div class='activity-item-right-col'>
-        <h3 class='hidden'></h3>
-        <p class="status-body">{{@applyTextExpansions #(body)}}</p>
+        <p class="status-body">{{@formatContent #(body)}}</p>
         <footer class='clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
             {{> @timeAgoView}}
-            {{> @tags}}
           </div>
           {{> @actionLinks}}
         </footer>
@@ -98,7 +136,7 @@ class StatusActivityItemView extends ActivityItemChild
         {{> @avatar}}
         <div class="activity-item-right-col">
           <span class="author-name">{{> @author}}</span>
-          <p class="status-body">{{@applyTextExpansions #(body)}}</p>
+          <p class="status-body">{{@formatContent #(body)}}</p>
         </div>
         <footer>
           {{> @actionLinks}}
@@ -107,3 +145,5 @@ class StatusActivityItemView extends ActivityItemChild
         {{> @commentBox}}
       """
 
+  tokenClassMap =
+    "#"         : TagLinkView
