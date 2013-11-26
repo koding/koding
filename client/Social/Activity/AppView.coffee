@@ -26,7 +26,7 @@ class ActivityAppView extends KDScrollView
     @header           = new HomeKonstructor
     @widget           = new ActivityUpdateWidget
     @widgetController = new ActivityUpdateWidgetController view : @widget
-    @rightBlock       = new ActivityRightBlock
+    @rightBlock       = new ActivityTicker
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
     @mainController   = KD.getSingleton("mainController")
 
