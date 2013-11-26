@@ -39,7 +39,8 @@ class TeamworkTools extends JView
         messages     :
           required   : "Please check the field."
       callback       : =>
-        twApp.importContent @importInput.getValue(), modal
+        url = @importInput.getValue()
+        new TeamworkImporter { url, modal, delegate: twApp }
 
     @exportButton    = new KDButtonView
       title          : "Click here to select a folder to export"

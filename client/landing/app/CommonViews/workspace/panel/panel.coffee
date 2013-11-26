@@ -26,12 +26,17 @@ class Panel extends JView
     @headerTitle   = new KDCustomHTMLView
       tagName      : "span"
       cssClass     : "title"
-      partial      : """
-        <span class="icon"></span>
-        <span class="text">#{title}</span>
-      """
+      partial      : """ <span class="text">#{title}</span> """
+
+    @headerIcon    = new KDCustomHTMLView
+      tagName      : "span"
+      cssClass     : "icon"
+
+    @headerTitle.addSubView @headerIcon, null, yes
 
     @header.addSubView @headerTitle
+    @header.addSubView @headerButtonsContainer = new KDCustomHTMLView
+      cssClass     : "tw-header-buttons"
 
     {headerStyling} = @getOptions()
     @applyHeaderStyling headerStyling if headerStyling
@@ -41,7 +46,6 @@ class Panel extends JView
     @getOptions().buttons.forEach (buttonOptions) =>
       if buttonOptions.itemClass
         Klass = buttonOptions.itemClass
-        delete buttonOptions.itemClass
         buttonOptions.callback = buttonOptions.callback?.bind this, this, @getDelegate()
 
         buttonView = new Klass buttonOptions
@@ -50,7 +54,7 @@ class Panel extends JView
         buttonView = new KDButtonView buttonOptions
 
       @headerButtons[buttonOptions.title] = buttonView
-      @header.addSubView buttonView
+      @headerButtonsContainer.addSubView buttonView
 
   createHeaderHint: ->
     @header.addSubView @headerHint = new KDCustomHTMLView
@@ -127,13 +131,16 @@ class Panel extends JView
           callback : -> modal.destroy()
 
   applyHeaderStyling: (options) ->
+    if options.custom
+      return @header.getElement().setAttribute "style", options.custom
+
     {bgColor, bgGradient, bgImage, textColor, textShadowColor, borderColor} = options
 
     @header.setCss      "color"             , textColor                     if textColor
-    @header.setCss      "textShadowColor"   , "0 1px 0 #{textShadowColor}"  if textShadowColor
     @header.setCss      "borderBottomColor" , "#{borderColor}"              if borderColor
     @header.setCss      "background"        , "#{bgColor}"                  if bgColor
-    @headerTitle.setCss "backgroundImage"   , "url(#{bgImage})"             if bgImage
+    @headerIcon.setCss  "backgroundImage"   , "url(#{bgImage})"             if bgImage
+    @header.setCss      "textShadowColor"   , "0 1px 0 #{textShadowColor}"  if textShadowColor
 
     KD.utils.applyGradient @header, bgGradient.first, bgGradient.last       if bgGradient
 
