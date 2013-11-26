@@ -46,7 +46,7 @@ module.exports = class JApp extends jraphical.Module
         # 'fetchRelativeReviews', 'approve'
       ]
       static            : [
-        'create'
+        'create', 'someWithRelationship'
         # , 'someWithRelationship', 'updateAllSlugs'
         # 'some', 'each', 'fetchAllAppsData'
       ]
@@ -391,34 +391,34 @@ module.exports = class JApp extends jraphical.Module
   #       return callback new KodingError 'No such application.'
   #     callback null, app
 
-  # getDefaultSelector = (client, selector)->
-  #   {delegate} = client.connection
-  #   selector or= {}
+  getDefaultSelector = (client, selector)->
+    {delegate} = client.connection
+    selector or= {}
 
-  #   # Just show approved apps to regular users
-  #   unless delegate.checkFlag 'super-admin'
-  #     selector.approved = yes
+    # Just show approved apps to regular users
+    unless delegate.checkFlag 'super-admin'
+      selector.approved = yes
 
-  #   # If delegate is a publisher one can see its apps
-  #   # even they are not approved yet.
-  #   if not (delegate.checkFlag 'super-admin') \
-  #      and (delegate.checkFlag 'app-publisher')
-  #     selector.$or = [
-  #       {approved: yes}
-  #       {originId: delegate.getId()}
-  #     ]
-  #     delete selector.approved
-  #   return selector
+    # If delegate is a publisher one can see its apps
+    # even they are not approved yet.
+    if not (delegate.checkFlag 'super-admin') \
+       and (delegate.checkFlag 'app-publisher')
+      selector.$or = [
+        {approved: yes}
+        {originId: delegate.getId()}
+      ]
+      delete selector.approved
+    return selector
 
-  # @some$: @someWithRelationship
-  # @someWithRelationship: secure (client, selector, options, callback)->
-  #   selector = getDefaultSelector client, selector
-  #   options  or= {}
-  #   options.limit = Math.min(options.limit or 0, 10)
+  @some$: @someWithRelationship
+  @someWithRelationship: secure (client, selector, options, callback)->
+    selector = getDefaultSelector client, selector
+    options  or= {}
+    options.limit = Math.min(options.limit or 0, 10)
 
-  #   @some selector, options, (err, apps)=>
-  #     @markInstalled client, apps, (err, apps)=>
-  #       @markFollowing client, apps, callback
+    @some selector, options, (err, apps)=>
+      @markInstalled client, apps, (err, apps)=>
+        @markFollowing client, apps, callback
 
   # @each$: secure (client, selector, fields, options, callback)->
   #   selector = getDefaultSelector client, selector
@@ -432,20 +432,20 @@ module.exports = class JApp extends jraphical.Module
   #     if app then apps.push app
   #     else callback err, apps
 
-  # @markInstalled = secure (client, apps, callback)->
-  #   Relationship.all
-  #     targetId  : client.connection.delegate.getId()
-  #     as        : 'user'
-  #     sourceType: 'JApp'
-  #   , (err, relationships)->
-  #     apps.forEach (app)->
-  #       app.installed = no
-  #       for relationship, index in relationships
-  #         if app._id is relationship.sourceId
-  #           app.installed = yes
-  #           relationships.splice index,1
-  #           break
-  #     callback err, apps
+  @markInstalled = secure (client, apps, callback)->
+    Relationship.all
+      targetId  : client.connection.delegate.getId()
+      as        : 'user'
+      sourceType: 'JApp'
+    , (err, relationships)->
+      apps.forEach (app)->
+        app.installed = no
+        for relationship, index in relationships
+          if app._id is relationship.sourceId
+            app.installed = yes
+            relationships.splice index,1
+            break
+      callback err, apps
 
   # delete: secure ({connection:{delegate}}, callback)->
 
