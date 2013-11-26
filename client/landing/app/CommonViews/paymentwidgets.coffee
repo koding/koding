@@ -52,14 +52,8 @@ class PaymentWidget extends KDView
     paymentController.fetchPaymentInfo 'user', group, (err, account) =>
       callback err or not account or not account.cardNumber
 
-  checkSubscription:(callback)->
-    KD.remote.api.JPaymentSubscription.checkUserSubscription @planCode, (err, subs) =>
-      subscribed = no
-      subs.forEach (sub)=>
-        if sub.status in ['canceled', 'active']
-          subscribed = yes
-      callback subscribed
-
+  checkSubscription:(callback)-> throw Error 'reimplement this'
+  
   pistachio:->
     """
     {{> @loader}}
