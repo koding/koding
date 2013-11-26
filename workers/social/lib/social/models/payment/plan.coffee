@@ -146,33 +146,33 @@ module.exports = class JPaymentPlan extends JPaymentBase
     options ?= {}
     options.multiple ?= no
 
-    JPaymentSubscription.fetchAllSubscriptions {
+    JPaymentSubscription.one {
       paymentMethodId
       @planCode
       $or       : [
         {status : 'active'}
         {status : 'canceled'}
       ]
-    }, (err, [sub]) =>
+    }, (err, subscription) =>
       return callback err  if err
 
-      if sub?
+      if subscription?
         return callback 'Already subscribed.'  unless options.multiple
 
-        quantity = sub.quantity + 1
+        quantity = subscription.quantity + 1
 
         update = {
           @planCode
           quantity
-          uuid: sub.uuid
+          uuid: subscription.uuid
         }
 
         recurly.updateSubscription paymentMethodId, update, (err) =>
           return callback err  if err
-          sub.update $set: { quantity }, (err)->
+          subscription.update $set: { quantity }, (err)->
             if err
             then callback err
-            else callback null, sub
+            else callback null, subscription
 
       else
         recurly.createSubscription paymentMethodId, { @planCode }, (err, result) =>
@@ -181,7 +181,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
             feeAmount } = result
 
-          sub = new JPaymentSubscription {
+          subscription = new JPaymentSubscription {
             planCode
             uuid
             quantity
@@ -193,10 +193,10 @@ module.exports = class JPaymentPlan extends JPaymentBase
             tags      : @tags
           }
 
-          sub.save (err)->
+          subscription.save (err)->
             return callback err  if err
 
-            callback null, sub
+            callback null, subscription
 
   subscribe$: secure (client, paymentMethodId, data, callback) ->
     { connection:{ delegate } } = client
