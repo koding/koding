@@ -117,12 +117,12 @@ class AppView extends KDView
       @approveButton = new KDView
       @removeButton  = new KDView
 
-    # if KD.isLoggedIn() then
-    app.checkIfLikedBefore (err, likedBefore)=>
-      if likedBefore
-        @likeButton.setState "Unlike"
-      else
-        @likeButton.setState "Like"
+    # # if KD.isLoggedIn() then
+    # app.checkIfLikedBefore (err, likedBefore)=>
+    #   if likedBefore
+    #     @likeButton.setState "Unlike"
+    #   else
+    #     @likeButton.setState "Like"
 
     @installButton = new KDButtonView
       title     : "Install Now"
@@ -171,17 +171,17 @@ class AppView extends KDView
 
     @updateButton.hide()
 
-    appsController.fetchApps (err, manifests) =>
-      # user have the app, show just show open button
-      if manifests and app.title in Object.keys manifests
-        @installButton.hide()
-        @runButton.show()
+    # appsController.fetchApps (err, manifests) =>
+    #   # user have the app, show just show open button
+    #   if manifests and app.title in Object.keys manifests
+    #     @installButton.hide()
+    #     @runButton.show()
 
-      appName = app.manifest.name
-      version = manifests?[appName]?.version # strange, but it's not working with { ... }
+    #   appName = app.manifest.name
+    #   version = manifests?[appName]?.version # strange, but it's not working with { ... }
 
-      if version and appsController.isAppUpdateAvailable appName, version
-        @updateButton.show()
+    #   if version and appsController.isAppUpdateAvailable appName, version
+    #     @updateButton.show()
 
     {icns, identifier, version, authorNick} = app.manifest
     thumb = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
