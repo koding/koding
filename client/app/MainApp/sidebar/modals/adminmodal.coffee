@@ -2,6 +2,8 @@ class AdminModal extends KDModalViewWithForms
 
   constructor : (options = {}, data) ->
 
+    return  unless KD.checkFlag 'super-admin'
+
     options =
       title                   : "Admin panel"
       content                 : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
@@ -29,7 +31,8 @@ class AdminModal extends KDModalViewWithForms
                     flags    = (flag.trim() for flag in inputs.Flags.getValue().split ",")
                     account.updateFlags flags, (err)->
                       error err if err
-                      new KDNotificationView {title: "Done!"}
+                      new KDNotificationView
+                        title: if err then "Failed!" else "Done!"
                       buttons.Update.hideLoader()
                   else
                     new KDNotificationView {title : "Select a user first"}
@@ -228,9 +231,16 @@ class AdminModal extends KDModalViewWithForms
       submitValuesAsText  : yes
       dataSource          : (args, callback)=>
         {inputValue} = args
-        blacklist = (data.getId() for data in @userController.getSelectedItemData())
-        KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err, accounts)=>
-          callback accounts
+        if /^@/.test inputValue
+          query = 'profile.nickname': inputValue.replace /^@/, ''
+          KD.remote.api.JAccount.one query, (err, account)=>
+            if not account
+              @userController.showNoDataFound()
+            else
+              callback [account]
+        else
+          KD.remote.api.JAccount.byRelevance inputValue, {}, (err, accounts)->
+            callback accounts
 
     @userController.on "ItemListChanged", =>
       accounts = @userController.getSelectedItemData()
