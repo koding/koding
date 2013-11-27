@@ -1,5 +1,3 @@
-# KD.config.allowedApps = ['account', 'terminal', 'ace', 'activity']
-
 class KodingAppsController extends KDController
 
   KD.registerAppClass this,
