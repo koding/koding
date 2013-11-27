@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
-	"time"
 )
 
 var port = flag.String("port", "", "port to bind itself")
@@ -17,37 +16,27 @@ func main() {
 		Port:        *port,
 		Region:      "localhost",
 		Environment: "development",
-		// Username:    "fatih",
 	}
 
 	k := kite.New(options)
-	go k.Run()
+	k.Start()
 
-	time.Sleep(1 * time.Second)
-
-	query := protocol.KontrolQuery{
-		Username: "devrim",
-		Name:     "tunnelserver",
-	}
-
-	kites, err := k.Kontrol.GetKites(query)
-	if err != nil {
-		fmt.Println(err)
+	tunnelserver := getTunnelServer(k)
+	if tunnelserver == nil {
+		fmt.Println("tunnelServer is nil")
 		return
 	}
 
-	if len(kites) == 0 {
-		fmt.Println("no tunnelserver available")
-		return
-	}
-
-	tunnelserver := kites[0]
-	err = tunnelserver.Dial()
+	err := tunnelserver.Dial()
 	if err != nil {
 		fmt.Println("cannot connect to tunnelserver")
 		return
 	}
 
+	makeCall(tunnelserver)
+}
+
+func makeCall(tunnelserver *kite.RemoteKite) {
 	response, err := tunnelserver.Call("register", nil)
 	if err != nil {
 		fmt.Println(err)
@@ -61,4 +50,25 @@ func main() {
 	}
 
 	fmt.Println("result is", result)
+
+}
+
+func getTunnelServer(k *kite.Kite) *kite.RemoteKite {
+	query := protocol.KontrolQuery{
+		Username: "devrim",
+		Name:     "tunnelserver",
+	}
+
+	kites, err := k.Kontrol.GetKites(query)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	if len(kites) == 0 {
+		fmt.Println("no tunnelserver available")
+		return nil
+	}
+
+	return kites[0]
 }

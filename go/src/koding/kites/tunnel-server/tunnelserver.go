@@ -2,12 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
+	"koding/tunnel"
+	"net/http"
 )
 
 var port = flag.String("port", "", "port to bind itself")
+var log = kite.GetLogger()
 
 func main() {
 	flag.Parse()
@@ -18,15 +20,22 @@ func main() {
 		Port:        *port,
 		Region:      "localhost",
 		Environment: "development",
-		Username:    "koding",
 	}
 
 	k := kite.New(options)
 	k.HandleFunc("register", Register)
-	k.Run()
+	k.Start()
+
+	server := tunnel.NewServer()
+	http.Handle("/", server)
+	err := http.ListenAndServe(":7000", nil)
+	if err != nil {
+		log.Error(err.Error())
+	}
+
 }
 
 func Register(r *kite.Request) (interface{}, error) {
-	fmt.Printf("tunnelclient made request:", r)
+	log.Info("user %s registerd", r.Username)
 	return "done", nil
 }
