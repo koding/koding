@@ -381,10 +381,14 @@ app.teamwork.styl
 .tw-dashboard
   vendor                transition, height .266s ease
   overflow              auto
+  height                0
   .tw-items-container
     overflow            hidden
-    width               635px
+    width               800px
     margin              85px auto
+  &.ready
+    .loading
+      display           none
   h2.title
     font-size           58px
     font-weight         300
@@ -420,7 +424,10 @@ app.teamwork.styl
     .item
       width             185px
       text-align        center
+      padding           0 30px
       fl()
+      .badge
+        bg              image, url("../images/teamwork/sprite.png")
       h3
         margin          15px 0
         font-size       26px
@@ -434,14 +441,15 @@ app.teamwork.styl
         rounded         120px
         margin          0 auto
       &.team-up
-        margin-right    40px
+        margin-left     33px
       &.join-in
-        margin-right    40px
         .badge
           bg            color, #2880B9
+          bg            position, -120px 0
       &.import
         .badge
           bg            color, #ED6339
+          bg            position, -240px 0
 .tw-teamup-button
   border                none
   bg                    color, #2880B9
@@ -461,6 +469,13 @@ app.teamwork.styl
   top                   0
   right                 0
   size                  35px !important, 35px
+  .icon
+    bg                  image, url("../images/teamwork/sprite.png") !important
+    left                1px
+    &.join-in
+      bg                position, -80px -128px !important
+    &.import
+      bg                position, -44px -128px !important
 .tw-input-container
   position              relative
 .tw-playground-item
@@ -472,6 +487,7 @@ app.teamwork.styl
     margin-right        -1px
   img
     vertical-align      top
+    size                189px, 120px
   .content
     bg                  color, #FFF
     padding             10px
@@ -482,28 +498,47 @@ app.teamwork.styl
     margin-bottom       10px
   p
     font-size           11px
-  .btn
-    height              35px
+  .tw-play-button
+    size                189px, 35px
     line-height         35px
     text-align          center
     font-weight         600
     font-size           16px
     color               #FFF
     bg                  color, #F27935
+    border              none
+    .icon
+      bg                image, url("../images/teamwork/sprite.png") !important
+      bg                position, -110px -128px !important
+      top               7px
+      left              58px
+    .title
+      left              -7px
+      position          relative
 .tw-playgrounds
   overflow              hidden
   margin                0 auto
   width                 800px
-  padding               85px 0
+  padding               85px 0 70px
 .tw-session-button
-    width               418px
-    height              70px
-    border              none
-    background          #297FB8
-    font-size           26px
-    color               #FFF
-    left                50%
-    margin-left         -209px
-    top                 35px
+  width                 418px
+  height                70px
+  border                none
+  background            #297FB8
+  font-size             26px
+  color                 #FFF
+  left                  50%
+  margin-left           -209px
+  top                   35px
 .tw-playgrounds-container
   bg                    color, #CFDEE5
+  position              relative
+  .loading
+    font-size           22px
+    font-weight         bold
+    text-align          center
+    height              30px
+    top                 50%
+    margin-top          -15px
+    position            absolute
+    width               100%
