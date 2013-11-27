@@ -7,7 +7,6 @@ forceInterval = 60 * 3
 module.exports = class JPaymentSubscription extends jraphical.Module
 
   {secure, dash} = require 'bongo'
-  {partition} = require '../../util'
   JUser    = require '../user'
   JPayment = require './index'
 
@@ -90,15 +89,11 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   @checkUserSubscription = secure ({connection:{delegate}}, planCode, callback)->
     throw Error 'reimplement this!'
 
-  @fetchSubscriptions = (selector, callback) ->
-    selector = { paymentMethodId: selector }  if 'string' is typeof selector
-    @fetchAllSubscriptions selector, callback
-
   isOwnedBy: (account, callback) ->
     account.hasTarget this, 'service subscription', callback
 
-  refund: (amount, callback)->
-    payment.createRefund @paymentMethodId, { amount }, callback
+  refund: (options, callback) ->
+    payment.createRefund @paymentMethodId, options, callback
 
   calculateRefund: ->
     { max, ceil } = Math
@@ -128,15 +123,22 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   cancel: (callback) ->
     @invokeMethod 'cancelSubscription', callback
 
-  terminate: (callback) ->
+  terminate: (oldPlan, callback, applyRefund = yes) ->
     @invokeMethod 'terminateSubscription', (err) =>
       return callback err  if err
-      refundAmount = @calculateRefund()
+      amount = @calculateRefund()
+      description =
+        """
+        Credit — #{ oldPlan.title }
+        """
 
-      @refund refundAmount, (err) ->
-        return callback err  if err
+      if applyRefund
+        @refund { amount, description }, (err) ->
+          return callback err  if err
         
-        callback null, refundAmount
+          callback null, amount
+      else
+        callback null, 0
 
 
   resume: (callback) ->
@@ -159,20 +161,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       return callback err  if err
       return callback { message: 'unknown plan code', @planCode }  unless plan
 
-      usages = for own planCode, quantity of quantities
-        planSize = plan.quantities[planCode]
-        usageAmount = @usage[planCode] ? 0
-        spendAmount = (product.quantities[planCode] ? 0) * multiplyFactor
-
-        total = planSize - usageAmount - spendAmount
-
-        { planCode, total }
-
-      [ok, over] = partition usages, ({ total }) -> total >= 0
-
-      if over.length > 0
-      then callback { message: 'quota exceeded', ok, over }
-      else callback null
+      plan.checkQuota @usage, quantities, multiplyFactor, callback
 
   createFulfillmentNonce: ({ planCode }, isDebit, callback) ->
     JFulfillmentNonce = require './nonce'
@@ -226,38 +215,58 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   credit$: secure (client, pack, callback) ->
     @debit$ client, pack, -1, callback
 
-  upgrade: (oldPlan, newPlan, callback) ->
-    @terminate (err, refundAmount) ->
-      return callback err  if err
+  upgrade: (account, oldPlan, newPlan, callback) ->
+    newPlan.checkQuota @usage, {}, (err) =>
+      return callback { message: 'Quota succeeded!' }  if err
 
-      callback null, refundAmount
+      @terminate oldPlan, (err, refundAmount) =>
+        return callback err  if err
 
-  downgrade: (oldPlan, newPlan, callback) ->
+        newPlan.subscribe @paymentMethodId, (err, newSubscription) =>
+          return callback err  if err
+
+          account.addSubscription newSubscription, (err) =>
+            return callback err  if err
+            
+            newSubscription.update $set: usage: @usage, (err) ->
+              return callback err  if err
+
+              callback null, newSubscription
+
+  downgrade: (account, oldPlan, newPlan, callback) ->
     callback null, downgrade: to: newPlan, from: oldPlan
 
-  transitionTo: secure (client, planCode, callback) ->
+  transitionTo: secure (client, { planCode, paymentMethodId }, callback) ->
     JPaymentPlan = require './plan'
+    JPaymentMethod = require './method'
 
     { delegate } = client.connection
 
-    @isOwnedBy delegate, (err, hasTarget) =>
+    delegate.fetchPaymentMethods {},
+      targetOptions: selector: { paymentMethodId }
+    , (err, paymentMethods) =>
       return callback err  if err
-      return callback { message: 'Access denied!' }  unless hasTarget
+      unless paymentMethods?.length is 1
+        return callback { message: 'Unrecognized payment method!' }
 
-      oldPlan = null
-      newPlan = null
+      @isOwnedBy delegate, (err, hasTarget) =>
+        return callback err  if err
+        return callback { message: 'Access denied!' }  unless hasTarget
 
-      queue = [
-        => JPaymentPlan.fetchPlanByCode @planCode, (err, plan_) ->
-          oldPlan = plan_
-          queue.fin err
+        oldPlan = null
+        newPlan = null
 
-        -> JPaymentPlan.fetchPlanByCode planCode, (err, plan_) ->
-          newPlan = plan_
-          queue.fin err
-      ]
-      dash queue, =>
-        if oldPlan.feeAmount > newPlan.feeAmount
-          @downgrade oldPlan, newPlan, callback
-        else
-          @upgrade oldPlan, newPlan, callback
+        queue = [
+          => JPaymentPlan.fetchPlanByCode @planCode, (err, plan_) ->
+            oldPlan = plan_
+            queue.fin err
+
+          -> JPaymentPlan.fetchPlanByCode planCode, (err, plan_) ->
+            newPlan = plan_
+            queue.fin err
+        ]
+        dash queue, =>
+          if oldPlan.feeAmount > newPlan.feeAmount
+            @downgrade delegate, oldPlan, newPlan, callback
+          else
+            @upgrade delegate, oldPlan, newPlan, callback
