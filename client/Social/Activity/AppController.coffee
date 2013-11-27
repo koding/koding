@@ -372,3 +372,7 @@ class ActivityAppController extends AppController
 
     @status.disconnect()
     @refresh()
+
+  feederBridge : (options, callback)->
+
+    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback

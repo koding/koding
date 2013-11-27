@@ -116,7 +116,7 @@ class ContentDisplayControllerMember extends KDViewController
   addActivityView:(account)->
     @getView().$('div.lazy').remove()
 
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Activity', 'feederBridge', {
       domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
       itemClass             : ActivityListItemView
       listControllerClass   : ActivityListController
