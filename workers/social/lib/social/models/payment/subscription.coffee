@@ -29,6 +29,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         'checkUsage'
         'debit'
         'credit'
+        'transitionTo'
       ]
     schema          :
       uuid          : String
@@ -57,6 +58,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       usage         :
         type        : Object # "usage" is designed to mirror "quantities" from JPaymentPlan
         default     : {}
+      paymentMethodId: String
       tags          : (require './schema').tags
 
   @fetchUserSubscriptions = secure ({ connection:{ delegate }}, callback) ->
@@ -92,29 +94,22 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     selector = { paymentMethodId: selector }  if 'string' is typeof selector
     @fetchAllSubscriptions selector, callback
 
-  refund: (percent, callback)->
-    JPaymentPlan = require './plan'
-    JPaymentPlan.fetchPlanByCode @planCode, (err, plan) =>
-      return callback err  if err
-      payment.addUserCharge @userCode,
-        amount: -1 * plan.feeAmount * percent / 100
-      , callback
+  isOwnedBy: (account, callback) ->
+    account.hasTarget this, 'service subscription', callback
 
-  calculateRefund: (callback)->
-    aDay = 1000 * 60 * 60 * 24
-    refundMap = [
-      {uplimit: aDay * 1,  percent: 90}
-      {uplimit: aDay * 7,  percent: 40}
-      {uplimit: aDay * 15, percent: 20}
-    ]
+  refund: (amount, callback)->
+    payment.createRefund @paymentMethodId, { amount }, callback
 
-    dateNow = new Date
-    dateEnd = @renewAt
-    usage   = (dateEnd - dateNow) / aDay
+  calculateRefund: ->
+    { max, ceil } = Math
 
-    refundMap.every (ref)=>
-      return callback null, ref.percent  if usage < ref.uplimit
-      callback yes, 0
+    now     = Date.now()
+    begin   = +@activatedAt
+    end     = max +(@renewAt ? 0), +(@expiresAt ? 0)
+    usage   = (now - begin) / (end - begin)
+    ratio   = (100 - (usage * 100)) / 100
+
+    return ceil ratio * @feeAmount # cents
 
   updateStatus: (status, callback) ->
     @update $set: { status }, callback
@@ -134,16 +129,15 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     @invokeMethod 'cancelSubscription', callback
 
   terminate: (callback) ->
-    @invokeMethod 'terminateSubscription', (err) ->
+    @invokeMethod 'terminateSubscription', (err) =>
       return callback err  if err
+      refundAmount = @calculateRefund()
 
-      callback null  # dunno why we're calling bacjk early C.T.
+      @refund refundAmount, (err) ->
+        return callback err  if err
+        
+        callback null, refundAmount
 
-      @calculateRefund (err, percent)=>
-        unless err
-          @refund percent, (err) ->
-            console.error err  if err
-            console.log "Refunding #{percent}% of subscription #{@uuid}."
 
   resume: (callback) ->
     @invokeMethod 'reactivateSubscription', callback
@@ -220,7 +214,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
     { delegate } = client.connection
 
-    delegate.hasTarget this, 'service subscription', (err, hasTarget) =>
+    @isOwnedBy delegate, (err, hasTarget) =>
       return callback err  if err
       return callback { message: 'Access denied!' }  unless hasTarget
 
@@ -231,3 +225,39 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
   credit$: secure (client, pack, callback) ->
     @debit$ client, pack, -1, callback
+
+  upgrade: (oldPlan, newPlan, callback) ->
+    @terminate (err, refundAmount) ->
+      return callback err  if err
+
+      callback null, refundAmount
+
+  downgrade: (oldPlan, newPlan, callback) ->
+    callback null, downgrade: to: newPlan, from: oldPlan
+
+  transitionTo: secure (client, planCode, callback) ->
+    JPaymentPlan = require './plan'
+
+    { delegate } = client.connection
+
+    @isOwnedBy delegate, (err, hasTarget) =>
+      return callback err  if err
+      return callback { message: 'Access denied!' }  unless hasTarget
+
+      oldPlan = null
+      newPlan = null
+
+      queue = [
+        => JPaymentPlan.fetchPlanByCode @planCode, (err, plan_) ->
+          oldPlan = plan_
+          queue.fin err
+
+        -> JPaymentPlan.fetchPlanByCode planCode, (err, plan_) ->
+          newPlan = plan_
+          queue.fin err
+      ]
+      dash queue, =>
+        if oldPlan.feeAmount > newPlan.feeAmount
+          @downgrade oldPlan, newPlan, callback
+        else
+          @upgrade oldPlan, newPlan, callback

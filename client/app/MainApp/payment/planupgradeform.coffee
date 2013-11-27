@@ -18,6 +18,8 @@ class PlanUpgradeForm extends JView
       else if forceUpgrade and lowerTier
         view.disable?()
     
+    @emit 'CurrentSubscriptionSet', subscription
+
     return this
 
   viewAppended: ->

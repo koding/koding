@@ -88,7 +88,7 @@ class PaymentController extends KDController
 
     form = new PlanUpgradeForm { tag }
 
-    JPaymentPlan.fetchPlans tag, (err, plans) ->
+    JPaymentPlan.fetchPlans tag, (err, plans) =>
       return  if KD.showError err
 
       queue = plans.map (plan) -> ->
@@ -99,8 +99,8 @@ class PaymentController extends KDController
           queue.fin()
 
       subscription = null
-      queue.push ->
-        KD.whoami().fetchSubscriptions ['vm'], (err, [subscription_]) ->
+      queue.push =>
+        @fetchSubscriptionsWithPlans ['vm'], (err, [subscription_]) ->
           subscription = subscription_
           queue.fin()
 
@@ -115,17 +115,26 @@ class PaymentController extends KDController
 
     workflow = new PaymentWorkflow
       productForm: upgradeForm
-      confirmForm: new KDView partial: 'howdy'
+      confirmForm: new PlanUpgradeConfirmForm
 
-    upgradeForm.on 'PlanSelected', (plan) =>
-      workflow.collectData { plan }
+    upgradeForm
+      .on 'PlanSelected', (plan) ->
+        workflow.collectData productData: { plan }
+      .on 'CurrentSubscriptionSet', (oldSubscription) ->
+        workflow.collectData { oldSubscription }
 
     workflow
-      .on('DataCollected', -> debugger)
+      .on('DataCollected', @bound 'transitionSubscription')
     
       .enter()
 
     workflow
+
+  transitionSubscription: (formData) ->
+    { productData, oldSubscription } = formData
+    { plan:{ planCode }} = productData
+    oldSubscription.transitionTo planCode, (err) ->
+      debugger
 
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit pack, (err, nonce) =>
