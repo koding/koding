@@ -1,4 +1,4 @@
-class VmPaymentConfirmForm extends PaymentConfirmForm
+class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
 
   viewAppended: ->
     data = @getData()
@@ -8,16 +8,7 @@ class VmPaymentConfirmForm extends PaymentConfirmForm
       partial   : 
         """
         <h2>VM</h2>
-        <p>You selected this VM:</p>
-        """
-
-    @plan = new KDView
-      cssClass  : 'payment-confirm-plan'
-      partial   :
-        """
-        <h3>Plan</h3>
-        <p>You'll need to upgrade your plan to create this VM.  You selected
-        this plan.</p>
+        <p>#{ @getExplanation 'pack' }</p>
         """
 
     @subscription = new KDView
@@ -25,22 +16,24 @@ class VmPaymentConfirmForm extends PaymentConfirmForm
       partial   :
         """
         <h3>Subscription</h3>
-        <p>Your existing subscription will cover this purchase.</p>
-        """
-
-    @payment = new KDView
-      cssClass  : 'payment-confirm-method'
-      partial   : 
-        """
-        <h3>Payment method</h3>
-        <p>This purchase will be charge to this payment method.</p>
+        <p>#{ @getExplanation 'subscription' }</p>
         """
 
     super()
 
-  activate: (activator) -> @setData activator.getData()
+  getExplanation: (key) -> switch key
+    when 'pack'
+      "You selected this VM:"
+    when 'plan'
+      "You'll need to upgrade your plan for this purchase:"
+    when 'subscription'
+      "Your existing subscription will cover this purchase."
+    else
+      super key
 
-  setData: (data) ->
+  setData: (data) ->    
+    super data
+
     throw new Error 'Product data was not provided!'  unless data.productData?
 
     if data.productData.pack
@@ -54,22 +47,6 @@ class VmPaymentConfirmForm extends PaymentConfirmForm
     else
       @subscription.hide()
 
-    if data.productData.plan
-      @plan.addSubView new VmPlanView {}, data.productData.plan
-
-      if data.productData.oldSubscription?
-        @plan.addSubView new KDView
-          partial: "<p>Your old plan was:</p>"
-        @plan.addSubView new VmPlanView {}, data.productData.oldSubscription
-    else 
-      @plan.hide()
-
-    if data.paymentMethod
-      @payment.addSubView new PaymentMethodView {}, data.paymentMethod
-    else
-      @payment.hide()
-
-    super data
 
   pistachio: ->
     """
