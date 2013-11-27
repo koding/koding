@@ -4,6 +4,8 @@ class LoginView extends KDScrollView
     event.preventDefault()
     event.stopPropagation()
 
+  backgroundImageNr = KD.utils.getRandomNumber 15
+
   constructor:(options = {}, data)->
 
     {entryPoint} = KD.config
@@ -11,9 +13,9 @@ class LoginView extends KDScrollView
 
     super options, data
 
-    @hidden = yes
+    @setCss 'background-image', "url('../images/unsplash/#{backgroundImageNr}.jpg')"
 
-    @bindTransitionEnd()
+    @hidden = yes
 
     handler =(route, event)=>
       stop event
