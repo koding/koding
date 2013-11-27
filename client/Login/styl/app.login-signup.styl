@@ -10,29 +10,48 @@ app.login-signup.styl
 
 // swapping views for views
 .kdview.login-screen
-  z-index            100
-  padding-top        50px
-  background-image   none
-  // gradient           rgba(0, 0, 0, .8), rgba(0, 0, 0, 0)
-  top                -100%
-  text-align         center
-  vendor             transition, top .3s ease-in-out
-  position           fixed
-  // abs()
+  background          #111617 url("../images/unsplash/15.jpg") no-repeat center center
+  bg                  size, cover
+  text-align          center
+  position            fixed
   borderBox()
   &.shown
-    top              0
+    top               0
 
   .flex-wrapper
-    background       transparent url("../images/koding-new-bg.png") repeat-x 0 -13px
-    size             220px, 320px
-    border           1px solid rgba(255,255,255,0.1)
-    margin           30px auto 30px auto
-    rounded          8px
-    shadow           0 10px 40px rgba(0,0,0,0.8)
-    bg               color, rgba(68, 80, 83, 1.0)
-    vendor           transition, height .1s ease-in-out\,width .4s ease-in-out\, margin .4s ease-in-out
+    size             419px 281px
+    margin           200px auto 0 auto
+    rounded          5px
+    bg               color #F4F4F4
+    vendor           transition, height .1s ease-in-out\,\
+                                 width  .4s ease-in-out\,\
+                                 margin .4s ease-in-out
     rel()
+  a
+    noTextDeco()
+    color               white
+    font-size           14px
+  i
+    color               white
+    font-size           10px
+    font-style          normal
+    margin              0 5px
+    vertical-align      top
+    line-height         19px
+
+
+  footer
+    fix()
+    color               white
+    margin-left         -210px
+    size                419px auto
+    bottom              0
+    left                50%
+    font-size           13px
+    a
+      color             #ddd
+      span
+        color           #aaa
 
   .login-form-holder
   .login-options-holder
@@ -40,7 +59,6 @@ app.login-signup.styl
   .regLink
   .recLink
   .logLink
-  .resend-confirmation-link
   >section
     hidden()
 
@@ -76,7 +94,6 @@ app.login-signup.styl
     .lf
     .regLink
     .recLink
-    .resend-confirmation-link
     .login-options-holder.log
       visible()
 
@@ -88,7 +105,7 @@ app.login-signup.styl
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      size                400px, 421px
+      height                353px
       &.taller
         height              470px
 
@@ -107,7 +124,7 @@ app.login-signup.styl
     .rcf > form
       margin-top          15px
     .flex-wrapper
-      height              198px
+      height              209px
     .rcf .kdnotification.mini.register
       top                 174px!important
 
@@ -128,50 +145,6 @@ app.login-signup.styl
       margin-top          15px
     .flex-wrapper
       height              198px
-
-  &.home
-    .flex-wrapper
-      margin-bottom       30px
-
-  .up-arrow
-    display               block
-    abs()
-    bottom                12px
-    left                  50%
-    size                  50px,50px
-    margin-left           -25px
-    border                25px solid transparent
-    border-bottom-color   rgba(0,0,0,.3)
-    borderBox()
-    &:hover
-      border-bottom-color rgba(255,255,255,.3)
-
-  a.back-to-home
-    display               block
-    width                 200px
-    margin                30px auto 10px auto
-    z-index               1
-    opacity               .8
-    noTextDeco()
-    span::before
-      content             '↓'
-    &:hover
-      opacity             1
-      span::before
-        content           '↑'
-  a
-    color                 #ffb500
-    noTextDeco()
-    &:hover
-      color               white
-
-  // .login-lights
-  //   abs()
-  //   top                   0
-  //   left                  0
-  //   background            transparent url("../images/bgflare.png") no-repeat center top
-  //   size                  100%,416px
-  //   z-index               0
 
   .login-hint
     color                 #B4B3B3
@@ -197,26 +170,23 @@ app.login-signup.styl
 
   .login-footer
     rel()
-    size                  300px, auto
-    margin                40px auto
-    padding               10px
-    border                1px solid rgba(255,255,255,0.15)
-    rounded               5px
-    bg                    color, rgba(0, 0, 0, .75)
-    shadow                0 5px 15px rgba(0,0,0,0.8)
+    size                  419px auto
+    margin                0 auto
+    padding               10px 0
+    color                 white
     borderBox()
+    .first-row
+      margin-bottom       20px
     p
-      color               white
       line-height         24px
       font-size           12px
       color               rgba(255, 255, 255, .75)
 
 .login-box-header
   rel()
-  padding                 30px 0 0 0
   text-align              center
   overflow                visible
-  height                  78px
+  height                  72px
   borderBox()
   .betatag
     text-indent           -9999px
@@ -228,13 +198,16 @@ app.login-signup.styl
     abs()
     z-index               20002
   .logo
-    text-indent           -9999px
-    size                  140px,39px
-    margin-left           1px
+    font-size             0
+    size                  110px 72px
     cursor                pointer
+    rounded               0 0 5px 5px
+    bg                    color, #111617
     blockMid()
-    // sprite()
-    bg(position,-400px 0)
+    cite
+      margin              19px auto 0 auto
+      display             block
+      sprite              app logo-login
   a.back-to-login
     font-size             11px
     abs()
@@ -255,17 +228,6 @@ app.login-signup.styl
   &.log
     margin-bottom         34px
 
-.kdview.login-screen
-  h3
-    color                 #b4b3b3
-    text-shadow           0 -1px 0 rgba(0, 0, 0, 0.64)
-    border                none
-    padding               12px 10px 0 10px
-    text-align            center !important
-    font-size             11px
-    line-height           30px
-    height                44px
-    borderBox()
 
 .login-options
   text-align    center
@@ -295,34 +257,19 @@ app.login-signup.styl
       margin-right      0
 
 .login-form-holder
-  margin-bottom           25px
+  margin                  36px 0 25px 0
   padding-bottom          5px
   height                  auto
 
 .login-form
 
-  // section
-  //   rel()
-  //   margin                40px 0
-  //   top                   0
-  //   text-align            center
-  //   overflow              hidden
-  //   p
-  //     height              220px
-  //     padding             76px 10px
-  //     b
-  //       font-size         13px
-  //       display           block
-  //       line-height       28px
-  //       text-shadow       0 1px 0 rgba(0,0,0,.5)
   > section
   > div
     rel()
     text-align            center
     .kdview
       width               78%
-      margin              0 auto 5px auto
-      height              31px
+      margin              0 auto 17px auto
 
       &.half-size
         display           inline-block
@@ -364,17 +311,18 @@ app.login-signup.styl
     vendor              transition, height .15s ease-out
 
   input.kdinput.text
-    padding             0 6px
-    border              1px solid rgba(0, 0, 0, 0.9)
-    color               #444
-    font-size           12px
-    box-shadow          inset 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.2)
-    font-size           11px
-    font-weight         600
-    height              31px
-    line-height         31px
-    rounded             4px
+    text-align          center
+    padding             11px 6px
+    border              none
+    color               #3E4F55
+    font-size           18px
+    box-shadow          none
+    font-weight         300
+    height              55px
+    line-height         33px
+    rounded             6px
     width               100%
+    bg                  color, #BCC4C8
     borderBox()
     // &.validation-error
     //   bg                color,#ffe4bf
@@ -388,7 +336,7 @@ app.login-signup.styl
     abs()
     right               5px
     top                 6px
-    size                20px,20px
+    size                20px 20px
     bg                  position, -80px -480px
     // vendor              transition, opacity .15s ease-out
     opacity             0
