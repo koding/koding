@@ -132,6 +132,7 @@ class ActivityAppController extends AppController
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
   populateActivity:(options = {}, callback=noop)->
+
     return  if @isLoading
     return  if @reachedEndOfActivities
 
@@ -141,19 +142,25 @@ class ActivityAppController extends AppController
     groupsController = KD.getSingleton 'groupsController'
     {isReady}        = groupsController
     currentGroup     = groupsController.getCurrentGroup()
+    {filterByTag}    = options
 
-    reset = =>
+    setFeedData = (messages) =>
+
       @isLoading = no
       @bindLazyLoad()
+      @extractMessageTimeStamps messages
+      @listController.listActivities messages
+      callback messages
 
     fetch = =>
+
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
       #if exempt or @getFilter() isnt activityTypes
 
       groupObj     = KD.getSingleton("groupsController").getCurrentGroup()
-      mydate = new Date((new Date()).setSeconds(0) + 60000).getTime()
+      mydate       = new Date((new Date()).setSeconds(0) + 60000).getTime()
       options      =
         to         : options.to or mydate #Date.now() we cant cache if we change ts everytime.
         group      :
@@ -163,39 +170,47 @@ class ActivityAppController extends AppController
         facets     : @getActivityFilter()
         withExempt : no
 
-      if KD.getSingleton("activityController").flags.showExempt
-        options.withExempt = yes
-      else
-        options.withExempt = false
+      options.withExempt = \
+        KD.getSingleton("activityController").flags.showExempt?
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
       {roles} = KD.config
       group   = groupObj?.slug
 
-      if @getFeedFilter() is "Public"
-        @once "publicFeedFetched_#{eventSuffix}", (messages)=>
-          reset()
-          @extractMessageTimeStamps messages
-          @listController.listActivities messages
-          callback messages
+      if filterByTag or @_wasFilterByTag
+        @resetAll()
+        @clearPopulateActivityBindings()
+        @_wasFilterByTag = filterByTag
 
+      if filterByTag?
+
+        @once "topicFeedFetched_#{eventSuffix}", setFeedData
+        @fetchTopicActivities {filterByTag}
+
+      else if @getFeedFilter() is "Public"
+
+        log "Fetching public....."
+        @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
-      else
-        @once "followingFeedFetched_#{eventSuffix}", (activities)=>
-          reset()
-          @extractMessageTimeStamps messages
-          @listController.listActivities messages
-          callback messages
 
+      else
+
+        @once "followingFeedFetched_#{eventSuffix}", setFeedData
         @fetchFollowingActivities options
 
       # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
-    if isReady
-    then fetch()
+    if isReady then fetch()
     else groupsController.once 'GroupChanged', fetch
 
+  fetchTopicActivities:(options = {})->
+    {JStatusUpdate} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    JStatusUpdate.fetchTopicFeed {slug: options.filterByTag}, \
+      (err, activities) =>
+        if err then @emit "activitiesCouldntBeFetched", err
+        else @emit "topicFeedFetched_#{eventSuffix}", activities
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo
