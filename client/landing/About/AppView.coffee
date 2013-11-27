@@ -19,6 +19,7 @@ class AboutView extends KDView
 
     @addSubView @activeController.getView()
 
+
     canSeeExMembers = no
 
     for member in KD.team.active when KD.nick() is member.username
