@@ -126,26 +126,20 @@ class LoginView extends KDScrollView
 
   viewAppended:->
 
-    @setY -KD.getSingleton('windowController').winHeight
-    @listenWindowResize()
     @setClass "login-screen login"
 
     @setTemplate @pistachio()
     @template.update()
 
-  _windowDidResize:->
-    if @hidden
-      @setY -KD.getSingleton('windowController').winHeight
-
   pistachio:->
+      # {{> @loginOptions}}
+      # {{> @registerOptions}}
     """
     <div class="flex-wrapper">
       <div class="login-box-header">
         <a class="betatag">beta</a>
         {{> @logo}}
       </div>
-      {{> @loginOptions}}
-      {{> @registerOptions}}
       <div class="login-form-holder lf">
         {{> @loginForm}}
       </div>
