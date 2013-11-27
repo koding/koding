@@ -365,51 +365,36 @@ class LoginView extends KDScrollView
 
   hide:(callback)->
 
-    @setY -KD.getSingleton('windowController').winHeight
-
-    cb = =>
-      @$('.flex-wrapper').removeClass 'expanded'
-
-      @emit "LoginViewHidden"
-      @hidden = yes
-      @hideTimer = @utils.wait 2000, => @setClass 'hidden'
-      callback?()
-
-    unless @hidden then do cb
-    else @once "transitionend", cb
+    @$('.flex-wrapper').removeClass 'expanded'
+    @emit "LoginViewHidden"
+    @setClass 'hidden'
+    callback?()
 
     KD.mixpanel "Cancelled Login/Register"
 
   show:(callback)->
 
-    @utils.killWait @hideTimer
-    cb = =>
-      @emit "LoginViewShown"
-      @hidden = no
-      callback?()
-
     @unsetClass 'hidden'
-    @utils.defer =>
-      @setY 0
-      unless @hidden then do cb
-      else @once "transitionend", cb
+    @emit "LoginViewShown"
+    @hidden = no
+    callback?()
 
-  click:(event)->
-    if $(event.target).is('.login-screen')
-      @hide ->
-        router = KD.getSingleton('router')
-        routed = no
-        for route in router.visitedRoutes by -1
-          {entryPoint} = KD.config
-          routeWithoutEntryPoint =
-            if entryPoint?.type is 'group' and entryPoint.slug
-            then route.replace "/#{entryPoint.slug}", ''
-            else route
-          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover', '/ResendToken']
-            router.handleRoute route
-            routed = yes
-            break
-        router.clear()  unless routed
+  # click:(event)->
+  #   if $(event.target).is('.login-screen')
+  #     @hide ->
+  #       router = KD.getSingleton('router')
+  #       routed = no
+  #       for route in router.visitedRoutes by -1
+  #         {entryPoint} = KD.config
+  #         routeWithoutEntryPoint =
+  #           if entryPoint?.type is 'group' and entryPoint.slug
+  #           then route.replace "/#{entryPoint.slug}", ''
+  #           else route
+  #         unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover', '/ResendToken']
+  #           router.handleRoute route
+  #           routed = yes
+  #           break
+  #       router.clear()  unless routed
 
   animateToForm: (name)->
 
