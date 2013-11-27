@@ -29,22 +29,19 @@ class MainViewController extends KDViewController
 
     mainViewController = this
     window.onscroll = do ->
-      lastRatio = 0
-      threshold = 50
+      threshold  = 50
+      lastScroll = 0
+
       (event)->
         el = document.body
         {scrollHeight, scrollTop} = el
 
-        dynamicThreshold = if threshold > 1
-        then (scrollHeight - threshold) / scrollHeight
-        else threshold
-
-        ratio = (scrollTop + window.innerHeight) / scrollHeight
-
-        if dynamicThreshold < ratio > lastRatio
+        current = scrollTop + window.innerHeight
+        if current > scrollHeight - threshold
+          return if lastScroll > 0
           appManager.getFrontApp()?.emit "LazyLoadThresholdReached"
-
-        lastRatio = ratio
+          lastScroll = current
+        else if current < lastScroll then lastScroll = 0
 
   loadView:(mainView)->
 
