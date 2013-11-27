@@ -12,3 +12,5 @@ class PaymentConfirmForm extends JView
           title     : "cancel"
           cssClass  : "modal-cancel"
           callback  : => @emit 'Cancel'
+
+  getExplanation: (key) -> # doesn't define any copy
