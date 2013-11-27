@@ -22,15 +22,17 @@ class WebTermController extends AppController
     behavior     : "application"
     preCondition :
       condition  : (options, cb)->
-        KD.mixpanel "Click open Webterm", name
-
         {vmName} = options
+
+        KD.mixpanel "Click open Webterm", vmName
+
         vmController = KD.getSingleton 'vmController'
         vmController.fetchDefaultVmName (defaultVmName)->
           vmName or= defaultVmName
           return cb no  unless vmName
           vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)->
             cb  info?.state is 'RUNNING', {vmName, info}
+            KD.mixpanel "Opened Webterm", vmName
           , ->
             cb no
             KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
@@ -55,7 +57,7 @@ class WebTermController extends AppController
 
     super options, data
 
-    KD.mixpanel "Opened webterm", {vmName}
+    KD.mixpanel "Opened Webterm tab", {vmName}
 
   handleQuery: (query) ->
     @getView().ready =>
