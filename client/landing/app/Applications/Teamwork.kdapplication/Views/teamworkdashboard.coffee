@@ -9,7 +9,10 @@ class TeamworkDashboard extends JView
     @teamUpButton = new KDButtonView
       title       : "Team Up!"
       cssClass    : "tw-teamup-button"
-      callback    : ->
+      callback    : =>
+        delegate  = @getDelegate()
+        delegate.emit "NewSessionRequested", ->
+          delegate.emit "TeamUpRequested"
 
     @joinInput    = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
