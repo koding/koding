@@ -142,7 +142,7 @@ class ActivityAppController extends AppController
     groupsController = KD.getSingleton 'groupsController'
     {isReady}        = groupsController
     currentGroup     = groupsController.getCurrentGroup()
-    {filterByTag}    = options
+    {filterByTag,to} = options
 
     setFeedData = (messages) =>
 
@@ -169,6 +169,7 @@ class ActivityAppController extends AppController
         limit      : 20
         facets     : @getActivityFilter()
         withExempt : no
+        slug       : filterByTag
 
       options.withExempt = \
         KD.getSingleton("activityController").flags.showExempt?
@@ -178,19 +179,19 @@ class ActivityAppController extends AppController
       {roles} = KD.config
       group   = groupObj?.slug
 
-      if filterByTag or @_wasFilterByTag
+      if not to and (filterByTag or @_wasFilterByTag)
         @resetAll()
         @clearPopulateActivityBindings()
         @_wasFilterByTag = filterByTag
 
-      if filterByTag?
+      if filterByTag? or (@_wasFilterByTag and to)
 
+        options.slug ?= @_wasFilterByTag
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
-        @fetchTopicActivities {filterByTag}
+        @fetchTopicActivities options
 
       else if @getFeedFilter() is "Public"
 
-        log "Fetching public....."
         @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
 
@@ -207,10 +208,9 @@ class ActivityAppController extends AppController
   fetchTopicActivities:(options = {})->
     {JStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    JStatusUpdate.fetchTopicFeed {slug: options.filterByTag}, \
-      (err, activities) =>
-        if err then @emit "activitiesCouldntBeFetched", err
-        else @emit "topicFeedFetched_#{eventSuffix}", activities
+    JStatusUpdate.fetchTopicFeed options, (err, activities) =>
+      if err then @emit "activitiesCouldntBeFetched", err
+      else @emit "topicFeedFetched_#{eventSuffix}", activities
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo
