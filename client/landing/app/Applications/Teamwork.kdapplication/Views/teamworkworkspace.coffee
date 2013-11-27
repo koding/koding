@@ -10,7 +10,9 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @on "PanelCreated", (panel) =>
       @createRunButton panel  if playground
       @getActivePanel().header.setClass "teamwork"
-      @createDashboardButton()
+      panel.header.addSubView new KDCustomHTMLView
+        cssClass : "tw-db-icon"
+        click    : => @getDelegate().dashboard.show()
 
     @on "WorkspaceSyncedWithRemote", =>
       if playground and @amIHost()
@@ -58,11 +60,6 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         userStatus = snapshot.val()
         return unless userStatus
         @manageUserAvatars userStatus
-
-  createDashboardButton: ->
-    @getActivePanel().header.addSubView new KDCustomHTMLView
-      cssClass      : "tw-db-icon"
-      click         : => @getDelegate().showDashboard()
 
   displayBroadcastMessage: (options) ->
     super options
