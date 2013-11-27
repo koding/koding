@@ -1576,20 +1576,20 @@ module.exports = class JGroup extends Module
     [options, callback] = [callback, options]  unless callback
     options ?= {}
     { tag, tags } = options
-    if tag    then tags = [tag]
-    selector =
-      if tags
-      then { tags }
-      else {}
-    
+    tags = [tag]  if tag and not tags
+        
     options.targetOptions ?= {}
     options.targetOptions.options ?= {}
     options.targetOptions.options.sort ?= sortWeight: 1
+    options.targetOptions.selector =
+      if tags
+      then { tags }
+      else {}
 
     switch category
       when 'product'
-        @fetchProducts selector, options, callback
+        @fetchProducts {}, options, callback
       when 'pack'
-        @fetchPacks selector, options, callback
+        @fetchPacks {}, options, callback
       when 'plan'
-        @fetchPlans selector, options, callback
+        @fetchPlans {}, options, callback
