@@ -32,10 +32,9 @@ type Client struct {
 // server.
 func NewClient(serverAddr, localAddr string) *Client {
 	client := &Client{
-		controlConn: newControlDial(serverAddr, "arslan"),
-		serverAddr:  serverAddr,
-		localAddr:   localAddr,
-		sendChan:    make(chan ClientMsg),
+		serverAddr: serverAddr,
+		localAddr:  localAddr,
+		sendChan:   make(chan ClientMsg),
 	}
 
 	return client
@@ -43,7 +42,8 @@ func NewClient(serverAddr, localAddr string) *Client {
 
 // Run starts the client begins to listen for control messages coming from the
 // server. Run is blocking.
-func (c *Client) Run() {
+func (c *Client) Start(identifier string) {
+	c.controlConn = newControlDial(c.serverAddr, identifier)
 	go c.encoder()
 	c.decoder()
 }
@@ -77,7 +77,7 @@ func (c *Client) decoder() {
 			return
 		}
 
-		if msg.Protocol == "" || msg.TunnelID == "" || msg.Username == "" {
+		if msg.Protocol == "" || msg.TunnelID == "" || msg.Identifier == "" {
 			log.Printf("protocol or tunnelID should not be empty")
 			continue
 		}
@@ -105,10 +105,10 @@ func (c *Client) proxy(serverMsg *ServerMsg) {
 	<-join(local, remote)
 }
 
-// start starts the tunnel between the remote and local server. It's a
+// httpProxy starts the tunnel between the remote and local server. It's a
 // blocking function. Every requst is handled in a separete goroutine. It's
 // like proxy() but the steps are more explicit.
-func (c *Client) start(serverMsg *ServerMsg) {
+func (c *Client) httpProxy(serverMsg *ServerMsg) {
 	remote := newTunnelDial(c.serverAddr, serverMsg)
 	for {
 		req, err := http.ReadRequest(bufio.NewReader(remote))

@@ -68,9 +68,9 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 
 	protocol := r.Header.Get("protocol")
 	tunnelID := r.Header.Get("tunnelID")
-	username := r.Header.Get("username")
-	log.Printf("tunnel with protocol %s, tunnelID %s and username %s\n",
-		protocol, tunnelID, username)
+	identifier := r.Header.Get("identifier")
+	log.Printf("tunnel with protocol %s, tunnelID %s and identifier %s\n",
+		protocol, tunnelID, identifier)
 
 	s.pendingMu.Lock()
 	tunnelRequester, ok := s.pending[tunnelID]
@@ -111,19 +111,19 @@ func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleControl(w http.ResponseWriter, r *http.Request) error {
-	username := r.Header.Get("username")
-	if username == "" {
-		return fmt.Errorf("empty username is connected")
+	identifier := r.Header.Get("identifier")
+	if identifier == "" {
+		return fmt.Errorf("empty identifier is connected")
 	}
 
-	host, ok := s.GetHost(username)
+	host, ok := s.GetHost(identifier)
 	if !ok {
-		return fmt.Errorf("no host associated for username %s. please use server.AddHost()", username)
+		return fmt.Errorf("no host associated for identifier %s. please use server.AddHost()", identifier)
 	}
 
-	_, ok = s.getControl(username)
+	_, ok = s.getControl(identifier)
 	if ok {
-		return fmt.Errorf("control conn for %s already exist\n", username)
+		return fmt.Errorf("control conn for %s already exist\n", identifier)
 	}
 
 	conn, _, err := w.(http.Hijacker).Hijack()
@@ -136,19 +136,19 @@ func (s *Server) handleControl(w http.ResponseWriter, r *http.Request) error {
 	conn.SetDeadline(time.Time{})
 
 	// create a new control struct and add it
-	control := newControl(conn, username)
-	s.addControl(username, control)
+	control := newControl(conn, identifier)
+	s.addControl(identifier, control)
 
 	// delete and close all tunnels and control connection when there is a
 	// disconnection.
 	defer func() {
 		control.Close()
-		s.deleteControl(username)
+		s.deleteControl(identifier)
 		s.deletePool(host)
-		log.Println("control connection has been closed for", username)
+		log.Println("control connection has been closed for", identifier)
 	}()
 
-	log.Println("control connection has been established for", username)
+	log.Println("control connection has been established for", identifier)
 	control.run() // blocking function
 
 	return nil
@@ -288,13 +288,13 @@ func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
 // the client, which then opens a new tunnel to be used.
 func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 	// get the user associated with this user
-	username, ok := s.GetUsername(host)
+	identifier, ok := s.GetIdentifier(host)
 	if !ok {
 		return nil, fmt.Errorf("no virtual host available for %s", host)
 	}
 
-	// then grab the control connection that is associated with this username
-	control, ok := s.getControl(username)
+	// then grab the control connection that is associated with this identifier
+	control, ok := s.getControl(identifier)
 	if !ok {
 		return nil, fmt.Errorf("no control available for %s", host)
 	}
@@ -304,10 +304,10 @@ func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 
 	// request a new http tunnel
 	msg := ServerMsg{
-		Protocol: protocol,
-		TunnelID: tunnelID,
-		Username: username,
-		Host:     host,
+		Protocol:   protocol,
+		TunnelID:   tunnelID,
+		Identifier: identifier,
+		Host:       host,
 	}
 
 	s.pendingMu.Lock()
@@ -368,34 +368,34 @@ func (s *Server) putConn(host string, c net.Conn) {
 	s.pools[host].Put(c)
 }
 
-func (s *Server) addControl(username string, conn *control) {
-	s.controls.addControl(username, conn)
+func (s *Server) addControl(identifier string, conn *control) {
+	s.controls.addControl(identifier, conn)
 }
 
-func (s *Server) getControl(username string) (*control, bool) {
-	return s.controls.getControl(username)
+func (s *Server) getControl(identifier string) (*control, bool) {
+	return s.controls.getControl(identifier)
 }
 
-func (s *Server) deleteControl(username string) {
-	s.controls.deleteControl(username)
+func (s *Server) deleteControl(identifier string) {
+	s.controls.deleteControl(identifier)
 }
 
 // virtual hosts methods are exposed
 
-func (s *Server) AddHost(host, username string) {
-	s.virtualHosts.addHost(host, username)
+func (s *Server) AddHost(host, identifier string) {
+	s.virtualHosts.addHost(host, identifier)
 }
 
-func (s *Server) DeleteHost(host, username string) {
+func (s *Server) DeleteHost(host, identifier string) {
 	s.virtualHosts.deleteHost(host)
 }
 
-func (s *Server) GetUsername(host string) (string, bool) {
-	username, ok := s.virtualHosts.getUsername(host)
-	return username, ok
+func (s *Server) GetIdentifier(host string) (string, bool) {
+	identifier, ok := s.virtualHosts.getIdentifier(host)
+	return identifier, ok
 }
 
-func (s *Server) GetHost(username string) (string, bool) {
-	host, ok := s.virtualHosts.getHost(username)
+func (s *Server) GetHost(identifier string) (string, bool) {
+	host, ok := s.virtualHosts.getHost(identifier)
 	return host, ok
 }

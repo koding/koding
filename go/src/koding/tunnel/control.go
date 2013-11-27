@@ -37,12 +37,12 @@ func newControl(nc net.Conn, owner string) *control {
 	return c
 }
 
-func newControlDial(addr, username string) *control {
+func newControlDial(addr, identifier string) *control {
 	c := &control{}
 	c.Conn = conn.Dial(addr, true)
 
 	request := func() {
-		err := c.connect(username)
+		err := c.connect(identifier)
 		if err != nil {
 			log.Fatalln("newControlConn", err)
 		}
@@ -57,14 +57,14 @@ func newControlDial(addr, username string) *control {
 	return c
 }
 
-func (c *control) connect(username string) error {
+func (c *control) connect(identifier string) error {
 	remoteAddr := fmt.Sprintf("http://%s%s", c.RemoteAddr(), ControlPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
 		return fmt.Errorf("CONNECT", err)
 	}
 
-	req.Header.Set("username", username)
+	req.Header.Set("identifier", identifier)
 	req.Write(c)
 
 	resp, err := http.ReadResponse(bufio.NewReader(c), req)
@@ -126,24 +126,24 @@ func newControls() *controls {
 	}
 }
 
-func (c *controls) getControl(username string) (*control, bool) {
+func (c *controls) getControl(identifier string) (*control, bool) {
 	c.Lock()
 	defer c.Unlock()
 
-	control, ok := c.controls[username]
+	control, ok := c.controls[identifier]
 	return control, ok
 }
 
-func (c *controls) addControl(username string, control *control) {
+func (c *controls) addControl(identifier string, control *control) {
 	c.Lock()
 	defer c.Unlock()
 
-	c.controls[username] = control
+	c.controls[identifier] = control
 }
 
-func (c *controls) deleteControl(username string) {
+func (c *controls) deleteControl(identifier string) {
 	c.Lock()
 	defer c.Unlock()
 
-	delete(c.controls, username)
+	delete(c.controls, identifier)
 }

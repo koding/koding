@@ -12,5 +12,5 @@ func main() {
 	flag.Parse()
 
 	client := tunnel.NewClient(*serverAddr, ":"+*port)
-	client.Run()
+	client.Start("arslan")
 }
