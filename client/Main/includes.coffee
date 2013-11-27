@@ -189,17 +189,6 @@ module.exports = [
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
 
-  # # WORKSPACE
-  # "CommonViews/workspace/panes/pane.coffee",
-  # "CommonViews/workspace/panes/editorpane.coffee",
-  # "CommonViews/workspace/panes/previewpane.coffee",
-  # "CommonViews/workspace/panes/terminalpane.coffee",
-  # "CommonViews/workspace/panes/videopane.coffee",
-  # "CommonViews/workspace/panel/panel.coffee",
-  # "CommonViews/workspace/workspacelayout.coffee",
-  # "CommonViews/workspace/views/workspacefloatingpanelauncher.coffee",
-  # "CommonViews/workspace/workspace.coffee",
-
   # # COLLABORATIVE WORKSPACE
   # # i know it's a CommonView and should include at the top but it have to
   # # wait for NFinderTreeController etc., so included at the bottom

@@ -12,7 +12,7 @@ class EditorPane extends Pane
 
   createEditorInstance: (file) ->
     return new Ace
-      delegate        : @
+      delegate        : this
       enableShortcuts : no
     , file
 
@@ -26,11 +26,11 @@ class EditorPane extends Pane
 
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate      : @
+      delegate      : this
       addPlusHandle : no
 
     @tabView = new ApplicationTabView
-      delegate           : @
+      delegate           : this
       tabHandleContainer : @tabHandleContainer
 
     for fileOptions in @files
