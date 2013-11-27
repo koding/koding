@@ -49,7 +49,7 @@ func main() {
 		return
 	}
 
-	log.Info("tunnel established: %s", result.VirtualHost)
+	log.Notice("public host : %s", result.VirtualHost)
 
 	client := tunnel.NewClient(serverAddr, ":"+*port)
 	client.Start(result.Identifier)
