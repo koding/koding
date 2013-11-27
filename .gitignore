@@ -62,5 +62,8 @@ website/sprites/*-*.png
 website/js/app.*.js
 website/js/social.*.js
 website/js/client.*.js
+website/js/teamwork.*.js
+
 website/css/app.*.css
 website/css/social.*.css
+website/css/teamwork.*.css
