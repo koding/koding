@@ -62,10 +62,13 @@ class LoginInputViewWithLoader extends LoginInputView
     super
 
     @loader = new KDLoaderView
-      cssClass : "input-loader"
-      size     :
-        width  : 16
-        height : 16
+      cssClass      : "input-loader"
+      size          :
+        width       : 32
+        height      : 32
+      loaderOptions :
+        color       : "#3E4F55"
+
     @loader.hide()
 
   pistachio:-> "{{> @input}}{{> @icon}}{{> @loader}}"
