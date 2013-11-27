@@ -159,7 +159,7 @@ class ActivityAppController extends AppController
         group      :
           slug     : groupObj?.slug or "koding"
           id       : groupObj.getId()
-        limit      : 20
+        limit      : KD.config.activityFetchCount
         facets     : @getActivityFilter()
         withExempt : no
 
@@ -202,13 +202,15 @@ class ActivityAppController extends AppController
       @listController.listActivitiesFromCache sanitizedCache
       callback sanitizedCache
 
+
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
 
     if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything"
       prefetchedActivity = KD.prefetchedFeeds["activity.main"]
-      if prefetchedActivity and ('activities.main' not in USEDFEEDS) and prefetchedActivity.activities
+      if prefetchedActivity and prefetchedActivity.activities and ('activities.main' not in USEDFEEDS)
         log "exhausting feed:", "activity.main"
+
         USEDFEEDS.push 'activities.main'
         return @prepareCacheForListing KD.prefetchedFeeds["activity.main"]
 
