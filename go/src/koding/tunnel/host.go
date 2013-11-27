@@ -5,7 +5,7 @@ import (
 )
 
 type virtualHost struct {
-	username string
+	identifier string
 }
 
 // virtualHosts is used for mapping host to users example: host
@@ -21,11 +21,11 @@ func newVirtualHosts() *virtualHosts {
 	}
 }
 
-func (v *virtualHosts) addHost(host, username string) {
+func (v *virtualHosts) addHost(host, identifier string) {
 	v.Lock()
 	defer v.Unlock()
 
-	v.mapping[host] = &virtualHost{username: username}
+	v.mapping[host] = &virtualHost{identifier: identifier}
 }
 
 func (v *virtualHosts) deleteHost(host string) {
@@ -35,8 +35,8 @@ func (v *virtualHosts) deleteHost(host string) {
 	delete(v.mapping, host)
 }
 
-// getUsername returns the username associated with the given host
-func (v *virtualHosts) getUsername(host string) (string, bool) {
+// getIdentifier returns the identifier associated with the given host
+func (v *virtualHosts) getIdentifier(host string) (string, bool) {
 	v.Lock()
 	defer v.Unlock()
 
@@ -45,16 +45,16 @@ func (v *virtualHosts) getUsername(host string) (string, bool) {
 		return "", false
 	}
 
-	return ht.username, true
+	return ht.identifier, true
 }
 
-// getHost returns the host associated with the given username
-func (v *virtualHosts) getHost(username string) (string, bool) {
+// getHost returns the host associated with the given identifier
+func (v *virtualHosts) getHost(identifier string) (string, bool) {
 	v.Lock()
 	defer v.Unlock()
 
 	for hostname, hst := range v.mapping {
-		if hst.username == username {
+		if hst.identifier == identifier {
 			return hostname, true
 		}
 	}
