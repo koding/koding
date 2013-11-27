@@ -40,7 +40,7 @@ module.exports =
   mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
-  runKontrol    : no
+  runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
   runPersistence: yes
@@ -137,6 +137,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      activityFetchCount : 50
       precompiledApi: yes
       authExchange: authExchange
       github        :
