@@ -5,7 +5,7 @@ class ActivityTicker extends JView
     super options, data
 
     @listController = new KDListViewController
-      startWithLazyLoader : yes
+      lazyLoadThreshold: .99
       viewOptions :
         type      : "activities"
         cssClass  : "activities"
@@ -13,7 +13,16 @@ class ActivityTicker extends JView
 
     @listView = @listController.getView()
 
-    KD.remote.api.ActivityTicker.fetch null, (err, items = []) =>
+    @listController.on "LazyLoadThresholdReached", @bound "load"
+
+    @load()
+
+  load: ->
+    options =
+      limit : 20
+      skip  : @listController.getItemCount() or 0
+
+    KD.remote.api.ActivityTicker.fetch options, (err, items = []) =>
       @listController.hideLazyLoader()
       @listController.addItem item for item in items  unless err
 
