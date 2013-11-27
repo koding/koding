@@ -29,8 +29,9 @@ class MainViewController extends KDViewController
 
     mainViewController = this
     window.onscroll = do ->
-      threshold  = 50
-      lastScroll = 0
+      threshold     = 50
+      lastScroll    = 0
+      currentHeight = 0
 
       (event)->
         el = document.body
@@ -40,8 +41,11 @@ class MainViewController extends KDViewController
         if current > scrollHeight - threshold
           return if lastScroll > 0
           appManager.getFrontApp()?.emit "LazyLoadThresholdReached"
-          lastScroll = current
+          lastScroll    = current
+          currentHeight = scrollHeight
         else if current < lastScroll then lastScroll = 0
+
+        if scrollHeight isnt currentHeight then lastScroll = 0
 
   loadView:(mainView)->
 
