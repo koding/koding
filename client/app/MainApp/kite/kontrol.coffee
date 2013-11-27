@@ -16,12 +16,11 @@ class Kontrol extends KDObject
       key      : KD.remote.getSessionToken()
 
     @kite = new NewKite kite, authentication
-    # DISABLED TEMPORARILY UNTIL KONTROL IS DEPLOYED
-    # @kite.connect()
-    # @watchKites {}, (kite)=>
-    #   @emit "kiteRegistered", kite
-    # , (error)->
-    #   log "Cannot watch Kites:", error
+    @kite.connect()
+    @watchKites {}, (kite)=>
+      @emit "kiteRegistered", kite
+    , (error)->
+      log "Cannot watch Kites:", error
 
 
   # Calls the callback function with the list of NewKite instances.
@@ -37,7 +36,7 @@ class Kontrol extends KDObject
   #   hostname    string
   #   id          string
   #
-  getKites: (query, onKites, onError)->
+  getKites: (query={}, onKites, onError)->
     if not query.username
       query.username = "#{KD.nick()}"
 
@@ -50,7 +49,7 @@ class Kontrol extends KDObject
 
   # Takes the same query parameters as getKites but calls the callback function
   # when a Kite matching the query is registered.
-  watchKites: (query, onKite, onError)->
+  watchKites: (query={}, onKite, onError)->
     if not query.username
       query.username = "#{KD.nick()}"
 
