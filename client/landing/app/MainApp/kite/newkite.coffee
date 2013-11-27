@@ -4,11 +4,6 @@ class NewKite extends KDObject
 
   [NOTREADY, READY, CLOSED] = [0,1,3]
 
-  # includes from: libs/dnode-protocol.js
-  # made it with: http://browserify.org
-  # downloaded from: http://wzrd.in/bundle/dnode-protocol@latest
-  proto = require 'dnode-protocol'
-
   constructor: (kite, authentication, options={})->
     super options
 
@@ -24,7 +19,7 @@ class NewKite extends KDObject
       log   : (options, cb)-> log options.withArgs
       alert : (options, cb)-> alert options.withArgs
 
-    @proto = proto @handlers
+    @proto = new Bongo.dnodeProtocol.Session null, @handlers
     @proto.on 'request', (req)=>
       log "proto request", {req}
       @ready =>
@@ -33,10 +28,12 @@ class NewKite extends KDObject
       log "proto fail", {err}
     @proto.on 'error', (err)=>
       log "proto error", {err}
+    @proto.on 'remoteError', (err)=>
+      log "proto remoteEerror", {err}
 
   connect: ->
     addr = @kite.publicIP + ":" + @kite.port
-    # log "Trying to connect to #{addr}"
+    log "Trying to connect to #{addr}"
     @ws = new WebSocket "ws://#{addr}/dnode"
     @ws.onopen    = @bound 'onOpen'
     @ws.onclose   = @bound 'onClose'
@@ -59,36 +56,33 @@ class NewKite extends KDObject
     # there is no point to hold the callback function because it
     # will never be called again. That's why we are deleting to
     # free the memory with the code below.
+    scrubber = new Bongo.dnodeProtocol.Scrubber @proto.localStore
+    scrubber.scrub [options, cb], =>
+      scrubbed = scrubber.toDnodeProtocol()
+      scrubbed.method = method
+      @proto.emit 'request', scrubbed
 
-    scrub = @proto.scrubber.scrub [options, cb]
-
-    @proto.emit 'request',
-        method    : method
-        arguments : scrub.arguments
-        callbacks : scrub.callbacks
-        links     : scrub.links
-
-    # Remove the handler from proto when callback is called.
-    # This is required to prevent unused callbacks to consume memory.
-    if cb
-      # id of the last callback function
-      id = Number(Object.keys(scrub.callbacks).last)
-      # original handler
-      fn = @proto.callbacks.local[id]
-      # replace the handler. when called it will remove the handler.
-      @proto.callbacks.local[id] = ()=>
-        delete @proto.callbacks.local[id]
-        @proto.apply fn, arguments
+      # Remove the handler from proto when callback is called.
+      # This is required to prevent unused callbacks to consume memory.
+      if cb
+        # id of the last callback function
+        id = Number(Object.keys(scrubbed.callbacks).last)
+        # original handler
+        fn = @proto.localStore.items[id]
+        # replace the handler. when called it will remove the handler.
+        @proto.localStore.items[id] = ()=>
+          delete @proto.localStore.items[id]
+          fn.apply null, arguments
 
   onOpen: ->
-    # log "Connected to Kite: #{@kite.name}"
+    log "Connected to Kite: #{@kite.name}"
     @clearBackoffTimeout()
     @readyState = READY
     @emit 'connected', @name
     @emit 'ready'
 
   onClose: (evt)->
-    # log "#{@kite.name}: disconnected, trying to reconnect..."
+    log "#{@kite.name}: disconnected, trying to reconnect..."
     @readyState = CLOSED
     @emit 'disconnected'
     # enable below to autoReconnect when the socket has been closed
