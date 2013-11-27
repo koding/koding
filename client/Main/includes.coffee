@@ -188,31 +188,6 @@ module.exports = [
   "kite/kontrol.coffee"
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
-
-  # # COLLABORATIVE WORKSPACE
-  # # i know it's a CommonView and should include at the top but it have to
-  # # wait for NFinderTreeController etc., so included at the bottom
-  # "libs/codemirror/lib/codemirror.js",
-  # "libs/codemirror/addon/mode/loadmode.js",
-  # "libs/codemirror/mode/javascript/javascript.js",
-  # "libs/firebase/firepad.js",
-  # "libs/firepad/firepad.css",
-  # "libs/codemirror/lib/codemirror.css",
-  # "CommonViews/workspace/panes/collaborativepane.coffee",
-  # "CommonViews/workspace/panes/collaborativetabbededitorpane.coffee",
-  # "CommonViews/workspace/panes/sharableterminalpane.coffee",
-  # "CommonViews/workspace/panes/sharableclientterminalpane.coffee",
-  # "CommonViews/workspace/panes/collaborativefinderpane.coffee",
-  # "CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
-  # "CommonViews/workspace/panes/collaborativeeditorpane.coffee",
-  # "CommonViews/workspace/panes/collaborativepreviewpane.coffee",
-  # "CommonViews/workspace/panes/collaborativedrawingpane.coffee",
-  # "CommonViews/workspace/panes/chatitem.coffee",
-  # "CommonViews/workspace/panes/chatpane.coffee",
-  # "CommonViews/workspace/panel/collaborativepanel.coffee",
-  # "CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
-  # "CommonViews/workspace/collaborativeworkspace.coffee",
-
   "CommonViews/modalappslistitemview.coffee",
 
   "status.coffee",
