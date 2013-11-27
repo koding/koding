@@ -25,7 +25,7 @@ class LoginAppsController extends AppController
     super options, data
 
   appIsShown: (params)->
-    @handleRoute "/#{params.label}"
+    # @handleRoute "/#{params.label}"
 
   handleQuery: ->
     {currentPath} = KD.getSingleton 'router'
