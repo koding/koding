@@ -59,7 +59,7 @@ class TeamworkApp extends KDObject
           {
             title         : "Share"
             cssClass      : "clean-gray"
-            callback      : => log "hello"
+            callback      : (panel, workspace) => @showToolsModal panel, workspace
           }
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
