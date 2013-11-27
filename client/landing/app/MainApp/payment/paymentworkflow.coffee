@@ -72,8 +72,9 @@ class PaymentWorkflow extends FormWorkflow
 
       productForm.on 'DataCollected', (productData) =>
         @collectData { productData }
-        { subscription } = productData
+        { subscription, oldSubscription } = productData
         @collectData { subscription }  if subscription
+        @collectData { oldSubscription }  if oldSubscription
 
     # "choice form" is for choosing from existing payment methods on-file.
     @addForm 'choice', @createChoiceForm(), ['paymentMethod']
