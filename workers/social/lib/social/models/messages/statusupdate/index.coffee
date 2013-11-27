@@ -138,23 +138,21 @@ module.exports = class JStatusUpdate extends JPost
       return callback err if err
       @decorateResults data, callback
 
-  @fetchTopicFeed = secure (client, selector={}, options={}, callback)->
-    topicId = selector.tagId or "526ee3ef5647f9bb44000040"
+  @fetchTopicFeed = secure (client, options, callback)->
+
     {context:{group}} = client
 
     JTag = require '../../tag'
-    JTag.one { "_id" : topicId }, (err, tag)=>
+    JTag.one { slug : options.slug }, (err, tag)=>
+
       return callback err  if err
       return callback null, [] unless tag
 
       # add group name into query
-      options.group = group
+      options.sort  ?= 'timestamp' : -1
+      options.limit ?= 20
 
-      tagOptions = {}
-      tagOptions.sort = 'timestamp' : -1
-      tagOptions.targetOptions = { selector: options }
-
-      tag.fetchContents {}, options, (err, posts)=>
+      tag.fetchContents {targetName: 'JStatusUpdate'}, options, (err, posts)=>
         return callback err if err
         @decorateResults posts, callback
 
