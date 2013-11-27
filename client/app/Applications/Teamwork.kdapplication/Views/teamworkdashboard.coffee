@@ -28,16 +28,19 @@ class TeamworkDashboard extends JView
       cssClass    : "tw-dashboard-button"
       callback    : => @handleJoinSession()
 
-    @importInput  = new KDInputView
+    @importInput  = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
       placeholder : "Url to import your VM"
-      callback    : ->
+      validate    :
+        rules     : required: yes
+        messages  : required: "Enter URL to import content."
+      callback    : => @handleImport()
 
     @importButton = new KDButtonView
       iconOnly    : yes
       iconClass   : "import"
       cssClass    : "tw-dashboard-button"
-      callback    : ->
+      callback    : => @handleImport()
 
     @playgrounds  = new KDCustomHTMLView
       cssClass    : "tw-playgrounds"
