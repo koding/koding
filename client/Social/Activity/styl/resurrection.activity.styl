@@ -38,10 +38,10 @@ resurrection.activity.styl
         border          none
         border-top      1px solid #cdccc2
         margin          0
-        padding         22px
+        padding         0 0 0 22px
         font-size       16px
         color           #9d998e
-        line-height     16px
+        line-height     56px
         vendor          transition, height .2s ease
         rounded         3px
         borderBox()
@@ -53,6 +53,10 @@ resurrection.activity.styl
 
       .large-input textarea
         color           #536067
+
+        &:focus
+          line-height   16px
+          padding       20px 22px 22px 22px
 
       button[type=submit]
         bottom          0
@@ -72,12 +76,11 @@ resurrection.activity.styl
     .activity-ticker
       h3
         display         block
-        margin          0
-        padding         0
+        padding         0 0 0 3px
         font-size       16px
-        font-weight     400
+        font-weight     500
         color           #485259
-        margin          0 0 15px 0
+        margin          0 0 13px 0
 
         .cog-icon
           display       block
@@ -86,15 +89,15 @@ resurrection.activity.styl
 
       .kdlistitemview-activity-ticker-item
       .friend
-        height          44px
+        height          42px
         border-top      1px solid #eeeef2
         .avatarview
-          margin        8px 10px 8px 0
+          margin        8px 14px 8px 0
           fl()
 
         .action
         .friend-name
-          line-height   44px
+          line-height   42px
           color         #485259
           font-size     12px
           font-weight   200
@@ -160,6 +163,9 @@ span.collapsedtext
   margin          30px 0 0 0
   borderBox()
 
+  &:nth-child(1)
+    margin-top    37px
+
   .author-avatar
     display       block
     size          86px, 86px
@@ -172,9 +178,13 @@ span.collapsedtext
   .author-name
   .status-body
     display       block
-    padding       22px 22px 0
+    padding       20px 21px 0
     color         #50595a
     font-weight   400
+
+  .status-body
+    padding       9px 21px 0
+    line-height   22px
 
   .author-name a
     color         #50595a
@@ -191,7 +201,7 @@ span.collapsedtext
 
     time
       width       auto
-      line-height 42px
+      line-height 41px
       font-size   12px
       color       #b3b1ab
       padding     0 22px 0 0
@@ -204,19 +214,19 @@ span.collapsedtext
     .action-link
     .comment-icon
     .share-icon
+      margin-top      1px
       size            20px, 20px
       display         inline-block
       vertical-align  text-top
 
       &.like-icon
-        margin-top    1px
         sprite        activity, like-icon
 
       &.comment-icon
-        margin-top    2px
         sprite        activity, comment-icon
 
       &.share-icon
+        margin-top    0
         sprite        activity, share-icon
 
     .action-container
@@ -235,10 +245,10 @@ span.collapsedtext
       noTextDeco()
 
   .comment-container.commented
-    border-top    2px solid #e9e7e1
+    border-top        2px solid #e9e7e1
 
   .kdlistitemview-comment
-    padding           20px
+    padding           20px 47px 16px 20px
     borderBox()
 
     .avatarview
@@ -250,23 +260,26 @@ span.collapsedtext
     .comment-contents
       size            auto, auto
       margin          0 0 0 61px
-      font-size       14px
-      font-weight     400
+      font-size       14px  !important
+      font-weight     400   !important
       color           #50595a
 
       .profile
         display       block
         color         #50595a
         font-weight   500
-        margin        0 0 14px 0
+        margin        2px 0 10px 0
         noTextDeco()
+
+      .comment-body
+        line-height   16px
 
       .like-view
       .reply-link
       time
         font-size         12px
         display           inline-block
-        margin            16px 20px 0 0
+        margin            14px 15px 0 0
         width             auto
 
       .like-view a
@@ -286,16 +299,16 @@ span.collapsedtext
       padding-top     0
 
       .avatarview
-        top           12px
+        top           13px
 
       .comment-contents
-        padding-top   12px
+        padding-top   13px
         border-top    1px solid #eeeeef
 
   .item-add-comment-box
     bg            color, #f7f7f8
     border-top    2px solid #e9e7e1
-    padding       20px
+    padding       20px 16px 20px 20px
     borderBox()
 
     .avatarview
@@ -347,7 +360,7 @@ span.collapsedtext
     border-radius       6px
     border              1px solid #e1e1e4
     margin              0 0 0 0
-    padding             18px 18px 10px
+    padding             20px 23px 10px 18px
     borderBox()
 
     &~.right-block-box
