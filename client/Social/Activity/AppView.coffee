@@ -36,7 +36,8 @@ class ActivityAppView extends KDScrollView
       cssClass : "fr"
       title    : "Submit"
       callback : =>
-        @input.submit()
+        @input.submit (err, activity) =>
+          @emit "InputSubmitted", activity  unless err
 
     @mainController.on "AccountChanged", @bound "decorate"
     @mainController.on "JoinedGroup", => @inputWrapper.show()

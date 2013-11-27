@@ -102,6 +102,8 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
+    @getView().on "InputSubmitted", @bound "ownActivityArrived"
+
     appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
       @resetAll()

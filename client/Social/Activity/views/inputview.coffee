@@ -41,7 +41,9 @@ class ActivityInputView extends KDTokenizedInput
       meta   :
         tags : tags
 
-    JStatusUpdate.create data, (err, activity) ->
+    JStatusUpdate.create data, (err, activity) =>
+      @setContent ""  unless err
+
       callback? err, activity
 
       KD.showError err,
