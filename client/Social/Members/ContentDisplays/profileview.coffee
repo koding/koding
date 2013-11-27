@@ -315,6 +315,7 @@ class ProfileView extends JView
       click         : @bound 'cancel'
 
     @firstName      = new KDContentEditableView
+      tagName       : "span"
       testPath      : "profile-first-name"
       pistachio     : "{{#(profile.firstName) or ''}}"
       cssClass      : "firstName"
@@ -329,6 +330,7 @@ class ProfileView extends JView
       , @memberData
 
     @lastName       = new KDContentEditableView
+      tagName       : "span"
       testPath      : "profile-last-name"
       pistachio     : "{{#(profile.lastName) or ''}}"
       cssClass      : "lastName"
@@ -383,8 +385,8 @@ class ProfileView extends JView
     avatarOptions  =
       showStatus      : yes
       size            :
-        width         : 90
-        height        : 90
+        width         : 86
+        height        : 86
       click        : =>
         pos        =
           top      : @avatar.getBounds().y - 8
@@ -577,7 +579,7 @@ class ProfileView extends JView
       tagName     : 'a'
       attributes  :
         href      : "/#"
-      pistachio   : "<cite/><span class=\"data\">#{count}</span> <span>#{path}</span>"
+      pistachio   : "<span>#{path}</span><span class=\"data\">#{count}</span>"
       click       : (event) =>
         event.preventDefault()
         unless @memberData.counts[route] is 0
@@ -638,8 +640,32 @@ class ProfileView extends JView
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
-      <div class="right-block-box users-profile">
-
+      <div class="right-block-box users-profile clearfix">
+        {{> @avatar}}
+        <h3 class="full-name">{{> @firstName}}{{> @lastName}}</h3>
+        {{> @bio }}
+        {{> @followButton}}
+        <div class="clearfix"></div>
+        <div class="profilestats">
+          {{> @followers}}
+          {{> @following}}
+          {{> @likes}}
+        </div>
+      </div>
+      <div class="right-block-box right-user-menu">
+        <a href="#">Open Projects<span class="count">128</span></a>
+        <a href="#">Discussions</a>
+        <a href="#">Tutorials</a>
+        <a href="#">Blog Posts</a>
+      </div>
+      <div class="right-block-box most-used-apps clearfix">
+        <h3>Most Used Apps</h3>
+        <div class="app"></div>
+        <div class="app"></div>
+        <div class="app"></div>
+        <div class="app"></div>
+        <div class="app"></div>
+        <div class="app"></div>
       </div>
     """
 

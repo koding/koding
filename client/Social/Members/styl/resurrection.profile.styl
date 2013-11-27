@@ -9,18 +9,126 @@ resurrection.profile.styl
 */
 }
 
+.kdview /* BC ??? */
+  overflow                  visible
+
 .header-facets
   display                   none
 
 .member.content-display
+  overflow              visible
 
   .profilearea.profile-right-block
-    top                 30px
+    .users-profile
+      .avatarview
+        size            86px, 86px
+        display         block
+        fl()
+        rounded         3px
+
+      .full-name
+      .bio
+        display         block
+        margin          0
+        padding         0 0 0 19px
+        fl()
+        size            204px, auto
+        color           #50595a
+        font-size       14px
+        borderBox()
+
+        span
+          size          auto, auto
+
+      .full-name
+        font-weight     500
+        font-size       22px
+        text-transform  capitalize
+
+        .lastName
+          margin        0 0 0 5px
+
+      .follow-btn
+        size            155px, 35px
+        rounded         3px
+        margin          12px 0 0 19px
+        border          none
+        shadow          none
+        bg              color, #1aaf5d
+        color           #fff
+        font-size       14px
+        cursor          pointer
+        fl()
+
+      .profilestats
+        clear           both
+        margin          19px -22px 0
+        border-top      2px solid #e9e7e1
+
+        a
+          color         #6a7273
+          font-size     14px
+          size          33%, 72px
+          text-align    center
+          padding       18px 0 0 0
+          line-height   20px
+          borderBox()
+          fl()
+          noTextDeco()
+
+          &~a
+            border-left 2px solid #e9e7e1
+
+          span
+            display     block
+
+            &.data
+              font-size 18px
+
+    .right-user-menu
+      padding           0 22px
+
+      a
+        line-height     49px
+        display         block
+        color           #50595a
+        noTextDeco()
+
+        &~a
+          border-top    1px solid #e9e7e1
+
+        .count
+          line-height   22px
+          padding       0 10px
+          rounded       11px
+          color         #707879
+          font-size     14px
+          bg            color, #e9e7e1
+          margin        14px 0 0
+          fr()
+
+    .most-used-apps
+      padding           0 0 22px
+      h3
+        line-height     59px
+        border-bottom   2px solid #e9e7e1
+        color           #2d97de
+        font-size       18px
+        text-indent     22px
+
+      .app
+        size            77px, 77px
+        background      #e2e4e3
+        margin          22px 0 0 28px
+        fl()
+
+        &:nth-child(3n-1)
+          margin-left   22px
 
   .medium
   .wide
     size                auto, auto
-    margin              0 337px 0 0
+    margin              0 365px 0 0
 
     .author-avatar
       display           none
