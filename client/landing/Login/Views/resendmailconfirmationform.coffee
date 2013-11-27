@@ -6,7 +6,7 @@ class ResendEmailConfirmationLinkInlineForm extends LoginViewInlineForm
     @usernameOrEmail = new LoginInputView
       inputOptions    :
         name          : "username-or-email"
-        placeholder   : "Enter username or email"
+        placeholder   : "username or email"
         testPath      : "recover-password-input"
         validate      :
           container   : this
@@ -15,17 +15,17 @@ class ResendEmailConfirmationLinkInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your username or email."
 
-    @button = new KDButtonView
-      title       : "RESEND CONFIRMATION EMAIL"
-      style       : "koding-orange"
-      type        : 'submit'
-      loader      :
-        color     : "#ffffff"
-        diameter  : 21
+    # @button = new KDButtonView
+    #   title       : "RESEND CONFIRMATION EMAIL"
+    #   style       : "koding-orange"
+    #   type        : 'submit'
+    #   loader      :
+    #     color     : "#ffffff"
+    #     diameter  : 21
 
   pistachio:->
 
     """
     <div>{{> @usernameOrEmail}}</div>
-    <div>{{> @button}}</div>
     """
+    # <div>{{> @button}}</div>

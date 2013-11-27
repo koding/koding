@@ -280,7 +280,7 @@ class LoginView extends KDScrollView
     (err, status)-> console.log "Status of fetching stuff from external: #{status}"
 
   afterLoginCallback: (err, params={})->
-    @loginForm.button.hideLoader()
+    @loginForm.loader?.hide()
     {entryPoint} = KD.config
     if err
       showError err
@@ -442,7 +442,7 @@ class LoginView extends KDScrollView
 
       switch name
         when "register"
-          @registerForm.firstName.input.setFocus()
+          @registerForm.fullName.input.setFocus()
         when "redeem"
           @redeemForm.inviteCode.input.setFocus()
         when "login"

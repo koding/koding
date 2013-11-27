@@ -5,7 +5,7 @@ class LoginViewInlineForm extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-    @on "FormValidationFailed", => @button.hideLoader()
+    @on "FormValidationFailed", => @loader?.hide()
 
   pistachio:->
 
@@ -16,7 +16,7 @@ class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "username"
         forceCase     : "lowercase"
-        placeholder   : "Enter Koding Username"
+        placeholder   : "username"
         testPath      : "login-form-username"
         validate      :
           container   : this
@@ -29,7 +29,7 @@ class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "password"
         type          : "password"
-        placeholder   : "Enter Koding Password"
+        placeholder   : "••••••••"
         testPath      : "login-form-password"
         validate      :
           container   : this
@@ -38,13 +38,13 @@ class LoginInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your password."
 
-    @button = new KDButtonView
-      title       : "SIGN IN"
-      style       : "koding-orange"
-      type        : 'submit'
-      loader      :
-        color     : "#ffffff"
-        diameter  : 21
+    # @button = new KDButtonView
+    #   title       : "SIGN IN"
+    #   style       : "koding-orange"
+    #   type        : 'submit'
+    #   loader      :
+    #     color     : "#ffffff"
+    #     diameter  : 21
 
   resetDecoration:->
     @username.resetDecoration()
@@ -54,5 +54,5 @@ class LoginInlineForm extends LoginViewInlineForm
     """
     <div>{{> @username}}</div>
     <div>{{> @password}}</div>
-    <div>{{> @button}}</div>
     """
+    # <div>{{> @button}}</div>
