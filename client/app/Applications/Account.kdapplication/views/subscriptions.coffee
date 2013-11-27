@@ -24,10 +24,14 @@ class AccountSubscriptionsListController extends AccountListViewController
 
         .on 'PlanChangeRequested', ->
           payment = KD.getSingleton 'paymentController'
+          
           workflow = payment.createUpgradeWorkflow 'vm'
-          new KDModalView
+          
+          modal = new KDModalView
             view    : workflow
             overlay : yes
+
+          workflow.on 'Finished', modal.bound 'destroy'
 
   getConfirmationText = (action, subscription) -> switch action
     when 'cancel'
@@ -59,9 +63,19 @@ class AccountSubscriptionsListController extends AccountListViewController
 
     payment.once 'SubscriptionDebited', @bound 'loadItems'
 
-    payment.fetchSubscriptionsWithPlans (err, subscriptions) =>
-      @instantiateListItems subscriptions.filter (s) ->
-        s.status isnt 'expired'
+    status = status: $in: [
+      'active'
+      'live'
+      'canceled'
+      'future'
+      'past_due'
+      'expired'
+      'in_trial'
+    ]
+
+    payment.fetchSubscriptionsWithPlans status, (err, subscriptions) =>
+      @instantiateListItems subscriptions.filter (subscription) ->
+        subscription.status isnt 'expired'
       @hideLazyLoader()
 
   loadView:->
