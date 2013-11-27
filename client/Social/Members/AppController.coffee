@@ -237,12 +237,6 @@ class MembersAppController extends AppController
       mainView.createCommons()
     @createFeed mainView, loadFeed
 
-  showMemberContentDisplay:({content})->
-
-    controller = new ContentDisplayControllerMember null, content
-    contentDisplay = controller.getView()
-    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
-
 
   createContentDisplay:(account, callback)->
 

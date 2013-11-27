@@ -18,7 +18,8 @@ class ContentDisplayControllerMember extends KDViewController
     options = $.extend
       view : mainView = new KDView
         cssClass : 'member content-display'
-        domId : 'member-contentdisplay' unless @revivedContentDisplay
+        domId    : 'member-contentdisplay'  unless @revivedContentDisplay
+        type     : 'profile'
     ,options
     super options, data
 

@@ -1,20 +1,5 @@
 class MainView extends KDView
 
-  constructor:->
-
-    super
-
-    KD.singleton('appManager').on 'AppIsBeingShown', do =>
-
-      previousApp = null
-
-      (controller)=>
-
-        name = KD.utils.slugify controller.getOption 'name'
-        @unsetClass previousApp  if previousApp
-        @setClass name
-        previousApp = name
-
   viewAppended:->
 
     @bindPulsingRemove()
