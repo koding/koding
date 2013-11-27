@@ -11,16 +11,19 @@ class TeamworkDashboard extends JView
       cssClass    : "tw-teamup-button"
       callback    : ->
 
-    @joinInput    = new KDInputView
+    @joinInput    = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
       placeholder : "Session key or join url"
-      callback    : ->
+      validate    :
+        rules     : required: yes
+        messages  : required: "Enter session key or URL to join."
+      callback    : => @handleJoinSession()
 
     @joinButton   = new KDButtonView
       iconOnly    : yes
       iconClass   : "join-in"
       cssClass    : "tw-dashboard-button"
-      callback    : ->
+      callback    : => @handleJoinSession()
 
     @importInput  = new KDInputView
       cssClass    : "tw-dashboard-input"
