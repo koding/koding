@@ -23,40 +23,33 @@ class LoginView extends KDScrollView
     loginHandler                  = handler.bind null, '/Login'
     registerHandler               = handler.bind null, '/Register'
     recoverHandler                = handler.bind null, '/Recover'
-    resendMailConfirmationHandler = handler.bind null, '/ResendToken'
 
     @logo = new KDCustomHTMLView
-      tagName     : "div"
       cssClass    : "logo"
-      partial     : "Koding"
+      partial     : "Koding<cite></cite>"
       click       : homeHandler
 
     @backToLoginLink = new KDCustomHTMLView
-      tagName   : "a"
-      partial   : "Go ahead and login"
-      click     : loginHandler
+      tagName     : "a"
+      partial     : "Sign In"
+      click       : loginHandler
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Recover password"
+      partial     : "Forgot your password?"
       testPath    : "landing-recover-password"
       click       : recoverHandler
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Register an account"
+      partial     : "Create Account"
       click       : registerHandler
 
-    @goToResendMailConfirmationLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Resend"
-      click       : resendMailConfirmationHandler
+    # @loginOptions = new LoginOptions
+    #   cssClass : "login-options-holder log"
 
-    @loginOptions = new LoginOptions
-      cssClass : "login-options-holder log"
-
-    @registerOptions = new RegisterOptions
-      cssClass : "login-options-holder reg"
+    # @registerOptions = new RegisterOptions
+    #   cssClass : "login-options-holder reg"
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
@@ -173,12 +166,13 @@ class LoginView extends KDScrollView
       </div>
     </div>
     <div class="login-footer">
-      <p class='regLink'>Not a member? {{> @goToRegisterLink}}</p>
-      <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
-      <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
-      <p class='resend-confirmation-link'>Didn't receive confirmation email? {{> @goToResendMailConfirmationLink}}</p>
-      <p><a href="/tos.html" target="_blank">Terms of service</a> / <a href="/privacy.html" target="_blank">Privacy policy</a></p>
+      <div class='first-row clearfix'>
+        <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
+      </div>
     </div>
+    <footer>
+      <a href="/tos.html" target="_blank">Terms of service</a><i>•</i><a href="/privacy.html" target="_blank">Privacy policy</a><i>•</i><a href="#" target="_blank"><span>photo by </span>some motherf*cker</a>
+    </footer>
     """
 
   doReset:({recoveryToken, password, clientId})->
