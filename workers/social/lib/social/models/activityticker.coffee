@@ -34,7 +34,7 @@ module.exports = class ActivityTicker extends Base
           relationship.fetchTeaser ->
             {source, target, as} = relationship
             buckets.push {source, target, as}
-            queue.next()        
+            queue.next()
 
       queue.push ->
         callback null, buckets
