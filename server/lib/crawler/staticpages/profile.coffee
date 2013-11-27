@@ -9,9 +9,7 @@ createLinkToStatusUpdate = (createDate, slug) ->
   return content
 
 createStatusUpdateNode = (statusUpdate, authorFullName, authorNickname)->
-  {
-    formatDate
-  }          = require '../helpers'
+  { formatDate } = require '../helpers'
   createdAt = formatDate statusUpdate.meta.createdAt
   linkToStatusUpdate = createLinkToStatusUpdate createdAt, statusUpdate.slug
   statusUpdateContent = ""
@@ -49,10 +47,7 @@ getStatusUpdates = (statusUpdates, authorFullName, authorNickname) ->
 module.exports = ({account, statusUpdates})->
   getStyles  = require './styleblock'
   getGraphMeta  = require './graphmeta'
-  {
-    formatDate
-    getFullName
-  }          = require '../helpers'
+  { formatDate, getFullName } = require '../helpers'
 
   {profile:{nickname}} = account if account
   fullName = getFullName account

@@ -35,8 +35,8 @@ decorateComment = (JAccount, comment, callback) ->
       commentSummary.authorNickname = getNickname acc
       callback null, commentSummary
 
-fetchLastStatusUpdatesOfUser = (daisy, account, Relationship, JStatusUpdate, callback) ->
-
+fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) ->
+  {daisy} = require "bongo"
   originId = account.data._id
   selector =
     "targetId"   : originId
@@ -187,7 +187,7 @@ module.exports =
           else
             models.last.fetchOwnAccount (err, account)->
               {JStatusUpdate} = bongo.models
-              fetchLastStatusUpdatesOfUser daisy, account, Relationship, JStatusUpdate, (error, statusUpdates) =>
+              fetchLastStatusUpdatesOfUser account, Relationship, JStatusUpdate, (error, statusUpdates) =>
                 return res.send 500, error_500()  if error
                 content = profile {account, statusUpdates}
                 return res.send 200, content
