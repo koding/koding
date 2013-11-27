@@ -12,6 +12,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
   {secure, dash}        = require 'bongo'
   {difference, extend}  = require 'underscore'
 
+  {partition}           = require '../../util'
   {permit}              = require '../group/permissionset'
 
   JUser                 = require '../user'
@@ -28,7 +29,6 @@ module.exports = class JPaymentPlan extends JPaymentBase
       static        : [
         'create'
         'removeByCode'
-        'fetchPlans'
         'fetchPlanByCode'
         'fetchAccountDetails'
       ]
@@ -117,23 +117,6 @@ module.exports = class JPaymentPlan extends JPaymentBase
   @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
     console.error 'needs to be reimplemented'
 #    recurly.fetchAccountDetailsByPaymentMethodId (JPayment.userCodeOf delegate), callback
-
-  @fetchPlans = secure (client, options, callback) ->
-    # TODO: this method seems redundant/confusing/unnecessary C.T.
-    options = tag: options  if 'string' is typeof options
-    options.limit = Math.min options.limit ? 20, 20
-    
-    options.sort ?= sortWeight: 1
-
-    selector =
-      tags  : options.tag
-      group : client.context.group
-
-    queryOptions =
-      limit : options.limit
-      sort  : options.sort
-
-    @some selector, queryOptions, callback
 
   @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
 
@@ -239,3 +222,23 @@ module.exports = class JPaymentPlan extends JPaymentBase
       JGroup = require '../group'
       JGroup.one _id: @product.category, (err, group)->
         callback err, unless err then group.slug
+
+  checkQuota: (usage, spend, multiplyFactor, callback) ->
+    [callback, multiplyFactor] = [multiplyFactor, callback]  unless callback
+    
+    multiplyFactor ?= 1
+
+    usages = for own planCode, quantity of spend
+      planSize = spend[planCode]
+      usageAmount = usage[planCode] ? 0
+      spendAmount = (spend[planCode] ? 0) * multiplyFactor
+
+      total = planSize - usageAmount - spendAmount
+
+      { planCode, total }
+
+    [ok, over] = partition usages, ({ total }) -> total >= 0
+
+    if over.length > 0
+    then callback { message: 'quota exceeded', ok, over }
+    else callback null
