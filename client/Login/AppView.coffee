@@ -21,10 +21,10 @@ class LoginView extends KDScrollView
       stop event
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
-    homeHandler                   = handler.bind null, '/'
-    loginHandler                  = handler.bind null, '/Login'
-    registerHandler               = handler.bind null, '/Register'
-    recoverHandler                = handler.bind null, '/Recover'
+    homeHandler     = handler.bind null, '/'
+    loginHandler    = handler.bind null, '/Login'
+    registerHandler = handler.bind null, '/Register'
+    recoverHandler  = handler.bind null, '/Recover'
 
     @logo = new KDCustomHTMLView
       cssClass    : "logo"
