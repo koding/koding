@@ -5,6 +5,7 @@ class LoginInputView extends JView
     {inputOptions, iconOptions} = options
     inputOptions or= {}
     iconOptions  or= {}
+    inputOptions.keyup     = enter : => @parent.$().trigger 'submit'
     inputOptions.validationNotifications = no
     iconOptions.tagName    = iconOptions.tagName  or "span"
     iconOptions.cssClass   = iconOptions.cssClass or "validation-icon"

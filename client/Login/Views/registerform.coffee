@@ -3,38 +3,51 @@ class RegisterInlineForm extends LoginViewInlineForm
   constructor:(options={},data)->
     super options, data
 
-    @firstName = new LoginInputView
-      cssClass        : "half-size"
+    @fullName = new LoginInputView
       inputOptions    :
-        name          : "firstName"
-        placeholder   : "Your first name"
+        name          : "fullName"
+        placeholder   : "full name"
         validate      :
           container   : this
           event       : "blur"
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter your first name."
-        testPath      : "register-form-firstname"
+            required  : "Please enter your name."
+        testPath      : "register-form-fullname"
 
-    @lastName = new LoginInputView
-      cssClass        : "half-size"
-      inputOptions    :
-        name          : "lastName"
-        placeholder   : "Your last name"
-        validate      :
-          container   : this
-          event       : "blur"
-          rules       :
-            required  : yes
-          messages    :
-            required  : "Please enter your last name."
-        testPath      : "register-form-lastname"
+    # @firstName = new LoginInputView
+    #   cssClass        : "half-size"
+    #   inputOptions    :
+    #     name          : "firstName"
+    #     placeholder   : "first name"
+    #     validate      :
+    #       container   : this
+    #       event       : "blur"
+    #       rules       :
+    #         required  : yes
+    #       messages    :
+    #         required  : "Please enter your first name."
+    #     testPath      : "register-form-firstname"
+
+    # @lastName = new LoginInputView
+    #   cssClass        : "half-size"
+    #   inputOptions    :
+    #     name          : "lastName"
+    #     placeholder   : "last name"
+    #     validate      :
+    #       container   : this
+    #       event       : "blur"
+    #       rules       :
+    #         required  : yes
+    #       messages    :
+    #         required  : "Please enter your last name."
+    #     testPath      : "register-form-lastname"
 
     @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : "email"
-        placeholder   : "Your email address"
+        placeholder   : "email address"
         testPath      : "register-form-email"
         validate      :
           container   : this
@@ -67,8 +80,8 @@ class RegisterInlineForm extends LoginViewInlineForm
 
     @avatar = new AvatarStaticView
       size        :
-        width     : 20
-        height    : 20
+        width     : 55
+        height    : 55
     , profile     :
         hash      : md5.digest "there is no such email"
         firstName : "New koding user"
@@ -78,7 +91,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       inputOptions       :
         name             : "username"
         forceCase        : "lowercase"
-        placeholder      : "Desired username"
+        placeholder      : "username"
         testPath         : "register-form-username"
         validate         :
           container      : this
@@ -109,47 +122,47 @@ class RegisterInlineForm extends LoginViewInlineForm
                             i.e. http://username.kd.io <h1></h1>
                            """
 
-    @password = new LoginInputView
-      inputOptions    :
-        name          : "password"
-        type          : "password"
-        placeholder   : "Create a password"
-        testPath      : "register-form-pass1"
-        validate      :
-          container   : this
-          event       : "blur"
-          rules       :
-            required  : yes
-            minLength : 8
-          messages    :
-            required  : "Password is required."
-            minLength : "Password should at least be 8 characters."
+    # @password = new LoginInputView
+    #   inputOptions    :
+    #     name          : "password"
+    #     type          : "password"
+    #     placeholder   : "Create a password"
+    #     testPath      : "register-form-pass1"
+    #     validate      :
+    #       container   : this
+    #       event       : "blur"
+    #       rules       :
+    #         required  : yes
+    #         minLength : 8
+    #       messages    :
+    #         required  : "Password is required."
+    #         minLength : "Password should at least be 8 characters."
 
-    @passwordConfirm = new LoginInputView
-      cssClass        : "password-confirm"
-      inputOptions    :
-        name          : "passwordConfirm"
-        type          : "password"
-        placeholder   : "Confirm your password"
-        testPath      : "register-form-pass2"
-        validate      :
-          container   : this
-          event       : "blur"
-          rules       :
-            required  : yes
-            match     : @password.input
-            minLength : 8
-          messages    :
-            required  : "Password confirmation required!"
-            match     : "Password confirmation doesn't match!"
+    # @passwordConfirm = new LoginInputView
+    #   cssClass        : "password-confirm"
+    #   inputOptions    :
+    #     name          : "passwordConfirm"
+    #     type          : "password"
+    #     placeholder   : "Confirm your password"
+    #     testPath      : "register-form-pass2"
+    #     validate      :
+    #       container   : this
+    #       event       : "blur"
+    #       rules       :
+    #         required  : yes
+    #         match     : @password.input
+    #         minLength : 8
+    #       messages    :
+    #         required  : "Password confirmation required!"
+    #         match     : "Password confirmation doesn't match!"
 
-    @button = new KDButtonView
-      title         : "REGISTER"
-      type          : 'submit'
-      style         : "koding-orange"
-      loader        :
-        color       : "#ffffff"
-        diameter    : 21
+    # @button = new KDButtonView
+    #   title         : "REGISTER"
+    #   type          : 'submit'
+    #   style         : "koding-orange"
+    #   loader        :
+    #     color       : "#ffffff"
+    #     diameter    : 21
 
     @disabledNotice = new KDCustomHTMLView
       tagName       : "section"
@@ -169,17 +182,17 @@ class RegisterInlineForm extends LoginViewInlineForm
         type        : 'hidden'
 
     @on "SubmitFailed", (msg)=>
-      if msg is "Wrong password"
-        @passwordConfirm.input.setValue ''
-        @password.input.setValue ''
-        @password.input.validate()
+      # if msg is "Wrong password"
+      #   @passwordConfirm.input.setValue ''
+      #   @password.input.setValue ''
+      #   @password.input.validate()
 
-      @button.hideLoader()
+      @loader?.hideLoader()
 
   usernameCheckTimer = null
 
   reset:->
-    inputs = KDFormView.findChildInputs @
+    inputs = KDFormView.findChildInputs this
     input.clearValidationFeedback() for input in inputs
     super
 
@@ -224,6 +237,7 @@ class RegisterInlineForm extends LoginViewInlineForm
   hideUserAvatar:-> @avatar.hide()
 
   viewAppended:->
+
     super
 
     KD.getSingleton('mainController').on 'InvitationReceived', (invite)=>
@@ -242,18 +256,19 @@ class RegisterInlineForm extends LoginViewInlineForm
   pistachio:->
     """
     <section class='main-part'>
-      <div>{{> @firstName}}{{> @lastName}}</div>
+      <div>{{> @fullName}}</div>
       <div>{{> @email}}{{> @avatar}}</div>
       <div>{{> @username}}</div>
-      <div>{{> @password}}</div>
-      <div>{{> @passwordConfirm}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:
         <span class='wrapper'></span>
       </div>
     </section>
-    <div>{{> @button}}</div>
     {{> @invitationCode}}
     {{> @disabledNotice}}
     """
+    # <div>{{> @firstName}}{{> @lastName}}</div>
+    #   <div>{{> @password}}</div>
+    #   <div>{{> @passwordConfirm}}</div>
+    # <div>{{> @button}}</div>
