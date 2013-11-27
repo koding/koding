@@ -191,19 +191,6 @@
 "Applications/Dashboard.kdapplication/AppView.coffee",
 
 
-
-# TEAMWORK
-"Applications/Teamwork.kdapplication/Views/teamworkenvironmentsmodal.coffee",
-"Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
-"Applications/Teamwork.kdapplication/Views/facebookteamworkinstructionsmodal.coffee",
-"Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
-"Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
-"Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
-"Applications/Teamwork.kdapplication/Views/facebookteamwork.coffee",
-"Applications/Teamwork.kdapplication/Views/golangteamwork.coffee",
-"Applications/Teamwork.kdapplication/AppView.coffee",
-"Applications/Teamwork.kdapplication/AppController.coffee",
-
 # CLASSROOM
 # "Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
 # "Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",

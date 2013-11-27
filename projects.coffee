@@ -111,6 +111,24 @@ projects      =
     script        : "website/js/app.finder.#{KODING_VERSION}.js"
     sourceMapRoot : "Finder/"
 
+  Workspace       :
+    files         : "client/Workspace/includes.coffee"
+    style         : "website/css/app.workspace.#{KODING_VERSION}.css"
+    script        : "website/js/app.workspace.#{KODING_VERSION}.js"
+    sourceMapRoot : "Workspace/"
+
+  CollaborativeWorkspace:
+    files         : "client/CollaborativeWorkspace/includes.coffee"
+    style         : "website/css/app.collaborativeworkspace.#{KODING_VERSION}.css"
+    script        : "website/js/app.collaborativeworkspace.#{KODING_VERSION}.js"
+    sourceMapRoot : "CollaborativeWorkspace/"
+
+  Teamwork        :
+    files         : "client/Teamwork/includes.coffee"
+    style         : "website/css/app.teamwork.#{KODING_VERSION}.css"
+    script        : "website/js/app.teamwork.#{KODING_VERSION}.js"
+    sourceMapRoot : "Teamwork/"
+
   About           :
     files         : "client/About/includes.coffee"
     style         : "website/css/app.about.#{KODING_VERSION}.css"
@@ -133,5 +151,9 @@ bundles           =
     style         : "website/css/koding.#{KODING_VERSION}.css"
     script        : "website/js/koding.#{KODING_VERSION}.js"
 
+  TeamworkBundle  :
+    projects      : ['Workspace', 'CollaborativeWorkspace', 'Teamwork']
+    style         : "website/css/teamwork.#{KODING_VERSION}.css"
+    script        : "website/js/teamwork.#{KODING_VERSION}.js"
 
 module.exports  = {projects, bundles}

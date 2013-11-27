@@ -2,7 +2,7 @@ class TeamworkAppController extends AppController
 
   KD.registerAppClass this,
     name            : "Teamwork"
-    route           : "/:name?/Develop/Teamwork"
+    route           : "/:name?/Teamwork"
 
   constructor: (options = {}, data) ->
 
