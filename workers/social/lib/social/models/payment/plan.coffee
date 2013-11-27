@@ -179,7 +179,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
           return callback err  if err
 
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
-            feeAmount } = result
+            feeAmount, paymentMethodId } = result
 
           subscription = new JPaymentSubscription {
             planCode
@@ -190,6 +190,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
             expiresAt
             renewAt
             feeAmount
+            paymentMethodId
             tags      : @tags
           }
 
