@@ -5,7 +5,7 @@ class PlanUpgradeForm extends JView
 
     return this
 
-  setCurrentSubscription: (subscription, forceUpgrade = no) ->
+  setCurrentSubscription: (subscription, options = {}) ->
     lowerTier = yes
 
     for own code, view of @planViewsByCode
@@ -15,7 +15,7 @@ class PlanUpgradeForm extends JView
         view.disable?()
         lowerTier = no
 
-      else if forceUpgrade and lowerTier
+      else if options.forceUpgrade and lowerTier
         view.disable?()
     
     @emit 'CurrentSubscriptionSet', subscription
