@@ -1,15 +1,27 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"flag"
+	"fmt"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
 	"koding/tunnel"
 	"net/http"
 )
 
-var port = flag.String("port", "", "port to bind itself")
-var log = kite.GetLogger()
+type registerResult struct {
+	VirtualHost string
+	Identifier  string
+}
+
+var (
+	port            = flag.String("port", "", "port to bind itself")
+	log             = kite.GetLogger()
+	baseVirtualHost = "test.arslan.kd.io"
+	server          = tunnel.NewServer()
+)
 
 func main() {
 	flag.Parse()
@@ -26,7 +38,6 @@ func main() {
 	k.HandleFunc("register", Register)
 	k.Start()
 
-	server := tunnel.NewServer()
 	http.Handle("/", server)
 	err := http.ListenAndServe(":7000", nil)
 	if err != nil {
@@ -37,5 +48,22 @@ func main() {
 
 func Register(r *kite.Request) (interface{}, error) {
 	log.Info("user %s registerd", r.Username)
-	return "done", nil
+
+	virtualHost := fmt.Sprintf("%s.%s", r.Username, baseVirtualHost)
+	identifier := randomID(32)
+
+	server.AddHost(virtualHost, identifier)
+	log.Info("tunnel added: %s", virtualHost)
+
+	return registerResult{
+		VirtualHost: virtualHost,
+		Identifier:  identifier,
+	}, nil
+}
+
+// randomID generates a random string of the given length
+func randomID(length int) string {
+	r := make([]byte, length*6/8)
+	rand.Read(r)
+	return base64.URLEncoding.EncodeToString(r)
 }

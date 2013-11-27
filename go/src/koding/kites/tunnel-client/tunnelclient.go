@@ -5,15 +5,25 @@ import (
 	"fmt"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
+	"koding/tunnel"
 )
 
-var port = flag.String("port", "", "port to bind itself")
+type registerResult struct {
+	VirtualHost string
+	Identifier  string
+}
+
+var (
+	log  = kite.GetLogger()
+	port = flag.String("port", "5000", "port to bind to local server")
+)
+
+const serverAddr = "127.0.0.1:7000"
 
 func main() {
 	options := &protocol.Options{
 		Kitename:    "tunnelclient",
 		Version:     "1",
-		Port:        *port,
 		Region:      "localhost",
 		Environment: "development",
 	}
@@ -33,24 +43,31 @@ func main() {
 		return
 	}
 
-	makeCall(tunnelserver)
+	result, err := register(tunnelserver)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	log.Info("tunnel established: %s", result.VirtualHost)
+
+	client := tunnel.NewClient(serverAddr, ":"+*port)
+	client.Start(result.Identifier)
 }
 
-func makeCall(tunnelserver *kite.RemoteKite) {
+func register(tunnelserver *kite.RemoteKite) (*registerResult, error) {
 	response, err := tunnelserver.Call("register", nil)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
 
-	result, err := response.String()
+	result := &registerResult{}
+	err = response.Unmarshal(result)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return nil, err
 	}
 
-	fmt.Println("result is", result)
-
+	return result, nil
 }
 
 func getTunnelServer(k *kite.Kite) *kite.RemoteKite {
