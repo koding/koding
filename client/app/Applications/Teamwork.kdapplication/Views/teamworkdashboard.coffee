@@ -2,7 +2,7 @@ class TeamworkDashboard extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "tw-dashboard"
+    options.cssClass = "tw-dashboard active"
 
     super options, data
 
@@ -48,8 +48,14 @@ class TeamworkDashboard extends JView
     @sessionButton = new KDButtonView
       cssClass    : "tw-session-button"
       title       : "Start your session now!"
+      callback    : => @getDelegate().emit "NewSessionRequested"
 
-    manifests     = @getDelegate().playgroundsManifest
+    @on "PlaygroundsFetched", (manifests) =>
+      @createPlaygrounds manifests
+
+  show: -> @setClass "active"
+
+  hide: -> @unsetClass "active"
 
   createPlaygrounds: (manifests) ->
     manifests.forEach (manifest) =>
@@ -62,15 +68,28 @@ class TeamworkDashboard extends JView
             <h4>#{manifest.name}</h4>
             <p>#{manifest.description}</p>
           </div>
-          <div class="btn">Play</div>
         """
+      view.addSubView new KDButtonView
+        cssClass  : "tw-play-button"
+        title     : "Play"
+        icon      : yes
+        iconClass : "play"
+        callback  : =>
+          @hide()
+          @getDelegate().handlePlaygroundSelection manifest.name, manifest.manifestUrl
+
+  handleImport: ->
+    @getDelegate().emit "ImportRequested", @importInput.getValue()
+
+  handleJoinSession: ->
+    @getDelegate().emit "JoinSessionRequested", @joinInput.getValue()
 
   pistachio: ->
     """
       <div class="welcome">
         <h2 class="title">Welcome to Teamwork</h2>
         <div class="video">
-          <iframe width="500" height="280" src="//www.youtube.com/embed/zrPxONt1uyo?rel=0" frameborder="0" allowfullscreen></iframe>
+          <iframe src="//player.vimeo.com/video/45156018?title=0&amp;byline=0&amp;portrait=0" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
         </div>
         <div class="what-is-tw">
           <h2>What is Teamwork?</h2>
