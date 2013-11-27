@@ -1,0 +1,72 @@
+@import "../../../Framework/themes/default/kdfn"
+@import "../../../Main/styl/appfn"
+@import "../../../Main/styl/app.fonts"
+
+@css {
+/*
+TOPICS stylesheet
+app.topics.styl
+*/
+}
+
+.kdlistitemview-topics.topic-item
+  width                245px
+  height               200px
+  max-height           200px
+  background           white
+  font-size            13px
+  margin               20px
+  margin-top           30px
+  margin-bottom        10px
+  border-radius        3px
+  display              inline-block
+
+  &:nth-child(5)
+    margin-right       0
+
+  h3
+    padding            15px
+
+    a
+      text-decoration  none
+      font-size        14px
+      font-weight      bold
+      color            rgba(0, 0, 35, 1.0)
+
+  article
+    font-size          12px
+    padding            15px
+    padding-top        0
+    color              rgba(115, 127, 130, 1.0)
+
+  .topicstats
+    bottom            3px
+    z-index           2
+    text-align        right
+    width             50%
+    right             3px
+    color             white
+    abs()
+    a
+      color           white
+      text-decoration none
+      font-weight     bold
+
+  .button-container
+    bottom             0
+    width              100%
+    background         rgba(160, 160, 160, 1.0)
+    padding            5px
+    height             24px
+    abs()
+
+  .edit-topic
+    display            none
+    text-decoration    none
+    right              10px
+    top                10px
+    abs()
+
+  &:hover
+    .edit-topic
+      display          block
