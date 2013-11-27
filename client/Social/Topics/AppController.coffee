@@ -145,7 +145,7 @@ class TopicsAppController extends AppController
               topic.modify formData, (err)=>
                 new KDNotificationView
                   title : if err then err.message else "Updated successfully"
-                modal.modalTabs.forms.update.buttons.Update.hideLoader()
+                # modal.modalTabs.forms.update.buttons.Update.hideLoader()
                 modal.destroy()
             buttons               :
               Update              :
@@ -161,7 +161,7 @@ class TopicsAppController extends AppController
                   diameter        : 16
                 callback          : =>
                   topic.delete (err)=>
-                    modal.modalTabs.forms.update.buttons.Delete.hideLoader()
+                    # modal.modalTabs.forms.update.buttons.Delete.hideLoader()
                     modal.destroy()
                     new KDNotificationView
                       title : if err then err.message else "Deleted!"
