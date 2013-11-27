@@ -80,15 +80,13 @@ class PaymentController extends KDController
 
   createPaymentInfoModal: -> new PaymentFormModal
 
-  createUpgradeForm: (tag, forceUpgrade = no) ->
+  createUpgradeForm: (tag, options = {}) ->
 
     { dash } = Bongo
 
-    { JPaymentPlan } = KD.remote.api
-
     form = new PlanUpgradeForm { tag }
 
-    JPaymentPlan.fetchPlans tag, (err, plans) =>
+    KD.getGroup().fetchProducts 'plan', tags: tag, (err, plans) =>
       return  if KD.showError err
 
       queue = plans.map (plan) -> ->
@@ -100,18 +98,18 @@ class PaymentController extends KDController
 
       subscription = null
       queue.push =>
-        @fetchSubscriptionsWithPlans ['vm'], (err, [subscription_]) ->
+        @fetchSubscriptionsWithPlans tags: ['vm'], (err, [subscription_]) ->
           subscription = subscription_
           queue.fin()
 
       dash queue, ->
         form.setPlans plans
-        form.setCurrentSubscription subscription, forceUpgrade  if subscription
+        form.setCurrentSubscription subscription, options  if subscription
 
     return form
 
-  createUpgradeWorkflow: (tag, forceUpgrade = no) ->
-    upgradeForm = @createUpgradeForm tag, forceUpgrade
+  createUpgradeWorkflow: (tag, options = {}) ->
+    upgradeForm = @createUpgradeForm tag, options
 
     workflow = new PaymentWorkflow
       productForm: upgradeForm
@@ -124,17 +122,21 @@ class PaymentController extends KDController
         workflow.collectData { oldSubscription }
 
     workflow
-      .on('DataCollected', @bound 'transitionSubscription')
-    
+      .on 'DataCollected', (data) =>
+        @transitionSubscription data, (err, subscription) ->
+          return  if KD.showError err
+
+          workflow.emit 'Finished'
+
       .enter()
 
     workflow
 
-  transitionSubscription: (formData) ->
-    { productData, oldSubscription } = formData
+  transitionSubscription: (formData, callback) ->
+    { productData, oldSubscription, paymentMethod } = formData
     { plan:{ planCode }} = productData
-    oldSubscription.transitionTo planCode, (err) ->
-      debugger
+    { paymentMethodId } = paymentMethod
+    oldSubscription.transitionTo { planCode, paymentMethodId }, callback
 
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit pack, (err, nonce) =>
@@ -144,10 +146,12 @@ class PaymentController extends KDController
 
       callback null, nonce
 
-  fetchSubscriptionsWithPlans: (tags, callback) ->
-    [callback, tags] = [tags, callback]  unless callback
+  fetchSubscriptionsWithPlans: (options, callback) ->
+    [callback, options] = [options, callback]  unless callback
 
-    KD.whoami().fetchPlansAndSubscriptions tags, (err, plansAndSubs) =>
+    options ?= {}
+
+    KD.whoami().fetchPlansAndSubscriptions options, (err, plansAndSubs) =>
       return callback err  if err
       
       { subscriptions } = @groupPlansBySubscription plansAndSubs
