@@ -74,18 +74,18 @@ class ActivityListController extends KDListViewController
         activityIds.push activity._id
         queue.fin()
 
-    dash queue
+    dash queue, =>
 
-    @checkIfLikedBefore activityIds
+      @checkIfLikedBefore activityIds
 
-    @lastItemTimeStamp or= Date.now()
+      @lastItemTimeStamp or= Date.now()
 
-    for obj in activities
-      objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
-      if objectTimestamp < @lastItemTimeStamp
-        @lastItemTimeStamp = objectTimestamp
+      for obj in activities
+        objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
+        if objectTimestamp < @lastItemTimeStamp
+          @lastItemTimeStamp = objectTimestamp
 
-    @emit "teasersLoaded"
+      @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache, index, animation)->
     @hideLazyLoader()
