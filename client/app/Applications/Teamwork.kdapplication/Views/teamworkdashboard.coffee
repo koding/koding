@@ -41,8 +41,11 @@ class TeamworkDashboard extends JView
       title       : "Start your session now!"
 
     manifests     = @getDelegate().playgroundsManifest
+
+  createPlaygrounds: (manifests) ->
     manifests.forEach (manifest) =>
-      @playgrounds.addSubView new KDCustomHTMLView
+      @setClass "ready"
+      @playgrounds.addSubView view = new KDCustomHTMLView
         cssClass  : "tw-playground-item"
         partial   : """
           <img src="#{manifest.icon}" />
@@ -101,8 +104,7 @@ class TeamworkDashboard extends JView
         </div>
       </div>
       <div class="tw-playgrounds-container">
+        <p class="loading">Loading Playgrounds...</p>
         {{> @playgrounds}}
       </div>
     """
-
-
