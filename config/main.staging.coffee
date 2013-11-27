@@ -137,6 +137,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      activityFetchCount : 50
       precompiledApi: yes
       authExchange: authExchange
       github        :
