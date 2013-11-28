@@ -1,5 +1,5 @@
-@import "./kdfn"
-@import "./client/stylus/appfn"
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
 
 @css {
 /*
@@ -127,7 +127,7 @@ app.environments.styl
       margin          5px
       size            20px, 20px
       display         inline-block
-      sprite()
+      kdfsprite()
       bg              position, -40px -480px
     &.disabled span.icon
       bg              position, -40px -520px
@@ -277,7 +277,7 @@ app.environments.styl
     &.routing
       padding             0
       span.arrow
-        sprite()
+        kdfsprite()
         display           block
         size              30px, 25px
         margin-left       -25px
@@ -379,7 +379,7 @@ app.environments.styl
     .vm-icon
       size           30px, 30px
       opacity        .5
-      sprite()
+      kdfsprite()
       bg             position, -360px -390px
 
     .vm-name
@@ -409,11 +409,11 @@ app.environments.styl
         abs()
 
       .shared
-        sprite()
+        kdfsprite()
         bg position,   -360px -300px
 
       .personal
-        sprite()
+        kdfsprite()
         bg position,   -360px -390px
 
       .vm-title
@@ -467,7 +467,7 @@ app.environments.styl
     color             #000
 
     .personal
-      sprite()
+      kdfsprite()
       bg position,   -360px -390px
 
   .fw-al-view, .fw-rl-view
@@ -626,7 +626,7 @@ app.environments.styl
       padding          10px
 
     .slide-icon
-      sprite()
+      kdfsprite()
       bg position,     -121px -559px
       display          block
       abs()
@@ -661,7 +661,7 @@ app.environments.styl
       width          10px
       height         10px
       margin-left    10px
-      sprite()
+      kdfsprite()
       bg position,   -25px -145px
       rel()
       top            6px
@@ -671,7 +671,7 @@ app.environments.styl
       width          10px
       height         10px
       margin-left    10px
-      sprite()
+      kdfsprite()
       bg position,   -25px -125px
       rel()
       top            6px
@@ -683,7 +683,7 @@ app.environments.styl
       width          40px
       height         40px
       margin-right   10px
-      sprite()
+      kdfsprite()
       bg position,   -780px -521px
 
     .filter-name
@@ -880,7 +880,7 @@ div.environments-scene
       opacity           1
 
     span.icon
-      sprite()
+      kdfsprite()
       background-position -120px -580px
       size              12px, 12px
       position          relative
@@ -922,7 +922,7 @@ div.environments-container
       i
         display                 block
         size                    20px, 25px
-        sprite()
+        kdfsprite()
         background-position     -120px -440px
         left                    0px
         top                     0px
@@ -971,7 +971,7 @@ div.environments-item
     bottom        2px
     right         2px
     bg            position, -182px -363px
-    sprite()
+    kdfsprite()
 
   &:hover
     gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
@@ -1053,7 +1053,7 @@ div.environments-joint
     z-index          2
     border           1px solid white
     borderBox()
-    sprite()
+    kdfsprite()
     bg               position,-84px -544px
     background-color rgba(169, 39, 84, 1.0)
 

@@ -54,8 +54,6 @@ website/js/introapp.*.js
 website/js/landingapp.*.js
 website/default.html
 website/index.html
-website/js/workspace.0.0.1.js
-website/css/workspace.0.0.1.css
 kontrolUUID-*
 
 website/sprites/*.json
@@ -65,8 +63,9 @@ website/js/app.*.js
 website/js/social.*.js
 website/js/client.*.js
 website/js/teamwork.*.js
+website/js/workspace.*.js
 
 website/css/app.*.css
 website/css/social.*.css
 website/css/teamwork.*.css
-
+website/css/workspace.*.css

@@ -141,6 +141,12 @@ projects      =
     script        : "website/js/app.about.#{KODING_VERSION}.js"
     sourceMapRoot : "About/"
 
+  Environments    :
+    files         : "client/Environments/includes.coffee"
+    style         : "website/css/app.environments.#{KODING_VERSION}.css"
+    script        : "website/js/app.environments.#{KODING_VERSION}.js"
+    sourceMapRoot : "Environments/"
+
   PostOperations  :
     files         : "client/PostOperations/includes.coffee"
     script        : "website/js/client.post.#{KODING_VERSION}.js"
@@ -157,13 +163,8 @@ bundles           =
     style         : "website/css/koding.#{KODING_VERSION}.css"
     script        : "website/js/koding.#{KODING_VERSION}.js"
 
-  WorkspaceBundle :
-    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace']
-    style         : "website/css/workspace.#{KODING_VERSION}.css"
-    script        : "website/js/workspace.#{KODING_VERSION}.js"
-
   TeamworkBundle  :
-    projects      : ['WorkspaceBundle', 'CollaborativeWorkspace', 'Teamwork']
+    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace', 'CollaborativeWorkspace', 'Teamwork']
     style         : "website/css/teamwork.#{KODING_VERSION}.css"
     script        : "website/js/teamwork.#{KODING_VERSION}.js"
 

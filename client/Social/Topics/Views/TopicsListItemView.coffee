@@ -11,8 +11,12 @@ class TopicsListItemView extends KDListItemView
 
         {appManager} = KD.singletons
         filterByTag  = @getData().slug
-        appManager.tell 'Activity', 'populateActivity', {filterByTag}, =>
-          appManager.open 'Activity'
+
+        appManager.open 'Activity', (controller)->
+          appManager.tell 'Activity', 'setWarning', filterByTag, yes
+          KD.utils.wait 300, ->
+            controller.ready ->
+              appManager.tell 'Activity', 'populateActivity', {filterByTag}
 
         KD.utils.stopDOMEvent event
 
