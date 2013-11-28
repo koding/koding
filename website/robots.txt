@@ -11,7 +11,7 @@ Disallow: /Verify
 User-agent: ia_archiver
 Disallow:
 
-User-agent: alexabot
+User-agent: Alexabot
 Disallow:
 
 User-agent: verifybot
