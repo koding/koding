@@ -63,7 +63,7 @@ class ActivityAppController extends AppController
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
       @ready @bound "populateActivity"
-    @emit 'ready'
+      @emit 'ready'
 
   resetAll:->
     @lastTo                 = null
@@ -185,19 +185,19 @@ class ActivityAppController extends AppController
         options.slug ?= @_wasFilterByTag
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
         @fetchTopicActivities options
-        @getView().filterWarning.showWarning options.slug
+        @setWarning options.slug
 
       else if @getFeedFilter() is "Public"
 
         @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
-        @getView().filterWarning.hide()
+        @setWarning()
 
       else
 
         @once "followingFeedFetched_#{eventSuffix}", setFeedData
         @fetchFollowingActivities options
-        @getView().filterWarning.hide()
+        @setWarning()
 
       # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
@@ -220,7 +220,6 @@ class ActivityAppController extends AppController
       return @emit "activitiesCouldntBeFetched", err  if err
       @emit "publicFeedFetched_#{eventSuffix}", messages
 
-
   fetchFollowingActivities:(options = {})->
     {JStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
@@ -228,6 +227,17 @@ class ActivityAppController extends AppController
       if err
       then @emit "activitiesCouldntBeFetched", err
       else @emit "followingFeedFetched_#{eventSuffix}", activities
+
+  setWarning:(tag, loading = no)->
+    {filterWarning} = @getView()
+    if tag
+      unless loading
+        filterWarning.showWarning tag
+      else
+        filterWarning.warning.setPartial "Filtering activities by #{tag}..."
+        filterWarning.show()
+    else
+      filterWarning.hide()
 
   setLastTimestamps:(from, to)->
     # debugger
