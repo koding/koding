@@ -34,7 +34,7 @@ class ResetInlineForm extends LoginViewInlineForm
 
     @button = new KDButtonView
       title : "RESET PASSWORD"
-      style : "koding-orange"
+      style : "thin"
       type  : 'submit'
       loader      :
         color     : "#ffffff"

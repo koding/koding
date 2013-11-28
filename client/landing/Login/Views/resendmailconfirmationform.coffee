@@ -15,17 +15,17 @@ class ResendEmailConfirmationLinkInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your username or email."
 
-    # @button = new KDButtonView
-    #   title       : "RESEND CONFIRMATION EMAIL"
-    #   style       : "koding-orange"
-    #   type        : 'submit'
-    #   loader      :
-    #     color     : "#ffffff"
-    #     diameter  : 21
+    @button = new KDButtonView
+      title       : "RESEND EMAIL"
+      style       : "thin"
+      type        : 'submit'
+      loader      :
+        color     : "#ffffff"
+        diameter  : 21
 
   pistachio:->
 
     """
     <div>{{> @usernameOrEmail}}</div>
+    <div>{{> @button}}</div>
     """
-    # <div>{{> @button}}</div>

@@ -270,7 +270,7 @@ class LoginView extends KDScrollView
     (err, status)-> console.log "Status of fetching stuff from external: #{status}"
 
   afterLoginCallback: (err, params={})->
-    @loginForm.loader?.hide()
+    @loginForm.button.loader.hideLoader()
     {entryPoint} = KD.config
     if err
       showError err
