@@ -19,12 +19,11 @@ app.login-signup.styl
     top               0
 
   .flex-wrapper
-    size             419px 281px
+    size             419px auto
     margin           200px auto 0 auto
     rounded          5px
     bg               color #F4F4F4
-    vendor           transition, height .1s ease-in-out\,\
-                                 width  .4s ease-in-out\,\
+    vendor           transition, width  .4s ease-in-out\,\
                                  margin .4s ease-in-out
     rel()
   a
@@ -68,7 +67,6 @@ app.login-signup.styl
       visible()
     .flex-wrapper
       overflow            visible
-      height              235px
       &.expanded
         width             400px
         height            310px
@@ -89,8 +87,6 @@ app.login-signup.styl
       //   top               76px!important
 
   &.login
-    // margin-top            -230px !important
-
     .lf
     .regLink
     .recLink
@@ -98,22 +94,17 @@ app.login-signup.styl
       visible()
 
   &.register
-    // margin-top            -300px !important
-
     .rf
     .logLink
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      height                353px
       &.taller
         height              470px
 
   &.redeem
     .rdf
       visible()
-    .flex-wrapper
-      height              193px
     .login-footer
       hidden()
 
@@ -123,8 +114,6 @@ app.login-signup.styl
       visible()
     .rcf > form
       margin-top          15px
-    .flex-wrapper
-      height              209px
     .rcf .kdnotification.mini.register
       top                 174px!important
 
@@ -134,8 +123,6 @@ app.login-signup.styl
       visible()
     .reset-link
       hidden()
-    .flex-wrapper
-      height              254px
 
   &.resendEmail
     .resend-confirmation-form
@@ -143,8 +130,6 @@ app.login-signup.styl
       visible()
     .resend-confirmation-form > form
       margin-top          15px
-    .flex-wrapper
-      height              198px
 
   .login-hint
     color                 #B4B3B3
@@ -257,8 +242,8 @@ app.login-signup.styl
       margin-right      0
 
 .login-form-holder
-  margin                  36px 0 25px 0
-  padding-bottom          5px
+  margin                  36px 0 0 0
+  padding-bottom          0
   height                  auto
 
 .login-form
@@ -273,9 +258,14 @@ app.login-signup.styl
 
       &.half-size
         display           inline-block
-        width             38.5%
+        width             39%
+        rounded           0 6px 6px 0
         &:first-child
-          margin-right    1%
+          padding-right   1px
+          rounded         6px 0 0 6px
+          borderBox()
+        input.kdinput.text
+          rounded         0
 
       &.validation-error
         .validation-icon
@@ -404,9 +394,7 @@ app.login-signup.styl
 
   button
     width               78%
-    margin-top          5px
-    padding             9px 0
-    max-width           170px
+    margin-bottom       46px
     &.loading
       color             rgba(255,255,255,.8)
       &:hover
@@ -428,3 +416,5 @@ p.login-tip
 // .recovery
 //   .kdnotification.mini
 //     top                   33px!important
+
+
