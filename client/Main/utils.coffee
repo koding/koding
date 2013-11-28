@@ -1,5 +1,9 @@
 __utils.extend __utils,
 
+  botchedUrlRegExp: /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
+
+  webProtocolRegExp: /^((http(s)?\:)?\/\/)/
+
   proxifyUrl:(url="", options={})->
 
     options.width   or= -1
