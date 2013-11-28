@@ -1,6 +1,3 @@
-User-agent: *
-Disallow: /
-
 User-agent: Googlebot
 Disallow: /Account
 Disallow: /Login
@@ -12,34 +9,15 @@ Disallow: /ResendToken
 Disallow: /Verify
 
 User-agent: ia_archiver
-Disallow: /Account
-Disallow: /Login
-Disallow: /Logout
-Disallow: /Register
-Disallow: /Recover
-Disallow: /Resend
-Disallow: /ResendToken
-Disallow: /Verify
+Disallow:
 
-useragent:alexabot
-Disallow: /Account
-Disallow: /Login
-Disallow: /Logout
-Disallow: /Register
-Disallow: /Recover
-Disallow: /Resend
-Disallow: /ResendToken
-Disallow: /Verify
+User-agent: alexabot
+Disallow:
 
-useragent: verifybot
-Disallow: /Account
-Disallow: /Login
-Disallow: /Logout
-Disallow: /Register
-Disallow: /Recover
-Disallow: /Resend
-Disallow: /ResendToken
-Disallow: /Verify
+User-agent: verifybot
+Disallow:
 
+User-agent: *
+Disallow: /
 
 Sitemap: https://koding.com/sitemap.xml
