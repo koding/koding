@@ -18,7 +18,7 @@ var (
 	port = flag.String("port", "5000", "port to bind to local server")
 )
 
-const serverAddr = "127.0.0.1:7000"
+const serverAddr = "newkontrol.sj.koding.com:80"
 
 func main() {
 	options := &kite.Options{
@@ -26,6 +26,7 @@ func main() {
 		Version:     "1",
 		Region:      "localhost",
 		Environment: "development",
+		KontrolAddr: "newkontrol.sj.koding.com:4000",
 	}
 
 	k := kite.New(options)
@@ -72,7 +73,7 @@ func register(tunnelserver *kite.RemoteKite) (*registerResult, error) {
 
 func getTunnelServer(k *kite.Kite) *kite.RemoteKite {
 	query := protocol.KontrolQuery{
-		Username:    "devrim",
+		Username:    "arslan",
 		Environment: "development",
 		Name:        "tunnelserver",
 	}
