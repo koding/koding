@@ -1,6 +1,6 @@
-class ActivityTicker extends JView
+class ActivityRightBase extends JView
   constructor:(options={}, data)->
-    options.cssClass      = "activity-right-block"
+    options.cssClass = "activity-right-block"
 
     super options, data
 
@@ -9,43 +9,21 @@ class ActivityTicker extends JView
       viewOptions :
         type      : "activities"
         cssClass  : "activities"
-        itemClass : ActivityTickerItem
+        itemClass : @itemClass
 
     @tickerListView = @tickerController.getView()
 
-    KD.remote.api.ActivityTicker.fetch null, (err, items = []) =>
-      @tickerController.hideLazyLoader()
-      @tickerController.addItem item for item in items  unless err
+  renderItems: (err, items=[])->
+    @tickerController.hideLazyLoader()
+    @tickerController.addItem item for item in items  unless err
 
-    #### Popular Users
+class ActivityTicker extends ActivityRightBase
+  constructor:(options={}, data)->
+    @itemClass = ActivityTickerItem
 
-    @activeUsersController = new KDListViewController
-      startWithLazyLoader : yes
-      viewOptions :
-        type      : "activities"
-        cssClass  : "activities"
-        itemClass : ActiveUserItemView
+    super options, data
 
-    @activeUsersListView = @activeUsersController.getView()
-
-    KD.remote.api.ActiveItems.fetchUsers null, (err, items)=>
-      @activeUsersController.hideLazyLoader()
-      @activeUsersController.addItem item for item in items  unless err
-
-    #### Popular Topics
-
-    @activeTopicsController = new KDListViewController
-      startWithLazyLoader : yes
-      viewOptions :
-        type      : "activities"
-        cssClass  : "activities"
-        itemClass : ActiveTopicItemView
-
-    @activeTopicsListView = @activeTopicsController.getView()
-
-    KD.remote.api.ActiveItems.fetchTopics null, (err, items)=>
-      @activeTopicsController.hideLazyLoader()
-      @activeTopicsController.addItem item for item in items  unless err
+    KD.remote.api.ActivityTicker.fetch {}, @renderItems.bind this
 
   pistachio:
     """
@@ -53,14 +31,47 @@ class ActivityTicker extends JView
       <h3>Activity Feed <i class="cog-icon"></i></h3>
       {{> @tickerListView}}
     </div>
+    """
 
+class ActiveUsers extends ActivityRightBase
+  constructor:(options={}, data)->
+    @itemClass = ActiveUserItemView
+
+    super options, data
+
+    KD.remote.api.ActiveItems.fetchUsers {}, @renderItems.bind this
+
+  pistachio:
+    """
     <div class="activity-ticker">
       <h3>Members</h3>
-      {{> @activeUsersListView}}
-    </div>
-
-    <div class="activity-ticker">
-      <h3>Topics</h3>
-      {{> @activeTopicsListView}}
+      {{> @tickerListView}}
     </div>
     """
+
+class ActiveTopics extends ActivityRightBase
+  constructor:(options={}, data)->
+    @itemClass = ActiveTopicItemView
+
+    super options, data
+
+    KD.remote.api.ActiveItems.fetchTopics {}, @renderItems.bind this
+
+  pistachio:
+    """
+    <div class="activity-ticker">
+      <h3>Topics</h3>
+      {{> @tickerListView}}
+    </div>
+    """
+
+class ActivityRightCorner extends JView
+  constructor:(options={}, data)->
+    super options, data
+
+  addSubView:->
+    @addSubView new ActivityTicker
+    @addSubView new ActiveUsers
+    @addSubView new ActiveTopics
+
+    super

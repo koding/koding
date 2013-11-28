@@ -26,7 +26,9 @@ class ActivityAppView extends KDScrollView
     @header           = new HomeKonstructor
     @widget           = new ActivityUpdateWidget
     @widgetController = new ActivityUpdateWidgetController view : @widget
-    @rightBlock       = new ActivityTicker
+    @ticker           = new ActivityTicker
+    @activeUsers      = new ActiveUsers
+    @activeTopics     = new ActiveTopics
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
     @mainController   = KD.getSingleton("mainController")
 
@@ -56,7 +58,9 @@ class ActivityAppView extends KDScrollView
     @addSubView @header
     @addSubView @innerNav
     @addSubView @leftBlock
-    @addSubView @rightBlock
+    @addSubView @ticker
+    @addSubView @activeUsers
+    @addSubView @activeTopics
 
     @leftBlock.addSubView @widget
     @leftBlock.addSubView @feedWrapper
