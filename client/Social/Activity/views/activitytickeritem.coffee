@@ -97,3 +97,29 @@ class ActivityTickerItem extends KDListItemView
     if itemClass
     then @addSubView new itemClass null, data
     else @destroy()
+
+
+class ActiveUserItemView extends KDListItemView
+  constructor: (options = {}, data) ->
+    options.type = "activity-ticker-item"
+    super options, data
+
+    @avatar    = new AvatarView
+      size     : width: 25, height: 25
+      cssClass : "avatarview"
+    , data
+
+    @actor    = new ProfileLinkView null, data
+
+  viewAppended:->
+    @addSubView @avatar
+    @addSubView @actor
+
+class ActiveTopicItemView extends KDListItemView
+  constructor: (options = {}, data) ->
+    options.type = "activity-ticker-item"
+    super options, data
+
+    @tag = new TagLinkView null, data
+
+  viewAppended:-> @addSubView @tag
