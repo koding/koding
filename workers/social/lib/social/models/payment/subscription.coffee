@@ -6,7 +6,7 @@ forceInterval = 60 * 3
 
 module.exports = class JPaymentSubscription extends jraphical.Module
 
-  {secure, dash} = require 'bongo'
+  {secure, dash, daisy} = require 'bongo'
   JUser    = require '../user'
   JPayment = require './index'
 
@@ -59,6 +59,10 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         default     : {}
       paymentMethodId: String
       tags          : (require './schema').tags
+    relationships   :
+      linkedSubscription:
+        targetType  : this
+        as          : 'linked subscription'
 
   @fetchUserSubscriptions = secure ({ connection:{ delegate }}, callback) ->
     delegate.fetchPaymentMethods (err, paymentMethods) =>
@@ -95,16 +99,16 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   refund: (options, callback) ->
     payment.createRefund @paymentMethodId, options, callback
 
-  calculateRefund: ->
-    { max, ceil } = Math
+  getEndDate: -> new Date Math.max +(@renewAt ? 0), +(@expiresAt ? 0)
 
+  calculateRefund: ->
     now     = Date.now()
     begin   = +@activatedAt
-    end     = max +(@renewAt ? 0), +(@expiresAt ? 0)
+    end     = +@getEndDate()
     usage   = (now - begin) / (end - begin)
     ratio   = (100 - (usage * 100)) / 100
 
-    return ceil ratio * @feeAmount # cents
+    return Math.ceil ratio * @feeAmount # cents
 
   updateStatus: (status, callback) ->
     @update $set: { status }, callback
@@ -129,7 +133,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
       amount = @calculateRefund()
       description =
         """
-        Credit — #{ oldPlan.title }
+        Refund for the remaining days of your current plan: #{ oldPlan.title }
         """
 
       if applyRefund
@@ -215,26 +219,59 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   credit$: secure (client, pack, callback) ->
     @debit$ client, pack, -1, callback
 
-  upgrade: (account, oldPlan, newPlan, callback) ->
-    newPlan.checkQuota @usage, {}, (err) =>
-      return callback { message: 'Quota succeeded!' }  if err
+  linkSubscription: (subscription, callback) -> callback null
 
-      @terminate oldPlan, (err, refundAmount) =>
-        return callback err  if err
+  applyTransition: (options, callback) ->
 
-        newPlan.subscribe @paymentMethodId, (err, newSubscription) =>
-          return callback err  if err
+    {
+      account
+      paymentMethodId
+      oldPlan
+      newPlan
+      subOptions
+      operation
+    } = options
 
-          account.addSubscription newSubscription, (err) =>
-            return callback err  if err
-            
-            newSubscription.update $set: usage: @usage, (err) ->
-              return callback err  if err
+    paymentMethodId ?= @paymentMethodId
 
-              callback null, newSubscription
+    newSubscription = null
 
-  downgrade: (account, oldPlan, newPlan, callback) ->
-    callback null, downgrade: to: newPlan, from: oldPlan
+    queue = [
+      =>
+        newPlan.checkQuota @usage, {}, (err) -> queue.next err
+      =>
+        operation.call this, (err) -> queue.next err
+      ->
+        newPlan.subscribe paymentMethodId, subOptions, (err, newSub) ->
+          newSubscription = newSub
+          queue.next err
+      =>
+        @linkSubscription newSubscription, (err) -> queue.next err
+      -> 
+        account.addSubscription newSubscription, (err) -> queue.next err
+      =>
+        newSubscription.update $set: { @usage }, (err) -> queue.next err
+      ->
+        callback null, newSubscription
+    ]
+
+    daisy queue 
+
+  downgrade: (options, callback) ->
+    
+    options.subOptions =
+      startsAt: @getEndDate()
+    
+    options.operation = (continuation) =>
+      @cancel continuation
+
+    @applyTransition options, callback
+
+  upgrade: (options, callback) ->
+    options.operation = (continuation) =>
+      @terminate options.oldPlan, continuation
+    
+    @applyTransition options, callback
 
   transitionTo: secure (client, { planCode, paymentMethodId }, callback) ->
     JPaymentPlan = require './plan'
@@ -266,7 +303,14 @@ module.exports = class JPaymentSubscription extends jraphical.Module
             queue.fin err
         ]
         dash queue, =>
+          transitionOptions = {
+            paymentMethodId
+            account: delegate
+            oldPlan
+            newPlan
+          }
+
           if oldPlan.feeAmount > newPlan.feeAmount
-            @downgrade delegate, oldPlan, newPlan, callback
+            @downgrade transitionOptions, callback
           else
-            @upgrade delegate, oldPlan, newPlan, callback
+            @upgrade transitionOptions, callback

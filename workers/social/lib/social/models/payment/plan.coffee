@@ -158,7 +158,8 @@ module.exports = class JPaymentPlan extends JPaymentBase
             else callback null, subscription
 
       else
-        recurly.createSubscription paymentMethodId, { @planCode }, (err, result) =>
+        subOptions = { @planCode, startsAt: options.startsAt }
+        recurly.createSubscription paymentMethodId, subOptions, (err, result) =>
           return callback err  if err
 
           { planCode, uuid, quantity, status, activatedAt, expiresAt, renewAt,
