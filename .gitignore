@@ -63,7 +63,9 @@ website/js/app.*.js
 website/js/social.*.js
 website/js/client.*.js
 website/js/teamwork.*.js
+website/js/workspace.*.js
 
 website/css/app.*.css
 website/css/social.*.css
 website/css/teamwork.*.css
+website/css/workspace.*.css

@@ -141,6 +141,12 @@ projects      =
     script        : "website/js/app.about.#{KODING_VERSION}.js"
     sourceMapRoot : "About/"
 
+  Environments    :
+    files         : "client/Environments/includes.coffee"
+    style         : "website/css/app.environments.#{KODING_VERSION}.css"
+    script        : "website/js/app.environments.#{KODING_VERSION}.js"
+    sourceMapRoot : "Environments/"
+
   PostOperations  :
     files         : "client/PostOperations/includes.coffee"
     script        : "website/js/client.post.#{KODING_VERSION}.js"

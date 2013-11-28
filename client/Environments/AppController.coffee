@@ -4,11 +4,11 @@ class EnvironmentsAppController extends AppController
     name         : "Environments"
     route        : "/:name?/Environments"
     hiddenHandle : yes
-    # behavior     : "application"
-    navItem      :
-      title      : "Environments"
-      path       : "/Environments"
-      role       : "member"
+    behavior     : "application"
+    # navItem      :
+    #   title      : "Environments"
+    #   path       : "/Environments"
+    #   role       : "member"
 
   constructor:(options = {}, data)->
 
