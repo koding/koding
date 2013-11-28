@@ -1,6 +1,7 @@
-package main
+package kontrol
 
 import (
+	"container/list"
 	"koding/newkite/dnode"
 	"koding/newkite/kite"
 	"koding/newkite/protocol"
@@ -8,53 +9,110 @@ import (
 	"sync"
 )
 
-type watchers struct {
+// watcherHub allows watches to be registered on Kites and allows them to
+// be notified when a Kite changes (registered or deregistered).
+type watcherHub struct {
 	sync.RWMutex
-	requests map[*kite.RemoteKite][]*request
+
+	// Indexed by user to iterate faster when a notification comes.
+	// Indexed by user because it is the first field in protocol.KontrolQuery.
+	watchesByUser map[string]*list.List // List contains *watch
+
+	// Indexed by Kite to remove them easily when Kite disconnects.
+	watchesByKite map[*kite.RemoteKite][]*list.Element
 }
 
-type request struct {
-	query    *KontrolQuery
+type watch struct {
+	query    *protocol.KontrolQuery
 	callback dnode.Function
 }
 
-func newWatchers() *watchers {
-	return &watchers{requests: make(map[*kite.RemoteKite][]*request)}
-}
-
-// RegisterWatcher saves the callback to invoke later
-// when a Kite is registered matching the query.
-func (w *watchers) RegisterWatcher(r *kite.RemoteKite, q *KontrolQuery, cb dnode.Function) {
-	w.Lock()
-	defer w.Unlock()
-
-	r.OnDisconnect(func() {
-		w.Lock()
-		delete(w.requests, r)
-		w.Unlock()
-	})
-
-	w.requests[r] = append(w.requests[r], &request{q, cb})
-}
-
-// Notify is called when a Kite is registered.
-func (w *watchers) Notify(kite *protocol.Kite) {
-	w.RLock()
-	defer w.RUnlock()
-
-	// Iterating over every watch request is really not efficient.
-	// However, I have written in easy way because we are going to replace
-	// this functionality with Zookeeper, Etcd or similar service.
-	for _, requests := range w.requests {
-		for _, request := range requests {
-			if matches(kite, request.query) {
-				go request.callback(kite)
-			}
-		}
+func newWatcherHub() *watcherHub {
+	return &watcherHub{
+		watchesByUser: make(map[string]*list.List),
+		watchesByKite: make(map[*kite.RemoteKite][]*list.Element),
 	}
 }
 
-func matches(kite *protocol.Kite, query *KontrolQuery) bool {
+// RegisterWatcher saves the callbacks to invoke later
+// when a Kite is registered/deregistered matching the query.
+func (h *watcherHub) RegisterWatcher(r *kite.RemoteKite, q *protocol.KontrolQuery, callback dnode.Function) {
+	h.Lock()
+	defer h.Unlock()
+
+	r.OnDisconnect(func() {
+		h.Lock()
+		defer h.Unlock()
+
+		// Delete watch from watchesByUser
+		for _, elem := range h.watchesByKite[r] {
+			l := h.watchesByUser[q.Username]
+			l.Remove(elem)
+
+			// Delete the empty list.
+			if l.Len() == 0 {
+				delete(h.watchesByUser, q.Username)
+			}
+		}
+
+		delete(h.watchesByKite, r)
+	})
+
+	// Get or create a new list.
+	l, ok := h.watchesByUser[q.Username]
+	if !ok {
+		l = list.New()
+		h.watchesByUser[q.Username] = l
+	}
+
+	elem := l.PushBack(&watch{q, callback})
+	h.watchesByKite[r] = append(h.watchesByKite[r], elem)
+}
+
+// Notify is called when a Kite is registered by the user of this watcherHub.
+// Calls the registered callbacks mathching to the kite.
+func (h *watcherHub) Notify(kite *protocol.Kite, action protocol.KiteAction, kodingKey string) {
+	h.RLock()
+	defer h.RUnlock()
+
+	l, ok := h.watchesByUser[kite.Username]
+	if !ok {
+		return
+	}
+
+	for e := l.Front(); e != nil; e = e.Next() {
+		watch := e.Value.(*watch)
+		if !matches(kite, watch.query) {
+			continue
+		}
+
+		var kiteWithToken *protocol.KiteWithToken
+		var err error
+
+		// Register events needs a token attached.
+		if action == protocol.Register {
+			kiteWithToken, err = addTokenToKite(kite, watch.query.Username, kodingKey)
+			if err != nil {
+				log.Error("watch notify: %s", err)
+				continue
+			}
+
+		} else {
+			// We do not need to send token for deregister event.
+			kiteWithToken = &protocol.KiteWithToken{Kite: *kite}
+		}
+
+		event := protocol.KiteEvent{
+			Action: action,
+			Kite:   kiteWithToken.Kite,
+			Token:  kiteWithToken.Token,
+		}
+		go watch.callback(event)
+	}
+}
+
+// matches returns true if kite mathches to the query.
+func matches(kite *protocol.Kite, query *protocol.KontrolQuery) bool {
 	qv := reflect.ValueOf(*query)
 	qt := qv.Type()
 
