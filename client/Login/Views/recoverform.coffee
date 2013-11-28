@@ -15,17 +15,17 @@ class RecoverInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your username or email."
 
-    # @button = new KDButtonView
-    #   title       : "RECOVER PASSWORD"
-    #   style       : "koding-orange"
-    #   type        : 'submit'
-    #   loader      :
-    #     color     : "#ffffff"
-    #     diameter  : 21
+    @button = new KDButtonView
+      title       : "RECOVER PASSWORD"
+      style       : "thin"
+      type        : 'submit'
+      loader      :
+        color     : "#ffffff"
+        diameter  : 21
 
   pistachio:->
 
     """
     <div>{{> @usernameOrEmail}}</div>
+    <div>{{> @button}}</div>
     """
-    # <div>{{> @button}}</div>

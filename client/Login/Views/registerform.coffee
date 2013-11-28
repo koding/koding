@@ -156,13 +156,13 @@ class RegisterInlineForm extends LoginViewInlineForm
     #         required  : "Password confirmation required!"
     #         match     : "Password confirmation doesn't match!"
 
-    # @button = new KDButtonView
-    #   title         : "REGISTER"
-    #   type          : 'submit'
-    #   style         : "koding-orange"
-    #   loader        :
-    #     color       : "#ffffff"
-    #     diameter    : 21
+    @button = new KDButtonView
+      title         : "CREATE ACCOUNT"
+      type          : 'submit'
+      style         : "thin"
+      loader        :
+        color       : "#ffffff"
+        diameter    : 21
 
     @disabledNotice = new KDCustomHTMLView
       tagName       : "section"
@@ -187,7 +187,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       #   @password.input.setValue ''
       #   @password.input.validate()
 
-      @loader?.hideLoader()
+      @button.hideLoader()
 
   usernameCheckTimer = null
 
@@ -264,11 +264,11 @@ class RegisterInlineForm extends LoginViewInlineForm
         Invited by:
         <span class='wrapper'></span>
       </div>
+      <div>{{> @button}}</div>
     </section>
     {{> @invitationCode}}
     {{> @disabledNotice}}
     """
-    # <div>{{> @firstName}}{{> @lastName}}</div>
+      # <div>{{> @fullName}}</div>
     #   <div>{{> @password}}</div>
     #   <div>{{> @passwordConfirm}}</div>
-    # <div>{{> @button}}</div>
