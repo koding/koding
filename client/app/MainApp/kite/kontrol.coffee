@@ -38,9 +38,8 @@ class Kontrol extends KDObject
       query.environment = "production"
 
     eventCB = (e)=>
-      kiteWithToken = e.kite
-      log "kite event: ", e.action, {kiteWithToken}
-      onEvent e.action, @_createKite kiteWithToken
+      log "kite event: ", e.action, {e}
+      onEvent e.action, @_createKite {kite: e.kite, token: e.token}
 
     if onEvent
       args = [query, eventCB]
