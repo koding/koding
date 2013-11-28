@@ -96,17 +96,13 @@ class ActivityAppController extends AppController
   attachEvents:(controller)->
     activityController = KD.getSingleton('activityController')
     appView            = @getView()
-    {widgetController} = appView
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
     @listController = controller
     @bindLazyLoad()
 
-    widgetController.on "FakeActivityHasArrived", (activity)->
-      controller.fakeActivityArrived activity
-
-    widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
+    @getView().on "InputSubmitted", @bound "ownActivityArrived"
 
     appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
@@ -189,16 +185,19 @@ class ActivityAppController extends AppController
         options.slug ?= @_wasFilterByTag
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
         @fetchTopicActivities options
+        @getView().filterWarning.showWarning options.slug
 
       else if @getFeedFilter() is "Public"
 
         @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
+        @getView().filterWarning.hide()
 
       else
 
         @once "followingFeedFetched_#{eventSuffix}", setFeedData
         @fetchFollowingActivities options
+        @getView().filterWarning.hide()
 
       # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 

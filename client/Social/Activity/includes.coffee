@@ -32,6 +32,8 @@ module.exports = [
   "views/reviews/reviewlistitemview.coffee",
   "views/reviews/newreviewform.coffee",
 
+  "views/inputview.coffee"
+
   "widgets/widgetcontroller.coffee",
   "widgets/widgetview.coffee",
   "widgets/widgetbutton.coffee",

@@ -87,6 +87,7 @@ __aceSettings =
       { title: 'Cobalt',                value: 'cobalt' }
       { title: 'Idle Fingers',          value: 'idle_fingers' }
       { title: 'KR Theme',              value: 'kr_theme' }
+      { title: 'Koding',                value: 'koding' }
       { title: 'Merbivore',             value: 'merbivore' }
       { title: 'Merbivore Soft',        value: 'merbivore_soft' }
       { title: 'Mono Industrial',       value: 'mono_industrial' }

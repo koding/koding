@@ -18,7 +18,7 @@ class ActivityTickerFollowItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 25, height: 25
+      size     : width: 28, height: 28
       cssClass : "avatarview"
     , source
 
@@ -35,13 +35,13 @@ class ActivityTickerLikeItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 25, height: 25
+      size     : width: 28, height: 28
       cssClass : "avatarview"
     , target
 
     @actor    = new ProfileLinkView null, target
     @object   = new @itemLinkViewClassMap[source.bongo_.constructorName] null, source
-    
+
   pistachio: ->
     """{{> @avatar}} {{> @actor}} liked {{> @object}}"""
 
@@ -50,14 +50,14 @@ class ActivityTickerMemberItem extends ActivityTickerBaseItem
     super options, data
 
     {target} = data
-    
+
     @avatar    = new AvatarView
-      size     : width: 25, height: 25
+      size     : width: 28, height: 28
       cssClass : "avatarview"
     , target
 
     @actor    = new ProfileLinkView null, target
-    
+
   pistachio: ->
     """{{> @avatar}} {{> @actor}} became a member"""
 
@@ -68,7 +68,7 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 25, height: 25
+      size     : width: 28, height: 28
       cssClass : "avatarview"
     , target
 
