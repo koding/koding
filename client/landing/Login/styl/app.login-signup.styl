@@ -19,13 +19,20 @@ app.login-signup.styl
     top               0
 
   .flex-wrapper
-    size             419px auto
-    margin           200px auto 0 auto
-    rounded          5px
-    bg               color #F4F4F4
-    vendor           transition, width  .4s ease-in-out\,\
-                                 margin .4s ease-in-out
+    size                419px 353px
+    margin              -200px auto 0 auto
+    top                 50%
+    rounded             5px
+    bg                  color #F4F4F4
+    vendor              transition, height .1s ease-out\,\
+                                    width  .4s ease-in-out\,\
+                                    margin .4s ease-in-out
     rel()
+    &.one
+      height            281px
+    &.three
+      height            427px
+
   a
     noTextDeco()
     color               white
@@ -154,7 +161,7 @@ app.login-signup.styl
         size              12px, 11px
 
   .login-footer
-    rel()
+    abs()
     size                  419px auto
     margin                0 auto
     padding               10px 0
@@ -259,23 +266,21 @@ app.login-signup.styl
       &.half-size
         display           inline-block
         width             39%
-        rounded           0 6px 6px 0
+        input.kdinput.text
+          rounded         0 6px 6px 0
         &:first-child
           padding-right   1px
-          rounded         6px 0 0 6px
           borderBox()
-        input.kdinput.text
-          rounded         0
+          input.kdinput.text
+            rounded       6px 0 0 6px
 
-      &.validation-error
-        .validation-icon
-          bg              position, -80px -480px
-          opacity         .3
+      // &.validation-error .validation-icon
+      //   sprite          app 'login-validation-fail'
+      //   opacity         1
 
-      &.validation-passed
-        .validation-icon
-          bg              position, -80px -500px
-          opacity         .5
+      // &.validation-passed .validation-icon
+      //   sprite          app 'login-validation-pass'
+      //   opacity         1
 
   p
     size              78%, 0
@@ -300,12 +305,22 @@ app.login-signup.styl
     margin-bottom       0!important
     vendor              transition, height .15s ease-out
 
+  .login-input-view
+    overflow            visible
+    .placeholder-helper
+      abs()
+      top               -15px
+      font-size         12px
+      left              0
+      color             #999
+      fadeIn()
+
   input.kdinput.text
     text-align          center
     padding             11px 6px
     border              none
     color               #3E4F55
-    font-size           18px
+    font-size           16px
     box-shadow          none
     font-weight         300
     height              55px
@@ -317,6 +332,7 @@ app.login-signup.styl
     // &.validation-error
     //   bg                color,#ffe4bf
 
+
   input::-webkit-input-placeholder
     color               #666
   input:-moz-placeholder
@@ -324,13 +340,10 @@ app.login-signup.styl
 
   .validation-icon
     abs()
-    right               5px
-    top                 6px
-    size                20px 20px
-    bg                  position, -80px -480px
-    // vendor              transition, opacity .15s ease-out
+    right               10px
+    top                 11px
+    vendor              transition, opacity .15s ease-out
     opacity             0
-    // sprite()
 
   .kdloader.input-loader
     abs()
@@ -418,3 +431,25 @@ p.login-tip
 //     top                   33px!important
 
 
+.kdtooltip.input-validation.just-text
+
+  max-width             none
+
+  div.wrapper
+    shadow              none
+    border              none
+    padding             16px
+    font-size           14px
+    line-height         22px
+    min-height          55px
+    borderBox()
+
+  &.placement-right
+    margin              11px 0 0 14px
+    div.wrapper
+      text-align        left
+
+  &.placement-left
+    margin-left         -16px
+    div.wrapper
+      text-align        right
