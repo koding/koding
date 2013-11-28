@@ -72,8 +72,9 @@ func register(tunnelserver *kite.RemoteKite) (*registerResult, error) {
 
 func getTunnelServer(k *kite.Kite) *kite.RemoteKite {
 	query := protocol.KontrolQuery{
-		Username: "devrim",
-		Name:     "tunnelserver",
+		Username:    "devrim",
+		Environment: "development",
+		Name:        "tunnelserver",
 	}
 
 	kites, err := k.Kontrol.GetKites(query, nil)

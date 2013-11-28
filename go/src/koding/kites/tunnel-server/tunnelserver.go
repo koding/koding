@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"koding/newkite/kite"
-	"koding/newkite/protocol"
 	"koding/tunnel"
 	"net/http"
 )
@@ -26,7 +25,7 @@ var (
 func main() {
 	flag.Parse()
 
-	options := &protocol.Options{
+	options := &kite.Options{
 		Kitename:    "tunnelserver",
 		Version:     "1",
 		Port:        *port,
