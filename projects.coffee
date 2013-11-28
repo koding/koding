@@ -111,6 +111,12 @@ projects      =
     script        : "website/js/app.finder.#{KODING_VERSION}.js"
     sourceMapRoot : "Finder/"
 
+  Viewer          :
+    files         : "client/Viewer/includes.coffee"
+    style         : "website/css/app.viewer.#{KODING_VERSION}.css"
+    script        : "website/js/app.viewer.#{KODING_VERSION}.js"
+    sourceMapRoot : "Viewer/"
+
   Workspace       :
     files         : "client/Workspace/includes.coffee"
     style         : "website/css/app.workspace.#{KODING_VERSION}.css"
