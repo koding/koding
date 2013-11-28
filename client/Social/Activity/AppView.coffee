@@ -26,10 +26,13 @@ class ActivityAppView extends KDScrollView
     @header           = new HomeKonstructor
     @widget           = new ActivityUpdateWidget
     @widgetController = new ActivityUpdateWidgetController view : @widget
-    @ticker           = new ActivityTicker
+    @activityTicker   = new ActivityTicker
     @activeUsers      = new ActiveUsers
     @activeTopics     = new ActiveTopics
+
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
+    @rightBlock       = new KDCustomHTMLView cssClass : "activity-right-block"
+
     @mainController   = KD.getSingleton("mainController")
 
     @mainController.on "AccountChanged", @bound "decorate"
@@ -58,12 +61,14 @@ class ActivityAppView extends KDScrollView
     @addSubView @header
     @addSubView @innerNav
     @addSubView @leftBlock
-    @addSubView @ticker
-    @addSubView @activeUsers
-    @addSubView @activeTopics
+    @addSubView @rightCorner
 
     @leftBlock.addSubView @widget
     @leftBlock.addSubView @feedWrapper
+
+    @rightBlock.addSubView @activityTicker
+    @rightBlock.addSubView @activeUsers
+    @rightBlock.addSubView @activeTopics
 
   decorate:->
     @unsetClass "guest"

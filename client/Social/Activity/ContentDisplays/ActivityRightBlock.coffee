@@ -1,7 +1,5 @@
 class ActivityRightBase extends JView
   constructor:(options={}, data)->
-    options.cssClass = "activity-right-block"
-
     super options, data
 
     @tickerController = new KDListViewController
@@ -64,14 +62,3 @@ class ActiveTopics extends ActivityRightBase
       {{> @tickerListView}}
     </div>
     """
-
-class ActivityRightCorner extends JView
-  constructor:(options={}, data)->
-    super options, data
-
-  addSubView:->
-    @addSubView new ActivityTicker
-    @addSubView new ActiveUsers
-    @addSubView new ActiveTopics
-
-    super
