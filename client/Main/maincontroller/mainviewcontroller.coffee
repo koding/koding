@@ -33,7 +33,7 @@ class MainViewController extends KDViewController
 
     mainController.on "ToggleChatPanel", -> mainView.chatPanel.toggle()
 
-    if KD.checkFlag 'super-admin' then
+    if KD.checkFlag 'super-admin'
     then KDView.setElementClass body, 'add', 'super'
     else KDView.setElementClass body, 'remove', 'super'
 

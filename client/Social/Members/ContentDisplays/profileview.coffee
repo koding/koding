@@ -642,7 +642,7 @@ class ProfileView extends JView
     """
       <div class="right-block-box users-profile clearfix">
         {{> @avatar}}
-        <h3 class="full-name">{{> @firstName}}{{> @lastName}}</h3>
+        <h3 class="full-name">{{> @firstName}} {{> @lastName}}</h3>
         {{> @bio }}
         {{> @followButton}}
         <div class="clearfix"></div>
@@ -653,7 +653,7 @@ class ProfileView extends JView
         </div>
       </div>
       <div class="right-block-box right-user-menu">
-        <a href="#">Open Projects<span class="count">128</span></a>
+        <a href="#" class="active">Open Projects<span class="count">128</span></a>
         <a href="#">Discussions</a>
         <a href="#">Tutorials</a>
         <a href="#">Blog Posts</a>
