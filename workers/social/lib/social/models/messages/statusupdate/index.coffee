@@ -152,6 +152,10 @@ module.exports = class JStatusUpdate extends JPost
       options.sort  ?= 'timestamp' : -1
       options.limit ?= 20
 
+      {to} = options
+      to = if to then new Date(to)  else new Date()
+      options.targetOptions = selector : {'meta.createdAt' : "$lt" : to }
+
       tag.fetchContents {targetName: 'JStatusUpdate'}, options, (err, posts)=>
         return callback err if err
         @decorateResults posts, callback
