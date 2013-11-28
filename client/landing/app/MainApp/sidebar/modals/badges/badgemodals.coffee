@@ -1,3 +1,80 @@
+class NewBadgeForm extends JView
+
+  constructor:(options = {}, data)->
+    @badgeForm                = new KDModalViewWithForms
+      title                   : "Add New Badge"
+      overlay                 : "yes"
+      width                   : 600
+      height                  : "auto"
+      tabs                    :
+        navigable             : yes
+        forms                 :
+          "New Badge"         :
+            buttons           :
+              Add             :
+                title         : "Add"
+                style         : "modal-clean-green"
+                type          : "submit"
+              Cancel          :
+                title         : "Cancel"
+                style         : "modal-clean-red"
+            callback          : (formData)=>
+              KD.remote.api.JBadge.create formData, (err, badge) =>
+                {badgeListController} = @getOptions()
+                badgeListController.addItem badge
+            fields            :
+              Title           :
+                label         : "Title"
+                type          : "text"
+                name          : "title"
+                placeholder   : "enter the name of the badge"
+                validate      :
+                  rules       :
+                    required  : yes
+                  messages    :
+                    required  : "add badge name"
+              Icon            :
+                label         : "Badge Icon"
+                type          : "text"
+                name          : "iconURL"
+                placeholder   : "enter the path of badge"
+              Reward          :
+                label         : "Reward"
+                type          : "text"
+                name          : "reward"
+                placeholder   : "reward of badge"
+              Rule            :
+                label         : "Rule"
+                type          : "text"
+                name          : "rule"
+                placeholder   : "when this badge will be gained"
+              Description     :
+                label         : "Description"
+                type          : "text"
+                name          : "description"
+                placeholder   : "Description of the badge to be showed to user"
+          "Rules"             :
+            buttons           :
+              Add             :
+                title         : "Add"
+                style         : "modal-clean-green"
+                type          : "submit"
+              Cancel          :
+                title         : "Cancel"
+                style         : "modal-clean-red"
+            fields            :
+              Permissions     :
+                label         : "Reward"
+                type          : "select"
+                name          : "reward"
+    super options, data
+
+
+  pistachio:->
+    """
+    {{> @badgeForm}}
+    """
+
 class BadgeUpdateForm extends KDModalViewWithForms
 
   constructor:(options = {}, data)->
@@ -39,28 +116,26 @@ class BadgeUpdateForm extends KDModalViewWithForms
                   required  : yes
                 messages    :
                   required  : "add badge icon"
-            Reward          :
-              label         : "Reward"
-              type          : "text"
-              name          : "reward"
-              defaultValue  : "#{@badge.reward  || "no reward"}"
-            Rule            :
-              label         : "Rule"
-              type          : "text"
-              name          : "rule"
-              defaultValue  : "#{@badge.rule}"
             Description     :
               label         : "Description"
               type          : "text"
               name          : "description"
               defaultValue  : "#{@badge.description}"
+            Remove          :
+              label         : "Remove Badge"
+              itemClass     : KDButtonView
+              title         : "Delete"
+              callback      : =>
+                # TODO : USE setDelegate
+                new BadgeRemoveForm delegate:this,{@badge}
 
     super options, data
 
 
 class BadgeRemoveForm extends KDModalViewWithForms
   constructor:(options = {}, data)->
-    {@badge} = data
+    # TODO : get delegate proper way !
+    {@delegate,@badge} = data
     options.title           or= 'Please confirm badge deletion'
     options.tabs            ?=
       forms                 :
@@ -73,6 +148,8 @@ class BadgeRemoveForm extends KDModalViewWithForms
               callback      : =>
                 @badge.deleteBadge (err)=>
                   return err if err
+                  @destroy()
+                  @delegate.destroy()
             Cancel          :
               title         : "NO"
               style         : "modal-clean-red"
@@ -83,7 +160,7 @@ class BadgeRemoveForm extends KDModalViewWithForms
     super options, data
 
 
-class UserBadgeListView extends JView
+class AssignBadgeView extends JView
 
   constructor:(options = {}, data)->
     options.cssClass = "badges"
