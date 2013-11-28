@@ -21,7 +21,7 @@ var (
 const serverAddr = "127.0.0.1:7000"
 
 func main() {
-	options := &protocol.Options{
+	options := &kite.Options{
 		Kitename:    "tunnelclient",
 		Version:     "1",
 		Region:      "localhost",
@@ -76,7 +76,7 @@ func getTunnelServer(k *kite.Kite) *kite.RemoteKite {
 		Name:     "tunnelserver",
 	}
 
-	kites, err := k.Kontrol.GetKites(query)
+	kites, err := k.Kontrol.GetKites(query, nil)
 	if err != nil {
 		fmt.Println(err)
 		return nil
