@@ -17,18 +17,21 @@ class RegisterInlineForm extends LoginViewInlineForm
     #     testPath      : "register-form-fullname"
 
     @firstName = new LoginInputView
-      cssClass        : "half-size"
-      inputOptions    :
-        name          : "firstName"
-        placeholder   : "first name"
-        validate      :
-          container   : this
-          event       : "blur"
-          rules       :
-            required  : yes
-          messages    :
-            required  : "Please enter your first name."
-        testPath      : "register-form-firstname"
+      cssClass          : "half-size"
+      inputOptions      :
+        name            : "firstName"
+        placeholder     : "first name"
+        validate        :
+          notifications :
+            type        : 'tooltip'
+            placement   : 'left'
+            direction   : 'right'
+          container     : this
+          rules         :
+            required    : yes
+          messages      :
+            required    : "Please enter your first name."
+        testPath        : "register-form-firstname"
 
     @lastName = new LoginInputView
       cssClass        : "half-size"
@@ -37,7 +40,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         placeholder   : "last name"
         validate      :
           container   : this
-          event       : "blur"
           rules       :
             required  : yes
           messages    :

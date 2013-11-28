@@ -19,7 +19,7 @@ class LoginInlineForm extends LoginViewInlineForm
         placeholder   : "username"
         testPath      : "login-form-username"
         validate      :
-          container   : this
+          event       : 'blur'
           rules       :
             required  : yes
           messages    :
@@ -30,9 +30,10 @@ class LoginInlineForm extends LoginViewInlineForm
         name          : "password"
         type          : "password"
         placeholder   : "••••••••"
+        hint          : "password"
         testPath      : "login-form-password"
         validate      :
-          container   : this
+          event       : 'blur'
           rules       :
             required  : yes
           messages    :
