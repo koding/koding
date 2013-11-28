@@ -13,13 +13,13 @@ projects      =
 
   KDFramework :
     files     : "client/Framework/includes.coffee"
-    style     : "website/css/__kd.#{FRAMEWORK_VERSION}.css"
-    script    : "website/js/__kd.#{FRAMEWORK_VERSION}.js"
+    style     : "website/css/kd.#{FRAMEWORK_VERSION}.css"
+    script    : "website/js/kd.#{FRAMEWORK_VERSION}.js"
     sourceMapRoot : "Framework/"
 
   KDBackend   :
     files     : "client/Bongo/includes.coffee"
-    script    : "website/js/__bongo.#{FRAMEWORK_VERSION}.js"
+    script    : "website/js/bongo.#{FRAMEWORK_VERSION}.js"
     sourceMapRoot : "Bongo/"
 
   KDMainApp   :
@@ -35,14 +35,14 @@ projects      =
 
   HomeIntro   :
     files     : "client/Intro/includes.coffee"
-    style     : "website/css/__introapp.#{KODING_VERSION}.css"
-    script    : "website/js/__introapp.#{KODING_VERSION}.js"
+    style     : "website/css/introapp.#{KODING_VERSION}.css"
+    script    : "website/js/introapp.#{KODING_VERSION}.js"
     sourceMapRoot : "introapp/"
 
   Landing     :
     files     : "client/landing/includes.coffee"
-    style     : "website/css/__landingapp.#{KODING_VERSION}.css"
-    script    : "website/js/__landingapp.#{KODING_VERSION}.js"
+    style     : "website/css/landingapp.#{KODING_VERSION}.css"
+    script    : "website/js/landingapp.#{KODING_VERSION}.js"
     sourceMapRoot : "landing/"
 
   Activity        :
@@ -160,8 +160,8 @@ bundles           =
 
   Koding          :
     projects      : ['KDBackend', 'KDMainApp', 'Finder', 'Login', 'PostOperations']
-    style         : "website/css/__koding.#{KODING_VERSION}.css"
-    script        : "website/js/__koding.#{KODING_VERSION}.js"
+    style         : "website/css/koding.#{KODING_VERSION}.css"
+    script        : "website/js/koding.#{KODING_VERSION}.js"
 
   TeamworkBundle  :
     projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace', 'CollaborativeWorkspace', 'Teamwork']

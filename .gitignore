@@ -50,3 +50,9 @@ kontrolUUID-*
 
 website/sprites/*.json
 website/sprites/*-*.png
+
+website/*/landingapp*
+website/*/koding*
+website/*/kd*
+website/*/introapp*
+website/*/bongo*
