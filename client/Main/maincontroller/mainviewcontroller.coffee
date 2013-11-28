@@ -47,6 +47,8 @@ class MainViewController extends KDViewController
         el = document.body
         {scrollHeight, scrollTop} = el
 
+        return  if scrollHeight <= window.innerHeight or scrollTop <= 0
+
         current = scrollTop + window.innerHeight
         if current > scrollHeight - threshold
           return if lastScroll > 0
