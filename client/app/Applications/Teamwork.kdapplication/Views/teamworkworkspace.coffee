@@ -9,6 +9,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
 
     @on "PanelCreated", (panel) =>
       @createRunButton panel  if playground
+      @getActivePanel().header.setClass "teamwork"
 
     @on "WorkspaceSyncedWithRemote", =>
       if playground and @amIHost()
@@ -116,15 +117,12 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     previewPane.previewer.emit "ViewerRefreshed"
 
   createRunButton: (panel) ->
-    panel.header.addSubView new KDButtonView
+    panel.headerButtonsContainer.addSubView new KDButtonView
       title      : "Run"
       callback   : => @handleRun panel
 
   getPlaygroundClass: (playground) ->
-    switch playground
-      when "Facebook" then FacebookTeamwork
-      when "GoLang"   then GoLangTeamwork
-      else TeamworkWorkspace
+    return if playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
 
   handleRun: (panel) ->
     console.warn "You should override this method."

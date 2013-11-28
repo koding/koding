@@ -17,7 +17,6 @@ module.exports = (options = {})->
   <meta property="og:description" content="#{encoder.XSSEncode options.body}"/>
   <meta property="og:title" content="Koding - #{encoder.XSSEncode options.title}"/>
   <meta property="og:url" content="#{options.shareUrl}"/>
-  <meta property="og:type" content="website" />
   <meta property="og:image" content="#{options.image}"/>
   <meta property="og:image:secure_url" content="#{options.image}"/>
   <meta property="og:image:type" content="image/jpeg">
