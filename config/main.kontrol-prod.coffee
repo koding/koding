@@ -117,7 +117,7 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
-    numberOfWorkers: 2
+    numberOfWorkers: 4
   social        :
     login       : 'prod-social'
     numberOfWorkers: 7
@@ -141,6 +141,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      activityFetchCount : 50
       precompiledApi: yes
       authExchange: authExchange
       github        :
@@ -164,6 +165,7 @@ module.exports =
       newkontrol:
         host    : 'newkontrol.sj.koding.com'
         port    : 80
+      fileFetchTimeout: 15 * 1000 # seconds
   mq            :
     host        : '172.16.3.4'
     port        : 5672

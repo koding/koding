@@ -317,6 +317,9 @@ func (me *Channel) recvMethod(f frame) error {
 	case *bodyFrame:
 		// drop
 		return me.transition((*Channel).recvMethod)
+
+	default:
+		panic("unexpected frame type")
 	}
 
 	panic("unreachable")
@@ -343,6 +346,9 @@ func (me *Channel) recvHeader(f frame) error {
 	case *bodyFrame:
 		// drop and reset
 		return me.transition((*Channel).recvMethod)
+
+	default:
+		panic("unexpected frame type")
 	}
 
 	panic("unreachable")
@@ -370,6 +376,9 @@ func (me *Channel) recvContent(f frame) error {
 		}
 
 		return me.transition((*Channel).recvContent)
+
+	default:
+		panic("unexpected frame type")
 	}
 
 	panic("unreachable")
@@ -705,6 +714,10 @@ declared with these parameters and the channel will be closed.
 
 */
 func (me *Channel) QueueDeclare(name string, durable, autoDelete, exclusive, noWait bool, args Table) (Queue, error) {
+	if err := args.Validate(); err != nil {
+		return Queue{}, err
+	}
+
 	req := &queueDeclare{
 		Queue:      name,
 		Passive:    false,
@@ -813,6 +826,10 @@ closed with an error.
 
 */
 func (me *Channel) QueueBind(name, key, exchange string, noWait bool, args Table) error {
+	if err := args.Validate(); err != nil {
+		return err
+	}
+
 	return me.call(
 		&queueBind{
 			Queue:      name,
@@ -834,6 +851,10 @@ unbind the queue from the default exchange.
 
 */
 func (me *Channel) QueueUnbind(name, key, exchange string, args Table) error {
+	if err := args.Validate(); err != nil {
+		return err
+	}
+
 	return me.call(
 		&queueUnbind{
 			Queue:      name,
@@ -957,6 +978,10 @@ func (me *Channel) Consume(queue, consumer string, autoAck, exclusive, noLocal, 
 	// consumer that hasn't been added to the consumer hash yet.  Because of
 	// this, we never rely on the server picking a consumer tag for us.
 
+	if err := args.Validate(); err != nil {
+		return nil, err
+	}
+
 	if consumer == "" {
 		consumer = uniqueConsumerTag()
 	}
@@ -1037,6 +1062,10 @@ Optional amqp.Table of arguments that are specific to the server's implementatio
 the exchange can be sent for exchange types that require extra parameters.
 */
 func (me *Channel) ExchangeDeclare(name, kind string, durable, autoDelete, internal, noWait bool, args Table) error {
+	if err := args.Validate(); err != nil {
+		return err
+	}
+
 	return me.call(
 		&exchangeDeclare{
 			Exchange:   name,
@@ -1109,6 +1138,10 @@ handle these errors.
 Optional arguments specific to the exchanges bound can also be specified.
 */
 func (me *Channel) ExchangeBind(destination, key, source string, noWait bool, args Table) error {
+	if err := args.Validate(); err != nil {
+		return err
+	}
+
 	return me.call(
 		&exchangeBind{
 			Destination: destination,
@@ -1136,6 +1169,10 @@ provided.  These must match the same arguments specified in ExchangeBind to
 identify the binding.
 */
 func (me *Channel) ExchangeUnbind(destination, key, source string, noWait bool, args Table) error {
+	if err := args.Validate(); err != nil {
+		return err
+	}
+
 	return me.call(
 		&exchangeUnbind{
 			Destination: destination,
@@ -1181,6 +1218,10 @@ accounted for.
 func (me *Channel) Publish(exchange, key string, mandatory, immediate bool, msg Publishing) error {
 	me.m.Lock()
 	defer me.m.Unlock()
+
+	if err := msg.Headers.Validate(); err != nil {
+		return err
+	}
 
 	if err := me.send(me, &basicPublish{
 		Exchange:   exchange,

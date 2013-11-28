@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"code.google.com/p/go.net/websocket"
+	"errors"
 	"koding/newkite/dnode"
 	"time"
 )
@@ -45,6 +46,8 @@ type Client struct {
 	// Time to wait before redial connection.
 	redialDuration time.Duration
 
+	// on connect/disconnect handlers are invoked after every
+	// connect/disconnect.
 	onConnectHandlers    []func()
 	onDisconnectHandlers []func()
 }
@@ -89,7 +92,8 @@ func (c *Client) dial() error {
 	// Reset the wait time.
 	c.redialDuration = redialDurationStart
 
-	// Must be run in a goroutine because a handler may wait a response from server.
+	// Must be run in a goroutine because a handler may wait a response from
+	// server.
 	go c.callOnConnectHandlers()
 
 	return nil
@@ -153,15 +157,19 @@ func (c *Client) Close() {
 }
 
 func (c *Client) Send(msg []byte) error {
-	println("Sending...", string(msg))
+	// println("Sending...", string(msg))
+	if c.Conn == nil {
+		return errors.New("Not connected")
+	}
+
 	return websocket.Message.Send(c.Conn, string(msg))
 }
 
 func (c *Client) Receive() ([]byte, error) {
-	println("Receiving...")
+	// println("Receiving...")
 	var msg []byte
 	err := websocket.Message.Receive(c.Conn, &msg)
-	println("Received:", string(msg))
+	// println("Received:", string(msg))
 	return msg, err
 }
 

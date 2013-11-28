@@ -1,5 +1,7 @@
 class ActivityListController extends KDListViewController
 
+  {dash} = Bongo
+
   constructor:(options={}, data)->
 
     viewOptions = options.viewOptions or {}
@@ -64,55 +66,64 @@ class ActivityListController extends KDListViewController
     @hideLazyLoader()
     return  unless activities.length > 0
     activityIds = []
-    for activity in activities when activity
-      @addItem activity
-      activityIds.push activity._id
+    queue = []
 
-    @checkIfLikedBefore activityIds
+    activities.forEach (activity)=>
+      queue.push =>
+        @addItem activity
+        activityIds.push activity._id
+        queue.fin()
 
-    @lastItemTimeStamp or= Date.now()
+    dash queue, =>
 
-    for obj in activities
-      objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
-      if objectTimestamp < @lastItemTimeStamp
-        @lastItemTimeStamp = objectTimestamp
+      @checkIfLikedBefore activityIds
 
-    @emit "teasersLoaded"
+      @lastItemTimeStamp or= Date.now()
+
+      for obj in activities
+        objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
+        if objectTimestamp < @lastItemTimeStamp
+          @lastItemTimeStamp = objectTimestamp
+
+      @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache, index, animation)->
     @hideLazyLoader()
     return  unless cache.overview?.length > 0
     activityIds = []
-    for overviewItem in cache.overview when overviewItem
-      if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
-        group = []
-        for id in overviewItem.ids
-          if cache.activities[id].teaser?
-            group.push cache.activities[id].teaser.anchor
+    queue = []
+    cache.overview.forEach (overviewItem)=>
+      if overviewItem
+        queue.push =>
+          if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
+            group = []
+            for id in overviewItem.ids
+              if cache.activities[id].teaser?
+                group.push cache.activities[id].teaser.anchor
+              else
+                KD.logToExternal msg:'no teaser for activity', activityId:id
+
+            @addItem new NewMemberBucketData
+              type                : "CNewMemberBucketActivity"
+              group               : group
+              count               : overviewItem.count
+              createdAtTimestamps : overviewItem.createdAt
           else
-            KD.logToExternal msg:'no teaser for activity', activityId:id
+            activity = cache.activities[overviewItem.ids.first]
+            if activity?.teaser
+              activity.teaser.createdAtTimestamps = overviewItem.createdAt
+              view = @addHiddenItem activity.teaser, index, animation
+              view.setClass 'no-anim'
+              view.unsetClass 'hidden-item'
+              KD.utils.defer -> view.unsetClass 'no-anim'
+              @removeFromHiddenItems view
+              activityIds.push activity.teaser._id
+          queue.fin()
 
-        @addItem new NewMemberBucketData
-          type                : "CNewMemberBucketActivity"
-          group               : group
-          count               : overviewItem.count
-          createdAtTimestamps : overviewItem.createdAt
-      else
-        activity = cache.activities[overviewItem.ids.first]
-        if activity?.teaser
-          activity.teaser.createdAtTimestamps = overviewItem.createdAt
-          view = @addHiddenItem activity.teaser, index, animation
-          view.setClass 'no-anim'
-          view.unsetClass 'hidden-item'
-          KD.utils.defer -> view.unsetClass 'no-anim'
-          @removeFromHiddenItems view
-          activityIds.push activity.teaser._id
-
-    @checkIfLikedBefore activityIds
-
-    @lastItemTimeStamp = cache.from
-
-    @emit "teasersLoaded"
+    dash queue, =>
+      @checkIfLikedBefore activityIds
+      @lastItemTimeStamp = cache.from
+      @emit "teasersLoaded"
 
   checkIfLikedBefore:(activityIds)->
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>

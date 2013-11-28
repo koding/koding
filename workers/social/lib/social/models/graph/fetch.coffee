@@ -32,7 +32,7 @@ module.exports = class FetchAllActivityParallel
       @globalMethods = [@fetchSingles]
 
   get:(callback)->
-    holder = []    
+    holder = []
     boundMethods = holder.push method.bind this for method in @globalMethods
     async.parallel holder, (err, results)=>
       callback @decorateAll(err, results)
@@ -103,7 +103,8 @@ module.exports = class FetchAllActivityParallel
 
     # TODO: we're throwing away results if more than 20, ideally we'll only
     # get the right number of results
-    overview = overview[-20..overview.length]
+    activityFetchCount = KONFIG.client.runtimeOptions.activityFetchCount
+    overview = overview[-activityFetchCount..overview.length]
 
     allTimes = _.map(overview, (activity)-> activity.createdAt.first)
     allTimes = _.flatten allTimes
