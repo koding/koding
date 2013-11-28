@@ -252,6 +252,30 @@ finderSelectedColor2 = #3AAAAB
       bg                position, -200px -560px
     &.left
       bg                position, -260px -560px
+
+.kdbutton.thin
+  bg                   color transparent
+  border               2px solid #36B298
+  rounded              28px
+  padding              0
+  height               55px
+  borderBox()
+  span.button-title
+    padding            0
+    color              #36B298
+    font-size          18px
+    text-decoration    uppercase
+    letter-spacing     1px
+  &:hover
+    bg                 color white
+  &:active
+    bg                 color #36B298
+    span.button-title
+      color            white
+  &:focus
+    shadow             0 0 10px -2px #36b298
+
+
 /* editor-advanced-settings-menu-button
 *******************************************************************************/
 
