@@ -24,19 +24,17 @@ class ActivityAppView extends KDScrollView
     @feedWrapper      = new ActivityListContainer
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
     @header           = new HomeKonstructor
-    @inputWrapper     = new KDView cssClass: "input-wrapper"
+    @inputWrapper     = new ActivityInput
     @rightBlock       = new ActivityTicker
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
     @mainController   = KD.getSingleton("mainController")
-
-    @inputWrapper.addSubView @input = new ActivityInputView
 
     @inputWrapper.addSubView new KDButtonView
       type     : "submit"
       cssClass : "fr"
       title    : "Submit"
       callback : =>
-        @input.submit (err, activity) =>
+        @inputWrapper.submit (err, activity) =>
           @emit "InputSubmitted", activity  unless err
 
     @mainController.on "AccountChanged", @bound "decorate"

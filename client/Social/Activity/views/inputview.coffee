@@ -1,7 +1,4 @@
 class ActivityInputView extends KDTokenizedInput
-  {daisy, dash}         = Bongo
-  {JStatusUpdate, JTag} = KD.remote.api
-
   constructor: (options = {}, data) ->
     options.cssClass         = KD.utils.curry "input-view", options.cssClass
     options.type           or= "html"
@@ -33,19 +30,26 @@ class ActivityInputView extends KDTokenizedInput
     tokenViewClass = SuggestedTokenView  if item.data.$suggest
     super item, tokenViewClass
 
+class ActivityInput extends KDView
+  {daisy, dash}         = Bongo
+  {JStatusUpdate, JTag} = KD.remote.api
+
+  constructor: (options = {}, data) ->
+    options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
+    super options, data
+    @input = new ActivityInputView
+
   submit: (callback) ->
     tags          = []
     suggestedTags = []
     createdTags   = {}
 
     unless KD.checkFlag "exempt"
-      for token in @getTokens()
+      for token in @input.getTokens()
         {data, type} = token
         if type is "tag"
-          if data instanceof JTag
-          then tags.push id: data.getId()
-          else if data.$suggest?
-          then suggestedTags.push data
+          if data instanceof JTag then tags.push id: data.getId()
+          else if data.$suggest?  then tags.push data
 
     daisy queue = [
       =>
@@ -59,20 +63,20 @@ class ActivityInputView extends KDTokenizedInput
         dash tagCreateJobs, ->
           queue.next()
     , =>
-        body = @getValue()
-        body = body.replace /\|(.*):\$suggest:(.*)\|/g, (match, prefix, title) ->
+        body  = @input.getValue()
+        body  = body.replace /\|(.*):\$suggest:(.*)\|/g, (match, prefix, title) ->
           tag = createdTags[title]
           return  "" unless tag
           return  "|#{prefix}:JTag:#{tag.getId()}|"
 
         data     =
           group  : KD.getSingleton('groupsController').getGroupSlug()
-          body   : body
+          body   : @input.getValue()
           meta   :
             tags : tags
 
         JStatusUpdate.create data, (err, activity) =>
-          @setContent ""  unless err
+          @input.setContent ""  unless err
 
           callback? err, activity
 
@@ -83,3 +87,6 @@ class ActivityInputView extends KDTokenizedInput
               duration   : 5000
             KodingError  : 'Something went wrong while creating activity'
     ]
+
+  viewAppended: ->
+    @addSubView @input
