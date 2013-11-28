@@ -517,10 +517,6 @@ class ProfileView extends JView
 
       @addSubView view, '.external-profiles'
 
-  createBadges:->
-    @badgeView = new BadgeList {@memberData}
-    log "@badgeView", @badgeView
-
   setEditingMode: (state) ->
     @editingMode = state
     @emit "EditingModeToggled", state
@@ -668,7 +664,6 @@ class ProfileView extends JView
         </div>
         <div class="profilebio">{{> @bio }}</div>
         <div class="personal-skilltags">{{> @skillTagView}}</div>
-        <div class="badge-proflelist">{{> @badgeView}}</div>
       </div>
     </section>
     """

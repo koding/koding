@@ -127,7 +127,6 @@ module.exports = [
   "app/MainApp/sidebar/modals/introductiontooltip/introductionchilditem.coffee",
   "app/MainApp/sidebar/modals/introductiontooltip/introductionadminform.coffee",
   "app/MainApp/sidebar/modals/introductiontooltip/introductionadmin.coffee",
-  "app/MainApp/sidebar/modals/badges/badgeadmin.coffee",
   "app/MainApp/sidebar/modals/badges/badgelistitem.coffee",
   "app/MainApp/sidebar/modals/badges/badgemodals.coffee",
   "app/MainApp/sidebar/modals/adminmodal.coffee",
@@ -457,6 +456,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
   "app/Applications/Groups.kdapplication/Views/blockedusersview.coffee",
   "app/Applications/Groups.kdapplication/Views/blockeduserslistitemview.coffee",
+  "app/Applications/Groups.kdapplication/Views/badgedashboardview.coffee",
 
   # app
   "app/Applications/Groups.kdapplication/AppView.coffee",

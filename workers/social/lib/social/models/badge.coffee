@@ -6,14 +6,13 @@ module.exports = class JBadge extends jraphical.Module
 
   @share()
   @set
-    memberRoles           : ['admin','moderator','member','guest']
     permissions           :
-      'create badge'      : ['admin']
-      'delete badge'      : ['admin']
-      'edit badge'        : ['admin']
-      'assign badge'      : ['admin', 'moderator']
-      'list badges'       : ['admin', 'moderator']
-      'remove user badge' : ['admin', 'moderator']
+      'create badge'      : []
+      'delete badge'      : []
+      'edit badge'        : []
+      'assign badge'      : ['moderator']
+      'list badges'       : ['moderator']
+      'remove user badge' : ['moderator']
     schema                :
       title               : String
       description         : String
@@ -23,7 +22,6 @@ module.exports = class JBadge extends jraphical.Module
         default           : false
       iconURL             :
         type              : String
-        default           : "/images/badges/default.png"
       reward              : String
       createdAt           :
         type              : Date
