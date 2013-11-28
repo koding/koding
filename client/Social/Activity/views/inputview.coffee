@@ -37,7 +37,8 @@ class ActivityInput extends KDView
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
     super options, data
-    @input = new ActivityInputView
+    @input    = new ActivityInputView
+    @embedBox = new EmbedBoxWidget delegate: @input, data
 
   submit: (callback) ->
     tags          = []
@@ -75,6 +76,9 @@ class ActivityInput extends KDView
           meta   :
             tags : tags
 
+        data.link_url   = @embedBox.url or ""
+        data.link_embed = @embedBox.getDataForSubmit() or {}
+
         JStatusUpdate.create data, (err, activity) =>
           @input.setContent ""  unless err
 
@@ -90,3 +94,4 @@ class ActivityInput extends KDView
 
   viewAppended: ->
     @addSubView @input
+    @addSubView @embedBox
