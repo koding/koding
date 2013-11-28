@@ -11,4 +11,35 @@ Disallow: /Resend
 Disallow: /ResendToken
 Disallow: /Verify
 
+User-agent: ia_archiver
+Disallow: /Account
+Disallow: /Login
+Disallow: /Logout
+Disallow: /Register
+Disallow: /Recover
+Disallow: /Resend
+Disallow: /ResendToken
+Disallow: /Verify
+
+useragent:alexabot
+Disallow: /Account
+Disallow: /Login
+Disallow: /Logout
+Disallow: /Register
+Disallow: /Recover
+Disallow: /Resend
+Disallow: /ResendToken
+Disallow: /Verify
+
+useragent: verifybot
+Disallow: /Account
+Disallow: /Login
+Disallow: /Logout
+Disallow: /Register
+Disallow: /Recover
+Disallow: /Resend
+Disallow: /ResendToken
+Disallow: /Verify
+
+
 Sitemap: https://koding.com/sitemap.xml
