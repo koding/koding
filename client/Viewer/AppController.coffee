@@ -2,7 +2,7 @@ class ViewerAppController extends KDViewController
 
   KD.registerAppClass this,
     name         : "Viewer"
-    route        : "/:name?/Develop/Viewer"
+    route        : "/:name?/Viewer"
     multiple     : yes
     openWith     : "forceNew"
     behavior     : "application"

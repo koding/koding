@@ -26,11 +26,6 @@
 "Applications/Chat.kdapplication/Views/mainchatheader.coffee",
 "Applications/Chat.kdapplication/Views/mainchatpanel.coffee",
 
-# viewer
-'app/Applications/Viewer.kdapplication/topbar.coffee',
-'app/Applications/Viewer.kdapplication/AppController.coffee',
-'app/Applications/Viewer.kdapplication/AppView.coffee',
-
 # --- ApplicationPageViews ---
 "Applications/Activity.kdapplication/activitylistcontroller.coffee",
 

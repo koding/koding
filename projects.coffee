@@ -111,6 +111,12 @@ projects      =
     script        : "website/js/app.finder.#{KODING_VERSION}.js"
     sourceMapRoot : "Finder/"
 
+  Viewer          :
+    files         : "client/Viewer/includes.coffee"
+    style         : "website/css/app.viewer.#{KODING_VERSION}.css"
+    script        : "website/js/app.viewer.#{KODING_VERSION}.js"
+    sourceMapRoot : "Viewer/"
+
   Workspace       :
     files         : "client/Workspace/includes.coffee"
     style         : "website/css/app.workspace.#{KODING_VERSION}.css"
@@ -151,8 +157,13 @@ bundles           =
     style         : "website/css/koding.#{KODING_VERSION}.css"
     script        : "website/js/koding.#{KODING_VERSION}.js"
 
+  WorkspaceBundle :
+    projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace']
+    style         : "website/css/workspace.#{KODING_VERSION}.css"
+    script        : "website/js/workspace.#{KODING_VERSION}.js"
+
   TeamworkBundle  :
-    projects      : ['Workspace', 'CollaborativeWorkspace', 'Teamwork']
+    projects      : ['WorkspaceBundle', 'CollaborativeWorkspace', 'Teamwork']
     style         : "website/css/teamwork.#{KODING_VERSION}.css"
     script        : "website/js/teamwork.#{KODING_VERSION}.js"
 
