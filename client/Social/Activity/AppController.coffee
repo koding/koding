@@ -185,16 +185,19 @@ class ActivityAppController extends AppController
         options.slug ?= @_wasFilterByTag
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
         @fetchTopicActivities options
+        @getView().filterWarning.showWarning options.slug
 
       else if @getFeedFilter() is "Public"
 
         @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
+        @getView().filterWarning.hide()
 
       else
 
         @once "followingFeedFetched_#{eventSuffix}", setFeedData
         @fetchFollowingActivities options
+        @getView().filterWarning.hide()
 
       # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 

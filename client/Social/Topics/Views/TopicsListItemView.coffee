@@ -2,16 +2,20 @@ class TopicsListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
     options.type = "topics"
-    super options,data
+    super options, data
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       pistachio   : '{{#(title)}}'
       click       : (event) =>
-        event?.stopPropagation()
-        event?.preventDefault()
-        @titleReceivedClick()
-        no
+
+        {appManager} = KD.singletons
+        filterByTag  = @getData().slug
+        appManager.tell 'Activity', 'populateActivity', {filterByTag}, =>
+          appManager.open 'Activity'
+
+        KD.utils.stopDOMEvent event
+
     , data
 
     if options.editable
