@@ -15,12 +15,12 @@ class StatusActivityItemView extends ActivityItemChild
 
     super options, data
 
-    @embedOptions = $.extend {}, options,
+    embedOptions  =
       hasDropdown : no
       delegate    : this
 
     if data.link?
-      @embedBox = new EmbedBox @embedOptions, data.link
+      @embedBox = new EmbedBox embedOptions, data.link
       @setClass "two-columns"  if @twoColumns
     else
       @embedBox = new KDView
@@ -36,7 +36,7 @@ class StatusActivityItemView extends ActivityItemChild
     return  map
 
   expandTokens: (str = "") ->
-    return  str  unless tokenMatches = str.match /\|.+?\|/g
+    return  str unless tokenMatches = str.match /\|.+?\|/g
 
     data = @getData()
 
@@ -72,55 +72,20 @@ class StatusActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    # load embed on next callstack
     @utils.defer =>
-      # If there is embed data in the model, use that!
-      if @getData().link?.link_url? and @getData().link.link_url isnt ''
-        @embedBox.show()
-        @embedBox.$().fadeIn 200
-
-        firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-        @embedBox.embedLinks.setLinks firstUrl if firstUrl?
-
-        embedOptions = maxWidth: 700, maxHeight: 300
-        @embedBox.embedExistingData @getData().link.link_embed, embedOptions, =>
-          @embedBox.setActiveLink @getData().link.link_url
-          @embedBox.hide()  unless @embedBox.hasValidContent
-        @embedBox.embedLinks.hide()
-      else
-        @embedBox.hide()
-
-  render:->
-    super
-
-    {link} = @getData()
-    if link?
-      if @embedBox.constructor.name is "KDView"
-        @embedBox = new EmbedBox @embedOptions, link
-
-      # render embedBox only when the embed changed, else there will be ugly
-      # re-rendering (particularly of the image)
-      unless @embedBox.oembed is link.link_embed
-        @embedBox.embedExistingData link.link_embed, {}, =>
-          @embedBox.hide()  unless @embedBox.hasValidContent
-
-      @embedBox.setActiveLink link.link_url
-    else
-      @embedBox = new KDView
+      predicate = @getData().link?.link_url? and @getData().link.link_url isnt ''
+      if predicate
+      then @embedBox.show()
+      else @embedBox.hide()
 
   pistachio:->
     if @twoColumns
       """
-      {{> @settingsButton}}
-      <span class="avatar">{{> @avatar}}</span>
+      {{> @avatar}}
       <div class='activity-item-right-col'>
         {{> @settingsButton}}
         <p class="status-body">{{@formatContent #(body)}}</p>
-        <footer class='clearfix'>
-          <div class='type-and-time'>
-            <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
-            {{> @timeAgoView}}
-          </div>
+        <footer class="clearfix">
           {{> @actionLinks}}
         </footer>
         {{> @embedBox}}
