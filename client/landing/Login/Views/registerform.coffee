@@ -3,46 +3,46 @@ class RegisterInlineForm extends LoginViewInlineForm
   constructor:(options={},data)->
     super options, data
 
-    @fullName = new LoginInputView
+    # @fullName = new LoginInputView
+    #   inputOptions    :
+    #     name          : "fullName"
+    #     placeholder   : "full name"
+    #     validate      :
+    #       container   : this
+    #       event       : "blur"
+    #       rules       :
+    #         required  : yes
+    #       messages    :
+    #         required  : "Please enter your name."
+    #     testPath      : "register-form-fullname"
+
+    @firstName = new LoginInputView
+      cssClass        : "half-size"
       inputOptions    :
-        name          : "fullName"
-        placeholder   : "full name"
+        name          : "firstName"
+        placeholder   : "first name"
         validate      :
           container   : this
           event       : "blur"
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter your name."
-        testPath      : "register-form-fullname"
+            required  : "Please enter your first name."
+        testPath      : "register-form-firstname"
 
-    # @firstName = new LoginInputView
-    #   cssClass        : "half-size"
-    #   inputOptions    :
-    #     name          : "firstName"
-    #     placeholder   : "first name"
-    #     validate      :
-    #       container   : this
-    #       event       : "blur"
-    #       rules       :
-    #         required  : yes
-    #       messages    :
-    #         required  : "Please enter your first name."
-    #     testPath      : "register-form-firstname"
-
-    # @lastName = new LoginInputView
-    #   cssClass        : "half-size"
-    #   inputOptions    :
-    #     name          : "lastName"
-    #     placeholder   : "last name"
-    #     validate      :
-    #       container   : this
-    #       event       : "blur"
-    #       rules       :
-    #         required  : yes
-    #       messages    :
-    #         required  : "Please enter your last name."
-    #     testPath      : "register-form-lastname"
+    @lastName = new LoginInputView
+      cssClass        : "half-size"
+      inputOptions    :
+        name          : "lastName"
+        placeholder   : "last name"
+        validate      :
+          container   : this
+          event       : "blur"
+          rules       :
+            required  : yes
+          messages    :
+            required  : "Please enter your last name."
+        testPath      : "register-form-lastname"
 
     @email = new LoginInputViewWithLoader
       inputOptions    :
@@ -256,7 +256,7 @@ class RegisterInlineForm extends LoginViewInlineForm
   pistachio:->
     """
     <section class='main-part'>
-      <div>{{> @fullName}}</div>
+      <div>{{> @firstName}}{{> @lastName}}</div>
       <div>{{> @email}}{{> @avatar}}</div>
       <div>{{> @username}}</div>
       <div class='invitation-field invited-by hidden'>

@@ -417,7 +417,7 @@ class LoginView extends KDScrollView
 
       switch name
         when "register"
-          @registerForm.fullName.input.setFocus()
+          @registerForm.firstName.input.setFocus()
         when "redeem"
           @redeemForm.inviteCode.input.setFocus()
         when "login"
