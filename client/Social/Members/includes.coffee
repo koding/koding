@@ -12,6 +12,8 @@ module.exports = [
   "AppView.coffee"
   "AppController.coffee"
 
-  "styl/app.members.styl"
-  "styl/app.profile.styl"
+  "styl/resurrection.profile.styl"
+
+  # "styl/app.members.styl"
+  # "styl/app.profile.styl"
 ]
