@@ -160,10 +160,10 @@ class LoginView extends KDScrollView
       <div class="login-form-holder resend-confirmation-form">
         {{> @resendForm}}
       </div>
-    </div>
-    <div class="login-footer">
-      <div class='first-row clearfix'>
-        <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
+      <div class="login-footer">
+        <div class='first-row clearfix'>
+          <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
+        </div>
       </div>
     </div>
     <footer>
@@ -270,7 +270,7 @@ class LoginView extends KDScrollView
     (err, status)-> console.log "Status of fetching stuff from external: #{status}"
 
   afterLoginCallback: (err, params={})->
-    @loginForm.button.loader.hideLoader()
+    @loginForm.button.hideLoader()
     {entryPoint} = KD.config
     if err
       showError err
@@ -414,17 +414,22 @@ class LoginView extends KDScrollView
       @unsetClass "register recover login reset home resendEmail"
       @emit "LoginViewAnimated", name
       @setClass name
+      @$('.flex-wrapper').removeClass 'three one'
 
       switch name
         when "register"
+          @$('.flex-wrapper').addClass 'three'
           @registerForm.firstName.input.setFocus()
         when "redeem"
+          @$('.flex-wrapper').addClass 'one'
           @redeemForm.inviteCode.input.setFocus()
         when "login"
           @loginForm.username.input.setFocus()
         when "recover"
+          @$('.flex-wrapper').addClass 'one'
           @recoverForm.usernameOrEmail.input.setFocus()
         when "resendEmail"
+          @$('.flex-wrapper').addClass 'one'
           @resendForm.usernameOrEmail.input.setFocus()
 
   getRouteWithEntryPoint:(route)->
