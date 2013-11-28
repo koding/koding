@@ -45,7 +45,8 @@ class ActivityAppView extends KDScrollView
     @header.bindTransitionEnd()
 
     @feedWrapper.ready =>
-      @activityHeader = @feedWrapper.controller.activityHeader
+      @activityHeader  = @feedWrapper.controller.activityHeader
+      {@filterWarning} = @feedWrapper
       @on 'scroll', (event) =>
         if event.delegateTarget.scrollTop > 50
           @activityHeader.setClass "scrolling-up-outset"
@@ -136,6 +137,7 @@ class ActivityListContainer extends JView
       # scrollView        : no
 
     @listWrapper = @controller.getView()
+    @filterWarning = new FilterWarning
 
     @controller.ready => @emit "ready"
 
@@ -144,5 +146,30 @@ class ActivityListContainer extends JView
 
   pistachio:->
     """
+      {{> @filterWarning}}
       {{> @listWrapper}}
     """
+
+class FilterWarning extends JView
+
+  constructor:->
+    super cssClass : 'filter-warning hidden'
+
+    @warning   = new KDCustomHTMLView
+    @goBack    = new KDButtonView
+      cssClass : 'goback-button'
+      callback : =>
+        {appManager} = KD.singletons
+        appManager.tell 'Activity', 'populateActivity', {}, @bound 'hide'
+
+  pistachio:->
+    """
+      {{> @warning}}
+      {{> @goBack}}
+    """
+
+  showWarning:(tag)->
+    @warning.updatePartial \
+      """You are now looking activities tagged with <strong>##{tag}</strong> """
+
+    @show()
