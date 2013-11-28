@@ -5,16 +5,26 @@ class MainViewController extends KDViewController
     super
 
     {repeat, killRepeat} = KD.utils
-
+    {body}           = document
     mainView         = @getView()
-    mainController   = KD.getSingleton 'mainController'
-    appManager       = KD.getSingleton 'appManager'
+    mainController   = KD.singleton 'mainController'
+    appManager       = KD.singleton 'appManager'
+    display          = KD.singleton 'display'
     @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
 
     warn "FIXME Add tell to Login app ~ GG @ kodingrouter (if needed)"
     # mainController.on 'accountChanged.to.loggedIn', (account)->
     #   mainController.loginScreen.hide()
+
+    appManager.on 'AppIsBeingShown', (controller)=>
+      @setBodyClass KD.utils.slugify controller.getOption 'name'
+
+    display.on 'ContentDisplayWantsToBeShown', do =>
+      type = null
+      (view)=>
+        if type = view.getOption 'type'
+          @setBodyClass type
 
     mainController.on "ShowInstructionsBook", (index)->
       book = mainView.addBook()
@@ -23,9 +33,9 @@ class MainViewController extends KDViewController
 
     mainController.on "ToggleChatPanel", -> mainView.chatPanel.toggle()
 
-    if KD.checkFlag 'super-admin'
-    then $('body').addClass 'super'
-    else $('body').removeClass 'super'
+    if KD.checkFlag 'super-admin' then
+    then KDView.setElementClass body, 'add', 'super'
+    else KDView.setElementClass body, 'remove', 'super'
 
     mainViewController = this
     window.onscroll = do ->
@@ -46,6 +56,17 @@ class MainViewController extends KDViewController
         else if current < lastScroll then lastScroll = 0
 
         if scrollHeight isnt currentHeight then lastScroll = 0
+
+  setBodyClass: do ->
+
+    previousClass = null
+
+    (name)->
+
+      {body} = document
+      KDView.setElementClass body, 'remove', previousClass  if previousClass
+      KDView.setElementClass body, 'add', name
+      previousClass = name
 
   loadView:(mainView)->
 
