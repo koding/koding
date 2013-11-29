@@ -6,23 +6,28 @@ class SubscriptionView extends JView
     """
 
   pistachio:->
-    { quantity, plan, status, renew, expires, usage } = @getData()
+    { quantity, plan, status, renew, expires, usage, startsAt } = @getData()
 
     { feeAmount } = plan
 
-    statusNotice =
-      if status in ['active', 'modified']
+    statusNotice = switch status
+      when 'active', 'modified'
         describeSubscription quantity, "is active"
-      else if status is 'canceled'
+      when 'canceled'
         describeSubscription quantity, "will end soon"
+      when 'future'
+        describeSubscription quantity, "will begin soon"
       else ''
 
     dateNotice =
       if plan.type isnt 'single'
-        if status is 'active'
-          "Plan will renew on #{dateFormat renew}"
-        else if status is 'canceled'
-          "Plan will be available till #{dateFormat expires}"
+        switch status
+          when 'active'
+            "Plan will renew on #{dateFormat renew}"
+          when 'canceled'
+            "Plan will be available till #{dateFormat expires}"
+          when 'future'
+            "Plan will become available on #{dateFormat startsAt}"
       else ''
 
     displayAmount = KD.utils.formatMoney feeAmount / 100

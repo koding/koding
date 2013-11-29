@@ -6,9 +6,11 @@ class VmProductForm extends FormWorkflow
   checkUsageLimits: (pack, plan, callback) ->
     [callback, plan] = [plan, callback]  unless callback
 
-    { subscription, oldSubscription } = @collector.data
+    data = @getData()
 
-    plan ?= @collector.data.plan
+    { subscription, oldSubscription } = data
+
+    plan ?= data.plan
 
     if subscription
       subscription.checkUsage pack, (err, usage) =>

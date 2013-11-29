@@ -11,7 +11,7 @@ class AccountSubscriptionsListController extends AccountListViewController
       subscription = item.getData()
 
       subscription.plan.fetchProducts (err, products) ->
-        KD.showError err  if err
+        return  if KD.showError err
 
         item.setProductComponents subscription, products
 
@@ -138,7 +138,7 @@ class SubscriptionControls extends JView
 
   getStatusInfo: (subscription = @getData()) ->
     switch subscription.status
-      when 'active'
+      when 'active', 'future'
         text        : 'unsubscribe'
         event       : 'UnsubscribeRequested'
         showChange  : yes
