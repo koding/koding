@@ -149,7 +149,7 @@ module.exports = class JStatusUpdate extends JPost
       return callback null, [] unless tag
 
       # add group name into query
-      options.sort  ?= 'timestamp' : -1
+      options.sort  ?= 'timestamp' : 1
       options.limit ?= 20
 
       {to} = options
