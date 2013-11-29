@@ -65,15 +65,16 @@ class NFinderContextMenuController extends KDController
       Extract                     :
         action                    : 'extract'
       Compress                    :
+        separator                 : yes
         children                  :
           'as .zip'               :
             action                : 'zip'
           'as .tar.gz'            :
             action                : 'tarball'
-      Download                    :
-        separator                 : yes
-        action                    : 'download'
-        disabled                  : yes
+      # Download                    :
+      #   separator                 : yes
+      #   action                    : 'download'
+      #   disabled                  : yes
       'Public URL...'             :
         separator                 : yes
       'New File'                  :
@@ -136,11 +137,11 @@ class NFinderContextMenuController extends KDController
         action                    : 'upload'
       'Clone a repo here'         :
         action                    : "cloneRepo"
-      Download                    :
-        disabled                  : yes
-        action                    : "download"
         separator                 : yes
-        separator                 : yes
+      # Download                    :
+      #   disabled                  : yes
+      #   action                    : "download"
+      #   separator                 : yes
       # Dropbox                     :
       #   children                  :
       #     'Download from Dropbox' :
@@ -302,9 +303,9 @@ class NFinderContextMenuController extends KDController
             action                : 'zip'
           'as .tar.gz'            :
             action                : 'tarball'
-      Download                    :
-        disabled                  : yes
-        action                    : 'download'
+      # Download                    :
+      #   disabled                  : yes
+      #   action                    : 'download'
 
     return items
 
@@ -331,9 +332,9 @@ class NFinderContextMenuController extends KDController
             action      : 'zip'
           'as .tar.gz'  :
             action      : 'tarball'
-      Download          :
-        disabled        : yes
-        action          : 'download'
+      # Download          :
+      #   disabled        : yes
+      #   action          : 'download'
 
     multipleText = "Delete #{folderViews.length} folders"
     items.Delete = items[multipleText] =
@@ -363,15 +364,14 @@ class NFinderContextMenuController extends KDController
         children        :
           customView    : (new NSetPermissionsView {}, {mode : "000"})
       Compress          :
-        separator       : yes
         children        :
           'as .zip'     :
             action      : 'zip'
           'as .tar.gz'  :
             action      : 'tarball'
-      Download          :
-        disabled        : yes
-        action          : 'download'
+      # Download          :
+      #   disabled        : yes
+      #   action          : 'download'
 
     multipleText = "Delete #{fileViews.length} files"
     items.Delete = items[multipleText] =
