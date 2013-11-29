@@ -117,7 +117,15 @@ class PaymentController extends KDController
 
     upgradeForm
       .on 'PlanSelected', (plan) ->
-        workflow.collectData productData: { plan }
+        { oldSubscription } = workflow.collector.data
+
+        spend = oldSubscription?.usage ? {}
+
+        plan.checkQuota {}, spend, 1, (err) ->
+          return  if KD.showError err
+
+          workflow.collectData productData: { plan }
+
       .on 'CurrentSubscriptionSet', (oldSubscription) ->
         workflow.collectData { oldSubscription }
 

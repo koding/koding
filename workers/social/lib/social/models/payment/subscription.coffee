@@ -146,7 +146,19 @@ module.exports = class JPaymentSubscription extends jraphical.Module
 
 
   resume: (callback) ->
-    @invokeMethod 'reactivateSubscription', callback
+    @fetchLinkedSubscription (err, subscription) =>
+      return callback err  if err
+
+      if subscription
+        subscription.cancel (err) =>
+          return callback err  if err
+
+          @removeLinkedSubscription subscription, (err) =>
+            return callback err  if err
+
+            @invokeMethod 'reactivateSubscription', callback
+      else
+        @invokeMethod 'reactivateSubscription', callback
 
   checkUsage: (product, multiplyFactor, callback) ->
     JPaymentPlan = require './plan'
@@ -219,8 +231,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
   credit$: secure (client, pack, callback) ->
     @debit$ client, pack, -1, callback
 
-  linkSubscription: (subscription, callback) -> callback null
-
   applyTransition: (options, callback) ->
 
     {
@@ -246,7 +256,7 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           newSubscription = newSub
           queue.next err
       =>
-        @linkSubscription newSubscription, (err) -> queue.next err
+        @addLinkedSubscription newSubscription, (err) -> queue.next err
       -> 
         account.addSubscription newSubscription, (err) -> queue.next err
       =>
