@@ -175,7 +175,18 @@ app.login-signup.styl
       color               rgba(255, 255, 255, .75)
     button
       width               100%
-    button.github
+    button.solid.github
+      height              74px
+      text-align          left
+      span.button-title
+        line-height       74px
+        margin-left       20px
+      span.button-arrow
+        abs()
+        display         block
+        right           20px
+        top             27px
+        sprite          app 'login-right-arrow'
       .icon
         padding           0
         sprite            app 'login-github'
