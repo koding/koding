@@ -144,23 +144,20 @@ module.exports = class JStatusUpdate extends JPost
 
     JTag = require '../../tag'
     JTag.one { slug : options.slug }, (err, tag)=>
-
       return callback err  if err
       return callback null, [] unless tag
-
-      # add group name into query
-      options.sort  ?= 'timestamp' : 1
-      options.limit ?= 20
 
       {to} = options
       to = if to then new Date(to)  else new Date()
 
-      options.targetOptions = {
-        selector: {'meta.createdAt': {"$lt": to}},
-        options:  {limit: options.limit}
-      }
+      fetchOptions =
+        sort : {'timestamp': -1}
+        limit: options.limit or 20
 
-      tag.fetchContents {targetName: 'JStatusUpdate'}, options, (err, posts)=>
+      tag.fetchContents {
+        targetName: 'JStatusUpdate'
+        "timestamp": "$lt": to
+      }, fetchOptions, (err, posts)=>
         return callback err if err
         @decorateResults posts, callback
 

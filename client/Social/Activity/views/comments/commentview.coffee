@@ -56,7 +56,7 @@ class CommentView extends KDView
       @parent?.emit "RefreshTeaser"
 
     if data.replies
-      for reply in data.replies  when reply? and 'object' is typeof reply
+      for reply in data.replies  when reply? and reply.originId? and reply.originType?
         @commentList.addItem reply
 
     @commentList.emit "BackgroundActivityFinished"
