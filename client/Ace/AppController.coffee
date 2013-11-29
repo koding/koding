@@ -1,3 +1,7 @@
+# this is necessary for ace dependencies, can be moved to another file
+# but SHALL NOT BE REMOVED~!
+require.config baseUrl: "/js", waitSeconds:30
+
 class AceAppController extends AppController
 
   canCompile = (view)->
