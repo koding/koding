@@ -106,23 +106,13 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages       :
             required     : "Please enter a username."
             regExp       : "For username only lowercase letters and numbers are allowed!"
-            rangeLength  : "Username should be minimum 4 maximum 25 chars!"
+            rangeLength  : "Username should be between 4 and 25 characters!"
           events         :
             required     : "blur"
             rangeLength  : "keyup"
             regExp       : "keyup"
             usernameCheck: "keyup"
             finalCheck   : "blur"
-        iconOptions      :
-          tooltip        :
-            placement    : "right"
-            offset       : 2
-            title        : """
-                            Only lowercase letters and numbers are allowed,
-                            max 25 characters. Also keep in mind that the username you select will
-                            be a part of your koding domain, and can't be changed later.
-                            i.e. http://username.kd.io <h1></h1>
-                           """
 
     # @password = new LoginInputView
     #   inputOptions    :
@@ -161,7 +151,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @button = new KDButtonView
       title         : "CREATE ACCOUNT"
       type          : 'submit'
-      style         : "thin"
+      style         : "solid green"
       loader        :
         color       : "#ffffff"
         diameter    : 21
@@ -200,6 +190,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   usernameCheck:(input, event, delay=800)->
     return if event?.which is 9
+    return if input.getValue().length < 4
 
     clearTimeout usernameCheckTimer
     input.setValidationResult "usernameCheck", null
@@ -258,9 +249,11 @@ class RegisterInlineForm extends LoginViewInlineForm
   pistachio:->
     """
     <section class='main-part'>
+      <div class='email'>{{> @avatar}}{{> @email}}</div>
       <div>{{> @firstName}}{{> @lastName}}</div>
-      <div>{{> @email}}{{> @avatar}}</div>
-      <div>{{> @username}}</div>
+      <div class='username'>
+        {{> @username}}<cite>.kd.io</cite>
+      </div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:
