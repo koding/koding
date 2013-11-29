@@ -3,8 +3,8 @@ package tunnel
 import (
 	"errors"
 	"fmt"
+	"github.com/fatih/pool"
 	"io"
-	"koding/tunnel/pool"
 	"log"
 	"net"
 	"net/http"

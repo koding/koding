@@ -61,22 +61,26 @@ const (
 )
 
 type KiteWithToken struct {
-	Kite  `json:"kite"`
+	Kite  Kite   `json:"kite"`
 	Token string `json:"token"`
 }
 
-type Options struct {
-	Username     string `json:"username"`
-	Kitename     string `json:"kitename"`
-	LocalIP      string `json:"localIP"`
-	PublicIP     string `json:"publicIP"`
-	Environment  string `json:"environment"`
-	Region       string `json:"region"`
-	Port         string `json:"port"`
-	Version      string `json:"version"`
-	KontrolAddr  string `json:"kontrolAddr"`
-	Dependencies string `json:"dependencies"`
+// KiteEvent is the struct that is sent as an argument in watchCallback of
+// getKites method of Kontrol.
+type KiteEvent struct {
+	Action KiteAction `json:"action"`
+	Kite   Kite       `json:"kite"`
+
+	// Required when Action == Register
+	Token string `json:"token,omitempty"`
 }
+
+type KiteAction string
+
+const (
+	Register   KiteAction = "REGISTER"
+	Deregister KiteAction = "DEREGISTER"
+)
 
 // KontrolQuery is a structure of message sent to Kontrol. It is used for
 // querying kites based on the incoming field parameters. Missing fields are

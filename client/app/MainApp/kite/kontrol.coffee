@@ -17,11 +17,6 @@ class Kontrol extends KDObject
 
     @kite = new NewKite kite, authentication
     @kite.connect()
-    @watchKites {}, (kite)=>
-      @emit "kiteRegistered", kite
-    , (error)->
-      log "Cannot watch Kites:", error
-
 
   # Calls the callback function with the list of NewKite instances.
   # The returned kites are not connected. You must connect with NewKite.connect().
@@ -36,30 +31,27 @@ class Kontrol extends KDObject
   #   hostname    string
   #   id          string
   #
-  getKites: (query={}, onKites, onError)->
+  getKites: (query={}, onKites, onError, onEvent)->
     if not query.username
       query.username = "#{KD.nick()}"
+    if not query.environment
+      query.environment = "production"
 
-    @kite.tell "getKites", query, (err, kites)=>
+    eventCB = (e)=>
+      log "kite event: ", e.action, {e}
+      onEvent e.action, @_createKite {kite: e.kite, token: e.token}
+
+    if onEvent
+      args = [query, eventCB]
+    else
+      args = [query]
+
+    @kite.tell "getKites", args, (err, kites)=>
       log "getKites result: ", {err}, {kites}
       if err
         onError err
       else
         onKites (@_createKite k for k in kites)
-
-  # Takes the same query parameters as getKites but calls the callback function
-  # when a Kite matching the query is registered.
-  watchKites: (query={}, onKite, onError)->
-    if not query.username
-      query.username = "#{KD.nick()}"
-
-    @kite.tell "watchKites", [query, (kite)=>
-      log "watchKites kite: ", {kite}
-      onKite @_createKite kite
-    ], (err, result)=>
-      log "watchKites result: ", {err}, {result}
-      if err
-        onError err
 
   # Returns a new NewKite instance from Kite data structure coming from
   # getKites() and watchKites() methods.
