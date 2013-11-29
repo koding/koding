@@ -358,9 +358,9 @@ class ActivityAppController extends AppController
       @fetchActivitiesProfilePageWithExemptOption options, callback
 
   fetchActivitiesProfilePageWithExemptOption:(options, callback)->
-    {CStatusActivity} = KD.remote.api
+    {JStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
+    JStatusUpdate.fetchProfileFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
 
       if activities?.length > 0
