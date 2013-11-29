@@ -49,7 +49,7 @@ class KodingRouter extends KDRouter
     appManager = KD.getSingleton 'appManager'
     frags      = route.split '/'
     name       = frags[1] or ''
-    name       = if name is 'Develop' and frags.length > 2 then frags[2] else name
+    name       = (name.split '?')[0]
 
     log 'handlingRoute', route, 'for the', name, 'app'
     if appManager.isAppAvailable name
