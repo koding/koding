@@ -25,10 +25,17 @@ class AvatarAreaIconMenu extends JView
         title    : 'Messages'
       delegate   : @messagesPopup
 
+    @settingsIcon = new AvatarAreaIconLink
+      cssClass   : 'settings acc-dropdown-icon'
+      testPath   : "avatararea-settings-icon"
+      attributes :
+        title    : 'Settings'
+
   pistachio:->
     """
-    {{> @messagesIcon}}
+    {{> @settingsIcon}}
     {{> @notificationsIcon}}
+    {{> @messagesIcon}}
     """
 
 
