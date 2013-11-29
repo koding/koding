@@ -161,7 +161,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @button = new KDButtonView
       title         : "CREATE ACCOUNT"
       type          : 'submit'
-      style         : "thin"
+      style         : "solid green"
       loader        :
         color       : "#ffffff"
         diameter    : 21

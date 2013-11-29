@@ -12,12 +12,12 @@ resurrection.commons.styl
 .content-page
   max-width                 1146px
   margin                    0 auto
-  padding                   61px 20px 0
+  padding                   70px 20px 0
   size                      auto auto
 
 .application-page
   margin                    0
-  padding                   61px 0 0
+  padding                   70px 0 0
   width                     100%
   borderBox()
 
@@ -288,21 +288,35 @@ finderSelectedColor2 = #3AAAAB
   border               none
   rounded              4px
   padding              0 20px
-  height               74px
+  height               55px
   borderBox()
   span.button-title
     padding            0
     color              #e3e3e3
     font-size          18px
-    text-decoration    uppercase
     letter-spacing     1px
-    line-height        74px
+    line-height        55px
   span.icon
     margin             18px 0 0 0
   &:hover
-    bg                 color white
+    bg                 color #606466
   &:active
     bg                 color #36B298
+    span.button-title
+      color            white
+  &:focus
+    shadow             0 0 10px -2px #36b298
+
+.kdbutton.solid.green
+  bg                   color #36B298
+  span.button-title
+    color              white
+  span.icon
+    margin             18px 0 0 0
+  &:hover
+  &:active
+  &:focus
+    bg                 color #2DBEA1
     span.button-title
       color            white
   &:focus

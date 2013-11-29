@@ -48,10 +48,12 @@ class LoginView extends KDScrollView
       click       : registerHandler
 
     @github       = new KDButtonView
-      title       : 'Sign in with GitHub'
+      title       : "Sign in with GitHub"
       style       : 'solid github'
       icon        : yes
       callback    : -> KD.singletons.oauthController.openPopup "github"
+
+    @github.setPartial "<span class='button-arrow'></span>"
 
     # @loginOptions = new LoginOptions
     #   cssClass : "login-options-holder log"
