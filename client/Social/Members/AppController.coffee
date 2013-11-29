@@ -243,6 +243,7 @@ class MembersAppController extends AppController
 
   createContentDisplay:(account, callback)->
 
+    KD.singletons.appManager.setFrontApp this
     controller     = new ContentDisplayControllerMember {delegate:this}, account
     contentDisplay = controller.getView()
     contentDisplay.on 'handleQuery', (query)=>
