@@ -32,19 +32,7 @@ class TeamworkApp extends KDObject
       delegate            : this
       playground          : options.playground          or null
       panels              : options.panels              or [
-        title             : "Teamwork"
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
-        buttons           : [
-          {
-            title         : "Tools"
-            cssClass      : "clean-gray tw-tools-button"
-            callback      : => @showToolsModal @teamwork.getActivePanel(), @teamwork
-          }
-          title           : "Playgrounds"
-          itemClass       : KDButtonViewWithMenu
-          cssClass        : "clean-gray playgrounds-button"
-          menu            : []
-        ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
           direction       : "vertical"
@@ -52,6 +40,7 @@ class TeamworkApp extends KDObject
           splitName       : "BaseSplit"
           views           : [
             {
+              title       : "Teamwork"
               type        : "finder"
               name        : "finder"
             }
