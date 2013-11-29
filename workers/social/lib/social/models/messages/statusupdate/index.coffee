@@ -154,7 +154,11 @@ module.exports = class JStatusUpdate extends JPost
 
       {to} = options
       to = if to then new Date(to)  else new Date()
-      options.targetOptions = selector : {'meta.createdAt' : "$lt" : to }
+
+      options.targetOptions = {
+        selector: {'meta.createdAt': {"$lt": to}},
+        options:  {limit: options.limit}
+      }
 
       tag.fetchContents {targetName: 'JStatusUpdate'}, options, (err, posts)=>
         return callback err if err
