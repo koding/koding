@@ -29,8 +29,7 @@ class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "password"
         type          : "password"
-        placeholder   : "••••••••"
-        hint          : "password"
+        placeholder   : "password"
         testPath      : "login-form-password"
         validate      :
           event       : 'blur'
