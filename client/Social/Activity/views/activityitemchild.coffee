@@ -62,7 +62,7 @@ class ActivityItemChild extends KDView
     account = KD.whoami()
     if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent activity-settings-context activity-settings-menu'
+        cssClass    : 'transparent activity-settings-menu'
         title       : ''
         icon        : yes
         delegate    : @
