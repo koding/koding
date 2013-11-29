@@ -80,8 +80,8 @@ class NFinderContextMenuController extends KDController
         action                    : 'createFile'
       'New Folder'                :
         action                    : 'createFolder'
-      'Upload to Dropbox'         :
-        action                    : 'dropboxSaver'
+      # 'Upload to Dropbox'         :
+      #   action                    : 'dropboxSaver'
 
     if 'archive' isnt FSItem.getFileType FSItem.getFileExtension fileData.name
       delete items.Extract
@@ -140,13 +140,14 @@ class NFinderContextMenuController extends KDController
         disabled                  : yes
         action                    : "download"
         separator                 : yes
-      Dropbox                     :
-        children                  :
-          'Download from Dropbox' :
-            action                : 'dropboxChooser'
-          'Upload to Dropbox'     :
-            action                : 'dropboxSaver'
         separator                 : yes
+      # Dropbox                     :
+      #   children                  :
+      #     'Download from Dropbox' :
+      #       action                : 'dropboxChooser'
+      #     'Upload to Dropbox'     :
+      #       action                : 'dropboxSaver'
+      #   separator                 : yes
       'Public URL...'             :
         separator                 : yes
       Refresh                     :
