@@ -38,6 +38,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
         'modify'
         'fetchProducts'
         'updateProducts'
+        'checkQuota'
       ]
     schema          :
       planCode      :
@@ -159,6 +160,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
 
       else
         subOptions = { @planCode, startsAt: options.startsAt }
+        
         recurly.createSubscription paymentMethodId, subOptions, (err, result) =>
           return callback err  if err
 
@@ -230,7 +232,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
     multiplyFactor ?= 1
 
     usages = for own planCode, quantity of spend
-      planSize = spend[planCode]
+      planSize    = @quantities[planCode] ? 0
       usageAmount = usage[planCode] ? 0
       spendAmount = (spend[planCode] ? 0) * multiplyFactor
 
