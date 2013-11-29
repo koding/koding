@@ -17,7 +17,7 @@ class ResendEmailConfirmationLinkInlineForm extends LoginViewInlineForm
 
     @button = new KDButtonView
       title       : "RESEND EMAIL"
-      style       : "thin"
+      style       : "solid green"
       type        : 'submit'
       loader      :
         color     : "#ffffff"
