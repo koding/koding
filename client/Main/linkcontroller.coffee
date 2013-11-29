@@ -14,7 +14,7 @@ class LinkController extends KDController
       when JTag
         {group, slug} = data
         route = if group is KD.defaultSlug then '' else "/#{group}"
-        route += "/Topics/#{slug}"
+        route += "/Activity/?tagged=#{slug}"
     KD.getSingleton('router').handleRoute route, {state:data}  if route?
 
   registerLink:(link)->

@@ -16,7 +16,7 @@ class RedeemInlineForm extends LoginViewInlineForm
 
     @button = new KDButtonView
       title       : "Redeem"
-      style       : "thin"
+      style       : "solid green"
       type        : 'submit'
       loader      :
         color     : "#ffffff"

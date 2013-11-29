@@ -112,7 +112,7 @@ module.exports = class JStatusUpdate extends JPost
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-  @fetchGroupActivity = secure (client, options, callback)->
+  @fetchGroupActivity = secure (client, options = {}, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {to} = options
@@ -125,7 +125,7 @@ module.exports = class JStatusUpdate extends JPost
         return callback err if err
         @decorateResults data, callback
 
-  @fetchProfileFeed = secure (client, options, callback)->
+  @fetchProfileFeed = secure (client, options = {}, callback)->
     {connection:{delegate}, context:{group}} = client
 
     selector =
@@ -138,7 +138,7 @@ module.exports = class JStatusUpdate extends JPost
       return callback err if err
       @decorateResults data, callback
 
-  @fetchTopicFeed = secure (client, options, callback)->
+  @fetchTopicFeed = secure (client, options = {}, callback)->
 
     {context:{group}} = client
 
@@ -149,18 +149,22 @@ module.exports = class JStatusUpdate extends JPost
       return callback null, [] unless tag
 
       # add group name into query
-      options.sort  ?= 'timestamp' : -1
+      options.sort  ?= 'timestamp' : 1
       options.limit ?= 20
 
       {to} = options
       to = if to then new Date(to)  else new Date()
-      options.targetOptions = selector : {'meta.createdAt' : "$lt" : to }
+
+      options.targetOptions = {
+        selector: {'meta.createdAt': {"$lt": to}},
+        options:  {limit: options.limit}
+      }
 
       tag.fetchContents {targetName: 'JStatusUpdate'}, options, (err, posts)=>
         return callback err if err
         @decorateResults posts, callback
 
-  @fetchFollowingFeed = secure (client, options, callback)->
+  @fetchFollowingFeed = secure (client, options = {}, callback)->
     {Activity} = require "../../graph"
     options.client = client
     Activity.fetchFolloweeContentsForNewKoding options, (err, ids)=>

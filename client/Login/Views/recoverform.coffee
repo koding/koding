@@ -17,7 +17,7 @@ class RecoverInlineForm extends LoginViewInlineForm
 
     @button = new KDButtonView
       title       : "RECOVER PASSWORD"
-      style       : "thin"
+      style       : "solid green"
       type        : 'submit'
       loader      :
         color     : "#ffffff"

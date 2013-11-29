@@ -12,12 +12,12 @@ resurrection.commons.styl
 .content-page
   max-width                 1146px
   margin                    0 auto
-  padding                   61px 20px 0
+  padding                   70px 20px 0
   size                      auto auto
 
 .application-page
   margin                    0
-  padding                   61px 0 0
+  padding                   70px 0 0
   width                     100%
   borderBox()
 
@@ -164,7 +164,7 @@ button.app-settings-menu
   background-color    transparent !important
   z-index             100
   position            absolute
-  top                 60px
+  top                 69px
   right               0
   width               40px !important
   height              40px
@@ -274,6 +274,49 @@ finderSelectedColor2 = #3AAAAB
     bg                 color white
   &:active
     bg                 color #36B298
+    span.button-title
+      color            white
+  &:focus
+    shadow             0 0 10px -2px #36b298
+
+//
+// SOLID BUTTON STYLES
+//
+
+.kdbutton.solid
+  bg                   color #3c4043
+  border               none
+  rounded              4px
+  padding              0 20px
+  height               55px
+  borderBox()
+  span.button-title
+    padding            0
+    color              #e3e3e3
+    font-size          18px
+    letter-spacing     1px
+    line-height        55px
+  span.icon
+    margin             18px 0 0 0
+  &:hover
+    bg                 color #606466
+  &:active
+    bg                 color #36B298
+    span.button-title
+      color            white
+  &:focus
+    shadow             0 0 10px -2px #36b298
+
+.kdbutton.solid.green
+  bg                   color #36B298
+  span.button-title
+    color              white
+  span.icon
+    margin             18px 0 0 0
+  &:hover
+  &:active
+  &:focus
+    bg                 color #2DBEA1
     span.button-title
       color            white
   &:focus

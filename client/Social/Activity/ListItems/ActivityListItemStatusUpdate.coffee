@@ -119,6 +119,7 @@ class StatusActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       <span class="avatar">{{> @avatar}}</span>
       <div class='activity-item-right-col'>
+        {{> @settingsButton}}
         <p class="status-body">{{@formatContent #(body)}}</p>
         <footer class='clearfix'>
           <div class='type-and-time'>
@@ -135,6 +136,7 @@ class StatusActivityItemView extends ActivityItemChild
       """
         {{> @avatar}}
         <div class="activity-item-right-col">
+          {{> @settingsButton}}
           <span class="author-name">{{> @author}}</span>
           <p class="status-body">{{@formatContent #(body)}}</p>
         </div>

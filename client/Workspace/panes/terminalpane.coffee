@@ -2,7 +2,7 @@ class TerminalPane extends Pane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "terminal-pane"
+    options.cssClass = "terminal-pane terminal"
 
     super options, data
 
