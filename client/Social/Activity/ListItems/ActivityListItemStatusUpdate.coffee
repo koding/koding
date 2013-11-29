@@ -40,26 +40,21 @@ class StatusActivityItemView extends ActivityItemChild
 
     data = @getData()
 
-    viewParams = []
     for tokenString in tokenMatches
       [prefix, constructorName, id] = @decodeToken tokenString
 
       switch prefix
-        when "#"
-          token     = @tags[id]
-        else
-          continue
+        when "#" then token = @tags[id]
+        else continue
 
       continue  unless token
 
-      domId = @utils.getUniqueId()
-      str   = str.replace tokenString, TokenView.getPlaceholder domId
-      viewParams.push {options: {domId, itemClass: tokenClassMap[prefix]}, token}
+      domId     = @utils.getUniqueId()
+      itemClass = tokenClassMap[prefix]
+      tokenView = new TokenView {domId, itemClass}, token
+      tokenView.emit "viewAppended"
 
-      @utils.defer ->
-        for params in viewParams
-          {options, token} = params
-          new TokenView options, token
+      str = str.replace tokenString, tokenView.getElement().outerHTML
 
     return  str
 

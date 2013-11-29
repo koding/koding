@@ -20,6 +20,3 @@ class TokenView extends JView
 
   pistachio: ->
     "{{> @item}}"
-
-  @getPlaceholder: (id) ->
-    """<span class="token" id="#{id}"></span>"""
