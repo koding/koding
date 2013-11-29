@@ -62,7 +62,6 @@ class ActivityAppController extends AppController
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
-      @ready @bound "populateActivity"
       @emit 'ready'
 
   resetAll:->
@@ -126,6 +125,15 @@ class ActivityAppController extends AppController
     @off "followingFeedFetched_#{eventSuffix}"
     @off "publicFeedFetched_#{eventSuffix}"
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
+
+  handleQuery:(query = {})->
+
+    if query.tagged
+      tag = KD.utils.slugify KD.utils.stripTags query.tagged
+      @setWarning tag, yes
+      options = filterByTag: tag
+
+    @ready => @populateActivity options
 
   populateActivity:(options = {}, callback=noop)->
 

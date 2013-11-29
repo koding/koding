@@ -8,18 +8,9 @@ class TopicsListItemView extends KDListItemView
       tagName     : 'a'
       pistachio   : '{{#(title)}}'
       click       : (event) =>
-
-        {appManager} = KD.singletons
-        filterByTag  = @getData().slug
-
-        appManager.open 'Activity', (controller)->
-          appManager.tell 'Activity', 'setWarning', filterByTag, yes
-          KD.utils.wait 300, ->
-            controller.ready ->
-              appManager.tell 'Activity', 'populateActivity', {filterByTag}
-
+        {slug} = @getData()
+        KD.singletons.router.handleRoute "/Activity?tagged=#{slug}"
         KD.utils.stopDOMEvent event
-
     , data
 
     if options.editable

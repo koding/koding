@@ -279,6 +279,49 @@ finderSelectedColor2 = #3AAAAB
   &:focus
     shadow             0 0 10px -2px #36b298
 
+//
+// SOLID BUTTON STYLES
+//
+
+.kdbutton.solid
+  bg                   color #3c4043
+  border               none
+  rounded              4px
+  padding              0 20px
+  height               55px
+  borderBox()
+  span.button-title
+    padding            0
+    color              #e3e3e3
+    font-size          18px
+    letter-spacing     1px
+    line-height        55px
+  span.icon
+    margin             18px 0 0 0
+  &:hover
+    bg                 color #606466
+  &:active
+    bg                 color #36B298
+    span.button-title
+      color            white
+  &:focus
+    shadow             0 0 10px -2px #36b298
+
+.kdbutton.solid.green
+  bg                   color #36B298
+  span.button-title
+    color              white
+  span.icon
+    margin             18px 0 0 0
+  &:hover
+  &:active
+  &:focus
+    bg                 color #2DBEA1
+    span.button-title
+      color            white
+  &:focus
+    shadow             0 0 10px -2px #36b298
+
 
 /* editor-advanced-settings-menu-button
 *******************************************************************************/

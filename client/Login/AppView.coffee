@@ -48,9 +48,12 @@ class LoginView extends KDScrollView
       click       : registerHandler
 
     @github       = new KDButtonView
-      title       : 'Sign in with GitHub'
-      style       : 'solid'
+      title       : "Sign in with GitHub"
+      style       : 'solid github'
+      icon        : yes
       callback    : -> KD.singletons.oauthController.openPopup "github"
+
+    @github.setPartial "<span class='button-arrow'></span>"
 
     # @loginOptions = new LoginOptions
     #   cssClass : "login-options-holder log"
@@ -425,7 +428,7 @@ class LoginView extends KDScrollView
       switch name
         when "register"
           @$('.flex-wrapper').addClass 'three'
-          @registerForm.firstName.input.setFocus()
+          @registerForm.email.input.setFocus()
         when "redeem"
           @$('.flex-wrapper').addClass 'one'
           @redeemForm.inviteCode.input.setFocus()

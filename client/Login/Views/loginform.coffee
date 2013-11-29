@@ -29,8 +29,7 @@ class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "password"
         type          : "password"
-        placeholder   : "••••••••"
-        hint          : "password"
+        placeholder   : "password"
         testPath      : "login-form-password"
         validate      :
           event       : 'blur'
@@ -41,7 +40,7 @@ class LoginInlineForm extends LoginViewInlineForm
 
     @button = new KDButtonView
       title       : "SIGN ME IN"
-      style       : "thin"
+      style       : "solid green"
       type        : 'submit'
       loader      :
         color     : "#ffffff"
