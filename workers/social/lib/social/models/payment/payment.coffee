@@ -5,7 +5,6 @@ module.exports = class JPaymentPayment extends jraphical.Module
 
   {secure, daisy}      = require 'bongo'
 
-  KodingError          = require '../../error'
   JUser                = require '../user'
   JGroup               = require '../group'
   JPaymentPlan         = require './index'
@@ -30,7 +29,7 @@ module.exports = class JPaymentPayment extends jraphical.Module
 
   @makePayment = secure (client, data, callback)->
     @initialize client, data, (err, group, account, plan)=>
-      if err then return callback new KodingError 'Unable to access payment backend, please try again later.'
+      if err then return callback { message: 'Unable to access payment backend, please try again later.' }
 
       data.quantity ?= 1  # Default quantity is 1
       data.multiple ?= no # Don't allow multiple subscriptions by default
@@ -49,7 +48,7 @@ module.exports = class JPaymentPayment extends jraphical.Module
           active       : yes
         }
         pay.save (err)->
-          if err then return callback new KodingError 'Unable to save transaction to database.'
+          if err then return callback { message: 'Unable to save transaction to database.' }
           callback null, pay
 
       if data.chargeTo is 'group'
@@ -81,7 +80,7 @@ module.exports = class JPaymentPayment extends jraphical.Module
   # Get plan
   @fetchPlan = (planCode, callback) ->
     JPaymentPlan.fetchPlanByCode planCode, (err, plan) ->
-      if err then return callback new KodingError 'Unable to access product information. Please try again later.'
+      if err then return callback { message: 'Unable to access product information. Please try again later.' }
       callback null, plan
 
   # Get price for a product
@@ -122,13 +121,13 @@ module.exports = class JPaymentPayment extends jraphical.Module
           if allocation >= expenses + amount
             callback()
           else
-            callback new KodingError "You don't have enough balance."
+            callback { message: "Insufficient balance." }
 
   # Return quota that group gives to its users.
   @getGroupAllocation = (group, callback)->
     group.fetchBundle (err, bundle)=>
       if err or not bundle or bundle.allocation is 0
-        return callback new KodingError "This group doesn't allow you to purchase."
+        return callback { message: "This group doesn't allow you to purchase." }
       else
         callback null, bundle.allocation
 
@@ -136,12 +135,12 @@ module.exports = class JPaymentPayment extends jraphical.Module
   @chargeGroup = (group, p, data, callback)->
     {multiple, plan, quantity} = data
     p.subscribeGroup group, {multiple, plan, quantity}, (err, subscription)->
-      if err then return callback new KodingError "Unable to buy item: #{err}"
+      if err then return callback { message: "Unable to buy item: #{err}" }
       callback null, subscription
 
   # Charge user account
   @chargeUser = (account, plan, data, callback)->
-    return callback new KodingError 'Unable charge, insufficient funds.'
+    return callback { message: 'Not implemented!' }
     # TBI
 
   # List group's payments
@@ -169,7 +168,7 @@ module.exports = class JPaymentPayment extends jraphical.Module
   # TODO: Make sure this calculation is enough.
   #       Not tested for expired/canceled subscriptions.
   @getExpenses = (pattern, callback) ->
-    error = (err)-> new KodingError "Unable to query user balance: #{err}"
+    error = (err)-> { message: "Unable to query user balance: #{err}" }
 
     JPaymentPayment.some pattern, {subscription: 1}, (err, items) ->
       return callback error err  if err
