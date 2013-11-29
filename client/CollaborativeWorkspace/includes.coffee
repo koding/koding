@@ -1,10 +1,11 @@
 module.exports = [
 
   # third party requirements
+  "libs/firebase/firebase.js"
   "libs/codemirror/codemirror.js",
   "libs/codemirror/loadmode.js",
   "libs/codemirror/javascript.js",
-  "libs/firepad/firepad.js",
+  "libs/firebase/firepad.js",
 
   # coffee block
   "panes/collaborativepane.coffee",
@@ -24,6 +25,6 @@ module.exports = [
   "collaborativeworkspace.coffee"
 
   # css block
-  "libs/firepad/firepad.css",
+  "libs/firebase/firepad.css",
   "libs/codemirror/codemirror.css",
 ]

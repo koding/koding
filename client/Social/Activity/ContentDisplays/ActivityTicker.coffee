@@ -24,7 +24,8 @@ class ActivityTicker extends JView
 
     KD.remote.api.ActivityTicker.fetch options, (err, items = []) =>
       @listController.hideLazyLoader()
-      @listController.addItem item for item in items  unless err
+      unless err
+        @listController.addItem item for item in items when item.source? and item.target? and item.as?
 
   pistachio:
     """

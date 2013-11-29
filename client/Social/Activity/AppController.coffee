@@ -213,6 +213,7 @@ class ActivityAppController extends AppController
     else groupsController.once 'GroupChanged', fetch
 
   fetchTopicActivities:(options = {})->
+    options.to = @lastTo
     {JStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     JStatusUpdate.fetchTopicFeed options, (err, activities) =>
