@@ -43,8 +43,6 @@ module.exports = (options = {}, callback)->
     </script>
 
     <script src="/js/require.js"></script>
-    <script src="https://cdn.firebase.com/v0/firebase.js"></script>
-
     <script>
       require.config({baseUrl: "/js", waitSeconds:30});
       require(["order!/js/highlightjs/highlight.pack.js",
@@ -74,7 +72,6 @@ module.exports = (options = {}, callback)->
       })();
     </script>
 
-    <script src="https://www.dropbox.com/static/api/1/dropins.js" id="dropboxjs" data-app-key="yzye39livlcc21j"></script>
     <script>KD.prefetchedFeeds=#{encodedFeed};</script>
     """
 
