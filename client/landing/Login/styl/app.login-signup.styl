@@ -173,6 +173,12 @@ app.login-signup.styl
       line-height         24px
       font-size           12px
       color               rgba(255, 255, 255, .75)
+    button
+      width               100%
+    button.github
+      .icon
+        padding           0
+        sprite            app 'login-github'
 
 .login-box-header
   rel()
@@ -274,13 +280,17 @@ app.login-signup.styl
           input.kdinput.text
             rounded       6px 0 0 6px
 
-      // &.validation-error .validation-icon
-      //   sprite          app 'login-validation-fail'
-      //   opacity         1
+      &.validation-error
+        input.kdinput.text
+          border          1px solid #e79a8f
+        // .validation-icon
+        //   sprite          app 'login-validation-fail'
+        //   opacity         1
 
-      // &.validation-passed .validation-icon
-      //   sprite          app 'login-validation-pass'
-      //   opacity         1
+      // &.validation-passed
+      //   .validation-icon
+      //     sprite          app 'login-validation-pass'
+      //     opacity         1
 
   p
     size              78%, 0
@@ -318,7 +328,7 @@ app.login-signup.styl
   input.kdinput.text
     text-align          center
     padding             11px 6px
-    border              none
+    border              1px solid #bdc3c7
     color               #3E4F55
     font-size           16px
     box-shadow          none
@@ -327,16 +337,18 @@ app.login-signup.styl
     line-height         33px
     rounded             6px
     width               100%
-    bg                  color, #BCC4C8
+    bg                  color, transparent
     borderBox()
     // &.validation-error
     //   bg                color,#ffe4bf
 
 
   input::-webkit-input-placeholder
-    color               #666
+    color               #93979a
+    font-weight         300
   input:-moz-placeholder
-    color               #666
+    color               #93979a
+    font-weight         300
 
   .validation-icon
     abs()

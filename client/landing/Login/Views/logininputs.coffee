@@ -8,10 +8,12 @@ class LoginInputView extends JView
     iconOptions  or= {}
     inputOptions.keyup     = enter : => @parent.$().trigger 'submit'
     {validate} = inputOptions
+
     if validate
-      validate.notifications           or= {}
-      validate.notifications.type      or= 'tooltip'
-      validate.notifications.direction or= 'left'
+      validate.notifications = no
+      # validate.notifications           or= {}
+      # validate.notifications.type      or= 'tooltip'
+      # validate.notifications.direction or= 'left'
 
 
     iconOptions.tagName    = iconOptions.tagName  or "span"
@@ -47,12 +49,12 @@ class LoginInputView extends JView
 
     if err
       # @notify err
-      @input.tooltip.show()
+      # @input.tooltip.show()
       @unsetClass "validation-passed"
       @setClass "validation-error"
     else
       # @destroyNotification()
-      @input.unsetTooltip()
+      # @input.unsetTooltip()
       @unsetClass "validation-error"
       @setClass "validation-passed"
 
