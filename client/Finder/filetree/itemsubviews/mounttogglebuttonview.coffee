@@ -16,11 +16,11 @@ class NMountToggleButtonView extends JView
 
   checkMountState:->
 
-    {vmName} = @getData()
-    fc = KD.getSingleton("finderController")
-    for vm in fc.vms  when vm.vmName is vmName
-      @toggle.setDefaultValue yes
-      return
+    # {vmName} = @getData()
+    # fc = KD.getSingleton("finderController")
+    # for vm in fc.vms  when vm.vmName is vmName
+    #   @toggle.setDefaultValue yes
+    #   return
     @toggle.setDefaultValue no
 
   pistachio:->

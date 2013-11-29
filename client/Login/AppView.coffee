@@ -47,6 +47,11 @@ class LoginView extends KDScrollView
       partial     : "Create Account"
       click       : registerHandler
 
+    @github       = new KDButtonView
+      title       : 'Sign in with GitHub'
+      style       : 'solid'
+      callback    : -> KD.singletons.oauthController.openPopup "github"
+
     # @loginOptions = new LoginOptions
     #   cssClass : "login-options-holder log"
 
@@ -164,6 +169,7 @@ class LoginView extends KDScrollView
         <div class='first-row clearfix'>
           <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
         </div>
+        {{> @github}}
       </div>
     </div>
     <footer>
