@@ -3,15 +3,29 @@ class VmProductForm extends FormWorkflow
   createUpgradeForm: ->
     (KD.getSingleton 'paymentController').createUpgradeForm 'vm', yes
 
-  checkUsageLimits: (pack, callback) ->
-    { subscription } = @collector.data
-    return callback { message: 'no subscription' }  unless subscription?
-    subscription.checkUsage pack, (err, usage) =>
-      if err
-        @collectData oldSubscription: subscription
-        @clearData 'subscription'
+  checkUsageLimits: (pack, plan, callback) ->
+    [callback, plan] = [plan, callback]  unless callback
 
-      callback err, usage
+    { subscription, oldSubscription } = @collector.data
+
+    plan ?= @collector.data.plan
+
+    if subscription
+      subscription.checkUsage pack, (err, usage) =>
+        if err
+          @collectData oldSubscription: subscription
+          @clearData 'subscription'
+
+        callback err, usage
+    else if plan
+      usage = oldSubscription?.quantities ? {}
+      spend = pack.quantities
+
+      plan.checkQuota usage, spend, 1, (err, usage) =>
+        if err
+          @clearData 'plan'
+
+        callback err, usage
 
   createPackChoiceForm: -> new PackChoiceForm
     title     : 'Choose your VM'
@@ -50,7 +64,15 @@ class VmProductForm extends FormWorkflow
 
     upgradeForm = @createUpgradeForm()
     upgradeForm.on 'PlanSelected', (plan) =>
-      @collectData { plan }
+      { pack } = @collector.data
+
+      if pack
+        @checkUsageLimits pack, plan, (err) =>
+          return  if KD.showError err
+
+          @collectData { plan }
+      else
+        @collectData { plan }
 
     @addForm 'upgrade', upgradeForm, ['plan', 'subscription']
 
@@ -58,7 +80,9 @@ class VmProductForm extends FormWorkflow
     packChoiceForm.once 'Activated', => @emit 'PackOfferingRequested'
 
     packChoiceForm.on 'PackSelected', (pack) =>
-      @checkUsageLimits pack, (err, usage) =>
+      @checkUsageLimits pack, (err) =>
+        KD.showError err # don't return
+
         @collectData { pack }
 
     @addForm 'pack choice', packChoiceForm, ['pack']
