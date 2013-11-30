@@ -25,7 +25,7 @@ class TopicsListItemView extends KDListItemView
       @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     @followButton = new FollowButton
-      cssClass       : 'topic'
+      cssClass       : 'solid green'
       errorMessages  :
         KodingError  : 'Something went wrong while follow'
         AccessDenied : 'You are not allowed to follow topics'
@@ -68,6 +68,7 @@ class TopicsListItemView extends KDListItemView
 
   pistachio:->
     """
+      {{> @editButton}}
       <header>
         {h3{> @titleLink}}
       </header>
@@ -75,9 +76,8 @@ class TopicsListItemView extends KDListItemView
         <a href="#">{{#(counts.post) or 0}}</a> Posts
         <a href="#">{{#(counts.followers) or 0}}</a> Followers
       </div>
-      <article>
-Cascading Style Sheets (CSS) is a style sheet language used for describing the presentation semantics (the look and formatting) of a document written in a markup language. Its most common application is to style web pages written in HTML and XHTML, but the language can also be applied to any kind of XML document, including plain XML, SVG and XUL.
-      </article>
+      {article{ #(body)}}
+      {{> @followButton}}
     """
 
     # """
