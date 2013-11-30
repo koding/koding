@@ -53,11 +53,19 @@ class ActivityTicker extends JView
 
       {constructorName, id} = follower
       KD.remote.cacheable constructorName, id, (err, source)=>
-        return console.log "account is not found", err, follower if err or not source
-        {_id:id} = data.origin
-        KD.remote.cacheable "JAccount", id, (err, target)=>
-          return console.log "account is not found", err, origin if err or not target
+        return console.log "account is not found" if err or not source
+        {_id:id, bongo_:{constructorName}} = data.origin
+        KD.remote.cacheable constructorName, id, (err, target)=>
+          return console.log "account is not found" if err or not target
           eventObj = {source, target, as:"follower"}
+
+          # following tag has its relationship flipped!!!
+          if constructorName is "JTag"
+            eventObj =
+              source : target
+              target : source
+              as     : "follower"
+
           @listController.addItem eventObj, 0
 
   load: ->
