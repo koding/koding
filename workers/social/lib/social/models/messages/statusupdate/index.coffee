@@ -44,6 +44,10 @@ module.exports = class JStatusUpdate extends JPost
     schema            : schema
     relationships     : JPost.relationships
 
+  constructor:->
+    super
+    @notifyGroupWhen 'LikeIsAdded'
+
   @getActivityType =-> require './statusactivity'
 
   @fetchDataFromEmbedly = (urls, options, callback)->
