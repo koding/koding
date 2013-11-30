@@ -13,10 +13,14 @@ class TokenView extends JView
   getKey: ->
     return @getData().getId()
 
+  getIdentity: ->
+    data = @getData()
+    return  "#{data.bongo_.constructorName}:#{data.getId()}"
+
   encodeValue: ->
     return   "" unless data = @getData()
     {prefix} = @getOptions()
-    return   "|#{prefix}:#{data.bongo_.constructorName}:#{data.getId()}|"
+    return   "|#{prefix}:#{@getIdentity()}|"
 
   pistachio: ->
     "{{> @item}}"
