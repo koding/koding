@@ -10,7 +10,7 @@ app.login-signup.styl
 
 // swapping views for views
 .kdview.login-screen
-  background          #111617 url("../images/unsplash/15.jpg") no-repeat center center
+  background          #111617
   bg                  size, cover
   text-align          center
   position            fixed
@@ -18,9 +18,16 @@ app.login-signup.styl
   &.shown
     top               0
 
+  .tint
+    size                100% 100%
+    z-index             0
+    bg                  color, rgba(0,0,0,.6)
+    abs()
+
   .flex-wrapper
+    z-index             1
     size                419px 353px
-    margin              -200px auto 0 auto
+    margin              -300px auto 0 auto
     top                 50%
     rounded             5px
     bg                  color #F4F4F4
@@ -106,6 +113,7 @@ app.login-signup.styl
     .login-options-holder.reg
       visible()
     .flex-wrapper
+      height                419px
       &.taller
         height              470px
 
