@@ -95,7 +95,6 @@ class FacebookTeamwork extends TeamworkWorkspace
       @emit "ContentImportDone"
 
   createRunButton: (panel) ->
-    panel.headerButtons.Playgrounds.hide()
     panel.header.addSubView @runButton = new KDButtonViewWithMenu
       title               : "Run"
       menu                :
