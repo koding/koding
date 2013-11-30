@@ -33,7 +33,27 @@ module.exports = class JPayment extends Base
 #    recurly.fetchAccountDetailsByPaymentMethodId (userCodeOf delegate), callback
 
   @fetchTransactions = secure ({ connection:{ delegate }}, callback) ->
-    console.error 'needs to be reimplemented'
+    delegate.fetchPaymentMethods (err, paymentMethods) ->
+      return callback err  if err
+      return callback null, []  unless paymentMethods
+
+      transactions = {}
+
+      queue = paymentMethods.map (paymentMethod) -> ->
+        { paymentMethodId } = paymentMethod
+
+        recurly.fetchTransactions paymentMethodId, (err, transactionsList) ->
+          transactions[paymentMethodId] = (transactionsList ? []).map \
+            (transaction) ->
+              transaction.invoice = (transaction.invoice?.split '/')?.pop()
+              transaction
+
+          queue.fin err
+
+      dash queue, ->
+        console.log transactions
+        callback null, transactions
+
 #    recurly.fetchTransactions (userCodeOf delegate), callback
 
   @fetchAccount = secure (client, callback) ->
