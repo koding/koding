@@ -37,6 +37,8 @@ module.exports = [
   "CommonViews/slidingsplit.coffee",
 
   "CommonViews/tokenview.coffee",
+  "CommonViews/tagcontextmenuitem.coffee",
+
   "CommonViews/avatarviews/avatarview.coffee",
   "CommonViews/avatarviews/avatarstaticview.coffee",
   "CommonViews/avatarviews/autocompleteavatarview.coffee",
