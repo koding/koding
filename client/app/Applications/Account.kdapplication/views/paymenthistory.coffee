@@ -14,20 +14,31 @@ class AccountPaymentHistoryListController extends AccountListViewController
     @removeAllItems()
     @showLazyLoader no
 
-    transactions = []
-    JPayment.fetchTransactions (err, trans=[]) =>
+    items = []
+    JPayment.fetchTransactions (err, transactions) =>
       warn err  if err
 
-      for t in trans when t.amount + t.tax > 0
-        {status, createdAt, card, cardType, cardNumber, owner, refundable} = t
-        amount = @utils.formatMoney (t.amount + t.tax) / 100
-        transactions.push {
-          status, cardType, cardNumber, owner, refundable, amount
-          currency : 'USD'
-          paidVia  : card or ''
-        }
+      for own paymentMethodId, transactionList of transactions
+        for transaction in transactionList when transaction.amount > 0
 
-      @instantiateListItems transactions
+          { status, createdAt, card, cardType, invoice
+            cardNumber, owner, refundable, type } = transaction
+
+          amount = @utils.formatMoney (transaction.amount + transaction.tax) / 100
+
+          items.push {
+            status
+            cardType
+            cardNumber
+            owner
+            refundable
+            amount
+            invoice
+            currency : 'USD'
+            paidVia  : card or ''
+          }
+
+      @instantiateListItems items
       @hideLazyLoader()
 
   loadView:->
@@ -67,6 +78,7 @@ class AccountPaymentHistoryListItem extends KDListItemView
 
   viewAppended:->
     super
+
     @addSubView editLink = new KDCustomHTMLView
       tagName      : 'a'
       partial      : 'View invoice'
@@ -91,6 +103,6 @@ class AccountPaymentHistoryListItem extends KDListItemView
       <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>
     </td>
     <td class='ccard'>
-      <span class='icon #{data.cardType.toLowerCase().replace(' ', '-')}'></span>...#{data.cardNumber.split("...")[1]}
+      <span class='icon #{data.cardType.toLowerCase().replace(' ', '-')}'></span>...#{data.cardNumber}
     </td>
     """
