@@ -14,10 +14,6 @@ class TeamworkApp extends KDObject
         for manifest in manifests when manifest.name is options.playground
           url = manifest.manifestUrl
         @handlePlaygroundSelection options.playground, url
-    else
-      @teamwork.on "PanelCreated", =>
-        @doCurlRequest playgroundsManifest, (err, manifest) =>
-          @populatePlaygroundsButton manifest
 
   createTeamwork: ->
     options               = @getOptions()
@@ -50,21 +46,6 @@ class TeamworkApp extends KDObject
             }
           ]
       ]
-
-  populatePlaygroundsButton: (playgrounds) ->
-    button   = @teamwork.getActivePanel().headerButtons.Playgrounds
-    menu     = []
-
-    playgrounds.forEach (playground) =>
-      item   = {}
-      {name} = playground
-      item[name] = {}
-      item[name].callback = =>
-        @handlePlaygroundSelection name, playground.manifestUrl
-
-      menu.push item
-
-    button.setOption "menu", menu
 
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
