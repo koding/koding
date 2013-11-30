@@ -29,6 +29,7 @@ module.exports = [
   "CommonViews/linkviews/profiletextview.coffee",
   "CommonViews/linkviews/profiletextgroup.coffee",
   "CommonViews/linkviews/taglinkview.coffee",
+  "CommonViews/linkviews/activitylinkview.coffee",
   "CommonViews/linkviews/applinkview.coffee",
   "CommonViews/linkviews/activitychildviewtaggroup.coffee",
   "CommonViews/linkviews/autocompleteprofiletextview.coffee",
