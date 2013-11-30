@@ -58,14 +58,12 @@ class ActivityInputView extends KDTokenizedInput
 
         dash tagCreateJobs, ->
           queue.next()
-      =>
+    , =>
         body = @getValue()
         body = body.replace /\|(.*):\$suggest:(.*)\|/g, (match, prefix, title) ->
           tag = createdTags[title]
           return  "" unless tag
-          return "|#{prefix}:JTag:#{tag.getId()}|"
-
-        log {body, tags}
+          return  "|#{prefix}:JTag:#{tag.getId()}|"
 
         data     =
           group  : KD.getSingleton('groupsController').getGroupSlug()
@@ -74,7 +72,6 @@ class ActivityInputView extends KDTokenizedInput
             tags : tags
 
         JStatusUpdate.create data, (err, activity) =>
-          log {err, activity}
           @setContent ""  unless err
 
           callback? err, activity
