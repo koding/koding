@@ -1,5 +1,9 @@
 __utils.extend __utils,
 
+  botchedUrlRegExp: /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
+
+  webProtocolRegExp: /^((http(s)?\:)?\/\/)/
+
   proxifyUrl:(url="", options={})->
 
     options.width   or= -1
@@ -463,3 +467,30 @@ __utils.extend __utils,
     form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog save-file-container", null
     finderWrapper.addSubView finder
     finderWrapper.setHeight 200
+
+  # TODO: Not totally sure what this is supposed to do, but I put it here
+  #       to bypass awful hacks by Arvid Kahl:
+  getEmbedType: (type) ->
+    switch type
+      when 'audio', 'xml', 'json', 'ppt', 'rss', 'atom'
+        return 'object'
+
+      # this is usually just a single image
+      when 'photo','image'
+        return 'image'
+
+      # rich is a html object for things like twitter posts
+      # link is fallback for things that may or may not have any kind of preview
+      # or are links explicitly
+      # also captures 'rich content' and makes regular links from that data
+      when 'link', 'html'
+        return 'link'
+
+      # embedly supports many error types. we could display those to the user
+      when 'error'
+        log 'Embedding error ', data.error_type, data.error_message
+        return 'error'
+
+      else
+        log "Unhandled content type '#{type}'"
+        return 'error'
