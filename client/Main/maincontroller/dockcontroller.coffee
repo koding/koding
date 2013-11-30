@@ -39,41 +39,47 @@ class DockController extends KDViewController
       title        : 'navigation'
       items        : []
 
-    @storage.fetchStorage (err, storage)=>
+    KD.setNavItems defaultItems
+    @navController.reset()
 
-      usersNavItems = @storage.getValue 'navItems'
-      ourNavItems   = defaultItems
-      ourNavObj     = createHash ourNavItems
-      KD.setNavItems ourNavItems
+    # Disabled until we figure out the flow of dock controller ~ GG
+    #
+    # @storage.fetchStorage (err, storage)=>
 
-      unless usersNavItems
+      # usersNavItems = @storage.getValue 'navItems'
+      # ourNavItems   = defaultItems
+      # ourNavObj     = createHash ourNavItems
+      # KD.setNavItems ourNavItems
 
-        @navController.reset()
-        log ourNavItems, 'ready'
-        return @emit 'ready'
+      # unless usersNavItems
 
-      usersNavObj = createHash usersNavItems
+      #   @navController.reset()
+      #   log ourNavItems, 'ready'
+      #   return @emit 'ready'
 
-      # reset default items' orders if user has customized them
-      for ourItem in ourNavItems
-        continue unless usersItem = usersNavObj[ourItem.title]
-        log 'changing order for:', ourItem.title
-        ourItem.order = usersItem.order
+      # usersNavObj = createHash usersNavItems
 
-      # add user's custom items in nav items
-      for usersItem in usersNavItems
-        continue if ourNavObj[usersItem.title]
-        KD.registerNavItem usersItem
+      # # reset default items' orders if user has customized them
+      # for ourItem in ourNavItems
+      #   continue unless usersItem = usersNavObj[ourItem.title]
+      #   log 'changing order for:', ourItem.title
+      #   ourItem.order = usersItem.order
 
-      # re-sort the navitems
-      KD.setNavItems KD.getNavItems()
-      @navController.reset()
+      # # add user's custom items in nav items
+      # for usersItem in usersNavItems
+      #   continue if ourNavObj[usersItem.title]
+      #   KD.registerNavItem usersItem
 
-      @emit 'ready'
+      # # re-sort the navitems
+      # KD.setNavItems KD.getNavItems()
+      # @navController.reset()
+
+      # @emit 'ready'
 
     mainController = KD.getSingleton 'mainController'
     mainController.ready @bound 'accountChanged'
 
+    @emit 'ready'
 
   setItemOrder:(item, order = 0)->
 

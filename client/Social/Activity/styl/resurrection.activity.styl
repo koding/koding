@@ -216,8 +216,8 @@ span.collapsedtext
   footer
     size          100%, 42px
     rounded       0 0 3px 3px
-    bg            color, #f8f8f6
-    border-top    2px solid #e9e7e1
+    bg            color, #f7f7f7
+    border-top    2px solid #e4e4e4
     margin        22px 0 0 0
     borderBox()
 
@@ -261,13 +261,28 @@ span.collapsedtext
 
     .count
       display         inline-block
-      color           #697576
+      color           #8f8f85
       font-size       14px
       margin          0 0 0 12px
       noTextDeco()
 
   .comment-container.commented
     border-top        2px solid #e9e7e1
+
+    .show-more-comments
+      size            auto, 55px
+      line-height     55px
+      bg              color, #aab5bc
+      text-align      center
+      margin          -2px 0 0 0
+
+      a
+        display       block
+        width         auto, 55px
+        color         #fff
+        font-weight   400
+        font-size     14px
+        noTextDeco()
 
   .kdlistitemview-comment
     padding           20px 47px 16px 20px
@@ -307,7 +322,7 @@ span.collapsedtext
 
       .like-view a
       .reply-link
-        color           #697576
+        color           #8e9798
         noTextDeco()
 
         &.count
@@ -315,11 +330,21 @@ span.collapsedtext
           margin        0 0 0 9px
           font-weight   500
 
+      .like-view.liked a
+        color           #525e5f
+
       time
+        fr()
+        opacity         0
+        vendor          transition, opacity .2s ease
         color           #a5acad
 
+    &:hover
+      time
+        opacity         1
+
     &~.kdlistitemview-comment
-      padding-top     0
+      padding-top       0
 
       .avatarview
         top           13px
@@ -330,7 +355,7 @@ span.collapsedtext
 
   .item-add-comment-box
     bg            color, #f7f7f8
-    border-top    2px solid #e9e7e1
+    border-top    2px solid #e4e4e4
     padding       20px 16px 20px 20px
     borderBox()
 

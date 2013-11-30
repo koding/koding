@@ -20,7 +20,7 @@ class ContentDisplayControllerMember extends KDViewController
         cssClass : 'member content-display'
         domId    : 'member-contentdisplay'  unless @revivedContentDisplay
         type     : 'profile'
-    ,options
+    , options
     super options, data
 
   loadView:(mainView)->
@@ -109,6 +109,7 @@ class ContentDisplayControllerMember extends KDViewController
       listCssClass          : "activity-related"
       limitPerPage          : 8
       useHeaderNav          : yes
+      delegate              : @getOption 'delegate'
       help                  :
         subtitle            : "Learn Personal feed"
         tooltip             :
