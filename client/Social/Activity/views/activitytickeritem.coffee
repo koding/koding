@@ -15,15 +15,16 @@ class ActivityTickerFollowItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
     super options, data
 
+    # rels are flipped here
     {source, target} = data
 
     @avatar    = new AvatarView
       size     : width: 28, height: 28
       cssClass : "avatarview"
-    , source
+    , target
 
-    @actor    = new ProfileLinkView null, source
-    @object   = new @itemLinkViewClassMap[target.bongo_.constructorName] null, target
+    @actor    = new ProfileLinkView null, target
+    @object   = new @itemLinkViewClassMap[source.bongo_.constructorName] null, source
 
   pistachio: ->
     """{{> @avatar}} {{> @actor}} followed {{> @object}}"""
