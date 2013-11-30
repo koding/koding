@@ -228,9 +228,16 @@ class AdminModal extends KDModalViewWithForms
       submitValuesAsText  : yes
       dataSource          : (args, callback)=>
         {inputValue} = args
-        blacklist = (data.getId() for data in @userController.getSelectedItemData())
-        KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err, accounts)=>
-          callback accounts
+        if /^@/.test inputValue
+          query = 'profile.nickname': inputValue.replace /^@/, ''
+          KD.remote.api.JAccount.one query, (err, account)=>
+            if not account
+              @userController.showNoDataFound()
+            else
+              callback [account]
+        else
+          KD.remote.api.JAccount.byRelevance inputValue, {}, (err, accounts)->
+            callback accounts
 
     @userController.on "ItemListChanged", =>
       accounts = @userController.getSelectedItemData()
@@ -263,3 +270,21 @@ class AdminModal extends KDModalViewWithForms
   initIntroductionTab: ->
     parentView = @modalTabs.forms["Introduction"]
     parentView.addSubView new IntroductionAdmin { parentView }
+
+class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
+  constructor:(options, data)->
+    options.cssClass = "clearfix member-suggestion-item"
+    super options, data
+
+    userInput = options.userInput or @getDelegate().userInput
+
+    @addSubView @profileLink = \
+      new AutoCompleteProfileTextView {userInput, shouldShowNick: yes}, data
+
+  viewAppended:-> JView::viewAppended.call this
+
+class MemberAutoCompletedItemView extends KDAutoCompletedItem
+
+  viewAppended:->
+    @addSubView @profileText = new AutoCompleteProfileTextView {}, @getData()
+    JView::viewAppended.call this

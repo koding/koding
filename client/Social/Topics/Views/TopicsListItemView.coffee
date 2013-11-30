@@ -25,7 +25,7 @@ class TopicsListItemView extends KDListItemView
       @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     @followButton = new FollowButton
-      cssClass       : 'topic'
+      cssClass       : 'solid green'
       errorMessages  :
         KodingError  : 'Something went wrong while follow'
         AccessDenied : 'You are not allowed to follow topics'
@@ -68,25 +68,38 @@ class TopicsListItemView extends KDListItemView
 
   pistachio:->
     """
-    <div class="topictext">
       {{> @editButton}}
-      {h3{> @titleLink}}
-      {article{#(body)}}
-      <div class="topicmeta clearfix">
-        <div class="topicstats">
-          <p class="posts">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.post) or 0}}</a> Posts
-          </p>
-          <p class="followers">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.followers) or 0}}</a> Followers
-          </p>
-        </div>
-        <div class="button-container">{{> @followButton}}</div>
+      <header>
+        {h3{> @titleLink}}
+      </header>
+      <div class="stats">
+        <a href="#">{{#(counts.post) or 0}}</a> Posts
+        <a href="#">{{#(counts.followers) or 0}}</a> Followers
       </div>
-    </div>
+      {article{ #(body)}}
+      {{> @followButton}}
     """
+
+    # """
+    # <div class="topictext">
+    #   {{> @editButton}}
+    #   {h3{> @titleLink}}
+    #   {article{#(body)}}
+    #   <div class="topicmeta clearfix">
+    #     <div class="topicstats">
+    #       <p class="posts">
+    #         <span class="icon"></span>
+    #         <a href="#">{{#(counts.post) or 0}}</a> Posts
+    #       </p>
+    #       <p class="followers">
+    #         <span class="icon"></span>
+    #         <a href="#">{{#(counts.followers) or 0}}</a> Followers
+    #       </p>
+    #     </div>
+    #     <div class="button-container">{{> @followButton}}</div>
+    #   </div>
+    # </div>
+    # """
 
 class ModalTopicsListItem extends TopicsListItemView
 

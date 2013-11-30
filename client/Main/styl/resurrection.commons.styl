@@ -292,14 +292,15 @@ finderSelectedColor2 = #3AAAAB
   borderBox()
   span.button-title
     padding            0
-    color              #e3e3e3
+    color              rgba(227, 227, 227, 0.8)
     font-size          18px
-    letter-spacing     1px
+    letter-spacing     .6px
     line-height        55px
+    text-rendering     geometricPrecision
   span.icon
     margin             18px 0 0 0
   &:hover
-    bg                 color #606466
+    bg                 color #4A4E52
   &:active
     bg                 color #36B298
     span.button-title
@@ -454,3 +455,17 @@ finderSelectedColor2 = #3AAAAB
     a
       padding         5px 0px 4px 0px
       width           24px
+
+.tag-context-menu-item
+  .ttag
+    display             inline-block
+    padding             2px 5px
+    border-radius       5px
+    color               white
+    background          #3aaaab
+
+.selected
+  .tag-context-menu-item
+    .ttag
+      color             #3aaaab
+      background        white

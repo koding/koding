@@ -341,6 +341,7 @@ module.exports = class Builder
           .set('compress',true)
           .set('paths', [rootPath])
           .define('sprite', spriteHelper.fn )
+          .define('sprite-dimensions', spriteHelper.dimensionsFn)
           .use(nib())
           .render (err, css)=> # callback is synchronous
             log.error "error with styl file at #{file.includePath}:\n #{err}"  if err
@@ -457,7 +458,7 @@ module.exports = class Builder
       apps[title] =
         style      : rp project.style
         script     : rp project.script
-        identifier : "app.#{title.toLowerCase()}"
+        identifier : "app-#{title.toLowerCase()}"
 
     # Override the information based on bundles
     for own title, bundle of bundles
@@ -465,7 +466,7 @@ module.exports = class Builder
         apps[project] =
           style      : rp bundle.style
           script     : rp bundle.script
-          identifier : "app.#{title.toLowerCase()}"
+          identifier : "app-#{title.toLowerCase()}"
 
     # Remove internals
     for internal in ['PostOperations', 'KDBackend', 'KDFramework', 'KDMainApp']
