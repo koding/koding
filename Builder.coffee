@@ -341,6 +341,7 @@ module.exports = class Builder
           .set('compress',true)
           .set('paths', [rootPath])
           .define('sprite', spriteHelper.fn )
+          .define('sprite-dimensions', spriteHelper.dimensionsFn)
           .use(nib())
           .render (err, css)=> # callback is synchronous
             log.error "error with styl file at #{file.includePath}:\n #{err}"  if err

@@ -135,7 +135,7 @@ class TopicsAppController extends AppController
       width                       : 500
       overlay                     : yes
       tabs                        :
-        navigable              : yes
+        navigable                 : yes
         goToNextFormOnSubmit      : no
         forms                     :
           update                  :

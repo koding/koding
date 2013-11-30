@@ -10,6 +10,7 @@ class LoginAppsController extends AppController
       '/:name?/ResendToken'
     ]
     hiddenHandle : yes
+    behavior     : 'application'
     labels       : ['Redeem', 'Register', 'Recover', 'ResendToken']
     preCondition :
       condition  : (options, cb)-> cb not KD.isLoggedIn()
