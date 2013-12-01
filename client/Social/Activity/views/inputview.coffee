@@ -50,7 +50,7 @@ class ActivityInput extends KDView
         {data, type} = token
         if type is "tag"
           if data instanceof JTag then tags.push id: data.getId()
-          else if data.$suggest?  then tags.push data
+          else if data.$suggest?  then suggestedTags.push data
 
     daisy queue = [
       =>
