@@ -57,7 +57,7 @@ class ActivityInput extends KDView
         tagCreateJobs = suggestedTags.map (data) ->
           ->
             JTag.create title: data.$suggest, (err, tag) ->
-              tags.push tag
+              tags.push id: tag.getId()
               createdTags[tag.title] = tag
               tagCreateJobs.fin()
 
