@@ -72,7 +72,7 @@ class ActivityInput extends KDView
 
         data     =
           group  : KD.getSingleton('groupsController').getGroupSlug()
-          body   : @input.getValue()
+          body   : body
           meta   :
             tags : tags
 
