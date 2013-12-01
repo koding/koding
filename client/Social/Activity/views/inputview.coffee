@@ -50,29 +50,29 @@ class ActivityInput extends KDView
         {data, type} = token
         if type is "tag"
           if data instanceof JTag then tags.push id: data.getId()
-          else if data.$suggest?  then tags.push data
+          else if data.$suggest?  then suggestedTags.push data.$suggest
 
     daisy queue = [
       =>
-        tagCreateJobs = suggestedTags.map (data) ->
+        tagCreateJobs = suggestedTags.map (title) ->
           ->
-            JTag.create title: data.$suggest, (err, tag) ->
-              tags.push tag
-              createdTags[tag.title] = tag
+            JTag.create {title}, (err, tag) ->
+              tags.push id: tag.getId()
+              createdTags[title] = tag
               tagCreateJobs.fin()
 
         dash tagCreateJobs, ->
           queue.next()
     , =>
         body  = @input.getValue()
-        body  = body.replace /\|(.*):\$suggest:(.*)\|/g, (match, prefix, title) ->
+        body  = body.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
           tag = createdTags[title]
           return  "" unless tag
           return  "|#{prefix}:JTag:#{tag.getId()}|"
 
         data     =
           group  : KD.getSingleton('groupsController').getGroupSlug()
-          body   : @input.getValue()
+          body   : body
           meta   :
             tags : tags
 
