@@ -21,11 +21,11 @@ class NewCommentForm extends KDView
 
     {itemTypeString} = @getOptions()
 
-    commentFormWrapper.addSubView @commentInput   = new KDHitEnterInputView
+    commentFormWrapper.addSubView @commentInput = new KDHitEnterInputView
       type          : "textarea"
-      delegate      : @
+      delegate      : this
       placeholder   : "Type your #{itemTypeString} and hit enter..."
-      # autogrow      : yes
+      autogrow      : yes
       validate      :
         rules       :
           required  : yes

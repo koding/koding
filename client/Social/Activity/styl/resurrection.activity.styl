@@ -184,6 +184,13 @@ span.collapsedtext
   &:nth-child(1)
     margin-top    37px
 
+  a.ttag
+    color         #3aaaab
+    noTextDeco()
+    span:before
+      content     '#'
+
+
   .activity-settings-menu
     fr()
 
@@ -302,7 +309,7 @@ span.collapsedtext
       color           #50595a
 
       .profile
-        display       block
+        display       inline-block
         color         #50595a
         font-weight   500
         margin        2px 0 10px 0
@@ -373,11 +380,11 @@ span.collapsedtext
       textarea
         size        100%, 43px
         border      1px solid #d1d3d3
-        border-left none
+        // border-left none
         box-shadow  none
         background  #fff
-        line-height 43px
-        padding     0 0 0 17px
+        line-height 24px
+        padding     9px 9px 8px 17px
         color       #50595a
         font-size   14px
         rounded     0
