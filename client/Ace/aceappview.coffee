@@ -1,4 +1,6 @@
 class AceAppView extends JView
+
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -8,7 +10,7 @@ class AceAppView extends JView
     @appManager          = KD.getSingleton "appManager"
     @tabHandleContainer  = new ApplicationTabHandleHolder delegate: @
     @tabView             = new AceApplicationTabView
-      delegate           : @
+      delegate           : this
       tabHandleContainer : @tabHandleContainer
       saveSession        : yes
       sessionName        : "AceTabHistory"
@@ -28,8 +30,6 @@ class AceAppView extends JView
       @finderController.reset()
       @finderController.on 'FileNeedsToBeOpened', (file)=>
         @openFile file, yes
-
-
 
 
   attachEvents:->
