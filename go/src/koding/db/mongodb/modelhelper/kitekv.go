@@ -40,3 +40,20 @@ func UpsertKeyValue(kv *models.KiteKeyValue) error {
 
     return mongodb.Run(KiteKeyValueCollection, query)
 }
+
+func GetKeyValue(username, kiteId, usersKey string) (error, *models.KiteKeyValue) {
+    key := fmt.Sprintf("%s_%s_%s", username, kiteId, usersKey)
+
+    kv := NewKeyValue(username, kiteId, usersKey, "")
+
+    query := func(c *mgo.Collection) error {
+        return c.Find(bson.M{"key": key}).One(&kv)
+    }
+
+    err := mongodb.Run(KiteKeyValueCollection, query)
+    if err != nil {
+        return err, nil
+    }
+
+    return nil, kv
+}
