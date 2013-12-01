@@ -65,7 +65,7 @@ class ActivityInput extends KDView
           queue.next()
     , =>
         body  = @input.getValue()
-        body  = body.replace /\|(.*):\$suggest:(.*)\|/g, (match, prefix, title) ->
+        body  = body.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
           tag = createdTags[title]
           return  "" unless tag
           return  "|#{prefix}:JTag:#{tag.getId()}|"
