@@ -95,6 +95,13 @@ class RegisterInlineForm extends LoginViewInlineForm
         forceCase        : "lowercase"
         placeholder      : "username"
         testPath         : "register-form-username"
+        keyup            : =>
+
+          if (val = @username.input.getValue()).trim() isnt ''
+            @domain.updatePartial "#{val}.kd.io"
+          else
+            @domain.updatePartial "username.kd.io"
+
         validate         :
           container      : this
           rules          :
@@ -172,6 +179,10 @@ class RegisterInlineForm extends LoginViewInlineForm
       inputOptions  :
         name        : "inviteCode"
         type        : 'hidden'
+
+    @domain = new KDCustomHTMLView
+      tagName : 'strong'
+      partial : 'username.kd.io'
 
     @on "SubmitFailed", (msg)=>
       # if msg is "Wrong password"
@@ -251,14 +262,13 @@ class RegisterInlineForm extends LoginViewInlineForm
     <section class='main-part'>
       <div class='email'>{{> @avatar}}{{> @email}}</div>
       <div>{{> @firstName}}{{> @lastName}}</div>
-      <div class='username'>
-        {{> @username}}<cite>.kd.io</cite>
-      </div>
+      <div class='username'>{{> @username}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:
         <span class='wrapper'></span>
       </div>
+      <div class='hint'>Your username must be at least 4 characters and it’s also going to be your {{> @domain}} domain.</div>
       <div>{{> @button}}</div>
     </section>
     {{> @invitationCode}}

@@ -97,8 +97,6 @@ app.login-signup.styl
       visible()
       >.kdview
         overflow          visible
-      // .kdnotification.mini.register
-      //   top               76px!important
 
   &.login
     .lf
@@ -113,9 +111,9 @@ app.login-signup.styl
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      height                419px
+      height                475px
       &.taller
-        height              470px
+        height              500px
 
   &.redeem
     .rdf
@@ -129,8 +127,6 @@ app.login-signup.styl
       visible()
     .rcf > form
       margin-top          15px
-    .rcf .kdnotification.mini.register
-      top                 174px!important
 
   &.reset
     .rsf
@@ -246,11 +242,11 @@ app.login-signup.styl
       &.validation-error
         input.kdinput.text
           border          1px solid #e79a8f
-        .placeholder-helper
-          color           #e79a8f
-        // .validation-icon
-        //   sprite          app 'login-validation-fail'
-        //   opacity         1
+        // .placeholder-helper
+        //   color           #e79a8f
+        .validation-icon
+          sprite          app 'login-validation-fail'
+          opacity         1
 
       // &.validation-passed
       //   .validation-icon
@@ -300,8 +296,8 @@ app.login-signup.styl
         font-size       12px
         &.puff
           opacity       0
-    &.validation-error .out.puff
-      opacity           1
+    // &.validation-error .out.puff
+    //   opacity           1
 
 
   input.kdinput.text
@@ -337,12 +333,13 @@ app.login-signup.styl
     top                 11px
     vendor              transition, opacity .15s ease-out
     opacity             0
+    z-index             2
 
   .kdloader.input-loader
     abs()
     right               11px
     top                 11px
-    z-index:            100
+    z-index             100
 
 
   div.email
@@ -353,25 +350,6 @@ app.login-signup.styl
       top                 0
       rounded             0 6px 6px 0
       abs()
-
-  div.username
-    rel()
-
-    .kdloader.input-loader
-      right             87px
-
-    > cite
-      abs()
-      display           block
-      height            55px
-      line-height       55px
-      bg                color #BDC3C7
-      color             white
-      padding           0 20px
-      right             11%
-      top               0
-      rounded           0 6px 6px 0
-      font-style        normal
 
   .invitation-field
     rel()
@@ -428,22 +406,17 @@ app.login-signup.styl
       &:hover
         shadow          0 1px 0 rgba(255,255,255,0.23)
 
+  div.hint
+    font-size           14px
+    line-height         18px
+    color               #6e7879
+    margin              18px 46px
+    strong
+      font-weight       600
+
 p.login-tip
   line-height           16px
   color                 white
-
-.kdnotification.login
-  span
-    size                43px, 43px
-    bg                  position, -480px -120px
-    display             inline-block
-    margin-right        5px
-    vertical-align      middle
-    // sprite()
-
-// .recovery
-//   .kdnotification.mini
-//     top                   33px!important
 
 
 .kdtooltip.input-validation.just-text
