@@ -21,9 +21,11 @@ var (
 const serverAddr = "newkontrol.sj.koding.com:80"
 
 func main() {
+	flag.Parse()
+
 	options := &kite.Options{
 		Kitename:    "tunnelclient",
-		Version:     "1",
+		Version:     "0.0.2",
 		Region:      "localhost",
 		Environment: "development",
 		KontrolAddr: "newkontrol.sj.koding.com:4000",
