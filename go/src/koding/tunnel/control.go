@@ -39,7 +39,12 @@ func newControl(nc net.Conn, owner string) *control {
 
 func newControlDial(addr, identifier string) *control {
 	c := &control{}
-	c.Conn = conn.Dial(addr, true)
+	cn, err := conn.Dial(addr, true)
+	if err != nil {
+		log.Fatalln("newControlConn", err)
+	}
+
+	c.Conn = cn
 
 	request := func() {
 		err := c.connect(identifier)
