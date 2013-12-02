@@ -53,11 +53,6 @@ func TestDatastore(t *testing.T) {
         return
     }
 
-    if len(kites) == 0 {
-        fmt.Println("No datastore kite is available")
-        return
-    }
-
     datastoreClient := kites[0]
     err = datastoreClient.Dial()
     if err != nil {
