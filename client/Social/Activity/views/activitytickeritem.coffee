@@ -49,26 +49,25 @@ class ActivityTickerLikeItem extends ActivityTickerBaseItem
 
   pistachio: ->
     {source, target, subject} = @getData()
-    template = """{{> @avatar}} {{> @liker}} liked {{> @origin}} s {{> @subj}}"""
 
     # i did something
     if  source.getId() is KD.whoami().getId()
       # if user liked his/her post
       if source.getId() is target.getId() then \
-        return """{{> @avatar}} You liked your {{> @subj}}"""
+        return "{{> @avatar}} You liked your {{> @subj}}"
       else
-        return """{{> @avatar}} You liked {{> @origin}} s {{> @subj}}"""
+        return "{{> @avatar}} You liked {{> @origin}}'s {{> @subj}}"
 
     # someone did something to you
     if target.getId() is KD.whoami().getId() then \
-      return """{{> @avatar}} {{> @liker}} liked your {{> @subj}}"""
+      return "{{> @avatar}} {{> @liker}} liked your {{> @subj}}"
 
     # if user liked his/her post
     if source.getId() is target.getId() then \
-      return """{{> @avatar}} {{> @liker}} liked their {{> @subj}}"""
+      return "{{> @avatar}} {{> @liker}} liked their {{> @subj}}"
 
     # rest
-    """{{> @avatar}} {{> @liker}} liked {{> @origin}} s {{> @subj}}"""
+    return "{{> @avatar}} {{> @liker}} liked {{> @origin}}'s {{> @subj}}"
 
 class ActivityTickerMemberItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
