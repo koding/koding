@@ -12,9 +12,10 @@ class FeedController extends KDViewController
     options.dataType      or= null
     options.onboarding    or= null
     options.domId         or= ''
+    options.delegate       ?= null
 
     resultsController = options.resultsController or FeederResultsController
-    @resultsController  = new resultsController
+    @resultsController = new resultsController
       itemClass           : options.itemClass
       filters             : options.filter
       listControllerClass : options.listControllerClass
@@ -57,7 +58,9 @@ class FeedController extends KDViewController
     @sorts              = {}
     @defaultQuery       = options.defaultQuery ? {}
 
-    @resultsController.on 'LazyLoadThresholdReached', => @loadFeed()
+    {delegate} = options
+    if delegate then delegate.on 'LazyLoadThresholdReached', @bound 'loadFeed'
+    else @resultsController.on   'LazyLoadThresholdReached', @bound 'loadFeed'
 
     @defineFilter name, filter for own name, filter of options.filter
     @defineSort name, sort for own name, sort of options.sort
@@ -65,12 +68,6 @@ class FeedController extends KDViewController
 
     @on "FilterLoaded", ->
       KD.getSingleton("windowController").notifyWindowResizeListeners()
-
-# TODO: commented out by C.T.  Is this used anywhere?  I think not, looks botched: resultsCOntroller
-#  getNewFeedItems:->
-#    {dynamicDataType} = @getOptions()
-#    dynamicDataType.on 'feed.new', (items) =>
-#      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
 
   highlightFacets:->
     filterName  = @selection.name

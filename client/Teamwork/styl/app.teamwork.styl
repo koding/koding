@@ -1,5 +1,5 @@
-@import "./kdfn"
-@import "./client/stylus/appfn"
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
 
 @css {
 /*
@@ -14,6 +14,11 @@ app.teamwork.styl
       .title
         text-indent             10px
   .inner-header
+    bg                          color, #1B2224
+    bg                          image, none
+    border-bottom               3px solid #252E30
+    text-shadow                 none
+    color                       #5e7074
     .title
       text-indent               0
     .icon
@@ -22,10 +27,6 @@ app.teamwork.styl
       size                      37px 37px
       fl()
   .finder-pane
-    .file-container
-      vendor                    box-shadow, -3px 0px 3px rgba(0,0,0,0.2) inset
-    .client-finder-pane
-      vendor                    box-shadow, -3px 0px 3px rgba(0,0,0,0.2) inset
     &.file-container
       .no-vm-found-widget
         display                 none
@@ -371,3 +372,48 @@ app.teamwork.styl
     vendor              transition, opacity .6s ease-in-out
     &.fade-out
       opacity           0
+
+.teamwork
+  .workspace-launcher
+    top                 0
+    size                100px, 40px
+    cursor              default
+    .launcher-item
+      bg                color, transparent !important
+      bg                position, -1px -63px
+      rounded           0
+      size              20px, 20px
+      margin            12px 12px 0 0
+      fr()
+      pointer()
+      &.chat
+        bg              position, -3px -67px
+      &.terminal
+        bg              position, 0 -116px
+      &.preview
+        bg              position, 0px -13px
+  .finder-pane
+    .inner-header
+      border-top        3px solid #252e30
+      height            43px
+
+.tw-buttons-container
+  top                   0
+  right                 100px
+  position              absolute
+  width                 130px
+  text-align            right
+  button
+    background          none
+    border              none
+    top                 7px
+    right               2px
+    &:hover
+      background        none
+      border            none
+    &:focus
+      vendor            box-shadow, none
+      border            none
+  .tw-cog
+    display             block
+    sprite              teamwork, cog-icon

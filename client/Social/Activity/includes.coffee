@@ -1,5 +1,7 @@
 module.exports = [
 
+  "libs/highlightjs/highlight.pack.js"
+
   "AppController.coffee",
   "AppView.coffee",
   "activitylistcontroller.coffee",
@@ -13,10 +15,25 @@ module.exports = [
   "views/activityitemchild.coffee",
   "views/discussionactivityactions.coffee",
   "views/tutorialactivityactions.coffee",
-  "views/embedbox.coffee",
-  "views/embedboxviews.coffee",
   "views/newmemberbucket.coffee",
   "views/activitytickeritem.coffee",
+
+  "views/embedbox.coffee",
+  "views/embedboxwidget.coffee",
+
+  "views/embedbox/embedboxobjectview.coffee",
+  "views/embedbox/embedboximageview.coffee",
+  "views/embedbox/embedboxlinkviewdescription.coffee",
+  "views/embedbox/embedboxlinkdisplayview.coffee",
+  "views/embedbox/embedboxlinkviewimage.coffee",
+  "views/embedbox/embedboxlinksview.coffee",
+  "views/embedbox/embedboxlinkviewimageswitch.coffee",
+  "views/embedbox/embedboxlinksviewitem.coffee",
+  "views/embedbox/embedboxlinkviewprovider.coffee",
+  "views/embedbox/embedboxlinkview.coffee",
+  "views/embedbox/embedboxlinkviewtitle.coffee",
+  "views/embedbox/embedboxlinkviewauthor.coffee",
+  "views/embedbox/embedboxlinkviewcontent.coffee",
 
   "views/tags/TagViews.coffee",
   "views/tags/TagAutoCompleteController.coffee",
@@ -31,6 +48,8 @@ module.exports = [
   "views/reviews/reviewlistviewcontroller.coffee",
   "views/reviews/reviewlistitemview.coffee",
   "views/reviews/newreviewform.coffee",
+
+  "views/inputview.coffee"
 
   "widgets/widgetcontroller.coffee",
   "widgets/widgetview.coffee",

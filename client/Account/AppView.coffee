@@ -1,67 +1,62 @@
-class AccountNavigationLink extends KDListItemView
+class AccountNavigationItem extends KDListItemView
 
-  constructor:(options,data)->
-    super
-    @name = data.title
+  constructor:(options = {}, data)->
 
-  partial:(data)->
-    "<div class='navigation-item account clearfix'>
-        <a class='title' href='#'><span class='main-nav-icon #{__utils.slugify data.title}'></span>#{data.title}</a>
-    </div>"
+    options.tagName    = 'a'
+    options.attributes = href : "/Account/#{KD.utils.slugify data.title}"
+
+    super options, data
+
+    @name = @getData().title
+
+  partial:(data)-> data.title
 
 
 class AccountListWrapper extends KDView
 
   listClasses =
-    personal                         :
-      username                       : AccountEditUsername
-      security                       : AccountEditSecurity
-      emailNotifications             : AccountEmailNotifications
-      # linkedAccountsController       : AccountLinkedAccountsListController
-      linkedAccounts                 : AccountLinkedAccountsList
-      referralSystemController       : AccountReferralSystemListController
-      referralSystem                 : AccountReferralSystemList
-    billing                          :
-      historyController              : AccountPaymentHistoryListController
-      history                        : AccountPaymentHistoryList
-      methodsController              : AccountPaymentMethodsListController
-      methods                        : AccountPaymentMethodsList
-      subscriptionsController        : AccountSubscriptionsListController
-      subscriptions                  : AccountSubscriptionsList
-    develop                          :
-      editorsController              : AccountEditorListController
-      editors                        : AccountEditorList
-      mountsController               : AccountMountListController
-      mounts                         : AccountMountList
-      reposController                : AccountRepoListController
-      repos                          : AccountRepoList
-      keysController                 : AccountSshKeyListController
-      keys                           : AccountSshKeyList
-      kodingKeysController           : AccountKodingKeyListController
-      kodingKeys                     : AccountKodingKeyList
-    danger                           :
-      delete                         : DeleteAccountView
+    username                   : AccountEditUsername
+    security                   : AccountEditSecurity
+    emailNotifications         : AccountEmailNotifications
+    # linkedAccountsController   : AccountLinkedAccountsListController
+    linkedAccounts             : AccountLinkedAccountsList
+    referralSystemController   : AccountReferralSystemListController
+    referralSystem             : AccountReferralSystemList
+    historyController          : AccountPaymentHistoryListController
+    history                    : AccountPaymentHistoryList
+    methodsController          : AccountPaymentMethodsListController
+    methods                    : AccountPaymentMethodsList
+    subscriptionsController    : AccountSubscriptionsListController
+    subscriptions              : AccountSubscriptionsList
+    editorsController          : AccountEditorListController
+    editors                    : AccountEditorList
+    mountsController           : AccountMountListController
+    mounts                     : AccountMountList
+    reposController            : AccountRepoListController
+    repos                      : AccountRepoList
+    keysController             : AccountSshKeyListController
+    keys                       : AccountSshKeyList
+    kodingKeysController       : AccountKodingKeyListController
+    kodingKeys                 : AccountKodingKeyList
+    delete                     : DeleteAccountView
 
   viewAppended:->
 
-    data = @getData()
+    {listType, listHeader} = @getData()
 
-    @addSubView @header = new KDHeaderView type : "medium", title : data.item.listHeader
-    id    = if data.section?.id   then data.section.id    or 'default'
-    type  = if data.item.listType then data.item.listType or 'view'
+    @addSubView @header = new KDHeaderView type : "medium", title : listHeader
+    type = if listType then listType or ''
 
-    ListView = if listClasses[id]?[type]
-    then listClasses[id][type]
-    else KDListView
+    ListView   = if listClasses[type] then listClasses[type] else KDListView
+    Controller = if listClasses["#{type}Controller"] then listClasses["#{type}Controller"]
 
-    Controller = if listClasses[id]?["#{type}Controller"]
-    then listClasses[id]["#{type}Controller"]
-    else KDListViewController
+    view = new ListView cssClass : type, delegate: this
 
-    controller = new Controller
-      view     : new ListView cssClass : "#{id}-#{type}", delegate: this
+    if controller
+      controller = new Controller {view}
+      view       = controller.getView()
 
-    @addSubView controller.getView()
+    @addSubView view
 
 class AccountsSwappable extends KDView
   constructor:(options,data)->

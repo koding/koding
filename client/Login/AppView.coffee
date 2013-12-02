@@ -1,10 +1,79 @@
-class LoginView extends KDScrollView
+class LoginView extends KDView
 
-  stop = (event)->
-    event.preventDefault()
-    event.stopPropagation()
+  stop = KD.utils.stopDOMEvent
 
   backgroundImageNr = KD.utils.getRandomNumber 15
+
+  backgroundImages  = [
+
+      path         : "1"
+      href         : "http://www.flickr.com/photos/charliefoster/"
+      photographer : "Charlie Foster"
+    ,
+      path         : "2"
+      href         : "http://pican.de/"
+      photographer : "Dietmar Becker"
+    ,
+      path         : "3"
+      href         : "http://www.station75.com/"
+      photographer : "Marcin Czerwinski"
+    ,
+      path         : "4"
+      href         : "http://www.station75.com/"
+      photographer : "Marcin Czerwinski"
+    ,
+      path         : "5"
+      href         : "http://www.flickr.com/photos/discomethod/sets/72157635620513053/"
+      photographer : "Anton Sulsky"
+    ,
+      path         : "6"
+      href         : "http://www.jfrwebdesign.nl/"
+      photographer : "Joeri Römer"
+    ,
+      path         : "7"
+      href         : "http://be.net/Zugr"
+      photographer : "Zugr"
+    ,
+      path         : "8"
+      href         : ""
+      photographer : "Mark Doda"
+    ,
+      path         : "9"
+      href         : "http://www.twitter.com/rickwaalders"
+      photographer : "Rick Waalders"
+    ,
+      path         : "10"
+      href         : "http://madebyvadim.com/"
+      photographer : "Vadim Sherbakov"
+    ,
+      path         : "11"
+      href         : ""
+      photographer : "Zwaddi"
+    ,
+      path         : "12"
+      href         : "http://be.net/Zugr"
+      photographer : "Zugr"
+    ,
+      path         : "13"
+      href         : "http://www.romainbriaux.fr/"
+      photographer : "Romain Briaux"
+    ,
+      path         : "14"
+      href         : "https://twitter.com/Petchy19"
+      photographer : "petradr"
+    ,
+      path         : "15"
+      href         : "http://rileyb.me/"
+      photographer : "Riley Briggs"
+    ,
+      path         : "16"
+      href         : "http://chloecolorphotography.tumblr.com/"
+      photographer : "Chloe Benko-Prieur"
+
+  ]
+
+
+
 
   constructor:(options = {}, data)->
 
@@ -46,6 +115,14 @@ class LoginView extends KDScrollView
       tagName     : "a"
       partial     : "Create Account"
       click       : registerHandler
+
+    @github       = new KDButtonView
+      title       : "Sign in with GitHub"
+      style       : 'solid github'
+      icon        : yes
+      callback    : -> KD.singletons.oauthController.openPopup "github"
+
+    @github.setPartial "<span class='button-arrow'></span>"
 
     # @loginOptions = new LoginOptions
     #   cssClass : "login-options-holder log"
@@ -137,6 +214,7 @@ class LoginView extends KDScrollView
       # {{> @loginOptions}}
       # {{> @registerOptions}}
     """
+    <div class='tint'></div>
     <div class="flex-wrapper">
       <div class="login-box-header">
         <a class="betatag">beta</a>
@@ -160,14 +238,15 @@ class LoginView extends KDScrollView
       <div class="login-form-holder resend-confirmation-form">
         {{> @resendForm}}
       </div>
-    </div>
-    <div class="login-footer">
-      <div class='first-row clearfix'>
-        <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
+      <div class="login-footer">
+        <div class='first-row clearfix'>
+          <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
+        </div>
+        {{> @github}}
       </div>
     </div>
     <footer>
-      <a href="/tos.html" target="_blank">Terms of service</a><i>•</i><a href="/privacy.html" target="_blank">Privacy policy</a><i>•</i><a href="#" target="_blank"><span>photo by </span>some motherf*cker</a>
+      <a href="/tos.html" target="_blank">Terms of service</a><i>•</i><a href="/privacy.html" target="_blank">Privacy policy</a><i>•</i><a href="#{backgroundImages[backgroundImageNr].href}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr].photographer}</a>
     </footer>
     """
 
@@ -270,7 +349,7 @@ class LoginView extends KDScrollView
     (err, status)-> console.log "Status of fetching stuff from external: #{status}"
 
   afterLoginCallback: (err, params={})->
-    @loginForm.loader?.hide()
+    @loginForm.button.hideLoader()
     {entryPoint} = KD.config
     if err
       showError err
@@ -414,17 +493,21 @@ class LoginView extends KDScrollView
       @unsetClass "register recover login reset home resendEmail"
       @emit "LoginViewAnimated", name
       @setClass name
+      @$('.flex-wrapper').removeClass 'three one'
 
       switch name
         when "register"
-          @registerForm.fullName.input.setFocus()
+          @registerForm.email.input.setFocus()
         when "redeem"
+          @$('.flex-wrapper').addClass 'one'
           @redeemForm.inviteCode.input.setFocus()
         when "login"
           @loginForm.username.input.setFocus()
         when "recover"
+          @$('.flex-wrapper').addClass 'one'
           @recoverForm.usernameOrEmail.input.setFocus()
         when "resendEmail"
+          @$('.flex-wrapper').addClass 'one'
           @resendForm.usernameOrEmail.input.setFocus()
 
   getRouteWithEntryPoint:(route)->

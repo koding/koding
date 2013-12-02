@@ -21,7 +21,12 @@ html.app
 body
   font-family       'Helvetica Neue'
   font-weight       300
-  bg                color, #e9e7e1
+  bg                color, #e4e4e4
+
+input
+textarea
+button
+  font-family       'Helvetica Neue'
 
 .no-anim
   noAnim()
@@ -31,8 +36,8 @@ body
 
 #main-header
   margin            0
-  bg                color, #111617
-  size              100%,61px
+  bg                color, #28323c
+  size              100%,70px
   z-index           1000
   overflow          visible
   fix()
@@ -52,33 +57,35 @@ body
   left              0
 
 #koding-logo
-  size              61px, 61px
+  size              77px, 70px
+  bg                color, #2eb398
   fl()
 
   cite
     sprite          app logo
-    margin          21px 0 0 21px
+    margin          19px 0 0 25px
     display         block
 
 #main-nav
-  size              100%, 61px
+  size              100%, 70px
   overflow          visible
   fl()
   > a
     abs()
     display         block
-    size            61px, 61px
+    size            70px, 70px
     vendor          transition, top .2s linear\,\
                                 left .2s linear
     cite
       hidden()
     .icon
-      margin        14px 17px 15px 12px
+      margin        21px 0 0 19px
       display       block
     &.selected
       bg            color, #EEEEEF
       &.editor
       &.terminal
+      &.teamwork
         bg          color, #252E30
     &.activity .icon
       sprite      app nav-activity
@@ -94,6 +101,8 @@ body
       sprite      app nav-apps
     &.finder .icon
       sprite      app nav-finder
+    &.teamwork .icon
+      sprite      app nav-teamwork
 
 .account-area
   vendor            transform-style, preserve-3d
@@ -108,35 +117,39 @@ body
     vertical-align  top
 
   .acc-dropdown-icon
-    size            45px, 61px
+    size            70px, 70px
     display         inline-block
     .count
       cite
         display     none
     .icon
-      margin        20px 12px 21px 13px
-      size          20px, 20px
       display       block
     &.account .icon
       sprite        app account-cog
     &.notifications .icon
+      margin        25px 0 0 25px
       sprite        app account-notifications
     &.messages .icon
+      margin        23px 0 0 21px
       sprite        app account-messages
+    &.settings .icon
+      margin        20px 0 0 31px
+      sprite        app account-settings
     &.search .icon
+      margin        22px 0 0 23px
       sprite        app account-search
     &.groups
       abs()
-      top           20px
-      right         10px
+      top           29px
+      right         17px
       size          20px, 20px
       .icon
         margin      0
-        sprite      app '20-chevron-gray'
+        sprite      app '25-down-chevron'
 
   .search-form-container
-    bg                 color, #445053
-    size               400px, 61px
+    bg                 color, #212932
+    size               400px, 70px
     opacity            0
     vendor             transform, rotateY(90deg)
     vendor             transform-origin-x, 0
@@ -149,7 +162,7 @@ body
     borderBox()
 
     .kdinput
-      size             100%, 61px
+      size             100%, 70px
       border           none
       shadow           none
       text-indent      14px
@@ -171,10 +184,10 @@ body
                        opacity .5s ease
 
   .avatar-area
-    bg                 color, #445053
-    padding            10px 12px
-    height             61px
-    min-width          180px
+    bg                 color, #212932
+    padding            20px
+    height             70px
+    width              238px
     opacity            1
     vendor             transform-origin-x, 100%
     vendor             backface-visibility, hidden
@@ -184,25 +197,34 @@ body
     rel()
 
     .avatarview
-      margin-right    10px
+      margin-right    14px
+      rounded         100%
       fl()
     section
       width           auto
       display         block
       overflow        hidden
+      margin-top      -3px
+      fl()
       h2, h3
         margin        0
-        line-height   20px
       h2
-        font-size     13px
+        font-size     14px
         font-weight   400
+        white-space   nowrap
+        width         133px
         a
-          color       rgba(255, 255, 255, .8)
+          display     block
+          color       #aeb8c2
+          overflow    hidden
+          text-overflow ellipsis
           noTextDeco()
+
       h3
-        color         rgba(255, 255, 255, .5)
+        color         #828a93
         font-size     12px
         font-weight   300
+        margin-top    4px
 
   &.search-open
     right             400px

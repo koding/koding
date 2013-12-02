@@ -24,25 +24,32 @@ class ActivityAppView extends KDScrollView
     @feedWrapper      = new ActivityListContainer
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
     @header           = new HomeKonstructor
-    @widget           = new ActivityUpdateWidget
-    @widgetController = new ActivityUpdateWidgetController view : @widget
+    @inputWrapper     = new ActivityInput
     @activityTicker   = new ActivityTicker
     @activeUsers      = new ActiveUsers
     @onlineUsers      = new OnlineUsers
     @activeTopics     = new ActiveTopics
-
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
     @rightBlock       = new KDCustomHTMLView cssClass : "activity-right-block"
 
     @mainController   = KD.getSingleton("mainController")
 
+    @inputWrapper.addSubView new KDButtonView
+      type     : "submit"
+      cssClass : "fr"
+      title    : "Submit"
+      callback : =>
+        @inputWrapper.submit (err, activity) =>
+          @emit "InputSubmitted", activity  unless err
+
     @mainController.on "AccountChanged", @bound "decorate"
-    @mainController.on "JoinedGroup", => @widget.show()
+    @mainController.on "JoinedGroup", => @inputWrapper.show()
 
     @header.bindTransitionEnd()
 
     @feedWrapper.ready =>
-      @activityHeader = @feedWrapper.controller.activityHeader
+      @activityHeader  = @feedWrapper.controller.activityHeader
+      {@filterWarning} = @feedWrapper
       @on 'scroll', (event) =>
         if event.delegateTarget.scrollTop > 50
           @activityHeader.setClass "scrolling-up-outset"
@@ -64,7 +71,7 @@ class ActivityAppView extends KDScrollView
     @addSubView @leftBlock
     @addSubView @rightBlock
 
-    @leftBlock.addSubView @widget
+    @leftBlock.addSubView @inputWrapper
     @leftBlock.addSubView @feedWrapper
 
     @rightBlock.addSubView @activityTicker
@@ -79,11 +86,11 @@ class ActivityAppView extends KDScrollView
     # if KD.isLoggedIn()
     @setClass 'loggedin'
     if entryPoint?.type is 'group' and 'member' not in roles
-    then @widget.hide()
-    else @widget.show()
+    then @inputWrapper.hide()
+    else @inputWrapper.show()
     # else
     #   @unsetClass 'loggedin'
-    #   @widget.hide()
+    #   @inputWrapper.hide()
     @_windowDidResize()
 
   # changePageToActivity:(event)->
@@ -138,6 +145,7 @@ class ActivityListContainer extends JView
       # scrollView        : no
 
     @listWrapper = @controller.getView()
+    @filterWarning = new FilterWarning
 
     @controller.ready => @emit "ready"
 
@@ -146,5 +154,28 @@ class ActivityListContainer extends JView
 
   pistachio:->
     """
+      {{> @filterWarning}}
       {{> @listWrapper}}
     """
+
+class FilterWarning extends JView
+
+  constructor:->
+    super cssClass : 'filter-warning hidden'
+
+    @warning   = new KDCustomHTMLView
+    @goBack    = new KDButtonView
+      cssClass : 'goback-button'
+      callback : => KD.singletons.router.handleRoute '/Activity'
+
+  pistachio:->
+    """
+      {{> @warning}}
+      {{> @goBack}}
+    """
+
+  showWarning:(tag)->
+    @warning.updatePartial \
+      """You are now looking activities tagged with <strong>##{tag}</strong> """
+
+    @show()

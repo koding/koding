@@ -15,8 +15,8 @@ class AvatarArea extends KDCustomHTMLView
       attributes :
         title    : "View your public profile"
       size       :
-        width    : 36
-        height   : 36
+        width    : 25
+        height   : 25
     , account
 
     @profileLink = new ProfileLinkView {}, account

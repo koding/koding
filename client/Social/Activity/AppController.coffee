@@ -62,8 +62,7 @@ class ActivityAppController extends AppController
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
-      @ready @bound "populateActivity"
-    @emit 'ready'
+      @emit 'ready'
 
   resetAll:->
     @lastTo                 = null
@@ -96,17 +95,13 @@ class ActivityAppController extends AppController
   attachEvents:(controller)->
     activityController = KD.getSingleton('activityController')
     appView            = @getView()
-    {widgetController} = appView
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
     @listController = controller
     @bindLazyLoad()
 
-    widgetController.on "FakeActivityHasArrived", (activity)->
-      controller.fakeActivityArrived activity
-
-    widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
+    @getView().on "InputSubmitted", @bound "ownActivityArrived"
 
     appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
@@ -131,7 +126,17 @@ class ActivityAppController extends AppController
     @off "publicFeedFetched_#{eventSuffix}"
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
+  handleQuery:(query = {})->
+
+    if query.tagged
+      tag = KD.utils.slugify KD.utils.stripTags query.tagged
+      @setWarning tag, yes
+      options = filterByTag: tag
+
+    @ready => @populateActivity options
+
   populateActivity:(options = {}, callback=noop)->
+
     return  if @isLoading
     return  if @reachedEndOfActivities
 
@@ -141,19 +146,25 @@ class ActivityAppController extends AppController
     groupsController = KD.getSingleton 'groupsController'
     {isReady}        = groupsController
     currentGroup     = groupsController.getCurrentGroup()
+    {filterByTag,to} = options
 
-    reset = =>
+    setFeedData = (messages) =>
+
       @isLoading = no
       @bindLazyLoad()
+      @extractMessageTimeStamps messages
+      @listController.listActivities messages
+      callback messages
 
     fetch = =>
+
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
       #if exempt or @getFilter() isnt activityTypes
 
       groupObj     = KD.getSingleton("groupsController").getCurrentGroup()
-      mydate = new Date((new Date()).setSeconds(0) + 60000).getTime()
+      mydate       = new Date((new Date()).setSeconds(0) + 60000).getTime()
       options      =
         to         : options.to or mydate #Date.now() we cant cache if we change ts everytime.
         group      :
@@ -162,40 +173,52 @@ class ActivityAppController extends AppController
         limit      : 20
         facets     : @getActivityFilter()
         withExempt : no
+        slug       : filterByTag
 
-      if KD.getSingleton("activityController").flags.showExempt
-        options.withExempt = yes
-      else
-        options.withExempt = false
+      options.withExempt = \
+        KD.getSingleton("activityController").flags.showExempt?
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
       {roles} = KD.config
       group   = groupObj?.slug
 
-      if @getFeedFilter() is "Public"
-        @once "publicFeedFetched_#{eventSuffix}", (messages)=>
-          reset()
-          @extractMessageTimeStamps messages
-          @listController.listActivities messages
-          callback messages
+      if not to and (filterByTag or @_wasFilterByTag)
+        @resetAll()
+        @clearPopulateActivityBindings()
+        @_wasFilterByTag = filterByTag
 
+      if filterByTag? or (@_wasFilterByTag and to)
+
+        options.slug ?= @_wasFilterByTag
+        @once "topicFeedFetched_#{eventSuffix}", setFeedData
+        @fetchTopicActivities options
+        @setWarning options.slug
+
+      else if @getFeedFilter() is "Public"
+
+        @once "publicFeedFetched_#{eventSuffix}", setFeedData
         @fetchPublicActivities options
-      else
-        @once "followingFeedFetched_#{eventSuffix}", (activities)=>
-          reset()
-          @extractMessageTimeStamps messages
-          @listController.listActivities messages
-          callback messages
+        @setWarning()
 
+      else
+
+        @once "followingFeedFetched_#{eventSuffix}", setFeedData
         @fetchFollowingActivities options
+        @setWarning()
 
       # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
-    if isReady
-    then fetch()
+    if isReady then fetch()
     else groupsController.once 'GroupChanged', fetch
 
+  fetchTopicActivities:(options = {})->
+    options.to = @lastTo
+    {JStatusUpdate} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    JStatusUpdate.fetchTopicFeed options, (err, activities) =>
+      if err then @emit "activitiesCouldntBeFetched", err
+      else @emit "topicFeedFetched_#{eventSuffix}", activities
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo
@@ -206,7 +229,6 @@ class ActivityAppController extends AppController
       return @emit "activitiesCouldntBeFetched", err  if err
       @emit "publicFeedFetched_#{eventSuffix}", messages
 
-
   fetchFollowingActivities:(options = {})->
     {JStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
@@ -214,6 +236,17 @@ class ActivityAppController extends AppController
       if err
       then @emit "activitiesCouldntBeFetched", err
       else @emit "followingFeedFetched_#{eventSuffix}", activities
+
+  setWarning:(tag, loading = no)->
+    {filterWarning} = @getView()
+    if tag
+      unless loading
+        filterWarning.showWarning tag
+      else
+        filterWarning.warning.setPartial "Filtering activities by #{tag}..."
+        filterWarning.show()
+    else
+      filterWarning.hide()
 
   setLastTimestamps:(from, to)->
     # debugger
@@ -334,9 +367,9 @@ class ActivityAppController extends AppController
       @fetchActivitiesProfilePageWithExemptOption options, callback
 
   fetchActivitiesProfilePageWithExemptOption:(options, callback)->
-    {CStatusActivity} = KD.remote.api
+    {JStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
+    JStatusUpdate.fetchProfileFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
 
       if activities?.length > 0

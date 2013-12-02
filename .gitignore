@@ -40,18 +40,10 @@ node_modules/.bin
 sftp-config.json
 sftp-config.json
 v8.log
-website/css/kd*.css
-website/js/kd*.js
+
+website/css/__*.css
+website/js/__*.js
 website/js/*.js.map
-website/js/testapp.js
-website/css/testapp.css
-website/css/koding.*.css
-website/css/introapp.*.css
-website/css/landingapp.*.css
-website/js/bongo.*.js
-website/js/koding.*.js
-website/js/introapp.*.js
-website/js/landingapp.*.js
 website/default.html
 website/index.html
 kontrolUUID-*
@@ -59,8 +51,8 @@ kontrolUUID-*
 website/sprites/*.json
 website/sprites/*-*.png
 
-website/js/app.*.js
-website/js/social.*.js
-website/js/client.*.js
-website/css/app.*.css
-website/css/social.*.css
+website/*/landingapp*
+website/*/koding*
+website/*/kd*
+website/*/introapp*
+website/*/bongo*

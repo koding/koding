@@ -8,6 +8,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @avatars = {}
 
     @on "PanelCreated", (panel) =>
+      @createButtons panel
       @createRunButton panel  if playground
 
     @on "WorkspaceSyncedWithRemote", =>
@@ -56,6 +57,15 @@ class TeamworkWorkspace extends CollaborativeWorkspace
         userStatus = snapshot.val()
         return unless userStatus
         @manageUserAvatars userStatus
+
+  createButtons: (panel) ->
+    panel.addSubView @buttonsContainer = new KDCustomHTMLView
+      cssClass : "tw-buttons-container"
+
+    @buttonsContainer.addSubView new KDButtonView
+      iconClass: "tw-cog"
+      iconOnly : yes
+      callback : => @getDelegate().showToolsModal panel, this
 
   displayBroadcastMessage: (options) ->
     super options

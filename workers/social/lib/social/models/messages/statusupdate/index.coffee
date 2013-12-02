@@ -44,6 +44,10 @@ module.exports = class JStatusUpdate extends JPost
     schema            : schema
     relationships     : JPost.relationships
 
+  constructor:->
+    super
+    @notifyGroupWhen 'LikeIsAdded'
+
   @getActivityType =-> require './statusactivity'
 
   @fetchDataFromEmbedly = (urls, options, callback)->
@@ -112,7 +116,7 @@ module.exports = class JStatusUpdate extends JPost
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-  @fetchGroupActivity = secure (client, options, callback)->
+  @fetchGroupActivity = secure (client, options = {}, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {to} = options
@@ -125,38 +129,50 @@ module.exports = class JStatusUpdate extends JPost
         return callback err if err
         @decorateResults data, callback
 
-  @fetchProfileFeed = secure (client, options, callback)->
+  @fetchProfileFeed = secure (client, options = {}, callback)->
     {connection:{delegate}, context:{group}} = client
+    return callback new Error "Origin is not defined" unless options.originId
+
+    {to} = options
+    to = if to then new Date(to)  else new Date()
 
     selector =
-      originId : delegate.getId()
-      group    : group
+      originId        : options.originId
+      group           : group
+      "meta.createdAt": "$lt": to
 
-    options.sort = 'meta.createdAt' : -1
-    options.limit or= 20
-    @some selector, options, (err, data)=>
+    feedOptions =
+      sort  : 'meta.createdAt' : -1
+      limit : Math.min options.limit ? 20, 20
+
+    @some selector, feedOptions, (err, data)=>
       return callback err if err
       @decorateResults data, callback
 
-  @fetchTopicFeed = secure (client, options, callback)->
+  @fetchTopicFeed = secure (client, options = {}, callback)->
 
     {context:{group}} = client
 
     JTag = require '../../tag'
     JTag.one { slug : options.slug }, (err, tag)=>
-
       return callback err  if err
       return callback null, [] unless tag
 
-      # add group name into query
-      options.sort  ?= 'timestamp' : -1
-      options.limit ?= 20
+      {to} = options
+      to = if to then new Date(to)  else new Date()
 
-      tag.fetchContents {targetName: 'JStatusUpdate'}, options, (err, posts)=>
+      fetchOptions =
+        sort : {'timestamp': -1}
+        limit: options.limit or 20
+
+      tag.fetchContents {
+        targetName: 'JStatusUpdate'
+        "timestamp": "$lt": to
+      }, fetchOptions, (err, posts)=>
         return callback err if err
         @decorateResults posts, callback
 
-  @fetchFollowingFeed = secure (client, options, callback)->
+  @fetchFollowingFeed = secure (client, options = {}, callback)->
     {Activity} = require "../../graph"
     options.client = client
     Activity.fetchFolloweeContentsForNewKoding options, (err, ids)=>

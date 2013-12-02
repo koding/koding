@@ -15,7 +15,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       maxWidth    : 700
 
     if data.link?
-      @embedBox = new EmbedBox @embedOptions, data.link
+      @embedBox = new EmbedBoxWidget @embedOptions, data.link
     else
       @embedBox = new KDView
 
@@ -60,8 +60,8 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
         @embedBox.show()
         @embedBox.$().fadeIn 200
 
-        firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-        @embedBox.embedLinks.setLinks firstUrl  if firstUrl?
+        firstUrl = @getData().body.match @utils.botchedUrlRegExp
+        @embedBox.embedLinks.setLinks [firstUrl]  if firstUrl?
 
         embedOptions = maxWidth: 700, maxHeight: 300
         @embedBox.embedExistingData @getData().link.link_embed, embedOptions, =>
@@ -84,7 +84,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     # link = @getData().link?.link_url
     # if link
 
-    #   links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+    #   links = str.match @utils.botchedUrlRegExp
     #   if links?
     #     hasManyLinks = links.length > 1
     #   else
@@ -105,7 +105,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     {link} = @getData()
     if link?
       if @embedBox.constructor.name is "KDView"
-        @embedBox = new EmbedBox @embedOptions, link
+        @embedBox = new EmbedBoxWidget @embedOptions, link
 
       @embedBox.embedExistingData link.link_embed, {}, =>
         @embedBox.hide()  unless @embedBox.hasValidContent

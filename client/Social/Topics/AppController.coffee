@@ -21,15 +21,17 @@ class TopicsAppController extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-    @on "LazyLoadThresholdReached", => @feedController.loadFeed()
+    # @on "LazyLoadThresholdReached", => @feedController.loadFeed()
 
   createFeed:(view, loadFeed = no)->
     {JTag} = KD.remote.api
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       feedId                : 'topics.main'
       itemClass             : @listItemClass
       limitPerPage          : 20
       useHeaderNav          : yes
+      delegate              : this
       noItemFoundText       : "There are no topics."
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
@@ -56,7 +58,7 @@ class TopicsAppController extends AppController
                 {everything} = resultsController.listControllers
                 everything.forEachItemByIndex followees, ({followButton})->
                   followButton.setState 'Following'
-          dataError         :->
+          dataError         : ->
             log "Seems something broken:", arguments
 
         following           :
@@ -86,13 +88,11 @@ class TopicsAppController extends AppController
         'meta.modifiedAt'   :
           title             : "Latest activity"
           direction         : -1
-        'counts.post'     :
+        'counts.post'       :
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
       @feedController = controller
-      controller.resultsController.on 'ItemWasAdded', (item)=>
-        item.on 'LinkClicked', => @openTopic item.getData()
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
@@ -135,7 +135,7 @@ class TopicsAppController extends AppController
       width                       : 500
       overlay                     : yes
       tabs                        :
-        navigable              : yes
+        navigable                 : yes
         goToNextFormOnSubmit      : no
         forms                     :
           update                  :

@@ -3,46 +3,48 @@ class RegisterInlineForm extends LoginViewInlineForm
   constructor:(options={},data)->
     super options, data
 
-    @fullName = new LoginInputView
+    # @fullName = new LoginInputView
+    #   inputOptions    :
+    #     name          : "fullName"
+    #     placeholder   : "full name"
+    #     validate      :
+    #       container   : this
+    #       event       : "blur"
+    #       rules       :
+    #         required  : yes
+    #       messages    :
+    #         required  : "Please enter your name."
+    #     testPath      : "register-form-fullname"
+
+    @firstName = new LoginInputView
+      cssClass          : "half-size"
+      inputOptions      :
+        name            : "firstName"
+        placeholder     : "first name"
+        validate        :
+          notifications :
+            type        : 'tooltip'
+            placement   : 'left'
+            direction   : 'right'
+          container     : this
+          rules         :
+            required    : yes
+          messages      :
+            required    : "Please enter your first name."
+        testPath        : "register-form-firstname"
+
+    @lastName = new LoginInputView
+      cssClass        : "half-size"
       inputOptions    :
-        name          : "fullName"
-        placeholder   : "full name"
+        name          : "lastName"
+        placeholder   : "last name"
         validate      :
           container   : this
-          event       : "blur"
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter your name."
-        testPath      : "register-form-fullname"
-
-    # @firstName = new LoginInputView
-    #   cssClass        : "half-size"
-    #   inputOptions    :
-    #     name          : "firstName"
-    #     placeholder   : "first name"
-    #     validate      :
-    #       container   : this
-    #       event       : "blur"
-    #       rules       :
-    #         required  : yes
-    #       messages    :
-    #         required  : "Please enter your first name."
-    #     testPath      : "register-form-firstname"
-
-    # @lastName = new LoginInputView
-    #   cssClass        : "half-size"
-    #   inputOptions    :
-    #     name          : "lastName"
-    #     placeholder   : "last name"
-    #     validate      :
-    #       container   : this
-    #       event       : "blur"
-    #       rules       :
-    #         required  : yes
-    #       messages    :
-    #         required  : "Please enter your last name."
-    #     testPath      : "register-form-lastname"
+            required  : "Please enter your last name."
+        testPath      : "register-form-lastname"
 
     @email = new LoginInputViewWithLoader
       inputOptions    :
@@ -93,6 +95,13 @@ class RegisterInlineForm extends LoginViewInlineForm
         forceCase        : "lowercase"
         placeholder      : "username"
         testPath         : "register-form-username"
+        keyup            : =>
+
+          if (val = @username.input.getValue()).trim() isnt ''
+            @domain.updatePartial "#{val}.kd.io"
+          else
+            @domain.updatePartial "username.kd.io"
+
         validate         :
           container      : this
           rules          :
@@ -104,23 +113,13 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages       :
             required     : "Please enter a username."
             regExp       : "For username only lowercase letters and numbers are allowed!"
-            rangeLength  : "Username should be minimum 4 maximum 25 chars!"
+            rangeLength  : "Username should be between 4 and 25 characters!"
           events         :
             required     : "blur"
             rangeLength  : "keyup"
             regExp       : "keyup"
             usernameCheck: "keyup"
             finalCheck   : "blur"
-        iconOptions      :
-          tooltip        :
-            placement    : "right"
-            offset       : 2
-            title        : """
-                            Only lowercase letters and numbers are allowed,
-                            max 25 characters. Also keep in mind that the username you select will
-                            be a part of your koding domain, and can't be changed later.
-                            i.e. http://username.kd.io <h1></h1>
-                           """
 
     # @password = new LoginInputView
     #   inputOptions    :
@@ -156,13 +155,13 @@ class RegisterInlineForm extends LoginViewInlineForm
     #         required  : "Password confirmation required!"
     #         match     : "Password confirmation doesn't match!"
 
-    # @button = new KDButtonView
-    #   title         : "REGISTER"
-    #   type          : 'submit'
-    #   style         : "koding-orange"
-    #   loader        :
-    #     color       : "#ffffff"
-    #     diameter    : 21
+    @button = new KDButtonView
+      title         : "CREATE ACCOUNT"
+      type          : 'submit'
+      style         : "solid green"
+      loader        :
+        color       : "#ffffff"
+        diameter    : 21
 
     @disabledNotice = new KDCustomHTMLView
       tagName       : "section"
@@ -181,13 +180,17 @@ class RegisterInlineForm extends LoginViewInlineForm
         name        : "inviteCode"
         type        : 'hidden'
 
+    @domain = new KDCustomHTMLView
+      tagName : 'strong'
+      partial : 'username.kd.io'
+
     @on "SubmitFailed", (msg)=>
       # if msg is "Wrong password"
       #   @passwordConfirm.input.setValue ''
       #   @password.input.setValue ''
       #   @password.input.validate()
 
-      @loader?.hideLoader()
+      @button.hideLoader()
 
   usernameCheckTimer = null
 
@@ -198,6 +201,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   usernameCheck:(input, event, delay=800)->
     return if event?.which is 9
+    return if input.getValue().length < 4
 
     clearTimeout usernameCheckTimer
     input.setValidationResult "usernameCheck", null
@@ -256,19 +260,20 @@ class RegisterInlineForm extends LoginViewInlineForm
   pistachio:->
     """
     <section class='main-part'>
-      <div>{{> @fullName}}</div>
-      <div>{{> @email}}{{> @avatar}}</div>
-      <div>{{> @username}}</div>
+      <div class='email'>{{> @avatar}}{{> @email}}</div>
+      <div>{{> @firstName}}{{> @lastName}}</div>
+      <div class='username'>{{> @username}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:
         <span class='wrapper'></span>
       </div>
+      <div class='hint'>Your username must be at least 4 characters and it’s also going to be your {{> @domain}} domain.</div>
+      <div>{{> @button}}</div>
     </section>
     {{> @invitationCode}}
     {{> @disabledNotice}}
     """
-    # <div>{{> @firstName}}{{> @lastName}}</div>
+      # <div>{{> @fullName}}</div>
     #   <div>{{> @password}}</div>
     #   <div>{{> @passwordConfirm}}</div>
-    # <div>{{> @button}}</div>
