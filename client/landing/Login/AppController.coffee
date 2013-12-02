@@ -1,19 +1,20 @@
 class LoginAppsController extends AppController
 
+  handler = (callback)-> KD.singleton('appManager').open 'Login', callback
+
   KD.registerAppClass this,
-    name         : "Login"
-    route        : [
-      '/:name?/Login'
-      '/:name?/Redeem'
-      '/:name?/Register'
-      '/:name?/Recover'
-      '/:name?/ResendToken'
-    ]
-    hiddenHandle : yes
-    labels       : ['Redeem', 'Register', 'Recover', 'ResendToken']
-    preCondition :
-      condition  : (options, cb)-> cb not KD.isLoggedIn()
-      failure    : -> KD.getSingleton('router').handleRoute "/Activity"
+    name                    : "Login"
+    routes                  :
+      '/:name?/Login'       : handler.bind null, (app)-> app.getView().animateToForm 'login'
+      '/:name?/Redeem'      : handler.bind null, (app)-> app.getView().animateToForm 'redeem'
+      '/:name?/Register'    : handler.bind null, (app)-> app.getView().animateToForm 'register'
+      '/:name?/Recover'     : handler.bind null, (app)-> app.getView().animateToForm 'recover'
+      '/:name?/ResendToken' : handler.bind null, (app)-> app.getView().animateToForm 'resendEmail'
+    hiddenHandle            : yes
+    behavior                : 'application'
+    preCondition            :
+      condition             : (options, cb)-> cb not KD.isLoggedIn()
+      failure               : -> KD.getSingleton('router').handleRoute "/Activity"
 
   constructor:(options = {}, data)->
 
@@ -23,22 +24,3 @@ class LoginAppsController extends AppController
       name          : "Login"
 
     super options, data
-
-  appIsShown: (params)->
-    # @handleRoute "/#{params.label}"
-
-  handleQuery: ->
-    {currentPath} = KD.getSingleton 'router'
-    @handleRoute currentPath
-
-  handleRoute: (route)->
-    form = 'login'
-    s = (exp, tf)-> if route.match exp then form = tf
-    s /\/Login$/       , 'login'
-    s /\/Redeem$/      , 'redeem'
-    s /\/Register$/    , 'register'
-    s /\/Recover$/     , 'recover'
-    s /\/ResendToken$/ , 'resendEmail'
-
-    @utils.defer =>
-      @getView().animateToForm form
