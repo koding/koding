@@ -14,10 +14,10 @@
 package main
 
 import (
-	"fmt"
 	"flag"
-	"koding/newkite/kite"
+	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"koding/newkite/kite"
 )
 
 var port = flag.String("port", "", "port to bind itself")
@@ -39,8 +39,7 @@ func main() {
 	k.Run()
 }
 
-
-func New(options *kite.Options) *kite.Kite{
+func New(options *kite.Options) *kite.Kite {
 	k := kite.New(options)
 	k.HandleFunc("set", Set)
 	k.HandleFunc("get", Get)
@@ -54,12 +53,12 @@ func Set(r *kite.Request) (interface{}, error) {
 	}
 
 	key, ok := kv[0].(string)
-	if (!ok){
+	if !ok {
 		return nil, fmt.Errorf("Invalid string: %s", kv[0])
 	}
 
 	value, ok := kv[1].(string)
-	if (!ok){
+	if !ok {
 		return nil, fmt.Errorf("Invalid string: %s", kv[1])
 	}
 
@@ -71,6 +70,7 @@ func Set(r *kite.Request) (interface{}, error) {
 	if err != nil {
 		result = false
 	}
+
 	return result, err
 }
 
@@ -81,8 +81,8 @@ func Get(r *kite.Request) (interface{}, error) {
 	}
 
 	kv, err := modelhelper.GetKeyValue(r.Username, r.RemoteKite.Name, r.RemoteKite.Environment, key)
-	if err != nil{
-		return err, nil
+	if err != nil {
+		return nil, err
 	}
 
 	return kv.Value, nil
