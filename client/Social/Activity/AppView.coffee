@@ -61,7 +61,7 @@ class ActivityAppView extends KDScrollView
     @addSubView @header
     @addSubView @innerNav
     @addSubView @leftBlock
-    @addSubView @rightCorner
+    @addSubView @rightBlock
 
     @leftBlock.addSubView @widget
     @leftBlock.addSubView @feedWrapper
