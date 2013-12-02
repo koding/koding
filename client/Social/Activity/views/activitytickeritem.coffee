@@ -111,9 +111,19 @@ class ActiveUserItemView extends KDListItemView
 
     @actor    = new ProfileLinkView null, data
 
+    unless KD.whoami().getId() == data.getId()
+      @followButton = new FollowButton
+        stateOptions   :
+          unfollow     :
+            cssClass   : 'following-account'
+        dataType       : 'JAccount'
+      , data
+
   viewAppended:->
     @addSubView @avatar
     @addSubView @actor
+
+    @addSubView @followButton  if @followButton
 
 class ActiveTopicItemView extends KDListItemView
   constructor: (options = {}, data) ->
@@ -121,5 +131,13 @@ class ActiveTopicItemView extends KDListItemView
     super options, data
 
     @tag = new TagLinkView null, data
+    @followButton = new FollowButton
+      stateOptions   :
+        unfollow     :
+          cssClass   : 'following-topic'
+      dataType       : 'JTag'
+    , data
 
-  viewAppended:-> @addSubView @tag
+  viewAppended:->
+    @addSubView @tag
+    @addSubView @followButton
