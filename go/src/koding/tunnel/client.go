@@ -44,7 +44,6 @@ func NewClient(serverAddr, localAddr string) *Client {
 // server. Run is blocking.
 func (c *Client) Start(identifier string) {
 	c.controlConn = newControlDial(c.serverAddr, identifier)
-	log.Println("tunnelclient started and listening to %s", c.serverAddr)
 	go c.encoder()
 	c.decoder()
 }

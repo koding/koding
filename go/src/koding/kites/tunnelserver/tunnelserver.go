@@ -17,7 +17,6 @@ type registerResult struct {
 }
 
 var (
-	port            = flag.String("port", "", "port to bind itself")
 	log             *logging.Logger
 	baseVirtualHost = "test.arslan.kd.io"
 	server          = tunnel.NewServer()
@@ -28,10 +27,10 @@ func main() {
 
 	options := &kite.Options{
 		Kitename:    "tunnelserver",
-		Version:     "1",
-		Port:        *port,
+		Version:     "0.0.1",
 		Region:      "localhost",
 		Environment: "development",
+		PublicIP:    "newkontrol.sj.koding.com",
 	}
 
 	k := kite.New(options)
@@ -41,7 +40,7 @@ func main() {
 	k.Start()
 
 	http.Handle("/", server)
-	err := http.ListenAndServe(":7000", nil)
+	err := http.ListenAndServe(":80", nil)
 	if err != nil {
 		log.Error(err.Error())
 	}
