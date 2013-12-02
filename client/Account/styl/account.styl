@@ -43,13 +43,13 @@ body.account
 
   .content-page
     min-height            100%
-    max-width             700px
+    max-width             850px
     padding-top           150px
     > .kdtabview
       margin-left         64px
       height              100%
       kalc                width, 100% \- 254px
-      font-size           13px
+      font-size           14px
       fl()
 
   h2.kdheaderview
@@ -60,3 +60,49 @@ body.account
     span
       margin              0
       font-weight         300
+
+  .kdinput.text.thin
+    text-align            left
+    bg                    color #F4F4F4
+    padding               11px 20px
+
+    &[readonly=true]
+      opacity             .5
+
+    &.half
+      fl()
+      width               50%
+      &:first-child
+        kalc              width, 50% \- 1px
+        margin-right      1px
+
+  .avatarview
+    margin-top            11px
+    rounded               6px
+    fl()
+
+  section
+    overflow              hidden
+    width                 auto
+    margin-left           20px
+
+  .kdformview
+    .formline
+      border              none
+
+  .button-field
+    bg                    color transparent
+    .kdbutton.solid.green
+      width               100%
+
+
+  .email-notifications
+    line-height           55px
+    form.kdformview
+      rel()
+      border-bottom       1px solid #E1E1DF
+
+    .koding-on-off
+      abs()
+      top                 10px
+      right               0
