@@ -91,21 +91,23 @@ class TeamworkTools extends JView
     @hasTeamUpContent = yes
 
   createShareElements: ->
-    finderController   = new NFinderController
+    @finderController   = new NFinderController
       nodeIdPath       : "path"
       nodeParentIdPath : "parentPath"
       foldersOnly      : yes
       contextMenu      : no
       loadFilesOnInit  : yes
+      useStorage       : no
 
-    finder = finderController.getView()
-    finderController.reset()
+    finder = @finderController.getView()
+    @finderController.reset()
     finder.setHeight 150
 
     @sharePlaceholder.addSubView finder
     @sharePlaceholder.addSubView exportButton = new KDButtonView
       cssClass : "tw-export-button"
       title    : "Click to start export"
+      callback : => @export()
 
   export: ->
     return if @exporting
@@ -143,9 +145,27 @@ class TeamworkTools extends JView
             notification.notificationSetTitle "Your content has been exported."
             notification.notificationSetTimer 4000
             notification.setClass "success"
-            @getOptions().modal.destroy()
-            @showUrlShareModal shorten
+            @showUrlView shorten
       , no
+
+  showUrlView: (shortenUrl) ->
+    @sharePlaceholder.destroySubViews()
+    @sharePlaceholder.addSubView new KDCustomHTMLView
+      tagName      : "p"
+      cssClass     : "option"
+      partial      : "Your content is exported. Copy the url below and give it to your friends."
+    @sharePlaceholder.addSubView url = new KDInputView
+      cssClass     : "teamwork-modal-input shorten"
+      defaultValue : shortenUrl
+      attributes   :
+        readonly   : "readonly"
+      click        : => url.getDomElement().select()
+
+  updateNotification: (notification) ->
+    notification.notificationSetTitle "Something went wrong"
+    notification.notificationSetTimer 4000
+    notification.setClass "error"
+    @exporting = no
 
   pistachio: ->
     """
