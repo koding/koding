@@ -31,6 +31,22 @@ class ActivityTicker extends ActivityRightBase
     </div>
     """
 
+class OnlineUsers extends ActivityRightBase
+  constructor:(options={}, data)->
+    @itemClass = ActiveUserItemView
+
+    super options, data
+
+    KD.whoami().fetchMyOnlineFollowingsFromGraph {}, @renderItems.bind this
+
+  pistachio:
+    """
+    <div class="activity-ticker">
+      <h3>Online Users</h3>
+      {{> @tickerListView}}
+    </div>
+    """
+
 class ActiveUsers extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveUserItemView

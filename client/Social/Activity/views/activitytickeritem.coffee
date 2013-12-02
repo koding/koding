@@ -107,6 +107,7 @@ class ActiveUserItemView extends KDListItemView
     @avatar    = new AvatarView
       size     : width: 25, height: 25
       cssClass : "avatarview"
+      showStatus : yes
     , data
 
     @actor    = new ProfileLinkView null, data

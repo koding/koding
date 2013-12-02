@@ -28,6 +28,7 @@ class ActivityAppView extends KDScrollView
     @widgetController = new ActivityUpdateWidgetController view : @widget
     @activityTicker   = new ActivityTicker
     @activeUsers      = new ActiveUsers
+    @onlineUsers      = new OnlineUsers
     @activeTopics     = new ActiveTopics
 
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
@@ -67,6 +68,7 @@ class ActivityAppView extends KDScrollView
     @leftBlock.addSubView @feedWrapper
 
     @rightBlock.addSubView @activityTicker
+    @rightBlock.addSubView @onlineUsers
     @rightBlock.addSubView @activeUsers
     @rightBlock.addSubView @activeTopics
 
