@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"github.com/op/go-logging"
 	"koding/newkite/kite"
 	"koding/tunnel"
 	"net/http"
@@ -17,7 +18,7 @@ type registerResult struct {
 
 var (
 	port            = flag.String("port", "", "port to bind itself")
-	log             = kite.GetLogger()
+	log             *logging.Logger
 	baseVirtualHost = "test.arslan.kd.io"
 	server          = tunnel.NewServer()
 )
@@ -34,6 +35,8 @@ func main() {
 	}
 
 	k := kite.New(options)
+	log = k.Log
+
 	k.HandleFunc("register", Register)
 	k.Start()
 
