@@ -34,8 +34,9 @@ class TeamworkApp extends KDObject
         @showImportWarning importUrl
 
     @on "TeamUpRequested", =>
-      @teamwork.once "WorkspaceSyncedWithRemote", ->
-        log "TEAM UP PANPAAAAA!"
+      @teamwork.once "WorkspaceSyncedWithRemote", =>
+        @showToolsModal @teamwork.getActivePanel(), @teamwork
+        @tools.teamUpHeader.emit "click"
 
   createTeamwork: (options) ->
     @teamwork = new TeamworkWorkspace options or @getTeamworkOptions()
@@ -87,7 +88,7 @@ class TeamworkApp extends KDObject
       overlay   : yes
       width     : 600
 
-    modal.addSubView new TeamworkTools { modal, panel, workspace, twApp: this }
+    modal.addSubView @tools = new TeamworkTools { modal, panel, workspace, twApp: this }
     @emit "TeamworkToolsModalIsReady", modal
 
   showImportWarning: (url, callback = noop) ->
