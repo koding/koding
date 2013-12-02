@@ -3,6 +3,7 @@ package pool
 import (
 	"log"
 	"net"
+	"sync"
 	"testing"
 	"time"
 )
@@ -13,19 +14,12 @@ var (
 	network    = "tcp"
 	address    = "127.0.0.1:7777"
 	factory    = func() (net.Conn, error) { return net.Dial(network, address) }
-	testPool   = &Pool{}
 )
 
 func init() {
 	// used for factory function
 	go simpleTCPServer()
 	time.Sleep(time.Millisecond * 300) // wait until tcp server has been settled
-
-	var err error
-	testPool, err = newPool()
-	if err != nil {
-		log.Fatalln(err)
-	}
 }
 
 func TestNew(t *testing.T) {
@@ -36,89 +30,163 @@ func TestNew(t *testing.T) {
 }
 
 func TestPool_Get(t *testing.T) {
-	_, err := testPool.Get()
+	p, _ := newPool()
+	defer p.Close()
+
+	_, err := p.Get()
 	if err != nil {
 		t.Errorf("Get error: %s", err)
 	}
 
-	if testPool.UsedCapacity() != (InitialCap - 1) {
+	// after one get, current capacity should be lowered by one.
+	if p.CurrentCapacity() != (InitialCap - 1) {
 		t.Errorf("Get error. Expecting %d, got %d",
-			(InitialCap - 1), testPool.UsedCapacity())
+			(InitialCap - 1), p.CurrentCapacity())
 	}
 
+	// get them all
+	var wg sync.WaitGroup
 	for i := 0; i < (InitialCap - 1); i++ {
-		_, err := testPool.Get()
-		if err != nil {
-			t.Errorf("Get error: %s", err)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := p.Get()
+			if err != nil {
+				t.Errorf("Get error: %s", err)
+			}
+		}()
 	}
+	wg.Wait()
 
-	if testPool.UsedCapacity() != 0 {
+	if p.CurrentCapacity() != 0 {
 		t.Errorf("Get error. Expecting %d, got %d",
-			(InitialCap - 1), testPool.UsedCapacity())
+			(InitialCap - 1), p.CurrentCapacity())
 	}
 
-	_, err = testPool.Get()
+	_, err = p.Get()
 	if err != nil {
 		t.Errorf("Get error: %s", err)
 	}
 }
 
 func TestPool_Put(t *testing.T) {
-	conn, err := testPool.Get()
-	if err != nil {
-		t.Errorf("Put, get error: %s", err)
+	p, _ := newPool()
+	defer p.Close()
+
+	for i := 0; i < MaximumCap; i++ {
+		conn, _ := p.factory()
+		p.Put(conn)
 	}
 
-	err = testPool.Put(conn)
-	if err != nil {
-		t.Errorf("Put error: %s", err)
-	}
-
-	if testPool.UsedCapacity() != 1 {
+	if p.MaximumCapacity() != MaximumCap {
 		t.Errorf("Put error. Expecting %d, got %d",
-			1, testPool.UsedCapacity())
+			1, p.CurrentCapacity())
 	}
+
+	err := p.Put(nil)
+	if err == nil {
+		t.Errorf("Put error. A nil conn should be rejected")
+	}
+
+	conn, _ := p.factory()
+	err = p.Put(conn) // try to put into a full pool
+	if err == nil {
+		t.Errorf("Put error. Put into a full pool should return an error")
+	}
+
 }
 
 func TestPool_MaximumCapacity(t *testing.T) {
-	// Create new pool to test it
 	p, _ := newPool()
+	defer p.Close()
+
 	if p.MaximumCapacity() != MaximumCap {
 		t.Errorf("MaximumCapacity error. Expecting %d, got %d",
-			MaximumCap, testPool.UsedCapacity())
+			MaximumCap, p.CurrentCapacity())
 	}
 }
 
 func TestPool_UsedCapacity(t *testing.T) {
-	// Create new pool to test it
 	p, _ := newPool()
-	if p.UsedCapacity() != InitialCap {
+	defer p.Close()
+
+	if p.CurrentCapacity() != InitialCap {
 		t.Errorf("InitialCap error. Expecting %d, got %d",
-			InitialCap, p.UsedCapacity())
+			InitialCap, p.CurrentCapacity())
 	}
 }
 
-func TestPool_Destroy(t *testing.T) {
-	testPool.Destroy()
+func TestPool_Close(t *testing.T) {
+	p, _ := newPool()
+	conn, _ := p.factory() // to be used with put
 
-	conn, _ := testPool.Get()
-	if conn != nil {
-		t.Errorf("Destroy error, conn should be nil")
+	// now close it and test all cases we are expecting.
+	p.Close()
+
+	if p.conns != nil {
+		t.Errorf("Close error, conns channel should be nil")
 	}
 
-	err := testPool.Put(conn)
+	if p.factory != nil {
+		t.Errorf("Close error, factory should be nil")
+	}
+
+	_, err := p.Get()
 	if err == nil {
-		t.Errorf("Destroy error, err should be nil: %s", err)
+		t.Errorf("Close error, get conn should return an error")
 	}
 
-	if testPool.UsedCapacity() != 0 {
-		t.Errorf("Destroy error used capacity. Expecting 0, got %d", testPool.MaximumCapacity())
+	err = p.Put(conn)
+	if conn == nil {
+		t.Errorf("Close error, put conn should return an error")
 	}
 
-	if testPool.MaximumCapacity() != 0 {
-		t.Errorf("Destroy error max capacity. Expecting 0, got %d", testPool.MaximumCapacity())
+	if p.CurrentCapacity() != 0 {
+		t.Errorf("Close error used capacity. Expecting 0, got %d", p.CurrentCapacity())
 	}
+
+	if p.MaximumCapacity() != 0 {
+		t.Errorf("Close error max capacity. Expecting 0, got %d", p.MaximumCapacity())
+	}
+}
+
+func TestPoolConcurrent(t *testing.T) {
+	p, _ := newPool()
+	pipe := make(chan net.Conn, 0)
+
+	go func() {
+		p.Close()
+	}()
+
+	for i := 0; i < MaximumCap; i++ {
+		go func() {
+			conn, _ := p.Get()
+
+			pipe <- conn
+		}()
+
+		go func() {
+			conn := <-pipe
+			p.Put(conn)
+		}()
+	}
+}
+
+func TestPoolConcurrent2(t *testing.T) {
+	p, _ := newPool()
+
+	for i := 0; i < MaximumCap; i++ {
+		conn, _ := p.factory()
+		p.Put(conn)
+	}
+
+	for i := 0; i < MaximumCap; i++ {
+		go func() {
+			p.Get()
+		}()
+	}
+
+	p.Close()
 }
 
 func newPool() (*Pool, error) { return New(InitialCap, MaximumCap, factory) }
@@ -137,7 +205,6 @@ func simpleTCPServer() {
 		}
 
 		buffer := make([]byte, 256)
-		n, err := conn.Read(buffer)
-		log.Println(n, err)
+		conn.Read(buffer)
 	}
 }
