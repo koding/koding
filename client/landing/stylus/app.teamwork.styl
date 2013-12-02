@@ -362,12 +362,21 @@ app.teamwork.styl
     width               100%
 
 .tw-share-modal
+  &.active
+    .content
+      border-bottom     1px solid #C5C5C5
+      &.export
+        padding-bottom  10px
   .header
     height              40px
-    border-bottom       2px solid #C5C5C5
+    border-bottom       1px solid #C5C5C5
     padding             10px 0
+    pointer()
+    &:hover
+      bg                color, #ECF0F1
     &.active
       bg                color, #ECF0F1
+      border-bottom     none
     .icon
       size              50px, 40px
       fl()
@@ -381,12 +390,16 @@ app.teamwork.styl
     margin              10px 50px
     font-size           14px
     font-weight         300
-  input.session-key
-    margin-left         50px
+  .teamwork-modal-input
+    margin              0 10px 0 50px
     font-size           18px
-    border-radius       0
-    padding             20px
-    width               500px
+    border-radius       0 !important
+    padding             20px !important
+    width               240px
+    display             inline-block !important
+    &.url
+      margin-left       0
+      width             250px
   .user-list-container
     .online, .inner-header, .invite-bar
       display           none
@@ -402,17 +415,25 @@ app.teamwork.styl
         padding         20px
         font-size       18px
         width           410px
-    .invite-button.cupid-green
-      border-radius   0
-      height          42px
-      margin-top      -42px
-      border          none
-      background      #2880B9
-      box-shadow      none
-      text-transform  uppercase
-      font-weight     600
-      font-size       16px
-      text-shadow     none
-      width           84px
-      margin-left     466px
-
+  .invite-button.cupid-green, .tw-export-button
+    border-radius       0
+    height              42px
+    margin-top          -42px
+    border              none
+    background          #2880B9
+    box-shadow          none
+    text-transform      uppercase
+    font-weight         600
+    font-size           16px
+    text-shadow         none
+    width               84px
+    margin-left         466px
+  .tw-export-button
+    margin              0 0 0 320px
+    width               232px
+    color               #FFF
+  .nfinder
+    height              150px
+    width               500px
+    margin              5px 0 6px 50px
+    border              1px solid #CCC
