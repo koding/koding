@@ -32,9 +32,7 @@ func TestDatastore(t *testing.T) {
 	}
 
 	k := kite.New(clientOptions)
-	go k.Start()
-
-	time.Sleep(time.Second * 2)
+	k.Start()
 
 	query := protocol.KontrolQuery{
 		Username:    "devrim",
