@@ -38,7 +38,7 @@ func UpsertKeyValue(kv *models.KiteKeyValue) error {
                             "key": kv.Key,
                             "username": kv.Username,
                             "kitename": kv.KiteName,
-                            "environment": kv.Environment
+                            "environment": kv.Environment,
                             }, kv)
         return err
     }
@@ -54,7 +54,7 @@ func GetKeyValue(userName, kiteName, environment, key string) (*models.KiteKeyVa
                         "key": kv.Key,
                         "username": kv.Username,
                         "kitename": kv.KiteName,
-                        "environment": kv.Environment
+                        "environment": kv.Environment,
                         }).One(&kv)
     }
 

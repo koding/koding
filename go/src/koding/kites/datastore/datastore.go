@@ -14,6 +14,7 @@
 package main
 
 import (
+	"fmt"
 	"flag"
 	"koding/newkite/kite"
 	"koding/db/mongodb/modelhelper"
@@ -54,12 +55,12 @@ func Set(r *kite.Request) (interface{}, error) {
 
 	key, ok := kv[0].(string)
 	if (!ok){
-		return nil, "key must be a string"
+		return nil, fmt.Errorf("Invalid string: %s", kv[0])
 	}
 
 	value, ok := kv[1].(string)
 	if (!ok){
-		return nil, "value must be a string"
+		return nil, fmt.Errorf("Invalid string: %s", kv[1])
 	}
 
 	keyValue := modelhelper.NewKeyValue(r.Username, r.RemoteKite.Name, r.RemoteKite.Environment, key)
