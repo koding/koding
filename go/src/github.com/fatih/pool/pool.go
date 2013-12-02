@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sync"
 )
 
 // Factory is a function to create new connections.
@@ -13,13 +14,11 @@ type Factory func() (net.Conn, error)
 // Pool allows you to use a pool of net.Conn connections.
 type Pool struct {
 	// storage for our net.Conn connections
+	mu    sync.Mutex
 	conns chan net.Conn
 
 	// net.Conn generator
 	factory Factory
-
-	// to prevent access to closed channels
-	isDestroyed bool
 }
 
 // New returns a new pool with an initial capacity and maximum capacity.
@@ -35,16 +34,25 @@ func New(initialCap, maxCap int, factory Factory) (*Pool, error) {
 		factory: factory,
 	}
 
+	// create initial connections, if something goes wrong,
+	// just close the pool error out.
 	for i := 0; i < initialCap; i++ {
 		conn, err := factory()
 		if err != nil {
+			p.Close()
 			return nil, fmt.Errorf("factory is not able to fill the pool: %s", err)
 		}
-
 		p.conns <- conn
 	}
 
 	return p, nil
+}
+
+func (p *Pool) getConns() chan net.Conn {
+	p.mu.Lock()
+	conns := p.conns
+	p.mu.Unlock()
+	return conns
 }
 
 // Get returns a new connection from the pool. After using the connection it
@@ -52,48 +60,68 @@ func New(initialCap, maxCap int, factory Factory) (*Pool, error) {
 // available in the pool, a new connection will be created via the Factory()
 // method.
 func (p *Pool) Get() (net.Conn, error) {
-	if p.isDestroyed {
-		return nil, errors.New("pool is destroyed")
+	conns := p.getConns()
+	if conns == nil {
+		return nil, errors.New("pool is closed")
 	}
 
 	select {
-	case conn := <-p.conns:
+	case conn := <-conns:
+		if conn == nil {
+			return nil, errors.New("pool is closed")
+		}
 		return conn, nil
 	default:
 		return p.factory()
 	}
 }
 
-// Put puts a new connection into the pool. If the pool is full, conn is
-// discarded and a warning is output to stderr.
+// Put puts an existing connection into the pool. If the pool is full or
+// closed, conn is simply closed. A nil conn will be rejected. Putting into a
+// destroyed or full pool will be counted as an error.
 func (p *Pool) Put(conn net.Conn) error {
-	if p.isDestroyed {
-		return errors.New("pool is destroyed")
+	if conn == nil {
+		return errors.New("connection is nil. rejecting")
+	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.conns == nil {
+		conn.Close()
+		return errors.New("pool is closed")
 	}
 
 	select {
 	case p.conns <- conn:
 		return nil
 	default:
-		return errors.New("attempt to put into a full pool")
+		conn.Close()
+		return errors.New("pool is full")
 	}
 }
 
-// Destroy destroys the pool and close all connections. After Destroy() the
+// Close closes the pool and all its connections. After Close() the
 // pool is no longer usable.
-func (p *Pool) Destroy() {
-	if p.isDestroyed {
+func (p *Pool) Close() {
+	p.mu.Lock()
+	conns := p.conns
+	p.conns = nil
+	p.factory = nil
+	p.mu.Unlock()
+
+	if conns == nil {
 		return
 	}
 
-	close(p.conns)
-	p.conns = nil
-	p.factory = nil
-	p.isDestroyed = true
+	close(conns)
+	for conn := range conns {
+		conn.Close()
+	}
 }
 
 // MaximumCapacity returns the maximum capacity of the pool
-func (p *Pool) MaximumCapacity() int { return cap(p.conns) }
+func (p *Pool) MaximumCapacity() int { return cap(p.getConns()) }
 
-// UsedCapacity returns the used capacity of the pool.
-func (p *Pool) UsedCapacity() int { return len(p.conns) }
+// CurrentCapacity returns the current capacity of the pool.
+func (p *Pool) CurrentCapacity() int { return len(p.getConns()) }
