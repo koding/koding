@@ -58,3 +58,21 @@ func GetKeyValue(username, kiteId, usersKey string) (*models.KiteKeyValue, error
 
     return kv, nil
 }
+
+func init(){
+
+    query := func(c *mgo.Collection) error {
+        index := mgo.Index{
+            Key: []string{"key"},
+            Unique: true,
+            DropDups: true,
+            Background: true, // See notes.
+            Sparse: true,
+        }
+        err := c.EnsureIndex(index)
+        fmt.Println("err on EnsureIndex: ", err)
+        return err
+    }
+
+    mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
+}
