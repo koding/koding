@@ -12,18 +12,18 @@ import (
 
 const KiteKeyValueCollection = "jKiteKV"
 const KiteKeyValueDatabase   = "kite"
+const AutoExpire = false
 
-
-func NewKeyValue(username, kiteId, usersKey, value string) *models.KiteKeyValue {
+func NewKeyValue(userName, kiteName, environment, key string) *models.KiteKeyValue {
     // mongodb has 24k number of collection limit in a single database
     // http://stackoverflow.com/questions/9858393/limits-of-number-of-collections-in-databases
     // thats why we have a single collection and use single index
-    key := fmt.Sprintf("%s_%s_%s", username, kiteId, usersKey)
-
     return &models.KiteKeyValue{
         Key: key,
-        Value: value,
-        CreatedAt: time.Now().UTC(),
+        Value: "",
+        Username: userName,
+        KiteName: kiteName,
+        Environment: environment,
         ModifiedAt: time.Now().UTC(),
     }
 }
@@ -34,21 +34,18 @@ func UpsertKeyValue(kv *models.KiteKeyValue) error {
     }
 
     query := func(c *mgo.Collection) error {
-        _, err := c.Upsert(bson.M{"key": kv.Key}, kv)
-        fmt.Println("err on upsert: ", err)
+        _, err := c.Upsert(bson.M{"key": kv.Key, "username": kv.Username, "kitename": kv.KiteName, "environment": kv.Environment}, kv)
         return err
     }
 
     return mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
 }
 
-func GetKeyValue(username, kiteId, usersKey string) (*models.KiteKeyValue, error) {
-    key := fmt.Sprintf("%s_%s_%s", username, kiteId, usersKey)
-
-    kv := NewKeyValue(username, kiteId, usersKey, "")
+func GetKeyValue(userName, kiteName, environment, key string) (*models.KiteKeyValue, error) {
+    kv := NewKeyValue(userName, kiteName, environment, key)
 
     query := func(c *mgo.Collection) error {
-        return c.Find(bson.M{"key": key}).One(&kv)
+        return c.Find(bson.M{"key": kv.Key, "username": kv.Username, "kitename": kv.KiteName, "environment": kv.Environment}).One(&kv)
     }
 
     err := mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
@@ -59,14 +56,14 @@ func GetKeyValue(username, kiteId, usersKey string) (*models.KiteKeyValue, error
     return kv, nil
 }
 
-func init(){
+func EnsureKeyValueIndexes(){
 
     query := func(c *mgo.Collection) error {
         index := mgo.Index{
-            Key: []string{"key"},
+            Key: []string{"username", "kitename", "environment", "key"},
             Unique: true,
             DropDups: true,
-            Background: true, // See notes.
+            Background: true,
             Sparse: true,
         }
         err := c.EnsureIndex(index)
@@ -75,4 +72,24 @@ func init(){
     }
 
     mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
+
+    if AutoExpire {
+        // we create an auto-expire index, so mongodb will handle the expiration on
+        // key values.
+        query := func(c *mgo.Collection) error {
+            index := mgo.Index{
+                Key: []string{"ModifiedAt"},
+                Unique: false,
+                Background: true,
+                Sparse: true,
+                ExpireAfter: 24 * 60 * 60, // expire after a day
+            }
+            err := c.EnsureIndex(index)
+            fmt.Println("err on EnsureIndex: ", err)
+            return err
+        }
+
+        mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
+    }
+
 }
