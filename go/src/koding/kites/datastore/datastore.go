@@ -36,7 +36,7 @@ func main() {
 
 	options := &kite.Options{
 		Kitename:    "datastore",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        *port,
 		Region:      "localhost",
 		Environment: "development",
