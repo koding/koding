@@ -128,8 +128,8 @@ class ActiveUserItemView extends KDListItemView
     super options, data
 
     @avatar    = new AvatarView
-      size     : width: 25, height: 25
-      cssClass : "avatarview"
+      size       : width: 25, height: 25
+      cssClass   : "avatarview"
       showStatus : yes
     , data
 

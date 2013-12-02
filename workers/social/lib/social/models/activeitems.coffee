@@ -58,5 +58,4 @@ module.exports = class ActiveItems extends Base
             instances.push instance
             queue.next()
 
-      queue.push ->
-        callback null, instances
+      queue.push -> callback null, instances
