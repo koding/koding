@@ -14,7 +14,7 @@ class AccountAppController extends AppController
     personal :
       title : "Personal"
       items : [
-        { title : "Login & Email",        listHeader: "Email & username",           listType: "username"           }
+        { title : "User profile",         listHeader: "Here you can edit your account information.",           listType: "username"           }
         { title : "Password & Security",  listHeader: "Password & Security",        listType: "security"           }
         { title : "Email Notifications",  listHeader: "Email Notifications",        listType: "emailNotifications" }
         { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts"     }
