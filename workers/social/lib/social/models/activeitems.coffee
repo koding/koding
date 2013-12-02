@@ -36,7 +36,7 @@ module.exports = class ActiveItems extends Base
       sourceName : klass.name
       as         : $in : as
       $lte       : endOfToday   = new Date Date.now()
-      $gte       : startOfToday = new Date Date.now() - 1000*60*60*10024 # 24 hours
+      $gte       : startOfToday = new Date Date.now() - 1000*60*60*24 # 24 hours
     }
 
     Relationship.getCollection().group ["sourceId"], selector, {sum: 0},
