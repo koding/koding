@@ -30,7 +30,7 @@ func NewKeyValue(userName, kiteName, environment, key string) *models.KiteKeyVal
 
 func UpsertKeyValue(kv *models.KiteKeyValue) error {
     if kv.Key == "" {
-        panic(errors.New("KiteKeyValue must have Key field"))
+        return errors.New("KiteKeyValue must have Key field")
     }
 
     query := func(c *mgo.Collection) error {

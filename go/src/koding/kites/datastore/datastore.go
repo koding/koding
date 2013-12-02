@@ -71,7 +71,7 @@ func Set(r *kite.Request) (interface{}, error) {
 		result = false
 	}
 
-	return result, err
+	return result, nil
 }
 
 func Get(r *kite.Request) (interface{}, error) {
