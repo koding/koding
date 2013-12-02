@@ -15,22 +15,6 @@ class ActivityRightBase extends JView
     @tickerController.hideLazyLoader()
     @tickerController.addItem item for item in items  unless err
 
-class ActivityTicker extends ActivityRightBase
-  constructor:(options={}, data)->
-    @itemClass = ActivityTickerItem
-
-    super options, data
-
-    KD.remote.api.ActivityTicker.fetch {}, @renderItems.bind this
-
-  pistachio:
-    """
-    <div class="activity-ticker">
-      <h3>Activity Feed <i class="cog-icon"></i></h3>
-      {{> @tickerListView}}
-    </div>
-    """
-
 class OnlineUsers extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveUserItemView

@@ -71,6 +71,7 @@ module.exports = [
   "ContentDisplays/QA.coffee",
   "ContentDisplays/link.coffee",
   "ContentDisplays/ActivityRightBlock.coffee",
+  "ContentDisplays/ActivityTicker.coffee",
 
   # Activity content displays commons
   "ContentDisplays/ContentDisplayAuthorAvatar.coffee",
