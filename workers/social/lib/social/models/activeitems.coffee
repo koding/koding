@@ -32,28 +32,31 @@ module.exports = class ActiveItems extends Base
     mapping     = nameMapping[name]
     {klass, as} = mapping
 
-    selector    = {
+    matcher     = {
       sourceName : klass.name
       as         : $in : as
       $lte       : endOfToday   = new Date Date.now()
       $gte       : startOfToday = new Date Date.now() - 1000*60*60*24 # 24 hours
     }
 
-    Relationship.getCollection().group ["sourceId"], selector, {sum: 0},
-      (reduce = (record, memo)-> memo.sum += 1), true,
-      (err, items)->
-        return callback err  if err
+    Relationship.getCollection().aggregate {$match: matcher},
+      {$group:{_id:"$sourceId", total:{$sum:1}}},
+      {$limit:10},
+    , (err, items)->
+      callback err, items
 
-        items = _.sortBy items, (item)-> item.sum
-        items = items.reverse()
-        items = items[0..10]
+      return callback err  if err
 
-        instances = []
-        daisy queue = items.map (item) ->
-          ->
-            klass.one _id: item.sourceId, (err, instance)->
-              instances.push instance
-              queue.next()
+      items = _.sortBy items, (item)-> item.sum
+      items = items.reverse()
+      items = items[0..10]
 
-        queue.push ->
-          callback null, instances
+      instances = []
+      daisy queue = items.map (item) ->
+        ->
+          klass.one _id: item.sourceId, (err, instance)->
+            instances.push instance
+            queue.next()
+
+      queue.push ->
+        callback null, instances
