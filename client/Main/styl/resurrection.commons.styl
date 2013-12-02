@@ -513,32 +513,30 @@ input.kdinput.text.thin
   size                  66px 34px
   rounded               18px
   bg                    color, #989F9C
-  vendor                transition, color .3s ease
+  vendor                transition, background-color .3s ease
   cursor                pointer
+  noTextSelection()
   rel()
   &.on
     bg                  color, #6bb198
     a.knob
-      left              34px
+      vendor            transform, translateX(32px)
   a.knob
     bg                  color, #F4F4F4
     size                30px 30px
     display             block
-    rounded             15px
-    top                 2px
-    left                2px
-    vendor              transition, left .05s ease
-    abs()
+    rounded             50%
+    margin              2px 0 0 2px
+    -webkit-transition  -webkit-transform .1s ease
+    -moz-transition     -moz-transform .1s ease
+    transition          transform .1s ease
 
   &.small
     size                  52px 28px
     rounded               14px
     &.on a.knob
-      left                26px
+      vendor              transform, translateX(24px)
     a.knob
       size                24px 24px
-      rounded             12px
-      top                 2px
-      left                2px
 
 
