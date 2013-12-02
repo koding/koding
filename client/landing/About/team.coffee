@@ -25,7 +25,7 @@ KD.extend
         username  : 'sent-hil'
         title     : 'Software Engineer'
       ,
-        username  : 'siesta'
+        username  : 'cihangirsavas'
         title     : 'Software Engineer'
       ,
         username  : 'geraint'
@@ -37,7 +37,7 @@ KD.extend
         username  : 'erdinc'
         title     : 'Software Engineer'
       ,
-        username  : 'sonmez'
+        username  : 'szkl'
         title     : 'Software Engineer'
       ,
         username  : 'samet'
@@ -46,7 +46,7 @@ KD.extend
         username  : 'cenk6'
         title     : 'Software Engineer'
       ,
-        username  : 'neoberg'
+        username  : 'burakcan'
         title     : 'CSS Wizard'
       ,
         username  : 'emred'
@@ -68,7 +68,7 @@ KD.extend
         username  : 'meelash'
         title     : 'Software Engineer'
       ,
-        username  : 'rgoodness'
+        username  : 'rgoodman'
         title     : 'Designer'
       ,
         username  : 'sntran'
