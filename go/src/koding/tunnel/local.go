@@ -10,9 +10,15 @@ type local struct {
 	*conn.Conn
 }
 
-func newLocalDial(addr string) *local {
+func newLocalDial(addr string) (*local, error) {
 	l := &local{}
-	l.Conn = conn.Dial(addr, false)
+
+	c, err := conn.Dial(addr, false)
+	if err != nil {
+		return nil, err
+	}
+
+	l.Conn = c
 	l.SetDeadline(time.Time{})
-	return l
+	return l, nil
 }
