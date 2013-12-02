@@ -200,11 +200,28 @@ class TeamworkApp extends KDObject
       appStorage = KD.getSingleton("appStorageController").storage "Teamwork", "1.0"
       appStorage.setValue "#{playground}PlaygroundVersion", version
 
+  requestAttempts = {}
+
   doCurlRequest: (path, callback = noop) ->
-    KD.getSingleton("vmController").run "curl -kLs #{path}", (err, contents) =>
+    vmController = KD.getSingleton "vmController"
+    vmController.run
+      withArgs: "curl -kLs #{path}"
+      vmName  : vmController.defaultVmName
+    , (err, contents) =>
+      if err?.name is "ExitError"
+        numberOfAttemps = requestAttempts[path]
+        if numberOfAttemps is 3
+          return new KDNotificationView
+            type     : "mini"
+            cssClass : "error"
+            title    : "Something went wrong..."
+            duration : 5000
+
+        unless numberOfAttemps then requestAttempts[path] = 1 else requestAttempts[path]++
+        return @doCurlRequest path, callback
+
       extension = FSItem.getFileExtension path
       error     = null
-
       switch extension
         when "json"
           try
