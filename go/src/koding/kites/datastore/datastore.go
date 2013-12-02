@@ -34,8 +34,8 @@ func main() {
 	}
 
 	k := New(options)
-	k.Run()
 	modelhelper.EnsureKeyValueIndexes()
+	k.Run()
 }
 
 
@@ -43,7 +43,6 @@ func New(options *kite.Options) *kite.Kite{
 	k := kite.New(options)
 	k.HandleFunc("set", Set)
 	k.HandleFunc("get", Get)
-
 	return k
 }
 
@@ -53,8 +52,18 @@ func Set(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	keyValue := modelhelper.NewKeyValue(r.Username, r.RemoteKite.Name, r.RemoteKite.Environment, kv[0].(string))
-	keyValue.Value = kv[1].(string)
+	key, ok := kv[0].(string)
+	if (!ok){
+		return nil, "key must be a string"
+	}
+
+	value, ok := kv[1].(string)
+	if (!ok){
+		return nil, "value must be a string"
+	}
+
+	keyValue := modelhelper.NewKeyValue(r.Username, r.RemoteKite.Name, r.RemoteKite.Environment, key)
+	keyValue.Value = value
 	err = modelhelper.UpsertKeyValue(keyValue)
 
 	result := true

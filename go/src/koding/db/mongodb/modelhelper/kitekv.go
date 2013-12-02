@@ -34,7 +34,12 @@ func UpsertKeyValue(kv *models.KiteKeyValue) error {
     }
 
     query := func(c *mgo.Collection) error {
-        _, err := c.Upsert(bson.M{"key": kv.Key, "username": kv.Username, "kitename": kv.KiteName, "environment": kv.Environment}, kv)
+        _, err := c.Upsert(bson.M{
+                            "key": kv.Key,
+                            "username": kv.Username,
+                            "kitename": kv.KiteName,
+                            "environment": kv.Environment
+                            }, kv)
         return err
     }
 
@@ -45,7 +50,12 @@ func GetKeyValue(userName, kiteName, environment, key string) (*models.KiteKeyVa
     kv := NewKeyValue(userName, kiteName, environment, key)
 
     query := func(c *mgo.Collection) error {
-        return c.Find(bson.M{"key": kv.Key, "username": kv.Username, "kitename": kv.KiteName, "environment": kv.Environment}).One(&kv)
+        return c.Find(bson.M{
+                        "key": kv.Key,
+                        "username": kv.Username,
+                        "kitename": kv.KiteName,
+                        "environment": kv.Environment
+                        }).One(&kv)
     }
 
     err := mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
@@ -57,7 +67,6 @@ func GetKeyValue(userName, kiteName, environment, key string) (*models.KiteKeyVa
 }
 
 func EnsureKeyValueIndexes(){
-
     query := func(c *mgo.Collection) error {
         index := mgo.Index{
             Key: []string{"username", "kitename", "environment", "key"},
@@ -91,5 +100,4 @@ func EnsureKeyValueIndexes(){
 
         mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
     }
-
 }

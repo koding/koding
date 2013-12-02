@@ -14,5 +14,5 @@ type KiteKeyValue struct {
     Username    string        `bson:"username"`
     KiteName    string        `bson:"kitename"`
     Environment string        `bson:"environment"`
-    ModifiedAt  time.Time     `bson:"modifiedAt" json:"modifiedAt"`
+    ModifiedAt  time.Time     `bson:"modifiedAt"`
 }
