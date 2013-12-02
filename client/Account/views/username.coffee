@@ -1,153 +1,163 @@
-class AccountEditUsername extends KDView
+class AccountEditUsername extends JView
+
+  notify  = (msg)->
+    new KDNotificationView
+      title    : msg
+      duration : 2000
+
+  constructor:->
+
+    super
+
+    @account = KD.whoami()
+
+    @avatar = new AvatarStaticView @getAvatarOptions(), @account
+
+    @emailForm = new KDFormViewWithFields
+      fields               :
+        firstName          :
+          placeholder      : "firstname"
+          name             : "firstName"
+          cssClass         : "thin half"
+          nextElement      :
+            lastName       :
+              cssClass     : "thin half"
+              placeholder  : "lastname"
+              name         : "lastName"
+        email              :
+          cssClass         : "thin"
+          placeholder      : "you@yourdomain.com"
+          name             : "email"
+          testPath         : "account-email-input"
+        username           :
+          cssClass         : "thin"
+          placeholder      : "username"
+          name             : "username"
+          attributes       : readonly : "true"
+          testPath         : "account-username-input"
+        password           :
+          cssClass         : "thin half"
+          placeholder      : "password"
+          name             : "password"
+          type             : "password"
+          nextElement      :
+            confirm        :
+              cssClass     : "thin half"
+              placeholder  : "confirm password"
+              name         : "confirmPassword"
+              type         : "password"
+      buttons              :
+        Save               :
+          title            : 'SAVE CHANGES'
+          type             : 'submit'
+          style            : 'solid green fr'
+      callback             : @bound 'update'
+
+  update:(formData)->
+
+    {email} = formData
+
+    # fixme: if new pass inputs filled do change password
+    # CHANGE PASSWORD
+    # KD.remote.api.JUser.changePassword formData.password,(err,docs)=>
+    #   unless err then do @passwordDidUpdate
+
+    # CHANGE EMAIL
+
+    KD.remote.api.JUser.changeEmail {email}, (err, result)=>
+
+      return notify err.message  if err and err.name isnt 'PINExistsError'
+
+      notify err.message  if err and err.name is 'PINExistsError'
+
+      new VerifyPINModal 'Update E-Mail', (pin)=>
+        KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
+          notify if err then err.message else "E-mail changed!"
+          @emit "EmailChangedSuccessfully", email
+
 
   viewAppended:->
+
     KD.remote.api.JUser.fetchUser (err,user)=>
-      @putContents KD.whoami(), user
 
-  putContents:(account, user)->
+      @user    = user
 
-    # #
-    # ADDING EMAIL FORM
-    # #
-    @addSubView @emailForm = emailForm = new KDFormView
-      callback     : (formData)->
-        KD.remote.api.JUser.changeEmail
-          email : formData.email
-        , (err, result)=>
-          log err
-          if err and err.name isnt 'PINExistsError'
-            new KDNotificationView
-              title    : err.message
-              duration : 2000
-          else
-            if err and err.name is 'PINExistsError'
-              new KDNotificationView
-                title    : err.message
-                duration : 2000
-            new VerifyPINModal 'Update E-Mail', (pin)=>
-              KD.remote.api.JUser.changeEmail
-                email : formData.email
-                pin   : pin
-              , (err)=>
-                new KDNotificationView
-                  title    : if err then err.message else "E-mail changed!"
-                  duration : 2000
-                @emit "EmailChangedSuccessfully", formData.email
+      super
 
-          emailSwappable.swapViews()
+      @putDefaults()
 
-    emailForm.addSubView emailLabel = new KDLabelView
-      title        : "Your email"
-      cssClass     : "main-label"
 
-    emailInputs = new KDView cssClass : "hiddenval clearfix"
-    emailInputs.addSubView emailInput = new KDInputView
-      label        : emailLabel
-      defaultValue : user.email
-      placeholder  : "you@yourdomain.com..."
-      name         : "email"
-      testPath     : "account-email-input"
+  putDefaults:->
 
-    emailInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
-    inputActions.addSubView emailSave = new KDButtonView
-      title        : "Save"
-      type         : 'submit'
-    inputActions.addSubView emailCancel = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "cancel"
-      cssClass     : "cancel-link"
-      click        : => emailSwappable.swapViews()
+    {email} = @user
+    {nickname, firstName, lastName} = @account.profile
 
-    # EMAIL STATIC PART
-    nonEmailInputs = new KDView cssClass : "initialval clearfix"
+    @emailForm.inputs.email.setDefaultValue email
+    @emailForm.inputs.username.setDefaultValue nickname
+    @emailForm.inputs.firstName.setDefaultValue firstName
+    @emailForm.inputs.lastName.setDefaultValue lastName
 
-    nonEmailInputs.addSubView emailSpan = new KDCustomHTMLView
-      tagName      : "span"
-      partial      : user.email
-      cssClass     : "static-text status-#{user.status}"
-
-    emailForm.on "EmailChangedSuccessfully", (email)->
-      emailSpan.updatePartial email
-
-    nonEmailInputs.addSubView emailEdit = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "Edit"
-      cssClass     : "action-link"
-      testPath     : "account-email-edit"
-      click        : => emailSwappable.swapViews()
-
-    verifyEmail = new KDView
-    if user.status is "unconfirmed"
-      verifyEmail = new KDCustomHTMLView
+    if @user.status is "unconfirmed"
+      o =
         tagName      : "a"
         partial      : "You didn't verify your email yet <span>Verify now</span>"
         cssClass     : "action-link verify-email"
         testPath     : "account-email-edit"
         click        : =>
-          KD.remote.api.JEmailConfirmation.resetToken KD.whoami().profile.nickname, (err)=>
+          KD.remote.api.JEmailConfirmation.resetToken @account.profile.nickname, (err)=>
 
             message = "Email confirmation mail is sent"
-            if err
-              message = err.message
-            else
-              verifyEmail.hide()
+            if err then message = err.message else @verifyEmail.hide()
 
             new KDNotificationView
               title    : message
               duration : 3500
 
-    nonEmailInputs.addSubView verifyEmail
+    @addSubView @verifyEmail = new KDCustomHTMLView o
 
-    # SET EMAIL SWAPPABLE
-    emailForm.addSubView emailSwappable = new AccountsSwappable
-      views    : [emailInputs,nonEmailInputs]
-      cssClass : "clearfix"
 
-    # #
-    # ADDING USERNAME FORM
-    # #
-    @addSubView usernameForm = usernameForm = new KDFormView
-      callback     : (formData)->
-        # KD.whoami().changeUsername formData.username
-        new KDNotificationView
-          type  : "mini"
-          title : "Currently disabled!"
+  getAvatarOptions:->
 
-    usernameForm.addSubView usernameLabel = new KDLabelView
-      title        : "Your username"
-      cssClass     : "main-label"
+    showStatus    : yes
+    tooltip       :
+      title       : "<p class='centertext'>Click avatar to edit</p>"
+      placement   : "below"
+      arrow       : placement : "top"
+    size          :
+      width       : 160
+      height      : 160
+    click         : =>
+      KD.singleton('appManager').create 'Activity', =>
+        pos =
+          top  : @avatar.getY() - 8
+          left : @avatar.getX() - 8
 
-    usernameInputs = new KDView cssClass : "hiddenval clearfix"
-    usernameInputs.addSubView usernameInput = new KDInputView
-      label        : usernameLabel
-      defaultValue : account.profile.nickname
-      placeholder  : "username..."
-      name         : "username"
-      testPath     : "account-username-input"
-    usernameInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
-    inputActions.addSubView usernameSave = new KDButtonView
-      title        : "Save"
-      type         : "submit"
-    inputActions.addSubView usernameCancel = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "cancel"
-      cssClass     : "cancel-link"
-      click        : => usernameSwappable.swapViews()
+        @avatarMenu?.destroy()
+        @avatarMenu = new JContextMenu
+          menuWidth  : 312
+          cssClass   : "avatar-menu dark"
+          delegate   : @avatar
+          x          : @avatar.getX() + 96
+          y          : @avatar.getY() - 7
+        , customView : @avatarChange = new AvatarChangeView delegate: this, @account
 
-    # USERNAME STATIC PART
-    usernameNonInputs = usernameNonInputs = new KDView cssClass : "initialval clearfix"
-    usernameNonInputs.addSubView usernameSpan = new KDCustomHTMLView
-      tagName      : "span"
-      partial      : account.profile.nickname
-      cssClass     : "static-text"
-    usernameNonInputs.addSubView usernameEdit = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "Edit"
-      cssClass     : "action-link"
-      testPath     : "account-username-edit"
-      click        : => usernameSwappable.swapViews()
+        @avatarChange.on "UseGravatar", => @account.modify "profile.avatar" : ""
 
-    # SET USERNAME SWAPPABLE
-    usernameForm.addSubView usernameSwappable = new AccountsSwappable
-      views    : [usernameInputs,usernameNonInputs]
-      cssClass : "clearfix"
+        @avatarChange.on "UsePhoto", (dataURI)=>
+          [_, avatarBase64] = dataURI.split ","
+          @avatar.setAvatar "url(#{dataURI})"
+          @avatar.$().css
+            backgroundSize: "auto 90px"
+          @avatarChange.emit "LoadingStart"
+          @uploadAvatar avatarBase64, =>
+            @avatarChange.emit "LoadingEnd"
+
+  pistachio:->
+
+    """
+    {{> @avatar}}
+    <section>
+      {{> @emailForm}}
+    </section>
+    """
+
