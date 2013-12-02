@@ -162,7 +162,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := s.makeRequest(w, r)
+	err := s.makeRequest(w, r, 0)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "tunnel server-client disconnection.", 502)
@@ -174,7 +174,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // on top of the tunnel connection. It's a recursive function, that if the
 // request on a certain tunnel fails, it goes and applies the request to the
 // next one.
-func (s *Server) makeRequest(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) makeRequest(w http.ResponseWriter, r *http.Request, iteration int) error {
 	host := strings.ToLower(r.Host)
 	log.Printf("http from %s to %s  -- path: %s\n", r.RemoteAddr, r.Host, r.URL.String())
 
@@ -183,10 +183,9 @@ func (s *Server) makeRequest(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	// fmt.Println("recursiveIteration is", recursiveIteration)
-	// if recursiveIteration > s.capacityOfPool(host) {
-	// 	return errors.New("maximum recursive iteration has been reached. aborting")
-	// }
+	if iteration > s.capacityOfPool(host) {
+		return errors.New("maximum recursive iteration has been reached. aborting")
+	}
 
 	err = tunn.proxy(w, r)
 	if err != nil {
@@ -195,7 +194,8 @@ func (s *Server) makeRequest(w http.ResponseWriter, r *http.Request) error {
 		// all the tunnels are closed, tunnelFromPool will create new tunnels
 		// that eventually will finish this request.
 		log.Println("making another request")
-		return s.makeRequest(w, r)
+		iteration++
+		return s.makeRequest(w, r, iteration)
 	}
 
 	// only put it back when the tunnel connection is still alive

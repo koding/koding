@@ -856,7 +856,11 @@ Your password has been changed!  If you didn't request this change, please conta
       return callback err
 
   unlinkOAuths: (callback)->
-    @update $unset: {foreignAuth:1, foreignAuthType:1}, callback
+    @update $unset: {foreignAuth:1, foreignAuthType:1}, (err)=>
+      return callback err  if err
+      @fetchOwnAccount (err, account)->
+        return callback err  if err
+        account.unstoreAll callback
 
   @persistOauthInfo: (username, clientId, callback)->
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>
