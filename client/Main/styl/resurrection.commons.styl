@@ -505,3 +505,40 @@ input.kdinput.text.thin
     font-weight         300
 
 
+//
+// KODING ON-OFF SWITCH STYLES
+//
+
+.koding-on-off
+  size                  66px 34px
+  rounded               18px
+  bg                    color, #989F9C
+  vendor                transition, color .3s ease
+  cursor                pointer
+  rel()
+  &.on
+    bg                  color, #6bb198
+    a.knob
+      left              34px
+  a.knob
+    bg                  color, #F4F4F4
+    size                30px 30px
+    display             block
+    rounded             15px
+    top                 2px
+    left                2px
+    vendor              transition, left .05s ease
+    abs()
+
+  &.small
+    size                  52px 28px
+    rounded               14px
+    &.on a.knob
+      left                26px
+    a.knob
+      size                24px 24px
+      rounded             12px
+      top                 2px
+      left                2px
+
+

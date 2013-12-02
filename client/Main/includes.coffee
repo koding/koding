@@ -37,6 +37,8 @@ module.exports = [
   "CommonViews/splitview.coffee",
   "CommonViews/slidingsplit.coffee",
 
+  "CommonViews/kodingswitch.coffee",
+
   "CommonViews/tokenview.coffee",
   "CommonViews/suggestedtokenview.coffee",
 
