@@ -11,6 +11,7 @@ import (
 )
 
 const KiteKeyValueCollection = "jKiteKV"
+const KiteKeyValueDatabase   = "kite"
 
 
 func NewKeyValue(username, kiteId, usersKey, value string) *models.KiteKeyValue {
@@ -38,10 +39,10 @@ func UpsertKeyValue(kv *models.KiteKeyValue) error {
         return err
     }
 
-    return mongodb.Run(KiteKeyValueCollection, query)
+    return mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
 }
 
-func GetKeyValue(username, kiteId, usersKey string) (error, *models.KiteKeyValue) {
+func GetKeyValue(username, kiteId, usersKey string) (*models.KiteKeyValue, error) {
     key := fmt.Sprintf("%s_%s_%s", username, kiteId, usersKey)
 
     kv := NewKeyValue(username, kiteId, usersKey, "")
@@ -50,10 +51,10 @@ func GetKeyValue(username, kiteId, usersKey string) (error, *models.KiteKeyValue
         return c.Find(bson.M{"key": key}).One(&kv)
     }
 
-    err := mongodb.Run(KiteKeyValueCollection, query)
+    err := mongodb.RunOnDatabase(KiteKeyValueDatabase, KiteKeyValueCollection, query)
     if err != nil {
-        return err, nil
+        return nil, err
     }
 
-    return nil, kv
+    return kv, nil
 }
