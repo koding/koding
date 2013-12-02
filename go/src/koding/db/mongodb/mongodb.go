@@ -66,7 +66,7 @@ func (m *MongoDB) Run(collection string, s func(*mgo.Collection) error) error {
 	return s(c)
 }
 
-// run command on given database, instead of current database
+// RunOnDatabase runs command on given database, instead of current database
 // this is needed for kite datastores currently, since it uses another database
 // on the same connection. mongodb has database level write lock, which locks
 // the entire database while flushing data, if kites tend to send too many

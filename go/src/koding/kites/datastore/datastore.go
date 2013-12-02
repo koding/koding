@@ -21,16 +21,6 @@ import (
 
 var port = flag.String("port", "", "port to bind itself")
 
-func New(options *kite.Options) *kite.Kite{
-
-
-	k := kite.New(options)
-	k.HandleFunc("set", Set)
-	k.HandleFunc("get", Get)
-
-	return k
-}
-
 func main() {
 	flag.Parse()
 
@@ -48,6 +38,14 @@ func main() {
 	modelhelper.EnsureKeyValueIndexes()
 }
 
+
+func New(options *kite.Options) *kite.Kite{
+	k := kite.New(options)
+	k.HandleFunc("set", Set)
+	k.HandleFunc("get", Get)
+
+	return k
+}
 
 func Set(r *kite.Request) (interface{}, error) {
 	kv, err := r.Args.Array()
