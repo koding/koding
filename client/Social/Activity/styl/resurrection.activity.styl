@@ -87,9 +87,12 @@ resurrection.activity.styl
 
   .activity-right-block
     .activity-ticker
+    .online-users
+    .active-users
+    .active-topics
       .listview-wrapper
         .kdscrollview
-          height        450px
+          height        250px
           overflow      auto
 
       .kdlistitemview-activity-ticker-item
@@ -125,6 +128,43 @@ resurrection.activity.styl
         &.online
           i
             background    #2eb398
+
+    .online-users
+    .active-users
+      .kdlistitemview-activity-ticker-item
+        .profile
+          font-weight   400
+          color         #485259
+          noTextDeco()
+          line-height   42px
+          color         #485259
+          font-size     16px
+          text-transform capitalize
+          fl()
+
+    .active-topics
+      .ttag
+        size            170px, 42px
+        font-weight     400
+        color           #485259
+        noTextDeco()
+        line-height     42px
+        color           #485259
+        font-size       16px
+        text-transform  capitalize
+        overflow        hidden
+        white-space     nowrap
+        text-overflow ellipsis
+        fl()
+
+      .follow-btn
+        height        30px
+        margin        6px 0 0
+        fr()
+
+        span
+          font-size   14px
+          line-height 30px
 
 
 span.collapsedtext
