@@ -87,19 +87,6 @@ resurrection.activity.styl
 
   .activity-right-block
     .activity-ticker
-      h3
-        display         block
-        padding         0 0 0 3px
-        font-size       16px
-        font-weight     500
-        color           #485259
-        margin          0 0 13px 0
-
-        .cog-icon
-          display       block
-          sprite        activity, cog-icon
-          fr()
-
       .listview-wrapper
         .kdscrollview
           height        450px
@@ -413,12 +400,20 @@ span.collapsedtext
     size                auto, auto
     background          #fff
     border-radius       6px
-    margin              0 0 0 0
+    margin              0 0 29px 0
     padding             20px 23px 10px 18px
     borderBox()
 
     &~.right-block-box
       margin-top        29px
+
+    h3
+      display         block
+      padding         0 0 0 3px
+      font-size       16px
+      font-weight     500
+      color           #485259
+      margin          0 0 13px 0
 
   &.activity-right-block
     size                302px, auto
