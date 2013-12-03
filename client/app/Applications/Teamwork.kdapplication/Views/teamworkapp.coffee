@@ -135,11 +135,6 @@ class TeamworkApp extends KDObject
 
     finderController.mountVm "#{defaultVmName}:#{path}"
 
-  showPlaygroundsModal: ->
-    new TeamworkPlaygroundsModal
-      delegate    : this
-      playgrounds : @playgroundsManifest
-
   mergePlaygroundOptions: (manifest, playground) ->
     rawOptions                      = @getTeamworkOptions()
     {name}                          = manifest
