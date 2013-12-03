@@ -8,13 +8,13 @@ repeatFetchingItems = (fetcherFn, route, options)->
 
   cache[route] = inProgress : yes
 
-  timer = setTimeout ->
+  cache[route].timer = setTimeout ->
     cache[route].inProgress = no
     console.log "timeout reached, setting inProgress to false"
   , 120000
 
   fetcherFn options, (err, data)->
-    clearTimeout timer
+    clearTimeout cache[route].timer
     cache[route].inProgress = no
 
     if err
