@@ -67,6 +67,8 @@ class KodingAppsController extends KDController
 
       $('head')[0].appendChild script.getElement()
 
+  ###
+
   @manifests = {}
 
   @getManifestFromPath = getManifestFromPath = (path)->
