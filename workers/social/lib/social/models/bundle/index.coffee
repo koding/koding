@@ -1,8 +1,6 @@
-JProduct = require '../product'
-
 {Module} = require 'jraphical'
 
-module.exports = class JBundle extends JProduct
+module.exports = class JBundle extends Module
 
   {dash} = require 'bongo'
 

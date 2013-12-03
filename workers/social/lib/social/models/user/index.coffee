@@ -175,6 +175,8 @@ module.exports = class JUser extends jraphical.Module
       email = "#{username}@koding.com"
       @fetchUser client, (err, user) =>
         return callback err  if err?
+        return callback createKodingError "User not found #{username}"  unless user
+
         userValues = {
           username
           email
@@ -216,6 +218,11 @@ module.exports = class JUser extends jraphical.Module
                 isRegistration : false
                 username
               }
+              ((require 'koding-counter') {
+                db          : JAccount.getClient()
+                counterName : "koding~#{confirmUsername}~"
+                offset      : 0
+              }).reinitialize ->
               user.unlinkOAuths => @logout client, callback
 
   @isRegistrationEnabled =(callback)->
@@ -849,7 +856,11 @@ Your password has been changed!  If you didn't request this change, please conta
       return callback err
 
   unlinkOAuths: (callback)->
-    @update $unset: {foreignAuth:1, foreignAuthType:1}, callback
+    @update $unset: {foreignAuth:1, foreignAuthType:1}, (err)=>
+      return callback err  if err
+      @fetchOwnAccount (err, account)->
+        return callback err  if err
+        account.unstoreAll callback
 
   @persistOauthInfo: (username, clientId, callback)->
     @extractOauthFromSession clientId, (err, foreignAuthInfo, session)=>

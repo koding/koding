@@ -22,6 +22,9 @@ body
   font-family       'Helvetica Neue'
   font-weight       300
   bg                color, #e4e4e4
+  // vendor            transform-style, preserve-3d
+  // vendor            perspective, 500px
+  // vendor            perspective-origin-y, 0
 
 input
 textarea
@@ -35,12 +38,24 @@ button
   width             auto
 
 #main-header
-  margin            0
-  bg                color, #28323c
-  size              100%,70px
-  z-index           1000
-  overflow          visible
+  margin              0
+  bg                  color, #28323c
+  size                100%,70px
+  z-index             1000
+  overflow            visible
+  vendor              transform, rotateX(0)
+  vendor              transform-origin-y, 0
+  opacity             1
+  -webkit-transition  -webkit-transform .6s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,\
+                      opacity .6s ease
+  -moz-transition     -moz-transform .6s ease \,\
+                      opacity .6s ease
   fix()
+
+.intro #main-header
+.login #main-header
+  vendor            transform, rotateX(-90deg)
+  opacity           0
 
 #dock
   size              auto, auto
@@ -138,17 +153,9 @@ button
         display     none
     .icon
       display       block
-    &.account .icon
-      sprite        app account-cog
     &.notifications .icon
       margin        25px 0 0 25px
       sprite        app account-notifications
-    &.messages .icon
-      margin        23px 0 0 21px
-      sprite        app account-messages
-    &.settings .icon
-      margin        20px 0 0 31px
-      sprite        app account-settings
     &.search .icon
       margin        22px 0 0 23px
       sprite        app account-search

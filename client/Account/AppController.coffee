@@ -69,7 +69,7 @@ class AccountAppController extends AppController
     @navController = new KDListViewController
       view        : new KDListView
         tagName   : 'aside'
-        type      : 'account-nav'
+        type      : 'inner-nav'
         itemClass : AccountNavigationItem
       wrapper     : no
       scrollView  : no

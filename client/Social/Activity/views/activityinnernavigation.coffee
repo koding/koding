@@ -4,7 +4,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
     filterController = @setListController
       type: "filterme"
-      itemClass: ListGroupShowMeItem
+      itemClass: CommonInnerNavigationListItem
     , @filterMenuData
 
     @addSubView filterController.getView()
@@ -12,7 +12,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
     showMeFilterController = @setListController
       type : "showme"
-      itemClass : ListGroupShowMeItem
+      itemClass : CommonInnerNavigationListItem
     , @followerMenuData
 
     KD.getSingleton('mainController').on "AccountChanged", (account)=>

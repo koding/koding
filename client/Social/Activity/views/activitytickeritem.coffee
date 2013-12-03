@@ -51,8 +51,6 @@ class ActivityTickerLikeItem extends ActivityTickerBaseItem
     @origin   = new ProfileLinkView null, target
     @subj     = new @itemLinkViewClassMap[subject.bongo_.constructorName] null, subject
 
-
-
   pistachio: ->
     {source, target, subject} = @getData()
 
@@ -112,7 +110,7 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
 
   pistachio: ->
     {target} = @getData()
-    if @actor.getId is KD.whoami().getId()
+    if target.getId() is KD.whoami().getId()
       return "{{> @avatar}} You installed {{> @object}}"
 
     return "{{> @avatar}} {{> @actor}} installed {{> @object}}"
@@ -136,3 +134,50 @@ class ActivityTickerItem extends KDListItemView
     if itemClass
     then @addSubView new itemClass null, data
     else @destroy()
+
+
+class ActiveUserItemView extends KDListItemView
+  constructor: (options = {}, data) ->
+    options.type = "activity-ticker-item"
+    super options, data
+
+    data = @getData()
+
+    @avatar  = new AvatarView
+      size       : width: 25, height: 25
+      cssClass   : "avatarview"
+      showStatus : yes
+    , data
+
+    @actor = new ProfileLinkView {}, data
+
+    unless KD.isMine data
+      @followButton = new FollowButton
+        stateOptions   :
+          unfollow     :
+            cssClass   : 'following-account'
+        dataType       : 'JAccount'
+      , data
+
+  viewAppended:->
+    @addSubView @avatar
+    @addSubView @actor
+
+    @addSubView @followButton  if @followButton
+
+class ActiveTopicItemView extends KDListItemView
+  constructor: (options = {}, data) ->
+    options.type = "activity-ticker-item"
+    super options, data
+
+    @tag = new TagLinkView {}, data
+    @followButton = new FollowButton
+      stateOptions   :
+        unfollow     :
+          cssClass   : 'following-topic'
+      dataType       : 'JTag'
+    , data
+
+  viewAppended:->
+    @addSubView @tag
+    @addSubView @followButton

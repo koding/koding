@@ -1,7 +1,6 @@
-class ActivityTicker extends JView
+class ActivityTicker extends ActivityRightBase
   constructor:(options={}, data)->
-    options.cssClass      = "activity-right-block"
-
+    options.cssClass = KD.utils.curry "activity-ticker", options.cssClass
     super options, data
 
     @listController = new KDListViewController

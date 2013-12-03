@@ -8,6 +8,8 @@ module.exports = (options = {}, callback)->
   options.client.context or= {}
   options.client.context.group or= "koding"
 
+  {argv} = require 'optimist'
+
   prefetchedFeeds = {}
   {client, intro, landing} = options
 
@@ -66,7 +68,7 @@ module.exports = (options = {}, callback)->
       f=d.getElementsByTagName("script")[0];s.src="//d37gvrvc0wt4s1.cloudfront.net/js/1/rollbar.min.js";s.async=!0;
       f.parentNode.insertBefore(s,f);};if(w.addEventListener){w.addEventListener("load",i,!1);}else{w.attachEvent("onload",i);}})(window,document);
     </script>
-
+    #{if argv.t then "<script src=\"/js/tests.js\"></script>" else ''}
     """
 
   generateScript = ->

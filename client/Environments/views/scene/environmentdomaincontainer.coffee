@@ -35,4 +35,6 @@ class EnvironmentDomainContainer extends EnvironmentContainer
               domain      : domain
 
           addedCount++
-          @emit "DataLoaded"  if addedCount is domains.length
+
+          if addedCount is domains.length
+            @emit "DataLoaded"

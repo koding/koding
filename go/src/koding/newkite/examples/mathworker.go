@@ -1,43 +1,41 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"koding/newkite/kite"
-	"koding/newkite/protocol"
-	"strconv"
 )
-
-type Math struct{}
 
 var port = flag.String("port", "", "port to bind itself")
 
 func main() {
 	flag.Parse()
-	options := &protocol.Options{
-		Kitename: "mathworker",
-		Version:  "1",
-		Port:     *port,
-	}
 
-	methods := map[string]string{
-		"math.square": "Square",
+	options := &kite.Options{
+		Kitename:    "mathworker",
+		Version:     "0.0.1",
+		Port:        *port,
+		Region:      "localhost",
+		Environment: "development",
+		PublicIP:    "127.0.0.1",
 	}
 
 	k := kite.New(options)
-	k.AddMethods(new(Math), methods)
-	k.Start()
+
+	k.HandleFunc("square", Square)
+
+	k.Run()
 }
 
-func (Math) Square(r *protocol.KiteRequest, result *string) error {
-	a, ok := r.Args.(float64)
-	if !ok {
-		return errors.New("Send float64")
-	}
-	b := int(a)
-	*result = strconv.Itoa(b * b)
+func Square(r *kite.Request) (interface{}, error) {
+	a := r.Args.MustFloat64()
 
-	fmt.Printf("Kite call, sending result '%s' back\n", *result)
-	return nil
+	result := a * a
+
+	fmt.Printf("Kite call, sending result %.0f back\n", result)
+
+	// Print a log on remote Kite.
+	r.RemoteKite.Go("log", fmt.Sprintf("You have requested square of: %f", a))
+
+	return result, nil
 }

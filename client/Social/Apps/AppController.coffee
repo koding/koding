@@ -2,7 +2,11 @@ class AppsAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Apps"
-    route        : "/:name?/Apps"
+    # route        : "/:name?/Apps"
+    routes       :
+      "/:name?/Apps" : -> log arg
+      "/:name?/Apps/:username" : ({params : {username}})-> log username, 'sade username'
+      "/:name?/Apps/:username/:appName" : ({params : {username, appName}})-> log username, appName
     hiddenHandle : yes
     version      : "1.0"
     navItem      :

@@ -1,7 +1,7 @@
 # Wrapper for pushing events to Rollbar
 if _rollbar? && KD.config.logToExternal then do ->
   KD.logToExternal = (args) ->
-    _rollbar.push args
+    _rollbar.push args  unless KD.isGuest()
 
   # set user info in rollbar for people tracking
   KD.getSingleton('mainController').on "AccountChanged", (account) ->

@@ -14,19 +14,20 @@ resurrection.account.dropdown.styl
   border                    none
   overflow                  visible
   top                       68px
-  z-index                   1000
   width                     280px
-  visibility                hidden
+  z-index                   -1
   opacity                   0
-  transition                opacity ease-out .2s, visibility ease-out .2s
-  transform                 scale(0.01) skew(89deg) translate(100px,-100px)
-  transform-origin          left top
+  transition                opacity .2s ease-out, z-index .01s .2s
+  vendor                    perspective, 600px
+  vendor                    transform-style, preserve-3d
   fix()
   &.active
-    visibility              visible
+    z-index                 1000
     opacity                 1
-    transform               scale(1) skew(0deg)
     transition-delay        0s
+
+    .content
+      vendor                transform, rotateX(0deg)
 
   .kdview.kdlistview
     margin                  0
@@ -49,23 +50,22 @@ resurrection.account.dropdown.styl
     size                    100%, auto
     bg                      color, #212932
     rounded                 0 0 5px 5px
+    vendor                  transform, rotateX(-90deg)
+    vendor                  transform-origin-y, 0
+    -webkit-transition      -webkit-transform .3s ease
+    -moz-transition         -moz-transform .3s ease
+    transition              transform .3s ease
     borderBox()
 
   &.notifications
-  &.messages
     .content
       right                 209px
 
   &.notifications
-    right                   170px
-    .tab span
-      margin-top            24px
-      sprite                app account-notifications
-
-  &.messages
     right                   99px
     .tab span
-      sprite                app account-messages
+      margin                24px 0 0 7px
+      sprite                app account-notifications
 
   &.group-switcher
     right                   70px

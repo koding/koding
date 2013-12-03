@@ -93,7 +93,7 @@ KD.extend
     no
 
   showError:(err, messages)->
-    return  unless err
+    return no  unless err
 
     if 'string' is typeof err
       message = err
@@ -123,7 +123,10 @@ KD.extend
 
     new KDNotificationView {title, content, duration}
 
-    warn "KodingError:", err.message  unless err.name is 'AccessDenied'
+    unless err.name is 'AccessDenied'
+      warn "KodingError:", err.message
+      error err
+    err?
 
   getPathInfo: (fullPath)->
     return no unless fullPath
@@ -150,6 +153,8 @@ KD.extend
     return "#{if secure then 'https' else 'http'}://#{subdomain}#{vmName}/#{publicPath}"
 
   runningInFrame: -> window.top isnt window.self
+
+  getGroup: -> (KD.getSingleton 'groupsController').getCurrentGroup()
 
   getReferralUrl: (username) ->
     "#{location.origin}/R/#{username}"

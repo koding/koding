@@ -132,6 +132,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchMyPermissions'
         'fetchMyPermissionsAndRoles'
         'fetchMyFollowingsFromGraph'
+        'fetchMyOnlineFollowingsFromGraph'
         'fetchMyFollowersFromGraph'
         'blockUser'
         'unblockUser'
@@ -151,6 +152,10 @@ module.exports = class JAccount extends jraphical.Module
         'store'
         'unstore'
         'isEmailVerified'
+        'fetchEmail'
+        'fetchPaymentMethods'
+        'fetchSubscriptions'
+        'fetchPlansAndSubscriptions'
       ]
     schema                  :
       skillTags             : [String]
@@ -280,6 +285,14 @@ module.exports = class JAccount extends jraphical.Module
       invitationRequest :
         as          : 'owner'
         targetType  : 'JInvitationRequest'
+
+      paymentMethod :
+        as          : 'payment method'
+        targetType  : 'JPaymentMethod'
+
+      subscription  :
+        as          : 'service subscription'
+        targetType  : 'JPaymentSubscription'
 
   constructor:->
     super
@@ -569,6 +582,16 @@ module.exports = class JAccount extends jraphical.Module
         for doc in docs
           results.push doc.profile.fullname
         callback err, results
+
+  # I wrote it and decided that it is not necessary, feel free to remove ~ GG
+  #
+  # @filterUsernames = permit 'list members',
+  #   success: (client, nick, options, callback)->
+  #     [callback, options] = [options, callback]  unless callback
+  #     options or= {}
+  #     options.limit = 10
+  #     query = 'profile.nickname' : ///^#{nick}///
+  #     @some query, options, callback
 
   setEmailPreferences: (user, prefs, callback)->
     current = user.getAt('emailFrequency') or {}
@@ -947,6 +970,12 @@ module.exports = class JAccount extends jraphical.Module
 
       storage.remove callback
 
+  unstoreAll: (callback)->
+    @fetchStorages [], (err, storages)->
+      daisy queue = storages.map (storage) ->
+        -> storage.remove -> queue.next()
+      queue.push -> callback null
+
   _store: ({name, content}, callback)->
     @fetchStorage { 'data.name' : name }, (err, storage)=>
       if err
@@ -1184,6 +1213,12 @@ module.exports = class JAccount extends jraphical.Module
       if err then return callback err
       else return callback null, results
 
+  fetchMyOnlineFollowingsFromGraph: secure (client, options, callback)->
+    options.client = client
+    Member.fetchOnlineFollowingMembers options, (err, results)=>
+      if err then return callback err
+      else return callback null, results
+
   fetchMyFollowersFromGraph: secure (client, options, callback)->
     options.client = client
     Member.fetchFollowerMembers options, (err, results)=>
@@ -1226,7 +1261,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchUser (err, user)=>
         return callback err  if err
 
-        query                            = {}
+        query = {}
         query["foreignAuth.#{provider}"] = ""
         user.update $unset: query, (err)=>
           return callback err  if err
@@ -1246,3 +1281,57 @@ module.exports = class JAccount extends jraphical.Module
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback)->
     @update $set: 'meta.modifiedAt': new Date, callback
+
+  fetchEmail: secure (client, callback)->
+    {delegate} = client.connection
+    isMine     = @equals delegate
+    if isMine
+      @fetchUser (err, user)->
+        return callback err  if err
+        callback null, user?.email
+    else
+      callback new KodingError 'Access denied'
+
+  fetchDecoratedPaymentMethods: (callback) ->
+    JPaymentMethod = require './payment/method'
+    @fetchPaymentMethods (err, paymentMethods) ->
+      return callback err  if err
+      JPaymentMethod.decoratePaymentMethods paymentMethods, callback
+
+  fetchPaymentMethods$: secure (client, callback) ->
+    {delegate} = client.connection
+    if delegate is this or delegate.can 'administer accounts'
+      @fetchDecoratedPaymentMethods callback
+
+  fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->
+    return callback { message: 'Access denied!' }  unless @equals delegate
+    
+    [callback, options] = [options, callback]  unless callback
+
+    { tags, status } = options
+    
+    selector = {}
+    queryOptions = targetOptions: { selector }
+
+    selector.tags = $in: tags  if tags
+    
+    selector.status = status ? $in: [
+      'active'
+      'past_due'
+      'future'
+    ]
+
+    @fetchSubscriptions {}, queryOptions, callback
+
+  fetchPlansAndSubscriptions: secure (client, options, callback) ->
+    JPaymentPlan = require './payment/plan'
+    
+    @fetchSubscriptions$ client, options, (err, subscriptions) ->
+      return callback err  if err
+
+      planCodes = (s.planCode for s in subscriptions)
+
+      JPaymentPlan.all { planCode: $in: planCodes }, (err, plans) ->
+        return callback err  if err
+
+        callback null, { subscriptions, plans }

@@ -47,16 +47,16 @@ Only on newkoding:
   model: JMembershipPolicy
   migration: create the membership policy for the koding group
 
-  model: JRecurlyCharge
+  model: JPaymentCharge
   migration: n/a
 
-  model: JRecurlyPlan
+  model: JPaymentPlan
   migration: n/a
 
-  model: JRecurlySubscription
+  model: JPaymentSubscription
   migration: n/a
 
-  model: JRecurlyToken
+  model: JPaymentToken
   migration: n/a
 
   model: JSecretName

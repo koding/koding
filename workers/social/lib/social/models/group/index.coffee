@@ -73,24 +73,78 @@ module.exports = class JGroup extends Module
       ]
     sharedMethods   :
       static        : [
-        'one','create','each','count','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers',
+        'one'
+        'create'
+        'each'
+        'count'
+        'byRelevance'
+        'someWithRelationship'
+        '__resetAllGroups'
+        'fetchMyMemberships'
+        '__importKodingMembers'
         'suggestUniqueSlug'
       ]
       instance      : [
-        'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
-        'updatePermissions', 'fetchMembers', 'fetchRoles', 'fetchMyRoles'
-        'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
-        'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
-        'fetchReadme', 'setReadme', 'addCustomRole', 'resolvePendingRequests',
-        'fetchVocabulary', 'fetchMembershipStatuses', 'setBackgroundImage',
-        'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail', 'inviteByEmails',
-        'kickMember', 'transferOwnership', 'fetchRolesByClientId',
-        'fetchInvitationsFromGraph', 'countInvitationsFromGraph', 'fetchMembersFromGraph'
-        'remove', 'bulkApprove', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
-        'createVM', 'canCreateVM', 'vmUsage', 'fetchBundle', 'updateBundle',
-        'saveInviteMessage', 'redeemInvitation'
+        'join'
+        'leave'
+        'modify'
+        'fetchPermissions'
+        'createRole'
+        'updatePermissions'
+        'fetchMembers'
+        'fetchRoles'
+        'fetchMyRoles'
+        'fetchUserRoles'
+        'changeMemberRoles'
+        'canOpenGroup'
+        'canEditGroup'
+        'fetchMembershipPolicy'
+        'modifyMembershipPolicy'
+        'requestAccess'
+        'fetchReadme'
+        'setReadme'
+        'addCustomRole'
+        'resolvePendingRequests'
+        'fetchVocabulary'
+        'fetchMembershipStatuses'
+        'setBackgroundImage'
+        'removeBackgroundImage'
+        'fetchAdmin'
+        'inviteByEmail'
+        'inviteByEmails'
+        'kickMember'
+        'transferOwnership'
+        'fetchRolesByClientId'
+        'fetchInvitationsFromGraph'
+        'countInvitationsFromGraph'
+        'fetchMembersFromGraph'
+        'remove'
+        'bulkApprove'
+        'fetchNewestMembers'
+        'countMembers'
+        'checkPayment'
+        'makePayment'
+        'updatePayment'
+        'setPaymentInfo'
+        'fetchPaymentInfo'
+        'checkUserBalance'
+        'makeExpense'
+        'getUserExpenses'
+        'getAllExpenses'
+        'fetchTransactions'
+        'fetchBundle'
+        'updateBundle'
+        # 'addProduct'
+        # 'deleteProduct'
+        'fetchProducts'
+        'createVM'
+        'canCreateVM'
+        'vmUsage'
+        'saveInviteMessage'
+        'redeemInvitation'
+        'fetchPaymentMethod'
+        'linkPaymentMethod'
+        'unlinkPaymentMethod'
       ]
     schema          :
       title         :
@@ -104,10 +158,16 @@ module.exports = class JGroup extends Module
         set         : (value)-> value.toLowerCase()
       privacy       :
         type        : String
-        enum        : ['invalid privacy type', ['public', 'private']]
+        enum        : ['invalid privacy type', [
+          'public'
+          'private'
+        ]]
       visibility    :
         type        : String
-        enum        : ['invalid visibility type', ['visible', 'hidden']]
+        enum        : ['invalid visibility type', [
+          'visible'
+          'hidden'
+        ]]
       parent        : ObjectRef
       counts        :
         members     : Number
@@ -118,7 +178,12 @@ module.exports = class JGroup extends Module
           customType      :
             type          : String
             default       : 'defaultImage'
-            enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+            enum          : ['Invalid type', [
+              'defaultImage'
+              'customImage'
+              'defaultColor'
+              'customColor'
+            ]]
           customValue     :
             type          : String
             default       : '1'
@@ -178,6 +243,18 @@ module.exports = class JGroup extends Module
       vm            :
         targetType  : 'JVM'
         as          : 'owner'
+      paymentMethod :
+        targetType  : 'JPaymentMethod'
+        as          : 'linked payment method'
+      product       :
+        targetType  : 'JPaymentProduct'
+        as          : 'product'
+      pack          :
+        targetType  : 'JPaymentPack'
+        as          : 'product pack'
+      plan          :
+        targetType  : 'JPaymentPlan'
+        as          : 'group plan'
 
   constructor:->
     super
@@ -1053,7 +1130,7 @@ module.exports = class JGroup extends Module
         callback err
 
       queue = roles.map (role)=>=>
-        Joinable::leave.call @, client, {as:role}, (err)->
+        Joinable::leave.call this, client, {as:role}, (err)->
           return kallback err if err
           queue.fin()
 
@@ -1275,111 +1352,154 @@ module.exports = class JGroup extends Module
 
         daisy queue
 
-  updateBundle: (formData, callback = (->)) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
-      bundle.update $set: { overagePolicy: formData.overagePolicy,  }, callback
-      bundle.fetchLimits (err, limits) ->
-        return callback err  if err?
-        queue = limits.map (limit) -> ->
-          limit.update { $set: quota: formData.quotas[limit.title] }, fin
-        dash queue, callback
-        fin = queue.fin.bind queue
+  updateBundle: permit 'change bundle',
+    success: (client, formData, callback = (->)) ->
+      @fetchBundle (err, bundle) =>
+        return callback err  if err
+        { overagePolicy, sharedVM, allocation } = formData
+        bundle.update $set: {overagePolicy, sharedVM, allocation}, callback
 
-  updateBundle$: permit 'change bundle',
-    success: (client, formData, callback)->
-      @updateBundle formData, callback
-
-  createBundle: (data, callback) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
+  createBundle: (data, callback)->
+    @fetchBundle (err, bundle)=>
+      return callback err                               if err
       return callback new KodingError 'Bundle exists!'  if bundle?
 
       JGroupBundle = require '../bundle/groupbundle'
-
       bundle = new JGroupBundle data
-      bundle.save (err) =>
-        return callback err  if err?
-        @addBundle bundle, ->
-          callback null, bundle
+      bundle.save (err)=>
+        return callback err  if err
+        @addBundle bundle, (err)-> callback err, unless err then bundle
 
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
 
-  setBillingInfo: secure (client, data, callback)->
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.setGroupAccount @, data, callback
+  setPaymentInfo: permit 'manage payment methods',
+    success: (client, data, callback) ->
+      # TODO: Give credits to existing users
+      JPaymentGroup = require '../payment/group'
+      JPaymentGroup.setPaymentInfo client, this, data, callback
 
-  getBillingInfo: secure (client, callback)->
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.getGroupAccount @, callback
+  fetchPaymentInfo: permit 'manage payment methods',
+    success: (client, callback)->
+      JPaymentGroup = require '../payment/group'
+      JPaymentGroup.fetchPaymentMethod this, callback
 
-  makePayment: secure (client, data, callback)->
-    data.plan ?= @payment.plan
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.one
-      code: data.plan
-    , (err, plan)=>
+  checkUserBalance: secure (client, data, callback)->
+    @fetchBundle (err, bundle)=>
+      return callback err        if err
+      return callback new KodingError 'unable to fetch group bundle'  unless bundle
+      return callback null, 0,0  if bundle.allocation is 0
+
+      @getUserExpenses client, data, (err, expenses)->
+        return callback null  if err
+        callback bundle.allocation, expenses
+
+  getAllExpenses: secure (client, data, callback)->
+    JVM   = require '../vm'
+    JUser = require '../user'
+    JUser.fetchUser client, (err, user)=>
       return callback err  if err
-      plan.subscribeGroup @, data, callback
+      # TODO: Get VM price from JPaymentPlan
+      JVM.some
+        planOwner : "group_#{@_id}"
+        vmType    : 'expensed'
+      , {planCode: 1, users: 1}, callback
+
+  getUserExpenses: secure (client, data, callback)->
+    JVM   = require '../vm'
+    JUser = require '../user'
+    JUser.fetchUser client, (err, user)=>
+      return callback err  if err
+      # TODO: Get VM price from JPaymentPlan
+      JVM.some
+        planOwner: "group_#{@_id}"
+        vmType   : 'expensed'
+        users    : { $elemMatch: id: user.getId(), owner: yes }
+      , {planCode: 1}, callback
+
+  makeExpense: secure (client, data, callback)->
+    JPaymentPlan = require '../payment/plan'
+    JPaymentPlan.one code: data.plan, (err, plan)=>
+      return callback err  if err
+      @checkUserBalance client, data, (err, limit, balance)=>
+        return callback err  if err
+        console.log limit, balance, plan.feeAmount
+        if limit >= balance + plan.feeAmount
+          @chargeGroup client, data, callback
+        else
+          callback new KodingError "You don't have enough balance"
+
+  makePayment: permit 'make payments',
+    success: (client, data, callback)->
+      @chargeGroup client, data, callback
+
+  chargeGroup: secure (client, data, callback)->
+    data.plan   ?= @payment.plan
+    JPaymentPlan = require '../payment/plan'
+    JPaymentPlan.one code: data.plan, (err, plan)=>
+      return callback err  if err
+      plan.subscribeGroup this, data, callback
+
+  # addProduct: permit 'manage products',
+  #   success: (client, data, callback)->
+  #     JPaymentGroup = require '../payment/group'
+  #     JPaymentGroup.addPlan this, data, callback
+
+  # deleteProduct: permit 'manage products',
+  #   success: (client, data, callback)->
+  #     JPaymentGroup = require '../payment/group'
+  #     JPaymentGroup.deletePlan this, data, callback
 
   checkPayment: (callback)->
-    JRecurlySubscription = require '../recurly/subscription'
-    JRecurlySubscription.getGroupSubscriptions @, callback
+    JPaymentSubscription = require '../payment/subscription'
+    JPaymentSubscription.getGroupSubscriptions this, callback
 
-  vmUsage: secure (client, callback)->
-    {delegate} = client.connection
+  fetchTransactions: (callback)->
+    JPaymentGroup = require '../payment/group'
+    JPaymentGroup.fetchTransactions this, callback
 
+  vmUsage: secure ({connection:{delegate}}, callback)->
     @fetchBundle (err, bundle)=>
-      if err or not bundle
-        # TODO: Better error message required
-        callback new KodingError "Unable to fetch group bundle"
+      return callback err  if err
+      return callback new KodingError 'unable to fetch group bundle'  unless bundle
+
+      bundle.checkUsage delegate, this, callback
+
+  checkVmType: (data, callback) ->
+    unless data.type in ['user', 'group', 'expensed']
+      callback new KodingError "No such VM type: #{data.type}"
+    else
+      callback null
+
+  fetchOrCreateBundle: (callback) ->
+    @fetchBundle (err, bundle) =>
+      return callback err, bundle  if err or bundle
+
+      if @slug is 'koding'
+        @createBundle
+          overagePolicy: 'not allowed'
+          paymentPlan  : ''
+          allocation   : 0
+          sharedVM     : yes
+        , (err, bundle) =>
+          if err then return callback new KodingError 'Unable to create default group bundle'
+          callback null, bundle
       else
-        bundle.checkUsage delegate, @, callback
+        callback new KodingError 'Unable to fetch group bundle'
 
-  canCreateVM: secure (client, data, callback)->
-    {delegate} = client.connection
+  canCreateVM: secure ({ connection:{ delegate }}, data, callback)->
+    @checkVmType data, (err) =>
+      return callback err  if err
+      @fetchOrCreateBundle (err, bundle) =>
+        return callback err  if err
+        bundle.canCreateVM delegate, this, data, callback
 
-    if data.type in ['user', 'group']
-      @fetchBundle (err, bundle)=>
-        if err or not bundle
-          if @slug == 'koding'
-            @createBundle
-              overagePolicy: "not allowed"
-              paymentPlan  : ""
-              allocation   : 0
-              sharedVM     : yes
-            , (err, bundle)=>
-              return callback new KodingError "Unable to create default group bundle"  if err
-              bundle.canCreateVM delegate, @, data, callback
-          else
-            callback new KodingError "Unable to fetch group bundle"
-        else
-          bundle.canCreateVM delegate, @, data, callback
-    else
-      callback new KodingError "No such VM type: #{data.type}"
-
-  createVM: secure (client, data, callback)->
-    {delegate} = client.connection
-
-    if data.type in ['user', 'group']
-      @fetchBundle (err, bundle)=>
-        if err or not bundle
-          if @slug == 'koding'
-            @createBundle
-              overagePolicy: "not allowed"
-              paymentPlan  : ""
-              allocation   : 0
-              sharedVM     : yes
-            , (err, bundle)=>
-              return callback new KodingError "Unable to create default group bundle"  if err
-              bundle.createVM delegate, @, data, callback
-          else
-            callback new KodingError "Unable to fetch group bundle"
-        else
-          bundle.createVM delegate, @, data, callback
-    else
-      callback new KodingError "No such VM type: #{data.type}"
+  createVM: secure ({connection:{delegate}}, data, callback)->
+    @checkVmType data, (err) =>
+      return callback err  if err
+      @fetchOrCreateBundle (err, bundle) =>
+        return callback err  if err
+        bundle.createVM delegate, this, data, callback
 
   countMembers: secure (client, callback)->
     {Member} = require "../graph"
@@ -1402,8 +1522,8 @@ module.exports = class JGroup extends Module
 
         require(
           if type is 'InvitationRequest'
-          then model = '../invitationrequest'
-          else model = '../invitation'
+          then '../invitationrequest'
+          else '../invitation'
         ).some _id: $in: ids, {}, callback
 
   countInvitationsFromGraph: permit 'send invitations',
@@ -1424,3 +1544,52 @@ module.exports = class JGroup extends Module
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'
     @each selector, options, callback
+
+  linkPaymentMethod: permit 'manage payment methods',
+    success: (client, paymentMethodId, callback) ->
+      { delegate } = client.connection
+      JPaymentMethod = require '../payment/method'
+      JPaymentMethod.one { paymentMethodId }, (err, paymentMethod) =>
+        return callback err  if err
+        delegate.hasTarget paymentMethod, 'payment method', (err, hasTarget) =>
+          return callback err  if err
+          return callback { message: 'Access denied!' }  unless hasTarget
+          @addPaymentMethod paymentMethod, callback
+
+  unlinkPaymentMethod: permit 'manage payment methods',
+    success: (client, paymentMethodId, callback) ->
+      JPaymentMethod = require '../payment/method'
+      JPaymentMethod.one { paymentMethodId }, (err, paymentMethod) =>
+        return callback err  if err
+        @removePaymentMethod paymentMethod, callback
+
+  fetchPaymentMethod$: permit 'manage payment methods',
+    success: (client, callback) ->
+      JPaymentMethod = require '../payment/method'
+      @fetchPaymentMethod (err, paymentMethod) ->
+        return callback err  if err
+        JPaymentMethod.decoratePaymentMethods [paymentMethod], (err, paymentMethods) ->
+          return callback err  if err
+          callback null, paymentMethods[0]
+
+  fetchProducts$: (category, options, callback) ->
+    [options, callback] = [callback, options]  unless callback
+    options ?= {}
+    { tag, tags } = options
+    tags = [tag]  if tag and not tags
+        
+    options.targetOptions ?= {}
+    options.targetOptions.options ?= {}
+    options.targetOptions.options.sort ?= sortWeight: 1
+    options.targetOptions.selector =
+      if tags
+      then { tags }
+      else {}
+
+    switch category
+      when 'product'
+        @fetchProducts {}, options, callback
+      when 'pack'
+        @fetchPacks {}, options, callback
+      when 'plan'
+        @fetchPlans {}, options, callback

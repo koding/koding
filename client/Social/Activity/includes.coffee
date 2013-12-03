@@ -11,7 +11,6 @@ module.exports = [
   "views/activityinnernavigation.coffee",
   "views/activitylistheader.coffee",
   "views/activitysplitview.coffee",
-  "views/listgroupshowmeitem.coffee",
   "views/activityitemchild.coffee",
   "views/discussionactivityactions.coffee",
   "views/tutorialactivityactions.coffee",
@@ -70,6 +69,7 @@ module.exports = [
   "ContentDisplays/blogpost.coffee",
   "ContentDisplays/QA.coffee",
   "ContentDisplays/link.coffee",
+  "ContentDisplays/ActivityRightBlock.coffee",
   "ContentDisplays/ActivityTicker.coffee",
 
   # Activity content displays commons

@@ -283,10 +283,8 @@ class KodingRouter extends KDRouter
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
-      # content
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
       '/:name?/Activity/:slug' : createContentHandler 'Activity'
-      '/:name?/Apps/:slug'     : createContentHandler 'Apps'
 
       '/:name/Groups'          : createSectionHandler 'Groups'
       '/:name/Followers'       : createContentHandler 'Members', yes

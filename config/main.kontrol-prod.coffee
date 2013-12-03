@@ -28,6 +28,7 @@ module.exports =
   projectRoot   : projectRoot
   version       : version
   webserver     :
+    useCacheHeader: yes
     login       : 'prod-webserver'
     port        : 3000
     clusterSize : 1
@@ -117,7 +118,7 @@ module.exports =
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
   graphFeederWorker:
-    numberOfWorkers: 2
+    numberOfWorkers: 4
   social        :
     login       : 'prod-social'
     numberOfWorkers: 7
@@ -141,6 +142,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      activityFetchCount : 50
       precompiledApi: yes
       authExchange: authExchange
       github        :
@@ -164,6 +166,7 @@ module.exports =
       newkontrol:
         host    : 'newkontrol.sj.koding.com'
         port    : 80
+      fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
           nicename      : 'GitHub'
@@ -228,6 +231,7 @@ module.exports =
   newkontrol      :
     host          : "newkontrol.sj.koding.com"
     port          : 80
+  etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
     overview      :

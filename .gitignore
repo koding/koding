@@ -56,3 +56,5 @@ website/*/koding*
 website/*/kd*
 website/*/introapp*
 website/*/bongo*
+newrelic_agent.log
+

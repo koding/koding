@@ -28,11 +28,6 @@ projects      =
     script    : "website/js/__kdapp.#{KODING_VERSION}.js"
     sourceMapRoot : "Main/"
 
-  # TestApp     :
-  #   files     : "client/Testapp/includes.coffee"
-  #   style     : "website/css/__testapp.css"
-  #   script    : "website/js/__testapp.js"
-
   HomeIntro   :
     files     : "client/Intro/includes.coffee"
     style     : "website/css/introapp.#{KODING_VERSION}.css"
@@ -151,6 +146,13 @@ projects      =
     files         : "client/PostOperations/includes.coffee"
     script        : "website/js/__client.post.#{KODING_VERSION}.js"
 
+  Dashboard       :
+    files         : "client/Dashboard/includes.coffee"
+    style         : "website/css/__app.dashboard.#{KODING_VERSION}.css"
+    script        : "website/js/__app.dashboard.#{KODING_VERSION}.js"
+    sourceMapRoot : "Dashboard/"
+
+
 bundles           =
 
   Social          :
@@ -167,5 +169,10 @@ bundles           =
     projects      : ['Ace', 'Terminal', 'Viewer', 'Workspace', 'CollaborativeWorkspace', 'Teamwork']
     style         : "website/css/__teamwork.#{KODING_VERSION}.css"
     script        : "website/js/__teamwork.#{KODING_VERSION}.js"
+
+  Payment         :
+    projects      : ['Environments', 'Dashboard']
+    style         : "website/css/__payment.#{KODING_VERSION}.css"
+    script        : "website/js/__payment.#{KODING_VERSION}.js"
 
 module.exports  = {projects, bundles}

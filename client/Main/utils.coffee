@@ -1,5 +1,15 @@
 __utils.extend __utils,
 
+  getPaymentMethodTitle: (billing)->
+    # for convenience, accept either the payment method, or the billing object
+    { billing } = billing  if billing.billing?
+
+    { cardFirstName, cardLastName, cardType, cardNumber } = billing
+
+    """
+    #{ cardFirstName } #{ cardLastName } (#{ cardType } #{ cardNumber })
+    """
+
   botchedUrlRegExp: /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
 
   webProtocolRegExp: /^((http(s)?\:)?\/\/)/
@@ -494,3 +504,5 @@ __utils.extend __utils,
       else
         log "Unhandled content type '#{type}'"
         return 'error'
+
+  formatMoney: accounting.formatMoney

@@ -103,17 +103,6 @@ class ActivityAppController extends AppController
 
     @getView().on "InputSubmitted", @bound "ownActivityArrived"
 
-    appView.innerNav.on "NavItemReceivedClick", (data)=>
-      KD.track "Activity", data.type + "FilterClicked"
-      @resetAll()
-      @clearPopulateActivityBindings()
-
-      if data.type in ["Public", "Followed"]
-      then @setFeedFilter data.type
-      else @setActivityFilter data.type
-
-      @populateActivity()
-
   setFeedFilter: (feedType) -> @currentFeedFilter = feedType
   getFeedFilter: -> @currentFeedFilter
 
@@ -132,7 +121,7 @@ class ActivityAppController extends AppController
       tag = KD.utils.slugify KD.utils.stripTags query.tagged
       @setWarning tag, yes
       options = filterByTag: tag
-
+    # TODO: populateActivity will fire twice if there is a query (FIXME) C.T.
     @ready => @populateActivity options
 
   populateActivity:(options = {}, callback=noop)->
@@ -170,7 +159,7 @@ class ActivityAppController extends AppController
         group      :
           slug     : groupObj?.slug or "koding"
           id       : groupObj.getId()
-        limit      : 20
+        limit      : KD.config.activityFetchCount
         facets     : @getActivityFilter()
         withExempt : no
         slug       : filterByTag
@@ -219,6 +208,7 @@ class ActivityAppController extends AppController
     JStatusUpdate.fetchTopicFeed options, (err, activities) =>
       if err then @emit "activitiesCouldntBeFetched", err
       else @emit "topicFeedFetched_#{eventSuffix}", activities
+
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo

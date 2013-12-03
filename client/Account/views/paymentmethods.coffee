@@ -2,7 +2,9 @@ class AccountPaymentMethodsListController extends AccountListViewController
   constructor:(options,data)->
 
     options.noItemFoundText = "You have no payment method."
-    super options,data
+    super options, data
+
+    data = @getData()
 
     @loadItems()
 
@@ -10,31 +12,40 @@ class AccountPaymentMethodsListController extends AccountListViewController
       @loadItems()
 
     list = @getListView()
-    list.on 'reload', (data)=>
-      @loadItems()
+
+    list.on 'ItemWasAdded', (item) =>
+      item.on 'PaymentMethodEditRequested', @bound 'editPaymentMethod'
+      item.on 'PaymentMethodRemoveRequested', (data) =>
+        modal = KDModalView.confirm
+          title       : 'Are you sure?'
+          description : 'Are you sure that you want to remove this payment method?'
+          subView     : new PaymentMethodView {}, data
+          ok          :
+            title     : 'Remove'
+            callback  : =>
+              modal.destroy()
+              @removePaymentMethod data, item
+
+    list.on 'reload', (data) => @loadItems()
+
+    KD.getSingleton('paymentController').on 'PaymentDataChanged', => @loadItems()
+
+  editPaymentMethod: (data) ->
+    paymentController = KD.getSingleton 'paymentController'
+    @showModal data
+
+  removePaymentMethod: ({ paymentMethodId }, item) ->
+    paymentController = KD.getSingleton 'paymentController'
+    paymentController.removePaymentMethod paymentMethodId, =>
+      @removeItem item
 
   loadItems: ->
     @removeAllItems()
     @showLazyLoader no
 
-    KD.remote.api.JRecurlyPlan.getUserAccount (err, res) =>
-      accounts = []
-      if err
-        @instantiateListItems []
-        @hideLazyLoader()
-      unless err
-        if res.cardNumber
-          accounts.push
-            title        : "#{res.cardFirstName} #{res.cardLastName}"
-            type         : res.cardType
-            cardNumber   : res.cardNumber
-            cardExpiry   : res.cardMonth + '/' + res.cardYear
-            cardAddress  : res.address1 + ' ' + res.address2
-            cardCity     : res.city
-            cardState    : res.state
-            cardZip      : res.zip
-        @instantiateListItems accounts
-        @hideLazyLoader()
+    KD.whoami().fetchPaymentMethods (err, paymentMethods) =>
+      @instantiateListItems paymentMethods
+      @hideLazyLoader()
 
   loadView:->
     super
@@ -44,8 +55,23 @@ class AccountPaymentMethodsListController extends AccountListViewController
       icon      : yes
       iconOnly  : yes
       iconClass : "plus"
-      callback  : =>
-        @getListView().showModal @
+      callback  : => @showModal()
+
+  showModal: (initialPaymentInfo) ->
+    paymentController = KD.getSingleton 'paymentController'
+
+    modal = paymentController.createPaymentInfoModal()
+    modal.on 'viewAppended', ->
+      if initialPaymentInfo?
+        modal.setState 'editExisting', initialPaymentInfo
+      else
+        modal.setState 'createNew'
+
+    paymentController.observePaymentSave modal, (err, updatedPaymentInfo) =>
+      if err
+        new KDNotificationView title: err.message
+      else
+        modal.destroy()
 
 class AccountPaymentMethodsList extends KDListView
   constructor:(options,data)->
@@ -55,39 +81,35 @@ class AccountPaymentMethodsList extends KDListView
     ,options
     super options,data
 
-  showModal: (controller) ->
-    KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
-      if err or not data
-        data = {}
-
-      paymentController = KD.getSingleton "paymentController"
-      modal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess) ->
-        KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
-          if err
-            onError err
-          else
-            controller.emit 'reload'
-            onSuccess result
-
-      form = modal.modalTabs.forms["Billing Info"]
-
-
 class AccountPaymentMethodsListItem extends KDListItemView
-  constructor:(options,data)->
+  constructor:(options, data)->
     options.tagName = "li"
+    options.cssClass = 'credit-card-list-item'
     super options,data
 
-  viewAppended:->
-    @setPartial @partial @data
+    data = @getData()
 
-  partial:(data)->
+    @paymentMethod = new PaymentMethodView {}, @getData()
+
+    @paymentMethod.on 'PaymentMethodEditRequested', =>
+      @emit 'PaymentMethodEditRequested', data
+
+    @editLink = new CustomLinkView
+      title: 'edit'
+      click: (e) =>
+        e.preventDefault()
+        @emit 'PaymentMethodEditRequested', data
+
+    @removeLink = new CustomLinkView
+      title: 'remove'
+      click: (e) =>
+        e.preventDefault()
+        @emit 'PaymentMethodRemoveRequested', data
+
+  viewAppended: JView::viewAppended
+
+  pistachio:->
     """
-      <div class="credit-card-info">
-        <p class="lightText"><strong>#{data.title} - #{data.type}</strong></p>
-        <p class="lightText"><strong>#{data.cardNumber}</strong> - <strong>#{data.cardExpiry}</strong></p>
-        <p class="darkText">
-          #{data.cardAddress}<br>
-          #{data.cardCity}, #{data.cardState} #{data.cardZip}
-        </p>
-      </div>
+    {{> @paymentMethod}}
+    <div class="controls">{{> @editLink}} | {{> @removeLink }}</div>
     """
