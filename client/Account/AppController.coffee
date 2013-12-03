@@ -5,38 +5,37 @@ class AccountAppController extends AppController
   KD.registerAppClass this,
     name                         : "Account"
     routes                       :
-      "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/login-email'
-      "/:name?/Account/:section" : ({params:{section}})-> handler.call null, (app)-> app.openSection section
+      "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
+      "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
     behavior                     : "hideTabs"
     hiddenHandle                 : yes
 
   items =
     personal :
-      title : "Personal"
-      items : [
-        { title : "User profile",         listHeader: "Here you can edit your account information.",           listType: "username"           }
-        { title : "Password & Security",  listHeader: "Password & Security",        listType: "security"           }
-        { title : "Email Notifications",  listHeader: "Email Notifications",        listType: "emailNotifications" }
-        { title : "Linked accounts",      listHeader: "Your Linked Accounts",       listType: "linkedAccounts"     }
-        { title : "Referrals",            listHeader: "Referrals ",                 listType: "referralSystem"     }
+      title  : "Personal"
+      items  : [
+        { slug : 'Profile',   title : "User profile",        listType: "username",           listHeader: "Here you can edit your account information." }
+        { slug : 'Email',     title : "Email Notifications", listType: "emailNotifications", listHeader: "Email Notifications" }
+        { slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts",     listHeader: "Your Linked Accounts" }
+        { slug : 'Referrals', title : "Referrals",           listType: "referralSystem",     listHeader: "Referrals " }
       ]
     billing :
       title : "Billing"
       items : [
-        { title : "Payment methods",      listHeader: "Your Payment Methods",       listType: "methods"            }
-        { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions"      }
-        { title : "Billing history",      listHeader: "Billing History",            listType: "history"            }
+        { slug : "Payment",       title : "Payment methods",    listHeader: "Your Payment Methods",       listType: "methods" }
+        { slug : "Subscriptions", title : "Your subscriptions", listHeader: "Your Active Subscriptions",  listType: "subscriptions" }
+        { slug : "Billing",       title : "Billing history",    listHeader: "Billing History",            listType: "history" }
       ]
     develop :
       title : "Develop"
       items : [
-        { title : "SSH keys",             listHeader: "Your SSH Keys",              listType: "keys"               }
-        { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys"         }
+        { slug : 'SSH',  title : "SSH keys",    listHeader: "Your SSH Keys",    listType: "keys" }
+        { slug : 'Keys', title : "Koding Keys", listHeader: "Your Koding Keys", listType: "kodingKeys" }
       ]
     danger  :
       title : "Danger"
       items : [
-        { title : "Delete Account",       listHeader: "Danger Zone",                listType: "delete"             }
+        { slug: 'Delete', title : "Delete Account", listHeader: "Danger Zone", listType: "delete" }
       ]
 
   constructor:(options={}, data)->
@@ -58,7 +57,7 @@ class AccountAppController extends AppController
 
   openSection:(section)->
 
-    for item in @navController.itemsOrdered when section is KD.utils.slugify item.getData().title
+    for item in @navController.itemsOrdered when section is item.getData().slug
       @tabView.addPane @createTab item.getData()
       @navController.selectSingleItem item
       break

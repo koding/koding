@@ -1,6 +1,13 @@
 class PaymentMethodEntryForm extends KDFormViewWithFields
   constructor: (options = {}, data) ->
-    thisYear = (new Date).getFullYear()
+
+    thisYear = expiresYear = (new Date).getFullYear()
+
+    expiresMonth = (new Date).getMonth() + 2
+
+    if expiresMonth > 12
+      expiresYear   += 1
+      expiresMonth  %= 12
 
     fields =
 
@@ -49,12 +56,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         label             : 'Expires'
         itemClass         : KDSelectBox
         selectOptions     : __utils.getMonthOptions()
-        defaultValue      : (new Date).getMonth() + 2
+        defaultValue      : expiresMonth
         nextElementFlat   :
           cardYear        :
             itemClass     : KDSelectBox
             selectOptions : (__utils.getYearOptions thisYear, thisYear + 25)
-            defaultValue  : thisYear
+            defaultValue  : expiresYear
 
     super
       cssClass              : KD.utils.curry 'payment-form', options.cssClass

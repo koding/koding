@@ -132,6 +132,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchMyPermissions'
         'fetchMyPermissionsAndRoles'
         'fetchMyFollowingsFromGraph'
+        'fetchMyOnlineFollowingsFromGraph'
         'fetchMyFollowersFromGraph'
         'blockUser'
         'unblockUser'
@@ -1209,6 +1210,12 @@ module.exports = class JAccount extends jraphical.Module
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
     options.client = client
     Member.fetchFollowingMembers options, (err, results)=>
+      if err then return callback err
+      else return callback null, results
+
+  fetchMyOnlineFollowingsFromGraph: secure (client, options, callback)->
+    options.client = client
+    Member.fetchOnlineFollowingMembers options, (err, results)=>
       if err then return callback err
       else return callback null, results
 

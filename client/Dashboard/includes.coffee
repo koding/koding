@@ -13,7 +13,9 @@ module.exports = [
   # controller:
   "controllers/paymentcontroller.coffee",
   "controllers/productscontroller.coffee",
+  "controllers/invitationrequestlistcontroller.coffee",
   # views:
+  "views/generalsettingsview.coffee",
   "views/productsettingsview.coffee",
   "views/productsectionview.coffee",
   "views/producteditform.coffee",
@@ -29,6 +31,20 @@ module.exports = [
   "views/addproductlistitem.coffee",
   "views/planproduct.coffee",
   "views/planaddproductsmodal.coffee",
+  "views/groupsmemberpermissionslistitemview.coffee",
+  "views/groupsmemberpermissionsview.coffee",
+  "views/groupsmemberroleseditview.coffee",
+  "views/groupsmembershippolicydetailview.coffee",
+  "views/groupsinvitationview.coffee",
+  "views/permissionview.coffee",
+  "views/blockeduserslistitemview.coffee",
+  "views/blockedusersview.coffee",
+  "views/groupsinvitationcodelistitemview.coffee"
+  "views/groupsinvitationlistitemview.coffee"
+  "views/groupsinvitationtabpaneview.coffee"
+  "views/groupsinvitationtabview.coffee"
+  "views/grouptabhandleview.coffee"
+
 
   "views/permissionsform.coffee",
 

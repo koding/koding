@@ -167,6 +167,24 @@ module.exports =
         host    : 'newkontrol.sj.koding.com'
         port    : 80
       fileFetchTimeout: 15 * 1000 # seconds
+      externalProfiles  :
+        github          :
+          nicename      : 'GitHub'
+          urlLocation   : 'html_url'
+        odesk           :
+          nicename      : 'oDesk'
+          urlLocation   : 'info.profile_url'
+        facebook        :
+          nicename      : 'Facebook'
+          urlLocation   : 'link'
+        google          :
+          nicename      : 'Google'
+        linkedin        :
+          nicename      : 'LinkedIn'
+        twitter         :
+          nicename      : 'Twitter'
+        # bitbucket     :
+        #   nicename    : 'BitBucket'
   mq            :
     host        : '172.16.3.4'
     port        : 5672

@@ -75,7 +75,7 @@ class DashboardAppView extends JView
     @listenWindowResize()
     @nav.on "viewAppended", =>
       @navController = @nav.setListController
-        itemClass : ListGroupShowMeItem
+        itemClass : CommonInnerNavigationListItem
       ,
         title     : "SHOW ME"
         items     : []

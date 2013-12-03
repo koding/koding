@@ -41,6 +41,13 @@ module.exports = class Member extends Graph
     query = QueryRegistry.member.following orderByQuery
     @queryMembers query, queryOptions, callback
 
+  # fetch online users that the current users follows
+  @fetchOnlineFollowingMembers: (options, callback)=>
+    queryOptions = @generateOptions options
+    orderByQuery = @getOrderByQuery options
+    query = QueryRegistry.member.onlineFollowing orderByQuery
+    @queryMembers query, queryOptions, callback
+
   # fetch member's following count
   @fetchFollowingMemberCount: (options, callback)=>
     queryOptions = @generateOptions options
