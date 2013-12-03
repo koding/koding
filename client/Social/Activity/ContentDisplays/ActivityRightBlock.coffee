@@ -15,50 +15,37 @@ class ActivityRightBase extends JView
     @tickerController.hideLazyLoader()
     @tickerController.addItem item for item in items  unless err
 
+  pistachio:->
+    """
+    <div class="activity-ticker">
+      <h3>#{@getOption 'title'}</h3>
+      {{> @tickerListView}}
+    </div>
+    """
+
 class OnlineUsers extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveUserItemView
 
+    options.title = "Online Users"
     super options, data
 
-    KD.whoami().fetchMyOnlineFollowingsFromGraph {}, @renderItems.bind this
-
-  pistachio:
-    """
-    <div class="activity-ticker">
-      <h3>Online Users</h3>
-      {{> @tickerListView}}
-    </div>
-    """
+    KD.whoami().fetchMyOnlineFollowingsFromGraph {}, @bound 'renderItems'
 
 class ActiveUsers extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveUserItemView
 
+    options.title = "Active Users"
     super options, data
 
-    KD.remote.api.ActiveItems.fetchUsers {}, @renderItems.bind this
-
-  pistachio:
-    """
-    <div class="activity-ticker">
-      <h3>Members</h3>
-      {{> @tickerListView}}
-    </div>
-    """
+    KD.remote.api.ActiveItems.fetchUsers {}, @bound 'renderItems'
 
 class ActiveTopics extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveTopicItemView
 
+    options.title = "Active Topics"
     super options, data
 
-    KD.remote.api.ActiveItems.fetchTopics {}, @renderItems.bind this
-
-  pistachio:
-    """
-    <div class="activity-ticker">
-      <h3>Topics</h3>
-      {{> @tickerListView}}
-    </div>
-    """
+    KD.remote.api.ActiveItems.fetchTopics {}, @bound 'renderItems'

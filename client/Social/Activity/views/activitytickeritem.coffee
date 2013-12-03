@@ -127,15 +127,17 @@ class ActiveUserItemView extends KDListItemView
     options.type = "activity-ticker-item"
     super options, data
 
-    @avatar    = new AvatarView
+    data = @getData()
+
+    @avatar  = new AvatarView
       size       : width: 25, height: 25
       cssClass   : "avatarview"
       showStatus : yes
     , data
 
-    @actor    = new ProfileLinkView null, data
+    @actor = new ProfileLinkView {}, data
 
-    unless KD.whoami().getId() == data.getId()
+    unless KD.isMine data
       @followButton = new FollowButton
         stateOptions   :
           unfollow     :
@@ -154,7 +156,7 @@ class ActiveTopicItemView extends KDListItemView
     options.type = "activity-ticker-item"
     super options, data
 
-    @tag = new TagLinkView null, data
+    @tag = new TagLinkView {}, data
     @followButton = new FollowButton
       stateOptions   :
         unfollow     :
