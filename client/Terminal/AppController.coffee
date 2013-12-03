@@ -36,7 +36,8 @@ class WebTermController extends AppController
             KD.mixpanel "Opened Webterm", vmName
           , ->
             cb no
-            KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
+            unless KD.isGuest()
+              KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
           , 2500
 
       failure     : (options, cb)->

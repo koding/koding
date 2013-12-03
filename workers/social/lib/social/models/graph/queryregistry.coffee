@@ -2,9 +2,50 @@
 
 module.exports =
 
-  member      :
-    following : (orderByQuery)->
-      """
+    member      :
+      following : (orderByQuery)->
+        """
+          START group=node:koding(id={groupId})
+          MATCH group-[r:member]->members-[:follower]->currentUser
+          WHERE currentUser.id = {currentUserId}
+          RETURN members
+          #{orderByQuery}
+          SKIP {skipCount}
+          LIMIT {limitCount}
+        """
+      onlineFollowing : (orderByQuery)->
+        """
+          START user=node:koding(id={currentUserId})
+          MATCH user-[:follower]->members
+          WHERE members.onlineStatus = "online"
+          RETURN members
+          #{orderByQuery}
+          SKIP {skipCount}
+          LIMIT {limitCount}
+        """
+      follower  : (orderByQuery)->
+        """
+          START group=node:koding(id={groupId})
+          MATCH group-[r:member]->members<-[:follower]-currentUser
+          WHERE currentUser.id = {currentUserId}
+          RETURN members
+          #{orderByQuery}
+          SKIP {skipCount}
+          LIMIT {limitCount}
+        """
+      list: (exemptClause, orderByQuery)->
+        """
+          START group=node:koding(id={groupId})
+          MATCH group-[r:member]->members
+          WHERE members.name="JAccount"
+          #{exemptClause}
+          RETURN members
+          #{orderByQuery}
+          SKIP {skipCount}
+          LIMIT {limitCount}
+        """
+      count: (exemptClause)->
+        """
         START group=node:koding(id={groupId})
         MATCH group-[r:member]->members-[:follower]->currentUser
         WHERE currentUser.id = {currentUserId}

@@ -183,7 +183,25 @@ config =
           host        : 1
           port        : 1
         fileFetchTimeout: 1
-        # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
+        externalProfiles  :
+          github          :
+            nicename      : 1
+            urlLocation   : 1
+          odesk           :
+            nicename      : 1
+            urlLocation   : 1
+          facebook        :
+            nicename      : 1
+            urlLocation   : 1
+          google          :
+            nicename      : 1
+          linkedin        :
+            nicename      : 1
+          twitter         :
+            nicename      : 1
+          # bitbucket     :
+          #   nicename    : 1
+      # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1
       port        : 1
