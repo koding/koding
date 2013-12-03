@@ -118,7 +118,7 @@ class AccountReferralSystemListController extends AccountListViewController
   addHeader:->
 
     wrapper = new KDCustomHTMLView tagName : 'header', cssClass : 'clearfix'
-    @scrollView.addSubView wrapper, '', yes
+    @getView().addSubView wrapper, '', yes
 
     wrapper.addSubView getYourReferrerCode = new CustomLinkView
       title       : "Get Your Referrer Code"

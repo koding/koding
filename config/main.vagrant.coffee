@@ -157,6 +157,24 @@ module.exports =
       newkontrol:
         host    : '127.0.0.1'
         port    : 4000
+      externalProfiles  :
+        github          :
+          nicename      : 'GitHub'
+          urlLocation   : 'html_url'
+        odesk           :
+          nicename      : 'oDesk'
+          urlLocation   : 'info.profile_url'
+        facebook        :
+          nicename      : 'Facebook'
+          urlLocation   : 'link'
+        google          :
+          nicename      : 'Google'
+        linkedin        :
+          nicename      : 'LinkedIn'
+        twitter         :
+          nicename      : 'Twitter'
+        # bitbucket     :
+        #   nicename    : 'BitBucket'
   mq            :
     host        : 'localhost'
     port        : 5672
