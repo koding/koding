@@ -20,7 +20,7 @@ module.exports = class ActiveItems extends Base
       as    : ["creator", "follower"]
     topic   :
       klass : JTag
-      as    : ["skill", "tags"]
+      as    : ["developer", "follower", "post"]
 
   @fetchUsers = secure (client, options = {}, callback) ->
     @fetch "user", options, callback
@@ -32,11 +32,12 @@ module.exports = class ActiveItems extends Base
     mapping     = nameMapping[name]
     {klass, as} = mapping
 
+    greater = (new Date(Date.now() - 1000*60*60*24))
+
     matcher     = {
       sourceName : klass.name
-      as         : $in : as
-      $lte       : new Date Date.now()
-      $gt        : new Date Date.now() - 1000*60*60*24 # 24 hours
+      as         : $in  : as
+      timestamp  : $gte : greater
     }
 
     Relationship.getCollection().aggregate {$match: matcher},
