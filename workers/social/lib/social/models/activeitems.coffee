@@ -35,8 +35,8 @@ module.exports = class ActiveItems extends Base
     matcher     = {
       sourceName : klass.name
       as         : $in : as
-      $lte       : endOfToday   = new Date Date.now()
-      $gte       : startOfToday = new Date Date.now() - 1000*60*60*24 # 24 hours
+      $lte       : new Date Date.now()
+      $gt        : new Date Date.now() - 1000*60*60*24 # 24 hours
     }
 
     Relationship.getCollection().aggregate {$match: matcher},
