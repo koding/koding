@@ -61,7 +61,7 @@
     "htmlencode"      : "0.0.3",
     "node-odesk"      : "0.0.7",
     "oauth"           : "0.9.10",
-    "node-uuid": "latest"
+    "node-uuid"       : "1.4.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},
