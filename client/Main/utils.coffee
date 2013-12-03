@@ -504,3 +504,5 @@ __utils.extend __utils,
       else
         log "Unhandled content type '#{type}'"
         return 'error'
+
+  formatMoney: accounting.formatMoney
