@@ -5,7 +5,7 @@ class AccountAppController extends AppController
   KD.registerAppClass this,
     name                         : "Account"
     routes                       :
-      "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/login-email'
+      "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/user-profile'
       "/:name?/Account/:section" : ({params:{section}})-> handler.call null, (app)-> app.openSection section
     behavior                     : "hideTabs"
     hiddenHandle                 : yes
