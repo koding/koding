@@ -1,0 +1,507 @@
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+
+@css {
+/*
+COMMONS stylesheet
+third.workspace.styl
+*/
+}
+
+.workspace
+  .workspace-loader
+    size                60px, 60px
+    top                 50%
+    margin              -30px auto 0 auto
+    text-align          center
+    .text
+      top               40px
+      position          relative
+    .kdloader
+      top               -14px
+  .kdheaderview
+    padding             10px 10px 5px 10px
+  .inner-header
+    size                auto, 37px
+    font-size           16px
+    font-weight         bold
+    color               #4C4C4C
+    border-bottom       3px solid #c7c7c7
+    text-shadow         0px 1px 0px #fff
+    gradient            #F3F3F3, #DBDBDB
+    borderBox()
+    .cupid-green
+      height            24px
+      line-height       7px
+      max-width         100px
+    .join-button
+      width             60px
+    .help, .users
+      height            20px
+      width             16px
+      top               9px
+      position          relative
+      margin-right      10px
+      border-radius     100px
+      cursor            pointer
+      bg                position, -142px -458px
+      kdfsprite()
+      fr()
+    .users
+      size              21px, 22px
+      bg                position, 1px -58px
+      fr()
+    .session-key
+      width             auto
+      padding           2px 4px
+      float             right
+      font-size         12px
+      font-weight       300
+      color             #999
+      margin            12px 8px 0 0
+  .placeholder
+    font-size           18px
+    font-weight         600
+    text-align          center
+    top                 30%
+  .client-webterm
+    .pane
+      size              100%, 100%
+      z-index           3000
+    .kdinput
+      z-index           2000
+      top               200px
+      left              200px
+      width             200px
+      height            0
+      abs()
+  .not-valid
+    height              150px
+    line-height         40px
+    font-weight         bold
+    font-size           26px
+    width               100%
+    text-align          center
+    top                 50%
+    margin-top          -75px
+    text-shadow         1px 1px 1px rgba(0, 0, 0, .3)
+    text-transform      uppercase
+    .description
+      font-size         13px
+      width             50%
+      height            50px
+      line-height       20px
+      left              50%
+      margin-left       -25%
+      color             #666
+      margin-top        10px
+      text-shadow       none
+    .cupid-green
+      font-size         14px
+      padding           10px
+  .user-list
+    width               250px
+    position            absolute
+    right               -250px
+    z-index             10000
+    background          #FFF
+    height              auto
+    box-shadow          0 0 16px rgba(0, 0, 0, .2)
+    margin-top          39px
+    vendor              transition, right .2s linear
+    .title
+      font-size         16px
+    .group
+      .header
+        margin          5px 10px
+        border-bottom   1px solid #ccc
+        color           #999
+        font-size       10px
+    .invite-bar
+      border            1px solid #63a62f
+      border-color      #63a62f #63a62f #5b992b #63a62f
+      color             #fff
+      font-size         11px
+      line-height       1
+      padding           4px 0 4px 0
+      text-align        center
+      text-shadow       0 -1px 0 #4c9021
+      gradient          #7fbf4d,#63a62f
+      shadow            inset 0 1px 0 0 #96ca6d
+      &:hover
+        cursor          pointer
+        gradient        #76b347,#5e9e2e
+        shadow          inset 0 1px 0 0 #8dbf67
+    .invite-view
+      p
+        padding         10px
+        text-align      justify
+        color           #999
+      .session-key
+        font-size       22px
+        text-align      center
+        margin-bottom   10px
+      .kdautocompletewrapper
+        margin          10px 0px 10px 10px
+        input
+          margin-bottom 10px
+          width         231px
+        .kdautocompletedlistitem
+          width         84px
+          margin        0 3px 3px 0
+          .avatar
+            top         2px
+            position: relative
+          .profile span
+            left        4px
+            position    relative
+      .cupid-green
+        width           60px
+        height          24px
+        line-height     9px
+        margin-bottom   10px
+        left            131px
+      .cancel-button
+        border          none
+        background      none
+        color           #AAA
+        font-size       12px
+        font-weight     normal
+        top             2px
+        left            131px
+    .host-badge
+      size              60px, 20px
+      top               10px
+      right             10px
+      color             #999
+      font-size         11px
+      abs()
+      .icon
+        size            14px, 14px
+        display         inline-block
+        bg              position, -42px -400px
+        kdfsprite()
+    .kdloader
+      display           none
+    &.loading
+      text-align        center
+      .kdloader
+        margin          0 auto 10px auto
+        display         block
+    &.active
+      right             0 !important
+      display           block
+    .close
+      size              20px, 20px
+      right             10px
+      top               10px
+      bg                position, -80px -240px
+      abs()
+      kdfsprite()
+      pointer()
+    .wrapper
+      padding-top       10px
+    .user-view
+      margin            0 0 10px 10px
+      .avatarview
+        fl()
+      .user-name
+        width           auto
+        margin-left     10px
+        top             4px
+        font-size       12px
+        fl()
+  .file-container
+    bg                  color, #1B2224
+    width               247px
+    border-right        3px solid #252E30
+    &.client-finder-pane
+      .vm
+        .icon
+          bg            position, -20px -140px !important
+    .loader-container
+      height            76px
+      top               50%
+      margin-top        -38px
+      text-align        center
+    p
+      font-size         14px
+      margin-top        10px
+      font-weight       600
+
+.workspace-modal
+  p
+    padding             10px 20px
+    line-height         15px
+  .modal-cancel:focus
+    border              none
+    box-shadow          none
+  &.join-modal .text
+    width               470px
+    margin              0 20px 13px
+  &.share-modal .key
+    font-size           24px
+    margin              0 17px 10px
+    font-weight         600
+    border              none
+    height              42px
+    box-shadow          none
+    &:focus
+      box-shadow        none
+      border            none
+    &:hover
+      box-shadow        none
+      border            none
+    &:active
+      box-shadow        none
+      border            none
+
+.host-disconnected-modal
+  p
+    padding             10px 20px
+  .kdmodal-buttons .clean-gray
+    margin-top          9px
+    right               15px
+  .modal-cancel
+    top                 -2px
+  .kdmodal-buttons
+    width               400px !important
+
+.workspace-chat
+  abs()
+  size                  240px, 24px
+  z-index               10000
+  bottom                0px
+  right                 0px
+  -webkit-transition    top .4s ease, height .2s ease-in
+  -moz-transition       top .4s ease, height .2s ease-in
+  transition            top .4s ease, height .2s ease-in
+  &.active
+    height              317px
+  .dock
+    font-size           14px
+    font-weight         600
+    color               #FFF
+    height              24px
+    line-height         24px
+    text-indent         5px
+    border-radius       3px 0 0 0
+    gradient            #F39A37, #ED6A20
+    border-bottom       1px solid #9E4A19
+    pointer()
+    text-shadow         1px 0px 1px rgba(0, 0, 0, .3)
+    span
+      margin-left       5px
+  .toggle
+    font-size           18px
+    right               9px
+    top                 -2px
+    width               16px
+    abs()
+    &.active
+      top               -2px
+      right             5px
+      &:before
+        content         "-"
+    &:before
+      content           "+"
+  .wrapper
+    height              296px
+    background          #FFF
+    &.active
+      display           block
+  .input-container
+    background          #E2E2E2
+    padding             5px
+    border-top          1px solid #8F8F8F
+  .messages
+    size                auto, 257px
+    padding             5px
+    overflow-y          auto
+    border-top          1px solid #FFF
+    gradient            #EBEBEB, #FFF
+    borderBox()
+  .kdinput
+    width               230px
+    border-color        #8F8F8F !important
+  .chat-item
+    height              auto
+    margin-bottom       10px
+    &.mine
+      .items-container
+        background      #FFF5EE
+        border-color    #F1B480
+      .username
+        background      #FFD8BD !important
+        border-bottom   1px solid #F1B480 !important
+      .avatarview
+        float           right
+    .avatarview
+      float             left
+      margin-right      6px
+      border-radius     3px
+    .items-container
+      width             185px
+      font-size         12px
+      border            1px solid #BDBDBD
+      border-radius     3px
+      background        #ECECEC
+      div
+        margin          1px 5px
+        line-height     15px
+      .username
+        background      #DDD
+        border-bottom   1px solid #BDBDBD
+        font-weight     600
+        margin-bottom   3px
+        padding         2px 5px
+        margin          0 -5px
+        text-indent     5px
+      .time-ago
+        right           2px
+        top             2px
+        color           #7E7E7E
+        font-size       9px
+        font-weight     normal
+        font-style      italic
+        text-align      right
+        abs()
+
+.workspace-launcher
+  size                  30px, 30px
+  bottom                10px
+  right                 10px
+  z-index               3000
+  bg                    color, #F7931E
+  font-size             26px
+  color                 #FFF
+  text-align            center
+  line-height           30px
+  text-shadow           0 1px 0 rgba(0, 0, 0, .444)
+  rounded               30px
+  abs()
+  vendor                transition, background-color .8s ease
+  pointer()
+  span
+    display             block
+    vendor              user-select, none
+  .launcher-item
+    size                30px, 30px
+    opacity             0
+    top                 0
+    left                0
+    z-index             -100
+    abs()
+    bg                  color, #F7931E
+    bg                  image, url("../images/teamwork/icons.png")
+    rounded             30px
+    -webkit-transition  top .4s ease, left .4s ease, opacity .4s ease
+    -moz-transition     top .4s ease, left .4s ease, opacity .4s ease
+    transition          top .4s ease, left .4s ease, opacity .4s ease
+    &:hover
+      bg                color, #367489
+  &.active
+    bg                  color, #367489
+    span
+      vendor             transform, rotateZ(45deg)
+      -webkit-transition -webkit-transform .2s ease
+      -moz-transition    -moz-transform    .2s ease
+      transition         transform         .2s ease
+    .launcher-item
+      opacity           1
+      z-index           3000
+      &.chat
+        top             -45px
+        bg              position, -1px -34px
+      &.terminal
+        top             -33px
+        left            -33px
+        bg              position, -1px -1px
+      &.preview
+        left            -45px
+        bg              position, -1px -65px
+
+.workspace-launcher.vertical
+  size                  50px, 156px
+  bottom                0
+  right                 0
+  rounded               0
+  bg                    color, transparent
+  .launcher-item
+    position            relative
+    size                42px, 42px
+    bg                  color, #3a3a3a
+    opacity             1
+    rounded             10px
+    z-index             100
+    margin-bottom       10px
+    bg                  repeat, no-repeat
+    &:hover
+      bg                color, #2d2d2d
+    &.chat
+      bg                position, 8px -53px
+    &.terminal
+      bg                position, 8px -104px
+    &.preview
+      bg                position, 10px 0
+  &.active
+    .launcher-item
+      top               0
+      left              0
+
+.workspace
+  .workspace-floating-panes
+    overflow            visible
+  .floating-pane
+    abs()
+    vendor              transition, top .4s ease
+    z-index             2000
+    &.active
+      vendor            box-shadow, 0px 0px 10px rgba(0, 0, 0, .5)
+      top               -400px
+  .workspace-chat.floating
+    .dock
+      rounded           4px 4px 0 0
+      border            1px solid #192B30
+      background        #2F5760
+    right               0
+    bottom              -24px
+    &.active
+      height            341px
+      top               -317px
+  .floating-preview-pane
+    background          #FFF
+    .warning
+      abs()
+      top               180px
+      left              50%
+      width             460px
+      margin-left       -230px
+      text-align        center
+      p
+        font-size       16px
+        font-weight     600
+        margin-bottom   10px
+      span
+        font-size       10px
+        color           #AAA
+
+.workspace-broadcast-container
+  text-align            center
+.workspace-broadcast
+  padding               1px 10px
+  font-size             12px
+  border                1px solid #FDA023
+  color                 #FFF
+  shadow                0px 0px 5px rgba(0, 0, 0, .33)
+  text-shadow           none
+  font-weight           normal
+  position              relative
+  top                   5px
+  border-color          #E9E9E9
+  border-radius         4px
+  background            rgba(0, 0, 0, .6)
+  &.success
+    background          rgba(70, 136, 71, .8)
+  &.error
+    background          rgba(185, 74, 72, 0.9)

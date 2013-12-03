@@ -10,29 +10,61 @@ app.login-signup.styl
 
 // swapping views for views
 .kdview.login-screen
-  z-index            100
-  padding-top        50px
-  background-image   none
-  // gradient           rgba(0, 0, 0, .8), rgba(0, 0, 0, 0)
-  top                -100%
-  text-align         center
-  vendor             transition, top .3s ease-in-out
-  position           fixed
-  // abs()
+  background          #111617
+  bg                  size, cover
+  text-align          center
+  position            fixed
   borderBox()
   &.shown
-    top              0
+    top               0
+
+  .tint
+    size                100% 100%
+    z-index             0
+    bg                  color, rgba(0,0,0,.6)
+    abs()
 
   .flex-wrapper
-    background       transparent url("../images/koding-new-bg.png") repeat-x 0 -13px
-    size             220px, 320px
-    border           1px solid rgba(255,255,255,0.1)
-    margin           30px auto 30px auto
-    rounded          8px
-    shadow           0 10px 40px rgba(0,0,0,0.8)
-    bg               color, rgba(68, 80, 83, 1.0)
-    vendor           transition, height .1s ease-in-out\,width .4s ease-in-out\, margin .4s ease-in-out
+    z-index             1
+    size                419px 353px
+    margin              -300px auto 0 auto
+    top                 50%
+    rounded             5px
+    bg                  color #F4F4F4
+    vendor              transition, height .1s ease-out\,\
+                                    width  .4s ease-in-out\,\
+                                    margin .4s ease-in-out
     rel()
+    &.one
+      height            281px
+    &.three
+      height            427px
+
+  a
+    noTextDeco()
+    color               white
+    font-size           14px
+  i
+    color               white
+    font-size           10px
+    font-style          normal
+    margin              0 5px
+    vertical-align      top
+    line-height         19px
+
+
+  footer
+    fix()
+    color               white
+    margin-left         -210px
+    size                419px auto
+    bottom              0
+    left                50%
+    font-size           13px
+    a
+      color             #ddd
+      span
+        color           #aaa
 
   .login-form-holder
   .login-options-holder
@@ -40,7 +72,6 @@ app.login-signup.styl
   .regLink
   .recLink
   .logLink
-  .resend-confirmation-link
   >section
     hidden()
 
@@ -50,7 +81,6 @@ app.login-signup.styl
       visible()
     .flex-wrapper
       overflow            visible
-      height              235px
       &.expanded
         width             400px
         height            310px
@@ -67,36 +97,27 @@ app.login-signup.styl
       visible()
       >.kdview
         overflow          visible
-      // .kdnotification.mini.register
-      //   top               76px!important
 
   &.login
-    // margin-top            -230px !important
-
     .lf
     .regLink
     .recLink
-    .resend-confirmation-link
     .login-options-holder.log
       visible()
 
   &.register
-    // margin-top            -300px !important
-
     .rf
     .logLink
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      size                400px, 421px
+      height                475px
       &.taller
-        height              470px
+        height              500px
 
   &.redeem
     .rdf
       visible()
-    .flex-wrapper
-      height              193px
     .login-footer
       hidden()
 
@@ -106,10 +127,6 @@ app.login-signup.styl
       visible()
     .rcf > form
       margin-top          15px
-    .flex-wrapper
-      height              198px
-    .rcf .kdnotification.mini.register
-      top                 174px!important
 
   &.reset
     .rsf
@@ -117,8 +134,6 @@ app.login-signup.styl
       visible()
     .reset-link
       hidden()
-    .flex-wrapper
-      height              254px
 
   &.resendEmail
     .resend-confirmation-form
@@ -126,97 +141,49 @@ app.login-signup.styl
       visible()
     .resend-confirmation-form > form
       margin-top          15px
-    .flex-wrapper
-      height              198px
-
-  &.home
-    .flex-wrapper
-      margin-bottom       30px
-
-  .up-arrow
-    display               block
-    abs()
-    bottom                12px
-    left                  50%
-    size                  50px,50px
-    margin-left           -25px
-    border                25px solid transparent
-    border-bottom-color   rgba(0,0,0,.3)
-    borderBox()
-    &:hover
-      border-bottom-color rgba(255,255,255,.3)
-
-  a.back-to-home
-    display               block
-    width                 200px
-    margin                30px auto 10px auto
-    z-index               1
-    opacity               .8
-    noTextDeco()
-    span::before
-      content             '↓'
-    &:hover
-      opacity             1
-      span::before
-        content           '↑'
-  a
-    color                 #ffb500
-    noTextDeco()
-    &:hover
-      color               white
-
-  // .login-lights
-  //   abs()
-  //   top                   0
-  //   left                  0
-  //   background            transparent url("../images/bgflare.png") no-repeat center top
-  //   size                  100%,416px
-  //   z-index               0
 
   .login-hint
     color                 #B4B3B3
     margin                0 auto 10px auto
-    width                 78%
+    width                 327px
     font-size             11px
 
-  .kdnotification.mini.register
-    abs()
-    top                   -1px !important
-    padding               5px 10px
-
-    .kdnotification-title
-      font-size           10px
-      line-height         10px
-      padding             0
-      color               #ccc
-
-      img
-        margin            0px 3px 0 0
-        vertical-align    bottom
-        size              12px, 11px
-
   .login-footer
-    rel()
-    size                  300px, auto
-    margin                40px auto
-    padding               10px
-    border                1px solid rgba(255,255,255,0.15)
-    rounded               5px
-    bg                    color, rgba(0, 0, 0, .75)
-    shadow                0 5px 15px rgba(0,0,0,0.8)
+    abs()
+    size                  419px auto
+    margin                0 auto
+    padding               10px 0
+    color                 white
     borderBox()
+    .first-row
+      margin-bottom       20px
     p
-      color               white
       line-height         24px
       font-size           12px
       color               rgba(255, 255, 255, .75)
+    button
+      width               100%
+    button.solid.github
+      height              74px
+      text-align          left
+      span.button-title
+        line-height       74px
+        margin-left       20px
+      span.button-arrow
+        abs()
+        display         block
+        right           20px
+        top             27px
+        sprite          app 'login-right-arrow'
+      .icon
+        padding           0
+        sprite            app 'login-github'
 
 .login-box-header
   rel()
-  padding                 30px 0 0 0
   text-align              center
   overflow                visible
-  height                  78px
+  height                  72px
   borderBox()
   .betatag
     text-indent           -9999px
@@ -228,13 +195,16 @@ app.login-signup.styl
     abs()
     z-index               20002
   .logo
-    text-indent           -9999px
-    size                  140px,39px
-    margin-left           1px
+    font-size             0
+    size                  110px 72px
     cursor                pointer
+    rounded               0 0 5px 5px
+    bg                    color, #111617
     blockMid()
-    // sprite()
-    bg(position,-400px 0)
+    cite
+      margin              19px auto 0 auto
+      display             block
+      sprite              app logo-login
   a.back-to-login
     font-size             11px
     abs()
@@ -243,105 +213,48 @@ app.login-signup.styl
     left                  0
     noTextDeco()
 
-.login-options-holder
-  height                  72px
-  overflow                visible
-  margin-bottom           24px
-
-  &.reg
-    height                52px
-    margin-top            22px
-
-  &.log
-    margin-bottom         34px
-
-.kdview.login-screen
-  h3
-    color                 #b4b3b3
-    text-shadow           0 -1px 0 rgba(0, 0, 0, 0.64)
-    border                none
-    padding               12px 10px 0 10px
-    text-align            center !important
-    font-size             11px
-    line-height           30px
-    height                44px
-    borderBox()
-
-.login-options
-  text-align    center
-  margin        0
-
-  li.koding
-    bg(position,-440px -80px)
-  li.github
-    bg(position,-400px -40px)
-  li
-    // sprite()
-    size          32px,32px
-    border        1px solid rgba(0, 0, 0, 0.2)
-    margin        0 5px
-    shadow        inset 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.2)
-    rounded       5px
-    text-indent   -9999px
-    blockMid()
-    &.active,
-    &:hover
-      shadow            0 0 9px rgba(255, 187, 4, 0.66)
-      border            1px solid rgba(255, 187, 4, 0.56)
-      cursor            pointer
-    &:first-child
-      margin-left       0
-    &:last-child
-      margin-right      0
-
 .login-form-holder
-  margin-bottom           25px
-  padding-bottom          5px
+  margin                  36px 0 0 0
+  padding-bottom          0
   height                  auto
 
 .login-form
 
-  // section
-  //   rel()
-  //   margin                40px 0
-  //   top                   0
-  //   text-align            center
-  //   overflow              hidden
-  //   p
-  //     height              220px
-  //     padding             76px 10px
-  //     b
-  //       font-size         13px
-  //       display           block
-  //       line-height       28px
-  //       text-shadow       0 1px 0 rgba(0,0,0,.5)
   > section
   > div
     rel()
     text-align            center
     .kdview
-      width               78%
-      margin              0 auto 5px auto
-      height              31px
+      width               327px
+      margin              0 auto 17px auto
 
       &.half-size
         display           inline-block
-        width             38.5%
+        width             39%
+        input.kdinput.text
+          rounded         0 6px 6px 0
         &:first-child
-          margin-right    1%
+          padding-right   1px
+          borderBox()
+          input.kdinput.text
+            rounded       6px 0 0 6px
 
       &.validation-error
+        input.kdinput.text
+          border          1px solid #e79a8f
+        // .placeholder-helper
+        //   color           #e79a8f
         .validation-icon
-          bg              position, -80px -480px
-          opacity         .3
+          sprite          app 'login-validation-fail'
+          opacity         1
 
-      &.validation-passed
-        .validation-icon
-          bg              position, -80px -500px
-          opacity         .5
+      // &.validation-passed
+      //   .validation-icon
+      //     sprite          app 'login-validation-pass'
+      //     opacity         1
 
   p
-    size              78%, 0
+    size              327px, 0
     margin            0 auto
     color             #f2f2f2
     font-size         10px
@@ -363,57 +276,59 @@ app.login-signup.styl
     margin-bottom       0!important
     vendor              transition, height .15s ease-out
 
-  input.kdinput.text
-    padding             0 6px
-    border              1px solid rgba(0, 0, 0, 0.9)
-    color               #444
-    font-size           12px
-    box-shadow          inset 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.2)
-    font-size           11px
-    font-weight         600
-    height              31px
-    line-height         31px
-    rounded             4px
-    width               100%
-    borderBox()
-    // &.validation-error
-    //   bg                color,#ffe4bf
-
-  input::-webkit-input-placeholder
-    color               #666
-  input:-moz-placeholder
-    color               #666
+  .login-input-view
+    overflow            visible
+    .placeholder-helper
+      abs()
+      size              100% auto
+      left              0
+      color             #93979a
+      top               19px
+      font-size         16px
+      text-align        center
+      opacity           1
+      vendor            transition, top .1s ease\,\
+                                    opacity .3s .3s ease\,\
+                                    font-size .1s ease
+      z-index           0
+      &.out
+        top             -15px
+        font-size       12px
+        &.puff
+          opacity       0
+    // &.validation-error .out.puff
+    //   opacity           1
 
   .validation-icon
     abs()
-    right               5px
-    top                 6px
-    size                20px,20px
-    bg                  position, -80px -480px
-    // vendor              transition, opacity .15s ease-out
+    right               10px
+    top                 11px
+    vendor              transition, opacity .15s ease-out
     opacity             0
-    // sprite()
+    z-index             2
 
   .kdloader.input-loader
     abs()
-    right               28px
-    top                 8px
+    right               11px
+    top                 11px
+    z-index             100
 
-  .avatarview
-    abs()
-    right               69px
-    top                 40px
-    border              1px solid #ccc
-    rounded             2px
-    padding             1px
-    fl()
+
+  div.email
+    rel()
+
+    .avatarview
+      right               46px
+      top                 0
+      rounded             0 6px 6px 0
+      abs()
 
   .invitation-field
     rel()
     text-align          left
     color               #B4B3B3
     margin              0 auto
-    width               78%
+    width               327px
     line-height         36px
     font-size           12px
     overflow            hidden
@@ -456,28 +371,45 @@ app.login-signup.styl
       padding-right     5px
 
   button
-    width               78%
-    margin-top          5px
-    padding             9px 0
-    max-width           170px
+    width               327px
+    margin-bottom       46px
     &.loading
       color             rgba(255,255,255,.8)
       &:hover
         shadow          0 1px 0 rgba(255,255,255,0.23)
 
+  div.hint
+    font-size           14px
+    line-height         18px
+    color               #6e7879
+    margin              18px 46px
+    strong
+      font-weight       600
+
 p.login-tip
   line-height           16px
   color                 white
 
-.kdnotification.login
-  span
-    size                43px, 43px
-    bg                  position, -480px -120px
-    display             inline-block
-    margin-right        5px
-    vertical-align      middle
-    // sprite()
 
-// .recovery
-//   .kdnotification.mini
-//     top                   33px!important
+.kdtooltip.input-validation.just-text
+
+  max-width             none
+
+  div.wrapper
+    shadow              none
+    border              none
+    padding             16px
+    font-size           14px
+    line-height         22px
+    min-height          55px
+    borderBox()
+
+  &.placement-right
+    margin              11px 0 0 14px
+    div.wrapper
+      text-align        left
+
+  &.placement-left
+    margin-left         -16px
+    div.wrapper
+      text-align        right
