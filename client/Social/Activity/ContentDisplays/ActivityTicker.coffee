@@ -18,55 +18,60 @@ class ActivityTicker extends JView
     @load()
 
     group = KD.getSingleton("groupsController")
-    group.on "MemberJoinedGroup", (data)=>
-      {member} = data
-      return console.warn "member is not defined in new member event"  unless member
+    group.on "MemberJoinedGroup", @bound "addJoin"
+    group.on "LikeIsAdded", @bound "addLike"
+    group.on "FollowHappened", @bound "addFollow"
 
-      {constructorName, id} = member
-      KD.remote.cacheable constructorName, id, (err, account)=>
-        return console.error "account is not found", err if err or not account
-        @listController.addItem {as: "member", target: account}, 0
+  addJoin: (data)->
+    {member} = data
+    return console.warn "member is not defined in new member event"  unless member
 
-    group.on "LikeIsAdded", (data)=>
-      {liker, origin, subject} = data
-      unless liker and origin and subject
-        return console.warn "data is not valid"
+    {constructorName, id} = member
+    KD.remote.cacheable constructorName, id, (err, account)=>
+      return console.error "account is not found", err if err or not account
+      @listController.addItem {as: "member", target: account}, 0
 
-      {constructorName, id} = liker
-      KD.remote.cacheable constructorName, id, (err, source)=>
-        return console.log "account is not found", err, liker if err or not source
+  addFollow: (data)->
+    {follower, origin} = data
+    return console.warn "data is not valid"  unless follower and origin
 
-        {_id:id} = origin
-        KD.remote.cacheable "JAccount", id, (err, target)=>
-          return console.log "account is not found", err, origin if err or not target
+    {constructorName, id} = follower
+    KD.remote.cacheable constructorName, id, (err, source)=>
+      return console.log "account is not found" if err or not source
+      {_id:id, bongo_:{constructorName}} = data.origin
+      KD.remote.cacheable constructorName, id, (err, target)=>
+        return console.log "account is not found" if err or not target
+        eventObj = {source, target, as:"follower"}
 
-          {constructorName, id} = subject
-          KD.remote.cacheable constructorName, id, (err, subject)=>
-            return console.log "subject is not found", err, data.subject if err or not subject
+        # following tag has its relationship flipped!!!
+        if constructorName is "JTag"
+          eventObj =
+            source : target
+            target : source
+            as     : "follower"
 
-            eventObj = {source, target, subject, as:"like"}
-            @listController.addItem eventObj, 0
+        @listController.addItem eventObj, 0
 
-    group.on "FollowHappened", (data)=>
-      {follower, origin} = data
-      return console.warn "data is not valid"  unless follower and origin
+  addLike: (data)->
+    {liker, origin, subject} = data
+    unless liker and origin and subject
+      return console.warn "data is not valid"
 
-      {constructorName, id} = follower
-      KD.remote.cacheable constructorName, id, (err, source)=>
-        return console.log "account is not found" if err or not source
-        {_id:id, bongo_:{constructorName}} = data.origin
-        KD.remote.cacheable constructorName, id, (err, target)=>
-          return console.log "account is not found" if err or not target
-          eventObj = {source, target, as:"follower"}
+    {constructorName, id} = liker
+    KD.remote.cacheable constructorName, id, (err, source)=>
+      return console.log "account is not found", err, liker if err or not source
 
-          # following tag has its relationship flipped!!!
-          if constructorName is "JTag"
-            eventObj =
-              source : target
-              target : source
-              as     : "follower"
+      {_id:id} = origin
+      KD.remote.cacheable "JAccount", id, (err, target)=>
+        return console.log "account is not found", err, origin if err or not target
 
+        {constructorName, id} = subject
+        KD.remote.cacheable constructorName, id, (err, subject)=>
+          return console.log "subject is not found", err, data.subject if err or not subject
+
+          eventObj = {source, target, subject, as:"like"}
           @listController.addItem eventObj, 0
+
 
   load: ->
     lastItem = @listController.getItemsOrdered().last
