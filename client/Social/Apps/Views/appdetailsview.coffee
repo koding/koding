@@ -18,7 +18,7 @@ class AppDetailsView extends KDScrollView
           tmpl += "<li><img src=\"#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{slide}\" /></li>"
         return tmpl
 
-    @reviewView = new ReviewView {}, app
+    # @reviewView = new ReviewView {}, app
 
   viewAppended:->
 
@@ -54,5 +54,5 @@ class AppDetailsView extends KDScrollView
     #{screenshots or ""}
     <section><p><p></section>
     <header><a href='#'>Reviews</a></header>
-    <section>{{> @reviewView}}</section>
     """
+    # <section>{{> @reviewView}}</section>
