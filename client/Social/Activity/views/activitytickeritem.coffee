@@ -172,6 +172,7 @@ class ActiveTopicItemView extends KDListItemView
 
     @tag = new TagLinkView {}, data
     @followButton = new FollowButton
+      cssClass       : 'solid green'
       stateOptions   :
         unfollow     :
           cssClass   : 'following-topic'
