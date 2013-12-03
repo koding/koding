@@ -52,7 +52,7 @@ module.exports = class ActiveItems extends Base
       instances = []
       daisy queue = items.map (item) ->
         ->
-          klass.one _id: item.sourceId, (err, instance)->
+          klass.one _id: item._id, (err, instance)->
             instances.push instance
             queue.next()
 
