@@ -43,8 +43,6 @@ module.exports = class ActiveItems extends Base
       {$group:{_id:"$sourceId", total:{$sum:1}}},
       {$limit:10},
     , (err, items)->
-      callback err, items
-
       return callback err  if err
 
       items = _.sortBy items, (item)-> item.sum
