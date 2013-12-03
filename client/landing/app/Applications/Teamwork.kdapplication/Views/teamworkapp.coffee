@@ -38,7 +38,11 @@ class TeamworkApp extends KDObject
         @showTeamUpModal()
 
   createTeamwork: (options) ->
-    @teamwork = new TeamworkWorkspace options or @getTeamworkOptions()
+    playgroundClass = TeamworkWorkspace
+    if options?.playground
+      playgroundClass = if options.playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
+
+    @teamwork = new playgroundClass options or @getTeamworkOptions()
 
   showTeamUpModal: ->
     @showToolsModal @teamwork.getActivePanel(), @teamwork
@@ -151,6 +155,9 @@ class TeamworkApp extends KDObject
       rawOptions.importModalContent = manifest.importModalContent
 
     return rawOptions
+
+  getPlaygroundClass: (playground) ->
+    return if playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
 
   handlePlaygroundSelection: (playground, manifestUrl) ->
     unless manifestUrl
