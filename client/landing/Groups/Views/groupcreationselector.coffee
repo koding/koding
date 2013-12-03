@@ -39,10 +39,6 @@ class GroupCreationSelector extends KDInputRadioGroup
     return  unless input.length
     @setValue input[0].getAttribute "value"
 
-  setValue:(value)->
-    super
-    @$("input[value='#{value}']").trigger("change")
-
 class HostCreationSelector extends GroupCreationSelector
 
   setDomElement:->
@@ -67,7 +63,7 @@ class HostCreationSelector extends GroupCreationSelector
         class  : options.cssClassPrefix + @utils.slugify radioOptions.value
       icon     = $ "<cite/>",
         class  : "icon"
-        html   : "$<b>#{radioOptions.feeMonthly}</b>/mo"
+        html   : "$<b>#{radioOptions.feeAmount}</b>/mo"
 
       bg.append  div
       div.append radio
