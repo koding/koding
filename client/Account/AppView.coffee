@@ -50,9 +50,12 @@ class AccountListWrapper extends KDView
     listViewClass   = if listClasses[type] then listClasses[type] else KDListView
     controllerClass = if listClasses["#{type}Controller"] then listClasses["#{type}Controller"]
 
-    view       = new listViewClass cssClass : type, delegate: this
-    controller = new controllerClass {view}  if controllerClass
-    @addSubView view
+    @addSubView view = new listViewClass cssClass : type, delegate: this
+    if controllerClass
+      controller   = new controllerClass
+        view       : view
+        wrapper    : no
+        scrollView : no
 
 class AccountsSwappable extends KDView
   constructor:(options,data)->
