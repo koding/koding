@@ -112,7 +112,6 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
 
   pistachio: ->
     {target} = @getData()
-
     if actor.getId is KD.whoami().getId()
       return "{{> @avatar}} You installed {{> @object}}"
 
