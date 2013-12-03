@@ -96,12 +96,26 @@ button
     .icon
       margin        21px 0 0 19px
       display       block
+
     &.selected
-      bg            color, #EEEEEF
-      &.editor
-      &.terminal
-      &.teamwork
-        bg          color, #252E30
+      bg            color, #252E30
+
+    &.running:after
+      content       ""
+      display       block
+      background    #63c3c5
+      size          3px 3px
+      left          34px
+      bottom        8px
+      border-radius 8px
+      box-shadow    0 0 10px 1px #63c3c5
+      opacity       0.5
+      abs()
+
+    &.loading
+      .icon
+        vendor      animation, pulse 1.5s ease-in-out 100
+
     &.activity .icon
       sprite      app nav-activity
     &.develop .icon

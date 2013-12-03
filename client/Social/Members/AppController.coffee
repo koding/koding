@@ -9,24 +9,7 @@ class MembersAppController extends AppController
     #   path       : "/Members"
     #   order      : 30
 
-  @externalProfiles = externalProfiles =
-    github          :
-      nicename      : 'GitHub'
-      urlLocation   : 'html_url'
-    odesk           :
-      nicename      : 'oDesk'
-      urlLocation   : 'info.profile_url'
-    facebook        :
-      nicename      : 'Facebook'
-      urlLocation   : 'link'
-    google          :
-      nicename      : 'Google'
-    linkedin        :
-      nicename      : 'LinkedIn'
-    twitter         :
-      nicename      : 'Twitter'
-    # bitbucket       :
-    #   nicename      : 'BitBucket'
+  {externalProfiles} = KD.config
 
   constructor:(options = {}, data)->
 

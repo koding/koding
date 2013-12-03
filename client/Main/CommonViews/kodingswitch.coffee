@@ -11,19 +11,13 @@ class KodingSwitch extends KDOnOffSwitch
 
   setDomElement:(cssClass)->
 
-    {name} = @getOptions()
-    @domElement = $ """
-      <div class='kdinput koding-on-off off #{cssClass}'>
-        <a href='#' class='knob' title='turn on'></a>
-      </div>
-      """
+    @domElement = $ "<div class='kdinput koding-on-off off #{cssClass}'><a href='#' class='knob' title='turn on'></a></div>"
 
   mouseDown:-> @setValue if @getValue() is on then off else on
 
 
   setOff:(wCallback = yes)->
 
-    log "hullog off"
     return if not @getValue() and wCallback
 
     @$("input").attr "checked", no
@@ -32,7 +26,7 @@ class KodingSwitch extends KDOnOffSwitch
     @switchStateChanged() if wCallback
 
   setOn:(wCallback = yes)->
-    log "hullog on"
+
     return if @getValue() and wCallback
 
     @$("input").attr "checked", yes

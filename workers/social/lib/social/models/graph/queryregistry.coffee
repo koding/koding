@@ -11,6 +11,16 @@ module.exports =
           SKIP {skipCount}
           LIMIT {limitCount}
         """
+      onlineFollowing : (orderByQuery)->
+        """
+          START user=node:koding(id={currentUserId})
+          MATCH user-[:follower]->members
+          WHERE members.onlineStatus = "online"
+          RETURN members
+          #{orderByQuery}
+          SKIP {skipCount}
+          LIMIT {limitCount}
+        """
       follower  : (orderByQuery)->
         """
           START group=node:koding(id={groupId})

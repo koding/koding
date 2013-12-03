@@ -25,8 +25,13 @@ class ActivityAppView extends KDScrollView
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
     @header           = new HomeKonstructor
     @inputWrapper     = new ActivityInput
-    @rightBlock       = new ActivityTicker
+    @activityTicker   = new ActivityTicker
+    @activeUsers      = new ActiveUsers
+    @onlineUsers      = new OnlineUsers
+    @activeTopics     = new ActiveTopics
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
+    @rightBlock       = new KDCustomHTMLView cssClass : "activity-right-block"
+
     @mainController   = KD.getSingleton("mainController")
 
     @inputWrapper.addSubView new KDButtonView
@@ -68,6 +73,11 @@ class ActivityAppView extends KDScrollView
 
     @leftBlock.addSubView @inputWrapper
     @leftBlock.addSubView @feedWrapper
+
+    @rightBlock.addSubView @activityTicker
+    @rightBlock.addSubView @onlineUsers
+    @rightBlock.addSubView @activeUsers
+    @rightBlock.addSubView @activeTopics
 
   decorate:->
     @unsetClass "guest"
