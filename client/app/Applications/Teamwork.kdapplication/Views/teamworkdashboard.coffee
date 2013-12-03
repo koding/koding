@@ -88,7 +88,18 @@ class TeamworkDashboard extends JView
     @getDelegate().emit "ImportRequested", @importInput.getValue()
 
   handleJoinSession: ->
-    @getDelegate().emit "JoinSessionRequested", @joinInput.getValue()
+    sessionKey = @joinInput.getValue()
+    if sessionKey.match /(http|https)/
+      if sessionKey.indexOf("koding.com") > -1 and sessionKey.indexOf("sessionKey=") > -1
+        [temp, sessionKey] = sessionKey.split "sessionKey="
+      else
+        return new KDNotificationView
+          type     : "mini"
+          cssClass : "error"
+          title    : "Could not resolve your URL"
+          duration : 5000
+
+    @getDelegate().emit "JoinSessionRequested", sessionKey
 
   pistachio: ->
     """
