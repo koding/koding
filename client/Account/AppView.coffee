@@ -1,17 +1,3 @@
-class AccountNavigationItem extends KDListItemView
-
-  constructor:(options = {}, data)->
-
-    options.tagName    = 'a'
-    options.attributes = href : "/Account/#{KD.utils.slugify data.title}"
-
-    super options, data
-
-    @name = @getData().title
-
-  partial:(data)-> data.title
-
-
 class AccountListWrapper extends KDView
 
   listClasses =
@@ -58,20 +44,15 @@ class AccountListWrapper extends KDView
 
     @addSubView view
 
-class AccountsSwappable extends KDView
-  constructor:(options,data)->
-    options = $.extend
-      views : []          # an Array of two KDView instances
-    ,options
-    super
-    @setClass "swappable"
-    @addSubView(@view1 = @options.views[0]).hide()
-    @addSubView @view2 = @options.views[1]
+class AccountNavigationItem extends KDListItemView
 
-  swapViews:->
-    if @view1.$().is(":visible")
-      @view1.hide()
-      @view2.show()
-    else
-      @view1.show()
-      @view2.hide()
+  constructor:(options = {}, data)->
+
+    options.tagName    = 'a'
+    options.attributes = href : "/Account/#{data.slug}"
+
+    super options, data
+
+    @name = @getData().title
+
+  partial:(data)-> data.title
