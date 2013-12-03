@@ -101,8 +101,6 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
-    @getView().on "InputSubmitted", @bound "ownActivityArrived"
-
   setFeedFilter: (feedType) -> @currentFeedFilter = feedType
   getFeedFilter: -> @currentFeedFilter
 
