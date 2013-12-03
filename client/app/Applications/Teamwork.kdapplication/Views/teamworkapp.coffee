@@ -35,12 +35,15 @@ class TeamworkApp extends KDObject
 
     @on "TeamUpRequested", =>
       @teamwork.once "WorkspaceSyncedWithRemote", =>
-        @showToolsModal @teamwork.getActivePanel(), @teamwork
-        @tools.teamUpHeader.emit "click"
-        @tools.setClass "team-up-mode"
+        @showTeamUpModal()
 
   createTeamwork: (options) ->
     @teamwork = new TeamworkWorkspace options or @getTeamworkOptions()
+
+  showTeamUpModal: ->
+    @showToolsModal @teamwork.getActivePanel(), @teamwork
+    @tools.teamUpHeader.emit "click"
+    @tools.setClass "team-up-mode"
 
   getTeamworkOptions: ->
     options               = @getOptions()

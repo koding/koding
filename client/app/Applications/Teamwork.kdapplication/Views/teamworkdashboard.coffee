@@ -11,8 +11,12 @@ class TeamworkDashboard extends JView
       cssClass    : "tw-teamup-button"
       callback    : =>
         delegate  = @getDelegate()
-        delegate.emit "NewSessionRequested", ->
-          delegate.emit "TeamUpRequested"
+        if delegate.teamwork
+          @hide()
+          delegate.showTeamUpModal()
+        else
+          delegate.emit "NewSessionRequested", ->
+            delegate.emit "TeamUpRequested"
 
     @joinInput    = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
