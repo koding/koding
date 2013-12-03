@@ -24,6 +24,7 @@ module.exports =
   projectRoot   : projectRoot
   version       : version
   webserver     :
+    useCacheHeader: yes
     login       : 'prod-webserver'
     port        : 3000
     clusterSize : 1
