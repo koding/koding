@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/coreos/go-etcd/etcd"
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
 	"koding/db/mongodb/modelhelper"
 	"koding/newkite/dnode"
 	"koding/newkite/kite"
@@ -13,9 +13,7 @@ import (
 	"koding/newkite/protocol"
 	"koding/newkite/token"
 	"koding/tools/config"
-	stdlog "log"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -27,7 +25,7 @@ const (
 	KitesPrefix       = "/kites"
 )
 
-var log = logging.MustGetLogger("Kontrol")
+var log *logging.Logger
 
 type Kontrol struct {
 	kite       *kite.Kite
@@ -56,6 +54,8 @@ func New() *Kontrol {
 		watcherHub: newWatcherHub(),
 	}
 
+	log = kontrol.kite.Log
+
 	kontrol.kite.KontrolEnabled = false // Because we are Kontrol!
 
 	kontrol.kite.Authenticators["kodingKey"] = kontrol.AuthenticateFromKodingKey
@@ -63,6 +63,7 @@ func New() *Kontrol {
 
 	kontrol.kite.HandleFunc("register", kontrol.handleRegister)
 	kontrol.kite.HandleFunc("getKites", kontrol.handleGetKites)
+	kontrol.kite.HandleFunc("getToken", kontrol.handleGetToken)
 
 	return kontrol
 }
@@ -79,17 +80,7 @@ func (k *Kontrol) Start() {
 
 // init does common operations of Run() and Start().
 func (k *Kontrol) init() {
-	setupLogging()
 	go k.WatchEtcd()
-}
-
-func setupLogging() {
-	log.Module = "Kontrol"
-	logging.SetFormatter(logging.MustStringFormatter("%{level:-8s} ▶ %{message}"))
-	stderrBackend := logging.NewLogBackend(os.Stderr, "", stdlog.LstdFlags|stdlog.Lshortfile)
-	stderrBackend.Color = true
-	syslogBackend, _ := logging.NewSyslogBackend(log.Module)
-	logging.SetBackend(stderrBackend, syslogBackend)
 }
 
 // registerValue is the type of the value that is saved to etcd.
@@ -281,18 +272,14 @@ func getQueryKey(q *protocol.KontrolQuery) (string, error) {
 }
 
 func (k *Kontrol) handleGetKites(r *kite.Request) (interface{}, error) {
-	var args []*dnode.Partial
-	err := r.Args.Unmarshal(&args)
-	if err != nil {
-		return nil, err
-	}
+	args := r.Args.MustSlice()
 
 	if len(args) != 1 && len(args) != 2 {
 		return nil, errors.New("Invalid number of arguments")
 	}
 
 	var query protocol.KontrolQuery
-	err = args[0].Unmarshal(&query)
+	err := args[0].Unmarshal(&query)
 	if err != nil {
 		return nil, errors.New("Invalid query argument")
 	}
@@ -300,10 +287,7 @@ func (k *Kontrol) handleGetKites(r *kite.Request) (interface{}, error) {
 	// To be called when a Kite is registered or deregistered matching the query.
 	var watchCallback dnode.Function
 	if len(args) == 2 {
-		err = args[1].Unmarshal(&watchCallback)
-		if err != nil {
-			return nil, errors.New("Invalid callback argument")
-		}
+		watchCallback = args[1].MustFunction()
 	}
 
 	// We do not allow access to other's kites for now.
@@ -382,22 +366,30 @@ func addTokenToKites(kvs []etcd.KeyValuePair, username string) ([]*protocol.Kite
 }
 
 func addTokenToKite(kite *protocol.Kite, username, kodingKey string) (*protocol.KiteWithToken, error) {
-	// Generate token.
-	key, err := kodingkey.FromString(kodingKey)
+	tkn, err := generateToken(kite, username, kodingKey)
 	if err != nil {
-		return nil, fmt.Errorf("Koding Key is invalid at Kite: %s", key)
-	}
-
-	// username is from requester, key is from kite owner.
-	tokenString, err := token.NewToken(username, kite.ID).EncryptString(key)
-	if err != nil {
-		return nil, errors.New("Server error: Cannot generate a token")
+		return nil, err
 	}
 
 	return &protocol.KiteWithToken{
 		Kite:  *kite,
-		Token: tokenString,
+		Token: tkn,
 	}, nil
+}
+
+func generateToken(kite *protocol.Kite, username, kodingKey string) (string, error) {
+	key, err := kodingkey.FromString(kodingKey)
+	if err != nil {
+		return "", fmt.Errorf("Koding Key is invalid at Kite: %s", key)
+	}
+
+	// username is from requester, key is from kite owner.
+	tkn, err := token.NewToken(username, kite.ID).EncryptString(key)
+	if err != nil {
+		return "", errors.New("Server error: Cannot generate a token")
+	}
+
+	return tkn, nil
 }
 
 // kiteFromEtcdKV returns a *protocol.Kite and Koding Key string from an etcd key.
@@ -470,6 +462,32 @@ func (k *Kontrol) WatchEtcd() {
 			}
 		}
 	}
+}
+
+func (k *Kontrol) handleGetToken(r *kite.Request) (interface{}, error) {
+	var kite *protocol.Kite
+	err := r.Args.Unmarshal(&kite)
+	if err != nil {
+		return nil, errors.New("Invalid Kite")
+	}
+
+	kiteKey, err := getKiteKey(kite)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := k.etcd.Get(kiteKey, false)
+	if err != nil {
+		return nil, err
+	}
+
+	var kiteVal registerValue
+	err = json.Unmarshal([]byte(resp.Value), &kiteVal)
+	if err != nil {
+		return nil, err
+	}
+
+	return generateToken(kite, r.Username, kiteVal.KodingKey)
 }
 
 func (k *Kontrol) AuthenticateFromSessionID(options *kite.CallOptions) error {

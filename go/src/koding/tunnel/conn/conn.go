@@ -36,13 +36,13 @@ func New(nc net.Conn, reconnect bool) *Conn {
 	}
 }
 
-func Dial(addr string, reconnect bool) *Conn {
+func Dial(addr string, reconnect bool) (*Conn, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Fatalf("dial %s\n", err)
+		return nil, err
 	}
 
-	return New(conn, reconnect)
+	return New(conn, reconnect), nil
 }
 
 func (c *Conn) Read(buf []byte) (int, error) {

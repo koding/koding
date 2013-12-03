@@ -56,7 +56,6 @@ func (c *Client) encoder() {
 	e := json.NewEncoder(c.controlConn)
 
 	for msg := range c.sendChan {
-		fmt.Println("got msg, sending to control chan", msg)
 		err := e.Encode(&msg)
 		if err != nil {
 			log.Println("encode", err)
@@ -70,7 +69,6 @@ func (c *Client) decoder() {
 
 	for {
 		msg := new(ServerMsg)
-		log.Println("waiting msg from control connection")
 		err := d.Decode(msg)
 		if err != nil {
 			log.Println("decode", err)
@@ -83,7 +81,7 @@ func (c *Client) decoder() {
 		}
 
 		if msg.Protocol != "http" && msg.Protocol != "websocket" {
-			log.Printf("protocol is not valid %s", msg.Protocol)
+			log.Printf("protocol is not valid %s\n", msg.Protocol)
 			continue
 		}
 
@@ -94,9 +92,20 @@ func (c *Client) decoder() {
 // proxy joins (proxies) the remote tcp connection with the local one.
 // the data between the two connections are copied vice versa.
 func (c *Client) proxy(serverMsg *ServerMsg) {
-	log.Printf("starting a proxy to	%s\n", serverMsg.Host)
-	remote := newTunnelDial(c.serverAddr, serverMsg)
-	local := newLocalDial(c.localAddr)
+	log.Printf("starting a proxy from %s to localhost%s\n", serverMsg.Host, c.localAddr)
+	remote, err := newTunnelDial(c.serverAddr, serverMsg)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer remote.Close()
+
+	local, err := newLocalDial(c.localAddr)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	local.OnDisconnect(func() {
 		log.Println("local connection is closed")
 		remote.Close()
@@ -109,7 +118,12 @@ func (c *Client) proxy(serverMsg *ServerMsg) {
 // blocking function. Every requst is handled in a separete goroutine. It's
 // like proxy() but the steps are more explicit.
 func (c *Client) httpProxy(serverMsg *ServerMsg) {
-	remote := newTunnelDial(c.serverAddr, serverMsg)
+	remote, err := newTunnelDial(c.serverAddr, serverMsg)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	for {
 		req, err := http.ReadRequest(bufio.NewReader(remote))
 		if err != nil {
@@ -122,9 +136,13 @@ func (c *Client) httpProxy(serverMsg *ServerMsg) {
 }
 
 func (c *Client) handleReq(req *http.Request, remote net.Conn) {
-	local := newLocalDial(c.localAddr)
+	local, err := newLocalDial(c.localAddr)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
-	err := req.Write(local)
+	err = req.Write(local)
 	if err != nil {
 		log.Println("write clientConn ", err)
 		return

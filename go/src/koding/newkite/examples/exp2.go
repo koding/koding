@@ -16,7 +16,7 @@ func main() {
 
 	options := &kite.Options{
 		Kitename:    "application",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        *port,
 		Region:      "localhost",
 		Environment: "development",
@@ -68,14 +68,8 @@ func main() {
 			return
 		}
 
-		var result int
-		err = response.Unmarshal(&result)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Printf("input: %d  rpc result: %d\n", i, result)
+		result := response.MustFloat64()
+		fmt.Printf("input: %d  rpc result: %f\n", i, result)
 	}
 
 	for {

@@ -13,7 +13,7 @@ func main() {
 
 	options := &kite.Options{
 		Kitename:    "mathworker",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        *port,
 		Region:      "localhost",
 		Environment: "development",
@@ -28,10 +28,7 @@ func main() {
 }
 
 func Square(r *kite.Request) (interface{}, error) {
-	a, err := r.Args.Float64()
-	if err != nil {
-		return nil, err
-	}
+	a := r.Args.MustFloat64()
 
 	result := a * a
 

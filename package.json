@@ -61,7 +61,8 @@
     "htmlencode"      : "0.0.3",
     "node-odesk"      : "0.0.7",
     "oauth"           : "0.9.10",
-    "node-uuid"       : "1.4.1"
+    "node-uuid"       : "1.4.1",
+    "newrelic"        : "1.1.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},
