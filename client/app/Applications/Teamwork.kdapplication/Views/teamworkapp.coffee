@@ -7,22 +7,48 @@ class TeamworkApp extends KDObject
 
     super options, data
 
-    @createTeamwork()
+    @appView   = @getDelegate()
+    @dashboard = new TeamworkDashboard
+      delegate : this
 
-    if options.playground
-      @doCurlRequest playgroundsManifest, (err, manifests) =>
-        for manifest in manifests when manifest.name is options.playground
-          url = manifest.manifestUrl
-        @handlePlaygroundSelection options.playground, url
-    else
-      @teamwork.on "PanelCreated", =>
-        @doCurlRequest playgroundsManifest, (err, manifest) =>
-          @playgroundsManifest = manifest
+    @doCurlRequest playgroundsManifest, (err, manifest) =>
+      @playgroundsManifest = manifest
+      @dashboard.emit "PlaygroundsFetched", @playgroundsManifest
 
-  createTeamwork: ->
+    @appView.addSubView @dashboard
+
+    @on "NewSessionRequested", (callback = noop) =>
+      @dashboard.hide()
+      @teamwork?.destroy()
+      @createTeamwork()
+      @appView.addSubView @teamwork
+      callback()
+
+    @on "JoinSessionRequested", (sessionKey) =>
+      @setOption "sessionKey", sessionKey
+      @emit "NewSessionRequested"
+
+    @on "ImportRequested", (importUrl) =>
+      @emit "NewSessionRequested"
+      @teamwork.on "WorkspaceSyncedWithRemote", =>
+        @showImportWarning importUrl
+
+    @on "TeamUpRequested", =>
+      @teamwork.once "WorkspaceSyncedWithRemote", =>
+        @showTeamUpModal()
+
+  createTeamwork: (options) ->
+    @teamwork = new TeamworkWorkspace options or @getTeamworkOptions()
+
+  showTeamUpModal: ->
+    @showToolsModal @teamwork.getActivePanel(), @teamwork
+    @tools.teamUpHeader.emit "click"
+    @tools.setClass "team-up-mode"
+
+  getTeamworkOptions: ->
     options               = @getOptions()
     instanceName          = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
-    @teamwork             = new TeamworkWorkspace
+    return {
       name                : options.name                or "Teamwork"
       joinModalTitle      : options.joinModalTitle      or "Join a coding session"
       joinModalContent    : options.joinModalContent    or "<p>Paste the session key that you received and start coding together.</p>"
@@ -36,14 +62,10 @@ class TeamworkApp extends KDObject
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
         buttons           : [
           {
-            title         : "Tools"
-            cssClass      : "clean-gray tw-tools-button"
-            callback      : => @showToolsModal @teamwork.getActivePanel(), @teamwork
+            title         : "Share"
+            cssClass      : "clean-gray"
+            callback      : (panel, workspace) => @showToolsModal panel, workspace
           }
-          title           : "Playgrounds"
-          itemClass       : KDButtonView
-          cssClass        : "clean-gray playgrounds-button"
-          callback        : => @showPlaygroundsModal()
         ]
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
@@ -61,6 +83,7 @@ class TeamworkApp extends KDObject
             }
           ]
       ]
+    }
 
   showToolsModal: (panel, workspace) ->
     modal       = new KDModalView
@@ -69,7 +92,7 @@ class TeamworkApp extends KDObject
       overlay   : yes
       width     : 600
 
-    modal.addSubView new TeamworkTools { modal, panel, workspace, twApp: this }
+    modal.addSubView @tools = new TeamworkTools { modal, panel, workspace, twApp: this }
     @emit "TeamworkToolsModalIsReady", modal
 
   showImportWarning: (url, callback = noop) ->
@@ -118,7 +141,7 @@ class TeamworkApp extends KDObject
       playgrounds : @playgroundsManifest
 
   mergePlaygroundOptions: (manifest, playground) ->
-    {rawOptions}                    = @teamwork
+    rawOptions                      = @getTeamworkOptions()
     {name}                          = manifest
     firstPanel                      = rawOptions.panels.first
     firstPanel.title                = name
@@ -140,7 +163,9 @@ class TeamworkApp extends KDObject
         {manifestUrl} = manifest
 
     @doCurlRequest manifestUrl, (err, manifest) =>
-      @teamwork.startNewSession @mergePlaygroundOptions manifest, playground
+      @teamwork?.destroy()
+      @createTeamwork @mergePlaygroundOptions manifest, playground
+      @appView.addSubView @teamwork
       @teamwork.container.setClass playground
       @teamwork.on "WorkspaceSyncedWithRemote", =>
         {contentDetails} = @teamwork.getOptions()
@@ -180,7 +205,11 @@ class TeamworkApp extends KDObject
       appStorage.setValue "#{playground}PlaygroundVersion", version
 
   doCurlRequest: (path, callback = noop) ->
-    KD.getSingleton("vmController").run "curl -kLs #{path}", (err, contents) =>
+    vmController = KD.getSingleton "vmController"
+    vmController.run
+      withArgs: "kdwrap curl -kLs https://raw.github.com/koding/Teamwork/master/Playgrounds/manifest-dev.json"
+      vmName  : vmController.defaultVmName
+    , (err, contents) =>
       extension = FSItem.getFileExtension path
       error     = null
 
