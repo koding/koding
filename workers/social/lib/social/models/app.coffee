@@ -25,7 +25,7 @@ module.exports = class JApp extends jraphical.Module
 
     softDelete          : yes
     slugifyFrom         : 'name'
-    slugTemplate        : 'Apps/#{slug}'
+    slugTemplate        : -> "#{@authorNick}/\#{slug}"
 
     indexes             :
       slug              : 'unique'
