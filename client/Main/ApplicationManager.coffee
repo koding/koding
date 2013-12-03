@@ -314,6 +314,8 @@ class ApplicationManager extends KDObject
     @appControllers[name].instances.push appInstance
     @setListeners appInstance
 
+    @emit "AppRegistered", name, appInstance.options
+
   unregister:(appInstance)->
 
     name  = appInstance.getOption "name"
@@ -321,6 +323,9 @@ class ApplicationManager extends KDObject
 
     if index >= 0
       @appControllers[name].instances.splice index, 1
+
+      @emit "AppUnregistered", name, appInstance.options
+
       if @appControllers[name].instances.length is 0
         delete @appControllers[name]
 

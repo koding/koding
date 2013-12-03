@@ -103,7 +103,28 @@ class DockController extends KDViewController
 
     @navController.reset()
 
+  setNavItemState:({name, navItem}, state)->
+    navItem or={}
+    for nav in @navController.itemsOrdered
+      if nav.name is name or ///^#{navItem.path}///.test nav.data.path
+        nav.setState state
 
   loadView:(dock)->
 
-    @ready => dock.addSubView @navController.getView()
+    @ready =>
+
+      dock.addSubView @navController.getView()
+
+      # Listen appManager to update dock items states
+      {appManager, kodingAppsController} = KD.singletons
+
+      kodingAppsController.on "LoadingAppScript", (name)=>
+        @setNavItemState {name}, 'loading'
+
+      appManager.on "AppRegistered", (name, {navItem}) =>
+        @setNavItemState {name, navItem}, 'running'
+
+      appManager.on "AppUnregistered", (name, {navItem}) =>
+        @setNavItemState {name, navItem}, 'initial'
+
+
