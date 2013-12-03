@@ -103,17 +103,6 @@ class ActivityAppController extends AppController
 
     @getView().on "InputSubmitted", @bound "ownActivityArrived"
 
-    appView.innerNav.on "NavItemReceivedClick", (data)=>
-      KD.track "Activity", data.type + "FilterClicked"
-      @resetAll()
-      @clearPopulateActivityBindings()
-
-      if data.type in ["Public", "Followed"]
-      then @setFeedFilter data.type
-      else @setActivityFilter data.type
-
-      @populateActivity()
-
   setFeedFilter: (feedType) -> @currentFeedFilter = feedType
   getFeedFilter: -> @currentFeedFilter
 

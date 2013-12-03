@@ -22,7 +22,6 @@ class ActivityAppView extends KDScrollView
 
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
-    @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
     @header           = new HomeKonstructor
     @inputWrapper     = new ActivityInput
     @activityTicker   = new ActivityTicker
@@ -67,7 +66,6 @@ class ActivityAppView extends KDScrollView
 
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
     @addSubView @header
-    @addSubView @innerNav
     @addSubView @leftBlock
     @addSubView @rightBlock
 
@@ -122,12 +120,6 @@ class ActivityAppView extends KDScrollView
   #         @header.$().css marginTop : -headerHeight
   #       else
   #         @scrollTo {duration : 300, top : @header.getHeight()}
-
-  _windowDidResize:->
-    return unless @header
-    headerHeight = @header.getHeight()
-    @innerNav.setHeight @getHeight() - 77 # (if KD.isLoggedIn() then 77 else 0)
-
 
 
 class ActivityListContainer extends JView
