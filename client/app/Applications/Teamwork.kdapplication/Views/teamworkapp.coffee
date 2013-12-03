@@ -1,7 +1,12 @@
 class TeamworkApp extends KDObject
 
-  filename            = if location.hostname is "localhost" then "manifest-dev" else "manifest"
+  filename            = "manifest"
+  instanceName        = "kd-prod-1"
   playgroundsManifest = "https://raw.github.com/koding/Teamwork/master/Playgrounds/#{filename}.json"
+
+  if location.hostname is "localhost"
+    filename          = "manifest-dev"
+    instanceName      = "teamwork-local"
 
   constructor: (options = {}, data) ->
 
@@ -17,16 +22,25 @@ class TeamworkApp extends KDObject
 
     @appView.addSubView @dashboard
 
-    @on "NewSessionRequested", (callback = noop) =>
+    @on "NewSessionRequested", (callback = noop, options) =>
       @dashboard.hide()
       @teamwork?.destroy()
-      @createTeamwork()
+      @createTeamwork options
       @appView.addSubView @teamwork
       callback()
 
     @on "JoinSessionRequested", (sessionKey) =>
       @setOption "sessionKey", sessionKey
-      @emit "NewSessionRequested"
+      firebase = new Firebase "https://#{instanceName}.firebaseIO.com/"
+      firebase.child(sessionKey).once "value", (snapshot) =>
+        val = snapshot.val()
+        if val.playground
+          @setOption "playgroundManifest", val.playgroundManifest
+          @setOption "playground", val.playground
+          options = @mergePlaygroundOptions val.playgroundManifest, val.playground
+          @emit "NewSessionRequested", null, options
+        else
+          @emit "NewSessionRequested"
 
     @on "ImportRequested", (importUrl) =>
       @emit "NewSessionRequested"
@@ -51,7 +65,6 @@ class TeamworkApp extends KDObject
 
   getTeamworkOptions: ->
     options               = @getOptions()
-    instanceName          = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
     return {
       name                : options.name                or "Teamwork"
       joinModalTitle      : options.joinModalTitle      or "Join a coding session"
