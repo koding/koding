@@ -38,7 +38,11 @@ class TeamworkApp extends KDObject
         @showTeamUpModal()
 
   createTeamwork: (options) ->
-    @teamwork = new TeamworkWorkspace options or @getTeamworkOptions()
+    playgroundClass = TeamworkWorkspace
+    if options?.playground
+      playgroundClass = if options.playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
+
+    @teamwork = new playgroundClass options or @getTeamworkOptions()
 
   showTeamUpModal: ->
     @showToolsModal @teamwork.getActivePanel(), @teamwork
@@ -135,11 +139,6 @@ class TeamworkApp extends KDObject
 
     finderController.mountVm "#{defaultVmName}:#{path}"
 
-  showPlaygroundsModal: ->
-    new TeamworkPlaygroundsModal
-      delegate    : this
-      playgrounds : @playgroundsManifest
-
   mergePlaygroundOptions: (manifest, playground) ->
     rawOptions                      = @getTeamworkOptions()
     {name}                          = manifest
@@ -156,6 +155,9 @@ class TeamworkApp extends KDObject
       rawOptions.importModalContent = manifest.importModalContent
 
     return rawOptions
+
+  getPlaygroundClass: (playground) ->
+    return if playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
 
   handlePlaygroundSelection: (playground, manifestUrl) ->
     unless manifestUrl
@@ -207,7 +209,7 @@ class TeamworkApp extends KDObject
   doCurlRequest: (path, callback = noop) ->
     vmController = KD.getSingleton "vmController"
     vmController.run
-      withArgs: "kdwrap curl -kLs https://raw.github.com/koding/Teamwork/master/Playgrounds/manifest-dev.json"
+      withArgs: "kdwrap curl -kLs #{path}"
       vmName  : vmController.defaultVmName
     , (err, contents) =>
       extension = FSItem.getFileExtension path
