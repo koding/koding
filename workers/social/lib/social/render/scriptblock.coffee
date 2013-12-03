@@ -86,8 +86,8 @@ module.exports = (options = {}, callback)->
   Cache  = require '../cache/main'
   feedFn = require '../cache/feed'
 
-  getRoute =-> return "scriptblock"
+  getCacheKey =-> return "scriptblock"
 
-  Cache.fetch feedFn, getRoute(), options, (err, data)->
+  Cache.fetch feedFn, getCacheKey(), options, (err, data)->
     prefetchedFeeds = data    # this is updating the prefetchedFeeds property
     return generateScript()   # we can generate html here
