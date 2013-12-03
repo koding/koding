@@ -1,15 +1,15 @@
 class LoginAppsController extends AppController
 
-  handler = (callback)-> KD.singleton('appManager').open 'Login', callback
+  handler = (callback)->-> KD.singleton('appManager').open 'Login', callback
 
   KD.registerAppClass this,
     name                    : "Login"
     routes                  :
-      '/:name?/Login'       : handler.bind null, (app)-> app.getView().animateToForm 'login'
-      '/:name?/Redeem'      : handler.bind null, (app)-> app.getView().animateToForm 'redeem'
-      '/:name?/Register'    : handler.bind null, (app)-> app.getView().animateToForm 'register'
-      '/:name?/Recover'     : handler.bind null, (app)-> app.getView().animateToForm 'recover'
-      '/:name?/ResendToken' : handler.bind null, (app)-> app.getView().animateToForm 'resendEmail'
+      '/:name?/Login'       : handler (app)-> app.getView().animateToForm 'login'
+      '/:name?/Redeem'      : handler (app)-> app.getView().animateToForm 'redeem'
+      '/:name?/Register'    : handler (app)-> app.getView().animateToForm 'register'
+      '/:name?/Recover'     : handler (app)-> app.getView().animateToForm 'recover'
+      '/:name?/ResendToken' : handler (app)-> app.getView().animateToForm 'resendEmail'
     hiddenHandle            : yes
     behavior                : 'application'
     preCondition            :
