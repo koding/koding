@@ -234,7 +234,7 @@ func (s *Server) tunnelFromPool(host string) (*tunnel, error) {
 
 	tunn, ok := conn.(*tunnel)
 	if !ok {
-		return nil, fmt.Errorf("failed to type assert net.Conn to tunnel", err)
+		return nil, fmt.Errorf("failed to type assert net.Conn to tunnel %s", err)
 	}
 
 	return tunn, nil
