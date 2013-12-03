@@ -1,8 +1,6 @@
-@import "./kdfn"
-@import "./client/stylus/appfn"
-@import "nib/gradients"
-
-
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
 
 
 @css {
@@ -10,6 +8,35 @@
 Dashboard main styles
 */
 }
+
+
+.kdtabpaneview.dashboard
+
+  color                   #828B8B
+
+  .content-page
+    min-height            100%
+    max-width             1100px
+    padding-top           150px
+
+
+
+
+
+
+
+//////////////////////////////////////
+//                                  //
+//                                  //
+//                                  //
+//                                  //
+//   OLD STYLES SHOULD BE UPDATED   //
+//   - SY                           //
+//                                  //
+//                                  //
+//                                  //
+//                                  //
+//////////////////////////////////////
 
 .group-product-section
   .payment-settings-view
@@ -46,7 +73,7 @@ Dashboard main styles
       top                 7px
       right               7px
       opacity             .7
-      sprite()
+      kdfsprite()
       abs()
 
   .dashboard-tabs
@@ -457,7 +484,7 @@ Dashboard invitations tab styles
           display             inline-block
           &.icon
             size              20px, 20px
-            sprite()
+            kdfsprite()
           &.title
             vertical-align top
             line-height       20px

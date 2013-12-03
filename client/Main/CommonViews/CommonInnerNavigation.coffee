@@ -1,11 +1,15 @@
 class CommonInnerNavigation extends KDView
 
+
   constructor:(options = {}, data)->
 
+    options.tagName  = 'aside'
     options.cssClass = KD.utils.curry "common-inner-nav", options.cssClass
+
     super options, data
 
-  setListController:(options,data,isSorter = no)->
+
+  setListController:(options, data, isSorter = no)->
 
     controller = new CommonInnerNavigationListController options, data
     controller.getListView().on "NavItemReceivedClick", (data)=>
@@ -26,10 +30,17 @@ class CommonInnerNavigation extends KDView
       @sortController.selectItem itemToBeSelected
 
 class CommonInnerNavigationListController extends NavigationController
-  constructor:(options={},data)->
-    options.viewOptions or= itemClass : options.itemClass or CommonInnerNavigationListItem
-    options.view or= mainView = new CommonInnerNavigationList options.viewOptions
-    super options,data
+
+
+  constructor:(options={}, data)->
+
+    options.viewOptions or=
+      itemClass           : options.itemClass or CommonInnerNavigationListItem
+    options.scrollView   ?= no
+    options.wrapper      ?= no
+    options.view        or= new CommonInnerNavigationList options.viewOptions
+
+    super options, data
 
     listView = @getListView()
 
@@ -48,15 +59,25 @@ class CommonInnerNavigationListController extends NavigationController
     @instantiateListItems(@getData().items or [])
 
 class CommonInnerNavigationList extends KDListView
-  constructor : (options = {},data)->
-    options.tagName or= "ul"
-    super options,data
+
+
+  constructor : (options = {}, data)->
+
+    options.tagName or= "nav"
+    options.type      = 'inner-nav'
+
+    super options, data
 
 class CommonInnerNavigationListItem extends KDListItemView
+
+
   constructor : (options = {},data)->
-    options.tagName or= "li"
-    options.partial or= "<a href='#'>#{data.title}</a>"
-    super options,data
-    @setClass data.type
+
+    options.tagName  or= "a"
+    options.attributes = href : data.slug or '#'
+    options.partial  or= data.title
+
+    super options, data
+
 
   partial:-> ""

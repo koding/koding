@@ -26,7 +26,6 @@ class DashboardAppView extends JView
           @header.show()
           @nav.show()
           @createTabs()
-          @_windowDidResize()
 
     @searchWrapper = new KDCustomHTMLView
       tagName  : 'section'
@@ -72,7 +71,6 @@ class DashboardAppView extends JView
 
   setListeners:->
 
-    @listenWindowResize()
     @nav.on "viewAppended", =>
       @navController = @nav.setListController
         itemClass : CommonInnerNavigationListItem
@@ -104,17 +102,8 @@ class DashboardAppView extends JView
       @navController.replaceAllItems navItems
       @navController.selectItem @navController.itemsOrdered.first
 
-  _windowDidResize:->
-    contentHeight = @getHeight() - @header.getHeight()
-    @$('>section, >aside').height contentHeight
-
   pistachio:->
     """
-      {{> @header}}
-      <aside class='fl'>
-        {{> @nav}}
-      </aside>
-      <section class='right-overflow'>
-        {{> @tabs}}
-      </section>
+      {{> @nav}}
+      {{> @tabs}}
     """
