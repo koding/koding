@@ -16,6 +16,7 @@ class TeamworkDashboard extends JView
 
     @joinInput    = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
+      type        : "text"
       placeholder : "Session key or join url"
       validate    :
         rules     : required: yes
@@ -30,6 +31,7 @@ class TeamworkDashboard extends JView
 
     @importInput  = new KDHitEnterInputView
       cssClass    : "tw-dashboard-input"
+      type        : "text"
       placeholder : "Url to import your VM"
       validate    :
         rules     : required: yes
