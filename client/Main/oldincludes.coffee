@@ -1,11 +1,3 @@
-"Applications/Members.kdapplication/AppController.coffee",
-"Applications/Activity.kdapplication/AppController.coffee",
-"Applications/Topics.kdapplication/AppController.coffee",
-"Applications/Environments.kdapplication/AppController.coffee",
-"Applications/Apps.kdapplication/AppController.coffee",
-"Applications/Inbox.kdapplication/AppController.coffee",
-"Applications/Demos.kdapplication/AppController.coffee",
-"Applications/StartTab.kdapplication/AppController.coffee",
 
 # chat
 "Applications/Chat.kdapplication/AppController.coffee",
@@ -25,11 +17,6 @@
 "Applications/Chat.kdapplication/Views/mainchathandler.coffee",
 "Applications/Chat.kdapplication/Views/mainchatheader.coffee",
 "Applications/Chat.kdapplication/Views/mainchatpanel.coffee",
-
-# viewer
-'app/Applications/Viewer.kdapplication/topbar.coffee',
-'app/Applications/Viewer.kdapplication/AppController.coffee',
-'app/Applications/Viewer.kdapplication/AppView.coffee',
 
 # --- ApplicationPageViews ---
 "Applications/Activity.kdapplication/activitylistcontroller.coffee",
@@ -100,47 +87,6 @@
 "Applications/Topics.kdapplication/ContentDisplays/TopicSplitViewController.coffee",
 "Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
-# VMs
-
-"Applications/Environments.kdapplication/views/scene/colortagselectorview.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentcontainer.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentdomaincontainer.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentrulecontainer.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentmachinecontainer.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentextracontainer.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentitemjointview.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentitemsview.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentruleitem.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentextraitem.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentdomainitem.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentmachineitem.coffee",
-"Applications/Environments.kdapplication/views/scene/environmentsceneview.coffee",
-"Applications/Environments.kdapplication/views/environmentsmainscene.coffee",
-
-# "Applications/Environments.kdapplication/views/vmsmainview.coffee",
-# "Applications/Environments.kdapplication/views/domainsmainview.coffee",
-# "Applications/Environments.kdapplication/views/DomainListItemView.coffee",
-# "Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
-# "Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
-"Applications/Environments.kdapplication/views/domains/domaincreationform.coffee",
-"Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
-# "Applications/Environments.kdapplication/views/DomainMapperView.coffee",
-# "Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
-# "Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
-# "Applications/Environments.kdapplication/views/FirewallFilterListItemView.coffee",
-# "Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
-# "Applications/Environments.kdapplication/views/FirewallFilterFormView.coffee",
-# "Applications/Environments.kdapplication/views/DNSManagerView.coffee",
-# "Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
-# "Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
-
-"Applications/Environments.kdapplication/AppView.coffee",
-# "Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
-# "Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
-# "Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
-# "Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"
-# "Applications/Environments.kdapplication/Controllers/DNSRecordListController.coffee"
-
 # APPS VIEWS
 "Applications/Apps.kdapplication/AppView.coffee",
 
@@ -191,19 +137,6 @@
 "Applications/Dashboard.kdapplication/AppView.coffee",
 
 
-
-# TEAMWORK
-"Applications/Teamwork.kdapplication/Views/teamworkenvironmentsmodal.coffee",
-"Applications/Teamwork.kdapplication/Views/teamworkmarkdownmodal.coffee",
-"Applications/Teamwork.kdapplication/Views/facebookteamworkinstructionsmodal.coffee",
-"Applications/Teamwork.kdapplication/Views/teamworktools.coffee",
-"Applications/Teamwork.kdapplication/Views/teamworkworkspace.coffee",
-"Applications/Teamwork.kdapplication/Views/teamworkapp.coffee",
-"Applications/Teamwork.kdapplication/Views/facebookteamwork.coffee",
-"Applications/Teamwork.kdapplication/Views/golangteamwork.coffee",
-"Applications/Teamwork.kdapplication/AppView.coffee",
-"Applications/Teamwork.kdapplication/AppController.coffee",
-
 # CLASSROOM
 # "Applications/Classroom.kdapplication/Views/classroomworkspace.coffee",
 # "Applications/Classroom.kdapplication/Views/classroomchapterlist.coffee",
@@ -247,7 +180,6 @@
 # "stylus/app.aceeditor.styl",
 # "stylus/app.activity.styl",
 # "stylus/app.contextmenu.styl",
-# "stylus/app.environments.styl",
 # "stylus/app.chat.styl",
 # "stylus/app.settings.styl",
 # "stylus/app.inbox.styl",
@@ -269,7 +201,6 @@
 # "stylus/third.workspace.styl",
 # "stylus/app.teamwork.styl",
 # "stylus/app.predefined.styl",
-# "stylus/app.envsettings.styl",
 
 # mediaqueries should stay at the bottom
 # "stylus/app.1024.styl",

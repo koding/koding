@@ -49,12 +49,12 @@ class KodingRouter extends KDRouter
     appManager = KD.getSingleton 'appManager'
     frags      = route.split '/'
     name       = frags[1] or ''
-    name       = if name is 'Develop' and frags.length > 2 then frags[2] else name
+    name       = (name.split '?')[0]
 
     log 'handlingRoute', route, 'for the', name, 'app'
-    if appManager.checkAppAvailability name
-      log 'couldn\'t found', name
-      return KodingAppsController.loadInternalApp name, (err)=>
+    if appManager.isAppAvailable name
+      log 'couldn\'t find', name
+      return KodingAppsController.putAppScript name, (err)=>
         log 'Router: loaded', name
         return warn err  if err
         KD.utils.defer => @handleRoute route, options
@@ -277,8 +277,6 @@ class KodingRouter extends KDRouter
 
       '/'                      : handleRoot
       ''                       : handleRoot
-      # '/Home'                : handleRoot
-      '/About'                 : createSectionHandler 'Activity'
 
       '/Landing/:page'         : noop
       '/R/:username'           : noop

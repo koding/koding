@@ -1,0 +1,108 @@
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
+
+
+
+@css {
+/*
+Account SETTINGS stylesheet
+app.settings.styl
+*/
+}
+
+body.account
+  bg                      color, #E9E9E7
+
+.kdtabpaneview.account
+
+  color                   #828B8B
+
+  aside.kdlistview-account-nav
+
+    width                 190px
+    height                auto
+    padding               3px
+    border-right          1px solid #D6D6D6
+    fl()
+    borderBox()
+
+    hr
+      margin              10px 20px 10px 0
+      height              1px
+      bg                  color #E0E0E0
+      border              none
+
+    a
+      display             block
+      color               #828B8B
+      line-height         40px
+      noTextDeco()
+      &.selected
+        color             #65AE62
+
+  .content-page
+    min-height            100%
+    max-width             850px
+    padding-top           150px
+    > .kdtabview
+      margin-left         64px
+      height              100%
+      kalc                width, 100% \- 254px
+      font-size           14px
+      fl()
+
+  h2.kdheaderview
+    border                none
+    margin-bottom         60px
+    line-height           40px
+    color                 #828B8B
+    span
+      margin              0
+      font-weight         300
+
+  .kdinput.text.thin
+    text-align            left
+    bg                    color #F4F4F4
+    padding               11px 20px
+
+    &[readonly=true]
+      opacity             .5
+
+    &.half
+      fl()
+      width               50%
+      &:first-child
+        kalc              width, 50% \- 1px
+        margin-right      1px
+
+  .avatarview
+    margin-top            11px
+    rounded               6px
+    fl()
+
+  section
+    overflow              hidden
+    width                 auto
+    margin-left           20px
+
+  .kdformview
+    .formline
+      border              none
+
+  .button-field
+    bg                    color transparent
+    .kdbutton.solid.green
+      width               100%
+
+
+  .email-notifications
+    line-height           55px
+    form.kdformview
+      rel()
+      border-bottom       1px solid #E1E1DF
+
+    .koding-on-off
+      abs()
+      top                 10px
+      right               0

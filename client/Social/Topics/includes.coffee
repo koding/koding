@@ -4,5 +4,5 @@ module.exports = [
  "Views/TopicsListItemView.coffee",
  "ContentDisplays/Topic.coffee",
  "ContentDisplays/TopicSplitViewController.coffee",
- "styl/app.topics.styl"
+ "styl/topics.styl"
 ]

@@ -51,7 +51,7 @@ class MainNavController extends NavigationController
   constructor:->
     super
     listView  = @getListView()
-    viewWidth = 61
+    viewWidth = 70
     index     = 0
     listView.on 'ItemWasAdded', (view)->
       view.once 'viewAppended', -> @setX index++ * viewWidth

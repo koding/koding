@@ -43,7 +43,7 @@ class ApplicationManager extends KDObject
   #     missingRoute = appController.getOption('initialRoute') or route
   #     router.handleRoute missingRoute, { suppressListeners : yes, entryPoint }
 
-  checkAppAvailability : (name='')->
+  isAppAvailable : (name='')->
     return KD.config.apps[name] and (name not in Object.keys KD.appClasses)
 
   open: do ->
@@ -58,7 +58,7 @@ class ApplicationManager extends KDObject
       then (appInst)-> KD.utils.defer -> callback appInst
       else @show.bind this, name, appParams, callback
 
-      if appInstance then cb() else @create name, appParams, cb
+      if appInstance then cb appInstance else @create name, appParams, cb
 
     (name, options, callback)->
 
@@ -93,8 +93,8 @@ class ApplicationManager extends KDObject
 
       if not appOptions? and not options.avoidRecursion?
 
-        if @checkAppAvailability name
-          return KodingAppsController.loadInternalApp name, (err)=>
+        if @isAppAvailable name
+          return KodingAppsController.putAppScript name, (err)=>
             return warn err  if err
             KD.utils.defer => @open name, options, callback
 
@@ -211,7 +211,7 @@ class ApplicationManager extends KDObject
         return no
 
     log 'AppManager: opening an app', name
-    if @checkAppAvailability name
+    if @isAppAvailable name
       log 'AppManager: couldn\'t find', name
       return KodingAppsController.loadInternalApp name, (err)=>
         log 'AppManager: loaded', name
@@ -314,6 +314,8 @@ class ApplicationManager extends KDObject
     @appControllers[name].instances.push appInstance
     @setListeners appInstance
 
+    @emit "AppRegistered", name, appInstance.options
+
   unregister:(appInstance)->
 
     name  = appInstance.getOption "name"
@@ -321,6 +323,9 @@ class ApplicationManager extends KDObject
 
     if index >= 0
       @appControllers[name].instances.splice index, 1
+
+      @emit "AppUnregistered", name, appInstance.options
+
       if @appControllers[name].instances.length is 0
         delete @appControllers[name]
 

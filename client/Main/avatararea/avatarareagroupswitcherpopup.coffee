@@ -63,6 +63,16 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute '/Account'
 
+
+    @avatarPopupContent.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '/Environments'
+      cssClass   : 'bottom'
+      partial    : 'Environments'
+      click      : (event)->
+        KD.utils.stopDOMEvent event
+        KD.getSingleton('router').handleRoute '/Environments'
+
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Logout'

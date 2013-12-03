@@ -1,8 +1,79 @@
-class LoginView extends KDScrollView
+class LoginView extends KDView
 
-  stop = (event)->
-    event.preventDefault()
-    event.stopPropagation()
+  stop = KD.utils.stopDOMEvent
+
+  backgroundImageNr = KD.utils.getRandomNumber 15
+
+  backgroundImages  = [
+
+      path         : "1"
+      href         : "http://www.flickr.com/photos/charliefoster/"
+      photographer : "Charlie Foster"
+    ,
+      path         : "2"
+      href         : "http://pican.de/"
+      photographer : "Dietmar Becker"
+    ,
+      path         : "3"
+      href         : "http://www.station75.com/"
+      photographer : "Marcin Czerwinski"
+    ,
+      path         : "4"
+      href         : "http://www.station75.com/"
+      photographer : "Marcin Czerwinski"
+    ,
+      path         : "5"
+      href         : "http://www.flickr.com/photos/discomethod/sets/72157635620513053/"
+      photographer : "Anton Sulsky"
+    ,
+      path         : "6"
+      href         : "http://www.jfrwebdesign.nl/"
+      photographer : "Joeri Römer"
+    ,
+      path         : "7"
+      href         : "http://be.net/Zugr"
+      photographer : "Zugr"
+    ,
+      path         : "8"
+      href         : ""
+      photographer : "Mark Doda"
+    ,
+      path         : "9"
+      href         : "http://www.twitter.com/rickwaalders"
+      photographer : "Rick Waalders"
+    ,
+      path         : "10"
+      href         : "http://madebyvadim.com/"
+      photographer : "Vadim Sherbakov"
+    ,
+      path         : "11"
+      href         : ""
+      photographer : "Zwaddi"
+    ,
+      path         : "12"
+      href         : "http://be.net/Zugr"
+      photographer : "Zugr"
+    ,
+      path         : "13"
+      href         : "http://www.romainbriaux.fr/"
+      photographer : "Romain Briaux"
+    ,
+      path         : "14"
+      href         : "https://twitter.com/Petchy19"
+      photographer : "petradr"
+    ,
+      path         : "15"
+      href         : "http://rileyb.me/"
+      photographer : "Riley Briggs"
+    ,
+      path         : "16"
+      href         : "http://chloecolorphotography.tumblr.com/"
+      photographer : "Chloe Benko-Prieur"
+
+  ]
+
+
+
 
   constructor:(options = {}, data)->
 
@@ -11,52 +82,53 @@ class LoginView extends KDScrollView
 
     super options, data
 
-    @hidden = yes
+    @setCss 'background-image', "url('../images/unsplash/#{backgroundImageNr}.jpg')"
 
-    @bindTransitionEnd()
+    @hidden = yes
 
     handler =(route, event)=>
       stop event
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
-    homeHandler                   = handler.bind null, '/'
-    loginHandler                  = handler.bind null, '/Login'
-    registerHandler               = handler.bind null, '/Register'
-    recoverHandler                = handler.bind null, '/Recover'
-    resendMailConfirmationHandler = handler.bind null, '/ResendToken'
+    homeHandler     = handler.bind null, '/'
+    loginHandler    = handler.bind null, '/Login'
+    registerHandler = handler.bind null, '/Register'
+    recoverHandler  = handler.bind null, '/Recover'
 
     @logo = new KDCustomHTMLView
-      tagName     : "div"
       cssClass    : "logo"
-      partial     : "Koding"
+      partial     : "Koding<cite></cite>"
       click       : homeHandler
 
     @backToLoginLink = new KDCustomHTMLView
-      tagName   : "a"
-      partial   : "Go ahead and login"
-      click     : loginHandler
+      tagName     : "a"
+      partial     : "Sign In"
+      click       : loginHandler
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Recover password"
+      partial     : "Forgot your password?"
       testPath    : "landing-recover-password"
       click       : recoverHandler
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Register an account"
+      partial     : "Create Account"
       click       : registerHandler
 
-    @goToResendMailConfirmationLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Resend"
-      click       : resendMailConfirmationHandler
+    @github       = new KDButtonView
+      title       : "Sign in with GitHub"
+      style       : 'solid github'
+      icon        : yes
+      callback    : -> KD.singletons.oauthController.openPopup "github"
 
-    @loginOptions = new LoginOptions
-      cssClass : "login-options-holder log"
+    @github.setPartial "<span class='button-arrow'></span>"
 
-    @registerOptions = new RegisterOptions
-      cssClass : "login-options-holder reg"
+    # @loginOptions = new LoginOptions
+    #   cssClass : "login-options-holder log"
+
+    # @registerOptions = new RegisterOptions
+    #   cssClass : "login-options-holder reg"
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
@@ -133,26 +205,21 @@ class LoginView extends KDScrollView
 
   viewAppended:->
 
-    @setY -KD.getSingleton('windowController').winHeight
-    @listenWindowResize()
     @setClass "login-screen login"
 
     @setTemplate @pistachio()
     @template.update()
 
-  _windowDidResize:->
-    if @hidden
-      @setY -KD.getSingleton('windowController').winHeight
-
   pistachio:->
+      # {{> @loginOptions}}
+      # {{> @registerOptions}}
     """
+    <div class='tint'></div>
     <div class="flex-wrapper">
       <div class="login-box-header">
         <a class="betatag">beta</a>
         {{> @logo}}
       </div>
-      {{> @loginOptions}}
-      {{> @registerOptions}}
       <div class="login-form-holder lf">
         {{> @loginForm}}
       </div>
@@ -171,14 +238,16 @@ class LoginView extends KDScrollView
       <div class="login-form-holder resend-confirmation-form">
         {{> @resendForm}}
       </div>
+      <div class="login-footer">
+        <div class='first-row clearfix'>
+          <div class='fl'>{{> @goToRecoverLink}}</div><div class='fr'>{{> @goToRegisterLink}}<i>•</i>{{> @backToLoginLink}}</div>
+        </div>
+        {{> @github}}
+      </div>
     </div>
-    <div class="login-footer">
-      <p class='regLink'>Not a member? {{> @goToRegisterLink}}</p>
-      <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
-      <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
-      <p class='resend-confirmation-link'>Didn't receive confirmation email? {{> @goToResendMailConfirmationLink}}</p>
-      <p><a href="/tos.html" target="_blank">Terms of service</a> / <a href="/privacy.html" target="_blank">Privacy policy</a></p>
-    </div>
+    <footer>
+      <a href="/tos.html" target="_blank">Terms of service</a><i>•</i><a href="/privacy.html" target="_blank">Privacy policy</a><i>•</i><a href="#{backgroundImages[backgroundImageNr].href}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr].photographer}</a>
+    </footer>
     """
 
   doReset:({recoveryToken, password, clientId})->
@@ -365,51 +434,36 @@ class LoginView extends KDScrollView
 
   hide:(callback)->
 
-    @setY -KD.getSingleton('windowController').winHeight
-
-    cb = =>
-      @$('.flex-wrapper').removeClass 'expanded'
-
-      @emit "LoginViewHidden"
-      @hidden = yes
-      @hideTimer = @utils.wait 2000, => @setClass 'hidden'
-      callback?()
-
-    unless @hidden then do cb
-    else @once "transitionend", cb
+    @$('.flex-wrapper').removeClass 'expanded'
+    @emit "LoginViewHidden"
+    @setClass 'hidden'
+    callback?()
 
     KD.mixpanel "Cancelled Login/Register"
 
   show:(callback)->
 
-    @utils.killWait @hideTimer
-    cb = =>
-      @emit "LoginViewShown"
-      @hidden = no
-      callback?()
-
     @unsetClass 'hidden'
-    @utils.defer =>
-      @setY 0
-      unless @hidden then do cb
-      else @once "transitionend", cb
+    @emit "LoginViewShown"
+    @hidden = no
+    callback?()
 
-  click:(event)->
-    if $(event.target).is('.login-screen')
-      @hide ->
-        router = KD.getSingleton('router')
-        routed = no
-        for route in router.visitedRoutes by -1
-          {entryPoint} = KD.config
-          routeWithoutEntryPoint =
-            if entryPoint?.type is 'group' and entryPoint.slug
-            then route.replace "/#{entryPoint.slug}", ''
-            else route
-          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover', '/ResendToken']
-            router.handleRoute route
-            routed = yes
-            break
-        router.clear()  unless routed
+  # click:(event)->
+  #   if $(event.target).is('.login-screen')
+  #     @hide ->
+  #       router = KD.getSingleton('router')
+  #       routed = no
+  #       for route in router.visitedRoutes by -1
+  #         {entryPoint} = KD.config
+  #         routeWithoutEntryPoint =
+  #           if entryPoint?.type is 'group' and entryPoint.slug
+  #           then route.replace "/#{entryPoint.slug}", ''
+  #           else route
+  #         unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover', '/ResendToken']
+  #           router.handleRoute route
+  #           routed = yes
+  #           break
+  #       router.clear()  unless routed
 
   animateToForm: (name)->
 
@@ -439,17 +493,21 @@ class LoginView extends KDScrollView
       @unsetClass "register recover login reset home resendEmail"
       @emit "LoginViewAnimated", name
       @setClass name
+      @$('.flex-wrapper').removeClass 'three one'
 
       switch name
         when "register"
-          @registerForm.firstName.input.setFocus()
+          @registerForm.email.input.setFocus()
         when "redeem"
+          @$('.flex-wrapper').addClass 'one'
           @redeemForm.inviteCode.input.setFocus()
         when "login"
           @loginForm.username.input.setFocus()
         when "recover"
+          @$('.flex-wrapper').addClass 'one'
           @recoverForm.usernameOrEmail.input.setFocus()
         when "resendEmail"
+          @$('.flex-wrapper').addClass 'one'
           @resendForm.usernameOrEmail.input.setFocus()
 
   getRouteWithEntryPoint:(route)->

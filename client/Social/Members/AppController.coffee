@@ -9,24 +9,7 @@ class MembersAppController extends AppController
     #   path       : "/Members"
     #   order      : 30
 
-  @externalProfiles = externalProfiles =
-    github          :
-      nicename      : 'GitHub'
-      urlLocation   : 'html_url'
-    odesk           :
-      nicename      : 'oDesk'
-      urlLocation   : 'info.profile_url'
-    facebook        :
-      nicename      : 'Facebook'
-      urlLocation   : 'link'
-    google          :
-      nicename      : 'Google'
-    linkedin        :
-      nicename      : 'LinkedIn'
-    twitter         :
-      nicename      : 'Twitter'
-    # bitbucket       :
-    #   nicename      : 'BitBucket'
+  {externalProfiles} = KD.config
 
   constructor:(options = {}, data)->
 
@@ -49,6 +32,7 @@ class MembersAppController extends AppController
       useHeaderNav          : yes
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
+      delegate              : this
       help                  :
         subtitle            : "Learn About Members"
         bookIndex           : 11
@@ -124,6 +108,7 @@ class MembersAppController extends AppController
       limitPerPage          : 10
       noItemFoundText       : "There is no member."
       useHeaderNav          : yes
+      delegate              : this
       # singleDataSource      : (selector, options, callback)=>
         # filterFunc selector, options, callback
       help                  :
@@ -176,6 +161,7 @@ class MembersAppController extends AppController
       listCssClass          : "activity-related"
       noItemFoundText       : "There is no liked activity."
       limitPerPage          : 8
+      delegate              : this
       help                  :
         subtitle            : "Learn Personal feed"
         tooltip             :
@@ -237,16 +223,11 @@ class MembersAppController extends AppController
       mainView.createCommons()
     @createFeed mainView, loadFeed
 
-  showMemberContentDisplay:({content})->
-
-    controller = new ContentDisplayControllerMember null, content
-    contentDisplay = controller.getView()
-    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
-
 
   createContentDisplay:(account, callback)->
 
-    controller     = new ContentDisplayControllerMember null, account
+    KD.singletons.appManager.setFrontApp this
+    controller     = new ContentDisplayControllerMember {delegate:this}, account
     contentDisplay = controller.getView()
     contentDisplay.on 'handleQuery', (query)=>
       controller.ready -> controller.feedController?.handleQuery? query

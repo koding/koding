@@ -13,7 +13,7 @@ resurrection.account.dropdown.styl
   height                    auto
   border                    none
   overflow                  visible
-  top                       59px
+  top                       68px
   z-index                   1000
   width                     280px
   visibility                hidden
@@ -34,43 +34,48 @@ resurrection.account.dropdown.styl
     cursor                  pointer
     border-bottom           none
     rel()
-    top                     -59px
+    top                     -67px
     text-align              center
     z-index                 1
-    size                    45px, 60px
-    bg                      color,white
+    size                    70px, 70px
+    bg                      color,#212932
     span
-      margin-top            21px
+      margin-top            22px
       size                  20px, 20px
       blockMid()
   .content
-    margin-top              -59px
+    margin-top              -68px
     shadow                  0 0 21px 10px rgba(0,0,0,0.18)
     size                    100%, auto
-    bg                      color, white
+    bg                      color, #212932
     rounded                 0 0 5px 5px
     borderBox()
 
   &.notifications
-    right                   -8px
+  &.messages
+    .content
+      right                 209px
+
+  &.notifications
+    right                   170px
     .tab span
-      margin-top            20px
-      sprite                app account-notifications-active
+      margin-top            24px
+      sprite                app account-notifications
 
   &.messages
-    right                   42px
+    right                   99px
     .tab span
-      sprite                app account-messages-active
+      sprite                app account-messages
 
   &.group-switcher
-    right                   47px
-    width                   180px
+    right                   70px
+    width                   238px
     rounded                 0 0 5px 5px
     .tab
       hidden()
     .content
       margin-top            2px
-      bg                    color, #445053
+      bg                    color, #212932
       color                 rgba(255, 255, 255, .8)
       shadow                none
 
@@ -117,22 +122,18 @@ resurrection.account.dropdown.styl
             bg              position, -80px -480px
 
   .sublink
-    border-top            1px solid #e0e0df
     font-size             11px
     padding               7px 12px
-    font-weight           600
+    font-weight           400
     width                 auto
+    text-align            center
     rounded               0 0 3px 3px
-    // bg                    color,#f8f8f8
-    gradient              #f8f8f8, #fff
-    shadow                0 -1px 5px rgba(0,0,0,.1)
+    bg                    color, #12171c
     &.top
+      color               #8f98a1
+      bg                  color, #212932
       border-top-width    0
-      border-bottom       1px solid #e0e0df
-      bg                  color, #fff
-      rounded             3px 3px 0 0
-      shadow              0 1px 5px rgba(0,0,0,.1)
-      gradient            #fff, #f8f8f8
+      rounded             0
     span.icon
       top                 4px
       right               4px
@@ -144,8 +145,8 @@ resurrection.account.dropdown.styl
         bg                position, -140px -460px
 
   .sublink a
-    color                 #0991be
-    text-decoration       none
+    color                 #8f98a1
+    noTextDeco()
 
   .input-with-extras
     textarea

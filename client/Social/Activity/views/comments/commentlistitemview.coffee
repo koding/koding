@@ -54,6 +54,7 @@ class CommentListItemView extends KDListItemView
             @getDelegate().emit 'ReplyLinkClicked', res.profile.nickname
     else
       @replyView = new KDView
+        tagName  : "span"
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
@@ -140,8 +141,8 @@ class CommentListItemView extends KDListItemView
     """
       {{> @avatar}}
       <div class='comment-contents clearfix'>
+        {{> @author}}
         <p class='comment-body'>
-          {{> @author}}
           {{@utils.applyTextExpansions #(body), yes}}
         </p>
         {{> @deleteLink}}

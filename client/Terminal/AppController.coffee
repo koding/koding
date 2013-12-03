@@ -32,7 +32,7 @@ class WebTermController extends AppController
           vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)->
             cb  info?.state is 'RUNNING', {vmName, info}
           , ->
-            cb yes
+            cb  no
             unless KD.isGuest()
               KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
           , 2500

@@ -16,10 +16,10 @@ class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "username"
         forceCase     : "lowercase"
-        placeholder   : "Enter Koding Username"
+        placeholder   : "username"
         testPath      : "login-form-username"
         validate      :
-          container   : this
+          event       : 'blur'
           rules       :
             required  : yes
           messages    :
@@ -29,18 +29,18 @@ class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "password"
         type          : "password"
-        placeholder   : "Enter Koding Password"
+        placeholder   : "password"
         testPath      : "login-form-password"
         validate      :
-          container   : this
+          event       : 'blur'
           rules       :
             required  : yes
           messages    :
             required  : "Please enter your password."
 
     @button = new KDButtonView
-      title       : "SIGN IN"
-      style       : "koding-orange"
+      title       : "SIGN ME IN"
+      style       : "solid green"
       type        : 'submit'
       loader      :
         color     : "#ffffff"

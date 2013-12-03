@@ -41,7 +41,7 @@ class AvatarView extends LinkView
 
   setAvatar:(uri)->
     if @bgImg isnt uri
-      @$().css "background-image", uri
+      @$().css "background-image", "url(#{uri})"
       @bgImg = uri
 
   render:->
@@ -55,10 +55,13 @@ class AvatarView extends LinkView
 
     height = width unless height
 
-    avatarURI = "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
+    avatarURI = if profile.hash
+    then "//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri}"
+    else "#{@fallbackUri}"
+
     if profile.avatar?.match /^https?:\/\//
       resizedAvatar = KD.utils.proxifyUrl profile.avatar, {crop: yes, width, height}
-      avatarURI = "url(#{resizedAvatar})"
+      avatarURI = "#{resizedAvatar}"
 
     @setAvatar avatarURI
 
@@ -244,3 +247,26 @@ class AvatarTooltipView extends KDView
         </div>
     </div>
     """
+
+class AvatarImage extends AvatarView
+
+  constructor:(options = {},data)->
+
+    options.tagName  or= "img"
+    options.cssClass or= ""
+    options.size     or=
+      width            : 50
+      height           : 50
+    options.cssClass   = KD.utils.curry "avatarimage", options.cssClass
+
+    super options, data
+
+    @bgImg = null
+    @fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
+
+  setAvatar:(uri)->
+    if @bgImg isnt uri
+      @setAttribute "src", uri
+      @bgImg = uri
+
+  pistachio:-> ''

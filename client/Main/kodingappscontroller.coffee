@@ -27,6 +27,9 @@ class KodingAppsController extends KDController
       warn "#{name} is already imported"
       return callback null
 
+
+    KD.singletons.dock.setNavItemState {name}, 'loading'
+
     app = KD.config.apps[name]
     @putAppScript app, callback
 
@@ -35,42 +38,34 @@ class KodingAppsController extends KDController
   @putAppScript = (app, callback = noop)->
 
     # Remove app from head if exists, just for sure
-    $("head .internal-#{app.identifier}").remove()
+    # $("head .internal-#{app.identifier}").remove()
 
-    style        = new KDCustomHTMLView
-      tagName    : "link"
-      cssClass   : "internal-#{app.identifier}"
-      bind       : 'load'
-      load       : ->
-        log "Style loaded? for #{app.identifier} # don't trust this ..."
-      attributes :
-        rel      : "stylesheet"
-        href     : app.style
+    if $("head .internal-style-#{app.identifier}").length is 0
 
-    $('head')[0].appendChild style.getElement()
+      style        = new KDCustomHTMLView
+        tagName    : "link"
+        cssClass   : "internal-style-#{app.identifier}"
+        bind       : 'load'
+        load       : ->
+          log "Style loaded? for #{name} # don't trust this ..."
+        attributes :
+          rel      : "stylesheet"
+          href     : app.style
 
-    script       = new KDCustomHTMLView
-      tagName    : "script"
-      cssClass   : "internal-#{app.identifier}"
-      bind       : 'load'
-      load       : -> callback null
-      attributes :
-        type     : "text/javascript"
-        src      : app.script
+      $('head')[0].appendChild style.getElement()
 
-    $('head')[0].appendChild script.getElement()
+    if $("head .internal-script-#{app.identifier}").length is 0
 
+      script       = new KDCustomHTMLView
+        tagName    : "script"
+        cssClass   : "internal-script-#{app.identifier}"
+        bind       : 'load'
+        load       : -> callback null
+        attributes :
+          type     : "text/javascript"
+          src      : app.script
 
-  installApp: (appUrl)->
-
-    # Add security here check if appUrl is in safe urls list ~ GG
-
-    # @storage.setValue
-
-
-
-
-  ###
+      $('head')[0].appendChild script.getElement()
 
   @manifests = {}
 

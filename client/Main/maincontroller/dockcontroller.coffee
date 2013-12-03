@@ -6,7 +6,8 @@ class DockController extends KDViewController
     { title : "Terminal",  path : "/Terminal", order : 30, type :"" }
     { title : "Editor",    path : "/Ace",      order : 40, type :"" }
     { title : "Apps",      path : "/Apps",     order : 50, type :"" }
-    { title : "Finder",    path : "/Finder",   order : 60, type :"" }
+    { title : "Teamwork",  path : "/Teamwork", order : 60, type :"" }
+    { title : "About",     path : "/About",    order : 70, type :"" }
   ]
 
   createHash = (arr)->
@@ -38,41 +39,47 @@ class DockController extends KDViewController
       title        : 'navigation'
       items        : []
 
-    @storage.fetchStorage (err, storage)=>
+    KD.setNavItems defaultItems
+    @navController.reset()
 
-      usersNavItems = @storage.getValue 'navItems'
-      ourNavItems   = defaultItems
-      ourNavObj     = createHash ourNavItems
-      KD.setNavItems ourNavItems
+    # Disabled until we figure out the flow of dock controller ~ GG
+    #
+    # @storage.fetchStorage (err, storage)=>
 
-      unless usersNavItems
+      # usersNavItems = @storage.getValue 'navItems'
+      # ourNavItems   = defaultItems
+      # ourNavObj     = createHash ourNavItems
+      # KD.setNavItems ourNavItems
 
-        @navController.reset()
-        log ourNavItems, 'ready'
-        return @emit 'ready'
+      # unless usersNavItems
 
-      usersNavObj = createHash usersNavItems
+      #   @navController.reset()
+      #   log ourNavItems, 'ready'
+      #   return @emit 'ready'
 
-      # reset default items' orders if user has customized them
-      for ourItem in ourNavItems
-        continue unless usersItem = usersNavObj[ourItem.title]
-        log 'changing order for:', ourItem.title
-        ourItem.order = usersItem.order
+      # usersNavObj = createHash usersNavItems
 
-      # add user's custom items in nav items
-      for usersItem in usersNavItems
-        continue if ourNavObj[usersItem.title]
-        KD.registerNavItem usersItem
+      # # reset default items' orders if user has customized them
+      # for ourItem in ourNavItems
+      #   continue unless usersItem = usersNavObj[ourItem.title]
+      #   log 'changing order for:', ourItem.title
+      #   ourItem.order = usersItem.order
 
-      # re-sort the navitems
-      KD.setNavItems KD.getNavItems()
-      @navController.reset()
+      # # add user's custom items in nav items
+      # for usersItem in usersNavItems
+      #   continue if ourNavObj[usersItem.title]
+      #   KD.registerNavItem usersItem
 
-      @emit 'ready'
+      # # re-sort the navitems
+      # KD.setNavItems KD.getNavItems()
+      # @navController.reset()
+
+      # @emit 'ready'
 
     mainController = KD.getSingleton 'mainController'
     mainController.ready @bound 'accountChanged'
 
+    @emit 'ready'
 
   setItemOrder:(item, order = 0)->
 
@@ -96,7 +103,28 @@ class DockController extends KDViewController
 
     @navController.reset()
 
+  setNavItemState:({name, navItem}, state)->
+    navItem or={}
+    for nav in @navController.itemsOrdered
+      if nav.name is name or ///^#{navItem.path}///.test nav.data.path
+        nav.setState state
 
   loadView:(dock)->
 
-    @ready => dock.addSubView @navController.getView()
+    @ready =>
+
+      dock.addSubView @navController.getView()
+
+      # Listen appManager to update dock items states
+      {appManager, kodingAppsController} = KD.singletons
+
+      kodingAppsController.on "LoadingAppScript", (name)=>
+        @setNavItemState {name}, 'loading'
+
+      appManager.on "AppRegistered", (name, {navItem}) =>
+        @setNavItemState {name, navItem}, 'running'
+
+      appManager.on "AppUnregistered", (name, {navItem}) =>
+        @setNavItemState {name, navItem}, 'initial'
+
+

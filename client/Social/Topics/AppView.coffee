@@ -9,8 +9,6 @@ class TopicsMainView extends KDView
   createCommons:->
 
     @addSubView @header = new HeaderViewSection
-      type  : "big"
-      title : "Topics"
 
     KD.getSingleton("mainController").on 'AccountChanged', @bound 'setSearchInput'
     @setSearchInput()

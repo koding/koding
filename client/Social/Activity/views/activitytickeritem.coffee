@@ -10,56 +10,91 @@ class ActivityTickerBaseItem extends JView
     JApp               : AppLinkView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
+    JStatusUpdate      : ActivityLinkView
 
 class ActivityTickerFollowItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
     super options, data
 
+    # rels are flipped here
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 25, height: 25
-      cssClass : "avatarview"
-    , source
-
-    @actor    = new ProfileLinkView null, source
-    @object   = new @itemLinkViewClassMap[target.bongo_.constructorName] null, target
-
-  pistachio: ->
-    """{{> @avatar}} {{> @actor}} followed {{> @object}}"""
-
-class ActivityTickerLikeItem extends ActivityTickerBaseItem
-  constructor: (options = {}, data) ->
-    super options, data
-
-    {source, target} = data
-
-    @avatar    = new AvatarView
-      size     : width: 25, height: 25
+      size     : width: 28, height: 28
       cssClass : "avatarview"
     , target
 
     @actor    = new ProfileLinkView null, target
     @object   = new @itemLinkViewClassMap[source.bongo_.constructorName] null, source
-    
+
   pistachio: ->
-    """{{> @avatar}} {{> @actor}} liked {{> @object}}"""
+    {target} = @getData()
+
+    # if current user did the activity
+    if target.getId is KD.whoami().getId()
+      return "{{> @avatar}} You followed {{> @object}}"
+
+    return "{{> @avatar}} {{> @actor}} followed {{> @object}}"
+
+class ActivityTickerLikeItem extends ActivityTickerBaseItem
+  constructor: (options = {}, data) ->
+    super options, data
+
+    {source, target, subject} = data
+
+    @avatar    = new AvatarView
+      size     : width: 28, height: 28
+      cssClass : "avatarview"
+    , source
+
+    @actor    = new ProfileLinkView null, source
+    @origin   = new ProfileLinkView null, target
+    @subj     = new @itemLinkViewClassMap[subject.bongo_.constructorName] null, subject
+
+
+
+  pistachio: ->
+    {source, target, subject} = @getData()
+
+    # i did something
+    if  source.getId() is KD.whoami().getId()
+      # if user liked his/her post
+      if source.getId() is target.getId() then \
+        return "{{> @avatar}} You liked your {{> @subj}}"
+      else
+        return "{{> @avatar}} You liked {{> @origin}}'s {{> @subj}}"
+
+    # someone did something to you
+    if target.getId() is KD.whoami().getId() then \
+      return "{{> @avatar}} {{> @actor}} liked your {{> @subj}}"
+
+    # if user liked his/her post
+    if source.getId() is target.getId() then \
+      return "{{> @avatar}} {{> @actor}} liked their {{> @subj}}"
+
+    # rest
+    return "{{> @avatar}} {{> @actor}} liked {{> @origin}}'s {{> @subj}}"
 
 class ActivityTickerMemberItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
     super options, data
 
     {target} = data
-    
+
     @avatar    = new AvatarView
-      size     : width: 25, height: 25
+      size     : width: 28, height: 28
       cssClass : "avatarview"
     , target
 
     @actor    = new ProfileLinkView null, target
-    
+
   pistachio: ->
-    """{{> @avatar}} {{> @actor}} became a member"""
+    {target} = @getData()
+    # if current user did the activity
+    if target.getId is KD.whoami().getId()
+      return "{{> @avatar}} You became a member"
+
+    return "{{> @avatar}} {{> @actor}} became a member"
 
 class ActivityTickerAppUserItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
@@ -68,7 +103,7 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
     {source, target} = data
 
     @avatar    = new AvatarView
-      size     : width: 25, height: 25
+      size     : width: 28, height: 28
       cssClass : "avatarview"
     , target
 
@@ -76,7 +111,11 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
     @object   = new AppLinkView     null, source
 
   pistachio: ->
-    """{{> @avatar}} {{> @actor}} installed {{> @object}}"""
+    {target} = @getData()
+    if actor.getId is KD.whoami().getId()
+      return "{{> @avatar}} You installed {{> @object}}"
+
+    return "{{> @avatar}} {{> @actor}} installed {{> @object}}"
 
 class ActivityTickerItem extends KDListItemView
   itemClassMap =

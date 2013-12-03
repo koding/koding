@@ -14,36 +14,6 @@ app.commons.styl
 // button.joined
 //   background            pink !important
 
-span.collapsedtext
-  borderBox()
-  vendor              transition, font-size .2s linear
-  a.more-link
-  a.less-link
-    font-size         11px
-    font-weight       400
-    // padding           0 5px
-    margin-left       5px
-    color             linkColor1
-    vendor            transition, font-size .2s linear
-    // bg                color, linkColor1
-    // rounded           8px
-
-  &.hide
-    font-size         0!important
-    *
-      visibility      hidden
-      display         none
-    a.more-link
-      font-size       11px!important
-      visibility      visible
-      display         inline
-
-  &.show
-    a.more-link
-      font-size       0
-      margin-left     0
-      padding         0
-
 p.warning
   padding               8px 35px 8px 14px
   margin-bottom         10px
@@ -261,47 +231,6 @@ button.editor-button
       .chevron-ghost
         margin-top  0
 
-
-/* editor-advanced-settings-menu-button
-*******************************************************************************/
-.kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
-  button.editor-advanced-settings-menu
-    text-indent       -1000px
-    padding           0!important
-    margin            0
-    size              20px,20px
-    shadow            none
-    border            none
-    bg                color,transparent
-    rounded           3px
-    &:hover
-      border          none
-      cursor          pointer
-    &:active
-      border          none
-      shadow          none
-    &.icon-only
-      height          18px
-      padding         0
-      contentBox()
-    &.small
-      padding         0
-    span.icon
-      left            0
-      margin          0
-      padding         0
-      abs()
-      size            17px,17px
-      top             0
-
-.kdview.jcontextmenu.kdbuttonmenu
-  &.editor-advanced-settings-menu
-    .chevron-ghost-wrapper
-      border-color    #bababa
-      .chevron-ghost
-        margin-top    0
-        bg            position,-60px -300px
-        bg            color,#f5f5f5
 
 
 .ttag

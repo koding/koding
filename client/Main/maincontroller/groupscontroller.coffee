@@ -33,6 +33,7 @@ class GroupsController extends KDController
 
     @forwardEvent @groupChannel, "MemberJoinedGroup"
     @forwardEvent @groupChannel, "FollowHappened"
+    @forwardEvent @groupChannel, "LikeIsAdded"
 
     @groupChannel.once 'setSecretNames', callback
 
@@ -44,20 +45,19 @@ class GroupsController extends KDController
     oldGroupName        = @currentGroupName
     @currentGroupName   = groupName
 
-    unless groupName is oldGroupName
-      KD.remote.cacheable groupName, (err, models)=>
-        if err then callback err
-        else if models?
-          [group] = models
-          if group.bongo_.constructorName isnt 'JGroup'
-            @isReady = yes
-          else
-            @setGroup groupName
-            @currentGroupData.setGroup group
-            @isReady = yes
-            callback null, groupName, group
-            @emit 'GroupChanged', groupName, group
-            @openGroupChannel group, => @emit 'GroupChannelReady'
+    KD.remote.cacheable groupName, (err, models)=>
+      if err then callback err
+      else if models?
+        [group] = models
+        if group.bongo_.constructorName isnt 'JGroup'
+          @isReady = yes
+        else
+          @setGroup groupName
+          @currentGroupData.setGroup group
+          @isReady = yes
+          callback null, groupName, group
+          @emit 'GroupChanged', groupName, group
+          @openGroupChannel group, => @emit 'GroupChannelReady'
 
   getUserArea:->
     @userArea ? group:

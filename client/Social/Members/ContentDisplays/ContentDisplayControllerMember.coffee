@@ -18,28 +18,14 @@ class ContentDisplayControllerMember extends KDViewController
     options = $.extend
       view : mainView = new KDView
         cssClass : 'member content-display'
-        domId : 'member-contentdisplay' unless @revivedContentDisplay
-    ,options
+        domId    : 'member-contentdisplay'  unless @revivedContentDisplay
+        type     : 'profile'
+    , options
     super options, data
 
   loadView:(mainView)->
     member = @getData()
     {lazy} = mainView
-    mainView.addSubView subHeader = new KDCustomHTMLView
-      tagName   : "h2"
-      cssClass  : 'sub-header'
-      domId     : 'members-sub-header' if lazy
-
-    backLink = new KDCustomHTMLView
-      domId   : 'members-back-link' if lazy
-      tagName : "a"
-      partial : "<span>&laquo;</span> Back"
-      click   : (event)->
-        event.stopPropagation()
-        event.preventDefault()
-        KD.singleton('display').emit "ContentDisplayWantsToBeHidden", mainView
-        no
-    subHeader.addSubView backLink  if KD.isLoggedIn()
 
     # FIX THIS GG
 
@@ -73,7 +59,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
     options      =
-      cssClass   : "profilearea clearfix"
+      cssClass   : "profilearea profile-right-block clearfix"
       domId      : 'profilearea' unless @revivedContentDisplay
       delegate   : @getView()
 
@@ -116,13 +102,14 @@ class ContentDisplayControllerMember extends KDViewController
   addActivityView:(account)->
     @getView().$('div.lazy').remove()
 
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    KD.getSingleton("appManager").tell 'Activity', 'feederBridge', {
       domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
       itemClass             : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
       limitPerPage          : 8
       useHeaderNav          : yes
+      delegate              : @getOption 'delegate'
       help                  :
         subtitle            : "Learn Personal feed"
         tooltip             :

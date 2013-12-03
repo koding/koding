@@ -171,12 +171,14 @@ module.exports = class Activity extends Graph
   @fetchFolloweeContentsForNewKoding = (options={}, callback)->
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       @getCurrentGroup options.client, (err, currentGroup)=>
-        {limit, skip, userId} = options
+        {limit, skip, client} = options
+        {connection:{delegate}} = client
+
         queryOptions =
-          limitCount : limit or 10
+          limitCount : limit or 20
           skipCount  : skip or 0
           groupName  : currentGroup.slug or "koding"
-          userId     : userId
+          userId     : delegate.getId()
 
         query = QueryRegistry.activity.followingnew exemptClause
         @fetch query, queryOptions, (err, results) =>

@@ -28,6 +28,6 @@ module.exports = [
   "views/referrermodal.coffee",
   "AppView.coffee",
 
-  "styl/app.settings.styl"
+  "styl/account.styl"
 
 ]

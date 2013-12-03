@@ -1,0 +1,176 @@
+@import "../../../Framework/themes/default/kdfn"
+@import "../../../Main/styl/appfn"
+
+
+@css {
+/*
+Profile page stylesheet
+resurrection.profile.styl
+*/
+}
+
+.header-facets
+  display                     none
+
+body.profile
+  bg                          color, #e2e8e4
+
+  #kdmaincontainer
+  .kdtabpaneview.content-display
+    overflow                  visible
+
+  .kdtabpaneview.content-display
+    max-width                 1096px
+
+  .member.content-display
+    overflow                  visible
+
+    .profilearea.profile-right-block
+      .users-profile
+        .avatarview
+          size            86px, 86px
+          fl()
+          rounded         3px
+
+        .full-name
+        .bio
+          margin          0
+          padding         0 0 0 17px
+          line-height     18px
+          fl()
+          size            204px, auto
+          color           #50595a
+          font-size       14px
+          borderBox()
+
+          span
+            display       inline
+            size          auto, auto
+
+        .full-name
+          font-weight     500
+          font-size       22px
+          line-height     23px
+          text-transform  capitalize
+          white-space     nowrap
+          overflow        hidden
+          text-overflow   ellipsis
+          margin          -3px 0 -2px 0
+
+        .bio
+          margin-top      6px
+          white-space     nowrap
+          overflow        hidden
+          text-overflow   ellipsis
+
+        .follow-btn
+          text-transform  uppercase
+          size            155px, 35px
+          rounded         3px
+          margin          9px 0 0 17px
+          border          none
+          shadow          none
+          bg              color, #1aaf5d
+          color           #fff
+          font-size       14px
+          cursor          pointer
+          fl()
+
+        .profilestats
+          clear           both
+          margin          19px -22px 0
+          border-top      2px solid #e2e8e4
+
+          a
+            color         #6a7273
+            font-size     14px
+            size          33%, 72px
+            text-align    center
+            padding       14px 0 0 0
+            line-height   22px
+            font-weight   500
+            borderBox()
+            fl()
+            noTextDeco()
+
+            &~a
+              border-left 2px solid #e2e8e4
+
+            span
+              display     block
+
+              &.data
+                font-size 18px
+
+      .right-user-menu
+        padding           0 22px
+
+        a
+          line-height     49px
+          display         block
+          color           #50595a
+          font-weight     400
+          noTextDeco()
+
+          &~a
+            border-top    1px solid #e2e8e4
+
+          &.active
+            font-weight   500
+
+          .count
+            font-weight   200
+            line-height   22px
+            padding       0 10px
+            rounded       11px
+            color         #707879
+            font-size     14px
+            bg            color, #e2e8e4
+            margin        14px 0 0
+            fr()
+
+      .most-used-apps
+        padding           0 0 22px
+        h3
+          line-height     59px
+          border-bottom   2px solid #e2e8e4
+          color           #2d97de
+          font-size       18px
+          text-indent     22px
+          font-weight     400
+
+        .app
+          size            77px, 77px
+          background      #e2e4e3
+          margin          22px 0 0 28px
+          fl()
+
+          &:nth-child(3n-1)
+            margin-left   22px
+
+    .medium
+    .wide
+      size                auto, auto
+      margin              0 365px 0 0
+
+      .author-avatar
+        display           none
+
+
+  /* Profile page specific color changes to activity items */
+  .activity-item
+    footer
+      bg                  color, #f6f8f7
+      border-top-color    #e2e8e4
+
+    .comment-container.commented
+      border-top-color    #e2e8e4
+
+
+      .kdlistitemview-comment~.kdlistitemview-comment
+        .comment-contents
+          border-top-color #e2e8e4
+
+    .item-add-comment-box
+      border-top-color     #e2e8e4
+

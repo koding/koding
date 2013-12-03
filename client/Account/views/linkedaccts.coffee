@@ -1,11 +1,8 @@
 class AccountLinkedAccountsListController extends KDListViewController
 
   constructor:(options = {}, data)->
-
-    data = items : ({title : nicename, provider} for own provider, {nicename} of MembersAppController.externalProfiles)
-
     super options, data
-
+    @instantiateListItems ({title : nicename, provider} for own provider, {nicename} of KD.config.externalProfiles)
 
 class AccountLinkedAccountsList extends KDListView
 
@@ -100,7 +97,7 @@ class AccountLinkedAccountsListItem extends KDListItemView
     """
     <div class='title'>
       <span class='icon'></span>{cite{ #(title)}}
-      <a href='#' class='delete-icon'></a>
+      <a href='#' class='delete-icon'>Unlink</a>
     </div>
     <div class='status'>
       <span class='icon-check'></span>

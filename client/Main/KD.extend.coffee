@@ -10,12 +10,11 @@ KD.extend
       if err then new KDNotificationView title: err.message
       else location.reload()
 
-  notify_:(message, type='')->
-    log message
+  notify_:(message, type='', duration = 3500)->
     new KDNotificationView
-      cssClass : "#{type}"
+      cssClass : type
       title    : message
-      duration : 3500
+      duration : duration
 
   requireMembership:(options={})->
 
