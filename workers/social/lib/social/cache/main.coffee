@@ -1,7 +1,7 @@
 cache           = {}
 cachingTimeInMS = 30000
 
-repeatFetchingItems = (fetcherFn, cacheKey, options)->
+repeatFetchingItems = (cacheKey, fetcherFn, fetcherFnOptions)->
   inProgress = cache[cacheKey]?.inProgress || no
 
   return  if inProgress
@@ -13,7 +13,7 @@ repeatFetchingItems = (fetcherFn, cacheKey, options)->
     console.log "timeout reached, setting inProgress to false"
   , 120000
 
-  fetcherFn options, (err, data)->
+  fetcherFn fetcherFnOptions, (err, data)->
     clearTimeout cache[cacheKey].timer
     cache[cacheKey].inProgress = no
 
@@ -24,15 +24,15 @@ repeatFetchingItems = (fetcherFn, cacheKey, options)->
     cache[cacheKey].data = data
 
 module.exports = class Cache
-  @fetch: (fetcherFn, cacheKey, options, callback)->
+  @fetch: (cacheKey, fetcherFn, fetcherFnOptions, callback)->
     if cache[cacheKey]
       {data, ttl} = cache[cacheKey]
       callback null, data
 
       if (Date.now() - (ttl || 0)  > cachingTimeInMS)
-        repeatFetchingItems fetcherFn, cacheKey, options
+        repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
     else
-      repeatFetchingItems fetcherFn, cacheKey, options
+      repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
       callback null, {}
 
   @remove: (cacheKey, data)-> delete cache[cacheKey]

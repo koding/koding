@@ -88,6 +88,6 @@ module.exports = (options = {}, callback)->
 
   getCacheKey =-> return "scriptblock"
 
-  Cache.fetch feedFn, getCacheKey(), options, (err, data)->
+  Cache.fetch getCacheKey(), feedFn, options, (err, data)->
     prefetchedFeeds = data    # this is updating the prefetchedFeeds property
     return generateScript()   # we can generate html here
