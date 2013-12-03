@@ -203,19 +203,19 @@ class TeamworkApp extends KDObject
   doCurlRequest: (path, callback = noop) ->
     vmController = KD.getSingleton "vmController"
     vmController.run
-        withArgs: "sleep 2 ; curl -kLs #{path}"
-        vmName  : vmController.defaultVmName
-      , (err, contents) =>
-        extension = FSItem.getFileExtension path
-        error     = null
+      withArgs: "kdwrap curl -kLs https://raw.github.com/koding/Teamwork/master/Playgrounds/manifest-dev.json"
+      vmName  : vmController.defaultVmName
+    , (err, contents) =>
+      extension = FSItem.getFileExtension path
+      error     = null
 
-        switch extension
-          when "json"
-            try
-              manifest = JSON.parse contents
-            catch err
-              error    = "Manifest file is broken for #{path}"
+      switch extension
+        when "json"
+          try
+            manifest = JSON.parse contents
+          catch err
+            error    = "Manifest file is broken for #{path}"
 
-            callback error, manifest
-          when "md"
-            callback errorMessage, KD.utils.applyMarkdown error, contents
+          callback error, manifest
+        when "md"
+          callback errorMessage, KD.utils.applyMarkdown error, contents
