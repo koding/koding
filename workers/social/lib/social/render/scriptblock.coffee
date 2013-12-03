@@ -84,7 +84,7 @@ module.exports = (options = {}, callback)->
     return callback null, html
 
   Cache  = require '../cache/main'
-  feedFn = require '../cache/activity'
+  feedFn = require '../cache/feed'
 
   getRoute =-> return "scriptblock"
 
