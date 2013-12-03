@@ -1,0 +1,222 @@
+module.exports = [
+
+  # Libs
+  "libs/async.js",
+  "libs/md5-min.js",
+
+  # --- Application ---
+  "utils.coffee"
+  "KD.extend.coffee" # our extensions to KD global
+  "kodingrouter.coffee",
+  "mq.config.coffee",
+
+  # mainapp controllers
+  "activitycontroller.coffee",
+  "notificationcontroller.coffee",
+  "linkcontroller.coffee",
+  "paymentcontroller.coffee",
+  "oauthcontroller.coffee",
+
+  # COMMON VIEWS
+  "CommonViews/applicationview/applicationtabview.coffee",
+  "CommonViews/applicationview/applicationtabhandleholder.coffee",
+  "CommonViews/sharepopup.coffee",
+  "CommonViews/sharelink.coffee",
+  "CommonViews/linkviews/linkview.coffee",
+  "CommonViews/linkviews/customlinkview.coffee",
+  "CommonViews/linkviews/linkgroup.coffee",
+  "CommonViews/linkviews/profilelinkview.coffee",
+  "CommonViews/linkviews/profiletextview.coffee",
+  "CommonViews/linkviews/profiletextgroup.coffee",
+  "CommonViews/linkviews/taglinkview.coffee",
+  "CommonViews/linkviews/activitylinkview.coffee",
+  "CommonViews/linkviews/applinkview.coffee",
+  "CommonViews/linkviews/activitychildviewtaggroup.coffee",
+  "CommonViews/linkviews/autocompleteprofiletextview.coffee",
+  "CommonViews/linkviews/grouplinkview.coffee",
+  "CommonViews/splitview.coffee",
+  "CommonViews/slidingsplit.coffee",
+
+  "CommonViews/kodingswitch.coffee",
+
+  "CommonViews/tokenview.coffee",
+  "CommonViews/suggestedtokenview.coffee",
+
+  "CommonViews/tagcontextmenuitem.coffee",
+
+  "CommonViews/avatarviews/avatarview.coffee",
+  "CommonViews/avatarviews/avatarstaticview.coffee",
+  "CommonViews/avatarviews/autocompleteavatarview.coffee",
+
+  # FIXME ~ GG
+  "navigation/navigationcontroller.coffee",
+
+  "CommonViews/VideoPopup.coffee",
+  "CommonViews/LikeView.coffee",
+  "CommonViews/ShowMoreDataModalView.coffee",
+  "CommonViews/SkillTagFormView.coffee",
+  "CommonViews/SkillTagAutoCompleteController.coffee",
+  "CommonViews/SkillTagAutoCompletedItem.coffee",
+  "CommonViews/messagesList.coffee",
+  "CommonViews/SplitViewWithOlderSiblings.coffee",
+  "CommonViews/ContentPageSplitBelowHeader.coffee",
+  "CommonViews/CommonListHeader.coffee",
+  "CommonViews/CommonInnerNavigation.coffee",
+  "CommonViews/headers.coffee",
+  "CommonViews/HelpBox.coffee",
+  "CommonViews/KeyboardHelper.coffee",
+  "CommonViews/VerifyPINModal.coffee",
+
+  "CommonViews/followbutton.coffee",
+
+  # "CommonViews/remotesmodal.coffee",
+  # "CommonViews/databasesmodal.coffee",
+
+  "CommonViews/opinions/opinionview.coffee",
+  "CommonViews/opinions/discussionactivityopinionview.coffee",
+  "CommonViews/opinions/discussionactivityopinionlistitemview.coffee",
+  "CommonViews/opinions/tutorialactivityopinionview.coffee",
+  "CommonViews/opinions/tutorialactivityopinionlistitemview.coffee",
+  "CommonViews/opinions/tutorialopinionviewheader.coffee",
+  "CommonViews/opinions/opinionviewheader.coffee",
+  "CommonViews/opinions/opinionlistviewcontroller.coffee",
+  "CommonViews/opinions/opinionlistitemview.coffee",
+  "CommonViews/opinions/opinioncommentlistitemview.coffee",
+  "CommonViews/opinions/opinionformview.coffee",
+  "CommonViews/opinions/opinioncommentview.coffee",
+  "CommonViews/opinions/discussionformview.coffee",
+  "CommonViews/opinions/tutorialformview.coffee",
+
+  "CommonViews/markdownmodal.coffee",
+  "CommonViews/dropboxdownloaditemview.coffee",
+
+  "CommonViews/CommonVMUsageBar.coffee",
+
+  # FATIH
+  # "CommonViews/fatih/plugins/fatihpluginabstract.coffee",
+  # "CommonViews/fatih/plugins/fatihlistitem.coffee",
+  # "CommonViews/fatih/plugins/fatihfilelistitem.coffee",
+  # "CommonViews/fatih/plugins/fatihfilefinderplugin.coffee",
+  # "CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee",
+  # "CommonViews/fatih/plugins/fatihopenappplugin.coffee",
+  # "CommonViews/fatih/plugins/fatihusersearchplugin.coffee",
+  # "CommonViews/fatih/fatihprefpane.coffee",
+  # "CommonViews/fatih/fatih.coffee",
+
+  # INTRODUCTION TOOLTIP
+  "CommonViews/introductiontooltip/introductiontooltip.coffee",
+  "CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
+
+  "CommonViews/ModalViewWithTerminal.coffee",
+  "CommonViews/clonerepomodal.coffee",
+
+  "kodingappcontroller.coffee",
+  "sidebar/sidebarcontroller.coffee",
+  "sidebar/sidebarview.coffee",
+  "sidebar/sidebarresizehandle.coffee",
+  "sidebar/virtualizationcontrols.coffee",
+  "sidebar/footermenuitem.coffee",
+  "sidebar/modals/introductiontooltip/introductionitem.coffee",
+  "sidebar/modals/introductiontooltip/introductionchilditem.coffee",
+  "sidebar/modals/introductiontooltip/introductionadminform.coffee",
+  "sidebar/modals/introductiontooltip/introductionadmin.coffee",
+  "sidebar/modals/adminmodal.coffee",
+  "sidebar/modals/kiteselector.coffee",
+
+  "navigation/navigationlist.coffee",
+  "navigation/navigationlink.coffee",
+  "navigation/navigationseparator.coffee",
+  "navigation/navigationadminlink.coffee",
+  "navigation/navigationinvitationlink.coffee",
+  "navigation/navigationactivitylink.coffee",
+  "navigation/navigationappslink.coffee",
+  "navigation/navigationdocsjobslink.coffee",
+  "navigation/navigationpromotelink.coffee",
+
+  # BOOK
+  "book/embedded/tableofcontents.coffee",
+  "book/embedded/updatewidget.coffee",
+  "book/embedded/topics.coffee",
+  "book/embedded/startbutton.coffee",
+  "book/embedded/developbutton.coffee",
+  "book/embedded/socialshare.coffee",
+  "book/bookdata.coffee",
+  "book/pointerview.coffee",
+  "book/bookview.coffee",
+  "book/bookpage.coffee",
+
+  #maintabs
+
+  "maintabs/maintabview.coffee",
+  "maintabs/maintabpaneview.coffee",
+  "maintabs/maintabhandleholder.coffee",
+
+  # global notifications
+  "globalnotification.coffee",
+
+  # avatararea
+  "avatararea/avatararea.coffee",
+  "avatararea/avatarareapopup.coffee",
+  "avatararea/avatarareapopuplist.coffee",
+  "avatararea/avatarareagroupswitcherpopup.coffee",
+  "avatararea/avatarareaiconlink.coffee",
+  "avatararea/avatarareaiconmenu.coffee",
+  "avatararea/avatarareamessagespopup.coffee",
+  "avatararea/avatarareanotificationspopup.coffee",
+  "avatararea/avatarareapopupmessageslistitem.coffee",
+  "avatararea/avatarareapopupnotificationslistitem.coffee",
+  "avatararea/avatarareasharestatuspopup.coffee",
+
+  "maincontroller/groupdata.coffee",
+  "maincontroller/mainviews/appsettingsmenubutton.coffee",
+  "maincontroller/mainviews/mainview.coffee",
+  "maincontroller/mainviewcontroller.coffee",
+  "maincontroller/dockcontroller.coffee",
+  "maincontroller/groupscontroller.coffee",
+  "maincontroller/maincontroller.coffee",
+
+  # --- Applications ---
+  "channels/kitechannel.coffee",
+  "ApplicationManager.coffee",
+  "AppController.coffee",
+  "kodingappscontroller.coffee",
+  "AppStorage.coffee",
+  "localstorage.coffee",
+
+  # CONTENT DISPLAY VIEWS
+  "ContentDisplay/ContentDisplay.coffee",
+  "ContentDisplay/ContentDisplayController.coffee",
+
+  "pinger.coffee",
+
+  # KITE CONTROLLER
+  "kite/kite.coffee",
+  "kite/kitecontroller.coffee",
+  "kite/newkite.coffee"
+  "kite/kontrol.coffee"
+  # Virtualization CONTROLLER
+  "VirtualizationController.coffee",
+  "CommonViews/modalappslistitemview.coffee",
+
+  "status.coffee",
+  "main.coffee",
+  "monitor_status.coffee",
+  "rollbar.coffee",
+  "mixpanel.coffee",
+  "analytic.coffee",
+
+  # ---------- Main APP ENDS ---------- #
+
+  # STYLES
+
+  "styl/appfn.styl",
+  "styl/resurrection.styl",
+  # "styl/resurrection.activity.styl",
+  "styl/resurrection.account.dropdown.styl",
+  "styl/resurrection.anims.styl",
+  # "styl/resurrection.activity.styl",
+  # "styl/resurrection.apps.styl",
+  "styl/resurrection.commons.styl",
+  # "styl/resurrection.feeder.styl",
+
+]

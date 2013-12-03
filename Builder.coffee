@@ -8,6 +8,7 @@ ProgressBar       = require 'progress'
 SourceMap         = require 'source-map'
 base64VLQ         = require 'source-map/lib/source-map/base64-vlq'
 Stylus            = require 'stylus'
+sprite            = require 'node-sprite'
 UglifyJS          = require 'uglify-js'
 WebSocket         = require 'ws'
 WebSocketServer   = WebSocket.Server
@@ -47,18 +48,32 @@ checkFileCase = (fileName) ->
 
 module.exports = class Builder
 
+  spritePath   = './website/sprites'
+  spriteHelper = null
+
   buildClient: (options) ->
 
     @config = require('koding-config-manager').load("main.#{options.configFile}")
 
-    try fs.mkdirSync ".build"
+    sprite.sprites
+      path     : spritePath
+      watch    : yes
 
-    if @config.client.runtimeOptions.precompiledApi
-      exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
+    sprite.stylus
+      path     : spritePath
+      httpPath : '/sprites'
+      retina   : '@2x'
+    , (err, helper)=>
+      spriteHelper = helper
+
+      try fs.mkdirSync ".build"
+
+      if @config.client.runtimeOptions.precompiledApi
+        exec 'coffee ./bongo-api-builder/build.coffee -o .build/api.js', =>
+          @buildAndWatchClient options
+      else
+        fs.writeFileSync '.build/api.js', '', 'utf-8'
         @buildAndWatchClient options
-    else
-      fs.writeFileSync '.build/api.js', '', 'utf-8'
-      @buildAndWatchClient options
 
   buildAndWatchClient: (options) ->
 
@@ -277,6 +292,11 @@ module.exports = class Builder
               while match = r.exec source
                 js += "\nKD.classes." + match[1] + " = " + match[1] + ";"
 
+            # EXCEPTION FOR POSTOPERATIONS
+            if /^client\/PostOperations/.test file.sourcePath
+              js += "KD.config.apps=#{@getProjects()}\n"
+            # END OF EXCEPTION
+
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
             spawn.apply null, ["say", ["coffeescript error"]]
@@ -316,10 +336,17 @@ module.exports = class Builder
       when ".styl"
 
         rootPath = path.dirname(file.sourcePath)
-        stylus = Stylus(source).set('compress',true).set('paths', [rootPath]).use(nib())
-        stylus.render (err, css)=> # callback is synchronous
-          log.error "error with styl file at #{file.includePath}:\n #{err}" if err
-          file.content = css
+
+        stylus = Stylus(source)
+          .set('compress',true)
+          .set('paths', [rootPath])
+          .define('sprite', spriteHelper.fn )
+          .define('sprite-dimensions', spriteHelper.dimensionsFn)
+          .use(nib())
+          .render (err, css)=> # callback is synchronous
+            log.error "error with styl file at #{file.includePath}:\n #{err}"  if err
+            file.content = css
+
       when ".css"
         file.content = source
       else
@@ -418,3 +445,31 @@ module.exports = class Builder
     process.stdout.write "#{filepath}\n - Includes #{project.files[ptype].length} #{ptype}, filesize is #{formatByte size} #{oldSize} \n"
     @fileSizes[filepath] = size
 
+  getProjects:->
+
+    rp = (address)=>
+      address?.replace /^website\//, '/' #@config.uri.address
+
+    apps = {}
+    {projects, bundles} = require './projects'
+
+    # Build the apps dictionary
+    for own title, project of projects
+      apps[title] =
+        style      : rp project.style
+        script     : rp project.script
+        identifier : "app-#{title.toLowerCase()}"
+
+    # Override the information based on bundles
+    for own title, bundle of bundles
+      for project in bundle.projects
+        apps[project] =
+          style      : rp bundle.style
+          script     : rp bundle.script
+          identifier : "app-#{title.toLowerCase()}"
+
+    # Remove internals
+    for internal in ['PostOperations', 'KDBackend', 'KDFramework', 'KDMainApp']
+      delete apps[internal]
+
+    return JSON.stringify apps

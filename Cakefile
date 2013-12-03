@@ -26,7 +26,7 @@ hat                = require 'hat'
 url                = require 'url'
 nodePath           = require 'path'
 portchecker        = require 'portchecker'
-Watcher            = require "koding-watcher"
+Watcher            = require 'koding-watcher'
 
 require 'colors'
 

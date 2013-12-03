@@ -268,9 +268,8 @@ func RunGaugesLoop() {
 	go func() {
 		for {
 			select {
-			case reportTime := <-reportTrigger:
-				LogGauges(reportTime)
-
+			// case reportTime := <-reportTrigger:
+			// 	LogGauges(reportTime)
 			case change := <-GaugeChanges:
 				change()
 			}

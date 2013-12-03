@@ -168,6 +168,24 @@ module.exports = class Activity extends Graph
         query = QueryRegistry.activity.following facet, timeQuery, exemptClause
         @fetchWithRelatedContent query, queryOptions, requestOptions, callback
 
+  @fetchFolloweeContentsForNewKoding = (options={}, callback)->
+    @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+      @getCurrentGroup options.client, (err, currentGroup)=>
+        {limit, skip, client} = options
+        {connection:{delegate}} = client
+
+        queryOptions =
+          limitCount : limit or 20
+          skipCount  : skip or 0
+          groupName  : currentGroup.slug or "koding"
+          userId     : delegate.getId()
+
+        query = QueryRegistry.activity.followingnew exemptClause
+        @fetch query, queryOptions, (err, results) =>
+          return callback err  if err
+          callback err, results
+
+
   @fetchWithRelatedContent: (query, queryOptions, requestOptions, callback)->
     @fetch query, queryOptions, (err, results) =>
       if err
