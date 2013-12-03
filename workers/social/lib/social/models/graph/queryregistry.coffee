@@ -2,53 +2,22 @@
 
 module.exports =
 
-    member      :
-      following : (orderByQuery)->
-        """
-          START group=node:koding(id={groupId})
-          MATCH group-[r:member]->members-[:follower]->currentUser
-          WHERE currentUser.id = {currentUserId}
-          RETURN members
-          #{orderByQuery}
-          SKIP {skipCount}
-          LIMIT {limitCount}
-        """
-      onlineFollowing : (orderByQuery)->
-        """
-          START user=node:koding(id={currentUserId})
-          MATCH user-[:follower]->members
-          WHERE members.onlineStatus = "online"
-          RETURN members
-          #{orderByQuery}
-          SKIP {skipCount}
-          LIMIT {limitCount}
-        """
-      follower  : (orderByQuery)->
-        """
-          START group=node:koding(id={groupId})
-          MATCH group-[r:member]->members<-[:follower]-currentUser
-          WHERE currentUser.id = {currentUserId}
-          RETURN members
-          #{orderByQuery}
-          SKIP {skipCount}
-          LIMIT {limitCount}
-        """
-      list: (exemptClause, orderByQuery)->
-        """
-          START group=node:koding(id={groupId})
-          MATCH group-[r:member]->members
-          WHERE members.name="JAccount"
-          #{exemptClause}
-          RETURN members
-          #{orderByQuery}
-          SKIP {skipCount}
-          LIMIT {limitCount}
-        """
-      count: (exemptClause)->
-        """
+  member      :
+    following : (orderByQuery)->
+      """
         START group=node:koding(id={groupId})
         MATCH group-[r:member]->members-[:follower]->currentUser
         WHERE currentUser.id = {currentUserId}
+        RETURN members
+        #{orderByQuery}
+        SKIP {skipCount}
+        LIMIT {limitCount}
+      """
+    onlineFollowing : (orderByQuery)->
+      """
+        START user=node:koding(id={currentUserId})
+        MATCH user-[:follower]->members
+        WHERE members.onlineStatus = "online"
         RETURN members
         #{orderByQuery}
         SKIP {skipCount}
@@ -78,33 +47,64 @@ module.exports =
     count: (exemptClause)->
       """
       START group=node:koding(id={groupId})
-      MATCH group-[:member]->members
+      MATCH group-[r:member]->members-[:follower]->currentUser
+      WHERE currentUser.id = {currentUserId}
+      RETURN members
+      #{orderByQuery}
+      SKIP {skipCount}
+      LIMIT {limitCount}
+    """
+  follower  : (orderByQuery)->
+    """
+      START group=node:koding(id={groupId})
+      MATCH group-[r:member]->members<-[:follower]-currentUser
+      WHERE currentUser.id = {currentUserId}
+      RETURN members
+      #{orderByQuery}
+      SKIP {skipCount}
+      LIMIT {limitCount}
+    """
+  list: (exemptClause, orderByQuery)->
+    """
+      START group=node:koding(id={groupId})
+      MATCH group-[r:member]->members
       WHERE members.name="JAccount"
       #{exemptClause}
-      RETURN count(members) as count
-      """
+      RETURN members
+      #{orderByQuery}
+      SKIP {skipCount}
+      LIMIT {limitCount}
+    """
+  count: (exemptClause)->
+    """
+    START group=node:koding(id={groupId})
+    MATCH group-[:member]->members
+    WHERE members.name="JAccount"
+    #{exemptClause}
+    RETURN count(members) as count
+    """
 
-    search: (options)->
-      {seed, firstNameRegExp, lastNameRegexp, blacklistQuery, exemptClause} = options
-      """
-        START koding=node:koding(id={groupId})
-        MATCH koding-[r:member]->members
+  search: (options)->
+    {seed, firstNameRegExp, lastNameRegexp, blacklistQuery, exemptClause} = options
+    """
+      START koding=node:koding(id={groupId})
+      MATCH koding-[r:member]->members
 
-        WHERE  (
-          members.`profile.nickname` =~ '(?i)#{seed}'
-          and members.type = 'registered'
-          or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
-          or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
-        )
+      WHERE  (
+        members.`profile.nickname` =~ '(?i)#{seed}'
+        and members.type = 'registered'
+        or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
+        or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
+      )
 
-        #{blacklistQuery}
-        #{exemptClause}
+      #{blacklistQuery}
+      #{exemptClause}
 
-        RETURN members
-        ORDER BY members.`profile.firstName`
-        SKIP {skipCount}
-        LIMIT {limitCount}
-      """
+      RETURN members
+      ORDER BY members.`profile.firstName`
+      SKIP {skipCount}
+      LIMIT {limitCount}
+    """
   bucket      :
     newMembers :
       """
