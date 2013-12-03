@@ -14,6 +14,9 @@ class KodingAppsController extends KDController
       warn "#{name} is already imported"
       return callback null
 
+
+    KD.singletons.dock.setNavItemState {name}, 'loading'
+
     app = KD.config.apps[name]
 
     # Remove app from head if exists, just for sure

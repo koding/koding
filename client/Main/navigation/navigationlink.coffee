@@ -23,6 +23,12 @@ class NavigationLink extends KDListItemView
 
     @on "DragFinished", @bound 'dragFinished'
 
+  setState:(state = 'initial')->
+
+    states = 'running failed loading'
+    @unsetClass states
+    if state in states.split ' ' then @setClass state
+
   click:(event)->
     KD.utils.stopDOMEvent event
     {appPath, title, path, type, topLevel} = @getData()
