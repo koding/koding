@@ -97,7 +97,7 @@ class AccountLinkedAccountsListItem extends KDListItemView
     """
     <div class='title'>
       <span class='icon'></span>{cite{ #(title)}}
-      <a href='#' class='delete-icon'></a>
+      <a href='#' class='delete-icon'>Unlink</a>
     </div>
     <div class='status'>
       <span class='icon-check'></span>
