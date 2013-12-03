@@ -47,15 +47,11 @@ class AccountListWrapper extends KDView
     @addSubView @header = new KDHeaderView type : "medium", title : listHeader
     type = if listType then listType or ''
 
-    ListView   = if listClasses[type] then listClasses[type] else KDListView
-    Controller = if listClasses["#{type}Controller"] then listClasses["#{type}Controller"]
+    listViewClass   = if listClasses[type] then listClasses[type] else KDListView
+    controllerClass = if listClasses["#{type}Controller"] then listClasses["#{type}Controller"]
 
-    view = new ListView cssClass : type, delegate: this
-
-    if controller
-      controller = new Controller {view}
-      view       = controller.getView()
-
+    view       = new listViewClass cssClass : type, delegate: this
+    controller = new controllerClass {view}  if controllerClass
     @addSubView view
 
 class AccountsSwappable extends KDView
