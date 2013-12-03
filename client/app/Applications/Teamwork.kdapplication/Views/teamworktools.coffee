@@ -31,7 +31,7 @@ class TeamworkTools extends JView
           @hasTeamUpElements = yes
 
     @shareHeader   = new KDCustomHTMLView
-      cssClass     : "header"
+      cssClass     : "header share"
       partial      : """
         <span class="icon"></span>
         <h3 class="text">Export and share</h3>
