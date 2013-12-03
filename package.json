@@ -62,7 +62,7 @@
     "nesh"            : "1.2.0",
     "htmlencode"      : "0.0.3",
     "node-odesk"      : "0.0.7",
-    "oauth"           : "0.9.10"
+    "oauth"           : "0.9.10",
     "newrelic"        : "1.1.1"
   },
   "devDependencies": {},

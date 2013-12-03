@@ -15,8 +15,6 @@ module.exports = [
   "views/emailnotifications.coffee",
   # "views/devdatabases.coffee",
   "views/editors.coffee",
-  "views/mounts.coffee",
-  "views/repos.coffee",
   "views/sshkeys.coffee",
   "views/kodingkeys.coffee",
   "views/paymenthistory.coffee",
