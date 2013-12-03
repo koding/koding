@@ -1,11 +1,8 @@
 class AccountLinkedAccountsListController extends KDListViewController
 
   constructor:(options = {}, data)->
-
-    data = items : ({title : nicename, provider} for own provider, {nicename} of MembersAppController.externalProfiles)
-
     super options, data
-
+    @instantiateListItems ({title : nicename, provider} for own provider, {nicename} of KD.config.externalProfiles)
 
 class AccountLinkedAccountsList extends KDListView
 
