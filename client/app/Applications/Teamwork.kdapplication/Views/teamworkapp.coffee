@@ -207,7 +207,7 @@ class TeamworkApp extends KDObject
   doCurlRequest: (path, callback = noop) ->
     vmController = KD.getSingleton "vmController"
     vmController.run
-      withArgs: "kdwrap curl -kLs https://raw.github.com/koding/Teamwork/master/Playgrounds/manifest-dev.json"
+      withArgs: "kdwrap curl -kLs #{path}"
       vmName  : vmController.defaultVmName
     , (err, contents) =>
       extension = FSItem.getFileExtension path
