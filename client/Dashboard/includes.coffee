@@ -44,7 +44,11 @@ module.exports = [
   "views/groupsinvitationtabpaneview.coffee"
   "views/groupsinvitationtabview.coffee"
   "views/grouptabhandleview.coffee"
-
+  # badge views
+  "views/badge/badgedashboardview.coffee"
+  "views/badge/badgelistitem.coffee"
+  "views/badge/badgemodals.coffee"
+  "views/badge/badgerules.coffee"
 
   "views/permissionsform.coffee",
 

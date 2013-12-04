@@ -1,23 +1,23 @@
 class BadgeRules extends JView
   constructor:(options = {}, data) ->
 
-    @badgeListViewController = new KDListViewController
+    @badgeRulesListController = new KDListViewController
       startWithLazyLoader : no
       view                : new KDListView
         type              : "badges"
         cssClass          : "item"
         itemClass         : BadgeRuleItem
 
-    @badgeListView = @badgeListViewController.getListView()
+    @badgeListView = @badgeRulesListController.getListView()
 
-    @badgeListViewController.addItem {}
+    #@badgeRulesListController.addItem {}
 
     @addRule          = new KDButtonView
       name            : 'addrule'
       style           : 'add-new-rule'
       title           : '+'
       callback        : =>
-        @badgeListViewController.addItem {}
+        @badgeRulesListController.addItem {}
 
     @doneButton       = new KDButtonView
       name            : 'listdone'
@@ -44,57 +44,57 @@ class BadgeRules extends JView
       type            : "hidden"
       name            : "ids"
 
-    @rulesInput       = new KDInputView
+    @rule             = new KDInputView
       type            : "hidden"
-      name            : "badgerules"
+      name            : "rule"
 
     @userList = @filteredUsersController.getView()
 
     @badgeListView.on "RemoveRuleFromList", (item)=>
-      @badgeListViewController.removeItem item
+      @badgeRulesListController.removeItem item
 
     @giveBadgeButton.hide()
 
     super options, data
 
+    {@badge} = @getOptions()
+    if @badge
+      @updateRulesList()
 
   createUserSelector: (limit, skip)->
-
-    # check filter properties
-    ruleProperties =
-      "follower"   : "counts.followers"
-      "topic"      : "counts.topics"
-      "like"       : "counts.likes"
-      "following"  : "counts.following"
-      "createdAt"  : "meta.createdAt"
-
-    ruleActions    =
-      "more"       : "$gt"
-      "less"       : "$lt"
-      "equal"      : ""
-
     selector   = {}
-    ruleItems  = @badgeListViewController.getItemsOrdered()
-
-    for ruleItem in ruleItems
+    rules      = ""
+    ruleItems  = @badgeRulesListController.getItemsOrdered()
+    for ruleItem, key in ruleItems
       property = ruleItem.propertySelect.getValue()
-      if ruleProperties[property]
-        action = ruleItem.propertyAction.getValue()
-        if ruleActions[action]
-          #TODO : refactor
-          operArr  = {}
-          propVal  = ruleItem.propertyVal.getValue()
-          tmpProp  = ruleProperties[property]
-          tmpAct   = ruleActions[action]
-          operArr[tmpAct]   = propVal
-          selector[tmpProp] = operArr
+      tmpAct   = ruleItem.propertyAction.getValue()
+      propVal  = ruleItem.propertyVal.getValue()
 
+      operArr  = {}
+
+      if tmpAct is "<" then action = "$lt" else action = "$gt"
+
+      operArr[action]    = propVal
+      selector[property] = operArr
+      rules += property + tmpAct + propVal
+      rules += "+" if key < ruleItems.length-1
+
+    @rule.setValue rules
     KD.remote.api.JAccount.someWithRelationship selector, {}, (err,users) =>
       return err if err
-      ids = (user._id for user in users)
-      @usersInput.setValue ids
+      @usersInput.setValue (user._id for user in users)
       @filteredUsersController.removeAllItems()
       @filteredUsersController.instantiateListItems users
+
+  updateRulesList:->
+    ruleArray = @badge.rule.split "+"
+    for rule in ruleArray
+      decoded  = Encoder.htmlDecode rule
+      actionPos = decoded.search /[\<\>\=]/
+      action    = decoded.substr actionPos, 1
+      property  = decoded.substr 0,actionPos
+      propVal   = decoded.substr actionPos+1
+      @badgeRulesListController.addItem {property,action,propVal}
 
   pistachio:->
     """
@@ -104,19 +104,26 @@ class BadgeRules extends JView
     {{> @userList}}
     {{> @giveBadgeButton}}
     {{> @usersInput}}
+    {{> @rule}}
     """
 
 class BadgeUsersItem extends KDListItemView
   constructor: (options ={}, data)->
     super options, data
     @account = @getData()
-    @profile  = new ProfileView {}, @account
+
+    @avatar    = new AvatarImage
+      origin   : @account.profile.nickname
+      size     :
+        width  : 40
 
   viewAppended: JView::viewAppended
 
   pistachio:->
+    nickname = @account.profile.nickname
     """
-     {{> @profile}}
+     {{> @avatar}}
+     #{nickname}
     """
 
 
@@ -125,24 +132,25 @@ class BadgeRuleItem extends KDListItemView
     @propertySelect   = new KDSelectBox
       name            : 'rule-property'
       selectOptions   : [
-        { title:"Follower", value:"follower" }
-        { title:"Likes"   , value:"like"     }
-        { title:"Topics"  , value:"topic"    }
-        { title:"Follows" , value:"following"}
-        { title:"Created" , value:"createdAt"}
+        { title:"Follower", value:"counts.followers" }
+        { title:"Likes"   , value:"counts.likes"     }
+        { title:"Topics"  , value:"counts.topics"    }
+        { title:"Follows" , value:"counts.following" }
       ]
+      defaultValue    : if data.property then data.property else "counts.followers"
 
     @propertyAction   = new KDSelectBox
       name            : 'rule-action'
       selectOptions   : [
-        { title: ">"  , value:"more"  }
-        { title: "<"  , value:"less"  }
-        { title: "="  , value:"equal" }
+        { title: "more than"  , value:">" }
+        { title: "less then"  , value:"<" }
       ]
+      defaultValue    : if data.action then data.action else ">"
 
     @propertyVal      = new KDInputView
       name            : 'rule-value'
       placeholder     : "enter value"
+      defaultValue    : if data.propVal then data.propVal else ""
 
     @removeRule       = new KDButtonView
       name            : 'removeRule'

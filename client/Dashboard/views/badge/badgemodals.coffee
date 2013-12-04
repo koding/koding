@@ -74,7 +74,7 @@ class NewBadgeForm extends JView
     parentView = @badgeForm.modalTabs.forms["Rules"]
     parentView.addSubView new BadgeRules
 
-  createBadgeAndAssign: (formData)=>
+  createBadgeAndAssign: (formData)->
     KD.remote.api.JBadge.create formData, (err, badge)=>
       badge.assignBadgeBatch formData.ids, (err) =>
         return err if err
@@ -83,7 +83,6 @@ class NewBadgeForm extends JView
 class BadgeUpdateForm extends JView
   constructor:(options = {}, data)->
     {@badge} = data
-
     @badgeForm                = new KDModalViewWithForms
       title                   : "Modify Badge"
       overlay                 : "yes"
@@ -147,8 +146,11 @@ class BadgeUpdateForm extends JView
                 callback      : (formData)=>
                   modal = new BadgeRemoveForm {}, {@badge}
                   modal.setDelegate this
-
+          "Rules"             :
+            fields            : {}
     @updatePermissionBoxData()
+    # create rules tab
+    @updateRulesTabView()
     super options, data
 
   updatePermissionBoxData:->
@@ -159,6 +161,10 @@ class BadgeUpdateForm extends JView
       for role in roles
         selectRoles.push title : role.title, value : role._id
       permissionBox.setSelectOptions selectRoles
+
+  updateRulesTabView: ->
+    parentView = @badgeForm.modalTabs.forms["Rules"]
+    parentView.addSubView new BadgeRules badge : @badge
 
 
 class BadgeRemoveForm extends KDModalViewWithForms

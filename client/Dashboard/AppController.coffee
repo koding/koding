@@ -72,6 +72,14 @@ class DashboardAppController extends AppController
         viewOptions  :
           viewClass  : GroupsBlockedUserView
           lazy       : yes
+      ,
+        name         : 'Badges'
+        hiddenHandle : @getData().privacy is 'public'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : BadgeDashboardView
+          lazy       : yes
+
       # CURRENTLY DISABLED
 
       # ,

@@ -1,6 +1,16 @@
 class BadgeListItem extends KDListItemView
   constructor: (options = {}, data) ->
     super options, data
+    {iconURL, description} = @getData()
+
+    @badgeIcon  = new KDCustomHTMLView
+      tagName     : 'img'
+      size        :
+          width   : 70
+          height  : 70
+      attributes  :
+        src       : iconURL
+        title     : description or ''
 
     @editButton = new KDButtonView
       title       : "Edit"
@@ -11,16 +21,7 @@ class BadgeListItem extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio:->
-    {iconURL} = @getData()
     """
-      <div class="icon">
-        <img src="#{iconURL}"/>
-      </div>
-      <p class="name">
-        {{#(title)}}
-      </p>
-      <div class="buttons">
-        {{> @editButton}}
-      </div>
-
+      {{> @badgeIcon}}
+      {{> @editButton}}
     """

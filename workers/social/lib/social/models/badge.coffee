@@ -28,20 +28,19 @@ module.exports = class JBadge extends jraphical.Module
         type              : Date
         default           : -> new Date
     sharedMethods         :
-      static              : ["listBadges", "getUserBadges", "create","fetchBadgeUsers"]
+      static              : ["listBadges", "getUserBadges", "create","fetchBadgeUsers","fetchUsersByRule"]
       instance            : ["modify", "deleteBadge", "assignBadge",
       "removeBadgeFromUser", "assignBadgeBatch"]
 
   @create: permit 'create badge',
     success:(client, badgeData, callback=->)->
-      {title, description, rule, invisible, iconURL, reward} = badgeData
-      badge = new JBadge {title, description, rule, invisible, iconURL, reward}
+      badge = new JBadge badgeData
       badge.save (err)=>
         callback err, badge
 
   @listBadges: permit 'list badges',
     success: (client, selector, callback=->)->
-      JBadge.some selector,{},callback
+      JBadge.some selector,{limit:50},callback
 
   modify: permit 'edit badge',
     success: (client, formData, callback)->
@@ -90,7 +89,7 @@ module.exports = class JBadge extends jraphical.Module
   @getUserBadges:(user, callback) ->
     JAccount = require './account'
     JAccount.one 'profile.nickname' : user.profile.nickname, (err, account)=>
-        account.fetchBadges callback
+      account.fetchBadges callback
 
   @findAccounts : (cursor, items, callback)->
     cursor.nextObject (err, rel) =>
@@ -115,3 +114,26 @@ module.exports = class JBadge extends jraphical.Module
           JAccount = require './account'
           JAccount.some { "_id": { "$in": items } }, {}, (err, jAccounts) =>
             callback err,jAccounts
+
+  ###
+    follower :
+      >      : 2
+  ###
+  @createSelector : (rules)->
+    for rule in rules.split "+"
+      actionPos = rule.search /[\<\>\=]/
+      action    = rule.substr actionPos, 1
+      property  = rule.substr 0,actionPos
+      propVal   = rule.substr actionPos+1
+
+
+  @fetchUsersByRule:permit 'give badges',
+    success: (client, rules, callback)->
+      @createSelector rules
+
+
+
+
+
+
+
