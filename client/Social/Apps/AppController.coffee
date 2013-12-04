@@ -1,12 +1,12 @@
 class AppsAppController extends AppController
 
+  handler = (callback)-> KD.singleton('appManager').open 'Apps', callback
+
   KD.registerAppClass this,
     name         : "Apps"
-    # route        : "/:name?/Apps"
     routes       :
-      "/:name?/Apps" : -> log arg
-      "/:name?/Apps/:username" : ({params : {username}})-> log username, 'sade username'
-      "/:name?/Apps/:username/:appName" : ({params : {username, appName}})-> log username, appName
+      "/:name?/Apps"             : handler
+      "/:name?/Apps/:lala/:app?" : (arg)-> handler (app)-> app.handleRoute arg
     hiddenHandle : yes
     version      : "1.0"
     navItem      :
@@ -137,6 +137,17 @@ class AppsAppController extends AppController
   updateApps:->
     @utils.wait 100, => @feedController?.changeActiveSort "meta.modifiedAt"
 
+
+  handleRoute:(route)->
+
+    {app, lala} = route.params
+    {JApp}      = KD.remote.api
+    if app
+      log "slug:", slug = "#{lala}/#{app}"
+      JApp.one {slug}, (err, app)=>
+        log "FOUND THIS JAPP", err, app
+
+    log "HANDLING", route
 
   createContentDisplay:(app, callback)->
 
