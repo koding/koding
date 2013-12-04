@@ -20,6 +20,7 @@ class ActivityRightBase extends JView
     <div class="right-block-box">
       <h3>#{@getOption 'title'}</h3>
       {{> @tickerListView}}
+      {{> @tickerListView}}
     </div>
     """
 
@@ -37,18 +38,48 @@ class ActiveUsers extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveUserItemView
 
+    @showAllLink = new KDCustomHTMLView
+      tagName : "a"
+      partial : "Show All"
+      click   : (event) -> KD.singletons.router.handleRoute "/Members"
+    , data
+
     options.title    = "Active Users"
     options.cssClass = "active-users"
     super options, data
 
     KD.remote.api.ActiveItems.fetchUsers {}, @bound 'renderItems'
 
+  pistachio:->
+    """
+    <div class="right-block-box">
+      <h3>#{@getOption 'title'}</h3>
+      {{> @tickerListView}}
+      {{> @showAllLink}}
+    </div>
+    """
+
 class ActiveTopics extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveTopicItemView
+
+    @showAllLink = new KDCustomHTMLView
+      tagName : "a"
+      partial : "Show All"
+      click   : (event) -> KD.singletons.router.handleRoute "/Topics"
+    , data
 
     options.title    = "Active Topics"
     options.cssClass = "active-topics"
     super options, data
 
     KD.remote.api.ActiveItems.fetchTopics {}, @bound 'renderItems'
+
+  pistachio:->
+    """
+    <div class="right-block-box">
+      <h3>#{@getOption 'title'}</h3>
+      {{> @tickerListView}}
+      {{> @showAllLink}}
+    </div>
+    """
