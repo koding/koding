@@ -78,20 +78,20 @@ class StatusActivityItemView extends ActivityItemChild
       else @embedBox.hide()
 
   pistachio:->
-      """
-        {{> @avatar}}
-        <div class="activity-item-right-col">
-          {{> @settingsButton}}
-          <span class="author-name">{{> @author}}</span>
-          <p class="status-body">{{@formatContent #(body)}}</p>
-        </div>
-        {{> @embedBox}}
-        <footer>
-          {{> @actionLinks}}
-          {{> @timeAgoView}}
-        </footer>
-        {{> @commentBox}}
-      """
+    """
+      {{> @avatar}}
+      <div class="activity-item-right-col">
+        {{> @settingsButton}}
+        <span class="author-name">{{> @author}}</span>
+        <p class="status-body">{{@formatContent #(body)}}</p>
+      </div>
+      {{> @embedBox}}
+      <footer>
+        {{> @actionLinks}}
+        {{> @timeAgoView}}
+      </footer>
+      {{> @commentBox}}
+    """
 
   tokenClassMap =
     "#"         : TagLinkView
