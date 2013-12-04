@@ -2,7 +2,7 @@ class TerminalPane extends Pane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass  = "terminal-pane"
+    options.cssClass  = "terminal-pane terminal"
     options.delay    ?= if location.hostname is "localhost" then 100 else 10000
 
     super options, data
