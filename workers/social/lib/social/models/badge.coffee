@@ -1,6 +1,7 @@
 jraphical = require 'jraphical'
 module.exports = class JBadge extends jraphical.Module
   {permit}          = require './group/permissionset'
+  {daisy}           = require 'bongo'
 
   @trait __dirname, '../traits/filterable'
 
@@ -27,13 +28,14 @@ module.exports = class JBadge extends jraphical.Module
         type              : Date
         default           : -> new Date
     sharedMethods         :
-      static              : ["listBadges", "getUserBadges","create"]
-      instance            : ["modify","deleteBadge","assignBadge","removeBadgeFromUser"]
+      static              : ["listBadges", "getUserBadges", "create","fetchBadgeUsers"]
+      instance            : ["modify", "deleteBadge", "assignBadge",
+      "removeBadgeFromUser", "assignBadgeBatch"]
 
   @create: permit 'create badge',
-    success:(client, badge, callback=->)->
-      {title, description, rules, invisible, iconURL, reward} = badge
-      badge = new JBadge {title, description, rules, invisible, iconURL, reward}
+    success:(client, badgeData, callback=->)->
+      {title, description, rule, invisible, iconURL, reward} = badgeData
+      badge = new JBadge {title, description, rule, invisible, iconURL, reward}
       badge.save (err)=>
         callback err, badge
 
@@ -53,8 +55,23 @@ module.exports = class JBadge extends jraphical.Module
   assignBadge : permit 'assign badge',
     success: (client, user, callback)->
       JAccount = require './account'
-      JAccount.one {'profile.nickname' : user.profile.nickname}, (err, account)=>
+      JAccount.one '_id' : user.getId(), (err, account)=>
         account.addBadge this, callback
+
+  assignBadgeBatch : permit 'assign badge',
+    success: (client, accountIds, callback)->
+      JAccount = require './account'
+      errors = []
+      if accountIds isnt ""
+        queue  = accountIds.split(",").map (id) =>=>
+          JAccount.one "_id" : id, (err, account)=>
+            return err if err
+            account.addBadge this, (err, badge)->
+              errors.push err if err
+              queue.next()
+        queue.push -> callback if errors.length > 0 then errors else null
+        daisy queue
+
 
   removeBadgeFromUser : permit 'remove user badge',
     success: (client, user, callback)->
@@ -72,6 +89,29 @@ module.exports = class JBadge extends jraphical.Module
 
   @getUserBadges:(user, callback) ->
     JAccount = require './account'
-    JAccount.one {'profile.nickname' : user.profile.nickname}, (err, account)=>
+    JAccount.one 'profile.nickname' : user.profile.nickname, (err, account)=>
         account.fetchBadges callback
 
+  @findAccounts : (cursor, items, callback)->
+    cursor.nextObject (err, rel) =>
+      if err
+        callback items
+      else if rel
+        items.push rel.sourceId
+        @findAccounts cursor, items, callback
+      else
+        callback items
+
+
+  @fetchBadgeUsers:permit 'list badges',
+    success: (client, badgeId, callback)->
+      query =
+          targetName : "JBadge"
+          targetId   : badgeId
+          as         : "badge"
+          sourceName : "JAccount"
+      jraphical.Relationship.cursor query, {}, (err, cursor)=>
+        @findAccounts cursor, [], (items) ->
+          JAccount = require './account'
+          JAccount.some { "_id": { "$in": items } }, {}, (err, jAccounts) =>
+            callback err,jAccounts

@@ -2,23 +2,11 @@ class BadgeListItem extends KDListItemView
   constructor: (options = {}, data) ->
     super options, data
 
-    @removeButton = new KDButtonView
-      title       : "Delete"
-      #cssClass    : "delete-badge clean-red"
-      callback    : =>
-        modal = new BadgeRemoveForm {}, badge:@getData()
-
     @editButton = new KDButtonView
       title       : "Edit"
       cssClass    : "edit-badge"
       callback    : =>
-        modal = new BadgeUpdateForm {}, badge : @getData()
-
-    @assignButton = new KDButtonView
-      title       : "Assign"
-      cssClass    : "assign-badge"
-      callback    : =>
-        modal = new BadgeUpdateForm {}, badge : @getData()
+        modal     = new BadgeUpdateForm {itemList: this}, badge : @getData()
 
   viewAppended: JView::viewAppended
 
@@ -33,7 +21,6 @@ class BadgeListItem extends KDListItemView
       </p>
       <div class="buttons">
         {{> @editButton}}
-        {{> @assignButton}}
       </div>
 
     """

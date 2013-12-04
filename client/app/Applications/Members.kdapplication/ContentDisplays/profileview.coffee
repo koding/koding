@@ -380,9 +380,6 @@ class ProfileView extends JView
       {callback, inputValue, blacklist} = event
       @fetchAutoCompleteDataForTags inputValue, blacklist, callback
 
-
-    @createBadges()
-
     avatarOptions  =
       showStatus      : yes
       size            :
