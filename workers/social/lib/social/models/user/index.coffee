@@ -717,24 +717,26 @@ Your password has been changed!  If you didn't request this change, please conta
 
     {email} = options
 
-    @emailAvailable email, (err, res)=>
-
-      if err
-        callback createKodingError "Something went wrong please try again!"
-      else if res is no
-        callback createKodingError "Email is already in use!"
-      else
-        @fetchUser client, (err,user)->
-          account = client.connection.delegate
-          user.changeEmail account, options, callback
-          email = new JMail {
-            email: user.email
-            subject : "Your email has changed"
-            content : """
-    Your email has been changed!  If you didn't request this change, please contact support@koding.com immediately!
-    """
-          }
-          email.save()
+    account = client.connection.delegate
+    account.fetchUser (err, user)=>
+      return callback createKodingError "Something went wrong please try again!" if err
+      if email is user.email then return callback createKodingError "EmailIsSameError"
+      @emailAvailable email, (err, res)=>
+        return callback createKodingError "Something went wrong please try again!" if err
+        if res is no
+          callback createKodingError "Email is already in use!"
+        else
+          @fetchUser client, (err,user)->
+            account = client.connection.delegate
+            user.changeEmail account, options, callback
+            email = new JMail {
+              email: user.email
+              subject : "Your email has changed"
+              content : """
+      Your email has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+      """
+            }
+            email.save()
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
