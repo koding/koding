@@ -4,6 +4,7 @@ class ActivityInputView extends KDTokenizedInput
     options.type           or= "html"
     options.multiline       ?= yes
     options.placeholder    or= "What's new #{KD.whoami().profile.firstName}?"
+    options.defaultTokens  or= {tags: {}}
     options.tokenViewClass or= TokenView
     options.rules  or=
       tag            :
@@ -13,6 +14,7 @@ class ActivityInputView extends KDTokenizedInput
         dataSource   : @bound "fetchTopics"
 
     super options, data
+    @defaultTokens = options.defaultTokens
 
   fetchTopics: (inputValue, callback) ->
     KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = []) =>
@@ -30,10 +32,36 @@ class ActivityInputView extends KDTokenizedInput
     tokenViewClass = SuggestedTokenView  if item.data.$suggest
     super item, tokenViewClass
 
+  setDefaultTokens: (defaultTokens = {}) ->
+    fillTokenMap defaultTokens.tags, @defaultTokens.tags
+
   setContent: (content, activity) ->
-    tokens = {tags: {}}
-    activity?.tags?.forEach (tag) -> tokens.tags[tag.getId()] = tag
+    tokens = @defaultTokens or {tags: {}}
+    fillTokenMap activity.tags , tokens.tags  if activity?.tags?.length
     super @renderTokens content, tokens
+
+  focus: ->
+    super
+    value = @getValue()
+    unless value
+      content = @prefixDefaultTokens()
+      return  unless content
+      @setContent content
+      {childNodes} = @getEditableElement()
+      @utils.selectEnd childNodes[childNodes.length - 1]
+
+  prefixDefaultTokens: ->
+    content = ""
+    for own type, tokens of @defaultTokens
+      switch type
+        when "tags"
+          prefix = "#"
+          constructorName = "JTag"
+        else continue
+
+      content += "|#{prefix}:#{constructorName}:#{token.getId()}|&nbsp;" for key, token of tokens
+
+    return  content
 
   renderTokens: (content, tokens = {}) ->
     return  content.replace /\|(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
@@ -51,3 +79,7 @@ class ActivityInputView extends KDTokenizedInput
       tokenView.setAttributes "data-key": tokenKey
       tokenView.emit "viewAppended"
       return tokenView.getElement().outerHTML
+
+  fillTokenMap = (tokens, map) ->
+    tokens.forEach (token) ->
+      map[token.getId()] = token
