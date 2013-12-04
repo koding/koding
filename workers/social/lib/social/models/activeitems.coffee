@@ -4,6 +4,7 @@ _              = require "underscore"
 
 JAccount       = require "./account"
 JTag           = require "./tag"
+Cache          = require "../cache/main"
 
 {secure, daisy, Base} = Bongo
 
@@ -26,22 +27,37 @@ module.exports = class ActiveItems extends Base
   #   * Active topics in the last day
   #   * Random topics
   @fetchTopics = secure (client, options={}, callback)->
-    @fetchItems "topic", options, callback
+    options.name       = "topic"
+    options.fallbackFn = @fetchRandomTopics
+
+    Cache.fetch "activeItems.fetchTopics", (@fetchItems.bind this), options, callback
 
   # Returns users in following order:
   #   * Client's followers who are online
   #   * Active users in the last day
   #   * Random users
   @fetchUsers = secure (client, options={}, callback)->
+    options.client     = client
+    options.fallbackFn = @fetchRandomUsers
+
+    Cache.fetch "activeItems.fetchUsers", (@_fetchUsers.bind this), options, callback
+
+  @fetchRandomUsers = (callback)-> JAccount.some {}, {limit:10}, callback
+
+  @fetchRandomTopics = (callback)-> JTag.some {}, {limit:10}, callback
+
+  @_fetchUsers = (options={}, callback)->
+    {client}   = options
     {delegate} = client.connection
+
     delegate._fetchMyOnlineFollowingsFromGraph client, {}, (err, onlineMembers)=>
-      return callback err                 if err
-      return callback null, onlineMembers if onlineMembers.length >= 10
+      return callback err                  if err
+      return callback null, onlineMembers  if onlineMembers.length >= 10
 
       missing     = 10 - onlineMembers.length
       existingIds = onlineMembers.map (member)-> member._id
 
-      @fetchItems "user", {count:missing, nin:existingIds}, (err, activeMembers)->
+      @fetchItems {name: "user", count:missing, nin:existingIds}, (err, activeMembers)->
         return callback err  if err
         members = _.flatten activeMembers, onlineMembers
         callback null, members
@@ -51,7 +67,8 @@ module.exports = class ActiveItems extends Base
   #
   # Popularity is determined by number of entries in 'relationships'
   # collection that match the criteria passed to it.
-  @fetchItems = (name, options={}, callback) ->
+  @fetchItems = (options={}, callback) ->
+    {name}      = options
     mapping     = nameMapping[name]
     {klass, as} = mapping
 
