@@ -296,7 +296,7 @@ class CollaborativeWorkspace extends Workspace
       @workspaceRef
       @sessionKey
       container : @userListContainer
-      delegate  : @
+      delegate  : this
     }
 
   broadcastMessage: (details) ->
