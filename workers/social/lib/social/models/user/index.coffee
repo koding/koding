@@ -699,6 +699,10 @@ module.exports = class JUser extends jraphical.Module
 
   @changePassword = secure (client,password,callback)->
     @fetchUser client, (err,user)->
+      return callback createKodingError "Something went wrong please try again!" if err or not user
+      if user.getAt('password') is hashPassword password, user.getAt('salt')
+        return callback createKodingError "PasswordIsSame"
+
       user.changePassword password, callback
       email = new JMail {
         email: user.email
