@@ -30,68 +30,24 @@ class ActivityInputView extends KDTokenizedInput
     tokenViewClass = SuggestedTokenView  if item.data.$suggest
     super item, tokenViewClass
 
-class ActivityInput extends KDView
-  {daisy, dash}         = Bongo
-  {JStatusUpdate, JTag} = KD.remote.api
+  setContent: (content, activity) ->
+    tokens = {tags: {}}
+    activity?.tags?.forEach (tag) -> tokens.tags[tag.getId()] = tag
+    super @renderTokens content, tokens
 
-  constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
-    super options, data
-    @input    = new ActivityInputView
-    @embedBox = new EmbedBoxWidget delegate: @input, data
+  renderTokens: (content, tokens = {}) ->
+    return  content.replace /\|(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
+      switch prefix
+        when "#"
+          itemClass = TagLinkView
+          type      = "tag"
+          pistachio = "#{prefix}{{#(title)}}"
+          data      = tokens.tags[id]
 
-  submit: (callback) ->
-    tags          = []
-    suggestedTags = []
-    createdTags   = {}
+      tokenView = new TokenView {itemClass, prefix, type, pistachio}, data
+      tokenKey  = "#{tokenView.getId()}-#{tokenView.getKey()}"
+      @tokenViews[tokenKey] = tokenView
 
-    unless KD.checkFlag "exempt"
-      for token in @input.getTokens()
-        {data, type} = token
-        if type is "tag"
-          if data instanceof JTag then tags.push id: data.getId()
-          else if data.$suggest?  then suggestedTags.push data.$suggest
-
-    daisy queue = [
-      =>
-        tagCreateJobs = suggestedTags.map (title) ->
-          ->
-            JTag.create {title}, (err, tag) ->
-              tags.push id: tag.getId()
-              createdTags[title] = tag
-              tagCreateJobs.fin()
-
-        dash tagCreateJobs, ->
-          queue.next()
-    , =>
-        body  = @input.getValue()
-        body  = body.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
-          tag = createdTags[title]
-          return  "" unless tag
-          return  "|#{prefix}:JTag:#{tag.getId()}|"
-
-        data     =
-          group  : KD.getSingleton('groupsController').getGroupSlug()
-          body   : body
-          meta   :
-            tags : tags
-
-        data.link_url   = @embedBox.url or ""
-        data.link_embed = @embedBox.getDataForSubmit() or {}
-
-        JStatusUpdate.create data, (err, activity) =>
-          @input.setContent ""  unless err
-
-          callback? err, activity
-
-          KD.showError err,
-            AccessDenied :
-              title      : 'You are not allowed to create activities'
-              content    : 'This activity will only be visible to you'
-              duration   : 5000
-            KodingError  : 'Something went wrong while creating activity'
-    ]
-
-  viewAppended: ->
-    @addSubView @input
-    @addSubView @embedBox
+      tokenView.setAttributes "data-key": tokenKey
+      tokenView.emit "viewAppended"
+      return tokenView.getElement().outerHTML

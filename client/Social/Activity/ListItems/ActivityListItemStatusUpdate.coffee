@@ -27,8 +27,6 @@ class StatusActivityItemView extends ActivityItemChild
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
-    @tags = @getTokenMap(data.tags) or {}
-
   getTokenMap: (tokens) ->
     return  unless tokens
     map = {}
@@ -39,12 +37,13 @@ class StatusActivityItemView extends ActivityItemChild
     return  str unless tokenMatches = str.match /\|.+?\|/g
 
     data = @getData()
+    tagMap = @getTokenMap data.tags  if data.tags
 
     for tokenString in tokenMatches
       [prefix, constructorName, id] = @decodeToken tokenString
 
       switch prefix
-        when "#" then token = @tags[id]
+        when "#" then token = tagMap?[id]
         else continue
 
       continue  unless token
