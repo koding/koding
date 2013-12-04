@@ -76,9 +76,6 @@ class AccountAppController extends AppController
 
     mainView.addSubView navView = @navController.getView()
 
-    # navView.on 'ItemWasAdded', @bound 'bindItemClickHandler'
-
-
     mainView.addSubView @tabView = new KDTabView
       tabHandleContainer : new KDCustomHTMLView
 
