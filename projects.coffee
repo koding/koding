@@ -152,6 +152,12 @@ projects      =
     script        : "website/js/__app.dashboard.#{KODING_VERSION}.js"
     sourceMapRoot : "Dashboard/"
 
+  Pricing         :
+    files         : "client/Pricing/includes.coffee"
+    style         : "website/css/__app.pricing.#{KODING_VERSION}.css"
+    script        : "website/js/__app.pricing.#{KODING_VERSION}.js"
+    sourceMapRoot : "Pricing/"
+
 
 bundles           =
 
@@ -171,7 +177,7 @@ bundles           =
     script        : "website/js/__teamwork.#{KODING_VERSION}.js"
 
   Payment         :
-    projects      : ['Environments', 'Dashboard']
+    projects      : ['Environments', 'Dashboard', 'Pricing']
     style         : "website/css/__payment.#{KODING_VERSION}.css"
     script        : "website/js/__payment.#{KODING_VERSION}.js"
 
