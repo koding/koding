@@ -21,6 +21,7 @@ module.exports = class JAccount extends jraphical.Module
   CActivity        = require './activity'
   Graph            = require "./graph/graph"
   JName            = require './name'
+  JBadge           = require './badge'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -293,6 +294,10 @@ module.exports = class JAccount extends jraphical.Module
       subscription  :
         as          : 'service subscription'
         targetType  : 'JPaymentSubscription'
+
+      badge         :
+        as          : 'badge'
+        targetType  : 'JBadge'
 
   constructor:->
     super
@@ -686,7 +691,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "samet" ]
+                  "samet", "leeolayvar" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -1305,16 +1310,16 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->
     return callback { message: 'Access denied!' }  unless @equals delegate
-    
+
     [callback, options] = [options, callback]  unless callback
 
     { tags, status } = options
-    
+
     selector = {}
     queryOptions = targetOptions: { selector }
 
     selector.tags = $in: tags  if tags
-    
+
     selector.status = status ? $in: [
       'active'
       'past_due'
@@ -1325,7 +1330,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchPlansAndSubscriptions: secure (client, options, callback) ->
     JPaymentPlan = require './payment/plan'
-    
+
     @fetchSubscriptions$ client, options, (err, subscriptions) ->
       return callback err  if err
 

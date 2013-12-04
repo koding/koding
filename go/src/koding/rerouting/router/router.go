@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fatih/goset"
+	"github.com/fatih/set"
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
 	"log"
@@ -81,10 +81,10 @@ func (r *Router) AddRoute(msg *amqp.Delivery) error {
 	}
 	publishingExchange := bindingKey[join.PublishingExchange].(M)
 
-	if routes, ok := publishingExchange[join.RoutingKey].(*goset.Set); ok {
+	if routes, ok := publishingExchange[join.RoutingKey].(*set.Set); ok {
 		routes.Add(*join)
 	} else {
-		publishingExchange[join.RoutingKey] = goset.New(*join)
+		publishingExchange[join.RoutingKey] = set.New(*join)
 	}
 
 	if isNewBindingExchange {
@@ -123,7 +123,7 @@ func (r *Router) RemoveRoute(msg *amqp.Delivery) error {
 	if publishingExchange[leave.RoutingKey] == nil {
 		return fmt.Errorf("Unknown routing key: %s", leave.RoutingKey)
 	}
-	routes := publishingExchange[leave.RoutingKey].(*goset.Set)
+	routes := publishingExchange[leave.RoutingKey].(*set.Set)
 
 	for _, join := range routes.List() {
 		if *leave == join.(AuthMsg) {
@@ -224,7 +224,7 @@ func (r *Router) addBinding(exchange string) error {
 			publishingExchange := bindingKey[name].(M)
 
 			for routingKey := range publishingExchange {
-				routes := publishingExchange[routingKey].(*goset.Set)
+				routes := publishingExchange[routingKey].(*set.Set)
 				list := routes.List()
 
 				for i := range list {

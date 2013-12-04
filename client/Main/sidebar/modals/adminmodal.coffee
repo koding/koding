@@ -247,6 +247,7 @@ class AdminModal extends KDModalViewWithForms
       if accounts.length > 0
         account = accounts[0]
         inputs.Flags.setValue account.globalFlags?.join(',')
+        {inputs} = @modalTabs.forms["User Details"]
         userRequestLineEdit.hide()
         @showConnectedFields()
       else
