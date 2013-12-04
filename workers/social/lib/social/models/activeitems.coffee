@@ -59,7 +59,7 @@ module.exports = class ActiveItems extends Base
 
       @fetchItems {name: "user", count:missing, nin:existingIds}, (err, activeMembers)->
         return callback err  if err
-        members = _.flatten activeMembers, onlineMembers
+        members = onlineMembers.concat activeMembers
         callback null, members
 
   # General method that returns popular items in the last day. If none
@@ -110,7 +110,7 @@ module.exports = class ActiveItems extends Base
             return callback err  if err
 
             # first array must contain entries or _ returns []
-            instances = _.flatten randomInstances, instances
+            instances = instances.concat randomInstances
             callback null, instances
         else
           callback null, instances
