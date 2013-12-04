@@ -24,16 +24,6 @@ class ActivityRightBase extends JView
     </div>
     """
 
-class OnlineUsers extends ActivityRightBase
-  constructor:(options={}, data)->
-    @itemClass = ActiveUserItemView
-
-    options.title    = "Online Users"
-    options.cssClass = "online-users"
-    super options, data
-
-    KD.whoami().fetchMyOnlineFollowingsFromGraph {}, @bound 'renderItems'
-
 class ActiveUsers extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveUserItemView
