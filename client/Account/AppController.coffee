@@ -89,3 +89,5 @@ class AccountAppController extends AppController
       <a href="/tos.html" target="_blank">Terms of service <span class="icon new-page"></span></a>
       <a href="/privacy.html" target="_blank">Privacy policy <span class="icon new-page"></span></a>
       """
+
+  showReferrerModal:-> new ReferrerModal
