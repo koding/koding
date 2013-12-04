@@ -82,9 +82,12 @@ class ActivityAppView extends KDScrollView
     #   @inputWidget.hide()
     @_windowDidResize()
 
-  setTopicTag: (slug) ->
+  setTopicTag: (slug = "") ->
     KD.remote.api.JTag.one {slug}, null, (err, tag) =>
       @inputWidget.input.setDefaultTokens tags: [tag]
+
+  unsetTopicTag: ->
+    @inputWidget.input.setDefaultTokens tags: []
 
   # changePageToActivity:(event)->
 

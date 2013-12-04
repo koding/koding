@@ -127,7 +127,10 @@ class ActivityAppController extends AppController
     return  if @isLoading
     return  if @reachedEndOfActivities
 
+    view = @getView()
+
     @listController.showLazyLoader no
+    view.unsetTopicTag()
 
     @isLoading       = yes
     groupsController = KD.getSingleton 'groupsController'
@@ -181,7 +184,7 @@ class ActivityAppController extends AppController
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
         @fetchTopicActivities options
         @setWarning options.slug
-        @getView().setTopicTag options.slug
+        view.setTopicTag options.slug
 
       else if @getFeedFilter() is "Public"
 
