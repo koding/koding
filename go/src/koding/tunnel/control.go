@@ -66,7 +66,7 @@ func (c *control) connect(identifier string) error {
 	remoteAddr := fmt.Sprintf("http://%s%s", c.RemoteAddr(), ControlPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
-		return fmt.Errorf("CONNECT", err)
+		return fmt.Errorf("CONNECT %s", err)
 	}
 
 	req.Header.Set("identifier", identifier)
@@ -74,7 +74,7 @@ func (c *control) connect(identifier string) error {
 
 	resp, err := http.ReadResponse(bufio.NewReader(c), req)
 	if err != nil {
-		return fmt.Errorf("read response", err)
+		return fmt.Errorf("read response %s", err)
 	}
 	defer resp.Body.Close()
 
