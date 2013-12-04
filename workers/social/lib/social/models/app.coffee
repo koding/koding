@@ -24,8 +24,8 @@ module.exports = class JApp extends jraphical.Module
   @set
 
     softDelete          : yes
-    slugifyFrom         : 'name'
-    slugTemplate        : -> "#{@authorNick}/\#{slug}"
+    # slugifyFrom         : 'name'
+    # slugTemplate        : -> "#{@authorNick}/\#{slug}"
 
     indexes             :
       slug              : 'unique'
@@ -161,9 +161,13 @@ module.exports = class JApp extends jraphical.Module
         return callback err  if err
         app.addCreator delegate, (err)->
           return callback err  if err
-          app.updateSlug (err, slug)=>
+          slug = "#{app.authorNick}/#{app.name}"
+          app.useSlug slug, (err, slugobj)->
             return callback err  if err
-            callback null, app
+            slug = slugobj.slug
+            app.update {$set: {slug, slug_: slug}}, (err)->
+              return callback err  if err
+              callback null, app
 
   approve: permit 'approve apps',
 
