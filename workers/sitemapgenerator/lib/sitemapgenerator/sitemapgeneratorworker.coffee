@@ -36,8 +36,8 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     sitemap += sitemapFooter
     return sitemap
 
-  generateSitemapName: (groupPageNumber, skip)->
-    return  "sitemap_" + groupPageNumber + "_" + skip + "_" + (skip + NAMEPERPAGE) + ".xml"
+  generateSitemapName: (skip)->
+    return  "sitemap_koding_" + skip + "_" + (skip + NAMEPERPAGE) + ".xml"
 
   saveSitemap: (name, content)->
     {JSitemap} = @bongo.models
@@ -55,61 +55,35 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
       content = @generateSitemapIndexString sitemapNames
       @saveSitemap name, content
 
-    JGroup.count groupSelector, (err, groupCount)=>
-      numberOfGroupPages = Math.ceil(groupCount / GROUPPERPAGE)
+    selector = {
+      $or: [
+        { 'slugs.group': 'koding' },
+        { 'slugs.usedAsPath':'username' }
+      ]
+    }
 
-      publicGroups = []
+    JName.count selector, (err, count)=>
+      numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
 
-      # We behave 'koding' as a public group, even though
-      # its privacy is marked as "private" in the model.
-      # We add 'koding' group to publicGroups selector for the first cycle.
-      publicGroups.push 'koding'
-
-      groupQueue = [1..numberOfGroupPages].map (groupPageNumber)=>=>
-        groupSkip = (groupPageNumber - 1) * GROUPPERPAGE
-        groupOptions = {
-          limit : GROUPPERPAGE,
-          skip  : groupSkip
+      queue = [1..numberOfNamePages].map (pageNumber)=>=>
+        queue.sitemapNames = []
+        skip = (pageNumber - 1) * NAMEPERPAGE
+        option = {
+          limit : NAMEPERPAGE,
+          skip  : skip
         }
-        JGroup.some groupSelector, groupOptions, (err, jGroups)=>
+        JName.some selector, option, (err, names)=>
+          if names
+            urls = (name.name for name in names)
+            sitemapName =  @generateSitemapName skip
+            content = @generateSitemapString urls
+            @saveSitemap sitemapName, content
 
-          for group in jGroups
-            publicGroups.push group.slug
-
-          selector = {
-            $or: [
-              { 'slugs.group': { $in: publicGroups } },
-              { 'slugs.usedAsPath':'username' }
-            ]
-          }
-
-          # Empty the group, it'll be filled in next iteration.
-          publicGroups = []
-
-          JName.count selector, (err, count)=>
-            numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
-            queue = [1..numberOfNamePages].map (pageNumber)=>=>
-              skip = (pageNumber - 1) * NAMEPERPAGE
-              option = {
-                limit : NAMEPERPAGE,
-                skip  : skip
-              }
-              JName.some selector, option, (err, names)=>
-                if names
-                  urls = (name.name for name in names)
-                  sitemapName =  @generateSitemapName groupPageNumber, skip
-                  content = @generateSitemapString urls
-                  @saveSitemap sitemapName, content
-
-                  groupQueue.sitemapNames or= []
-                  groupQueue.sitemapNames.push sitemapName
-                queue.next()
-            queue.push => groupQueue.next()
-            daisy queue
-
-
-      groupQueue.push => generateSitemapIndex(groupQueue.sitemapNames)
-      daisy groupQueue
+            queue.sitemapNames or= []
+            queue.sitemapNames.push sitemapName
+          queue.next()
+      queue.push => generateSitemapIndex(queue.sitemapNames)
+      daisy queue
 
 
   init:->
