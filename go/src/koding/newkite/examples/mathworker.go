@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"koding/newkite/kite"
-	"koding/newkite/protocol"
 )
 
 var port = flag.String("port", "", "port to bind itself")
@@ -12,9 +11,9 @@ var port = flag.String("port", "", "port to bind itself")
 func main() {
 	flag.Parse()
 
-	options := &protocol.Options{
+	options := &kite.Options{
 		Kitename:    "mathworker",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        *port,
 		Region:      "localhost",
 		Environment: "development",
@@ -29,14 +28,11 @@ func main() {
 }
 
 func Square(r *kite.Request) (interface{}, error) {
-	a, err := r.Args.Float64()
-	if err != nil {
-		return nil, err
-	}
+	a := r.Args.MustFloat64()
 
 	result := a * a
 
-	fmt.Printf("Kite call, sending result '%s' back\n", result)
+	fmt.Printf("Kite call, sending result %.0f back\n", result)
 
 	// Print a log on remote Kite.
 	r.RemoteKite.Go("log", fmt.Sprintf("You have requested square of: %f", a))

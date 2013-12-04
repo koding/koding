@@ -73,7 +73,11 @@ app.configure ->
   app.use express.bodyParser()
   app.use express.compress()
   # 86400000 == one day
-  app.use express.static( "#{projectRoot}/website/", { maxAge: 86400000 })
+  headers = {}
+  if webserver.useCacheHeader
+    headers.maxAge = 86400000
+
+  app.use express.static( "#{projectRoot}/website/", headers)
 
 # disable express default header
 app.disable 'x-powered-by'

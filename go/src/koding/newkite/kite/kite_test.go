@@ -2,7 +2,6 @@ package kite
 
 import (
 	"fmt"
-	"koding/newkite/protocol"
 	"testing"
 	"time"
 )
@@ -17,7 +16,7 @@ func TestKite(t *testing.T) {
 
 	fooChan := make(chan string)
 	handleFoo := func(r *Request) (interface{}, error) {
-		s, _ := r.Args.String()
+		s := r.Args.MustString()
 		fmt.Printf("Message received: %s\n", s)
 		fooChan <- s
 		return nil, nil
@@ -38,37 +37,59 @@ func TestKite(t *testing.T) {
 		return
 	}
 
-	response, err := remote.Call("square", 2)
+	result, err := remote.Call("square", 2)
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf(err.Error())
 		return
 	}
 
-	var result int
-	err = response.Unmarshal(&result)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	number := result.MustFloat64()
 
-	fmt.Printf("rpc result: %d\n", result)
+	fmt.Printf("rpc result: %f\n", number)
 
-	if result != 4 {
-		t.Errorf("Invalid result: %d", result)
+	if number != 4 {
+		t.Errorf("Invalid result: %d", number)
 	}
 
 	select {
 	case s := <-fooChan:
 		if s != "bar" {
 			t.Errorf("Invalid message: %s", s)
+			return
 		}
 	case <-time.After(100 * time.Millisecond):
 		t.Errorf("Did not get the message")
+		return
+	}
+
+	resultChan := make(chan float64, 1)
+	resultCallback := func(r *Request) {
+		fmt.Printf("Request: %#v\n", r)
+		args := r.Args.MustSliceOfLength(1)
+		n := args[0].MustFloat64()
+		resultChan <- n
+	}
+
+	args := []interface{}{3, Callback(resultCallback)}
+	result, err = remote.Call("square2", args)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	select {
+	case n := <-resultChan:
+		if n != 9.0 {
+			t.Errorf("Unexpected result: %f", n)
+			return
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Errorf("Did not get the message")
+		return
 	}
 }
 
 func exp2() *Kite {
-	options := &protocol.Options{
+	options := &Options{
 		Kitename:    "exp2",
 		Version:     "1",
 		Port:        "3637",
@@ -76,11 +97,12 @@ func exp2() *Kite {
 		Environment: "development",
 	}
 
-	return New(options)
+	k := New(options)
+	return k
 }
 
 func mathWorker() *Kite {
-	options := &protocol.Options{
+	options := &Options{
 		Kitename:    "mathworker",
 		Version:     "1",
 		Port:        "3636",
@@ -90,15 +112,13 @@ func mathWorker() *Kite {
 
 	k := New(options)
 	k.HandleFunc("square", Square)
+	k.HandleFunc("square2", Square2)
 	return k
 }
 
+// Returns the result. Also tests reverse call.
 func Square(r *Request) (interface{}, error) {
-	a, err := r.Args.Float64()
-	if err != nil {
-		return nil, err
-	}
-
+	a := r.Args.MustFloat64()
 	result := a * a
 
 	fmt.Printf("Kite call, sending result '%f' back\n", result)
@@ -107,4 +127,23 @@ func Square(r *Request) (interface{}, error) {
 	r.RemoteKite.Go("foo", "bar")
 
 	return result, nil
+}
+
+// Calls the callback with the result. For testing requests from Callback.
+func Square2(r *Request) (interface{}, error) {
+	args := r.Args.MustSliceOfLength(2)
+	a := args[0].MustFloat64()
+	cb := args[1].MustFunction()
+
+	result := a * a
+
+	fmt.Printf("Kite call, sending result '%f' back\n", result)
+
+	// Send the result.
+	err := cb(result)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }

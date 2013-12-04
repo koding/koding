@@ -679,7 +679,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "samet" ]
+                  "samet", "leeolayvar" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -962,6 +962,12 @@ module.exports = class JAccount extends jraphical.Module
         return callback new KodingError "No such storage"
 
       storage.remove callback
+
+  unstoreAll: (callback)->
+    @fetchStorages [], (err, storages)->
+      daisy queue = storages.map (storage) ->
+        -> storage.remove -> queue.next()
+      queue.push -> callback null
 
   _store: ({name, content}, callback)->
     @fetchStorage { 'data.name' : name }, (err, storage)=>

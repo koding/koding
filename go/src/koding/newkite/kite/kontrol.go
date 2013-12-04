@@ -3,6 +3,7 @@ package kite
 import (
 	"errors"
 	"fmt"
+	"koding/newkite/dnode"
 	"koding/newkite/protocol"
 	"net"
 	"sync"
@@ -39,14 +40,14 @@ func (k *Kite) NewKontrol(addr string) *Kontrol {
 	ready := make(chan bool)
 
 	remoteKite.OnConnect(func() {
-		log.Info("Connected to Kontrol ")
+		k.Log.Info("Connected to Kontrol ")
 
 		// signal all other methods that are listening on this channel, that we
 		// are ready.
 		once.Do(func() { close(ready) })
 	})
 
-	remoteKite.OnDisconnect(func() { log.Warning("Disconnected from Kontrol. I will retry in background...") })
+	remoteKite.OnDisconnect(func() { k.Log.Warning("Disconnected from Kontrol. I will retry in background...") })
 
 	return &Kontrol{
 		RemoteKite: *remoteKite,
@@ -80,7 +81,7 @@ func (k *Kontrol) Register() error {
 			kite.PublicIP = rr.PublicIP
 		}
 
-		log.Info("Registered to kontrol with addr: %s version: %s uuid: %s",
+		k.Log.Info("Registered to kontrol with addr: %s version: %s uuid: %s",
 			kite.Addr(), kite.Version, kite.ID)
 	case protocol.RejectKite:
 		return errors.New("Kite rejected")
@@ -91,15 +92,43 @@ func (k *Kontrol) Register() error {
 	return nil
 }
 
-// GetKites returns the list of Kites matching the query. The returned list
-// contains ready to connect RemoteKite instances. The caller must connect
-// with RemoteKite.Dial() before using each Kite.
-func (k *Kontrol) GetKites(query protocol.KontrolQuery) ([]*RemoteKite, error) {
+// GetKites returns the list of Kites matching the query.
+// The returned list contains ready to connect RemoteKite instances.
+// The caller must connect with RemoteKite.Dial() before using each Kite.
+func (k *Kontrol) GetKites(query protocol.KontrolQuery, onEvent func(*protocol.KiteEvent)) ([]*RemoteKite, error) {
 	// this is needed because we are calling GetKites explicitly, therefore
 	// this should be only callable *after* we are connected to kontrol.
 	<-k.ready
 
-	response, err := k.RemoteKite.Call("getKites", query)
+	queueEvents := func(p *dnode.Partial) {
+		var args []*dnode.Partial
+		err := p.Unmarshal(&args)
+		if err != nil {
+			k.Log.Error(err.Error())
+			return
+		}
+
+		if len(args) != 1 {
+			k.Log.Error("Invalid Kite event")
+			return
+		}
+
+		var event protocol.KiteEvent
+		err = args[0].Unmarshal(&event)
+		if err != nil {
+			k.Log.Error(err.Error())
+			return
+		}
+
+		onEvent(&event)
+	}
+
+	args := []interface{}{query}
+	if onEvent != nil {
+		args = append(args, dnode.Callback(queueEvents))
+	}
+
+	response, err := k.RemoteKite.Call("getKites", args)
 	if err != nil {
 		return nil, err
 	}
@@ -121,4 +150,15 @@ func (k *Kontrol) GetKites(query protocol.KontrolQuery) ([]*RemoteKite, error) {
 	}
 
 	return remoteKites, nil
+}
+
+func (k *Kontrol) GetToken(kite *protocol.Kite) (string, error) {
+	<-k.ready
+
+	result, err := k.RemoteKite.Call("getToken", kite)
+	if err != nil {
+		return "", err
+	}
+
+	return result.MustString(), nil
 }

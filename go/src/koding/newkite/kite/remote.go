@@ -3,6 +3,7 @@ package kite
 import (
 	"errors"
 	"fmt"
+	"github.com/op/go-logging"
 	"koding/newkite/dnode"
 	"koding/newkite/dnode/rpc"
 	"koding/newkite/protocol"
@@ -18,6 +19,9 @@ type RemoteKite struct {
 
 	// A reference to the current Kite running.
 	localKite *Kite
+
+	// A reference to the Kite's logger for easy access.
+	Log *logging.Logger
 
 	// Credentials that we sent in each request.
 	Authentication callAuthentication
@@ -36,10 +40,14 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth callAuthentication) *Remot
 	r := &RemoteKite{
 		Kite:           kite,
 		localKite:      k,
+		Log:            k.Log,
 		Authentication: auth,
 		client:         k.server.NewClientWithHandlers(),
 		disconnect:     make(chan bool),
 	}
+
+	// We need a reference to the local kite when a method call is received.
+	r.client.Properties()["localKite"] = k
 
 	var m sync.Mutex
 	r.OnDisconnect(func() {
@@ -59,20 +67,21 @@ func (k *Kite) NewRemoteKite(kite protocol.Kite, auth callAuthentication) *Remot
 func (k *Kite) newRemoteKiteWithClient(kite protocol.Kite, auth callAuthentication, client *rpc.Client) *RemoteKite {
 	r := k.NewRemoteKite(kite, auth)
 	r.client = client
+	r.client.Properties()["localKite"] = k
 	return r
 }
 
 // Dial connects to the remote Kite. Returns error if it can't.
 func (r *RemoteKite) Dial() (err error) {
 	addr := r.Kite.Addr()
-	log.Info("Dialing remote kite: [%s %s]", r.Kite.Name, addr)
+	r.Log.Info("Dialing remote kite: [%s %s]", r.Kite.Name, addr)
 	return r.client.Dial("ws://" + addr + "/dnode")
 }
 
 // Dial connects to the remote Kite. If it can't connect, it retries indefinitely.
 func (r *RemoteKite) DialForever() {
 	addr := r.Kite.Addr()
-	log.Info("Dialing remote kite: [%s %s]", r.Kite.Name, addr)
+	r.Log.Info("Dialing remote kite: [%s %s]", r.Kite.Name, addr)
 	r.client.DialForever("ws://" + addr + "/dnode")
 }
 
@@ -143,7 +152,7 @@ func (r *RemoteKite) Call(method string, args interface{}) (result *dnode.Partia
 func (r *RemoteKite) Go(method string, args interface{}) chan *response {
 	// We will return this channel to the caller.
 	// It can wait on this channel to get the response.
-	log.Debug("Calling method [%s] on kite [%s]", method, r.Name)
+	r.Log.Debug("Calling method [%s] on kite [%s]", method, r.Name)
 	responseChan := make(chan *response, 1)
 
 	r.send(method, args, responseChan)
@@ -169,7 +178,7 @@ func (r *RemoteKite) send(method string, args interface{}, responseChan chan *re
 		responseChan <- &response{
 			Result: nil,
 			Err: fmt.Errorf("Calling method [%s] on [%s] error: %s",
-				r.Kite.Name, method, err),
+				method, r.Kite.Name, err),
 		}
 		return
 	}
@@ -206,8 +215,8 @@ func sendCallbackID(callbacks map[string]dnode.Path, ch chan uint64) {
 // makeResponseCallback prepares and returns a callback function sent to the server.
 // The caller of the Call() is blocked until the server calls this callback function.
 // Sets theResponse and notifies the caller by sending to done channel.
-func (r *RemoteKite) makeResponseCallback(doneChan chan *response, removeCallback <-chan uint64) dnode.Callback {
-	return dnode.Callback(func(arguments *dnode.Partial) {
+func (r *RemoteKite) makeResponseCallback(doneChan chan *response, removeCallback <-chan uint64) Callback {
+	return Callback(func(request *Request) {
 		var (
 			// Arguments to our response callback It is a slice of length 2.
 			// The first argument is the error string,
@@ -230,14 +239,14 @@ func (r *RemoteKite) makeResponseCallback(doneChan chan *response, removeCallbac
 			r.client.RemoveCallback(id)
 		}
 
-		err = arguments.Unmarshal(&responseArgs)
+		err = request.Args.Unmarshal(&responseArgs)
 		if err != nil {
 			return
 		}
 
 		// We must always get an error and a result argument.
 		if len(responseArgs) != 2 {
-			err = fmt.Errorf("Invalid response args: %s", string(arguments.Raw))
+			err = fmt.Errorf("Invalid response args: %s", string(request.Args.Raw))
 			return
 		}
 

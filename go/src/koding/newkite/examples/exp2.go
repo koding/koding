@@ -14,9 +14,9 @@ var port = flag.String("port", "", "port to bind itself")
 func main() {
 	flag.Parse()
 
-	options := &protocol.Options{
+	options := &kite.Options{
 		Kitename:    "application",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        *port,
 		Region:      "localhost",
 		Environment: "development",
@@ -33,11 +33,17 @@ func main() {
 	time.Sleep(1 * time.Second)
 
 	query := protocol.KontrolQuery{
-		Username: "devrim",
-		Name:     "mathworker",
+		Username:    "devrim",
+		Environment: "development",
+		Name:        "mathworker",
 	}
 
-	kites, err := k.Kontrol.GetKites(query)
+	// To demonstrate we can receive notifications matcing to our query.
+	onEvent := func(e *protocol.KiteEvent) {
+		fmt.Printf("--- kite event: %#v\n", e)
+	}
+
+	kites, err := k.Kontrol.GetKites(query, onEvent)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -62,14 +68,8 @@ func main() {
 			return
 		}
 
-		var result int
-		err = response.Unmarshal(&result)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Printf("input: %d  rpc result: %d\n", i, result)
+		result := response.MustFloat64()
+		fmt.Printf("input: %d  rpc result: %f\n", i, result)
 	}
 
 	for {

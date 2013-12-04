@@ -39,7 +39,12 @@ func newControl(nc net.Conn, owner string) *control {
 
 func newControlDial(addr, identifier string) *control {
 	c := &control{}
-	c.Conn = conn.Dial(addr, true)
+	cn, err := conn.Dial(addr, true)
+	if err != nil {
+		log.Fatalln("newControlConn", err)
+	}
+
+	c.Conn = cn
 
 	request := func() {
 		err := c.connect(identifier)
@@ -61,7 +66,7 @@ func (c *control) connect(identifier string) error {
 	remoteAddr := fmt.Sprintf("http://%s%s", c.RemoteAddr(), ControlPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
-		return fmt.Errorf("CONNECT", err)
+		return fmt.Errorf("CONNECT %s", err)
 	}
 
 	req.Header.Set("identifier", identifier)
@@ -69,7 +74,7 @@ func (c *control) connect(identifier string) error {
 
 	resp, err := http.ReadResponse(bufio.NewReader(c), req)
 	if err != nil {
-		return fmt.Errorf("read response", err)
+		return fmt.Errorf("read response %s", err)
 	}
 	defer resp.Body.Close()
 

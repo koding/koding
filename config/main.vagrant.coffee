@@ -24,6 +24,7 @@ module.exports =
   projectRoot   : projectRoot
   version       : version
   webserver     :
+    useCacheHeader: no
     login       : 'prod-webserver'
     port        : 3020
     clusterSize : 1
@@ -217,6 +218,7 @@ module.exports =
   newkontrol      :
     host          : "127.0.0.1"
     port          : 4000
+  etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
     overview      :
