@@ -42,30 +42,42 @@ func NewServer() *Server {
 		virtualHosts: newVirtualHosts(),
 	}
 
-	http.HandleFunc(ControlPath, s.controlHandler)
-	http.HandleFunc(TunnelPath, s.tunnelHandler)
+	http.Handle(ControlPath, checkConnect(s.controlHandler))
+	http.Handle(TunnelPath, checkConnect(s.tunnelHandler))
 	return s
+}
+
+// checkConnect checks wether the incoming request is HTTP CONNECT method. If
+func checkConnect(fn func(w http.ResponseWriter, r *http.Request, conn net.Conn) error) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "CONNECT" {
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			io.WriteString(w, "405 must CONNECT\n")
+			return
+		}
+
+		conn, _, err := w.(http.Hijacker).Hijack()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("hijack not possible %s", err), 502)
+			return
+		}
+
+		io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
+		conn.SetDeadline(time.Time{})
+
+		err = fn(w, r, conn)
+		if err != nil {
+			conn.Close()
+			http.Error(w, err.Error(), 502)
+
+		}
+	})
 }
 
 // tunnelHandler is used to capture incoming tunnel connect requests into raw
 // tunnel TCP connections.
-func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "CONNECT" {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		io.WriteString(w, "405 must CONNECT\n")
-		return
-	}
-
-	conn, _, err := w.(http.Hijacker).Hijack()
-	if err != nil {
-		log.Println("register hijacking ", r.RemoteAddr, ": ", err.Error())
-		return
-	}
-
-	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
-	conn.SetDeadline(time.Time{})
-
+func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request, conn net.Conn) error {
 	protocol := r.Header.Get("protocol")
 	tunnelID := r.Header.Get("tunnelID")
 	identifier := r.Header.Get("identifier")
@@ -76,8 +88,7 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	tunnelRequester, ok := s.pending[tunnelID]
 	if !ok {
 		s.pendingMu.Unlock()
-		log.Println("tunnel not available for id", tunnelID)
-		return
+		return fmt.Errorf("tunnel not available for id %s", tunnelID)
 	}
 
 	delete(s.pending, tunnelID)
@@ -87,30 +98,14 @@ func (s *Server) tunnelHandler(w http.ResponseWriter, r *http.Request) {
 	// the request can either store the conn for re-usage (like http) or can
 	// use it only for one session (like websocket)
 	tunnelRequester <- newTunnel(conn)
-
+	return nil
 }
 
 // controlHandler is used to capture incoming control connect requests into
 // raw control TCP connection. After capturing the the connection, the control
 // connection starts to read and write to the control connection until the
 // connection is closed. Currently only one control connection per user is allowed.
-func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "CONNECT" {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		io.WriteString(w, "405 must CONNECT\n")
-		return
-	}
-
-	err := s.handleControl(w, r)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "client could not establish connection to tunnel server", 502)
-		return
-	}
-}
-
-func (s *Server) handleControl(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) controlHandler(w http.ResponseWriter, r *http.Request, conn net.Conn) error {
 	identifier := r.Header.Get("identifier")
 	if identifier == "" {
 		return fmt.Errorf("empty identifier is connected")
@@ -125,15 +120,6 @@ func (s *Server) handleControl(w http.ResponseWriter, r *http.Request) error {
 	if ok {
 		return fmt.Errorf("control conn for %s already exist\n", identifier)
 	}
-
-	conn, _, err := w.(http.Hijacker).Hijack()
-	if err != nil {
-		return fmt.Errorf("control hijacking %s: %s", r.RemoteAddr, err)
-	}
-
-	// ok, everthing is ready
-	io.WriteString(conn, "HTTP/1.1 "+Connected+"\n\n")
-	conn.SetDeadline(time.Time{})
 
 	// create a new control struct and add it
 	control := newControl(conn, identifier)
@@ -171,7 +157,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // makeRequest makes an HTTP request from the public connection to the client
-// on top of the tunnel connection. It's a recursive function, that if the
+// on top of the tunnel connection. It's a recursive function, that is, if the
 // request on a certain tunnel fails, it goes and applies the request to the
 // next one.
 func (s *Server) makeRequest(w http.ResponseWriter, r *http.Request, iteration int) error {
@@ -311,7 +297,6 @@ func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 	}
 
 	s.pendingMu.Lock()
-
 	pendingTunnel := make(chan *tunnel)
 	s.pending[tunnelID] = pendingTunnel
 
@@ -319,7 +304,6 @@ func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 	// deadlock when a the tunnelHandler is invoked before we create this
 	// channel.
 	control.send(msg)
-
 	s.pendingMu.Unlock()
 
 	// now wait until our tunnel is established. if the tunnel has the
@@ -330,7 +314,7 @@ func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
 		return tunnel, nil
 	case <-time.After(time.Second * 10):
 		delete(s.pending, tunnelID)
-		return nil, errors.New("timeout")
+		return nil, errors.New("timeout getting tunnel")
 	}
 }
 
