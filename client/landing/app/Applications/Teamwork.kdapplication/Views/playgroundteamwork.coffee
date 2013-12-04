@@ -2,6 +2,8 @@ class PlaygroundTeamwork extends TeamworkWorkspace
 
   constructor: (options = {}, data) ->
 
+    options.cssClass = KD.utils.curry "playground", options.cssClass
+
     super options, data
 
     @on "PanelCreated", =>
