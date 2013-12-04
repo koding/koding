@@ -44,17 +44,11 @@ class ActivityInputWidget extends KDView
         dash tagCreateJobs, ->
           queue.next()
     , =>
-        body  = @input.getValue()
-        body  = body.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
-          tag = createdTags[title]
-          return  "" unless tag
-          return  "|#{prefix}:JTag:#{tag.getId()}|"
-
-        data     =
-          group  : KD.getSingleton('groupsController').getGroupSlug()
-          body   : body
-          meta   :
-            tags : tags
+        body = @encodeTagSuggestions @input.getValue(), createdTags
+        data =
+          group : KD.getSingleton('groupsController').getGroupSlug()
+          body  : body
+          meta  : {tags}
 
         data.link_url   = @embedBox.url or ""
         data.link_embed = @embedBox.getDataForSubmit() or {}
@@ -63,6 +57,12 @@ class ActivityInputWidget extends KDView
         then @update data
         else @create data
     ]
+
+  encodeTagSuggestions: (str, tags) ->
+    return  str.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
+      tag = tags[title]
+      return  "" unless tag
+      return  "|#{prefix}:JTag:#{tag.getId()}|"
 
   create: (data) ->
     JStatusUpdate.create data, (err, activity) =>
