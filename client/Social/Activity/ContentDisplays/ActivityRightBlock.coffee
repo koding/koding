@@ -20,7 +20,7 @@ class ActivityRightBase extends JView
     <div class="right-block-box">
       <h3>#{@getOption 'title'}</h3>
       {{> @tickerListView}}
-      {{> @tickerListView}}
+      {{> @showAllLink}}
     </div>
     """
 
@@ -40,15 +40,6 @@ class ActiveUsers extends ActivityRightBase
 
     KD.remote.api.ActiveItems.fetchUsers {}, @bound 'renderItems'
 
-  pistachio:->
-    """
-    <div class="right-block-box">
-      <h3>#{@getOption 'title'}</h3>
-      {{> @tickerListView}}
-      {{> @showAllLink}}
-    </div>
-    """
-
 class ActiveTopics extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveTopicItemView
@@ -64,12 +55,3 @@ class ActiveTopics extends ActivityRightBase
     super options, data
 
     KD.remote.api.ActiveItems.fetchTopics {}, @bound 'renderItems'
-
-  pistachio:->
-    """
-    <div class="right-block-box">
-      <h3>#{@getOption 'title'}</h3>
-      {{> @tickerListView}}
-      {{> @showAllLink}}
-    </div>
-    """
