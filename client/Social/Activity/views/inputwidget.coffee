@@ -15,22 +15,28 @@ class ActivityInputWidget extends KDView
       callback : @bound "submit"
 
   submit: (callback) ->
-    tags          = []
-    suggestedTags = []
-    createdTags   = {}
+    activity       = @getData()
+    activity?.tags = []
+    tags           = []
+    suggestedTags  = []
+    createdTags    = {}
 
     unless KD.checkFlag "exempt"
       for token in @input.getTokens()
         {data, type} = token
         if type is "tag"
-          if data instanceof JTag then tags.push id: data.getId()
-          else if data.$suggest?  then suggestedTags.push data.$suggest
+          if data instanceof JTag
+            tags.push id: data.getId()
+            activity?.tags.push data
+          else if data.$suggest
+            suggestedTags.push data.$suggest
 
     daisy queue = [
-      =>
+      ->
         tagCreateJobs = suggestedTags.map (title) ->
           ->
             JTag.create {title}, (err, tag) ->
+              activity?.tags.push tag
               tags.push id: tag.getId()
               createdTags[title] = tag
               tagCreateJobs.fin()
@@ -53,22 +59,41 @@ class ActivityInputWidget extends KDView
         data.link_url   = @embedBox.url or ""
         data.link_embed = @embedBox.getDataForSubmit() or {}
 
-        JStatusUpdate.create data, (err, activity) =>
-          unless err
-            @input.setContent ""
-            @submit.setTitle "Submit"
-            @editing = off
-
-          callback? err, activity
-          KD.getSingleton("appManager").tell "Activity", "ownActivityArrived", activity  unless @editing
-
-          KD.showError err,
-            AccessDenied :
-              title      : 'You are not allowed to #{action} activities'
-              content    : 'This activity will only be visible to you'
-              duration   : 5000
-            KodingError  : 'Something went wrong while creating activity'
+        if activity
+        then @update data
+        else @create data
     ]
+
+  create: (data) ->
+    JStatusUpdate.create data, (err, activity) =>
+      @reset()  unless err
+
+      callback? err, activity
+      KD.getSingleton("appManager").tell "Activity", "ownActivityArrived", activity
+
+      KD.showError err,
+        AccessDenied :
+          title      : 'You are not allowed to #{action} activities'
+          content    : 'This activity will only be visible to you'
+          duration   : 5000
+        KodingError  : 'Something went wrong while creating activity'
+
+  update: (data) ->
+    activity = @getData()
+    return  @reset() unless activity
+    activity.modify data, (err) =>
+      @reset()  unless err
+      return  if err
+
+  edit: (activity) ->
+    @setData activity
+    @input.setContent activity.body, activity
+    @submit.setTitle "Update"
+
+  reset: ->
+    @input.setContent ""
+    @submit.setTitle "Submit"
+    @setData null
 
   viewAppended: ->
     @addSubView @input

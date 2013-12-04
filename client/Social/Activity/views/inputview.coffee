@@ -31,15 +31,18 @@ class ActivityInputView extends KDTokenizedInput
     super item, tokenViewClass
 
   setContent: (content, activity) ->
-    tags = {}
-    activity?.tags?.forEach (tag) -> tags[tag.getId()] = tag
-    content = content.replace /\|(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
+    tokens = {tags: {}}
+    activity?.tags?.forEach (tag) -> tokens.tags[tag.getId()] = tag
+    super @renderTokens content, tokens
+
+  renderTokens: (content, tokens = {}) ->
+    return  content.replace /\|(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
       switch prefix
         when "#"
           itemClass = TagLinkView
           type      = "tag"
           pistachio = "#{prefix}{{#(title)}}"
-          data      = tags[id]
+          data      = tokens.tags[id]
 
       tokenView = new TokenView {itemClass, prefix, type, pistachio}, data
       tokenKey  = "#{tokenView.getId()}-#{tokenView.getKey()}"
@@ -48,5 +51,3 @@ class ActivityInputView extends KDTokenizedInput
       tokenView.setAttributes "data-key": tokenKey
       tokenView.emit "viewAppended"
       return tokenView.getElement().outerHTML
-
-    super content

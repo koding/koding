@@ -397,3 +397,6 @@ class ActivityAppController extends AppController
   feederBridge : (options, callback)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback
+
+  editActivity: (activity) ->
+    @getView().inputWidget.edit activity
