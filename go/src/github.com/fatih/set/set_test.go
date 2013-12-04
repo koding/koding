@@ -1,9 +1,8 @@
-package goset
+package set
 
 import (
 	"reflect"
 	"strconv"
-
 	"testing"
 )
 
@@ -11,7 +10,7 @@ func TestSet_New(t *testing.T) {
 	s := New()
 
 	if s.Size() != 0 {
-		t.Error("New: calling withtout any parameters should create a set with zero size")
+		t.Error("New: calling without any parameters should create a set with zero size")
 	}
 
 }
@@ -92,6 +91,31 @@ func TestSet_Remove_multiple(t *testing.T) {
 	if !s.Has("istanbul") {
 		t.Error("Add: added items are not availabile in the set.")
 	}
+}
+
+func TestSet_Pop(t *testing.T) {
+	s := New()
+	s.Add(1)
+	s.Add(2)
+	s.Add("fatih")
+
+	a := s.Pop()
+	if s.Size() != 2 {
+		t.Error("Pop: set size should be two after popping out")
+	}
+
+	if s.Has(a) {
+		t.Error("Pop: returned item should not exist")
+	}
+
+	s.Pop()
+	s.Pop()
+	b := s.Pop()
+	if b != nil {
+		t.Error("Pop: should return nil because set is empty")
+	}
+
+	s.Pop() // try to remove something from a zero length set
 }
 
 func TestSet_Has(t *testing.T) {
@@ -329,9 +353,11 @@ func TestSet_IntSlice(t *testing.T) {
 		}
 	}
 }
+
 func TestSet_RaceAdd(t *testing.T) {
-	// Create two sets. Add concurrently items to each of them. Remove from one
-	// go test -race should detect this if the library is not thread-safe.
+	// Create two sets. Add concurrently items to each of them. Remove from the
+	// other one.
+	// "go test -race" should detect this if the library is not thread-safe.
 	s := New()
 	u := New()
 
@@ -351,5 +377,57 @@ func TestSet_RaceAdd(t *testing.T) {
 			s.Add(item)
 			u.Add(item)
 		}(i)
+	}
+}
+
+func Test_Union(t *testing.T) {
+	s := New("1", "2", "3")
+	r := New("3", "4", "5")
+	x := New("5", "6", "7")
+
+	u := Union(s, r, x)
+
+	if u.Size() != 7 {
+		t.Error("Union: the merged set doesn't have all items in it.")
+	}
+
+	if !u.Has("1", "2", "3", "4", "5", "6", "7") {
+		t.Error("Union: merged items are not availabile in the set.")
+	}
+
+	y := Union()
+	if y.Size() != 0 {
+		t.Error("Union: should have zero items because nothing is passed")
+	}
+
+	z := Union(x)
+	if z.Size() != 3 {
+		t.Error("Union: the merged set doesn't have all items in it.")
+	}
+
+}
+
+func Test_Difference(t *testing.T) {
+	s := New("1", "2", "3")
+	r := New("3", "4", "5")
+	x := New("5", "6", "7")
+	u := Difference(s, r, x)
+
+	if u.Size() != 2 {
+		t.Error("Difference: the set doesn't have all items in it.")
+	}
+
+	if !u.Has("1", "2") {
+		t.Error("Difference: items are not availabile in the set.")
+	}
+
+	y := Difference()
+	if y.Size() != 0 {
+		t.Error("Difference: size should be zero")
+	}
+
+	z := Difference(s)
+	if z.Size() != 3 {
+		t.Error("Difference: size should be four")
 	}
 }
