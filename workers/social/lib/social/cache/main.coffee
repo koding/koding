@@ -2,7 +2,7 @@ cache           = {}
 cachingTimeInMS = 30000
 
 repeatFetchingItems = (cacheKey, fetcherFn, fetcherFnOptions)->
-  inProgress = cache[cacheKey]?.inProgress || no
+  inProgress = cache[cacheKey]?.inProgress or no
 
   return  if inProgress
 
@@ -29,7 +29,7 @@ module.exports = class Cache
       {data, ttl} = cache[cacheKey]
       callback null, data
 
-      if (Date.now() - (ttl || 0)  > cachingTimeInMS)
+      if (Date.now() - (ttl or 0)  > cachingTimeInMS)
         repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
     else
       repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
