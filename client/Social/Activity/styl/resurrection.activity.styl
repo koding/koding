@@ -87,22 +87,12 @@ resurrection.activity.styl
 
   .activity-right-block
     .activity-ticker
-      h3
-        display         block
-        padding         0 0 0 3px
-        font-size       16px
-        font-weight     500
-        color           #485259
-        margin          0 0 13px 0
-
-        .cog-icon
-          display       block
-          sprite        activity, cog-icon
-          fr()
-
+    .online-users
+    .active-users
+    .active-topics
       .listview-wrapper
         .kdscrollview
-          height        450px
+          height        250px
           overflow      auto
 
       .kdlistitemview-activity-ticker-item
@@ -138,6 +128,43 @@ resurrection.activity.styl
         &.online
           i
             background    #2eb398
+
+    .online-users
+    .active-users
+      .kdlistitemview-activity-ticker-item
+        .profile
+          font-weight   400
+          color         #485259
+          noTextDeco()
+          line-height   42px
+          color         #485259
+          font-size     16px
+          text-transform capitalize
+          fl()
+
+    .active-topics
+      .ttag
+        size            170px, 42px
+        font-weight     400
+        color           #485259
+        noTextDeco()
+        line-height     42px
+        color           #485259
+        font-size       16px
+        text-transform  capitalize
+        overflow        hidden
+        white-space     nowrap
+        text-overflow ellipsis
+        fl()
+
+      .follow-btn
+        height        30px
+        margin        6px 0 0
+        fr()
+
+        span
+          font-size   14px
+          line-height 30px
 
 
 span.collapsedtext
@@ -413,12 +440,20 @@ span.collapsedtext
     size                auto, auto
     background          #fff
     border-radius       6px
-    margin              0 0 0 0
+    margin              0 0 29px 0
     padding             20px 23px 10px 18px
     borderBox()
 
     &~.right-block-box
       margin-top        29px
+
+    h3
+      display         block
+      padding         0 0 0 3px
+      font-size       16px
+      font-weight     500
+      color           #485259
+      margin          0 0 13px 0
 
   &.activity-right-block
     size                302px, auto
