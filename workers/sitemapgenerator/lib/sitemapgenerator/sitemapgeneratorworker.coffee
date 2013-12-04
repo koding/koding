@@ -10,6 +10,9 @@ GROUPPERPAGE = 5
 module.exports = class SitemapGeneratorWorker extends EventEmitter
   constructor: (@bongo, @options = {}) ->
 
+  startsWith: (str, token) ->
+    return str.substring(0, token.length) is token
+
   generateSitemapString: (urls)->
     # sitemap.xml beginning and ending parts
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>
@@ -20,7 +23,8 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
     # while generating main sitemap, we don't need hashbang in the url.
     for url in urls
-      sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
+      if not @startsWith url, "guest"
+        sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
     sitemap += sitemapFooter
     return sitemap
 
