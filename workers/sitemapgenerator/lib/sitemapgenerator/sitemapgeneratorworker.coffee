@@ -77,7 +77,10 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
             publicGroups.push group.slug
 
           selector = {
-            'slugs.group': { $in: publicGroups }
+            $or: [
+              { 'slugs.group': { $in: publicGroups } },
+              { 'slugs.usedAsPath':'username' }
+            ]
           }
 
           # Empty the group, it'll be filled in next iteration.
