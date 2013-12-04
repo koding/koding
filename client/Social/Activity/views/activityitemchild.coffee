@@ -36,12 +36,6 @@ class ActivityItemChild extends KDView
 
     @author = new ProfileLinkView { origin }
 
-    @tags = new ActivityChildViewTagGroup
-      itemsToShow   : 3
-      itemClass  : TagLinkView
-    , data.tags
-
-
     # for discussion, switch to the View that supports nested structures
     # JDiscussion,JTutorial
     # -> JOpinion
@@ -75,11 +69,6 @@ class ActivityItemChild extends KDView
     super options, data
 
     data = @getData()
-    data.on 'TagsChanged', (tagRefs)=>
-      KD.remote.cacheable tagRefs, (err, tags)=>
-        @getData().setAt 'tags', tags
-        @tags.setData tags
-        @tags.render()
 
     deleteActivity = (activityItem)->
       activityItem.slideOut -> activityItem.destroy()
