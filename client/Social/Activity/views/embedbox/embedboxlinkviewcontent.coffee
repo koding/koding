@@ -12,7 +12,6 @@ class EmbedBoxLinkViewContent extends JView
 
     @embedTitle = new EmbedBoxLinkViewTitle contentOptions, data
 
-    @embedAuthor   = new EmbedBoxLinkViewAuthor cssClass: 'author-info', data
     @embedProvider = new EmbedBoxLinkViewProvider cssClass: 'provider-info', data
 
     @embedDescription = new EmbedBoxLinkViewDescription contentOptions, data
@@ -20,7 +19,6 @@ class EmbedBoxLinkViewContent extends JView
   pistachio:->
     """
     {{> @embedTitle}}
-    {{> @embedAuthor}}
     {{> @embedDescription}}
     {{> @embedProvider}}
     """

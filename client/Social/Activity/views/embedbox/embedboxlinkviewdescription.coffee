@@ -3,6 +3,7 @@ class EmbedBoxLinkViewDescription extends KDView
   { getDescendantsByClassName, setText } = KD.dom
 
   constructor:(options={},data={})->
+    options.cssClass = KD.utils.curry "description", options.cssClass
     super options, data
 
     oembed = data.link_embed
@@ -22,14 +23,6 @@ class EmbedBoxLinkViewDescription extends KDView
         descriptionEl = @getDescriptionEl()
         setText descriptionEl, Encoder.XSSEncode @getValue()
         @utils.elementShow descriptionEl
-
-    @editIndicator = new KDCustomHTMLView
-      tagName   : 'div'
-      cssClass  : 'edit-indicator discussion-edit-indicator'
-      pistachio : 'edited'
-      tooltip   :
-        title   : "Original Content was: <p>#{Encoder.XSSEncode @original_description}</p>"
-    @editIndicator.hide()
 
   getDescriptionEl:->
     (getDescendantsByClassName @getElement(), 'description')[0]
@@ -63,7 +56,6 @@ class EmbedBoxLinkViewDescription extends KDView
   pistachio:->
     """
     {{> @descriptionInput}}
-    <div class="description #{if @getDescription() then '' else 'hidden'}">#{@getDescription() or ""}
-    {{> @editIndicator}}</div>
+    #{@getDescription() or ""}
     """
 

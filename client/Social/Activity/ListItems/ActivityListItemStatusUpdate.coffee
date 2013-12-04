@@ -8,11 +8,6 @@ class StatusActivityItemView extends ActivityItemChild
         top            : 3
         left           : -5
 
-    if data.link?.link_embed?.type is "image"
-      @twoColumns      = yes
-
-      options.commentSettings = fixedHeight: 300
-
     super options, data
 
     embedOptions  =
@@ -80,11 +75,9 @@ class StatusActivityItemView extends ActivityItemChild
   pistachio:->
     """
       {{> @avatar}}
-      <div class="activity-item-right-col">
-        {{> @settingsButton}}
-        <span class="author-name">{{> @author}}</span>
-        <p class="status-body">{{@formatContent #(body)}}</p>
-      </div>
+      {{> @settingsButton}}
+      {{> @author}}
+      <p class="status-body">{{@formatContent #(body)}}</p>
       {{> @embedBox}}
       <footer>
         {{> @actionLinks}}
