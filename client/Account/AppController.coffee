@@ -30,7 +30,6 @@ class AccountAppController extends AppController
       title : "Develop"
       items : [
         { slug : 'SSH',  title : "SSH keys",    listHeader: "Your SSH Keys",    listType: "keys" }
-        { slug : 'Keys', title : "Koding Keys", listHeader: "Your Koding Keys", listType: "kodingKeys" }
       ]
     danger  :
       title : "Danger"
