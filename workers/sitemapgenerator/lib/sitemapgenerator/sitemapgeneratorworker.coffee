@@ -66,7 +66,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
       numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
 
       queue = [1..numberOfNamePages].map (pageNumber)=>=>
-        queue.sitemapNames = []
+        queue.sitemapNames or= []
         skip = (pageNumber - 1) * NAMEPERPAGE
         option = {
           limit : NAMEPERPAGE,
@@ -79,7 +79,6 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
             content = @generateSitemapString urls
             @saveSitemap sitemapName, content
 
-            queue.sitemapNames or= []
             queue.sitemapNames.push sitemapName
           queue.next()
       queue.push => generateSitemapIndex(queue.sitemapNames)
