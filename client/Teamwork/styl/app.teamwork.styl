@@ -30,7 +30,7 @@ app.teamwork.styl
         background              url(/images/teamwork/icon.128.png) 3px 0 no-repeat
     .tw-db-icon
       size                      23px, 21px
-      sprite()
+      kdfsprite()
       bg                        position, 0 0
       fr()
       top                       10px
@@ -151,351 +151,350 @@ app.teamwork.styl
     top                         0
 
 .tw-previewer-button
-  position              absolute
-  top                   12px
-  rounded               2px !important
-  right                 30px
-  padding               2px 4px !important
-  height                15px
-  line-height           9px
-  font-size             9px !important
-  text-transform        uppercase
-  color                 #666 !important
-  text-shadow           0 1px 0 #FFF !important
+  position                      absolute
+  top                           12px
+  rounded                       2px !important
+  right                         30px
+  padding                       2px 4px !important
+  height                        15px
+  line-height                   9px
+  font-size                     9px !important
+  text-transform                uppercase
+  color                         #666 !important
+  text-shadow                   0 1px 0 #FFF !important
 .tw-live-update
-  position              absolute
-  top                   11px
-  right                 120px
+  position                      absolute
+  top                           11px
+  right                         120px
   span
-    font-size           11px
+    font-size                   11px
 
 .broadcasting
   .tw-user-avatars
-    margin-top          -19px
+    margin-top                  -19px
 
 .tw-user-avatars
-  float                 right
-  overflow              hidden
+  float                         right
+  overflow                      hidden
   .avatarview
-    float               left
-    margin              5px 5px 5px 0
-    vendor              transition, opacity .6s ease-in-out
+    float                       left
+    margin                      5px 5px 5px 0
+    vendor                      transition, opacity .6s ease-in-out
     &.fade-out
-      opacity           0
+      opacity                   0
 
 .teamwork
   .workspace-launcher
-    top                 0
-    size                100px, 40px
-    cursor              default
+    top                         0
+    size                        100px, 40px
+    cursor                      default
     .launcher-item
-      bg                color, transparent !important
-      bg                position, -1px -63px
-      rounded           0
-      size              20px, 20px
-      margin            12px 12px 0 0
+      bg                        color, transparent !important
+      bg                        position, -1px -63px
+      rounded                   0
+      size                      20px, 20px
+      margin                    12px 12px 0 0
       fr()
       pointer()
       &.chat
-        bg              position, -3px -67px
+        bg                      position, -3px -67px
       &.terminal
-        bg              position, 0 -116px
+        bg                      position, 0 -116px
       &.preview
-        bg              position, 0px -13px
+        bg                      position, 0px -13px
   .finder-pane
     .inner-header
-      border-top        3px solid #252e30
-      height            43px
+      border-top                3px solid #252e30
+      height                    43px
 
 .tw-terminal-splash
-  background            #FFF
+  background                    #FFF
   p
-    font-size           22px
-    text-align          center
-    height              30px
-    position            relative
-    top                 50%
-    margin-top          -15px
+    font-size                   22px
+    text-align                  center
+    height                      30px
+    position                    relative
+    top                         50%
+    margin-top                  -15px
 
 .tw-sh-preview
-  max-height            210px
-  overflow              auto
+  max-height                    210px
+  overflow                      auto
 
 .teamwork.inner-header
-  text-shadow           0px 1px 0px #fff
+  text-shadow                   0px 1px 0px #fff
 
 .tw-dashboard
-  vendor                transition, height .266s ease
-  overflow              auto
-  height                0
+  vendor                        transition, height .266s ease
+  overflow                      auto
+  height                        0
   .tw-items-container
-    overflow            hidden
-    width               800px
-    margin              85px auto
+    overflow                    hidden
+    width                       800px
+    margin                      85px auto
   &.ready
     .loading
-      display           none
+      display                   none
   h2.title
-    font-size           58px
-    font-weight         300
-    margin              55px 0
-    text-align          center
+    font-size                   58px
+    font-weight                 300
+    margin                      55px 0
+    text-align                  center
   .welcome
-    width               800px
-    overflow            hidden
-    margin              0 auto
+    width                       800px
+    overflow                    hidden
+    margin                      0 auto
   .video
-    margin-right        25px
+    margin-right                25px
     fl()
   .what-is-tw
-    width               275px
-    text-align          left
+    width                       275px
+    text-align                  left
     fl()
     h2
-      font-size         26px
-      font-weight       600
+      font-size                 26px
+      font-weight               600
     p
-      margin            10px 0
+      margin                    10px 0
     ul
-      margin-left       30px
-      list-style-position inside
-      list-style        initial
+      margin-left               30px
+      list-style-position       inside
+      list-style                initial
     li
-      margin-bottom     2px
+      margin-bottom             2px
   &.active
-    height              100%
+    height                      100%
   .actions
-    overflow            hidden
-    bg                  color, #E8F0F3
+    overflow                    hidden
+    bg                          color, #E8F0F3
     .item
-      width             185px
-      text-align        center
-      padding           0 30px
+      width                     185px
+      text-align                center
+      padding                   0 30px
       fl()
       .badge
-        bg              image, url("../images/teamwork/sprite.png")
+        bg                      image, url("../images/teamwork/sprite.png")
       h3
-        margin          15px 0
-        font-size       26px
-        font-weight     normal
+        margin                  15px 0
+        font-size               26px
+        font-weight             normal
       p
-        width           180px
-        margin          0 auto 10px
+        width                   180px
+        margin                  0 auto 10px
       .badge
-        size            120px, 120px
-        bg              color, #F49F42
-        rounded         120px
-        margin          0 auto
+        size                    120px, 120px
+        bg                      color, #F49F42
+        rounded                 120px
+        margin                  0 auto
       &.team-up
-        margin-left     33px
+        margin-left             33px
       &.join-in
         .badge
-          bg            color, #2880B9
-          bg            position, -120px 0
+          bg                    color, #2880B9
+          bg                    position, -120px 0
       &.import
         .badge
-          bg            color, #ED6339
-          bg            position, -240px 0
+          bg                    color, #ED6339
+          bg                    position, -240px 0
 .tw-teamup-button
-  border                none
-  bg                    color, #2880B9
-  size                  185px, 35px
-  color                 #FFF
-  font-size             16px
-  shadow                0px 0px 2px rgba(0, 0, 0, .2) inset
-  font-weight           600
+  border                        none
+  bg                            color, #2880B9
+  size                          185px, 35px
+  color                         #FFF
+  font-size                     16px
+  shadow                        0px 0px 2px rgba(0, 0, 0, .2) inset
+  font-weight                   600
 .tw-dashboard-input
-  border                none !important
-  rounded               0 !important
-  size                  145px, 35px !important
-  bg                    image, none !important
+  border                        none !important
+  rounded                       0 !important
+  size                          145px, 35px !important
+  bg                            image, none !important
 .tw-dashboard-button
-  border                none
-  background            #2880B9
+  border                        none
+  background                    #2880B9
   abs()
-  top                   0
-  right                 0
-  size                  35px !important, 35px
+  top                           0
+  right                         0
+  size                          35px !important, 35px
   .icon
-    bg                  image, url("../images/teamwork/sprite.png") !important
-    left                1px
+    bg                          image, url("../images/teamwork/sprite.png") !important
+    left                        1px
     &.join-in
-      bg                position, -80px -128px !important
+      bg                        position, -80px -128px !important
     &.import
-      bg                position, -44px -128px !important
+      bg                        position, -44px -128px !important
 .tw-input-container
-  position              relative
+  position                      relative
 .tw-playground-item
-  size                  189px, auto
-  text-align            left
-  margin                0 15px 15px 0
+  size                          189px, auto
+  text-align                    left
+  margin                        0 15px 15px 0
   fl()
   &:nth-child(4n)
-    margin-right        -1px
+    margin-right                -1px
   img
-    vertical-align      top
-    size                189px, 120px
+    vertical-align              top
+    size                        189px, 120px
   .content
-    bg                  color, #FFF
-    padding             10px
-    height              100px
+    bg                          color, #FFF
+    padding                     10px
+    height                      100px
   h4
-    font-size           16px
-    font-weight         600
-    margin-bottom       10px
+    font-size                   16px
+    font-weight                 600
+    margin-bottom               10px
   p
-    font-size           11px
+    font-size                   11px
   .tw-play-button
-    size                189px, 35px
-    line-height         35px
-    text-align          center
-    font-weight         600
-    font-size           16px
-    color               #FFF
-    bg                  color, #F27935
-    border              none
+    size                        189px, 35px
+    line-height                 35px
+    text-align                  center
+    font-weight                 600
+    font-size                   16px
+    color                       #FFF
+    bg                          color, #F27935
+    border                      none
     .icon
-      bg                image, url("../images/teamwork/sprite.png") !important
-      bg                position, -110px -128px !important
-      top               6px
-      left              57px
+      bg                        image, url("../images/teamwork/sprite.png") !important
+      bg                        position, -110px -128px !important
+      top                       6px
+      left                      57px
     .button-title
-      left              -7px
-      top               -1px
-      position          relative
+      left                      -7px
+      top                       -1px
+      position                  relative
 .tw-playgrounds
-  overflow              hidden
-  margin                0 auto
-  width                 800px
-  padding               85px 0 70px
+  overflow                      hidden
+  margin                        0 auto
+  width                         800px
+  padding                       85px 0 70px
 .tw-session-button
-  width                 418px
-  height                70px
-  border                none
-  background            #297FB8
-  font-size             26px
-  color                 #FFF
-  left                  50%
-  margin-left           -209px
-  top                   35px
+  width                         418px
+  height                        70px
+  border                        none
+  background                    #297FB8
+  font-size                     26px
+  color                         #FFF
+  left                          50%
+  margin-left                   -209px
+  top                           35px
 .tw-playgrounds-container
-  bg                    color, #CFDEE5
-  position              relative
+  bg                            color, #CFDEE5
+  position                      relative
   .loading
-    font-size           22px
-    font-weight         bold
-    text-align          center
-    height              30px
-    top                 50%
-    margin-top          -15px
-    position            absolute
-    width               100%
+    font-size                   22px
+    font-weight                 bold
+    text-align                  center
+    height                      30px
+    top                         50%
+    margin-top                  -15px
+    position                    absolute
+    width                       100%
 
 .tw-share-modal
   &.active
     .content
-      border-bottom     1px solid #C5C5C5
+      border-bottom             1px solid #C5C5C5
       &.export
-        padding-bottom  10px
+        padding-bottom          10px
   &.team-up-mode
     .export, .share
-      display           none
+      display                   none
   .header
-    height              40px
-    border-bottom       1px solid #C5C5C5
-    padding             10px 0
+    height                      40px
+    border-bottom               1px solid #C5C5C5
+    padding                     10px 0
     pointer()
     &:hover
-      bg                color, #ECF0F1
+      bg                        color, #ECF0F1
     &.active
-      bg                color, #ECF0F1
-      border-bottom     none
+      bg                        color, #ECF0F1
+      border-bottom             none
     .icon
-      size              50px, 40px
+      size                      50px, 40px
       fl()
     .text
-      font-size         17px
-      display           block
+      font-size                 17px
+      display                   block
     .desc
-      font-size         14px
-      margin-top        3px
+      font-size                 14px
+      margin-top                3px
   .option
-    margin              10px 50px
-    font-size           14px
-    font-weight         300
+    margin                      10px 50px
+    font-size                   14px
+    font-weight                 300
   .teamwork-modal-input
-    margin              0 10px 0 50px
-    font-size           18px
-    border-radius       0 !important
-    padding             20px !important
-    width               240px
-    display             inline-block !important
+    margin                      0 10px 0 50px
+    font-size                   18px
+    border-radius               0 !important
+    padding                     20px !important
+    width                       240px
+    display                     inline-block !important
     &.url
-      margin-left       0
-      width             250px
+      margin-left               0
+      width                     250px
   .user-list-container
     .group *, .inner-header, .invite-bar, .kdloader
-      display           none
+      display                   none
     .invite-view
-      display           block !important
-      visibility        visible
+      display                   block !important
+      visibility                visible
       .session-key, p, .cancel-button
-        display         none
+        display                 none
     .kdautocompletewrapper
-      margin-left       50px
+      margin-left               50px
       .kdinput
-        border-radius   0
-        padding         20px
-        font-size       18px
-        width           410px
+        border-radius           0
+        padding                 20px
+        font-size               18px
+        width                   410px
   .invite-button.cupid-green, .tw-export-button
-    border-radius       0
-    height              42px
-    margin-top          -42px
-    border              none
-    background          #2880B9
-    box-shadow          none
-    text-transform      uppercase
-    font-weight         600
-    font-size           16px
-    text-shadow         none
-    width               84px
-    margin-left         466px
+    border-radius               0
+    height                      42px
+    margin-top                  -42px
+    border                      none
+    background                  #2880B9
+    box-shadow                  none
+    text-transform              uppercase
+    font-weight                 600
+    font-size                   16px
+    text-shadow                 none
+    width                       84px
+    margin-left                 466px
   .tw-export-button
-    margin              0 0 0 320px
-    width               232px
-    color               #FFF
+    margin                      0 0 0 320px
+    width                       232px
+    color                       #FFF
   .nfinder
-    height              150px
-    width               500px
-    margin              5px 0 6px 50px
-    border              1px solid #CCC
+    height                      150px
+    width                       500px
+    margin                      5px 0 6px 50px
+    border                      1px solid #CCC
   .shorten
-    width               500px
+    width                       500px
 .teamwork .playground .tw-header-buttons
   .tw-ply-run
-    left                31px
+    left                        31px
   .users
-    left                -48px
+    left                        -48px
 
 .tw-buttons-container
-  top                   0
-  right                 100px
-  position              absolute
-  width                 130px
-  text-align            right
+  top                           0
+  right                         100px
+  position                      absolute
+  width                         130px
+  text-align                    right
   button
-    background          none
-    border              none
-    top                 7px
-    right               2px
+    background                  none
+    border                      none
+    top                         7px
+    right                       2px
     &:hover
-      background        none
-      border            none
+      background                none
+      border                    none
     &:focus
-      vendor            box-shadow, none
-      border            none
+      vendor                    box-shadow, none
+      border                    none
   .tw-cog
-    display             block
-    sprite              teamwork, cog-icon
-
+    display                     block
+    sprite                      teamwork, cog-icon

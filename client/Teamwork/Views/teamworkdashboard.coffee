@@ -131,7 +131,7 @@ class TeamworkDashboard extends JView
           <div class="item join-in">
             <div class="badge"></div>
             <h3>Join In</h3>
-            <p>Join your friend's Teamwork session. You can enter a Teamwork Session Key or a full Koding URL.</p>
+            <p>Join your friend's Teamwork session. You can enter a session key or a full Koding URL.</p>
             <div class="tw-input-container">
               {{> @joinInput}}
               {{> @joinButton}}
