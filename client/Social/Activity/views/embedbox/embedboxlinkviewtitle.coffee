@@ -11,12 +11,12 @@ class EmbedBoxLinkViewTitle extends KDView
     # @hide()  unless oembed?.title?.trim()
 
     @titleInput = new KDInputView
-      cssClass     : 'preview_title_input hidden'
-      name         : 'preview_title_input'
+      cssClass     : 'preview-title-input hidden'
+      name         : 'preview-title-input'
       defaultValue : oembed.title or ''
       blur         : =>
         @titleInput.hide()
-        @$('div.preview_title').html(@getValue()).show()
+        @$('div.preview-title').html(@getValue()).show()
 
     @editIndicator = new KDCustomHTMLView
       tagName   : 'div'
@@ -44,7 +44,7 @@ class EmbedBoxLinkViewTitle extends KDView
 
     event.preventDefault()
     event.stopPropagation()
-    
+
     @titleInput.show()
     @titleInput.setFocus()
     no
@@ -55,7 +55,7 @@ class EmbedBoxLinkViewTitle extends KDView
             @getData().link_url
     """
     {{> @titleInput}}
-    <div class="preview_title">
+    <div class="preview-title">
       #{title}
       {{> @editIndicator}}
     </div>

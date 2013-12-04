@@ -132,7 +132,7 @@ class SelectableTutorialActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       <h3 class='hidden'></h3>
       <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
-      <div class="preview_image">
+      <div class="preview-image">
       {{> @previewImage}}
       </div>
       <footer class='clearfix'>

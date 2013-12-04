@@ -78,20 +78,6 @@ class StatusActivityItemView extends ActivityItemChild
       else @embedBox.hide()
 
   pistachio:->
-    if @twoColumns
-      """
-      {{> @avatar}}
-      <div class='activity-item-right-col'>
-        {{> @settingsButton}}
-        <p class="status-body">{{@formatContent #(body)}}</p>
-        <footer class="clearfix">
-          {{> @actionLinks}}
-        </footer>
-        {{> @embedBox}}
-        {{> @commentBox}}
-      </div>
-      """
-    else
       """
         {{> @avatar}}
         <div class="activity-item-right-col">
@@ -99,6 +85,7 @@ class StatusActivityItemView extends ActivityItemChild
           <span class="author-name">{{> @author}}</span>
           <p class="status-body">{{@formatContent #(body)}}</p>
         </div>
+        {{> @embedBox}}
         <footer>
           {{> @actionLinks}}
           {{> @timeAgoView}}

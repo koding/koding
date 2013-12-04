@@ -13,7 +13,7 @@ class EmbedBoxLinkViewDescription extends KDView
 
     @descriptionInput = new KDInputView
       type         : 'textarea'
-      cssClass     : 'description_input hidden'
+      cssClass     : 'description-input hidden'
       name         : 'description_input'
       defaultValue : @originalDescription
       autogrow     : yes

@@ -426,6 +426,47 @@ span.collapsedtext
         &:focus
           line-height     24px
 
+  /* Embed Styles */
+  .embed-link-view
+    padding               20px 20px 0
+    margin                20px 0 0
+    border-top            2px solid #e4e4e4
+
+    .preview-image
+      size                144px, 100px
+      fl()
+
+      &+.preview-text
+        kalc              width, 100% \- 144px
+        padding           0 0 0 15px
+
+    .preview-text
+      font-size           14px
+      font-weight         300
+      color               #50595a
+      borderBox()
+      fl()
+
+      .preview-text-link
+        color             inherit
+        noTextDeco()
+
+        .preview-title
+          font-weight     400
+
+        .description-input
+          width           100%
+          margin          15px 0 0 0
+
+        .description
+          padding         15px 0
+
+      .provider-info
+        font-size       12px
+        color           #a9aeaf
+
+
+
 
 /* Activity and profile right block's box style */
 
@@ -704,3 +745,4 @@ span.collapsedtext
     vendor        transition-property, opacity
     vendor        transition-duration, 500ms
     opacity       0
+
