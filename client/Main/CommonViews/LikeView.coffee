@@ -6,6 +6,7 @@ class LikeView extends KDView
     options.cssClass           or= 'like-view'
     options.tooltipPosition    or= 'se'
     options.checkIfLikedBefore  ?= no
+    options.useTitle            ?= yes
 
     super options, data
 
@@ -35,7 +36,14 @@ class LikeView extends KDView
     # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore and KD.isLoggedIn()
       data.checkIfLikedBefore (err, likedBefore)=>
-        if likedBefore then @setClass "liked" else @unsetClass "liked"
+        {useTitle} = @getOptions()
+        if likedBefore
+          @setClass "liked"
+          @likeLink.updatePartial "Unlike" if useTitle
+        else
+          @unsetClass "liked"
+          @likeLink.updatePartial "Like" if useTitle
+
         @_currentState = likedBefore
 
   fetchLikeInfo:->
@@ -122,12 +130,17 @@ class LikeView extends KDView
 
         unless err
           @_currentState = not @_currentState
-
-          if @_currentState then @setClass "liked" else @unsetClass "liked"
+          {useTitle} = @getOptions()
+          if @_currentState
+            @setClass "liked"
+            @likeLink.updatePartial "Unlike" if useTitle
+            KD.mixpanel "Liked activity"
+          else
+            @unsetClass "liked"
+            @likeLink.updatePartial "Like" if useTitle
+            KD.mixpanel "Unliked activity"
 
           @_lastUpdatedCount = -1
-
-          KD.mixpanel "Liked activity"
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
@@ -140,4 +153,3 @@ class LikeViewClean extends LikeView
 
   pistachio:->
     """<span class='comment-actions'>{{> @likeLink}}{{> @likeCount}}</span>"""
-

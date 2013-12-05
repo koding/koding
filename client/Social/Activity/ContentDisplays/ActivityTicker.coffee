@@ -94,7 +94,7 @@ class ActivityTicker extends ActivityRightBase
   pistachio:
     """
     <div class="activity-ticker right-block-box">
-      <h3>Activity Feed</h3>
+      <h3>What's happening on Koding</h3>
       {{> @listView}}
     </div>
     """

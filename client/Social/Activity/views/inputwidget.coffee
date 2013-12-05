@@ -11,7 +11,7 @@ class ActivityInputWidget extends KDView
     @submit    = new KDButtonView
       type     : "submit"
       cssClass : "solid green"
-      title    : "Submit"
+      title    : "Post"
       callback : @bound "submit"
 
   submit: (callback) ->
@@ -54,9 +54,7 @@ class ActivityInputWidget extends KDView
         data.link_embed = @embedBox.getDataForSubmit() or {}
 
         fn = @bound if activity then "update" else "create"
-        fn data, (err, activity) =>
-          callback? err, activity
-          @embedBox.resetEmbedAndHide()
+        fn data, callback
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -84,16 +82,19 @@ class ActivityInputWidget extends KDView
     return  @reset() unless activity
     activity.modify data, (err) =>
       @reset()  unless err
-      return  if err
+      callback? err
 
   edit: (activity) ->
     @setData activity
     @input.setContent activity.body, activity
+    if activity.link
+      @embedBox.loadEmbed activity.link.link_url
     @submit.setTitle "Update"
 
   reset: ->
     @input.setContent ""
-    @submit.setTitle "Submit"
+    @submit.setTitle "Post"
+    @embedBox.resetEmbedAndHide()
     @setData null
 
   viewAppended: ->
