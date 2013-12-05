@@ -87,6 +87,7 @@ class ActivityInputWidget extends KDView
   edit: (activity) ->
     @setData activity
     @input.setContent activity.body, activity
+    @embedBox.loadEmbed activity.link.link_url
     @submit.setTitle "Update"
 
   reset: ->
