@@ -17,16 +17,10 @@ class AppsListItemView extends KDListItemView
       bind        : "error"
       attributes  :
         src       : thumb
+
     @thumbnail.off 'error'
     @thumbnail.on  'error', ->
       @setAttribute "src", "/images/default.app.listthumb.png"
-
-  click:(event)->
-    event.stopPropagation()
-    event.preventDefault()
-    list = @getDelegate()
-    app  = @getData()
-    list.emit "AppWantsToExpand", app
 
   viewAppended:->
 
@@ -41,7 +35,7 @@ class AppsListItemView extends KDListItemView
       {{> @thumbnail}}
     </figure>
     <div class="appmeta clearfix">
-      <h3>{a[href="#"]{#(title)}}</h3>
+      <h3>{a[href="#"]{#(name)}}</h3>
       <div class="appstats">
         <p class="installs">
           <span class="icon"></span>
@@ -55,7 +49,7 @@ class AppsListItemView extends KDListItemView
     </div>
     <div class="appdetails">
       <h3>{a[href="#"]{#(title)}}</h3>
-      <article>{{@utils.shortenText #(body)}}</article>
-      <a href="#">Application Page →</a>
+      <article>{{@utils.shortenText #(manifest.description)}}</article>
+      <a href="/#{@getData().slug}">Application Page →</a>
     </div>
     """
