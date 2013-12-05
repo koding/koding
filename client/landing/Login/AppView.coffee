@@ -277,7 +277,7 @@ class LoginView extends KDView
           duration  : 4500
 
   resendEmailConfirmationToken:(formData)->
-    KD.remote.api.JEmailConfirmation.resetToken formData['username-or-email'], (err)=>
+    KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
       @resendForm.button.hideLoader()
       if err
         new KDNotificationView
@@ -420,14 +420,6 @@ class LoginView extends KDView
 
       $('#group-landing').css 'height', '100%'
       $('#group-landing').css 'opacity', 1
-
-  headBannerShowRecovery:(recoveryToken)->
-
-    @showHeadBanner "Hi, seems like you came here to reclaim your account. <span>Click here when you're ready!</span>", =>
-      KD.getSingleton('router').clear '/Recover/Password'
-      @headBanner.updatePartial "You can now create a new password for your account"
-      @resetForm.addCustomData {recoveryToken}
-      @animateToForm "reset"
 
   headBannerShowInvitation:(invite)->
 
