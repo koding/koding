@@ -27,9 +27,10 @@ class MainViewController extends KDViewController
           @setBodyClass type
 
     mainController.on "ShowInstructionsBook", (index)->
-      book = mainView.addBook()
-      book.fillPage index
-      book.checkBoundaries()
+      # TODO ~ this is broken FIX
+      # book = mainView.addBook()
+      # book.fillPage index
+      # book.checkBoundaries()
 
     mainController.on "ToggleChatPanel", -> mainView.chatPanel.toggle()
 
