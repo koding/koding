@@ -41,7 +41,7 @@ module.exports = class JApp extends jraphical.Module
         'fetchRelativeReviews', 'review', 'delete'
       ]
       static            : [
-        'create', 'someWithRelationship', 'one', 'some', 'each'
+        'create', 'one', 'some', 'each', 'some_'
       ]
 
     permissions         :
@@ -250,8 +250,13 @@ module.exports = class JApp extends jraphical.Module
     ]
     return selector
 
-  @some$ = @someWithRelationship
-  @someWithRelationship: permit 'list apps',
+  @some_: permit 'list all apps',
+
+    success: (client, selector, options, callback)->
+
+      @some selector, options, callback
+
+  @some$: permit 'list apps',
 
     success: (client, selector, options, callback)->
 
