@@ -152,8 +152,7 @@ class AccountEditUsername extends JView
         cssClass     : "action-link verify-email"
         testPath     : "account-email-edit"
         click        : =>
-          KD.remote.api.JEmailConfirmation.resetToken @account.profile.nickname, (err)=>
-
+          KD.remote.api.JPasswordRecovery.recoverPassword @account.profile.nickname, (err)=>
             message = "Email confirmation mail is sent"
             if err then message = err.message else @verifyEmail.hide()
 
