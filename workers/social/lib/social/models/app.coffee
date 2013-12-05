@@ -59,7 +59,6 @@ module.exports = class JApp extends jraphical.Module
 
     schema              :
 
-      authorNick        : String
       identifier        :
         type            : String
         set             : (value)-> value?.trim()
@@ -68,10 +67,17 @@ module.exports = class JApp extends jraphical.Module
         type            : String
         set             : (value)-> value?.trim()
         required        : yes
-      url               :
+      urls              :
+        script          :
+          type          : String
+          set           : (value)-> value?.trim()
+          required      : yes
+        style           :
+          type          : String
+          set           : (value)-> value?.trim()
+      repourl           :
         type            : String
         set             : (value)-> value?.trim()
-        required        : yes
       counts            :
         followers       :
           type          : Number
@@ -102,6 +108,11 @@ module.exports = class JApp extends jraphical.Module
         default         : (value)-> Inflector.slugify @name.toLowerCase()
       slug_             : String
 
+      originId          :
+        type            : ObjectId
+        required        : yes
+
+
     relationships       :
       creator           :
         targetType      : JAccount
@@ -124,6 +135,8 @@ module.exports = class JApp extends jraphical.Module
 
   @getAuthorType =-> JAccount
 
+  capitalize = (str)-> str.charAt(0).toUpperCase() + str.slice(1)
+
   @create = permit 'create apps',
 
     success: (client, data, callback)->
@@ -133,27 +146,30 @@ module.exports = class JApp extends jraphical.Module
       {connection:{delegate}} = client
       {profile} = delegate
 
-      if not data.name or not data.url
+      if not data.name or not data.urls?.script
         return callback new KodingError 'Name and Url is required!'
+
+      data.name = capitalize @slugify data.name
 
       data.manifest           ?= {}
 
-      # Overwrite the user information in manifest
+      # Overwrite the user/app information in manifest
+      data.manifest.name       = data.name
       data.manifest.authorNick = profile.nickname
       data.manifest.author     = "#{profile.firstName} #{profile.lastName}"
 
       # Optionals
       data.manifest.version   ?= "1.0"
-      data.identifier         ?= "com.koding.apps.#{data.name}"
+      data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
 
       app           = new JApp
-        url         : data.url
         name        : data.name
+        urls        : data.urls
         type        : data.type or 'web-app'
         manifest    : data.manifest
         identifier  : data.identifier
         version     : data.manifest.version
-        authorNick  : data.manifest.authorNick
+        originId    : delegate.getId()
 
       app.save (err)->
         return callback err  if err
