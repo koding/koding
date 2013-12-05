@@ -13,6 +13,7 @@ class ActivityInputView extends KDTokenizedInput
         dataSource   : @bound "fetchTopics"
 
     super options, data
+    @defaultTokens = initializeDefaultTokens()
 
   fetchTopics: (inputValue, callback) ->
     KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = []) =>
@@ -30,68 +31,58 @@ class ActivityInputView extends KDTokenizedInput
     tokenViewClass = SuggestedTokenView  if item.data.$suggest
     super item, tokenViewClass
 
-class ActivityInput extends KDView
-  {daisy, dash}         = Bongo
-  {JStatusUpdate, JTag} = KD.remote.api
+  setDefaultTokens: (defaultTokens = {}) ->
+    @defaultTokens = initializeDefaultTokens()
+    fillTokenMap defaultTokens.tags, @defaultTokens.tags
 
-  constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
-    super options, data
-    @input    = new ActivityInputView
-    @embedBox = new EmbedBoxWidget delegate: @input, data
+  initializeDefaultTokens = ->
+    return  tags: {}
 
-  submit: (callback) ->
-    tags          = []
-    suggestedTags = []
-    createdTags   = {}
+  setContent: (content, activity) ->
+    tokens = @defaultTokens or initializeDefaultTokens()
+    fillTokenMap activity.tags , tokens.tags  if activity?.tags?.length
+    super @renderTokens content, tokens
 
-    unless KD.checkFlag "exempt"
-      for token in @input.getTokens()
-        {data, type} = token
-        if type is "tag"
-          if data instanceof JTag then tags.push id: data.getId()
-          else if data.$suggest?  then suggestedTags.push data.$suggest
+  focus: ->
+    super
+    value = @getValue()
+    unless value
+      content = @prefixDefaultTokens()
+      return  unless content
+      @setContent content
+      {childNodes} = @getEditableElement()
+      @utils.selectEnd childNodes[childNodes.length - 1]
 
-    daisy queue = [
-      =>
-        tagCreateJobs = suggestedTags.map (title) ->
-          ->
-            JTag.create {title}, (err, tag) ->
-              tags.push id: tag.getId()
-              createdTags[title] = tag
-              tagCreateJobs.fin()
+  prefixDefaultTokens: ->
+    content = ""
+    for own type, tokens of @defaultTokens
+      switch type
+        when "tags"
+          prefix = "#"
+          constructorName = "JTag"
+        else continue
 
-        dash tagCreateJobs, ->
-          queue.next()
-    , =>
-        body  = @input.getValue()
-        body  = body.replace /\|(.*?):\$suggest:(.*?)\|/g, (match, prefix, title) ->
-          tag = createdTags[title]
-          return  "" unless tag
-          return  "|#{prefix}:JTag:#{tag.getId()}|"
+      content += "|#{prefix}:#{constructorName}:#{token.getId()}|&nbsp;" for key, token of tokens
 
-        data     =
-          group  : KD.getSingleton('groupsController').getGroupSlug()
-          body   : body
-          meta   :
-            tags : tags
+    return  content
 
-        data.link_url   = @embedBox.url or ""
-        data.link_embed = @embedBox.getDataForSubmit() or {}
+  renderTokens: (content, tokens = {}) ->
+    return  content.replace /\|(.*?):(.*?):(.*?)\|/g, (match, prefix, constructorName, id) =>
+      switch prefix
+        when "#"
+          itemClass = TagLinkView
+          type      = "tag"
+          pistachio = "#{prefix}{{#(title)}}"
+          data      = tokens.tags[id]
 
-        JStatusUpdate.create data, (err, activity) =>
-          @input.setContent ""  unless err
+      tokenView = new TokenView {itemClass, prefix, type, pistachio}, data
+      tokenKey  = "#{tokenView.getId()}-#{tokenView.getKey()}"
+      @tokenViews[tokenKey] = tokenView
 
-          callback? err, activity
+      tokenView.setAttributes "data-key": tokenKey
+      tokenView.emit "viewAppended"
+      return tokenView.getElement().outerHTML
 
-          KD.showError err,
-            AccessDenied :
-              title      : 'You are not allowed to create activities'
-              content    : 'This activity will only be visible to you'
-              duration   : 5000
-            KodingError  : 'Something went wrong while creating activity'
-    ]
-
-  viewAppended: ->
-    @addSubView @input
-    @addSubView @embedBox
+  fillTokenMap = (tokens, map) ->
+    tokens.forEach (token) ->
+      map[token.getId()] = token
