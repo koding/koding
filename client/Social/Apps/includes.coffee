@@ -3,7 +3,6 @@ module.exports = [
 
   "Views/AppsListItemView.coffee"
   "Views/appdetailsview.coffee"
-  "Views/appinfoview.coffee"
   "Views/appview.coffee"
 
   "AppView.coffee"
