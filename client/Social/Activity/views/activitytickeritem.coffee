@@ -116,7 +116,7 @@ class ActivityTickerAppUserItem extends ActivityTickerBaseItem
     return "{{> @avatar}} {{> @actor}} installed {{> @object}}"
 
 class ActivityTickerItem extends KDListItemView
-  newItemClassMap =
+  itemClassMap =
     "JGroup_member_JAccount" : ActivityTickerMemberItem
     "JAccount_like_JAccount" : ActivityTickerLikeItem
     "JTag_follower_JAccount" : ActivityTickerFollowItem
@@ -138,7 +138,7 @@ class ActivityTickerItem extends KDListItemView
     {as, source, target} = data
     classKey = "#{source.bongo_.constructorName}_#{as}_#{target.bongo_.constructorName}"
 
-    return newItemClassMap[classKey]
+    return itemClassMap[classKey]
 
 class ActiveUserItemView extends KDListItemView
   constructor: (options = {}, data) ->
