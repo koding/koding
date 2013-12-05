@@ -291,24 +291,6 @@ class KodingRouter extends KDRouter
       '/:name/Following'       : createContentHandler 'Members', yes
       '/:name/Likes'           : createContentHandler 'Members', yes
 
-      '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
-        return  if recoveryToken is 'Password'
-
-        recoveryToken = decodeURIComponent recoveryToken
-        {JPasswordRecovery} = KD.remote.api
-        JPasswordRecovery.validate recoveryToken, (err, isValid)=>
-          if err or !isValid
-            unless KD.isLoggedIn()
-              new KDNotificationView
-                title   : 'Something went wrong.'
-                content : err?.message or """
-                  That doesn't seem to be a valid recovery token!
-                  """
-          else
-            warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
-            # mainController.loginScreen.headBannerShowRecovery recoveryToken
-          @clear "/"
-
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
         inviteCode = decodeURIComponent inviteCode
         if KD.isLoggedIn()
@@ -325,17 +307,6 @@ class KodingRouter extends KDRouter
             warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
             # mainController.loginScreen.headBannerShowInvitation invite
           @clear "/"
-
-      '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
-        confirmationToken = decodeURIComponent confirmationToken
-        KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
-          if err
-            error err
-            KD.showError err
-          else
-            new KDNotificationView
-              title: "Thanks for confirming your email address!"
-          @clear()
 
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()
