@@ -56,7 +56,8 @@ class ActivityItemChild extends KDView
     account = KD.whoami()
     if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'activity-settings-menu'
+        cssClass    : 'transparent activity-settings-menu'
+        itemChildClass: ActivityItemMenuItem
         title       : ''
         icon        : yes
         delegate    : @
@@ -71,8 +72,7 @@ class ActivityItemChild extends KDView
     data = @getData()
 
     deleteActivity = (activityItem)->
-      # activityItem.slideOut -> activityItem.destroy()
-      activityItem.destroy()
+      activityItem.slideOut -> activityItem.destroy()
 
     @on 'ActivityIsDeleted', =>
       activityItem = @getDelegate()
@@ -183,3 +183,10 @@ class ActivityItemChild extends KDView
     if @getData().fake
       @actionLinks.setClass 'hidden'
 
+class ActivityItemMenuItem extends JView
+  pistachio :->
+    {title} = @getData()
+    slugifiedTitle = KD.utils.slugify title
+    """
+    <i class="#{slugifiedTitle} icon"></i>#{title}
+    """
