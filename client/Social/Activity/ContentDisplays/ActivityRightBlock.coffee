@@ -35,7 +35,7 @@ class ActiveUsers extends ActivityRightBase
       click   : (event) -> KD.singletons.router.handleRoute "/Members"
     , data
 
-    options.title    = "Active Users"
+    options.title    = "Active Koders"
     options.cssClass = "active-users"
     super options, data
 
@@ -52,7 +52,7 @@ class ActiveTopics extends ActivityRightBase
       click   : (event) -> KD.singletons.router.handleRoute "/Topics"
     , data
 
-    options.title    = "Active Topics"
+    options.title    = "Popular Topics"
     options.cssClass = "active-topics"
     super options, data
 
