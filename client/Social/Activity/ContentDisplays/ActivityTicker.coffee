@@ -45,7 +45,7 @@ class ActivityTicker extends ActivityRightBase
       {_id:id, bongo_:{constructorName}} = data.origin
       KD.remote.cacheable constructorName, id, (err, target)=>
         return console.log "account is not found" if err or not target
-        eventObj = {source, target, as:"follower"}
+        eventObj = {source:target, target:source, as:"follower"}
 
         # following tag has its relationship flipped!!!
         if constructorName is "JTag"
