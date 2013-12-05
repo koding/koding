@@ -11,7 +11,7 @@ class ActivityInputWidget extends KDView
     @submit    = new KDButtonView
       type     : "submit"
       cssClass : "solid green"
-      title    : "Submit"
+      title    : "Post"
       callback : @bound "submit"
 
   submit: (callback) ->
@@ -92,7 +92,7 @@ class ActivityInputWidget extends KDView
 
   reset: ->
     @input.setContent ""
-    @submit.setTitle "Submit"
+    @submit.setTitle "Post"
     @embedBox.resetEmbedAndHide()
     @setData null
 
