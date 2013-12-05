@@ -96,9 +96,11 @@ class MainTabView extends KDTabView
     @emit "PaneRemoved"
 
     if rightPane
-      @appManager.showInstance @appManager.getByView rightPane.mainView
+      if rightPane.mainView
+        @appManager.showInstance @appManager.getByView rightPane.mainView
     else if leftPane
-      @appManager.showInstance @appManager.getByView leftPane.mainView
+      if leftPane.mainView
+        @appManager.showInstance @appManager.getByView leftPane.mainView
     else
       @router.handleRoute "/Activity"
 
