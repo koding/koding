@@ -71,7 +71,8 @@ class ActivityItemChild extends KDView
     data = @getData()
 
     deleteActivity = (activityItem)->
-      activityItem.slideOut -> activityItem.destroy()
+      # activityItem.slideOut -> activityItem.destroy()
+      activityItem.destroy()
 
     @on 'ActivityIsDeleted', =>
       activityItem = @getDelegate()
