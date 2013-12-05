@@ -181,6 +181,7 @@ class ActivityAppController extends AppController
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
         @fetchTopicActivities options
         @setWarning options.slug
+        @getView().setTopicTag options.slug
 
       else if @getFeedFilter() is "Public"
 
