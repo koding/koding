@@ -29,12 +29,13 @@ body.topics
       color               #9ea3a6
       font-weight         500
       bg                  image, url("../images/search-icon.png")
+      bg                  repeat, no-repeat
       bg                  position, 255px 10px
       fr()
       borderBox()
 
 .kdlistitemview-topics.topic-item
-  size                    23%, 230px
+  size                    23%, 300px
   bg                      color, #fff
   margin                  2% 2% 0 0
   padding                 26px
@@ -48,7 +49,7 @@ body.topics
   &:after
     content               ""
     display               block
-    bottom                0
+    bottom                76px
     left                  0
     size                  100%, 50px
     gradient              transparent, #fff
@@ -86,12 +87,33 @@ body.topics
         margin-left       14px
 
   article
+    size                  100%, 128px
     margin                26px 0 0 0
     font-size             14px
     line-height           18px
     overflow              hidden
     color                 #50595a
 
+  .follow-btn
+    size                  115px, 30px
+    line-height           32px
+    rounded               15px
+    bg                    color, #1aaf5d
+    bottom                23px
+    left                  23px
+    padding               0
+    text-align            center
+    abs()
+
+    &.following-btn
+      bg                  color, #2d97de
+
+    span
+      line-height         inherit
+      font-size           14px
+      font-family         'Proxima Nova'
+      text-transform      uppercase
+      font-weight         600
 
 
 
