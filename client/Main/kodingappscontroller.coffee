@@ -27,7 +27,6 @@ class KodingAppsController extends KDController
       warn "#{name} is already imported"
       return callback null
 
-
     KD.singletons.dock.setNavItemState {name}, 'loading'
 
     app = KD.config.apps[name]
@@ -40,7 +39,9 @@ class KodingAppsController extends KDController
     # Remove app from head if exists, just for sure
     # $("head .internal-#{app.identifier}").remove()
 
-    if $("head .internal-style-#{app.identifier}").length is 0
+    log "PUT APP", app
+
+    if $("head .internal-style-#{app.identifier}").length is 0 and app.style
 
       style        = new KDCustomHTMLView
         tagName    : "link"
@@ -50,11 +51,11 @@ class KodingAppsController extends KDController
           log "Style loaded? for #{name} # don't trust this ..."
         attributes :
           rel      : "stylesheet"
-          href     : app.style
+          href     : "#{app.style}?#{KD.utils.uniqueId()}"
 
       $('head')[0].appendChild style.getElement()
 
-    if $("head .internal-script-#{app.identifier}").length is 0
+    if $("head .internal-script-#{app.identifier}").length is 0 and app.script
 
       script       = new KDCustomHTMLView
         tagName    : "script"
@@ -63,7 +64,7 @@ class KodingAppsController extends KDController
         load       : -> callback null
         attributes :
           type     : "text/javascript"
-          src      : app.script
+          src      : "#{app.script}?#{KD.utils.uniqueId()}"
 
       $('head')[0].appendChild script.getElement()
 
