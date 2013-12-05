@@ -24,7 +24,12 @@ class Junction extends KDObject
 
     (key for own key of @fields when not (key of @children))
 
+  iterate: ->
+    @index++
+    @nextNode()
+
   nextNode: ->
+
     node = @ordered[@index]
 
     unless node? #cycle
@@ -35,16 +40,19 @@ class Junction extends KDObject
     if node.isJunction #fork
 
       if node.isSatisfied() #skip
-        @index++
+        return @iterate()
 
-        return @nextNode()
-
-      else #propagate
-        return node.nextNode()
+      else
+        if node.shouldPropagate() #propagate
+          return node.nextNode()
+        else
+          return @iterate()
 
     @index++ #continue
 
     return node
+
+  shouldPropagate: -> yes
 
   addChild: (child) ->
     @children[child] = child
@@ -117,7 +125,17 @@ class Junction extends KDObject
   toString: -> "junction-#{@id}"
 
   @All = class All extends Junction
-    # All is like Junction.
+    # All is like Junction, but short-circuits propagation.
+    shouldPropagate: ->
+      if @dirty
+        satisfied = @isSatisfied()
+        return yes  if satisfied
+        
+        @dirty = no
+        return no
+      else
+        @dirty = yes
+        yes
 
   @Any = class Any extends Junction
     # Any is like Junction, with a couple tweaks.
