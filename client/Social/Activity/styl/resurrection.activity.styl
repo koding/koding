@@ -71,10 +71,13 @@ resurrection.activity.styl
             color         #9D998E
 
       button[type=submit]
-        bottom          0
-        right           0
+        height          44px
+        bottom          10px
+        right           6px
         abs()
         z-index         1
+        span.button-title
+          line-height   44px
 
     .activity-content
       size              auto, auto
@@ -133,16 +136,21 @@ resurrection.activity.styl
     .active-users
       .kdlistitemview-activity-ticker-item
         .profile
+          size          135px, 42px
           font-weight   400
           color         #485259
           noTextDeco()
           line-height   42px
           color         #485259
-          font-size     16px
+          font-size     14px
           text-transform capitalize
+          overflow      hidden
+          white-space   nowrap
+          text-overflow ellipsis
           fl()
 
     .active-topics
+    .active-users
       .ttag
         size            170px, 42px
         font-weight     400
@@ -150,7 +158,7 @@ resurrection.activity.styl
         noTextDeco()
         line-height     42px
         color           #485259
-        font-size       16px
+        font-size       14px
         text-transform  capitalize
         overflow        hidden
         white-space     nowrap
@@ -158,13 +166,29 @@ resurrection.activity.styl
         fl()
 
       .follow-btn
-        height        30px
-        margin        6px 0 0
+        size          85px, 26px
+        padding       0
+        text-align    center
+        margin        8px 0 0
+        vendor        transition, opacity .2s ease
         fr()
 
+        &.following-account
+          opacity     .5
+
         span
-          font-size   14px
-          line-height 30px
+          font-size   12px
+          line-height 26px
+
+    .show-all-link
+      display         block
+      text-align      center
+      padding         10px 0
+      margin          14px -23px -10px -18px
+      border-top      2px solid #eeeef2
+      font-size       14px
+      color           #79868d
+      noTextDeco()
 
 
 span.collapsedtext

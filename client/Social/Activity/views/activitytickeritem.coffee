@@ -153,6 +153,7 @@ class ActiveUserItemView extends KDListItemView
 
     unless KD.isMine data
       @followButton = new FollowButton
+        style          : "solid green"
         stateOptions   :
           unfollow     :
             cssClass   : 'following-account'

@@ -10,6 +10,8 @@ class ActivityTicker extends ActivityRightBase
         cssClass  : "activities"
         itemClass : ActivityTickerItem
 
+    @showAllLink = new KDCustomHTMLView
+
     @listView = @listController.getView()
 
     @listController.on "LazyLoadThresholdReached", @bound "load"
