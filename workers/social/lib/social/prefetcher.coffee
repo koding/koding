@@ -54,11 +54,12 @@ prefetchAll = (options, client, callback) ->
       prefetchedFeeds['topics.main'] = topics  if topics
       queue.fin()
 
+  # Commented out until we implement app based prefetch feature ~ GG & CS
   # This is not koding specific so we can return this to every group
-  queue.push ->
-    JApp.some {"approved": true}, defaultOptions, (err, apps)->
-      prefetchedFeeds['apps.main'] = apps  if apps
-      queue.fin()
+  # queue.push ->
+  #   JApp.some {"approved": true}, defaultOptions, (err, apps)->
+  #     prefetchedFeeds['apps.main'] = apps  if apps
+  #     queue.fin()
 
   # we are fetching group activity, so again we can return this one for all groups
   queue.push ->
