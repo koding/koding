@@ -9,12 +9,6 @@ class PricingAppController extends KDViewController
     navItem      :
       title      : "Develop"
 
-  createWorkflow: ->
-    paymentController = KD.getSingleton 'paymentController'
-
-    paymentController.createUpgradeWorkflow 'vm'
-
-
   constructor:(options = {}, data)->
 
     options.view = new PricingAppView
@@ -26,5 +20,12 @@ class PricingAppController extends KDViewController
 
     super options, data
 
-  open:(path)->
-    @getView().openPath path
+  createWorkflow: ->
+    paymentController = KD.getSingleton 'paymentController'
+
+    workflow = paymentController.createUpgradeWorkflow 'vm'
+
+    workflow.on 'Finished', @bound 'showThankYou'
+
+  showThankYou: ->
+    @getView().showThankYou()

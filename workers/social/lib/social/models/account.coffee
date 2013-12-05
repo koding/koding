@@ -1300,7 +1300,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchPaymentMethods$: secure (client, callback) ->
     {delegate} = client.connection
-    if delegate is this or delegate.can 'administer accounts'
+    if (delegate.equals this) or delegate.can 'administer accounts'
       @fetchDecoratedPaymentMethods callback
 
   fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->

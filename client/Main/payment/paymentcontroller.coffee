@@ -9,9 +9,9 @@ class PaymentController extends KDController
     appStorage = new AppStorage 'Account', '1.0'
     queue = [
 
-      -> appStorage.fetchStorage (err) ->
+      -> appStorage.fetchStorage ->
         preferredPaymentMethod = appStorage.getValue 'preferredPaymentMethod'
-        queue.fin err
+        queue.fin()
 
       => KD.whoami().fetchPaymentMethods (err, paymentMethods) ->
         methods = paymentMethods
@@ -142,9 +142,13 @@ class PaymentController extends KDController
 
   transitionSubscription: (formData, callback) ->
     { productData, oldSubscription, paymentMethod } = formData
-    { plan:{ planCode }} = productData
+    { plan } = productData
+    { planCode } = plan
     { paymentMethodId } = paymentMethod
-    oldSubscription.transitionTo { planCode, paymentMethodId }, callback
+    if oldSubscription
+      oldSubscription.transitionTo { planCode, paymentMethodId }, callback
+    else
+      plan.subscribe paymentMethodId, callback
 
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit pack, (err, nonce) =>

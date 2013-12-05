@@ -53,10 +53,22 @@ class PaymentWorkflow extends FormWorkflow
     @requireData all(
       'productData'
 
+      'createAccount'
+
       any('paymentMethod', 'subscription')
       
       'userConfirmation'
     )
+
+    if KD.whoami().type is 'unregistered'
+      existingAccountWorkflow = new ExistingAccountWorkflow
+
+      existingAccountWorkflow.on 'DataCollected', (data) => @collectData data
+
+      @addForm 'createAccount', existingAccountWorkflow, ['createAccount']
+    else
+      @collectData createAccount: no
+
     # - "product form" can be used for collecting some product-related data
     # before the payment method collection/selection process begins.  If you
     # use this feature, make sure to emit the "DataCollected" event with any
