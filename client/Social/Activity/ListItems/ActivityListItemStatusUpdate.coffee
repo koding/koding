@@ -8,11 +8,6 @@ class StatusActivityItemView extends ActivityItemChild
         top            : 3
         left           : -5
 
-    if data.link?.link_embed?.type is "image"
-      @twoColumns      = yes
-
-      options.commentSettings = fixedHeight: 300
-
     super options, data
 
     embedOptions  =
@@ -27,8 +22,6 @@ class StatusActivityItemView extends ActivityItemChild
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
-    @tags = @getTokenMap(data.tags) or {}
-
   getTokenMap: (tokens) ->
     return  unless tokens
     map = {}
@@ -39,12 +32,13 @@ class StatusActivityItemView extends ActivityItemChild
     return  str unless tokenMatches = str.match /\|.+?\|/g
 
     data = @getData()
+    tagMap = @getTokenMap data.tags  if data.tags
 
     for tokenString in tokenMatches
       [prefix, constructorName, id] = @decodeToken tokenString
 
       switch prefix
-        when "#" then token = @tags[id]
+        when "#" then token = tagMap?[id]
         else continue
 
       continue  unless token
@@ -79,33 +73,18 @@ class StatusActivityItemView extends ActivityItemChild
       else @embedBox.hide()
 
   pistachio:->
-    if @twoColumns
-      """
+    """
       {{> @avatar}}
-      <div class='activity-item-right-col'>
-        {{> @settingsButton}}
-        <p class="status-body">{{@formatContent #(body)}}</p>
-        <footer class="clearfix">
-          {{> @actionLinks}}
-        </footer>
-        {{> @embedBox}}
-        {{> @commentBox}}
-      </div>
-      """
-    else
-      """
-        {{> @avatar}}
-        <div class="activity-item-right-col">
-          {{> @settingsButton}}
-          <span class="author-name">{{> @author}}</span>
-          <p class="status-body">{{@formatContent #(body)}}</p>
-        </div>
-        <footer>
-          {{> @actionLinks}}
-          {{> @timeAgoView}}
-        </footer>
-        {{> @commentBox}}
-      """
+      {{> @settingsButton}}
+      {{> @author}}
+      <p class="status-body">{{@formatContent #(body)}}</p>
+      {{> @embedBox}}
+      <footer>
+        {{> @actionLinks}}
+        {{> @timeAgoView}}
+      </footer>
+      {{> @commentBox}}
+    """
 
   tokenClassMap =
     "#"         : TagLinkView

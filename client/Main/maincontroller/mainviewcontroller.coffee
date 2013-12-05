@@ -43,7 +43,7 @@ class MainViewController extends KDViewController
       lastScroll    = 0
       currentHeight = 0
 
-      (event)->
+      _.throttle (event)->
         el = document.body
         {scrollHeight, scrollTop} = el
 
@@ -58,6 +58,7 @@ class MainViewController extends KDViewController
         else if current < lastScroll then lastScroll = 0
 
         if scrollHeight isnt currentHeight then lastScroll = 0
+      , 200
 
   setBodyClass: do ->
 

@@ -75,10 +75,17 @@ class ActivityActionsView extends KDView
           parent      : KD.singletons.mainView.mainTabView.activePane
           transparent : yes
 
-    @likeView     = new LikeView
-      cssClass    : "logged-in action-container"
+    @likeView = new LikeView
+      cssClass : "logged-in action-container"
+      useTitle : no
     , activity
-    @loader       = new KDLoaderView size : width : 14
+
+    @loader = new KDLoaderView
+      cssClass      : 'action-container'
+      size          :
+        width       : 24
+      loaderOptions :
+        color       : '#949DA5'
 
     # unless KD.isLoggedIn()
     #   @commentLink.setTooltip title: "Login required"
@@ -100,7 +107,6 @@ class ActivityActionsView extends KDView
   pistachio:->
 
     """
-    {{> @loader}}
     {{> @likeView}}
     <span class='logged-in action-container'>
       {{> @commentLink}}{{> @commentCount}}
@@ -108,6 +114,7 @@ class ActivityActionsView extends KDView
     <span class='optional action-container'>
       {{> @shareLink}}
     </span>
+    {{> @loader}}
     """
 
   attachListeners:->

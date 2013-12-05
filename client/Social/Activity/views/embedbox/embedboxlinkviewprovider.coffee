@@ -7,6 +7,17 @@ class EmbedBoxLinkViewProvider extends KDView
 
   viewAppended: JView::viewAppended
   pistachio:->
-    """
-    for <strong>#{@getData().link_embed?.provider_name or @getData().provider_name or 'the internet'}</strong>#{if (@getData().link_embed?.provider_url or @getData().provider_url) then " at <a href=\"" +(@getData().link_embed?.provider_url or @getData().provider_url)+"\" target=\"_blank\">"+(@getData().link_embed?.provider_display or @getData().provider_display)+'</a>' else ''}
-    """
+    data = @getData()
+
+    {link_embed, provider_name, provider_url, provider_display} = data
+
+    link_embed       or= {}
+    provider_name    or= link_embed.provider_name    or ''
+    provider_url     or= link_embed.provider_url
+    provider_display or= link_embed.provider_display or ''
+
+    if provider_url
+    then provider_link = "at <a href='#{provider_url}' target='_blank'>#{provider_display}</a>"
+    else provider_link = ''
+
+    "<strong>#{provider_name}</strong>#{provider_link}"

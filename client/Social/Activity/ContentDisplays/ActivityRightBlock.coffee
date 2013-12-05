@@ -20,24 +20,22 @@ class ActivityRightBase extends JView
     <div class="right-block-box">
       <h3>#{@getOption 'title'}</h3>
       {{> @tickerListView}}
+      {{> @showAllLink}}
     </div>
     """
-
-class OnlineUsers extends ActivityRightBase
-  constructor:(options={}, data)->
-    @itemClass = ActiveUserItemView
-
-    options.title    = "Online Users"
-    options.cssClass = "online-users"
-    super options, data
-
-    KD.whoami().fetchMyOnlineFollowingsFromGraph {}, @bound 'renderItems'
 
 class ActiveUsers extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveUserItemView
 
-    options.title    = "Active Users"
+    @showAllLink = new KDCustomHTMLView
+      tagName : "a"
+      partial : "Show All"
+      cssClass: "show-all-link"
+      click   : (event) -> KD.singletons.router.handleRoute "/Members"
+    , data
+
+    options.title    = "Active Koders"
     options.cssClass = "active-users"
     super options, data
 
@@ -47,7 +45,14 @@ class ActiveTopics extends ActivityRightBase
   constructor:(options={}, data)->
     @itemClass = ActiveTopicItemView
 
-    options.title    = "Active Topics"
+    @showAllLink = new KDCustomHTMLView
+      tagName : "a"
+      partial : "Show All"
+      cssClass: "show-all-link"
+      click   : (event) -> KD.singletons.router.handleRoute "/Topics"
+    , data
+
+    options.title    = "Popular Topics"
     options.cssClass = "active-topics"
     super options, data
 

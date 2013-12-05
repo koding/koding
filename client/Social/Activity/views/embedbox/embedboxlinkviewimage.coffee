@@ -1,10 +1,13 @@
-class EmbedBoxLinkViewImage extends KDView
+class EmbedBoxLinkViewImage extends CustomLinkView
 
   constructor:(options={}, data)->
+    options.href   = data.link_url or data.link_embed?.url
+    options.target = "_blank"
+
     super options, data
 
     oembed = @getData().link_embed
-    @imageLink    = @utils.proxifyUrl(oembed.images?[0]?.url, width: 100, height: 100, crop: yes)
+    @imageLink    = @utils.proxifyUrl(oembed.images?[0]?.url, width: 144, height: 100, crop: yes)
     altSuffix     = if oembed.author_name then " by #{oembed.author_name}" else ''
     @imageAltText = oembed.title + altSuffix
 
@@ -39,7 +42,5 @@ class EmbedBoxLinkViewImage extends KDView
 
   pistachio:->
     """
-    <a class="preview_link" target="_blank" href="#{@getData().link_url or @getData().link_embed?.url}">
       {{> @imageView}}
-    </a>
     """

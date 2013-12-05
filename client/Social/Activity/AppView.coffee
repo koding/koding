@@ -23,26 +23,16 @@ class ActivityAppView extends KDScrollView
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
     @header           = new HomeKonstructor
-    @inputWrapper     = new ActivityInput
+    @inputWidget      = new ActivityInputWidget
     @activityTicker   = new ActivityTicker
     @activeUsers      = new ActiveUsers
-    @onlineUsers      = new OnlineUsers
     @activeTopics     = new ActiveTopics
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
     @rightBlock       = new KDCustomHTMLView cssClass : "activity-right-block"
 
     @mainController   = KD.getSingleton("mainController")
-
-    @inputWrapper.addSubView new KDButtonView
-      type     : "submit"
-      cssClass : "fr"
-      title    : "Submit"
-      callback : =>
-        @inputWrapper.submit (err, activity) =>
-          @emit "InputSubmitted", activity  unless err
-
     @mainController.on "AccountChanged", @bound "decorate"
-    @mainController.on "JoinedGroup", => @inputWrapper.show()
+    @mainController.on "JoinedGroup", => @inputWidget.show()
 
     @header.bindTransitionEnd()
 
@@ -69,11 +59,10 @@ class ActivityAppView extends KDScrollView
     @addSubView @leftBlock
     @addSubView @rightBlock
 
-    @leftBlock.addSubView @inputWrapper
+    @leftBlock.addSubView @inputWidget
     @leftBlock.addSubView @feedWrapper
 
     @rightBlock.addSubView @activityTicker
-    @rightBlock.addSubView @onlineUsers
     @rightBlock.addSubView @activeUsers
     @rightBlock.addSubView @activeTopics
 
@@ -84,12 +73,19 @@ class ActivityAppView extends KDScrollView
     # if KD.isLoggedIn()
     @setClass 'loggedin'
     if entryPoint?.type is 'group' and 'member' not in roles
-    then @inputWrapper.hide()
-    else @inputWrapper.show()
+    then @inputWidget.hide()
+    else @inputWidget.show()
     # else
     #   @unsetClass 'loggedin'
-    #   @inputWrapper.hide()
+    #   @inputWidget.hide()
     @_windowDidResize()
+
+  setTopicTag: (slug = "") ->
+    KD.remote.api.JTag.one {slug}, null, (err, tag) =>
+      @inputWidget.input.setDefaultTokens tags: [tag]
+
+  unsetTopicTag: ->
+    @inputWidget.input.setDefaultTokens tags: []
 
   # changePageToActivity:(event)->
 
