@@ -465,6 +465,11 @@ class LoginView extends KDView
   #           break
   #       router.clear()  unless routed
 
+  setCustomDataToForm: (type, data)->
+    formName = "#{type}Form"
+    @[formName].addCustomData data
+    # @resetForm.addCustomData {recoveryToken}
+
   animateToForm: (name)->
 
     @show =>
