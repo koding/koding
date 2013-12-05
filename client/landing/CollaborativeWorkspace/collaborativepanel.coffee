@@ -15,7 +15,7 @@ class CollaborativePanel extends Panel
 
   createHeaderButtons: ->
     super
-    @header.addSubView new KDCustomHTMLView
+    @headerButtonsContainer.addSubView new KDCustomHTMLView
       cssClass : "users"
       tooltip  :
         title  : "Show Users"

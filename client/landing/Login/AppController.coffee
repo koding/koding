@@ -9,11 +9,14 @@ class LoginAppsController extends AppController
       '/:name?/Redeem'      : handler (app)-> app.getView().animateToForm 'redeem'
       '/:name?/Register'    : handler (app)-> app.getView().animateToForm 'register'
       '/:name?/Recover'     : handler (app)-> app.getView().animateToForm 'recover'
+      '/:name?/Reset'       : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/ResendToken' : handler (app)-> app.getView().animateToForm 'resendEmail'
     hiddenHandle            : yes
     behavior                : 'application'
     preCondition            :
-      condition             : (options, cb)-> cb not KD.isLoggedIn()
+      condition             : (options, cb)->
+        # return cb yes if KD.singleton('router').getCurrentPath() is '/Reset'
+        cb not KD.isLoggedIn()
       failure               : -> KD.getSingleton('router').handleRoute "/Activity"
 
   constructor:(options = {}, data)->
