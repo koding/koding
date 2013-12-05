@@ -31,7 +31,7 @@ class ActivityTickerFollowItem extends ActivityTickerBaseItem
     {target} = @getData()
 
     # if current user did the activity
-    if target.getId is KD.whoami().getId()
+    if target.getId() is KD.whoami().getId()
       return "{{> @avatar}} You followed {{> @object}}"
 
     return "{{> @avatar}} {{> @actor}} followed {{> @object}}"
@@ -89,7 +89,7 @@ class ActivityTickerMemberItem extends ActivityTickerBaseItem
   pistachio: ->
     {target} = @getData()
     # if current user did the activity
-    if target.getId is KD.whoami().getId()
+    if target.getId() is KD.whoami().getId()
       return "{{> @avatar}} You became a member"
 
     return "{{> @avatar}} {{> @actor}} became a member"
