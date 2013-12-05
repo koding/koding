@@ -97,6 +97,8 @@ resurrection.activity.styl
         .kdscrollview
           height        250px
           overflow      auto
+          padding       0 23px 0 18px
+          borderBox()
 
       .kdlistitemview-activity-ticker-item
       .friend
@@ -333,6 +335,8 @@ span.collapsedtext
 
       &.liked .like-icon
         sprite        activity, like-icon-liked
+      &.kdview.kdloader
+        margin-top      7px
 
     .count
       display         inline-block
@@ -569,7 +573,7 @@ body.profile
     background          #fff
     border-radius       6px
     margin              0 0 29px 0
-    padding             20px 23px 10px 18px
+    padding             20px 0 10px 0
     borderBox()
 
     &~.right-block-box
@@ -577,7 +581,7 @@ body.profile
 
     h3
       display         block
-      padding         0 0 0 3px
+      padding         0 23px 0 21px
       font-size       16px
       font-weight     500
       color           #485259
