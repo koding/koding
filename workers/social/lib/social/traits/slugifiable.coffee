@@ -62,6 +62,8 @@ module.exports = class Slugifiable
 
     return slug
 
+  @slugify = slugify
+
   getNextCount =(name)->            # the name is something like `name: "foo-bar-42"`
     count = name
       .map ({name})->
