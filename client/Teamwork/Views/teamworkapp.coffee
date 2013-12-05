@@ -31,7 +31,7 @@ class TeamworkApp extends KDObject
 
     @on "JoinSessionRequested", (sessionKey) =>
       @setOption "sessionKey", sessionKey
-      firebase = new Firebase "https://#{instanceName}.firebaseIO.com/"
+      firebase = new Firebase "https://#{instanceName}.firebaseio.com/"
       firebase.child(sessionKey).once "value", (snapshot) =>
         val = snapshot.val()
         if val?.playground
