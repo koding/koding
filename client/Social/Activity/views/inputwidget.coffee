@@ -10,7 +10,7 @@ class ActivityInputWidget extends KDView
 
     @submit    = new KDButtonView
       type     : "submit"
-      cssClass : "fr"
+      cssClass : "solid green"
       title    : "Submit"
       callback : @bound "submit"
 
