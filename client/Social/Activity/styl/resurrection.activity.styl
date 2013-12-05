@@ -319,14 +319,14 @@ span.collapsedtext
       vertical-align  text-top
 
       &.like-icon
-        sprite        activity, like-icon
+        sprite        activity like-icon
 
       &.comment-icon
-        sprite        activity, comment-icon
+        sprite        activity comment-icon
 
       &.share-icon
         margin-top    0
-        sprite        activity, share-icon
+        sprite        activity share-icon
 
     .action-container
       size            auto, 20px
@@ -334,7 +334,7 @@ span.collapsedtext
       fl()
 
       &.liked .like-icon
-        sprite        activity, like-icon-liked
+        sprite        activity like-icon-liked
       &.kdview.kdloader
         margin-top      7px
 
@@ -531,6 +531,7 @@ body.profile
     rounded             6px
     border              1px solid #e4e4e4
     shadow              0 8px 35px rgba(0, 0, 0, .22)
+    padding             5px 0
 
     &:after
       content             ""
@@ -553,6 +554,27 @@ body.profile
       border-bottom-color #e4e4e4
       z-index             599
       abs()
+
+    .kdlistitemview-contextitem
+      color               #50595f
+      font-size           12px
+      line-height         24px
+      cursor              pointer
+      padding             0 0 0 12px
+
+      .icon
+        margin            0 7px 0 0
+        display           inline-block
+        vertical-align    sub
+        &.edit
+          sprite          activity "edit-icon"
+        &.delete
+          sprite          activity "delete-icon"
+
+      &:hover
+      &.selected
+        background        none
+        text-shadow       none
 
 
     .chevron-ghost-wrapper
