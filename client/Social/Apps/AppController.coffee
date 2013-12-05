@@ -28,7 +28,7 @@ class AppsAppController extends AppController
   loadView:(mainView)->
 
     mainView.createCommons()
-    @createFeed()
+    @createFeed mainView
 
   createFeed:(view)->
 
@@ -113,7 +113,7 @@ class AppsAppController extends AppController
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
 
-      @getView().addSubView controller.getView()
+      view.addSubView controller.getView()
       @feedController = controller
       @feedController.loadFeed()
       @emit 'ready'
