@@ -35,7 +35,13 @@ class LikeView extends KDView
     # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore and KD.isLoggedIn()
       data.checkIfLikedBefore (err, likedBefore)=>
-        if likedBefore then @setClass "liked" else @unsetClass "liked"
+        if likedBefore
+          @setClass "liked"
+          @likeLink.updatePartial "Unlike"
+        else
+          @unsetClass "liked"
+          @likeLink.updatePartial "Like"
+
         @_currentState = likedBefore
 
   fetchLikeInfo:->
@@ -123,11 +129,16 @@ class LikeView extends KDView
         unless err
           @_currentState = not @_currentState
 
-          if @_currentState then @setClass "liked" else @unsetClass "liked"
+          if @_currentState
+            @setClass "liked"
+            @likeLink.updatePartial "Unlike"
+            KD.mixpanel "Liked activity"
+          else
+            @unsetClass "liked"
+            @likeLink.updatePartial "Like"
+            KD.mixpanel "Unliked activity"
 
           @_lastUpdatedCount = -1
-
-          KD.mixpanel "Liked activity"
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
@@ -140,4 +151,3 @@ class LikeViewClean extends LikeView
 
   pistachio:->
     """<span class='comment-actions'>{{> @likeLink}}{{> @likeCount}}</span>"""
-
