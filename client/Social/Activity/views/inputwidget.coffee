@@ -56,6 +56,7 @@ class ActivityInputWidget extends KDView
         fn = @bound if activity then "update" else "create"
         fn data, (err, activity) =>
           callback? err, activity
+          @embedBox.resetEmbedAndHide()
     ]
 
   encodeTagSuggestions: (str, tags) ->
