@@ -54,7 +54,7 @@ class ActivityTicker extends ActivityRightBase
             target : source
             as     : "follower"
 
-        @listController.addItem eventObj, 0
+        @addNewItem eventObj
 
   addLike: (data)->
     {liker, origin, subject} = data
@@ -74,7 +74,8 @@ class ActivityTicker extends ActivityRightBase
           return console.log "subject is not found", err, data.subject if err or not subject
 
           eventObj = {source, target, subject, as:"like"}
-          @listController.addItem eventObj, 0
+          @addNewItem eventObj
+
   addComment: (data) ->
     {origin, reply, subject, replier} = data
     unless replier and origin and subject and reply
@@ -127,3 +128,19 @@ class ActivityTicker extends ActivityRightBase
       {{> @listView}}
     </div>
     """
+
+  addNewItem: (newItem) ->
+    items = @listController.getItemsOrdered()
+    {source, target, subject, as} = newItem
+    foundItem = item for item in items \
+                     when item.data.source.getId() is source.getId() and \
+                          item.data.target.getId() is target.getId() and \
+                          item.data.as is as and \
+                          item.data.subject?.getId() is subject?.getId()
+
+    if not foundItem
+      @listController.addItem newItem, 0
+    else
+      @listController.removeItem foundItem
+      @listController.addItem newItem, 0
+
