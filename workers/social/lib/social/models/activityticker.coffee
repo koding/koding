@@ -87,10 +87,14 @@ module.exports = class ActivityTicker extends Base
       return  callback err, buckets  if err
       daisy queue = relationships.map (relationship) ->
         ->
-          relationship.fetchTeaser ->
-            decorateEvents relationship, (err, decoratedEvent)=>
-              buckets.push decoratedEvent
-              queue.next()
+          {sourceName, targetName, as} = relationship
+          unless sourceName is "JStatusUpdate" and targetName is "JAccount" and as is "follower"
+            relationship.fetchTeaser ->
+              decorateEvents relationship, (err, decoratedEvent)=>
+                buckets.push decoratedEvent
+                queue.next()
+          else
+            queue.next()
 
       queue.push ->
         callback null, buckets
