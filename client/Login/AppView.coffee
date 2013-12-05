@@ -252,10 +252,14 @@ class LoginView extends KDView
 
   doReset:({recoveryToken, password, clientId})->
     KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
-      @resetForm.button.hideLoader()
-      @resetForm.reset()
-      @headBanner.hide()
-      @doLogin {username, password, clientId}
+      if err
+        new KDNotificationView
+          title : "An error occurred: #{err.message}"
+      else
+        @resetForm.button.hideLoader()
+        @resetForm.reset()
+        @headBanner.hide()
+        @doLogin {username, password, clientId}
 
   doRecover:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
