@@ -4,7 +4,6 @@ class ActivityInputView extends KDTokenizedInput
     options.type           or= "html"
     options.multiline       ?= yes
     options.placeholder    or= "What's new #{KD.whoami().profile.firstName}?"
-    options.defaultTokens  or= {tags: {}}
     options.tokenViewClass or= TokenView
     options.rules  or=
       tag            :
@@ -14,7 +13,7 @@ class ActivityInputView extends KDTokenizedInput
         dataSource   : @bound "fetchTopics"
 
     super options, data
-    @defaultTokens = options.defaultTokens
+    @defaultTokens = initializeDefaultTokens()
 
   fetchTopics: (inputValue, callback) ->
     KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = []) =>
@@ -33,10 +32,14 @@ class ActivityInputView extends KDTokenizedInput
     super item, tokenViewClass
 
   setDefaultTokens: (defaultTokens = {}) ->
+    @defaultTokens = initializeDefaultTokens()
     fillTokenMap defaultTokens.tags, @defaultTokens.tags
 
+  initializeDefaultTokens = ->
+    return  tags: {}
+
   setContent: (content, activity) ->
-    tokens = @defaultTokens or {tags: {}}
+    tokens = @defaultTokens or initializeDefaultTokens()
     fillTokenMap activity.tags , tokens.tags  if activity?.tags?.length
     super @renderTokens content, tokens
 
