@@ -25,10 +25,6 @@ class AppsAppController extends AppController
 
     @on "LazyLoadThresholdReached", => @feedController.loadFeed()
 
-    @appsController = KD.getSingleton "kodingAppsController"
-
-    @appsController.on "AnAppHasBeenUpdated", @bound "updateApps"
-
   loadView:(mainView)->
 
     mainView.createCommons()
@@ -40,11 +36,12 @@ class AppsAppController extends AppController
       feedId                : 'apps.main'
       itemClass             : AppsListItemView
       limitPerPage          : 10
+      delegate              : this
       useHeaderNav          : yes
       filter                :
         allApps             :
           title             : "All Apps"
-          noItemFoundText   : "There are no applications yet"
+          noItemFoundText   : "There is no application yet"
           dataSource        : (selector, options, callback)=>
             KD.remote.api.JApp.someWithRelationship selector, options, callback
         updates             :
@@ -115,45 +112,23 @@ class AppsAppController extends AppController
           KD.remote.api.JApp.someWithRelationship selector, options, callback
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
-      for own name,listController of controller.resultsController.listControllers
-        listController.getListView().on 'AppWantsToExpand', (app)->
-          KD.getSingleton('router').handleRoute "/Apps/#{app.slug}", state: app
 
       @getView().addSubView controller.getView()
       @feedController = controller
+      @feedController.loadFeed()
       @emit 'ready'
-
-      {updateAppsButton} = @getView()
-      if controller.selection.name is 'updates'
-        updateAppsButton.emit 'UpdateView', 'updates'
-
-      controller.on 'FilterChanged', (filter)=>
-        @updateApps()  if filter is 'updates'
-        updateAppsButton.emit 'UpdateView', filter
-
-  putUpdateAvailableApps: (callback) ->
-    @appsController.fetchUpdateAvailableApps callback
-
-  updateApps:->
-    @utils.wait 100, => @feedController?.changeActiveSort "meta.modifiedAt"
-
 
   handleRoute:(route)->
 
     {app, lala} = route.params
     {JApp}      = KD.remote.api
     if app
-      log "slug:", slug = "#{lala}/#{app}"
+      log "slug:", slug = "Apps/#{lala}/#{app}"
       JApp.one {slug}, (err, app)=>
         log "FOUND THIS JAPP", err, app
+        if app then @showContentDisplay app
 
     log "HANDLING", route
-
-  createContentDisplay:(app, callback)->
-
-    contentDisplay = @showContentDisplay app
-    @utils.defer => callback contentDisplay
-
 
   showContentDisplay:(content)->
 
