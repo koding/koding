@@ -141,6 +141,10 @@ class AccountEditUsername extends JView
     @emailForm.inputs.firstName.setDefaultValue firstName
     @emailForm.inputs.lastName.setDefaultValue lastName
 
+    query = KD.utils.parseQuery()
+    if query.focus
+      @emailForm.inputs[query.focus].setFocus()
+
     if @user.status is "unconfirmed"
       o =
         tagName      : "a"
