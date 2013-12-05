@@ -85,7 +85,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
     {host, protocol} = require '../config.email'
     messageOptions =
-      url : "#{protocol}//#{host}/Recover/#{encodeURIComponent token}"
+      url : "#{protocol}//#{host}/Reset/#{encodeURIComponent token}"
 
     JUser.one {email}, (err, user)=>
       if err
@@ -126,7 +126,13 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             callback err
           else
             callback new KodingError 'The token has expired.'
-      else callback null, yes
+      else
+        JUser = require './user'
+        JUser.one {email:certificate.email}, (err, user)->
+          return callback new Error "Error occured. Please try again." if err
+          user.confirmEmail (err)->
+            return callback new Error "Error occured. Please try again." if err
+            callback null, yes
 
   @invalidate =(query, callback)->
     query.status = 'active'
@@ -162,7 +168,10 @@ module.exports = class JPasswordRecovery extends jraphical.Module
                     callback err
                   else
                     JPasswordRecovery.invalidate {username}, (err)->
-                      callback err, unless err then username
+                      return callback new Error "Error occured. Please try again." if err
+                      user.confirmEmail (err)->
+                        return callback new Error "Error occured. Please try again." if err
+                        callback err, unless err then username
 
   expire:(callback)-> @update {$set: status: 'expired'}, callback
   redeem:(callback)-> @update {$set: status: 'redeemed'}, callback
