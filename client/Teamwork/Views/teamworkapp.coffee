@@ -76,13 +76,7 @@ class TeamworkApp extends KDObject
       playground          : options.playground          or null
       panels              : options.panels              or [
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
-        buttons           : [
-          {
-            title         : "Share"
-            cssClass      : "clean-gray"
-            callback      : (panel, workspace) => @showToolsModal panel, workspace
-          }
-        ]
+        buttons           : []
         floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
           direction       : "vertical"
