@@ -15,7 +15,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     sharedMethods :
       static      : [
         'validate','recoverPassword','recoverPasswordByEmail'
-        'recoverPasswordByUsername','resetPassword'
+        'resetPassword'
       ]
     indexes       :
       token       : 'unique'
@@ -60,27 +60,21 @@ module.exports = class JPasswordRecovery extends jraphical.Module
       @recoverPasswordByUsername client, usernameOrEmail, callback
     else callback new KodingError 'Invalid input.'
 
-  @recoverPasswordByUsername = secure (client, username, callback)->
+  @recoverPasswordByUsername = (client, username, callback)->
     JUser = require './user'
     {delegate} = client.connection
-    unless delegate.type is 'unregistered'
-      callback new KodingError 'You are already logged in.'
-    else
-      JUser.one {username}, (err, user)=>
-        unless user then callback new KodingError "Unknown username"
-        else @create client, {email: user.getAt('email')}, callback
+    JUser.one {username}, (err, user)=>
+      unless user then callback new KodingError "Unknown username"
+      else @create client, {email: user.getAt('email')}, callback
 
   @recoverPasswordByEmail = secure (client, email, callback)->
     JUser = require './user'
     {delegate} = client.connection
-    unless delegate.type is 'unregistered'
-      callback new KodingError 'You are already logged in.'
-    else
-      JUser.count {email}, (err, num)=>
-        unless num then callback null # pretend like everything went fine.
-        else @create client, {email}, callback
+    JUser.count {email}, (err, num)=>
+      unless num then callback null # pretend like everything went fine.
+      else @create client, {email}, callback
 
-  @create = secure ({connection:{delegate}}, options, callback)->
+  @create = (client, options, callback)->
     JUser = require './user'
     token = createId()
     {email} = options
