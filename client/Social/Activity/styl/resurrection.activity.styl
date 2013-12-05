@@ -704,3 +704,72 @@ span.collapsedtext
     vendor        transition-property, opacity
     vendor        transition-duration, 500ms
     opacity       0
+
+
+
+/** Markdown Styling **/
+p.status-body
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6
+    color         #50595a
+    font-weight   600
+    margin        0 0 12px
+  h1
+    font-size     22px
+  h2
+    font-size     20px
+  h3
+    font-size     18px
+  h4
+    font-size     16px
+  h5
+    font-size     14px
+  h6
+    font-size     12px
+
+  /* Lists */
+  ol,ul
+    padding               0 25px 12px
+    list-style            none
+    display               block
+    position              relative
+    li
+      position            relative
+    li:before
+      color               #c4c4c9
+      left                -20px
+      abs()
+  ol
+    counter-reset         i 0
+    li:before
+      content             counter(i)
+      counter-increment   i
+  ul
+    li:before
+      content             "\2022"
+      font-size           20px
+
+  /* Paragraphs and other text */
+  p
+    padding               0 0 12px
+  em
+    font-style            italic
+  strong
+    font-weight           600
+  a
+    color                 inherit
+  hr
+    height                1px
+    background            #c4c4c9
+    border                none
+
+
+
+
+
+
+
+
+
+
