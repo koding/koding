@@ -12,8 +12,10 @@ module.exports = class JApp extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/likeable'
   @trait __dirname, '../traits/slugifiable'
+  @trait __dirname, '../traits/protected'
 
-  {permit} = require './group/permissionset'
+  {permit}   = require './group/permissionset'
+  Validators = require './group/validators'
 
   #
   {Inflector,JsPath,secure,daisy,ObjectId,ObjectRef} = require 'bongo'
@@ -53,11 +55,17 @@ module.exports = class JApp extends jraphical.Module
       ]
 
     permissions         :
+
+      'list apps'       : ['member']
       'create apps'     : ['member']
       'update own apps' : ['member']
       'delete own apps' : ['member']
+      'list reviews'    : ['member']
+      'create review'   : ['member']
       'approve apps'    : []
       'delete apps'     : []
+      'update apps'     : []
+      'list all apps'   : []
 
     schema              :
 
