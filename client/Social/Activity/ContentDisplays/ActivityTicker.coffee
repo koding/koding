@@ -115,7 +115,9 @@ class ActivityTicker extends ActivityRightBase
       return  if err
       for item in items
         {as, source, target, subject} = item
-        if source and target and as
+
+        isGuest = target.profile?.nickname?.indexOf("guest-") isnt -1
+        if source and target and as and not isGuest
           @listController.addItem item
 
   pistachio:
