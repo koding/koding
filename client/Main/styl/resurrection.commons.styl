@@ -357,6 +357,9 @@ finderSelectedColor2 = #3AAAAB
     shadow             0 0 10px -2px #36b298
 
 
+/*  */
+
+
 /* editor-advanced-settings-menu-button
 *******************************************************************************/
 
@@ -571,5 +574,85 @@ input.kdinput.text.thin
       vendor              transform, translateX(24px)
     a.knob
       size                24px 24px
+
+
+//
+// KODING RESURRECTION MODAL THEME
+//
+
+// .kdmodal.resurrection
+
+.kdmodal
+  bg                    color white
+  rounded               6px
+  shadow                0 0 32px rgba(0,0,0,.46)
+  fix()
+
+  .kdmodal-inner
+    margin              45px
+
+    .close-icon
+      sprite            app, "modal-close-icon"
+      top               14px
+      right             14px
+
+      &:hover
+        sprite          app, "modal-close-icon"
+
+  .kdmodal-title
+    cursor              move
+    line-height         normal !important
+    font-weight         400
+    color               #50595a !important
+    margin-bottom       15px !important
+    padding             0 !important
+    background          none !important
+    border              none !important
+
+    .title
+      font-size         24px !important
+
+  .kdmodal-content
+    margin              15px 0 0 0 !important
+    padding             0 !important
+    font-size           16px !important
+
+    .modalformline
+      padding           0
+
+  .kdmodal-buttons
+  .kdformview .button-field
+    margin              24px 0 0 0 !important
+    background          none !important
+    border-top          2px solid #f3f4f5 !important
+    height              73px !important
+
+    .kdbutton
+      size              auto, 45px
+      background        none
+      border            3px solid
+      margin            22px 0 0 12px !important
+      padding           0 24px !important
+      rounded           23px
+      font-size         18px
+      text-transform    uppercase
+      font-family       'Proxima Nova'
+      fr()
+
+    .modal-clean-red
+      border-color      #e94b35
+      color             #e94b35
+
+    .modal-clean-green
+      border-color      #1aaf5d
+      color             #1aaf5d
+
+    .modal-cancel
+      border-color      #bdc3c7
+      color             #bdc3c7
+
+.kdoverlay
+  fix()
+
 
 

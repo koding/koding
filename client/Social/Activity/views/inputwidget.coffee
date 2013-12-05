@@ -10,8 +10,8 @@ class ActivityInputWidget extends KDView
 
     @submit    = new KDButtonView
       type     : "submit"
-      cssClass : "fr"
-      title    : "Submit"
+      cssClass : "solid green"
+      title    : "Post"
       callback : @bound "submit"
 
   submit: (callback) ->
@@ -53,9 +53,8 @@ class ActivityInputWidget extends KDView
         data.link_url   = @embedBox.url or ""
         data.link_embed = @embedBox.getDataForSubmit() or {}
 
-        if activity
-        then @update data
-        else @create data
+        fn = @bound if activity then "update" else "create"
+        fn data, callback
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -64,7 +63,7 @@ class ActivityInputWidget extends KDView
       return  "" unless tag
       return  "|#{prefix}:JTag:#{tag.getId()}|"
 
-  create: (data) ->
+  create: (data, callback) ->
     JStatusUpdate.create data, (err, activity) =>
       @reset()  unless err
 
@@ -78,21 +77,24 @@ class ActivityInputWidget extends KDView
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
 
-  update: (data) ->
+  update: (data, callback) ->
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
       @reset()  unless err
-      return  if err
+      callback? err
 
   edit: (activity) ->
     @setData activity
     @input.setContent activity.body, activity
+    if activity.link
+      @embedBox.loadEmbed activity.link.link_url
     @submit.setTitle "Update"
 
   reset: ->
     @input.setContent ""
-    @submit.setTitle "Submit"
+    @submit.setTitle "Post"
+    @embedBox.resetEmbedAndHide()
     @setData null
 
   viewAppended: ->

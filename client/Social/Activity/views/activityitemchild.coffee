@@ -56,13 +56,14 @@ class ActivityItemChild extends KDView
     account = KD.whoami()
     if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent activity-settings-menu'
-        title       : ''
-        icon        : yes
-        delegate    : @
-        iconClass   : "arrow"
-        menu        : @settingsMenu data
-        callback    : (event)=> @settingsButton.contextMenu event
+        cssClass       : 'activity-settings-menu'
+        itemChildClass : ActivityItemMenuItem
+        title          : ''
+        icon           : yes
+        delegate       : @
+        iconClass      : "arrow"
+        menu           : @settingsMenu data
+        callback       : (event)=> @settingsButton.contextMenu event
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
@@ -182,3 +183,10 @@ class ActivityItemChild extends KDView
     if @getData().fake
       @actionLinks.setClass 'hidden'
 
+class ActivityItemMenuItem extends JView
+  pistachio :->
+    {title} = @getData()
+    slugifiedTitle = KD.utils.slugify title
+    """
+    <i class="#{slugifiedTitle} icon"></i>#{title}
+    """

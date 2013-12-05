@@ -586,6 +586,8 @@ module.exports = class JUser extends jraphical.Module
 
   @changeEmailByUsername = (options, callback) ->
     { account, oldUsername, email } = options
+    # prevent from leading and trailing spaces
+    email = email.trim()
     @update { username: oldUsername }, { $set: { email }}, (err, res)=>
       return callback err  if err
       account.profile.hash = getHash email

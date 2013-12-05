@@ -5,22 +5,20 @@ class EmbedBoxLinkViewContent extends JView
 
     contentOptions =
       tagName    : 'a'
-      cssClass   : 'preview_text_link'
+      cssClass   : 'preview-text-link'
       attributes :
         href     : data.link_url
         target   : '_blank'
 
     @embedTitle = new EmbedBoxLinkViewTitle contentOptions, data
 
-    @embedAuthor   = new EmbedBoxLinkViewAuthor cssClass: 'author_info', data
-    @embedProvider = new EmbedBoxLinkViewProvider cssClass: 'provider_info', data
+    @embedProvider = new EmbedBoxLinkViewProvider cssClass: 'provider-info', data
 
     @embedDescription = new EmbedBoxLinkViewDescription contentOptions, data
 
   pistachio:->
     """
     {{> @embedTitle}}
-    {{> @embedAuthor}}
-    {{> @embedProvider}}
     {{> @embedDescription}}
+    {{> @embedProvider}}
     """

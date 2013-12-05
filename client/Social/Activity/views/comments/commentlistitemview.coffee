@@ -43,7 +43,7 @@ class CommentListItemView extends KDListItemView
       @deleteLink.unsetClass "hidden"
       @deleteLink.on "click", => @confirmDeleteComment data
 
-    @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
+    @likeView = new LikeViewClean { tooltipPosition : 'sw', checkIfLikedBefore: yes }, data
 
     if loggedInId isnt data.originId
       @replyView = new ActivityActionLink

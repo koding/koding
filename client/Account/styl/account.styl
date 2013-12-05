@@ -77,3 +77,45 @@ body.account
       abs()
       top                 10px
       right               0
+
+.linked-accounts
+
+  ul
+    margin                0
+    padding               0
+    li
+      list-style          none
+      padding             13px 20px
+      borderBox()
+      .title
+        width             296px
+        line-height       22px
+        fl()
+        cite
+          font-size       16px
+          font-weight     400
+          margin-left     16px
+
+      .kdinput.koding-on-off
+        margin-top        6px
+        fr()
+
+      &.github .icon
+        sprite            account 'ext-github'
+      &.odesk .icon
+        sprite            account 'ext-odesk'
+      &.facebook .icon
+        sprite            account 'ext-facebook'
+      &.twitter .icon
+        sprite            account 'ext-twitter'
+      &.google .icon
+        sprite            account 'ext-google'
+      &.linkedin .icon
+        sprite            account 'ext-linkedin'
+
+      span
+      cite
+      a
+        font-style        normal
+        blockMid()
+
