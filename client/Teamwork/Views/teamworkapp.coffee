@@ -84,7 +84,7 @@ class TeamworkApp extends KDObject
           splitName       : "BaseSplit"
           views           : [
             {
-              title       : "Teamwork"
+              title       : "<div class='header-title'><span class='icon'></span>Teamwork</div>"
               type        : "finder"
               name        : "finder"
             }
