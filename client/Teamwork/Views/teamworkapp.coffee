@@ -20,14 +20,17 @@ class TeamworkApp extends KDObject
       @playgroundsManifest = manifest
       @dashboard.emit "PlaygroundsFetched", @playgroundsManifest
 
-    @appView.addSubView @dashboard
-
     @on "NewSessionRequested", (callback = noop, options) =>
       @dashboard.hide()
       @teamwork?.destroy()
       @createTeamwork options
       @appView.addSubView @teamwork
       callback()
+
+    @dashboard.on "viewAppended", =>
+      @emit "NewSessionRequested"  if @getOptions().query.skipDashboard
+
+    @appView.addSubView @dashboard
 
     @on "JoinSessionRequested", (sessionKey) =>
       @setOption "sessionKey", sessionKey
