@@ -9,7 +9,7 @@ class BadgeDashboardView extends JView
   prepareDashboard:->
     @badgeListContainer   = new KDScrollView
       ownScrollBars       : yes
-      cssClass            : "badge-list"
+      cssClass            : "badge-dashboard-view"
 
     @createBadgeListView()
 

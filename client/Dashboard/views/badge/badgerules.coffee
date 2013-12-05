@@ -5,7 +5,7 @@ class BadgeRules extends JView
       startWithLazyLoader : no
       view                : new KDListView
         type              : "badges"
-        cssClass          : "item"
+        cssClass          : "badge-rules"
         itemClass         : BadgeRuleItem
 
     @badgeListView = @badgeRulesListController.getListView()
@@ -129,6 +129,7 @@ class BadgeUsersItem extends KDListItemView
 
 class BadgeRuleItem extends KDListItemView
   constructor: (options = {}, data) ->
+
     @propertySelect   = new KDSelectBox
       name            : 'rule-property'
       selectOptions   : [
@@ -165,10 +166,10 @@ class BadgeRuleItem extends KDListItemView
 
   pistachio:->
     """
-      <ul class="list">
-        <li>{{> @propertySelect}}</li>
-        <li>{{> @propertyAction}}</li>
-        <li>{{> @propertyVal}}</li>
-        <li>{{> @removeRule}}</li>
-      </ul>
+    <div class="rule-item">
+    {{> @propertySelect}}
+    {{> @propertyAction}}
+    {{> @propertyVal}}
+    {{> @removeRule}}
+    </div>
     """

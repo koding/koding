@@ -71,7 +71,6 @@ module.exports = class JBadge extends jraphical.Module
         queue.push -> callback if errors.length > 0 then errors else null
         daisy queue
 
-
   removeBadgeFromUser : permit 'remove user badge',
     success: (client, user, callback)->
       JAccount       = require './account'
@@ -101,7 +100,6 @@ module.exports = class JBadge extends jraphical.Module
       else
         callback items
 
-
   @fetchBadgeUsers:permit 'list badges',
     success: (client, badgeId, callback)->
       query =
@@ -115,10 +113,6 @@ module.exports = class JBadge extends jraphical.Module
           JAccount.some { "_id": { "$in": items } }, {}, (err, jAccounts) =>
             callback err,jAccounts
 
-  ###
-    follower :
-      >      : 2
-  ###
   @createSelector : (rules)->
     for rule in rules.split "+"
       actionPos = rule.search /[\<\>\=]/
@@ -126,14 +120,6 @@ module.exports = class JBadge extends jraphical.Module
       property  = rule.substr 0,actionPos
       propVal   = rule.substr actionPos+1
 
-
   @fetchUsersByRule:permit 'give badges',
     success: (client, rules, callback)->
       @createSelector rules
-
-
-
-
-
-
-
