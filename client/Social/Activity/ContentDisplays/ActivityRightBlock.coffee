@@ -31,6 +31,7 @@ class ActiveUsers extends ActivityRightBase
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
       partial : "Show All"
+      cssClass: "show-all-link"
       click   : (event) -> KD.singletons.router.handleRoute "/Members"
     , data
 
@@ -47,6 +48,7 @@ class ActiveTopics extends ActivityRightBase
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
       partial : "Show All"
+      cssClass: "show-all-link"
       click   : (event) -> KD.singletons.router.handleRoute "/Topics"
     , data
 
