@@ -2,6 +2,8 @@ class CollaborativePane extends Pane
 
   constructor: (options, data) ->
 
+    options.cssClass  = KD.utils.curry "ws-pane", options.cssClass
+
     super options, data
 
     @panel            = @getDelegate()
@@ -10,7 +12,7 @@ class CollaborativePane extends Pane
     @workspaceRef     = @workspace.firepadRef.child @sessionKey
     @isJoinedASession = @getOptions().sessionKey
     @amIHost          = @workspace.amIHost()
-    @container        = new KDView
+    @container        = new KDView cssClass: "ws-container"
 
   createSessionKey: ->
     nick = KD.nick()
