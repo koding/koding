@@ -75,8 +75,9 @@ class ActivityActionsView extends KDView
           parent      : KD.singletons.mainView.mainTabView.activePane
           transparent : yes
 
-    @likeView     = new LikeView
-      cssClass    : "logged-in action-container"
+    @likeView = new LikeView
+      cssClass : "logged-in action-container"
+      useTitle : no
     , activity
     @loader       = new KDLoaderView size : width : 14
 

@@ -6,6 +6,7 @@ class LikeView extends KDView
     options.cssClass           or= 'like-view'
     options.tooltipPosition    or= 'se'
     options.checkIfLikedBefore  ?= no
+    options.useTitle            ?= yes
 
     super options, data
 
@@ -35,12 +36,13 @@ class LikeView extends KDView
     # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore and KD.isLoggedIn()
       data.checkIfLikedBefore (err, likedBefore)=>
+        {useTitle} = @getOptions()
         if likedBefore
           @setClass "liked"
-          @likeLink.updatePartial "Unlike"
+          @likeLink.updatePartial "Unlike" if useTitle
         else
           @unsetClass "liked"
-          @likeLink.updatePartial "Like"
+          @likeLink.updatePartial "Like" if useTitle
 
         @_currentState = likedBefore
 
@@ -128,14 +130,14 @@ class LikeView extends KDView
 
         unless err
           @_currentState = not @_currentState
-
+          {useTitle} = @getOptions()
           if @_currentState
             @setClass "liked"
-            @likeLink.updatePartial "Unlike"
+            @likeLink.updatePartial "Unlike" if useTitle
             KD.mixpanel "Liked activity"
           else
             @unsetClass "liked"
-            @likeLink.updatePartial "Like"
+            @likeLink.updatePartial "Like" if useTitle
             KD.mixpanel "Unliked activity"
 
           @_lastUpdatedCount = -1
