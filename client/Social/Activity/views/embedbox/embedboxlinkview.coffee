@@ -5,19 +5,19 @@ class EmbedBoxLinkView extends JView
 
     if data.link_embed?.images?[0]?
       @embedImage = new EmbedBoxLinkViewImage
-        cssClass : 'preview_image'
+        cssClass : 'preview-image'
         delegate : this
       , data
     else
       @embedImage = new KDCustomHTMLView 'hidden'
 
     @embedContent = new EmbedBoxLinkViewContent
-      cssClass  : 'preview_text'
+      cssClass  : 'preview-text'
       delegate  : this
     , data
 
     @embedImageSwitch = new EmbedBoxLinkViewImageSwitch
-      cssClass : 'preview_link_pager'
+      cssClass : 'preview-link-pager'
       delegate : this
     , data
 

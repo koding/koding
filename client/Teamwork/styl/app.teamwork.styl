@@ -9,6 +9,8 @@ app.teamwork.styl
 }
 
 .teamwork
+  .workspace
+    bg                          color, #FFF
   .user-list-container
     .inner-header
       .title
@@ -25,17 +27,22 @@ app.teamwork.styl
       background-size           37px 37px !important
       size                      37px 37px
       fl()
-    &.teamwork
-      .icon
-        background              url(/images/teamwork/icon.128.png) 3px 0 no-repeat
-    .tw-db-icon
-      size                      23px, 21px
-      kdfsprite()
-      bg                        position, 0 0
-      fr()
-      top                       10px
+    .header-title
+      height                    35px
+      top                       -9px
       position                  relative
-      pointer()
+      line-height               35px
+      left                      -10px
+      .icon
+        background              url(/images/teamwork/icon.128.png) 3px -3px no-repeat
+  .tw-db-icon
+    size                        23px, 21px
+    kdfsprite()
+    bg                          position, 0 0
+    fr()
+    top                         10px
+    position                    relative
+    pointer()
   .finder-pane
     &.file-container
       .no-vm-found-widget
@@ -228,6 +235,7 @@ app.teamwork.styl
   vendor                        transition, height .266s ease
   overflow                      auto
   height                        0
+  bg                            color, #FFF
   .tw-items-container
     overflow                    hidden
     width                       800px

@@ -230,11 +230,10 @@ span.collapsedtext
     margin        0 14px 0 0
     abs()
 
-  .author-name
+  .profile
   .status-body
     word-break    break-word
     display       block
-    padding       20px 21px 0
     color         rgba(80, 89, 90, .8)
     font-weight   400
 
@@ -242,9 +241,10 @@ span.collapsedtext
     padding       9px 21px 0
     line-height   22px
 
-  .author-name a
+  >.profile
     color         #50595a
     font-weight   500
+    padding       20px 21px 0
     noTextDeco()
 
   footer
@@ -425,6 +425,59 @@ span.collapsedtext
 
         &:focus
           line-height     24px
+
+  /* Embed Styles */
+  .embed-image-view
+    margin                20px 0 -22px
+    border-top            2px solid #e4e4e4
+
+    a
+    img
+      display             block
+      margin              0
+      padding             0
+
+  .embed-link-view
+    padding               20px 20px 0
+    margin                20px 0 0
+    border-top            2px solid #e4e4e4
+
+    .preview-image
+      size                144px, 100px
+      fl()
+
+      &+.preview-text
+        kalc              width, 100% \- 144px
+        padding           0 0 0 15px
+
+    .preview-text
+      font-size           14px
+      font-weight         300
+      color               #50595a
+      borderBox()
+      fl()
+
+      .preview-text-link
+        color             inherit
+        display           block
+        word-break        break-word
+        noTextDeco()
+
+        .preview-title
+          font-weight     400
+
+        &.description
+          padding         15px 0
+
+          .description-input
+            width         100%
+            margin        15px 0 0 0
+
+      .provider-info
+        font-size       12px
+        color           #a9aeaf
+
+
 
 
 /* Activity and profile right block's box style */
@@ -704,3 +757,72 @@ span.collapsedtext
     vendor        transition-property, opacity
     vendor        transition-duration, 500ms
     opacity       0
+
+
+
+/** Markdown Styling **/
+p.status-body
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6
+    color         #50595a
+    font-weight   600
+    margin        0 0 12px
+  h1
+    font-size     22px
+  h2
+    font-size     20px
+  h3
+    font-size     18px
+  h4
+    font-size     16px
+  h5
+    font-size     14px
+  h6
+    font-size     12px
+
+  /* Lists */
+  ol,ul
+    padding               0 25px 12px
+    list-style            none
+    display               block
+    position              relative
+    li
+      position            relative
+    li:before
+      color               #c4c4c9
+      left                -20px
+      abs()
+  ol
+    counter-reset         i 0
+    li:before
+      content             counter(i)
+      counter-increment   i
+  ul
+    li:before
+      content             "\2022"
+      font-size           20px
+
+  /* Paragraphs and other text */
+  p
+    padding               0 0 12px
+  em
+    font-style            italic
+  strong
+    font-weight           600
+  a
+    color                 inherit
+  hr
+    height                1px
+    background            #c4c4c9
+    border                none
+
+
+
+
+
+
+
+
+
+
