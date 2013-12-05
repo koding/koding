@@ -285,6 +285,7 @@ span.collapsedtext
     color         #50595a
     font-weight   500
     padding       20px 21px 0
+    display       inline-block
     noTextDeco()
 
   footer
@@ -518,6 +519,40 @@ span.collapsedtext
         color           #a9aeaf
 
 
+/* Activity item menu */
+body.activity
+body.profile
+  .kdbuttonmenu.jcontextmenu
+    margin              4px 0 0 14px
+    rounded             6px
+    border              1px solid #e4e4e4
+    shadow              0 8px 35px rgba(0, 0, 0, .22)
+
+    &:after
+      content             ""
+      display             block
+      size                0 0
+      right               19px
+      bottom              100%
+      border              7px solid transparent
+      border-bottom-color #fff
+      z-index             600
+      abs()
+
+    &:before
+      content             ""
+      display             block
+      size                0 0
+      right               18px
+      bottom              100%
+      border              8px solid transparent
+      border-bottom-color #e4e4e4
+      z-index             599
+      abs()
+
+
+    .chevron-ghost-wrapper
+      opacity           0
 
 
 /* Activity and profile right block's box style */
@@ -856,10 +891,6 @@ p.status-body
     height                1px
     background            #c4c4c9
     border                none
-
-
-
-
 
 
 
