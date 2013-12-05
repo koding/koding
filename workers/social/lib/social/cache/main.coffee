@@ -25,6 +25,7 @@ repeatFetchingItems = (cacheKey, fetcherFn, fetcherFnOptions)->
 
 module.exports = class Cache
   @fetch: (cacheKey, fetcherFn, fetcherFnOptions, callback)->
+    {fallbackFn} = fetcherFnOptions
     if cache[cacheKey]
       {data, ttl} = cache[cacheKey]
       callback null, data
@@ -33,6 +34,6 @@ module.exports = class Cache
         repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
     else
       repeatFetchingItems cacheKey, fetcherFn, fetcherFnOptions
-      callback null, {}
+      (fallbackFn? callback) or (callback null, {})
 
   @remove: (cacheKey, data)-> delete cache[cacheKey]
