@@ -38,18 +38,10 @@ module.exports = class JApp extends jraphical.Module
 
     sharedMethods       :
       instance          : [
-        'approve', 'fetchRelativeReviews'
-        # 'approve', 'review', 'delete', 'install'
-        # 'follow', 'unfollow', 'delete', 'review',
-        # 'like', 'checkIfLikedBefore', 'fetchLikedByes',
-        # 'fetchFollowersWithRelationship', 'install',
-        # 'fetchFollowingWithRelationship', 'fetchCreator',
-        # 'fetchRelativeReviews', 'approve'
+        'fetchRelativeReviews', 'review', 'delete'
       ]
       static            : [
-        'create', 'someWithRelationship', 'one'
-        # , 'someWithRelationship', 'updateAllSlugs'
-        # 'some', 'each', 'fetchAllAppsData'
+        'create', 'someWithRelationship', 'one', 'some', 'each'
       ]
 
     permissions         :
@@ -199,14 +191,33 @@ module.exports = class JApp extends jraphical.Module
           return callback new KodingError \
                  'Identifier already in use, please change it first'
 
-        # Check if the app has a slug, if not create one
-        unless @getAt 'slug'
-          this.createSlug (err, slug)=>
-            return callback err  if err
-            slug = slug_ = slug.slug
-            @update {slug, slug_, approved:yes}, callback
-        else
-          @update approved:yes, callback
+
+  # approve: permit 'approve apps',
+
+  #   success: (client, state = yes, callback)->
+
+  #     # Disapprove
+  #     unless state
+
+  #       return @update $set:{approved: no}, callback
+
+  #     identifier = @getAt 'identifier'
+
+  #     JApp.count {identifier, approved:yes}, (count)=>
+
+  #       # Check if any app used same identifier and already approved
+  #       if count > 1
+  #         return callback new KodingError \
+  #                'Identifier already in use, please change it first'
+
+  #       # Check if the app has a slug, if not create one
+  #       unless @getAt 'slug'
+  #         this.createSlug (err, slug)=>
+  #           return callback err  if err
+  #           slug = slug_ = slug.slug
+  #           @update {slug, slug_, approved:yes}, callback
+  #       else
+  #         @update approved:yes, callback
 
   # JApp.one
     #   name : data.name
@@ -404,153 +415,25 @@ module.exports = class JApp extends jraphical.Module
   #         @update ($set: approved: state), (err)=>
   #           callback err
 
-  # Do not return not approved apps
-  @one$ = secure (client, selector, options, callback)->
-    {delegate} = client.connection
-    [options, callback] = [callback, options] unless callback
-    @one selector, options, (err, app)->
-      if err or not app
-        return callback err
-      else unless app.approved
-        if (delegate.checkFlag 'super-admin') or   \
-           (delegate.checkFlag 'app-publisher' and \
-            delegate.getId().equals app.originId)
-          return callback null, app
-        return callback new KodingError 'No such application.'
-      callback null, app
-
-  getDefaultSelector = (client, selector)->
-    {delegate} = client.connection
-    selector or= {}
-
-    # Just show approved apps to regular users
-    unless delegate.checkFlag 'super-admin'
-      selector.approved = yes
-
-    # If delegate is a publisher one can see its apps
-    # even they are not approved yet.
-    if not (delegate.checkFlag 'super-admin') \
-       and (delegate.checkFlag 'app-publisher')
-      selector.$or = [
-        {approved: yes}
-        {originId: delegate.getId()}
-      ]
-      delete selector.approved
-    return selector
-
-  @some$: @someWithRelationship
-  @someWithRelationship: secure (client, selector, options, callback)->
-    selector = getDefaultSelector client, selector
-    options  or= {}
-    options.limit = Math.min(options.limit or 0, 10)
-
-    @some selector, options, (err, apps)=>
-      @markInstalled client, apps, (err, apps)=>
-        @markFollowing client, apps, callback
-
-  # @each$: secure (client, selector, fields, options, callback)->
-  #   selector = getDefaultSelector client, selector
-  #   @each selector, fields, options, callback
-
-  # @fetchAllAppsData: secure (client, selector, callback)->
-  #   selector = getDefaultSelector client, selector
-  #   apps     = []
-  #   @each selector, {}, {}, (err, app)=>
-  #     return callback err  if err
-  #     if app then apps.push app
-  #     else callback err, apps
-
-  @markInstalled = secure (client, apps, callback)->
-    Relationship.all
-      targetId  : client.connection.delegate.getId()
-      as        : 'user'
-      sourceType: 'JApp'
-    , (err, relationships)->
-      apps.forEach (app)->
-        app.installed = no
-        for relationship, index in relationships
-          if app._id is relationship.sourceId
-            app.installed = yes
-            relationships.splice index,1
-            break
-      callback err, apps
+  # @markInstalled = secure (client, apps, callback)->
+  #   Relationship.all
+  #     targetId  : client.connection.delegate.getId()
+  #     as        : 'user'
+  #     sourceType: 'JApp'
+  #   , (err, relationships)->
+  #     apps.forEach (app)->
+  #       app.installed = no
+  #       for relationship, index in relationships
+  #         if app._id is relationship.sourceId
+  #           app.installed = yes
+  #           relationships.splice index,1
+  #           break
+  #     callback err, apps
 
   # delete: secure ({connection:{delegate}}, callback)->
 
   #   if delegate.can 'delete', this
   #     @remove callback
-
-  # review: secure (client, reviewData, callback)->
-  #   {delegate} = client.connection
-  #   unless delegate instanceof JAccount
-  #     callback new Error 'Log in required!'
-  #   else
-  #     review = new JReview body: reviewData
-  #     exempt = delegate.checkFlag('exempt')
-  #     if exempt
-  #       review.isLowQuality = yes
-  #     review
-  #       .sign(delegate)
-  #       .save (err)=>
-  #         if err
-  #           callback err
-  #         else
-  #           delegate.addContent review, (err)->
-  #             if err then console.log 'error adding content', err
-  #           @addReview review,
-  #             flags:
-  #               isLowQuality : exempt
-  #           , (err, docs)=>
-  #             if err
-  #               callback err
-  #             else
-  #               if exempt
-  #                 callback null, comment
-  #               else
-  #                 Relationship.count
-  #                   sourceId                  : @getId()
-  #                   as                        : 'review'
-  #                   'data.flags.isLowQuality' : $ne: yes
-  #                 , (err, count)=>
-  #                   if err
-  #                     callback err
-  #                   else
-  #                     @update $set: repliesCount: count, (err)=>
-  #                       if err
-  #                         callback err
-  #                       else
-  #                         callback null, review
-  #                         @fetchCreator (err, origin)=>
-  #                           if err
-  #                             console.log "Couldn't fetch the origin for app."
-  #                           else
-  #                             @emit 'ReviewIsAdded', {
-  #                               origin
-  #                               subject       : ObjectRef(@).data
-  #                               actorType     : 'reviewer'
-  #                               actionType    : 'review'
-  #                               replier       : ObjectRef(delegate).data
-  #                               reply         : ObjectRef(review).data
-  #                               repliesCount  : count
-  #                               relationship  : docs[0]
-  #                             }
-  #                             @follow client, emitActivity: no, (err)->
-  #                             @addParticipant delegate, 'reviewer', (err)-> #TODO: what should we do with this error?
-
-  fetchRelativeReviews:({offset, limit, before, after}, callback)->
-    limit  ?= 10
-    offset ?= 0
-    if before? and after?
-      callback new KodingError "Don't use before and after together."
-    selector = timestamp:
-      if before? then  $lt: before
-      else if after? then $gt: after
-    options = {sort: timestamp: -1}
-    if limit > 0
-      options.limit = limit
-    if offset > 0
-      options.skip = offset
-    @fetchReviews selector, options, callback
 
 
   # # modify: permit
