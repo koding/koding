@@ -53,9 +53,9 @@ class ActivityInputWidget extends KDView
         data.link_url   = @embedBox.url or ""
         data.link_embed = @embedBox.getDataForSubmit() or {}
 
-        if activity
-        then @update data
-        else @create data
+        fn = @bound if activity then "update" else "create"
+        fn data, (err, activity) =>
+          callback? err, activity
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -64,7 +64,7 @@ class ActivityInputWidget extends KDView
       return  "" unless tag
       return  "|#{prefix}:JTag:#{tag.getId()}|"
 
-  create: (data) ->
+  create: (data, callback) ->
     JStatusUpdate.create data, (err, activity) =>
       @reset()  unless err
 
@@ -78,7 +78,7 @@ class ActivityInputWidget extends KDView
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
 
-  update: (data) ->
+  update: (data, callback) ->
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
