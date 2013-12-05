@@ -372,6 +372,10 @@ class LoginView extends KDView
       if firstRoute and /^\/Verify/.test firstRoute
         firstRoute = "/"
 
+
+      if firstRoute and /^\/Reset/.test firstRoute
+        firstRoute = "/"
+
       KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
