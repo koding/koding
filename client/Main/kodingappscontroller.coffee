@@ -68,6 +68,45 @@ class KodingAppsController extends KDController
 
       $('head')[0].appendChild script.getElement()
 
+  @unloadAppScript = (app, callback = noop)->
+
+    $("head .internal-style-#{app.identifier}").remove()
+    $("head .internal-script-#{app.identifier}").remove()
+
+  @runExternalApp = (jApp, callback = noop)->
+
+    modal = new KDModalView
+      title          : "Run #{jApp.manifest.name}"
+      content        : """This is DANGEROUS!!! Do you want to continue?"""
+      height         : "auto"
+      # cssClass       : "new-kdmodal"
+      overlay        : yes
+      buttons        :
+        Run          :
+          style      : "modal-clean-red"
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          callback   : =>
+            {script, style} = jApp.urls
+
+            app = {
+              name : jApp.name
+              script, style
+              identifier : jApp.identifier
+            }
+
+            @putAppScript app, ->
+              KD.utils.defer ->
+                KD.singletons.router.handleRoute "/#{jApp.name}"
+                modal.destroy()
+              # KD.singletons.appManager.open app.name; modal.destroy()
+
+            log "READY", jApp
+        cancel       :
+          style      : "modal-cancel"
+          callback   : -> modal.destroy()
+
   ###
 
   @manifests = {}
