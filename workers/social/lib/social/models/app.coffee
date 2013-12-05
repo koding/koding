@@ -182,14 +182,65 @@ module.exports = class JApp extends jraphical.Module
           app.addCreator delegate, (err)->
             return callback err  if err
             callback null, app
+
+  fetchRelativeReviews: permit 'list reviews',
+
+    success: (client, {offset, limit, before, after}, callback)->
+
+      limit  ?= 10
+      offset ?= 0
+      if before? and after?
+        callback new KodingError "Don't use before and after together."
+      selector = timestamp:
+        if before? then  $lt: before
+        else if after? then $gt: after
+      options = {sort: timestamp: -1}
+      if limit > 0
+        options.limit = limit
+      if offset > 0
+        options.skip = offset
+      @fetchReviews selector, options, callback
+
+  review: permit 'create review',
+
+    success: (client, reviewData, callback)->
+
+      {delegate} = client.connection
+
+      review = new JReview body: reviewData
+      review.sign delegate
+      review.save (err)=>
+        return callback err  if err
+        delegate.addContent review, (err)=>
+          console.error 'JApp:', err  if err
+        @addReview review, (err, docs)=>
           return callback err  if err
-          slug = "#{app.authorNick}/#{app.name}"
-          app.useSlug slug, (err, slugobj)->
+          Relationship.count
+            sourceId : @getId()
+            as       : 'review'
+          , (err, count)=>
             return callback err  if err
-            slug = slugobj.slug
-            app.update {$set: {slug, slug_: slug}}, (err)->
+            @update $set: repliesCount: count, (err)=>
               return callback err  if err
-              callback null, app
+              callback null, review
+
+              @fetchCreator (err, origin)=>
+                return console.error "JApp:", err  if err
+                @emit 'ReviewIsAdded',
+                  origin        : origin
+                  subject       : ObjectRef(@).data
+                  actorType     : 'reviewer'
+                  actionType    : 'review'
+                  replier       : ObjectRef(delegate).data
+                  reply         : ObjectRef(review).data
+                  repliesCount  : count
+                  relationship  : docs[0]
+
+                @follow client, emitActivity: no, (err)->
+                  console.error "JApp:", err  if err
+                @addParticipant delegate, 'reviewer', (err)->
+                  console.error "JApp:", err  if err
+
 
   approve: permit 'approve apps',
 
