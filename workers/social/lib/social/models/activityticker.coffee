@@ -37,8 +37,6 @@ module.exports = class ActivityTicker extends Base
     else
       callback null, {source, target, as, timestamp}
 
-
-
   @fetch = secure (client, options = {}, callback) ->
     {connection: {delegate}} = client
 
