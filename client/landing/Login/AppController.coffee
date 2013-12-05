@@ -22,8 +22,10 @@ class LoginAppsController extends AppController
     hiddenHandle                : yes
     behavior                    : 'application'
     preCondition                :
-      condition                 : (options, cb)-> cb yes #not KD.isLoggedIn()
-      failure                   : -> KD.getSingleton('router').handleRoute "/Activity"
+      condition             : (options, cb)->
+        # return cb yes if KD.singleton('router').getCurrentPath() is '/Reset'
+        cb not KD.isLoggedIn()
+      failure               : -> KD.getSingleton('router').handleRoute "/Activity"
 
   constructor:(options = {}, data)->
 
