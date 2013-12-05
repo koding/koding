@@ -23,6 +23,9 @@ class ActivityTicker extends ActivityRightBase
     group.on "LikeIsAdded", @bound "addLike"
     group.on "FollowHappened", @bound "addFollow"
 
+    nc = KD.getSingleton("notificationController")
+    nc.on "ReplyIsAdded", @bound "addComment"
+
   addJoin: (data)->
     {member} = data
     return console.warn "member is not defined in new member event"  unless member
@@ -72,6 +75,30 @@ class ActivityTicker extends ActivityRightBase
 
           eventObj = {source, target, subject, as:"like"}
           @listController.addItem eventObj, 0
+  addComment: (data) ->
+    {origin, reply, subject, replier} = data
+    unless replier and origin and subject and reply
+      return console.warn "data is not valid"
+    #such a copy paste it is. could be handled better
+    {constructorName, id} = replier
+    KD.remote.cacheable constructorName, id, (err, source)=>
+      return console.log "account is not found", err, liker if err or not source
+
+      {_id:id} = origin
+      KD.remote.cacheable "JAccount", id, (err, target)=>
+        return console.log "account is not found", err, origin if err or not target
+
+        {constructorName, id} = subject
+        KD.remote.cacheable constructorName, id, (err, subject)=>
+          return console.log "subject is not found", err, data.subject if err or not subject
+
+          {constructorName, id} = reply
+          KD.remote.cacheable constructorName, id, (err, object)=>
+            return console.log "reply is not found", err, data.reply if err or not object
+
+            eventObj = {source, target, subject, object, as:"reply"}
+            @listController.addItem eventObj, 0
+
 
 
   load: ->
