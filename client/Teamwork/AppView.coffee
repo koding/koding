@@ -11,3 +11,7 @@ class TeamworkAppView extends KDView
       window.parent.postMessage "TeamworkReady", "*"
 
   handleQuery: (query) ->
+    unless @teamworkApp
+      @teamworkApp = new TeamworkApp
+        delegate  : this
+        query     : query
