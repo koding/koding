@@ -70,7 +70,6 @@ class ApplicationManager extends KDObject
       appParams            = options.params or {}
       appParams.label      = name
       defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
-      kodingAppsController = KD.getSingleton("kodingAppsController")
 
       # If app has a preCondition then first check condition in it
       # if it returns true then continue, otherwise call failure
@@ -98,11 +97,8 @@ class ApplicationManager extends KDObject
             return warn err  if err
             KD.utils.defer => @open name, options, callback
 
-        return @fetchManifests name, (err)=>
-          options.avoidRecursion = yes
-          unless err
-          then @open name, options, callback
-          else do defaultCallback
+        options.avoidRecursion = yes
+        return do defaultCallback
 
       appParams = options.params or {}
 
@@ -134,26 +130,6 @@ class ApplicationManager extends KDObject
 
   openFileWithApplication: (appName, file) ->
     @open appName, => @utils.defer => @getFrontApp().openFile file
-
-  fetchManifests:(appName, callback)->
-
-    KD.getSingleton("kodingAppsController").fetchApps (err, manifests)->
-      manifestsFetched = yes
-
-      return callback? yes  if err or not manifests
-
-      for own name, manifest of manifests when name is appName
-
-        err = no
-
-        manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
-        manifest.behavior   or= "application"
-        manifest.navItem      = title : "Develop"
-        manifest.thirdParty  ?= yes
-
-        KD.registerAppClass KodingAppController, manifest
-
-      callback?()
 
   promptOpenFileWith:(file)->
     finderController = KD.getSingleton "finderController"
@@ -203,12 +179,6 @@ class ApplicationManager extends KDObject
     appOptions            = $.extend {}, true, KD.getAppOptions name
     appOptions.params     = params
     @register appInstance = new AppClass appOptions  if AppClass
-
-    if appOptions.thirdParty
-      if KD.getSingleton("kodingAppsController").hasForceUpdate appInstance
-        @emit "AppCouldntBeCreated", appInstance
-        @utils.defer => @quitByName appOptions.name, yes
-        return no
 
     log 'AppManager: opening an app', name
     if @isAppAvailable name
@@ -403,7 +373,6 @@ class ApplicationManager extends KDObject
       duration  : 2500
 
   handleAppNotFound: ->
-    KD.getSingleton("router").handleRoute "/Develop"
     new KDNotificationView
       title    : "You don't have this app installed!"
       type     : "mini"
