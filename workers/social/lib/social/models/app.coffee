@@ -241,22 +241,49 @@ module.exports = class JApp extends jraphical.Module
                 @addParticipant delegate, 'reviewer', (err)->
                   console.error "JApp:", err  if err
 
+  getDefaultSelector = (client, selector)->
+    {delegate}   = client.connection
+    selector   or= {}
+    selector.$or = [
+      {approved  : yes}
+      {originId  : delegate.getId()}
+    ]
+    return selector
 
-  approve: permit 'approve apps',
+  @some$ = @someWithRelationship
+  @someWithRelationship: permit 'list apps',
 
-    success: (client, state = yes, callback)->
+    success: (client, selector, options, callback)->
 
-      unless state
-        return @update approved: no, callback
+      selector  = getDefaultSelector client, selector
+      console.log "SOME CALLED", selector
+      options or= {}
+      options.limit = Math.min(options.limit or 0, 10)
 
-      identifier = @getAt 'identifier'
+      @some selector, options, callback
 
-      JApp.count {identifier, approved:yes}, (count)=>
+  @one$ = permit 'list apps',
 
-        # Check if any app used same identifier and already approved
-        if count > 1
-          return callback new KodingError \
-                 'Identifier already in use, please change it first'
+    success: (client, selector, options, callback)->
+
+      # selector = getDefaultSelector client, selector
+      [options, callback] = [callback, options] unless callback
+
+      @one selector, options, callback
+
+  @each$: permit 'list apps',
+
+    success: (client, selector, fields, options, callback)->
+
+      selector = getDefaultSelector client, selector
+      @each selector, fields, options, callback
+
+  delete: permit
+    advanced: [
+      { permission: 'delete own apps', validateWith: Validators.own }
+      { permission: 'delete apps' }
+    ]
+    success: (client, callback)-> @remove callback
 
 
   # approve: permit 'approve apps',
