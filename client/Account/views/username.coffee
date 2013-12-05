@@ -60,6 +60,7 @@ class AccountEditUsername extends JView
 
     {email, password, confirmPassword, firstName, lastName, username} = formData
 
+    profileUpdated = yes
     queue = [
       =>
         # update firstname and lastname
@@ -92,25 +93,36 @@ class AccountEditUsername extends JView
         # check for password confirmation
         return  notify "Passwords did not match" if password isnt confirmPassword
         # if password is empty than discard operation
-        return queue.next() if password is ""
+        if password is ""
+          query = KD.utils.parseQuery()
+          if query.token
+            profileUpdated = no
+            notify "You should set your password"
+          return queue.next()
 
         KD.remote.api.JUser.changePassword password, (err,docs)=>
-          log "arguments"
-          log arguments
           if err
             return queue.next()  if err.message is "PasswordIsSame"
             return  notify err.message
           return queue.next()
       =>
         # if everything is OK or didnt change, show profile updated modal
-        notify "Profile Updated"
+        notify "Profile Updated" if profileUpdated
     ]
     daisy queue
 
 
   viewAppended:->
+    {JPasswordRecovery, JUser} = KD.remote.api
+    query = KD.utils.parseQuery()
+    if token = query.token
+      JPasswordRecovery.validate token, (err, isValid)=>
+        if err
+          notify err.message
+        else if isValid
+          notify "Thanks for confirming your email address"
 
-    KD.remote.api.JUser.fetchUser (err,user)=>
+    JUser.fetchUser (err,user)=>
 
       @user    = user
 
