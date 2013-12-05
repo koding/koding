@@ -5,9 +5,11 @@ class AppsAppController extends AppController
   KD.registerAppClass this,
     name         : "Apps"
     routes       :
-      "/:name?/Apps"             : handler
+      "/:name?/Apps"             : ({params, query})->
+        handler (app)-> app.handleQuery query
       "/:name?/Apps/:lala/:app?" : (arg)-> handler (app)-> app.handleRoute arg
     hiddenHandle : yes
+    behaviour    : 'application'
     version      : "1.0"
     navItem      :
       title      : "Apps"
@@ -22,8 +24,6 @@ class AppsAppController extends AppController
       name          : 'Apps'
 
     super options, data
-
-    @on "LazyLoadThresholdReached", => @feedController.loadFeed()
 
   loadView:(mainView)->
 
@@ -43,45 +43,37 @@ class AppsAppController extends AppController
           title             : "All Apps"
           noItemFoundText   : "There is no application yet"
           dataSource        : (selector, options, callback)=>
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
-        updates             :
-          title             : "Updates"
-          noItemFoundText   : "No updates available"
-          dataSource        : (selector, options, callback)=>
-            if @appsController.publishedApps
-              return @putUpdateAvailableApps callback
-            @appsController.on "UserAppModelsFetched", =>
-              @putUpdateAvailableApps callback
+            KD.remote.api.JApp.some selector, options, callback
         webApps             :
           title             : "Web Apps"
-          noItemFoundText   : "There are no web apps yet"
+          noItemFoundText   : "There is no web apps yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'web-app'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.some selector, options, callback
         kodingAddOns        :
           title             : "Add-ons"
-          noItemFoundText   : "There are no add-ons yet"
+          noItemFoundText   : "There is no add-ons yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'add-on'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.some selector, options, callback
         serverStacks        :
           title             : "Server Stacks"
-          noItemFoundText   : "There are no server-stacks yet"
+          noItemFoundText   : "There is no server-stacks yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'server-stack'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.some selector, options, callback
         frameworks          :
           title             : "Frameworks"
-          noItemFoundText   : "There are no frameworks yet"
+          noItemFoundText   : "There is no frameworks yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'framework'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.some selector, options, callback
         miscellaneous       :
           title             : "Miscellaneous"
-          noItemFoundText   : "There are no miscellaneous app yet"
+          noItemFoundText   : "There is no miscellaneous app yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'misc'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.some selector, options, callback
 
       sort                  :
         'meta.modifiedAt'   :
@@ -93,6 +85,7 @@ class AppsAppController extends AppController
         'counts.tagged'     :
           title             : "Most activity"
           direction         : -1
+
       help                  :
         subtitle            : "Learn About Apps"
         bookIndex           : 26
@@ -108,15 +101,17 @@ class AppsAppController extends AppController
       options.filter.waitsForApprove =
         title             : "New Apps"
         dataSource        : (selector, options, callback)=>
-          selector.approved = no
-          KD.remote.api.JApp.someWithRelationship selector, options, callback
+          KD.remote.api.JApp.some_ selector, options, callback
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
 
       view.addSubView controller.getView()
       @feedController = controller
-      @feedController.loadFeed()
       @emit 'ready'
+
+  handleQuery:(query)->
+    @ready =>
+      @feedController.handleQuery query
 
   handleRoute:(route)->
 
