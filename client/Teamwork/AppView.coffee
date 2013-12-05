@@ -11,19 +11,3 @@ class TeamworkAppView extends KDView
       window.parent.postMessage "TeamworkReady", "*"
 
   handleQuery: (query) ->
-    teamworkApp = new TeamworkApp
-      delegate  : this
-      query     : query
-
-    # if query.import
-    #   teamworkApp = new TeamworkApp
-    #   {teamwork}  = teamworkApp
-    #   @addSubView teamwork
-    #   teamwork.on "WorkspaceSyncedWithRemote", =>
-    #     teamworkApp.showImportWarning query.import
-    # else if query.playground
-    #   teamworkApp = new TeamworkApp playground: query.playground
-    #   @addSubView teamworkApp.teamwork
-    # else
-    #   teamworkApp = new TeamworkApp sessionKey: query.sessionKey
-    #   @addSubView teamworkApp.teamwork
