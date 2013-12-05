@@ -242,8 +242,24 @@ span.collapsedtext
       content     '#'
 
 
-  .activity-settings-menu
-    fr()
+  .kdbuttonwithmenu-wrapper.activity-settings-menu
+    abs()
+    top                 8px
+    right               11px
+    size                21px 21px
+    padding             0
+    button.kdbutton
+      size              21px 21px
+      bg                color transparent
+      border            none
+      padding           0
+      padding-right     0 !important
+      span.icon
+        hidden()
+    .chevron-separator
+      hidden()
+    .chevron
+      sprite    activity chevron-icon
 
   .author-avatar
     display       block
