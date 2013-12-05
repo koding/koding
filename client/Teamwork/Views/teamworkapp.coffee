@@ -34,7 +34,7 @@ class TeamworkApp extends KDObject
       firebase = new Firebase "https://#{instanceName}.firebaseIO.com/"
       firebase.child(sessionKey).once "value", (snapshot) =>
         val = snapshot.val()
-        if val.playground
+        if val?.playground
           @setOption "playgroundManifest", val.playgroundManifest
           @setOption "playground", val.playground
           options = @mergePlaygroundOptions val.playgroundManifest, val.playground
