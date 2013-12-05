@@ -50,6 +50,7 @@ config =
     projectRoot   : 1
     version       : 1
     webserver     :
+      useCacheHeader: 1
       login       : 1
       port        : []
       clusterSize : 1
