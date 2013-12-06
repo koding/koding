@@ -112,31 +112,49 @@ class MainController extends KDController
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
         location.reload()
 
-    # async clientId change checking procedures causes
-    # race conditions between window reloading and post-login callbacks
-    @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
-      cookieExists = cookie?
-      cookieMatches = cookie is ($.cookie 'clientId')
-      cookie = $.cookie 'clientId'
-      if cookieExists and not cookieMatches
-        return @isLoggingIn off  if @isLoggingIn() is on
+    # # async clientId change checking procedures causes
+    # # race conditions between window reloading and post-login callbacks
+    # @utils.repeat 3000, do (cookie = $.cookie 'clientId') => =>
+    #   cookieExists = cookie?
+    #   cookieMatches = cookie is ($.cookie 'clientId')
+    #   cookie = $.cookie 'clientId'
+    #   if cookieExists and not cookieMatches
+    #     return @isLoggingIn off  if @isLoggingIn() is on
 
-        window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
-        @emit "clientIdChanged"
+    #     window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
+    #     @emit "clientIdChanged"
 
-        # window location path is set to last route to ensure visitor is not
-        # redirected to another page
-        @utils.defer ->
-          firstRoute = KD.getSingleton("router").visitedRoutes.first
+    #     # window location path is set to last route to ensure visitor is not
+    #     # redirected to another page
+    #     @utils.defer ->
+    #       firstRoute = KD.getSingleton("router").visitedRoutes.first
 
-          if firstRoute and /^\/Verify/.test firstRoute
-            firstRoute = "/"
+    #       if firstRoute and /^\/Verify/.test firstRoute
+    #         firstRoute = "/"
 
-          window.location.pathname = firstRoute or "/"
+    #       window.location.pathname = firstRoute or "/"
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
+
+  handleLogin: (credentials, callback) ->
+    { JUser } = KD.remote.api
+
+    @isLoggingIn on
+    
+    credentials.username = credentials.username.toLowerCase().trim()
+    
+    JUser.login credentials, (err, params) =>
+      return callback err  if err
+
+      { account, replacementToken } = params
+
+      $.cookie 'clientId', replacementToken  if replacementToken
+
+      @accountChanged account
+
+      @once 'AccountChanged', -> KD.utils.defer -> callback null, params
 
   isUserLoggedIn: -> KD.isLoggedIn()
 

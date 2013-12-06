@@ -134,7 +134,6 @@ class LoginView extends KDView
       cssClass : "login-form"
       testPath : "login-form"
       callback : (formData)=>
-        formData.clientId = $.cookie('clientId')
         @doLogin formData
 
     @registerForm = new RegisterInlineForm
@@ -164,7 +163,6 @@ class LoginView extends KDView
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
       callback : (formData)=>
-        formData.clientId = $.cookie('clientId')
         @doReset formData
 
     @headBanner = new KDCustomHTMLView
@@ -250,12 +248,12 @@ class LoginView extends KDView
     </footer>
     """
 
-  doReset:({recoveryToken, password, clientId})->
+  doReset:({recoveryToken, password})->
     KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
       @resetForm.button.hideLoader()
       @resetForm.reset()
       @headBanner.hide()
-      @doLogin {username, password, clientId}
+      @doLogin {username, password}
 
   doRecover:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
@@ -332,10 +330,8 @@ class LoginView extends KDView
         , 1000
 
   doLogin:(credentials)->
-    (KD.getSingleton 'mainController').isLoggingIn on
-    credentials.username = credentials.username.toLowerCase().trim()
-    KD.remote.api.JUser.login credentials, @bound 'afterLoginCallback'
-
+    (KD.getSingleton 'mainController').handleLogin credentials, @bound 'afterLoginCallback'
+    
   runExternal = (token)->
     KD.getSingleton("kiteController").run
       kiteName        : "externals"
@@ -355,11 +351,9 @@ class LoginView extends KDView
       showError err
       @loginForm.resetDecoration()
     else
-      {account, replacementToken} = params
-      $.cookie 'clientId', replacementToken  if replacementToken
+      {account} = params
       mainController = KD.getSingleton('mainController')
       mainView       = mainController.mainViewController.getView()
-      mainController.accountChanged account
       mainView.show()
       mainView.$().css "opacity", 1
 
