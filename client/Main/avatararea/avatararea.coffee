@@ -21,6 +21,13 @@ class AvatarArea extends KDCustomHTMLView
 
     @profileLink = new ProfileLinkView {}, account
 
+    @location     = new KDCustomHTMLView
+      testPath    : "profile-location"
+      pistachio   : "{{#(locationTags) or 'Earth'}}"
+      cssClass    : "location"
+      delegate    : this
+      , account
+
     @groupSwitcherPopup = new AvatarPopupGroupSwitcher
       cssClass : "group-switcher"
 
@@ -53,7 +60,7 @@ class AvatarArea extends KDCustomHTMLView
     {{> @avatar}}
     <section>
       <h2>{{> @profileLink}}</h2>
-      <h3>Designer</h3>
+      <h3>{{> @location}}</h3>
       {{> @groupsSwitcherIcon}}
     </section>
     """
