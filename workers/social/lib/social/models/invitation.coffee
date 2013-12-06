@@ -27,7 +27,7 @@ module.exports = class JInvitation extends jraphical.Module
     sharedMethods   :
       instance      : ['modifyMultiuse', 'remove']
       static        : ['inviteFriend', 'byCode', 'suggestCode', 'createMultiuse',
-                       'createBetaUse']
+                       'createForBetaUse']
     sharedEvents    :
       static        : []
       instance      : []
@@ -215,7 +215,7 @@ module.exports = class JInvitation extends jraphical.Module
             return callback err  if err
             groupObj.addInvitation invite, callback
 
-  @createBetaUse = permit 'send invitations',
+  @createForBetaUse = permit 'send invitations',
     success: ({connection:{delegate}}, username, callback)->
       JUser = require './user'
       JUser.one {username}, (err, user)=>
@@ -224,13 +224,13 @@ module.exports = class JInvitation extends jraphical.Module
         {email} = user
         code    = @generateInvitationCode "group", email, "resurrection"
         invite  = new JInvitation {
-          username
           code
           email
-          maxUses : 100
-          group   : "resurrection"
-          type    : "multiuse"
-          origin  : ObjectRef(delegate)
+          type       : "multiuse"
+          group      : "resurrection"
+          origin     : ObjectRef(delegate)
+          maxUses    : 100
+          createdFor : username
         }
         invite.save callback
 
