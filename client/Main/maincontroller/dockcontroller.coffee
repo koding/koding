@@ -89,25 +89,34 @@ class DockController extends KDViewController
 
   addItem:(item)->
 
-    KD.registerNavItem item
-    KD.setNavItems KD.getNavItems()
-
+    if KD.registerNavItem item
+      @navController.addItem item
 
   removeItem:(item)->
 
     return unless index = KD.getNavItems().indexOf item > -1
     KD.getNavItems().splice index, 1
 
-
   accountChanged:->
 
     @navController.reset()
 
-  setNavItemState:({name, navItem}, state)->
-    navItem or={}
+  setNavItemState:({name, route, options}, state)->
+
+    options or= {}
+    route   or= options.navItem?.path or '-'
+
     for nav in @navController.itemsOrdered
-      if nav.name is name or ///^#{navItem.path}///.test nav.data.path
+      if nav.name is name or ///^#{route}///.test nav.data.path
         nav.setState state
+        hasNav = yes
+
+    unless hasNav
+
+      unless name in ['Finder', 'Feeder']
+        @addItem { title : name,  path : "/#{name}", \
+                   order : 60 + KD.utils.uniqueId(), type :"" }
+        @setNavItemState {name}, 'running'
 
   loadView:(dock)->
 
@@ -121,10 +130,10 @@ class DockController extends KDViewController
       kodingAppsController.on "LoadingAppScript", (name)=>
         @setNavItemState {name}, 'loading'
 
-      appManager.on "AppRegistered", (name, {navItem}) =>
-        @setNavItemState {name, navItem}, 'running'
+      appManager.on "AppRegistered", (name, options) =>
+        @setNavItemState {name, options}, 'running'
 
-      appManager.on "AppUnregistered", (name, {navItem}) =>
-        @setNavItemState {name, navItem}, 'initial'
+      appManager.on "AppUnregistered", (name, options) =>
+        @setNavItemState {name, options}, 'initial'
 
 

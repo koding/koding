@@ -27,7 +27,7 @@ class KodingAppsController extends KDController
       warn "#{name} is already imported"
       return callback null
 
-    KD.singletons.dock.setNavItemState {name}, 'loading'
+    KD.singletons.dock.setNavItemState {name, route:"/#{name}" }, 'loading'
 
     app = KD.config.apps[name]
     @putAppScript app, callback

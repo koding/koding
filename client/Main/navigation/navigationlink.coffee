@@ -17,6 +17,14 @@ class NavigationLink extends KDListItemView
 
     @name = data.title
 
+    @icon = new KDCustomHTMLView
+      cssClass : 'fake-icon'
+      partial  : "<span class='logo'>#{@name[0]}</span>"
+    @icon.setCss 'backgroundColor', KD.utils.getColorFromString @name
+
+    @icon.hide()  if @name in ['Activity', 'Topics', 'Terminal', \
+                               'Editor', 'Apps', 'Teamwork', 'Finder']
+
     @on "DragStarted", @bound 'dragStarted'
 
     @on "DragInAction", @bound 'dragInAction'
@@ -45,8 +53,14 @@ class NavigationLink extends KDListItemView
       topLevel  : topLevel
       navItem   : this
 
-  partial:(data)->
-    "<span class='icon'></span><cite>#{data.title}</cite>"
+  viewAppended: JView::viewAppended
+
+  pistachio:->
+    """
+      {{> @icon}}
+      <span class='icon'></span>
+      <cite>#{@name}</cite>
+    """
 
   dragInAction: (x, y)->
     # log x, y
