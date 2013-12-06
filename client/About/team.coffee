@@ -62,39 +62,39 @@ KD.extend
 
     suspended     : [
 
-        username  : 'aleksey-m'
-        title     : 'Sys Admin &amp; node.js Developer'
-      ,
-        username  : 'meelash'
-        title     : 'Software Engineer'
-      ,
-        username  : 'rgoodman'
-        title     : 'Designer'
-      ,
-        username  : 'sntran'
-        title     : 'Software Engineer'
-      ,
-        username  : 'arvidkahl'
-        title     : 'Software Engineer'
-      ,
-        username  : 'neelance'
-        title     : 'Software Engineer'
-      ,
-        username  : 'blum'
-        title     : 'System Administrator'
-      ,
-        username  : 'bahadir'
-        title     : 'Software Engineer'
-      ,
-        username  : 'fkadev'
-        title     : 'Software Engineer'
-      ,
-        username  : 'armagan'
-        title     : 'Software Engineer'
-      ,
-        username  : 'halk'
-        title     : 'Software Engineer'
-      ,
-        username  : 'bacon'
-        title     : 'XEO &amp; Office Manager'
+      #   username  : 'aleksey-m'
+      #   title     : 'Sys Admin &amp; node.js Developer'
+      # ,
+      #   username  : 'meelash'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'rgoodman'
+      #   title     : 'Designer'
+      # ,
+      #   username  : 'sntran'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'arvidkahl'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'neelance'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'blum'
+      #   title     : 'System Administrator'
+      # ,
+      #   username  : 'bahadir'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'fkadev'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'armagan'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'halk'
+      #   title     : 'Software Engineer'
+      # ,
+      #   username  : 'bacon'
+      #   title     : 'XEO &amp; Office Manager'
       ]
