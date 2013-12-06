@@ -3,7 +3,7 @@ class FollowBucketItemView extends KDView
   cssClassMap = ->
     JTag      : "topic"
     JAccount  : "account"
-    JApp      : "application" # We can use this in style
+    JNewApp      : "application" # We can use this in style
 
   constructor:(options = {}, data)->
 
@@ -13,7 +13,7 @@ class FollowBucketItemView extends KDView
 
     @action = "followed"
 
-    if data.group[0]?.constructorName is "JApp"
+    if data.group[0]?.constructorName is "JNewApp"
       @action = "installed"
 
     @anchor = new ProfileLinkView origin: data.anchor
@@ -21,7 +21,7 @@ class FollowBucketItemView extends KDView
     @group = new LinkGroup
       group         : data.group
       itemClass     : options.subItemLinkClass
-      separator     : if data.sourceName in ['JApp', 'JTag'] then ' ' else ', '
+      separator     : if data.sourceName in ['JNewApp', 'JTag'] then ' ' else ', '
 
   pistachio:->
     """

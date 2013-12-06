@@ -375,11 +375,11 @@ class KodingAppsController extends KDController
     # return unless KD.isLoggedIn()
     appNames = (appName for own appName, manifest of @getManifests()) or []
     query    = "manifest.name": "$in": appNames
-    {JApp}   = KD.remote.api
-    JApp.fetchAllAppsData query, (err, apps)=>
+    {JNewApp}   = KD.remote.api
+    JNewApp.fetchAllAppsData query, (err, apps)=>
       @publishedApps = map = {}
       apps?.forEach (app) =>
-        map[app.manifest.name] = new JApp app
+        map[app.manifest.name] = new JNewApp app
       @emit "UserAppModelsFetched", map
       callback? map
 
@@ -421,7 +421,7 @@ class KodingAppsController extends KDController
         return no
       @refreshApps =>
         @notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
-        KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
+        KD.remote.api.JNewApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
           @notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
           @installApp app[0], app[0].versions.last, =>
             @refreshApps()
@@ -535,7 +535,7 @@ class KodingAppsController extends KDController
             callback?()
 
   createApp:(formData, callback)->
-    KD.remote.api.JApp.create formData, (err, app)->
+    KD.remote.api.JNewApp.create formData, (err, app)->
       callback? err, app
 
   compileApp:(name, callback)->

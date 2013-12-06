@@ -1,6 +1,6 @@
 {dash}  = require 'bongo'
 JTag    = require '../models/tag'
-JApp    = require '../models/app'
+JNewApp    = require '../models/app'
 
 localPrefetchedFeeds = {}
 
@@ -47,7 +47,7 @@ module.exports = (options={}, callback)->
 
   # This is not koding specific so we can return this to every group
   # queue.push ->
-  #   JApp.some {"approved": true}, defaultOptions, (err, apps)->
+  #   JNewApp.some {"approved": true}, defaultOptions, (err, apps)->
   #     localPrefetchedFeeds['apps.main'] = apps  if apps
   #     queue.fin()
 
