@@ -29,7 +29,7 @@
 "Applications/Activity.kdapplication/views/activityinnernavigation.coffee",
 "Applications/Activity.kdapplication/views/activitylistheader.coffee",
 "Applications/Activity.kdapplication/views/activitysplitview.coffee",
-"Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee",
+"Applications/Activity.kdapplication/views/CommonInnerNavigationListItem.coffee",
 "Applications/Activity.kdapplication/views/activityitemchild.coffee",
 "Applications/Activity.kdapplication/views/discussionactivityactions.coffee",
 "Applications/Activity.kdapplication/views/tutorialactivityactions.coffee",

@@ -61,13 +61,13 @@ class GroupCreationModal extends KDModalView
     loader.show()
 
     vmController = KD.getSingleton('vmController')
-    vmController.fetchVMPlans (err, plans)=>
+    vmController.fetchVMPlans (err, plans) =>
 
       loader.destroy()
       @buttons.next.show()
 
       @plans = plans
-      {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
+      { descriptions, hostTypes } = vmController.sanitizeVMPlansForInputs plans
 
       @addSubView @typeSelector = new KDFormViewWithFields
         cssClass         : "type-selector"
@@ -268,7 +268,7 @@ class GroupCreationModal extends KDModalView
       desc.hide()
 
     # index      = parseInt selector.getValue(), 10
-    # monthlyFee = (@plans[index].feeMonthly/100).toFixed(2)
+    # monthlyFee = (@plans[index].feeAmount / 100).toFixed(2)
     index      = 0
 
     next.show()
@@ -337,8 +337,8 @@ class GroupCreationModal extends KDModalView
 
     if formData["shared-vm"]
       formData.payment =
-        # plan: @plans[formData.host].code
-        plan: @plans[0].code
+        # plan: @plans[formData.host].planCode
+        plan: @plans[0].planCode
 
     log "form for group creation submitted", formData
 

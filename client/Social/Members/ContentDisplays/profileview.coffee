@@ -456,7 +456,7 @@ class ProfileView extends JView
       @followButton = new KDCustomHTMLView
     else
       @followButton = new MemberFollowToggleButton
-        style : "kdwhitebtn profilefollowbtn"
+        style : "solid green"
       , @memberData
 
     for route in ['followers', 'following', 'likes']

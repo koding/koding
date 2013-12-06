@@ -4,12 +4,12 @@ import (
 	"koding/db/mongodb"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 func init() {
 	registerAnalytic(numberOfAccounts)
 	registerAnalytic(numberOfUsersWhoLinkedOauth)
+	registerAnalytic(numberOfUsersWhoLinkedOauthGithub)
 	registerAnalytic(numberOfReferrableEmails)
 	registerAnalytic(numberOfInvitesSent)
 	registerAnalytic(numberOfUsersWhoJoinedToday)
@@ -44,6 +44,21 @@ func numberOfUsersWhoLinkedOauth() (string, int) {
 	var err error
 	var query = func(c *mgo.Collection) error {
 		count, err = c.Find(bson.M{"foreignAuth": bson.M{"$exists": true}}).Count()
+
+		return err
+	}
+
+	mongodb.Run("jUsers", query)
+
+	return identifier, count
+}
+
+func numberOfUsersWhoLinkedOauthGithub() (string, int) {
+	var identifier string = "number_of_users_who_linked_github"
+	var count int
+	var err error
+	var query = func(c *mgo.Collection) error {
+		count, err = c.Find(bson.M{"foreignAuth.github": bson.M{"$exists": true}}).Count()
 
 		return err
 	}
@@ -170,9 +185,4 @@ func numberOfGuestAccounts() (string, int) {
 	mongodb.Run("jAccounts", query)
 
 	return identifier, count
-}
-
-func getTodayDate() time.Time {
-	year, month, day := time.Now().Date()
-	return time.Date(year, month, day, 0, 0, 0, 0, time.Local)
 }

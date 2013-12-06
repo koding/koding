@@ -2,6 +2,8 @@ class AdminModal extends KDModalViewWithForms
 
   constructor : (options = {}, data) ->
 
+    return  unless KD.checkFlag 'super-admin'
+
     options =
       title                   : "Admin panel"
       content                 : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
@@ -29,7 +31,8 @@ class AdminModal extends KDModalViewWithForms
                     flags    = (flag.trim() for flag in inputs.Flags.getValue().split ",")
                     account.updateFlags flags, (err)->
                       error err if err
-                      new KDNotificationView {title: "Done!"}
+                      new KDNotificationView
+                        title: if err then "Failed!" else "Done!"
                       buttons.Update.hideLoader()
                   else
                     new KDNotificationView {title : "Select a user first"}

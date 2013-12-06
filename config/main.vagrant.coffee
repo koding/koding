@@ -24,6 +24,7 @@ module.exports =
   projectRoot   : projectRoot
   version       : version
   webserver     :
+    useCacheHeader: no
     login       : 'prod-webserver'
     port        : 3020
     clusterSize : 1
@@ -43,7 +44,7 @@ module.exports =
   runKontrol    : no
   runRerouting  : yes
   runUserPresence: yes
-  runPersistence: yes
+  runPersistence: no
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
@@ -76,7 +77,7 @@ module.exports =
     numberOfWorkers: 1
     watch       : yes
   emailConfirmationCheckerWorker :
-    enabled              : yes
+    enabled              : no
     login                : 'prod-social'
     queueName            : socialQueueName+'emailConfirmationCheckerWorker'
     numberOfWorkers      : 1
@@ -134,6 +135,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      activityFetchCount : 50
       precompiledApi: no
       authExchange: authExchange
       github         :
@@ -157,6 +159,7 @@ module.exports =
       newkontrol:
         host    : '127.0.0.1'
         port    : 4000
+      fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
           nicename      : 'GitHub'
@@ -233,6 +236,7 @@ module.exports =
   newkontrol      :
     host          : "127.0.0.1"
     port          : 4000
+  etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
     overview      :

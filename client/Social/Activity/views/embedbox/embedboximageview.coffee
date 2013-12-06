@@ -5,24 +5,21 @@ class EmbedBoxImageView extends JView
 
     oembed = @getData().link_embed
 
-    srcUrl = @utils.proxifyUrl oembed.images?[0]?.url, width: 341, height: 291
+    srcUrl = @utils.proxifyUrl oembed.images?[0]?.url, width: 728, height: 368, grow: yes, crop: yes
 
     @image  = new KDCustomHTMLView
       tagName     : 'img'
       attributes  :
         src       : srcUrl
         title     : oembed.title or ''
+        width     : "100%"
+
+    @setClass "embed-image-view"
 
   pistachio:->
     { link_url } = @getData()
     """
-    <div class="embed embed-image-view custom-image clearfix">
-      <a href="#{link_url or '#'}" target="_blank">
-        {{> @image}}
-      </a>
-      <div class="details">
-        {strong{ #(link_embed.provider_name)}}
-        <a href="#{link_url}" target="_blank" class="url">#{link_url}</span>
-      </div>
-    </div>
+    <a href="#{link_url or '#'}" target="_blank">
+      {{> @image}}
+    </a>
     """

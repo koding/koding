@@ -28,11 +28,11 @@ class AccountEmailNotifications extends KDView
       groupLeft        :
         title          : 'When someone leaves your group'
 
-    globalValue = if user.getAt("emailFrequency.global") is on then 'ON' else 'OFF'
+    globalValue = user.getAt "emailFrequency.global"
 
     turnedOffHint = new KDCustomHTMLView
       partial : "Email notifications are turned off. You won't receive any emails about anything."
-      cssClass: "no-item-found #{if globalValue is 'ON' then 'hidden'}"
+      cssClass: "no-item-found #{if globalValue then 'hidden'}"
 
     @addSubView turnedOffHint
 
@@ -40,9 +40,7 @@ class AccountEmailNotifications extends KDView
       cssClass      : "dark in-account-header"
       defaultValue  : globalValue
       callback      : (state)=>
-        stateValue = if state is 'ON' then on else off
-
-        account.setEmailPreferences global: stateValue, (err)=>
+        account.setEmailPreferences global: state, (err)=>
           if err
             global.oldValue = globalValue
             global.fallBackToOldState()
@@ -62,9 +60,8 @@ class AccountEmailNotifications extends KDView
 
       field.formView.addSubView field.switch = new KodingSwitch
         cssClass      : 'dark'
-        defaultValue  : if field.current is on then 'ON' else 'OFF'
+        defaultValue  : field.current
         callback      : (state)->
-          state = if state is 'ON' then on else off
           prefs = {}
 
           prefs[@getData()] = state
@@ -87,7 +84,7 @@ class AccountEmailNotifications extends KDView
 
     toggleFieldStates = (state)->
       for own flag, field of fields
-        if state is 'OFF'
+        if state is off
           field.formView.hide()
         else
           field.formView.show()
@@ -96,6 +93,6 @@ class AccountEmailNotifications extends KDView
 
     @on 'GlobalStateChanged', (state)=>
       toggleFieldStates state
-      if state is 'OFF'
+      if state is off
       then turnedOffHint.show()
       else turnedOffHint.hide()

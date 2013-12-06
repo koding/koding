@@ -1,5 +1,15 @@
 __utils.extend __utils,
 
+  getPaymentMethodTitle: (billing)->
+    # for convenience, accept either the payment method, or the billing object
+    { billing } = billing  if billing.billing?
+
+    { cardFirstName, cardLastName, cardType, cardNumber } = billing
+
+    """
+    #{ cardFirstName } #{ cardLastName } (#{ cardType } #{ cardNumber })
+    """
+
   botchedUrlRegExp: /(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g
 
   webProtocolRegExp: /^((http(s)?\:)?\/\/)/
@@ -8,6 +18,7 @@ __utils.extend __utils,
 
     options.width   or= -1
     options.height  or= -1
+    options.grow    or= yes
 
     if url is ""
       return "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
@@ -16,7 +27,7 @@ __utils.extend __utils,
       endpoint = "/resize"
     if options.crop
       endpoint = "/crop"
-    return "https://i.embed.ly/1/display#{endpoint or ''}?grow=false&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
+    return "https://i.embed.ly/1/display#{endpoint or ''}?grow=#{options.grow}&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
 
   showMoreClickHandler:(event)->
     $trg = $(event.target)
@@ -494,3 +505,5 @@ __utils.extend __utils,
       else
         log "Unhandled content type '#{type}'"
         return 'error'
+
+  formatMoney: accounting.formatMoney

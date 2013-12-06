@@ -22,23 +22,17 @@ class ActivityAppView extends KDScrollView
 
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
-    @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
     @header           = new HomeKonstructor
-    @inputWrapper     = new ActivityInput
-    @rightBlock       = new ActivityTicker
+    @inputWidget      = new ActivityInputWidget
+    @activityTicker   = new ActivityTicker
+    @activeUsers      = new ActiveUsers
+    @activeTopics     = new ActiveTopics
     @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
+    @rightBlock       = new KDCustomHTMLView cssClass : "activity-right-block"
+
     @mainController   = KD.getSingleton("mainController")
-
-    @inputWrapper.addSubView new KDButtonView
-      type     : "submit"
-      cssClass : "fr"
-      title    : "Submit"
-      callback : =>
-        @inputWrapper.submit (err, activity) =>
-          @emit "InputSubmitted", activity  unless err
-
     @mainController.on "AccountChanged", @bound "decorate"
-    @mainController.on "JoinedGroup", => @inputWrapper.show()
+    @mainController.on "JoinedGroup", => @inputWidget.show()
 
     @header.bindTransitionEnd()
 
@@ -62,12 +56,15 @@ class ActivityAppView extends KDScrollView
 
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
     @addSubView @header
-    @addSubView @innerNav
     @addSubView @leftBlock
     @addSubView @rightBlock
 
-    @leftBlock.addSubView @inputWrapper
+    @leftBlock.addSubView @inputWidget
     @leftBlock.addSubView @feedWrapper
+
+    @rightBlock.addSubView @activityTicker
+    @rightBlock.addSubView @activeUsers
+    @rightBlock.addSubView @activeTopics
 
   decorate:->
     @unsetClass "guest"
@@ -76,12 +73,19 @@ class ActivityAppView extends KDScrollView
     # if KD.isLoggedIn()
     @setClass 'loggedin'
     if entryPoint?.type is 'group' and 'member' not in roles
-    then @inputWrapper.hide()
-    else @inputWrapper.show()
+    then @inputWidget.hide()
+    else @inputWidget.show()
     # else
     #   @unsetClass 'loggedin'
-    #   @inputWrapper.hide()
+    #   @inputWidget.hide()
     @_windowDidResize()
+
+  setTopicTag: (slug = "") ->
+    KD.remote.api.JTag.one {slug}, null, (err, tag) =>
+      @inputWidget.input.setDefaultTokens tags: [tag]
+
+  unsetTopicTag: ->
+    @inputWidget.input.setDefaultTokens tags: []
 
   # changePageToActivity:(event)->
 
@@ -112,12 +116,6 @@ class ActivityAppView extends KDScrollView
   #         @header.$().css marginTop : -headerHeight
   #       else
   #         @scrollTo {duration : 300, top : @header.getHeight()}
-
-  _windowDidResize:->
-    return unless @header
-    headerHeight = @header.getHeight()
-    @innerNav.setHeight @getHeight() - 77 # (if KD.isLoggedIn() then 77 else 0)
-
 
 
 class ActivityListContainer extends JView

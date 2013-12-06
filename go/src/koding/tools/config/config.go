@@ -67,6 +67,10 @@ type Config struct {
 		Host string
 		Port int
 	}
+	Etcd []struct {
+		Host string
+		Port int
+	}
 	Kontrold struct {
 		Vhost    string
 		Overview struct {
@@ -210,10 +214,6 @@ func initializeConfig(cmd *exec.Cmd) error {
 	}
 
 	err = json.Unmarshal(config, &Current)
-	if err == nil && (Current == Config{}) {
-		err = fmt.Errorf("Empty configuration.")
-	}
-
 	if err != nil {
 		return fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
 			err.Error(), config)

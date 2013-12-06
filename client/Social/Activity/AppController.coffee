@@ -101,19 +101,6 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
-    @getView().on "InputSubmitted", @bound "ownActivityArrived"
-
-    appView.innerNav.on "NavItemReceivedClick", (data)=>
-      KD.track "Activity", data.type + "FilterClicked"
-      @resetAll()
-      @clearPopulateActivityBindings()
-
-      if data.type in ["Public", "Followed"]
-      then @setFeedFilter data.type
-      else @setActivityFilter data.type
-
-      @populateActivity()
-
   setFeedFilter: (feedType) -> @currentFeedFilter = feedType
   getFeedFilter: -> @currentFeedFilter
 
@@ -132,7 +119,7 @@ class ActivityAppController extends AppController
       tag = KD.utils.slugify KD.utils.stripTags query.tagged
       @setWarning tag, yes
       options = filterByTag: tag
-
+    # TODO: populateActivity will fire twice if there is a query (FIXME) C.T.
     @ready => @populateActivity options
 
   populateActivity:(options = {}, callback=noop)->
@@ -140,7 +127,10 @@ class ActivityAppController extends AppController
     return  if @isLoading
     return  if @reachedEndOfActivities
 
+    view = @getView()
+
     @listController.showLazyLoader no
+    view.unsetTopicTag()
 
     @isLoading       = yes
     groupsController = KD.getSingleton 'groupsController'
@@ -170,7 +160,7 @@ class ActivityAppController extends AppController
         group      :
           slug     : groupObj?.slug or "koding"
           id       : groupObj.getId()
-        limit      : 20
+        limit      : KD.config.activityFetchCount
         facets     : @getActivityFilter()
         withExempt : no
         slug       : filterByTag
@@ -194,6 +184,7 @@ class ActivityAppController extends AppController
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
         @fetchTopicActivities options
         @setWarning options.slug
+        view.setTopicTag options.slug
 
       else if @getFeedFilter() is "Public"
 
@@ -219,6 +210,7 @@ class ActivityAppController extends AppController
     JStatusUpdate.fetchTopicFeed options, (err, activities) =>
       if err then @emit "activitiesCouldntBeFetched", err
       else @emit "topicFeedFetched_#{eventSuffix}", activities
+
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo
@@ -409,3 +401,6 @@ class ActivityAppController extends AppController
   feederBridge : (options, callback)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback
+
+  editActivity: (activity) ->
+    @getView().inputWidget.edit activity

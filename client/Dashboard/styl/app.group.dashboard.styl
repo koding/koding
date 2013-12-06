@@ -1,0 +1,1060 @@
+@import "../../Framework/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
+
+
+@css {
+/*
+Dashboard main styles
+*/
+}
+
+
+.kdtabpaneview.dashboard
+
+  color                   #828B8B
+
+  .content-page
+    min-height            100%
+    max-width             1100px
+    padding-top           150px
+
+
+
+
+
+
+
+//////////////////////////////////////
+//                                  //
+//                                  //
+//                                  //
+//                                  //
+//   OLD STYLES SHOULD BE UPDATED   //
+//   - SY                           //
+//                                  //
+//                                  //
+//                                  //
+//                                  //
+//////////////////////////////////////
+
+.group-product-section
+  .payment-settings-view
+    height auto
+  .kdlistitemview
+    clear both
+
+.plan-child-products
+  padding 5px
+  margin  10px
+  border  solid 1px #eee
+
+.content-area-pane.dashboard
+  section.searchbar
+    top                   24px
+    right                 24px
+    size                  200px, 32px
+    abs()
+    .header-search-input.hitenterview
+      top                 0
+      right               0
+      // rel()
+    span.title
+      font-size           18px
+      font-weight         300
+      margin              0 0 0 20px
+      line-height         50px
+      text-shadow         0px 1px 0px white
+      color               linkColor1
+    span.icon.search
+      display             block
+      bg                  position, -100px -480px
+      size                20px, 20px
+      top                 7px
+      right               7px
+      opacity             .7
+      kdfsprite()
+      abs()
+
+  .dashboard-tabs
+    border-left           1px solid #f5f5f5
+    borderBox()
+
+    .kdhiddentab
+      display             none
+
+    > .kdtabpaneview
+      > .kdview
+        overflow          auto
+
+
+@css {
+/*
+Dashboard Readme Styles
+*/
+}
+.dashboard-tabs
+  .kdtabpaneview.readme
+    borderBox()
+    padding                   20px
+    width                     100%
+
+    .button-bar
+      abs()
+      top                     0
+      right                   0
+      text-align              right
+      width                   auto
+      z-index                 1
+
+    .edit
+      margin-top              44px
+      width                   100%
+      min-height              200px
+      max-height              400px
+      borderBox()
+      .preview_content
+        padding               10px
+
+    .edit-cancel
+      font-size               12px
+      margin-right            5px
+      line-height             26px
+      span
+        noTextDeco()
+        color                 #aaa
+
+@css {
+/*
+Dashboard Settings Styles
+*/
+}
+
+
+.general-settings-view
+
+  div.vm-settings > .kdformview > .formline .kdselectbox
+    margin-right              0
+
+  > .kdformview
+    min-height                100%
+    max-width                 800px
+    border-right              1px solid #f5f5f5
+
+    > .formline
+      border-bottom-color     #f5f5f5
+
+      .kdinput.text
+        width                 100%
+
+      textarea.kdinput.text
+        min-height            100px
+
+      &.button-field
+        bg color,             transparent
+        rounded               0
+        border                none
+        padding               0
+        margin-left           0
+        margin-top            0
+        padding               20px
+
+
+@css {
+/*
+Dashboard Member List styles
+*/
+}
+
+.kdtabpaneview.members .listview-wrapper
+
+  .kdlistview
+    overflow            visible
+  .kdlistitemview-member-item
+    border-bottom       1px solid #f5f5f5
+    &:nth-child(1n)
+      border-right      1px solid #f5f5f5
+
+    .kdlistitemview-member-item-inner
+      margin            3px 3px 0 0
+
+    section
+      .profile
+        borderBox()
+        margin-left     60px
+        padding         2px
+        display         block
+      .role
+        borderBox()
+        margin-left     60px
+        padding         2px
+        display         block
+      .edit-link
+      .save-link
+      .cancel-link
+        fr()
+      .edit-link
+        hidden()
+
+    &:hover
+      section .edit-link
+        visible()
+
+@css {
+/*
+Dashboard member listing related common styles
+*/
+}
+
+.member-related
+  overflow                    visible
+
+  .listview-wrapper .lazy-loader
+    font-weight               600
+    background                rgba(0, 0, 0, 0.01)
+    border-bottom             1px solid rgba(0, 0, 0, 0.05)
+    font-size                 12px
+    color                     #5F5F5F
+    .kdview.kdloader
+      display                 inline-block
+
+  .kdview.kdlistitemview
+    line-height               24px
+    position                  relative
+    overflow                  visible
+    width                     50%
+    min-width                 350px
+    height                    auto
+    display                   inline-block
+    vertical-align            top
+    borderBox()
+    &.editing
+      bg                      color, rgba(255, 146, 0, 0.1)
+
+    .kdselectbox
+      display                 inline-block
+      float                   right
+
+    .profile
+      font-size               13px
+
+    .role
+      color                   #999
+
+    span.icon
+      &.edit
+        bg                    position, -120px -400px
+      &.delete
+        bg                    position, -80px -520px
+      &.save
+        bg                    position, -80px -500px
+
+    .kd-checkbox-holder
+      line-height             30px
+      margin-right            10px
+      display                 inline-block
+
+      input[type=checkbox]
+        vertical-align        middle
+        display               inline
+        width                 auto
+        margin                0 10px 0 3px
+
+      label
+        float                 none
+        display               inline
+
+
+  .edit-container
+    padding                   10px
+    bg                        color, rgba(255, 146, 0, 0.1)
+    borderBox()
+    .checkboxes
+      border-bottom           1px solid rgba(255, 146, 0, 0.1)
+
+    .buttons
+      margin                  10px 0 0
+      .kdbutton
+        width                 auto
+        margin-right          10px
+
+@css {
+/*
+Dashboard Membership Policy styles
+*/
+}
+
+.kdtabpaneview.membership-policy
+  .policy-view-wrapper
+    > div.on-off
+      margin              20px 0 0 25px
+      width               auto
+      fl()
+
+    > a.edit-link
+      margin              16px 0 0 25px
+      width               60px
+      text-align          center
+      fl()
+
+  .button-bar
+    margin-right          20px
+
+  section.formline
+    margin-left           100px
+    margin-top            10px
+    padding               10px
+
+    h2
+      padding-left        0
+      padding-bottom      0px
+      height              17px
+      // font-weight 600
+      font-size           14px
+      // border none
+    h3
+      font-size           12px
+      padding-bottom      10px
+
+    > div > p
+      margin-top          0px
+      margin-bottom       15px
+      padding-left        0px
+
+    > a
+      margin-left         10px
+
+    button
+      height              24px
+      line-height         8px
+
+    .policylanguage-editor
+      width               auto
+      display             block
+      clear               both
+      button
+        margin            10px 10px 0 0
+      textarea
+        width             100%
+        min-width         400px
+        min-height        100px
+
+    div.formline
+      borderBox()
+      margin              0
+      padding             10px 0
+      bg color,           transparent
+      border              none
+
+      > span
+        margin-left       20px
+        display           inline-block
+        hidden()
+
+  .policy-language-image-wrapper
+    fr()
+    width                       auto
+    border                      1px solid #e8e8e8
+    rounded                     5px
+    bg                          color, #fbfbfb
+    margin-left                 10px
+    img
+      width                     auto
+      height                    auto
+      margin                    3px 3px 0
+    span
+      border-top                1px solid #e8e8e8
+      display                   block
+      padding                   10px
+      font-size                 11px
+
+
+
+@css {
+/*
+Dashboard invitations tab styles
+*/
+}
+
+.kdtabview.dashboard-tabs .invitations
+
+  .kdtabhandlecontainer
+    padding                   20px 0 0 10px
+    height                    50px
+    borderBox()
+
+    .kdtabhandle
+      .new
+      .pending
+        display               none
+        font-size             11px
+        line-height           1
+        padding               1px 4px
+        rounded               3px
+
+      &.has-pending .pending
+        display               inline
+        background-color      #eee
+        color                 #666
+      &.dirty .new
+        display               inline
+        background-color      #ff9200
+        color                 white
+
+    .kdtabhandle.active
+      height                  30px
+
+    .button-bar
+      height                  auto
+      width                   auto
+      position                absolute
+      top                     14px
+      right                   20px
+
+      button
+        margin-left           5px
+
+      .show-resolved
+        margin-right          10px
+        height                auto
+        width                 auto
+
+        label
+          font-size           11px
+
+        .on-off a
+          padding-bottom      7px
+
+      .show-resolved
+      .on-off
+        display               inline-block
+
+  .member-related
+    section
+      padding                 10px
+      border-bottom           1px solid #f2f2f2
+      border-right            1px solid #f2f2f2
+      min-height              40px
+
+      &:hover
+        background-color      #f2f2f2
+
+      .buttons
+        fr()
+        margin                8px 2px 0 0
+        button
+          height              24px
+          .icon
+            width             20px
+            &.approve
+              bg              position, -77px -502px
+            &.decline
+              bg              position, -77px -482px
+            &.edit
+              height          15px
+              bg              position, -116px -402px
+            &.share
+              height          15px
+              bg              position, -97px -582px
+      .status
+        font-size             11px
+        margin-top            10px
+        fr()
+        &.sent
+          margin-right        5px
+          color               #ff9101
+          .icon
+            bg                position, -100px -580px
+        &.accepted
+        &.approved
+          color               #40af00
+          .icon
+            bg                position, -80px -500px
+        &.ignored
+        &.declined
+        &.deleted
+          color               #be2a26
+          .icon
+            bg                position, -80px -480px
+        &.pending
+          color               #acacac
+          .icon
+            bg                position, -320px -140px
+        span
+          display             inline-block
+          &.icon
+            size              20px, 20px
+            kdfsprite()
+          &.title
+            vertical-align top
+            line-height       20px
+      .details
+        margin-left           50px
+        .requested-at
+        .usage
+          color               #999
+          font-size           10px
+          line-height         10px
+
+        a
+          noTextDeco()
+
+        span.avatar
+          border                1px solid #E3E3E3
+          padding               1px
+          margin-right          10px
+          size(40px,40px)
+          bg(color,#fff)
+          fl()
+
+          a
+            display               block
+            background-position   center
+            background-image      url('../images/defaultavatar/default.avatar.40.png')
+            bg(size,cover)
+            bg(repeat,no-repeat)
+            size(30px,30px)
+
+  .invitation-code section .details
+    margin-left               10px
+
+@css {
+/*
+Dashboard Invitations Modal Styles
+*/
+}
+
+
+.invitations-request-modal .invitation-request-list
+  .formline.kdlistitemview-invitation-request
+    padding                   10px
+    border-bottom             1px solid #eee
+    width                     auto
+    button
+      height                  24px
+      line-height             8px
+    .details .requested-at
+      margin-top              5px
+
+.kdmodal.edit-invitation-message textarea.message-input
+  height                    160px !important
+
+.kdmodal.invite-by-email
+.kdmodal.bulk-approve
+  .report
+    color                     red
+    line-height               16px
+    overflow-y                scroll
+    max-height                180px
+
+.kdmodal.invite-by-email
+  textarea.emails-input
+  textarea.message-input
+    height                    80px !important
+  div.message-input
+    border-bottom             none
+    padding-bottom            0
+  div.save-message
+    padding-left              113px
+    input.save-message
+      width                   auto
+      display                 inline-block
+      fl()
+    .input-wrapper .input-wrapper
+      display                 inline-block
+      margin-left             5px
+      label
+        line-height           1em
+
+.kdmodal.invite-by-username
+  .kdautocompletewrapper
+    width             250px
+    display           inline-block
+    vertical-align    bottom
+    borderBox()
+    input.text
+      width           100%
+      borderBox()
+  .completed-items
+    width             250px
+    max-height        300px
+    margin-left       95px
+    padding           5px 0 0 0
+    overflow          auto
+
+  .kdview.kdautocompletedlistitem
+    margin            5px 5px 0 0
+    padding-left      0
+    span.avatar
+      abs()
+      top             1px
+      left            1px
+      padding         1px
+      bg(color,white)
+      size(16px,16px)
+    .avatarview
+      cite
+        hidden()
+
+    span.profile
+      margin-left     21px
+      display         block
+      overflow        hidden
+
+.kdmodal.create-invitation-code
+
+  .suggest-button
+    position          absolute
+    right             20px
+    top               11px
+    rounded           0px 3px 3px 0px
+
+
+//
+// FIX THIS HUGE BLOCK
+//
+
+
+
+.kdtabview.dashboard-tabs
+  .loader
+    fl()
+    margin-top                10px
+  .loader-text
+    display                   block
+    width                     auto
+    height                    auto
+    margin-top                8px
+    padding-left              5px
+
+  .desc
+    border-bottom             1px solid #f2f2f2
+    padding                   20px 0
+
+  .invitations section.formline div.formline.kdlistitemview-invitation-request
+  .members .kdlistitemview-member-item-inner
+    min-width               350px
+    padding                 10px
+    // background-color        rgba(0,0,0,0.02)
+    // vendor transition,      background-color 0.2s ease-in-out
+    borderBox()
+
+  .permissions
+    height: auto;
+
+  .form-generator
+    min-width               600px
+    overflow                hidden
+    .wrapper
+      width                 auto
+      border                1px solid #e8e8e8
+      rounded               4px
+      bg color,             #f5f5f5
+
+    .form-builder
+      width                 100%
+    .add-header
+      bg color,             #fbfbfb
+      border-bottom         1px solid #e8e8e8
+      rounded               5px 5px 0 0
+      div
+        color               #444
+        borderBox()
+        padding             5px 8px 4px 8px
+        margin              0
+        width               150px
+        font-weight         bold
+        font-size           12px
+        display             inline-block
+        vertical-align      top
+        &:first-child
+          width             100px
+    .add-inputs
+      padding-top           10px
+      // border-top 1px solid #f5f5f5
+      bg color,             #fbfbfb
+      // bg color, #f5f5f5
+      width                 auto
+      rounded               0 0 5px 5px
+      .add-input
+        width               150px
+        borderBox()
+        display             inline-block
+        padding             4px 9px
+        vertical-align      top
+        &:first-child
+          width             100px
+          .kdselectbox
+            width           80px
+
+        &.button
+          padding           0
+          width             auto
+
+        &.select
+          display           block
+
+        .kdinput
+          width             140px
+
+        .kdselectbox
+          width             130px
+      .select-fields
+      .radio-fields
+        margin-left         405px
+        padding             5px
+        width               250px
+        borderBox()
+        border              1px solid #e8e8e8
+        bg color,           #f5f5f5
+        rounded             4px
+        > input.text
+          display           inline-block
+        h3
+          // bg color, #f5f5f5
+          // color #444
+          padding           5px 5px 5px 0
+        .form-builder-select
+        .form-builder-radio
+          margin-bottom     10px
+          .default-item
+            color           #aaa
+          .kdlistitemview
+            width           auto
+            bg color,       white
+            margin          3px
+            padding         5px 5px 0px 5px
+            span.value
+              color         #aaa
+            .title
+              display       inline-block
+              width         auto
+            .remove-button
+              display       inline-block
+              width         auto
+              margin-left   5px
+              fr()
+    .form-item
+      borderBox()
+      width                 auto
+      border-bottom         1px solid #e8e8e8
+      bg color,             white
+      padding-top           2px
+      &:hover
+        bg color,           #f5f5f5
+      > div
+        borderBox()
+        border-right        1px solid #f5f5f5
+        overflow-x          hidden
+        overflow-y          hidden
+        text-overflow       ellipsis
+        white-space         nowrap
+        width               150px
+        // min-width 200px
+        display             inline-block
+        padding             3px 9px
+        margin              0
+        border              none
+        line-height         1.5
+        vertical-align      middle
+        &:first-child
+          width             100px
+
+        &.title
+          font-weight       500
+        // height 25px
+        .kdselectbox
+          margin-top        -4px
+          height            18px
+          width             130px
+          span.title
+            height          18px
+            line-height     18px
+            overflow        hidden
+            text-overflow   ellipsis
+          span.arrows
+            top             0
+        div.default
+        fieldset
+          &.textarea
+            white-space     normal
+          opacity           0.5
+          // vendor transition, opacity 0.15s ease-in-out
+          &:hover
+            opacity         1
+          span
+            color           #aaa
+            &.title
+              color         #444
+        &:first-child
+          border-left       none
+        &:last-child
+          border-right      1px solid #f5f5f5
+      &:last-child //> div
+        padding-bottom      4px
+  span.add-button
+    noTextDeco()
+    cursor                  pointer
+    margin                  0 0 0 5px
+    span.title
+      noTextDeco()
+      color                 black
+      line-height           2.5
+      font-weight           600
+
+  button.save-button
+    margin-left             10px
+
+  span.remove-button
+    borderBox()
+    noTextDeco()
+    display                 inline-block
+    margin                  0 0 0 5px
+    cursor                  pointer
+    span.title
+      noTextDeco()
+
+  .permissions-view
+    borderBox()
+    // padding                 0 20px
+    overflow                auto
+    min-width               600px
+
+    // .kdview.kdloader
+    //   display           block
+    //   margin            10px auto
+
+    form > .permissions-header:first-child
+      position              fixed
+      top                   128px
+      width                 100%
+      min-width             600px
+      z-index               99
+      height                33px
+      bg                    color, rgba(255, 255, 255, .75)
+      shadow                0 5px 15px -5px rgba(0,0,0,0.2)
+
+    .permissions-form
+      overflow-y            scroll
+      overflow-x            hidden
+      margin-top            33px
+
+      fraction(full,divisor)
+        fraction = full/divisor
+
+      for num in 2 3 4 5 6 7 8 9 10 11 12
+        &.col-{num}
+          .formline .input-wrapper
+            width fraction(340,num)px
+
+      .formline
+
+        &.button-field
+          fixed()
+          bottom            0
+          width             100%
+          height            50px
+          padding           15px 20px 0 15px
+          border-top        1px solid #e5e5e5
+          shadow            0 -5px 10px -3px rgba(0,0,0,0.1)
+          background-color  rgba(255,255,255,0.9) !important
+          borderBox()
+
+          button.add-role
+            fl()
+
+        &:nth-last-child(2)
+          margin-bottom       50px
+          border-bottom-color transparent
+
+        &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
+          bg color,         rgba(0,0,0,0.025)
+
+        borderBox()
+        padding             7px 10px
+        // border-bottom       1px solid #f5f5f5
+        // border-left         1px solid #f5f5f5
+        // border-right        1px solid #f5f5f5
+        border            none
+
+        .input-wrapper:first-child
+          border-left       none
+          width             160px
+          > .kdview
+            borderBox()
+            min-height      15px
+            line-height     15px
+            padding         3px
+            padding-left    7px
+            display         inline-block
+            width           160px
+            overflow        hidden
+            text-overflow   ellipsis
+            white-space     nowrap
+            text-align      left
+
+        input.kdinput.permission-checkbox
+          display           inline
+          margin-right      2px
+          width             auto
+          margin-top        5px
+          vertical-align    middle
+        .input-wrapper
+          // border-left       1px solid #f5f5f5
+          borderBox()
+          display           inline-block
+          width             100%
+          height            20px
+          vertical-align    top
+          text-align        center
+          > .input-wrapper
+            vertical-align  middle
+
+      .permissions-module
+        // background          linear-gradient(top, #555 0%,#666 93.7%)
+        color               #444
+        font-weight         bold
+        padding-top         25px
+
+        &:nth-child(2) // Header is first, first subgroup is 2
+          padding-top       0
+
+        .input-wrapper
+          text-align        left
+
+  .vocabulary > .kdview
+    padding                 0 20px
+
+
+
+@media screen and (max-width:1000px)
+
+  .group-content-display .group-content
+    .kdtabhandlecontainer
+      .kdtabhandle
+        padding-right         20px
+
+.add-role-dialog
+  // z-index               100000
+  // max-width              300px
+
+  .add-role-header
+    padding-top         15px
+    padding-bottom      15px
+    font-size           14px
+    font-weight         500
+
+  .add-role-button
+    margin-bottom       10px
+  .add-role-cancel
+    margin-top          8px
+
+  label.label-role-name
+    display             inline-block
+    fl()
+  input.role-name
+    display             inline-block
+    width               289px
+
+  label.label-copy-permissions
+    // margin-top          10px
+    display             inline-block
+    fl()
+  // div.kdselectbox.copy-permissions
+  //   margin-top          9px
+
+.billing-link span
+  display block
+
+// .subscription-gauges
+//   position static
+//   .kdview
+//     position static
+
+.your-subscriptions
+  height            auto
+
+.subscription-gauges
+  position          initial !important
+
+.kdmodal-content
+  .billing-link
+    padding         10px 50px
+    display         block
+    color           #999
+    text-decoration none
+    span
+      &.description
+        font-style  italic
+        font-size   14px
+        color       #444
+
+.billing-link
+  a
+    color                 linkColor1
+
+.vm-description
+.alloc-description
+.overage-description
+  section
+    padding-left          95px
+    color                 #aaa
+
+.no-title
+  span
+    display               none
+
+.billing-history-modal
+  .labelish
+    font-weight       bold
+    font-size         12px
+    line-height       26px
+
+  span.ttag
+    // -webkit-font-smoothing          antialiased
+    display           inline-block
+    padding           3px 5px 1px 5px
+    font-size         9px
+    font-weight       bold
+    color             white
+    text-transform    uppercase
+    text-shadow       none
+    rounded(3px)
+
+  span.ttag.paid
+    bg(color,positiveGreen)
+  span.ttag.pending
+    bg(color,darkorange)
+  span.ttag.cancelled
+  span.ttag.declined
+    bg(color,crimson)
+
+  .swappable-wrapper
+    span,strong,cite
+      padding-left        5px
+      font-style          normal
+
+.product-item
+  padding 10px
+
+.disabled
+  .product-item
+    color      #999
+
+.active
+  .product-item
+    border                dotted #999 1px
+    background-color      #eee
+
+
+.payment-settings-view
+  .product-title
+  .product-price
+  .product-button
+    display               inline !important
+
+  .product-item
+    padding               5px
+
+  .product-embed
+    border                1px solid #aaa

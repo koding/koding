@@ -179,7 +179,6 @@ class CollaborativeWorkspaceUserList extends JView
       type     : "tray"
 
     @workspaceRef.child("users").child(to).set "invited"
-    delegate.setHistory "$0 invited #{to}."
 
   returnToInviteView: ->
     for key in ["onlineUsers", "offlineUsers", "invitedUsers"]

@@ -3,6 +3,7 @@ module.exports = [
   # Libs
   "libs/async.js",
   "libs/md5-min.js",
+  "libs/accounting.js"
 
   # --- Application ---
   "utils.coffee"
@@ -14,7 +15,6 @@ module.exports = [
   "activitycontroller.coffee",
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
-  "paymentcontroller.coffee",
   "oauthcontroller.coffee",
 
   # COMMON VIEWS
@@ -36,6 +36,8 @@ module.exports = [
   "CommonViews/linkviews/grouplinkview.coffee",
   "CommonViews/splitview.coffee",
   "CommonViews/slidingsplit.coffee",
+  "CommonViews/bidirectionalnavigation.coffee"
+  "CommonViews/activitycommentview.coffee"
 
   "CommonViews/kodingswitch.coffee",
 
@@ -47,6 +49,16 @@ module.exports = [
   "CommonViews/avatarviews/avatarview.coffee",
   "CommonViews/avatarviews/avatarstaticview.coffee",
   "CommonViews/avatarviews/autocompleteavatarview.coffee",
+
+  # junction
+  "junction/junction.coffee"
+  "junction/satisfier.coffee"
+
+  # form workflow
+  "CommonViews/formworkflow/formworkflow.coffee",
+  "CommonViews/formworkflow/history.coffee",
+  "CommonViews/formworkflow/collector.coffee",
+  "CommonViews/formworkflow/modal.coffee",
 
   # FIXME ~ GG
   "navigation/navigationcontroller.coffee",
@@ -72,20 +84,20 @@ module.exports = [
   # "CommonViews/remotesmodal.coffee",
   # "CommonViews/databasesmodal.coffee",
 
-  "CommonViews/opinions/opinionview.coffee",
-  "CommonViews/opinions/discussionactivityopinionview.coffee",
-  "CommonViews/opinions/discussionactivityopinionlistitemview.coffee",
-  "CommonViews/opinions/tutorialactivityopinionview.coffee",
-  "CommonViews/opinions/tutorialactivityopinionlistitemview.coffee",
-  "CommonViews/opinions/tutorialopinionviewheader.coffee",
-  "CommonViews/opinions/opinionviewheader.coffee",
-  "CommonViews/opinions/opinionlistviewcontroller.coffee",
-  "CommonViews/opinions/opinionlistitemview.coffee",
-  "CommonViews/opinions/opinioncommentlistitemview.coffee",
-  "CommonViews/opinions/opinionformview.coffee",
-  "CommonViews/opinions/opinioncommentview.coffee",
-  "CommonViews/opinions/discussionformview.coffee",
-  "CommonViews/opinions/tutorialformview.coffee",
+  # "CommonViews/opinions/opinionview.coffee",
+  # "CommonViews/opinions/discussionactivityopinionview.coffee",
+  # "CommonViews/opinions/discussionactivityopinionlistitemview.coffee",
+  # "CommonViews/opinions/tutorialactivityopinionview.coffee",
+  # "CommonViews/opinions/tutorialactivityopinionlistitemview.coffee",
+  # "CommonViews/opinions/tutorialopinionviewheader.coffee",
+  # "CommonViews/opinions/opinionviewheader.coffee",
+  # "CommonViews/opinions/opinionlistviewcontroller.coffee",
+  # "CommonViews/opinions/opinionlistitemview.coffee",
+  # "CommonViews/opinions/opinioncommentlistitemview.coffee",
+  # "CommonViews/opinions/opinionformview.coffee",
+  # "CommonViews/opinions/opinioncommentview.coffee",
+  # "CommonViews/opinions/discussionformview.coffee",
+  # "CommonViews/opinions/tutorialformview.coffee",
 
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
@@ -132,6 +144,29 @@ module.exports = [
   "navigation/navigationappslink.coffee",
   "navigation/navigationdocsjobslink.coffee",
   "navigation/navigationpromotelink.coffee",
+
+  # LOCATION
+  "locationcontroller.coffee",
+  "CommonViews/location/locationform.coffee",
+
+  # PAYMENT
+  # controller
+  "payment/paymentcontroller.coffee",
+  # views
+  "payment/paymentmethodview.coffee",
+  "payment/subscriptionview.coffee",
+  "payment/subscriptionusageview.coffee",
+  "payment/subscriptiongaugeitem.coffee",
+  "payment/paymentmethodentryform.coffee",
+  "payment/paymentchoiceform.coffee",
+  "payment/paymentformmodal.coffee",
+  "payment/vmproductview.coffee",
+  "payment/paymentworkflow.coffee",
+  "payment/paymentconfirmform.coffee",
+  "payment/planupgradeform.coffee",
+  "payment/planupgradeconfirmform.coffee",
+  "payment/packchoiceform.coffee",
+
 
   # BOOK
   "book/embedded/tableofcontents.coffee",

@@ -9,9 +9,7 @@ module.exports = class JAppStorage extends JStorage
   @set
     sharedEvents  :
       static      : []
-      instance    : [
-        'updateInstance'
-      ]
+      instance    : []
     sharedMethods :
       static      : []
        #it's secure to have save and update, since JAppStorage can only be gotten by a client that owns that appstorage

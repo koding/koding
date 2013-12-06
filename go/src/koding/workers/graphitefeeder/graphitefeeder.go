@@ -6,6 +6,7 @@ import (
 	"koding/tools/config"
 	"log"
 	"strconv"
+	"time"
 )
 
 var (
@@ -35,4 +36,15 @@ var listOfAnalytics = make([]func() (string, int), 0)
 
 func registerAnalytic(fn func() (string, int)) {
 	listOfAnalytics = append(listOfAnalytics, fn)
+}
+
+//----------------------------------------------------------
+// Helpers
+//----------------------------------------------------------
+
+var currentTimeLocation = time.UTC
+
+func getTodayDate() time.Time {
+	year, month, day := time.Now().Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, currentTimeLocation)
 }

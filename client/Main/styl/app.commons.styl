@@ -2,8 +2,6 @@
 @import "./client/stylus/appfn"
 @import "nib/gradients"
 
-
-
 @css {
 /*
 COMMONS stylesheet
@@ -1328,10 +1326,7 @@ figure.code-container
 .inner-header
   size                  auto,37px
   color                 #282828
-  border                1px solid #e2e2e2
-  border-bottom-color   #dadada
-  gradient              #f9f9f9,#e7e7e7
-  border-width          0 1px 1px
+  gradient              #f9f9f9, #e7e7e7
   .title
     font-size           22px
     font-weight         600
@@ -1535,6 +1530,7 @@ figure.code-container
         bg              position, -78px -518px
     span:first-child
       margin-right      3px
+
 .introduction-admin-buttons
   padding               10px 0
   text-align            right
@@ -1678,6 +1674,101 @@ div.introduction-tooltip
 
 .unselectable
   noTextSelection()
+
+
+form.kdformview.location-form
+
+  label
+    min-width           100px
+
+  .formline
+    height              24px
+    &:last-of-type
+      height            auto
+
+  .formline.company
+    .input-wrapper
+      width             170px
+      float             left
+
+    .input-wrapper:last-of-type
+      padding-left      14px
+
+  .formline.address1
+    .input-wrapper
+      float             left
+
+    .input-wrapper:first-of-type
+      width             230px
+
+    .input-wrapper:last-of-type
+      width             110px
+      padding-left      14px
+      input
+        min-width       110px
+
+  .formline.city
+    .input-wrapper
+      float             left
+
+    .input-wrapper:first-of-type
+      width             200px
+
+    .input-wrapper:last-of-type
+      width             140px
+      padding-left      14px
+      .kdselectbox
+        min-width       138px
+
+  .formline.country
+    .input-wrapper
+      .kdselectbox
+        width           99%
+
+
+form.kdformview.payment-form
+
+  label
+    min-width           100px
+
+  .formline
+    height              24px
+    &:last-of-type
+      height            auto
+
+  .formline.cardfirstname
+    .input-wrapper
+      width             170px
+      float             left
+
+    .input-wrapper:last-of-type
+      padding-left      14px
+
+  .formline.cardnumber
+    .input-wrapper
+      float             left
+
+    .input-wrapper:first-of-type
+      width             260px
+
+    .input-wrapper:last-of-type
+      width             80px
+      padding-left      14px
+      input
+        min-width       80px
+
+  .formline.cardmonth
+    .input-wrapper
+      float             left
+
+    .input-wrapper
+      width             170px
+      float             left
+      .kdselectbox
+        min-width       168px
+
+    .input-wrapper:last-of-type
+      padding-left      14px
 
 // /*
 //   Animation tests

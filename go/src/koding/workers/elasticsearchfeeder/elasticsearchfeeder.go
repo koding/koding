@@ -9,7 +9,7 @@ import (
 	"github.com/mattbaird/elastigo/indices"
 	"github.com/streadway/amqp"
 	"koding/databases/elasticsearch"
-	"koding/tools/amqputil"
+	"koding/messaging/rabbitmq"
 	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
 	"strconv"
@@ -52,62 +52,63 @@ func jsonDecode(data string) (*Message, error) {
 	return source, nil
 }
 
+var handler = func(msg amqp.Delivery) {
+	message, err := jsonDecode(string(msg.Body))
+	if err != nil {
+		fmt.Println("Wrong message format", err, message)
+		msg.Ack(false)
+		return
+	}
+
+	if len(message.Payload) < 1 {
+		fmt.Println("Wrong message format; payload should be an Array", message)
+		msg.Ack(false)
+		return
+	}
+	data := message.Payload[0]
+
+	controller := elasticsearch.Controller{}
+
+	actionFn := RoutingTable[message.Event]
+	if actionFn != nil {
+		if actionFn(&controller, data) {
+			// always use late ack
+			msg.Ack(false)
+		}
+	} else {
+		fmt.Println("Unknown event received ", message.Event)
+		msg.Ack(false)
+	}
+}
+
 func startConsuming() {
-	c := &Consumer{}
-	c.conn = amqputil.CreateConnection("elasticSearchFeederWorkerQueue")
-	c.channel = amqputil.CreateChannel(c.conn)
+	exchange := rabbitmq.Exchange{
+		Name:    EXCHANGE_NAME,
+		Type:    "fanout",
+		Durable: true,
+	}
 
-	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
+	queue := rabbitmq.Queue{
+		Name:    WORKER_QUEUE_NAME,
+		Durable: true,
+	}
+
+	binding := rabbitmq.BindingOptions{}
+
+	consumerOptions := rabbitmq.ConsumerOptions{
+		Tag: "ElasticSearchFeeder",
+	}
+
+	consumer, err := rabbitmq.NewConsumer(exchange, queue, binding, consumerOptions)
 	if err != nil {
-		fmt.Println("exchange.declare: %s", err)
-		panic(err)
+		fmt.Print(err)
 	}
-
-	//name, durable, autoDelete, exclusive, noWait, args Table
-	if _, err := c.channel.QueueDeclare(WORKER_QUEUE_NAME, true, false, false, false, nil); err != nil {
-		fmt.Println("queue.declare: %s", err)
-		panic(err)
-	}
-
-	if err := c.channel.QueueBind(WORKER_QUEUE_NAME, "", EXCHANGE_NAME, false, nil); err != nil {
-		fmt.Println("queue.bind: %s", err)
-		panic(err)
-	}
-
-	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
-	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, WORKER_QUEUE_NAME, false, false, false, false, nil)
-	if err != nil {
-		fmt.Println("basic.consume: %s", err)
-		panic(err)
-	}
+	defer consumer.Shutdown()
 
 	fmt.Println("Elasticsearch Feeder worker started")
+	consumer.RegisterSignalHandler()
+	consumer.Consume(handler)
 
-	for msg := range relationshipEvent {
-		message, err := jsonDecode(string(msg.Body))
-		if err != nil {
-			fmt.Println("Wrong message format", err, message)
-			continue
-		}
-
-		if len(message.Payload) < 1 {
-			fmt.Println("Wrong message format; payload should be an Array", message)
-			continue
-		}
-		data := message.Payload[0]
-
-		controller := elasticsearch.Controller{}
-
-		actionFn := RoutingTable[message.Event]
-		if actionFn != nil {
-			if actionFn(&controller, data) {
-				// always use late ack
-				msg.Ack(false)
-			}
-		} else {
-			fmt.Println("Unknown event received ", message.Event)
-		}
-	}
 }
 
 func getCreatedAtDate(data map[string]interface{}) time.Time {

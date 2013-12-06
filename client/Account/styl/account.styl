@@ -18,39 +18,10 @@ body.account
 
   color                   #828B8B
 
-  aside.kdlistview-account-nav
-
-    width                 190px
-    height                auto
-    padding               3px
-    border-right          1px solid #D6D6D6
-    fl()
-    borderBox()
-
-    hr
-      margin              10px 20px 10px 0
-      height              1px
-      bg                  color #E0E0E0
-      border              none
-
-    a
-      display             block
-      color               #828B8B
-      line-height         40px
-      noTextDeco()
-      &.selected
-        color             #65AE62
-
   .content-page
     min-height            100%
     max-width             850px
     padding-top           150px
-    > .kdtabview
-      margin-left         64px
-      height              100%
-      kalc                width, 100% \- 254px
-      font-size           14px
-      fl()
 
   h2.kdheaderview
     border                none
@@ -84,11 +55,15 @@ body.account
   section
     overflow              hidden
     width                 auto
-    margin-left           20px
+    padding               0 20px
+    borderBox()
 
   .kdformview
     .formline
       border              none
+      padding             11px 20px 11px 20px
+      input.kdinput.text
+        min-width         0
 
   .button-field
     bg                    color transparent
@@ -106,3 +81,66 @@ body.account
       abs()
       top                 10px
       right               0
+
+.linked-accounts
+
+  ul
+    margin                0
+    padding               0
+    li
+      list-style          none
+      padding             13px 20px
+      borderBox()
+      .title
+        width             296px
+        line-height       22px
+        fl()
+        cite
+          font-size       16px
+          font-weight     400
+          margin-left     16px
+
+      .kdinput.koding-on-off
+        margin-top        6px
+        fr()
+
+      &.github .icon
+        sprite            account 'ext-github'
+      &.odesk .icon
+        sprite            account 'ext-odesk'
+      &.facebook .icon
+        sprite            account 'ext-facebook'
+      &.twitter .icon
+        sprite            account 'ext-twitter'
+      &.google .icon
+        sprite            account 'ext-google'
+      &.linkedin .icon
+        sprite            account 'ext-linkedin'
+
+      span
+      cite
+      a
+        font-style        normal
+        blockMid()
+
+button.kdbutton.solid.green.account-header-button
+  abs()
+  top               6px
+  right             16px
+  margin            0
+  color             #666
+  height            40px
+  &.with-icon
+    padding         0 6px
+  &.icon-only
+    padding         0 6px
+  span.icon
+    rel()
+    display         block
+    padding         0
+    margin          0
+    border          none
+    visibility      visible
+    sprite          app '30-refresh-icon-white'
+    &.plus
+      sprite        app '30-plus-icon-white'

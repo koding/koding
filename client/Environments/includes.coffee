@@ -18,8 +18,19 @@ module.exports = [
   "views/scene/environmentsceneview.coffee"
   "views/environmentsmainscene.coffee"
 
-  "views/domains/domaincreationform.coffee"
+  "views/domains/domaincreateform.coffee"
+  "views/domains/commondomaincreateform.coffee"
   "views/domains/domaindeletionmodal.coffee"
+  "views/domains/domainproductform.coffee"
+  "views/domains/domainbuyform.coffee"
+  "views/domains/domainbuyitem.coffee"
+  "views/domains/domainpaymentconfirmform.coffee"
+  "views/domains/subdomaincreateform.coffee"
+
+  "views/vms/vmproductform.coffee"
+  "views/vms/vmpaymentconfirmform.coffee"
+  "views/vms/vmproductview.coffee"
+  "views/vms/vmplanview.coffee"
 
   "styl/app.environments.styl"
   "styl/app.envsettings.styl"

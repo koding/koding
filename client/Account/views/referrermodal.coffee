@@ -101,30 +101,6 @@ class ReferrerModal extends KDModalViewWithForms
       cssClass: "hidden"
       title   : "This will send invitation to all contacts listed in here, do you confirm?"
 
-    askConfirmation = no
-    footer.addSubView sendToAll = new KDButtonView
-      title: "Send invitations to all"
-      style: "cupid-green"
-      bind : "mouseleave"
-      callback: =>
-          if askConfirmation is no
-            warning.show()
-            askConfirmation = yes
-          else if askConfirmation is yes
-            warning.hide()
-            sendToAll.hide()
-            recipients = listController.getItemsOrdered()
-            recipients.forEach (view) ->
-              view.getData().invite (err) =>
-                return log err  if err
-                view.emit "InvitationSent"
-            @track recipients.length
-            goBack.show()
-      mousedown: ->
-        sendToAll.setTitle "Yes, send to all"        if askConfirmation is yes
-      mouseleave: ->
-        sendToAll.setTitle "Send invitations to all" if askConfirmation is yes
-
     footer.addSubView goBack = new KDButtonView
       title: "Go back"
       style: "clean-gray hidden"

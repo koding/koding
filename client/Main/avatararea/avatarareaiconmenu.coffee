@@ -9,35 +9,15 @@ class AvatarAreaIconMenu extends JView
     @notificationsPopup = new AvatarPopupNotifications
       cssClass : "notifications"
 
-    @messagesPopup = new AvatarPopupMessages
-      cssClass : "messages"
-
     @notificationsIcon = new AvatarAreaIconLink
       cssClass   : 'notifications acc-dropdown-icon'
       attributes :
         title    : 'Notifications'
       delegate   : @notificationsPopup
 
-    @messagesIcon = new AvatarAreaIconLink
-      cssClass   : 'messages acc-dropdown-icon'
-      testPath   : "avatararea-messages-icon"
-      attributes :
-        title    : 'Messages'
-      delegate   : @messagesPopup
-
-    @settingsIcon = new KDCustomHTMLView
-      tagName    : "a"
-      partial    : "<span class='icon'></span>"
-      cssClass   : 'settings acc-dropdown-icon'
-      click      : (event)->
-        KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute '/Account'
-
   pistachio:->
     """
-    {{> @settingsIcon}}
     {{> @notificationsIcon}}
-    {{> @messagesIcon}}
     """
 
 
@@ -48,7 +28,6 @@ class AvatarAreaIconMenu extends JView
     mainView = KD.getSingleton 'mainView'
 
     mainView.addSubView @notificationsPopup
-    mainView.addSubView @messagesPopup
 
     @attachListeners()
 
@@ -70,18 +49,10 @@ class AvatarAreaIconMenu extends JView
       else @notificationsPopup.noNotification.show()
       @notificationsIcon.updateCount count
 
-    @messagesPopup.listController.on 'MessageCountDidChange', (count)=>
-      if count > 0
-      then @messagesPopup.noMessage.hide()
-      else @messagesPopup.noMessage.show()
-      @messagesIcon.updateCount count
-
-
   accountChanged:(account)->
 
-    {notificationsPopup, messagesPopup} = this
+    {notificationsPopup} = this
 
-    messagesPopup.listController.removeAllItems()
     notificationsPopup.listController.removeAllItems()
 
     if KD.isLoggedIn()
@@ -89,6 +60,3 @@ class AvatarAreaIconMenu extends JView
       # Fetch Notifications
       notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
         notificationsPopup.listController.instantiateListItems teasers
-
-      # Fetch Private Messages
-      messagesPopup.listController.fetchMessages()

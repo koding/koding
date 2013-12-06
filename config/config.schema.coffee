@@ -50,6 +50,7 @@ config =
     projectRoot   : 1
     version       : 1
     webserver     :
+      useCacheHeader: 1
       login       : 1
       port        : []
       clusterSize : 1
@@ -158,6 +159,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions  :
+        activityFetchCount : 1
         precompiledApi: 1
         authExchange  : 1
         github        :
@@ -181,6 +183,7 @@ config =
         newkontrol    :
           host        : 1
           port        : 1
+        fileFetchTimeout: 1
         externalProfiles  :
           github          :
             nicename      : 1
@@ -239,6 +242,7 @@ config =
       batchSize       : 1
       cleanupCron     : 1
     pidFile       : 1
+    etcd            : [{ host : 1, port : 1}]
     newkontrol      :
       host          : 1
       port          : 1

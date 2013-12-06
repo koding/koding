@@ -11,11 +11,12 @@ class DashboardAppController extends AppController
     #   role       : "admin"
     #   type       : "account"
 
-  constructor:(options={},data)->
+  constructor: (options = {}, data) ->
 
     options.view = new DashboardAppView
       testPath   : "groups-dashboard"
-    data or= KD.getSingleton("groupsController").getCurrentGroup()
+
+    data or= (KD.getSingleton "groupsController").getCurrentGroup()
 
     super options, data
 
@@ -34,7 +35,7 @@ class DashboardAppController extends AppController
         viewOptions  :
           viewClass  : GroupsMemberPermissionsView
           lazy       : yes
-          callback   : @membersViewAdded
+          callback   : @bound 'membersViewAdded'
       ,
         name         : 'Invitations'
         viewOptions  :
@@ -51,7 +52,19 @@ class DashboardAppController extends AppController
         viewOptions  :
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
-          callback   : @policyViewAdded
+          callback   : @bound 'policyViewAdded'
+      ,
+        name         : 'Payment'
+        viewOptions  :
+          viewClass  : GroupPaymentSettingsView
+          lazy       : yes
+          callback   : @bound 'paymentViewAdded'
+      ,
+        name         : 'Products'
+        viewOptions  :
+          viewClass  : GroupProductSettingsView
+          lazy       : yes
+          callback   : @bound 'productViewAdded'
       ,
         name         : 'Blocked Users'
         hiddenHandle : @getData().privacy is 'public'
@@ -59,7 +72,6 @@ class DashboardAppController extends AppController
         viewOptions  :
           viewClass  : GroupsBlockedUserView
           lazy       : yes
-
       # CURRENTLY DISABLED
 
       # ,
@@ -76,9 +88,9 @@ class DashboardAppController extends AppController
       #     callback  : @bundleViewAdded
     ]
 
-  fetchTabData:(callback)-> callback @tabData
+  fetchTabData: (callback) -> @utils.defer => callback @tabData
 
-  membersViewAdded:(pane, view)->
+  membersViewAdded: (pane, view) ->
     group = view.getData()
     # pane.on 'PaneDidShow', ->
     #   view.refresh()  if pane.tabHandle.isDirty
@@ -88,13 +100,19 @@ class DashboardAppController extends AppController
       # {tabHandle} = pane
       # tabHandle.markDirty()
 
-  policyViewAdded:(pane, view)->
+  policyViewAdded: (pane, view) ->
 
-  vocabularyViewAdded:(pane, view)->
-    group = view.getData()
-    group.fetchVocabulary (err, vocab)-> view.setVocabulary vocab
-    view.on 'VocabularyCreateRequested', ->
-      {JVocabulary} = KD.remote.api
-      JVocabulary.create {}, (err, vocab)-> view.setVocabulary vocab
+  paymentViewAdded: (pane, view) ->
+    new GroupPaymentController { view }
 
-  bundleViewAdded:(pane, view)-> console.log 'bundle view', view
+  productViewAdded: (pane, view) ->
+    new GroupProductsController { view }
+
+  # vocabularyViewAdded:(pane, view)->
+  #   group = view.getData()
+  #   group.fetchVocabulary (err, vocab)-> view.setVocabulary vocab
+  #   view.on 'VocabularyCreateRequested', ->
+  #     {JVocabulary} = KD.remote.api
+  #     JVocabulary.create {}, (err, vocab)-> view.setVocabulary vocab
+
+  # bundleViewAdded:(pane, view)-> console.log 'bundle view', view

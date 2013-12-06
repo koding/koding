@@ -129,10 +129,10 @@ class TopicsAppController extends AppController
     # log "Update this: ", topic
     controller = @
     modal = new KDModalViewWithForms
-      title                       : "Update topic " + topic.title
+      title                       : "Update topic #{topic.title}"
       height                      : "auto"
       cssClass                    : "compose-message-modal"
-      width                       : 500
+      width                       : 779
       overlay                     : yes
       tabs                        :
         navigable                 : yes

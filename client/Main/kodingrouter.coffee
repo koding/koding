@@ -283,33 +283,13 @@ class KodingRouter extends KDRouter
 
       '/:name?/Logout'         : ({params:{name}})-> requireLogin -> mainController.doLogout()
 
-      # content
       '/:name?/Topics/:slug'   : createContentHandler 'Topics'
       '/:name?/Activity/:slug' : createContentHandler 'Activity'
-      '/:name?/Apps/:slug'     : createContentHandler 'Apps'
 
       '/:name/Groups'          : createSectionHandler 'Groups'
       '/:name/Followers'       : createContentHandler 'Members', yes
       '/:name/Following'       : createContentHandler 'Members', yes
       '/:name/Likes'           : createContentHandler 'Members', yes
-
-      '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
-        return  if recoveryToken is 'Password'
-
-        recoveryToken = decodeURIComponent recoveryToken
-        {JPasswordRecovery} = KD.remote.api
-        JPasswordRecovery.validate recoveryToken, (err, isValid)=>
-          if err or !isValid
-            unless KD.isLoggedIn()
-              new KDNotificationView
-                title   : 'Something went wrong.'
-                content : err?.message or """
-                  That doesn't seem to be a valid recovery token!
-                  """
-          else
-            warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
-            # mainController.loginScreen.headBannerShowRecovery recoveryToken
-          @clear "/"
 
       '/:name?/Invitation/:inviteCode': ({params:{inviteCode}})=>
         inviteCode = decodeURIComponent inviteCode
@@ -327,17 +307,6 @@ class KodingRouter extends KDRouter
             warn "FIXME Add tell to Login app ~ GG @ kodingrouter"
             # mainController.loginScreen.headBannerShowInvitation invite
           @clear "/"
-
-      '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
-        confirmationToken = decodeURIComponent confirmationToken
-        KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)=>
-          if err
-            error err
-            KD.showError err
-          else
-            new KDNotificationView
-              title: "Thanks for confirming your email address!"
-          @clear()
 
       '/:name?/InviteFriends': ->
         if KD.isLoggedIn()

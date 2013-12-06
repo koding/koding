@@ -2,7 +2,6 @@ package kite
 
 import (
 	sigar "github.com/cloudfoundry/gosigar"
-	"koding/newkite/protocol"
 	"os/user"
 	"runtime"
 )
@@ -53,7 +52,6 @@ func diskStats() *disk {
 func homeDir() string {
 	usr, err := user.Current()
 	if err != nil {
-		log.Info("could not get homedir", err)
 		return ""
 	}
 
@@ -75,7 +73,6 @@ func systemInfo() *Info {
 	}
 }
 
-func (Status) Info(r *protocol.KiteDnodeRequest, result *Info) error {
-	*result = *systemInfo()
-	return nil
+func (Status) Info(r *Request) (interface{}, error) {
+	return systemInfo(), nil
 }

@@ -10,7 +10,7 @@ class EnvironmentsMainScene extends JView
     @addSubView actionArea = new KDView cssClass : 'action-area'
 
     # Domain Creation form in actionArea
-    actionArea.addSubView @domainCreateForm = new DomainCreationForm
+    actionArea.addSubView @domainCreateForm = new DomainCreateForm
 
     # Domain Creation form connections
     @domainCreateForm.on 'CloseClicked', =>

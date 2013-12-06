@@ -10,6 +10,10 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     @on "PanelCreated", (panel) =>
       @createButtons panel
       @createRunButton panel  if playground
+      @getActivePanel().header.setClass "teamwork"
+      @buttonsContainer.addSubView new KDCustomHTMLView
+        cssClass : "tw-db-icon"
+        click    : => @getDelegate().dashboard.show()
 
     @on "WorkspaceSyncedWithRemote", =>
       if playground and @amIHost()
@@ -126,15 +130,13 @@ class TeamworkWorkspace extends CollaborativeWorkspace
     previewPane.previewer.emit "ViewerRefreshed"
 
   createRunButton: (panel) ->
-    panel.header.addSubView new KDButtonView
+    panel.headerButtonsContainer.addSubView new KDButtonView
       title      : "Run"
+      cssClass   : "clean-gray tw-ply-run"
       callback   : => @handleRun panel
 
   getPlaygroundClass: (playground) ->
-    switch playground
-      when "Facebook" then FacebookTeamwork
-      when "GoLang"   then GoLangTeamwork
-      else TeamworkWorkspace
+    return if playground is "Facebook" then FacebookTeamwork else PlaygroundTeamwork
 
   handleRun: (panel) ->
     console.warn "You should override this method."

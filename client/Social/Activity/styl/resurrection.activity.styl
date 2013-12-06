@@ -59,9 +59,8 @@ resurrection.activity.styl
           size            100% auto
           line-height     16px
           font-size       16px
-          padding-left    20px
           color           #536067
-          padding         22px
+          padding         22px 100px 22px 22px
           background      white
           vendor          transition, height .2s ease
           borderBox()
@@ -71,10 +70,13 @@ resurrection.activity.styl
             color         #9D998E
 
       button[type=submit]
-        bottom          0
-        right           0
+        height          44px
+        bottom          8px
+        right           6px
         abs()
         z-index         1
+        span.button-title
+          line-height   44px
 
     .activity-content
       size              auto, auto
@@ -87,23 +89,15 @@ resurrection.activity.styl
 
   .activity-right-block
     .activity-ticker
-      h3
-        display         block
-        padding         0 0 0 3px
-        font-size       16px
-        font-weight     500
-        color           #485259
-        margin          0 0 13px 0
-
-        .cog-icon
-          display       block
-          sprite        activity, cog-icon
-          fr()
-
+    .online-users
+    .active-users
+    .active-topics
       .listview-wrapper
         .kdscrollview
-          height        450px
+          height        250px
           overflow      auto
+          padding       0 23px 0 18px
+          borderBox()
 
       .kdlistitemview-activity-ticker-item
       .friend
@@ -119,9 +113,15 @@ resurrection.activity.styl
           color         #485259
           font-size     12px
           font-weight   200
+          white-space   nowrap
+          text-overflow ellipsis
           fl()
 
+          >div
+            display       inline
+
           a
+            display       inline
             font-weight   400
             color         #485259
             noTextDeco()
@@ -138,6 +138,64 @@ resurrection.activity.styl
         &.online
           i
             background    #2eb398
+
+    .online-users
+    .active-users
+      .kdlistitemview-activity-ticker-item
+        .profile
+          size          135px, 42px
+          font-weight   400
+          color         #485259
+          noTextDeco()
+          line-height   42px
+          color         #485259
+          font-size     14px
+          text-transform capitalize
+          overflow      hidden
+          white-space   nowrap
+          text-overflow ellipsis
+          fl()
+
+    .active-topics
+    .active-users
+      .ttag
+        size            170px, 42px
+        font-weight     400
+        color           #485259
+        noTextDeco()
+        line-height     42px
+        color           #485259
+        font-size       14px
+        text-transform  capitalize
+        overflow        hidden
+        white-space     nowrap
+        text-overflow ellipsis
+        fl()
+
+      .follow-btn
+        size          85px, 26px
+        padding       0
+        text-align    center
+        margin        8px 0 0
+        vendor        transition, opacity .2s ease
+        fr()
+
+        &.following-account
+          opacity     .5
+
+        span
+          font-size   12px
+          line-height 26px
+
+    .show-all-link
+      display         block
+      text-align      center
+      padding         10px 0
+      margin          14px -23px -10px -18px
+      border-top      2px solid #eeeef2
+      font-size       14px
+      color           #79868d
+      noTextDeco()
 
 
 span.collapsedtext
@@ -191,8 +249,24 @@ span.collapsedtext
       content     '#'
 
 
-  .activity-settings-menu
-    fr()
+  .kdbuttonwithmenu-wrapper.activity-settings-menu
+    abs()
+    top                 8px
+    right               11px
+    size                21px 21px
+    padding             0
+    button.kdbutton
+      size              21px 21px
+      bg                color transparent
+      border            none
+      padding           0
+      padding-right     0 !important
+      span.icon
+        hidden()
+    .chevron-separator
+      hidden()
+    .chevron
+      sprite    activity chevron-icon
 
   .author-avatar
     display       block
@@ -203,11 +277,10 @@ span.collapsedtext
     margin        0 14px 0 0
     abs()
 
-  .author-name
+  .profile
   .status-body
     word-break    break-word
     display       block
-    padding       20px 21px 0
     color         rgba(80, 89, 90, .8)
     font-weight   400
 
@@ -215,9 +288,11 @@ span.collapsedtext
     padding       9px 21px 0
     line-height   22px
 
-  .author-name a
+  >.profile
     color         #50595a
     font-weight   500
+    padding       20px 21px 0
+    display       inline-block
     noTextDeco()
 
   footer
@@ -249,14 +324,14 @@ span.collapsedtext
       vertical-align  text-top
 
       &.like-icon
-        sprite        activity, like-icon
+        sprite        activity like-icon
 
       &.comment-icon
-        sprite        activity, comment-icon
+        sprite        activity comment-icon
 
       &.share-icon
         margin-top    0
-        sprite        activity, share-icon
+        sprite        activity share-icon
 
     .action-container
       size            auto, 20px
@@ -264,7 +339,9 @@ span.collapsedtext
       fl()
 
       &.liked .like-icon
-        sprite        activity, like-icon-liked
+        sprite        activity like-icon-liked
+      &.kdview.kdloader
+        margin-top      7px
 
     .count
       display         inline-block
@@ -399,6 +476,197 @@ span.collapsedtext
         &:focus
           line-height     24px
 
+/* Embed Styles */
+.embed-image-view
+  margin                20px 0 -22px
+  border-top            2px solid #e4e4e4
+
+  a
+  img
+    display             block
+    margin              0
+    padding             0
+
+.embed-link-view
+  padding               20px 20px 0
+  margin                20px 0 0
+  border-top            2px solid #e4e4e4
+
+  .preview-image
+    size                144px, 100px
+    fl()
+
+    &+.preview-text
+      kalc              width, 100% \- 144px
+      padding           0 0 0 15px
+
+  .preview-text
+    font-size           14px
+    font-weight         300
+    color               #50595a
+    borderBox()
+    fl()
+
+    .preview-text-link
+      color             inherit
+      display           block
+      word-break        break-word
+      overflow          visible
+      noTextDeco()
+
+      .preview-title
+        font-weight     400
+
+      &.description
+        padding         15px 0
+        line-height     15px
+
+        .description-input
+          width         100%
+          margin        15px 0 0 0
+
+    .provider-info
+      font-size         12px
+      color             #a9aeaf
+
+  .preview-link-pager
+    .preview-link-switch
+      size                  24px 24px
+      margin                14px 0 0
+      rounded               3px 0 0 3px
+      background            #f7f7f7
+      position              relative
+      cursor                pointer
+      fl()
+
+      &:hover
+        opacity             .9
+
+      &:after
+        content             ""
+        size                0 0
+        border              6px solid transparent
+        border-right-color  #aab5bc
+        left                3px
+        top                 6px
+        abs()
+
+      &:nth-child(2)
+        margin-left         2px
+        rounded             0 3px 3px 0
+
+        &:after
+          left              9px
+          border-right      none
+          border-left-color #aab5bc
+
+    .thumb-count
+      margin                14px 0 0 7px
+      line-height           24px
+      font-size             14px
+      color                 #7a8287
+      fl()
+
+    .thumb-text
+      font-size             12px
+      vertical-align        middle
+      color                 #aab5bc
+
+.input-wrapper
+  .link-embed-box
+    border                  1px solid #d6d6d6
+    padding                 0 0 18px
+    margin                  18px 0 0
+    rounded                 4px
+    position                relative
+    borderBox()
+
+  .embed-link-view
+    margin                  0
+    border                  none
+
+  .embed-image-view
+    margin                  0 0 -18px
+    border                  none
+
+    &:after
+      content               ""
+      display               block
+      size                  38px 38px
+      rounded               0 0 0 60%
+      bg                    color rgba(255, 255, 255, .6)
+      top                   0
+      right                 0
+      abs()
+
+  .hide-embed
+    right                   7px
+    top                     7px
+    border                  none
+    outline                 none
+    shadow                  none
+    z-index                 10
+    sprite                  app "20-close-tab"
+    abs()
+
+
+/* Activity item menu */
+body.activity
+body.profile
+  .kdbuttonmenu.jcontextmenu
+    margin              4px 0 0 14px
+    rounded             6px
+    border              1px solid #e4e4e4
+    shadow              0 8px 35px rgba(0, 0, 0, .22)
+    padding             5px 0
+
+    &:after
+      content             ""
+      display             block
+      size                0 0
+      right               19px
+      bottom              100%
+      border              7px solid transparent
+      border-bottom-color #fff
+      z-index             600
+      abs()
+
+    &:before
+      content             ""
+      display             block
+      size                0 0
+      right               18px
+      bottom              100%
+      border              8px solid transparent
+      border-bottom-color #e4e4e4
+      z-index             599
+      abs()
+
+    .kdlistitemview-contextitem
+      color               #50595f
+      font-size           12px
+      line-height         24px
+      cursor              pointer
+      padding             0 0 0 12px
+
+      .icon
+        margin            0 7px 0 0
+        display           inline-block
+        vertical-align    sub
+        &.edit
+          sprite          activity "edit-icon"
+        &.delete
+          sprite          activity "delete-icon"
+
+      &:hover
+      &.selected
+        background        none
+        text-shadow       none
+
+
+    .chevron-ghost-wrapper
+      opacity           0
+
 
 /* Activity and profile right block's box style */
 
@@ -413,12 +681,20 @@ span.collapsedtext
     size                auto, auto
     background          #fff
     border-radius       6px
-    margin              0 0 0 0
-    padding             20px 23px 10px 18px
+    margin              0 0 29px 0
+    padding             20px 0 10px 0
     borderBox()
 
     &~.right-block-box
       margin-top        29px
+
+    h3
+      display         block
+      padding         0 23px 0 21px
+      font-size       16px
+      font-weight     500
+      color           #485259
+      margin          0 0 13px 0
 
   &.activity-right-block
     size                302px, auto
@@ -669,3 +945,68 @@ span.collapsedtext
     vendor        transition-property, opacity
     vendor        transition-duration, 500ms
     opacity       0
+
+
+
+/** Markdown Styling **/
+p.status-body
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6
+    color         #50595a
+    font-weight   600
+    margin        0 0 12px
+  h1
+    font-size     22px
+  h2
+    font-size     20px
+  h3
+    font-size     18px
+  h4
+    font-size     16px
+  h5
+    font-size     14px
+  h6
+    font-size     12px
+
+  /* Lists */
+  ol,ul
+    padding               0 25px 12px
+    list-style            none
+    display               block
+    position              relative
+    li
+      position            relative
+    li:before
+      color               #c4c4c9
+      left                -20px
+      abs()
+  ol
+    counter-reset         i 0
+    li:before
+      content             counter(i)
+      counter-increment   i
+  ul
+    li:before
+      content             "\2022"
+      font-size           20px
+
+  /* Paragraphs and other text */
+  p
+    padding               0 0 12px
+  em
+    font-style            italic
+  strong
+    font-weight           600
+  a
+    color                 inherit
+  hr
+    height                1px
+    background            #c4c4c9
+    border                none
+
+
+
+
+
+

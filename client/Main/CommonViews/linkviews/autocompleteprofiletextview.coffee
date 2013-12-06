@@ -5,7 +5,7 @@ class AutoCompleteProfileTextView extends ProfileTextView
     {userInput} = @getOptions()
     unless userInput
       str
-    else
+    else if str
       str = str.replace RegExp(userInput, 'gi'), (match)=>
         if isNick then @setClass 'nick-matches'
         return "<b>#{match}</b>"

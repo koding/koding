@@ -13,7 +13,7 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
     @workspace           = @panel.getDelegate()
     @container           = new KDView cssClass: "workspace-floating-panes"
     {workspaceRef}       = @workspace
-    @isJoinedASession    = @workspace.getOptions().joinedASession
+    @isJoinedASession    = @workspace.isJoinedASession()
     @lastActivePaneKey   = null
     @keysRef             = workspaceRef.child "floatingPaneKeys"
     @paneStateRef        = workspaceRef.child "floatingPaneState"
@@ -92,23 +92,23 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       @updatePaneVisiblityState "chat", no
 
   createTerminalPane: ->
-    terminalClass    = SharableTerminalPane
-    terminalClass    = SharableClientTerminalPane  if @isJoinedASession
+    terminalClass = SharableTerminalPane
+    terminalClass = SharableClientTerminalPane  if @isJoinedASession
 
     @container.addSubView @terminal = new KDView
-      cssClass   : "floating-pane"
-      size       : height : 400
+      cssClass    : "floating-pane"
+      size        : height : 400
 
     @terminal.addSubView @terminalPane = new terminalClass
-      delegate   : @panel
-      sessionKey : @sessionKeys.terminal
+      delegate    : @panel
+      sessionKey  : @sessionKeys.terminal
 
     if @workspace.amIHost()
-      @terminalPane.webterm.on "WebTermConnected", =>
+      @terminalPane.on "WebtermCreatead", =>
         @keysRef.child("terminal").set
-          key    : @terminalPane.remote.session
-          host   : KD.nick()
-          vmName : KD.getSingleton("vmController").defaultVmName
+          key     : @terminalPane.remote.session
+          host    : KD.nick()
+          vmName  : KD.getSingleton("vmController").defaultVmName
 
   createPreviewPane: ->
     @container.addSubView @preview = new KDView
@@ -125,8 +125,9 @@ class WorkspaceFloatingPaneLauncher extends KDCustomHTMLView
       delegate   : @panel
       sessionKey : @sessionKeys.preview
 
-    @workspace.on "WorkspaceSyncedWithRemote", =>
-      @keysRef.child("preview").set @previewPane.sessionKey
+    if @workspace.amIHost()
+      @workspace.on "WorkspaceSyncedWithRemote", =>
+        @keysRef.child("preview").set @previewPane.sessionKey
 
     @preview.addSubView @previewPane
 

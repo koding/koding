@@ -33,8 +33,12 @@ please file an issue.
 
 # Documentation
 
-See [the gopkgdoc page](http://gopkgdoc.appspot.com/github.com/streadway/amqp)
-for up-to-the-minute documentation and usage.
+Use [Godoc documentation](http://godoc.org/github.com/streadway/amqp) for
+reference and usage.
+
+[RabbitMQ tutorials in
+Go](https://github.com/rabbitmq/rabbitmq-tutorials/tree/master/go) are also
+available.
 
 # Contributing
 

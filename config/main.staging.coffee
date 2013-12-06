@@ -24,6 +24,7 @@ module.exports =
   projectRoot   : projectRoot
   version       : version
   webserver     :
+    useCacheHeader: yes
     login       : 'prod-webserver'
     port        : 3000
     clusterSize : 1
@@ -40,7 +41,7 @@ module.exports =
   mongoReplSet  : null
   runNeo4jFeeder: yes
   runGoBroker   : no
-  runKontrol    : no
+  runKontrol    : yes
   runRerouting  : yes
   runUserPresence: yes
   runPersistence: yes
@@ -137,6 +138,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      activityFetchCount : 50
       precompiledApi: yes
       authExchange: authExchange
       github        :
@@ -162,6 +164,7 @@ module.exports =
       newkontrol:
         host    : '127.0.0.1'
         port    : 80
+      fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
           nicename      : 'GitHub'
@@ -226,6 +229,7 @@ module.exports =
   newkontrol      :
     host          : "127.0.0.1"
     port          : 80
+  etcd            : [ {host: "127.0.0.1", port: 4001} ]
   kontrold        :
     vhost         : "/"
     overview      :

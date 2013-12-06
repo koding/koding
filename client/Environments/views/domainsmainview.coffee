@@ -71,7 +71,7 @@ class DomainsMainView extends JView
         @domainsListViewController.update()
         @refreshDomainsButton.hideLoader()
 
-    @actionArea.addSubView creationForm = new DomainCreationForm
+    @actionArea.addSubView creationForm = new DomainCreateForm
 
     creationForm.on 'DomainCreationCancelled', =>
       @actionArea.unsetClass 'in'

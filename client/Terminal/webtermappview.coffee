@@ -110,6 +110,11 @@ class WebTermAppView extends JView
     @addNewTab()
 
   addNewTab: ->
+    if @_secondTab
+      KD.mixpanel "Click open new Webterm tab"
+
+    @_secondTab = yes
+
     webTermView = new WebTermView
       testPath: "webterm-tab"
       delegate: this

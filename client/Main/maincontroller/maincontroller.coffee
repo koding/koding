@@ -41,8 +41,8 @@ class MainController extends KDController
     KD.registerSingleton "oauthController",           new OAuthController
     KD.registerSingleton "groupsController",          new GroupsController
     KD.registerSingleton "vmController",              new VirtualizationController
-    # KD.registerSingleton "paymentController",         new PaymentController
-    # KD.registerSingleton "fatih", new Fatih
+    KD.registerSingleton "paymentController",         new PaymentController
+    KD.registerSingleton "locationController",        new LocationController
 
     # appManager.create 'Chat', (chatController)->
     #   KD.registerSingleton "chatController", chatController
@@ -52,7 +52,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController",      new ActivityController
       KD.registerSingleton "appStorageController",    new AppStorageController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
-      KD.registerSingleton "kontrol",                 new Kontrol
+      # KD.registerSingleton "kontrol",                 new Kontrol
 
       @showInstructionsBook()
       @emit 'AppIsReady'
@@ -130,6 +130,8 @@ class MainController extends KDController
           firstRoute = KD.getSingleton("router").visitedRoutes.first
 
           if firstRoute and /^\/Verify/.test firstRoute
+            firstRoute = "/"
+          if firstRoute and /^\/Reset/.test firstRoute
             firstRoute = "/"
 
           window.location.pathname = firstRoute or "/"

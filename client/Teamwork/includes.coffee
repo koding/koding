@@ -1,14 +1,15 @@
 module.exports = [
 
   # coffee block
-  "Views/teamworkenvironmentsmodal.coffee",
   "Views/teamworkmarkdownmodal.coffee",
   "Views/facebookteamworkinstructionsmodal.coffee",
   "Views/teamworktools.coffee",
+  "Views/teamworkdashboard.coffee",
+  "Views/teamworkimporter.coffee",
   "Views/teamworkworkspace.coffee",
+  "Views/playgroundteamwork.coffee",
   "Views/teamworkapp.coffee",
   "Views/facebookteamwork.coffee",
-  "Views/golangteamwork.coffee",
   "AppView.coffee",
   "AppController.coffee",
 

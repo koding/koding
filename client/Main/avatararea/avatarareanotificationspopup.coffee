@@ -23,15 +23,15 @@ class AvatarPopupNotifications extends AvatarPopup
 
     @avatarPopupContent.addSubView @listController.getView()
 
-    @avatarPopupContent.addSubView new KDView
-      height   : "auto"
-      cssClass : "sublink"
-      partial  : "<a href='#'>View all of your activity notifications...</a>"
-      click    : =>
-        appManager = KD.getSingleton "appManager"
-        appManager.open('Inbox')
-        appManager.tell 'Inbox', "goToNotifications"
-        @hide()
+    # @avatarPopupContent.addSubView new KDView
+    #   height   : "auto"
+    #   cssClass : "sublink"
+    #   partial  : "<a href='#'>View all of your activity notifications...</a>"
+    #   click    : =>
+    #     appManager = KD.getSingleton "appManager"
+    #     appManager.open('Inbox')
+    #     appManager.tell 'Inbox', "goToNotifications"
+    #     @hide()
 
   hide:->
     if KD.isLoggedIn()

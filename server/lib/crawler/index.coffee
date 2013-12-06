@@ -5,23 +5,13 @@ activity = require './staticpages/activity'
 profile = require './staticpages/profile'
 {Relationship} = require 'jraphical'
 
-forceTwoDigits = (val) ->
-  if val < 10
-    return "0#{val}"
-  return val
-
-formatDate = (date) ->
-  year = date.getFullYear()
-  month = date.getMonth()
-  day = forceTwoDigits date.getDate()
-  hour = forceTwoDigits date.getHours()
-  minute = forceTwoDigits date.getMinutes()
-
-  # What about i18n? Does GoogleBot crawl in different languages?
-  months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  monthName = months[month]
-  return "#{monthName} #{day}, #{year} #{hour}:#{minute}"
+{
+  forceTwoDigits
+  formatDate
+  getFullName
+  getNickname
+  getUserHash
+}          = require './helpers'
 
 decorateComment = (JAccount, comment, callback) ->
   createdAt = formatDate(new Date(comment.timestamp_))
@@ -42,22 +32,36 @@ decorateComment = (JAccount, comment, callback) ->
         console.error err
         callback err, null
       commentSummary.authorName = getFullName acc
+      commentSummary.authorNickname = getNickname acc
       callback null, commentSummary
 
-getFullName = (account) ->
-  fullName = "A koding user"
-  if account?.data?.profile?.firstName?
-    fullName = account.data.profile.firstName + " "
+fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) ->
+  {daisy} = require "bongo"
+  originId = account.data._id
+  selector =
+    "targetId"   : originId
+    "targetName" : "JAccount"
+    "sourceName" : "JStatusUpdate"
+    "as"         : "author"
 
-  if account?.data?.profile?.lastName?
-    fullName += account.data.profile.lastName
-  return fullName
-
-getUserHash = (account) ->
-  hash = ""
-  if account?.data?.profile?.hash?
-    hash = account.data.profile.hash
-  return hash
+  Relationship.some selector, limit: 3, (err, relationships)->
+    return callback err, null if err
+    return callback null, null unless relationships?.length > 0
+    queue = [0..relationships.length - 1].map (index)=>=>
+      rel = relationships[index]
+      queue.next unless rel
+      sel =
+        _id        : rel.data.sourceId
+        originType : "JAccount"
+      JStatusUpdate.one sel, {}, (error, statusUpdate)=>
+        queue.next() if error
+        queue.next() unless statusUpdate
+        queue.statusUpdates or= []
+        queue.statusUpdates.push statusUpdate
+        queue.next()
+    queue.push =>
+      return callback null, queue.statusUpdates
+    daisy queue
 
 createActivityContent = (JAccount, models, comments, section, callback) ->
   model = models.first if models and Array.isArray models
@@ -95,11 +99,13 @@ createActivityContent = (JAccount, models, comments, section, callback) ->
           callback err, null
 
         fullName = getFullName acc
+        nickname = getNickname acc
 
         hash = getUserHash acc
 
         activityContent = {
           fullName : fullName
+          nickname : nickname
           hash : hash
           title : if model?.title? then model.title else model.body or ""
           body : if model?.body?  then model.body  else ""
@@ -180,6 +186,9 @@ module.exports =
           # this is a user
           else
             models.last.fetchOwnAccount (err, account)->
-              content = profile {account}
-              return res.send 200, content
+              {JStatusUpdate} = bongo.models
+              fetchLastStatusUpdatesOfUser account, Relationship, JStatusUpdate, (error, statusUpdates) =>
+                return res.send 500, error_500()  if error
+                content = profile {account, statusUpdates}
+                return res.send 200, content
 
