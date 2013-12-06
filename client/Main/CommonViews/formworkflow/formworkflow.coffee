@@ -110,8 +110,8 @@ class FormWorkflow extends KDView
   showForm: (form, shouldPushState = yes) ->
     @hideForms()
     form = @getForm form
-    form.activate? this
     form.show()
+    form.activate? this
 
     @active = form
 

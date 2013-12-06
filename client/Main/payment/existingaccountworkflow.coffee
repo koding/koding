@@ -4,13 +4,14 @@ class ExistingAccountForm extends JView
     @exitingAccountButton = new KDButtonView
       title : "I have an account"
       callback: => @emit 'DataCollected',
-        account : yes
-        email   : no
+        createAccount : no
+        email         : no
 
     @createAccountButton = new KDButtonView
       title : "I'll create an account"
       callback: => @emit 'DataCollected',
-        account   : yes
+        createAccount : yes
+        account       : yes
 
     super()
 
@@ -27,18 +28,17 @@ class ExistingAccountWorkflow extends FormWorkflow
     { all, any } = Junction
 
     @requireData all(
-      'account'
+      'createAccount'
       'email'
       'loggedIn'
     )
 
     existingAccountForm = new ExistingAccountForm
     existingAccountForm.on 'DataCollected', (data) =>
-      # @clearData 'createAccount'  if 'existingAccount' of data
       @collectData data
 
     @addForm 'existingAccount', existingAccountForm, [
-      'account'
+      'createAccount'
     ]
 
     emailCollectionForm = new KDFormViewWithFields
@@ -50,7 +50,6 @@ class ExistingAccountWorkflow extends FormWorkflow
           testPath         : "account-email-input"
       buttons              :
         Save               :
-          title            : 'SAVE CHANGES'
           type             : 'submit'
           style            : 'solid green fr'
       callback             : ({ email }) =>
@@ -60,6 +59,8 @@ class ExistingAccountWorkflow extends FormWorkflow
           return  if KD.showError err
 
           @collectData { email, loggedIn: no }
+
+    emailCollectionForm.activate = -> @inputs.email.setFocus()
 
     @addForm 'email', emailCollectionForm, ['email']
 
