@@ -1,11 +1,10 @@
 class LoginAppsController extends AppController
 
-  handler = (callback)->
-    ({params})->
-      unless KD.isLoggedIn()
-        KD.singleton('appManager').open 'Login', (app)-> callback app, params
-      else
-        KD.getSingleton('router').handleRoute "/Activity"
+  handler = (callback)->->
+    unless KD.isLoggedIn()
+      KD.singleton('appManager').open 'Login', (app)-> callback app
+    else
+      KD.getSingleton('router').handleRoute "/Activity"
 
   handleResetRoute = ({params:{token}})->
     KD.singleton('appManager').open 'Login', (app)=>
