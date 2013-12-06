@@ -16,29 +16,26 @@ class LoginAppsController extends AppController
         app.getView().animateToForm('reset')
 
   handleFailureOfRestriction =->
-    new KDNotificationView title: "Login restricted"
+    KD.utils.defer -> new KDNotificationView title: "Login restricted"
 
-    KD.introView = new IntroView
-    KD.introView.appendToDomBody()
-    KD.introView.setClass 'in'
+  handleRestriction = (handler) ->
+    ({params: {token : token }})->
+      return handleFailureOfRestriction()  unless token
 
-  handleRestriction = ({token}, callback)->
-    return handleFailureOfRestriction()  unless token
+      KD.remote.api.JInvitation.byCode token, (err, invite)->
+        if err or !invite?
+          return handleFailureOfRestriction()  unless token
 
-    KD.remote.api.JInvitation.byCode token, (err, invite)->
-      if err or !invite?
-        return handleFailureOfRestriction()  unless token
-
-      callback()
+        do handler()
 
   KD.registerAppClass this,
     name                         : "Login"
     routes                       :
-      '/:name?/Login/:token?'    : handler (app, params)->
-          handleRestriction params, -> app.getView().animateToForm 'login'
+      '/:name?/Login/:token?'    : handleRestriction (app)->
+          handler (app)-> app.getView().animateToForm 'register'
       '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-      '/:name?/Register/:token?' : handler (app, params)->
-          handleRestriction params, -> app.getView().animateToForm 'register'
+      '/:name?/Register/:token?' : handleRestriction (app)->
+          handler (app)-> app.getView().animateToForm 'register'
       '/:name?/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
