@@ -297,7 +297,7 @@ module.exports = class JUser extends jraphical.Module
       # this broke login, reverted. - SY
       # if not session? or session.username isnt username
       unless session
-        return callback createKodingError 'Could not restore your session!'
+        return callback { message: 'Could not restore your session!' }
 
       bruteForceControlData =
         ip : session.clientIP
@@ -308,13 +308,13 @@ module.exports = class JUser extends jraphical.Module
         JUser.one {username}, (err, user)->
           if err
             JLog.log { type: "login", username: username, success: no }, ->
-              callback createKodingError err.message
+              callback { message: err.message, field: 'username' }
           else unless user?
             JLog.log { type: "login", username: username, success: no }, ->
-              callback createKodingError "Unknown user name"
+              callback { message: "Unknown user name", field: 'username' }
           else unless user.getAt('password') is hashPassword password, user.getAt('salt')
             JLog.log { type: "login", username: username, success: no }, ->
-              callback createKodingError 'Access denied!'
+              callback { message: 'Access denied!' }
           else
             afterLogin connection, user, clientId, session, callback
 

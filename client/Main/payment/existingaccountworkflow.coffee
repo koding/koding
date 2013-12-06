@@ -69,7 +69,13 @@ class ExistingAccountWorkflow extends FormWorkflow
       testPath : "login-form"
       callback : (credentials) =>
         KD.getSingleton('mainController').handleLogin credentials, (err) =>
-          @collectData loggedIn: yes
+
+          loginForm.button.hideLoader()
+          
+          if (KD.showError err) and err?.field of loginForm
+              loginForm[err.field].decorateValidation err
+          else
+            @collectData loggedIn: yes
 
     @addForm 'login', loginForm, ['loggedIn']
 

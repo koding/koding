@@ -64,13 +64,12 @@ class PaymentWorkflow extends FormWorkflow
       existingAccountWorkflow = new ExistingAccountWorkflow
 
       existingAccountWorkflow.on 'DataCollected', (data) =>
-        @collectData createAccount: yes
+        @collectData createAccount: data.createAccount
 
       @addForm 'createAccount', existingAccountWorkflow, ['createAccount']
     else
       # TODO: this is an awful hack for now C.T.
       @addForm 'existingAccount', (@skip createAccount: no), ['createAccount']
-      #@collectData createAccount: no
 
     # - "product form" can be used for collecting some product-related data
     # before the payment method collection/selection process begins.  If you
@@ -100,5 +99,7 @@ class PaymentWorkflow extends FormWorkflow
     @addForm 'confirm', confirmForm, ['userConfirmation']
 
     confirmForm.on 'PaymentConfirmed', => @collectData userConfirmation: yes
+    
+    @forwardEvent confirmForm, 'Cancel'
 
     return this

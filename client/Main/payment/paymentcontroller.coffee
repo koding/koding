@@ -140,6 +140,41 @@ class PaymentController extends KDController
 
     workflow
 
+  confirmReactivation: (subscription, callback) ->
+    modal = KDModalView.confirm
+      title       : 'Inactive subscription'
+      description : 
+        """
+        Your existing subscription for this plan has been canceled.  Would
+        you like to reactivate it?
+        """
+      subView     : new SubscriptionView {}, subscription
+      ok          :
+        title     : 'Reactivate'
+        callback  : -> subscription.resume (err) ->
+          return callback err  if err
+
+          modal.destroy()
+
+          callback null, subscription
+
+  createSubscription: (plan, paymentMethodId, callback) ->
+    plan.subscribe paymentMethodId, (err, subscription) =>
+      if err?.short is 'existing_subscription'
+        { existingSubscription } = err
+
+        if existingSubscription.status is 'active'
+          new KDNotificationView
+            title: "You are already subscribed to this plan!"
+          KD.getSingleton('router').handleRoute '/Account/Subscriptions'
+
+        else
+          existingSubscription.plan = plan
+          @confirmReactivation existingSubscription, callback
+
+      else
+        callback err, subscription
+
   transitionSubscription: (formData, callback) ->
     { productData, oldSubscription, paymentMethod } = formData
     { plan } = productData
@@ -148,7 +183,7 @@ class PaymentController extends KDController
     if oldSubscription
       oldSubscription.transitionTo { planCode, paymentMethodId }, callback
     else
-      plan.subscribe paymentMethodId, callback
+      @createSubscription plan, paymentMethodId, callback
 
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit pack, (err, nonce) =>
