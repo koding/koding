@@ -90,7 +90,7 @@ class ActivityTickerMemberItem extends ActivityTickerBaseItem
   pistachio: ->
     {target} = @getData()
     # if current user did the activity
-    if target.getId is KD.whoami().getId()
+    if target.getId() is KD.whoami().getId()
       return "{{> @avatar}} You became a member"
 
     return "{{> @avatar}} {{> @actor}} became a member"
@@ -157,11 +157,11 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
 
 class ActivityTickerItem extends KDListItemView
   itemClassMap =
-    follower   : ActivityTickerFollowItem
-    like       : ActivityTickerLikeItem
-    member     : ActivityTickerMemberItem
-    user       : ActivityTickerAppUserItem
-    reply      : ActivityTickerCommentItem
+    "JGroup_member_JAccount" : ActivityTickerMemberItem
+    "JAccount_like_JAccount" : ActivityTickerLikeItem
+    "JTag_follower_JAccount" : ActivityTickerFollowItem
+    "JApp_user_JAccount"     : ActivityTickerAppUserItem
+    "JAccount_reply_JAccount": ActivityTickerCommentItem
 
   constructor: (options = {}, data) ->
     options.type = "activity-ticker-item"
@@ -169,13 +169,17 @@ class ActivityTickerItem extends KDListItemView
 
   viewAppended: ->
     data = @getData()
-    {as} = data
-    itemClass = itemClassMap[as]
+    itemClass = @getClassName data
 
     if itemClass
     then @addSubView new itemClass null, data
     else @destroy()
 
+  getClassName: (data)->
+    {as, source, target} = data
+    classKey = "#{source.bongo_.constructorName}_#{as}_#{target.bongo_.constructorName}"
+
+    return itemClassMap[classKey]
 
 class ActiveUserItemView extends KDListItemView
   constructor: (options = {}, data) ->
