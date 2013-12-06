@@ -13,24 +13,24 @@ class TeamworkApp extends KDObject
     super options, data
 
     @appView   = @getDelegate()
-    @dashboard = new TeamworkDashboard
-      delegate : this
+    # @dashboard = new TeamworkDashboard
+    #   delegate : this
 
-    @doCurlRequest playgroundsManifest, (err, manifest) =>
-      @playgroundsManifest = manifest
-      @dashboard.emit "PlaygroundsFetched", @playgroundsManifest
+    # @doCurlRequest playgroundsManifest, (err, manifest) =>
+    #   @playgroundsManifest = manifest
+    #   @dashboard.emit "PlaygroundsFetched", @playgroundsManifest
 
     @on "NewSessionRequested", (callback = noop, options) =>
-      @dashboard.hide()
+      # @dashboard.hide()
       @teamwork?.destroy()
       @createTeamwork options
       @appView.addSubView @teamwork
       callback()
 
-    @dashboard.on "viewAppended", =>
-      @emit "NewSessionRequested"  if @getOptions().query.skipDashboard
+    # @dashboard.on "viewAppended", =>
+    #   @emit "NewSessionRequested"  if @getOptions().query.skipDashboard
 
-    @appView.addSubView @dashboard
+    # @appView.addSubView @dashboard
 
     @on "JoinSessionRequested", (sessionKey) =>
       @setOption "sessionKey", sessionKey
@@ -53,6 +53,8 @@ class TeamworkApp extends KDObject
     @on "TeamUpRequested", =>
       @teamwork.once "WorkspaceSyncedWithRemote", =>
         @showTeamUpModal()
+
+    @emit "NewSessionRequested"
 
   createTeamwork: (options) ->
     playgroundClass = TeamworkWorkspace
@@ -80,7 +82,6 @@ class TeamworkApp extends KDObject
       panels              : options.panels              or [
         hint              : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
         buttons           : []
-        floatingPanes     : [ "chat" , "terminal", "preview" ]
         layout            :
           direction       : "vertical"
           sizes           : [ "250px", null ]
@@ -92,8 +93,9 @@ class TeamworkApp extends KDObject
               name        : "finder"
             }
             {
-              type        : "tabbedEditor"
-              name        : "editor"
+              type        : "custom"
+              paneClass   : TeamworkTabView
+              name        : "tabView"
             }
           ]
       ]
