@@ -56,7 +56,7 @@ class StatusActivityItemView extends ActivityItemChild
     return  match[1].split /:/g  if match = str.match /^\|(.+)\|$/
 
   formatContent: (str = "")->
-    str = @utils.applyTextExpansions str, yes
+    str = @utils.applyMarkdown str
     str = @expandTokens str
     return  str
 
