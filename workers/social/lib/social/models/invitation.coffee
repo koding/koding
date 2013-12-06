@@ -1,4 +1,7 @@
 jraphical = require 'jraphical'
+Bongo     = require "bongo"
+
+{secure, daisy, Base} = Bongo
 
 module.exports = class JInvitation extends jraphical.Module
 
@@ -27,7 +30,7 @@ module.exports = class JInvitation extends jraphical.Module
     sharedMethods   :
       instance      : ['modifyMultiuse', 'remove']
       static        : ['inviteFriend', 'byCode', 'suggestCode', 'createMultiuse',
-                       'createForResurrection']
+                       'createForResurrection', 'createMultiForResurrection']
     sharedEvents    :
       static        : []
       instance      : []
@@ -218,24 +221,37 @@ module.exports = class JInvitation extends jraphical.Module
             return callback err  if err
             groupObj.addInvitation invite, callback
 
-  @createForResurrection = permit 'send invitations',
-    success: ({connection:{delegate}}, username, callback)->
-      JUser = require './user'
-      JUser.one {username}, (err, user)=>
-        return callback err  if err or !user
+  @createMultiForResurrection = permit 'send invitations',
+    success: (client, usernames, callback)->
+      if typeof usernames is String
+        return callback {"Usernames should be an array"}
 
-        {email} = user
-        code    = @generateInvitationCode "group", email, "resurrection"
-        invite  = new JInvitation {
-          code
-          email
-          type       : "multiuse"
-          group      : "resurrection"
-          origin     : ObjectRef(delegate)
-          maxUses    : 100
-          createdFor : username
-        }
-        invite.save callback
+      daisy queue = usernames.map (username) =>
+        => @_createForResurrection client, username, callback
+
+      queue.push -> callback null
+
+  @createForResurrection = permit 'send invitations',
+    success: (client, username, callback)->
+      @_createForResurrection client, username, callback
+
+  @_createForResurrection : ({connection:{delegate}}, username, callback)->
+    JUser = require './user'
+    JUser.one {username}, (err, user)=>
+      return callback err  if err or !user
+
+      {email} = user
+      code    = @generateInvitationCode "group", email, "resurrection"
+      invite  = new JInvitation {
+        code
+        email
+        type       : "multiuse"
+        group      : "resurrection"
+        origin     : ObjectRef(delegate)
+        maxUses    : 100
+        createdFor : username
+      }
+      invite.save callback
 
   @suggestCode: permit 'send invitations',
     success: (client, callback, tries=0)->
