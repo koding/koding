@@ -54,7 +54,7 @@ class MainController extends KDController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
-      @showInstructionsBook()
+      # @showInstructionsBook()
       @emit 'AppIsReady'
 
       console.timeEnd "Koding.com loaded"

@@ -4,7 +4,9 @@ class AppController extends KDViewController
 
     super
 
-    @appStorage = new AppStorage @getOption("name"), "1.0"
+    {name, version} = @getOptions()
+    @appStorage = \
+      KD.singletons.appStorageController.storage name, version or "1.0"
 
   createContentDisplay:(models, callback)->
     warn "You need to override #createContentDisplay - #{@constructor.name}"

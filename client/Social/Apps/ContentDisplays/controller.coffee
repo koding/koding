@@ -1,4 +1,5 @@
 class ContentDisplayControllerApps extends KDViewController
+
   constructor:(options = {}, data)->
 
     options.view or= mainView = new KDView cssClass : 'apps content-display'
@@ -9,21 +10,9 @@ class ContentDisplayControllerApps extends KDViewController
 
     app = @getData()
 
-    mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
-
-    backLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "<span>&laquo;</span> Back"
-      attributes  :
-        href      : "#"
-      click       : (event)->
-        event.stopPropagation()
-        event.preventDefault()
-        KD.singleton('display').emit "ContentDisplayWantsToBeHidden", mainView
-
-    subHeader.addSubView backLink  if KD.isLoggedIn()
-
-    # mainView.addSubView wrapperView = new AppViewMainPanel {}, app
+    mainView.addSubView subHeader = new KDCustomHTMLView
+      tagName  : "h2"
+      cssClass : 'sub-header'
 
     mainView.addSubView appView = new AppView
       cssClass : "profilearea clearfix"

@@ -135,7 +135,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
-      activityFetchCount : 50
+      activityFetchCount : 20
       precompiledApi: no
       authExchange: authExchange
       github         :

@@ -189,4 +189,3 @@ module.exports =
         MATCH group-[:#{relationshipName}]->items
         RETURN count(items) as count
       """
-
