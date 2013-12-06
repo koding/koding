@@ -259,14 +259,15 @@ module.exports = class JInvitation extends jraphical.Module
     success: (client, username, callback)->
       JInvitation.some {group:"resurrection", status:"active"}, {}, (err, invites)=>
         daisy queue = invites.map (invite) =>
-          email = new JMail {
-            email   : invite.email
-            subject : "You're invited to try a newer Koding!"
-            content : @getRessurrectionMessage invite.code
-            replyto : "hello@koding.com"
-          }
-          email.save (err)->
-            invite.update {$set: status: if err then 'couldnt send email' else 'sent'}, ->
+          =>
+            email = new JMail {
+              email   : invite.email
+              subject : "You're invited to try a new version Koding!"
+              content : @getRessurrectionMessage invite.code
+              replyto : "hello@koding.com"
+            }
+            email.save (err)->
+              invite.update {$set: status: if err then 'couldnt send email' else 'sent'}, ->
 
         queue.push -> callback null
 
@@ -372,9 +373,10 @@ module.exports = class JInvitation extends jraphical.Module
 
   @getRessurrectionMessage = (token)->
     """
-    Hello we've released a newer version of Koding.
-
-    Use this link: http://y.koding.com/Login/#{token}
+    We need loyal users like you to test it out: http://y.koding.com/Login/#{token}
+    This is a private beta, please don't share your url.
 
     Hope you like it!
+
+    Koding Team
     """
