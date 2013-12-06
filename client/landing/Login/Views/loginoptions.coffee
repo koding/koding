@@ -23,7 +23,7 @@ class LoginOptions extends KDView
       cssClass  : "github #{'hidden' if inFrame}"
       partial   : "github"
       click     : ->
-        return new KDNotificationView title: "Github temporarily disabled"
+        return new KDNotificationView title: "Login restricted"
         #KD.singletons.oauthController.openPopup "github"
       tooltip   :
         title   : "<p class='login-tip'>Sign in with GitHub</p>"
