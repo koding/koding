@@ -48,7 +48,7 @@ class Junction extends KDObject
         else
           return @iterate()
 
-    @index++ #continue
+    else @index++ #continue
 
     return node
 
@@ -125,17 +125,7 @@ class Junction extends KDObject
   toString: -> "junction-#{@id}"
 
   @All = class All extends Junction
-    # All is like Junction, but short-circuits propagation.
-    shouldPropagate: ->
-      if @dirty
-        satisfied = @isSatisfied()
-        return yes  if satisfied
-        
-        @dirty = no
-        return no
-      else
-        @dirty = yes
-        yes
+    # All is like Junction.
 
   @Any = class Any extends Junction
     # Any is like Junction, with a couple tweaks.
