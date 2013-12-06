@@ -397,21 +397,21 @@ __utils.extend __utils,
     ]
     view.setCss "backgroundImage", rule for rule in rules
 
-  getAppIcon:(appManifest)->
-    {authorNick, name, version, icns} = appManifest
+  getAppIcon:(name)->
 
-    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
+    # resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
-    if appManifest.devMode # TODO: change url to https when vm urls are ready for it
-      resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{__utils.slugify name}/"
+    # if appManifest.devMode # TODO: change url to https when vm urls are ready for it
+    #   resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{__utils.slugify name}/"
+
+
+    # for size in [64, 128, 160, 256, 512]
+    #   if icns and icns[String size]
+    #     thumb = "#{resourceRoot}/#{icns[String size]}"
+    #     break
 
     image  = if name is "Ace" then "icn-ace" else "default.app.thumb"
     thumb  = "#{KD.apiUri}/images/#{image}.png"
-
-    for size in [64, 128, 160, 256, 512]
-      if icns and icns[String size]
-        thumb = "#{resourceRoot}/#{icns[String size]}"
-        break
 
     img = new KDCustomHTMLView
       tagName     : "img"
@@ -505,5 +505,12 @@ __utils.extend __utils,
       else
         log "Unhandled content type '#{type}'"
         return 'error'
+
+  getColorFromString:(str)->
+    return [
+      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00", "#009BCB"
+      "#37B298", "#35485F", "#D35219", "#FDAB2E", "#19A2C4"
+      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00", "#009BCB"
+    ][parseInt (md5.digest str)[0], 16]
 
   formatMoney: accounting.formatMoney

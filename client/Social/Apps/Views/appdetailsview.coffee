@@ -7,7 +7,7 @@ class AppDetailsView extends KDScrollView
     app = @getData()
     {icns, identifier, version, authorNick} = app.manifest
 
-    @listenWindowResize()
+    # @listenWindowResize()
 
     @slideShow = new KDCustomHTMLView
       tagName   : "ul"
@@ -25,21 +25,10 @@ class AppDetailsView extends KDScrollView
     @setTemplate @pistachio()
     @template.update()
 
-    @_windowDidResize()
-
-  _windowDidResize:->
-    @setHeight @parent.getHeight() - @parent.$('.kdview.profilearea').outerHeight(no) - @parent.$('>h2').outerHeight(no)
-
-  click:(event)->
-
-    if $(event.target).is('header a, header a span')
-      log "right"
-
-  scroll:(event)->
-    if @getScrollTop() > 20
-      @parent.$('.profilearea').addClass "cast-shadow"
-    else
-      @parent.$('.profilearea').removeClass "cast-shadow"
+  # Do we need this? ~ GG
+  #   @_windowDidResize()
+  # _windowDidResize:->
+  #   @setHeight @parent.getHeight() - @parent.$('.kdview.profilearea').outerHeight(no) - @parent.$('>h2').outerHeight(no)
 
   pistachio:->
     if @getData().manifest.screenshots?.length

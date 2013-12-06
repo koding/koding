@@ -121,6 +121,7 @@ class PermissionsForm extends KDFormViewWithFields
   readableText = (text)->
     dictionary =
       "JTag"        : "Tags"
+      "JApp"        : "Apps"
       "JGroup"      : "Groups"
       "JPost"       : "Posts"
       "JVocabulary" : "Vocabularies"
