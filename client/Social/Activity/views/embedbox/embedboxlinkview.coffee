@@ -24,8 +24,8 @@ class EmbedBoxLinkView extends JView
   pistachio:->
     """
     <div class="embed embed-link-view custom-link">
-      {{> @embedImageSwitch}}
       {{> @embedImage}}
       {{> @embedContent}}
+      {{> @embedImageSwitch}}
     </div>
     """

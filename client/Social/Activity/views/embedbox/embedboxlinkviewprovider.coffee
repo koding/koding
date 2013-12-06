@@ -20,4 +20,4 @@ class EmbedBoxLinkViewProvider extends KDView
     then provider_link = "at <a href='#{provider_url}' target='_blank'>#{provider_display}</a>"
     else provider_link = ''
 
-    "<strong>#{provider_name}</strong>#{provider_link}"
+    "<strong>#{provider_name}</strong>"

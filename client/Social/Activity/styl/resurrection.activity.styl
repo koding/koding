@@ -72,7 +72,7 @@ resurrection.activity.styl
 
       button[type=submit]
         height          44px
-        bottom          10px
+        bottom          8px
         right           6px
         abs()
         z-index         1
@@ -471,56 +471,124 @@ span.collapsedtext
         &:focus
           line-height     24px
 
-  /* Embed Styles */
-  .embed-image-view
-    margin                20px 0 -22px
-    border-top            2px solid #e4e4e4
+/* Embed Styles */
+.embed-image-view
+  margin                20px 0 -22px
+  border-top            2px solid #e4e4e4
 
-    a
-    img
-      display             block
-      margin              0
-      padding             0
+  a
+  img
+    display             block
+    margin              0
+    padding             0
+
+.embed-link-view
+  padding               20px 20px 0
+  margin                20px 0 0
+  border-top            2px solid #e4e4e4
+
+  .preview-image
+    size                144px, 100px
+    fl()
+
+    &+.preview-text
+      kalc              width, 100% \- 144px
+      padding           0 0 0 15px
+
+  .preview-text
+    font-size           14px
+    font-weight         300
+    color               #50595a
+    borderBox()
+    fl()
+
+    .preview-text-link
+      color             inherit
+      display           block
+      word-break        break-word
+      overflow          visible
+      noTextDeco()
+
+      .preview-title
+        font-weight     400
+
+      &.description
+        padding         15px 0
+        line-height     15px
+
+        .description-input
+          width         100%
+          margin        15px 0 0 0
+
+    .provider-info
+      font-size         12px
+      color             #a9aeaf
+
+  .preview-link-pager
+    .preview-link-switch
+      size                  24px 24px
+      margin                14px 0 0
+      rounded               3px 0 0 3px
+      background            #f7f7f7
+      position              relative
+      cursor                pointer
+      fl()
+
+      &:hover
+        opacity             .9
+
+      &:after
+        content             ""
+        size                0 0
+        border              6px solid transparent
+        border-right-color  #aab5bc
+        left                3px
+        top                 6px
+        abs()
+
+      &:nth-child(2)
+        margin-left         2px
+        rounded             0 3px 3px 0
+
+        &:after
+          left              9px
+          border-right      none
+          border-left-color #aab5bc
+
+    .thumb-count
+      margin                14px 0 0 7px
+      line-height           24px
+      font-size             14px
+      color                 #7a8287
+      fl()
+
+    .thumb-text
+      font-size             12px
+      vertical-align        middle
+      color                 #aab5bc
+
+.input-wrapper
+  .link-embed-box
+    border                  1px solid #d6d6d6
+    padding                 0 0 18px
+    margin                  18px 0 0
+    rounded                 4px
+    position                relative
+    borderBox()
 
   .embed-link-view
-    padding               20px 20px 0
-    margin                20px 0 0
-    border-top            2px solid #e4e4e4
+    margin                  0
+    border                  none
 
-    .preview-image
-      size                144px, 100px
-      fl()
-
-      &+.preview-text
-        kalc              width, 100% \- 144px
-        padding           0 0 0 15px
-
-    .preview-text
-      font-size           14px
-      font-weight         300
-      color               #50595a
-      borderBox()
-      fl()
-
-      .preview-text-link
-        color             inherit
-        display           block
-        word-break        break-word
-        noTextDeco()
-
-        .preview-title
-          font-weight     400
-
-        &.description
-          padding         15px 0
-
-          .description-input
-            width         100%
-            margin        15px 0 0 0
-
-      .provider-info
-        font-size       12px
-        color           #a9aeaf
+  .hide-embed
+    right                   7px
+    top                     7px
+    border                  none
+    outline                 none
+    shadow                  none
+    z-index                 10
+    sprite                  app "20-close-tab"
+    abs()
 
 
 /* Activity item menu */

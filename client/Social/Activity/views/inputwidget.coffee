@@ -100,4 +100,4 @@ class ActivityInputWidget extends KDView
   viewAppended: ->
     @addSubView @input
     @addSubView @embedBox
-    @addSubView @submit
+    @input.addSubView @submit
