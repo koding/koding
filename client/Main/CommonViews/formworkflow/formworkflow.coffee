@@ -108,7 +108,6 @@ class FormWorkflow extends KDView
     return this
 
   showForm: (form, shouldPushState = yes) ->
-    debugger
     @hideForms()
     form = @getForm form
     form.activate? this
@@ -123,3 +122,9 @@ class FormWorkflow extends KDView
   viewAppended:->
     @prepareWorkflow?()
     @emit 'ready'
+
+  skip: (data) ->
+    v = new KDView
+    v.activate = => @collectData data
+    v
+

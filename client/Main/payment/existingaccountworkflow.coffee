@@ -3,11 +3,14 @@ class ExistingAccountForm extends JView
 
     @exitingAccountButton = new KDButtonView
       title : "I have an account"
-      callback: => @emit 'DataCollected', existingAccount: yes
+      callback: => @emit 'DataCollected',
+        account : yes
+        email   : no
 
     @createAccountButton = new KDButtonView
       title : "I'll create an account"
-      callback: => @emit 'DataCollected', createAccount: yes
+      callback: => @emit 'DataCollected',
+        account   : yes
 
     super()
 
@@ -18,32 +21,25 @@ class ExistingAccountForm extends JView
     {{> @createAccountButton}}
     """
 
-
 class ExistingAccountWorkflow extends FormWorkflow
+
   prepareWorkflow: ->
     { all, any } = Junction
 
-    @requireData any(
-      
-      all('createAccount', 'email')
-
-      all('existingAccount', 'loggedIn')
+    @requireData all(
+      'account'
+      'email'
+      'loggedIn'
     )
 
     existingAccountForm = new ExistingAccountForm
-    existingAccountForm.on 'DataCollected', @bound 'collectData'
+    existingAccountForm.on 'DataCollected', (data) =>
+      # @clearData 'createAccount'  if 'existingAccount' of data
+      @collectData data
 
     @addForm 'existingAccount', existingAccountForm, [
-      'createAccount'
-      'existingAccount'
+      'account'
     ]
-
-    loginForm = new LoginInlineForm
-      cssClass : "login-form"
-      testPath : "login-form"
-      callback : (formData) => debugger
-
-    @addForm 'login', loginForm, ['loggedIn']
 
     emailCollectionForm = new KDFormViewWithFields
       fields:
@@ -57,8 +53,18 @@ class ExistingAccountWorkflow extends FormWorkflow
           title            : 'SAVE CHANGES'
           type             : 'submit'
           style            : 'solid green fr'
-      callback             : @bound 'collectData'
+      callback             : ({ email }) =>
+        @collectData { email, loggedIn: no }
 
     @addForm 'email', emailCollectionForm, ['email']
+
+    loginForm = new LoginInlineForm
+      cssClass : "login-form"
+      testPath : "login-form"
+      callback : (credentials) =>
+        KD.getSingleton('mainController').handleLogin credentials, (err) =>
+          @collectData loggedIn: yes
+
+    @addForm 'login', loginForm, ['loggedIn']
 
     @enter()
