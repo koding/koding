@@ -120,7 +120,9 @@ class LoginView extends KDView
       title       : "Sign in with GitHub"
       style       : 'solid github'
       icon        : yes
-      callback    : -> KD.singletons.oauthController.openPopup "github"
+      callback    : ->
+        return new KDNotificationView title: "Login restricted"
+        #KD.singletons.oauthController.openPopup "github"
 
     @github.setPartial "<span class='button-arrow'></span>"
 
@@ -250,10 +252,14 @@ class LoginView extends KDView
 
   doReset:({recoveryToken, password})->
     KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
-      @resetForm.button.hideLoader()
-      @resetForm.reset()
-      @headBanner.hide()
-      @doLogin {username, password}
+      if err
+        new KDNotificationView
+          title : "An error occurred: #{err.message}"
+      else
+        @resetForm.button.hideLoader()
+        @resetForm.reset()
+        @headBanner.hide()
+        @doLogin {username, password}
 
   doRecover:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
@@ -271,7 +277,7 @@ class LoginView extends KDView
           duration  : 4500
 
   resendEmailConfirmationToken:(formData)->
-    KD.remote.api.JEmailConfirmation.resetToken formData['username-or-email'], (err)=>
+    KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
       @resendForm.button.hideLoader()
       if err
         new KDNotificationView
@@ -362,6 +368,10 @@ class LoginView extends KDView
       if firstRoute and /^\/Verify/.test firstRoute
         firstRoute = "/"
 
+
+      if firstRoute and /^\/Reset/.test firstRoute
+        firstRoute = "/"
+
       KD.getSingleton('appManager').quitAll()
       KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
       KD.getSingleton('groupsController').on 'GroupChanged', =>
@@ -407,14 +417,6 @@ class LoginView extends KDView
       $('#group-landing').css 'height', '100%'
       $('#group-landing').css 'opacity', 1
 
-  headBannerShowRecovery:(recoveryToken)->
-
-    @showHeadBanner "Hi, seems like you came here to reclaim your account. <span>Click here when you're ready!</span>", =>
-      KD.getSingleton('router').clear '/Recover/Password'
-      @headBanner.updatePartial "You can now create a new password for your account"
-      @resetForm.addCustomData {recoveryToken}
-      @animateToForm "reset"
-
   headBannerShowInvitation:(invite)->
 
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
@@ -458,6 +460,11 @@ class LoginView extends KDView
   #           routed = yes
   #           break
   #       router.clear()  unless routed
+
+  setCustomDataToForm: (type, data)->
+    formName = "#{type}Form"
+    @[formName].addCustomData data
+    # @resetForm.addCustomData {recoveryToken}
 
   animateToForm: (name)->
 
