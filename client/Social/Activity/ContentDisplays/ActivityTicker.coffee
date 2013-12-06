@@ -22,9 +22,20 @@ class ActivityTicker extends ActivityRightBase
     group.on "MemberJoinedGroup", @bound "addJoin"
     group.on "LikeIsAdded", @bound "addLike"
     group.on "FollowHappened", @bound "addFollow"
+    group.on "PostIsCreated", @bound "addActivity"
 
     nc = KD.getSingleton("notificationController")
     nc.on "ReplyIsAdded", @bound "addComment"
+
+  addActivity: (data)->
+    {origin, subject} = data
+    return console.warn "data is not valid" unless origin and subject
+    eventObj =
+      source : new KD.remote.api[subject.bongo_.constructorName] subject
+      target : new KD.remote.api[origin.bongo_.constructorName] origin
+      as     : "author"
+
+    @listController.addItem eventObj, 0
 
   addJoin: (data)->
     {member} = data
