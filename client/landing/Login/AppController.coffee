@@ -1,10 +1,11 @@
 class LoginAppsController extends AppController
 
-  handler = (callback)->->
-    unless KD.isLoggedIn()
-      KD.singleton('appManager').open 'Login', callback
-    else
-      KD.getSingleton('router').handleRoute "/Activity"
+  handler = (callback)->
+    ({params})->
+      unless KD.isLoggedIn()
+        KD.singleton('appManager').open 'Login', (app)-> callback app, params
+      else
+        KD.getSingleton('router').handleRoute "/Activity"
 
   handleResetRoute = ({params:{token}})->
     KD.singleton('appManager').open 'Login', (app)=>
@@ -14,20 +15,39 @@ class LoginAppsController extends AppController
         app.getView().setCustomDataToForm('reset', {recoveryToken:token})
         app.getView().animateToForm('reset')
 
+  handleFailureOfRestriction =->
+    new KDNotificationView title: "Login restricted"
+
+    KD.introView = new IntroView
+    KD.introView.appendToDomBody()
+    KD.introView.setClass 'in'
+
+  handleRestriction = ({token}, callback)->
+    return handleFailureOfRestriction()  unless token
+
+    KD.remote.api.JInvitation.byCode token, (err, invite)->
+      if err or !invite?
+        return handleFailureOfRestriction()  unless token
+
+      callback()
+
   KD.registerAppClass this,
-    name                        : "Login"
-    routes                      :
-      '/:name?/Login'           : handler (app)-> app.getView().animateToForm 'login'
-      '/:name?/Redeem'          : handler (app)-> app.getView().animateToForm 'redeem'
-      '/:name?/Register'        : handler (app)-> app.getView().animateToForm 'register'
-      '/:name?/Recover'         : handler (app)-> app.getView().animateToForm 'recover'
-      '/:name?/Reset'           : handler (app)-> app.getView().animateToForm 'reset'
-      '/:name?/Reset/:token'    : handleResetRoute
-      '/:name?/ResendToken'     : handler (app)-> app.getView().animateToForm 'resendEmail'
-    hiddenHandle                : yes
-    behavior                    : 'application'
+    name                         : "Login"
+    routes                       :
+      '/:name?/Login/:token?'    : handler (app, params)->
+          handleRestriction params, -> app.getView().animateToForm 'login'
+      '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
+      '/:name?/Register/:token?' : handler (app, params)->
+          handleRestriction params, -> app.getView().animateToForm 'register'
+      '/:name?/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
+      '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
+      '/:name?/Reset/:token'     : handleResetRoute
+      '/:name?/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
+    hiddenHandle                 : yes
+    behavior                     : 'application'
     # removed preCondition because Reset can be called while
     # current user logged-in status
+
   constructor:(options = {}, data)->
 
     options.view    = new LoginView
