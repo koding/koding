@@ -369,9 +369,14 @@ module.exports = class JUser extends jraphical.Module
               # is not correct place to do it, FIXME GG
               # p.s. we could do that in workers
               JLog.log { type: "login", username: account.username, success: yes }, ->
-              account.updateCounts()
-              JUser.clearOauthFromSession session, ->
-                callback null, {account, replacementToken}
+              # let user login for the first time, than set password status
+              # as 'needs reset'
+              if user.passwordStatus is 'needs set'
+                user.update {$set:passwordStatus:'needs reset'}, (err)->
+                return callback err  if err
+                account.updateCounts()
+                JUser.clearOauthFromSession session, ->
+                  callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
     if 'string' is typeof client

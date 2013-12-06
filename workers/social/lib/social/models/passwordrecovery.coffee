@@ -39,15 +39,22 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @getPasswordRecoveryEmail =-> 'hello@koding.com'
 
-  @getPasswordRecoverySubject = -> 'Instructions to reset your password'
+  @getPasswordRecoverySubject = ({resetPassword})->
+    # TODO DRY this
+    verb = if resetPassword then "reset" else "validate"
+    obj = if resetPassword then "password" else "email"
+    return "Instructions to #{verb} your #{obj}"
 
   @getEmailDateFormat = -> 'fullDate'
 
-  @getPasswordRecoveryMessage = ({requestedAt, url})->
+  @getPasswordRecoveryMessage = ({requestedAt, url, resetPassword})->
+    # TODO DRY this
+    verb = if resetPassword then "reset" else "validate"
+    obj = if resetPassword then "password" else "email"
     """
-    At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'}, you requested to reset your password.
+    At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'}, you requested to #{verb} your #{obj}.
 
-    This one-time token will allow you to reset your password.  This token will self-destruct 30 minutes after it is issued.
+    This one-time token will allow you to #{verb} your #{obj}.  This token will self-destruct 30 minutes after it is issued.
 
     #{url}
     """
@@ -104,11 +111,12 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           else
             messageOptions.requestedAt = certificate.getAt('requestedAt')
 
+            messageOptions.resetPassword = no# if user.passwordStatus is 'needs set' then yes else no
             JMail = require './email'
             email = new JMail
               from      : @getPasswordRecoveryEmail()
               email     : email
-              subject   : defaultSubject()
+              subject   : defaultSubject messageOptions
               content   : defaultTextBody messageOptions
               force     : yes
 
@@ -129,7 +137,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
       else
         JUser = require './user'
         JUser.one {email:certificate.email}, (err, user)->
-          return callback new Error "Error occured. Please try again." if err
+          return callback new Error "Error occured. Please try again." if err or not user
           user.confirmEmail (err)->
             return callback new Error "Error occured. Please try again." if err
             callback null, yes
