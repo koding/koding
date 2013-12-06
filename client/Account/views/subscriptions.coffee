@@ -24,9 +24,9 @@ class AccountSubscriptionsListController extends AccountListViewController
 
         .on 'PlanChangeRequested', ->
           payment = KD.getSingleton 'paymentController'
-          
+
           workflow = payment.createUpgradeWorkflow 'vm'
-          
+
           modal = new KDModalView
             view    : workflow
             overlay : yes
@@ -41,7 +41,7 @@ class AccountSubscriptionsListController extends AccountListViewController
 
   getConfirmationButtonText = (action, subscription) -> switch action
     when 'cancel' then 'Unsubscribe'
-    when 'resume' then 'Reactivate' 
+    when 'resume' then 'Reactivate'
 
   confirm: (action, subscription, callback) ->
     modal = KDModalView.confirm
@@ -82,7 +82,7 @@ class AccountSubscriptionsListController extends AccountListViewController
     super
 
     @getView().parent.addSubView reloadButton = new KDButtonView
-      style     : 'clean-gray account-header-button'
+      style     : 'solid green small account-header-button'
       title     : ''
       icon      : yes
       iconOnly  : yes
