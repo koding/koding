@@ -131,6 +131,8 @@ class MainController extends KDController
 
           if firstRoute and /^\/Verify/.test firstRoute
             firstRoute = "/"
+          if firstRoute and /^\/Reset/.test firstRoute
+            firstRoute = "/"
 
           window.location.pathname = firstRoute or "/"
 
