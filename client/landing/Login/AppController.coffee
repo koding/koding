@@ -20,6 +20,9 @@ class LoginAppsController extends AppController
 
   handleRestriction = (handler) ->
     ({params: {token : token }})->
+      for url in ['localhost', 'https:\/\/koding.com'] when (new RegExp url).test window.location
+        return do handler()
+
       return handleFailureOfRestriction()  unless token
 
       KD.remote.api.JInvitation.byCode token, (err, invite)->
