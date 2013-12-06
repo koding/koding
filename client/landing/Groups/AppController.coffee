@@ -344,16 +344,6 @@ class GroupsAppController extends AppController
       modal = new KDModalView modalOptions
 
 
-  editPermissions:(group)->
-    group.getData().fetchPermissions (err, permissionSet)->
-      if err
-        new KDNotificationView title: err.message
-      else
-        permissionsModal = new PermissionsModal {
-          privacy: group.getData().privacy
-          permissionSet
-        }, group
-
   loadView:(mainView, firstRun = yes, loadFeed = no)->
 
     if firstRun
@@ -470,34 +460,3 @@ class GroupsAppController extends AppController
             title    : 'Dismiss'
             style    : 'modal-cancel'
             callback : -> modal.destroy()
-
-  # old load view
-  # loadView:(mainView, firstRun = yes)->
-
-  #   if firstRun
-  #     mainView.on "searchFilterChanged", (value) =>
-  #       return if value is @_searchValue
-  #       @_searchValue = Encoder.XSSEncode value
-  #       @_lastSubview.destroy?()
-  #       @loadView mainView, no
-
-  #     mainView.createCommons()
-
-  #   KD.whoami().fetchRole? (err, role) =>
-  #     if role is "super-admin"
-  #       @listItemClass = GroupsListItemViewEditable
-  #       if firstRun
-  #         KD.getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
-  #           @editPermissions groupItem
-  #         KD.getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
-  #           groupData = groupItem.getData()
-  #           groupData.canEditGroup (err, hasPermission)=>
-  #             unless hasPermission
-  #               new KDNotificationView title: 'Access denied'
-  #             else
-  #               @showGroupSubmissionView groupData
-  #         KD.getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
-  #           groupItem.getData().fetchRoles console.log.bind console
-
-  #     @createFeed mainView
-  #   # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData

@@ -40,11 +40,11 @@ class GroupsBundleEditView extends KDCustomHTMLView
     'disk per user' : no
 
   mapPlansToRadios: (plan) ->
-    @plansByCode[plan.code] = plan
+    @plansByCode[plan.planCode] = plan
     { category, resource, upperBound } = plan.usage
     {
       title: @getPlanTitle category, resource, upperBound
-      value: plan.code
+      value: plan.planCode
     }
 
   getResourceTitle =(resource)->

@@ -43,6 +43,9 @@ class StartTabMainView extends JView
           cb()
       ]
 
+    # REMOVE AFTER IMPLEMENTATION IS DONE ~ GG
+    @utils.defer @serverContainerToggle.bound 'click'
+
   # Application Specific Operations
 
   _connectAppsController:->
