@@ -101,3 +101,4 @@ class ActivityInputWidget extends KDView
     @addSubView @input
     @addSubView @embedBox
     @input.addSubView @submit
+    @hide()  unless KD.isLoggedIn()
