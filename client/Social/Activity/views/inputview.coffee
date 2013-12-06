@@ -44,6 +44,7 @@ class ActivityInputView extends KDTokenizedInput
     super @renderTokens content, tokens
 
   focus: ->
+    return  if @focused
     super
     value = @getValue()
     unless value
