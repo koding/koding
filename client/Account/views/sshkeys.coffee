@@ -30,7 +30,7 @@ class AccountSshKeyListController extends AccountListViewController
   loadView:->
     super
     @getView().parent.addSubView addButton = new KDButtonView
-      style     : "clean-gray account-header-button"
+      style     : "solid green small account-header-button"
       title     : ""
       icon      : yes
       iconOnly  : yes

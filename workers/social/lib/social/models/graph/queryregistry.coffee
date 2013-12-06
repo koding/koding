@@ -17,7 +17,7 @@ module.exports =
       """
         START user=node:koding(id={currentUserId})
         MATCH user-[:follower]->members
-        WHERE members.onlineStatus = "online"
+        WHERE members.onlineStatus! = "online"
         RETURN members
         #{orderByQuery}
         SKIP {skipCount}

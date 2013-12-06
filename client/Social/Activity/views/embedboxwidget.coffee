@@ -99,7 +99,7 @@ class EmbedBoxWidget extends KDView
   loadEmbed: (url) ->
     return this  if @isLocked url
     @addLock url
-    
+
     cached = @embedCache[url]
 
     if cached? then @utils.defer =>
@@ -152,7 +152,7 @@ class EmbedBoxWidget extends KDView
     return {}  if _.isEmpty @oembed
 
     data = @oembed
-    
+
     { embedContent } = @embedContainer
 
     wantedData = {}
@@ -260,5 +260,4 @@ class EmbedBoxWidget extends KDView
   pistachio:->
     """
     {{> @settingsButton}}
-    {{> @embedLinks}}
     """

@@ -130,6 +130,8 @@ class MainView extends KDView
 
   createLoggedInAccountArea:->
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
+    @accountMenu.accountChanged KD.whoami()
+
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, KD.whoami()
     @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
       domId      : 'fatih-launcher'
