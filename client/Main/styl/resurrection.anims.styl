@@ -2,6 +2,16 @@
 @import "../styl/appfn"
 @import "../styl/app.fonts"
 
+/*  */
+
+.animate
+  &.shake
+    vendor          animation, shake .5s
+  &.rotate-and-shake
+    vendor          animation, rotateAndShake .6s
+
+
+/*  */
 @-webkit-keyframes lineRotate
   20%
     -webkit-transform translateZ(-60px) rotateX(40deg)
@@ -29,6 +39,56 @@
     opacity      1
   100%
     opacity      0
+
+/* Shake */
+
+@-webkit-keyframes shake
+  0%
+  100%
+    -webkit-transform   translateX(0)
+  8%
+  41%
+    -webkit-transform   translateX(-10px)
+  25%
+  58%
+    -webkit-transform   translateX(10px)
+  75%
+    -webkit-transform   translateX(-5px)
+  92%
+    -webkit-transform   translateX(5px)
+
+@-moz-keyframes shake
+  0%
+  100%
+    -moz-transform      translateX(0)
+  8%
+  41%
+    -moz-transform      translateX(-10px)
+  25%
+  58%
+    -moz-transform      translateX(10px)
+  75%
+    -moz-transform      translateX(-5px)
+  92%
+    -moz-transform      translateX(5px)
+
+/* Rotate and shake */
+
+@-webkit-keyframes rotateAndShake
+  0%
+  100%
+    -webkit-transform   translateX(0)
+    -webkit-transform-origin-y 100%
+  8%
+  41%
+    -webkit-transform   translateX(-10px) rotateZ(-4deg)
+  25%
+  58%
+    -webkit-transform   translateX(10px) rotateZ(4deg)
+  75%
+    -webkit-transform   translateX(-5px) rotateZ(-2deg)
+  92%
+    -webkit-transform   translateX(5px) rotateZ(2deg)
 
 
 /* Logout animation (old tv turn off) */
