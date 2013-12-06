@@ -31,7 +31,7 @@ class ActiveUsers extends ActivityRightBase
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
       partial : "Show All"
-      cssClass: "show-all-link"
+      cssClass: "show-all-link hidden"
       click   : (event) -> KD.singletons.router.handleRoute "/Members"
     , data
 
