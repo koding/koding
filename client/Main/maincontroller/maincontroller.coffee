@@ -154,7 +154,7 @@ class MainController extends KDController
 
       @accountChanged account
 
-      @once 'AccountChanged', -> KD.utils.defer -> callback null, params
+      @once 'AccountChanged', (account) -> callback null, params
 
   isUserLoggedIn: -> KD.isLoggedIn()
 
