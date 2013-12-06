@@ -346,34 +346,39 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err
       checkUserStatus user, account, callback
 
+  updateUserPasswordStatus = (user, callback)->
+    # let user log in for the first time, than set password status
+    # as 'needs reset'
+    if user.passwordStatus is 'needs set'
+        user.update {$set:passwordStatus:'needs reset'}, callback
+    else
+      callback null
+
   afterLogin = (connection, user, clientId, session, callback)->
     user.fetchOwnAccount (err, account)->
       if err then return callback err
       checkLoginConstraints user, account, (err)->
         if err then return callback err
-        replacementToken = createId()
-        session.update {
-          $set            :
-            username      : user.username
-            lastLoginDate : new Date
-            clientId      : replacementToken
-          $unset:
-            guestId       : 1
-        }, (err)->
-            return callback err  if err
-            user.update { $set: lastLoginDate: new Date }, (err) ->
+        updateUserPasswordStatus user, (err)->
+          if err then return callback err
+          replacementToken = createId()
+          session.update {
+            $set            :
+              username      : user.username
+              lastLoginDate : new Date
+              clientId      : replacementToken
+            $unset:
+              guestId       : 1
+          }, (err)->
               return callback err  if err
-              connection.delegate = account
-              JAccount.emit "AccountAuthenticated", account
-              # This should be called after login and this
-              # is not correct place to do it, FIXME GG
-              # p.s. we could do that in workers
-              JLog.log { type: "login", username: account.username, success: yes }, ->
-              # let user login for the first time, than set password status
-              # as 'needs reset'
-              if user.passwordStatus is 'needs set'
-                user.update {$set:passwordStatus:'needs reset'}, (err)->
+              user.update { $set: lastLoginDate: new Date }, (err) ->
                 return callback err  if err
+                connection.delegate = account
+                JAccount.emit "AccountAuthenticated", account
+                # This should be called after login and this
+                # is not correct place to do it, FIXME GG
+                # p.s. we could do that in workers
+                JLog.log { type: "login", username: account.username, success: yes }, ->
                 account.updateCounts()
                 JUser.clearOauthFromSession session, ->
                   callback null, {account, replacementToken}
