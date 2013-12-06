@@ -18,7 +18,7 @@ module.exports = class JComment extends jraphical.Reply
 
   @set
     sharedMethods  :
-      static       : ['fetchRelated']
+      static       : ['fetchRelated', 'one']
       instance     : ['delete','like','fetchLikedByes','checkIfLikedBefore']
     sharedEvents  :
       instance    : [
