@@ -98,7 +98,7 @@ class PaymentController extends KDController
 
       subscription = null
       queue.push =>
-        @fetchSubscriptionsWithPlans tags: ['vm'], (err, [subscription_]) ->
+        @fetchSubscriptionsWithPlans tags: tag, (err, [subscription_]) ->
           subscription = subscription_
           queue.fin()
 
