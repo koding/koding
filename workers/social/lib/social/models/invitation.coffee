@@ -373,7 +373,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   @getRessurrectionMessage = (token)->
     """
-    We need loyal users like you to test it out: http://y.koding.com/Login/#{token}
+    We need loyal users like you to test it out: http://new.koding.com/Login/#{token}
     This is a private beta, please don't share your url.
 
     Hope you like it!
