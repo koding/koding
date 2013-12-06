@@ -286,9 +286,11 @@ module.exports = class JUser extends jraphical.Module
     else
       callback null
 
-  @login = secure ({connection}, credentials, callback)->
-    {username, password, clientId} = credentials
-    constructor = @
+  @login = secure (client, credentials, callback)->
+    {username, password} = credentials
+    {sessionToken: clientId, connection} = client 
+
+    constructor = this
     JSession.one {clientId}, (err, session)->
       return callback err  if err
       # temp fix:
