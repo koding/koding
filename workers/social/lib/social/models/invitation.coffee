@@ -77,6 +77,9 @@ module.exports = class JInvitation extends jraphical.Module
 
   @byCode = (code, callback)-> @one {code}, callback
 
+  @byCodeForBeta = (code, callback)->
+    @one {code, group:"resurrection"}, callback
+
   @generateInvitationCode = (type, email, group)->
     code = crypto.createHmac 'sha1', 'kodingsecret'
     code.update type
