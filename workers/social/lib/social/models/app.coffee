@@ -38,7 +38,7 @@ module.exports = class JApp extends jraphical.Module
 
     sharedMethods       :
       instance          : [
-        'fetchRelativeReviews', 'review', 'delete'
+        'fetchRelativeReviews', 'review', 'delete', 'approve'
       ]
       static            : [
         'create', 'one', 'some', 'each', 'some_'
@@ -291,32 +291,32 @@ module.exports = class JApp extends jraphical.Module
     success: (client, callback)-> @remove callback
 
 
-  # approve: permit 'approve apps',
+  approve: permit 'approve apps',
 
-  #   success: (client, state = yes, callback)->
+    success: (client, state = yes, callback)->
 
-  #     # Disapprove
-  #     unless state
+      @update $set: approved: state, callback
 
-  #       return @update $set:{approved: no}, callback
+      # identifier = @getAt 'identifier'
 
-  #     identifier = @getAt 'identifier'
+      # JApp.count {identifier, approved:yes}, (count)=>
 
-  #     JApp.count {identifier, approved:yes}, (count)=>
+      #   # Check if any app used same identifier and already approved
+      #   if count > 1
+      #     return callback new KodingError \
+      #            'Identifier already in use, please change it first'
 
-  #       # Check if any app used same identifier and already approved
-  #       if count > 1
-  #         return callback new KodingError \
-  #                'Identifier already in use, please change it first'
 
-  #       # Check if the app has a slug, if not create one
-  #       unless @getAt 'slug'
-  #         this.createSlug (err, slug)=>
-  #           return callback err  if err
-  #           slug = slug_ = slug.slug
-  #           @update {slug, slug_, approved:yes}, callback
-  #       else
-  #         @update approved:yes, callback
+
+
+      #   # Check if the app has a slug, if not create one
+      #   unless @getAt 'slug'
+      #     this.createSlug (err, slug)=>
+      #       return callback err  if err
+      #       slug = slug_ = slug.slug
+      #       @update {slug, slug_, approved:yes}, callback
+      #   else
+      #     @update approved:yes, callback
 
   # JApp.one
     #   name : data.name
