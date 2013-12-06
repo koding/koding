@@ -7,7 +7,7 @@ class ActivityTickerBaseItem extends JView
 
   itemLinkViewClassMap :
     JAccount           : ProfileLinkView
-    JApp               : AppLinkView
+    JNewApp               : AppLinkView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
     JStatusUpdate      : ActivityLinkView

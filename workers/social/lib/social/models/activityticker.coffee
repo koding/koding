@@ -11,7 +11,7 @@ module.exports = class ActivityTicker extends Base
       static      : ["fetch"]
 
   relationshipNames = ["follower", "like", "member", "user", "reply", "author"]
-  constructorNames  = ["JAccount", "JApp", "JGroup", "JTag", "JStatusUpdate","JComment"]
+  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JStatusUpdate", "JComment"]
 
   JAccount = require './account'
 

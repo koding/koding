@@ -43,37 +43,37 @@ class AppsAppController extends AppController
           title             : "All Apps"
           noItemFoundText   : "There is no application yet"
           dataSource        : (selector, options, callback)=>
-            KD.remote.api.JApp.some selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         webApps             :
           title             : "Web Apps"
           noItemFoundText   : "There is no web apps yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'web-app'
-            KD.remote.api.JApp.some selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         kodingAddOns        :
           title             : "Add-ons"
           noItemFoundText   : "There is no add-ons yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'add-on'
-            KD.remote.api.JApp.some selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         serverStacks        :
           title             : "Server Stacks"
           noItemFoundText   : "There is no server-stacks yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'server-stack'
-            KD.remote.api.JApp.some selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         frameworks          :
           title             : "Frameworks"
           noItemFoundText   : "There is no frameworks yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'framework'
-            KD.remote.api.JApp.some selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         miscellaneous       :
           title             : "Miscellaneous"
           noItemFoundText   : "There is no miscellaneous app yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'misc'
-            KD.remote.api.JApp.some selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
 
       sort                  :
         'meta.modifiedAt'   :
@@ -101,7 +101,7 @@ class AppsAppController extends AppController
       options.filter.waitsForApprove =
         title             : "New Apps"
         dataSource        : (selector, options, callback)=>
-          KD.remote.api.JApp.some_ selector, options, callback
+          KD.remote.api.JNewApp.some_ selector, options, callback
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
 
@@ -116,10 +116,10 @@ class AppsAppController extends AppController
   handleRoute:(route)->
 
     {app, lala} = route.params
-    {JApp}      = KD.remote.api
+    {JNewApp}      = KD.remote.api
     if app
       log "slug:", slug = "Apps/#{lala}/#{app}"
-      JApp.one {slug}, (err, app)=>
+      JNewApp.one {slug}, (err, app)=>
         log "FOUND THIS JAPP", err, app
         if app then @showContentDisplay app
 

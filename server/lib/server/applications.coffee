@@ -9,8 +9,8 @@ module.exports = (req, res)->
   {app} = req.params
 
   # Lets fetch 3rd party apps
-  {JApp} = koding.models
-  JApp.one
+  {JNewApp} = koding.models
+  JNewApp.one
     name     : app
     approved : yes
   , (err, app)->
