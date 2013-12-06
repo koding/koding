@@ -31,6 +31,7 @@ class TopicsListItemView extends KDListItemView
       stateOptions   :
         unfollow     :
           cssClass   : 'following-btn'
+      dataType       : 'JTag'
     , data
 
   titleReceivedClick:(event)-> @emit 'LinkClicked'
