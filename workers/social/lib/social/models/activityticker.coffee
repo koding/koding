@@ -81,7 +81,7 @@ module.exports = class ActivityTicker extends Base
 
     options      =
       # do not fetch more than 15 at once
-      limit      : Math.min options.limit ? 15, 15
+      limit      : 10 # Math.min options.limit ? 15, 15
       sort       : timestamp  : -1
 
     Relationship.some selector, options, (err, relationships) ->

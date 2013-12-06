@@ -14,7 +14,7 @@ class AccountKiteListController extends KDListViewController
 
     list = @getListView()
     @getView().parent.addSubView addKiteButton = new KDButtonView
-      style       : "clean-gray account-header-button"
+      style       : "solid green small account-header-button"
       title       : "Add new Kite"
       icon        : yes
       iconOnly    : yes

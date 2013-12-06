@@ -18,6 +18,7 @@ __utils.extend __utils,
 
     options.width   or= -1
     options.height  or= -1
+    options.grow    or= yes
 
     if url is ""
       return "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
@@ -26,7 +27,7 @@ __utils.extend __utils,
       endpoint = "/resize"
     if options.crop
       endpoint = "/crop"
-    return "https://i.embed.ly/1/display#{endpoint or ''}?grow=false&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
+    return "https://i.embed.ly/1/display#{endpoint or ''}?grow=#{options.grow}&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
 
   showMoreClickHandler:(event)->
     $trg = $(event.target)
