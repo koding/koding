@@ -10,7 +10,7 @@ module.exports = class ActivityTicker extends Base
     sharedMethods :
       static      : ["fetch"]
 
-  relationshipNames = ["follower", "like", "member", "user", "reply"]
+  relationshipNames = ["follower", "like", "member", "user", "reply", "author"]
   constructorNames  = ["JAccount", "JApp", "JGroup", "JTag", "JStatusUpdate","JComment"]
 
   JAccount = require './account'
@@ -24,8 +24,20 @@ module.exports = class ActivityTicker extends Base
       decorateLikeEvent relationship, callback
     else if as is "reply"
       decorateCommentEvent relationship, callback
+    else if as is "author"
+      decorateStatusUpdateEvent relationship, callback
     else
       callback null, {source, target, as, timestamp}
+
+  decorateStatusUpdateEvent = (relationship, callback) ->
+    {source, target, as, timestamp} = relationship
+    source.fetchTags (err, tags) ->
+      return callback err if err
+      console.log 'Tags', tags
+      source.tags = tags
+      console.log 'Releysin', relationship
+      callback null, relationship
+
 
   decorateCommentEvent = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
