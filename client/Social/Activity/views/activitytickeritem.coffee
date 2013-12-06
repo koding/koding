@@ -11,6 +11,7 @@ class ActivityTickerBaseItem extends JView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
     JStatusUpdate      : ActivityLinkView
+    JComment           : ActivityCommentView
 
 class ActivityTickerFollowItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->

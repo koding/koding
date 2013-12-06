@@ -33,7 +33,8 @@ class ActivityTicker extends ActivityRightBase
     {constructorName, id} = member
     KD.remote.cacheable constructorName, id, (err, account)=>
       return console.error "account is not found", err if err or not account
-      @listController.addItem {as: "member", target: account}, 0
+      source = KD.getSingleton().getCurrentGroup()
+      @listController.addItem {as: "member", target: account, source  }, 0
 
   addFollow: (data)->
     {follower, origin} = data
