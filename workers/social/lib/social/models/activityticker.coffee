@@ -18,6 +18,8 @@ module.exports = class ActivityTicker extends Base
   decorateEvents = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
 
+    return callback null  if not source or not target
+
     if as is "like"
       decorateLikeEvent relationship, callback
     else if as is "reply"
@@ -91,7 +93,7 @@ module.exports = class ActivityTicker extends Base
           unless sourceName is "JStatusUpdate" and targetName is "JAccount" and as is "follower"
             relationship.fetchTeaser ->
               decorateEvents relationship, (err, decoratedEvent)=>
-                buckets.push decoratedEvent
+                buckets.push decoratedEvent  if decoratedEvent
                 queue.next()
           else
             queue.next()
