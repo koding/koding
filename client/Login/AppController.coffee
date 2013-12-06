@@ -32,7 +32,7 @@ class LoginAppsController extends AppController
     name                         : "Login"
     routes                       :
       '/:name?/Login/:token?'    : handleRestriction (app)->
-          handler (app)-> app.getView().animateToForm 'register'
+          handler (app)-> app.getView().animateToForm 'login'
       '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
       '/:name?/Register/:token?' : handleRestriction (app)->
           handler (app)-> app.getView().animateToForm 'register'
