@@ -30,7 +30,9 @@ module.exports = class JInvitation extends jraphical.Module
     sharedMethods   :
       instance      : ['modifyMultiuse', 'remove']
       static        : ['inviteFriend', 'byCode', 'suggestCode', 'createMultiuse',
-                       'createForResurrection', 'createMultiForResurrection']
+                       'createForResurrection', 'createMultiForResurrection'
+                       'sendResurrectionEmails'
+                      ]
     sharedEvents    :
       static        : []
       instance      : []
@@ -253,6 +255,21 @@ module.exports = class JInvitation extends jraphical.Module
       }
       invite.save callback
 
+  @sendResurrectionEmails = permit 'send invitations',
+    success: (client, username, callback)->
+      JInvitation.some {group:"resurrection", status:"active"}, {}, (err, invites)=>
+        daisy queue = invites.map (invite) =>
+          email = new JMail {
+            email   : invite.email
+            subject : "You're invited to try a newer Koding!"
+            content : @getRessurrectionMessage invite.code
+            replyto : "hello@koding.com"
+          }
+          email.save (err)->
+            invite.update {$set: status: if err then 'couldnt send email' else 'sent'}, ->
+
+        queue.push -> callback null
+
   @suggestCode: permit 'send invitations',
     success: (client, callback, tries=0)->
       return callback 'could not generate code, too many tries!'  if tries > 10
@@ -351,4 +368,13 @@ module.exports = class JInvitation extends jraphical.Module
     - if you never signed up (sometimes people type their emails wrong, and it happens to be yours), please let us know.
     - take a look at http://wiki.koding.com for things you can do.
     - if you fall in love with this project, please let us know http://blog.koding.com/2012/06/we-want-to-date-not-hire/
+    """
+
+  @getRessurrectionMessage = (token)->
+    """
+    Hello we've released a newer version of Koding.
+
+    Use this link: http://y.koding.com/Login/#{token}
+
+    Hope you like it!
     """
