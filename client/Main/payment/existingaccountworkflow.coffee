@@ -54,7 +54,12 @@ class ExistingAccountWorkflow extends FormWorkflow
           type             : 'submit'
           style            : 'solid green fr'
       callback             : ({ email }) =>
-        @collectData { email, loggedIn: no }
+        { JUser } = KD.remote.api
+
+        JUser.changeEmail { email }, (err) =>
+          return  if KD.showError err
+
+          @collectData { email, loggedIn: no }
 
     @addForm 'email', emailCollectionForm, ['email']
 

@@ -177,7 +177,7 @@ bundles           =
     script        : "website/js/__teamwork.#{KODING_VERSION}.js"
 
   Payment         :
-    projects      : ['Environments', 'Dashboard', 'Pricing']
+    projects      : ['Environments', 'Dashboard', 'Pricing', 'Account']
     style         : "website/css/__payment.#{KODING_VERSION}.css"
     script        : "website/js/__payment.#{KODING_VERSION}.js"
 

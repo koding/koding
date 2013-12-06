@@ -799,10 +799,17 @@ Your password has been changed!  If you didn't request this change, please conta
 
     {email, pin} = options
 
+    if account.type is 'unregistered'
+      @update $set: { email }, (err) ->
+        return callback err  if err
+
+        callback null
+      return
+
     if not pin
       options =
         action    : "update-email"
-        user      : @
+        user      : this
         email     : email
 
       JVerificationToken.requestNewPin options, callback
