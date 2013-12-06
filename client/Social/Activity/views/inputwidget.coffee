@@ -86,13 +86,14 @@ class ActivityInputWidget extends KDView
 
   edit: (activity) ->
     @setData activity
-    @input.setContent activity.body, activity
-    if activity.link
-      @embedBox.loadEmbed activity.link.link_url
+    content = activity.body.replace /\n/g, "<br>"
+    @input.setContent content, activity
+    @embedBox.loadEmbed activity.link.link_url  if activity.link
     @submit.setTitle "Update"
 
   reset: ->
     @input.setContent ""
+    @input.blur()
     @submit.setTitle "Post"
     @embedBox.resetEmbedAndHide()
     @setData null
@@ -101,3 +102,4 @@ class ActivityInputWidget extends KDView
     @addSubView @input
     @addSubView @embedBox
     @input.addSubView @submit
+    @hide()  unless KD.isLoggedIn()

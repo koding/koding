@@ -7,7 +7,7 @@ class ActivityTickerBaseItem extends JView
 
   itemLinkViewClassMap :
     JAccount           : ProfileLinkView
-    JApp               : AppLinkView
+    JNewApp               : AppLinkView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
     JStatusUpdate      : ActivityLinkView
@@ -158,11 +158,12 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
 
 class ActivityTickerItem extends KDListItemView
   itemClassMap =
-    "JGroup_member_JAccount" : ActivityTickerMemberItem
-    "JAccount_like_JAccount" : ActivityTickerLikeItem
-    "JTag_follower_JAccount" : ActivityTickerFollowItem
-    "JApp_user_JAccount"     : ActivityTickerAppUserItem
-    "JAccount_reply_JAccount": ActivityTickerCommentItem
+    "JGroup_member_JAccount"     : ActivityTickerMemberItem
+    "JAccount_like_JAccount"     : ActivityTickerLikeItem
+    "JTag_follower_JAccount"     : ActivityTickerFollowItem
+    "JAccount_follower_JAccount" : ActivityTickerFollowItem
+    "JApp_user_JAccount"         : ActivityTickerAppUserItem
+    "JAccount_reply_JAccount"    : ActivityTickerCommentItem
 
   constructor: (options = {}, data) ->
     options.type = "activity-ticker-item"
@@ -178,7 +179,7 @@ class ActivityTickerItem extends KDListItemView
 
   getClassName: (data)->
     {as, source, target} = data
-    classKey = "#{source.bongo_.constructorName}_#{as}_#{target.bongo_.constructorName}"
+    classKey = "#{source?.bongo_?.constructorName}_#{as}_#{target?.bongo_?.constructorName}"
 
     return itemClassMap[classKey]
 

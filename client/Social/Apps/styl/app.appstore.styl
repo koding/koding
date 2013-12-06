@@ -8,6 +8,7 @@ APPSTORE stylesheet
 appstore.styl
 */
 }
+
 .appstore.coming-soon-page
   .comingsoon
     abs()
@@ -20,13 +21,12 @@ appstore.styl
   background      #efefef
 
 .kdview.kdlistitemview-appstore
-  border-bottom   1px solid #e6e6e6
-  border-right    1px solid #e6e6e6 !important
-  height          180px
+  height          300px
   overflow        hidden
-  padding         10px
-  width           160px
+  width           220px
   clear           none
+  margin          18px
+  border-radius   3px
   fl()
 
   &:hover
@@ -37,19 +37,34 @@ appstore.styl
     border-bottom 1px solid #E6E6E6
 
   > figure
-    rel()
-    width           160px
-    height          80px
-    border          1px solid #CCC
+    width           220px
+    height          120px
     margin-bottom   0px
-    background      linear-gradient(top, #FCFCFC 0%, #C8C8C8 100%)
     overflow        hidden
+    abs()
+
     img
       width         100%
 
+    .thumbnail
+      text-align    center
+      padding-top   45px
+      color         white
+      font-size     30px
+
+      .logo
+        border      1px solid #eee
+        border-radius 2px
+        padding     4px 10px 4px 10px
+
   .appmeta
     color           #353535
-    padding         10px
+    padding         15px
+    height          180px
+    background      white
+    width           250px
+    top             120px
+    abs()
 
     h3
       display         block
@@ -62,6 +77,11 @@ appstore.styl
         font-weight     bold
         display         inline-block
         text-decoration none
+
+    h4
+      font-size       11px
+      color           gray
+      margin-top      -8px
 
     .appstats
       font-size       11px
@@ -91,38 +111,14 @@ appstore.styl
           bg            position,-141px -442px
 
   .appdetails
-    background            rgba(255,255,255,0.95)
-    left                  0
-    padding               18px
-    abs()
-    size                  100%,100%
-    top                   100%
-    vendor                transition,all .2s ease-in-out .2s
-    borderBox()
-
-    h3
-      line-height           14px
-      margin                0 0 10px 0
-
-      a
-        color                 #333
-        font-size             14px
-        text-decoration       none
-
-      em
-        color                 #AAA
-        display               block
-        font-size             11px
-        font-style            normal
-        font-weight           normal
 
     article
       color                 #353535
-      font-size             11px
+      font-size             13px
       line-height           1.5
-      margin-bottom         10px
-      height                110px
+      margin-top            5px
       overflow              hidden
+      width                 200px
 
     button
       color                 #7F7F7F
@@ -131,6 +127,30 @@ appstore.styl
     a
       color                 linkColor1
       text-decoration       none
+
+  .bottom
+    height                  70px
+    width                   220px
+    background              linear-gradient(top, rgba(255,255,255,0) 0%, #fff 20%)
+    bottom                  0
+    abs()
+
+  .kdbutton.run
+
+    bottom                  20px
+    width                   180px
+    left                    18px
+    border                  none
+    background              #37B298
+    color                   white
+    font-size               20px
+    border-radius           30px
+    font-variant            small-caps
+    height                  39px
+    abs()
+
+.content-page.appstore
+  max-width                 1036px
 
 // single app page
 .content-display.apps
@@ -310,10 +330,6 @@ appstore.styl
         img
           max-width         100%
           vertical-align    top
-
-
-
-
 
 .search-tags span
   color         white

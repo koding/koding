@@ -59,9 +59,10 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       attributes : href : '/Account'
       cssClass   : 'bottom separator'
       partial    : 'Account settings'
-      click      : (event)->
+      click      : (event)=>
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute '/Account'
+        @hide()
 
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
@@ -69,28 +70,39 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       attributes : href : '/Environments'
       cssClass   : 'bottom'
       partial    : 'Environments'
-      click      : (event)->
+      click      : (event)=>
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute '/Environments'
+        @hide()
 
-    @avatarPopupContent.addSubView new KDCustomHTMLView
+
+    @avatarPopupContent.addSubView dashboard = new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Dashboard'
-      cssClass   : 'bottom'
+      cssClass   : 'bottom hidden'
       partial    : 'Dashboard'
-      click      : (event)->
-        KD.utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute '/Dashboard'
 
+    # FIXME:
+    KD.utils.wait 2000, =>
+      group = KD.getSingleton("groupsController").getCurrentGroup()
+      group.canEditGroup? (err, success)=>
+        if success
+          dashboard.show()
+          dashboard.on 'click', (event)=>
+            KD.utils.stopDOMEvent event
+            KD.getSingleton('router').handleRoute '/Dashboard'
+            @hide()
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Logout'
       cssClass   : 'bottom'
       partial    : 'Logout'
-      click      : (event)->
+      click      : (event)=>
         KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute '/Logout'
+        @hide()
+
 
 
   populatePendingGroups:->
