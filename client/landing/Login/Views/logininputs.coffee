@@ -34,6 +34,8 @@ class LoginInputView extends JView
     @input.on "ValidationFeedbackCleared", @bound 'resetDecoration'
 
 
+  setFocus: -> @input.setFocus()
+
   inputReceivedKeyup:->
 
     if   @input.getValue().length > 0
