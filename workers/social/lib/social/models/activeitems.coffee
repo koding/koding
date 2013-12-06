@@ -68,7 +68,7 @@ module.exports = class ActiveItems extends Base
   # Popularity is determined by number of entries in 'relationships'
   # collection that match the criteria passed to it.
   @fetchItems = (options={}, callback) ->
-    {name}      = options
+    {name, nin} = options
     mapping     = nameMapping[name]
     {klass, as} = mapping
 
@@ -80,7 +80,7 @@ module.exports = class ActiveItems extends Base
       timestamp  : $gte : greater
     }
 
-    matcher.sourceId = $nin : options.nin  if options.nin
+    matcher.sourceId = $nin : nin  if nin
 
     limit = options.limit or 10
 
@@ -106,7 +106,9 @@ module.exports = class ActiveItems extends Base
         missing = 10 - instances.length
         if missing > 0
           existingIds = instances.map (i) -> i._id
-          klass.some {_id: $nin : existingIds}, {limit:missing}, (err, randomInstances)->
+          existingIds = nin.concat existingIds  if nin
+
+          klass.some {sourceId: $nin : existingIds}, {limit:missing}, (err, randomInstances)->
             return callback err  if err
 
             # first array must contain entries or _ returns []
