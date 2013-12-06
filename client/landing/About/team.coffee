@@ -60,7 +60,7 @@ KD.extend
 
       ]
 
-    suspended     : [
+    suspended     : []
 
       #   username  : 'aleksey-m'
       #   title     : 'Sys Admin &amp; node.js Developer'
@@ -97,4 +97,4 @@ KD.extend
       # ,
       #   username  : 'bacon'
       #   title     : 'XEO &amp; Office Manager'
-      ]
+      # ]
