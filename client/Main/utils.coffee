@@ -505,4 +505,11 @@ __utils.extend __utils,
         log "Unhandled content type '#{type}'"
         return 'error'
 
+  getColorFromString:(str)->
+    return [
+      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00", "#009BCB"
+      "#37B298", "#35485F", "#D35219", "#FDAB2E", "#19A2C4"
+      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00", "#009BCB"
+    ][parseInt (md5.digest str)[0], 16]
+
   formatMoney: accounting.formatMoney
