@@ -93,6 +93,7 @@ class ActivityInputWidget extends KDView
 
   reset: ->
     @input.setContent ""
+    @input.blur()
     @submit.setTitle "Post"
     @embedBox.resetEmbedAndHide()
     @setData null
