@@ -21,6 +21,15 @@ class ActivityInputWidget extends KDView
     suggestedTags  = []
     createdTags    = {}
 
+    #CtF - FIXME Added for preventing empty posts. Behaviour must be fixed
+    if @input.getValue().trim() is ""
+      return KD.showError 'Not allowed',
+              AccessDenied:
+                title : "Cannot be empty"
+                content: "Nonono"
+                duration: 10000
+
+
     unless KD.checkFlag "exempt"
       for token in @input.getTokens()
         {data, type} = token
