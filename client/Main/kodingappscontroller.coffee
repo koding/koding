@@ -1,10 +1,23 @@
 class KodingAppsController extends KDController
 
-  KD.registerAppClass this,
-    name       : "KodingAppsController"
-    background : yes
+  name    = "KodingAppsController"
+  version = "0.1"
 
-  @putAppScript = (name, callback = noop)->
+  KD.registerAppClass this, {name, version, background: yes}
+
+  constructor:->
+    super
+
+    appStorage = KD.getSingleton 'appStorageController'
+    @storage   = appStorage.storage "Applications", version
+
+    @storage.fetchStorage (storage)=>
+      @apps = @storage.getValue('installed') or {}
+      @apps or= {}
+
+      @emit 'ready'
+
+  @loadInternalApp = (name, callback)->
 
     unless KD.config.apps[name]
       warn message = "#{name} is not available to run!"
@@ -14,15 +27,21 @@ class KodingAppsController extends KDController
       warn "#{name} is already imported"
       return callback null
 
-
-    KD.singletons.dock.setNavItemState {name}, 'loading'
+    KD.singletons.dock.setNavItemState {name, route:"/#{name}" }, 'loading'
 
     app = KD.config.apps[name]
+    @putAppScript app, callback
+
+  # This is the most important method to put & run additional apps on Koding
+  # Please make sure about your changes on it.
+  @putAppScript = (app, callback = noop)->
 
     # Remove app from head if exists, just for sure
     # $("head .internal-#{app.identifier}").remove()
 
-    if $("head .internal-style-#{app.identifier}").length is 0
+    log "PUT APP", app
+
+    if $("head .internal-style-#{app.identifier}").length is 0 and app.style
 
       style        = new KDCustomHTMLView
         tagName    : "link"
@@ -32,11 +51,11 @@ class KodingAppsController extends KDController
           log "Style loaded? for #{name} # don't trust this ..."
         attributes :
           rel      : "stylesheet"
-          href     : app.style
+          href     : "#{app.style}?#{KD.utils.uniqueId()}"
 
       $('head')[0].appendChild style.getElement()
 
-    if $("head .internal-script-#{app.identifier}").length is 0
+    if $("head .internal-script-#{app.identifier}").length is 0 and app.script
 
       script       = new KDCustomHTMLView
         tagName    : "script"
@@ -45,9 +64,50 @@ class KodingAppsController extends KDController
         load       : -> callback null
         attributes :
           type     : "text/javascript"
-          src      : app.script
+          src      : "#{app.script}?#{KD.utils.uniqueId()}"
 
       $('head')[0].appendChild script.getElement()
+
+  @unloadAppScript = (app, callback = noop)->
+
+    $("head .internal-style-#{app.identifier}").remove()
+    $("head .internal-script-#{app.identifier}").remove()
+
+  @runExternalApp = (jApp, callback = noop)->
+
+    modal = new KDModalView
+      title          : "Run #{jApp.manifest.name}"
+      content        : """This is DANGEROUS!!! Do you want to continue?"""
+      height         : "auto"
+      # cssClass       : "new-kdmodal"
+      overlay        : yes
+      buttons        :
+        Run          :
+          style      : "modal-clean-red"
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          callback   : =>
+            {script, style} = jApp.urls
+
+            app = {
+              name : jApp.name
+              script, style
+              identifier : jApp.identifier
+            }
+
+            @putAppScript app, ->
+              KD.utils.defer ->
+                KD.singletons.router.handleRoute "/#{jApp.name}"
+                modal.destroy()
+              # KD.singletons.appManager.open app.name; modal.destroy()
+
+            log "READY", jApp
+        cancel       :
+          style      : "modal-cancel"
+          callback   : -> modal.destroy()
+
+  ###
 
   @manifests = {}
 
@@ -933,3 +993,5 @@ class KodingAppsController extends KDController
       description : 'Koding\'s official collaboration app'
       author      : 'Koding'
       route       : '/Develop/Teamwork'
+
+  ###

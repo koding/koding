@@ -197,16 +197,6 @@ class MainView extends KDView
     @panelWrapper.addSubView @mainTabView
     @panelWrapper.addSubView @appSettingsMenuButton
 
-  createSideBar:->
-
-    @sidebar             = new Sidebar domId : "sidebar", delegate : this
-    mc                   = KD.getSingleton 'mainController'
-    mc.sidebarController = new SidebarController view : @sidebar
-    @sidebarPanel.addSubView @sidebar
-
-
-
-
   createChatPanel:->
     @addSubView @chatPanel   = new MainChatPanel
     # @addSubView @chatHandler = new MainChatHandler

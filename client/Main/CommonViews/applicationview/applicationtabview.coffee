@@ -39,9 +39,10 @@ class ApplicationTabView extends KDTabView
       @appStorage.setValue "sessions", data if @isSessionEnabled
 
     focusActivePane = (pane)=>
-      {tabView} = pane.getMainView()
-      if this is tabView
-        @getActivePane()?.getHandle?().$().click()
+      if mainView = pane.getMainView()
+        {tabView} = pane.getMainView()
+        if this is tabView
+          @getActivePane()?.getHandle?().$().click()
 
     mainView = KD.getSingleton("mainViewController").getView()
     mainView.mainTabView.on "PaneDidShow", focusActivePane

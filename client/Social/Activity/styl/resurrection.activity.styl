@@ -20,7 +20,7 @@ resurrection.activity.styl
 .content-page.activity
   max-width             1165px
   min-height            1000px
-  margin                105px auto
+  margin                90px auto
   padding               0
   position              relative
 
@@ -113,9 +113,15 @@ resurrection.activity.styl
           color         #485259
           font-size     12px
           font-weight   200
+          white-space   nowrap
+          text-overflow ellipsis
           fl()
 
+          >div
+            display       inline
+
           a
+            display       inline
             font-weight   400
             color         #485259
             noTextDeco()
@@ -279,6 +285,10 @@ span.collapsedtext
     font-weight   400
 
   .status-body
+    // to avoid too long posts
+    // until we find a better solution - SY
+    overflow      auto
+    max-height    400px
     padding       9px 21px 0
     line-height   22px
 
@@ -603,6 +613,13 @@ span.collapsedtext
     sprite                  app "20-close-tab"
     abs()
 
+.activity-item.status
+  .link-embed-box
+    .preview-text-link
+      input.preview-title-input
+        display             none
+      textarea.description-input
+        display             none
 
 /* Activity item menu */
 body.activity
