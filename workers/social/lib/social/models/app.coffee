@@ -1,11 +1,12 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 
-module.exports = class JApp extends jraphical.Module
+module.exports = class JNewApp extends jraphical.Module
 
   JAccount  = require './account'
   JReview   = require './messages/review'
   JTag      = require './tag'
+  JName     = require './name'
 
   @trait __dirname, '../traits/filterable'       # brings only static methods
   @trait __dirname, '../traits/followable'
@@ -67,6 +68,7 @@ module.exports = class JApp extends jraphical.Module
         type            : String
         set             : (value)-> value?.trim()
         required        : yes
+      title             : String
       urls              :
         script          :
           type          : String
@@ -141,7 +143,7 @@ module.exports = class JApp extends jraphical.Module
 
     success: (client, data, callback)->
 
-      console.log "creating the JApp"
+      console.log "creating the JNewApp"
 
       {connection:{delegate}} = client
       {profile} = delegate
@@ -162,8 +164,9 @@ module.exports = class JApp extends jraphical.Module
       data.manifest.version   ?= "1.0"
       data.identifier         ?= "com.koding.apps.#{data.name.toLowerCase()}"
 
-      app           = new JApp
+      app           = new JNewApp
         name        : data.name
+        title       : data.name
         urls        : data.urls
         type        : data.type or 'web-app'
         manifest    : data.manifest
@@ -212,7 +215,7 @@ module.exports = class JApp extends jraphical.Module
       review.save (err)=>
         return callback err  if err
         delegate.addContent review, (err)=>
-          console.error 'JApp:', err  if err
+          console.error 'JNewApp:', err  if err
         @addReview review, (err, docs)=>
           return callback err  if err
           Relationship.count
@@ -225,7 +228,7 @@ module.exports = class JApp extends jraphical.Module
               callback null, review
 
               @fetchCreator (err, origin)=>
-                return console.error "JApp:", err  if err
+                return console.error "JNewApp:", err  if err
                 @emit 'ReviewIsAdded',
                   origin        : origin
                   subject       : ObjectRef(@).data
@@ -237,9 +240,9 @@ module.exports = class JApp extends jraphical.Module
                   relationship  : docs[0]
 
                 @follow client, emitActivity: no, (err)->
-                  console.error "JApp:", err  if err
+                  console.error "JNewApp:", err  if err
                 @addParticipant delegate, 'reviewer', (err)->
-                  console.error "JApp:", err  if err
+                  console.error "JNewApp:", err  if err
 
   getDefaultSelector = (client, selector)->
     {delegate}   = client.connection
@@ -261,7 +264,6 @@ module.exports = class JApp extends jraphical.Module
     success: (client, selector, options, callback)->
 
       selector  = getDefaultSelector client, selector
-      console.log "SOME CALLED", selector
       options or= {}
       options.limit = Math.min(options.limit or 0, 10)
 
@@ -284,22 +286,60 @@ module.exports = class JApp extends jraphical.Module
       @each selector, fields, options, callback
 
   delete: permit
+
     advanced: [
       { permission: 'delete own apps', validateWith: Validators.own }
       { permission: 'delete apps' }
     ]
-    success: (client, callback)-> @remove callback
+
+    success: (client, callback)->
+      @remove callback
+
+      JName.one {@name}, (err, jname)->
+        return console.error "Failed to get JName: ", err  if err
+        jname.remove (err)->
+          console.error "Failed to remove JName: ", err  if err
+
+      JName.one {name:@slug}, (err, jname)->
+        return console.error "Failed to get JName: ", err  if err
+        jname.remove (err)->
+          console.error "Failed to remove JName: ", err  if err
 
 
   approve: permit 'approve apps',
 
     success: (client, state = yes, callback)->
 
-      @update $set: approved: state, callback
+      JName.one {@name}, (err, jname)=>
+
+        return callback err  if err
+
+        if state is no and jname
+          if @slug is jname.slugs[0].slug
+            jname.remove (err)->
+              console.error "Failed to remove JName: ", err  if err
+
+        else
+
+          unless jname
+
+            name = new JName
+              name  : @name
+              slugs : [
+                constructorName : 'JNewApp'
+                collectionName  : 'jNewApps'
+                slug            : @slug
+                usedAsPath      : 'slug'
+              ]
+
+            name.save (err) ->
+              console.error "Failed to save JName: ", err  if err
+
+        @update $set: approved: state, callback
 
       # identifier = @getAt 'identifier'
 
-      # JApp.count {identifier, approved:yes}, (count)=>
+      # JNewApp.count {identifier, approved:yes}, (count)=>
 
       #   # Check if any app used same identifier and already approved
       #   if count > 1
@@ -318,7 +358,7 @@ module.exports = class JApp extends jraphical.Module
       #   else
       #     @update approved:yes, callback
 
-  # JApp.one
+  # JNewApp.one
     #   name : data.name
     # , (err, app)=>
     #   if err
@@ -336,7 +376,7 @@ module.exports = class JApp extends jraphical.Module
 
     #         if app.approved # So, this is just a new update
     #           # Lets look if already waiting for approve
-    #           JApp.one
+    #           JNewApp.one
     #             identifier : "waits.for.approve:#{data.identifier}"
     #           , (err, approval_app)=>
     #             if approval_app
@@ -353,7 +393,7 @@ module.exports = class JApp extends jraphical.Module
 
     #             else
     #               approval_slug = "#{app.slug}-#{data.manifest.version}-waits-for-approve"
-    #               approval_app = new JApp
+    #               approval_app = new JNewApp
     #                 title       : data.title
     #                 body        : data.body
     #                 manifest    : data.manifest
@@ -392,7 +432,7 @@ module.exports = class JApp extends jraphical.Module
     #               else callback null, app
 
     #     else
-    #       app = new JApp
+    #       app = new JNewApp
     #         title       : data.title
     #         body        : data.body
     #         manifest    : data.manifest
@@ -471,7 +511,7 @@ module.exports = class JApp extends jraphical.Module
   #       if @getAt('identifier').indexOf('waits.for.approve:') is 0
   #         identifier = @getAt('identifier').replace 'waits.for.approve:', ''
 
-  #         JApp.one
+  #         JNewApp.one
   #           identifier:identifier
   #         , (err, target)=>
   #           if err
@@ -504,7 +544,7 @@ module.exports = class JApp extends jraphical.Module
   #                       console.log err
   #                       callback err
   #                     else
-  #                       # @delete We can delete the temporary JApp (@) here.
+  #                       # @delete We can delete the temporary JNewApp (@) here.
   #                       callback null, target
 
   #             else
@@ -518,7 +558,7 @@ module.exports = class JApp extends jraphical.Module
   #   Relationship.all
   #     targetId  : client.connection.delegate.getId()
   #     as        : 'user'
-  #     sourceType: 'JApp'
+  #     sourceType: 'JNewApp'
   #   , (err, relationships)->
   #     apps.forEach (app)->
   #       app.installed = no

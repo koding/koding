@@ -95,8 +95,8 @@ class AccountEditUsername extends JView
         return  notify "Passwords did not match" if password isnt confirmPassword
         # if password is empty than discard operation
         if password is ""
-          query = KD.utils.parseQuery()
-          if query.token
+          {token} = KD.utils.parseQuery()
+          if token
             profileUpdated = no
             notify "You should set your password"
           return queue.next()
@@ -115,8 +115,8 @@ class AccountEditUsername extends JView
 
   viewAppended:->
     {JPasswordRecovery, JUser} = KD.remote.api
-    query = KD.utils.parseQuery()
-    if token = query.token
+    {token} = KD.utils.parseQuery()
+    if token
       JPasswordRecovery.validate token, (err, isValid)=>
         if err
           notify err.message
@@ -142,9 +142,8 @@ class AccountEditUsername extends JView
     @emailForm.inputs.firstName.setDefaultValue firstName
     @emailForm.inputs.lastName.setDefaultValue lastName
 
-    query = KD.utils.parseQuery()
-    if query.focus
-      @emailForm.inputs[query.focus].setFocus()
+    {focus} = KD.utils.parseQuery()
+    @emailForm.inputs[focus]?.setFocus()  if focus
 
     if @user.status is "unconfirmed"
       o =

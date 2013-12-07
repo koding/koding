@@ -10,7 +10,7 @@ putSplash = (name, section, model)->
       when "JBlogPost"      then "loading a blog post"
       when "JTutorial"      then "loading a tutorial"
       when "JTag"           then "loading a topic"
-      when "JApp"           then "loading a koding app page"
+      when "JNewApp"        then "loading a koding app page"
       else "loading something."
   else "launching an application"
 
@@ -24,7 +24,7 @@ generateShareUrl = (model, uri)->
         "/Activity/" + model.slug
       when "JTag"
         "/Topics/" + model.slug
-      when "JApp"
+      when "JNewApp"
         "/Apps/" + model.slug
       else ""
 

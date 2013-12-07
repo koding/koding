@@ -367,6 +367,8 @@ class LoginView extends KDView
     if err
       showError err
       @loginForm.resetDecoration()
+      @$('.flex-wrapper').removeClass 'shake'
+      KD.utils.defer => @$('.flex-wrapper').addClass 'animate shake'
     else
       {account} = params
       mainController = KD.getSingleton('mainController')
@@ -375,10 +377,6 @@ class LoginView extends KDView
       mainView.$().css "opacity", 1
 
       firstRoute = KD.getSingleton("router").visitedRoutes.first
-
-      if firstRoute and /^\/Verify/.test firstRoute
-        firstRoute = "/"
-
 
       if firstRoute and /^\/Reset/.test firstRoute
         firstRoute = "/"

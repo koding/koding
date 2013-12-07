@@ -19,10 +19,11 @@ resurrection.activity.styl
 
 .content-page.activity
   max-width             1165px
-  min-height            1000px
+  min-height            1026px
   margin                90px auto
   padding               0
   position              relative
+  overflow              visible
 
   .activity-left-block
     size                  auto, auto
@@ -181,6 +182,9 @@ resurrection.activity.styl
         fr()
 
         &.following-account
+          opacity     .5
+
+        &.following-topic
           opacity     .5
 
         span

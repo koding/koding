@@ -73,13 +73,37 @@ class KodingAppsController extends KDController
     $("head .internal-style-#{app.identifier}").remove()
     $("head .internal-script-#{app.identifier}").remove()
 
+  @runApprovedApp = (jApp, options = {}, callback = noop)->
+
+    return warn "JNewApp not found!"  unless jApp
+
+    {script, style} = jApp.urls
+    return warn "Script not found! on #{jApp}"  unless script
+
+    app = {
+      name : jApp.name
+      script, style
+      identifier : jApp.identifier
+    }
+
+    @putAppScript app, ->
+      KD.utils.defer ->
+        unless options.dontUseRouter
+          KD.singletons.router.handleRoute "/#{jApp.name}"
+        else
+          KD.singletons.appManager.open jApp.name
+        callback()
+
   @runExternalApp = (jApp, callback = noop)->
+
+    return  if jApp.approved then @runApprovedApp jApp
 
     modal = new KDModalView
       title          : "Run #{jApp.manifest.name}"
-      content        : """This is DANGEROUS!!! Do you want to continue?"""
+      content        : """This is <strong>DANGEROUS!!!</strong>
+                          If you don't know this user, its recommended to not run this app!
+                          Do you still want to continue?"""
       height         : "auto"
-      # cssClass       : "new-kdmodal"
       overlay        : yes
       buttons        :
         Run          :
@@ -87,22 +111,8 @@ class KodingAppsController extends KDController
           loader     :
             color    : "#ffffff"
             diameter : 16
-          callback   : =>
-            {script, style} = jApp.urls
+          callback   : => @runApprovedApp jApp, {}, -> modal.destroy()
 
-            app = {
-              name : jApp.name
-              script, style
-              identifier : jApp.identifier
-            }
-
-            @putAppScript app, ->
-              KD.utils.defer ->
-                KD.singletons.router.handleRoute "/#{jApp.name}"
-                modal.destroy()
-              # KD.singletons.appManager.open app.name; modal.destroy()
-
-            log "READY", jApp
         cancel       :
           style      : "modal-cancel"
           callback   : -> modal.destroy()
@@ -375,11 +385,11 @@ class KodingAppsController extends KDController
     # return unless KD.isLoggedIn()
     appNames = (appName for own appName, manifest of @getManifests()) or []
     query    = "manifest.name": "$in": appNames
-    {JApp}   = KD.remote.api
-    JApp.fetchAllAppsData query, (err, apps)=>
+    {JNewApp}   = KD.remote.api
+    JNewApp.fetchAllAppsData query, (err, apps)=>
       @publishedApps = map = {}
       apps?.forEach (app) =>
-        map[app.manifest.name] = new JApp app
+        map[app.manifest.name] = new JNewApp app
       @emit "UserAppModelsFetched", map
       callback? map
 
@@ -421,7 +431,7 @@ class KodingAppsController extends KDController
         return no
       @refreshApps =>
         @notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
-        KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
+        KD.remote.api.JNewApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
           @notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
           @installApp app[0], app[0].versions.last, =>
             @refreshApps()
@@ -535,7 +545,7 @@ class KodingAppsController extends KDController
             callback?()
 
   createApp:(formData, callback)->
-    KD.remote.api.JApp.create formData, (err, app)->
+    KD.remote.api.JNewApp.create formData, (err, app)->
       callback? err, app
 
   compileApp:(name, callback)->

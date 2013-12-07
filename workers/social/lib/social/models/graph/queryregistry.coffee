@@ -87,7 +87,7 @@ module.exports =
       """
         START group=node:koding(id={groupId})
         MATCH group-[:member]->users<-[r:user]-apps
-        WHERE apps.name="JApp"
+        WHERE apps.name="JNewApp"
         AND r.createdAtEpoch < {to}
         RETURN users, apps, r
         ORDER BY r.createdAtEpoch DESC

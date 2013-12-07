@@ -52,7 +52,7 @@ class KodingRouter extends KDRouter
     name       = (name.split '?')[0]
 
     log 'handlingRoute', route, 'for the', name, 'app'
-    if appManager.isAppAvailable name
+    if appManager.isAppInternal name
       log 'couldn\'t find', name
       return KodingAppsController.loadInternalApp name, (err)=>
         log 'Router: loaded', name
@@ -361,6 +361,8 @@ class KodingRouter extends KDRouter
               (createContentHandler 'Members') routeInfo, [model]
             when 'JGroup'
               (createSectionHandler 'Activity') routeInfo, model
+            when 'JNewApp'
+              KodingAppsController.runApprovedApp model, dontUseRouter:yes
             else
               @handleNotFound routeInfo.params.name
 

@@ -37,7 +37,7 @@ class LoginAppsController extends AppController
 
       KD.remote.api.JInvitation.byCodeForBeta token, (err, invite)->
         if err or !invite?
-          return handleFailureOfRestriction()  unless token
+          return handleFailureOfRestriction()
 
         do handler()
 

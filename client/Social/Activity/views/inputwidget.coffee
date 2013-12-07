@@ -15,6 +15,8 @@ class ActivityInputWidget extends KDView
       callback : @bound "submit"
 
   submit: (callback) ->
+    return  unless value = @input.getValue().trim()
+
     activity       = @getData()
     activity?.tags = []
     tags           = []
@@ -44,7 +46,7 @@ class ActivityInputWidget extends KDView
         dash tagCreateJobs, ->
           queue.next()
     , =>
-        body = @encodeTagSuggestions @input.getValue(), createdTags
+        body = @encodeTagSuggestions value, createdTags
         data =
           group : KD.getSingleton('groupsController').getGroupSlug()
           body  : body
@@ -54,7 +56,9 @@ class ActivityInputWidget extends KDView
         data.link_embed = @embedBox.getDataForSubmit() or {}
 
         fn = @bound if activity then "update" else "create"
-        fn data, callback
+        fn data, (err, activity) =>
+          @embedBox.resetEmbedAndHide()
+          callback? err, activity
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -93,6 +97,7 @@ class ActivityInputWidget extends KDView
 
   reset: ->
     @input.setContent ""
+    @input.blur()
     @submit.setTitle "Post"
     @embedBox.resetEmbedAndHide()
     @setData null
