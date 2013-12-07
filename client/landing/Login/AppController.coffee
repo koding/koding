@@ -18,15 +18,15 @@ class LoginAppsController extends AppController
     KD.utils.defer -> new KDNotificationView title: "Login restricted"
 
   handleRestriction = (handler) ->
-    ({params: {token : token }})->
-      for url in ['localhost', 'https:\/\/koding.com'] when (new RegExp url).test window.location
+    ({params: {token : token}})->
+      for url in ['localhost', 'https://koding.com'] when (new RegExp url).test window.location
         return do handler()
 
       return handleFailureOfRestriction()  unless token
 
       KD.remote.api.JInvitation.byCodeForBeta token, (err, invite)->
         if err or !invite?
-          return handleFailureOfRestriction()  unless token
+          return handleFailureOfRestriction()
 
         do handler()
 

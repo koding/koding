@@ -360,6 +360,8 @@ class LoginView extends KDView
     if err
       showError err
       @loginForm.resetDecoration()
+      @$('.flex-wrapper').removeClass 'shake'
+      KD.utils.defer => @$('.flex-wrapper').addClass 'animate shake'
     else
       {account, replacementToken} = params
       $.cookie 'clientId', replacementToken  if replacementToken
