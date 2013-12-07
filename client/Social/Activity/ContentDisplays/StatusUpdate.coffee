@@ -9,6 +9,20 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
     super options,data
 
+    account = KD.whoami()
+    if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
+      @settingsButton = new KDButtonViewWithMenu
+        cssClass       : 'activity-settings-menu'
+        itemChildClass : ActivityItemMenuItem
+        title          : ''
+        icon           : yes
+        delegate       : @
+        iconClass      : "arrow"
+        menu           : @settingsMenu data
+        callback       : (event)=> @settingsButton.contextMenu event
+    else
+      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+
     embedOptions = $.extend {}, options,
       hasDropdown : no
       delegate    : this
@@ -23,10 +37,12 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       constructorName  : data.originType
       id               : data.originId
 
-    @avatar = new AvatarStaticView
-      tagName : "span"
-      size    : {width: 50, height: 50}
-      origin  : origin
+    @avatar = new AvatarView {
+      size        : {width: 86, height: 86}
+      cssClass    : "author-avatar"
+      origin
+      showStatus  : yes
+    }
 
     @author = new ProfileLinkView {origin}
 
@@ -45,6 +61,43 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
   attachTooltipAndEmbedInteractivity: CommentListItemView::applyTooltips
+
+  settingsMenu:(data)->
+
+    account        = KD.whoami()
+
+    if data.originId is KD.whoami().getId()
+      menu =
+        'Edit'     :
+          callback : ->
+            KD.getSingleton("appManager").tell "Activity", "editActivity", data
+        'Delete'   :
+          callback : =>
+            @confirmDeletePost data
+
+      return menu
+
+    if KD.checkFlag 'super-admin'
+      if KD.checkFlag 'exempt', account
+        menu =
+          'Unmark User as Troll' :
+            callback             : ->
+              activityController.emit "ActivityItemUnMarkUserAsTrollClicked", data
+      else
+        menu =
+          'Mark User as Troll' :
+            callback           : ->
+              activityController.emit "ActivityItemMarkUserAsTrollClicked", data
+
+      menu['Delete Post'] =
+        callback : =>
+          @confirmDeletePost data
+
+      menu['Block User'] =
+        callback : ->
+          activityController.emit "ActivityItemBlockUserClicked", data.originId
+
+      return menu
 
   viewAppended:->
     return if @getData().constructor is KD.remote.api.CStatusActivity
@@ -80,25 +133,6 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
         commentController.removeAllItems()
         commentController.instantiateListItems comments
 
-  applyTextExpansions:(str = "")->
-    # link = @getData().link?.link_url
-    # if link
-
-    #   links = str.match @utils.botchedUrlRegExp
-    #   if links?
-    #     hasManyLinks = links.length > 1
-    #   else
-    #     hasManyLinks = no
-
-    #   isJustOneLink = str.trim() is link
-    #   endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
-    #   startsWithLink = str.trim().indexOf(link) is 0
-
-    #   if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
-    #     str = str.replace link, ""
-
-    str = @utils.applyTextExpansions str, yes
-
   render:->
     super
 
@@ -116,29 +150,82 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
     @attachTooltipAndEmbedInteractivity()
 
-  pistachio:->
+  formatContent: (str = "")->
+    str = @utils.applyMarkdown str
+    str = @expandTokens str
+    return  str
 
+  expandTokens: (str = "") ->
+    return  str unless tokenMatches = str.match /\|.+?\|/g
+
+    data = @getData()
+    tagMap = @getTokenMap data.tags  if data.tags
+
+    viewParams = []
+    for tokenString in tokenMatches
+      [prefix, constructorName, id] = @decodeToken tokenString
+
+      switch prefix
+        when "#" then token = tagMap?[id]
+        else continue
+
+      continue  unless token
+
+      domId     = @utils.getUniqueId()
+      itemClass = tokenClassMap[prefix]
+      tokenView = new TokenView {domId, itemClass}, token
+      tokenView.emit "viewAppended"
+      str = str.replace tokenString, tokenView.getElement().outerHTML
+      tokenView.destroy()
+
+      viewParams.push {options: {domId, itemClass}, data: token}
+
+    @utils.defer ->
+      for {options, data} in viewParams
+        new TokenView options, data
+
+    return  str
+
+  pistachio:->
     """
     {{> @header}}
     <h2 class="sub-header">{{> @back}}</h2>
     <div class='kdview content-display-main-section activity-item status'>
-      <span>
-        {{> @avatar}}
-        <span class="author">AUTHOR</span>
-      </span>
-      <div class='activity-item-right-col'>
-        <h3 class='hidden'></h3>
-        <p class="status-body">{{@applyTextExpansions #(body)}}</p>
-        {{> @embedBox}}
-        <footer class='clearfix'>
-          <div class='type-and-time'>
-            <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
-            {{> @timeAgoView}}
-            {{> @tags}}
-          </div>
-          {{> @actionLinks}}
-        </footer>
-        {{> @commentBox}}
-      </div>
+      {{> @avatar}}
+      {{> @settingsButton}}
+      {{> @author}}
+      <p class="status-body">{{@formatContent #(body)}}</p>
+      {{> @embedBox}}
+      <footer>
+        {{> @actionLinks}}
+        {{> @timeAgoView}}
+      </footer>
+      {{> @commentBox}}
     </div>
     """
+
+
+    # """
+    # {{> @header}}
+    # <h2 class="sub-header">{{> @back}}</h2>
+    # <div class='kdview content-display-main-section activity-item status'>
+    #   <span>
+    #     {{> @avatar}}
+    #     <span class="author">AUTHOR</span>
+    #   </span>
+    #   <div class='activity-item-right-col'>
+    #     <h3 class='hidden'></h3>
+    #     <p class="status-body">{{@applyTextExpansions #(body)}}</p>
+    #     {{> @embedBox}}
+    #     <footer class='clearfix'>
+    #       <div class='type-and-time'>
+    #         <span class='type-icon'></span>{{> @contentGroupLink }} by {{> @author}}
+    #         {{> @timeAgoView}}
+    #         {{> @tags}}
+    #       </div>
+    #       {{> @actionLinks}}
+    #     </footer>
+    #     {{> @commentBox}}
+    #   </div>
+    # </div>
+    # """

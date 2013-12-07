@@ -246,6 +246,10 @@ span.collapsedtext
   &:nth-child(1)
     margin-top    37px
 
+  &.content-display-main-section /* Content display */
+    kalc          width, 100% \- 100px
+    margin-left   100px
+
   a.ttag
     color         #3aaaab
     noTextDeco()
@@ -1032,7 +1036,20 @@ p.status-body
       display             block
       padding             14px
 
+/* Temp style for contentdisplay */
 
+.content-display
+  .sub-header
+    margin                22px 0 0
+    display               inline-block
+    padding               5px 15px
+    border                1px solid #c4c4c9
+    rounded               3px
+    &:hover
+      opacity             .5
+    a
+      color               #50595a
+      noTextDeco()
 
 
 
