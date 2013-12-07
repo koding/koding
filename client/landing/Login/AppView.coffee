@@ -167,6 +167,11 @@ class LoginView extends KDView
       callback : (formData)=>
         @doReset formData
 
+    @finishRegistrationForm = new FinishRegistrationForm
+      cssClass  : "login-form foobar"
+      callback  : (formData) =>
+        @doFinishRegistration formData
+
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
       cssClass : "invite-recovery-notification-bar hidden"
@@ -225,6 +230,9 @@ class LoginView extends KDView
       </div>
       <div class="login-form-holder rf">
         {{> @registerForm}}
+      </div>
+      <div class="login-form-holder frf">
+        {{> @finishRegistrationForm}}
       </div>
       <div class="login-form-holder rdf">
         {{> @redeemForm}}
@@ -334,6 +342,9 @@ class LoginView extends KDView
           @registerForm.reset()
           @registerForm.button.hideLoader()
         , 1000
+
+  doFinishRegistration: (formData) ->
+    (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
 
   doLogin:(credentials)->
     (KD.getSingleton 'mainController').handleLogin credentials, @bound 'afterLoginCallback'
@@ -491,7 +502,7 @@ class LoginView extends KDView
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "register recover login reset home resendEmail"
+      @unsetClass "register recover login reset home resendEmail finishRegistration"
       @emit "LoginViewAnimated", name
       @setClass name
       @$('.flex-wrapper').removeClass 'three one'
@@ -499,6 +510,8 @@ class LoginView extends KDView
       switch name
         when "register"
           @registerForm.email.input.setFocus()
+        when "finishRegistration"
+          @finishRegistrationForm.username.input.setFocus()
         when "redeem"
           @$('.flex-wrapper').addClass 'one'
           @redeemForm.inviteCode.input.setFocus()

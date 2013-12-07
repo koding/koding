@@ -7,19 +7,30 @@ class LoginAppsController extends AppController
       KD.getSingleton('router').handleRoute "/Activity"
 
   handleResetRoute = ({params:{token}})->
-    KD.singleton('appManager').open 'Login', (app)=>
+    KD.singleton('appManager').open 'Login', (app) ->
       if KD.isLoggedIn()
         KD.getSingleton('router').handleRoute "/Account/Profile?focus=password&token=#{token}"
       else
         app.getView().setCustomDataToForm('reset', {recoveryToken:token})
         app.getView().animateToForm('reset')
 
+  handleFinishRegistration = ({params:{token}}) ->
+    KD.singleton('appManager').open 'Login', (app) ->
+      if KD.isLoggedIn()
+        # TODO: is this case important for us to handle? C.T.
+        KD.getSingleton('router').handleRoute '/'
+      else
+        app.prepareFinishRegistrationForm token
+
   handleFailureOfRestriction =->
     KD.utils.defer -> new KDNotificationView title: "Login restricted"
 
   handleRestriction = (handler) ->
     ({params: {token : token }})->
-      for url in ['localhost', 'https:\/\/koding.com'] when (new RegExp url).test window.location
+      for url in [
+        'http:\/\/localhost'
+        'https:\/\/koding.com'
+      ] when 0 is window.location.href.indexOf url
         return do handler()
 
       return handleFailureOfRestriction()  unless token
@@ -38,6 +49,7 @@ class LoginAppsController extends AppController
       '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
       '/:name?/Register/:token?' : handleRestriction (app)->
           handler (app)-> app.getView().animateToForm 'register'
+      '/:name?/Register2/:token' : handleFinishRegistration
       '/:name?/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
@@ -55,3 +67,13 @@ class LoginAppsController extends AppController
       name          : "Login"
 
     super options, data
+
+  prepareFinishRegistrationForm: (token) ->
+    { JPasswordRecovery } = KD.remote.api
+    JPasswordRecovery.fetchRegistrationDetails token, (err, details) =>
+      return  if KD.showError err
+
+      view = @getView()
+      view.finishRegistrationForm.setRegistrationDetails details
+      view.setCustomDataToForm 'finishRegistration', recoveryToken: token
+      view.animateToForm 'finishRegistration'
