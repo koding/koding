@@ -185,7 +185,7 @@ class ActivityTickerItem extends KDListItemView
     "JAccount_like_JAccount"        : ActivityTickerLikeItem
     "JTag_follower_JAccount"        : ActivityTickerFollowItem
     "JAccount_follower_JAccount"    : ActivityTickerFollowItem
-    "JApp_user_JAccount"            : ActivityTickerAppUserItem
+    "JNewApp_user_JAccount"         : ActivityTickerAppUserItem
     "JAccount_reply_JAccount"       : ActivityTickerCommentItem
     "JStatusUpdate_author_JAccount" : ActivityTickerStatusUpdateItem
 
