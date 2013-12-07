@@ -19,13 +19,13 @@ class AccountAppController extends AppController
         { slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts",     listHeader: "Your Linked Accounts" }
         # { slug : 'Referrals', title : "Referrals",           listType: "referralSystem",     listHeader: "Referrals " }
       ]
-    # billing :
-    #   title : "Billing"
-    #   items : [
-    #     { slug : "Payment",       title : "Payment methods",    listHeader: "Your Payment Methods",       listType: "methods" }
-    #     { slug : "Subscriptions", title : "Your subscriptions", listHeader: "Your Active Subscriptions",  listType: "subscriptions" }
-    #     { slug : "Billing",       title : "Billing history",    listHeader: "Billing History",            listType: "history" }
-    #   ]
+    billing :
+      title : "Billing"
+      items : [
+        { slug : "Payment",       title : "Payment methods",    listHeader: "Your Payment Methods",       listType: "methods" }
+        { slug : "Subscriptions", title : "Your subscriptions", listHeader: "Your Active Subscriptions",  listType: "subscriptions" }
+        { slug : "Billing",       title : "Billing history",    listHeader: "Billing History",            listType: "history" }
+      ]
     # develop :
     #   title : "Develop"
     #   items : [
