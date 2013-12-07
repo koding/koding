@@ -14,8 +14,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @set
     sharedMethods :
       static      : [
-        'validate','recoverPassword','recoverPasswordByEmail'
+        'validate'
+        'recoverPassword'
+        'recoverPasswordByEmail'
         'resetPassword'
+        'fetchRegistrationDetails'
       ]
     indexes       :
       token       : 'unique'
@@ -29,10 +32,13 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         default   : -> new Date Date.now() + 1000 * 60 * 30 # thirty minutes from now
       status      :
         type      : String
-        enum      : [
-          'invalid status code'
-          ['active','expired','redeemed','invalidated']
-        ]
+        enum      : ['invalid status code'
+                    [
+                      'active'
+                      'expired'
+                      'redeemed'
+                      'invalidated'
+                    ]]
       requestedAt :
         type      : Date
         default   : -> new Date
@@ -180,6 +186,23 @@ module.exports = class JPasswordRecovery extends jraphical.Module
                       user.confirmEmail (err)->
                         return callback new Error "Error occured. Please try again." if err
                         callback err, unless err then username
+
+  @fetchRegistrationDetails = (token, callback) ->
+    JAccount = require './account'
+
+    @one { token, status: 'active' }, (err, certificate) ->
+      return callback err  if err
+      return callback { message: 'Unrecognized token!' }  unless certificate
+
+      { email, username } = certificate
+
+      JAccount.one 'profile.nickname': username, (err, account) ->
+        return callback err  if err
+        return callback { message: 'Unrecognized token!' }  unless account
+
+        { firstName, lastName } = account.profile
+
+        callback null, { firstName, lastName, email }
 
   expire:(callback)-> @update {$set: status: 'expired'}, callback
   redeem:(callback)-> @update {$set: status: 'redeemed'}, callback

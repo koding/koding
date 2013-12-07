@@ -158,6 +158,18 @@ class MainController extends KDController
 
       @once 'AccountChanged', (account) -> callback null, params
 
+  handleFinishRegistration: (formData, callback) ->
+    { JUser } = KD.remote.api
+
+    @isLoggingIn on
+
+    JUser.finishRegistration formData, (err, replacementToken) ->
+      return callback err  if err
+
+      $.cookie 'clientId', replacementToken  if replacementToken
+
+      (KD.getSingleton 'router').handleRoute '/Account/Subscriptions'
+
   isUserLoggedIn: -> KD.isLoggedIn()
 
   isLoggingIn: (isLoggingIn) ->

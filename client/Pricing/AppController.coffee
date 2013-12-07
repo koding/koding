@@ -25,6 +25,7 @@ class PricingAppController extends KDViewController
 
     workflow = paymentController.createUpgradeWorkflow 'vm'
 
-    workflow.on 'Finished', => @getView().showThankYou workflow.getData()
+    workflow.on 'Finished', =>
+      @getView().showThankYou workflow.getData()
 
     workflow.on 'Cancel', => @getView().showCancellation()

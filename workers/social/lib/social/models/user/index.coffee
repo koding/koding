@@ -80,10 +80,22 @@ module.exports = class JUser extends jraphical.Module
     sharedMethods   :
       instance      : []
       static        : [
-        'login','logout','usernameAvailable','emailAvailable',
-        'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
-        'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
-        'authenticateWithOauth','unregister'
+        'login'
+        'logout'
+        'usernameAvailable'
+        'emailAvailable'
+        'changePassword'
+        'changeEmail'
+        'fetchUser'
+        'setDefaultHash'
+        'whoami'
+        'isRegistrationEnabled'
+        'convert'
+        'setSSHKeys'
+        'getSSHKeys'
+        'authenticateWithOauth'
+        'unregister'
+        'finishRegistration'
       ]
 
     schema          :
@@ -718,6 +730,40 @@ module.exports = class JUser extends jraphical.Module
 
     daisy queue
 
+  @finishRegistration: secure (client, formData, callback) ->
+    { sessionToken: clientId } = client
+
+    { recoveryToken: token, firstName, lastName, username, password,
+      passwordConfirm } = formData
+
+    if password isnt passwordConfirm
+      return callback { message: 'Passwords must match!' }
+
+    JPasswordRecovery = require '../passwordrecovery'
+    JPasswordRecovery.one { token }, (err, certificate) =>
+      return callback err  if err
+      return callback { message: 'Unrecognized token!' }  unless certificate
+
+      @one email: certificate.email, (err, user) =>
+        return callback err  if err
+        return callback { message: 'Unrecognized token!' }  unless user
+
+        user.fetchOwnAccount (err, account) =>
+          return callback err  if err
+
+          options = { account, username, clientId }
+
+          @changeUsernameByAccount options, (err, newToken) ->
+            return callback err  if err
+
+            user.changePassword password, (err) ->
+              return callback err  if err
+
+              account.update $set: { firstName, lastName }, (err) ->
+                return callback err  if err
+
+                callback null, token
+
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'
     JUnsubscribedMail.one {email}, (err, unsubscribed)->
@@ -741,7 +787,7 @@ module.exports = class JUser extends jraphical.Module
         else
           callback null
 
-  @changePassword = secure (client,password,callback)->
+  @changePassword = secure (client, password, callback) ->
     @fetchUser client, (err,user)->
       return callback createKodingError "Something went wrong please try again!" if err or not user
       if user.getAt('password') is hashPassword password, user.getAt('salt')

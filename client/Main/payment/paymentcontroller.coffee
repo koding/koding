@@ -158,7 +158,9 @@ class PaymentController extends KDController
 
           callback null, subscription
 
-  createSubscription: (plan, paymentMethodId, callback) ->
+  createSubscription: ({ plan, email, paymentMethod, createAccount }, callback) ->
+    { paymentMethodId, billing } = paymentMethod
+
     plan.subscribe paymentMethodId, (err, subscription) =>
       if err?.short is 'existing_subscription'
         { existingSubscription } = err
@@ -172,18 +174,35 @@ class PaymentController extends KDController
           existingSubscription.plan = plan
           @confirmReactivation existingSubscription, callback
 
+      else if createAccount
+        { JUser } = KD.remote.api
+
+        { cardFirstName: firstName, cardLastName: lastName } = billing
+
+        JUser.convert { firstName, lastName, email }, (err) ->
+          return callback err  if err
+
+          JUser.logout (err) ->
+            return callback err  if err
+            
+            callback null
       else
         callback err, subscription
 
   transitionSubscription: (formData, callback) ->
-    { productData, oldSubscription, paymentMethod } = formData
+    { productData, oldSubscription, paymentMethod, createAccount, email } = formData
     { plan } = productData
     { planCode } = plan
     { paymentMethodId } = paymentMethod
     if oldSubscription
       oldSubscription.transitionTo { planCode, paymentMethodId }, callback
     else
-      @createSubscription plan, paymentMethodId, callback
+      @createSubscription {
+        plan
+        email
+        paymentMethod
+        createAccount
+      }, callback
 
   debitSubscription: (subscription, pack, callback) ->
     subscription.debit pack, (err, nonce) =>
