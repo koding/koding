@@ -155,77 +155,51 @@ resurrection.account.dropdown.styl
 
 
 .avatararea-popup-list
-  margin              0
+  margin                    0
+
   li
-    border-bottom       1px solid #e0e0df
-    padding             8px 10px
-    list-style          none
-    font-size           11px
-    line-height         15px
-    color               #8e8e8e
-    cursor              default
+    padding                 16px
     borderBox()
-    span.icon.notification-type
-      abs()
-      top               33px
-      left              35px
-      size              20px, 20px
-      display           block
-      z-index           1
 
-      // sprite()
-    &.comment
-      span.icon
-        bg              position, -80px -580px
-    &.like
-      span.icon
-        bg              position, -80px -560px
-    &.follow
-      span.icon
-        bg              position, -100px -580px
-    &.reply
-      span.icon
-        bg              position, -140px -540px
-    &.groupJoined, &.groupLeft
-      span.icon
-        bg              position, -60px -580px
+    &~li
+      border-top            1px solid #323a41
 
-
-    span.avatar
-      border            1px solid #e3e3e3
-      padding           1px
-      margin-right      10px
-      display           block
-      bg                size, cover
-      bg                position, center
-      size              40px, 40px
-      fl()
     &.unread
-      background          rgba(250, 239, 223, .5)
-      border-left         3px solid #ff9200
-      padding             8px 10px 8px 7px
+      bg                    color, #2a3440
+
+    .avatarview
+      size                  45px 45px
+      rounded               3px
+      fl()
+
+    p, time
+      kalc                  width, 100% \- 56px
+      fr()
+
     p
-      max-height          46px
-      overflow            hidden
-      color               #8e8e8e
-      span.profile
-        color             linkColor1
-    a
-      color               linkColor1
-      text-decoration     none
-      font-weight         600
-      &:hover
-        text-decoration   underline
-      span
-        color             linkColor1
-    footer
-      div
-        color             #8e8e8e
-      div > span
-        color             #393939
-        margin-top        0px
-        font-size         10px
-        // blockMid()
-      time
-        display           block
-        // blockMid()
+      font-size             12px
+      color                 #8f98a1
+      line-height           15px
+
+      .link-group
+        width               100%
+        overflow            hidden
+        text-overflow       ellipsis
+        white-space         nowrap
+
+        a
+          font-weight       400
+          font-size         14px
+          display           inline
+          color             #8f98a1
+          noTextDeco()
+
+    time
+      font-size             10px
+      color                 #5f6770
+
+
+
+
+
+
