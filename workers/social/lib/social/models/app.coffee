@@ -6,6 +6,7 @@ module.exports = class JNewApp extends jraphical.Module
   JAccount  = require './account'
   JReview   = require './messages/review'
   JTag      = require './tag'
+  JName     = require './name'
 
   @trait __dirname, '../traits/filterable'       # brings only static methods
   @trait __dirname, '../traits/followable'
@@ -67,6 +68,7 @@ module.exports = class JNewApp extends jraphical.Module
         type            : String
         set             : (value)-> value?.trim()
         required        : yes
+      title             : String
       urls              :
         script          :
           type          : String
@@ -164,6 +166,7 @@ module.exports = class JNewApp extends jraphical.Module
 
       app           = new JNewApp
         name        : data.name
+        title       : data.name
         urls        : data.urls
         type        : data.type or 'web-app'
         manifest    : data.manifest
@@ -261,7 +264,6 @@ module.exports = class JNewApp extends jraphical.Module
     success: (client, selector, options, callback)->
 
       selector  = getDefaultSelector client, selector
-      console.log "SOME CALLED", selector
       options or= {}
       options.limit = Math.min(options.limit or 0, 10)
 

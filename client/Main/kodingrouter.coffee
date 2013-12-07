@@ -361,6 +361,8 @@ class KodingRouter extends KDRouter
               (createContentHandler 'Members') routeInfo, [model]
             when 'JGroup'
               (createSectionHandler 'Activity') routeInfo, model
+            when 'JNewApp'
+              KodingAppsController.runApprovedApp model, dontUseRouter:yes
             else
               @handleNotFound routeInfo.params.name
 
