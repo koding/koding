@@ -129,8 +129,6 @@ class MainController extends KDController
         @utils.defer ->
           firstRoute = KD.getSingleton("router").visitedRoutes.first
 
-          if firstRoute and /^\/Verify/.test firstRoute
-            firstRoute = "/"
           if firstRoute and /^\/Reset/.test firstRoute
             firstRoute = "/"
 
