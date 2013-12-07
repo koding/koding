@@ -7,7 +7,7 @@ class ActivityTickerBaseItem extends JView
 
   itemLinkViewClassMap :
     JAccount           : ProfileLinkView
-    JNewApp               : AppLinkView
+    JNewApp            : AppLinkView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
     JStatusUpdate      : ActivityLinkView
@@ -174,9 +174,9 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
   pistachio: ->
     {source, target} = @getData()
     if target.getId() is KD.whoami().getId()
-      return "{{> @avatar}} You entered a {{> @subj}}: {{> @object}}"
+      return "{{> @avatar}} You posted a {{> @subj}}: {{> @object}}"
 
-    return "{{> @avatar}} {{> @actor}} entered a {{> @subj}}: {{> @object}}"
+    return "{{> @avatar}} {{> @actor}} posted a {{> @subj}}: {{> @object}}"
 
 
 class ActivityTickerItem extends KDListItemView
