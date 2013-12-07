@@ -1,6 +1,8 @@
 jraphical = require 'jraphical'
 
 module.exports = class JPasswordRecovery extends jraphical.Module
+  # TODO - Refactor this file, now it is not only for password recovery
+  # but also for email verification
   {secure} = require 'bongo'
 
   dateFormat  = require 'dateformat'
