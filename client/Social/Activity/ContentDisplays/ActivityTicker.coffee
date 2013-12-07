@@ -114,7 +114,28 @@ class ActivityTicker extends ActivityRightBase
 
 
 
-  load: ->
+  filterItem:(item)->
+    {as, source, target} = item
+    # objects should be there
+    return null  unless source and target and as
+
+    # relationships from guests should not be there
+    if source.profile and sourceNickname = source.profile.nickname
+      if /^guest-/.test sourceNickname
+        return null
+    if target.profile and targetNickname = target.profile.nickname
+      if /^guest-/.test targetNickname
+        return null
+
+    # filter user followed status activity
+    if @getConstructorName(source) is "JStatusUpdate" and \
+        @getConstructorName(target) is "JAccount" and \
+        as is "follower"
+      return null
+
+    return item
+
+  load:(anotherLoad=no) ->
     lastItem = @listController.getItemsOrdered().last
     lastItemTimestamp = +(new Date())
 
@@ -125,13 +146,12 @@ class ActivityTicker extends ActivityRightBase
 
     KD.remote.api.ActivityTicker.fetch options, (err, items = []) =>
       @listController.hideLazyLoader()
-      return  if err
-      for item in items
-        {as, source, target, subject} = item
-
-        isGuest = target.profile?.nickname?.indexOf("guest-") isnt -1
-        if source and target and as and not isGuest
-          @listController.addItem item
+      return warn err if err
+      addedItemCount = 0
+      for item in items when @filterItem item
+        addedItemCount++
+        @listController.addItem item
+      @load yes  if addedItemCount isnt items.length and not anotherLoad
 
   pistachio:
     """
