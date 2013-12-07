@@ -62,7 +62,9 @@
     "node-odesk"      : "0.0.7",
     "oauth"           : "0.9.10",
     "node-uuid"       : "1.4.1",
-    "newrelic"        : "1.1.1"
+    "newrelic"        : "1.1.1",
+    "sync"            : "0.2.2",
+    "fibers"          : "1.0.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},
