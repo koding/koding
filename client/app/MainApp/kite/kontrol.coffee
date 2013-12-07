@@ -36,8 +36,7 @@ class Kontrol extends KDObject
     query = @_sanitizeQuery query
 
     @kite.tell "getKites", [query], (res)=>
-      err = res.withArgs[0]
-      kites = res.withArgs[1]
+      [err, kites] = res.withArgs
       return callback err, null  if err
 
       kiteInstances = []
@@ -61,8 +60,7 @@ class Kontrol extends KDObject
     args = [query, onEvent]
 
     @kite.tell "getKites", args, (res)=>
-      err = res.withArgs[0]
-      kites = res.withArgs[1]
+      [err, kites] = res.withArgs
       return callback err, null  if err
 
       for k in kites
