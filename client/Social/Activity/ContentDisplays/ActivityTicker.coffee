@@ -45,18 +45,14 @@ class ActivityTicker extends ActivityRightBase
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
 
-
-    eventObj =
     source = new KD.remote.api[subject.bongo_.constructorName] subject
     target = new KD.remote.api[origin.bongo_.constructorName] origin
     as     = "author"
 
-
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err or not tags
       source.tags = tags
-      eventObj = {source, target, as}
-      @listController.addItem eventObj, 0
+      @listController.addItem {source, target, as}, 0
 
   addJoin: (data)->
     {member} = data
