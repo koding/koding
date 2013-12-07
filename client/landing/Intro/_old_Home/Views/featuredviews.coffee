@@ -77,7 +77,7 @@ class HomeFeaturedAppsView extends JView
           avatarWidth  :250
           avatarHeight :250
 
-    KD.remote.api.JApp.some {},{limit:4},(err,apps)=>
+    KD.remote.api.JNewApp.some {},{limit:4},(err,apps)=>
       if err then warn err
       else if apps
         appsController.instantiateListItems apps
