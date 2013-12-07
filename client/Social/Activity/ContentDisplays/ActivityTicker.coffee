@@ -45,8 +45,8 @@ class ActivityTicker extends ActivityRightBase
     unless @getConstructorName(origin) and @getConstructorName(subject)
       return console.warn "data is not valid"
 
-    source = new KD.remote.api[subject.bongo_.constructorName] subject
-    target = new KD.remote.api[origin.bongo_.constructorName] origin
+    source = KD.remote.revive subject
+    target = KD.remote.revive origin
     as     = "author"
 
     @fetchTags source, (err, tags)=>

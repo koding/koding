@@ -36,8 +36,7 @@ class ActivityListController extends KDListViewController
 
     groupController.on "PostIsCreated", (post) =>
       {subject} = post
-      constructor = subject.bongo_.constructorName
-      subject = new KD.remote.api[constructor] subject
+      subject = KD.remote.revive subject
       @addItem subject, 0
 
   resetList:->

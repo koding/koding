@@ -186,11 +186,13 @@ module.exports = class JPost extends jraphical.Message
                 snapshotIds: status.getId()
             , =>
               callback null, teaser
-              status.emit 'PostIsCreated', {
-                origin  : delegate
-                subject : status
-                group   : status.group
-              }
+              status.fetchTags (err, tags)->
+                status.tags = tags
+                status.emit 'PostIsCreated', {
+                  origin  : delegate
+                  subject : status
+                  group   : status.group
+                }
 
               CActivity.emit "ActivityIsCreated", activity
               queue.next()
