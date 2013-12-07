@@ -34,6 +34,7 @@ class StatusActivityItemView extends ActivityItemChild
     data = @getData()
     tagMap = @getTokenMap data.tags  if data.tags
 
+    viewParams = []
     for tokenString in tokenMatches
       [prefix, constructorName, id] = @decodeToken tokenString
 
@@ -47,8 +48,14 @@ class StatusActivityItemView extends ActivityItemChild
       itemClass = tokenClassMap[prefix]
       tokenView = new TokenView {domId, itemClass}, token
       tokenView.emit "viewAppended"
-
       str = str.replace tokenString, tokenView.getElement().outerHTML
+      tokenView.destroy()
+
+      viewParams.push {options: {domId, itemClass}, data: token}
+
+    @utils.defer ->
+      for {options, data} in viewParams
+        new TokenView options, data
 
     return  str
 
