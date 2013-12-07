@@ -6,6 +6,7 @@ module.exports = class JNewApp extends jraphical.Module
   JAccount  = require './account'
   JReview   = require './messages/review'
   JTag      = require './tag'
+  JName     = require './name'
 
   @trait __dirname, '../traits/filterable'       # brings only static methods
   @trait __dirname, '../traits/followable'
@@ -67,6 +68,7 @@ module.exports = class JNewApp extends jraphical.Module
         type            : String
         set             : (value)-> value?.trim()
         required        : yes
+      title             : String
       urls              :
         script          :
           type          : String
@@ -164,6 +166,7 @@ module.exports = class JNewApp extends jraphical.Module
 
       app           = new JNewApp
         name        : data.name
+        title       : data.name
         urls        : data.urls
         type        : data.type or 'web-app'
         manifest    : data.manifest
@@ -261,7 +264,6 @@ module.exports = class JNewApp extends jraphical.Module
     success: (client, selector, options, callback)->
 
       selector  = getDefaultSelector client, selector
-      console.log "SOME CALLED", selector
       options or= {}
       options.limit = Math.min(options.limit or 0, 10)
 
@@ -284,18 +286,56 @@ module.exports = class JNewApp extends jraphical.Module
       @each selector, fields, options, callback
 
   delete: permit
+
     advanced: [
       { permission: 'delete own apps', validateWith: Validators.own }
       { permission: 'delete apps' }
     ]
-    success: (client, callback)-> @remove callback
+
+    success: (client, callback)->
+      @remove callback
+
+      JName.one {@name}, (err, jname)->
+        return console.error "Failed to get JName: ", err  if err
+        jname.remove (err)->
+          console.error "Failed to remove JName: ", err  if err
+
+      JName.one {name:@slug}, (err, jname)->
+        return console.error "Failed to get JName: ", err  if err
+        jname.remove (err)->
+          console.error "Failed to remove JName: ", err  if err
 
 
   approve: permit 'approve apps',
 
     success: (client, state = yes, callback)->
 
-      @update $set: approved: state, callback
+      JName.one {@name}, (err, jname)=>
+
+        return callback err  if err
+
+        if state is no and jname
+          if @slug is jname.slugs[0].slug
+            jname.remove (err)->
+              console.error "Failed to remove JName: ", err  if err
+
+        else
+
+          unless jname
+
+            name = new JName
+              name  : @name
+              slugs : [
+                constructorName : 'JNewApp'
+                collectionName  : 'jNewApps'
+                slug            : @slug
+                usedAsPath      : 'slug'
+              ]
+
+            name.save (err) ->
+              console.error "Failed to save JName: ", err  if err
+
+        @update $set: approved: state, callback
 
       # identifier = @getAt 'identifier'
 
