@@ -33,10 +33,8 @@ module.exports = class ActivityTicker extends Base
     {source, target, as, timestamp} = relationship
     source.fetchTags (err, tags) ->
       return callback err if err
-      console.log 'Tags', tags
       source.tags = tags
-      console.log 'Releysin', relationship
-      callback null, relationship
+      callback null, {source, target, as, timestamp}
 
 
   decorateCommentEvent = (relationship, callback) ->
@@ -101,14 +99,10 @@ module.exports = class ActivityTicker extends Base
       return  callback err, buckets  if err
       daisy queue = relationships.map (relationship) ->
         ->
-          {sourceName, targetName, as} = relationship
-          unless sourceName is "JStatusUpdate" and targetName is "JAccount" and as is "follower"
-            relationship.fetchTeaser ->
-              decorateEvents relationship, (err, decoratedEvent)=>
-                buckets.push decoratedEvent  if decoratedEvent
-                queue.next()
-          else
-            queue.next()
+          relationship.fetchTeaser ->
+            decorateEvents relationship, (err, decoratedEvent)=>
+              buckets.push decoratedEvent  if decoratedEvent
+              queue.next()
 
       queue.push ->
         callback null, buckets
