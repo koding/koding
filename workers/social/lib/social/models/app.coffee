@@ -310,7 +310,32 @@ module.exports = class JNewApp extends jraphical.Module
 
     success: (client, state = yes, callback)->
 
-      @update $set: approved: state, callback
+      JName.one {@name}, (err, jname)=>
+
+        return callback err  if err
+
+        if state is no and jname
+          if @slug is jname.slugs[0].slug
+            jname.remove (err)->
+              console.error "Failed to remove JName: ", err  if err
+
+        else
+
+          unless jname
+
+            name = new JName
+              name  : @name
+              slugs : [
+                constructorName : 'JNewApp'
+                collectionName  : 'jNewApps'
+                slug            : @slug
+                usedAsPath      : 'slug'
+              ]
+
+            name.save (err) ->
+              console.error "Failed to save JName: ", err  if err
+
+        @update $set: approved: state, callback
 
       # identifier = @getAt 'identifier'
 
