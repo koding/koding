@@ -141,9 +141,9 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     if  source.getId() is KD.whoami().getId()
       # if user commented his/her post
       if source.getId() is target.getId() then \
-        return "{{> @avatar}} You #{activity} your {{> @subj}}:{{> @object}}"
+        return "{{> @avatar}} You #{activity} your {{> @subj}}"
       else
-        return "{{> @avatar}} You #{activity} {{> @origin}}'s {{> @subj}}:{{> @object}}"
+        return "{{> @avatar}} You #{activity} {{> @subj}}"
 
     # someone did something to you
     if target.getId() is KD.whoami().getId() then \
