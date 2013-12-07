@@ -34,6 +34,7 @@ class GroupsController extends KDController
     @forwardEvent @groupChannel, "MemberJoinedGroup"
     @forwardEvent @groupChannel, "FollowHappened"
     @forwardEvent @groupChannel, "LikeIsAdded"
+    @forwardEvent @groupChannel, "PostIsCreated"
 
     @groupChannel.once 'setSecretNames', callback
 

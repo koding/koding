@@ -10,8 +10,8 @@ module.exports = class ActivityTicker extends Base
     sharedMethods :
       static      : ["fetch"]
 
-  relationshipNames = ["follower", "like", "member", "user", "reply"]
-  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JStatusUpdate","JComment"]
+  relationshipNames = ["follower", "like", "member", "user", "reply", "author"]
+  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JStatusUpdate", "JComment"]
 
   JAccount = require './account'
 
@@ -24,8 +24,18 @@ module.exports = class ActivityTicker extends Base
       decorateLikeEvent relationship, callback
     else if as is "reply"
       decorateCommentEvent relationship, callback
+    else if as is "author"
+      decorateStatusUpdateEvent relationship, callback
     else
       callback null, {source, target, as, timestamp}
+
+  decorateStatusUpdateEvent = (relationship, callback) ->
+    {source, target, as, timestamp} = relationship
+    source.fetchTags (err, tags) ->
+      return callback err if err
+      source.tags = tags
+      callback null, {source, target, as, timestamp}
+
 
   decorateCommentEvent = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
@@ -89,14 +99,10 @@ module.exports = class ActivityTicker extends Base
       return  callback err, buckets  if err
       daisy queue = relationships.map (relationship) ->
         ->
-          {sourceName, targetName, as} = relationship
-          unless sourceName is "JStatusUpdate" and targetName is "JAccount" and as is "follower"
-            relationship.fetchTeaser ->
-              decorateEvents relationship, (err, decoratedEvent)=>
-                buckets.push decoratedEvent  if decoratedEvent
-                queue.next()
-          else
-            queue.next()
+          relationship.fetchTeaser ->
+            decorateEvents relationship, (err, decoratedEvent)=>
+              buckets.push decoratedEvent  if decoratedEvent
+              queue.next()
 
       queue.push ->
         callback null, buckets

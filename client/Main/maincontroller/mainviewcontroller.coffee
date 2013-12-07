@@ -26,7 +26,7 @@ class MainViewController extends KDViewController
         if type = view.getOption 'type'
           @setBodyClass type
 
-    mainController.on "ShowInstructionsBook", (index)->
+    # mainController.on "ShowInstructionsBook", (index)->
       # TODO ~ this is broken FIX
       # book = mainView.addBook()
       # book.fillPage index

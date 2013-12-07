@@ -7,7 +7,7 @@ class ActivityTickerBaseItem extends JView
 
   itemLinkViewClassMap :
     JAccount           : ProfileLinkView
-    JNewApp               : AppLinkView
+    JNewApp            : AppLinkView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
     JStatusUpdate      : ActivityLinkView
@@ -156,14 +156,38 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     # rest
     return "{{> @avatar}} {{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}:{{> @object}}"
 
+class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
+  constructor: (options = {}, data) ->
+    super options, data
+
+    {source, target} = data
+
+    @avatar    = new AvatarView
+      size     : width: 28, height: 28
+      cssClass : "avatarview"
+    , target
+
+    @actor    = new ProfileLinkView null, target
+    @subj     = new ActivityLinkView null, source
+    @object   = new ActivityCommentView null, source
+
+  pistachio: ->
+    {source, target} = @getData()
+    if target.getId() is KD.whoami().getId()
+      return "{{> @avatar}} You posted a {{> @subj}}: {{> @object}}"
+
+    return "{{> @avatar}} {{> @actor}} posted a {{> @subj}}: {{> @object}}"
+
+
 class ActivityTickerItem extends KDListItemView
   itemClassMap =
-    "JGroup_member_JAccount"     : ActivityTickerMemberItem
-    "JAccount_like_JAccount"     : ActivityTickerLikeItem
-    "JTag_follower_JAccount"     : ActivityTickerFollowItem
-    "JAccount_follower_JAccount" : ActivityTickerFollowItem
-    "JApp_user_JAccount"         : ActivityTickerAppUserItem
-    "JAccount_reply_JAccount"    : ActivityTickerCommentItem
+    "JGroup_member_JAccount"        : ActivityTickerMemberItem
+    "JAccount_like_JAccount"        : ActivityTickerLikeItem
+    "JTag_follower_JAccount"        : ActivityTickerFollowItem
+    "JAccount_follower_JAccount"    : ActivityTickerFollowItem
+    "JNewApp_user_JAccount"         : ActivityTickerAppUserItem
+    "JAccount_reply_JAccount"       : ActivityTickerCommentItem
+    "JStatusUpdate_author_JAccount" : ActivityTickerStatusUpdateItem
 
   constructor: (options = {}, data) ->
     options.type = "activity-ticker-item"

@@ -72,6 +72,7 @@ class ActivityItemChild extends KDView
     data = @getData()
 
     deleteActivity = (activityItem)->
+      activityItem.destroy() #FIXME
       activityItem.slideOut -> activityItem.destroy()
 
     @on 'ActivityIsDeleted', =>
@@ -85,13 +86,16 @@ class ActivityItemChild extends KDView
       if KD.whoami().getId() is data.getAt('originId')
         deleteActivity activityItem
       else
-        activityItem.putOverlay
-          isRemovable : no
-          parent      : @parent
-          cssClass    : 'half-white'
+        #CtF: FIXME added just for making it functional
+        activityItem.destroy()
 
-        @utils.wait 30000, ->
-          activityItem.slideOut -> activityItem.destroy()
+        # activityItem.putOverlay
+        #   isRemovable : no
+        #   parent      : @parent
+        #   cssClass    : 'half-white'
+
+        # @utils.wait 30000, ->
+        #   activityItem.slideOut -> activityItem.destroy()
 
 
     data.watch 'repliesCount', (count)=>
