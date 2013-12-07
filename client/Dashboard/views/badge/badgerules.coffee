@@ -66,7 +66,8 @@ class BadgeRules extends JView
     rules      = ""
     ruleItems  = @badgeRulesListController.getItemsOrdered()
     for ruleItem, key in ruleItems
-      property = ruleItem.propertySelect.getValue()
+      countProp = ruleItem.propertySelect.getValue()
+      property = "counts." + countProp
       tmpAct   = ruleItem.propertyAction.getValue()
       propVal  = ruleItem.propertyVal.getValue()
 
@@ -76,7 +77,7 @@ class BadgeRules extends JView
 
       operArr[action]    = propVal
       selector[property] = operArr
-      rules += property + tmpAct + propVal
+      rules += countProp + tmpAct + propVal
       rules += "+" if key < ruleItems.length-1
 
     @rule.setValue rules
@@ -133,12 +134,18 @@ class BadgeRuleItem extends KDListItemView
     @propertySelect   = new KDSelectBox
       name            : 'rule-property'
       selectOptions   : [
-        { title:"Follower", value:"counts.followers" }
-        { title:"Likes"   , value:"counts.likes"     }
-        { title:"Topics"  , value:"counts.topics"    }
-        { title:"Follows" , value:"counts.following" }
+        { title:"Follower"          , value:"followers"        }
+        { title:"Likes"             , value:"likes"            }
+        { title:"Topics"            , value:"topics"           }
+        { title:"Follows"           , value:"following"        }
+        { title:"Comments"          , value:"comments"         }
+        { title:"Invitations"       , value:"invitations"      }
+        { title:"Referred Users"    , value:"referredUsers"    }
+        { title:"Last Login"        , value:"lastLoginDate"    }
+        { title:"Status Updates"    , value:"statusUpdates"    }
+        { title:"Twitter Followers" , value:"twitterFollowers" }
       ]
-      defaultValue    : if data.property then data.property else "counts.followers"
+      defaultValue    : if data.property then data.property else "followers"
 
     @propertyAction   = new KDSelectBox
       name            : 'rule-action'

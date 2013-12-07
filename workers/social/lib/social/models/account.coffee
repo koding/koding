@@ -22,6 +22,7 @@ module.exports = class JAccount extends jraphical.Module
   Graph            = require "./graph/graph"
   JName            = require './name'
   JBadge           = require './badge'
+  JReferrableEmail = require './referrableemail'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -157,6 +158,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchPaymentMethods'
         'fetchSubscriptions'
         'fetchPlansAndSubscriptions'
+        'updateCountAndCheckBadge'
       ]
     schema                  :
       skillTags             : [String]
@@ -179,6 +181,25 @@ module.exports = class JAccount extends jraphical.Module
         likes               :
           type              : Number
           default           : 0
+        statusUpdates       :
+          type              : Number
+          default           : 0
+        comments            :
+          type              : Number
+          default           : 0
+        referredUsers       :
+          type              : Number
+          default           : 0
+        invitations         :
+          type              : Number
+          default           : 0
+        lastLoginDate       :
+          type              : Date
+          default           : new Date
+        twitterFollowers    :
+          type              : Number
+          default           : 0
+
       environmentIsCreated  : Boolean
       type                  :
         type                : String
@@ -662,9 +683,37 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
+  updateCountAndCheckBadge: secure (client, options, callback)->
+    propertyArray = [
+      "counts.likes"
+      "counts.followers"
+      "counts.following"
+      "counts.topics"
+      "counts.statusUpdates"
+      "counts.comments"
+      "counts.referredUsers"
+      "counts.invitations"
+    ]
+    {delegate}   = client.connection
+    if @equals delegate
+      {@property, relType, source, targetSelf} = options
+      if @property in propertyArray
+        selector     =
+          as         : relType
+          sourceName : source
+        if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
+        Relationship.count selector, (err, count) =>
+          return err if err
+          countsField = {}
+          countsField[@property] = count
+          @update $set: countsField , (err)->
+            JBadge = require './badge'
+            return err if err
+            JBadge.checkEligibleBadges client,{badgeItem:@property}, callback
+
   # Update broken counts for user
   updateCounts:->
-
+    JUser = require './user'
     # Like count
     Relationship.count
       as         : 'like'
@@ -688,6 +737,45 @@ module.exports = class JAccount extends jraphical.Module
       sourceName : 'JTag'
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
+
+    # Status Update count
+    Relationship.count
+      as         : 'author'
+      targetId   : @getId()
+      sourceName : 'JStatusUpdateJStatusUpdate'
+    , (err, count)=>
+      @update ($set: 'counts.statusUpdates': count), ->
+
+    # Comments count
+    Relationship.count
+      as         : 'commenter'
+      targetId   : @getId()
+      sourceName : 'JStatusUpdate'
+    , (err, count)=>
+      @update ($set: 'counts.comments': count), ->
+
+    # ReferredUsers count
+    JAccount.count
+      referrerUsername : @profile.nickname
+    , (err, count)=>
+      @update ($set: 'counts.referredUsers': count), ->
+
+    # Invitations count
+    JReferrableEmail.count
+      username   : @profile.nickname
+      invited    : true
+    , (err, count)=>
+      @update ($set: 'counts.invitations': count), ->
+
+    # Last Login date
+    @update ($set: 'counts.lastLoginDate': new Date), ->
+
+    # Twitter follower count
+    JUser.one {username: @profile.nickname}, (err, user)->
+      if user.foreignAuth?.twitter?
+        followerCount = user.foreignAuth.twitter.profile.followers_count
+        @update ($set: 'counts.twitterFollowers': followerCount), ->
+
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",

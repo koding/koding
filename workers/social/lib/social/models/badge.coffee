@@ -1,7 +1,7 @@
 jraphical = require 'jraphical'
 module.exports = class JBadge extends jraphical.Module
   {permit}          = require './group/permissionset'
-  {daisy}           = require 'bongo'
+  {daisy, secure}   = require 'bongo'
 
   @trait __dirname, '../traits/filterable'
 
@@ -12,7 +12,7 @@ module.exports = class JBadge extends jraphical.Module
       'delete badge'      : []
       'edit badge'        : []
       'assign badge'      : ['moderator']
-      'list badges'       : ['moderator']
+      'list badges'       : ['member','moderator']
       'remove user badge' : ['moderator']
     schema                :
       title               : String
@@ -28,7 +28,8 @@ module.exports = class JBadge extends jraphical.Module
         type              : Date
         default           : -> new Date
     sharedMethods         :
-      static              : ["listBadges", "getUserBadges", "create","fetchBadgeUsers","fetchUsersByRule"]
+      static              : ["listBadges", "getUserBadges", "create","fetchBadgeUsers",
+      "fetchUsersByRule", "checkEligibleBadges"]
       instance            : ["modify", "deleteBadge", "assignBadge",
       "removeBadgeFromUser", "assignBadgeBatch"]
 
@@ -113,13 +114,47 @@ module.exports = class JBadge extends jraphical.Module
           JAccount.some { "_id": { "$in": items } }, {}, (err, jAccounts) =>
             callback err,jAccounts
 
-  @createSelector : (rules)->
-    for rule in rules.split "+"
-      actionPos = rule.search /[\<\>\=]/
-      action    = rule.substr actionPos, 1
-      property  = rule.substr 0,actionPos
-      propVal   = rule.substr actionPos+1
+  @ruleSplit:(rule, userCounts)->
+    operators =
+        '>': (badgeValue, userValue)-> return userValue > badgeValue
+        '<': (badgeValue, userValue)-> return userValue < badgeValue
+    #TODO : should use regular expressions
+    actionPos = rule.search /[\<\>\=]/
+    action    = rule.substr actionPos, 1
+    property  = rule.substr 0,actionPos
+    propVal   = rule.substr actionPos+1
 
-  @fetchUsersByRule:permit 'give badges',
-    success: (client, rules, callback)->
-      @createSelector rules
+    if not operators[action] propVal, userCounts[property] then no else yes
+
+  @checkRules : (rules, userCounts)->
+    ruleArray = rules.split "+"
+    if ruleArray.length > 1
+      for rule in ruleArray
+        if not @ruleSplit rule,userCounts then return no
+    else
+      if not @ruleSplit rules,userCounts then return no
+    yes
+
+
+  @checkEligibleBadges:secure (client, options, callback) ->
+    {badgeItem}  = options
+    {@delegate}  = client.connection
+    userCounts   = @delegate.counts
+    if @delegate.type is 'unregistered' then return callback new KodingError 'Access denied'
+    #get user badges
+    @delegate.fetchBadges (err, userBadges)=>
+      badgeIds = (userBadge.getId() for userBadge in userBadges)
+      # find badges that users can gain and not already gained
+      @listBadges client, {"rule":{"$regex":badgeItem}, "_id":{$nin:badgeIds}}, (err, badges)=>
+        badgesGained  = []
+        errors        = []
+        queue = badges.map (badge) =>=>
+          if @checkRules badge.rule, userCounts
+              @delegate.addBadge badge, (err, o)->
+                errors.push err if err
+                badgesGained.push badge
+                queue.next()
+          else
+            queue.next()
+        queue.push -> callback if errors.length > 0 then null else badgesGained
+        daisy queue

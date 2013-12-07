@@ -55,7 +55,15 @@ class ActivityInputWidget extends KDView
 
         if activity
         then @update data
-        else @create data
+        else
+        # check badge
+          countOptions   =
+            property     : "counts.statusUpdates"
+            relType      : "author"
+            source       : "JStatusUpdate"
+            targetSelf   : 1
+          new BadgeAlertView {countOptions}
+          @create data
     ]
 
   encodeTagSuggestions: (str, tags) ->

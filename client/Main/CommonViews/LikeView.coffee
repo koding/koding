@@ -115,7 +115,6 @@ class LikeView extends KDView
 
     if $(event.target).is("a.action-link")
       @getData().like (err)=>
-
         KD.showError err,
           AccessDenied : 'You are not allowed to like activities'
           KodingError  : 'Something went wrong while like'
