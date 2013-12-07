@@ -286,11 +286,24 @@ module.exports = class JNewApp extends jraphical.Module
       @each selector, fields, options, callback
 
   delete: permit
+
     advanced: [
       { permission: 'delete own apps', validateWith: Validators.own }
       { permission: 'delete apps' }
     ]
-    success: (client, callback)-> @remove callback
+
+    success: (client, callback)->
+      @remove callback
+
+      JName.one {@name}, (err, jname)->
+        return console.error "Failed to get JName: ", err  if err
+        jname.remove (err)->
+          console.error "Failed to remove JName: ", err  if err
+
+      JName.one {name:@slug}, (err, jname)->
+        return console.error "Failed to get JName: ", err  if err
+        jname.remove (err)->
+          console.error "Failed to remove JName: ", err  if err
 
 
   approve: permit 'approve apps',
