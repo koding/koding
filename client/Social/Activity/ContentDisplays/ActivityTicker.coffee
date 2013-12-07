@@ -27,15 +27,36 @@ class ActivityTicker extends ActivityRightBase
     nc = KD.getSingleton("notificationController")
     nc.on "ReplyIsAdded", @bound "addComment"
 
+  getConstructorName :(obj)->
+    if obj and obj.bongo_ and obj.bongo_.constructorName
+      return obj.bongo_.constructorName
+    return null
+
+  fetchTags:(data, callback)->
+    return callback null, null unless data
+
+    if data.tags
+      return callback null, data.tags
+    else
+      data.fetchTags callback
+
   addActivity: (data)->
     {origin, subject} = data
-    return console.warn "data is not valid" unless origin and subject
-    eventObj =
-      source : new KD.remote.api[subject.bongo_.constructorName] subject
-      target : new KD.remote.api[origin.bongo_.constructorName] origin
-      as     : "author"
+    unless @getConstructorName(origin) and @getConstructorName(subject)
+      return console.warn "data is not valid"
 
-    @listController.addItem eventObj, 0
+
+    eventObj =
+    source = new KD.remote.api[subject.bongo_.constructorName] subject
+    target = new KD.remote.api[origin.bongo_.constructorName] origin
+    as     = "author"
+
+
+    @fetchTags source, (err, tags)=>
+      return log "discarding event, invalid data"  if err or not tags
+      source.tags = tags
+      eventObj = {source, target, as}
+      @listController.addItem eventObj, 0
 
   addJoin: (data)->
     {member} = data
