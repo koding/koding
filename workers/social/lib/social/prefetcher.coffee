@@ -6,7 +6,7 @@ prefetchedFeeds = {}
 
 {dash}  = require 'bongo'
 JTag    = require './models/tag'
-JApp    = require './models/app'
+JNewApp    = require './models/app'
 
 fetchMembersFromGraph = (bongoModels, client, cb)->
   return cb null, [] unless bongoModels
@@ -57,7 +57,7 @@ prefetchAll = (options, client, callback) ->
   # Commented out until we implement app based prefetch feature ~ GG & CS
   # This is not koding specific so we can return this to every group
   # queue.push ->
-  #   JApp.some {"approved": true}, defaultOptions, (err, apps)->
+  #   JNewApp.some {"approved": true}, defaultOptions, (err, apps)->
   #     prefetchedFeeds['apps.main'] = apps  if apps
   #     queue.fin()
 

@@ -109,10 +109,9 @@ module.exports = class ActiveItems extends Base
           existingIds = nin.concat existingIds  if nin
 
           klass.some {sourceId: $nin : existingIds}, {limit:missing}, (err, randomInstances)->
-            return callback err  if err
+            instances = instances.concat randomInstances  unless err
+            queue.next()
 
-            # first array must contain entries or _ returns []
-            instances = instances.concat randomInstances
-            callback null, instances
-        else
-          callback null, instances
+      queue.push ->
+        instances = _.uniq instances, (i)-> i._id
+        callback null, instances
