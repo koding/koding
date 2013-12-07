@@ -43,7 +43,7 @@ class ApplicationManager extends KDObject
   #     missingRoute = appController.getOption('initialRoute') or route
   #     router.handleRoute missingRoute, { suppressListeners : yes, entryPoint }
 
-  isAppAvailable : (name='')->
+  isAppInternal : (name='')->
     return KD.config.apps[name] and (name not in Object.keys KD.appClasses)
 
   open: do ->
@@ -91,7 +91,7 @@ class ApplicationManager extends KDObject
 
       if not appOptions? and not options.avoidRecursion?
 
-        if @isAppAvailable name
+        if @isAppInternal name
           return KodingAppsController.loadInternalApp name, (err)=>
             return warn err  if err
             KD.utils.defer => @open name, options, callback
@@ -180,7 +180,7 @@ class ApplicationManager extends KDObject
     @register appInstance = new AppClass appOptions  if AppClass
 
     log 'AppManager: opening an app', name
-    if @isAppAvailable name
+    if @isAppInternal name
       log 'AppManager: couldn\'t find', name
       return KodingAppsController.loadInternalApp name, (err)=>
         log 'AppManager: loaded', name

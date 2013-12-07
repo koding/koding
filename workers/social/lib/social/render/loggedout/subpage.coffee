@@ -10,7 +10,7 @@ putSplash = (name, section, model)->
       when "JBlogPost"      then "loading a blog post"
       when "JTutorial"      then "loading a tutorial"
       when "JTag"           then "loading a topic"
-      when "JNewApp"           then "loading a koding app page"
+      when "JNewApp"        then "loading a koding app page"
       else "loading something."
   else "launching an application"
 

@@ -178,14 +178,20 @@ module.exports = class JPost extends jraphical.Message
               else
                 teaser = teaser_
                 queue.next()
-          ->
+          =>
             activity.update
               $set:
                 snapshot: JSON.stringify(teaser)
               $addToSet:
                 snapshotIds: status.getId()
-            , ->
+            , =>
               callback null, teaser
+              status.emit 'PostIsCreated', {
+                origin  : delegate
+                subject : status
+                group   : status.group
+              }
+
               CActivity.emit "ActivityIsCreated", activity
               queue.next()
           ->

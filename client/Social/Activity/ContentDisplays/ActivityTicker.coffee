@@ -22,9 +22,37 @@ class ActivityTicker extends ActivityRightBase
     group.on "MemberJoinedGroup", @bound "addJoin"
     group.on "LikeIsAdded", @bound "addLike"
     group.on "FollowHappened", @bound "addFollow"
+    group.on "PostIsCreated", @bound "addActivity"
 
     nc = KD.getSingleton("notificationController")
     nc.on "ReplyIsAdded", @bound "addComment"
+
+  getConstructorName :(obj)->
+    if obj and obj.bongo_ and obj.bongo_.constructorName
+      return obj.bongo_.constructorName
+    return null
+
+  fetchTags:(data, callback)->
+    return callback null, null unless data
+
+    if data.tags
+      return callback null, data.tags
+    else
+      data.fetchTags callback
+
+  addActivity: (data)->
+    {origin, subject} = data
+    unless @getConstructorName(origin) and @getConstructorName(subject)
+      return console.warn "data is not valid"
+
+    source = new KD.remote.api[subject.bongo_.constructorName] subject
+    target = new KD.remote.api[origin.bongo_.constructorName] origin
+    as     = "author"
+
+    @fetchTags source, (err, tags)=>
+      return log "discarding event, invalid data"  if err or not tags
+      source.tags = tags
+      @listController.addItem {source, target, as}, 0
 
   addJoin: (data)->
     {member} = data
@@ -103,7 +131,28 @@ class ActivityTicker extends ActivityRightBase
 
 
 
-  load: ->
+  filterItem:(item)->
+    {as, source, target} = item
+    # objects should be there
+    return null  unless source and target and as
+
+    # relationships from guests should not be there
+    if source.profile and sourceNickname = source.profile.nickname
+      if /^guest-/.test sourceNickname
+        return null
+    if target.profile and targetNickname = target.profile.nickname
+      if /^guest-/.test targetNickname
+        return null
+
+    # filter user followed status activity
+    if @getConstructorName(source) is "JStatusUpdate" and \
+        @getConstructorName(target) is "JAccount" and \
+        as is "follower"
+      return null
+
+    return item
+
+  load:(anotherLoad=no) ->
     lastItem = @listController.getItemsOrdered().last
     lastItemTimestamp = +(new Date())
 
@@ -114,13 +163,12 @@ class ActivityTicker extends ActivityRightBase
 
     KD.remote.api.ActivityTicker.fetch options, (err, items = []) =>
       @listController.hideLazyLoader()
-      return  if err
-      for item in items
-        {as, source, target, subject} = item
-
-        isGuest = target.profile?.nickname?.indexOf("guest-") isnt -1
-        if source and target and as and not isGuest
-          @listController.addItem item
+      return warn err if err
+      addedItemCount = 0
+      for item in items when @filterItem item
+        addedItemCount++
+        @listController.addItem item
+      @load yes  if addedItemCount isnt items.length and not anotherLoad
 
   pistachio:
     """
