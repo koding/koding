@@ -25,6 +25,7 @@ class EmbedBoxLinksView extends KDView
 
   setActiveLinkIndex: (index) ->
     item = @linkListController.itemsOrdered[index]
+    @linkListController.deselectAllItems()
     @linkListController.selectSingleItem item
 
   getLinkCount:-> @linkListController.getItemCount()

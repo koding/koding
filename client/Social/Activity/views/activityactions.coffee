@@ -63,7 +63,7 @@ class ActivityActionsView extends KDView
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
-          x           : @getX() - 35
+          x           : @getX() - 10
           y           : @getY() - 50
           arrow       :
             placement : "bottom"

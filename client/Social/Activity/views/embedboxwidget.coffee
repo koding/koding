@@ -146,6 +146,8 @@ class EmbedBoxWidget extends KDView
   resetEmbed:->
     @oembed     = {}
     @url        = ''
+    @embedContainer?.destroy()
+    @embedIndex = null
     @imageIndex = 0
 
   getDataForSubmit:->
