@@ -42,23 +42,23 @@ button
   size                100%,55px
   z-index             1000
   overflow            visible
-  vendor              perspective, 700px
-  vendor              transform-style, preserve-3d
+  visibility          visible
   fix()
 
   .inner-container
     bg                  color, #1e2628
     size                100%, 55px
-    vendor              transform-origin-y, 0
-    vendor              transform, rotateX(0)
-    -webkit-transition  -webkit-transform .5s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-    -moz-transition     -moz-transform .5s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-    transition          transform .5s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+    vendor              transform, translateY(0)
+    -webkit-transition  -webkit-transform .2s ease
+    -moz-transition     -moz-transform .2s ease
+    transition          transform .2s ease
 
 
-.intro #main-header .inner-container
-.login #main-header .inner-container
-  vendor              transform, rotateX(90deg)
+.intro #main-header
+.login #main-header
+  visibility            hidden
+  .inner-container
+    vendor              transform, translateY(-55px)
 
 
 #dock
