@@ -53,32 +53,76 @@ class AccountEditUsername extends JView
           style            : 'solid green fr'
       callback             : @bound 'update'
 
+
   update:(formData)->
 
-    {email} = formData
+    {daisy} = Bongo
 
-    # fixme: if new pass inputs filled do change password
-    # CHANGE PASSWORD
-    # KD.remote.api.JUser.changePassword formData.password,(err,docs)=>
-    #   unless err then do @passwordDidUpdate
+    {email, password, confirmPassword, firstName, lastName, username} = formData
 
-    # CHANGE EMAIL
+    profileUpdated = yes
+    queue = [
+      =>
+        # update firstname and lastname
+        me = KD.whoami()
+        {profile:{firstName:oldFirstName, lastName:oldLastName}} = me
+        # do not do anything if current firstname and lastname is same
+        return queue.next() if oldFirstName is firstName and oldLastName is lastName
 
-    KD.remote.api.JUser.changeEmail {email}, (err, result)=>
+        me.modify {
+          "profile.firstName": firstName,
+          "profile.lastName" : lastName
+        }, (err)->
+          return notify err.message  if err
+          queue.next()
+      =>
+        # secondly change user email address
+        KD.remote.api.JUser.changeEmail {email}, (err, result)=>
+          # here we are simply discarding the email is same error
+          # but do not forget to warn users about other errors
+          if err
+            return queue.next() if err.message is "EmailIsSameError"
+            return notify err.message
 
-      return notify err.message  if err and err.name isnt 'PINExistsError'
+          new VerifyPINModal 'Update E-Mail', (pin)=>
+            KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
+              notify if err then err.message else "E-mail changed!"
+              queue.next()
+      =>
+        # on third turn update password
+        # check for password confirmation
+        return  notify "Passwords did not match" if password isnt confirmPassword
+        # if password is empty than discard operation
+        if password is ""
+          {token} = KD.utils.parseQuery()
+          if token
+            profileUpdated = no
+            notify "You should set your password"
+          return queue.next()
 
-      notify err.message  if err and err.name is 'PINExistsError'
-
-      new VerifyPINModal 'Update E-Mail', (pin)=>
-        KD.remote.api.JUser.changeEmail {email, pin}, (err)=>
-          notify if err then err.message else "E-mail changed!"
-          @emit "EmailChangedSuccessfully", email
+        KD.remote.api.JUser.changePassword password, (err,docs)=>
+          if err
+            return queue.next()  if err.message is "PasswordIsSame"
+            return  notify err.message
+          return queue.next()
+      =>
+        # if everything is OK or didnt change, show profile updated modal
+        notify "Profile Updated" if profileUpdated
+    ]
+    daisy queue
 
 
   viewAppended:->
+    {JPasswordRecovery, JUser} = KD.remote.api
+    {token} = KD.utils.parseQuery()
+    if token
+      JPasswordRecovery.validate token, (err, isValid)=>
+        if err
+          notify err.message
+        else if isValid
+          notify "Thanks for confirming your email address"
 
-    KD.remote.api.JUser.fetchUser (err,user)=>
+    JUser.fetchUser (err,user)=>
 
       @user    = user
 
@@ -97,6 +141,9 @@ class AccountEditUsername extends JView
     @emailForm.inputs.firstName.setDefaultValue firstName
     @emailForm.inputs.lastName.setDefaultValue lastName
 
+    {focus} = KD.utils.parseQuery()
+    @emailForm.inputs[focus]?.setFocus()  if focus
+
     if @user.status is "unconfirmed"
       o =
         tagName      : "a"
@@ -104,8 +151,7 @@ class AccountEditUsername extends JView
         cssClass     : "action-link verify-email"
         testPath     : "account-email-edit"
         click        : =>
-          KD.remote.api.JEmailConfirmation.resetToken @account.profile.nickname, (err)=>
-
+          KD.remote.api.JPasswordRecovery.recoverPassword @account.profile.nickname, (err)=>
             message = "Email confirmation mail is sent"
             if err then message = err.message else @verifyEmail.hide()
 

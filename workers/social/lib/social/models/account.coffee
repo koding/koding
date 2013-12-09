@@ -686,7 +686,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "samet" ]
+                  "samet", "leeolayvar" ]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -1214,8 +1214,11 @@ module.exports = class JAccount extends jraphical.Module
       else return callback null, results
 
   fetchMyOnlineFollowingsFromGraph: secure (client, options, callback)->
+    @_fetchMyOnlineFollowingsFromGraph client, options, callback
+
+  _fetchMyOnlineFollowingsFromGraph: (client, options, callback)->
     options.client = client
-    Member.fetchOnlineFollowingMembers options, (err, results)=>
+    Member.fetchOnlineFollowingMembers options, (err, results)->
       if err then return callback err
       else return callback null, results
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fatih/goset"
+	"github.com/fatih/set"
 	"github.com/gorilla/sessions"
 	"github.com/streadway/amqp"
 	"html/template"
@@ -151,9 +151,8 @@ var (
 		"go/templates/overview/index.html",
 		"go/templates/overview/login.html",
 	))
-	admins = goset.New("sinan", "devrim", "gokmen", "chris", "neelance",
-		"sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-		"arslan", "ybrs")
+	admins = set.New("sinan", "devrim", "gokmen", "chris", "sent-hil",
+		"kiwigeraint", "cihangirsavas", "leventyalcin", "arslan", "ybrs")
 )
 
 const uptimeLayout = "03:04:00"

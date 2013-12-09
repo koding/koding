@@ -234,7 +234,7 @@ func (s *Server) tunnelFromPool(host string) (*tunnel, error) {
 
 	tunn, ok := conn.(*tunnel)
 	if !ok {
-		return nil, fmt.Errorf("failed to type assert net.Conn to tunnel", err)
+		return nil, fmt.Errorf("failed to type assert net.Conn to tunnel %s", err)
 	}
 
 	return tunn, nil
@@ -287,7 +287,7 @@ func (s *Server) websocketTunnelConn(host string) (net.Conn, error) {
 // tunnel from the client. It sends the request of a new tunnel directly to
 // the client, which then opens a new tunnel to be used.
 func (s *Server) requestTunnel(protocol, host string) (*tunnel, error) {
-	// get the user associated with this user
+	// get the identifier associated with this host
 	identifier, ok := s.GetIdentifier(host)
 	if !ok {
 		return nil, fmt.Errorf("no virtual host available for %s", host)

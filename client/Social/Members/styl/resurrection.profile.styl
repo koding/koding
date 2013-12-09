@@ -20,143 +20,139 @@ body.profile
     overflow                  visible
 
   .kdtabpaneview.content-display
-    max-width                 1096px
+    max-width                 100%
+    padding                   55px 28px 0 0
+    borderBox()
+
+  .feeder-tabs
+    padding-left               386px
+    borderBox()
+
 
   .member.content-display
     overflow                  visible
 
-    .profilearea.profile-right-block
+    .profilearea
+      width                   354px
+      bg                      color, #282a2b
+      left                    0
+      top                     0
+      z-index                 100
+      abs()
+
       .users-profile
+        size                  100%, 385px
+        text-align            center
+        position              relative
+        border-top            1px solid transparent
+        bg                    image, url("../images/default-cover.jpg")
+        bg                    repeat, no-repeat
+
         .avatarview
-          size            86px, 86px
-          fl()
-          rounded         3px
+          display             block
+          margin              39px auto 20px
+          size                81px, 81px
+          rounded             12px
+          z-index             1
 
         .full-name
-        .bio
-          margin          0
-          padding         0 0 0 17px
-          line-height     18px
-          fl()
-          size            204px, auto
-          color           #50595a
-          font-size       14px
+          size                100%, auto
+          overflow            visible
+          padding             0 10px
+          font-weight         300
+          font-size           24px
+          color               #e9e7e1
           borderBox()
 
           span
-            display       inline
-            size          auto, auto
-
-        .full-name
-          font-weight     500
-          font-size       22px
-          line-height     23px
-          text-transform  capitalize
-          white-space     nowrap
-          overflow        hidden
-          text-overflow   ellipsis
-          margin          -3px 0 -2px 0
+            display           inline
 
         .bio
-          margin-top      6px
-          white-space     nowrap
-          overflow        hidden
-          text-overflow   ellipsis
+          size                100%, auto
+          padding             0 10px
+          color               rgba(233, 231, 225, .8)
+          font-size           18px
+          font-weight         200
+          margin-top          9px
+          borderBox()
 
-        .kdbutton.solid.green
-          size            155px, 35px
-          rounded         3px
-          margin          9px 0 0 17px
-          bg              color, #1aaf5d
-          fl()
+        .follow-btn
+          bg                  color, transparent
+          size                137px, 42px
+          line-height         38px
+          border              2px solid #1fce6e
+          margin              31px 0 0
+          rounded             21px
 
           span
-            font-size     14px
-            line-height   35px
+            line-height       inherit
+            color             #1fce6e
+            text-transform    uppercase
+            font-size         16px
+            font-weight       500
+            font-family       'Proxima Nova'
 
         .profilestats
-          clear           both
-          margin          19px -22px 0
-          border-top      2px solid #e2e8e4
+          size                100%, 87px
+          bg                  color, #363839
+          bottom              0
+          left                0
+          abs()
 
           a
-            color         #6a7273
-            font-size     14px
-            size          33%, 72px
-            text-align    center
-            padding       14px 0 0 0
-            line-height   22px
-            font-weight   500
+            color             #e9e7e1
+            font-family       'Proxima Nova'
+            display           block
+            size              33%, 100%
+            padding           24px 0 0
+            border-left       1px solid #2a2826
+            font-size         14px
+            font-weight       200
             borderBox()
-            fl()
             noTextDeco()
-
-            &~a
-              border-left 2px solid #e2e8e4
+            fl()
 
             span
-              display     block
+              display         block
+              text-transform  uppercase
+              font-size       18px
+              font-weight     600
+              padding         0 0 8px
 
-              &.data
-                font-size 18px
-
-      .right-user-menu
-        padding           0 22px
-
+      .user-menu
+        padding               26px 52px 0 44px
         a
-          line-height     49px
-          display         block
-          color           #50595a
-          font-weight     400
+          display             block
+          size                100%, 51px
+          font-size           18px
+          line-height         51px
+          font-weight         300
+          color               #a3a3a3
           noTextDeco()
+          borderBox()
 
           &~a
-            border-top    1px solid #e2e8e4
+            border-top        1px solid #424445
 
           &.active
-            font-weight   500
+            color             #ffffff
+            font-weight       400
 
           .count
-            font-weight   200
-            line-height   22px
-            padding       0 10px
-            rounded       11px
-            color         #707879
-            font-size     14px
-            bg            color, #e2e8e4
-            margin        14px 0 0
+            font-weight       300
+            size              auto, 22px
+            line-height       22px
+            margin            14px 0 0
+            bg                color, #363839
+            rounded           11px
+            padding           0 10px
+            font-size         14px
+            color             #707879
             fr()
-
-      .most-used-apps
-        padding           0 0 22px
-        h3
-          line-height     59px
-          border-bottom   2px solid #e2e8e4
-          color           #2d97de
-          font-size       18px
-          text-indent     22px
-          font-weight     400
-
-        .app
-          size            77px, 77px
-          background      #e2e4e3
-          margin          22px 0 0 28px
-          fl()
-
-          &:nth-child(3n-1)
-            margin-left   22px
-
-    .medium
-    .wide
-      size                auto, auto
-      margin              0 365px 0 0
-
-      .author-avatar
-        display           none
-
 
   /* Profile page specific color changes to activity items */
   .activity-item
+    max-width             728px
     footer
       bg                  color, #f6f8f7
       border-top-color    #e2e8e4
@@ -171,4 +167,3 @@ body.profile
 
     .item-add-comment-box
       border-top-color     #e2e8e4
-

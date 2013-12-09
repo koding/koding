@@ -1,11 +1,10 @@
 module.exports = (options = {}, callback)->
-  prefetcher = require '../prefetcher'
-  encoder    = require 'htmlencode'
+  encoder = require 'htmlencode'
 
-  options.intro   ?= no
-  options.landing ?= no
-  options.client or= {}
-  options.client.context or= {}
+  options.intro                 ?= no
+  options.landing               ?= no
+  options.client               or= {}
+  options.client.context       or= {}
   options.client.context.group or= "koding"
 
   {argv} = require 'optimist'
@@ -75,8 +74,11 @@ module.exports = (options = {}, callback)->
     html = createHTML()
     return callback null, html
 
-  prefetcher options, (err, data)->
-    # this is updating the prefetchedFeeds property
-    prefetchedFeeds = data
-    # we can generate html here
-    return generateScript()
+  Cache  = require '../cache/main'
+  feedFn = require '../cache/feed'
+
+  getCacheKey =-> return "scriptblock"
+
+  Cache.fetch getCacheKey(), feedFn, options, (err, data)->
+    prefetchedFeeds = data    # this is updating the prefetchedFeeds property
+    return generateScript()   # we can generate html here

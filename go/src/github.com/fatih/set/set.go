@@ -1,9 +1,9 @@
-// Goset is a thread safe SET data structure implementation
+// Package set is a thread safe SET data structure implementation
 // The thread safety encompasses all operations on one set.
 // Operations on multiple sets are consistent in that the elements
 // of each set used was valid at exactly one point in time between the
 // start and the end of the operation.
-package goset
+package set
 
 import (
 	"fmt"
@@ -11,6 +11,7 @@ import (
 	"sync"
 )
 
+// Set defines a thread safe set data structure.
 type Set struct {
 	m map[interface{}]struct{} // struct{} doesn't take up space
 	l sync.RWMutex             // we name it because we don't want to expose it
@@ -51,11 +52,27 @@ func (s *Set) Remove(items ...interface{}) {
 	if len(items) == 0 {
 		return
 	}
+
 	s.l.Lock()
 	for _, item := range items {
 		delete(s.m, item)
 	}
 	s.l.Unlock()
+}
+
+// Pop  deletes and return an item from the set. The underlying Set s is
+// modified. If set is empty, nil is returned.
+func (s *Set) Pop() interface{} {
+	s.l.RLock()
+	for item := range s.m {
+		s.l.RUnlock()
+		s.l.Lock()
+		delete(s.m, item)
+		s.l.Unlock()
+		return item
+	}
+	s.l.RUnlock()
+	return nil
 }
 
 // Has looks for the existence of items passed. It returns false if nothing is
@@ -144,6 +161,7 @@ func (s *Set) String() string {
 	for _, item := range s.List() {
 		t = append(t, fmt.Sprintf("%v", item))
 	}
+
 	return fmt.Sprintf("[%s]", strings.Join(t, ", "))
 }
 
@@ -201,14 +219,14 @@ func (s *Set) Intersection(t *Set) *Set {
 	return u
 }
 
-// Intersection returns a new set which contains items which are both s but not in t.
+// Difference returns a new set which contains items which are in s but not in t.
 func (s *Set) Difference(t *Set) *Set {
 	u := s.Copy()
 	u.Separate(t)
 	return u
 }
 
-// Symmetric returns a new set which s is the difference of items  which are in
+// SymmetricDifference returns a new set which s is the difference of items  which are in
 // one of either, but not in both.
 func (s *Set) SymmetricDifference(t *Set) *Set {
 	u := s.Difference(t)
@@ -244,4 +262,37 @@ func (s *Set) IntSlice() []int {
 		slice = append(slice, v)
 	}
 	return slice
+}
+
+// Union is the merger of multiple sets. It returns a new set with the
+// element in combined in all sets that are passed. Unlike the Union() method
+// you can use this function seperatly with multiple sets. If no items are
+// passed an empty set is returned.
+func Union(sets ...*Set) *Set {
+	u := New()
+	for _, set := range sets {
+		set.l.RLock()
+		for item := range set.m {
+			u.m[item] = keyExists
+		}
+		set.l.RUnlock()
+	}
+
+	return u
+}
+
+// Difference returns a new set which contains items which are in in the first
+// set but not in the others. Unlike the Difference() method you can use this
+// function seperatly with multiple sets. If no items are passed an empty set
+// is returned.
+func Difference(sets ...*Set) *Set {
+	if len(sets) == 0 {
+		return New()
+	}
+
+	s := sets[0].Copy()
+	for _, set := range sets[1:] {
+		s.Separate(set) // seperate is thread safe
+	}
+	return s
 }

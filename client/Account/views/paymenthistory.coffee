@@ -44,15 +44,8 @@ class AccountPaymentHistoryListController extends AccountListViewController
   loadView:->
     super
 
-    @getView().parent.addSubView updateButton = new KDButtonView
-      style     : 'clean-gray account-header-cc'
-      title     : 'Update billing info'
-      callback  : ->
-        # TODO: needs implementin'
-        # KD.getSingleton('paymentController').updatePaymentInfo 'user'
-
     @getView().parent.addSubView reloadButton = new KDButtonView
-      style     : 'clean-gray account-header-button'
+      style     : 'solid green account-header-button'
       title     : ''
       icon      : yes
       iconOnly  : yes

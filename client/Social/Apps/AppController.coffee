@@ -1,13 +1,16 @@
 class AppsAppController extends AppController
 
+  handler = (callback)-> KD.singleton('appManager').open 'Apps', callback
+
   KD.registerAppClass this,
     name         : "Apps"
-    # route        : "/:name?/Apps"
     routes       :
-      "/:name?/Apps" : -> log arg
-      "/:name?/Apps/:username" : ({params : {username}})-> log username, 'sade username'
-      "/:name?/Apps/:username/:appName" : ({params : {username, appName}})-> log username, appName
+      "/:name?/Apps"             : ({params, query})->
+        handler (app)-> app.handleQuery query
+      "/:name?/Apps/:lala/:app?" : (arg)-> handler (app)-> app.handleRoute arg
     hiddenHandle : yes
+    behaviour    : 'application'
+    version      : "1.0"
     navItem      :
       title      : "Apps"
       path       : "/Apps"
@@ -22,16 +25,10 @@ class AppsAppController extends AppController
 
     super options, data
 
-    @on "LazyLoadThresholdReached", => @feedController.loadFeed()
-
-    @appsController = KD.getSingleton "kodingAppsController"
-
-    @appsController.on "AnAppHasBeenUpdated", @bound "updateApps"
-
   loadView:(mainView)->
 
     mainView.createCommons()
-    @createFeed()
+    @createFeed mainView
 
   createFeed:(view)->
 
@@ -39,51 +36,44 @@ class AppsAppController extends AppController
       feedId                : 'apps.main'
       itemClass             : AppsListItemView
       limitPerPage          : 10
+      delegate              : this
       useHeaderNav          : yes
       filter                :
         allApps             :
           title             : "All Apps"
-          noItemFoundText   : "There are no applications yet"
+          noItemFoundText   : "There is no application yet"
           dataSource        : (selector, options, callback)=>
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
-        updates             :
-          title             : "Updates"
-          noItemFoundText   : "No updates available"
-          dataSource        : (selector, options, callback)=>
-            if @appsController.publishedApps
-              return @putUpdateAvailableApps callback
-            @appsController.on "UserAppModelsFetched", =>
-              @putUpdateAvailableApps callback
+            KD.remote.api.JNewApp.some selector, options, callback
         webApps             :
           title             : "Web Apps"
-          noItemFoundText   : "There are no web apps yet"
+          noItemFoundText   : "There is no web apps yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'web-app'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         kodingAddOns        :
           title             : "Add-ons"
-          noItemFoundText   : "There are no add-ons yet"
+          noItemFoundText   : "There is no add-ons yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'add-on'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         serverStacks        :
           title             : "Server Stacks"
-          noItemFoundText   : "There are no server-stacks yet"
+          noItemFoundText   : "There is no server-stacks yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'server-stack'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         frameworks          :
           title             : "Frameworks"
-          noItemFoundText   : "There are no frameworks yet"
+          noItemFoundText   : "There is no frameworks yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'framework'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
         miscellaneous       :
           title             : "Miscellaneous"
-          noItemFoundText   : "There are no miscellaneous app yet"
+          noItemFoundText   : "There is no miscellaneous app yet"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'misc'
-            KD.remote.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JNewApp.some selector, options, callback
 
       sort                  :
         'meta.modifiedAt'   :
@@ -95,6 +85,7 @@ class AppsAppController extends AppController
         'counts.tagged'     :
           title             : "Most activity"
           direction         : -1
+
       help                  :
         subtitle            : "Learn About Apps"
         bookIndex           : 26
@@ -110,38 +101,29 @@ class AppsAppController extends AppController
       options.filter.waitsForApprove =
         title             : "New Apps"
         dataSource        : (selector, options, callback)=>
-          selector.approved = no
-          KD.remote.api.JApp.someWithRelationship selector, options, callback
+          KD.remote.api.JNewApp.some_ selector, options, callback
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
-      for own name,listController of controller.resultsController.listControllers
-        listController.getListView().on 'AppWantsToExpand', (app)->
-          KD.getSingleton('router').handleRoute "/Apps/#{app.slug}", state: app
 
-      @getView().addSubView controller.getView()
+      view.addSubView controller.getView()
       @feedController = controller
       @emit 'ready'
 
-      {updateAppsButton} = @getView()
-      if controller.selection.name is 'updates'
-        updateAppsButton.emit 'UpdateView', 'updates'
+  handleQuery:(query)->
+    @ready =>
+      @feedController.handleQuery query
 
-      controller.on 'FilterChanged', (filter)=>
-        @updateApps()  if filter is 'updates'
-        updateAppsButton.emit 'UpdateView', filter
+  handleRoute:(route)->
 
-  putUpdateAvailableApps: (callback) ->
-    @appsController.fetchUpdateAvailableApps callback
+    {app, lala} = route.params
+    {JNewApp}      = KD.remote.api
+    if app
+      log "slug:", slug = "Apps/#{lala}/#{app}"
+      JNewApp.one {slug}, (err, app)=>
+        log "FOUND THIS JAPP", err, app
+        if app then @showContentDisplay app
 
-  updateApps:->
-    @utils.wait 100, => @feedController?.changeActiveSort "meta.modifiedAt"
-
-
-  createContentDisplay:(app, callback)->
-
-    contentDisplay = @showContentDisplay app
-    @utils.defer => callback contentDisplay
-
+    log "HANDLING", route
 
   showContentDisplay:(content)->
 

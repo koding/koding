@@ -16,7 +16,7 @@ class NavigationDocsJobsLink extends KDCustomHTMLView
       partial    : "Docs"
       cssClass   : "ext"
       attributes :
-        href     : "http://koding.github.io/docs/"
+        href     : "http://learn.koding.com"
         target   : "_blank"
 
     @jobsLink  = new KDCustomHTMLView

@@ -29,12 +29,12 @@ class EmbedBoxLinkViewImageSwitch extends KDView
     event.stopPropagation()
 
     oembed = @getData().link_embed
-    
+
     return  unless oembed?.images?
 
     { target } = event
 
-    return  unless (hasClass target, 'preview_link_switch')
+    return  unless (hasClass target, 'preview-link-switch')
 
     imageIndex = @getImageIndex()
 
@@ -54,14 +54,14 @@ class EmbedBoxLinkViewImageSwitch extends KDView
       @enableButton 'next'
 
     # update the thumb "page number":
-    [pageNumber] = getDescendantsByClassName @getElement(), 'thumb_nr'
+    [pageNumber] = getDescendantsByClassName @getElement(), 'thumb-nr'
     setText pageNumber, imageIndex + 1
 
     # Refresh the image with the new src data
     if imageIndex < oembed.images.length - 1
       imgSrc = oembed.images[imageIndex]?.url
       if imgSrc
-        proxiedImage = @utils.proxifyUrl imgSrc, width: 100, height: 100, crop: yes
+        proxiedImage = @utils.proxifyUrl imgSrc, width: 144, height: 100, crop: yes, grow: yes
         @getDelegate().embedImage.setSrc proxiedImage
       else
         # imgSrc is undefined - this would be the place for a default
@@ -90,7 +90,14 @@ class EmbedBoxLinkViewImageSwitch extends KDView
   viewAppended: JView::viewAppended
 
   pistachio:->
+    imageIndex   = @getImageIndex()
+    {link_embed} = @getData()
+    {images}     = link_embed
     """
-    <a class="preview_link_switch previous #{if @getImageIndex() is 0 then "disabled" else ""}">&lt;</a><a class="preview_link_switch next #{if @getImageIndex() is data?.link_embed?.images?.length then "disabled" else ""}">&gt;</a>
-    <div class="thumb_count"><span class="thumb_nr">#{@getImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{@getData()?.link_embed?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
+    <a class="preview-link-switch previous #{if imageIndex is 0 then "disabled" else ""}"></a>
+    <a class="preview-link-switch next #{if imageIndex is images.length then "disabled" else ""}"></a>
+    <div class="thumb-count">
+      <span class="thumb-nr">#{imageIndex+1 or "1"}</span> of <span class="thumb-all">#{images.length}</span>
+      <span class="thumb-text">Choose a thumbnail</span>
+    </div>
     """

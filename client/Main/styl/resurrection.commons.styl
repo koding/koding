@@ -12,7 +12,7 @@ resurrection.commons.styl
 .content-page
   max-width                 1146px
   margin                    0 auto
-  padding                   70px 20px 0
+  padding                   55px 20px 0
   size                      auto auto
 
   > aside.kdview
@@ -50,7 +50,7 @@ resurrection.commons.styl
 
 .application-page
   margin                    0
-  padding                   70px 0 0
+  padding                   55px 0 0
   width                     100%
   borderBox()
 
@@ -197,7 +197,7 @@ button.app-settings-menu
   background-color    transparent !important
   z-index             100
   position            absolute
-  top                 69px
+  top                 55px
   right               0
   width               40px !important
   height              40px
@@ -357,6 +357,9 @@ finderSelectedColor2 = #3AAAAB
     shadow             0 0 10px -2px #36b298
 
 
+/*  */
+
+
 /* editor-advanced-settings-menu-button
 *******************************************************************************/
 
@@ -510,7 +513,8 @@ finderSelectedColor2 = #3AAAAB
 // THIN INPUT STYLES
 //
 
-input.kdinput.text.thin
+.kdformview .formline input.kdinput
+input.kdinput.text
   rel()
   z-index             1
   text-align          center
@@ -573,3 +577,152 @@ input.kdinput.text.thin
       size                24px 24px
 
 
+//
+// KODING RESURRECTION MODAL THEME
+//
+
+// .kdmodal.resurrection
+
+.kdmodal
+  bg                    color white
+  rounded               6px
+  shadow                0 0 32px rgba(0,0,0,.46)
+  fix()
+
+  .kdmodal-inner
+    margin              45px
+
+    .close-icon
+      sprite            app, "modal-close-icon"
+      top               14px
+      right             14px
+
+      &:hover
+        sprite          app, "modal-close-icon"
+
+  .kdmodal-title
+    cursor              move
+    line-height         normal !important
+    font-weight         400
+    color               #50595a !important
+    margin-bottom       15px !important
+    padding             0 !important
+    background          none !important
+    border              none !important
+
+    .title
+      font-size         24px !important
+
+  .kdmodal-content
+    margin              15px 0 0 0 !important
+    padding             0 !important
+    font-size           16px !important
+
+    .modalformline
+      padding           0
+
+  .kdmodal-buttons
+  .kdformview .button-field
+    margin              24px 0 0 0 !important
+    background          none !important
+    // looks better i think w/o - SY
+    // border-top          2px solid #f3f4f5 !important
+    height              73px !important
+
+    .kdbutton
+      size              auto, 45px
+      background        none
+      border            3px solid
+      margin            22px 0 0 12px !important
+      padding           0 24px !important
+      rounded           23px
+      font-size         18px
+      text-transform    uppercase
+      font-family       'Proxima Nova'
+      fr()
+
+    .modal-clean-red
+      border-color      #e94b35
+      color             #e94b35
+
+    .modal-clean-green
+      border-color      #1aaf5d
+      color             #1aaf5d
+
+    .modal-cancel
+      border-color      #bdc3c7
+      color             #bdc3c7
+
+.kdoverlay
+  fix()
+
+
+
+//
+// FORMLINE STYLES
+//
+
+.kdformview .formline
+  border-bottom         none
+  padding               15px 0
+  size                  auto auto
+  overflow              visible
+
+  > label
+    min-width           90px
+    margin-top          11px
+    line-height         22px
+    fl()
+
+  .input-wrapper
+    overflow          hidden
+
+    > input
+    > textarea
+      min-width         260px
+      width             100%
+      // color             #282521 !important
+      height            44px
+      line-height       22px
+      display           block
+      text-align        left
+
+    // > input
+    //   height          32px
+    //   line-height     32px
+    //   padding-top     0
+    //   padding-bottom  0
+
+  .on-off
+    // float             right
+    margin-top        0
+
+  .select
+    margin-right      10px
+
+  p
+    line-height       22px
+
+  .kdautocompletewrapper
+    min-width         160px
+    color             #282521 !important
+    line-height       14px
+    blockMidTop()
+
+  div.kdselectbox
+    span.title
+      line-height     23px
+      height          22px
+
+  .linkholder
+    padding           0 0 10px 0
+    display           inline-block
+    width             200px
+    a
+      display         block
+      cursor          pointer
+      margin-bottom   5px
+
+  >cite.hint
+    font-size         11px
+    color             #999

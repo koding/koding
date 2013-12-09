@@ -1,6 +1,8 @@
 jraphical = require 'jraphical'
 
 module.exports = class JPasswordRecovery extends jraphical.Module
+  # TODO - Refactor this file, now it is not only for password recovery
+  # but also for email verification
   {secure} = require 'bongo'
 
   dateFormat  = require 'dateformat'
@@ -15,7 +17,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     sharedMethods :
       static      : [
         'validate','recoverPassword','recoverPasswordByEmail'
-        'recoverPasswordByUsername','resetPassword'
+        'resetPassword'
       ]
     indexes       :
       token       : 'unique'
@@ -39,15 +41,22 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @getPasswordRecoveryEmail =-> 'hello@koding.com'
 
-  @getPasswordRecoverySubject = -> 'Instructions to reset your password'
+  @getPasswordRecoverySubject = ({resetPassword})->
+    # TODO DRY this
+    verb = if resetPassword then "reset" else "validate"
+    obj = if resetPassword then "password" else "email"
+    return "Instructions to #{verb} your #{obj}"
 
   @getEmailDateFormat = -> 'fullDate'
 
-  @getPasswordRecoveryMessage = ({requestedAt, url})->
+  @getPasswordRecoveryMessage = ({requestedAt, url, resetPassword})->
+    # TODO DRY this
+    verb = if resetPassword then "reset" else "validate"
+    obj = if resetPassword then "password" else "email"
     """
-    At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'}, you requested to reset your password.
+    At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'}, you requested to #{verb} your #{obj}.
 
-    This one-time token will allow you to reset your password.  This token will self-destruct 30 minutes after it is issued.
+    This one-time token will allow you to #{verb} your #{obj}.  This token will self-destruct 30 minutes after it is issued.
 
     #{url}
     """
@@ -60,27 +69,21 @@ module.exports = class JPasswordRecovery extends jraphical.Module
       @recoverPasswordByUsername client, usernameOrEmail, callback
     else callback new KodingError 'Invalid input.'
 
-  @recoverPasswordByUsername = secure (client, username, callback)->
+  @recoverPasswordByUsername = (client, username, callback)->
     JUser = require './user'
     {delegate} = client.connection
-    unless delegate.type is 'unregistered'
-      callback new KodingError 'You are already logged in.'
-    else
-      JUser.one {username}, (err, user)=>
-        unless user then callback new KodingError "Unknown username"
-        else @create client, {email: user.getAt('email')}, callback
+    JUser.one {username}, (err, user)=>
+      unless user then callback new KodingError "Unknown username"
+      else @create client, {email: user.getAt('email')}, callback
 
   @recoverPasswordByEmail = secure (client, email, callback)->
     JUser = require './user'
     {delegate} = client.connection
-    unless delegate.type is 'unregistered'
-      callback new KodingError 'You are already logged in.'
-    else
-      JUser.count {email}, (err, num)=>
-        unless num then callback null # pretend like everything went fine.
-        else @create client, {email}, callback
+    JUser.count {email}, (err, num)=>
+      unless num then callback null # pretend like everything went fine.
+      else @create client, {email}, callback
 
-  @create = secure ({connection:{delegate}}, options, callback)->
+  @create = (client, options, callback)->
     JUser = require './user'
     token = createId()
     {email} = options
@@ -91,7 +94,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
     {host, protocol} = require '../config.email'
     messageOptions =
-      url : "#{protocol}//#{host}/Recover/#{encodeURIComponent token}"
+      url : "#{protocol}//#{host}/Reset/#{encodeURIComponent token}"
 
     JUser.one {email}, (err, user)=>
       if err
@@ -110,11 +113,12 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           else
             messageOptions.requestedAt = certificate.getAt('requestedAt')
 
+            messageOptions.resetPassword = no# if user.passwordStatus is 'needs set' then yes else no
             JMail = require './email'
             email = new JMail
               from      : @getPasswordRecoveryEmail()
               email     : email
-              subject   : defaultSubject()
+              subject   : defaultSubject messageOptions
               content   : defaultTextBody messageOptions
               force     : yes
 
@@ -132,7 +136,13 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             callback err
           else
             callback new KodingError 'The token has expired.'
-      else callback null, yes
+      else
+        JUser = require './user'
+        JUser.one {email:certificate.email}, (err, user)->
+          return callback new Error "Error occured. Please try again." if err or not user
+          user.confirmEmail (err)->
+            return callback new Error "Error occured. Please try again." if err
+            callback null, yes
 
   @invalidate =(query, callback)->
     query.status = 'active'
@@ -168,7 +178,10 @@ module.exports = class JPasswordRecovery extends jraphical.Module
                     callback err
                   else
                     JPasswordRecovery.invalidate {username}, (err)->
-                      callback err, unless err then username
+                      return callback new Error "Error occured. Please try again." if err
+                      user.confirmEmail (err)->
+                        return callback new Error "Error occured. Please try again." if err
+                        callback err, unless err then username
 
   expire:(callback)-> @update {$set: status: 'expired'}, callback
   redeem:(callback)-> @update {$set: status: 'redeemed'}, callback

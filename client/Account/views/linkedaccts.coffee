@@ -1,7 +1,9 @@
 class AccountLinkedAccountsListController extends KDListViewController
 
   constructor:(options = {}, data)->
+
     super options, data
+
     @instantiateListItems ({title : nicename, provider} for own provider, {nicename} of KD.config.externalProfiles)
 
 class AccountLinkedAccountsList extends KDListView
@@ -12,6 +14,7 @@ class AccountLinkedAccountsList extends KDListView
     options.itemClass or= AccountLinkedAccountsListItem
 
     super options,data
+
 
 
 class AccountLinkedAccountsListItem extends KDListItemView
@@ -28,33 +31,17 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
     @linked    = no
     {provider} = @getData()
+    @setClass provider
+
+    @switch = new KodingSwitch
+      callback: (state)=>
+        @switch.setOff no
+        if state then @link() else @unlink()
 
     mainController = KD.getSingleton "mainController"
     mainController.on "ForeignAuthSuccess.#{provider}", =>
       @linked = yes
-      @render()
-
-
-  click:(event)->
-
-    KD.utils.stopDOMEvent event
-    if $(event.target).is "a.delete-icon" then @unlink()
-    else if $(event.target).is "a.link"   then @link()
-
-
-  render:->
-
-    super
-
-    @setLinkedState()
-
-
-  setLinkedState:->
-
-    if @linked
-    then @setClass "linked"
-    else @unsetClass "linked"
-
+      @switch.setOn no
 
   link:->
 
@@ -73,35 +60,20 @@ class AccountLinkedAccountsListItem extends KDListItemView
 
       notify "Your #{title} account is now unlinked."
       @linked = no
-      @render()
 
 
   viewAppended:->
 
     JView::viewAppended.call this
     {provider} = @getData()
-    @setClass provider
     KD.remote.api.JUser.fetchUser (err, user)=>
       @linked = user.foreignAuth?[provider]?
-      @render()
-
-
-  getLinkedString:-> if @linked then "Linked" else "Not linked."
-
-
-  getLinkingString:-> if @linked then "" else "Link now."
+      @switch.setDefaultValue @linked
 
 
   pistachio:->
 
     """
-    <div class='title'>
-      <span class='icon'></span>{cite{ #(title)}}
-      <a href='#' class='delete-icon'>Unlink</a>
-    </div>
-    <div class='status'>
-      <span class='icon-check'></span>
-      {span{ @getLinkedString #(provider)}}
-      {a.link[href=#]{ @getLinkingString #(provider)}}
-    </div>
+    <div class='title'><span class='icon'></span>{cite{ #(title)}}</div>
+    {{> @switch}}
     """

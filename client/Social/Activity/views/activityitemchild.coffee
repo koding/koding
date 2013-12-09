@@ -36,12 +36,6 @@ class ActivityItemChild extends KDView
 
     @author = new ProfileLinkView { origin }
 
-    @tags = new ActivityChildViewTagGroup
-      itemsToShow   : 3
-      itemClass  : TagLinkView
-    , data.tags
-
-
     # for discussion, switch to the View that supports nested structures
     # JDiscussion,JTutorial
     # -> JOpinion
@@ -62,26 +56,23 @@ class ActivityItemChild extends KDView
     account = KD.whoami()
     if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent activity-settings-menu'
-        title       : ''
-        icon        : yes
-        delegate    : @
-        iconClass   : "arrow"
-        menu        : @settingsMenu data
-        callback    : (event)=> @settingsButton.contextMenu event
+        cssClass       : 'activity-settings-menu'
+        itemChildClass : ActivityItemMenuItem
+        title          : ''
+        icon           : yes
+        delegate       : @
+        iconClass      : "arrow"
+        menu           : @settingsMenu data
+        callback       : (event)=> @settingsButton.contextMenu event
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     super options, data
 
     data = @getData()
-    data.on 'TagsChanged', (tagRefs)=>
-      KD.remote.cacheable tagRefs, (err, tags)=>
-        @getData().setAt 'tags', tags
-        @tags.setData tags
-        @tags.render()
 
     deleteActivity = (activityItem)->
+      activityItem.destroy() #FIXME
       activityItem.slideOut -> activityItem.destroy()
 
     @on 'ActivityIsDeleted', =>
@@ -95,13 +86,16 @@ class ActivityItemChild extends KDView
       if KD.whoami().getId() is data.getAt('originId')
         deleteActivity activityItem
       else
-        activityItem.putOverlay
-          isRemovable : no
-          parent      : @parent
-          cssClass    : 'half-white'
+        #CtF: FIXME added just for making it functional
+        activityItem.destroy()
 
-        @utils.wait 30000, ->
-          activityItem.slideOut -> activityItem.destroy()
+        # activityItem.putOverlay
+        #   isRemovable : no
+        #   parent      : @parent
+        #   cssClass    : 'half-white'
+
+        # @utils.wait 30000, ->
+        #   activityItem.slideOut -> activityItem.destroy()
 
 
     data.watch 'repliesCount', (count)=>
@@ -113,14 +107,12 @@ class ActivityItemChild extends KDView
   settingsMenu:(data)->
 
     account        = KD.whoami()
-    mainController = KD.getSingleton('mainController')
-    activityController = KD.getSingleton('activityController')
 
     if data.originId is KD.whoami().getId()
       menu =
         'Edit'     :
           callback : ->
-            mainController.emit 'ActivityItemEditLinkClicked', data
+            KD.getSingleton("appManager").tell "Activity", "editActivity", data
         'Delete'   :
           callback : =>
             @confirmDeletePost data
@@ -195,3 +187,10 @@ class ActivityItemChild extends KDView
     if @getData().fake
       @actionLinks.setClass 'hidden'
 
+class ActivityItemMenuItem extends JView
+  pistachio :->
+    {title} = @getData()
+    slugifiedTitle = KD.utils.slugify title
+    """
+    <i class="#{slugifiedTitle} icon"></i>#{title}
+    """

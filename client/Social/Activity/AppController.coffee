@@ -101,8 +101,6 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
-    @getView().on "InputSubmitted", @bound "ownActivityArrived"
-
   setFeedFilter: (feedType) -> @currentFeedFilter = feedType
   getFeedFilter: -> @currentFeedFilter
 
@@ -129,7 +127,10 @@ class ActivityAppController extends AppController
     return  if @isLoading
     return  if @reachedEndOfActivities
 
+    view = @getView()
+
     @listController.showLazyLoader no
+    view.unsetTopicTag()
 
     @isLoading       = yes
     groupsController = KD.getSingleton 'groupsController'
@@ -183,6 +184,7 @@ class ActivityAppController extends AppController
         @once "topicFeedFetched_#{eventSuffix}", setFeedData
         @fetchTopicActivities options
         @setWarning options.slug
+        view.setTopicTag options.slug
 
       else if @getFeedFilter() is "Public"
 
@@ -399,3 +401,6 @@ class ActivityAppController extends AppController
   feederBridge : (options, callback)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback
+
+  editActivity: (activity) ->
+    @getView().inputWidget.edit activity

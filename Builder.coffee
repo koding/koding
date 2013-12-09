@@ -57,7 +57,7 @@ module.exports = class Builder
 
     sprite.sprites
       path     : spritePath
-      watch    : yes
+      watch    : @config.client.watch
 
     sprite.stylus
       path     : spritePath

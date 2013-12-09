@@ -278,6 +278,7 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
+app.get "/-/api/app/:app"             , require "./applications"
 app.get "/-/oauth/odesk/callback"     , require "./odesk_callback"
 app.get "/-/oauth/github/callback"    , require "./github_callback"
 app.get "/-/oauth/facebook/callback"  , require "./facebook_callback"
@@ -307,31 +308,33 @@ app.all '/:name/:section?*', (req, res, next)->
   # Checks if its an internal request like /Activity, /Terminal ...
   #
   if firstLetter.toUpperCase() is firstLetter
-    unless section
-    then next()
-    else
-      bongoModels = koding.models
-      generateFakeClient req, res, (err, client)->
+    # FIXME GG CHECK INTERNAL APPS HERE
+    # if name in ['Activity']
+    # then next()
+    # else
+    bongoModels = koding.models
+    generateFakeClient req, res, (err, client)->
 
-        isLoggedIn req, res, (err, loggedIn, account)->
-          prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
-          serveSub = (err, subPage)->
-            return next()  if err
-            serve subPage, res
+      isLoggedIn req, res, (err, loggedIn, account)->
+        prefix   = if loggedIn then 'loggedIn' else 'loggedOut'
+        serveSub = (err, subPage)->
+          return next()  if err
+          serve subPage, res
 
-          # No need to use Develop anymore FIXME ~ GG
-          if name is "Develop"
+        # # No need to use Develop anymore FIXME ~ GG
+        # if name is "Develop"
+        #   options = {account, name, section, client, bongoModels}
+        #   return JGroup.render[prefix].subPage options, serveSub
+
+        path = if section then "#{name}/#{section}" else name
+        JName.fetchModels path, (err, models)->
+          if err
             options = {account, name, section, client, bongoModels}
-            return JGroup.render[prefix].subPage options, serveSub
-
-          JName.fetchModels "#{name}/#{section}", (err, models)->
-            if err
-              options = {account, name, section, client, bongoModels}
-              JGroup.render[prefix].subPage options, serveSub
-            else unless models? then next()
-            else
-              options = {account, name, section, models, client, bongoModels}
-              JGroup.render[prefix].subPage options, serveSub
+            JGroup.render[prefix].subPage options, serveSub
+          else unless models? then next()
+          else
+            options = {account, name, section, models, client, bongoModels}
+            JGroup.render[prefix].subPage options, serveSub
 
   # Checks if its a User or Group from JName collection
   #

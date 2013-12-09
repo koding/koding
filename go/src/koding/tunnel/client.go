@@ -56,7 +56,6 @@ func (c *Client) encoder() {
 	e := json.NewEncoder(c.controlConn)
 
 	for msg := range c.sendChan {
-		fmt.Println("got msg, sending to control chan", msg)
 		err := e.Encode(&msg)
 		if err != nil {
 			log.Println("encode", err)
@@ -82,7 +81,7 @@ func (c *Client) decoder() {
 		}
 
 		if msg.Protocol != "http" && msg.Protocol != "websocket" {
-			log.Printf("protocol is not valid %s", msg.Protocol)
+			log.Printf("protocol is not valid %s\n", msg.Protocol)
 			continue
 		}
 

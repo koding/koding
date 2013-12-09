@@ -37,6 +37,7 @@ module.exports = [
   "CommonViews/splitview.coffee",
   "CommonViews/slidingsplit.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
+  "CommonViews/activitycommentview.coffee"
 
   "CommonViews/kodingswitch.coffee",
 
@@ -83,20 +84,20 @@ module.exports = [
   # "CommonViews/remotesmodal.coffee",
   # "CommonViews/databasesmodal.coffee",
 
-  "CommonViews/opinions/opinionview.coffee",
-  "CommonViews/opinions/discussionactivityopinionview.coffee",
-  "CommonViews/opinions/discussionactivityopinionlistitemview.coffee",
-  "CommonViews/opinions/tutorialactivityopinionview.coffee",
-  "CommonViews/opinions/tutorialactivityopinionlistitemview.coffee",
-  "CommonViews/opinions/tutorialopinionviewheader.coffee",
-  "CommonViews/opinions/opinionviewheader.coffee",
-  "CommonViews/opinions/opinionlistviewcontroller.coffee",
-  "CommonViews/opinions/opinionlistitemview.coffee",
-  "CommonViews/opinions/opinioncommentlistitemview.coffee",
-  "CommonViews/opinions/opinionformview.coffee",
-  "CommonViews/opinions/opinioncommentview.coffee",
-  "CommonViews/opinions/discussionformview.coffee",
-  "CommonViews/opinions/tutorialformview.coffee",
+  # "CommonViews/opinions/opinionview.coffee",
+  # "CommonViews/opinions/discussionactivityopinionview.coffee",
+  # "CommonViews/opinions/discussionactivityopinionlistitemview.coffee",
+  # "CommonViews/opinions/tutorialactivityopinionview.coffee",
+  # "CommonViews/opinions/tutorialactivityopinionlistitemview.coffee",
+  # "CommonViews/opinions/tutorialopinionviewheader.coffee",
+  # "CommonViews/opinions/opinionviewheader.coffee",
+  # "CommonViews/opinions/opinionlistviewcontroller.coffee",
+  # "CommonViews/opinions/opinionlistitemview.coffee",
+  # "CommonViews/opinions/opinioncommentlistitemview.coffee",
+  # "CommonViews/opinions/opinionformview.coffee",
+  # "CommonViews/opinions/opinioncommentview.coffee",
+  # "CommonViews/opinions/discussionformview.coffee",
+  # "CommonViews/opinions/tutorialformview.coffee",
 
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",

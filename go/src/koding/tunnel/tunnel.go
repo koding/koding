@@ -56,7 +56,7 @@ func (t *tunnel) connect(serverMsg *ServerMsg) error {
 	remoteAddr := fmt.Sprintf("http://%s%s", t.RemoteAddr(), TunnelPath)
 	req, err := http.NewRequest("CONNECT", remoteAddr, nil)
 	if err != nil {
-		return fmt.Errorf("CONNECT", err)
+		return fmt.Errorf("CONNECT %s", err)
 	}
 
 	req.Header.Set("protocol", serverMsg.Protocol)
@@ -66,7 +66,7 @@ func (t *tunnel) connect(serverMsg *ServerMsg) error {
 
 	resp, err := http.ReadResponse(bufio.NewReader(t), req)
 	if err != nil {
-		return fmt.Errorf("read response", err)
+		return fmt.Errorf("read response %s", err)
 	}
 	defer resp.Body.Close()
 

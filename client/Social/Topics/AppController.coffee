@@ -51,13 +51,6 @@ class TopicsAppController extends AppController
               JTag.byRelevance @_searchValue, options, callback
             else
               JTag.streamModels selector, options, callback
-          dataEnd           : ({resultsController}, ids)->
-            JTag.fetchMyFollowees ids, (err, followees)->
-              if err then error err
-              else
-                {everything} = resultsController.listControllers
-                everything.forEachItemByIndex followees, ({followButton})->
-                  followButton.setState 'Following'
           dataError         : ->
             log "Seems something broken:", arguments
 
@@ -73,10 +66,6 @@ class TopicsAppController extends AppController
                 ids.push item._id
               callback err, items
               callback null, null, ids  unless err
-          dataEnd           : ({resultsController}, ids)->
-            {following} = resultsController.listControllers
-            following.forEachItemByIndex ids, ({followButton})->
-              followButton.setState 'Following'
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -129,10 +118,10 @@ class TopicsAppController extends AppController
     # log "Update this: ", topic
     controller = @
     modal = new KDModalViewWithForms
-      title                       : "Update topic " + topic.title
+      title                       : "Update topic #{topic.title}"
       height                      : "auto"
       cssClass                    : "compose-message-modal"
-      width                       : 500
+      width                       : 779
       overlay                     : yes
       tabs                        :
         navigable                 : yes
