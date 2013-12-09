@@ -23,9 +23,7 @@ class ActivityTicker extends ActivityRightBase
     group.on "LikeIsAdded", @bound "addLike"
     group.on "FollowHappened", @bound "addFollow"
     group.on "PostIsCreated", @bound "addActivity"
-
-    nc = KD.getSingleton("notificationController")
-    nc.on "ReplyIsAdded", @bound "addComment"
+    group.on "ReplyIsAdded", @bound "addComment"
 
   getConstructorName :(obj)->
     if obj and obj.bongo_ and obj.bongo_.constructorName

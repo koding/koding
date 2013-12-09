@@ -387,6 +387,7 @@ module.exports = class JPost extends jraphical.Message
                   reply         : ObjectRef(comment).data
                   repliesCount  : queue.relationshipCount
                   relationship  : queue.docs[0]
+                  group         : @group
                 }
               queue.next()
           =>
