@@ -140,6 +140,18 @@ class MainController extends KDController
   getVisitor: -> @visitor
   getAccount: -> KD.whoami()
 
+  swapAccount: (options, callback) ->
+    return { message: 'Login failed!' } unless options
+
+    { account, replacementToken } = options
+
+    $.cookie 'clientId', replacementToken  if replacementToken
+
+    @accountChanged account
+
+    @once 'AccountChanged', (account) -> callback null, options
+
+
   handleLogin: (credentials, callback) ->
     { JUser } = KD.remote.api
 
@@ -147,28 +159,18 @@ class MainController extends KDController
     
     credentials.username = credentials.username.toLowerCase().trim()
     
-    JUser.login credentials, (err, params) =>
+    JUser.login credentials, (err, result) =>
       return callback err  if err
-
-      { account, replacementToken } = params
-
-      $.cookie 'clientId', replacementToken  if replacementToken
-
-      @accountChanged account
-
-      @once 'AccountChanged', (account) -> callback null, params
+      @swapAccount result, callback
 
   handleFinishRegistration: (formData, callback) ->
     { JUser } = KD.remote.api
 
     @isLoggingIn on
 
-    JUser.finishRegistration formData, (err, replacementToken) ->
+    JUser.finishRegistration formData, (err, result) =>
       return callback err  if err
-
-      $.cookie 'clientId', replacementToken  if replacementToken
-
-      (KD.getSingleton 'router').handleRoute '/Account/Subscriptions'
+      @swapAccount result, callback
 
   isUserLoggedIn: -> KD.isLoggedIn()
 

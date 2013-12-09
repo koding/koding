@@ -709,16 +709,22 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err?
           queue.next()
       ->
-        account.update $set: {
+        accountModifier = $set:
           'profile.firstName' : firstName
           'profile.lastName'  : lastName
           type                : 'registered'
-        }, (err) ->
+
+        account.update accountModifier, (err) ->
           return callback err  if err?
           queue.next()
       =>
         JPasswordRecovery = require '../passwordrecovery'
-        JPasswordRecovery.create client, {email: user.email}, (err)->
+       
+        passwordOptions =
+          email         : user.email
+          verb          : unless username? then 'Register2'
+        
+        JPasswordRecovery.create client, passwordOptions, (err)->
           queue.next()
       ->
         JAccount.emit "AccountRegistered", account, referrer
@@ -753,7 +759,7 @@ module.exports = class JUser extends jraphical.Module
 
           options = { account, username, clientId }
 
-          @changeUsernameByAccount options, (err, newToken) ->
+          @changeUsernameByAccount options, (err, replacementToken) ->
             return callback err  if err
 
             user.changePassword password, (err) ->
@@ -762,7 +768,7 @@ module.exports = class JUser extends jraphical.Module
               account.update $set: { firstName, lastName }, (err) ->
                 return callback err  if err
 
-                callback null, token
+                callback null, { account, replacementToken }
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'

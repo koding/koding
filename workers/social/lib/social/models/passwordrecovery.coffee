@@ -47,17 +47,17 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @getPasswordRecoveryEmail =-> 'hello@koding.com'
 
-  @getPasswordRecoverySubject = ({resetPassword})->
-    # TODO DRY this
-    verb = if resetPassword then "reset" else "validate"
-    obj = if resetPassword then "password" else "email"
-    return "Instructions to #{verb} your #{obj}"
+  @getEmailSubject = ({resetPassword})-> switch
+    when resetPassword
+      "Instructions to reset your password"
+    else
+      "Instructions to confirm your email"
 
   @getEmailDateFormat = -> 'fullDate'
 
-  @getPasswordRecoveryMessage = ({requestedAt, url, resetPassword})->
+  @getEmailMessage = ({requestedAt, url, resetPassword})->
     # TODO DRY this
-    verb = if resetPassword then "reset" else "validate"
+    verb = if resetPassword then "reset" else "confirm"
     obj = if resetPassword then "password" else "email"
     """
     At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'}, you requested to #{verb} your #{obj}.
@@ -92,15 +92,15 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @create = (client, options, callback)->
     JUser = require './user'
     token = createId()
-    {email} = options
+    {email, verb} = options
 
-    defaultSubject   = @getPasswordRecoverySubject
-    defaultTextBody  = @getPasswordRecoveryMessage
+    verb ?= "Reset"
+
     defaultExpiresAt = new Date Date.now() + 1000 * 60 * 30 # 30 minutes
 
     {host, protocol} = require '../config.email'
     messageOptions =
-      url : "#{protocol}//#{host}/Reset/#{encodeURIComponent token}"
+      url : "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
 
     JUser.one {email}, (err, user)=>
       if err
@@ -124,8 +124,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             email = new JMail
               from      : @getPasswordRecoveryEmail()
               email     : email
-              subject   : defaultSubject messageOptions
-              content   : defaultTextBody messageOptions
+              subject   : @getEmailSubject messageOptions
+              content   : @getEmailMessage messageOptions
               force     : yes
 
             email.save callback
