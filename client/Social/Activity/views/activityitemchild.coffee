@@ -56,13 +56,14 @@ class ActivityItemChild extends KDView
     account = KD.whoami()
     if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent activity-settings-menu'
-        title       : ''
-        icon        : yes
-        delegate    : @
-        iconClass   : "arrow"
-        menu        : @settingsMenu data
-        callback    : (event)=> @settingsButton.contextMenu event
+        cssClass       : 'activity-settings-menu'
+        itemChildClass : ActivityItemMenuItem
+        title          : ''
+        icon           : yes
+        delegate       : @
+        iconClass      : "arrow"
+        menu           : @settingsMenu data
+        callback       : (event)=> @settingsButton.contextMenu event
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
@@ -71,6 +72,7 @@ class ActivityItemChild extends KDView
     data = @getData()
 
     deleteActivity = (activityItem)->
+      activityItem.destroy() #FIXME
       activityItem.slideOut -> activityItem.destroy()
 
     @on 'ActivityIsDeleted', =>
@@ -84,13 +86,16 @@ class ActivityItemChild extends KDView
       if KD.whoami().getId() is data.getAt('originId')
         deleteActivity activityItem
       else
-        activityItem.putOverlay
-          isRemovable : no
-          parent      : @parent
-          cssClass    : 'half-white'
+        #CtF: FIXME added just for making it functional
+        activityItem.destroy()
 
-        @utils.wait 30000, ->
-          activityItem.slideOut -> activityItem.destroy()
+        # activityItem.putOverlay
+        #   isRemovable : no
+        #   parent      : @parent
+        #   cssClass    : 'half-white'
+
+        # @utils.wait 30000, ->
+        #   activityItem.slideOut -> activityItem.destroy()
 
 
     data.watch 'repliesCount', (count)=>
@@ -182,3 +187,10 @@ class ActivityItemChild extends KDView
     if @getData().fake
       @actionLinks.setClass 'hidden'
 
+class ActivityItemMenuItem extends JView
+  pistachio :->
+    {title} = @getData()
+    slugifiedTitle = KD.utils.slugify title
+    """
+    <i class="#{slugifiedTitle} icon"></i>#{title}
+    """

@@ -379,6 +379,29 @@ class NFinderContextMenuController extends KDController
 
     return items
 
+  getOpenWithMenuItems: (fileView) ->
+    items            = {}
+    reWebHome        = ///
+      ^/home/#{KD.nick()}/Web/
+    ///
+    {path}           = fileView.getData()
+    plainPath        = FSHelper.plainPath path
+    fileExtension    = FSItem.getFileExtension path
+
+    # FIXME: Add this ability later ~ GG
+    # appsController   = @getSingleton "kodingAppsController"
+    # {extensionToApp} = appsController
+    # possibleApps     = (extensionToApp[fileExtension] or extensionToApp.txt) or []
+    # for appName in possibleApps
+    #   items[appName] = action: "openFileWithApp"
+
+    items["Viewer"]               = action   : "previewFile"  if plainPath.match reWebHome
+    items["separator"]            = type     : "separator"
+    items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
+    items["Search the App Store"] = disabled : yes
+    items["Contribute an Editor"] = disabled : yes
+
+    return items
   # getOpenWithMenuItems: (fileView) ->
   #   items            = {}
   #   reWebHome        = ///

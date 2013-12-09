@@ -3,7 +3,7 @@ db = new neo4j.GraphDatabase('http://localhost:7474');
 # db = new neo4j.GraphDatabase('http://neo4j-dev:7474');
 
   # name: 'JAccount',
-  # name: 'JApp',
+  # name: 'JNewApp',
   # name: 'JAppStorage' }
   # name: 'JAppStorage',
   # name: 'JCodeSnip',
@@ -238,7 +238,7 @@ limit 20 1368928928
 
 START kd=node:koding(id={groupId})
 MATCH kd-[:member]->users<-[r:user]-koding
-WHERE koding.name="JApp"
+WHERE koding.name="JNewApp"
 and r.createdAtEpoch < {startDate}
 return *
 order by r.createdAtEpoch DESC

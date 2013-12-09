@@ -38,6 +38,7 @@ module.exports = [
   "CommonViews/slidingsplit.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/badgealertview.coffee"
+  "CommonViews/activitycommentview.coffee"
 
   "CommonViews/kodingswitch.coffee",
 

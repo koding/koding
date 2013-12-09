@@ -10,11 +10,13 @@ class ActivityInputWidget extends KDView
 
     @submit    = new KDButtonView
       type     : "submit"
-      cssClass : "fr"
-      title    : "Submit"
+      cssClass : "solid green"
+      title    : "Post"
       callback : @bound "submit"
 
   submit: (callback) ->
+    return  unless value = @input.getValue().trim()
+
     activity       = @getData()
     activity?.tags = []
     tags           = []
@@ -44,7 +46,7 @@ class ActivityInputWidget extends KDView
         dash tagCreateJobs, ->
           queue.next()
     , =>
-        body = @encodeTagSuggestions @input.getValue(), createdTags
+        body = @encodeTagSuggestions value, createdTags
         data =
           group : KD.getSingleton('groupsController').getGroupSlug()
           body  : body
@@ -53,17 +55,10 @@ class ActivityInputWidget extends KDView
         data.link_url   = @embedBox.url or ""
         data.link_embed = @embedBox.getDataForSubmit() or {}
 
-        if activity
-        then @update data
-        else
-        # check badge
-          countOptions   =
-            property     : "counts.statusUpdates"
-            relType      : "author"
-            source       : "JStatusUpdate"
-            targetSelf   : 1
-          new BadgeAlertView {countOptions}
-          @create data
+        fn = @bound if activity then "update" else "create"
+        fn data, (err, activity) =>
+          @embedBox.resetEmbedAndHide()
+          callback? err, activity
     ]
 
   encodeTagSuggestions: (str, tags) ->
@@ -72,7 +67,7 @@ class ActivityInputWidget extends KDView
       return  "" unless tag
       return  "|#{prefix}:JTag:#{tag.getId()}|"
 
-  create: (data) ->
+  create: (data, callback) ->
     JStatusUpdate.create data, (err, activity) =>
       @reset()  unless err
 
@@ -86,24 +81,29 @@ class ActivityInputWidget extends KDView
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
 
-  update: (data) ->
+  update: (data, callback) ->
     activity = @getData()
     return  @reset() unless activity
     activity.modify data, (err) =>
       @reset()  unless err
-      return  if err
+      callback? err
 
   edit: (activity) ->
     @setData activity
-    @input.setContent activity.body, activity
+    content = activity.body.replace /\n/g, "<br>"
+    @input.setContent content, activity
+    @embedBox.loadEmbed activity.link.link_url  if activity.link
     @submit.setTitle "Update"
 
   reset: ->
     @input.setContent ""
-    @submit.setTitle "Submit"
+    @input.blur()
+    @submit.setTitle "Post"
+    @embedBox.resetEmbedAndHide()
     @setData null
 
   viewAppended: ->
     @addSubView @input
     @addSubView @embedBox
-    @addSubView @submit
+    @input.addSubView @submit
+    @hide()  unless KD.isLoggedIn()

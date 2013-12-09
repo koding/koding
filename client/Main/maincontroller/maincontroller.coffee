@@ -54,7 +54,7 @@ class MainController extends KDController
       KD.registerSingleton "kodingAppsController",    new KodingAppsController
       # KD.registerSingleton "kontrol",                 new Kontrol
 
-      @showInstructionsBook()
+      # @showInstructionsBook()
       @emit 'AppIsReady'
 
       console.timeEnd "Koding.com loaded"
@@ -129,7 +129,7 @@ class MainController extends KDController
         @utils.defer ->
           firstRoute = KD.getSingleton("router").visitedRoutes.first
 
-          if firstRoute and /^\/Verify/.test firstRoute
+          if firstRoute and /^\/Reset/.test firstRoute
             firstRoute = "/"
 
           window.location.pathname = firstRoute or "/"

@@ -26,12 +26,18 @@ class ActivityListController extends KDListViewController
     @hiddenItems = []
     @_state      = 'public'
 
-    KD.getSingleton("groupsController").on "MemberJoinedGroup", (member) =>
+    groupController = KD.getSingleton("groupsController")
+    groupController.on "MemberJoinedGroup", (member) =>
       @updateNewMemberBucket member.member
 
-    KD.getSingleton("groupsController").on "FollowHappened", (info) =>
+    groupController.on "FollowHappened", (info) =>
       {follower, origin} = info
       @updateFollowerBucket follower, origin
+
+    groupController.on "PostIsCreated", (post) =>
+      {subject} = post
+      subject = KD.remote.revive subject
+      @addItem subject, 0
 
   resetList:->
     @newActivityArrivedList = {}

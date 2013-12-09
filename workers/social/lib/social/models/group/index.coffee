@@ -214,7 +214,7 @@ module.exports = class JGroup extends Module
         targetType  : 'JAccount'
         as          : 'owner'
       application   :
-        targetType  : 'JApp'
+        targetType  : 'JNewApp'
         as          : 'owner'
       vocabulary    :
         targetType  : 'JVocabulary'
@@ -1305,8 +1305,8 @@ module.exports = class JGroup extends Module
           removeHelperMany JTag, tags, err, callback, queue
 
         => @fetchApplications (err, apps)->
-          JApp = require '../app'
-          removeHelperMany JApp, apps, err, callback, queue
+          JNewApp = require '../app'
+          removeHelperMany JNewApp, apps, err, callback, queue
 
         # needs to be tested once subgroups are supported
         # => @fetchSubgroups (err, groups)=>
@@ -1577,7 +1577,7 @@ module.exports = class JGroup extends Module
     options ?= {}
     { tag, tags } = options
     tags = [tag]  if tag and not tags
-        
+
     options.targetOptions ?= {}
     options.targetOptions.options ?= {}
     options.targetOptions.options.sort ?= sortWeight: 1

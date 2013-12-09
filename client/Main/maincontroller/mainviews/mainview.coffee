@@ -130,6 +130,8 @@ class MainView extends KDView
 
   createLoggedInAccountArea:->
     @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
+    @accountMenu.accountChanged KD.whoami()
+
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, KD.whoami()
     @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
       domId      : 'fatih-launcher'
@@ -194,16 +196,6 @@ class MainView extends KDView
 
     @panelWrapper.addSubView @mainTabView
     @panelWrapper.addSubView @appSettingsMenuButton
-
-  createSideBar:->
-
-    @sidebar             = new Sidebar domId : "sidebar", delegate : this
-    mc                   = KD.getSingleton 'mainController'
-    mc.sidebarController = new SidebarController view : @sidebar
-    @sidebarPanel.addSubView @sidebar
-
-
-
 
   createChatPanel:->
     @addSubView @chatPanel   = new MainChatPanel

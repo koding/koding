@@ -8,8 +8,7 @@ class TopicsListItemView extends KDListItemView
       tagName     : 'a'
       pistachio   : '{{#(title)}}'
       click       : (event) =>
-        {slug} = @getData()
-        KD.singletons.router.handleRoute "/Activity?tagged=#{slug}"
+        KD.singletons.router.handleRoute "/Activity?tagged=#{data.slug}"
         KD.utils.stopDOMEvent event
     , data
 
@@ -32,6 +31,7 @@ class TopicsListItemView extends KDListItemView
       stateOptions   :
         unfollow     :
           cssClass   : 'following-btn'
+      dataType       : 'JTag'
     , data
 
   titleReceivedClick:(event)-> @emit 'LinkClicked'

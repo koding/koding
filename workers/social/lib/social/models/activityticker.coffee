@@ -1,7 +1,7 @@
 Bongo          = require "bongo"
 {Relationship} = require "jraphical"
 
-{secure, daisy, Base} = Bongo
+{secure, daisy, dash, Base} = Bongo
 
 module.exports = class ActivityTicker extends Base
   @share()
@@ -10,33 +10,73 @@ module.exports = class ActivityTicker extends Base
     sharedMethods :
       static      : ["fetch"]
 
-  relationshipNames = ["follower", "like", "member", "user"]
-  constructorNames  = ["JAccount", "JApp", "JGroup", "JTag", "JStatusUpdate"]
+  relationshipNames = ["follower", "like", "member", "user", "reply", "author"]
+  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JStatusUpdate", "JComment"]
 
   JAccount = require './account'
 
   decorateEvents = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
 
+    return callback null  if not source or not target
+
     if as is "like"
-      # there is a flipped relationship between JAccount and JStatusUpdate
-      # source is status update
-      # target is account, we should correct it here
-      # and also we should add the origin account here
-      JAccount.one {"_id": source.originId}, (err, targetAccount)->
-        return callback err if err
-
-        modifiedEvent =
-          source    : target
-          target    : targetAccount
-          subject   : source
-          as        : as
-          timestamp : timestamp
-
-        callback null, modifiedEvent
+      decorateLikeEvent relationship, callback
+    else if as is "reply"
+      decorateCommentEvent relationship, callback
+    else if as is "author"
+      decorateStatusUpdateEvent relationship, callback
     else
       callback null, {source, target, as, timestamp}
 
+  decorateStatusUpdateEvent = (relationship, callback) ->
+    {source, target, as, timestamp} = relationship
+    source.fetchTags (err, tags) ->
+      return callback err if err
+      source.tags = tags
+      callback null, {source, target, as, timestamp}
+
+
+  decorateCommentEvent = (relationship, callback) ->
+    {source, target, as, timestamp} = relationship
+    modifiedEvent =
+      as        : as
+      subject   : source
+      object    : target
+      timestamp : timestamp
+
+    queue = [
+      ->
+        JAccount.one "_id": source.originId, (err, targetAccount) ->
+          return callback err if err
+          modifiedEvent.target = targetAccount
+          queue.fin()
+      ->
+        JAccount.one "_id": target.originId, (err, sourceAccount) ->
+          return callback err if err
+          modifiedEvent.source = sourceAccount
+          queue.fin()
+    ]
+
+    dash queue, -> callback null, modifiedEvent
+
+  decorateLikeEvent = (relationship, callback) ->
+    {source, target, as, timestamp} = relationship
+    # there is a flipped relationship between JAccount and JStatusUpdate
+    # source is status update
+    # target is account, we should correct it here
+    # and also we should add the origin account here
+    JAccount.one {"_id": source.originId}, (err, targetAccount)->
+      return callback err if err
+
+      modifiedEvent =
+        source    : target
+        target    : targetAccount
+        subject   : source
+        as        : as
+        timestamp : timestamp
+
+      callback null, modifiedEvent
 
 
   @fetch = secure (client, options = {}, callback) ->
@@ -51,7 +91,7 @@ module.exports = class ActivityTicker extends Base
 
     options      =
       # do not fetch more than 15 at once
-      limit      : Math.min options.limit ? 15, 15
+      limit      : 10 # Math.min options.limit ? 15, 15
       sort       : timestamp  : -1
 
     Relationship.some selector, options, (err, relationships) ->
@@ -61,7 +101,7 @@ module.exports = class ActivityTicker extends Base
         ->
           relationship.fetchTeaser ->
             decorateEvents relationship, (err, decoratedEvent)=>
-              buckets.push decoratedEvent
+              buckets.push decoratedEvent  if decoratedEvent
               queue.next()
 
       queue.push ->

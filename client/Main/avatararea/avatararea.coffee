@@ -53,7 +53,7 @@ class AvatarArea extends KDCustomHTMLView
     {{> @avatar}}
     <section>
       <h2>{{> @profileLink}}</h2>
-      <h3>Designer</h3>
+      <h3>@{{#(profile.nickname)}}</h3>
       {{> @groupsSwitcherIcon}}
     </section>
     """

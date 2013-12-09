@@ -20,4 +20,5 @@ class TeamworkAppController extends AppController
     super options, data
 
   handleQuery: (query) ->
-    @getView().ready => @getView().handleQuery query
+    view = @getView()
+    view.ready => view.handleQuery query
