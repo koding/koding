@@ -67,6 +67,13 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       lastTabHandleMargin       : 200
       tabHandleContainer        : @tabHandleContainer
 
+    @tabView.addSubView new KDCustomHTMLView
+      cssClass  : "no-file"
+      partial   : """
+        <h3>No files are open</h3>
+        <p>Double click a file from filetree to start editing.</p>
+      """
+
     @tabView.on "PaneDidShow", =>
       activeTab = @getActivePane()
       newIndex  = @tabView.getPaneIndex activeTab
