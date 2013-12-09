@@ -52,7 +52,7 @@ class ActivityTicker extends ActivityRightBase
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err or not tags
       source.tags = tags
-      @listController.addItem {source, target, as}, 0
+      @addNewItem {source, target, as}
 
   addJoin: (data)->
     {member} = data
@@ -62,7 +62,7 @@ class ActivityTicker extends ActivityRightBase
     KD.remote.cacheable constructorName, id, (err, account)=>
       return console.error "account is not found", err if err or not account
       source = KD.getSingleton("groupsController").getCurrentGroup()
-      @listController.addItem {as: "member", target: account, source  }, 0
+      @addNewItem {as: "member", target: account, source  }
 
   addFollow: (data)->
     {follower, origin} = data
@@ -109,7 +109,7 @@ class ActivityTicker extends ActivityRightBase
     {origin, reply, subject, replier} = data
     unless replier and origin and subject and reply
       return console.warn "data is not valid"
-    #such a copy paste it is. could be handled better
+    #CtF: such a copy paste it is. could be handled better
     {constructorName, id} = replier
     KD.remote.cacheable constructorName, id, (err, source)=>
       return console.log "account is not found", err, liker if err or not source
@@ -127,7 +127,7 @@ class ActivityTicker extends ActivityRightBase
             return console.log "reply is not found", err, data.reply if err or not object
 
             eventObj = {source, target, subject, object, as:"reply"}
-            @listController.addItem eventObj, 0
+            @addNewItem eventObj
 
 
 
