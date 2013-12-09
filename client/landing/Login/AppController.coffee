@@ -16,11 +16,7 @@ class LoginAppsController extends AppController
 
   handleFinishRegistration = ({params:{token}}) ->
     KD.singleton('appManager').open 'Login', (app) ->
-      if KD.isLoggedIn()
-        # TODO: is this case important for us to handle? C.T.
-        KD.getSingleton('router').handleRoute '/'
-      else
-        app.prepareFinishRegistrationForm token
+      app.prepareFinishRegistrationForm token  unless KD.isLoggedIn()
 
   handleFailureOfRestriction =->
     KD.utils.defer -> new KDNotificationView title: "Login restricted"
