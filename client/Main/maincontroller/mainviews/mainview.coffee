@@ -68,7 +68,10 @@ class MainView extends KDView
 
     @header.clear()
 
-    @header.addSubView @logo = new KDCustomHTMLView
+    @header.addSubView @innerContainer = new KDCustomHTMLView
+      cssClass  : "inner-container"
+
+    @innerContainer.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type is 'group' then 'group' else ''
@@ -101,12 +104,12 @@ class MainView extends KDView
 
   createDock:->
 
-    @header.addSubView KD.singleton('dock').getView()
+    @innerContainer.addSubView KD.singleton('dock').getView()
 
 
   createAccountArea:->
 
-    @header.addSubView @accountArea = new KDCustomHTMLView cssClass : 'account-area'
+    @innerContainer.addSubView @accountArea = new KDCustomHTMLView cssClass : 'account-area'
 
     unless KD.isLoggedIn()
       @loginLink = new CustomLinkView
