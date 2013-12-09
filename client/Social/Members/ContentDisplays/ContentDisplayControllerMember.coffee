@@ -59,7 +59,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
     options      =
-      cssClass   : "profilearea profile-right-block clearfix"
+      cssClass   : "profilearea clearfix"
       domId      : 'profilearea' unless @revivedContentDisplay
       delegate   : @getView()
 

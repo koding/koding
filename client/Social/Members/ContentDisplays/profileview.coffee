@@ -385,8 +385,8 @@ class ProfileView extends JView
     avatarOptions  =
       showStatus      : yes
       size            :
-        width         : 86
-        height        : 86
+        width         : 81
+        height        : 81
       click        : =>
         pos        =
           top      : @avatar.getBounds().y - 8
@@ -456,7 +456,7 @@ class ProfileView extends JView
       @followButton = new KDCustomHTMLView
     else
       @followButton = new MemberFollowToggleButton
-        style : "solid green"
+        style : "solid"
       , @memberData
 
     for route in ['followers', 'following', 'likes']
@@ -579,7 +579,7 @@ class ProfileView extends JView
       tagName     : 'a'
       attributes  :
         href      : "/#"
-      pistachio   : "<span>#{path}</span><span class=\"data\">#{count}</span>"
+      pistachio   : "<span class=\"data\">#{count}</span><span>#{path}</span>"
       click       : (event) =>
         event.preventDefault()
         unless @memberData.counts[route] is 0
@@ -640,34 +640,34 @@ class ProfileView extends JView
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
-      <div class="right-block-box users-profile clearfix">
+      <div class="users-profile clearfix">
         {{> @avatar}}
         <h3 class="full-name">{{> @firstName}} {{> @lastName}}</h3>
         {{> @bio }}
         {{> @followButton}}
-        <div class="clearfix"></div>
         <div class="profilestats">
           {{> @followers}}
           {{> @following}}
           {{> @likes}}
         </div>
       </div>
-      <div class="right-block-box right-user-menu">
+      <div class="user-menu">
         <a href="#" class="active">Open Projects<span class="count">128</span></a>
         <a href="#">Discussions</a>
         <a href="#">Tutorials</a>
         <a href="#">Blog Posts</a>
       </div>
-      <div class="right-block-box most-used-apps clearfix">
-        <h3>Most Used Apps</h3>
-        <div class="app"></div>
-        <div class="app"></div>
-        <div class="app"></div>
-        <div class="app"></div>
-        <div class="app"></div>
-        <div class="app"></div>
-      </div>
     """
+
+    # <div class="most-used-apps clearfix">
+    #   <h3>Most Used Apps</h3>
+    #   <div class="app"></div>
+    #   <div class="app"></div>
+    #   <div class="app"></div>
+    #   <div class="app"></div>
+    #   <div class="app"></div>
+    #   <div class="app"></div>
+    # </div>
 
     # """
     # <div class="profileleft">
