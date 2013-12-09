@@ -345,10 +345,9 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  lastTo : null
-
   fetchActivitiesProfilePage:(options,callback)->
-    options.to = options.to or @lastTo or Date.now()
+    {originId} = options
+    options.to = options.to or @profileLastTo or Date.now()
     if KD.checkFlag 'super-admin'
       appStorage = new AppStorage 'Activity', '1.0'
       appStorage.fetchStorage (storage)=>
@@ -366,7 +365,7 @@ class ActivityAppController extends AppController
 
       if activities?.length > 0
         lastOne = activities.last.meta.createdAt
-        @lastTo = (new Date(lastOne)).getTime()
+        @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities
 
   unhideNewItems: ->
@@ -404,3 +403,6 @@ class ActivityAppController extends AppController
 
   editActivity: (activity) ->
     @getView().inputWidget.edit activity
+
+  resetProfileLastTo : ->
+    @profileLastTo = null
