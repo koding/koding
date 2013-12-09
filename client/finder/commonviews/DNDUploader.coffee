@@ -44,9 +44,12 @@ class DNDUploader extends KDView
 
   viewAppended: ->
     super
-    @finder = KD.getSingleton "finderController"
-    tc      = @finder.treeController
-    @notify = tc.notify.bind tc
+    # @finder = KD.getSingleton "finderController"
+    # tc      = @finder.treeController
+    @notify = (msg) ->
+      new KDNotificationView
+        title : msg
+
 
   reset: ->
     {uploadToVM, defaultPath, title} = @getOptions()
