@@ -101,6 +101,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addActivityView:(account)->
     @getView().$('div.lazy').remove()
+    windowController = KD.getSingleton('windowController')
 
     KD.getSingleton("appManager").tell 'Activity', 'feederBridge', {
       domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
@@ -136,4 +137,5 @@ class ContentDisplayControllerMember extends KDViewController
     }, (controller)=>
       @feedController = controller
       @getView().addSubView controller.getView()
+      @getView().setHeight windowController.winHeight
       @emit 'ready'
