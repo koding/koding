@@ -39,23 +39,27 @@ button
 
 #main-header
   margin              0
-  bg                  color, #1e2628
   size                100%,55px
   z-index             1000
   overflow            visible
-  vendor              transform, rotateX(0)
-  vendor              transform-origin-y, 0
-  opacity             1
-  -webkit-transition  -webkit-transform .6s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,\
-                      opacity .6s ease
-  -moz-transition     -moz-transform .6s ease \,\
-                      opacity .6s ease
+  vendor              perspective, 700px
+  vendor              transform-style, preserve-3d
   fix()
 
-.intro #main-header
-.login #main-header
-  vendor            transform, rotateX(-90deg)
-  opacity           0
+  .inner-container
+    bg                  color, #1e2628
+    size                100%, 55px
+    vendor              transform-origin-y, 0
+    vendor              transform, rotateX(0)
+    -webkit-transition  -webkit-transform .5s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+    -moz-transition     -moz-transform .5s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+    transition          transform .5s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+
+
+.intro #main-header .inner-container
+.login #main-header .inner-container
+  vendor              transform, rotateX(90deg)
+
 
 #dock
   size              auto, auto
