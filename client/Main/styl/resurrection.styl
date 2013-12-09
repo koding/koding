@@ -39,23 +39,27 @@ button
 
 #main-header
   margin              0
-  bg                  color, #1e2628
   size                100%,55px
   z-index             1000
   overflow            visible
-  vendor              transform, rotateX(0)
-  vendor              transform-origin-y, 0
-  opacity             1
-  -webkit-transition  -webkit-transform .6s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,\
-                      opacity .6s ease
-  -moz-transition     -moz-transform .6s ease \,\
-                      opacity .6s ease
+  visibility          visible
   fix()
+
+  .inner-container
+    bg                  color, #1e2628
+    size                100%, 55px
+    vendor              transform, translateY(0)
+    -webkit-transition  -webkit-transform .2s ease
+    -moz-transition     -moz-transform .2s ease
+    transition          transform .2s ease
+
 
 .intro #main-header
 .login #main-header
-  vendor            transform, rotateX(-90deg)
-  opacity           0
+  visibility            hidden
+  .inner-container
+    vendor              transform, translateY(-55px)
+
 
 #dock
   size              auto, auto
@@ -170,7 +174,7 @@ button
     .icon
       display       block
     &.notifications .icon
-      margin        18px 0 0 25px
+      margin        18px 0 0 16px
       sprite        app account-notifications
     &.search .icon
       margin        15px 0 0 17px
