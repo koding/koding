@@ -114,7 +114,7 @@ class ContentDisplayControllerMember extends KDViewController
       help                  :
         subtitle            : "Learn Personal feed"
         tooltip             :
-          title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
+          title             : "<p class='bigtwipsy'>This is the personal feed of a single Koding user.</p>"
           placement         : "above"
       filter                :
         everything          : @createFilter("Everything", account, 'Everything')
@@ -137,5 +137,5 @@ class ContentDisplayControllerMember extends KDViewController
     }, (controller)=>
       @feedController = controller
       @getView().addSubView controller.getView()
-      @getView().setHeight windowController.winHeight
+      @getView().setCss minHeight : windowController.winHeight
       @emit 'ready'

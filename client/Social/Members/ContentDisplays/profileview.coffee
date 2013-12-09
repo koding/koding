@@ -579,7 +579,7 @@ class ProfileView extends JView
       tagName     : 'a'
       attributes  :
         href      : "/#"
-      pistachio   : "<span class=\"data\">#{count}</span><span>#{path}</span>"
+      pistachio   : "<span>#{count}</span>#{path}"
       click       : (event) =>
         event.preventDefault()
         unless @memberData.counts[route] is 0
