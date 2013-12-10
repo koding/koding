@@ -62,10 +62,10 @@ prefetchAll = (options, client, callback) ->
   #     queue.fin()
 
   # we are fetching group activity, so again we can return this one for all groups
-  queue.push ->
-    fetchActivityFromGraph bongoModels, client, (err, activity)->
-      prefetchedFeeds['activity.main'] = activity  if activity
-      queue.fin()
+  # queue.push ->
+  #   fetchActivityFromGraph bongoModels, client, (err, activity)->
+  #     prefetchedFeeds['activity.main'] = activity  if activity
+  #     queue.fin()
 
   queue.push ->
     route = getRoute options

@@ -162,7 +162,7 @@ class ActivityTicker extends ActivityRightBase
         return null
 
     # filter user followed status activity
-    if @getConstructorName(source) is "JStatusUpdate" and \
+    if @getConstructorName(source) is "JNewStatusUpdate" and \
         @getConstructorName(target) is "JAccount" and \
         as is "follower"
       return null
