@@ -6,7 +6,7 @@ class VerifyPINModal extends KDModalViewWithForms
     options =
       title                       : "Please provide the PIN that we've emailed you"
       overlay                     : yes
-      width                       : 400
+      width                       : 568
       height                      : "auto"
       tabs                        :
         navigable                 : yes
@@ -18,11 +18,10 @@ class VerifyPINModal extends KDModalViewWithForms
             buttons               :
               Submit              :
                 title             : buttonTitle
-                cssClass          : "modal-clean-gray"
+                cssClass          : "modal-clean-green"
                 type              : "submit"
             fields                :
               pin                 :
-                label             : "PIN:"
                 name              : "pin"
                 placeholder       : "PIN"
                 testPath          : "account-email-pin"
