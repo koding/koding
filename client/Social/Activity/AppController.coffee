@@ -407,5 +407,5 @@ class ActivityAppController extends AppController
     {inputWidget} = @getView()
     inputWidget.edit activity
     window.scrollTo 0, 0
-    @once inputWidget.on "Submit", ->
+    inputWidget.once "Submit", ->
       window.scrollTo 0, item.getElement().getBoundingClientRect().top
