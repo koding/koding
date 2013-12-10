@@ -26,6 +26,10 @@ class ActivityTicker extends ActivityRightBase
     group.on "FollowHappened", @bound "addFollow"
     group.on "PostIsCreated", @bound "addActivity"
     group.on "ReplyIsAdded", @bound "addComment"
+    @listController.listView.on 'ItemWasAdded', (view, index) =>
+      if view.getData()?
+        itemId = @getItemId view.data
+        @itemsIndexed[itemId] = view
 
   getConstructorName :(obj)->
     if obj and obj.bongo_ and obj.bongo_.constructorName
@@ -179,16 +183,15 @@ class ActivityTicker extends ActivityRightBase
     """
 
   addNewItem: (newItem, index) ->
-    {source, target, object, as} = newItem
-
-    itemId = "#{source.getId()}_#{target.getId()}_#{as}_#{object?.getId()}"
+    itemId = @getItemId newItem
 
     if not @itemsIndexed[itemId]
-      @itemsIndexed[itemId] = newItem
       if index? then @listController.addItem newItem, index
       else @listController.addItem newItem
     else
-      foundItem = @itemsIndexed[itemId]
-      viewItem = @listController.itemForId foundItem._id
+      viewItem = @itemsIndexed[itemId]
       @listController.moveItemToIndex viewItem, 0
 
+  getItemId: (item) ->
+    {source, target, object, as} = item
+    "#{source.getId()}_#{target.getId()}_#{as}_#{object?.getId()}"
