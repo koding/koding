@@ -44,7 +44,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     title : "SHOW ME"
     items : [
         { title: "Everything",      type: "Everything" }
-        { title : "Status Updates", type : "JStatusUpdate" }
+        { title : "Status Updates", type : "JNewStatusUpdate" }
         { title : "Blog Posts",     type : "JBlogPost" }
         { title : "Code Snippets",  type : "JCodeSnip" }
         { title : "Discussions",    type : "JDiscussion" }

@@ -19,7 +19,7 @@ class ActivityUpdateWidgetController extends KDViewController
         name            : 'statusUpdatePane'
         paneName        : 'update'
         cssClass        : 'status-widget'
-        constructorName : 'JStatusUpdate'
+        constructorName : 'JNewStatusUpdate'
         widgetName      : 'updateWidget'
         widgetType      : ActivityStatusUpdateWidget
       ,
@@ -67,7 +67,7 @@ class ActivityUpdateWidgetController extends KDViewController
               return notifySubmissionStopped()
             else
               widgetController.widgetSubmit formData, @getOptions().pane.constructorName, stopSubmission
-              if @getOptions().pane.constructorName in ['JStatusUpdate']
+              if @getOptions().pane.constructorName in ['JNewStatusUpdate']
                 widgetController[@getOptions().pane.widgetName].switchToSmallView()
               mainView.resetWidgets()
 
@@ -77,7 +77,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
     switchForEditView = (type,data,fake=no)=>
       switch type
-        when "JStatusUpdate"
+        when "JNewStatusUpdate"
           mainView.showPane "update"
           @updateWidget.switchToEditView data, fake
         when "JCodeSnip"
@@ -126,7 +126,7 @@ class ActivityUpdateWidgetController extends KDViewController
         @emit 'OwnActivityHasFailed', data
 
       data.group = KD.getSingleton('groupsController').getGroupSlug()
-      KD.remote.api[constructorName].create data, (err, activity)=>
+      KD.remote.api[constructorName]?.create data, (err, activity)=>
         callback? err, activity
 
         KD.showError err,

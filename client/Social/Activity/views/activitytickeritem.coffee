@@ -10,7 +10,7 @@ class ActivityTickerBaseItem extends JView
     JNewApp            : AppLinkView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
-    JStatusUpdate      : ActivityLinkView
+    JNewStatusUpdate   : ActivityLinkView
     JComment           : ActivityCommentView
 
 class ActivityTickerFollowItem extends ActivityTickerBaseItem
@@ -181,13 +181,13 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
 
 class ActivityTickerItem extends KDListItemView
   itemClassMap =
-    "JGroup_member_JAccount"        : ActivityTickerMemberItem
-    "JAccount_like_JAccount"        : ActivityTickerLikeItem
-    "JTag_follower_JAccount"        : ActivityTickerFollowItem
-    "JAccount_follower_JAccount"    : ActivityTickerFollowItem
-    "JNewApp_user_JAccount"         : ActivityTickerAppUserItem
-    "JAccount_reply_JAccount"       : ActivityTickerCommentItem
-    "JStatusUpdate_author_JAccount" : ActivityTickerStatusUpdateItem
+    "JGroup_member_JAccount"           : ActivityTickerMemberItem
+    "JAccount_like_JAccount"           : ActivityTickerLikeItem
+    "JTag_follower_JAccount"           : ActivityTickerFollowItem
+    "JAccount_follower_JAccount"       : ActivityTickerFollowItem
+    "JNewApp_user_JAccount"            : ActivityTickerAppUserItem
+    "JAccount_reply_JAccount"          : ActivityTickerCommentItem
+    "JNewStatusUpdate_author_JAccount" : ActivityTickerStatusUpdateItem
 
   constructor: (options = {}, data) ->
     options.type = "activity-ticker-item"
