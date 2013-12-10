@@ -66,13 +66,6 @@ module.exports = class JPost extends jraphical.Message
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
-    sharedMethods     :
-      static          : ['create','one','updateAllSlugs']
-      instance        : [
-        'reply','restComments','commentsByRange'
-        'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
-      ]
     schema            : schema
     relationships     :
       comment         : JComment
