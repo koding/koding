@@ -168,6 +168,8 @@ resurrection.activity.styl
 
     .active-topics
     .active-users
+      .kdlistitemview-activity-ticker-item
+        width           269px
       .ttag
         size            170px, 42px
         font-weight     400
@@ -533,8 +535,12 @@ span.collapsedtext
   border-top            2px solid #e4e4e4
 
   .preview-image
+    overflow            hidden
     size                144px, 100px
     fl()
+
+    img
+      max-width         100%
 
     &+.preview-text
       kalc              width, 100% \- 144px
@@ -741,6 +747,9 @@ body.profile
       font-weight     500
       color           #485259
       margin          0 0 13px 0
+
+    .kdscrollview
+      width           325px
 
   &.activity-right-block
     size                302px, auto

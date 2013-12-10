@@ -216,7 +216,6 @@ class NotificationController extends KDObject
       type     : 'tray'
       cssClass : "mini realtime #{options.type}"
       duration : 10000
-      showTimer: yes
       title    : "<span></span>#{options.title}"
       content  : options.content  or null
 
