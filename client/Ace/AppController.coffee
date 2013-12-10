@@ -40,8 +40,6 @@ class AceAppController extends AppController
       { title     : "Advanced Settings",   id        : "advancedSettings" }
       { title     : "customViewAdvancedSettings", parentId: "advancedSettings"}
       { type      : "separator" }
-      { title     : "Recently Opened",     id        : "recents"}
-      { title     : "customViewRecents",   parentId  : "recents"}
       { title     : "Reopen Latest Files", eventName : "reopen" }
       { type      : "separator" }
       { title     : "customViewFullscreen" }
