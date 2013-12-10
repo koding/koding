@@ -1,14 +1,14 @@
 class ContentDisplayControllerMember extends KDViewController
 
   neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
     "JStatusUpdate"
-    "JComment"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
+    # "JLink"
+    # "JBlogPost"
+    # "JTutorial"
+    # "JComment"
+    # "JOpinion"
+    # "JDiscussion"
+    # "JCodeSnip"
   ]
 
   constructor:(options={}, data)->
@@ -119,10 +119,10 @@ class ContentDisplayControllerMember extends KDViewController
       filter                :
         everything          : @createFilter("Everything", account, 'Everything')
         statuses            : @createFilter("Status Updates", account, 'JStatusUpdate')
-        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
-        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
-        discussions         : @createFilter("Discussions", account, 'JDiscussion')
-        tutorials           : @createFilter("Tutorials", account, 'JTutorial')
+#        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
+#        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
+#        discussions         : @createFilter("Discussions", account, 'JDiscussion')
+#        tutorials           : @createFilter("Tutorials", account, 'JTutorial')
       sort                  :
         'likesCount'  :
           title             : "Most popular"

@@ -1,9 +1,16 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 
-likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
-                      'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
-                      'JBlogPost']
+likeableActivities = [
+  'JStatusUpdate'
+#  'JCodeSnip'
+#  'JDiscussion'
+#  'JOpinion'
+#  'JCodeShare'
+#  'JLink'
+#  'JTutorial'
+#  'JBlogPost'
+  ]
 
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
@@ -326,9 +333,17 @@ module.exports = class JAccount extends jraphical.Module
       content       :
         as          : 'creator'
         targetType  : [
-          "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
-          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial",
-          "JBlogPost"
+          "JStatusUpdate"
+#          "CActivity"
+#          "JCodeSnip"
+#          "JComment"
+#          "JReview"
+#          "JDiscussion"
+#          "JOpinion"
+#          "JCodeShare"
+#          "JLink"
+#          "JTutorial"
+#          "JBlogPost"
         ]
 
       vm            :

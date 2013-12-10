@@ -22,36 +22,36 @@ class ActivityUpdateWidgetController extends KDViewController
         constructorName : 'JStatusUpdate'
         widgetName      : 'updateWidget'
         widgetType      : ActivityStatusUpdateWidget
-      ,
-        name            : 'codeSnippetPane'
-        paneName        : 'codesnip'
-        constructorName : 'JCodeSnip'
-        widgetName      : 'codeWidget'
-        widgetType      : ActivityCodeSnippetWidget
-      ,
-        name            : 'blogPostPane'
-        paneName        : 'blogpost'
-        constructorName : 'JBlogPost'
-        widgetName      : 'blogPostWidget'
-        widgetType      : ActivityBlogPostWidget
-      ,
-      #   name            : 'linkPane'
-      #   paneName        : 'link'
-      #   constructorName : 'JLink'
-      #   widgetName      : 'linkWidget'
-      #   widgetType      : ActivityLinkWidget
-      # ,
-        name            : 'tutorialPane'
-        paneName        : 'tutorial'
-        constructorName : 'JTutorial'
-        widgetName      : 'tutorialWidget'
-        widgetType      : ActivityTutorialWidget
-      ,
-        name            : 'discussionPane'
-        paneName        : 'discussion'
-        constructorName : 'JDiscussion'
-        widgetName      : 'discussionWidget'
-        widgetType      : ActivityDiscussionWidget
+#      ,
+#        name            : 'codeSnippetPane'
+#        paneName        : 'codesnip'
+#        constructorName : 'JCodeSnip'
+#        widgetName      : 'codeWidget'
+#        widgetType      : ActivityCodeSnippetWidget
+#      ,
+#        name            : 'blogPostPane'
+#        paneName        : 'blogpost'
+#        constructorName : 'JBlogPost'
+#        widgetName      : 'blogPostWidget'
+#        widgetType      : ActivityBlogPostWidget
+#      ,
+#      #   name            : 'linkPane'
+#      #   paneName        : 'link'
+#      #   constructorName : 'JLink'
+#      #   widgetName      : 'linkWidget'
+#      #   widgetType      : ActivityLinkWidget
+#      # ,
+#        name            : 'tutorialPane'
+#        paneName        : 'tutorial'
+#        constructorName : 'JTutorial'
+#        widgetName      : 'tutorialWidget'
+#        widgetType      : ActivityTutorialWidget
+#      ,
+#        name            : 'discussionPane'
+#        paneName        : 'discussion'
+#        constructorName : 'JDiscussion'
+#        widgetName      : 'discussionWidget'
+#        widgetType      : ActivityDiscussionWidget
       ]
 
 
@@ -80,21 +80,21 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JStatusUpdate"
           mainView.showPane "update"
           @updateWidget.switchToEditView data, fake
-        when "JCodeSnip"
-          mainView.showPane "codesnip"
-          @codeWidget.switchToEditView data, fake
-        when "JTutorial"
-          mainView.showPane "tutorial"
-          @tutorialWidget.switchToEditView data, fake
-        when "JDiscussion"
-          mainView.showPane "discussion"
-          @discussionWidget.switchToEditView data, fake
-        when "JBlogPost"
-          mainView.showPane "blogpost"
-          @blogPostWidget.switchToEditView data, fake
-        when "JLink"
-          mainView.showPane "link"
-          @linkWidget.switchToEditView data, fake
+#        when "JCodeSnip"
+#          mainView.showPane "codesnip"
+#          @codeWidget.switchToEditView data, fake
+#        when "JTutorial"
+#          mainView.showPane "tutorial"
+#          @tutorialWidget.switchToEditView data, fake
+#        when "JDiscussion"
+#          mainView.showPane "discussion"
+#          @discussionWidget.switchToEditView data, fake
+#        when "JBlogPost"
+#          mainView.showPane "blogpost"
+#          @blogPostWidget.switchToEditView data, fake
+#        when "JLink"
+#          mainView.showPane "link"
+#          @linkWidget.switchToEditView data, fake
 
     @on 'editFromFakeData', (fakeData)=>
       switchForEditView fakeData.fakeType, fakeData, yes

@@ -293,10 +293,10 @@ class ActivityAppController extends AppController
   createContentDisplay:(activity, callback=->)->
     controller = switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
-      when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
-      when "JDiscussion"   then @createDiscussionContentDisplay activity
-      when "JBlogPost"     then @createBlogPostContentDisplay activity
-      when "JTutorial"     then @createTutorialContentDisplay activity
+#      when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
+#      when "JDiscussion"   then @createDiscussionContentDisplay activity
+#      when "JBlogPost"     then @createBlogPostContentDisplay activity
+#      when "JTutorial"     then @createTutorialContentDisplay activity
     @utils.defer -> callback controller
 
   showContentDisplay:(contentDisplay)->
@@ -310,29 +310,29 @@ class ActivityAppController extends AppController
       type  : "status"
     ,activity
 
-  createBlogPostContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayBlogPost
-      title : "Blog Post"
-      type  : "blogpost"
-    ,activity
-
-  createCodeSnippetContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayCodeSnippet
-      title : "Code Snippet"
-      type  : "codesnip"
-    ,activity
-
-  createDiscussionContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayDiscussion
-      title : "Discussion"
-      type  : "discussion"
-    ,activity
-
-  createTutorialContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayTutorial
-      title : "Tutorial"
-      type  : "tutorial"
-    ,activity
+#  createBlogPostContentDisplay:(activity)->
+#    @showContentDisplay new ContentDisplayBlogPost
+#      title : "Blog Post"
+#      type  : "blogpost"
+#    ,activity
+#
+#  createCodeSnippetContentDisplay:(activity)->
+#    @showContentDisplay new ContentDisplayCodeSnippet
+#      title : "Code Snippet"
+#      type  : "codesnip"
+#    ,activity
+#
+#  createDiscussionContentDisplay:(activity)->
+#    @showContentDisplay new ContentDisplayDiscussion
+#      title : "Discussion"
+#      type  : "discussion"
+#    ,activity
+#
+#  createTutorialContentDisplay:(activity)->
+#    @showContentDisplay new ContentDisplayTutorial
+#      title : "Tutorial"
+#      type  : "tutorial"
+#    ,activity
 
   streamByIds:(ids, callback)->
 
