@@ -9,7 +9,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
   recurly = require 'koding-payment'
   createId = require 'hat'
 
-  {secure, dash}        = require 'bongo'
+  {secure, dash, signature}        = require 'bongo'
   {difference, extend}  = require 'underscore'
 
   {partition}           = require 'bongo/lib/util'
@@ -26,20 +26,34 @@ module.exports = class JPaymentPlan extends JPaymentBase
     indexes         :
       planCode      : 'unique'
     sharedMethods   :
-      static        : [
-        'create'
-        'removeByCode'
-        'fetchPlanByCode'
-        'fetchAccountDetails'
-      ]
-      instance      : [
-        'fetchToken'
-        'subscribe'
-        'modify'
-        'fetchProducts'
-        'updateProducts'
-        'checkQuota'
-      ]
+      static        :
+        create      :
+          (signature Object, Function)
+        removeByCode:
+          (signature String, Function)
+        fetchPlanByCode:
+          (signature String, Function)
+      instance      :
+        fetchToken  :
+          (signature Object, Function)
+        subscribe   : [
+          (signature String, Function)
+          (signature String, Object, Function)
+        ]
+        modify      :
+          (signature Object, Function)
+        fetchProducts: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        updateProducts:
+          (signature Object, Function)
+        checkQuota  : [
+          (signature Object, Object, Function)
+          (signature Object, Object, Number, Function)
+        ]
+
     schema          :
       planCode      :
         type        : String
@@ -114,10 +128,6 @@ module.exports = class JPaymentPlan extends JPaymentBase
             return callback err  if err
 
             callback null, plan
-
-  @fetchAccountDetails = secure ({connection:{delegate}}, callback) ->
-    console.error 'needs to be reimplemented'
-#    recurly.fetchAccountDetailsByPaymentMethodId (JPayment.userCodeOf delegate), callback
 
   @fetchPlanByCode = (planCode, callback) -> @one { planCode }, callback
 
