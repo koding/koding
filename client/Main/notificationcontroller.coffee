@@ -134,7 +134,7 @@ class NotificationController extends KDObject
       else
         method = 'one'
         args   = _id: subject.id
-      KD.remote.api[subject.constructorName][method] args, callback
+      KD.remote.api[subject.constructorName]?[method] args, callback
 
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
       # Ignore all guest notifications

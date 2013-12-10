@@ -132,7 +132,7 @@ class ActivityUpdateWidgetController extends KDViewController
         @emit 'OwnActivityHasFailed', data
 
       data.group = KD.getSingleton('groupsController').getGroupSlug()
-      KD.remote.api[constructorName].create data, (err, activity)=>
+      KD.remote.api[constructorName]?.create data, (err, activity)=>
         callback? err, activity
 
         KD.showError err,
@@ -170,7 +170,7 @@ class ActivityUpdateWidgetController extends KDViewController
     oldActivity = activity
     constructorName = activity.fakeType
     # prepare fake post
-    fakePost      = new KD.remote.api[constructorName] {}, activity
+    fakePost      = new KD.remote.api[constructorName]? {}, activity
     fakePost      = $.extend yes,{},fakePost,
       fake        : yes
       slug        : 'fakeActivity'
