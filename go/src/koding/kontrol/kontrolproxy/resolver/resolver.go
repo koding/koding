@@ -6,7 +6,6 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/utils"
-	"labix.org/v2/mgo"
 	"log"
 	"math"
 	"math/rand"
@@ -16,6 +15,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"labix.org/v2/mgo"
 )
 
 var (
@@ -261,6 +262,10 @@ func buildHosts(username, servicename, key string) ([]string, string, error) {
 		}
 	}
 
+	if !keyData.Enabled {
+		return nil, "", errors.New("host is not allowed to be used")
+	}
+
 	return keyData.Host, keyData.LoadBalancer.Mode, nil
 }
 
@@ -276,11 +281,11 @@ func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
 		return nil, fmt.Errorf("port '%s' is not allowed. Allowed range is 1024 - 10,000", port)
 	}
 
-	var hostname string
-
 	if len(domain.HostnameAlias) == 0 {
 		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
 	}
+
+	var hostname string
 
 	switch domain.LoadBalancer.Mode {
 	case "roundrobin": // equal weights

@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func GetUsers(writer http.ResponseWriter, req *http.Request) {
@@ -61,13 +62,19 @@ func GetService(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
+type ServicePostMessage struct {
+	Host    string
+	Mode    string
+	Enabled string
+}
+
 func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	servicename := vars["servicename"]
 	username := vars["username"]
 	key := vars["key"]
 
-	var msg ProxyPostMessage
+	var msg ServicePostMessage
 
 	body, _ := ioutil.ReadAll(req.Body)
 	err := json.Unmarshal(body, &msg)
@@ -95,19 +102,33 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	if msg.Mode == "" {
-		// noop, can be roundrobin or random, if empty the first item in the list is used
+		// no-op. can be roundrobin or random, if empty the first item in the list is used
 	}
 
-	if msg.Persistence == "" {
-		msg.Persistence = "disabled"
+	var enabled bool
+	switch msg.Enabled {
+	case "true", "on", "yes":
+		enabled = true
+	case "false", "off", "no":
+		enabled = false
+	default:
+		enabled = false
 	}
 
-	// this is optional
-	if msg.Hostdata == "" {
-		msg.Hostdata = "FromKontrolAPI"
-	}
+	persistence := "disabled"
+	hostdata := "FromKontrolAPI"
 
-	err = modelhelper.UpsertKey(username, msg.Persistence, msg.Mode, servicename, key, msg.Host, msg.Hostdata, msg.RabbitKey)
+	err = modelhelper.UpsertKey(
+		username,
+		persistence,
+		msg.Mode,
+		servicename,
+		key,
+		msg.Host,
+		hostdata,
+		enabled,
+	)
+
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -116,10 +137,10 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	var url string
 	if username == "koding" {
 		url = fmt.Sprintf("{\"host\":\"%s-%s.x.koding.com\"}\n", servicename, key)
-
 	} else {
 		url = fmt.Sprintf("{\"host\":\"%s-%s-%s.kd.io\"}\n", servicename, key, username)
 	}
+
 	io.WriteString(writer, url)
 	return
 }
