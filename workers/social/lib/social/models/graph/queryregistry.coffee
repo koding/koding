@@ -111,6 +111,7 @@ module.exports =
         START group=node:koding(id={groupId})
         MATCH group-[:member]->members<-[:author]-content
         WHERE content.`meta.createdAtEpoch` < {to}
+        AND content.name <> "JNewStatusUpdate"
         #{facetQuery}
         #{groupFilter}
         #{exemptClause}
@@ -124,6 +125,7 @@ module.exports =
         START member=node:koding(id={userId})
         MATCH member<-[:follower]-members-[:author]-content
         WHERE members.name="JAccount"
+        AND content.name <> "JNewStatusUpdate"
         AND content.group = {groupName}
         #{facet}
         #{timeQuery}
@@ -138,6 +140,7 @@ module.exports =
         START member=node:koding(id={userId})
         MATCH member<-[:author]-content
         WHERE content.originId = {userId}
+        AND content.name <> "JNewStatusUpdate"
         #{options.facetQuery}
         RETURN content
         ORDER BY #{options.orderBy} DESC
