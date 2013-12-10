@@ -22,8 +22,9 @@ class NavigationLink extends KDListItemView
       partial  : "<span class='logo'>#{@name[0]}</span>"
     @icon.setCss 'backgroundColor', KD.utils.getColorFromString @name
 
-    @icon.hide()  if @name in ['Activity', 'Topics', 'Terminal', \
-                               'Editor', 'Apps', 'Teamwork', 'Finder']
+    appsHasIcon = Object.keys(KD.config.apps)
+    appsHasIcon.push 'Editor'
+    @icon.hide()  if @name in appsHasIcon
 
     @on "DragStarted", @bound 'dragStarted'
 
