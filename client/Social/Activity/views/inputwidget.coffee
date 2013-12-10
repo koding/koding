@@ -79,7 +79,6 @@ class ActivityInputWidget extends KDView
       @reset()  unless err
 
       callback? err, activity
-      KD.getSingleton("appManager").tell "Activity", "ownActivityArrived", activity
 
       KD.showError err,
         AccessDenied :
