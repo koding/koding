@@ -5,7 +5,7 @@ module.exports = class JInvitationRequest extends Model
   @trait __dirname, '../traits/grouprelated'
 
   {Relationship}             = require 'jraphical'
-  {ObjectRef, daisy, secure} = require 'bongo'
+  {ObjectRef, daisy, secure, signature} = require 'bongo'
   {permit}                   = require './group/permissionset'
   KodingError                = require '../error'
 
