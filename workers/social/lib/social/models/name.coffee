@@ -4,7 +4,7 @@ module.exports = class JName extends Model
 
   KodingError = require '../error'
 
-  {secure, JsPath:{getAt}, dash} = require 'bongo'
+  {secure, JsPath:{getAt}, dash, signature} = require 'bongo'
 
   createId = require 'hat'
 
@@ -13,8 +13,12 @@ module.exports = class JName extends Model
   @set
     softDelete        : yes
     sharedMethods     :
-      static          : ['one','claimNames','migrateAllOldNames']
-      instance        : ['migrateOldName']
+      static          :
+        one:
+          (signature Object, Function)
+        claimNames:
+          (signature Function)
+
     sharedEvents      :
       instance        : []
       static          : []
@@ -57,22 +61,6 @@ module.exports = class JName extends Model
         #@emit 'channel-control'
         callback null, secretNameObj.secretName, secretNameObj.oldSecretName
 
-  slowEach_ =(cursor, callback=->)->
-    cursor.nextModel (err, name)->
-      if err then callback err
-      else unless name? then callback null
-      else
-        console.log 'migrating', name
-        name.migrateOldName (err)->
-          callback err  if err?
-          console.log 'done'
-          slowEach_ cursor
-
-  @migrateAllOldNames = secure (client, callback)->
-    @cursor { constructorName: $exists: yes }, {}, (err, cursor)->
-      if err then callback err
-      else slowEach_ cursor, console.error
-
   stripTemplate =(konstructor, nameStr)->
     {slugTemplate} = konstructor#Base.constructors[@constructorName]
     return nameStr  unless slugTemplate
@@ -83,27 +71,6 @@ module.exports = class JName extends Model
 
   stripTemplate:->
     stripTemplate Base.constructors[@constructorName], @name
-
-  migrateOldName:(callback=->)->
-    return  unless @constructorName?
-    slug = @stripTemplate()
-    selector = {}
-    selector[@usedAsPath] = slug
-    konstructor = Base.constructors[@constructorName]
-    konstructor.one selector, (err, model)=>
-      if err then callback err
-      else unless model?
-        @remove callback
-      else
-        {collectionName} = model.getCollection()
-        newName = {
-          slug, collectionName, @usedAsPath, @constructorName
-        }
-        kallback = do -> i = 0; (err)->
-          if err then callback err
-          else if ++i is 2 then callback null
-        @update {$set: slugs: [newName]}, kallback
-        @update {$unset: {constructorName:1, usedAsPath:1}}, kallback
 
   @fetchModels =do->
     fetchByNameObject =(nameObj, callback)->
