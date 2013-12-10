@@ -344,62 +344,61 @@ module.exports = class JPost extends jraphical.Message
     ]
     daisy queue
 
-  reply: permit 'reply to posts',
-    success:(client, replyType, comment, callback)->
-      {delegate} = client.connection
-      exempt = delegate.checkFlag('exempt')
-      comment = new replyType body: comment
-      comment.sign(delegate).save (err)=>
-        return callback err if err
-        daisy queue = [
-          ->
-            delegate.addContent comment, (err)->
-              return callback err if err
-              queue.next()
-          ->
-            delegate.updateMetaModifiedAt (err)->
-              return callback err if err
-              queue.next()
-          =>
-            @addComment comment, flags: {isLowQuality: exempt}, (err, docs)=>
-              return callback err if err
-              queue.docs = docs
-              queue.next()
-          =>
-            Relationship.count {sourceId: @getId(),as:'reply'}, (err, count)=>
-              queue.relationshipCount = count
-              return callback err if err
-              queue.next()
-          =>
-            @update $set: repliesCount: queue.relationshipCount, (err)=>
-              return callback err if err
-              queue.next()
-          =>
-            @fetchOrigin (err, origin)=>
-              return callback err if err
-              unless exempt
-                @emit 'ReplyIsAdded', {
-                  origin
-                  subject       : ObjectRef(@).data
-                  actorType     : 'replier'
-                  actionType    : 'reply'
-                  replier       : ObjectRef(delegate).data
-                  reply         : ObjectRef(comment).data
-                  repliesCount  : queue.relationshipCount
-                  relationship  : queue.docs[0]
-                }
-              queue.next()
-          =>
-            @follow client, emitActivity: no, (err)->
-              return callback err if err
-              queue.next()
-          =>
-            @addParticipant delegate, 'commenter', (err)->
-              return callback err if err
-              queue.next()
-          ->
-            callback null, comment
-        ]
+  reply: (client, replyType, comment, callback)->
+    {delegate} = client.connection
+    exempt = delegate.checkFlag('exempt')
+    comment = new replyType body: comment
+    comment.sign(delegate).save (err)=>
+      return callback err if err
+      daisy queue = [
+        ->
+          delegate.addContent comment, (err)->
+            return callback err if err
+            queue.next()
+        ->
+          delegate.updateMetaModifiedAt (err)->
+            return callback err if err
+            queue.next()
+        =>
+          @addComment comment, flags: {isLowQuality: exempt}, (err, docs)=>
+            return callback err if err
+            queue.docs = docs
+            queue.next()
+        =>
+          Relationship.count {sourceId: @getId(),as:'reply'}, (err, count)=>
+            queue.relationshipCount = count
+            return callback err if err
+            queue.next()
+        =>
+          @update $set: repliesCount: queue.relationshipCount, (err)=>
+            return callback err if err
+            queue.next()
+        =>
+          @fetchOrigin (err, origin)=>
+            return callback err if err
+            unless exempt
+              @emit 'ReplyIsAdded', {
+                origin
+                subject       : ObjectRef(@).data
+                actorType     : 'replier'
+                actionType    : 'reply'
+                replier       : ObjectRef(delegate).data
+                reply         : ObjectRef(comment).data
+                repliesCount  : queue.relationshipCount
+                relationship  : queue.docs[0]
+              }
+            queue.next()
+        =>
+          @follow client, emitActivity: no, (err)->
+            return callback err if err
+            queue.next()
+        =>
+          @addParticipant delegate, 'commenter', (err)->
+            return callback err if err
+            queue.next()
+        ->
+          callback null, comment
+      ]
 
 
 
