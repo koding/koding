@@ -55,9 +55,13 @@ class ActivityInputWidget extends KDView
         data.link_url   = @embedBox.url or ""
         data.link_embed = @embedBox.getDataForSubmit() or {}
 
+        @disableInput()
+
         fn = @bound if activity then "update" else "create"
         fn data, (err, activity) =>
           @embedBox.resetEmbedAndHide()
+          @enableSubmit()
+          @emit "Submit"
           callback? err, activity
     ]
 
@@ -98,9 +102,18 @@ class ActivityInputWidget extends KDView
   reset: ->
     @input.setContent ""
     @input.blur()
-    @submit.setTitle "Post"
     @embedBox.resetEmbedAndHide()
     @setData null
+
+  enableSubmit: ->
+    setTimeout =>
+      @submit.enable()
+      @submit.setTitle "Post"
+    , 8000
+
+  disableInput: ->
+    @submit.disable()
+    @submit.setTitle "Wait"
 
   viewAppended: ->
     @addSubView @input
