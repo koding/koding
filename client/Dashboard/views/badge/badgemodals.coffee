@@ -1,7 +1,6 @@
 class NewBadgeForm extends JView
 
   constructor:(options = {}, data)->
-
     @badgeForm                = new KDModalViewWithForms
       title                   : "Add New Badge"
       overlay                 : "yes"
@@ -72,12 +71,16 @@ class NewBadgeForm extends JView
 
   updateRulesTabView:->
     parentView = @badgeForm.modalTabs.forms["Rules"]
-    parentView.addSubView new BadgeRules
+    @badgeRules = new BadgeRules
+    parentView.addSubView @badgeRules
 
   createBadgeAndAssign: (formData)->
     KD.remote.api.JBadge.create formData, (err, badge)=>
       badge.assignBadgeBatch formData.ids, (err) =>
         return err if err
+        {badgeListController} = @getOptions()
+        badgeListController.addItem badge
+        @badgeRules.emit "BadgeCreated"
 
 
 class BadgeUpdateForm extends JView

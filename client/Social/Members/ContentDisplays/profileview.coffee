@@ -490,7 +490,6 @@ class ProfileView extends JView
     @userBadgesController    = new KDListViewController
       startWithLazyLoader    : no
       view                   : new KDListView
-        type                 : "users"
         cssClass             : "badge-list"
         itemClass            : UserBadgeView
 
@@ -498,6 +497,13 @@ class ProfileView extends JView
       @userBadgesController.instantiateListItems badges
 
     @userBadgesView = @userBadgesController.getListView()
+
+
+    # for admins and moderators, list user badge property counts
+    if KD.checkFlag 'super-admin'
+      @prp = new UserPropertyList {}, counts : @memberData.counts
+    else
+      @prp = new KDCustomHTMLView
 
   viewAppended:->
 
@@ -671,8 +677,9 @@ class ProfileView extends JView
         <a href="#">Blog Posts</a>
       </div>
       <div class="user-menu">
-        <a href="#">User Badges</a>
         {{> @userBadgesView}}
+        {{> @prp}}
+
       </div>
 
     """

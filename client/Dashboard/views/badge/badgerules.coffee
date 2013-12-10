@@ -39,6 +39,9 @@ class BadgeRules extends JView
       style           : 'create-badge-button'
       title           : 'Create'
       type            : "submit"
+      loader          :
+        color         : "#ffffff"
+        diameter      : 21
 
     @usersInput       = new KDInputView
       type            : "hidden"
@@ -56,6 +59,13 @@ class BadgeRules extends JView
     @giveBadgeButton.hide()
 
     super options, data
+
+    @once "BadgeCreated" , =>
+      @giveBadgeButton.loader.hide()
+      @giveBadgeButton.hide()
+      new KDNotificationView
+        title      : "Badge created"
+        duration   : "2000"
 
     {@badge} = @getOptions()
     if @badge

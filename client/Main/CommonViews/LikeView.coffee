@@ -134,6 +134,12 @@ class LikeView extends KDView
             @setClass "liked"
             @likeLink.updatePartial "Unlike" if useTitle
             KD.mixpanel "Liked activity"
+            # check badge for likes count
+            countOptions   =
+              property     : "counts.likes"
+              relType      : "like"
+              targetSelf   : 1
+            new BadgeAlertView {countOptions}
           else
             @unsetClass "liked"
             @likeLink.updatePartial "Like" if useTitle

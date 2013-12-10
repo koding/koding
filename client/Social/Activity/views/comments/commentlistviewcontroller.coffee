@@ -67,6 +67,12 @@ class CommentListViewController extends KDListViewController
         listView.emit "BackgroundActivityFinished"
 
       KD.mixpanel "Commented on activity"
+      countOptions   =
+        property     : "counts.comments"
+        relType      : "commenter"
+        source       : "JStatusUpdate"
+        targetSelf   : 1
+      new BadgeAlertView {countOptions}
 
   fetchCommentsByRange:(from,to,callback)->
     [to,callback] = [callback,to] unless callback
