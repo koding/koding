@@ -89,7 +89,7 @@ body.account
     padding               0
     li
       list-style          none
-      padding             13px 20px
+      padding             13px 0
       borderBox()
       .title
         width             296px
@@ -144,3 +144,14 @@ button.kdbutton.solid.green.account-header-button
     sprite          app '30-refresh-icon-white'
     &.plus
       sprite        app '30-plus-icon-white'
+
+.delete-account-view
+  padding                 10px 0
+  color                   #888
+  borderBox()
+  button.delete-account
+    left                  0
+    vendor                transition, left .1s ease-in\, \
+                                      width .1s ease-in
+    &.escape
+      left                -160px
