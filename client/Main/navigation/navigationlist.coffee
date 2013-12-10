@@ -1,22 +1,17 @@
 class NavigationList extends KDListView
 
-  # customizeItemOptions:(options, data)->
+  constructor:->
+    super
 
-  #   if data.title is "Activity"
-  #     options.childClass = NavigationActivityLink
-  #     return options
+    @viewWidth = 70
 
-  #   else if data.title is "Invite Friends"
-  #     options.childClass = NavigationInviteLink
-  #     return options
+    @on 'ItemWasAdded', (view)=>
 
-  #   else if data.title is "Apps"
-  #     options.childClass = NavigationAppsLink
-  #     return options
+      view.once 'viewAppended', =>
 
-  #   if data.docs
-  #     options.childClass = NavigationDocsJobsLink
-  #     return options
+        view._index ?= @getItemIndex view
+        view.setX view._index * @viewWidth
+        @_width = @viewWidth * @items.length
 
   #   if data.promote
   #     options.childClass = NavigationPromoteLink
