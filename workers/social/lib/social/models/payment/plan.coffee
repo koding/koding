@@ -12,7 +12,7 @@ module.exports = class JPaymentPlan extends JPaymentBase
   {secure, dash}        = require 'bongo'
   {difference, extend}  = require 'underscore'
 
-  {partition}           = require '../../util'
+  {partition}           = require 'bongo/lib/util'
   {permit}              = require '../group/permissionset'
 
   JUser                 = require '../user'
