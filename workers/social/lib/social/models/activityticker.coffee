@@ -1,14 +1,18 @@
 Bongo          = require "bongo"
 {Relationship} = require "jraphical"
 
-{secure, daisy, dash, Base} = Bongo
+{secure, daisy, dash, signature, Base} = Bongo
 
 module.exports = class ActivityTicker extends Base
   @share()
 
   @set
     sharedMethods :
-      static      : ["fetch"]
+      static      :
+        fetch     : [
+          (signature Function)
+          (signature Object, Function)
+        ]
 
   relationshipNames = ["follower", "like", "member", "user", "reply", "author"]
   constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JStatusUpdate", "JComment"]
@@ -79,7 +83,8 @@ module.exports = class ActivityTicker extends Base
       callback null, modifiedEvent
 
 
-  @fetch = secure (client, options = {}, callback) ->
+  @fetch = secure (client, options, callback) ->
+    [callback, options] = [options, callback]  unless callback
     {connection: {delegate}} = client
 
     from = options.from or +(new Date())
