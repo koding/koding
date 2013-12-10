@@ -106,7 +106,7 @@ class MainController extends KDController
     #   log "pageLoaded", @isUserLoggedIn()
 
     # TODO: this is a kludge we needed.  sorry for this.  Move it someplace better C.T.
-    wc = @getSingleton 'windowController'
+    wc = KD.singleton 'windowController'
     @utils.wait 15000, ->
       KD.remote.api?.JSystemStatus.on 'forceReload', ->
         window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
