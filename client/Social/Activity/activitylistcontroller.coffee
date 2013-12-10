@@ -111,19 +111,23 @@ class ActivityListController extends KDListViewController
       @newActivityArrivedList[id] = true
 
   newActivityArrived:(activity)->
+    if activity and 'function' is typeof activity.fetchTeaser
+      activity.fetchTeaser (err, teaser)=>
+        if teaser
+          @logNewActivityArrived(activity)
 
-    @logNewActivityArrived(activity)
-
-    return unless @_state is 'public'
-    unless @isMine activity
-      # if realtime update is newmember item
-      # instead of adding a new item we update the
-      # latest inserted member bucket or create a new one
-      if activity instanceof KD.remote.api.CNewMemberBucketActivity
-        @updateNewMemberBucket activity
-      else
-        view = @addHiddenItem activity, 0
-        @activityHeader?.newActivityArrived()
+          return unless @_state is 'public'
+          unless @isMine activity
+            # if realtime update is newmember item
+            # instead of adding a new item we update the
+            # latest inserted member bucket or create a new one
+            if activity instanceof KD.remote.api.CNewMemberBucketActivity
+              @updateNewMemberBucket activity
+            else
+              view = @addHiddenItem activity, 0
+              @activityHeader?.newActivityArrived()
+    else
+      log "discarding activity", activity
 
   updateNewMemberBucket:(memberAccount)->
     for item in @itemsOrdered
