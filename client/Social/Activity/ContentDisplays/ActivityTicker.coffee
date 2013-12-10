@@ -18,6 +18,8 @@ class ActivityTicker extends ActivityRightBase
 
     @load()
 
+    @itemsIndexed = {}
+
     group = KD.getSingleton("groupsController")
     group.on "MemberJoinedGroup", @bound "addJoin"
     group.on "LikeIsAdded", @bound "addLike"
@@ -50,7 +52,7 @@ class ActivityTicker extends ActivityRightBase
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err or not tags
       source.tags = tags
-      @addNewItem {source, target, as}
+      @addNewItem {source, target, as}, 0
 
   addJoin: (data)->
     {member} = data
@@ -60,7 +62,7 @@ class ActivityTicker extends ActivityRightBase
     KD.remote.cacheable constructorName, id, (err, account)=>
       return console.error "account is not found", err if err or not account
       source = KD.getSingleton("groupsController").getCurrentGroup()
-      @addNewItem {as: "member", target: account, source  }
+      @addNewItem {as: "member", target: account, source  }, 0
 
   addFollow: (data)->
     {follower, origin} = data
@@ -81,7 +83,7 @@ class ActivityTicker extends ActivityRightBase
             target : source
             as     : "follower"
 
-        @addNewItem eventObj
+        @addNewItem eventObj, 0
 
   addLike: (data)->
     {liker, origin, subject} = data
@@ -101,7 +103,7 @@ class ActivityTicker extends ActivityRightBase
           return console.log "subject is not found", err, data.subject if err or not subject
 
           eventObj = {source, target, subject, as:"like"}
-          @addNewItem eventObj
+          @addNewItem eventObj, 0
 
   addComment: (data) ->
     {origin, reply, subject, replier} = data
@@ -125,7 +127,7 @@ class ActivityTicker extends ActivityRightBase
             return console.log "reply is not found", err, data.reply if err or not object
 
             eventObj = {source, target, subject, object, as:"reply"}
-            @addNewItem eventObj
+            @addNewItem eventObj, 0
 
 
 
@@ -165,7 +167,7 @@ class ActivityTicker extends ActivityRightBase
       addedItemCount = 0
       for item in items when @filterItem item
         addedItemCount++
-        @listController.addItem item
+        @addNewItem item
       @load yes  if addedItemCount isnt items.length and not anotherLoad
 
   pistachio:
@@ -176,18 +178,17 @@ class ActivityTicker extends ActivityRightBase
     </div>
     """
 
-  addNewItem: (newItem) ->
-    items = @listController.getItemsOrdered()
-    {source, target, subject, as} = newItem
-    foundItem = item for item in items \
-                     when item.data.source.getId() is source.getId() and \
-                          item.data.target.getId() is target.getId() and \
-                          item.data.as is as and \
-                          item.data.subject?.getId() is subject?.getId()
+  addNewItem: (newItem, index) ->
+    {source, target, object, as} = newItem
 
-    if not foundItem
-      @listController.addItem newItem, 0
+    itemId = "#{source.getId()}_#{target.getId()}_#{as}_#{object?.getId()}"
+
+    if not @itemsIndexed[itemId]
+      @itemsIndexed[itemId] = newItem
+      if index? then @listController.addItem newItem, index
+      else @listController.addItem newItem
     else
-      @listController.removeItem foundItem
-      @listController.addItem newItem, 0
+      foundItem = @itemsIndexed[itemId]
+      viewItem = @listController.itemForId foundItem._id
+      @listController.moveItemToIndex viewItem, 0
 
