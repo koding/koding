@@ -113,8 +113,7 @@ class DockController extends KDViewController
 
     unless hasNav
 
-      unless name in ['Finder', 'Feeder', 'Login', 'Members', \
-                      'Environments', 'Account', 'Dashboard']
+      unless name in Object.keys(KD.config.apps)
         @addItem { title : name,  path : "/#{name}", \
                    order : 60 + KD.utils.uniqueId(), type :"" }
         @setNavItemState {name}, 'running'
