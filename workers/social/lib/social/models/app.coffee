@@ -19,7 +19,7 @@ module.exports = class JNewApp extends jraphical.Module
   Validators = require './group/validators'
 
   #
-  {Inflector,JsPath,secure,daisy,ObjectId,ObjectRef} = require 'bongo'
+  {Inflector, JsPath, secure, daisy, ObjectId, ObjectRef, signature} = require 'bongo'
   {Relationship} = jraphical
 
   @share()
@@ -38,12 +38,29 @@ module.exports = class JNewApp extends jraphical.Module
       ]
 
     sharedMethods       :
-      instance          : [
-        'fetchRelativeReviews', 'review', 'delete', 'approve'
-      ]
-      static            : [
-        'create', 'one', 'some', 'each', 'some_'
-      ]
+      instance          :
+        fetchRelativeReviews:
+          (signature Object, Function)
+        review          :
+          (signature String, Function)
+        delete          :
+          (signature Function)
+        approve         : [
+          (signature Function)
+          (signature Boolean, Function)
+        ]
+
+      static            :
+        create          :
+          (signature Object, Function)
+        one             :
+          (signature Object, Function)
+        some            :
+          (signature Object, Function)
+        each            : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
 
     permissions         :
 
@@ -206,11 +223,11 @@ module.exports = class JNewApp extends jraphical.Module
 
   review: permit 'create review',
 
-    success: (client, reviewData, callback)->
+    success: (client, body, callback)->
 
       {delegate} = client.connection
 
-      review = new JReview body: reviewData
+      review = new JReview  { body }
       review.sign delegate
       review.save (err)=>
         return callback err  if err
@@ -253,19 +270,18 @@ module.exports = class JNewApp extends jraphical.Module
     ]
     return selector
 
-  @some_: permit 'list all apps',
-
+  @some$ = permit
+    advanced: [
+      {permission: 'list apps'}
+      {permission: 'list all apps'}
+    ]
     success: (client, selector, options, callback)->
+      { roles } = client
 
-      @some selector, options, callback
-
-  @some$: permit 'list apps',
-
-    success: (client, selector, options, callback)->
-
-      selector  = getDefaultSelector client, selector
-      options or= {}
-      options.limit = Math.min(options.limit or 0, 10)
+      unless 'admin' in roles
+        selector  = getDefaultSelector client, selector
+        options or= {}
+        options.limit = Math.min(options.limit or 0, 10)
 
       @some selector, options, callback
 
@@ -308,7 +324,10 @@ module.exports = class JNewApp extends jraphical.Module
 
   approve: permit 'approve apps',
 
-    success: (client, state = yes, callback)->
+    success: (client, state, callback)->
+      [callback, state] = [state, callback]  unless callback
+
+      state ?= yes
 
       JName.one {@name}, (err, jname)=>
 
