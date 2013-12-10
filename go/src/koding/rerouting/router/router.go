@@ -99,7 +99,6 @@ func (r *Router) AddRoute(msg *amqp.Delivery) error {
 }
 
 func (r *Router) RemoveRoute(msg *amqp.Delivery) error {
-
 	leave, err := createAuthMsg(msg)
 	if err != nil {
 		return err
@@ -110,19 +109,26 @@ func (r *Router) RemoveRoute(msg *amqp.Delivery) error {
 	}
 	bindingExchange := r.routes[leave.BindingExchange].(M)
 
+	if leave.BindingKey == "" {
+		return errors.New("No binding key provided")
+	}
+
 	if bindingExchange[leave.BindingKey] == nil {
 		return fmt.Errorf("Unknown binding key: %s", leave.BindingKey)
 	}
+
 	bindingKey := bindingExchange[leave.BindingKey].(M)
 
 	if bindingKey[leave.PublishingExchange] == nil {
 		return fmt.Errorf("Unknown publishing exchange: %s", leave.BindingKey)
 	}
+
 	publishingExchange := bindingKey[leave.PublishingExchange].(M)
 
 	if publishingExchange[leave.RoutingKey] == nil {
 		return fmt.Errorf("Unknown routing key: %s", leave.RoutingKey)
 	}
+
 	routes := publishingExchange[leave.RoutingKey].(*set.Set)
 
 	for _, join := range routes.List() {
