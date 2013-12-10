@@ -215,9 +215,6 @@ module.exports = class JGroup extends Module
       application   :
         targetType  : 'JNewApp'
         as          : 'owner'
-      vocabulary    :
-        targetType  : 'JVocabulary'
-        as          : 'owner'
       subgroup      :
         targetType  : 'JGroup'
         as          : 'parent'
