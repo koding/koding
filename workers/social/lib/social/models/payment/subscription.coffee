@@ -6,7 +6,7 @@ forceInterval = 60 * 3
 
 module.exports = class JPaymentSubscription extends jraphical.Module
 
-  {secure, dash, daisy} = require 'bongo'
+  {secure, dash, daisy, signature} = require 'bongo'
   JUser    = require '../user'
   JPayment = require './index'
 
@@ -16,20 +16,28 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     indexes         :
       uuid          : 'unique'
     sharedMethods   :
-      static        : [
-        'fetchUserSubscriptions'
-        'fetchUserSubscriptionsWithPlan'
-        'checkUserSubscription'
-      ]
-      instance      : [
-        'cancel'
-        'resume'
-        'calculateRefund'
-        'checkUsage'
-        'debit'
-        'credit'
-        'transitionTo'
-      ]
+      static        :
+        fetchUserSubscriptions:
+          (signature Function)
+        fetchUserSubscriptionsWithPlan:
+          (signature Function)
+      instance      :
+        cancel:
+          (signature Function)
+        resume:
+          (signature Function)
+        checkUsage: [
+          (signature Object, Function)
+          (signature Object, Number, Function)
+        ]
+        debit: [
+          (signature Object, Function)
+          (signature Object, Number, Function)
+        ]
+        credit:
+          (signature Object, Function)
+        transitionTo:
+          (signature Object, Function)
     schema          :
       uuid          : String
       planCode      : String
@@ -89,9 +97,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
         sub.plan = planMap[sub.planCode]  for sub in subs
 
         callback null, subs
-
-  @checkUserSubscription = secure ({connection:{delegate}}, planCode, callback)->
-    throw Error 'reimplement this!'
 
   isOwnedBy: (account, callback) ->
     account.hasTarget this, 'service subscription', callback
