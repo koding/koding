@@ -4,7 +4,7 @@
 module.exports = class JVM extends Module
 
   {permit} = require './group/permissionset'
-  {secure, dash} = require 'bongo'
+  {secure, dash, signature} = require 'bongo'
   {uniq}   = require 'underscore'
 
   {argv} = require 'optimist'
@@ -39,19 +39,29 @@ module.exports = class JVM extends Module
         { name : "control" }
       ]
     sharedMethods       :
-      static            : [
-          'fetchVms'
-          'fetchVmsByContext'
-          'fetchVmInfo'
-          'fetchDomains'
-          'removeByHostname'
-          'someData'
-          'count'
-          'fetchDefaultVm'
-          'fetchVmRegion'
-          'createVmByNonce'
-        ]
-      instance          : []
+
+      static            :
+        fetchVms:
+          (signature Object, Function)
+        fetchVmsByContext:
+          (signature Object, Function)
+        fetchVmInfo:
+          (signature String, Function)
+        fetchDomains:
+          (signature Object, Function)
+        removeByHostname:
+          (signature String, Function)
+        someData:
+          (signature Object, Object, Object, Function)
+        count:
+          (signature Object, Function)
+        fetchDefaultVm:
+          (signature Function)
+        fetchVmRegion:
+          (signature String, Function)
+        createVmByNonce:
+          (signature String, Function)
+
     schema              :
       ip                :
         type            : String
