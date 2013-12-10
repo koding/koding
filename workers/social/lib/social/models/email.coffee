@@ -1,4 +1,4 @@
-{Model} = require 'bongo'
+{Model, signature} = require 'bongo'
 
 createId = require 'hat'
 getUniqueId= -> createId 256
@@ -11,7 +11,9 @@ module.exports = class JMail extends Model
     indexes          :
       status         : 'sparse'
     sharedMethods    :
-      static         : ['unsubscribeWithId']
+      static         :
+        unsubscribeWithId:
+          (signature String, String, String, Function)
     sharedEvents     :
       instance       : []
       static         : []
