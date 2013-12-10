@@ -332,12 +332,12 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	return reverseProxyHandler(transport, target.Url)
 }
 
-// getTarget is used to get the target according to the incoming target
+// getTarget is used to get the target according to the incoming request
 func (p *Proxy) getTarget(req *http.Request) (*resolver.Target, error) {
 	cookieBuild, err := req.Cookie("kdproxy-preferred-build")
 	if err != http.ErrNoCookie {
 		logs.Debug(fmt.Sprintf("proxy target is overridden. Using BUILD '%s'\n", cookieBuild.Value))
-		return resolver.TargetByBuild(cookieBuild.Value)
+		return resolver.MemTargetByBuild(cookieBuild.Value)
 	}
 
 	cookieDomain, err := req.Cookie("kdproxy-preferred-domain")

@@ -124,6 +124,33 @@ func TargetByHost(host string) (*Target, error) {
 	return target, nil
 }
 
+// TODO: make it an interface capable function and merge with MemTargetByHost
+// MemTargetByBuild is like TargetByBuild with a difference, that it f first makes a
+// lookup from the in-memory lookup, if not found it returns the result from
+// TargetByBuild()
+func MemTargetByBuild(host string) (*Target, error) {
+	var err error
+	target := new(Target)
+
+	targetBuildsMu.Lock()
+	defer targetBuildsMu.Unlock()
+
+	target, ok := targetBuilds[host]
+	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
+		target, err = TargetByBuild(host)
+		if err != nil {
+			return nil, err
+		}
+		target.FetchedSource = "MongoDB"
+
+		targetBuilds[host] = target
+	} else {
+		target.FetchedSource = "Cache"
+	}
+
+	return target, nil
+}
+
 // TargetByBuild is used the resolve the final target destination for the
 // given build number.
 func TargetByBuild(buildKey string) (*Target, error) {
