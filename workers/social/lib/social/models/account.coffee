@@ -81,7 +81,6 @@ module.exports = class JAccount extends jraphical.Module
         'fetchCachedUserCount'
       ]
       instance: [
-        'chris'
         'modify'
         'follow'
         'unfollow'
@@ -299,26 +298,6 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
-
-
-  chris: (params, callback = (->)) ->
-    console.log { params, callback }
-
-    { signature } = require 'bongo'
-
-    console.log signature
-
-    { Rest } = signature
-
-    console.log Rest
-
-    sig = signature(Number, Object, Rest(String), Function)
-
-    console.log sig, sig.assert, callback
-
-    callback null, sig.assert params
-
-    console.log 'we know this won\'t happen'
 
   checkGroupMembership: secure (client, groupName, callback)->
     {delegate} = client.connection

@@ -3,8 +3,7 @@ jraphical = require 'jraphical'
 Flaggable = require '../../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
-  {secure}       = require 'bongo'
-  {daisy, dash}  = require 'sinkrow'
+  {secure, signature, daisy, dash} = require 'bongo'
 
   JAccount       = require '../account'
   JSession       = require '../session'
@@ -79,12 +78,21 @@ module.exports = class JUser extends jraphical.Module
       ]
     sharedMethods   :
       instance      : []
-      static        : [
-        'login','logout','usernameAvailable','emailAvailable',
-        'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
-        'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
-        'authenticateWithOauth','unregister'
-      ]
+      static        :
+        login                   : (signature Object, Function)
+        logout                  : (signature Function)
+        usernameAvailable       : (signature String, Function)
+        emailAvailable          : (signature String, Function)
+        changePassword          : (signature String, Function)
+        changeEmail             : (signature Object, Function)
+        fetchUser               : (signature Function)
+        whoami                  : (signature Function)
+        isRegistrationEnabled   : (signature Function)
+        convert                 : (signature Object, Function)
+        setSSHKeys              : (signature [Object], Function)
+        getSSHKeys              : (signature Function)
+        authenticateWithOauth   : (signature Object, Function)
+        unregister              : (signature Boolean, Function)
 
     schema          :
       username      :
@@ -264,13 +272,6 @@ module.exports = class JUser extends jraphical.Module
 
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
-
-  @setDefaultHash =->
-    @all {}, (err, users)->
-      users.forEach (user)->
-        user.fetchOwnAccount (err, account)->
-          account.profile.hash = getHash user.email
-          account.save (err)-> throw err if err
 
   @whoami = secure ({connection:{delegate}}, callback)-> callback delegate
 
