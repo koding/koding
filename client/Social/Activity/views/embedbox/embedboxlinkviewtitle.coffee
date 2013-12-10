@@ -42,12 +42,14 @@ class EmbedBoxLinkViewTitle extends KDView
 
   click:(event)->
 
-    event.preventDefault()
-    event.stopPropagation()
+    # we need to do this stuff only if the item is ours.
+    # commenting out for now [BC]
+    # event.preventDefault()
+    # event.stopPropagation()
 
-    @titleInput.show()
-    @titleInput.setFocus()
-    no
+    # @titleInput.show()
+    # @titleInput.setFocus()
+    # no
 
   pistachio:->
     title = @getData().link_embed?.title or
