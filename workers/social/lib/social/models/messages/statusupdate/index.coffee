@@ -47,7 +47,7 @@ module.exports = class JStatusUpdate extends JPost
 
   constructor:->
     super
-    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated'
+    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated', 'ReplyIsAdded', 'PostIsDeleted'
 
   @getActivityType =-> require './statusactivity'
 

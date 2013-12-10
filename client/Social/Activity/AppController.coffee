@@ -72,8 +72,6 @@ class ActivityAppController extends AppController
     @listController.resetList()
     @listController.removeAllItems()
 
-  ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
-
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   bindLazyLoad:->
@@ -345,10 +343,9 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  lastTo : null
-
   fetchActivitiesProfilePage:(options,callback)->
-    options.to = options.to or @lastTo or Date.now()
+    {originId} = options
+    options.to = options.to or @profileLastTo or Date.now()
     if KD.checkFlag 'super-admin'
       appStorage = new AppStorage 'Activity', '1.0'
       appStorage.fetchStorage (storage)=>
@@ -366,7 +363,7 @@ class ActivityAppController extends AppController
 
       if activities?.length > 0
         lastOne = activities.last.meta.createdAt
-        @lastTo = (new Date(lastOne)).getTime()
+        @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities
 
   unhideNewItems: ->
@@ -402,5 +399,13 @@ class ActivityAppController extends AppController
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback
 
-  editActivity: (activity) ->
-    @getView().inputWidget.edit activity
+  editActivity: (item) ->
+    activity = item.getData()
+    {inputWidget} = @getView()
+    inputWidget.edit activity
+    window.scrollTo 0, 0
+    inputWidget.once "Submit", ->
+      window.scrollTo 0, item.getElement().getBoundingClientRect().top
+
+  resetProfileLastTo : ->
+    @profileLastTo = null

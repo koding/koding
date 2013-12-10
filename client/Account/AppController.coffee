@@ -31,11 +31,11 @@ class AccountAppController extends AppController
     #   items : [
     #     { slug : 'SSH',  title : "SSH keys",    listHeader: "Your SSH Keys",    listType: "keys" }
     #   ]
-    # danger  :
-    #   title : "Danger"
-    #   items : [
-    #     { slug: 'Delete', title : "Delete Account", listHeader: "Danger Zone", listType: "delete" }
-    #   ]
+    danger  :
+      title : "Danger"
+      items : [
+        { slug: 'Delete', title : "Delete Account", listHeader: "Danger Zone", listType: "delete" }
+      ]
 
   constructor:(options={}, data)->
 

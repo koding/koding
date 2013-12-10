@@ -27,6 +27,9 @@ class ContentDisplayControllerMember extends KDViewController
     member = @getData()
     {lazy} = mainView
 
+    mainView.once 'KDObjectWillBeDestroyed', ->
+      KD.singleton('appManager').tell 'Activity', 'resetProfileLastTo'
+
     # FIX THIS GG
 
     # @updateWidget = new ActivityUpdateWidget
