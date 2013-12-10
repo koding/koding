@@ -1,7 +1,7 @@
 class ActivityLinkView extends JView
 
   subjectMap = ->
-    JStatusUpdate       : "status"
+    JNewStatusUpdate       : "status"
 
   constructor:(options = {}, data)->
 

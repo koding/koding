@@ -119,11 +119,11 @@ class KodingRouter extends KDRouter
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
   getContentTitle:(model)->
-    {JAccount, JStatusUpdate, JGroup} = KD.remote.api
+    {JAccount, JNewStatusUpdate, JGroup} = KD.remote.api
     @utils.shortenText(
       switch model.constructor
         when JAccount       then  KD.utils.getFullnameFromAccount model
-        when JStatusUpdate  then  model.body
+        when JNewStatusUpdate  then  model.body
         when JGroup         then  model.title
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title

@@ -203,24 +203,24 @@ class ActivityAppController extends AppController
 
   fetchTopicActivities:(options = {})->
     options.to = @lastTo
-    {JStatusUpdate} = KD.remote.api
+    {JNewStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    JStatusUpdate.fetchTopicFeed options, (err, activities) =>
+    JNewStatusUpdate.fetchTopicFeed options, (err, activities) =>
       if err then @emit "activitiesCouldntBeFetched", err
       else @emit "topicFeedFetched_#{eventSuffix}", activities
 
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo
-    {JStatusUpdate} = KD.remote.api
+    {JNewStatusUpdate} = KD.remote.api
     # todo - implement prefetched feed
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    JStatusUpdate.fetchGroupActivity options, (err, messages)=>
+    JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
       return @emit "activitiesCouldntBeFetched", err  if err
       @emit "publicFeedFetched_#{eventSuffix}", messages
 
   fetchFollowingActivities:(options = {})->
-    {JStatusUpdate} = KD.remote.api
+    {JNewStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CActivity.fetchFollowingFeed options, (err, activities) =>
       if err
@@ -290,7 +290,7 @@ class ActivityAppController extends AppController
 
   createContentDisplay:(activity, callback=->)->
     controller = switch activity.bongo_.constructorName
-      when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
+      when "JNewStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
       when "JBlogPost"     then @createBlogPostContentDisplay activity
@@ -356,9 +356,9 @@ class ActivityAppController extends AppController
       @fetchActivitiesProfilePageWithExemptOption options, callback
 
   fetchActivitiesProfilePageWithExemptOption:(options, callback)->
-    {JStatusUpdate} = KD.remote.api
+    {JNewStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    JStatusUpdate.fetchProfileFeed options, (err, activities)=>
+    JNewStatusUpdate.fetchProfileFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
 
       if activities?.length > 0
