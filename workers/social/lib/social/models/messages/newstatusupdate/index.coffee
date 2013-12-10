@@ -1,6 +1,6 @@
 JPost = require '../post'
 {extend} = require 'underscore'
-module.exports = class JStatusUpdate extends JPost
+module.exports = class JNewStatusUpdate extends JPost
   {secure, race} = require 'bongo'
   {Relationship} = require 'jraphical'
   {permit} = require '../../group/permissionset'

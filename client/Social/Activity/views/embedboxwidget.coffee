@@ -254,7 +254,7 @@ class EmbedBoxWidget extends KDView
     }, options
 
     # fetch embed.ly data from the server api
-    KD.remote.api.JStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
+    KD.remote.api.JNewStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
       callback oembed[0], embedlyOptions
 
   viewAppended: JView::viewAppended

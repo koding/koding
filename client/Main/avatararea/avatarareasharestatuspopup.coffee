@@ -31,7 +31,7 @@ class AvatarPopupShareStatus extends AvatarPopup
   updateStatus:(status)->
 
     @loader.show()
-    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
+    KD.remote.api.JNewStatusUpdate.create body : status, (err,reply)=>
       unless err
         KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView

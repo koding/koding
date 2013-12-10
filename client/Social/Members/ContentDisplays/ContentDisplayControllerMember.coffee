@@ -4,7 +4,7 @@ class ContentDisplayControllerMember extends KDViewController
     "JLink"
     "JBlogPost"
     "JTutorial"
-    "JStatusUpdate"
+    "JNewStatusUpdate"
     "JComment"
     "JOpinion"
     "JDiscussion"
@@ -118,7 +118,7 @@ class ContentDisplayControllerMember extends KDViewController
           placement         : "above"
       filter                :
         everything          : @createFilter("Everything", account, 'Everything')
-        statuses            : @createFilter("Status Updates", account, 'JStatusUpdate')
+        statuses            : @createFilter("Status Updates", account, 'JNewStatusUpdate')
         codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
         blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
         discussions         : @createFilter("Discussions", account, 'JDiscussion')

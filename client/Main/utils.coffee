@@ -360,7 +360,7 @@ __utils.extend __utils,
     else
       group = 'koding' # KD.defaultSlug
 
-    KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
+    KD.remote.api.JNewStatusUpdate.create {body, group}, (err,reply)=>
       unless err
         KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else

@@ -1,7 +1,7 @@
 class ActivityListItemView extends KDListItemView
 
   getActivityChildConstructors = ->
-    JStatusUpdate       : StatusActivityItemView
+    JNewStatusUpdate       : StatusActivityItemView
     JCodeSnip           : CodesnipActivityItemView
     JDiscussion         : DiscussionActivityItemView
     JLink               : LinkActivityItemView

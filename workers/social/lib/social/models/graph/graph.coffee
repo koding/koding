@@ -37,7 +37,7 @@ module.exports = class Graph
   @fetch:(query, params, callback)->
     @getDb().query query, params, callback
 
-  @revive:(results, callback)->
+  @revive:(results, callback=->)->
     if results.length < 1
       return callback
     data  = []

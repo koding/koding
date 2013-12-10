@@ -175,7 +175,7 @@ class MembersAppController extends AppController
         statusupdates       :
           title             : 'Status Updates'
           dataSource        : (selector, options, callback)->
-            selector = {sourceName: $in: ['JStatusUpdate']}
+            selector = {sourceName: $in: ['JNewStatusUpdate']}
             account.fetchLikedContents options, selector, callback
         codesnippets        :
           title             : 'Code Snippets'

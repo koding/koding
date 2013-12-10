@@ -64,7 +64,7 @@ class MessagesListController extends KDListViewController
 class NotificationListItem extends KDListItemView
 
   activityNameMap = ->
-    JStatusUpdate   : "your status update."
+    JNewStatusUpdate   : "your status update."
     JCodeSnip       : "your status update."
     JAccount        : "started following you."
     JPrivateMessage : "your private message."
