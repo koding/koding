@@ -3,7 +3,7 @@ recurly   = require 'koding-payment'
 
 module.exports = class JPaymentPayment extends jraphical.Module
 
-  {secure, daisy}      = require 'bongo'
+  {secure, daisy, signature}      = require 'bongo'
 
   JUser                = require '../user'
   JGroup               = require '../group'
@@ -15,8 +15,9 @@ module.exports = class JPaymentPayment extends jraphical.Module
 
   @set
     sharedMethods     :
-      static          : ['makePayment']
-      instance        : ['info']
+      static          :
+        makePayment   :
+          (signature Object, Function)
     schema            :
       planCode        : String
       planQuantity    : Number
