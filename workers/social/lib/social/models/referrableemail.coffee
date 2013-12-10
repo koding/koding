@@ -1,14 +1,14 @@
 jraphical = require "jraphical"
 module.exports = class JReferrableEmail extends jraphical.Module
   JAccount           = require "./account"
-  {ObjectId, secure} = require "bongo"
+  {ObjectId, secure, signature} = require "bongo"
 
   @share()
 
   @set
 
     sharedMethods :
-      
+
       static      :
         invite    :
           (signature String, Function)
