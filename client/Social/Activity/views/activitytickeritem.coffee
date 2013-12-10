@@ -167,16 +167,15 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
       cssClass : "avatarview"
     , target
 
-    @actor    = new ProfileLinkView null, target
-    @subj     = new ActivityLinkView null, source
-    @object   = new ActivityCommentView null, source
+    @actor = new ProfileLinkView null, target
+    @subj  = new ActivityLinkView null, source
 
   pistachio: ->
     {source, target} = @getData()
     if target.getId() is KD.whoami().getId()
-      return "{{> @avatar}} You posted a {{> @subj}}: {{> @object}}"
+      return "{{> @avatar}} You posted {{> @subj}}"
 
-    return "{{> @avatar}} {{> @actor}} posted a {{> @subj}}: {{> @object}}"
+    return "{{> @avatar}} {{> @actor}} posted {{> @subj}}"
 
 
 class ActivityTickerItem extends KDListItemView
