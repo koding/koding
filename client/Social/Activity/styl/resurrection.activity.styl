@@ -535,8 +535,12 @@ span.collapsedtext
   border-top            2px solid #e4e4e4
 
   .preview-image
+    overflow            hidden
     size                144px, 100px
     fl()
+
+    img
+      max-width         100%
 
     &+.preview-text
       kalc              width, 100% \- 144px
