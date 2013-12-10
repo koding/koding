@@ -5,7 +5,10 @@ class ActivityInputWidget extends KDView
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
     super options, data
+
     @input    = new ActivityInputView
+    @input.on "Escape", @bound "reset"
+
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submit    = new KDButtonView
@@ -55,9 +58,13 @@ class ActivityInputWidget extends KDView
         data.link_url   = @embedBox.url or ""
         data.link_embed = @embedBox.getDataForSubmit() or {}
 
+        @lockSubmit()
+
         fn = @bound if activity then "update" else "create"
         fn data, (err, activity) =>
+          @reset yes
           @embedBox.resetEmbedAndHide()
+          @emit "Submit"
           callback? err, activity
     ]
 
@@ -95,12 +102,23 @@ class ActivityInputWidget extends KDView
     @embedBox.loadEmbed activity.link.link_url  if activity.link
     @submit.setTitle "Update"
 
-  reset: ->
+  reset: (lock = yes) ->
     @input.setContent ""
     @input.blur()
-    @submit.setTitle "Post"
     @embedBox.resetEmbedAndHide()
+    @submit.setTitle "Post"
+    @submit.focus()
+    setTimeout (@bound "unlockSubmit"), 8000
     @setData null
+    @unlockSubmit()  if lock
+
+  lockSubmit: ->
+    @submit.disable()
+    @submit.setTitle "Wait"
+
+  unlockSubmit: ->
+    @submit.enable()
+    @submit.setTitle "Post"
 
   viewAppended: ->
     @addSubView @input

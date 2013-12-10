@@ -15,7 +15,10 @@ putSplash = (name, section, model)->
   else "launching an application"
 
   content  = "<figure class='splash'><h2 class='splash-title'>Please wait, #{title}:</h2>"
-  content += "<h3 class='splash-name'>#{name.substr 0, 100}#{if name.length > 100 then '...' else ''}</h3></figure>"
+  if name
+    content += "<h3 class='splash-name'>#{name.substr 0, 100}#{if name.length > 100 then '...' else ''}</h3></figure>"
+
+  return content
 
 generateShareUrl = (model, uri)->
   slug = if model?.bongo_?.constructorName and model?.slug

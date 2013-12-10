@@ -111,8 +111,8 @@ class ActivityItemChild extends KDView
     if data.originId is KD.whoami().getId()
       menu =
         'Edit'     :
-          callback : ->
-            KD.getSingleton("appManager").tell "Activity", "editActivity", data
+          callback : =>
+            KD.getSingleton("appManager").tell "Activity", "editActivity", this
         'Delete'   :
           callback : =>
             @confirmDeletePost data

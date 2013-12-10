@@ -38,13 +38,15 @@ class EmbedBoxLinkViewDescription extends KDView
 
   click:(event)->
 
-    event.preventDefault()
-    event.stopPropagation()
+    # we need to do this stuff only if the item is ours.
+    # commenting out for now [BC]
+    # event.preventDefault()
+    # event.stopPropagation()
 
-    @descriptionInput.show()
-    @descriptionInput.setFocus()
-    @utils.elementHide @getDescriptionEl()
-    no
+    # @descriptionInput.show()
+    # @descriptionInput.setFocus()
+    # @utils.elementHide @getDescriptionEl()
+    # no
 
   getDescription:->
     value = @getData().link_embed?.description or @getData().description
