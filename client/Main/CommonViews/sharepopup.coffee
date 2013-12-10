@@ -113,7 +113,7 @@ class SharePopup extends JView
         cssClass    : "icon-link"
         title       : ""
         href        :  @getOptions().newTab.url
-        target      :  @getOptions().newTab.url
+        target      :  "_blank"
         icon        :
           cssClass  : 'new-page'
           placement : 'right'
