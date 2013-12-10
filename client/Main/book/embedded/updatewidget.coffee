@@ -35,7 +35,6 @@ class BookUpdateWidget extends KDView
         @getDelegate().$().css left : -700
       unless err
         @constructor.updateSent = yes
-        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView
           type     : 'growl'
           cssClass : 'mini'

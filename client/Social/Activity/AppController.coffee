@@ -72,8 +72,6 @@ class ActivityAppController extends AppController
     @listController.resetList()
     @listController.removeAllItems()
 
-  ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
-
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   bindLazyLoad:->
