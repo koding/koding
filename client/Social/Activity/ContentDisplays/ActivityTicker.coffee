@@ -26,6 +26,8 @@ class ActivityTicker extends ActivityRightBase
     group.on "FollowHappened", @bound "addFollow"
     group.on "PostIsCreated", @bound "addActivity"
     group.on "ReplyIsAdded", @bound "addComment"
+    group.on "PostIsDeleted", @bound "deleteActivity"
+
     @listController.listView.on 'ItemWasAdded', (view, index) =>
       if view.getData()?
         itemId = @getItemId view.data
@@ -57,6 +59,17 @@ class ActivityTicker extends ActivityRightBase
       return log "discarding event, invalid data"  if err or not tags
       source.tags = tags
       @addNewItem {source, target, as}, 0
+
+  deleteActivity: (data) ->
+    {origin, subject} = data
+    unless @getConstructorName(origin) and @getConstructorName(subject)
+      return console.warn "data is not valid"
+
+    source = KD.remote.revive subject
+    target = KD.remote.revive origin
+    as     = "author"
+
+    @removeItem {source, target, as}
 
   addJoin: (data)->
     {member} = data
@@ -192,6 +205,16 @@ class ActivityTicker extends ActivityRightBase
       viewItem = @itemsIndexed[itemId]
       @listController.moveItemToIndex viewItem, 0
 
+  removeItem: (item) ->
+    itemId = @getItemId item
+
+    if @itemsIndexed[itemId]
+      viewItem = @itemsIndexed[itemId]
+      @listController.removeItem viewItem
+
+
   getItemId: (item) ->
     {source, target, object, as} = item
     "#{source.getId()}_#{target.getId()}_#{as}_#{object?.getId()}"
+
+
