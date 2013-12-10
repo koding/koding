@@ -94,7 +94,7 @@ class GroupsController extends KDController
     KD.whoami().ignoreInvitation group, callback
 
   cancelGroupRequest:(group, callback)->
-    KD.whoami().cancelRequest group, callback
+    KD.whoami().cancelRequest group.slug, callback
 
   cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
