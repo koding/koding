@@ -51,7 +51,7 @@ func ResolveDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domainname := vars["domain"]
 
-	target, err := resolver.GetTarget(domainname)
+	target, err := resolver.TargetByHost(domainname)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

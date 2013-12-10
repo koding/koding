@@ -4,18 +4,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/streadway/amqp"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/slog"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/streadway/amqp"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 type IncomingMessage struct {
@@ -131,7 +132,7 @@ func handleCommand(command string, worker models.Worker) error {
 			key,         // version
 			worker.Hostname+":"+port, // host
 			"FromKontrolDaemon",      // hostdata
-			"",                       // rabbitkey, not used
+			true,                     // enable keyData to be used with proxy immediately
 		)
 		if err != nil {
 			return fmt.Errorf("register to kontrol proxy not possible: %s", err.Error())

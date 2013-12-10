@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/sessions"
-	"github.com/hoisie/redis"
-	libgeo "github.com/nranchev/go-libGeoIP"
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
@@ -27,6 +23,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/sessions"
+	"github.com/hoisie/redis"
+	libgeo "github.com/nranchev/go-libGeoIP"
 )
 
 func init() {
@@ -169,8 +170,8 @@ func startProxy() {
 // in his base filename, like 10.0.5.102_cert.pem.  Each listener is created in
 // a seperate goroutine, thus the functions is nonblocking.
 func startHTTPS(reverseProxy *Proxy) {
-	// HTTPS handling
-	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL) // it is always 443, standart port for HTTPS protocol
+	// HTTPS handling, it is always 443, standart port for HTTPS protocol
+	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	logs.Info(fmt.Sprintf("https mode is enabled. serving at :%s ...", portssl))
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
@@ -251,6 +252,8 @@ var resetRegex = regexp.MustCompile("/_resetcache_/")
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
+	userIP, userCountry := getIPandCountry(req.RemoteAddr)
+
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
@@ -262,8 +265,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return p.resetCacheHandler(filepath.Base(req.URL.String()))
 	}
 
-	userIP, userCountry := getIPandCountry(req.RemoteAddr)
-	target, err := resolver.GetMemTarget(req.Host)
+	target, err := p.getTarget(req)
 	if err != nil {
 		if err == resolver.ErrGone {
 			return templateHandler("notfound.html", req.Host, 410)
@@ -328,6 +330,23 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	return reverseProxyHandler(transport, target.Url)
+}
+
+// getTarget is used to get the target according to the incoming request
+func (p *Proxy) getTarget(req *http.Request) (*resolver.Target, error) {
+	cookieBuild, err := req.Cookie("kdproxy-preferred-build")
+	if err != http.ErrNoCookie {
+		logs.Debug(fmt.Sprintf("proxy target is overridden. Using BUILD '%s'\n", cookieBuild.Value))
+		return resolver.MemTargetByBuild(cookieBuild.Value)
+	}
+
+	cookieDomain, err := req.Cookie("kdproxy-preferred-domain")
+	if err != http.ErrNoCookie {
+		logs.Debug(fmt.Sprintf("proxy target is overrriden. Using DOMAIN '%s'\n", cookieBuild.Domain))
+		return resolver.MemTargetByHost(cookieDomain.Value)
+	}
+
+	return resolver.MemTargetByHost(req.Host)
 }
 
 // reverseProxyHandler is the main handler that is used for copy the response

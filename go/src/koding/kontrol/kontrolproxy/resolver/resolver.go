@@ -6,7 +6,6 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kontrol/kontrolproxy/utils"
-	"labix.org/v2/mgo"
 	"log"
 	"math"
 	"math/rand"
@@ -16,6 +15,23 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"labix.org/v2/mgo"
+)
+
+var (
+	ErrGone = errors.New("target is gone")
+
+	// cache lookup tables
+	targetHosts   = make(map[string]*Target)
+	targetHostsMu sync.Mutex // protects targetHosts map
+
+	targetBuilds   = make(map[string]*Target)
+	targetBuildsMu sync.Mutex // protects targetBuilds map
+
+	// used for loadbalance modes, like roundrobin or random
+	indexes   = make(map[string]int)
+	indexesMu sync.Mutex // protect indexes
 )
 
 // Target is returned for every incoming request host.
@@ -58,35 +74,25 @@ func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
 	}
 }
 
-var ErrGone = errors.New("target is gone")
-
-// cache lookup table
-var targets = make(map[string]*Target)
-var targetsMu sync.Mutex // protects targets map
-
-// used for loadbalance modes, like roundrobin or random
-var indexes = make(map[string]int)
-var indexesMu sync.Mutex // protect indexes
-
-// GetMemTarget is like GetTarget with a difference, that it f first makes a
+// MemTargetByHost is like TargetByHost with a difference, that it f first makes a
 // lookup from the in-memory lookup, if not found it returns the result from
-// GetTarget()
-func GetMemTarget(host string) (*Target, error) {
+// TargetByHost()
+func MemTargetByHost(host string) (*Target, error) {
 	var err error
 	target := new(Target)
 
-	targetsMu.Lock()
-	defer targetsMu.Unlock()
+	targetHostsMu.Lock()
+	defer targetHostsMu.Unlock()
 
-	target, ok := targets[host]
+	target, ok := targetHosts[host]
 	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
-		target, err = GetTarget(host)
+		target, err = TargetByHost(host)
 		if err != nil {
 			return nil, err
 		}
 		target.FetchedSource = "MongoDB"
 
-		targets[host] = target
+		targetHosts[host] = target
 	} else {
 		target.FetchedSource = "Cache"
 	}
@@ -94,15 +100,15 @@ func GetMemTarget(host string) (*Target, error) {
 	return target, nil
 }
 
-// GetTarget is used to resolve any hostname to their final target destination
-// together with the mode of the domain. Any incoming domain can have multiple
-// different target destinations. GetTarget returns the ultimate target
-// destinations. Some examples:
+// TargetByHost is used to resolve any hostname to their final target
+// destination together with the mode of the domain for the given host string.
+// Any incoming domain can have multiple different target destinations.
+// TargetByHost returns the ultimate target destinations. Some examples:
 //
 // koding.com -> "http://webserver-build-koding-813a.in.koding.com:3000", mode:internal
 // arslan.kd.io -> "http://10.128.2.25:80", mode:vm
 // y.koding.com -> "http://localhost/maintenance", mode:maintenance
-func GetTarget(host string) (*Target, error) {
+func TargetByHost(host string) (*Target, error) {
 	domain, err := targetDomain(host)
 	if err != nil {
 		return nil, err
@@ -116,6 +122,42 @@ func GetTarget(host string) (*Target, error) {
 	target.CacheEnabled = domain.Proxy.CacheEnabled
 	target.CacheSuffixes = domain.Proxy.CacheSuffixes
 	return target, nil
+}
+
+// TODO: make it an interface capable function and merge with MemTargetByHost
+// MemTargetByBuild is like TargetByBuild with a difference, that it f first makes a
+// lookup from the in-memory lookup, if not found it returns the result from
+// TargetByBuild()
+func MemTargetByBuild(host string) (*Target, error) {
+	var err error
+	target := new(Target)
+
+	targetBuildsMu.Lock()
+	defer targetBuildsMu.Unlock()
+
+	target, ok := targetBuilds[host]
+	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
+		target, err = TargetByBuild(host)
+		if err != nil {
+			return nil, err
+		}
+		target.FetchedSource = "MongoDB"
+
+		targetBuilds[host] = target
+	} else {
+		target.FetchedSource = "Cache"
+	}
+
+	return target, nil
+}
+
+// TargetByBuild is used the resolve the final target destination for the
+// given build number.
+func TargetByBuild(buildKey string) (*Target, error) {
+	username := "koding"
+	servicename := "server"
+
+	return buildTarget(username, servicename, buildKey)
 }
 
 func targetMode(host string, domain *models.Domain) (*Target, error) {
@@ -148,7 +190,7 @@ func targetMode(host string, domain *models.Domain) (*Target, error) {
 	case "vm":
 		return vmTarget(host, port, domain)
 	case "internal":
-		return internalTarget(host, port, domain)
+		return internalTarget(domain)
 	}
 
 	return nil, fmt.Errorf("ERROR: proxy mode is not supported: %s", mode)
@@ -180,21 +222,56 @@ func targetDomain(host string) (*models.Domain, error) {
 	return domain, nil
 }
 
-// internalTarget returns a target that is obtained via the jProxyServices
-// collection, which is used for internal services. An example host to target
-// could be in form of: "koding.com" -> webserver-950.sj.koding.com:3000".
-// The default cacheTimeout is 20 seconds.
-func internalTarget(host, port string, domain *models.Domain) (*Target, error) {
-	var hostname string
-	// we only opened ports between those, therefore other ports are not used
-	portInt, _ := strconv.Atoi(port)
-	if portInt >= 1024 && portInt <= 10000 {
-		return nil, errors.New("port range is not allowed for internal usages")
-	}
-
+// internalTarget is a simple wrapper around buildTarget, it takes a
+// models.Domain as argument instead of username, servicename and key.
+func internalTarget(domain *models.Domain) (*Target, error) {
 	username := domain.Proxy.Username
 	servicename := domain.Proxy.Servicename
 	key := domain.Proxy.Key
+
+	return buildTarget(username, servicename, key)
+}
+
+// buildTarget returns a target that is obtained via the jProxyServices
+// collection, which is used for internal services. An example service to
+// target could be in form: "koding, server, 950" ->
+// "webserver-950.sj.koding.com:3000". The default cacheTimeout is 20 seconds.
+func buildTarget(username, servicename, key string) (*Target, error) {
+	var hostname string
+
+	hosts, balanceMode, err := buildHosts(username, servicename, key)
+	if err != nil {
+		return nil, err
+	}
+
+	switch balanceMode {
+	case "roundrobin":
+		var n int
+		indexKey := fmt.Sprintf("%s-%s-%s", username, servicename, key)
+		index := getIndex(indexKey) // gives 0 if not available
+		hostname, n = internalRoundRobin(hosts, index, 0)
+		addOrUpdateIndex(indexKey, n)
+		if hostname == "" { // means all servers are dead, show maintenance page
+			return newTarget(nil, "maintenance", time.Second*20), nil
+		}
+	case "random":
+		randomIndex := rand.Intn(len(hosts) - 1)
+		hostname = hosts[randomIndex]
+	default:
+		hostname = hosts[0]
+	}
+
+	hostname = utils.CheckScheme(hostname)
+	target, err := url.Parse(hostname)
+	if err != nil {
+		return nil, err
+	}
+
+	return newTarget(target, "internal", time.Second*20), nil
+}
+
+// buildHosts returns a list of targe thosts for the given build paramaters.
+func buildHosts(username, servicename, key string) ([]string, string, error) {
 	latestKey := modelhelper.GetLatestKey(username, servicename)
 	if latestKey == "" {
 		latestKey = key
@@ -205,35 +282,18 @@ func internalTarget(host, port string, domain *models.Domain) (*Target, error) {
 		currentVersion, _ := strconv.Atoi(key)
 		latestVersion, _ := strconv.Atoi(latestKey)
 		if currentVersion < latestVersion {
-			return nil, ErrGone
+			return nil, "", ErrGone
 		} else {
-			return nil, fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
+			return nil, "", fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'",
+				username, servicename, key)
 		}
 	}
 
-	switch keyData.LoadBalancer.Mode {
-	case "roundrobin":
-		var n int
-		index := getIndex(host) // gives 0 if not available
-		hostname, n = internalRoundRobin(keyData.Host, index, 0)
-		addOrUpdateIndex(host, n)
-		if hostname == "" { // means all servers are dead, show maintenance page
-			return newTarget(nil, "maintenance", time.Second*20), nil
-		}
-	case "random":
-		randomIndex := rand.Intn(len(keyData.Host) - 1)
-		hostname = keyData.Host[randomIndex]
-	default:
-		hostname = keyData.Host[0]
+	if !keyData.Enabled {
+		return nil, "", errors.New("host is not allowed to be used")
 	}
 
-	hostname = utils.CheckScheme(hostname)
-	target, err := url.Parse(hostname)
-	if err != nil {
-		return nil, err
-	}
-
-	return newTarget(target, domain.Proxy.Mode, time.Second*20), nil
+	return keyData.Host, keyData.LoadBalancer.Mode, nil
 }
 
 // vmTarget returns a target that is obtained via the jVMs collections. The
@@ -242,11 +302,17 @@ func internalTarget(host, port string, domain *models.Domain) (*Target, error) {
 // to 0 seconds, means it will be cached forever (because it uses an IP that
 // never change.)
 func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
-	var hostname string
+	// we only opened ports between those, therefore other ports are not used
+	portInt, _ := strconv.Atoi(port)
+	if portInt >= 1024 && portInt <= 10000 {
+		return nil, fmt.Errorf("port '%s' is not allowed. Allowed range is 1024 - 10,000", port)
+	}
 
 	if len(domain.HostnameAlias) == 0 {
 		return nil, fmt.Errorf("no hostnameAlias defined for host (vm): %s", host)
 	}
+
+	var hostname string
 
 	switch domain.LoadBalancer.Mode {
 	case "roundrobin": // equal weights
@@ -366,10 +432,10 @@ func internalRoundRobin(hosts []string, index, iter int) (string, int) {
 
 // getIndex is used to get the current index for current the loadbalance
 // algorithm/mode. It's concurrent-safe.
-func getIndex(host string) int {
+func getIndex(indexKey string) int {
 	indexesMu.Lock()
 	defer indexesMu.Unlock()
-	index, _ := indexes[host]
+	index, _ := indexes[indexKey]
 	return index
 }
 
@@ -377,16 +443,16 @@ func getIndex(host string) int {
 // algorithm. The index number is changed according to to the loadbalance mode.
 // When used roundrobin, the next items index is saved, for random a random
 // number is assigned, and so on. It's concurrent-safe.
-func addOrUpdateIndex(host string, index int) {
+func addOrUpdateIndex(indexKey string, index int) {
 	indexesMu.Lock()
 	defer indexesMu.Unlock()
-	indexes[host] = index
+	indexes[indexKey] = index
 }
 
 // deleteIndex is used to remove the current index from the indexes. It's
 // concurrent-safe.
-func deleteIndex(host string) {
+func deleteIndex(indexKey string) {
 	indexesMu.Lock()
 	defer indexesMu.Unlock()
-	delete(indexes, host)
+	delete(indexes, indexKey)
 }
