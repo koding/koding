@@ -248,6 +248,19 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 var resetRegex = regexp.MustCompile("/_resetcache_/")
 
+func checkCookie(req *http.Request) {
+	cookieDomain, err := req.Cookie("kdproxy-preferred-domain")
+	if err != http.ErrNoCookie {
+
+	}
+
+	cookieBuild, err := req.Cookie("kdproxy-preferred-build")
+	if err != http.ErrNoCookie {
+
+	}
+
+}
+
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
@@ -263,7 +276,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	userIP, userCountry := getIPandCountry(req.RemoteAddr)
-	target, err := resolver.GetMemTarget(req.Host)
+	target, err := resolver.MemTargetByHost(req.Host)
 	if err != nil {
 		if err == resolver.ErrGone {
 			return templateHandler("notfound.html", req.Host, 410)
