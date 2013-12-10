@@ -64,7 +64,7 @@ class TeamworkDashboard extends JView
   hide: -> @unsetClass "active"
 
   createPlaygrounds: (manifests) ->
-    manifests.forEach (manifest) =>
+    manifests?.forEach (manifest) =>
       @setClass "ready"
       @playgrounds.addSubView view = new KDCustomHTMLView
         cssClass  : "tw-playground-item"
