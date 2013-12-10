@@ -10,6 +10,7 @@ class ActivityListController extends KDListViewController
     viewOptions.itemClass     or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
+    options.lazyLoaderOptions   = partial : ''
     options.showHeader         ?= no
     options.noItemFoundWidget or= new KDCustomHTMLView
       cssClass : "lazy-loader hidden"
