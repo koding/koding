@@ -47,11 +47,3 @@ class MainNavController extends NavigationController
     @removeAllItems()
     @instantiateListItems KD.getNavItems()
     @selectItemByName name  for {name} in previousSelection
-
-  constructor:->
-    super
-    listView  = @getListView()
-    viewWidth = 70
-    index     = 0
-    listView.on 'ItemWasAdded', (view)->
-      view.once 'viewAppended', -> @setX index++ * viewWidth

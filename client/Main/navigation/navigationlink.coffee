@@ -7,9 +7,9 @@ class NavigationLink extends KDListItemView
     data.type        or= ''
     options.tagName  or= 'a'
     options.type     or= 'main-nav'
-    # options.draggable  =
-    #   axis             : 'x'
-    #   containment      : 'parent' #KD.getSingleton('DockController').getView()
+    options.draggable  =
+      axis             : 'x'
+      containment      : 'parent' #KD.getSingleton('DockController').getView()
     options.attributes = {href}
     options.cssClass   = KD.utils.curry @utils.slugify(data.title), options.cssClass
 
@@ -22,12 +22,13 @@ class NavigationLink extends KDListItemView
       partial  : "<span class='logo'>#{@name[0]}</span>"
     @icon.setCss 'backgroundColor', KD.utils.getColorFromString @name
 
-    @icon.hide()  if @name in ['Activity', 'Topics', 'Terminal', \
-                               'Editor', 'Apps', 'Teamwork', 'Finder']
+    appsHasIcon = Object.keys(KD.config.apps)
+    appsHasIcon.push 'Editor'
+    @icon.hide()  if @name in appsHasIcon
 
     @on "DragStarted", @bound 'dragStarted'
 
-    @on "DragInAction", @bound 'dragInAction'
+    # @on "DragInAction", @bound 'dragInAction'
 
     @on "DragFinished", @bound 'dragFinished'
 
@@ -43,7 +44,7 @@ class NavigationLink extends KDListItemView
 
     # This check is for custom items which isn't connected to an app
     # or if the item is a separator
-    return unless path
+    return if not path or @positionChanged()
 
     mc = KD.getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
@@ -53,7 +54,9 @@ class NavigationLink extends KDListItemView
       topLevel  : topLevel
       navItem   : this
 
-  viewAppended: JView::viewAppended
+  viewAppended:->
+    JView::viewAppended.call this
+    @keepCurrentPosition()
 
   pistachio:->
     """
@@ -67,8 +70,27 @@ class NavigationLink extends KDListItemView
 
   dragStarted: (event, dragState)->
 
-    @setClass 'no-anim'
+    @keepCurrentPosition()
+    @setClass 'no-anim on-top'
 
   dragFinished: (event, dragState)->
 
-    @unsetClass 'no-anim'
+    # @restoreLastPosition()
+    @unsetClass 'no-anim on-top'
+
+  keepCurrentPosition:->
+
+    @_x = @getX()
+    @_y = @getY()
+
+    @_rx = @getRelativeX()
+    @_ry = @getRelativeY()
+
+  restoreLastPosition:->
+
+    @setX @_rx
+    @setY @_ry
+
+  positionChanged:->
+
+    @getRelativeY() isnt @_ry or @getRelativeX() isnt @_rx
