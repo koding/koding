@@ -486,6 +486,19 @@ class ProfileView extends JView
     else
       @trollSwitch = new KDCustomHTMLView
 
+    # badgeView
+    @userBadgesController    = new KDListViewController
+      startWithLazyLoader    : no
+      view                   : new KDListView
+        type                 : "users"
+        cssClass             : "badge-list"
+        itemClass            : UserBadgeView
+
+    KD.remote.api.JBadge.getUserBadges @memberData, (err, badges)=>
+      @userBadgesController.instantiateListItems badges
+
+    @userBadgesView = @userBadgesController.getListView()
+
   viewAppended:->
 
     super
@@ -657,4 +670,9 @@ class ProfileView extends JView
         <a href="#">Tutorials</a>
         <a href="#">Blog Posts</a>
       </div>
+      <div class="user-menu">
+        <a href="#">User Badges</a>
+        {{> @userBadgesView}}
+      </div>
+
     """

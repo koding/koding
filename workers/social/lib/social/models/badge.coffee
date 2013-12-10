@@ -66,9 +66,16 @@ module.exports = class JBadge extends jraphical.Module
         queue  = accountIds.split(",").map (id) =>=>
           JAccount.one "_id" : id, (err, account)=>
             return err if err
-            account.addBadge this, (err, badge)->
-              errors.push err if err
-              queue.next()
+            jraphical.Relationship.one
+              as            : "badge"
+              targetId      : @getId()
+              sourceId      : account.getId()
+            , (err, rel)=>
+              if not rel
+                account.addBadge this, (err, badge)->
+                  errors.push err if err
+            queue.next()
+
         queue.push -> callback if errors.length > 0 then errors else null
         daisy queue
 

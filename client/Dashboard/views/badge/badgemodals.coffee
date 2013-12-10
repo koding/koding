@@ -86,14 +86,14 @@ class BadgeUpdateForm extends JView
     @badgeForm                = new KDModalViewWithForms
       title                   : "Modify Badge"
       overlay                 : "yes"
-      width                   : 600
+      width                   : 700
       height                  : "auto"
       tabs                    :
         goToNextFormOnSubmit  : no
         navigable             : yes
         forms                 :
           "Properties"        :
-            callback          : (formData)=>
+            callback          : (formData) =>
               @badge.modify formData, (err, badge)->
                 return err if err
                 new KDNotificationView
@@ -114,7 +114,7 @@ class BadgeUpdateForm extends JView
                   rules       :
                     required  : yes
                   messages    :
-                    required  : "add badge name"
+                    required  : "badge name required"
               Icon            :
                 label         : "Badge Icon"
                 type          : "text"
@@ -129,14 +129,41 @@ class BadgeUpdateForm extends JView
                 label         : "Permission"
                 itemClass     : KDSelectBox
                 name          : "permission"
+                defaultValue  : "none"
                 selectOptions : [
-                    { title : "No Permission", value : "none"   }
+                    { title   : "No Permission", value : "none"   }
                   ]
+          "Rules"             :
+            fields            : {}
+          "Assign"            :
+            fields            :
+              Username        :
+                label         : "User"
+                type          : "hidden"
+                nextElement   :
+                  userWrapper :
+                    itemClass : KDView
+                    cssClass  : "completed-items"
+            buttons           :
+              Assign          :
+                label         : ""
+                title         : "Assign"
+                style         : "modal-clean-green"
+                callback      : (formData)=>
+                  if @userController?.getSelectedItemData().length > 0
+                    users = @userController?.getSelectedItemData()
+                    userIds = user._id for user in users
+                    @badge.assignBadgeBatch userIds, (err) =>
+                      return err if err
+                      new KDNotificationView
+                        title : "Badge given to "+ users.length+" users."
+          "Users"             :
+            fields            : {}
           "Delete"            :
             fields            :
               Approval        :
                 title         : ""
-                label         : "Why so serious?"
+                label         : "Are you sure ?"
                 itemClass     : KDLabelView
             buttons           :
               Remove          :
@@ -146,12 +173,47 @@ class BadgeUpdateForm extends JView
                 callback      : (formData)=>
                   modal = new BadgeRemoveForm {}, {@badge}
                   modal.setDelegate this
-          "Rules"             :
-            fields            : {}
+
+
     @updatePermissionBoxData()
-    # create rules tab
     @updateRulesTabView()
+    @createUserAutoComplete()
+    @updateBadgeUsersList()
+
     super options, data
+
+  createUserAutoComplete:->
+    @modalTabs = @badgeForm.modalTabs
+    {fields, inputs, buttons} = @modalTabs.forms["Assign"]
+    @userController       = new KDAutoCompleteController
+      form                : @modalTabs.forms["Assign"]
+      name                : "userController"
+      itemClass           : MemberAutoCompleteItemView
+      itemDataPath        : "profile.nickname"
+      outputWrapper       : fields.userWrapper
+      selectedItemClass   : MemberAutoCompletedItemView
+      listWrapperCssClass : "users"
+      submitValuesAsText  : yes
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        if /^@/.test inputValue
+          query = 'profile.nickname': inputValue.replace /^@/, ''
+          KD.remote.api.JAccount.one query, (err, account)=>
+            if not account
+              @userController.showNoDataFound()
+            else
+              callback [account]
+        else
+          KD.remote.api.JAccount.byRelevance inputValue, {}, (err, accounts)->
+            callback accounts
+
+    @userController.on "ItemListChanged", =>
+      accounts = @userController.getSelectedItemData()
+      if accounts.length > 0
+        account = accounts[0]
+        {inputs} = @modalTabs.forms["Assign"]
+
+    fields.Username.addSubView userRequestLineEdit = @userController.getView()
 
   updatePermissionBoxData:->
     selectRoles = []
@@ -165,6 +227,42 @@ class BadgeUpdateForm extends JView
   updateRulesTabView: ->
     parentView = @badgeForm.modalTabs.forms["Rules"]
     parentView.addSubView new BadgeRules badge : @badge
+
+  updateBadgeUsersList: ->
+    parentView = @badgeForm.modalTabs.forms["Users"]
+    parentView.addSubView new BadgeUsersList {}, {@badge}
+
+
+class BadgeUsersList extends JView
+  constructor:(options = {}, data) ->
+
+    {@badge}                  = data
+    @filteredUsersController = new KDListViewController
+      startWithLazyLoader    : no
+      view                   : new KDListView
+        type                 : "users"
+        cssClass             : "user-list"
+        itemClass            : BadgeUsersItem
+
+    KD.remote.api.JBadge.fetchBadgeUsers @badge.getId(), (err, accounts)=>
+      @filteredUsersController.instantiateListItems accounts
+
+    @userView = @filteredUsersController.getListView()
+
+    @userView.on "removeBadgeUser", (account) =>
+      @badge.removeBadgeFromUser account, (err, account)=>
+        return err if err
+        new KDNotificationView
+          title     : "Badge removed"
+          duration  : 2000
+
+    super options, data
+
+  pistachio:->
+
+    """
+      {{>@userView}}
+    """
 
 
 class BadgeRemoveForm extends KDModalViewWithForms
@@ -193,3 +291,23 @@ class BadgeRemoveForm extends KDModalViewWithForms
                 @destroy()
 
     super options, data
+
+#below 2 classes taken from old AdminModal.coffee
+class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
+  constructor:(options, data)->
+    options.cssClass = "clearfix member-suggestion-item"
+    super options, data
+
+    userInput = options.userInput or @getDelegate().userInput
+
+    @addSubView @profileLink = \
+      new AutoCompleteProfileTextView {userInput, shouldShowNick: yes}, data
+
+  viewAppended:-> JView::viewAppended.call this
+
+
+class MemberAutoCompletedItemView extends KDAutoCompletedItem
+
+  viewAppended:->
+    @addSubView @profileText = new AutoCompleteProfileTextView {}, @getData()
+    JView::viewAppended.call this

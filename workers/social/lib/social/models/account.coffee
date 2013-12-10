@@ -706,10 +706,11 @@ module.exports = class JAccount extends jraphical.Module
           return err if err
           countsField = {}
           countsField[@property] = count
+          # there is race condition, should take them to queue
           @update $set: countsField , (err)->
-            JBadge = require './badge'
             return err if err
-            JBadge.checkEligibleBadges client,{badgeItem:@property}, callback
+            JBadge = require './badge'
+            JBadge.checkEligibleBadges client, badgeItem:@property , callback
 
   # Update broken counts for user
   updateCounts:->
@@ -742,7 +743,7 @@ module.exports = class JAccount extends jraphical.Module
     Relationship.count
       as         : 'author'
       targetId   : @getId()
-      sourceName : 'JStatusUpdateJStatusUpdate'
+      sourceName : 'JStatusUpdate'
     , (err, count)=>
       @update ($set: 'counts.statusUpdates': count), ->
 

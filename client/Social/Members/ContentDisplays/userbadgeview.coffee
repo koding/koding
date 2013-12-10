@@ -1,6 +1,5 @@
-class BadgeListItem extends KDListItemView
+class UserBadgeView extends KDListItemView
   constructor: (options = {}, data) ->
-    options.cssClass = "items"
     super options, data
     {iconURL, description} = @getData()
 
@@ -13,18 +12,8 @@ class BadgeListItem extends KDListItemView
         src       : iconURL
         title     : description or ''
 
-    @editButton = new KDButtonView
-      title       : "Modify"
-      cssClass    : "edit-badge"
-      callback    : =>
-        modal     = new BadgeUpdateForm {itemList: this}, badge : @getData()
-
   viewAppended: JView::viewAppended
-
   pistachio:->
-    {title} = @getData()
     """
-      #{title}
       {{> @badgeIcon}}
-      {{> @editButton}}
     """

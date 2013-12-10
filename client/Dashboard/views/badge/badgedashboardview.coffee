@@ -24,7 +24,7 @@ class BadgeDashboardView extends JView
       startWithLazyLoader : no
       view                : new KDListView
         type              : "badges"
-        cssClass          : "item"
+        cssClass          : "badge-list"
         itemClass         : BadgeListItem
 
     @getAllTheBadges()
@@ -50,4 +50,3 @@ class BadgeDashboardView extends JView
     {{> @addBadge}}
     {{> @badgeListContainer}}
     """
-

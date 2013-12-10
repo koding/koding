@@ -117,6 +117,12 @@ class BadgeUsersItem extends KDListItemView
       origin   : @account.profile.nickname
       size     :
         width  : 40
+    @remove    = new KDButtonView
+      title    : "Remove"
+      cssClass : "modal-clean-red"
+      callback : =>
+        @parent.removeItem this
+        @parent.emit "removeBadgeUser", @account
 
   viewAppended: JView::viewAppended
 
@@ -125,12 +131,12 @@ class BadgeUsersItem extends KDListItemView
     """
      {{> @avatar}}
      #{nickname}
+     {{> @remove}}
     """
 
 
 class BadgeRuleItem extends KDListItemView
   constructor: (options = {}, data) ->
-
     @propertySelect   = new KDSelectBox
       name            : 'rule-property'
       selectOptions   : [
