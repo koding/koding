@@ -46,7 +46,7 @@ class ActivityActionsView extends KDView
       tooltip     :
         title     : "Show all"
       click       : (event)=>
-        # event.preventDefault()
+        event.preventDefault()
         @getDelegate().emit "CommentCountClicked", @
     , activity
 
