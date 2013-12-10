@@ -3,7 +3,7 @@ KodingError = require '../../error'
 
 module.exports = class JProxyFilter extends jraphical.Module
 
-  {secure, ObjectId} = require 'bongo'
+  {secure, ObjectId, signature} = require 'bongo'
   {Relationship}     = jraphical
   {permit}           = require '../group/permissionset'
   JProxyRestriction  = require './restriction'
@@ -25,9 +25,13 @@ module.exports = class JProxyFilter extends jraphical.Module
       'list own filters'   : ['member']
 
     sharedMethods   :
-      instance      : []
-      static        : ['createFilter', 'fetchFiltersByContext', 'remove']
-
+      static        :
+        createFilter:
+          (signature Object, Function)
+        fetchFiltersByContext:
+          (signature Function)
+        remove:
+          (signature Object, Function)
     indexes         :
       name          : 'unique'
 
