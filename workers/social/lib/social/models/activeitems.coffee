@@ -6,14 +6,22 @@ JAccount       = require "./account"
 JTag           = require "./tag"
 Cache          = require "../cache/main"
 
-{secure, daisy, Base} = Bongo
+{secure, daisy, Base, signature} = Bongo
 
 module.exports = class ActiveItems extends Base
   @share()
 
   @set
-    sharedMethods :
-      static      : ["fetchTopics", "fetchUsers"]
+    sharedMethods   :
+      static        : 
+        fetchTopics : [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        fetchUsers  : [
+          (signature Function)
+          (signature Object, Function)
+        ]
 
   nameMapping =
     user    :
@@ -26,7 +34,8 @@ module.exports = class ActiveItems extends Base
   # Returns topics in following order:
   #   * Active topics in the last day
   #   * Random topics
-  @fetchTopics = secure (client, options={}, callback)->
+  @fetchTopics = secure (client, options, callback)->
+    [callback, options] = [options, callback]  unless callback
     options.name       = "topic"
     options.fallbackFn = @fetchRandomTopics
 
@@ -36,7 +45,8 @@ module.exports = class ActiveItems extends Base
   #   * Client's followers who are online
   #   * Active users in the last day
   #   * Random users
-  @fetchUsers = secure (client, options={}, callback)->
+  @fetchUsers = secure (client, options, callback)->
+    [callback, options] = [options, callback]  unless callback
     options.client     = client
     options.fallbackFn = @fetchRandomUsers
 
@@ -67,7 +77,8 @@ module.exports = class ActiveItems extends Base
   #
   # Popularity is determined by number of entries in 'relationships'
   # collection that match the criteria passed to it.
-  @fetchItems = (options={}, callback) ->
+  @fetchItems = (options, callback) ->
+    [callback, options] = [options, callback]  unless callback
     {name, nin} = options
     mapping     = nameMapping[name]
     {klass, as} = mapping
