@@ -45,7 +45,7 @@ class ActivityListItemView extends KDListItemView
 
   addChildView:(data, callback)->
     # return
-    return unless data.bongo_
+    return unless data?.bongo_
     {constructorName} = data.bongo_
 
     childConstructor =
@@ -69,7 +69,8 @@ class ActivityListItemView extends KDListItemView
   show:(callback)->
 
     @getData().fetchTeaser? (err, teaser)=>
-      @addChildView teaser, => @slideIn()
+      if teaser
+        @addChildView teaser, => @slideIn()
 
   slideIn:(callback=noop)->
     @once 'transitionend', callback.bind this
