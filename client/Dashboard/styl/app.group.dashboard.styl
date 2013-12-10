@@ -1070,11 +1070,43 @@ Dashboard Invitations Modal Styles
     .select
        float            left
 
-.badge-dashboard-view
-  .badge-list
-    .items
-      display             inline-block
-      width               130px
-      height              130px
-      margin              1em
+body.dashboard
+  .dashboard-tabs
+    border              none !important
+
+   .kdmodal
+    .kdhiddentab
+      display           none
+
+    .formline.permission
+      .kdlabel.permission
+        margin-top      0
+
+  .badges
+    .kdbutton.solid
+      size                auto, 40px
+      line-height         40px
+      rounded             20px
+      span
+        font-size         14px
+        line-height       inherit
+
+  .badge-dashboard-view
+    .badge-list
+      margin              28px 0 0 0
+      .items
+        size              130px, auto
+        text-align        center
+        rounded           3px
+        border            1px solid #bbb
+        padding           14px
+        margin            14px 14px 0 0
+        fl()
+        img
+          display         block
+          size            120px, 120px
+          margin          14px auto
+        .kdbutton.solid
+          background       #aaa
+
 

@@ -24,7 +24,7 @@ class ApplicationManager extends KDObject
     @on 'AppIsBeingShown', @bound "setFrontApp"
 
     # set unload listener
-    wc = @getSingleton 'windowController'
+    wc = KD.singleton 'windowController'
     wc.addUnloadListener 'window', =>
       for own app of @appControllers when app in ['Ace', 'Terminal']
         safeToUnload = no
