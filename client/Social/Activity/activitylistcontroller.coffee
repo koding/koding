@@ -162,8 +162,6 @@ class ActivityListController extends KDListViewController
       newItem = @addHiddenItem data, 0
       @utils.wait 500, -> newItem.slideIn()
 
-  fakeItems = []
-
   addItem:(activity, index, animation) ->
     dataId = activity.getId?() or activity._id
     if dataId?
@@ -172,27 +170,6 @@ class ActivityListController extends KDListViewController
       else
         @itemsIndexed[dataId] = activity
         super(activity, index, animation)
-
-  ownActivityArrived:(activity)->
-
-    @lastItemTimeStamp = activity.createdAt or activity.meta.createdAt
-    if fakeItems.length > 0
-      itemToBeRemoved = fakeItems.shift()
-      @removeItem null, itemToBeRemoved
-      @getListView().addItem activity, 0
-    else
-      view = @addHiddenItem activity, 0
-      @utils.defer =>
-        view.slideIn => @removeFromHiddenItems view
-
-  removeFromHiddenItems: (view)->
-    @hiddenItems.splice @hiddenItems.indexOf(view), 1
-
-
-  fakeActivityArrived:(activity)->
-
-    @ownActivityArrived activity
-    fakeItems.push activity
 
   addHiddenItem:(activity, index, animation = null)->
 

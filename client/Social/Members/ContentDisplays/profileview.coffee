@@ -44,6 +44,7 @@ class AvatarChangeView extends JView
     @on "KDObjectWillBeDestroyed", => @overlay.destroy()
 
     @avatarData = null
+    @avatarPreviewData = null
 
     @webcamTip = new KDView
       cssClass            : "webcam-tip"
@@ -86,6 +87,8 @@ class AvatarChangeView extends JView
       cssClass            : "clean-gray avatar-button"
       title               : "Use Gravatar"
       callback            : =>
+        @avatarPreviewData = @avatar.getGravatarUri()
+        @setAvatarPreviewImage()
         @unsetWide()
         @changeHeader "gravatar"
 
@@ -162,6 +165,7 @@ class AvatarChangeView extends JView
       @loader.show()
 
   showUploadView: ->
+    @avatarData = @avatar.getAvatar()
     @changeHeader "upload"
     @resetView()
     @unsetWide()
@@ -174,11 +178,12 @@ class AvatarChangeView extends JView
     @uploaderView.on "dropFile", ({origin, content})=>
       if origin is "external"
         @resetView()
-        @avatarData = "data:image/png;base64,#{btoa content}"
+        @avatarPreviewData = "data:image/png;base64,#{btoa content}"
         @changeHeader "imagedropped"
-        @setAvatarImage()
+        @setAvatarPreviewImage()
 
   showPhotoView: ->
+    @avatarData = @avatar.getAvatar()
     @changeHeader "photo"
     @resetView()
     @avatar.hide()
@@ -203,7 +208,8 @@ class AvatarChangeView extends JView
         @changeHeader "phototaken"
 
     @webcamView.addSubView @takePhotoButton
-    @webcamView.on "snap", (data)=> @avatarData = data
+    @webcamView.on "snap", (data) => @avatarPreviewData = data
+
     @webcamView.on "allowed", =>
       release()
       @webcamTip.destroy()
@@ -237,11 +243,18 @@ class AvatarChangeView extends JView
       width : 300
       height: 300
 
-  setAvatarImage: ->
-    @avatar.setAvatar "url(#{@avatarData})"
+  setAvatarImage: =>
+    @updateAvatarImage @avatarData
+
+  setAvatarPreviewImage : =>
+    @avatarData = @avatar.getAvatar()
+    @updateAvatarImage @avatarPreviewData
+
+  updateAvatarImage : (imageData) =>
+    @avatar.setAvatar "#{imageData}"
     @avatar.setSize width: 300, height: 300
 
-  setAvatar: ->
+  setAvatar: =>
     @setAvatarImage()
     @avatar.show()
     @emit "UsePhoto", @avatarData
@@ -252,7 +265,10 @@ class AvatarChangeView extends JView
       icon      : yes
       iconOnly  : yes
       iconClass : "okay"
-      callback  : => @setAvatar()
+      callback  : =>
+        @avatarData = @avatarPreviewData
+        @avatarPreviewData = null
+        @setAvatar()
 
   getCancelView: (callback)->
     new KDButtonView
@@ -261,6 +277,8 @@ class AvatarChangeView extends JView
       callback  : =>
         @changeHeader "actions"
         @resetView()
+        @avatarPreviewData = null
+        @setAvatarImage()
         callback?()
 
   slideDownAvatar: -> @avatarHolder.setClass "opened"

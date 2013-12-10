@@ -350,22 +350,6 @@ __utils.extend __utils,
 
     KD.remote.api.JUser.register formData, => location.reload yes
 
-  postDummyStatusUpdate:->
-
-    return if location.hostname isnt "localhost"
-
-    body  = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
-    if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
-      group = KD.config.entryPoint.slug
-    else
-      group = 'koding' # KD.defaultSlug
-
-    KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
-      unless err
-        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
-      else
-        new KDNotificationView type : "mini", title : "There was an error, try again later!"
-
   startRollbar: ->
     @replaceFromTempStorage "_rollbar"
 
