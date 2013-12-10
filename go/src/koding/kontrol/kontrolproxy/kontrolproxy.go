@@ -334,16 +334,27 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 // getTarget is used to get the target according to the incoming request
 func (p *Proxy) getTarget(req *http.Request) (*resolver.Target, error) {
+	var target *resolver.Target
+	var err error
+
 	cookieBuild, err := req.Cookie("kdproxy-preferred-build")
 	if err != http.ErrNoCookie {
-		logs.Debug(fmt.Sprintf("proxy target is overridden. Using BUILD '%s'\n", cookieBuild.Value))
-		return resolver.MemTargetByBuild(cookieBuild.Value)
+		target, err = resolver.MemTargetByBuild(cookieBuild.Value)
+		if err == nil {
+			logs.Debug(fmt.Sprintf("proxy target is overridden. Using BUILD '%s'\n", cookieBuild.Value))
+			return target, nil
+		}
+		// falltrough
 	}
 
 	cookieDomain, err := req.Cookie("kdproxy-preferred-domain")
 	if err != http.ErrNoCookie {
-		logs.Debug(fmt.Sprintf("proxy target is overrriden. Using DOMAIN '%s'\n", cookieBuild.Domain))
-		return resolver.MemTargetByHost(cookieDomain.Value)
+		target, err = resolver.MemTargetByHost(cookieDomain.Value)
+		if err == nil {
+			logs.Debug(fmt.Sprintf("proxy target is overrriden. Using DOMAIN '%s'\n", cookieBuild.Domain))
+			return target, nil
+		}
+		// falltrough
 	}
 
 	return resolver.MemTargetByHost(req.Host)
@@ -458,6 +469,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
 			logs.Warning(fmt.Sprintf("template %s could not be executed", path))
+			http.Error(w, "error code -1", 404)
 			return
 		}
 	})
