@@ -19,9 +19,6 @@ module.exports = class JGroupBundle extends JBundle
     sharedEvents      :
       static          : []
       instance        : []
-    sharedMethods     :
-      static          : []
-      instance        : []
     permissions       :
       'manage payment methods'  : []
       'make payments'           : []
