@@ -21,11 +21,6 @@ class DashboardAppController extends AppController
     super options, data
 
     @tabData = [
-      #   name        : 'Readme'
-      #   viewOptions :
-      #     viewClass : GroupReadmeView
-      #     lazy      : no
-      # ,
         name         : 'Settings'
         viewOptions  :
           viewClass  : GroupGeneralSettingsView

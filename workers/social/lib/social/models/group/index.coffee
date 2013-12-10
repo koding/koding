@@ -101,7 +101,6 @@ module.exports = class JGroup extends Module
         'fetchMembershipPolicy'
         'modifyMembershipPolicy'
         'requestAccess'
-        'fetchReadme'
         'setReadme'
         'addCustomRole'
         'resolvePendingRequests'
@@ -236,9 +235,6 @@ module.exports = class JGroup extends Module
         as          : 'owner'
       invitation:
         targetType  : 'JInvitation'
-        as          : 'owner'
-      readme        :
-        targetType  : 'JMarkdownDoc'
         as          : 'owner'
       vm            :
         targetType  : 'JVM'
@@ -726,58 +722,22 @@ module.exports = class JGroup extends Module
   # fetchMyFollowees: permit 'list members'
   #   success:(client, options, callback)->
 
-  fetchReadme$: permit 'view readme',
-    success:(client, rest...)-> @fetchReadme rest...
-
-  setReadme$: permit
-    advanced: PERMISSION_EDIT_GROUPS
-    success:(client, text, callback)->
-      @fetchReadme (err, readme)=>
-        unless readme
-          JMarkdownDoc = require '../markdowndoc'
-          readme = new JMarkdownDoc content: text
-
-          daisy queue = [
-            ->
-              readme.save (err)->
-                console.log err
-                if err then callback err
-                else queue.next()
-            =>
-              @addReadme readme, (err)->
-                console.log err
-                if err then callback err
-                else queue.next()
-            ->
-              callback null, readme
-          ]
-
-        else
-          readme.update $set:{ content: text }, (err)=>
-            if err then callback err
-            else callback null, readme
-    failure:(client,text, callback)->
-      callback new KodingError "You are not allowed to change this."
-
   fetchHomepageView: (account, callback)->
-    @fetchReadme (err, readme)=>
-      return callback err  if err
-      @fetchMembershipPolicy (err, policy)=>
-        if err then callback err
-        else
-          options = {
-            account
-            @slug
-            @title
-            policy
-            @avatar
-            @body
-            @counts
-            content : readme?.html ? readme?.content
-            @customize
-          }
-          prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-          JGroup.render[prefix].groupHome options, callback
+    @fetchMembershipPolicy (err, policy)=>
+      if err then callback err
+      else
+        options = {
+          account
+          @slug
+          @title
+          policy
+          @avatar
+          @body
+          @counts
+          @customize
+        }
+        prefix = if account.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+        JGroup.render[prefix].groupHome options, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -1284,9 +1244,6 @@ module.exports = class JGroup extends Module
 
         => @fetchMembershipPolicy (err, policy)->
           removeHelper policy, err, callback, queue
-
-        => @fetchReadme (err, readme)->
-          removeHelper readme, err, callback, queue
 
         => @fetchInvitationRequests (err, requests)->
           JInvitationRequest = require '../invitationrequest'
