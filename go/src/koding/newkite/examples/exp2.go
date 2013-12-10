@@ -37,14 +37,17 @@ func main() {
 		fmt.Printf("--- kite event: %#v\n", e)
 	}
 
-	kites, err := k.Kontrol.GetKites(query, onEvent)
+	go func() {
+		err := k.Kontrol.WatchKites(query, onEvent)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// .. or just get the current kites and dial for one
+	kites, err := k.Kontrol.GetKites(query)
 	if err != nil {
 		fmt.Println(err)
-		return
-	}
-
-	if len(kites) == 0 {
-		fmt.Println("No mathworker available")
 		return
 	}
 
@@ -56,7 +59,7 @@ func main() {
 	}
 
 	squareOf := func(i int) {
-		response, err := mathWorker.Call("square", i)
+		response, err := mathWorker.Tell("square", i)
 		if err != nil {
 			fmt.Println(err)
 			return
