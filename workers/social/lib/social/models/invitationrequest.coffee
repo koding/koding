@@ -16,8 +16,14 @@ module.exports = class JInvitationRequest extends Model
       email           : 'sparse'
       status          : 'sparse'
     sharedMethods     :
-      static          : ['create']
-      instance        : ['send', 'remove', 'approve', 'decline']
+      static          : {}
+      instance        : 
+        remove        :
+          (signature Function)
+        approve       :
+          (signature Function)
+        decline       :
+          (signature Function)
     schema            :
       requestedAt     :
         type          : Date
