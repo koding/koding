@@ -5,7 +5,10 @@ class ActivityInputWidget extends KDView
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
     super options, data
+
     @input    = new ActivityInputView
+    @input.on "Escape", @bound "reset"
+
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submit    = new KDButtonView
