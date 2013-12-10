@@ -61,6 +61,7 @@ class ActivityInputWidget extends KDView
         fn data, (err, activity) =>
           @embedBox.resetEmbedAndHide()
           @enableSubmit()
+          @emit "Submit"
           callback? err, activity
     ]
 

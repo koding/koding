@@ -402,5 +402,10 @@ class ActivityAppController extends AppController
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, callback
 
-  editActivity: (activity) ->
-    @getView().inputWidget.edit activity
+  editActivity: (item) ->
+    activity = item.getData()
+    {inputWidget} = @getView()
+    inputWidget.edit activity
+    window.scrollTo 0, 0
+    @once inputWidget.on "Submit", ->
+      window.scrollTo 0, item.getElement().getBoundingClientRect().top
