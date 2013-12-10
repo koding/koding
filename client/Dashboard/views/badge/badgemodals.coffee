@@ -4,6 +4,7 @@ class NewBadgeForm extends JView
     @badgeForm                = new KDModalViewWithForms
       title                   : "Add New Badge"
       overlay                 : "yes"
+      cssClass                : "add-badge-modal"
       width                   : 600
       height                  : "auto"
       tabs                    :

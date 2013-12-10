@@ -15,6 +15,7 @@ class BadgeDashboardView extends JView
 
     # create new badge button
     @addBadge = new KDButtonView
+      style     : "solid green"
       title     : "add badge"
       callback  : =>
         new NewBadgeForm {@badgeListController}
