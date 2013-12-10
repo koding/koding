@@ -1,7 +1,7 @@
 jraphical = require 'jraphical'
 Bongo     = require "bongo"
 
-{secure, daisy, Base} = Bongo
+{secure, daisy, Base, signature} = Bongo
 
 module.exports = class JInvitation extends jraphical.Module
 
@@ -17,7 +17,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   @isEnabledGlobally = yes
 
-  {ObjectRef, dash, daisy, secure} = require 'bongo'
+  {ObjectRef, dash, daisy, secure, signature} = require 'bongo'
 
   KodingError = require '../error'
   JMail       = require './email'
@@ -28,11 +28,29 @@ module.exports = class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      instance      : ['modifyMultiuse', 'remove']
-      static        : ['inviteFriend', 'byCode', 'suggestCode', 'createMultiuse',
-                       'createForResurrection', 'createMultiForResurrection'
-                       'sendResurrectionEmails', 'byCodeForBeta'
-                      ]
+
+      instance:
+        modifyMultiuse:
+          (signature Object, Function)
+        remove:
+          (signature Function)
+      
+      static:
+        inviteFriend:
+          (signature Object, Function)
+        byCode:
+          (signature String, Function)
+        suggestCode:
+          (signature Function)
+        createMultiuse:
+          (signature Object, Function)
+        createForResurrection:
+          (signature String, Function)
+        createMultiForResurrection:
+          (signature [String], Function)
+        byCodeForBeta:
+          (signature String, Function)
+
     sharedEvents    :
       static        : []
       instance      : []
@@ -254,22 +272,6 @@ module.exports = class JInvitation extends jraphical.Module
         createdFor : username
       }
       invite.save callback
-
-  @sendResurrectionEmails = permit 'send invitations',
-    success: (client, username, callback)->
-      JInvitation.some {group:"resurrection", status:"active"}, {}, (err, invites)=>
-        daisy queue = invites.map (invite) =>
-          =>
-            email = new JMail {
-              email   : invite.email
-              subject : "You're invited to try a new version Koding!"
-              content : @getRessurrectionMessage invite.code
-              replyto : "hello@koding.com"
-            }
-            email.save (err)->
-              invite.update {$set: status: if err then 'couldnt send email' else 'sent'}, ->
-
-        queue.push -> callback null
 
   @suggestCode: permit 'send invitations',
     success: (client, callback, tries=0)->
