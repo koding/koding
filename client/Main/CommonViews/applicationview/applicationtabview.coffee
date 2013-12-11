@@ -30,9 +30,9 @@ class ApplicationTabView extends KDTabView
 
       {tabHandle}  = pane
       {plusHandle} = @getOptions().tabHandleContainer
-      tabHandle.on "DragInAction", =>
+      tabHandle.on "DragInAction", ->
         plusHandle.hide() if tabHandle.dragIsAllowed
-      tabHandle.on "DragFinished", =>
+      tabHandle.on "DragFinished", ->
         plusHandle.show()
 
     @on "SaveSessionData", (data) =>
