@@ -55,11 +55,6 @@ class CollaborativeWorkspace extends Workspace
 
       @emit "WorkspaceSyncedWithRemote"
 
-      @broadcastRef.on "value", (snapshot) =>
-        message = snapshot.val()
-        return if not message or not message.data or message.data.sender is @nickname
-        @displayBroadcastMessage message.data
-
     @workspaceRef.child("users").on "child_added", (snapshot) =>
       @fetchUsers()
 
@@ -80,6 +75,11 @@ class CollaborativeWorkspace extends Workspace
       KD.utils.wait 1500, =>
         @workspaceRef.once "value", (snapshot) =>
           @showDisconnectedModal()  unless snapshot.val() or @disconnectedModal
+
+    @broadcastRef.on "value", (snapshot) =>
+      message = snapshot.val()
+      return if not message or not message.data or message.data.sender is @nickname
+      @displayBroadcastMessage message.data
 
     @broadcastMessage
       title     : "#{@nickname} has joined the session"
