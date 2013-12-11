@@ -162,7 +162,7 @@ resurrection.activity.styl
       .action
         overflow        visible
         width           auto
-        line-height     15px
+        line-height     18px
 
         .kdview
           font-weight   300
@@ -248,11 +248,13 @@ resurrection.activity.styl
         width           170px
         overflow        hidden
         text-overflow   ellipsis
+        color           #414853
         fl()
       .user-numbers
         height          18px
         margin          4px 0 0
-        font-weight     200
+        color           #7A7D82
+        font-weight     300
 
     .active-topics
       .kdlistitemview-activity-ticker-item
@@ -407,14 +409,14 @@ span.collapsedtext
         sprite        activity share-icon
 
     .action-container
-      size            auto, 13px
+      size            auto 13px
       margin          0 0 0 14px
       fl()
 
       &.liked .like-icon
         sprite        activity like-icon-liked
-      &.kdview.kdloader
-        margin-top      7px
+      // &.kdview.kdloader
+      //   margin-top    0
 
     .count
       display         inline-block
@@ -573,7 +575,8 @@ span.collapsedtext
       size        auto, auto
 
       textarea
-        size        100%, 47px
+        size        100% 47px
+        min-height  47px
         border      1px solid #d1d3d3
         box-shadow  none
         background  #fff
