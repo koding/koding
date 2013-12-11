@@ -29,6 +29,7 @@ module.exports = class Slugifiable
       .trim()                            # trim leading and trailing ws
       .toLowerCase()                     # change everything to lowercase
       .replace(/^\s+|\s+$/g, "")         # trim leading and trailing spaces
+      .replace(/\|.+?\|/g, "")           # remove tokens
       .replace(/[_|\s]+/g, "-")          # change all spaces and underscores to a hyphen
       .replace(/[^a-z0-9-]+/g, "")       # remove all non-alphanumeric characters except the hyphen
       .replace(/[-]+/g, "-")             # replace multiple instances of the hyphen with a single instance
