@@ -13,7 +13,7 @@ module.exports = (options={}, callback)->
     groupName = client?.context?.group or 'koding'
     JGroup.one slug: groupName, (err, group)->
       return cb null, [] if err
-      group._fetchMembersFromGraph client, {}, cb
+      group.fetchMembersFromGraph client, {}, cb
 
   fetchActivityFromGraph = (bongoModels, client, cb)->
     return cb null, [] unless bongoModels
