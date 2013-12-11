@@ -21,33 +21,6 @@ class WebTermController extends AppController
         {title: "customViewAdvancedSettings"}
       ]
     behavior     : "application"
-    preCondition :
-      condition  : (options, cb)->
-        {vmName} = options
-
-        KD.mixpanel "Click open Webterm", vmName
-
-        vmController = KD.getSingleton 'vmController'
-        vmController.fetchDefaultVmName (defaultVmName)->
-          vmName or= defaultVmName
-          return cb no  unless vmName
-          vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)->
-            cb  info?.state is 'RUNNING', {vmName, info}
-            KD.mixpanel "Opened Webterm", vmName
-          , ->
-            cb no
-            unless KD.isGuest()
-              KD.logToExternal "failed to fetch vminfo, couldn't open terminal"
-          , 2500
-
-      failure     : (options, cb)->
-        {vmName} = options
-        KD.mixpanel "Can't open Webterm", {vmName}
-        KD.getSingleton("vmController").askToTurnOn
-          appName : 'Terminal'
-          vmName  : options.vmName
-          state   : options.info.state
-        , cb
 
   constructor:(options = {}, data)->
     params              = options.params or {}
