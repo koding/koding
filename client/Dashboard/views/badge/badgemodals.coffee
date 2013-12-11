@@ -62,10 +62,10 @@ class NewBadgeForm extends JView
     """
 
   updatePermissionBoxData:->
-    selectRoles = []
+    selectRoles   = []
     permissionBox = @badgeForm.modalTabs.forms["New Badge"].inputs.Permission
     currentGroup  = KD.getSingleton("groupsController").getCurrentGroup()
-    currentGroup.fetchRoles (err, roles)=>
+    currentGroup.fetchRoles (err, roles) =>
       for role in roles
         selectRoles.push title : role.title, value : role._id
       permissionBox.setSelectOptions selectRoles
@@ -77,11 +77,11 @@ class NewBadgeForm extends JView
 
   createBadgeAndAssign: (formData)->
     KD.remote.api.JBadge.create formData, (err, badge)=>
-      badge.assignBadgeBatch formData.ids, (err) =>
+      {badgeListController} = @getOptions()
+      badgeListController.addItem badge
+      @badgeRules.emit "BadgeCreated"
+      badge.assignBadgeBatch formData.ids, (err) ->
         return err if err
-        {badgeListController} = @getOptions()
-        badgeListController.addItem badge
-        @badgeRules.emit "BadgeCreated"
 
 
 class BadgeUpdateForm extends JView
@@ -99,7 +99,6 @@ class BadgeUpdateForm extends JView
           "Properties"        :
             callback          : (formData) =>
               @badge.modify formData, (err, badge)->
-                return err if err
                 new KDNotificationView
                   title       : "Badge Updated !"
                   duration    : 1000
@@ -135,7 +134,7 @@ class BadgeUpdateForm extends JView
                 name          : "permission"
                 defaultValue  : "none"
                 selectOptions : [
-                    { title   : "No Permission", value : "none"   }
+                    { title   : "No Permission", value : "none" }
                   ]
           "Rules"             :
             fields            : {}
@@ -153,9 +152,9 @@ class BadgeUpdateForm extends JView
                 label         : ""
                 title         : "Assign"
                 style         : "modal-clean-green"
-                callback      : (formData)=>
+                callback      : (formData) =>
                   if @userController?.getSelectedItemData().length > 0
-                    users = @userController?.getSelectedItemData()
+                    users = @userController.getSelectedItemData()
                     userIds = user._id for user in users
                     @badge.assignBadgeBatch userIds, (err) =>
                       return err if err

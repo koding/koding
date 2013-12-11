@@ -68,7 +68,7 @@ class CommentListViewController extends KDListViewController
 
       KD.mixpanel "Commented on activity"
       countOptions   =
-        property     : "counts.comments"
+        property     : "comments"
         relType      : "commenter"
         source       : "JStatusUpdate"
         targetSelf   : 1

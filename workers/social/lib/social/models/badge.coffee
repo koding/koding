@@ -144,19 +144,22 @@ module.exports = class JBadge extends jraphical.Module
 
 
   @checkEligibleBadges:secure (client, options, callback) ->
-    {badgeItem}  = options
     {@delegate}  = client.connection
-    userCounts   = @delegate.counts
     if @delegate.type is 'unregistered' then return callback new KodingError 'Access denied'
     #get user badges
     @delegate.fetchBadges (err, userBadges)=>
       badgeIds = (userBadge.getId() for userBadge in userBadges)
       # find badges that users can gain and not already gained
-      @listBadges client, {"rule":{"$regex":badgeItem}, "_id":{$nin:badgeIds}}, (err, badges)=>
+      ruleSelector =
+        "rule"     :
+          "$regex" : options.badgeItem
+        "_id"      : $nin:badgeIds
+
+      @listBadges client, ruleSelector, (err, badges)=>
         badgesGained  = []
         errors        = []
         queue = badges.map (badge) =>=>
-          if @checkRules badge.rule, userCounts
+          if @checkRules badge.rule, @delegate.counts
               @delegate.addBadge badge, (err, o)->
                 errors.push err if err
                 badgesGained.push badge

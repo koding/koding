@@ -136,7 +136,7 @@ class LikeView extends KDView
             KD.mixpanel "Liked activity"
             # check badge for likes count
             countOptions   =
-              property     : "counts.likes"
+              property     : "likes"
               relType      : "like"
               targetSelf   : 1
             new BadgeAlertView {countOptions}

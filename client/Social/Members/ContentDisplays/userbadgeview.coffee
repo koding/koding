@@ -12,7 +12,6 @@ class UserBadgeView extends KDListItemView
         src       : iconURL
         title     : description or ''
 
-  viewAppended: JView::viewAppended
   pistachio:->
     """
       {{> @badgeIcon}}
@@ -20,6 +19,7 @@ class UserBadgeView extends KDListItemView
 
 class UserPropertyList extends JView
   constructor:(options = {}, data)->
+    # ONLY ADMINS CAN SEE THAT VIEW
     super options, data
     {counts} = @getData()
 

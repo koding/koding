@@ -5,7 +5,6 @@ class BadgeDashboardView extends JView
     # create badge list
     @prepareDashboard()
 
-
   prepareDashboard:->
     @badgeListContainer   = new KDScrollView
       ownScrollBars       : yes
@@ -31,20 +30,10 @@ class BadgeDashboardView extends JView
     @getAllTheBadges()
     @badgeListContainer.addSubView @badgeListController.getListView()
 
-
   getAllTheBadges: ->
     KD.remote.api.JBadge.listBadges '',(err, badges)=>
       return callback err if err
       @badgeListController.instantiateListItems badges
-
-  getSelectOptionsArray:(badges)->
-    barr = []
-    for badge in badges
-      item = "title":badge.title , "value":badge._id
-      barr.push item
-    barr
-
-  viewAppended: JView::viewAppended
 
   pistachio:->
     """

@@ -10,8 +10,6 @@ class BadgeRules extends JView
 
     @badgeListView = @badgeRulesListController.getListView()
 
-    #@badgeRulesListController.addItem {}
-
     @addRule          = new KDButtonView
       name            : 'addrule'
       style           : 'add-new-rule'
@@ -61,6 +59,7 @@ class BadgeRules extends JView
     super options, data
 
     @once "BadgeCreated" , =>
+      log "BadgeCreated"
       @giveBadgeButton.loader.hide()
       @giveBadgeButton.hide()
       new KDNotificationView

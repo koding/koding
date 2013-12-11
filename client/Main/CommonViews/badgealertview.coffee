@@ -1,5 +1,7 @@
 class BadgeAlertView extends KDView
   constructor:(options = {}, data)->
+    # TODO : need styling! That's dummy notification
+
     {countOptions} = options
     client = KD.whoami()
     client.updateCountAndCheckBadge countOptions,(badges)->

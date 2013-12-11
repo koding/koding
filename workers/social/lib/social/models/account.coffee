@@ -685,29 +685,34 @@ module.exports = class JAccount extends jraphical.Module
 
   updateCountAndCheckBadge: secure (client, options, callback)->
     propertyArray = [
-      "counts.likes"
-      "counts.followers"
-      "counts.following"
-      "counts.topics"
-      "counts.statusUpdates"
-      "counts.comments"
-      "counts.referredUsers"
-      "counts.invitations"
+      "likes"
+      "followers"
+      "following"
+      "topics"
+      "statusUpdates"
+      "comments"
+      "referredUsers"
+      "invitations"
     ]
-    {delegate}   = client.connection
-    if @equals delegate
-      {@property, relType, source, targetSelf} = options
+    if @equals client.connection.delegate
+      {@property} = options
+
       if @property in propertyArray
+        {relType, source, targetSelf} = options
+
         selector     =
           as         : relType
           sourceName : source
+
         if targetSelf then selector["targetId"]=@getId() else selector["sourceId"]=@getId()
+
         Relationship.count selector, (err, count) =>
           return err if err
           countsField = {}
-          countsField[@property] = count
-          # there is race condition, should take them to queue
-          @update $set: countsField , (err)->
+          key = "counts." + @property # i know this is lame :( will fix it
+          countsField[key] = count
+          # race condition exist, should take them to queue
+          @update $set: countsField , (err)=>
             return err if err
             JBadge = require './badge'
             JBadge.checkEligibleBadges client, badgeItem:@property , callback
@@ -730,6 +735,14 @@ module.exports = class JAccount extends jraphical.Module
       sourceName : 'JAccount'
     , (err, count)=>
       @update ($set: 'counts.following': count), ->
+
+    # Member Follower count
+    Relationship.count
+      as         : 'follower'
+      sourceId   : @getId()
+      sourceName : 'JAccount'
+    , (err, count)=>
+      @update ($set: 'counts.followers': count), ->
 
     # Tag Following count
     Relationship.count
@@ -776,7 +789,6 @@ module.exports = class JAccount extends jraphical.Module
       if user.foreignAuth?.twitter?
         followerCount = user.foreignAuth.twitter.profile.followers_count
         @update ($set: 'counts.twitterFollowers': followerCount), ->
-
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",

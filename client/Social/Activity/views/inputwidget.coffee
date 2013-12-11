@@ -89,7 +89,7 @@ class ActivityInputWidget extends KDView
 
       # badge
       countOptions   =
-        property     : "counts.statusUpdates"
+        property     : "statusUpdates"
         relType      : "author"
         source       : "JStatusUpdate"
         targetSelf   : 1

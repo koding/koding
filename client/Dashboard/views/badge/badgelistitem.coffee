@@ -14,9 +14,9 @@ class BadgeListItem extends KDListItemView
         title     : description or ''
 
     @editButton = new KDButtonView
-      style       : "solid"
       title       : "Modify"
       cssClass    : "edit-badge"
+      style       : "solid"
       callback    : =>
         modal     = new BadgeUpdateForm {itemList: this}, badge : @getData()
 
