@@ -20,7 +20,7 @@ module.exports = class JNewStatusUpdate extends JPost
     slugifyFrom       : 'body'
     sharedEvents      :
       instance        : [
-        { name: 'TagsChanged' }
+        { name: 'TagsUpdated' }
         { name: 'ReplyIsAdded' }
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
@@ -117,7 +117,11 @@ module.exports = class JNewStatusUpdate extends JPost
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-  @fetchGroupActivity = secure (client, options = {}, callback)->
+
+  @fetchGroupActivity$ = secure (client, options = {}, callback)->
+    @fetchGroupActivity client, options, callback
+
+  @fetchGroupActivity = (client, options = {}, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {to} = options
@@ -208,4 +212,3 @@ module.exports = class JNewStatusUpdate extends JPost
           fin()
     , -> callback null, teasers
     collectTeasers post for post in posts
-

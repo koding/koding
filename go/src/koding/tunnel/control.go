@@ -25,12 +25,16 @@ type control struct {
 	// sendChan is used to encode ServerMsg and send them over the wire in
 	// JSON format to the client that initiated the control connection.
 	sendChan chan ServerMsg
+
+	// defines when control is ready
+	ready chan bool
 }
 
-func newControl(nc net.Conn, owner string) *control {
+func newControl(nc net.Conn, owner string, ready chan bool) *control {
 	c := &control{
 		owner:    owner,
 		sendChan: make(chan ServerMsg),
+		ready:    ready,
 	}
 
 	c.Conn = conn.New(nc, false)
@@ -79,7 +83,7 @@ func (c *control) connect(identifier string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 && resp.Status != Connected {
-		return fmt.Errorf("Non-200 response from proxy server: %s", resp.Status)
+		return fmt.Errorf("proxy server: %s", resp.Status)
 	}
 
 	return nil
@@ -109,6 +113,7 @@ func (c *control) decoder() {
 
 func (c *control) encoder() {
 	e := json.NewEncoder(c)
+	close(c.ready) // notify others that we are ready now
 	for msg := range c.sendChan {
 		err := e.Encode(msg)
 		if err != nil {

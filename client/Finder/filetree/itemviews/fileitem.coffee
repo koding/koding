@@ -6,7 +6,9 @@ class NFileItemView extends KDCustomHTMLView
 
     options.tagName   or= "div"
     options.cssClass  or= "file"
+
     super options, data
+
     fileData = @getData()
 
     @loader = new KDLoaderView
@@ -15,26 +17,27 @@ class NFileItemView extends KDCustomHTMLView
       loaderOptions :
         # color       : @utils.getRandomHex()
         color       : "#71BAA2"
-        shape       : "spiral"
+        shape       : "rect"
         diameter    : 16
-        density     : 30
-        range       : 0.4
-        speed       : 1.5
+        density     : 12
+        range       : 1
+        speed       : 1
         FPS         : 24
 
     @icon = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "icon"
 
-    for ev in loaderRequiredEvents
-      data.on "fs.#{ev}.started", => @showLoader()
-      data.on "fs.#{ev}.finished", => @hideLoader()
+    for eventName in loaderRequiredEvents
+      fileData.on "fs.#{eventName}.started",  => @showLoader()
+      fileData.on "fs.#{eventName}.finished", => @hideLoader()
 
   destroy:->
 
-    for ev in loaderRequiredEvents
-      @getData().off "fs.#{ev}.started"
-      @getData().off "fs.#{ev}.finished"
+    fileData = @getData()
+    for eventName in loaderRequiredEvents
+      fileData.off "fs.#{eventName}.started"
+      fileData.off "fs.#{eventName}.finished"
 
     super
 

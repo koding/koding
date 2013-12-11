@@ -215,9 +215,24 @@ class ActivityAppController extends AppController
     {JNewStatusUpdate} = KD.remote.api
     # todo - implement prefetched feed
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+
+    # get from cache if only it is "Public" or "Everything"
+    if @getFeedFilter() is "Public" and @getActivityFilter() is "Everything" and KD.prefetchedFeeds
+      prefetchedActivity = KD.prefetchedFeeds["activity.main"]
+      if prefetchedActivity and ('activities.main' not in USEDFEEDS)
+        log "exhausting feed:", "activity.main"
+        USEDFEEDS.push 'activities.main'
+        # update this function
+        messages = @prepareCacheForListing prefetchedActivity
+        @emit "publicFeedFetched_#{eventSuffix}", messages
+        return
+
     JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
       return @emit "activitiesCouldntBeFetched", err  if err
       @emit "publicFeedFetched_#{eventSuffix}", messages
+
+  # this is only reviving the cache for now
+  prepareCacheForListing: (cache)-> return KD.remote.revive cache
 
   fetchFollowingActivities:(options = {})->
     {JNewStatusUpdate} = KD.remote.api

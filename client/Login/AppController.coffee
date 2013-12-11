@@ -14,30 +14,32 @@ class LoginAppsController extends AppController
         app.getView().setCustomDataToForm('reset', {recoveryToken:token})
         app.getView().animateToForm('reset')
 
-  handleFailureOfRestriction =->
-    KD.utils.defer -> new KDNotificationView title: "Login restricted"
+  #### Leaving it here incase we decide to have another beta: SA
+  #handleFailureOfRestriction =->
+    #KD.utils.defer -> new KDNotificationView title: "Login restricted"
 
-  handleRestriction = (handler) ->
-    ({params: {token : token}})->
-      for url in ['localhost', 'https://koding.com'] when (new RegExp url).test window.location
-        return do handler()
+  #handleRestriction = (handler) ->
+    #({params: {token : token}})->
+      #for url in ['localhost', 'https://koding.com'] when (new RegExp url).test window.location
+        #return do handler()
 
-      return handleFailureOfRestriction()  unless token
+      #return handleFailureOfRestriction()  unless token
 
-      KD.remote.api.JInvitation.byCodeForBeta token, (err, invite)->
-        if err or !invite?
-          return handleFailureOfRestriction()
+      #KD.remote.api.JInvitation.byCodeForBeta token, (err, invite)->
+        #if err or !invite?
+          #return handleFailureOfRestriction()
 
-        do handler()
+        #do handler()
+  ####
 
   KD.registerAppClass this,
     name                         : "Login"
     routes                       :
-      '/:name?/Login/:token?'    : handleRestriction (app)->
-          handler (app)-> app.getView().animateToForm 'login'
+      #'/:name?/Login/:token?'    : handleRestriction (app)->
+          #handler (app)-> app.getView().animateToForm 'login'
+      '/:name?/Login/:token?'    : handler (app)-> app.getView().animateToForm 'login'
       '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-      '/:name?/Register/:token?' : handleRestriction (app)->
-          handler (app)-> app.getView().animateToForm 'register'
+      '/:name?/Register/:token?' : handler (app)-> app.getView().animateToForm 'register'
       '/:name?/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
       '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
       '/:name?/Reset/:token'     : handleResetRoute
