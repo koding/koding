@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/sessions"
-	"github.com/hoisie/redis"
-	libgeo "github.com/nranchev/go-libGeoIP"
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
@@ -27,6 +23,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/sessions"
+	"github.com/hoisie/redis"
+	libgeo "github.com/nranchev/go-libGeoIP"
 )
 
 func init() {
@@ -169,8 +170,8 @@ func startProxy() {
 // in his base filename, like 10.0.5.102_cert.pem.  Each listener is created in
 // a seperate goroutine, thus the functions is nonblocking.
 func startHTTPS(reverseProxy *Proxy) {
-	// HTTPS handling
-	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL) // it is always 443, standart port for HTTPS protocol
+	// HTTPS handling, it is always 443, standart port for HTTPS protocol
+	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	logs.Info(fmt.Sprintf("https mode is enabled. serving at :%s ...", portssl))
 
 	// don't change it to "*.pem", otherwise you'll get duplicate IP's
@@ -251,6 +252,8 @@ var resetRegex = regexp.MustCompile("/_resetcache_/")
 // getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
+	userIP, userCountry := getIPandCountry(req.RemoteAddr)
+
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
@@ -262,8 +265,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return p.resetCacheHandler(filepath.Base(req.URL.String()))
 	}
 
-	userIP, userCountry := getIPandCountry(req.RemoteAddr)
-	target, err := resolver.GetMemTarget(req.Host)
+	target, err := resolver.GetTarget(req)
 	if err != nil {
 		if err == resolver.ErrGone {
 			return templateHandler("notfound.html", req.Host, 410)
@@ -296,17 +298,17 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	switch target.Mode {
-	case "maintenance":
+	case resolver.ModeMaintenance:
 		return templateHandler("maintenance.html", nil, 503)
-	case "redirect":
+	case resolver.ModeRedirect:
 		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
-	case "vm":
+	case resolver.ModeVM:
 		err := utils.CheckServer(target.Url.Host)
 		if err != nil {
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
-	case "vmOff":
+	case resolver.ModeVMOff:
 		return templateHandler("notOnVM.html", req.Host, 404)
 	}
 
@@ -384,6 +386,7 @@ func securePageHandler(userIP string) http.Handler {
 		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
 		if err != nil {
 			logs.Err(fmt.Sprintf("template securepage could not be executed %s", err))
+			http.Error(w, "error code - 2", 404)
 			return
 		}
 	})
@@ -439,6 +442,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
 			logs.Warning(fmt.Sprintf("template %s could not be executed", path))
+			http.Error(w, "error code - 1", 404)
 			return
 		}
 	})
