@@ -36,6 +36,7 @@ module.exports = class JNewApp extends jraphical.Module
       instance          : [
         { name: 'ReviewIsAdded' }
       ]
+      static            : []
 
     sharedMethods       :
       instance          :
@@ -56,7 +57,9 @@ module.exports = class JNewApp extends jraphical.Module
         one             :
           (signature Object, Function)
         some            :
-          (signature Object, Function)
+          (signature Object, Object, Function)
+        some_           :
+          (signature Object, Object, Function)
         each            : [
           (signature Object, Function)
           (signature Object, Object, Function)
@@ -270,18 +273,19 @@ module.exports = class JNewApp extends jraphical.Module
     ]
     return selector
 
-  @some$ = permit
-    advanced: [
-      {permission: 'list apps'}
-      {permission: 'list all apps'}
-    ]
-    success: (client, selector, options, callback)->
-      { roles } = client
+  @some_: permit 'list all apps',
 
-      unless 'admin' in roles
-        selector  = getDefaultSelector client, selector
-        options or= {}
-        options.limit = Math.min(options.limit or 0, 10)
+    success: (client, selector, options, callback)->
+
+      @some selector, options, callback
+
+  @some$: permit 'list apps',
+
+    success: (client, selector, options, callback)->
+
+      selector  = getDefaultSelector client, selector
+      options or= {}
+      options.limit = Math.min(options.limit or 0, 10)
 
       @some selector, options, callback
 
