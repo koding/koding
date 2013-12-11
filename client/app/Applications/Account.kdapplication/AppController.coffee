@@ -147,6 +147,9 @@ class AccountAppController extends AppController
   showReferrerModal:->
     new ReferrerModal
 
+  showNominateModal:->
+    new NominateModal
+
   toggleSidebar:(options)->
     {show} = options
     controller = @

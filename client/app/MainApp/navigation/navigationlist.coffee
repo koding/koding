@@ -22,6 +22,10 @@ class NavigationList extends KDListView
       options.childClass = NavigationPromoteLink
       return options
 
+    if data.nominate
+      options.childClass = NavigationNominateLink
+      return options
+
     if data.type is "separator"
       options.childClass = NavigationSeparator
       options.selectable = no
