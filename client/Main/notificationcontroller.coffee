@@ -220,7 +220,7 @@ class NotificationController extends KDObject
     notification = new KDNotificationView
       type     : 'tray'
       cssClass : "mini realtime #{options.type}"
-      duration : 100000000
+      duration : 10000
       title    : "<span></span>#{options.title}"
       content  : options.content  or null
 
