@@ -77,7 +77,10 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Object, Object, Function)
         getAutoCompleteData:
           (signature String, String, Function)
-        count: (signature Object, Function)
+        count: [
+          (signature Function)
+          (signature Object, Function)
+        ]
         byRelevance: [
           (signature String, Function)
           (signature String, Object, Function)
