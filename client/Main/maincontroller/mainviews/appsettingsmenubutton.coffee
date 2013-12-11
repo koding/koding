@@ -39,6 +39,7 @@ class AppSettingsMenuButton extends KDButtonView
 
         if (item.title?.indexOf "customView") is 0
           customView = getCustomMenuView item, this
+          return  unless customView
           if customView instanceof KDView
             item.view = customView
           else
@@ -49,7 +50,8 @@ class AppSettingsMenuButton extends KDButtonView
 
         return item
 
-      @createMenu event, menuItems
+      if menuItems.length > 0
+        @createMenu event, menuItems
 
     super options, data
 
