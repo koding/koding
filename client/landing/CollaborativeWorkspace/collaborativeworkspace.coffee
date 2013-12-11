@@ -25,6 +25,7 @@ class CollaborativeWorkspace extends Workspace
     @sessionKey   = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef = @firepadRef.child @sessionKey
     @broadcastRef = @workspaceRef.child "broadcast"
+    @historyRef   = @workspaceRef.child "history"
 
   bindRemoteEvents: ->
     @workspaceRef.once "value", (snapshot) =>
@@ -298,6 +299,14 @@ class CollaborativeWorkspace extends Workspace
       container : @userListContainer
       delegate  : this
     }
+
+  addToHistory: (data) ->
+    target = @historyRef.child Date.now()
+    if typeof data is "string"
+      target.set message: data.replace "$0", KD.nick()
+    else
+      data.message = data.message.replace "$0", KD.nick()  if data.message
+      target.set data
 
   broadcastMessage: (details) ->
     @broadcastRef.set
