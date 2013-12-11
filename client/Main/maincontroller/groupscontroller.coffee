@@ -40,9 +40,7 @@ class GroupsController extends KDController
 
     @groupChannel.once 'setSecretNames', callback
 
-  changeGroup:(groupName='', callback=->)->
-
-    groupName or= 'koding' # KD.defaultSlug
+  changeGroup:(groupName = 'koding', callback = (->))->
     return callback()  if @currentGroupName is groupName
 
     oldGroupName        = @currentGroupName
