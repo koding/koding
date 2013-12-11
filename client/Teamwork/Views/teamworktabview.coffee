@@ -5,6 +5,10 @@ class TeamworkTabView extends CollaborativePane
     super options, data
 
     @createElements()
+    @keysRef  = @workspaceRef.child "keys"
+    @stateRef = @workspaceRef.child "state"
+
+    @recoverSession()  if @isJoinedASession
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder
@@ -48,46 +52,86 @@ class TeamworkTabView extends CollaborativePane
         callback  : => @createChat()
     }
 
+  recoverSession: ->
+    @keysRef.once "value" , (snapshot) =>
+      data = snapshot.val()
+      return unless data
+
+      for key, value of data
+        switch value.type
+          when "dashboard" then @createDashboard()
+          when "editor"
+            file = FSHelper.createFileFromPath value.filePath
+            @createEditor file, "", value.sessionKey
+          when "terminal" then @createTerminal value.sessionKey
+          when "preview"  then @createPreview  value.sessionKey
+
   createDashboard: ->
     return @tabView.showPane @dashboard  if @dashboard
 
     @dashboard = new KDTabPaneView title: "Dashboard"
     dashboard  = new TeamworkDashboard
+      delegate : @workspace.getDelegate()
 
     @appendPane_ @dashboard, dashboard
 
     @dashboard.once "KDObjectWillBeDestroyed", =>
       @dashboard = null
 
-  createEditor: ->
-    pane   = new KDTabPaneView title: "Editor"
-    editor = new CollaborativeEditorPane {
-      delegate     : @getDelegate()
-      sessionKey   : @sessionKey
-      file         : FSHelper.createFileFromPath "localfile:/untitled.txt"
-      content      : ""
-    }
+    @keysRef.push type: "dashboard"  if @amIHost
+
+  openFile: (file, content) ->
+    @createEditor file, content
+
+  createEditor: (file, content = "", sessionKey) ->
+    file     = file or FSHelper.createFileFromPath "localfile:/untitled.txt"
+    pane     = new KDTabPaneView title: file.name
+    delegate = @getDelegate()
+    editor   = new CollaborativeEditorPane { delegate, sessionKey, file, content }
 
     @appendPane_ pane, editor
+    if @amIHost
+      @keysRef.push
+        type      : "editor"
+        sessionKey: editor.sessionKey
+        filePath  : file.path
 
-  createTerminal: (pane) ->
+    @workspace.addToHistory "$0 opened a new editor"
+
+  createTerminal: (sessionKey) ->
     pane         = new KDTabPaneView title: "Terminal"
     klass        = if @isJoinedASession then SharableClientTerminalPane else SharableTerminalPane
-    terminal     = new klass
-      delegate   : @getDelegate()
-      sessionKey : @sessionKey
+    delegate     = @getDelegate()
+    terminal     = new klass { delegate, sessionKey }
 
     @appendPane_ pane, terminal
 
-  createPreview: (pane) ->
-    pane    = new KDTabPaneView title: "Preview"
-    preview = new CollaborativePreviewPane
-      delegate   : @getDelegate()
-      sessionKey : @sessionKey
+    if @amIHost
+      terminal.on "WebtermCreated", =>
+        @keysRef.push
+          type       : "terminal"
+          sessionKey :
+            key      : terminal.remote.session
+            host     : KD.nick()
+            vmName   : KD.getSingleton("vmController").defaultVmName
+
+    @workspace.addToHistory "$0 opened a new terminal"
+
+  createPreview: (sessionKey) ->
+    pane     = new KDTabPaneView title: "Browser"
+    delegate = @getDelegate()
+    preview  = new CollaborativePreviewPane { delegate, sessionKey }
 
     @appendPane_ pane, preview
 
-  createChat: (pane) ->
+    if @amIHost
+      @keysRef.push
+        type      : "preview"
+        sessionKey: preview.sessionKey
+
+    @workspace.addToHistory "$0 opened a new browser"
+
+  createChat: ->
     pane = new KDTabPaneView title: "Chat"
     chat = new ChatPane
       cssClass    : "full-screen"
