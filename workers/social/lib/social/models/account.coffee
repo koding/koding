@@ -157,7 +157,7 @@ module.exports = class JAccount extends jraphical.Module
         unflagAccount:
           (signature String, Function)
         isFollowing:
-          (signature ObjectId, Function)
+          (signature String, String, Function)
         updateFlags:
           (signature [String], Function)
         fetchGroups: [
