@@ -117,7 +117,11 @@ module.exports = class JNewStatusUpdate extends JPost
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-  @fetchGroupActivity = secure (client, options = {}, callback)->
+
+  @fetchGroupActivity$ = secure (client, options = {}, callback)->
+    @fetchGroupActivity client, options, callback
+
+  @fetchGroupActivity = (client, options = {}, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {to} = options
