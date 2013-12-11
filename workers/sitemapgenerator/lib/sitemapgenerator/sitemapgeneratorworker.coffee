@@ -20,7 +20,8 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
     # while generating main sitemap, we don't need hashbang in the url.
     for url in urls
-      sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
+      if not /^guest-/.test url
+        sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
     sitemap += sitemapFooter
     return sitemap
 
@@ -36,77 +37,54 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
     sitemap += sitemapFooter
     return sitemap
 
-  generateSitemapName: (groupPageNumber, skip)->
-    return  "sitemap_" + groupPageNumber + "_" + skip + "_" + (skip + NAMEPERPAGE) + ".xml"
+  generateSitemapName: (skip)->
+    return  "sitemap_koding_" + skip + "_" + (skip + NAMEPERPAGE) + ".xml"
 
   saveSitemap: (name, content)->
     {JSitemap} = @bongo.models
     JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)->
-      console.log err if err
+      return console.log err if err
 
   generate:=>
-    {JName, JGroup, JSitemap} = @bongo.models
 
-    groupSelector = {
-      privacy:'public'
-    }
+    {JName, JSitemap} = @bongo.models
+
     generateSitemapIndex = (sitemapNames)=>
       name = "sitemap.xml"
       content = @generateSitemapIndexString sitemapNames
       @saveSitemap name, content
 
-    JGroup.count groupSelector, (err, groupCount)=>
-      numberOfGroupPages = Math.ceil(groupCount / GROUPPERPAGE)
-
-      publicGroups = []
-
-      # We behave 'koding' as a public group, even though
-      # its privacy is marked as "private" in the model.
-      # We add 'koding' group to publicGroups selector for the first cycle.
-      publicGroups.push 'koding'
-
-      groupQueue = [1..numberOfGroupPages].map (groupPageNumber)=>=>
-        groupSkip = (groupPageNumber - 1) * GROUPPERPAGE
-        groupOptions = {
-          limit : GROUPPERPAGE,
-          skip  : groupSkip
+    selector = {
+      $or: [
+        {
+          'slugs.group': 'koding',
+          'slugs.constructorName': $ne : 'JNewStatusUpdate'
         }
-        JGroup.some groupSelector, groupOptions, (err, jGroups)=>
+        { 'slugs.usedAsPath':'username' }
+      ]
+    }
 
-          for group in jGroups
-            publicGroups.push group.slug
+    JName.count selector, (err, count)=>
+      numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
 
-          selector = {
-            'slugs.group': { $in: publicGroups }
-          }
+      queue = [1..numberOfNamePages].map (pageNumber)=>=>
+        queue.sitemapNames or= []
+        skip = (pageNumber - 1) * NAMEPERPAGE
+        option = {
+          limit : NAMEPERPAGE,
+          skip  : skip
+        }
+        JName.some selector, option, (err, names)=>
+          if names
+            urls = (name.name for name in names)
+            sitemapName =  @generateSitemapName skip
+            content = @generateSitemapString urls
+            @saveSitemap sitemapName, content
 
-          # Empty the group, it'll be filled in next iteration.
-          publicGroups = []
-
-          JName.count selector, (err, count)=>
-            numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
-            queue = [1..numberOfNamePages].map (pageNumber)=>=>
-              skip = (pageNumber - 1) * NAMEPERPAGE
-              option = {
-                limit : NAMEPERPAGE,
-                skip  : skip
-              }
-              JName.some selector, option, (err, names)=>
-                if names
-                  urls = (name.name for name in names)
-                  sitemapName =  @generateSitemapName groupPageNumber, skip
-                  content = @generateSitemapString urls
-                  @saveSitemap sitemapName, content
-
-                  groupQueue.sitemapNames or= []
-                  groupQueue.sitemapNames.push sitemapName
-                queue.next()
-            queue.push => groupQueue.next()
-            daisy queue
-
-
-      groupQueue.push => generateSitemapIndex(groupQueue.sitemapNames)
-      daisy groupQueue
+            queue.sitemapNames.push sitemapName
+          queue.next()
+      queue.push => generateSitemapIndex(queue.sitemapNames)
+      daisy queue
 
 
   init:->
