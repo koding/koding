@@ -68,6 +68,7 @@ class CollaborativeClientTreeViewController extends JTreeViewController
   dblClick: (nodeView, event) ->
     nodeData = nodeView.getData()
     @getOptions().workspaceRef.set "ClientWantsToInteractWithRemoteFileTree":
-      path   : nodeData.path
-      type   : nodeData.type
-      vmName : nodeData.vmName
+      path        : nodeData.path
+      type        : nodeData.type
+      vmName      : nodeData.vmName
+      requestedBy : KD.nick()
