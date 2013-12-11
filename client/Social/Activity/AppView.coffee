@@ -14,14 +14,15 @@ class ActivityAppView extends KDScrollView
   viewAppended:->
 
     {entryPoint}      = KD.config
+    windowController  = KD.singleton 'windowController'
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
     @header           = new HomeKonstructor
     @inputWidget      = new ActivityInputWidget
 
-    @activityTicker   = new ActivityTicker
-    @activeUsers      = new ActiveUsers
-    @activeTopics     = new ActiveTopics
+    @tickerBox        = new ActivityTicker
+    @usersBox         = new ActiveUsers
+    @topicsBox        = new ActiveTopics
 
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
@@ -32,17 +33,17 @@ class ActivityAppView extends KDScrollView
 
     @header.bindTransitionEnd()
 
+    # @activityHeader.liveUpdateButton.setValue off
     @feedWrapper.ready =>
       @activityHeader  = @feedWrapper.controller.activityHeader
       {@filterWarning} = @feedWrapper
-      @on 'scroll', (event) =>
-        if event.delegateTarget.scrollTop > 50
-          @activityHeader.setClass "scrolling-up-outset"
-          @activityHeader.liveUpdateButton.setValue off
-        else
-          @activityHeader.unsetClass "scrolling-up-outset"
-          @activityHeader.liveUpdateButton.setValue on
-          KD.getSingleton("activityController").clearNewItemsCount()
+
+    @tickerBox.once 'viewAppended', =>
+      topOffset = @tickerBox.$().position().top
+      windowController.on 'ScrollHappened', =>
+        if document.body.scrollTop > topOffset
+        then @tickerBox.setClass 'fixed'
+        else @tickerBox.unsetClass 'fixed'
 
     @decorate()
 
@@ -57,9 +58,9 @@ class ActivityAppView extends KDScrollView
     @mainBlock.addSubView @inputWidget
     @mainBlock.addSubView @feedWrapper
 
-    @sideBlock.addSubView @activeTopics
-    @sideBlock.addSubView @activeUsers
-    @sideBlock.addSubView @activityTicker
+    @sideBlock.addSubView @topicsBox
+    @sideBlock.addSubView @usersBox
+    @sideBlock.addSubView @tickerBox
 
   decorate:->
     @unsetClass "guest"
