@@ -1,5 +1,6 @@
 class BadgeRules extends JView
   constructor:(options = {}, data) ->
+    super options, data
 
     @badgeRulesListController = new KDListViewController
       startWithLazyLoader : no
@@ -56,10 +57,7 @@ class BadgeRules extends JView
 
     @giveBadgeButton.hide()
 
-    super options, data
-
     @once "BadgeCreated" , =>
-      log "BadgeCreated"
       @giveBadgeButton.loader.hide()
       @giveBadgeButton.hide()
       new KDNotificationView
@@ -168,19 +166,19 @@ class BadgeRuleItem extends KDListItemView
         { title: "more than"  , value:">" }
         { title: "less then"  , value:"<" }
       ]
-      defaultValue    : if data.action then data.action else ">"
+      defaultValue    : data.action or ">"
 
     @propertyVal      = new KDInputView
       name            : 'rule-value'
       placeholder     : "enter value"
-      defaultValue    : if data.propVal then data.propVal else ""
+      defaultValue    : data.propVal or ""
 
     @removeRule       = new KDButtonView
       name            : 'removeRule'
       style           : 'remove-rule'
       title           : '-'
-      callback        : ->
-        @parent.getDelegate().emit "RemoveRuleFromList", @parent
+      callback        : =>
+        @parent.emit "RemoveRuleFromList", this
 
     super options, data
 

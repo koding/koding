@@ -10,16 +10,6 @@ class BadgeDashboardView extends JView
       ownScrollBars       : yes
       cssClass            : "badge-dashboard-view"
 
-    @createBadgeListView()
-
-    # create new badge button
-    @addBadge = new KDButtonView
-      style     : "solid green"
-      title     : "add badge"
-      callback  : =>
-        new NewBadgeForm {@badgeListController}
-
-  createBadgeListView:->
     @badgeListController = new KDListViewController
       startWithLazyLoader : no
       view                : new KDListView
@@ -27,16 +17,23 @@ class BadgeDashboardView extends JView
         cssClass          : "badge-list"
         itemClass         : BadgeListItem
 
-    @getAllTheBadges()
+    @getAllBadges()
     @badgeListContainer.addSubView @badgeListController.getListView()
 
-  getAllTheBadges: ->
+    # create new badge button
+    @addBadgeButton = new KDButtonView
+      style     : "solid green"
+      title     : "add badge"
+      callback  : =>
+        new NewBadgeForm {@badgeListController}
+
+  getAllBadges: ->
     KD.remote.api.JBadge.listBadges '',(err, badges)=>
       return callback err if err
       @badgeListController.instantiateListItems badges
 
   pistachio:->
     """
-    {{> @addBadge}}
+    {{> @addBadgeButton}}
     {{> @badgeListContainer}}
     """

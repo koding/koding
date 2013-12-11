@@ -30,7 +30,7 @@ module.exports = class JBadge extends jraphical.Module
     sharedMethods         :
       static              : ["listBadges", "getUserBadges", "create","fetchBadgeUsers",
       "fetchUsersByRule", "checkEligibleBadges"]
-      instance            : ["modify", "deleteBadge", "assignBadge",
+      instance            : ["modify", "deleteBadge",
       "removeBadgeFromUser", "assignBadgeBatch"]
 
   @create: permit 'create badge',
@@ -49,31 +49,26 @@ module.exports = class JBadge extends jraphical.Module
 
   deleteBadge : permit 'delete badge',
     success: (client, callback=->)->
-      @remove (err) =>
-        callback err, null
-
-  assignBadge : permit 'assign badge',
-    success: (client, user, callback)->
-      JAccount = require './account'
-      JAccount.one '_id' : user.getId(), (err, account)=>
-        account.addBadge this, callback
+      @remove callback
 
   assignBadgeBatch : permit 'assign badge',
     success: (client, accountIds, callback)->
       JAccount = require './account'
       errors = []
-      if accountIds isnt ""
-        queue  = accountIds.split(",").map (id) =>=>
+      console.log accountIds
+      if accountIds.length > 0
+        queue  = accountIds.map (id) =>=>
           JAccount.one "_id" : id, (err, account)=>
-            return err if err
-            jraphical.Relationship.one
-              as            : "badge"
-              targetId      : @getId()
-              sourceId      : account.getId()
-            , (err, rel)=>
-              if not rel
-                account.addBadge this, (err, badge)->
-                  errors.push err if err
+            errors.push err if err
+            if account
+              jraphical.Relationship.one
+                as         : "badge"
+                targetId   : @getId()
+                sourceId   : account.getId()
+              , (err, rel) =>
+                if not rel
+                    account.addBadge this, (err, badge)->
+                      errors.push err if err
             queue.next()
 
         queue.push -> callback if errors.length > 0 then errors else null
@@ -109,13 +104,14 @@ module.exports = class JBadge extends jraphical.Module
         callback items
 
   @fetchBadgeUsers:permit 'list badges',
-    success: (client, badgeId, callback)->
+    success: (client, badgeId, selector,callback)->
       query =
-          targetName : "JBadge"
-          targetId   : badgeId
-          as         : "badge"
-          sourceName : "JAccount"
-      jraphical.Relationship.cursor query, {}, (err, cursor)=>
+        targetName : "JBadge"
+        targetId   : badgeId
+        as         : "badge"
+        sourceName : "JAccount"
+
+      jraphical.Relationship.cursor query, selector, (err, cursor)=>
         @findAccounts cursor, [], (items) ->
           JAccount = require './account'
           JAccount.some { "_id": { "$in": items } }, {}, (err, jAccounts) =>
@@ -123,47 +119,46 @@ module.exports = class JBadge extends jraphical.Module
 
   @ruleSplit:(rule, userCounts)->
     operators =
-        '>': (badgeValue, userValue)-> return userValue > badgeValue
-        '<': (badgeValue, userValue)-> return userValue < badgeValue
+        '>': (badgeValue, userValue)-> userValue > badgeValue
+        '<': (badgeValue, userValue)-> userValue < badgeValue
     #TODO : should use regular expressions
     actionPos = rule.search /[\<\>\=]/
     action    = rule.substr actionPos, 1
     property  = rule.substr 0,actionPos
     propVal   = rule.substr actionPos+1
 
-    if not operators[action] propVal, userCounts[property] then no else yes
+    operators[action] propVal, userCounts[property]
 
   @checkRules : (rules, userCounts)->
     ruleArray = rules.split "+"
-    if ruleArray.length > 1
-      for rule in ruleArray
-        if not @ruleSplit rule,userCounts then return no
+    if ruleArray.length is 1
+      return @ruleSplit rules, userCounts
     else
-      if not @ruleSplit rules,userCounts then return no
-    yes
+      for rule in ruleArray
+        return no  unless @ruleSplit rule, userCounts
+      return yes
 
 
   @checkEligibleBadges:secure (client, options, callback) ->
-    {@delegate}  = client.connection
-    if @delegate.type is 'unregistered' then return callback new KodingError 'Access denied'
+    @account  = client.connection.delegate
     #get user badges
-    @delegate.fetchBadges (err, userBadges)=>
-      badgeIds = (userBadge.getId() for userBadge in userBadges)
+    @account.fetchBadges (err, userBadges)=>
+      badgeIds =[]
+      if userBadges then badgeIds = (userBadge.getId() for userBadge in userBadges)
       # find badges that users can gain and not already gained
       ruleSelector =
         "rule"     :
           "$regex" : options.badgeItem
         "_id"      : $nin:badgeIds
-
       @listBadges client, ruleSelector, (err, badges)=>
         badgesGained  = []
         errors        = []
         queue = badges.map (badge) =>=>
-          if @checkRules badge.rule, @delegate.counts
-              @delegate.addBadge badge, (err, o)->
-                errors.push err if err
-                badgesGained.push badge
-                queue.next()
+          if @checkRules badge.rule, @account.counts
+            @account.addBadge badge, (err, o)->
+              errors.push err if err
+              badgesGained.push badge
+              queue.next()
           else
             queue.next()
         queue.push -> callback if errors.length > 0 then null else badgesGained

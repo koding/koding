@@ -159,6 +159,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchSubscriptions'
         'fetchPlansAndSubscriptions'
         'updateCountAndCheckBadge'
+        'fetchMyBadges'
       ]
     schema                  :
       skillTags             : [String]
@@ -709,7 +710,7 @@ module.exports = class JAccount extends jraphical.Module
         Relationship.count selector, (err, count) =>
           return err if err
           countsField = {}
-          key = "counts." + @property # i know this is lame :( will fix it
+          key = "counts.#{@property}"
           countsField[key] = count
           # race condition exist, should take them to queue
           @update $set: countsField , (err)=>
@@ -1444,3 +1445,6 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
 
         callback null, { subscriptions, plans }
+
+  fetchMyBadges$: secure (client,callback)->
+    @fetchBadges callback

@@ -87,13 +87,8 @@ class ActivityInputWidget extends KDView
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
 
-      # badge
-      countOptions   =
-        property     : "statusUpdates"
-        relType      : "author"
-        source       : "JStatusUpdate"
-        targetSelf   : 1
-      new BadgeAlertView {countOptions}
+      KD.getSingleton("badgeController").checkBadge
+        property:"statusUpdates", relType:"author",source:"JStatusUpdate" ,targetSelf:1
 
   update: (data, callback) ->
     activity = @getData()

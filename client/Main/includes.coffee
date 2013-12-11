@@ -149,6 +149,8 @@ module.exports = [
   # LOCATION
   "locationcontroller.coffee",
   "CommonViews/location/locationform.coffee",
+  # BadgeController
+  "badgecontroller.coffee",
 
   # PAYMENT
   # controller

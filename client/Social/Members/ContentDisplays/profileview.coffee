@@ -511,7 +511,7 @@ class ProfileView extends JView
         cssClass             : "badge-list"
         itemClass            : UserBadgeView
 
-    KD.remote.api.JBadge.getUserBadges @memberData, (err, badges)=>
+    @memberData.fetchMyBadges (err, badges)=>
       @userBadgesController.instantiateListItems badges
 
     @userBadgesView = @userBadgesController.getListView()
