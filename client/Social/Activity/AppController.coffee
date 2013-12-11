@@ -229,7 +229,6 @@ class ActivityAppController extends AppController
 
     JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
       return @emit "activitiesCouldntBeFetched", err  if err
-      log "JNewStatusUpdate bitti"
       @emit "publicFeedFetched_#{eventSuffix}", messages
 
   # this is only reviving the cache for now
