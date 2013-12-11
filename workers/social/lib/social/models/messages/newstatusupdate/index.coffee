@@ -1,6 +1,6 @@
 JPost = require '../post'
 {extend} = require 'underscore'
-module.exports = class JStatusUpdate extends JPost
+module.exports = class JNewStatusUpdate extends JPost
   {secure, race} = require 'bongo'
   {Relationship} = require 'jraphical'
   {permit} = require '../../group/permissionset'
@@ -20,7 +20,7 @@ module.exports = class JStatusUpdate extends JPost
     slugifyFrom       : 'body'
     sharedEvents      :
       instance        : [
-        { name: 'TagsChanged' }
+        { name: 'TagsUpdated' }
         { name: 'ReplyIsAdded' }
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
@@ -47,7 +47,7 @@ module.exports = class JStatusUpdate extends JPost
 
   constructor:->
     super
-    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated', 'ReplyIsAdded', 'PostIsDeleted'
+    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated'
 
   @getActivityType =-> require './statusactivity'
 
@@ -117,7 +117,11 @@ module.exports = class JStatusUpdate extends JPost
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-  @fetchGroupActivity = secure (client, options = {}, callback)->
+
+  @fetchGroupActivity$ = secure (client, options = {}, callback)->
+    @fetchGroupActivity client, options, callback
+
+  @fetchGroupActivity = (client, options = {}, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {to} = options
@@ -208,4 +212,3 @@ module.exports = class JStatusUpdate extends JPost
           fin()
     , -> callback null, teasers
     collectTeasers post for post in posts
-

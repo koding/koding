@@ -220,11 +220,8 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : 'collapse'
         separator                 : yes
-      'Hide Invisible Files'      :
-        action                    : 'hideDotFiles'
-        separator                 : yes
-      'Show Invisible Files'      :
-        action                    : 'showDotFiles'
+      'Toggle Invisible Files'    :
+        action                    : 'toggleDotFiles'
         separator                 : yes
       'New File'                  :
         action                    : 'createFile'
@@ -234,15 +231,8 @@ class NFinderContextMenuController extends KDController
         action                    : 'upload'
 
     if fileView.expanded
-      delete items.Expand
-    else
-      delete items.Collapse
-
-    fc = KD.getSingleton 'finderController'
-    if fc.isNodesHiddenFor fileData.vmName
-      delete items['Hide Invisible Files']
-    else
-      delete items['Show Invisible Files']
+    then delete items.Expand
+    else delete items.Collapse
 
     return items
 
@@ -389,7 +379,7 @@ class NFinderContextMenuController extends KDController
     fileExtension    = FSItem.getFileExtension path
 
     # FIXME: Add this ability later ~ GG
-    # appsController   = @getSingleton "kodingAppsController"
+    # appsController   = KD.singleton "kodingAppsController"
     # {extensionToApp} = appsController
     # possibleApps     = (extensionToApp[fileExtension] or extensionToApp.txt) or []
     # for appName in possibleApps
@@ -410,7 +400,7 @@ class NFinderContextMenuController extends KDController
   #   {path}           = fileView.getData()
   #   plainPath        = FSHelper.plainPath path
   #   fileExtension    = FSItem.getFileExtension path
-  #   appsController   = @getSingleton "kodingAppsController"
+  #   appsController   = KD.singleton "kodingAppsController"
   #   {extensionToApp} = appsController
   #   possibleApps     = (extensionToApp[fileExtension] or extensionToApp.txt) or []
   #   for appName in possibleApps

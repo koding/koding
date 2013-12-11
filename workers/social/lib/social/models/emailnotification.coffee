@@ -42,7 +42,7 @@ module.exports = class JMailNotification extends Model
         enum         : ['Invalid status', ['queued', 'attempted',
                                            'sending', 'postponed']]
 
-  @commonActivities  = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JLink',
+  @commonActivities  = ['JCodeSnip', 'JNewStatusUpdate', 'JDiscussion', 'JLink',
                         'JOpinion', 'JCodeShare', 'JComment', 'JTutorial',
                         'JReview']
 

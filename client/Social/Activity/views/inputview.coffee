@@ -43,6 +43,13 @@ class ActivityInputView extends KDTokenizedInput
     fillTokenMap activity.tags , tokens.tags  if activity?.tags?.length
     super @renderTokens content, tokens
 
+  keyDown: (event) ->
+    super
+    return  if event.isPropagationStopped()
+    switch event.which
+      when 27 # Escape
+        @emit "Escape"
+
   focus: ->
     return  if @focused
     super

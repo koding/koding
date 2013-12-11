@@ -96,7 +96,8 @@ class Ace extends KDView
       @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
       @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
       @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
-      @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
+      # turn this on only if you make this work when you're developing an app - SY
+      # @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
       @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
       @addKeyCombo "gotoLine", "Ctrl-G", @bound "showGotoLine"

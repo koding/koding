@@ -15,14 +15,15 @@ module.exports = (options={}, callback)->
       return cb null, [] if err
       group._fetchMembersFromGraph client, {}, cb
 
-  fetchActivityFromGraph = (bongoModels, client, cb)->
+  fetchActivity = (bongoModels, client, cb)->
     return cb null, [] unless bongoModels
-    {CActivity} = bongoModels
-    options = facets : "Everything"
+    {JNewStatusUpdate} = bongoModels
+    # options = facets : "Everything"
 
-    CActivity._fetchPublicActivityFeed client, options, (err, data)->
+    JNewStatusUpdate.fetchGroupActivity client, options, (err, data)->
       return cb null, [] if err
       return cb null, data
+
 
   # set interval options for later use
   intervalOptions = options
@@ -53,7 +54,7 @@ module.exports = (options={}, callback)->
 
   # we are fetching group activity, so again we can return this one for all groups
   queue.push ->
-    fetchActivityFromGraph bongoModels, client, (err, activity)=>
+    fetchActivity bongoModels, client, (err, activity)=>
       localPrefetchedFeeds['activity.main'] = activity  if activity
       queue.fin()
 

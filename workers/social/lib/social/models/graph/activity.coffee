@@ -9,7 +9,7 @@ module.exports = class Activity extends Graph
     "JLink"
     "JBlogPost"
     "JTutorial"
-    "JStatusUpdate"
+    "JNewStatusUpdate"
     "JComment"
     "JOpinion"
     "JDiscussion"

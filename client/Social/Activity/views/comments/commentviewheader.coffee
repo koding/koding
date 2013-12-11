@@ -32,7 +32,9 @@ class CommentViewHeader extends JView
       tagName   : "a"
       cssClass  : "all-count"
       pistachio : "View all {{#(repliesCount)}} #{@getOptions().itemTypeString}..."
-      click     : => list.emit "AllCommentsLinkWasClicked", @
+      click     : (event)->
+        KD.utils.stopDOMEvent event
+        list.emit "AllCommentsLinkWasClicked", this
     , data
 
     @newItemsLink = new KDCustomHTMLView
@@ -103,8 +105,9 @@ class CommentViewHeader extends JView
       if @liveUpdate
         @getDelegate().emit "AllCommentsLinkWasClicked"
       else
+        @allItemsLink.hide()
         @show()
-        @newItemsLink.updatePartial "#{@newCount} new"
+        @newItemsLink.updatePartial "#{@newCount} new comment..."
         @newItemsLink.setClass('in')
     else
       @newItemsLink.unsetClass('in')

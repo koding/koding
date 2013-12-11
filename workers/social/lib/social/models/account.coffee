@@ -1,7 +1,7 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 
-likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
+likeableActivities = ['JCodeSnip', 'JNewStatusUpdate', 'JDiscussion',
                       'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
                       'JBlogPost']
 
@@ -255,7 +255,7 @@ module.exports = class JAccount extends jraphical.Module
       content       :
         as          : 'creator'
         targetType  : [
-          "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
+          "CActivity", "JNewStatusUpdate", "JCodeSnip", "JComment", "JReview"
           "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial",
           "JBlogPost"
         ]
@@ -1308,16 +1308,16 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->
     return callback { message: 'Access denied!' }  unless @equals delegate
-    
+
     [callback, options] = [options, callback]  unless callback
 
     { tags, status } = options
-    
+
     selector = {}
     queryOptions = targetOptions: { selector }
 
     selector.tags = $in: tags  if tags
-    
+
     selector.status = status ? $in: [
       'active'
       'past_due'
@@ -1328,7 +1328,7 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchPlansAndSubscriptions: secure (client, options, callback) ->
     JPaymentPlan = require './payment/plan'
-    
+
     @fetchSubscriptions$ client, options, (err, subscriptions) ->
       return callback err  if err
 

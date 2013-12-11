@@ -217,10 +217,14 @@ module.exports = class JPost extends jraphical.Message
         =>
           tags or= []
           @addTags client, tags, (err)=>
-            if err
-              callback err
-            else
-              queue.next()
+            return callback err  if err
+          queue.next()
+        =>
+          return queue.next()  if tags.length is 0
+          ids = tags.map (tag) -> tag.id
+          JTag.some _id: $in: ids, {}, (err, tags) =>
+            @emit "TagsUpdated", tags
+            queue.next()
         =>
           @update $set: formData, callback
       ]
@@ -252,11 +256,10 @@ module.exports = class JPost extends jraphical.Message
       ]
       dash queue, =>
         callback null
-        @emit 'PostIsDeleted', 1
-        CActivity.emit "PostIsDeleted", {
-          teaserId : id
-          createdAt
-          group    : @group
+        @emit 'PostIsDeleted', {
+          origin  : delegate
+          subject : this
+          group   : @group
         }
 
   fetchActivityId:(callback)->
@@ -387,6 +390,7 @@ module.exports = class JPost extends jraphical.Message
                   reply         : ObjectRef(comment).data
                   repliesCount  : queue.relationshipCount
                   relationship  : queue.docs[0]
+                  group         : @group
                 }
               queue.next()
           =>

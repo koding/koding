@@ -25,6 +25,12 @@ resurrection.activity.styl
   position              relative
   overflow              visible
 
+  .lazy-loader
+    margin              30px 0
+    font-size           0
+    letter-spacing      0
+    word-spacing        0
+
   .activity-left-block
     size                  auto, auto
     margin                0 337px 0 0
@@ -78,6 +84,9 @@ resurrection.activity.styl
         z-index         1
         span.button-title
           line-height   44px
+
+        &[disabled=disabled]
+          bg            color, #DDD !important
 
     .activity-content
       size              auto, auto
@@ -159,6 +168,8 @@ resurrection.activity.styl
 
     .active-topics
     .active-users
+      .kdlistitemview-activity-ticker-item
+        width           269px
       .ttag
         size            170px, 42px
         font-weight     400
@@ -408,6 +419,9 @@ span.collapsedtext
         word-break    break-word
         line-height   16px
 
+        a
+          color       inherit
+
       .like-view
       .reply-link
       time
@@ -415,6 +429,9 @@ span.collapsedtext
         display           inline-block
         margin            14px 0 0
         width             auto
+
+      .reply-link
+        margin-left       14px
 
       .like-view a
       .reply-link
@@ -448,6 +465,19 @@ span.collapsedtext
       .comment-contents
         padding-top   13px
         border-top    1px solid #eeeeef
+
+    &.deleted
+      width           auto
+      padding         16px 0
+      margin          0 23px 0 81px
+      font-size       12px
+      color           #717e80
+      .profile
+        display       inline
+
+    &~.deleted
+      border-top      1px solid #eeeeef
+
 
   .item-add-comment-box
     bg            color, #f7f7f8
@@ -505,8 +535,12 @@ span.collapsedtext
   border-top            2px solid #e4e4e4
 
   .preview-image
+    overflow            hidden
     size                144px, 100px
     fl()
+
+    img
+      max-width         100%
 
     &+.preview-text
       kalc              width, 100% \- 144px
@@ -714,6 +748,9 @@ body.profile
       color           #485259
       margin          0 0 13px 0
 
+    .kdscrollview
+      width           325px
+
   &.activity-right-block
     size                302px, auto
 
@@ -723,247 +760,6 @@ body.profile
 
     .right-block-box
       padding           22px 22px 0
-
-
-
-
-//
-// Profile avatar change styles
-//
-
-.avatar-container
-  .kdmodal-content
-    overflow              hidden!important
-
-.avatar-menu
-  overflow                visible
-  z-index                 10001
-  &.dark
-
-    color                 #bebebe
-    strong
-      color               #bebebe
-      text-shadow         0 1px 0 #000
-      font-weight         normal !important
-      font-size           11px !important
-
-    .kdlistview-contextmenu
-      box-shadow          0px 5px 10px rgba(0,0,0,0.5)
-      border              1px solid #454545
-    .kdlistview
-      gradient            #676767, #5f5f5f
-
-    .kdbutton
-      height              24px
-      gradient            #464646, #1c1c1c
-      color               #9e9e9e
-      text-shadow         0 1px 0 #000
-      border-top-color    #292929
-      border-left-color   #313131
-      border-right-color  #313131
-      border-bottom-color #1f1f1e
-
-      &.icon-only
-      &.cancel
-        text-shadow       none
-        border-radius     5px
-        width             60px!important
-        border            1px solid #4b4b4b
-        gradient          #757575, #585858
-        font-weight       normal
-
-      &:active
-        vendor box-shadow, inset 0 0 5px 2px #000, 0 1px 0 0 #313131;
-
-      &:focus
-        border            none
-        outline           none
-
-  .kdlistview
-    background-color      #fff !important
-
-  .kdlistitemview
-    overflow              visible
-  .avatar-change-menu
-    overflow              visible
-
-    .arrow
-      abs                 5px 0 0 -5px
-      size                0px 0px
-      border-top          5px solid transparent
-      border-bottom       5px solid transparent
-      border-right        5px solid #454545
-      z-index             10
-
-    .wrapper
-      overflow            hidden
-      height              20px
-    .avatar-button
-      height              19px
-      box-shadow          0px 1px #7b7b7b
-      font-weight         normal
-      line-height         10px
-      border-radius       15px
-      min-width           97px
-      margin              0 3px
-
-      &.icon-only
-        width             20px !important
-        min-width         20px
-        gradient          #5e5e5e, #464646
-
-        .icon
-          kdfsprite()
-          size          15px, 15px
-          &.okay
-            bg            position,-84px -504px
-          &.cross
-            bg            position,-83px -483px
-
-      &.cancel
-        min-width         45px !important
-        float             right
-        padding           0
-        margin-right      5px
-        width             auto !important
-        color             #3f3f3f
-        box-shadow        none
-
-      &.confirm
-        float             right
-
-    .avatar-holder
-      box-shadow          inset 0px 25px 10px -20px rgba(0, 0, 0, 0.5),
-                          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
-                          0 7px 20px -7px rgba(0,0,0,0.8)
-      vendor              transition-duration, 200ms
-      overflow            hidden
-      border-radius       0 0 5px 5px
-      background          #ededed
-      abs                 26px, 0, 0, 5px
-      size                300px, 0px
-      opacity             0.6
-      &.opened
-        opacity           1
-        height            300px
-        &.wide
-          height          225px
-          video
-          canvas
-            width         300px
-            abs           0px
-
-      .webcam-tip
-        background        transparent url(/images/photo.png) center 40px no-repeat
-        text-align        center
-        color             #676767
-        cite
-          display         block
-          font-style      normal
-          font-size       14px
-          margin-top      150px
-          padding         0 50px
-
-      .take-photo
-        position          absolute
-        z-index           2
-        top               210px
-        left              50%
-        margin-left       -18px
-        margin-top        -35px
-        width             35px
-        height            35px
-        text-indent       -9999px
-        background        url(/images/take-photo.png)
-        vendor            transition-duration, 400ms
-
-        &:hover
-          vendor          transform, rotate(270deg) scale(1.2)
-
-      .avatarview
-        background-size   auto 300px
-        box-shadow        inset 0px 7px 20px -10px rgba(0,0,0,0.5),
-                          0 7px 20px -7px rgba(0,0,0,0.8)
-
-      .file-droparea
-        background        url(/images/drag.png) center 90px no-repeat
-        &.hover
-          box-shadow      inset 10px 10px 0px #e4d4be, inset -10px -10px 0px #e4d4be
-          .file-drop
-            content       "Drop your avatar here"
-        .file-drop
-          font-weight     normal
-          font-size       14px
-          color           #676767
-          top             170px
-
-    .avatar-change-header
-      .kdloader
-        float             right
-        margin-right      10px
-        margin-top        2px
-      button
-        outline           0
-
-      strong
-        font-size         14px
-        font-weight       bold
-        margin-left       5px
-        line-height       20px
-
-        &.loading
-          padding-left    15px
-          background      url(/images/small-loader.gif) left center no-repeat
-
-
-.kdwebcamview
-  width             auto
-  height            auto
-  display           inline-block
-  background-color  #000
-
-  video
-    abs             0px 0 0 0px
-    z-index         2
-    width           100%
-    vendor          transition-duration, 2s
-    &.invisible
-      opacity       0
-
-  .snap-button
-    abs             0 0px 0px 0
-    z-index         1
-    height          35px
-    background-color #444
-    color           #ff9200
-    rounded         5px
-    margin          10px
-    kalc            width, 100% \- 20px, !important
-    opacity         0.8
-    font-weight     bold
-    border          2px solid #333
-    &:hover
-      opacity       0.9
-
-    &.save
-      kalc            width, 50% \- 15px, !important
-      background-color green
-      color           #fff
-
-    &.retake
-      kalc            width, 50% \- 15px, !important
-      abs             0 0 0px 0px
-
-.kdwebcamview-flash
-  abs               0px 0 0 0px
-  z-index           10002
-  background-color  #ffffff
-  opacity           0.95
-  &.flashed
-    vendor        transition-property, opacity
-    vendor        transition-duration, 500ms
-    opacity       0
-
 
 
 /** Markdown Styling **/
@@ -1034,6 +830,60 @@ p.status-body
     code
       display             block
       padding             14px
+
+.activity-share-popup
+  bg                      color, #fff
+  margin                  4px 0 0 14px
+  rounded                 6px
+  border                  1px solid #e4e4e4
+  shadow                  0 8px 35px rgba(0, 0, 0, .22)
+  padding                 5px 13px 5px 5px
+
+  &:after
+    content             ""
+    display             block
+    size                0 0
+    left                98px
+    top                 100%
+    border              7px solid transparent
+    border-top-color    #fff
+    z-index             600
+    abs()
+
+  &:before
+    content             ""
+    display             block
+    size                0 0
+    left                97px
+    top                 100%
+    border              8px solid transparent
+    border-top-color    #e4e4e4
+    z-index             599
+    abs()
+
+  .context-list-wrapper
+    padding               0
+
+  input.share-input
+    rounded               6px
+    size                  160px, 40px
+    margin                0
+    fl()
+
+  .icon-link
+    size                  24px, 24px
+    margin                8px 0 0 8px
+    fl()
+    &.custom-link-view
+      sprite              activity, "link-24"
+    &.share-twitter
+      sprite              activity, "twitter-24"
+    &.share-facebook
+      sprite              activity, "facebook-24"
+    &.share-linkedin
+      sprite              activity, "linkedin-24"
+
+
 
 /* Temp style for contentdisplay */
 
