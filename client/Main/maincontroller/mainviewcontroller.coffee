@@ -9,6 +9,7 @@ class MainViewController extends KDViewController
     mainView         = @getView()
     mainController   = KD.singleton 'mainController'
     appManager       = KD.singleton 'appManager'
+    windowController = KD.singleton 'windowController'
     display          = KD.singleton 'display'
     @registerSingleton 'mainViewController', this, yes
     @registerSingleton 'mainView', mainView, yes
@@ -38,8 +39,8 @@ class MainViewController extends KDViewController
     then KDView.setElementClass body, 'add', 'super'
     else KDView.setElementClass body, 'remove', 'super'
 
-    mainViewController = this
-    window.onscroll = do ->
+
+    windowController.on 'ScrollHappened', do ->
       threshold     = 50
       lastScroll    = 0
       currentHeight = 0

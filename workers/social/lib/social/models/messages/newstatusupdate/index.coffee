@@ -1,7 +1,7 @@
 JPost = require '../post'
 {extend} = require 'underscore'
-module.exports = class JStatusUpdate extends JPost
-  {secure, race, signature} = require 'bongo'
+module.exports = class JNewStatusUpdate extends JPost
+  {secure, race} = require 'bongo'
   {Relationship} = require 'jraphical'
   {permit} = require '../../group/permissionset'
   {once, extend} = require 'underscore'
@@ -33,81 +33,21 @@ module.exports = class JStatusUpdate extends JPost
         { name: 'RemovedFromCollection' }
       ]
     sharedMethods     :
-
-      static          :
-        create:
-          (signature Object, Function)
-        one:
-          (signature Object, Function)
-        fetchDataFromEmbedly: [
-          (signature String, Object, Function)
-          (signature [String], Object, Function)
-        ]
-        updateAllSlugs: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        fetchFollowingFeed: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        fetchTopicFeed: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        fetchProfileFeed: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        fetchGroupActivity: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-
-      instance        :
-        reply:
-          (signature String, Function)
-        restComments: [
-          (signature Function)
-          (signature Number, Function)
-        ]
-        commentsByRange: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        like:
-          (signature Function)
-        fetchLikedByes: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        mark: [
-          (signature String)
-          (signature String, Function)
-        ]
-        unmark: [
-          (signature String)
-          (signature String, Function)
-        ]
-        fetchTags: [
-          (signature Function)
-          (signature Object, Function)
-        ]
-        delete:
-          (signature Function)
-        modify:
-          (signature Object, Function)
-        fetchRelativeComments:
-          (signature Object, Function)
-        checkIfLikedBefore:
-          (signature Function)
-
+      static          : [
+        'create','one','fetchDataFromEmbedly','updateAllSlugs',
+        'fetchFollowingFeed', 'fetchTopicFeed', 'fetchProfileFeed','fetchGroupActivity'
+      ]
+      instance        : [
+        'reply','restComments','commentsByRange'
+        'like','fetchLikedByes','mark','unmark','fetchTags'
+        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
+      ]
     schema            : schema
     relationships     : JPost.relationships
 
   constructor:->
     super
-    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated', 'ReplyIsAdded', 'PostIsDeleted'
+    @notifyGroupWhen 'LikeIsAdded', 'PostIsCreated'
 
   @getActivityType =-> require './statusactivity'
 
@@ -177,8 +117,7 @@ module.exports = class JStatusUpdate extends JPost
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-  @fetchGroupActivity = secure (client, options, callback)->
-    [callback, options] = [options, callback]  unless callback
+  @fetchGroupActivity = secure (client, options = {}, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {to} = options
@@ -191,8 +130,7 @@ module.exports = class JStatusUpdate extends JPost
         return callback err if err
         @decorateResults data, callback
 
-  @fetchProfileFeed = secure (client, options, callback)->
-    [callback, options] = [options, callback]  unless callback
+  @fetchProfileFeed = secure (client, options = {}, callback)->
     {connection:{delegate}, context:{group}} = client
     return callback new Error "Origin is not defined" unless options.originId
 
@@ -212,8 +150,7 @@ module.exports = class JStatusUpdate extends JPost
       return callback err if err
       @decorateResults data, callback
 
-  @fetchTopicFeed = secure (client, options, callback)->
-    [callback, options] = [options, callback]  unless callback
+  @fetchTopicFeed = secure (client, options = {}, callback)->
 
     {context:{group}} = client
 
@@ -236,8 +173,7 @@ module.exports = class JStatusUpdate extends JPost
         return callback err if err
         @decorateResults posts, callback
 
-  @fetchFollowingFeed = secure (client, options, callback)->
-    [callback, options] = [options, callback]  unless callback
+  @fetchFollowingFeed = secure (client, options = {}, callback)->
     {Activity} = require "../../graph"
     options.client = client
     Activity.fetchFolloweeContentsForNewKoding options, (err, ids)=>

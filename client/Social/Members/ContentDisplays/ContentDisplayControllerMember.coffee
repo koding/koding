@@ -1,7 +1,7 @@
 class ContentDisplayControllerMember extends KDViewController
 
   neo4jFacets = [
-    "JStatusUpdate"
+    "JNewStatusUpdate"
     # "JLink"
     # "JBlogPost"
     # "JTutorial"
@@ -26,6 +26,9 @@ class ContentDisplayControllerMember extends KDViewController
   loadView:(mainView)->
     member = @getData()
     {lazy} = mainView
+
+    mainView.once 'KDObjectWillBeDestroyed', ->
+      KD.singleton('appManager').tell 'Activity', 'resetProfileLastTo'
 
     # FIX THIS GG
 
@@ -110,15 +113,15 @@ class ContentDisplayControllerMember extends KDViewController
       listCssClass          : "activity-related"
       limitPerPage          : 8
       useHeaderNav          : yes
-      delegate              : @getOption 'delegate'
-      help                  :
-        subtitle            : "Learn Personal feed"
-        tooltip             :
-          title             : "<p class='bigtwipsy'>This is the personal feed of a single Koding user.</p>"
-          placement         : "above"
+      delegate              : @getDelegate()
+      # help                  :
+      #   subtitle            : "Learn Personal feed"
+      #   tooltip             :
+      #     title             : "<p class='bigtwipsy'>This is the personal feed of a single Koding user.</p>"
+      #     placement         : "above"
       filter                :
         everything          : @createFilter("Everything", account, 'Everything')
-        statuses            : @createFilter("Status Updates", account, 'JStatusUpdate')
+        statuses            : @createFilter("Status Updates", account, 'JNewStatusUpdate')
 #        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
 #        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
 #        discussions         : @createFilter("Discussions", account, 'JDiscussion')

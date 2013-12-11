@@ -18,14 +18,20 @@ class ActivityTicker extends ActivityRightBase
 
     @load()
 
+    @itemsIndexed = {}
+
     group = KD.getSingleton("groupsController")
     group.on "MemberJoinedGroup", @bound "addJoin"
     group.on "LikeIsAdded", @bound "addLike"
     group.on "FollowHappened", @bound "addFollow"
     group.on "PostIsCreated", @bound "addActivity"
+    group.on "ReplyIsAdded", @bound "addComment"
+    group.on "PostIsDeleted", @bound "deleteActivity"
 
-    nc = KD.getSingleton("notificationController")
-    nc.on "ReplyIsAdded", @bound "addComment"
+    @listController.listView.on 'ItemWasAdded', (view, index) =>
+      if view.getData()?
+        itemId = @getItemId view.data
+        @itemsIndexed[itemId] = view
 
   getConstructorName :(obj)->
     if obj and obj.bongo_ and obj.bongo_.constructorName
@@ -52,7 +58,18 @@ class ActivityTicker extends ActivityRightBase
     @fetchTags source, (err, tags)=>
       return log "discarding event, invalid data"  if err or not tags
       source.tags = tags
-      @listController.addItem {source, target, as}, 0
+      @addNewItem {source, target, as}, 0
+
+  deleteActivity: (data) ->
+    {origin, subject} = data
+    unless @getConstructorName(origin) and @getConstructorName(subject)
+      return console.warn "data is not valid"
+
+    source = KD.remote.revive subject
+    target = KD.remote.revive origin
+    as     = "author"
+
+    @removeItem {source, target, as}
 
   addJoin: (data)->
     {member} = data
@@ -62,7 +79,7 @@ class ActivityTicker extends ActivityRightBase
     KD.remote.cacheable constructorName, id, (err, account)=>
       return console.error "account is not found", err if err or not account
       source = KD.getSingleton("groupsController").getCurrentGroup()
-      @listController.addItem {as: "member", target: account, source  }, 0
+      @addNewItem {as: "member", target: account, source  }, 0
 
   addFollow: (data)->
     {follower, origin} = data
@@ -83,7 +100,7 @@ class ActivityTicker extends ActivityRightBase
             target : source
             as     : "follower"
 
-        @addNewItem eventObj
+        @addNewItem eventObj, 0
 
   addLike: (data)->
     {liker, origin, subject} = data
@@ -103,13 +120,13 @@ class ActivityTicker extends ActivityRightBase
           return console.log "subject is not found", err, data.subject if err or not subject
 
           eventObj = {source, target, subject, as:"like"}
-          @addNewItem eventObj
+          @addNewItem eventObj, 0
 
   addComment: (data) ->
     {origin, reply, subject, replier} = data
     unless replier and origin and subject and reply
       return console.warn "data is not valid"
-    #such a copy paste it is. could be handled better
+    #CtF: such a copy paste it is. could be handled better
     {constructorName, id} = replier
     KD.remote.cacheable constructorName, id, (err, source)=>
       return console.log "account is not found", err, liker if err or not source
@@ -127,7 +144,7 @@ class ActivityTicker extends ActivityRightBase
             return console.log "reply is not found", err, data.reply if err or not object
 
             eventObj = {source, target, subject, object, as:"reply"}
-            @listController.addItem eventObj, 0
+            @addNewItem eventObj, 0
 
 
 
@@ -145,7 +162,7 @@ class ActivityTicker extends ActivityRightBase
         return null
 
     # filter user followed status activity
-    if @getConstructorName(source) is "JStatusUpdate" and \
+    if @getConstructorName(source) is "JNewStatusUpdate" and \
         @getConstructorName(target) is "JAccount" and \
         as is "follower"
       return null
@@ -167,7 +184,7 @@ class ActivityTicker extends ActivityRightBase
       addedItemCount = 0
       for item in items when @filterItem item
         addedItemCount++
-        @listController.addItem item
+        @addNewItem item
       @load yes  if addedItemCount isnt items.length and not anotherLoad
 
   pistachio:
@@ -178,18 +195,26 @@ class ActivityTicker extends ActivityRightBase
     </div>
     """
 
-  addNewItem: (newItem) ->
-    items = @listController.getItemsOrdered()
-    {source, target, subject, as} = newItem
-    foundItem = item for item in items \
-                     when item.data.source.getId() is source.getId() and \
-                          item.data.target.getId() is target.getId() and \
-                          item.data.as is as and \
-                          item.data.subject?.getId() is subject?.getId()
+  addNewItem: (newItem, index) ->
+    itemId = @getItemId newItem
 
-    if not foundItem
-      @listController.addItem newItem, 0
+    if not @itemsIndexed[itemId]
+      if index? then @listController.addItem newItem, index
+      else @listController.addItem newItem
     else
-      @listController.removeItem foundItem
-      @listController.addItem newItem, 0
+      viewItem = @itemsIndexed[itemId]
+      @listController.moveItemToIndex viewItem, 0
+
+  removeItem: (item) ->
+    itemId = @getItemId item
+
+    if @itemsIndexed[itemId]
+      viewItem = @itemsIndexed[itemId]
+      @listController.removeItem viewItem
+
+
+  getItemId: (item) ->
+    {source, target, object, as} = item
+    "#{source.getId()}_#{target.getId()}_#{as}_#{object?.getId()}"
+
 

@@ -245,11 +245,10 @@ module.exports = class JPost extends jraphical.Message
       ]
       dash queue, =>
         callback null
-        @emit 'PostIsDeleted', 1
-        CActivity.emit "PostIsDeleted", {
-          teaserId : id
-          createdAt
-          group    : @group
+        @emit 'PostIsDeleted', {
+          origin  : delegate
+          subject : this
+          group   : @group
         }
 
   fetchActivityId:(callback)->
@@ -379,6 +378,7 @@ module.exports = class JPost extends jraphical.Message
                 reply         : ObjectRef(comment).data
                 repliesCount  : queue.relationshipCount
                 relationship  : queue.docs[0]
+                group         : @group
               }
             queue.next()
         =>

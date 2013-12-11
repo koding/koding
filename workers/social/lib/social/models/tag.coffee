@@ -146,7 +146,7 @@ module.exports = class JTag extends jraphical.Module
         as          : 'follower'
       content       :
         targetType  : [
-          "JStatusUpdate"
+          "JNewStatusUpdate"
           # "JCodeSnip"
           # "JNewApp"
           # "JLink"

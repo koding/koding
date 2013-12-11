@@ -19,7 +19,7 @@ class ActivityUpdateWidgetController extends KDViewController
         name            : 'statusUpdatePane'
         paneName        : 'update'
         cssClass        : 'status-widget'
-        constructorName : 'JStatusUpdate'
+        constructorName : 'JNewStatusUpdate'
         widgetName      : 'updateWidget'
         widgetType      : ActivityStatusUpdateWidget
 #      ,
@@ -67,7 +67,7 @@ class ActivityUpdateWidgetController extends KDViewController
               return notifySubmissionStopped()
             else
               widgetController.widgetSubmit formData, @getOptions().pane.constructorName, stopSubmission
-              if @getOptions().pane.constructorName in ['JStatusUpdate']
+              if @getOptions().pane.constructorName in ['JNewStatusUpdate']
                 widgetController[@getOptions().pane.widgetName].switchToSmallView()
               mainView.resetWidgets()
 
@@ -77,7 +77,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
     switchForEditView = (type,data,fake=no)=>
       switch type
-        when "JStatusUpdate"
+        when "JNewStatusUpdate"
           mainView.showPane "update"
           @updateWidget.switchToEditView data, fake
 #        when "JCodeSnip"
@@ -105,11 +105,6 @@ class ActivityUpdateWidgetController extends KDViewController
       mainView.setClass "edit-mode"
       switchForEditView activity.bongo_.constructorName, activity
 
-  emitFakeData:(type, data)->
-
-    fakeData = $.extend {fakeType : type}, data
-    @emit 'FakeActivityHasArrived', createFakeDataStructureForOwner fakeData
-
 
   widgetSubmit:(data,constructorName,callback)->
     for own key, field of data when _.isString(field)
@@ -127,12 +122,11 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
-      @emitFakeData constructorName, data
       updateTimeout = @utils.wait 20000, =>
         @emit 'OwnActivityHasFailed', data
 
       data.group = KD.getSingleton('groupsController').getGroupSlug()
-      KD.remote.api[constructorName].create data, (err, activity)=>
+      KD.remote.api[constructorName]?.create data, (err, activity)=>
         callback? err, activity
 
         KD.showError err,
@@ -147,61 +141,3 @@ class ActivityUpdateWidgetController extends KDViewController
           @emit 'OwnActivityHasArrived', activity
         else
           @emit 'OwnActivityHasFailed', data
-
-  createFakeTags = (originalTags)->
-
-    # prepare fake tags
-    tags = []
-    for tag in originalTags
-      fakeTag       = new KD.remote.api.JTag {}, tag
-      fakeTag       = $.extend {},fakeTag,
-        title       : tag.title or tag.$suggest
-        body        : tag.title or tag.$suggest
-        group       : tag.group or 'koding' # KD.defaultSlug
-        counts      :
-          followers : 0
-          following : 0
-          tagged    : 0
-        slug        : KD.utils.slugify (tag.title or tag.$suggest)
-      tags.push fakeTag
-    tags
-
-  createFakeDataStructureForOwner = (activity)->
-    oldActivity = activity
-    constructorName = activity.fakeType
-    # prepare fake post
-    fakePost      = new KD.remote.api[constructorName] {}, activity
-    fakePost      = $.extend yes,{},fakePost,
-      fake        : yes
-      slug        : 'fakeActivity'
-      title       : activity.title or activity.body
-      body        : activity.body
-      group       : activity.group or 'koding' # KD.defaultSlug
-      html        : KD.utils.applyMarkdown activity.body
-      counts      :
-        followers : 0
-        following : 0
-      meta        :
-        createdAt : (new Date (Date.now())).toISOString()
-        likes     : 0
-        modifiedAt: (new Date (Date.now())).toISOString()
-      origin      : KD.whoami()
-      link        : oldActivity.link or oldActivity
-      repliesCount: 0
-      opinionCount: 0
-      originId    : KD.whoami()._id
-      originType  : 'JAccount'
-      _id         : 'fakeIdfakeId' # 12bytes, as expected
-
-    if oldActivity?.meta?.tags
-      fakePost        = $.extend fakePost,
-        tags          : createFakeTags oldActivity?.meta?.tags
-
-    if activity?.code
-      fakePost        = $.extend fakePost,
-        attachments   : [
-          description : activity.body
-          content     : activity.code
-          syntax      : activity.syntax
-        ]
-    fakePost

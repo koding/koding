@@ -1,33 +1,52 @@
 class NavigationList extends KDListView
 
-  # customizeItemOptions:(options, data)->
+  constructor:->
+    super
 
-  #   if data.title is "Activity"
-  #     options.childClass = NavigationActivityLink
-  #     return options
+    @viewWidth = 70
 
-  #   else if data.title is "Invite Friends"
-  #     options.childClass = NavigationInviteLink
-  #     return options
+    @on 'ItemWasAdded', (view)=>
 
-  #   else if data.title is "Apps"
-  #     options.childClass = NavigationAppsLink
-  #     return options
+      view.once 'viewAppended', =>
 
-  #   if data.docs
-  #     options.childClass = NavigationDocsJobsLink
-  #     return options
+        view._index ?= @getItemIndex view
+        view.setX view._index * @viewWidth
+        @_width = @viewWidth * @items.length
 
-  #   if data.promote
-  #     options.childClass = NavigationPromoteLink
-  #     return options
+      lastChange = 0
 
-  #   if data.type is "separator"
-  #     options.childClass = NavigationSeparator
-  #     options.selectable = no
-  #     return options
+      view.on 'DragInAction', (x, y)=>
 
-  #   if data.type is "admin"
-  #     options.itemClass  = AdminNavigationLink
-  #     options.selectable = no
-  #     return options
+        return  if x + view._x > @_width or x + view._x < 0
+
+        if x > @viewWidth
+          current = Math.floor x / @viewWidth
+        else if x < -@viewWidth
+          current = Math.ceil  x / @viewWidth
+        else
+          current = 0
+
+        if current > lastChange
+          @moveItemsTemporarily view, 1
+          lastChange = current
+        else if current < lastChange
+          @moveItemsTemporarily view, -1
+          lastChange = current
+
+      view.on 'DragFinished', =>
+        view.setX view._index * @viewWidth
+        @moveItemToIndex view, view._index
+        item._index = i for item, i in @items
+        lastChange  = 0
+
+  moveItemsTemporarily:(view, step)->
+
+    newIndex = Math.max(0, Math.min(view._index + step, @items.length-1))
+    return  if newIndex is view._index
+
+    for item, index in @items
+      if item._index is newIndex
+        item.setX item.getRelativeX() - (step * @viewWidth)
+        item._index = view._index
+        view._index = newIndex
+        break

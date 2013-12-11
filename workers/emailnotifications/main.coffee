@@ -120,7 +120,7 @@ fetchSubjectContentLink = (content, type, callback)->
     JTutorial         : "#{pre}tutorial</a>"
     JDiscussion       : "#{pre}discussion</a>"
     JLinkActivity     : "#{pre}link</a>"
-    JStatusUpdate     : "#{pre}status update</a>"
+    JNewStatusUpdate     : "#{pre}status update</a>"
     JPrivateMessage   : "#{pre}private message</a>"
     JQuestionActivity : "#{pre}question</a>"
 

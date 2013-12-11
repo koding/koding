@@ -15,7 +15,7 @@ module.exports = class ActivityTicker extends Base
         ]
 
   relationshipNames = ["follower", "like", "member", "user", "reply", "author"]
-  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JStatusUpdate", "JComment"]
+  constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate", "JComment"]
 
   JAccount = require './account'
 
@@ -66,7 +66,7 @@ module.exports = class ActivityTicker extends Base
 
   decorateLikeEvent = (relationship, callback) ->
     {source, target, as, timestamp} = relationship
-    # there is a flipped relationship between JAccount and JStatusUpdate
+    # there is a flipped relationship between JAccount and JNewStatusUpdate
     # source is status update
     # target is account, we should correct it here
     # and also we should add the origin account here

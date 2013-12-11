@@ -122,6 +122,8 @@ module.exports = class ActiveItems extends Base
           klass.some {sourceId: $nin : existingIds}, {limit:missing}, (err, randomInstances)->
             instances = instances.concat randomInstances  unless err
             queue.next()
+        else
+          queue.next()
 
       queue.push ->
         instances = _.uniq instances, (i)-> i._id

@@ -35,13 +35,13 @@ decorateComment = (JAccount, comment, callback) ->
       commentSummary.authorNickname = getNickname acc
       callback null, commentSummary
 
-fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) ->
+fetchLastStatusUpdatesOfUser = (account, Relationship, JNewStatusUpdate, callback) ->
   {daisy} = require "bongo"
   originId = account.data._id
   selector =
     "targetId"   : originId
     "targetName" : "JAccount"
-    "sourceName" : "JStatusUpdate"
+    "sourceName" : "JNewStatusUpdate"
     "as"         : "author"
 
   Relationship.some selector, limit: 3, (err, relationships)->
@@ -53,7 +53,7 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) 
       sel =
         _id        : rel.data.sourceId
         originType : "JAccount"
-      JStatusUpdate.one sel, {}, (error, statusUpdate)=>
+      JNewStatusUpdate.one sel, {}, (error, statusUpdate)=>
         queue.next() if error
         queue.next() unless statusUpdate
         queue.statusUpdates or= []
@@ -66,7 +66,7 @@ fetchLastStatusUpdatesOfUser = (account, Relationship, JStatusUpdate, callback) 
 createActivityContent = (JAccount, models, comments, section, callback) ->
   model = models.first if models and Array.isArray models
   unless model
-    callback new Error "JStatusUpdate cannot be found.", null
+    callback new Error "JNewStatusUpdate cannot be found.", null
   statusUpdateId = model.getId()
   jAccountId = model.data.originId
   selector =
@@ -186,8 +186,8 @@ module.exports =
           # this is a user
           else
             models.last.fetchOwnAccount (err, account)->
-              {JStatusUpdate} = bongo.models
-              fetchLastStatusUpdatesOfUser account, Relationship, JStatusUpdate, (error, statusUpdates) =>
+              {JNewStatusUpdate} = bongo.models
+              fetchLastStatusUpdatesOfUser account, Relationship, JNewStatusUpdate, (error, statusUpdates) =>
                 return res.send 500, error_500()  if error
                 content = profile {account, statusUpdates}
                 return res.send 200, content

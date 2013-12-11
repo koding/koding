@@ -6,7 +6,7 @@ KodingError = require "./../../error"
 module.exports = class Activity extends Graph
 
   neo4jFacets = [
-    "JStatusUpdate"
+    "JNewStatusUpdate"
 #    "JLink"
 #    "JBlogPost"
 #    "JTutorial"

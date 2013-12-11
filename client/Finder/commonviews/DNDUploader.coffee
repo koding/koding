@@ -44,9 +44,6 @@ class DNDUploader extends KDView
 
   viewAppended: ->
     super
-    @finder = KD.getSingleton "finderController"
-    tc      = @finder.treeController
-    @notify = tc.notify.bind tc
 
   reset: ->
     {uploadToVM, defaultPath, title} = @getOptions()
@@ -64,7 +61,7 @@ class DNDUploader extends KDView
     {files, items}  = event.originalEvent.dataTransfer
 
     if files.length >= 20
-      @notify """
+      KD.notify_ """
       Too many files to transfer!<br>
       Archive your files and try again.
       """, "error", """
@@ -99,7 +96,7 @@ class DNDUploader extends KDView
       for file, index in files
         sizeInMb = file.size/1024/1024
         if sizeInMb > 100 && @getOptions().uploadToVM
-          @notify "Too big file to upload.", "error", "Max 100MB allowed per file."
+          KD.notify_ "Too big file to upload.", "error", "Max 100MB allowed per file."
           continue
         reader = new FileReader
         reader.onloadend = do (file=files[index])=> (readEvent)=>

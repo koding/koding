@@ -6,7 +6,7 @@ module.exports = class GraphDecorator
   NewMemberBucketDecorator = require './decorators/newmemberbucket'
 
   singleActivityDecorators =
-    'JStatusUpdate' : SingleActivityDecorator
+    'JNewStatusUpdate' : SingleActivityDecorator
 #    'JTutorial'     : SingleActivityDecorator
 #    'JCodeSnip'     : SingleActivityDecorator
 #    'JDiscussion'   : SingleActivityDecorator

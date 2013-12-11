@@ -251,10 +251,12 @@ module.exports = class CActivity extends jraphical.Capsule
     @fetchSubject (err, subject)->
       if err
         callback err
-      else
+      else if subject
         subject.fetchTeaser (err, teaser)->
           callback err, teaser
         , showIsLowQuality
+      else
+        callback null, null
 
   @teasers =(selector, options, callback)->
     [callback, options] = [options, callback] unless callback

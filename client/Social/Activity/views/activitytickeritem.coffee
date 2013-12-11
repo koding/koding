@@ -10,7 +10,7 @@ class ActivityTickerBaseItem extends JView
     JNewApp            : AppLinkView
     JTag               : TagLinkView
     JGroup             : GroupLinkView
-    JStatusUpdate      : ActivityLinkView
+    JNewStatusUpdate   : ActivityLinkView
     JComment           : ActivityCommentView
 
 class ActivityTickerFollowItem extends ActivityTickerBaseItem
@@ -121,7 +121,7 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
     super options, data
 
-    {source, target, subject, object} = data
+    {source, target, subject} = data
 
     @avatar    = new AvatarView
       size     : width: 28, height: 28
@@ -131,7 +131,6 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     @actor    = new ProfileLinkView null, source
     @origin   = new ProfileLinkView null, target
     @subj     = new ActivityLinkView null, subject
-    @object   = new ActivityCommentView null, object
 
   pistachio: ->
     {source, target, subject} = @getData()
@@ -141,20 +140,20 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     if  source.getId() is KD.whoami().getId()
       # if user commented his/her post
       if source.getId() is target.getId() then \
-        return "{{> @avatar}} You #{activity} your {{> @subj}}:{{> @object}}"
+        return "{{> @avatar}} You #{activity} your {{> @subj}}"
       else
-        return "{{> @avatar}} You #{activity} {{> @origin}}'s {{> @subj}}:{{> @object}}"
+        return "{{> @avatar}} You #{activity} {{> @subj}}"
 
     # someone did something to you
     if target.getId() is KD.whoami().getId() then \
-      return "{{> @avatar}} {{> @actor}} #{activity} your {{> @subj}}:{{> @object}}"
+      return "{{> @avatar}} {{> @actor}} #{activity} your {{> @subj}}"
 
     # if user commented his/her post
     if source.getId() is target.getId() then \
-      return "{{> @avatar}} {{> @actor}} #{activity} their {{> @subj}}:{{> @object}}"
+      return "{{> @avatar}} {{> @actor}} #{activity} their {{> @subj}}"
 
     # rest
-    return "{{> @avatar}} {{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}:{{> @object}}"
+    return "{{> @avatar}} {{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}"
 
 class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
@@ -167,27 +166,26 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
       cssClass : "avatarview"
     , target
 
-    @actor    = new ProfileLinkView null, target
-    @subj     = new ActivityLinkView null, source
-    @object   = new ActivityCommentView null, source
+    @actor = new ProfileLinkView null, target
+    @subj  = new ActivityLinkView null, source
 
   pistachio: ->
     {source, target} = @getData()
     if target.getId() is KD.whoami().getId()
-      return "{{> @avatar}} You posted a {{> @subj}}: {{> @object}}"
+      return "{{> @avatar}} You posted {{> @subj}}"
 
-    return "{{> @avatar}} {{> @actor}} posted a {{> @subj}}: {{> @object}}"
+    return "{{> @avatar}} {{> @actor}} posted {{> @subj}}"
 
 
 class ActivityTickerItem extends KDListItemView
   itemClassMap =
-    "JGroup_member_JAccount"        : ActivityTickerMemberItem
-    "JAccount_like_JAccount"        : ActivityTickerLikeItem
-    "JTag_follower_JAccount"        : ActivityTickerFollowItem
-    "JAccount_follower_JAccount"    : ActivityTickerFollowItem
-    "JNewApp_user_JAccount"         : ActivityTickerAppUserItem
-    "JAccount_reply_JAccount"       : ActivityTickerCommentItem
-    "JStatusUpdate_author_JAccount" : ActivityTickerStatusUpdateItem
+    "JGroup_member_JAccount"           : ActivityTickerMemberItem
+    "JAccount_like_JAccount"           : ActivityTickerLikeItem
+    "JTag_follower_JAccount"           : ActivityTickerFollowItem
+    "JAccount_follower_JAccount"       : ActivityTickerFollowItem
+    "JNewApp_user_JAccount"            : ActivityTickerAppUserItem
+    "JAccount_reply_JAccount"          : ActivityTickerCommentItem
+    "JNewStatusUpdate_author_JAccount" : ActivityTickerStatusUpdateItem
 
   constructor: (options = {}, data) ->
     options.type = "activity-ticker-item"

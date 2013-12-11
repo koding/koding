@@ -14,7 +14,7 @@ class NFileItemView extends KDCustomHTMLView
         width       : 16
       loaderOptions :
         # color       : @utils.getRandomHex()
-        color       : "#222222"
+        color       : "#71BAA2"
         shape       : "spiral"
         diameter    : 16
         density     : 30
