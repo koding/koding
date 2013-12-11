@@ -16,23 +16,11 @@ import (
 	"unicode/utf8"
 )
 
-type WebtermServer struct {
-	Session          string `json:"session"`
-	remote           WebtermRemote
-	isForeignSession bool
-	pty              *pty.PTY
-	currentSecond    int64
-	messageCounter   int
-	byteCounter      int
-	lineFeeedCounter int
-}
-
-type WebtermRemote struct {
-	Output       dnode.Function
-	SessionEnded dnode.Function
-}
-
 func main() {
+	NewTerminal().Run()
+}
+
+func NewTerminal() *kite.Kite {
 	options := &kite.Options{
 		Kitename:    "terminal",
 		Version:     "0.0.1",
@@ -42,7 +30,7 @@ func main() {
 
 	k := kite.New(options)
 	k.HandleFunc("connect", Connect)
-	k.Run()
+	return k
 }
 
 func Connect(r *kite.Request) (interface{}, error) {
@@ -164,6 +152,18 @@ func Connect(r *kite.Request) (interface{}, error) {
 	return server, nil
 }
 
+type WebtermServer struct {
+	Session          string `json:"session"`
+	remote           WebtermRemote
+	isForeignSession bool
+	pty              *pty.PTY
+	currentSecond    int64
+	messageCounter   int
+	byteCounter      int
+	lineFeeedCounter int
+	asdf             kite.Callback
+}
+
 func (server *WebtermServer) Input(data string) {
 	server.pty.Master.Write([]byte(data))
 }
@@ -183,6 +183,11 @@ func (server *WebtermServer) Close() error {
 
 func (server *WebtermServer) Terminate() error {
 	return server.Close()
+}
+
+type WebtermRemote struct {
+	Output       dnode.Function
+	SessionEnded dnode.Function
 }
 
 func FilterInvalidUTF8(buf []byte) []byte {
