@@ -121,7 +121,7 @@ class LoginView extends KDView
       style       : 'solid github'
       icon        : yes
       callback    : ->
-        return new KDNotificationView title: "Login restricted"
+        return new KDNotificationView title: "OAuth restricted in beta"
         #KD.singletons.oauthController.openPopup "github"
 
     @github.setPartial "<span class='button-arrow'></span>"
