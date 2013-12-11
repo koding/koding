@@ -32,6 +32,17 @@ class ActivityAppView extends KDScrollView
     @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
     @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
 
+    @feedFilterController = new KDListViewController
+      itemChildClass : FeedFilterListItem
+
+    items = [
+      {title: "Public",    type: "Public" },
+      {title: "Following", type: "Followed"}
+    ]
+
+    for i in items
+      @feedFilterController.addItem i
+
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
     @mainController.on "JoinedGroup", => @inputWidget.show()
@@ -57,6 +68,7 @@ class ActivityAppView extends KDScrollView
 
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
 
+    @addSubView @feedFilterController.getView()
     @addSubView @header
     @addSubView @mainBlock
     @addSubView @sideBlock
@@ -169,3 +181,10 @@ class FilterWarning extends JView
       """You are now looking at activities tagged with <strong>##{tag}</strong> """
 
     @show()
+
+class FeedFilterListItem extends KDListItemView
+  constructor:(options = {}, data)->
+    options.cssClass = KD.utils.curry "feed-filter-list-item", options.cssClass
+    super options, data
+
+  partial:-> @getData().type

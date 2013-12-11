@@ -95,7 +95,9 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
-    appView.innerNav.on "NavItemReceivedClick", (data)=>
+    appView.feedFilterController.on "ItemSelectionPerformed", (_, {items}) =>
+      data = items.first.getData()
+
       KD.track "Activity", data.type + "FilterClicked"
       @resetAll()
       @clearPopulateActivityBindings()
