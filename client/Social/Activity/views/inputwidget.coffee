@@ -1,6 +1,6 @@
 class ActivityInputWidget extends KDView
   {daisy, dash}         = Bongo
-  {JStatusUpdate, JTag} = KD.remote.api
+  {JNewStatusUpdate, JTag} = KD.remote.api
 
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "input-wrapper", options.cssClass
@@ -75,11 +75,10 @@ class ActivityInputWidget extends KDView
       return  "|#{prefix}:JTag:#{tag.getId()}|"
 
   create: (data, callback) ->
-    JStatusUpdate.create data, (err, activity) =>
+    JNewStatusUpdate.create data, (err, activity) =>
       @reset()  unless err
 
       callback? err, activity
-      KD.getSingleton("appManager").tell "Activity", "ownActivityArrived", activity
 
       KD.showError err,
         AccessDenied :

@@ -2,7 +2,7 @@ class NotificationController extends KDObject
 
   subjectMap = ->
 
-    JStatusUpdate       : "<a href='#'>status</a>"
+    JNewStatusUpdate       : "<a href='#'>status</a>"
     JCodeSnip           : "<a href='#'>code snippet</a>"
     JQuestionActivity   : "<a href='#'>question</a>"
     JDiscussion         : "<a href='#'>discussion</a>"
@@ -134,7 +134,7 @@ class NotificationController extends KDObject
       else
         method = 'one'
         args   = _id: subject.id
-      KD.remote.api[subject.constructorName][method] args, callback
+      KD.remote.api[subject.constructorName]?[method] args, callback
 
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
       # Ignore all guest notifications
@@ -216,7 +216,6 @@ class NotificationController extends KDObject
       type     : 'tray'
       cssClass : "mini realtime #{options.type}"
       duration : 10000
-      showTimer: yes
       title    : "<span></span>#{options.title}"
       content  : options.content  or null
 

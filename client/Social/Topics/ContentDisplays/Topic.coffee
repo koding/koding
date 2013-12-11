@@ -39,7 +39,7 @@ class ContentDisplayControllerTopic extends KDViewController
         statusupdates     :
           title           : 'Status Updates'
           dataSource      : (selector, options, callback)->
-            selector = {targetName: 'JStatusUpdate'}
+            selector = {targetName: 'JNewStatusUpdate'}
             topic.fetchContentTeasers options, selector, (err, teasers)->
               callback err, teasers
         codesnippets      :

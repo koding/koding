@@ -14,7 +14,7 @@ class BookUpdateWidget extends KDView
         rules       :
           required  : yes
       callback      : (status)=> @updateStatus status
-    
+
     @statusField.$().trigger "focus"
     @statusField.on "click", (event) => event.stopPropagation()
 
@@ -30,12 +30,11 @@ class BookUpdateWidget extends KDView
     KD.getSingleton("appManager").open "Activity"
     @getDelegate().$().css left : -1349
 
-    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
+    KD.remote.api.JNewStatusUpdate.create body : status, (err,reply)=>
       @utils.wait 2000, =>
         @getDelegate().$().css left : -700
       unless err
         @constructor.updateSent = yes
-        KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView
           type     : 'growl'
           cssClass : 'mini'

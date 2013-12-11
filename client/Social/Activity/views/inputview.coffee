@@ -45,6 +45,7 @@ class ActivityInputView extends KDTokenizedInput
 
   keyDown: (event) ->
     super
+    return  if event.isPropagationStopped()
     switch event.which
       when 27 # Escape
         @emit "Escape"

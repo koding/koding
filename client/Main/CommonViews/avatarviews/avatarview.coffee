@@ -44,6 +44,16 @@ class AvatarView extends LinkView
       @$().css "background-image", "url(#{uri})"
       @bgImg = uri
 
+  getAvatar:->
+    return @bgImg
+
+  getGravatarUri:->
+    {profile} = @getData()
+    {width} = @getOptions().size
+    if profile.hash \
+      then "//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri}"
+      else "#{@fallbackUri}"
+
   render:->
     account = @getData()
     return unless account
@@ -55,9 +65,7 @@ class AvatarView extends LinkView
 
     height = width unless height
 
-    avatarURI = if profile.hash
-    then "//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri}"
-    else "#{@fallbackUri}"
+    avatarURI = @getGravatarUri()
 
     if profile.avatar?.match /^https?:\/\//
       resizedAvatar = KD.utils.proxifyUrl profile.avatar, {crop: yes, width, height}

@@ -65,9 +65,7 @@ class ActivityActionsView extends KDView
           delegate    : this
           x           : @getX() - 10
           y           : @getY() - 50
-          arrow       :
-            placement : "bottom"
-            margin    : 110
+          menuMaxWidth: 400
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
 

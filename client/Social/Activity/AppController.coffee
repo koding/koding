@@ -72,8 +72,6 @@ class ActivityAppController extends AppController
     @listController.resetList()
     @listController.removeAllItems()
 
-  ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
-
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   bindLazyLoad:->
@@ -205,24 +203,24 @@ class ActivityAppController extends AppController
 
   fetchTopicActivities:(options = {})->
     options.to = @lastTo
-    {JStatusUpdate} = KD.remote.api
+    {JNewStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    JStatusUpdate.fetchTopicFeed options, (err, activities) =>
+    JNewStatusUpdate.fetchTopicFeed options, (err, activities) =>
       if err then @emit "activitiesCouldntBeFetched", err
       else @emit "topicFeedFetched_#{eventSuffix}", activities
 
 
   fetchPublicActivities:(options = {})->
     options.to = @lastTo
-    {JStatusUpdate} = KD.remote.api
+    {JNewStatusUpdate} = KD.remote.api
     # todo - implement prefetched feed
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    JStatusUpdate.fetchGroupActivity options, (err, messages)=>
+    JNewStatusUpdate.fetchGroupActivity options, (err, messages)=>
       return @emit "activitiesCouldntBeFetched", err  if err
       @emit "publicFeedFetched_#{eventSuffix}", messages
 
   fetchFollowingActivities:(options = {})->
-    {JStatusUpdate} = KD.remote.api
+    {JNewStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CActivity.fetchFollowingFeed options, (err, activities) =>
       if err
@@ -292,7 +290,7 @@ class ActivityAppController extends AppController
 
   createContentDisplay:(activity, callback=->)->
     controller = switch activity.bongo_.constructorName
-      when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
+      when "JNewStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
       when "JBlogPost"     then @createBlogPostContentDisplay activity
@@ -345,10 +343,9 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  lastTo : null
-
   fetchActivitiesProfilePage:(options,callback)->
-    options.to = options.to or @lastTo or Date.now()
+    {originId} = options
+    options.to = options.to or @profileLastTo or Date.now()
     if KD.checkFlag 'super-admin'
       appStorage = new AppStorage 'Activity', '1.0'
       appStorage.fetchStorage (storage)=>
@@ -359,14 +356,14 @@ class ActivityAppController extends AppController
       @fetchActivitiesProfilePageWithExemptOption options, callback
 
   fetchActivitiesProfilePageWithExemptOption:(options, callback)->
-    {JStatusUpdate} = KD.remote.api
+    {JNewStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    JStatusUpdate.fetchProfileFeed options, (err, activities)=>
+    JNewStatusUpdate.fetchProfileFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
 
       if activities?.length > 0
         lastOne = activities.last.meta.createdAt
-        @lastTo = (new Date(lastOne)).getTime()
+        @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities
 
   unhideNewItems: ->
@@ -409,3 +406,6 @@ class ActivityAppController extends AppController
     window.scrollTo 0, 0
     inputWidget.once "Submit", ->
       window.scrollTo 0, item.getElement().getBoundingClientRect().top
+
+  resetProfileLastTo : ->
+    @profileLastTo = null
