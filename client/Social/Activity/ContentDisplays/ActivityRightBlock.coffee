@@ -18,7 +18,7 @@ class ActivityRightBase extends JView
   pistachio:->
     """
     <div class="right-block-box">
-      <h3>#{@getOption 'title'}</h3>
+      <h3>#{@getOption 'title'}{{> @showAllLink}}</h3>
       {{> @tickerListView}}
     </div>
     """
@@ -29,7 +29,7 @@ class ActiveUsers extends ActivityRightBase
 
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
-      partial : "Show All"
+      partial : "show all"
       cssClass: "show-all-link hidden"
       click   : (event) -> KD.singletons.router.handleRoute "/Members"
     , data
@@ -46,13 +46,14 @@ class ActiveTopics extends ActivityRightBase
 
     @showAllLink = new KDCustomHTMLView
       tagName : "a"
-      partial : "Show All"
+      partial : "show all"
       cssClass: "show-all-link"
       click   : (event) -> KD.singletons.router.handleRoute "/Topics"
     , data
 
     options.title    = "Popular Topics"
     options.cssClass = "active-topics"
+
     super options, data
 
     KD.remote.api.ActiveItems.fetchTopics {}, @bound 'renderItems'
