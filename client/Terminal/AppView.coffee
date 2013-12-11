@@ -3,6 +3,9 @@ class WebTermView extends KDView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    @_vmName = options.vmName  if options.vmName
+
     @initBackoff()
 
   viewAppended: ->
@@ -64,17 +67,7 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
-    @utils.defer =>
-
-      vmc = KD.getSingleton 'vmController'
-      if vmc.vms.length > 1
-        vmselection = new VMSelection
-        vmselection.once 'VMSelected', (vm)=>
-          @_vmName = vm
-          do @connectToTerminal
-      else
-        @_vmName = vmc.vms.first
-        do @connectToTerminal
+    @connectToTerminal()
 
   connectToTerminal:->
 
