@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/rand"
 	"net"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -32,6 +33,17 @@ var (
 	// used for loadbalance modes, like roundrobin or random
 	indexes   = make(map[string]int)
 	indexesMu sync.Mutex // protect indexes
+)
+
+const (
+	CookieBuildName  = "kdproxy-preferred-build"
+	CookieDomainName = "kdproxy-preferred-domain"
+
+	ModeMaintenance = "ModeMaintenance"
+	ModeInternal    = "ModeInternal"
+	ModeVM          = "ModeVM"
+	ModeVMOff       = "ModeVMOff"
+	ModeRedirect    = "ModeRedirect"
 )
 
 // Target is returned for every incoming request host.
@@ -72,6 +84,70 @@ func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
 		FetchedAt:    time.Now(),
 		CacheTimeout: timeout,
 	}
+}
+
+// GetTarget is used to get the target according to the incoming request
+func GetTarget(req *http.Request) (*Target, error) {
+	var target *Target
+	var err error
+
+	cookieBuild, err := req.Cookie(CookieBuildName)
+	if err != http.ErrNoCookie {
+		target, err = MemTargetByBuild(cookieBuild.Value)
+		if err == nil && target.Mode == ModeInternal {
+			log.Printf("proxy target is overridden by cookie. Using BUILD '%s'\n", cookieBuild.Value)
+			return target, nil
+		}
+		// falltrough
+	}
+
+	cookieDomain, err := req.Cookie(CookieDomainName)
+	if err != http.ErrNoCookie {
+		target, err = MemTargetByHost(cookieDomain.Value)
+		if err == nil && target.Mode == ModeInternal {
+			log.Printf("proxy target is overrriden by cookie. Using DOMAIN '%s'\n", cookieDomain.Value)
+			return target, nil
+		}
+		// falltrough
+	}
+
+	return MemTargetByHost(req.Host)
+}
+
+// TODO: make it an interface capable function and merge with MemTargetByHost
+// MemTargetByBuild is like TargetByBuild with a difference, that it f first makes a
+// lookup from the in-memory lookup, if not found it returns the result from
+// TargetByBuild()
+func MemTargetByBuild(host string) (*Target, error) {
+	var err error
+	target := new(Target)
+
+	targetBuildsMu.Lock()
+	defer targetBuildsMu.Unlock()
+
+	target, ok := targetBuilds[host]
+	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
+		target, err = TargetByBuild(host)
+		if err != nil {
+			return nil, err
+		}
+		target.FetchedSource = "MongoDB"
+
+		targetBuilds[host] = target
+	} else {
+		target.FetchedSource = "Cache"
+	}
+
+	return target, nil
+}
+
+// TargetByBuild is used the resolve the final target destination for the
+// given build number.
+func TargetByBuild(buildKey string) (*Target, error) {
+	username := "koding"
+	servicename := "server"
+
+	return buildTarget(username, servicename, buildKey)
 }
 
 // MemTargetByHost is like TargetByHost with a difference, that it f first makes a
@@ -124,42 +200,6 @@ func TargetByHost(host string) (*Target, error) {
 	return target, nil
 }
 
-// TODO: make it an interface capable function and merge with MemTargetByHost
-// MemTargetByBuild is like TargetByBuild with a difference, that it f first makes a
-// lookup from the in-memory lookup, if not found it returns the result from
-// TargetByBuild()
-func MemTargetByBuild(host string) (*Target, error) {
-	var err error
-	target := new(Target)
-
-	targetBuildsMu.Lock()
-	defer targetBuildsMu.Unlock()
-
-	target, ok := targetBuilds[host]
-	if !ok || target.FetchedAt.Add(target.CacheTimeout).Before(time.Now()) {
-		target, err = TargetByBuild(host)
-		if err != nil {
-			return nil, err
-		}
-		target.FetchedSource = "MongoDB"
-
-		targetBuilds[host] = target
-	} else {
-		target.FetchedSource = "Cache"
-	}
-
-	return target, nil
-}
-
-// TargetByBuild is used the resolve the final target destination for the
-// given build number.
-func TargetByBuild(buildKey string) (*Target, error) {
-	username := "koding"
-	servicename := "server"
-
-	return buildTarget(username, servicename, buildKey)
-}
-
 func targetMode(host string, domain *models.Domain) (*Target, error) {
 	// split host and port and also check if incoming host has a port
 	var port string
@@ -177,19 +217,19 @@ func targetMode(host string, domain *models.Domain) (*Target, error) {
 	mode := domain.Proxy.Mode
 
 	switch mode {
-	case "maintenance":
+	case ModeMaintenance:
 		// for avoiding nil pointer referencing
 		return newTarget(nil, mode, time.Second*20), nil
-	case "redirect":
+	case ModeRedirect:
 		target, err := url.Parse(utils.CheckScheme(domain.Proxy.FullUrl))
 		if err != nil {
 			return nil, err
 		}
 
 		return newTarget(target, mode, time.Second*20), nil
-	case "vm":
+	case ModeVM:
 		return vmTarget(host, port, domain)
-	case "internal":
+	case ModeInternal:
 		return internalTarget(domain)
 	}
 
@@ -199,6 +239,7 @@ func targetMode(host string, domain *models.Domain) (*Target, error) {
 func targetDomain(host string) (*models.Domain, error) {
 	domain := new(models.Domain)
 	var err error
+
 	domain, err = modelhelper.GetDomain(host)
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -252,7 +293,7 @@ func buildTarget(username, servicename, key string) (*Target, error) {
 		hostname, n = internalRoundRobin(hosts, index, 0)
 		addOrUpdateIndex(indexKey, n)
 		if hostname == "" { // means all servers are dead, show maintenance page
-			return newTarget(nil, "maintenance", time.Second*20), nil
+			return newTarget(nil, ModeMaintenance, time.Second*20), nil
 		}
 	case "random":
 		randomIndex := rand.Intn(len(hosts) - 1)
@@ -267,7 +308,7 @@ func buildTarget(username, servicename, key string) (*Target, error) {
 		return nil, err
 	}
 
-	return newTarget(target, "internal", time.Second*20), nil
+	return newTarget(target, ModeInternal, time.Second*20), nil
 }
 
 // buildHosts returns a list of targe thosts for the given build paramaters.
@@ -335,11 +376,11 @@ func vmTarget(host, port string, domain *models.Domain) (*Target, error) {
 	}
 
 	if vm.HostKite == "" {
-		return newTarget(nil, "vmOff", time.Second*20), nil
+		return newTarget(nil, ModeVMOff, time.Second*20), nil
 	}
 
 	if vm.IP == nil {
-		return newTarget(nil, "vmOff", time.Second*20), nil
+		return newTarget(nil, ModeVMOff, time.Second*20), nil
 	}
 
 	vmAddr := vm.IP.String()
@@ -396,7 +437,7 @@ func fallbackDomain(host string) (*models.Domain, error) {
 		return notValidDomainFor(host)
 	}
 
-	return modelhelper.NewDomain(host, "internal", username, servicename, key, "", []string{}), nil
+	return modelhelper.NewDomain(host, ModeInternal, username, servicename, key, "", []string{}), nil
 }
 
 func notValidDomainFor(host string) (*models.Domain, error) {

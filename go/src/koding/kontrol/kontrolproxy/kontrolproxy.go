@@ -265,7 +265,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return p.resetCacheHandler(filepath.Base(req.URL.String()))
 	}
 
-	target, err := p.getTarget(req)
+	target, err := resolver.GetTarget(req)
 	if err != nil {
 		if err == resolver.ErrGone {
 			return templateHandler("notfound.html", req.Host, 410)
@@ -298,17 +298,17 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	switch target.Mode {
-	case "maintenance":
+	case resolver.ModeMaintenance:
 		return templateHandler("maintenance.html", nil, 503)
-	case "redirect":
+	case resolver.ModeRedirect:
 		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
-	case "vm":
+	case resolver.ModeVM:
 		err := utils.CheckServer(target.Url.Host)
 		if err != nil {
 			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
 			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
-	case "vmOff":
+	case resolver.ModeVMOff:
 		return templateHandler("notOnVM.html", req.Host, 404)
 	}
 
@@ -330,34 +330,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	return reverseProxyHandler(transport, target.Url)
-}
-
-// getTarget is used to get the target according to the incoming request
-func (p *Proxy) getTarget(req *http.Request) (*resolver.Target, error) {
-	var target *resolver.Target
-	var err error
-
-	cookieBuild, err := req.Cookie("kdproxy-preferred-build")
-	if err != http.ErrNoCookie {
-		target, err = resolver.MemTargetByBuild(cookieBuild.Value)
-		if err == nil && target.Mode == "internal" {
-			logs.Debug(fmt.Sprintf("proxy target is overridden by cookie. Using BUILD '%s'\n", cookieBuild.Value))
-			return target, nil
-		}
-		// falltrough
-	}
-
-	cookieDomain, err := req.Cookie("kdproxy-preferred-domain")
-	if err != http.ErrNoCookie {
-		target, err = resolver.MemTargetByHost(cookieDomain.Value)
-		if err == nil && target.Mode == "internal" {
-			logs.Debug(fmt.Sprintf("proxy target is overrriden by cookie. Using DOMAIN '%s'\n", cookieDomain.Value))
-			return target, nil
-		}
-		// falltrough
-	}
-
-	return resolver.MemTargetByHost(req.Host)
 }
 
 // reverseProxyHandler is the main handler that is used for copy the response
