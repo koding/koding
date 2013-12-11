@@ -24,8 +24,10 @@ class ApplicationTabView extends KDTabView
       tabView = this
       pane.on "KDTabPaneDestroy", ->
         # -1 because the pane is still there but will be destroyed after this event
-        if tabView.panes.length - 1 is 0 and options.closeAppWhenAllTabsClosed
-          appManager.quit appManager.getFrontApp()
+        if tabView.panes.length - 1 is 0
+          if options.closeAppWhenAllTabsClosed
+            appManager.quit appManager.getFrontApp()
+          tabView.emit "AllTabsClosed"
         tabView.tabHandleContainer.repositionPlusHandle tabView.handles
 
       {tabHandle}  = pane
