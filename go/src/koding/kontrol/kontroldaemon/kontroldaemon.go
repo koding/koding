@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/streadway/amqp"
 	"koding/kontrol/kontroldaemon/handler"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/slog"
-	"github.com/streadway/amqp"
 )
 
 func init() {
@@ -49,11 +49,11 @@ func startRouting() {
 	for {
 		select {
 		case d := <-streams["api"]:
-			handler.ApiMessage(d.Body)
+			go handler.ApiMessage(d.Body)
 		case d := <-streams["worker"]:
-			handler.WorkerMessage(d.Body)
+			go handler.WorkerMessage(d.Body)
 		case d := <-streams["client"]:
-			handler.ClientMessage(d)
+			go handler.ClientMessage(d)
 		}
 	}
 }

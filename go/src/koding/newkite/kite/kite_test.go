@@ -37,7 +37,7 @@ func TestKite(t *testing.T) {
 		return
 	}
 
-	result, err := remote.Call("square", 2)
+	result, err := remote.Tell("square", 2)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -71,7 +71,7 @@ func TestKite(t *testing.T) {
 	}
 
 	args := []interface{}{3, Callback(resultCallback)}
-	result, err = remote.Call("square2", args)
+	result, err = remote.Tell("square2", args)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -91,7 +91,7 @@ func TestKite(t *testing.T) {
 func exp2() *Kite {
 	options := &Options{
 		Kitename:    "exp2",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        "3637",
 		Region:      "localhost",
 		Environment: "development",
@@ -104,7 +104,7 @@ func exp2() *Kite {
 func mathWorker() *Kite {
 	options := &Options{
 		Kitename:    "mathworker",
-		Version:     "1",
+		Version:     "0.0.1",
 		Port:        "3636",
 		Region:      "localhost",
 		Environment: "development",
