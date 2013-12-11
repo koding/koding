@@ -95,6 +95,17 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
+    appView.innerNav.on "NavItemReceivedClick", (data)=>
+      KD.track "Activity", data.type + "FilterClicked"
+      @resetAll()
+      @clearPopulateActivityBindings()
+
+      if data.type in ["Public", "Followed"]
+      then @setFeedFilter data.type
+      else @setActivityFilter data.type
+
+      @populateActivity()
+
   setFeedFilter: (feedType) -> @currentFeedFilter = feedType
   getFeedFilter: -> @currentFeedFilter
 
@@ -233,7 +244,7 @@ class ActivityAppController extends AppController
   fetchFollowingActivities:(options = {})->
     {JNewStatusUpdate} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    CActivity.fetchFollowingFeed options, (err, activities) =>
+    JNewStatusUpdate.fetchFollowingFeed options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err
       else @emit "followingFeedFetched_#{eventSuffix}", activities
