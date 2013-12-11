@@ -18,11 +18,11 @@ resurrection.activity.styl
   display               none
 
 .content-page.activity
-  max-width             1165px
+  max-width             100%
   min-height            1026px
-  margin                90px auto
+  margin                84px auto
   padding               0
-  position              relative
+  position              static
   overflow              visible
 
   .lazy-loader
@@ -33,7 +33,8 @@ resurrection.activity.styl
 
   .activity-left-block
     size                  auto, auto
-    margin                0 337px 0 0
+    margin                0 0 0 5%
+    kalc                  margin-right, 34% \+ 32px
 
     .filter-warning
 
@@ -91,127 +92,129 @@ resurrection.activity.styl
     .activity-content
       size              auto, auto
       margin            0 0 0 100px
-      font-size         16px
+      font-size         14px
       overflow          visible
 
       .kdview
         overflow        visible
 
   .activity-right-block
+    right               0
+    top                 55px
+    padding             0 0 0 33px
+    bg                  color, #ebebeb
+    size                34%, 100%
+    border-left         1px solid #d5d5d5
+    borderBox()
+    abs()
+
     .activity-ticker
-    .online-users
     .active-users
     .active-topics
-      .listview-wrapper
-        .kdscrollview
-          height        250px
-          overflow      auto
-          padding       0 23px 0 18px
-          borderBox()
+      size              269px, auto
 
-      .kdlistitemview-activity-ticker-item
-      .friend
-        height          42px
-        border-top      1px solid #eeeef2
-        .avatarview
-          margin        8px 14px 8px 0
-          fl()
-
-        .action
-        .friend-name
-          line-height   42px
-          color         #485259
-          font-size     12px
-          font-weight   200
-          white-space   nowrap
-          text-overflow ellipsis
-          fl()
-
-          >div
-            display       inline
-
-          a
-            display       inline
-            font-weight   400
-            color         #485259
-            noTextDeco()
-
-      .friend
-        cursor            pointer
-        i
-          size            10px, 10px
-          border-radius   100%
-          background      #cfcfcf
-          margin          17px 6px 0 0
-          fr()
-
-        &.online
-          i
-            background    #2eb398
-
-    .online-users
     .active-users
-      .kdlistitemview-activity-ticker-item
-        .profile
-          size          135px, 42px
-          font-weight   400
-          color         #485259
-          noTextDeco()
-          line-height   42px
-          color         #485259
-          font-size     14px
-          text-transform capitalize
-          overflow      hidden
-          white-space   nowrap
-          text-overflow ellipsis
-          fl()
-
     .active-topics
-    .active-users
-      .kdlistitemview-activity-ticker-item
-        width           269px
-      .ttag
-        size            170px, 42px
-        font-weight     400
-        color           #485259
-        noTextDeco()
-        line-height     42px
-        color           #485259
+      margin-top        18px
+
+    .right-block-box
+      size              auto, auto
+      margin            30px 0 0
+
+      h3
+        display         block
         font-size       14px
-        text-transform  capitalize
+        font-weight     500
+        color           #1aaf5d
+        margin          0 0 17px 0
+
+      .kdscrollview
+        size            269px, 330px
+        padding         0 30px 0 0
+
+    .kdlistitemview-activity-ticker-item
+      size              auto, 55px
+      position          relative
+      padding           11px 0 11px 0
+      margin            0 0 0 44px
+      overflow          visible
+      border-bottom     1px solid #d3d3d3
+      color             #3c4752
+      font-weight       400
+      font-size         13px
+      borderBox()
+
+      .action
+        overflow        visible
+        width           auto
+        line-height     15px
+
+        .kdview
+          font-weight   300
+
+      .text-overflow
         overflow        hidden
+        text-overflow   ellipsis
+
+      a
+        color           inherit
         white-space     nowrap
-        text-overflow ellipsis
-        fl()
+        display         inline
+        noTextDeco()
+
+        &.profile
+          font-weight   500
+
+      .avatarview
+        size            30px, 30px
+        rounded         3px
+        display         block
+        left            -44px
+        top             1px
+        abs()
 
       .follow-btn
-        size          85px, 26px
-        padding       0
-        text-align    center
-        margin        8px 0 0
-        vendor        transition, opacity .2s ease
+        size            31px, 31px
+        padding         0
+        bg              color, #1aaf5d
+        rounded         13px
+        vendor          transition, opacity .3s ease
         fr()
+        .icon
+          sprite        activity, "follow-check"
+          margin        0 0 0 9px
 
         &.following-account
-          opacity     .5
+          opacity       .6
+          .icon
+            margin      0 0 0 10px
+            sprite      activity, "cross-thin"
 
-        &.following-topic
-          opacity     .5
+    .activity-ticker
+      .profile
+        display       inline
 
-        span
-          font-size   12px
-          line-height 26px
+    .active-users
+      .avatarview
+        top             11px
+      .profile
+      .user-numbers
+        white-space     nowrap
+        width           170px
+        overflow        hidden
+        text-overflow   ellipsis
+        fl()
+      .user-numbers
+        height          18px
+        margin          4px 0 0
+        font-weight     200
 
-    .show-all-link
-      display         block
-      text-align      center
-      padding         10px 0
-      margin          14px -23px -10px -18px
-      border-top      2px solid #eeeef2
-      font-size       14px
-      color           #79868d
-      noTextDeco()
+    .active-topics
+      .kdlistitemview-activity-ticker-item
+        margin          0 15px 0 0
 
+        .ttag
+          line-height   34px
 
 span.collapsedtext
   borderBox()
@@ -252,6 +255,8 @@ span.collapsedtext
   overflow        visible
   position        relative
   margin          30px 0 0 0
+  border          1px solid #d8d8d8
+  shadow          1px 1px 0 rgba(196, 196, 196, .75)
   borderBox()
 
   &:nth-child(1)
@@ -289,18 +294,20 @@ span.collapsedtext
 
   .author-avatar
     display       block
-    size          86px, 86px
+    size          70px, 70px
     rounded       3px
     top           0
     right         100%
-    margin        0 14px 0 0
+    margin        0 9px 0 0
+    border        1px solid #bdc3c7
+    borderBox()
     abs()
 
   .profile
   .status-body
     word-break    break-word
     display       block
-    color         rgba(80, 89, 90, .8)
+    color         #3c4752
     font-weight   400
 
   .status-body
@@ -312,7 +319,7 @@ span.collapsedtext
     line-height   22px
 
   >.profile
-    color         #50595a
+    color         #1aaf5d
     font-weight   500
     padding       20px 21px 0
     display       inline-block
@@ -320,9 +327,6 @@ span.collapsedtext
 
   footer
     size          100%, 42px
-    rounded       0 0 3px 3px
-    bg            color, #f7f7f7
-    border-top    2px solid #e4e4e4
     margin        22px 0 0 0
     borderBox()
 
@@ -373,8 +377,11 @@ span.collapsedtext
       margin          0 0 0 12px
       noTextDeco()
 
+  .comment-container
+    bg                color, #f6f6f6
+
   .comment-container.commented
-    border-top        2px solid #e9e7e1
+    border-top        1px solid #d8d8d8
 
     .show-more-comments
       size            auto, 55px
@@ -396,9 +403,11 @@ span.collapsedtext
     borderBox()
 
     .avatarview
-      size            43px, 43px
+      size            40px, 40px
+      border          1px solid #bdc3c7
       top             20px
       left            20px
+      rounded         3px
       abs()
 
     .comment-contents
@@ -410,7 +419,7 @@ span.collapsedtext
 
       .profile
         display       inline-block
-        color         #50595a
+        color         #1aaf5d
         font-weight   500
         margin        2px 0 10px 0
         noTextDeco()
@@ -458,13 +467,13 @@ span.collapsedtext
 
     &~.kdlistitemview-comment
       padding-top       0
+      border-top        1px solid #d8d8d8
 
       .avatarview
         top           13px
 
       .comment-contents
         padding-top   13px
-        border-top    1px solid #eeeeef
 
     &.deleted
       width           auto
@@ -480,40 +489,39 @@ span.collapsedtext
 
 
   .item-add-comment-box
-    bg            color, #f7f7f8
-    border-top    2px solid #e4e4e4
-    padding       20px 16px 20px 20px
+    border-top    1px solid #d8d8d8
     borderBox()
 
     .avatarview
-      size        43px, 43px
+      size        35px, 35px
       display     block
-      left        20px
-      top         20px
+      left        5px
+      top         5px
+      rounded     3px
+      z-index     10
       abs()
 
     .item-add-comment-form
+      margin      -1px
       size        auto, auto
-      margin      0 0 0 43px
 
       textarea
-        size        100%, 43px
+        size        100%, 47px
         border      1px solid #d1d3d3
-        // border-left none
         box-shadow  none
         background  #fff
         line-height 24px
-        padding     9px 9px 8px 17px
+        padding     9px 9px 8px 54px
         color       #50595a
-        font-size   14px
-        rounded     0
+        font-size   13px
+        rounded     0 0 3px 3px
         vendor      transition, line-height .2s ease
         borderBox()
 
         &::-webkit-input-placeholder
-          color     #50595a
+          color     #acacac
         &::-moz-placeholder
-          color     #50595a
+          color     #acacac
 
         &:focus
           line-height     24px
@@ -719,48 +727,6 @@ body.profile
 
     .chevron-ghost-wrapper
       opacity           0
-
-
-/* Activity and profile right block's box style */
-
-.activity-right-block
-  right               0
-  top                 0
-  borderBox()
-  abs()
-
-  .right-block-box
-    size                auto, auto
-    background          #fff
-    border-radius       6px
-    margin              0 0 29px 0
-    padding             20px 0 10px 0
-    borderBox()
-
-    &~.right-block-box
-      margin-top        29px
-
-    h3
-      display         block
-      padding         0 23px 0 21px
-      font-size       16px
-      font-weight     500
-      color           #485259
-      margin          0 0 13px 0
-
-    .kdscrollview
-      width           325px
-
-  &.activity-right-block
-    size                302px, auto
-
-  &.profile-right-block
-    size                336px, auto
-    top                 35px
-
-    .right-block-box
-      padding           22px 22px 0
-
 
 /** Markdown Styling **/
 p.status-body

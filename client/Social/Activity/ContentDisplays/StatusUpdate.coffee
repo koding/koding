@@ -38,7 +38,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       id               : data.originId
 
     @avatar = new AvatarView {
-      size        : {width: 86, height: 86}
+      size        : {width: 70, height: 70}
       cssClass    : "author-avatar"
       origin
       showStatus  : yes
