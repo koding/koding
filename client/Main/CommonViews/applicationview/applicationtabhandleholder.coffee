@@ -15,6 +15,8 @@ class ApplicationTabHandleHolder extends KDView
     @addPlusHandle()  if @getOptions().addPlusHandle
 
   addPlusHandle: ->
+    @plusHandle?.destroy()
+
     @addSubView @plusHandle = new KDCustomHTMLView
       cssClass : "kdtabhandle visible-tab-handle plus"
       partial  : "<span class='icon'></span>"
