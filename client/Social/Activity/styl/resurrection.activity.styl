@@ -137,9 +137,8 @@ resurrection.activity.styl
         color           #37b298
         margin          0 0 17px 0
         .show-all-link
-          color           #a6abb1
-          margin-right    15px //remove this after fixing the box width
-          font-weight     300
+          color         #a6abb1
+          font-weight   300
           noTextDeco()
           fr()
 
@@ -258,15 +257,15 @@ resurrection.activity.styl
 
     .active-topics
       .kdlistitemview-activity-ticker-item
-        margin          0 15px 0 0
+        margin          0
 
         .ttag
           line-height   34px
 
-          &:before
-            content     "#"
-            margin-right 4px
-            color        #b5b5b5
+          // &:before
+          //   content     "#"
+          //   margin-right 4px
+          //   color        #b5b5b5
 
 span.collapsedtext
   borderBox()
@@ -442,18 +441,18 @@ span.collapsedtext
       margin          -1px 0 0 0
 
       a
-        display       block
-        width         auto, 55px
-        color         #3c4752
-        font-weight   400
-        font-size     14px
+        display         block
+        width           auto 55px
+        color           rgba(78, 78, 78, .78)
+        font-size       13px
+        letter-spacing  .2px
         noTextDeco()
 
       &.new
-        bg            color, #2eb398
+        bg              color, #2eb398
 
         a
-          color       #fff
+          color         #fff
 
   .kdlistitemview-comment
     padding           22px 22px 15px 20px
