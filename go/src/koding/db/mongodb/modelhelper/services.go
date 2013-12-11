@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"sort"
 	"strconv"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 func NewKeyRoutingTable() *models.KeyRoutingTable {
@@ -16,13 +17,13 @@ func NewKeyRoutingTable() *models.KeyRoutingTable {
 	}
 }
 
-func NewKeyData(key, persistence, mode, hostdata, rabbitkey string, host []string) *models.KeyData {
+func NewKeyData(key, persistence, mode, hostdata string, host []string, enabled bool) *models.KeyData {
 	return &models.KeyData{
 		Key:          key,
 		Host:         host,
 		LoadBalancer: models.LoadBalancer{persistence, mode},
 		HostData:     hostdata,
-		RabbitKey:    rabbitkey,
+		Enabled:      enabled,
 	}
 }
 
@@ -120,7 +121,7 @@ func GetKey(username, servicename, key string) (models.KeyData, error) {
 }
 
 // Update or add a key. service and username will be created if not available
-func UpsertKey(username, persistence, mode, servicename, key, host, hostdata, rabbitkey string) error {
+func UpsertKey(username, persistence, mode, servicename, key, host, hostdata string, enabled bool) error {
 	service, err := GetService(username)
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -138,7 +139,7 @@ func UpsertKey(username, persistence, mode, servicename, key, host, hostdata, ra
 	_, ok = keyRoutingTable.Keys[key] // empty routing table or not existing key
 	if !ok {
 		hosts := []string{host}
-		keyRoutingTable.Keys[key] = *NewKeyData(key, persistence, mode, hostdata, rabbitkey, hosts)
+		keyRoutingTable.Keys[key] = *NewKeyData(key, persistence, mode, hostdata, hosts, enabled)
 		service.Services[servicename] = keyRoutingTable
 		err = UpsertService(username, service)
 		if err != nil {
@@ -163,7 +164,7 @@ func UpsertKey(username, persistence, mode, servicename, key, host, hostdata, ra
 	keyData.LoadBalancer.Persistence = persistence
 	keyData.LoadBalancer.Mode = mode
 	keyData.HostData = hostdata
-	keyData.RabbitKey = rabbitkey
+	keyData.Enabled = enabled
 
 	keyRoutingTable.Keys[key] = keyData
 	service.Services[servicename] = keyRoutingTable
