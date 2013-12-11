@@ -119,7 +119,8 @@ module.exports = class JName extends Model
           queue.fin()
 
       dash queue, ->
-        models = models.filter (model)-> model
+        # remove falsy values
+        models = models.filter(Boolean)
         callback null, models, nameObj
 
     fetchModels = (name, callback)->
