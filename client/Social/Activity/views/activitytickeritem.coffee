@@ -230,7 +230,6 @@ class ActiveUserItemView extends KDListItemView
 
     unless KD.isMine data
       @followButton = new FollowButton
-        style          : "solid green"
         iconOnly       : yes
         stateOptions   :
           unfollow     :
@@ -251,7 +250,6 @@ class ActiveTopicItemView extends KDListItemView
 
     @tag = new TagLinkView {}, data
     @followButton = new FollowButton
-      cssClass       : 'solid green'
       iconOnly       : yes
       stateOptions   :
         unfollow     :

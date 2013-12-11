@@ -20,7 +20,7 @@ resurrection.activity.styl
 .content-page.activity
   max-width             100%
   min-height            1026px
-  margin                84px auto
+  margin                85px auto
   padding               0
   position              static
   overflow              visible
@@ -32,12 +32,11 @@ resurrection.activity.styl
     word-spacing        0
 
   .activity-left-block
-    size                  auto, auto
-    margin                0 0 0 5%
-    kalc                  margin-right, 34% \+ 32px
+    size                  711px, auto
+    kalc                  margin-right, 37% \+ 32px
+    fr()
 
     .filter-warning
-
       background        rgba(37, 46, 48, 1.0)
       width             calc( 100% \- 10px)
       padding           10px 0 10px 10px
@@ -53,38 +52,48 @@ resurrection.activity.styl
         abs()
 
     .input-wrapper
-        size              auto auto
-        margin            0 0 0 100px
+      size              auto auto
+      margin            0 0 0 100px
+      position          relative
+
+      .avatarview
+        rounded           4px
+        top               6px
+        left              6px
+        z-index           2
+        abs()
 
       .input-view
-        color             #9D998E
         border            none
         border-top        1px solid #CDCCC2
-        rounded           3px
+        border-left       1px solid #CDCCC2
+        rounded           5px
         borderBox()
 
         > div
           size            100% auto
           line-height     16px
-          font-size       16px
-          color           #536067
-          padding         22px 100px 22px 22px
-          background      white
-          vendor          transition, height .2s ease
+          font-size       14px
+          color           #acacac
+          padding         15px 100px 14px 56px
+          background      #fff
           borderBox()
 
         &.placeholder
           > div
-            color         #9D998E
+            color         #acacac
 
       button[type=submit]
-        height          44px
+        size            30px, 30px
         bottom          8px
-        right           6px
+        right           9px
+        padding         0
         abs()
         z-index         1
-        span.button-title
-          line-height   44px
+
+        .icon
+          margin        1px 0 0 7px
+          sprite        activity, "update-bubble"
 
         &[disabled=disabled]
           bg            color, #DDD !important
@@ -103,7 +112,7 @@ resurrection.activity.styl
     top                 55px
     padding             0 0 0 33px
     bg                  color, #ebebeb
-    size                34%, 100%
+    size                37%, 100%
     border-left         1px solid #d5d5d5
     borderBox()
     abs()
@@ -125,7 +134,7 @@ resurrection.activity.styl
         display         block
         font-size       14px
         font-weight     500
-        color           #1aaf5d
+        color           #37b298
         margin          0 0 17px 0
 
       .kdscrollview
@@ -167,28 +176,26 @@ resurrection.activity.styl
 
       .avatarview
         size            30px, 30px
-        rounded         3px
+        rounded         5px
         display         block
         left            -44px
         top             1px
         abs()
 
       .follow-btn
-        size            31px, 31px
+        size            25px, 25px
         padding         0
-        bg              color, #1aaf5d
-        rounded         13px
-        vendor          transition, opacity .3s ease
+        margin          4px 0 0
+        rounded         50%
+        bg              color, transparent
+        border          none
         fr()
         .icon
           sprite        activity, "follow-check"
-          margin        0 0 0 9px
 
         &.following-account
-          opacity       .6
           .icon
-            margin      0 0 0 10px
-            sprite      activity, "cross-thin"
+            sprite      activity, "following-check"
 
     .activity-ticker
       .profile
@@ -247,11 +254,10 @@ span.collapsedtext
       padding         0
 
 
-
 /* Activity items */
 .activity-item
   background      #fff
-  rounded         3px
+  rounded         5px
   overflow        visible
   position        relative
   margin          30px 0 0 0
@@ -260,7 +266,7 @@ span.collapsedtext
   borderBox()
 
   &:nth-child(1)
-    margin-top    37px
+    margin-top    32px
 
   &.content-display-main-section /* Content display */
     kalc          width, 100% \- 100px
@@ -271,7 +277,6 @@ span.collapsedtext
     noTextDeco()
     span:before
       content     '#'
-
 
   .kdbuttonwithmenu-wrapper.activity-settings-menu
     abs()
@@ -295,7 +300,7 @@ span.collapsedtext
   .author-avatar
     display       block
     size          70px, 70px
-    rounded       3px
+    rounded       5px
     top           0
     right         100%
     margin        0 9px 0 0
@@ -308,47 +313,46 @@ span.collapsedtext
     word-break    break-word
     display       block
     color         #3c4752
-    font-weight   400
+    font-weight   200
 
   .status-body
     // to avoid too long posts
     // until we find a better solution - SY
     overflow      auto
     max-height    400px
-    padding       9px 21px 0
+    padding       5px 23px 0
     line-height   22px
 
   >.profile
     color         #1aaf5d
     font-weight   500
-    padding       20px 21px 0
+    padding       18px 22px 0
     display       inline-block
     noTextDeco()
 
   footer
-    size          100%, 42px
-    margin        22px 0 0 0
+    size          100%, 25px
+    margin        0
     borderBox()
 
     time
       width       auto
-      line-height 41px
+      line-height 14px
       font-size   12px
-      color       #b3b1ab
+      color       #dadcdd
       padding     0 22px 0 0
       fr()
 
     .activity-actions
       width       auto
+      padding     0 0 0 10px
       fl()
 
     .action-link
     .comment-icon
     .share-icon
-      margin-top      1px
-      size            20px, 20px
       display         inline-block
-      vertical-align  text-top
+      vertical-align  middle
 
       &.like-icon
         sprite        activity like-icon
@@ -357,12 +361,11 @@ span.collapsedtext
         sprite        activity comment-icon
 
       &.share-icon
-        margin-top    0
         sprite        activity share-icon
 
     .action-container
-      size            auto, 20px
-      margin          10px 0 0 22px
+      size            auto, 13px
+      margin          0 0 0 14px
       fl()
 
       &.liked .like-icon
@@ -372,9 +375,10 @@ span.collapsedtext
 
     .count
       display         inline-block
-      color           #8f8f85
-      font-size       14px
-      margin          0 0 0 12px
+      vertical-align  text-bottom
+      color           #73787e
+      font-size       12px
+      margin          0 0 0 6px
       noTextDeco()
 
   .comment-container
@@ -384,38 +388,48 @@ span.collapsedtext
     border-top        1px solid #d8d8d8
 
     .show-more-comments
-      size            auto, 55px
-      line-height     55px
-      bg              color, #aab5bc
+      size            auto, 40px
+      line-height     40px
+      bg              color, #ececec
+      border-top      1px solid #d8d8d8
+      border-bottom   1px solid #d8d8d8
       text-align      center
-      margin          -2px 0 0 0
+      margin          -1px 0 0 0
 
       a
         display       block
         width         auto, 55px
-        color         #fff
+        color         #3c4752
         font-weight   400
         font-size     14px
         noTextDeco()
 
+      &.new
+        bg            color, #2eb398
+
+        a
+          color       #fff
+
   .kdlistitemview-comment
-    padding           20px 22px 16px 20px
+    padding           22px 22px 15px 20px
     borderBox()
 
+    &:last-of-type
+      padding-bottom  33px
+
     .avatarview
-      size            40px, 40px
       border          1px solid #bdc3c7
       top             20px
       left            20px
-      rounded         3px
+      rounded         5px
       abs()
 
     .comment-contents
       size            auto, auto
-      margin          0 0 0 61px
-      font-size       14px  !important
+      margin          0 0 0 56px
+      font-size       13px  !important
       font-weight     400   !important
-      color           #50595a
+      color           #515b65
 
       .profile
         display       inline-block
@@ -434,17 +448,27 @@ span.collapsedtext
       .like-view
       .reply-link
       time
-        font-size         12px
+        font-size         11px
         display           inline-block
         margin            14px 0 0
         width             auto
 
       .reply-link
         margin-left       14px
+        position          relative
+
+        &:before
+          content         "\2022"
+          display         block
+          font-size       18px
+          left            -11px
+          top             -3px
+          color           #d8d8d8
+          abs()
 
       .like-view a
       .reply-link
-        color           #8e9798
+        color           #a6abb1
         noTextDeco()
 
         &.count
@@ -453,7 +477,7 @@ span.collapsedtext
           font-weight   500
 
       .like-view.liked a
-        color           #525e5f
+        color           #1aaf5d
 
       time
         fr()
@@ -497,7 +521,7 @@ span.collapsedtext
       display     block
       left        5px
       top         5px
-      rounded     3px
+      rounded     5px
       z-index     10
       abs()
 
@@ -514,7 +538,7 @@ span.collapsedtext
         padding     9px 9px 8px 54px
         color       #50595a
         font-size   13px
-        rounded     0 0 3px 3px
+        rounded     0 0 5px 5px
         vendor      transition, line-height .2s ease
         borderBox()
 
@@ -538,9 +562,7 @@ span.collapsedtext
     padding             0
 
 .embed-link-view
-  padding               20px 20px 0
-  margin                20px 0 0
-  border-top            2px solid #e4e4e4
+  padding               1px 19px 19px
 
   .preview-image
     overflow            hidden
@@ -552,16 +574,19 @@ span.collapsedtext
 
     &+.preview-text
       kalc              width, 100% \- 144px
-      padding           0 0 0 15px
+      padding           15px
 
   .preview-text
-    font-size           14px
+    font-size           12px
     font-weight         300
     color               #50595a
+    bg                  color, #f3f3f3
+    height              100px
     borderBox()
     fl()
 
     .preview-text-link
+      size              auto, auto
       color             inherit
       display           block
       word-break        break-word
@@ -569,17 +594,22 @@ span.collapsedtext
       noTextDeco()
 
       .preview-title
-        font-weight     400
+        font-weight     500
 
       &.description
-        padding         15px 0
+        padding         13px 0
         line-height     15px
+        height          45px
+        overflow        hidden !important
+        borderBox()
 
         .description-input
           width         100%
           margin        15px 0 0 0
 
     .provider-info
+      size              auto, auto
+      margin-top        8px
       font-size         12px
       color             #a9aeaf
 
@@ -587,7 +617,7 @@ span.collapsedtext
     .preview-link-switch
       size                  24px 24px
       margin                14px 0 0
-      rounded               3px 0 0 3px
+      rounded               5px 0 0 5px
       background            #f7f7f7
       position              relative
       cursor                pointer
@@ -607,7 +637,7 @@ span.collapsedtext
 
       &:nth-child(2)
         margin-left         2px
-        rounded             0 3px 3px 0
+        rounded             0 5px 5px 0
 
         &:after
           left              9px
@@ -631,7 +661,7 @@ span.collapsedtext
     border                  1px solid #d6d6d6
     padding                 0 0 18px
     margin                  18px 0 0
-    rounded                 4px
+    rounded                 5px
     position                relative
     borderBox()
 
@@ -788,7 +818,7 @@ p.status-body
     display               inline-block
     font-size             12px
     border                1px solid #e3e3e3
-    rounded               3px
+    rounded               5px
     padding               0 4px
     bg                    color #f2f2f2
 
