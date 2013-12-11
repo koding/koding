@@ -5,12 +5,14 @@ class WebTermAppView extends JView
     super options, data
 
     @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate: this
+      delegate          : this
+      addPlusHandle     : no
 
     @tabView = new ApplicationTabView
-      delegate           : @
-      tabHandleContainer : @tabHandleContainer
-      resizeTabHandles   : yes
+      delegate                  : this
+      tabHandleContainer        : @tabHandleContainer
+      resizeTabHandles          : yes
+      closeAppWhenAllTabsClosed : no
 
     @tabView.on 'PaneDidShow', (pane) =>
       @_windowDidResize()
