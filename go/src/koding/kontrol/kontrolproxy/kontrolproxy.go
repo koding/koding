@@ -340,8 +340,8 @@ func (p *Proxy) getTarget(req *http.Request) (*resolver.Target, error) {
 	cookieBuild, err := req.Cookie("kdproxy-preferred-build")
 	if err != http.ErrNoCookie {
 		target, err = resolver.MemTargetByBuild(cookieBuild.Value)
-		if err == nil {
-			logs.Debug(fmt.Sprintf("proxy target is overridden. Using BUILD '%s'\n", cookieBuild.Value))
+		if err == nil && target.Mode == "internal" {
+			logs.Debug(fmt.Sprintf("proxy target is overridden by cookie. Using BUILD '%s'\n", cookieBuild.Value))
 			return target, nil
 		}
 		// falltrough
@@ -350,8 +350,8 @@ func (p *Proxy) getTarget(req *http.Request) (*resolver.Target, error) {
 	cookieDomain, err := req.Cookie("kdproxy-preferred-domain")
 	if err != http.ErrNoCookie {
 		target, err = resolver.MemTargetByHost(cookieDomain.Value)
-		if err == nil {
-			logs.Debug(fmt.Sprintf("proxy target is overrriden. Using DOMAIN '%s'\n", cookieBuild.Domain))
+		if err == nil && target.Mode == "internal" {
+			logs.Debug(fmt.Sprintf("proxy target is overrriden by cookie. Using DOMAIN '%s'\n", cookieDomain.Value))
 			return target, nil
 		}
 		// falltrough
