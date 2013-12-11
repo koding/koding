@@ -31,9 +31,9 @@ class ApplicationTabView extends KDTabView
       {tabHandle}  = pane
       {plusHandle} = @getOptions().tabHandleContainer
       tabHandle.on "DragInAction", =>
-        plusHandle.hide() if tabHandle.dragIsAllowed
+        plusHandle?.hide() if tabHandle.dragIsAllowed
       tabHandle.on "DragFinished", =>
-        plusHandle.show()
+        plusHandle?.show()
 
     @on "SaveSessionData", (data) =>
       @appStorage.setValue "sessions", data if @isSessionEnabled
@@ -42,7 +42,7 @@ class ApplicationTabView extends KDTabView
       if mainView = pane.getMainView()
         {tabView} = pane.getMainView()
         if this is tabView
-          @getActivePane()?.getHandle?().$().click()
+          @getActivePane()?.getHandle()?.$().click()
 
     mainView = KD.getSingleton("mainViewController").getView()
     mainView.mainTabView.on "PaneDidShow", focusActivePane
