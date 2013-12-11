@@ -186,6 +186,9 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
     return  str
 
+  decodeToken: (str) ->
+    return  match[1].split /:/g  if match = str.match /^\|(.+)\|$/
+
   pistachio:->
     """
     {{> @header}}

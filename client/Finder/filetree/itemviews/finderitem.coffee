@@ -53,10 +53,10 @@ class NFinderItem extends JTreeItemView
       delete @progressView
 
     @childView.show()
-    @beingDeleted = no
-    @beingEdited = no
+    @beingDeleted  = no
+    @beingEdited   = no
     @beingProgress = no
-    @callback = null
+    @callback      = null
     @unsetClass "being-deleted being-edited progress"
     @getDelegate().setKeyView()
 

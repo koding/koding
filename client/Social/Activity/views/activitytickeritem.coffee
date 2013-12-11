@@ -121,7 +121,7 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
     super options, data
 
-    {source, target, subject, object} = data
+    {source, target, subject} = data
 
     @avatar    = new AvatarView
       size     : width: 28, height: 28
@@ -131,7 +131,6 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     @actor    = new ProfileLinkView null, source
     @origin   = new ProfileLinkView null, target
     @subj     = new ActivityLinkView null, subject
-    @object   = new ActivityCommentView null, object
 
   pistachio: ->
     {source, target, subject} = @getData()
@@ -141,20 +140,20 @@ class ActivityTickerCommentItem extends ActivityTickerBaseItem
     if  source.getId() is KD.whoami().getId()
       # if user commented his/her post
       if source.getId() is target.getId() then \
-        return "{{> @avatar}} You #{activity} your {{> @subj}}:{{> @object}}"
+        return "{{> @avatar}} You #{activity} your {{> @subj}}"
       else
-        return "{{> @avatar}} You #{activity} {{> @origin}}'s {{> @subj}}:{{> @object}}"
+        return "{{> @avatar}} You #{activity} {{> @subj}}"
 
     # someone did something to you
     if target.getId() is KD.whoami().getId() then \
-      return "{{> @avatar}} {{> @actor}} #{activity} your {{> @subj}}:{{> @object}}"
+      return "{{> @avatar}} {{> @actor}} #{activity} your {{> @subj}}"
 
     # if user commented his/her post
     if source.getId() is target.getId() then \
-      return "{{> @avatar}} {{> @actor}} #{activity} their {{> @subj}}:{{> @object}}"
+      return "{{> @avatar}} {{> @actor}} #{activity} their {{> @subj}}"
 
     # rest
-    return "{{> @avatar}} {{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}:{{> @object}}"
+    return "{{> @avatar}} {{> @actor}} #{activity} {{> @origin}}'s {{> @subj}}"
 
 class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
   constructor: (options = {}, data) ->
@@ -167,16 +166,15 @@ class ActivityTickerStatusUpdateItem extends ActivityTickerBaseItem
       cssClass : "avatarview"
     , target
 
-    @actor    = new ProfileLinkView null, target
-    @subj     = new ActivityLinkView null, source
-    @object   = new ActivityCommentView null, source
+    @actor = new ProfileLinkView null, target
+    @subj  = new ActivityLinkView null, source
 
   pistachio: ->
     {source, target} = @getData()
     if target.getId() is KD.whoami().getId()
-      return "{{> @avatar}} You posted a {{> @subj}}: {{> @object}}"
+      return "{{> @avatar}} You posted {{> @subj}}"
 
-    return "{{> @avatar}} {{> @actor}} posted a {{> @subj}}: {{> @object}}"
+    return "{{> @avatar}} {{> @actor}} posted {{> @subj}}"
 
 
 class ActivityTickerItem extends KDListItemView

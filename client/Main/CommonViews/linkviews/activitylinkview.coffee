@@ -1,7 +1,7 @@
 class ActivityLinkView extends JView
 
-  subjectMap = ->
-    JNewStatusUpdate       : "status"
+  #subjectMap = ->
+    #JNewStatusUpdate : "status update"
 
   constructor:(options = {}, data)->
 
@@ -11,11 +11,11 @@ class ActivityLinkView extends JView
     {slug, group} = @getData()
     groupLink = if group is "koding" then "" else "/#{group}"
 
-    {bongo_:{constructorName}} = @getData()
-    type = subjectMap()[constructorName]
+    {bongo_:{constructorName}, body} = @getData()
+    #type = subjectMap()[constructorName]
 
     @slug = "#{groupLink}/Activity/#{slug}"  if slug
-    @link =  "<a href=#{@slug}>#{type}</a>"
+    @link =  "<a href=#{@slug}>#{body}</a>"
 
   destroy:->
     super
