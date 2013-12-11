@@ -72,7 +72,7 @@ module.exports = class JGroup extends Module
         { name: 'RemovedFromCollection' }
       ]
     sharedMethods   :
-      static        : [
+      static        :
         one:
           (signature Object, Function)
         create:
@@ -103,8 +103,7 @@ module.exports = class JGroup extends Module
           (signature String, Function)
           (signature String, Number, Function)
         ]
-      ]
-      instance      : [
+      instance      :
         join: [
           (signature Function)
           (signature Object, Function)
@@ -210,7 +209,6 @@ module.exports = class JGroup extends Module
           (signature String, Function)
         unlinkPaymentMethod:
           (signature String, Function)
-      ]
     schema          :
       title         :
         type        : String
