@@ -41,14 +41,16 @@ module.exports = class JVM extends Module
     sharedMethods       :
 
       static            :
-        fetchVms:
+        fetchVms: [
+          (signature Function)
           (signature Object, Function)
+        ]
         fetchVmsByContext:
           (signature Object, Function)
         fetchVmInfo:
           (signature String, Function)
         fetchDomains:
-          (signature Object, Function)
+          (signature String, Function)
         removeByHostname:
           (signature String, Function)
         someData:
