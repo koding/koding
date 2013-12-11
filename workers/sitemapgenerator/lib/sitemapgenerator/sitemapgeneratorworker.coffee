@@ -43,9 +43,12 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
   saveSitemap: (name, content)->
     {JSitemap} = @bongo.models
     JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)->
-      console.log err if err
+      return console.log err if err
+      console.log "sitemap generated successfuly"
 
   generate:=>
+    console.log "Started to generate sitemap"
+
     {JName, JGroup, JSitemap} = @bongo.models
 
     groupSelector = {
@@ -56,14 +59,20 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
       content = @generateSitemapIndexString sitemapNames
       @saveSitemap name, content
 
+    # this query is not working
     selector = {
       $or: [
-        { 'slugs.group': 'koding' },
+        {
+          'slugs.group': 'koding',
+          'slugs.constructorName': $not : 'JNewStatusUpdate'
+        }
         { 'slugs.usedAsPath':'username' }
       ]
     }
 
     JName.count selector, (err, count)=>
+      console.log "count"
+      console.log count
       numberOfNamePages = Math.ceil(count / NAMEPERPAGE)
 
       queue = [1..numberOfNamePages].map (pageNumber)=>=>
