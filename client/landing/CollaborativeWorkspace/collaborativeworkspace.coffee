@@ -46,6 +46,8 @@ class CollaborativeWorkspace extends Workspace
       @userRef = @workspaceRef.child("users").child @nickname
       @userRef.set "online"
       @userRef.onDisconnect().set "offline"
+      record = if isOldSession then "$0 joined the session" else "$0 started the session"
+      @addToHistory record
 
       if @amIHost()
         @workspaceRef.onDisconnect().remove()
@@ -62,10 +64,14 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef.child("users").on "child_changed", (snapshot) =>
       name = snapshot.name()
       if @amIHost() and snapshot.val() is "offline"
+        message = "#{name} has left the session"
+
         @broadcastMessage
-          title     : "#{name} has left the session"
+          title     : message
           cssClass  : "error"
           sender    : name
+
+        @addToHistory message
 
     @workspaceRef.on "child_removed", (snapshot) =>
       return  if @disconnectedModal
