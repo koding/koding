@@ -7,7 +7,7 @@ module.exports = class JGroup extends Module
 
   {Relationship} = require 'jraphical'
 
-  {Inflector, ObjectId, ObjectRef, secure, daisy, race, dash} = require 'bongo'
+  {Inflector, ObjectId, ObjectRef, secure, daisy, race, dash, signature} = require 'bongo'
 
   JPermissionSet = require './permissionset'
   {permit}       = JPermissionSet
@@ -73,77 +73,143 @@ module.exports = class JGroup extends Module
       ]
     sharedMethods   :
       static        : [
-        'one'
-        'create'
-        'each'
-        'count'
-        'byRelevance'
-        'someWithRelationship'
-        '__resetAllGroups'
-        'fetchMyMemberships'
-        '__importKodingMembers'
-        'suggestUniqueSlug'
+        one:
+          (signature Object, Function)
+        create:
+          (signature Object, Function)
+        each: [
+          (signature Object, Object, Function)
+          (signature Object, Object, Object, Function)
+        ]
+        count: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        byRelevance:[
+          (signature String, Function)
+          (signature String, Object, Function)
+        ]
+        someWithRelationship:
+          (signature Object, Object, Function)
+        __resetAllGroups:
+          (signature Function)
+        fetchMyMemberships: [
+          (signature [ObjectId], Function)
+          (signature [ObjectId], String, Function)
+        ]
+        __importKodingMembers:
+          (signature Function)
+        suggestUniqueSlug: [
+          (signature String, Function)
+          (signature String, Number, Function)
+        ]
       ]
       instance      : [
-        'join'
-        'leave'
-        'modify'
-        'fetchPermissions'
-        'createRole'
-        'updatePermissions'
-        'fetchMembers'
-        'fetchRoles'
-        'fetchMyRoles'
-        'fetchUserRoles'
-        'changeMemberRoles'
-        'canOpenGroup'
-        'canEditGroup'
-        'fetchMembershipPolicy'
-        'modifyMembershipPolicy'
-        'requestAccess'
-        'setReadme'
-        'addCustomRole'
-        'resolvePendingRequests'
-        'fetchVocabulary'
-        'fetchMembershipStatuses'
-        'setBackgroundImage'
-        'removeBackgroundImage'
-        'fetchAdmin'
-        'inviteByEmail'
-        'inviteByEmails'
-        'kickMember'
-        'transferOwnership'
-        'fetchRolesByClientId'
-        'fetchInvitationsFromGraph'
-        'countInvitationsFromGraph'
-        'fetchMembersFromGraph'
-        'remove'
-        'bulkApprove'
-        'fetchNewestMembers'
-        'countMembers'
-        'checkPayment'
-        'makePayment'
-        'updatePayment'
-        'setPaymentInfo'
-        'fetchPaymentInfo'
-        'checkUserBalance'
-        'makeExpense'
-        'getUserExpenses'
-        'getAllExpenses'
-        'fetchTransactions'
-        'fetchBundle'
-        'updateBundle'
-        # 'addProduct'
-        # 'deleteProduct'
-        'fetchProducts'
-        'createVM'
-        'canCreateVM'
-        'vmUsage'
-        'saveInviteMessage'
-        'redeemInvitation'
-        'fetchPaymentMethod'
-        'linkPaymentMethod'
-        'unlinkPaymentMethod'
+        join: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        leave:[
+          (signature Function)
+          (signature Object, Function)
+        ]
+        modify:
+          (signature Object, Function)
+        fetchPermissions: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        createRole:
+          (signature Object, Function)
+        updatePermissions:
+          (signature Object, Function)
+        fetchMembers: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchRoles: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        fetchMyRoles:
+          (signature Function)
+        fetchUserRoles: [
+          (signature Function)
+          (signature [ObjectId], Function)
+        ]
+        changeMemberRoles:
+          (signature ObjectId, [String], Function)
+        canOpenGroup:
+          (signature Function)
+        canEditGroup:
+          (signature Function)
+        fetchMembershipPolicy:
+          (signature Function)
+        modifyMembershipPolicy:
+          (signature Object, Function)
+        requestAccess:
+          (signature Function)
+        addCustomRole:
+          (signature Object, Function)
+        resolvePendingRequests:
+          (signature Function)
+        fetchMembershipStatuses:
+          (signature Function)
+        fetchAdmin:
+          (signature Function)
+        inviteByEmail:
+          (signature String, Object, Function)
+        inviteByEmails:
+          (signature [String], Object, Function)
+        kickMember:
+          (signature ObjectId, Function)
+        transferOwnership:
+          (signature ObjectId, Function)
+        fetchRolesByClientId: [
+          (signature Function)
+          (signature String, Function)
+        ]
+        fetchInvitationsFromGraph:
+          (signature String, Object, Function)
+        countInvitationsFromGraph:
+          (signature String, Object, Function)
+        fetchMembersFromGraph:
+          (signature Object, Function)
+        remove:
+          (signature Function)
+        bulkApprove:
+          (signature Number, Object, Function)
+        fetchNewestMembers: [
+          (signature Function)
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+        countMembers:
+          (signature Function)
+        makePayment:
+          (signature Object, Function)
+        # # addProduct:
+        # (signature)
+        # # deleteProduct:
+        # (signature)
+        fetchProducts: [
+          (signature Function)
+          (signature Object, Function)
+        ]
+        saveInviteMessage: [
+          (signature String, String)
+          (signature String, String, Function)
+        ]
+        redeemInvitation:
+          (signature String, Function)
+        fetchPaymentMethod:
+          (signature Function)
+        linkPaymentMethod:
+          (signature String, Function)
+        unlinkPaymentMethod:
+          (signature String, Function)
       ]
     schema          :
       title         :
@@ -301,37 +367,6 @@ module.exports = class JGroup extends Module
                   process.nextTick ->
                     koding.approveMember account, ->
                       console.log "added member: #{account.profile.nickname}"
-
-  setBackgroundImage: permit 'edit groups',
-    success:(client, type, value, callback=->)->
-      if type is 'customImage'
-        operation =
-          $set: {}
-          $addToSet : {}
-        operation.$addToSet['customize.background.customImages'] = value
-      else if type is 'customColor'
-        operation =
-          $set: {}
-          $addToSet : {}
-        operation.$addToSet['customize.background.customColors'] = value
-      else
-        operation = $set : {}
-
-      operation.$set["customize.background.customType"] = type
-
-      if type in ['defaultImage','defaultColor','customColor','customImage']
-        operation.$set["customize.background.customValue"] = value
-
-      @update operation, callback
-
-  removeBackgroundImage: permit 'edit groups',
-    success:(client, type, value, callback=->)->
-      if type is 'customImage'
-        @update {$pullAll: 'customize.background.customImages': [value]}, callback
-      else if type is 'customColor'
-        @update {$pullAll: 'customize.background.customColors': [value]}, callback
-      else
-        console.log 'Nothing to remove'
 
   @render        :
     loggedIn     :
@@ -1306,94 +1341,6 @@ module.exports = class JGroup extends Module
 
         daisy queue
 
-  updateBundle: permit 'change bundle',
-    success: (client, formData, callback = (->)) ->
-      @fetchBundle (err, bundle) =>
-        return callback err  if err
-        { overagePolicy, sharedVM, allocation } = formData
-        bundle.update $set: {overagePolicy, sharedVM, allocation}, callback
-
-  createBundle: (data, callback)->
-    @fetchBundle (err, bundle)=>
-      return callback err                               if err
-      return callback new KodingError 'Bundle exists!'  if bundle?
-
-      JGroupBundle = require '../bundle/groupbundle'
-      bundle = new JGroupBundle data
-      bundle.save (err)=>
-        return callback err  if err
-        @addBundle bundle, (err)-> callback err, unless err then bundle
-
-  fetchBundle$: permit 'commission resources',
-    success: (client, rest...) -> @fetchBundle rest...
-
-  setPaymentInfo: permit 'manage payment methods',
-    success: (client, data, callback) ->
-      # TODO: Give credits to existing users
-      JPaymentGroup = require '../payment/group'
-      JPaymentGroup.setPaymentInfo client, this, data, callback
-
-  fetchPaymentInfo: permit 'manage payment methods',
-    success: (client, callback)->
-      JPaymentGroup = require '../payment/group'
-      JPaymentGroup.fetchPaymentMethod this, callback
-
-  checkUserBalance: secure (client, data, callback)->
-    @fetchBundle (err, bundle)=>
-      return callback err        if err
-      return callback new KodingError 'unable to fetch group bundle'  unless bundle
-      return callback null, 0,0  if bundle.allocation is 0
-
-      @getUserExpenses client, data, (err, expenses)->
-        return callback null  if err
-        callback bundle.allocation, expenses
-
-  getAllExpenses: secure (client, data, callback)->
-    JVM   = require '../vm'
-    JUser = require '../user'
-    JUser.fetchUser client, (err, user)=>
-      return callback err  if err
-      # TODO: Get VM price from JPaymentPlan
-      JVM.some
-        planOwner : "group_#{@_id}"
-        vmType    : 'expensed'
-      , {planCode: 1, users: 1}, callback
-
-  getUserExpenses: secure (client, data, callback)->
-    JVM   = require '../vm'
-    JUser = require '../user'
-    JUser.fetchUser client, (err, user)=>
-      return callback err  if err
-      # TODO: Get VM price from JPaymentPlan
-      JVM.some
-        planOwner: "group_#{@_id}"
-        vmType   : 'expensed'
-        users    : { $elemMatch: id: user.getId(), owner: yes }
-      , {planCode: 1}, callback
-
-  makeExpense: secure (client, data, callback)->
-    JPaymentPlan = require '../payment/plan'
-    JPaymentPlan.one code: data.plan, (err, plan)=>
-      return callback err  if err
-      @checkUserBalance client, data, (err, limit, balance)=>
-        return callback err  if err
-        console.log limit, balance, plan.feeAmount
-        if limit >= balance + plan.feeAmount
-          @chargeGroup client, data, callback
-        else
-          callback new KodingError "You don't have enough balance"
-
-  makePayment: permit 'make payments',
-    success: (client, data, callback)->
-      @chargeGroup client, data, callback
-
-  chargeGroup: secure (client, data, callback)->
-    data.plan   ?= @payment.plan
-    JPaymentPlan = require '../payment/plan'
-    JPaymentPlan.one code: data.plan, (err, plan)=>
-      return callback err  if err
-      plan.subscribeGroup this, data, callback
-
   # addProduct: permit 'manage products',
   #   success: (client, data, callback)->
   #     JPaymentGroup = require '../payment/group'
@@ -1403,21 +1350,6 @@ module.exports = class JGroup extends Module
   #   success: (client, data, callback)->
   #     JPaymentGroup = require '../payment/group'
   #     JPaymentGroup.deletePlan this, data, callback
-
-  checkPayment: (callback)->
-    JPaymentSubscription = require '../payment/subscription'
-    JPaymentSubscription.getGroupSubscriptions this, callback
-
-  fetchTransactions: (callback)->
-    JPaymentGroup = require '../payment/group'
-    JPaymentGroup.fetchTransactions this, callback
-
-  vmUsage: secure ({connection:{delegate}}, callback)->
-    @fetchBundle (err, bundle)=>
-      return callback err  if err
-      return callback new KodingError 'unable to fetch group bundle'  unless bundle
-
-      bundle.checkUsage delegate, this, callback
 
   checkVmType: (data, callback) ->
     unless data.type in ['user', 'group', 'expensed']
@@ -1440,20 +1372,6 @@ module.exports = class JGroup extends Module
           callback null, bundle
       else
         callback new KodingError 'Unable to fetch group bundle'
-
-  canCreateVM: secure ({ connection:{ delegate }}, data, callback)->
-    @checkVmType data, (err) =>
-      return callback err  if err
-      @fetchOrCreateBundle (err, bundle) =>
-        return callback err  if err
-        bundle.canCreateVM delegate, this, data, callback
-
-  createVM: secure ({connection:{delegate}}, data, callback)->
-    @checkVmType data, (err) =>
-      return callback err  if err
-      @fetchOrCreateBundle (err, bundle) =>
-        return callback err  if err
-        bundle.createVM delegate, this, data, callback
 
   countMembers: secure (client, callback)->
     {Member} = require "../graph"
@@ -1485,15 +1403,15 @@ module.exports = class JGroup extends Module
       @fetchOrCountInvitations client, type, 'count', options, (err, result)=>
         return callback err, result?[0]?.count
 
-  _fetchMembersFromGraph:(client, options, callback)->
+  fetchMembersFromGraph:(client, options, callback)->
     options.groupId = @getId()
     options.client  = client
     {Member} = require '../graph'
     Member.fetchMemberList options, (err, results)=>
       callback err, results
 
-  fetchMembersFromGraph: permit 'list members',
-    success: @::_fetchMembersFromGraph
+  fetchMembersFromGraph$: permit 'list members',
+    success: (client, rest...) -> @fetchMembersFromGraph client, rest...
 
   @each$ = (selector, options, callback)->
     selector.visibility = 'visible'
