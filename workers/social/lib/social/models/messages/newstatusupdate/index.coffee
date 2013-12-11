@@ -20,7 +20,7 @@ module.exports = class JNewStatusUpdate extends JPost
     slugifyFrom       : 'body'
     sharedEvents      :
       instance        : [
-        { name: 'TagsChanged' }
+        { name: 'TagsUpdated' }
         { name: 'ReplyIsAdded' }
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
@@ -212,4 +212,3 @@ module.exports = class JNewStatusUpdate extends JPost
           fin()
     , -> callback null, teasers
     collectTeasers post for post in posts
-
