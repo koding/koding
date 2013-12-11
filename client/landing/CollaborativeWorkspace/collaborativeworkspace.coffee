@@ -306,7 +306,9 @@ class CollaborativeWorkspace extends Workspace
         cssClass : details.cssClass  ? "success"
         duration : details.duration or 4200
         origin   : details.origin   or "users"
-        sender   : details.sender   or @nickname
+        sender   : details.sender    ? @nickname
+
+    @broadcastRef.set {}
 
   displayBroadcastMessage: (options) ->
     # simple broadcast message is
