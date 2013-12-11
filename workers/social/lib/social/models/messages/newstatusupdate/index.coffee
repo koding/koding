@@ -117,7 +117,7 @@ module.exports = class JNewStatusUpdate extends JPost
         if err then return callback {error: "Not allowed to open this group"}
         else callback null, group
 
-  @fetchGroupActivity = secure (client, options = {}, callback)->
+  @_fetchGroupActivity = secure (client, options = {}, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {to} = options
@@ -129,6 +129,9 @@ module.exports = class JNewStatusUpdate extends JPost
       @some selector, options, (err, data)=>
         return callback err if err
         @decorateResults data, callback
+
+  @fetchGroupActivity = secure (client, options = {}, callback)->
+    @_fetchGroupActivity client, options, callback
 
   @fetchProfileFeed = secure (client, options = {}, callback)->
     {connection:{delegate}, context:{group}} = client
