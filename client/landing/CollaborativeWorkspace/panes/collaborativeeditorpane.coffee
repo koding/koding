@@ -41,11 +41,9 @@ class CollaborativeEditorPane extends CollaborativePane
 
       @ref.child("WaitingSaveRequest").set no
       file.save @firepad.getText(), (err, res) =>
-        new KDNotificationView
-          type     : "mini"
-          cssClass : "success"
-          title    : "File is saved"
-          duration : 4000
+        @workspace.broadcastMessage
+          title : "#{file.name} is saved"
+          sender: ""
     else
       @ref.child("WaitingSaveRequest").set yes
 
