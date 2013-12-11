@@ -171,43 +171,43 @@ type WebtermServer struct {
 	lineFeeedCounter int
 }
 
-// Input is called when some text is writtent to the terminal.
-func (server *WebtermServer) Input(req *kite.Request) {
+type WebtermRemote struct {
+	Output       dnode.Function
+	SessionEnded dnode.Function
+}
+
+// Input is called when some text is written to the terminal.
+func (w *WebtermServer) Input(req *kite.Request) {
 	data := req.Args.MustSliceOfLength(1)[0].MustString()
 
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.
-	server.pty.Master.Write([]byte(data))
+	w.pty.Master.Write([]byte(data))
 }
 
 // ControlSequence is called when a non-printable key is pressed on the terminal.
-func (server *WebtermServer) ControlSequence(req *kite.Request) {
+func (w *WebtermServer) ControlSequence(req *kite.Request) {
 	data := req.Args.MustSliceOfLength(1)[0].MustString()
-	server.pty.MasterEncoded.Write([]byte(data))
+	w.pty.MasterEncoded.Write([]byte(data))
 }
 
-func (server *WebtermServer) SetSize(req *kite.Request) {
+func (w *WebtermServer) SetSize(req *kite.Request) {
 	args := req.Args.MustSliceOfLength(2)
 	x := args[0].MustFloat64()
 	y := args[1].MustFloat64()
-	server.setSize(x, y)
+	w.setSize(x, y)
 }
 
-func (server *WebtermServer) setSize(x, y float64) {
-	server.pty.SetSize(uint16(x), uint16(y))
+func (w *WebtermServer) setSize(x, y float64) {
+	w.pty.SetSize(uint16(x), uint16(y))
 }
 
-func (server *WebtermServer) Close(req *kite.Request) {
-	server.pty.Signal(syscall.SIGHUP)
+func (w *WebtermServer) Close(req *kite.Request) {
+	w.pty.Signal(syscall.SIGHUP)
 }
 
-func (server *WebtermServer) Terminate(req *kite.Request) {
-	server.Close(nil)
-}
-
-type WebtermRemote struct {
-	Output       dnode.Function
-	SessionEnded dnode.Function
+func (w *WebtermServer) Terminate(req *kite.Request) {
+	w.Close(nil)
 }
 
 func FilterInvalidUTF8(buf []byte) []byte {
