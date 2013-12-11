@@ -8,7 +8,6 @@ module.exports = [
 
   # Activity commons
   "views/activityactions.coffee",
-  "views/activityinnernavigation.coffee",
   "views/activitylistheader.coffee",
   "views/activitysplitview.coffee",
   "views/activityitemchild.coffee",
