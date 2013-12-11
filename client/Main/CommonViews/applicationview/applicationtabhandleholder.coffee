@@ -8,9 +8,6 @@ class ApplicationTabHandleHolder extends KDView
 
     super options, data
 
-    if options.addPlusHandle
-      @on 'PlusHandleClicked', => @getDelegate().addNewTab()
-
   viewAppended: ->
     @addPlusHandle()  if @getOptions().addPlusHandle
 
@@ -23,6 +20,9 @@ class ApplicationTabHandleHolder extends KDView
       delegate : @
       click: =>
         @emit "PlusHandleClicked"
+
+    @off 'PlusHandleClicked'
+    @on  'PlusHandleClicked', => @getDelegate().addNewTab()
 
   repositionPlusHandle: (handles) ->
     handlesLength = handles.length
