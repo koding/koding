@@ -84,6 +84,7 @@ class TeamworkTabView extends CollaborativePane
     @createEditor file, content
 
   createEditor: (file, content = "", sessionKey) ->
+    isLocal  = not file
     file     = file or FSHelper.createFileFromPath "localfile:/untitled.txt"
     pane     = new KDTabPaneView title: file.name
     delegate = @getDelegate()
@@ -96,7 +97,7 @@ class TeamworkTabView extends CollaborativePane
         sessionKey: editor.sessionKey
         filePath  : file.path
 
-    @workspace.addToHistory "$0 opened a new editor"
+    @workspace.addToHistory "$0 opened a new editor"  if isLocal
 
   createTerminal: (sessionKey) ->
     pane         = new KDTabPaneView title: "Terminal"
