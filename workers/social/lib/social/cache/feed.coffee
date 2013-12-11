@@ -20,7 +20,7 @@ module.exports = (options={}, callback)->
     {JNewStatusUpdate} = bongoModels
     # options = facets : "Everything"
 
-    JNewStatusUpdate._fetchGroupActivity client, options, (err, data)->
+    JNewStatusUpdate.fetchGroupActivity client, options, (err, data)->
       return cb null, [] if err
       return cb null, data
 
