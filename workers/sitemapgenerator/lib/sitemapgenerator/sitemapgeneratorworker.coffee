@@ -20,7 +20,7 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
     # while generating main sitemap, we don't need hashbang in the url.
     for url in urls
-      if /^guest-/.test url
+      if not /^guest-/.test url
         sitemap += "<url><loc>#{@options.uri.address}/#!/#{url}</loc></url>"
     sitemap += sitemapFooter
     return sitemap
@@ -43,14 +43,12 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
   saveSitemap: (name, content)->
     {JSitemap} = @bongo.models
     JSitemap.update {name}, $set : {content}, {upsert : yes}, (err)->
-      console.log err if err
+      return console.log err if err
 
   generate:=>
-    {JName, JGroup, JSitemap} = @bongo.models
 
-    groupSelector = {
-      privacy:'public'
-    }
+    {JName, JSitemap} = @bongo.models
+
     generateSitemapIndex = (sitemapNames)=>
       name = "sitemap.xml"
       content = @generateSitemapIndexString sitemapNames
@@ -58,7 +56,10 @@ module.exports = class SitemapGeneratorWorker extends EventEmitter
 
     selector = {
       $or: [
-        { 'slugs.group': 'koding' },
+        {
+          'slugs.group': 'koding',
+          'slugs.constructorName': $ne : 'JNewStatusUpdate'
+        }
         { 'slugs.usedAsPath':'username' }
       ]
     }

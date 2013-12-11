@@ -110,12 +110,18 @@ module.exports = class JName extends Model
       models = []
       queue = nameObj.slugs.map (slug, i)->->
         konstructor = Base.constructors[slug.constructorName]
+        return queue.next() unless konstructor
         selector = {}
         selector[slug.usedAsPath] = slug.slug
         konstructor.one selector, (err, model)->
+          return queue.next() if err or not model
           models[i] = model
           queue.fin()
-      dash queue, -> callback null, models, nameObj
+
+      dash queue, ->
+        # remove falsy values
+        models = models.filter(Boolean)
+        callback null, models, nameObj
 
     fetchModels = (name, callback)->
       if 'string' is typeof name
