@@ -51,17 +51,20 @@ func Connect(r *kite.Request) (interface{}, error) {
 
 	newSession := false
 	if params.Session == "" {
+		// TODO: Check that if it is possible to change the session key with
+		// an incrementing integer because random string looks ugly in "ps" command output.
 		params.Session = RandomString()
 		newSession = true
 	}
 
+	// We will return this object to the client.
 	server := &WebtermServer{
 		Session: params.Session,
 		remote:  params.Remote,
 		pty:     pty.New("/dev/pts"),
 	}
 
-	server.SetSize(float64(params.SizeX), float64(params.SizeY))
+	server.setSize(float64(params.SizeX), float64(params.SizeY))
 
 	var command struct {
 		name string
@@ -104,6 +107,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 		fmt.Println("could not start", err)
 	}
 
+	// Wait until the shell process is closed and notify the client.
 	go func() {
 		err := cmd.Wait()
 		if err != nil {
@@ -115,6 +119,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 		server.remote.SessionEnded()
 	}()
 
+	// Read the STDOUT from shell process and send to the connected client.
 	go func() {
 		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
 		for {
@@ -128,6 +133,7 @@ func Connect(r *kite.Request) (interface{}, error) {
 				n++
 			}
 
+			// Rate limiting...
 			s := time.Now().Unix()
 			if server.currentSecond != s {
 				server.currentSecond = s
@@ -152,6 +158,8 @@ func Connect(r *kite.Request) (interface{}, error) {
 	return server, nil
 }
 
+// WebtermServer is the type of object that is sent to the connected client.
+// Represents a running shell process on the server.
 type WebtermServer struct {
 	Session          string `json:"session"`
 	remote           WebtermRemote
@@ -161,28 +169,40 @@ type WebtermServer struct {
 	messageCounter   int
 	byteCounter      int
 	lineFeeedCounter int
-	asdf             kite.Callback
 }
 
-func (server *WebtermServer) Input(data string) {
+// Input is called when some text is writtent to the terminal.
+func (server *WebtermServer) Input(req *kite.Request) {
+	data := req.Args.MustSliceOfLength(1)[0].MustString()
+
+	// There is no need to protect the Write() with a mutex because
+	// Kite Library guarantees that only one message is processed at a time.
 	server.pty.Master.Write([]byte(data))
 }
 
-func (server *WebtermServer) ControlSequence(data string) {
+// ControlSequence is called when a non-printable key is pressed on the terminal.
+func (server *WebtermServer) ControlSequence(req *kite.Request) {
+	data := req.Args.MustSliceOfLength(1)[0].MustString()
 	server.pty.MasterEncoded.Write([]byte(data))
 }
 
-func (server *WebtermServer) SetSize(x, y float64) {
+func (server *WebtermServer) SetSize(req *kite.Request) {
+	args := req.Args.MustSliceOfLength(2)
+	x := args[0].MustFloat64()
+	y := args[1].MustFloat64()
+	server.setSize(x, y)
+}
+
+func (server *WebtermServer) setSize(x, y float64) {
 	server.pty.SetSize(uint16(x), uint16(y))
 }
 
-func (server *WebtermServer) Close() error {
+func (server *WebtermServer) Close(req *kite.Request) {
 	server.pty.Signal(syscall.SIGHUP)
-	return nil
 }
 
-func (server *WebtermServer) Terminate() error {
-	return server.Close()
+func (server *WebtermServer) Terminate(req *kite.Request) {
+	server.Close(nil)
 }
 
 type WebtermRemote struct {
