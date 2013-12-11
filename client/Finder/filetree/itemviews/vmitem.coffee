@@ -27,6 +27,17 @@ class NVMItemView extends NFileItemView
           #{domains.first}</a> VM
         """
 
+  showLoader:->
+
+    @parent?.isLoading = yes
+    @loader.show()
+
+  hideLoader:->
+
+    @parent?.isLoading = no
+    @loader.hide()
+
+
   createRootContextMenu:->
     offset = @changePathButton.$().offset()
     currentPath = @getData().path

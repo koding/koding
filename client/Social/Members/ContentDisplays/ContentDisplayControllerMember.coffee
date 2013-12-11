@@ -1,16 +1,5 @@
 class ContentDisplayControllerMember extends KDViewController
 
-  neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
-    "JNewStatusUpdate"
-    "JComment"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
-  ]
-
   constructor:(options={}, data)->
 
     {@revivedContentDisplay} = KD.singleton('display')
