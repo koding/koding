@@ -311,8 +311,10 @@ class CollaborativeWorkspace extends Workspace
   displayBroadcastMessage: (options) ->
     # simple broadcast message is
     # { !title, duration=, origin=, sender=, cssClass= }
+
     return unless options.title
 
+    options.title   = options.title.replace "$0", KD.nick()
     activePanel     = @getActivePanel()
     {broadcastItem} = activePanel
     activePanel.setClass "broadcasting"
