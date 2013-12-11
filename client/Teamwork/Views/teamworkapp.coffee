@@ -1,36 +1,18 @@
 class TeamworkApp extends KDObject
 
-  filename            = "manifest"
-  instanceName        = "kd-prod-1"
-  playgroundsManifest = "https://raw.github.com/koding/Teamwork/master/Playgrounds/#{filename}.json"
-
-  if location.hostname is "localhost"
-    filename          = "manifest-dev"
-    instanceName      = "teamwork-local"
+  instanceName = if location.hostname is "localhost" then "teamwork-local" else "kd-prod-1"
 
   constructor: (options = {}, data) ->
 
     super options, data
 
-    @appView   = @getDelegate()
-    # @dashboard = new TeamworkDashboard
-    #   delegate : this
-
-    # @doCurlRequest playgroundsManifest, (err, manifest) =>
-    #   @playgroundsManifest = manifest
-    #   @dashboard.emit "PlaygroundsFetched", @playgroundsManifest
+    @appView = @getDelegate()
 
     @on "NewSessionRequested", (callback = noop, options) =>
-      # @dashboard.hide()
       @teamwork?.destroy()
       @createTeamwork options
       @appView.addSubView @teamwork
       callback()
-
-    # @dashboard.on "viewAppended", =>
-    #   @emit "NewSessionRequested"  if @getOptions().query.skipDashboard
-
-    # @appView.addSubView @dashboard
 
     @on "JoinSessionRequested", (sessionKey) =>
       @setOption "sessionKey", sessionKey
@@ -91,6 +73,7 @@ class TeamworkApp extends KDObject
               title       : "<div class='header-title'><span class='icon'></span>Teamwork</div>"
               type        : "finder"
               name        : "finder"
+              editor      : "tabView"
             }
             {
               type        : "custom"

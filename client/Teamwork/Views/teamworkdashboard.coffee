@@ -56,8 +56,7 @@ class TeamworkDashboard extends JView
       title       : "Start your session now!"
       callback    : => @getDelegate().emit "NewSessionRequested"
 
-    @on "PlaygroundsFetched", (manifests) =>
-      @createPlaygrounds manifests
+    @fetchManifests()
 
   show: -> @setClass "active"
 
@@ -100,6 +99,21 @@ class TeamworkDashboard extends JView
           duration : 5000
 
     @getDelegate().emit "JoinSessionRequested", sessionKey
+
+  fetchManifests: ->
+    filename = if location.hostname is "localhost" then "manifest-dev" else "manifest"
+    url      = "https://raw.github.com/koding/Teamwork/master/Playgrounds/#{filename}.json"
+    delegate = @getDelegate()
+    delegate.doCurlRequest url, (err, manifests) =>
+      if err
+        return new KDNotificationView
+          type     : "mini"
+          cssClass : "error"
+          title    : "Could not fetch Playground manifests"
+          duration : 4000
+
+      delegate.playgroundsManifest = manifests
+      @createPlaygrounds manifests
 
   pistachio: ->
     """
