@@ -210,10 +210,14 @@ module.exports = class JPost extends jraphical.Message
         =>
           tags or= []
           @addTags client, tags, (err)=>
-            if err
-              callback err
-            else
-              queue.next()
+            return callback err  if err
+          queue.next()
+        =>
+          return queue.next()  if tags.length is 0
+          ids = tags.map (tag) -> tag.id
+          JTag.some _id: $in: ids, {}, (err, tags) =>
+            @emit "TagsUpdated", tags
+            queue.next()
         =>
           @update $set: formData, callback
       ]

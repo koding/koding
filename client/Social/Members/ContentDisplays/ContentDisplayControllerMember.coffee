@@ -1,16 +1,5 @@
 class ContentDisplayControllerMember extends KDViewController
 
-  neo4jFacets = [
-    "JNewStatusUpdate"
-    # "JLink"
-    # "JBlogPost"
-    # "JTutorial"
-    # "JComment"
-    # "JOpinion"
-    # "JDiscussion"
-    # "JCodeSnip"
-  ]
-
   constructor:(options={}, data)->
 
     {@revivedContentDisplay} = KD.singleton('display')
@@ -120,7 +109,7 @@ class ContentDisplayControllerMember extends KDViewController
       #     title             : "<p class='bigtwipsy'>This is the personal feed of a single Koding user.</p>"
       #     placement         : "above"
       filter                :
-        everything          : @createFilter("Everything", account, 'Everything')
+        # everything          : @createFilter("Everything", account, 'Everything')
         statuses            : @createFilter("Status Updates", account, 'JNewStatusUpdate')
 #        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
 #        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')

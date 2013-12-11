@@ -44,12 +44,12 @@ module.exports = class JInvitation extends jraphical.Module
           (signature Function)
         createMultiuse:
           (signature Object, Function)
-        createForResurrection:
-          (signature String, Function)
-        createMultiForResurrection:
-          (signature [String], Function)
-        byCodeForBeta:
-          (signature String, Function)
+#        createForResurrection:
+#          (signature String, Function)
+#        createMultiForResurrection:
+#          (signature [String], Function)
+#        byCodeForBeta:
+#          (signature String, Function)
 
     sharedEvents    :
       static        : []
@@ -241,37 +241,65 @@ module.exports = class JInvitation extends jraphical.Module
             return callback err  if err
             groupObj.addInvitation invite, callback
 
-  @createMultiForResurrection = permit 'send invitations',
-    success: (client, usernames, callback)->
-      if typeof usernames is String
-        return callback {"Usernames should be an array"}
+  #### Leaving it here incase we decide to have another beta: SA
+  #@createMultiForResurrection = permit 'send invitations',
+    #success: (client, usernames, callback)->
+      #if typeof usernames is String
+        #return callback {"Usernames should be an array"}
 
-      daisy queue = usernames.map (username) =>
-        => @_createForResurrection client, username, callback
+      #daisy queue = usernames.map (username) =>
+        #=> @_createForResurrection client, username, callback
 
-      queue.push -> callback null
+      #queue.push -> callback null
 
-  @createForResurrection = permit 'send invitations',
-    success: (client, username, callback)->
-      @_createForResurrection client, username, callback
+  #@createForResurrection = permit 'send invitations',
+    #success: (client, username, callback)->
+      #@_createForResurrection client, username, callback
 
-  @_createForResurrection : ({connection:{delegate}}, username, callback)->
-    JUser = require './user'
-    JUser.one {username}, (err, user)=>
-      return callback err  if err or !user
+  #@_createForResurrection : ({connection:{delegate}}, username, callback)->
+    #JUser = require './user'
+    #JUser.one {username}, (err, user)=>
+      #return callback err  if err or !user
 
-      {email} = user
-      code    = @generateInvitationCode "group", email, "resurrection"
-      invite  = new JInvitation {
-        code
-        email
-        type       : "multiuse"
-        group      : "resurrection"
-        origin     : ObjectRef(delegate)
-        maxUses    : 100
-        createdFor : username
-      }
-      invite.save callback
+      #{email} = user
+      #code    = @generateInvitationCode "group", email, "resurrection"
+      #invite  = new JInvitation {
+        #code
+        #email
+        #type       : "multiuse"
+        #group      : "resurrection"
+        #origin     : ObjectRef(delegate)
+        #maxUses    : 100
+        #createdFor : username
+      #}
+      #invite.save callback
+
+  #@sendResurrectionEmails = permit 'send invitations',
+    #success: (client, username, callback)->
+      #JInvitation.some {group:"resurrection", status:"active"}, {}, (err, invites)=>
+        #daisy queue = invites.map (invite) =>
+          #=>
+            #email = new JMail {
+              #email   : invite.email
+              #subject : "You're invited to try a new version Koding!"
+              #content : @getRessurrectionMessage invite.code
+              #replyto : "hello@koding.com"
+            #}
+            #email.save (err)->
+              #invite.update {$set: status: if err then 'couldnt send email' else 'sent'}, ->
+
+        #queue.push -> callback null
+
+  #@getRessurrectionMessage = (token)->
+    #"""
+    #We need loyal users like you to test it out: http://new.koding.com/Login/#{token}
+    #This is a private beta, please don't share your url.
+
+    #Hope you like it!
+
+    #Koding Team
+    #"""
+  #### Leaving it here incase we decide to have another beta: SA
 
   @suggestCode: permit 'send invitations',
     success: (client, callback, tries=0)->
@@ -371,14 +399,4 @@ module.exports = class JInvitation extends jraphical.Module
     - if you never signed up (sometimes people type their emails wrong, and it happens to be yours), please let us know.
     - take a look at http://wiki.koding.com for things you can do.
     - if you fall in love with this project, please let us know http://blog.koding.com/2012/06/we-want-to-date-not-hire/
-    """
-
-  @getRessurrectionMessage = (token)->
-    """
-    We need loyal users like you to test it out: http://new.koding.com/Login/#{token}
-    This is a private beta, please don't share your url.
-
-    Hope you like it!
-
-    Koding Team
     """

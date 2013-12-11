@@ -38,6 +38,7 @@ class ActivityListController extends KDListViewController
     groupController.on "PostIsCreated", (post) =>
       {subject} = post
       subject = KD.remote.revive subject
+      @bindItemEvents subject
       @addItem subject, 0
 
   resetList:->
@@ -88,6 +89,7 @@ class ActivityListController extends KDListViewController
       @lastItemTimeStamp or= Date.now()
 
       for obj in activities
+        @bindItemEvents obj
         objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
         if objectTimestamp < @lastItemTimeStamp
           @lastItemTimeStamp = objectTimestamp
@@ -196,3 +198,7 @@ class ActivityListController extends KDListViewController
     newItems = super
     @checkIfLikedBefore (item.getId()  for item in items)
     return newItems
+
+  bindItemEvents: (item) ->
+    item.on "TagsUpdated", (tags) ->
+      item.tags = KD.remote.revive tags
