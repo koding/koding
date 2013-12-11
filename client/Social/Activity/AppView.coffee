@@ -14,21 +14,17 @@ class ActivityAppView extends KDScrollView
   viewAppended:->
 
     {entryPoint}      = KD.config
-
-    if entryPoint in ['koding', 'guest']
-      @setClass 'fixed'
-    else if entryPoint?.type is 'profile'
-      @setClass 'fixed'
-
     HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else KDCustomHTMLView
     @feedWrapper      = new ActivityListContainer
     @header           = new HomeKonstructor
     @inputWidget      = new ActivityInputWidget
+
     @activityTicker   = new ActivityTicker
     @activeUsers      = new ActiveUsers
     @activeTopics     = new ActiveTopics
-    @leftBlock        = new KDCustomHTMLView cssClass : "activity-left-block"
-    @rightBlock       = new KDCustomHTMLView cssClass : "activity-right-block"
+
+    @mainBlock        = new KDCustomHTMLView tagName : "main" #"activity-left-block"
+    @sideBlock        = new KDCustomHTMLView tagName : "aside"   #"activity-right-block"
 
     @mainController   = KD.getSingleton("mainController")
     @mainController.on "AccountChanged", @bound "decorate"
@@ -52,19 +48,18 @@ class ActivityAppView extends KDScrollView
 
     @setLazyLoader 200
 
-    @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
-
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
+
     @addSubView @header
-    @addSubView @leftBlock
-    @addSubView @rightBlock
+    @addSubView @mainBlock
+    @addSubView @sideBlock
 
-    @leftBlock.addSubView @inputWidget
-    @leftBlock.addSubView @feedWrapper
+    @mainBlock.addSubView @inputWidget
+    @mainBlock.addSubView @feedWrapper
 
-    @rightBlock.addSubView @activityTicker
-    @rightBlock.addSubView @activeUsers
-    @rightBlock.addSubView @activeTopics
+    @sideBlock.addSubView @activeTopics
+    @sideBlock.addSubView @activeUsers
+    @sideBlock.addSubView @activityTicker
 
   decorate:->
     @unsetClass "guest"
