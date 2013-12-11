@@ -68,7 +68,7 @@ module.exports = class CActivity extends jraphical.Capsule
         fetchFacets:
           (signature Object, Function)
         checkIfLikedBefore:
-          (signature Function)
+          (signature [ObjectId], Function)
         count: [
           (signature Function)
           (signature Object, Function)
