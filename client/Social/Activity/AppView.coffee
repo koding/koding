@@ -1,6 +1,8 @@
 class ActivityAppView extends KDScrollView
 
+
   headerHeight = 0
+
 
   constructor:(options = {}, data)->
 
@@ -9,7 +11,10 @@ class ActivityAppView extends KDScrollView
 
     super options, data
 
-    @listenWindowResize()
+    # FIXME: disable live updates - SY
+    # @appStorage       = new AppStorage 'Activity', '1.0'
+    # @appStorage.setValue 'liveUpdates', off
+
 
   viewAppended:->
 
@@ -34,6 +39,7 @@ class ActivityAppView extends KDScrollView
     @header.bindTransitionEnd()
 
     # @activityHeader.liveUpdateButton.setValue off
+
     @feedWrapper.ready =>
       @activityHeader  = @feedWrapper.controller.activityHeader
       {@filterWarning} = @feedWrapper
