@@ -230,9 +230,11 @@ class ActiveUserItemView extends KDListItemView
 
     unless KD.isMine data
       @followButton = new FollowButton
-        iconOnly       : yes
+        title          : "follow"
+        icon           : yes
         stateOptions   :
           unfollow     :
+            title      : "unfollow"
             cssClass   : 'following-account'
         dataType       : 'JAccount'
       , data
@@ -250,9 +252,11 @@ class ActiveTopicItemView extends KDListItemView
 
     @tag = new TagLinkView {}, data
     @followButton = new FollowButton
-      iconOnly       : yes
+      title          : "follow"
+      icon           : yes
       stateOptions   :
         unfollow     :
+          title      : "unfollow"
           cssClass   : 'following-topic'
       dataType       : 'JTag'
     , data

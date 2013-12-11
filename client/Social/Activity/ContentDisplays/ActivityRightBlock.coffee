@@ -20,7 +20,6 @@ class ActivityRightBase extends JView
     <div class="right-block-box">
       <h3>#{@getOption 'title'}</h3>
       {{> @tickerListView}}
-      {{> @showAllLink}}
     </div>
     """
 
