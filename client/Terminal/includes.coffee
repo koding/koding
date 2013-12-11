@@ -14,6 +14,8 @@ module.exports = [
   "src/StyledText.coffee",
   "src/Terminal.coffee",
 
+  "styl/app.terminal.styl",
+
   # Terminal Themes
   "themes/green-on-black.styl",
   "themes/gray-on-black.styl",

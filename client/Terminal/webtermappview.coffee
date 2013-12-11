@@ -29,6 +29,42 @@ class WebTermAppView extends JView
     @on "KDObjectWillBeDestroyed", ->
       KD.getSingleton("mainView").disableFullscreen()
 
+    @messagePane = new KDCustomHTMLView
+      cssClass   : 'message-pane'
+      partial    : 'Loading Terminal...'
+
+    @tabView.on 'AllTabsClosed', =>
+      @setMessage """
+        All tabs are closed. You can create a new
+        Terminal by clicking (+) Plus button on top left.
+      """, yes
+
+  setMessage:(msg, light = no)->
+    @messagePane.updatePartial msg
+    if light
+    then @messagePane.setClass   'light'
+    else @messagePane.unsetClass 'light'
+    @messagePane.show()
+
+  checkVM:->
+
+    # KD.mixpanel "Click open Webterm", vmName
+
+    vmController = KD.getSingleton 'vmController'
+    vmController.fetchDefaultVmName (vmName)=>
+
+      unless vmName
+        return @setMessage "It seems you don't have a VM to use with Terminal."
+
+      vmController.info vmName, KD.utils.getTimedOutCallback (err, vm, info)=>
+
+        @addNewTab vmName  if info?.state is 'RUNNING'
+        KD.mixpanel "Opened Webterm", vmName
+
+      , =>
+        @setMessage "Failed to fetch VM Info, please try again later."
+      , 5000
+
   showApprovalModal: (remote, command)->
     modal = new KDModalView
       title   : "Warning!"
@@ -62,6 +98,8 @@ class WebTermAppView extends JView
 
   getAdvancedSettingsMenuView: (item, menu)->
     pane = @tabView.getActivePane()
+    return  unless pane
+
     {webTermView} = pane.getOptions()
     settingsView = new KDView
       cssClass: "editor-advanced-settings-menu"
@@ -109,28 +147,54 @@ class WebTermAppView extends JView
 
   viewAppended: ->
     super
-    @addNewTab()
+    @checkVM()
 
-  addNewTab: ->
-    if @_secondTab
-      KD.mixpanel "Click open new Webterm tab"
+  createNewTab:(vmName)->
 
-    @_secondTab = yes
+    webTermView   = new WebTermView
+      testPath    : "webterm-tab"
+      delegate    : this
+      vmName      : vmName
 
-    webTermView = new WebTermView
-      testPath: "webterm-tab"
-      delegate: this
-
-    pane = new KDTabPaneView
-      name: 'Terminal'
-      webTermView: webTermView
+    pane          = new KDTabPaneView
+      name        : 'Terminal'
+      webTermView : webTermView
 
     @tabView.addPane pane
     pane.addSubView webTermView
 
+    # webTermView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
+
+  addNewTab: (vmName)->
+
+    @messagePane.hide()
+
+    if not @tabHandleContainer.plusHandle
+      @tabHandleContainer.addPlusHandle()
+
+    if @_secondTab
+      KD.mixpanel "Click open new Webterm tab"
+
+    @_secondTab   = yes
+
+    unless vmName
+      @utils.defer =>
+
+        vmc = KD.getSingleton 'vmController'
+        if vmc.vms.length > 1
+          vmselection = new VMSelection
+          vmselection.once 'VMSelected', (vm)=> @createNewTab vm
+        else
+          @createNewTab vmc.vms.first
+
+    else
+      @createNewTab vmName
+
+
   pistachio: ->
     """
       {{> @tabHandleContainer}}
+      {{> @messagePane}}
       {{> @tabView}}
     """
 
