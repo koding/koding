@@ -123,7 +123,7 @@ resurrection.activity.styl
       size              269px, auto
 
     .active-users
-    .active-topics
+    .activity-ticker
       margin-top        18px
 
     .right-block-box
@@ -133,18 +133,18 @@ resurrection.activity.styl
       h3
         display         block
         font-size       14px
-        font-weight     500
+        font-weight     400
         color           #37b298
         margin          0 0 17px 0
 
       .kdscrollview
-        size            269px, 330px
+        size            283px, 212px
         padding         0 30px 0 0
 
     .kdlistitemview-activity-ticker-item
-      size              auto, 55px
+      size              auto, 53px
       position          relative
-      padding           11px 0 11px 0
+      padding           11px 0 0
       margin            0 0 0 44px
       overflow          visible
       border-bottom     1px solid #d3d3d3
@@ -178,7 +178,7 @@ resurrection.activity.styl
         size            30px, 30px
         rounded         5px
         display         block
-        left            -44px
+        left            -42px
         top             1px
         abs()
 
@@ -186,16 +186,45 @@ resurrection.activity.styl
         size            25px, 25px
         padding         0
         margin          4px 0 0
-        rounded         50%
+        rounded         13px
         bg              color, transparent
-        border          none
-        fr()
+        border          2px solid #b5b5b5
+        right           0
+        vendor          transition, width .1s ease \,\
+                                    border-color .3s ease
+        abs()
         .icon
+          padding       0
+          margin        2px 0 0 4px
           sprite        activity, "follow-check"
 
+        .button-title
+          z-index       -1
+          opacity       0
+          right         0
+          top           4px
+          font-size     12px
+          color         #b5b5b5
+          vendor        transition, opacity .4s ease
+          abs()
+
+        &:hover
+          width         64px
+          background    #ebebeb
+          .button-title
+            right       4px
+            z-index     1
+            opacity     1
+
         &.following-account
+        &.following-topic
+          border-color  #2eb398
           .icon
             sprite      activity, "following-check"
+          .button-title
+            color       #2eb398
+          &:hover
+            width         78px
 
     .activity-ticker
       .profile
@@ -461,7 +490,7 @@ span.collapsedtext
           content         "\2022"
           display         block
           font-size       18px
-          left            -11px
+          left            -12px
           top             -3px
           color           #d8d8d8
           abs()
@@ -521,7 +550,7 @@ span.collapsedtext
       display     block
       left        5px
       top         5px
-      rounded     5px
+      rounded     3px
       z-index     10
       abs()
 
@@ -552,7 +581,7 @@ span.collapsedtext
 
 /* Embed Styles */
 .embed-image-view
-  margin                20px 0 -22px
+  margin                20px 0 8px
   border-top            2px solid #e4e4e4
 
   a
