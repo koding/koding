@@ -2,7 +2,7 @@
 
 module.exports = class JUrlAlias extends Model
 
-  {secure} = require 'bongo'
+  {secure, signature} = require 'bongo'
 
   @share()
 
