@@ -231,9 +231,8 @@ class NFinderContextMenuController extends KDController
         action                    : 'upload'
 
     if fileView.expanded
-      delete items.Expand
-    else
-      delete items.Collapse
+    then delete items.Expand
+    else delete items.Collapse
 
     return items
 

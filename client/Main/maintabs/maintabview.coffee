@@ -102,7 +102,7 @@ class MainTabView extends KDTabView
       if leftPane.mainView
         @appManager.showInstance @appManager.getByView leftPane.mainView
     else
-      @router.handleRoute "/Activity"
+      @router.handleRoute @router.currentPath
 
   createTabPane:(options = {}, mainView)->
 

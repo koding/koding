@@ -8,19 +8,21 @@ class ApplicationTabHandleHolder extends KDView
 
     super options, data
 
-    if options.addPlusHandle
-      @on 'PlusHandleClicked', => @getDelegate().addNewTab()
-
   viewAppended: ->
     @addPlusHandle()  if @getOptions().addPlusHandle
 
   addPlusHandle: ->
+    @plusHandle?.destroy()
+
     @addSubView @plusHandle = new KDCustomHTMLView
       cssClass : "kdtabhandle visible-tab-handle plus"
       partial  : "<span class='icon'></span>"
       delegate : @
       click: =>
         @emit "PlusHandleClicked"
+
+    @off 'PlusHandleClicked'
+    @on  'PlusHandleClicked', => @getDelegate().addNewTab()
 
   repositionPlusHandle: (handles) ->
     handlesLength = handles.length
