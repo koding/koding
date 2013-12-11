@@ -119,7 +119,7 @@ module.exports = class JName extends Model
 
     fetchModels = (name, callback)->
       if 'string' is typeof name
-        @one {name}, (err, nameObj)->
+        JName.one {name}, (err, nameObj)->
           if err then callback err
           else if nameObj?
             fetchByNameObject nameObj, callback
