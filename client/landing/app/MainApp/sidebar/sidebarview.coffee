@@ -40,9 +40,10 @@ class Sidebar extends JView
       items     : []
 
     navAdditions = [
-      { type  : 'separator',            order : 65 }
+      { type  : 'separator',            order : 64 }
       # { title : 'Invite Friends', order : 66,  type : 'account',   role : 'member' }
-      { title : 'Up to 16GB free!',     order : 66,  type : 'account promote', promote: yes,   role : 'member' }
+      { title : 'Nominate Koding',      order : 65,  type : 'account promote', nominate: yes }
+      { title : 'Up to 16GB free!',     order : 66,  type : 'account promote', promote: yes, role : 'member' }
       { title : 'Docs / Jobs',          order : 67,  type : 'account docs', docs : yes }
       { type  : 'separator',            order : 99 }
       { title : 'Logout',               order : 100, path : '/Logout',   type : 'account', loggedIn : yes }

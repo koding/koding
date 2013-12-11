@@ -138,6 +138,7 @@ module.exports = [
   "app/MainApp/navigation/navigationappslink.coffee",
   "app/MainApp/navigation/navigationdocsjobslink.coffee",
   "app/MainApp/navigation/navigationpromotelink.coffee",
+  "app/MainApp/navigation/navigationnominatelink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",
@@ -538,6 +539,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/views/deleteaccountview.coffee",
   "app/Applications/Account.kdapplication/views/gmailcontact.coffee",
   "app/Applications/Account.kdapplication/views/referrermodal.coffee",
+  "app/Applications/Account.kdapplication/views/nominatemodal.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # GROUP DASHBOARD
