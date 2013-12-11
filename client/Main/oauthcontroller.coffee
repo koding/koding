@@ -3,8 +3,6 @@
 #   KD.singletons.oauthController.authCompleted null, "github"
 class OAuthController extends KDController
   openPopup: (provider)->
-    return new KDNotificationView title: "Login restricted"
-
     KD.singleton('appManager').create 'Login', =>
 
       (KD.getSingleton 'mainController').isLoggingIn on
