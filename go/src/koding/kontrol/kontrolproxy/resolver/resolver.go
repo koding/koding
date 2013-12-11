@@ -39,11 +39,11 @@ const (
 	CookieBuildName  = "kdproxy-preferred-build"
 	CookieDomainName = "kdproxy-preferred-domain"
 
-	ModeMaintenance = "ModeMaintenance"
-	ModeInternal    = "ModeInternal"
-	ModeVM          = "ModeVM"
-	ModeVMOff       = "ModeVMOff"
-	ModeRedirect    = "ModeRedirect"
+	ModeMaintenance = "maintenance"
+	ModeInternal    = "internal"
+	ModeVM          = "vm"
+	ModeVMOff       = "vmOff"
+	ModeRedirect    = "redirect"
 )
 
 // Target is returned for every incoming request host.
@@ -88,30 +88,37 @@ func newTarget(url *url.URL, mode string, timeout time.Duration) *Target {
 
 // GetTarget is used to get the target according to the incoming request
 func GetTarget(req *http.Request) (*Target, error) {
-	var target *Target
-	var err error
+	target, err := GetTargetByCookie(req)
+	if err == nil {
+		return target, nil
+	}
 
+	// if cookie is not set, use request host data, this is also a fallback
+	return MemTargetByHost(req.Host)
+}
+
+// GetTargetByCookie looks if a request has set cookies to change the target.
+// It looks for CookieBuildName and CookieDomainName.
+func GetTargetByCookie(req *http.Request) (*Target, error) {
 	cookieBuild, err := req.Cookie(CookieBuildName)
-	if err != http.ErrNoCookie {
-		target, err = MemTargetByBuild(cookieBuild.Value)
-		if err == nil && target.Mode == ModeInternal {
+	if err == nil {
+		targetBuild, err := MemTargetByBuild(cookieBuild.Value)
+		if err == nil && targetBuild.Mode == ModeInternal {
 			log.Printf("proxy target is overridden by cookie. Using BUILD '%s'\n", cookieBuild.Value)
-			return target, nil
+			return targetBuild, nil
 		}
-		// falltrough
 	}
 
 	cookieDomain, err := req.Cookie(CookieDomainName)
-	if err != http.ErrNoCookie {
-		target, err = MemTargetByHost(cookieDomain.Value)
-		if err == nil && target.Mode == ModeInternal {
+	if err == nil {
+		targetDomain, err := MemTargetByHost(cookieDomain.Value)
+		if err == nil && targetDomain.Mode == ModeInternal {
 			log.Printf("proxy target is overrriden by cookie. Using DOMAIN '%s'\n", cookieDomain.Value)
-			return target, nil
+			return targetDomain, nil
 		}
-		// falltrough
 	}
 
-	return MemTargetByHost(req.Host)
+	return nil, errors.New("cookies are not set")
 }
 
 // TODO: make it an interface capable function and merge with MemTargetByHost

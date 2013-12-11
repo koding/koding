@@ -386,6 +386,7 @@ func securePageHandler(userIP string) http.Handler {
 		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
 		if err != nil {
 			logs.Err(fmt.Sprintf("template securepage could not be executed %s", err))
+			http.Error(w, "error code - 2", 404)
 			return
 		}
 	})
@@ -441,7 +442,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
 			logs.Warning(fmt.Sprintf("template %s could not be executed", path))
-			http.Error(w, "error code -1", 404)
+			http.Error(w, "error code - 1", 404)
 			return
 		}
 	})
