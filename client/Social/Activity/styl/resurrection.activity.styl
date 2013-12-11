@@ -168,6 +168,8 @@ resurrection.activity.styl
 
     .active-topics
     .active-users
+      .kdlistitemview-activity-ticker-item
+        width           269px
       .ttag
         size            170px, 42px
         font-weight     400
@@ -533,8 +535,12 @@ span.collapsedtext
   border-top            2px solid #e4e4e4
 
   .preview-image
+    overflow            hidden
     size                144px, 100px
     fl()
+
+    img
+      max-width         100%
 
     &+.preview-text
       kalc              width, 100% \- 144px
@@ -742,6 +748,9 @@ body.profile
       color           #485259
       margin          0 0 13px 0
 
+    .kdscrollview
+      width           325px
+
   &.activity-right-block
     size                302px, auto
 
@@ -821,6 +830,60 @@ p.status-body
     code
       display             block
       padding             14px
+
+.activity-share-popup
+  bg                      color, #fff
+  margin                  4px 0 0 14px
+  rounded                 6px
+  border                  1px solid #e4e4e4
+  shadow                  0 8px 35px rgba(0, 0, 0, .22)
+  padding                 5px 13px 5px 5px
+
+  &:after
+    content             ""
+    display             block
+    size                0 0
+    left                98px
+    top                 100%
+    border              7px solid transparent
+    border-top-color    #fff
+    z-index             600
+    abs()
+
+  &:before
+    content             ""
+    display             block
+    size                0 0
+    left                97px
+    top                 100%
+    border              8px solid transparent
+    border-top-color    #e4e4e4
+    z-index             599
+    abs()
+
+  .context-list-wrapper
+    padding               0
+
+  input.share-input
+    rounded               6px
+    size                  160px, 40px
+    margin                0
+    fl()
+
+  .icon-link
+    size                  24px, 24px
+    margin                8px 0 0 8px
+    fl()
+    &.custom-link-view
+      sprite              activity, "link-24"
+    &.share-twitter
+      sprite              activity, "twitter-24"
+    &.share-facebook
+      sprite              activity, "facebook-24"
+    &.share-linkedin
+      sprite              activity, "linkedin-24"
+
+
 
 /* Temp style for contentdisplay */
 

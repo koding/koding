@@ -90,11 +90,14 @@ class NFinderTreeController extends JTreeViewController
     {vmName} = nodeView.data
     @appManager.open "Terminal", params: {vmName}, forceNew: yes
 
-  setDotFiles:(nodeView, show=yes)->
+  toggleDotFiles:(nodeView)->
+
+    finder         = @getDelegate()
     {vmName, path} = nodeView.getData()
-    finder = @getDelegate()
-    unless show then finder.hideDotFiles vmName
-    else finder.showDotFiles vmName
+
+    if finder.isNodesHiddenFor vmName
+    then finder.showDotFiles vmName
+    else finder.hideDotFiles vmName
 
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
@@ -465,8 +468,7 @@ class NFinderTreeController extends JTreeViewController
   cmCollapse:      (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
   cmMakeTopFolder: (nodeView, contextMenuItem)-> @makeTopFolder nodeView
   cmRefresh:       (nodeView, contextMenuItem)-> @refreshFolder nodeView
-  cmShowDotFiles:  (nodeView, contextMenuItem)-> @setDotFiles nodeView, yes
-  cmHideDotFiles:  (nodeView, contextMenuItem)-> @setDotFiles nodeView, no
+  cmToggleDotFiles:(nodeView, contextMenuItem)-> @toggleDotFiles nodeView
   cmResetVm:       (nodeView, contextMenuItem)-> @resetVm nodeView
   cmUnmountVm:     (nodeView, contextMenuItem)-> @unmountVm nodeView
   cmOpenVmTerminal:(nodeView, contextMenuItem)-> @openVmTerminal nodeView

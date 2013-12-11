@@ -1,7 +1,7 @@
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 
-likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
+likeableActivities = ['JCodeSnip', 'JNewStatusUpdate', 'JDiscussion',
                       'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
                       'JBlogPost']
 
@@ -277,7 +277,7 @@ module.exports = class JAccount extends jraphical.Module
       content       :
         as          : 'creator'
         targetType  : [
-          "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
+          "CActivity", "JNewStatusUpdate", "JCodeSnip", "JComment", "JReview"
           "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial",
           "JBlogPost"
         ]

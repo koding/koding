@@ -10,7 +10,7 @@ module.exports = class GraphDecorator
     'JCodeSnip'     : SingleActivityDecorator
     'JDiscussion'   : SingleActivityDecorator
     'JBlogPost'     : SingleActivityDecorator
-    'JStatusUpdate' : SingleActivityDecorator
+    'JNewStatusUpdate' : SingleActivityDecorator
 
   @decorateSingles:(data, callback)->
     cacheObjects    = {}

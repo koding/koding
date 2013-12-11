@@ -4,7 +4,7 @@ class ContentDisplayControllerMember extends KDViewController
     "JLink"
     "JBlogPost"
     "JTutorial"
-    "JStatusUpdate"
+    "JNewStatusUpdate"
     "JComment"
     "JOpinion"
     "JDiscussion"
@@ -113,19 +113,19 @@ class ContentDisplayControllerMember extends KDViewController
       listCssClass          : "activity-related"
       limitPerPage          : 8
       useHeaderNav          : yes
-      delegate              : @getOption 'delegate'
-      help                  :
-        subtitle            : "Learn Personal feed"
-        tooltip             :
-          title             : "<p class='bigtwipsy'>This is the personal feed of a single Koding user.</p>"
-          placement         : "above"
+      delegate              : @getDelegate()
+      # help                  :
+      #   subtitle            : "Learn Personal feed"
+      #   tooltip             :
+      #     title             : "<p class='bigtwipsy'>This is the personal feed of a single Koding user.</p>"
+      #     placement         : "above"
       filter                :
-        everything          : @createFilter("Everything", account, 'Everything')
-        statuses            : @createFilter("Status Updates", account, 'JStatusUpdate')
-        codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
-        blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
-        discussions         : @createFilter("Discussions", account, 'JDiscussion')
-        tutorials           : @createFilter("Tutorials", account, 'JTutorial')
+        # everything          : @createFilter("Everything", account, 'Everything')
+        statuses            : @createFilter("Status Updates", account, 'JNewStatusUpdate')
+        # codesnips           : @createFilter("Code Snippets", account, 'JCodeSnip')
+        # blogposts           : @createFilter("Blog Posts", account, 'JBlogPost')
+        # discussions         : @createFilter("Discussions", account, 'JDiscussion')
+        # tutorials           : @createFilter("Tutorials", account, 'JTutorial')
       sort                  :
         'likesCount'  :
           title             : "Most popular"
