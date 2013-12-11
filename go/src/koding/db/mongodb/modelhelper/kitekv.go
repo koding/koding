@@ -10,9 +10,11 @@ import (
 	"time"
 )
 
-const KiteKeyValueCollection = "jKiteKV"
-const KiteKeyValueDatabase = "kite"
-const AutoExpire = false
+const (
+	KiteKeyValueCollection = "jKiteKV"
+	KiteKeyValueDatabase   = "kite"
+	AutoExpire             = false
+)
 
 func NewKeyValue(userName, kiteName, environment, key string) *models.KiteKeyValue {
 	// mongodb has 24k number of collection limit in a single database
