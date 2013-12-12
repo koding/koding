@@ -44,7 +44,7 @@ class StatusActivityItemView extends ActivityItemChild
       {{> @avatar}}
       {{> @settingsButton}}
       {{> @author}}
-      <p class="status-body">{{@formatContent #(body)}}</p>
+      <span class="status-body">{{@formatContent #(body)}}</span>
       {{> @embedBox}}
       <footer>
         {{> @actionLinks}}
