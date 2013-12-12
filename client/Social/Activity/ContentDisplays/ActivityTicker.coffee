@@ -170,7 +170,13 @@ class ActivityTicker extends ActivityRightBase
           return console.log "subject is not found", err, data.subject if err or not subject
 
           eventObj = {source, target, subject, as:"like"}
-          @addNewItem eventObj, 0
+          if subject.bongo_.constructorName is "JNewStatusUpdate"
+            @fetchTags subject, (err, tags)=>
+              return log "discarding event, invalid data"  if err
+              subject.tags = tags
+              @addNewItem eventObj, 0
+          else
+            @addNewItem eventObj, 0
 
   addComment: (data) ->
     {origin, reply, subject, replier} = data
