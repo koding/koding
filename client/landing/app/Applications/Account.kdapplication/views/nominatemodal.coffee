@@ -4,7 +4,6 @@ class NominateModal extends KDModalView
     options.cssClass       = "nominate-modal"
     options.width          = 400
     options.overlay       ?= yes
-    options.url          or= KD.getReferralUrl KD.nick()
 
     super options, data
 
@@ -15,12 +14,14 @@ class NominateModal extends KDModalView
       partial : """
         <div class="logo"></div>
         <div class="header"></div>
+
         <h2>
           Nominate Koding for
         </h2>
         <h1>
           Best New Startup 2013
         </h1>
+
         <p>
           The
           <a href="http://techcrunch.com/events/7th-annual-crunchies-awards/" target="_blank">7th Annual Crunchies Awards</a> are here and we at Koding
