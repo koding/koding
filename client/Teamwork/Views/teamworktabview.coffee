@@ -92,7 +92,10 @@ class TeamworkTabView extends CollaborativePane
   createDashboard: ->
     return @tabView.showPane @dashboard  if @dashboard
 
-    @dashboard = new KDTabPaneView title: "Dashboard"
+    @dashboard = new KDTabPaneView
+      title    : "Dashboard"
+      indexKey : "dashboard"
+
     dashboard  = new TeamworkDashboard
       delegate : @workspace.getDelegate()
 
@@ -101,7 +104,11 @@ class TeamworkTabView extends CollaborativePane
     @dashboard.once "KDObjectWillBeDestroyed", =>
       @dashboard = null
 
-    @keysRef.push type: "dashboard"  if @amIHost
+    if @amIHost
+      @keysRef.push
+        type     : "dashboard"
+        indexKey : "dashboard"
+
 
   openFile: (file, content) ->
     @createEditor file, content
@@ -120,10 +127,11 @@ class TeamworkTabView extends CollaborativePane
         indexKey   : indexKey
 
 
-  createEditor: (file, content = "", sessionKey) ->
+  createEditor: (file, content = "", sessionKey, indexKey) ->
     isLocal  = not file
     file     = file or FSHelper.createFileFromPath "localfile:/untitled.txt"
-    pane     = new KDTabPaneView title: file.name
+    indexKey = indexKey or @createSessionKey()
+    pane     = new KDTabPaneView { title: file.name, indexKey }
     delegate = @getDelegate()
     editor   = new CollaborativeEditorPane { delegate, sessionKey, file, content }
 
@@ -133,14 +141,16 @@ class TeamworkTabView extends CollaborativePane
         type      : "editor"
         sessionKey: editor.sessionKey
         filePath  : file.path
+        indexKey  : indexKey
 
     @workspace.addToHistory "$0 opened a new editor"  if isLocal
 
-  createTerminal: (sessionKey) ->
-    pane         = new KDTabPaneView title: "Terminal"
-    klass        = if @isJoinedASession then SharableClientTerminalPane else SharableTerminalPane
-    delegate     = @getDelegate()
-    terminal     = new klass { delegate, sessionKey }
+  createTerminal: (sessionKey, indexKey) ->
+    indexKey = indexKey or @createSessionKey()
+    pane     = new KDTabPaneView { title: "Terminal", indexKey }
+    klass    = if @isJoinedASession then SharableClientTerminalPane else SharableTerminalPane
+    delegate = @getDelegate()
+    terminal = new klass { delegate, sessionKey }
 
     @appendPane_ pane, terminal
 
@@ -148,6 +158,7 @@ class TeamworkTabView extends CollaborativePane
       terminal.on "WebtermCreated", =>
         @keysRef.push
           type       : "terminal"
+          indexKey   : indexKey
           sessionKey :
             key      : terminal.remote.session
             host     : KD.nick()
@@ -155,8 +166,9 @@ class TeamworkTabView extends CollaborativePane
 
     @workspace.addToHistory "$0 opened a new terminal"
 
-  createPreview: (sessionKey) ->
-    pane     = new KDTabPaneView title: "Browser"
+  createPreview: (sessionKey, indexKey) ->
+    indexKey = indexKey or @createSessionKey()
+    pane     = new KDTabPaneView { title: "Browser", indexKey }
     delegate = @getDelegate()
     preview  = new CollaborativePreviewPane { delegate, sessionKey }
 
@@ -166,6 +178,7 @@ class TeamworkTabView extends CollaborativePane
       @keysRef.push
         type      : "preview"
         sessionKey: preview.sessionKey
+        indexKey  : indexKey
 
     @workspace.addToHistory "$0 opened a new browser"
 
