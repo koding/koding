@@ -60,6 +60,7 @@ module.exports = [
   "CommonViews/formworkflow/history.coffee",
   "CommonViews/formworkflow/collector.coffee",
   "CommonViews/formworkflow/modal.coffee",
+  # "CommonViews/formworkflow/visualization.coffee",
 
   # FIXME ~ GG
   "navigation/navigationcontroller.coffee",
@@ -167,6 +168,7 @@ module.exports = [
   "payment/planupgradeform.coffee",
   "payment/planupgradeconfirmform.coffee",
   "payment/packchoiceform.coffee",
+  "payment/existingaccountworkflow.coffee",
 
 
   # BOOK
@@ -253,6 +255,7 @@ module.exports = [
   # "styl/resurrection.activity.styl",
   # "styl/resurrection.apps.styl",
   "styl/resurrection.commons.styl",
+  # "styl/formworkflow.styl"
   # "styl/resurrection.feeder.styl",
 
 ]

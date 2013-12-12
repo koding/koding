@@ -106,6 +106,9 @@ module.exports = class JPaymentMethod extends Module
 
           ipAddress = session.clientIPAddress or '(Unknown IP address)'
 
+          firstName ?= formData.cardFirstName
+          lastName ?= formData.cardLastName
+
           accountData = { ipAddress, username, email, firstName, lastName }
 
           recurly.setAccountDetailsByPaymentMethodId @paymentMethodId, accountData, (err, rAccountData) =>

@@ -18,7 +18,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
     sharedMethods   :
       static        : [
         'fetchUserSubscriptions'
-        'fetchUserSubscriptionsWithPlan'
         'checkUserSubscription'
       ]
       instance      : [
@@ -74,21 +73,6 @@ module.exports = class JPaymentSubscription extends jraphical.Module
           subscriptions[paymentMethodId] = subs  if subs.length
           queue.fin()
       dash queue, -> callback null, subscriptions
-
-  @fetchUserSubscriptionsWithPlan = secure (client, callback)->
-    @fetchUserSubscriptions client, (err, subs)->
-      return callback err      if err
-      return callback null, [] unless subs
-
-      planCode = $in: (sub.planCode for sub in subs)
-      JPaymentPlan = require './plan'
-      JPaymentPlan.some { planCode }, {}, (err, plans)->
-        return callback err  if err
-        planMap = {}
-        planMap[plan.planCode] = plan  for plan in plans
-        sub.plan = planMap[sub.planCode]  for sub in subs
-
-        callback null, subs
 
   @checkUserSubscription = secure ({connection:{delegate}}, planCode, callback)->
     throw Error 'reimplement this!'
