@@ -15,6 +15,14 @@ class TeamworkTabView extends CollaborativePane
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder
       delegate       : this
+    @indexRef.on "value", (snapshot) =>
+      key = snapshot.val()
+      return unless key
+
+      for pane in @tabView.panes
+        if pane.getOptions().indexKey is key
+          @tabView.showPaneByIndex @tabView.getPaneIndex pane
+
 
     @tabView = new ApplicationTabView
       delegate                  : this
