@@ -9,8 +9,8 @@ class ChatAppController extends AppController
     super options, data
 
     notificationController = KD.getSingleton 'notificationController'
-    notificationController.on 'chatRequest', @bound 'handleChatRequest'
-    notificationController.on 'chatOpen', @bound 'handleChatOpen'
+    # notificationController.on 'chatRequest', @bound 'handleChatRequest'
+    # notificationController.on 'chatOpen', @bound 'handleChatOpen'
 
     @channels = {}
 

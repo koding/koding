@@ -175,28 +175,6 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
           else
             res.send 200, authTemplate "Authentication already established!"
 
-
-s3 = require('./s3') uploads.s3, findUsernameFromKey
-app.post "/-/kd/upload", s3..., (req, res)->
-  {JUserKite} = koding.models
-  for own key, file of req.files
-    console.log "--------------------------------->>>>>>>>>>", req.account
-    zipurl = "#{uploads.distribution}#{file.path}"
-    JUserKite.fetchOrCreate
-      kitename      : file.filename
-      latest_s3url  : zipurl
-      account_id    : req.account._id
-      hash: req.fields.hash
-    , (err, userkite)->
-      if err
-        console.log "error", err
-        return res.send err
-      userkite.newVersion (err)->
-        if not err
-          res.send {url:zipurl, version: userkite.latest_version, hash:req.fields.hash}
-        else
-          res.send err
-
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
@@ -220,39 +198,6 @@ app.get "/sitemap:sitemapName", (req, res)->
       res.setHeader 'Content-Type', 'text/xml'
       res.send sitemap.content
     res.end
-
-if uploads?.enableStreamingUploads
-
-  s3 = require('./s3') uploads.s3, findUsernameFromSession
-
-  app.post '/Upload', s3..., (req, res)->
-    res.send(for own key, file of req.files
-      filename  : file.filename
-      resource  : nodePath.join uploads.distribution, file.path
-    )
-
-  # app.get '/Upload/test', (req, res)->
-  #   res.send \
-  #     """
-  #     <script>
-  #       function submitForm(form) {
-  #         var file, fld;
-  #         input = document.getElementById('image');
-  #         file = input.files[0];
-  #         fld = document.createElement('input');
-  #         fld.hidden = true;
-  #         fld.name = input.name + '-size';
-  #         fld.value = file.size;
-  #         form.appendChild(fld);
-  #         return true;
-  #       }
-  #     </script>
-  #     <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
-  #       <p>Title: <input type="text" name="title" /></p>
-  #       <p>Image: <input type="file" name="image" id="image" /></p>
-  #       <p><input type="submit" value="Upload" /></p>
-  #     </form>
-  #     """
 
 app.get "/-/presence/:service", (req, res) ->
   # if services[service] and services[service].count > 0
