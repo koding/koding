@@ -53,19 +53,7 @@ class ActivityItemChild extends KDView
       delegate : list
     , data
 
-    account = KD.whoami()
-    if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
-      @settingsButton = new KDButtonViewWithMenu
-        cssClass       : 'activity-settings-menu'
-        itemChildClass : ActivityItemMenuItem
-        title          : ''
-        icon           : yes
-        delegate       : @
-        iconClass      : "arrow"
-        menu           : @settingsMenu data
-        callback       : (event)=> @settingsButton.contextMenu event
-    else
-      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+    @settingsButton = new ActivitySettingsView null, data
 
     super options, data
 
@@ -75,7 +63,7 @@ class ActivityItemChild extends KDView
       activityItem.destroy() #FIXME
       activityItem.slideOut -> activityItem.destroy()
 
-    @on 'ActivityIsDeleted', =>
+    @settingsButton.on 'ActivityIsDeleted', =>
       activityItem = @getDelegate()
       deleteActivity activityItem
 
@@ -104,80 +92,7 @@ class ActivityItemChild extends KDView
     KD.remote.cacheable data.originType, data.originId, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
-  settingsMenu:(data)->
 
-    account        = KD.whoami()
-
-    if data.originId is KD.whoami().getId()
-      menu =
-        'Edit'     :
-          callback : =>
-            KD.getSingleton("appManager").tell "Activity", "editActivity", this
-        'Delete'   :
-          callback : =>
-            @confirmDeletePost data
-
-      return menu
-
-    if KD.checkFlag 'super-admin'
-      if KD.checkFlag 'exempt', account
-        menu =
-          'Unmark User as Troll' :
-            callback             : ->
-              activityController.emit "ActivityItemUnMarkUserAsTrollClicked", data
-      else
-        menu =
-          'Mark User as Troll' :
-            callback           : ->
-              activityController.emit "ActivityItemMarkUserAsTrollClicked", data
-
-      menu['Delete Post'] =
-        callback : =>
-          @confirmDeletePost data
-
-      menu['Block User'] =
-        callback : ->
-          activityController.emit "ActivityItemBlockUserClicked", data.originId
-
-      return menu
-
-
-  confirmDeletePost:(data)->
-
-    modal = new KDModalView
-      title          : "Delete post"
-      content        : "<div class='modalformline'>Are you sure you want to delete this post?</div>"
-      height         : "auto"
-      overlay        : yes
-      buttons        :
-        Delete       :
-          style      : "modal-clean-red"
-          loader     :
-            color    : "#ffffff"
-            diameter : 16
-          callback   : =>
-
-            if data.fake
-              @emit 'ActivityIsDeleted'
-              modal.buttons.Delete.hideLoader()
-              modal.destroy()
-              return
-
-            data.delete (err)=>
-              modal.buttons.Delete.hideLoader()
-              modal.destroy()
-              unless err then @emit 'ActivityIsDeleted'
-              else new KDNotificationView
-                type     : "mini"
-                cssClass : "error editor"
-                title     : "Error, please try again later!"
-        Cancel       :
-          style      : "modal-cancel"
-          title      : "cancel"
-          callback   : ->
-            modal.destroy()
-
-    modal.buttons.Delete.blur()
 
   click: KD.utils.showMoreClickHandler
 
