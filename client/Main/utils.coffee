@@ -29,6 +29,24 @@ __utils.extend __utils,
       endpoint = "/crop"
     return "https://i.embed.ly/1/display#{endpoint or ''}?grow=#{options.grow}&width=#{options.width}&height=#{options.height}&key=#{KD.config.embedly.apiKey}&url=#{encodeURIComponent url}"
 
+
+  # This function checks current user's preferred domain and
+  # set's it to preferredDomainCookie
+  setPreferredDomain:(account)->
+    preferredDomainCookieName = 'kdproxy-preferred-domain'
+
+    {preferredKDProxyDomain} = account
+    if preferredKDProxyDomain and preferredKDProxyDomain isnt ""
+      # if cookie name is already same do nothing
+      return  if $.cookie(preferredDomainCookieName) is preferredKDProxyDomain
+
+      # set cookie name
+      $.cookie preferredDomainCookieName, preferredKDProxyDomain
+
+      # there can be conflicts between first(which is defined below) route
+      # and the currect builds router, so reload to main page from server
+      location.reload(true)
+
   showMoreClickHandler:(event)->
     $trg = $(event.target)
     more = "span.collapsedtext a.more-link"
