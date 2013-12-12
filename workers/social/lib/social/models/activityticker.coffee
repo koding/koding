@@ -16,8 +16,6 @@ module.exports = class ActivityTicker extends Base
   JAccount = require './account'
 
   filterSources = (filters) =>
-    constructorNames  = ["JAccount", "JNewApp", "JGroup", "JTag", "JNewStatusUpdate", "JComment"]
-
     relationshipMap =
       "follower" : ["JTag"]
       "like"     : ["JAccount", "JNewStatusUpdate"]
