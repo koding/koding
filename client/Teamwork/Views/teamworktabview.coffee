@@ -8,25 +8,16 @@ class TeamworkTabView extends CollaborativePane
     @keysRef  = @workspaceRef.child "keys"
     @indexRef = @workspaceRef.child "index"
 
+    @listenIndexRef()
+    @listenChildAddedOnKeysRef()
+    @listenChildRemovedOnKeysRef()
+    @listenPaneDidShow()
+
+  listenPaneDidShow: ->
     @tabView.on "PaneDidShow", (pane) =>
       @indexRef.set pane.getOptions().indexKey
 
-    @indexRef.on "value", (snapshot) =>
-      key = snapshot.val()
-      return unless key
-
-      for pane in @tabView.panes
-        if pane.getOptions().indexKey is key
-          @tabView.showPaneByIndex @tabView.getPaneIndex pane
-
-    @keysRef.on "child_added", (snapshot) =>
-      data    = snapshot.val()
-      key     = data.indexKey
-      {panes} = @tabView
-      isExist = yes for pane in panes when pane.getOptions().indexKey is key
-
-      @createTabFromFirebaseData data  unless isExist
-
+  listenChildRemovedOnKeysRef: ->
     @keysRef.on "child_removed", (snapshot) =>
       data = snapshot.val()
       return unless data
@@ -35,6 +26,24 @@ class TeamworkTabView extends CollaborativePane
       for pane in @tabView.panes
         if pane.getOptions().indexKey is indexKey
           @tabView.removePane pane
+
+  listenChildAddedOnKeysRef: ->
+    @keysRef.on "child_added", (snapshot) =>
+      data    = snapshot.val()
+      key     = data.indexKey
+      {panes} = @tabView
+      isExist = yes for pane in panes when pane.getOptions().indexKey is key
+
+      @createTabFromFirebaseData data  unless isExist
+
+  listenIndexRef: ->
+    @indexRef.on "value", (snapshot) =>
+      key = snapshot.val()
+      return unless key
+
+      for pane in @tabView.panes
+        if pane.getOptions().indexKey is key
+          @tabView.showPaneByIndex @tabView.getPaneIndex pane
 
   createElements: ->
     @tabHandleHolder = new ApplicationTabHandleHolder delegate: this
