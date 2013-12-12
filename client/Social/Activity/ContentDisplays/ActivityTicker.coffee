@@ -103,7 +103,7 @@ class ActivityTicker extends ActivityRightBase
     as     = "author"
 
     @fetchTags source, (err, tags)=>
-      return log "discarding event, invalid data"  if err or not tags
+      return log "discarding event, invalid data"  if err
       source.tags = tags
       @addNewItem {source, target, as}, 0
 
