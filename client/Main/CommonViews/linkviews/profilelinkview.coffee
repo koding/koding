@@ -27,12 +27,10 @@ class ProfileLinkView extends LinkView
 
     @setClass "profile"
 
-  render:->
-
+  render: (fields) ->
     nickname = @getData().profile?.nickname
     @setAttribute "href", "/#{nickname}"  if nickname
-    super
+    super fields
 
   pistachio:->
-
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
