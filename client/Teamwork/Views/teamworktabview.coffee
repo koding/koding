@@ -70,12 +70,12 @@ class TeamworkTabView extends CollaborativePane
         callback  : => @createEditor()
       "Terminal"  :
         callback  : => @createTerminal()
-      "Preview"   :
+      "Browser"   :
         callback  : => @createPreview()
-      "Chat"      :
-        callback  : => @createChat()
       "Drawing Board":
         callback  : => @createDrawingBoard()
+      # "Chat"      :
+      #   callback  : => @createChat()
     }
 
   createTabFromFirebaseData: (data) ->
@@ -110,8 +110,6 @@ class TeamworkTabView extends CollaborativePane
         indexKey : "dashboard"
 
 
-  openFile: (file, content) ->
-    @createEditor file, content
   createDrawingBoard: (sessionKey, indexKey) ->
     indexKey  = indexKey or @createSessionKey()
     pane      = new KDTabPaneView { title: "Drawing Board", indexKey }
@@ -144,6 +142,9 @@ class TeamworkTabView extends CollaborativePane
         indexKey  : indexKey
 
     @workspace.addToHistory "$0 opened a new editor"  if isLocal
+
+  openFile: (file, content) ->
+    @createEditor file, content
 
   createTerminal: (sessionKey, indexKey) ->
     indexKey = indexKey or @createSessionKey()
