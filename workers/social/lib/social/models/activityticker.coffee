@@ -97,15 +97,23 @@ module.exports = class ActivityTicker extends Base
     JAccount.one {"_id": source.originId}, (err, targetAccount)->
       return callback err if err
 
-      modifiedEvent =
-        source    : target
-        target    : targetAccount
-        subject   : source
-        as        : as
-        timestamp : timestamp
+      kallback = ->
+        modifiedEvent =
+          source    : target
+          target    : targetAccount
+          subject   : source
+          as        : as
+          timestamp : timestamp
 
-      callback null, modifiedEvent
+        callback null, modifiedEvent
 
+      if source.bongo_.constructorName is "JNewStatusUpdate"
+        source.fetchTags (err, tags) ->
+          return callback err if err
+          source.tags = tags
+          do kallback
+      else
+        do kallback
 
   @fetch = secure (client, options = {}, callback) ->
     {connection: {delegate}} = client
