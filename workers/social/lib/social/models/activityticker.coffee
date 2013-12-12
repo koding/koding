@@ -33,12 +33,12 @@ module.exports = class ActivityTicker extends Base
     return sources
 
   filterTargets = (filters) ->
-    constructorNames = ["follower", "like", "member", "user"]
+    validFilters = ["follower", "like", "member", "user"]
     targets = []
     # The only possible options are either returning only "JAccount" or
     # returning whole constructorNames. I left this function for future-cases.
     for filter in filters
-      if filter in constructorNames
+      if filter in validFilters
         targets.push "JAccount"
         return targets
     return constructorNames
