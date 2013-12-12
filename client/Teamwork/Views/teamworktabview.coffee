@@ -6,7 +6,7 @@ class TeamworkTabView extends CollaborativePane
 
     @createElements()
     @keysRef  = @workspaceRef.child "keys"
-    @stateRef = @workspaceRef.child "state"
+    @indexRef = @workspaceRef.child "index"
 
     @recoverSession()  if @isJoinedASession
 
